@@ -15,7 +15,11 @@
  **********************************************************************}
 begin
 asm
+{$ifdef regcall}
+        movl    %eax,%esi
+{$else}
         movl    p,%esi
+{$endif}
         movl    $1,%ecx
         testl   %esi,%esi
         movl    %esi,%eax
@@ -92,7 +96,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:19  peter
+  Revision 1.3  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.2  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

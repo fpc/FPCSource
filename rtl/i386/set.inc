@@ -25,7 +25,9 @@ var
 asm
         movl    %edi,saveedi
         movl    __RESULT,%edi
+{$ifndef REGCALL}
         movl    l,%eax
+{$endif}
         stosl
         xorl    %eax,%eax
         movl    $7,%ecx
@@ -48,14 +50,19 @@ asm
         pushl   %ecx
 {$endif not hascompilerproc}
         movl    %edi,saveedi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        andl    $0xff,%edx
+{$else}
+        movzbl  b,%edx
         movl    __RESULT,%edi
+{$endif}
         xorl    %eax,%eax
         movl    $8,%ecx
         rep
         stosl
         leal    -32(%edi),%eax
-        movzbl  b,%edi
-        btsl    %edi,(%eax)
+        btsl    %edx,(%eax)
         movl    saveedi,%edi
 {$ifndef hascompilerproc}
         popl    %ecx
@@ -76,13 +83,19 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    $8,%ecx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movzbl  %cl,%edx
+{$else}
         movl    source,%esi
+        movzbl  b,%edx
         movl    __RESULT,%edi
+{$endif}
         rep
         movsl
         leal    -32(%edi),%eax
-        movzbl  b,%edi
-        btsl    %edi,(%eax)
+        btsl    %edx,(%eax)
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -117,14 +130,20 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-        movl    $8,%ecx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movzbl  %cl,%edx
+{$else}
         movl    source,%esi
         movl    __RESULT,%edi
+        movzbl  b,%edx
+{$endif}
+        movl    $8,%ecx
         rep
         movsl
         leal    -32(%edi),%eax
-        movzbl  b,%edi
-        btrl    %edi,(%eax)
+        btrl    %edx,(%eax)
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -162,11 +181,18 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    %ebx,saveebx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movzbl  l,%eax               // lowest bit to be set in eax
+        movzbl  h,%ebx               // highest in ebx
+{$else}
         movzbl l,%eax               // lowest bit to be set in eax
         movzbl h,%ebx               // highest in ebx
-        movl   $8,%ecx              // we have to copy 32 bytes
         movl   __RESULT,%edi        // target set address in edi
         movl   orgset, %esi         // source set address in esi
+{$endif}
+        movl   $8,%ecx              // we have to copy 32 bytes
         cmpl   %eax,%ebx            // high < low?
         rep                         // copy source to dest (it's possible to do the range
         movsl                       // setting and copying simultanuously of course, but
@@ -195,7 +221,7 @@ asm
         subl   $4,%ebx
         jnz    .Lset_range_loop
 .Lset_range_hi:
-        movb   h,%cl
+        movb   h,%cl                // this is ok, h is on the stack
         movl   %edx,%ebx            // save current bitmask
         andb   $31,%cl
         subb   $31,%cl              // cl := (31 - (hi and 31)) = shift count to
@@ -216,11 +242,11 @@ function fpc_set_set_range(l,h : byte): fpc_normal_set;assembler;[public,alias:'
   adds the range [l..h] to the set pointed to by p
 }
 asm
-        movzbl l,%eax              // lowest bit to be set in eax
-        movzbl h,%ebx              // highest in ebx
+        movl    __RESULT,%edi               // set address in edi
+        movzbl  l,%eax              // lowest bit to be set in eax
+        movzbl  h,%ebx              // highest in ebx
         cmpl   %eax,%ebx
         jb     .Lset_range_done
-        movl   __RESULT,%edi               // set address in edi
         movl   %eax,%ecx            // lowest also in ecx
         shrl   $3,%eax              // divide by 8 to get starting and ending byte
         shrl   $3,%ebx              // address
@@ -264,8 +290,13 @@ function fpc_set_in_byte(const p: fpc_normal_set; b: byte): boolean; assembler; 
 }
 asm
 {$ifdef hascompilerproc}
+{$ifdef REGCALL}
+        xchgl %edx,%eax
+        andl $0xff,%eax
+{$else}
        movl   p,%edx
        movzbl b,%eax
+{$endif}
        btl %eax,(%edx)
 {$else hascompilerproc}
        pushl %eax
@@ -292,6 +323,11 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%edx
+{$else}
       movl set1,%esi
       movl set2,%edx
 {$ifdef hascompilerproc}
@@ -299,6 +335,7 @@ asm
 {$else hascompilerproc}
       movl dest,%edi
 {$endif hascompilerproc}
+{$endif}
       movl $8,%ecx
    .LMADDSETS1:
       lodsl
@@ -327,6 +364,11 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%edx
+{$else}
       movl set1,%esi
       movl set2,%edx
 {$ifdef hascompilerproc}
@@ -334,6 +376,7 @@ asm
 {$else hascompilerproc}
       movl dest,%edi
 {$endif hascompilerproc}
+{$endif}
       movl $8,%ecx
   .LMMULSETS1:
       lodsl
@@ -363,6 +406,11 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    %ebx,saveebx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%edx
+{$else}
         movl set1,%esi
         movl set2,%ebx
 {$ifdef hascompilerproc}
@@ -370,6 +418,7 @@ asm
 {$else hascompilerproc}
       movl dest,%edi
 {$endif hascompilerproc}
+{$endif}
         movl $8,%ecx
     .LMSUBSETS1:
         lodsl
@@ -401,6 +450,11 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%edx
+{$else}
         movl set1,%esi
         movl set2,%edx
 {$ifdef hascompilerproc}
@@ -408,6 +462,7 @@ asm
 {$else hascompilerproc}
       movl dest,%edi
 {$endif hascompilerproc}
+{$endif}
         movl $8,%ecx
     .LMSYMDIFSETS1:
         lodsl
@@ -432,8 +487,13 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%esi
+        movl    %edx,%edi
+{$else}
         movl set1,%esi
         movl set2,%edi
+{$endif}
         movl $8,%ecx
     .LMCOMPSETS1:
         movl (%esi),%eax
@@ -466,8 +526,13 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%esi
+        movl    %edx,%edi
+{$else}
         movl set1,%esi
         movl set2,%edi
+{$endif}
         movl $8,%ecx
     .LMCONTAINSSETS1:
         movl (%esi),%eax
@@ -491,6 +556,8 @@ end;
 
 
 {$ifdef LARGESETS}
+
+{$error Needs to be fixed for register calling first!}
 
 procedure fpc_largeset_set_word(p : pointer;b : word);assembler;[public,alias:'FPC_LARGESET_SET_WORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
@@ -653,7 +720,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2003-09-08 18:21:37  peter
+  Revision 1.12  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.11  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.10  2003/05/26 19:36:46  peter

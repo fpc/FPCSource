@@ -20,7 +20,9 @@
 
     procedure Set8087CW(cw:word);assembler;
     asm
+{$ifndef REGCALL}
       movw cw,%ax
+{$endif}
       movw %ax,default8087cw
       fnclex
       fldcw default8087cw
@@ -198,7 +200,10 @@
 
 {
   $Log$
-  Revision 1.15  2003-09-08 18:21:37  peter
+  Revision 1.16  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.15  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.14  2003/04/23 21:28:21  peter

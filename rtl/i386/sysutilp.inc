@@ -22,44 +22,66 @@
 
 function InterLockedDecrement (var Target: integer) : Integer; assembler;
 asm
-        movl    Target, %ecx
+{$ifdef REGCALL}
+        movl    $-1,%edx
+        xchgl   %edx,%eax
+{$else}
+        movl    Target, %edx
         movl    $-1, %eax
+{$endif}
         lock
-        xaddl   %eax, (%ecx)
+        xaddl   %eax, (%edx)
         decl    %eax
 end;
 
 
 function InterLockedIncrement (var Target: integer) : Integer; assembler;
 asm
-        movl    Target, %ecx
+{$ifdef REGCALL}
+        movl    $-1,%edx
+        xchgl   %edx,%eax
+{$else}
+        movl    Target, %edx
         movl    $1, %eax
+{$endif}
         lock
-        xaddl   %eax, (%ecx)
+        xaddl   %eax, (%edx)
         incl    %eax
 end;
 
 
 function InterLockedExchange (var Target: integer;Source : integer) : Integer; assembler;
 asm
+{$ifdef REGCALL}
+        xchgl   (%eax),%edx
+        movl    %edx,%eax
+{$else}
         movl    Target,%ecx
         movl    Source,%eax
-        xchgl   %eax, (%ecx)
+        xchgl   (%ecx),%eax
+{$endif}
 end;
 
 
 function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer; assembler;
 asm
-        movl    Target,%ecx
+{$ifdef REGCALL}
+        xchgl   %eax,%edx
+{$else}
+        movl    Target,%edx
         movl    Source,%eax
+{$endif}
         lock
-        xaddl   %eax, (%ecx)
+        xaddl   %eax, (%edx)
 end;
 
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:19  peter
+  Revision 1.3  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.2  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }

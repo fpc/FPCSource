@@ -28,21 +28,31 @@ asm
 	movl	%edi,saveedi
 	movl    %esi,saveesi
         cld
+{$ifdef REGCALL}	
+        movl    %eax,%edi          // load destination address
+        movl    %edx,%esi          // Load Source adress
+{$else}	
         movl    s,%esi          // Load Source adress
         movl    d,%edi          // load destination address
+{$endif}	
         movzbl  (%esi),%ecx        // load length in ECX
         incl    %esi
         rep
         movsb
         movb    $0,(%edi)
+{$ifndef REGCALL}	
         movl    d,%eax       // return value to EAX
+{$endif}	
 	movl	saveedi,%edi
 	movl    saveesi,%esi
 end;
 
 {
   $Log$
-  Revision 1.9  2003-09-08 18:21:37  peter
+  Revision 1.10  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.9  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.8  2003/07/07 20:22:05  peter

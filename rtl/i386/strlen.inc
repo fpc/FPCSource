@@ -17,8 +17,12 @@
 var
   saveedi : longint;
 asm
-	movl	%edi,saveedi
+        movl    %edi,saveedi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+{$else}
         movl    p,%edi
+{$endif}
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
         cld
@@ -26,13 +30,16 @@ asm
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
-	movl	saveedi,%edi
+        movl    saveedi,%edi
 end;
 
 
 {
   $Log$
-  Revision 1.4  2003-09-08 18:21:37  peter
+  Revision 1.5  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.4  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.3  2002/09/07 16:01:19  peter

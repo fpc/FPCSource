@@ -34,10 +34,16 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+        movl    %eax,%esi
+        movl    %edx,%edi
+        movl    %ecx,%edx
+{$else}
         movl    dest,%edi
         movl    source,%esi
-        movl    %edi,%eax
         movl    count,%edx
+{$endif}
+        movl    %edi,%eax
 { check for zero or negative count }
         cmpl    $0,%edx
         jle     .LMoveEnd
@@ -110,9 +116,15 @@ var
 asm
         movl    %edi,saveedi
         cld
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movb    %cl,%al
+        movl    %edx,%ecx
+{$else}
         movl    x,%edi
         movb    value,%al
         movl    count,%ecx
+{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillEnd
@@ -149,12 +161,18 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movzwl  %cx,%eax
+        movl    %edx,%ecx
+{$else}
         movl    x,%edi
         movl    count,%ecx
+        movzwl  value,%eax
+{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillWordEnd
-        movzwl  value,%eax
         movl    %eax,%edx
         shll    $16,%eax
         orl     %edx,%eax
@@ -178,12 +196,18 @@ var
   saveedi : longint;
 asm
         movl    %edi,saveedi
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %ecx,%eax
+        movl    %edx,%ecx
+{$else}
         movl    x,%edi
         movl    count,%ecx
+        movl    value,%eax
+{$endif}
 { check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillDWordEnd
-        movl    value,%eax
         cld
         rep
         stosl
@@ -195,17 +219,25 @@ end;
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
 var
-  saveedi : longint;
+  saveedi,saveebx : longint;
 asm
         movl    %edi,saveedi
-        xorl    %eax,%eax
+        movl    %ebx,saveebx
+{$ifdef REGCALL}
+        movl    %edx,%ecx       // Load len
+        movb    %cl,%bl
+        movl    %eax,%edi       // Load String
+{$else}
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
+        movb    b,%bl
+{$endif}
+        xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lready
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
-        movb    b,%al
+        movb    %bl,%al
         repne
         scasb
         jne     .Lcharposnotfound
@@ -217,23 +249,32 @@ asm
         movl    $-1,%eax
 .Lready:
         movl    saveedi,%edi
+        movl    saveebx,%ebx
 end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:longint;b:word):longint; assembler;
 var
-  saveedi : longint;
+  saveedi,saveebx : longint;
 asm
         movl    %edi,saveedi
-        xorl    %eax,%eax
+        movl    %ebx,saveebx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %cx,%bx
+        movl    %edx,%ecx
+{$else}
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
+        movw    b,%bx
+{$endif}
+        xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lready
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
-        movw    b,%ax
+        movw    %bx,%ax
         repne
         scasw
         jne     .Lcharposnotfound
@@ -245,23 +286,32 @@ asm
         movl    $-1,%eax
 .Lready:
         movl    saveedi,%edi
+        movl    saveebx,%ebx
 end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
 var
-  saveedi : longint;
+  saveedi,saveebx : longint;
 asm
         movl    %edi,saveedi
-        xorl    %eax,%eax
+        movl    %ebx,saveebx
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %ecx,%ebx
+        movl    %edx,%ecx
+{$else}
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
+        movl    b,%ebx
+{$endif}
+        xorl    %eax,%eax
         testl   %ecx,%ecx
         jz      .Lready
         cld
         movl    %ecx,%edx      // Copy for easy manipulation
-        movl    b,%eax
+        movl    %ebx,%eax
         repne
         scasl
         jne     .Lcharposnotfound
@@ -273,6 +323,7 @@ asm
         movl    $-1,%eax
 .Lready:
         movl    saveedi,%edi
+        movl    saveebx,%ebx
 end;
 
 
@@ -284,9 +335,15 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         cld
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%eax
+{$else}
         movl    len,%eax
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+{$endif}
         testl   %eax,%eax       {We address -1(%esi), so we have to deal with len=0}
         je      .LCmpbyteExit
         cmpl    $7,%eax         {<7 not worth aligning and go through all trouble}
@@ -334,9 +391,15 @@ asm
         movl    %esi,saveesi
         movl    %ebx,saveebx
         cld
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%eax
+{$else}
         movl    len,%eax
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+{$endif}
         testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
         je      .LCmpwordExit
         cmpl    $5,%eax         {<5 (3 bytes align + 4 bytes cmpsl = 4 words}
@@ -394,9 +457,15 @@ asm
         movl    %esi,saveesi
         movl    %ebx,saveebx
         cld
+{$ifdef REGCALL}
+        movl    %eax,%edi
+        movl    %edx,%esi
+        movl    %ecx,%eax
+{$else}
         movl    len,%eax
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
+{$endif}
         testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
         je      .LCmpDwordExit
         cmpl    $3,%eax         {<3 (3 bytes align + 4 bytes cmpsl) = 2 DWords}
@@ -452,9 +521,14 @@ asm
         movl    %ebx,saveebx
 // Can't use scasb, or will have to do it twice, think this
 //   is faster for small "len"
+{$ifdef REGCALL}
+        movl    %eax,%esi        // Load address
+        movzbl  %cl,%ebx          // Load searchpattern
+{$else}
         movl    Buf,%esi        // Load address
         movl    len,%edx        // load maximal searchdistance
         movzbl  b,%ebx          // Load searchpattern
+{$endif}
         testl   %edx,%edx
         je      .LFound
         xorl    %ecx,%ecx       // zero index in Buf
@@ -1095,7 +1169,9 @@ end ['EAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifndef REGCALL}
         movl    framebp,%eax
+{$endif}
         orl     %eax,%eax
         jz      .Lg_a_null
         movl    4(%eax),%eax
@@ -1106,7 +1182,9 @@ end ['EAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifndef REGCALL}
         movl    framebp,%eax
+{$endif}
         orl     %eax,%eax
         jz      .Lgnf_null
         movl    (%eax),%eax
@@ -1121,7 +1199,9 @@ end ['EAX'];
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
 asm
+{$ifndef REGCALL}
         movl    l,%eax
+{$endif}
         cltd
         xorl    %edx,%eax
         subl    %edx,%eax
@@ -1131,7 +1211,13 @@ end ['EAX','EDX'];
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
 function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 asm
+{$ifdef SYSTEMINLINE}
        movl     l,%eax
+{$else}
+{$ifndef REGCALL}
+       movl     l,%eax
+{$endif}
+{$endif}
        andl     $1,%eax
        setnz    %al
 end ['EAX'];
@@ -1140,7 +1226,13 @@ end ['EAX'];
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
 asm
-        mov     l,%eax
+{$ifdef SYSTEMINLINE}
+       movl     l,%eax
+{$else}
+{$ifndef REGCALL}
+       movl     l,%eax
+{$endif}
+{$endif}
         imull   %eax,%eax
 end ['EAX'];
 
@@ -1272,7 +1364,9 @@ end;
 function declocked(var l : longint) : boolean;assembler;
 
   asm
+{$ifndef REGCALL}
      movl       l,%eax
+{$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1290,7 +1384,9 @@ function declocked(var l : longint) : boolean;assembler;
 procedure inclocked(var l : longint);assembler;
 
   asm
+{$ifndef REGCALL}
      movl       l,%eax
+{$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1330,7 +1426,10 @@ end;
 
 {
   $Log$
-  Revision 1.52  2003-11-03 09:42:27  marco
+  Revision 1.53  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.52  2003/11/03 09:42:27  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.51  2003/10/27 09:16:57  marco

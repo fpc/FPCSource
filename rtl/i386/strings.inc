@@ -20,18 +20,27 @@
 {$define FPC_UNIT_HAS_STRCOPY}
 function strcopy(dest,source : pchar) : pchar;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifdef REGCALL}
+	movl	%eax,saveeax
+	movl	%edx,%edi
+{$else}	
         movl    source,%edi
+{$endif}	
         testl   %edi,%edi
         jz      .LStrCopyDone
         leal    3(%edi),%ecx
         andl    $-4,%ecx
-        movl    source,%esi
+        movl    %edi,%esi
         subl    %edi,%ecx
+{$ifdef REGCALL}
+	movl	%eax,%edi
+{$else}		
         movl    dest,%edi
+{$endif}	
         jz      .LStrCopyAligned
 .LStrCopyAlignLoop:
         movb    (%esi),%al
@@ -75,7 +84,11 @@ asm
 .LStrCopyByte:
         movb    %al,(%edi)
 .LStrCopyDone:
+{$ifdef REGCALL}
+	movl	saveeax,%eax
+{$else}	
         movl    dest,%eax
+{$endif}	
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -537,7 +550,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-09-08 18:21:37  peter
+  Revision 1.10  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.9  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.8  2003/04/30 16:36:39  florian

@@ -16,7 +16,9 @@
 
 Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
 asm
+{$ifndef REGCALL}
   movl 8(%ebp),%eax
+{$endif}
   movl %ebx,(%eax)
   movl %esi,4(%eax)
   movl %edi,8(%eax)
@@ -33,22 +35,29 @@ end['EAX'];
 
 Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
 asm
-  movl 8(%ebp),%ecx
+{$ifdef REGCALL}
+  xchgl %edx,%eax
+{$else}
+  movl 8(%ebp),%edx
   movl 12(%ebp),%eax
-  movl (%ecx),%ebx
-  movl 4(%ecx),%esi
-  movl 8(%ecx),%edi
-  movl 12(%ecx),%ebp
-  movl 16(%ecx),%esp
+{$endif}
+  movl (%edx),%ebx
+  movl 4(%edx),%esi
+  movl 8(%edx),%edi
+  movl 12(%edx),%ebp
+  movl 16(%edx),%esp
   // we should also clear the fpu
   // fninit no must be done elsewhere PM
   // or we should reset the control word also
-  jmp 20(%ecx)
+  jmp 20(%edx)
 end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:19  peter
+  Revision 1.4  2003-11-11 21:08:17  peter
+    * REGCALL define added
+
+  Revision 1.3  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }
