@@ -1194,6 +1194,14 @@ unit pstatmnt;
          storepos : tfileposinfo;
 
       begin
+         { do we have an assembler block without the po_assembler?
+           we should allow this for Delphi compatibility (PFV) }
+         if (token=_ASM) and (m_delphi in aktmodeswitches) then
+           begin
+             include(aktprocsym^.definition^.procoptions,po_assembler);
+             block:=assembler_block;
+             exit;
+           end;
          if procinfo^.returntype.def<>pdef(voiddef) then
            begin
               { if the current is a function aktprocsym is non nil }
@@ -1373,7 +1381,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.128  2000-04-24 11:11:50  peter
+  Revision 1.129  2000-04-29 12:50:14  peter
+    * support asm block without assembler directive for -Sd
+
+  Revision 1.128  2000/04/24 11:11:50  peter
     * backtraces for exceptions are now only generated from the place of the
       exception
     * frame is also pushed for exceptions
