@@ -60,7 +60,7 @@ Regs.Ebx := $2000 + (Mode and $ff);   { file open mode }
 Regs.Ecx := $20;                      { Attributes }
 RealIntr($21, Regs);
 if Regs.Flags and CarryFlag <> 0 then result := Regs.Ax
-else Handle := Regs.Eax;
+else Handle := Regs.Ax;
 end ;
 
 {******************************************************************************}
@@ -108,8 +108,8 @@ RealIntr($21, Regs);
 if Regs.Flags and CarryFlag <> 0 then
    result := -1
 else begin
-   LongRec(result).Lo := Regs.Eax;
-   LongRec(result).Hi := Regs.Edx;
+   LongRec(result).Lo := Regs.Ax;
+   LongRec(result).Hi := Regs.Dx;
    end ;
 end;
 
@@ -209,8 +209,12 @@ var Sr: PSearchRec;
 begin
 Sr := PSearchRec(F.FindHandle);
 if Sr <> nil then
-  //!! Dispose(Sr);
-  freemem(sr,sizeof(searchrec));
+  begin
+    //!! Dispose(Sr);
+    // This call is non dummy if LFNSupport is true PM
+    DOS.FindClose(SR^);
+    freemem(sr,sizeof(searchrec));
+  end;
 F.FindHandle := 0;
 end;
 
@@ -456,7 +460,11 @@ end;
 
 {
   $Log$
-  Revision 1.13  2000-02-17 22:16:05  sg
+  Revision 1.14  2000-04-10 11:04:45  pierre
+    * use 16 bit regs at return of system interrupts instead of 32
+    * call Dos.FindClose because it is not a dummy if LFNSupport is true
+
+  Revision 1.13  2000/02/17 22:16:05  sg
   * Changed the second argument of FileWrite from "var buffer" to
     "const buffer", like in Delphi.
 
