@@ -2742,6 +2742,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       if (po_assembler in aktprocsym^.definition^.procoptions) then
        exit;
       case target_info.target of
+         target_i386_freebsd,
          target_i386_linux:
            begin
               getaddrlabel(pl);
@@ -3388,7 +3389,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       if (cs_littlesize in aktglobalswitches) and (stackframe<=65535) then
                           begin
                               if (cs_check_stack in aktlocalswitches) and
-                                 not(target_info.target in [target_i386_linux,target_i386_win32]) then
+                                 not(target_info.target in [target_386_freebsd,
+                                                target_i386_linux,target_i386_win32]) then
                                 begin
                                   emitinsertcall('FPC_STACKCHECK');
                                   exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
@@ -3397,11 +3399,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 genprofilecode;
 
                             { %edi is already saved when pocdecl is used
-                              if (target_info.target=target_linux) and
+                              if ((target_info.target=target_linux) or (target_info.target=target_freebsd)) and
                                ((aktprocsym^.definition^.options and poexports)<>0) then
                                   exprasmlist^.insert(new(Paicpu,op_reg(A_PUSH,S_L,R_EDI))); }
                               { ATTENTION:
-                                never use ENTER in linux !!!
+                                never use ENTER in linux !!! (or freebsd MvdV)
                                 the stack page fault does not support it PM }
                               exprasmlist^.insert(new(paicpu,op_const_const(A_ENTER,S_NO,stackframe,0)))
                           end
@@ -3451,7 +3453,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             else
                               exprasmlist^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
                             if (cs_check_stack in aktlocalswitches) and
-                              not(target_info.target in [target_i386_linux,target_i386_win32]) then
+                              not(target_info.target in [target_i386_freebsd,
+                                         target_i386_linux,target_i386_win32]) then
                               begin
                                  emitinsertcall('FPC_STACKCHECK');
                                  exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
@@ -4072,7 +4075,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.13  2000-08-27 16:11:49  peter
+  Revision 1.14  2000-09-16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.13  2000/08/27 16:11:49  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

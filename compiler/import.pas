@@ -75,6 +75,9 @@ uses
   {$ifndef NOTARGETLINUX}
     ,t_linux
   {$endif}
+  {$ifndef NOTARGETFREEBSD}
+   ,t_freebsd
+  {$endif}
   {$ifndef NOTARGETOS2}
     ,t_os2
   {$endif}
@@ -227,7 +230,9 @@ begin
 {$ifdef i386}
     target_i386_Linux :
       importlib:=new(pimportliblinux,Init);
-    target_i386_Win32 :
+    target_i386_freebsd:
+      importlib:=new(pimportlibfreebsd,Init);
+         target_i386_Win32 :
       importlib:=new(pimportlibwin32,Init);
     target_i386_OS2 :
       importlib:=new(pimportlibos2,Init);
@@ -255,7 +260,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-11 17:00:23  florian
+  Revision 1.5  2000-09-16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.4  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

@@ -56,10 +56,10 @@ unit systems;
        asmmodecnt=i386asmmodecnt+m68kasmmodecnt+Alphaasmmodecnt+powerpcasmmodecnt+1;
 
      type
-       ttarget = (target_none
-            ,target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
-            target_i386_OS2,target_i386_Win32,
-            target_i386_Netware,  // AD
+       ttarget = (target_none,
+            target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
+            target_i386_OS2,target_i386_Win32,target_i386_freebsd,
+            target_i386_Netware,
             target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
             target_m68k_linux,target_m68k_PalmOS,target_alpha_linux,
             target_powerpc_linux,target_powerpc_macos
@@ -73,7 +73,7 @@ unit systems;
        { alias for supported_target field in tasminfo }
        target_any = target_none;
 
-       {$ifdef i386} i386targetcnt=6; {$else} i386targetcnt=0; {$endif}
+       {$ifdef i386} i386targetcnt=7; {$else} i386targetcnt=0; {$endif}
        {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
        {$ifdef alpha} alphatargetcnt=1; {$else} alphatargetcnt=0; {$endif}
        {$ifdef powerpc} powerpctargetcnt=2; {$else} powerpctargetcnt=0; {$endif}
@@ -127,13 +127,12 @@ unit systems;
      type
        tos = ( os_none,
             os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
-            os_i386_Win32,
-            os_i386_Netware,  // AD
+            os_i386_Win32,os_i386_freeBSD,os_i386_Netware,
             os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
             os_m68k_PalmOS,os_alpha_linux,os_powerpc_linux,os_powerpc_macos
        );
      const
-       i386oscnt=6;
+       i386oscnt=7;
        m68koscnt=5;
        alphaoscnt=1;
        powerpcoscnt=2;
@@ -303,6 +302,28 @@ implementation
             id     : os_i386_linux;
             name         : 'Linux for i386';
             shortname    : 'linux';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            libprefix    : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            endian       : endian_little;
+            stackalignment : 4;
+            maxCrecordalignment : 4;
+            size_of_pointer : 4;
+            size_of_longint : 4;
+            use_bound_instruction : false;
+            use_function_relative_addresses : true
+          ),
+          (
+            id     : os_i386_FreeBSD;
+            name         : 'FreeBSD/ELF for i386';
+            shortname    : 'freebsd';
             sharedlibext : '.so';
             staticlibext : '.a';
             sourceext    : '.pp';
@@ -1082,6 +1103,30 @@ implementation
             stacksize   : 8192
           ),
           (
+            target      : target_i386_FreeBSD;
+            flags       : [];
+            cpu         : i386;
+            short_name  : 'FREEBSD';
+            unit_env    : 'BSDUNITS';
+            system_unit : 'sysbsd';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            resext      : '.res';
+            resobjext   : '.or';
+            exeext      : '';
+            os          : os_i386_Freebsd;
+            assem       : as_i386_as;
+            assemsrc    : as_i386_as;
+            ar          : ar_i386_ar;
+            res         : res_none;
+            heapsize    : 256*1024;
+            maxheapsize : 32768*1024;
+            stacksize   : 8192
+          ),
+          (
             target      : target_i386_OS2;
             flags       : [tf_need_export];
             cpu  : i386;
@@ -1623,7 +1668,11 @@ begin
 {OS/2 via EMX can be run under DOS as well}
       {$else}
         {$ifdef LINUX}
-          set_source_os(os_i386_LINUX);
+           {$Ifdef BSD}
+            set_source_os(os_i386_FreeBSD);
+          {$else}
+            set_source_os(os_i386_LINUX);
+           {$endif}
         {$else}
           {$ifdef WIN32}
             set_source_os(os_i386_WIN32);
@@ -1644,7 +1693,7 @@ begin
         set_source_os(os_m68k_MAC);
       {$else}
         {$ifdef LINUX}
-          set_source_os(os_m68k_linux);
+           set_source_os(os_m68k_linux);
         {$endif linux}
       {$endif macos}
     {$endif atari}
@@ -1663,7 +1712,11 @@ begin
         default_os(target_i386_OS2);
       {$else}
         {$ifdef LINUX}
+         {$ifdef BSD}
+          default_os(target_i386_FreeBSD);
+         {$else}
           default_os(target_i386_LINUX);
+         {$endif}
         {$else}
            {$ifdef WIN32}
              default_os(target_i386_WIN32);
@@ -1708,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-11 17:00:23  florian
+  Revision 1.7  2000-09-16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.6  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 

@@ -417,7 +417,8 @@ begin
      So I think its at least a good idea to add a warning
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
-   if (opcode=A_ENTER) and (target_info.target=target_i386_linux) then
+   if (opcode=A_ENTER) and ((target_info.target=target_i386_linux) or
+        (target_info.target=target_i386_FreeBSD)) then
      begin
        message(asmr_w_enter_not_supported_by_linux);
      end;
@@ -452,7 +453,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-03 11:44:00  peter
+  Revision 1.4  2000-09-16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.3  2000/09/03 11:44:00  peter
     * error for not specified operand size, which is now required for
       newer binutils (merged)
     * previous commit fix for tcflw (merged)

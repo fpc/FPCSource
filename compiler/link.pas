@@ -87,6 +87,9 @@ uses
   {$ifndef NOTARGETLINUX}
     ,t_linux
   {$endif}
+  {$ifndef NOTARGETFREEBSD}
+    ,t_FreeBSD
+  {$endif}
   {$ifndef NOTARGETOS2}
     ,t_os2
   {$endif}
@@ -473,6 +476,10 @@ begin
     target_i386_linux :
       linker:=new(plinkerlinux,Init);
   {$endif}
+  {$ifndef NOTARGETFreeBSD}
+    target_i386_FreeBSD :
+      linker:=new(plinkerFreeBSD,Init);
+  {$endif}
   {$ifndef NOTARGETWIN32}
     target_i386_Win32 :
       linker:=new(plinkerwin32,Init);
@@ -532,7 +539,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-09-11 17:00:23  florian
+  Revision 1.7  2000-09-16 12:22:52  peter
+    * freebsd support merged
+
+  Revision 1.6  2000/09/11 17:00:23  florian
     + first implementation of Netware Module support, thanks to
       Armin Diehl (diehl@nordrhein.de) for providing the patches
 
