@@ -644,11 +644,13 @@ implementation
         LoadSections;
         { Parse all sections }
         FSections.Foreach(@ParseSec);
+        { Load package section }
+        LoadPackageSection;
         { Add some default variables like FPCDIR, UNITSDIR }
         AddFPCDefaultVariables;
         { Load LCL code ? }
         s:=GetVariable('require_packages',true);
-        if pos('lcl',s)>0 then
+        if (pos('lcl',s)>0) or (PackageName='lcl') then
          begin
            FUsesLCL:=true;
            AddLCLDefaultVariables;
@@ -656,8 +658,7 @@ implementation
         { Show globals }
         Verbose(FPCMakeDebug,s_globals);
         Variables.Foreach(@PrintDic);
-        { Load package section }
-        LoadPackageSection;
+        { Load required packages }
         LoadRequireSection;
       end;
 
@@ -1477,7 +1478,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-01-29 17:48:53  peter
+  Revision 1.22  2002-01-29 22:00:22  peter
+    * load package section first before setting globals
+    * fixed buildunit
+
+  Revision 1.21  2002/01/29 17:48:53  peter
     * packages splitted to base and extra
 
   Revision 1.20  2002/01/27 21:42:35  peter
