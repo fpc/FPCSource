@@ -680,7 +680,7 @@ uses
               if Source_Time<>-1 then
                 begin
                   if is_main then
-                    main_dir:=temp_dir;
+                    main_dir:=splitpath(hs);
                   temp:=' time '+filetimestring(source_time);
                   if (orgfiletime<>-1) and
                      (source_time<>orgfiletime) then
@@ -1514,7 +1514,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.51  2004-01-26 16:12:27  daniel
+  Revision 1.52  2004-02-03 16:14:13  peter
+    * fix remembering path of main source file
+
+  Revision 1.51  2004/01/26 16:12:27  daniel
     * reginfo now also only allocated during register allocation
     * third round of gdb cleanups: kick out most of concatstabto
 
