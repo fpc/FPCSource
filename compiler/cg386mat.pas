@@ -34,7 +34,7 @@ implementation
    uses
      cobjects,verbose,globals,
      symtable,aasm,i386,
-     cgi386,cgai386,tgeni386,hcodegen;
+     types,cgi386,cgai386,tgeni386,hcodegen;
 
     procedure secondmoddiv(var p : ptree);
 
@@ -385,7 +385,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-06-01 16:50:18  peter
+  Revision 1.2  1998-06-02 17:02:59  pierre
+    *  with node corrected for objects
+    * small bugs for SUPPORT_MMX fixed
+
+  Revision 1.1  1998/06/01 16:50:18  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion
 

@@ -1534,17 +1534,18 @@ implementation
                         inc(pushedparasize,8); { was missing !!! (PM) }
                         exprasmlist^.concat(new(pai386,op_const_reg(
                           A_SUB,S_L,8,R_ESP)));
-                     if inlined then
-                       begin
-                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
-                            p^.left^.location.register,r)));
-                       end
-                     else
-                        begin
-                           r:=new_reference(R_ESP,0);
-                           exprasmlist^.concat(new(pai386,op_reg_ref(
-                          A_MOVQ,S_NO,p^.left^.location.register,r)));
+                        if inlined then
+                          begin
+                             r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                             exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
+                               p^.left^.location.register,r)));
+                          end
+                        else
+                           begin
+                              r:=new_reference(R_ESP,0);
+                              exprasmlist^.concat(new(pai386,op_reg_ref(
+                             A_MOVQ,S_NO,p^.left^.location.register,r)));
+                        end;
                      end;
 {$endif SUPPORT_MMX}
                 end;
@@ -4716,6 +4717,7 @@ do_jmp:
           inlineexitcode:=new(paasmoutput,init);
           proc_names.init;
           para_size:=p^.para_size;
+          make_global:=false; { to avoid warning }
           genentrycode(inlineentrycode,proc_names,make_global,
            0,para_size,nostackframe,true);
           exprasmlist^.concatlist(inlineentrycode);
@@ -5057,7 +5059,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.29  1998-06-01 16:50:18  peter
+  Revision 1.30  1998-06-02 17:03:00  pierre
+    *  with node corrected for objects
+    * small bugs for SUPPORT_MMX fixed
+
+  Revision 1.29  1998/06/01 16:50:18  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion
 

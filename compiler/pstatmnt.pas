@@ -350,6 +350,7 @@ unit pstatmnt;
          case p^.resulttype^.deftype of
             objectdef : begin
                           obj:=pobjectdef(p^.resulttype);
+                          { this creates the stack in the wrong order !!
                           levelcount:=0;
                           while assigned(obj) do
                             begin
@@ -360,7 +361,23 @@ unit pstatmnt;
                                symtablestack:=withsymtable;
                                obj:=obj^.childof;
                                inc(levelcount);
+                            end; }
+
+                          withsymtable:=new(psymtable,init(symtable.withsymtable));
+                          withsymtable^.root:=obj^.publicsyms^.root;
+                          symtab:=withsymtable;
+                          levelcount:=1;
+                          obj:=obj^.childof;
+                          while assigned(obj) do
+                            begin
+                               symtab^.next:=new(psymtable,init(symtable.withsymtable));
+                               symtab:=symtab^.next;
+                               symtab^.root:=obj^.publicsyms^.root;
+                               obj:=obj^.childof;
+                               inc(levelcount);
                             end;
+                          symtab^.next:=symtablestack;
+                          symtablestack:=withsymtable;
                        end;
             recorddef : begin
                            symtab:=precdef(p^.resulttype)^.symtable;
@@ -1121,7 +1138,35 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-30 14:31:06  peter
+  Revision 1.16  1998-06-02 17:03:04  pierre
+    *  with node corrected for objects
+    * small bugs for SUPPORT_MMX fixed
+
+<<<<<<< PSTATMNT.pas
+  Revision 1.14  1998/05/29 09:58:14  pierre
+    * OPR_REGISTER for 1 arg was missing in ratti386.pas
+      (probably a merging problem)
+    * errors at start of line were lost
+
+  Revision 1.13  1998/05/28 17:26:50  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.12  1998/05/21 19:33:33  peter
+    + better procedure directive handling and only one table
+
+  Revision 1.11  1998/05/20 09:42:35  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+=======
+  Revision 1.15  1998/05/30 14:31:06  peter
     + $ASMMODE
 
   Revision 1.14  1998/05/29 09:58:14  pierre
@@ -1146,6 +1191,7 @@ end.
     * UseBrower updated gives a global list of all position of all used symbols
       with switch -gb
 
+>>>>>>> h:/cvs/compiler/PSTATMNT.pas
   Revision 1.10  1998/05/11 13:07:56  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required

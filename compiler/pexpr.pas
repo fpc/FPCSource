@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998 by Florian Klaempfl
 
@@ -1071,6 +1071,13 @@ unit pexpr;
                                                         p1^.resulttype:=pd;
                                                         srsymtable:=pobjectdef(pd)^.publicsyms;
                                                         sym:=pvarsym(srsymtable^.search(pattern));
+                                                        { search also in inherited methods }
+                                                        while sym=nil do
+                                                          begin
+                                                             pd:=pobjectdef(pd)^.childof;
+                                                             srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                             sym:=pvarsym(srsymtable^.search(pattern));
+                                                          end;
                                                         consume(ID);
                                                         do_member_read(sym,p1,pd,again);
                                                      end
@@ -1745,7 +1752,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.21  1998-05-27 19:45:05  peter
+  Revision 1.22  1998-06-02 17:03:03  pierre
+    *  with node corrected for objects
+    * small bugs for SUPPORT_MMX fixed
+
+  Revision 1.21  1998/05/27 19:45:05  peter
     * symtable.pas splitted into includefiles
     * symtable adapted for $ifdef NEWPPU
 

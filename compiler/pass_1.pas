@@ -3123,7 +3123,8 @@ unit pass_1;
 
                    p^.procdefinition:=procs^.data;
                    p^.resulttype:=procs^.data^.retdef;
-                   p^.symtableproc:=p^.procdefinition^.owner;
+                   { big error for with statements
+                   p^.symtableproc:=p^.procdefinition^.owner; }
                    p^.location.loc:=LOC_MEM;
 {$ifdef CHAINPROCSYMS}
                    { object with method read;
@@ -3394,6 +3395,12 @@ unit pass_1;
          store_valid:=must_be_valid;
          store_count_ref:=count_ref;
          count_ref:=false;
+         if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
+            in_typeof_x,in_ord_x,in_str_x_string,
+            in_reset_typedfile,in_rewrite_typedfile]) then
+           must_be_valid:=true
+         else
+           must_be_valid:=false;
          { if we handle writeln; p^.left contains no valid address }
          if assigned(p^.left) then
            begin
@@ -3408,11 +3415,6 @@ unit pass_1;
 {$endif SUPPORT_MMX}
               set_location(p^.location,p^.left^.location);
            end;
-           if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
-                                       in_typeof_x,in_ord_x,
-                                       in_reset_typedfile,in_rewrite_typedfile]) then
-             must_be_valid:=true
-             else must_be_valid:=false;
            case p^.inlinenumber of
              in_lo_word,in_hi_word:
                begin
@@ -3734,9 +3736,9 @@ unit pass_1;
                        count_ref:=true;
                        p^.left^.right:=nil;
                        firstcallparan(p^.left,nil);
-                       p^.left^.right:=hp;
                        must_be_valid:=true;
-                       firstcallparan(p^.left,nil);
+                       p^.left^.right:=hp;
+                       firstcallparan(p^.left^.right,nil);
                        hp:=p^.left;
                        isreal:=false;
                        { valid string ? }
@@ -4919,7 +4921,43 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.23  1998-06-01 16:50:20  peter
+  Revision 1.24  1998-06-02 17:03:01  pierre
+    *  with node corrected for objects
+    * small bugs for SUPPORT_MMX fixed
+
+<<<<<<< PASS_1.pas
+  Revision 1.22  1998/05/28 17:26:49  peter
+    * fixed -R switch, it didn't work after my previous akt/init patch
+    * fixed bugs 110,130,136
+
+  Revision 1.21  1998/05/25 17:11:41  pierre
+    * firstpasscount bug fixed
+      now all is already set correctly the first time
+      under EXTDEBUG try -gp to skip all other firstpasses
+      it works !!
+    * small bug fixes
+      - for smallsets with -dTESTSMALLSET
+      - some warnings removed (by correcting code !)
+
+  Revision 1.20  1998/05/23 01:21:17  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.19  1998/05/20 09:42:34  pierre
+    + UseTokenInfo now default
+    * unit in interface uses and implementation uses gives error now
+    * only one error for unknown symbol (uses lastsymknown boolean)
+      the problem came from the label code !
+    + first inlined procedures and function work
+      (warning there might be allowed cases were the result is still wrong !!)
+    * UseBrower updated gives a global list of all position of all used symbols
+      with switch -gb
+
+=======
+  Revision 1.23  1998/06/01 16:50:20  peter
     + boolean -> ord conversion
     * fixed ord -> boolean conversion
 
@@ -4953,6 +4991,7 @@ end.
     * UseBrower updated gives a global list of all position of all used symbols
       with switch -gb
 
+>>>>>>> h:/cvs/compiler/PASS_1.pas
   Revision 1.18  1998/05/11 13:07:55  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
