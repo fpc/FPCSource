@@ -250,7 +250,7 @@ unit typinfo;
          movl Address,%edi
          // Push value to set
          //!! MUST BE CHANGED !!
-         movl Value,%eax
+         leal Value,%eax
          pushl %eax
          // ? Indexed procedure
          movl Index,%eax
@@ -264,7 +264,7 @@ unit typinfo;
 
     function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
       asm
-         movl S,%edi
+         movl S,%esi
          movl Address,%edi
          // ? Indexed function
          movl Index,%eax
@@ -764,7 +764,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  1999-05-03 07:30:07  michael
+  Revision 1.21  1999-05-07 11:02:14  florian
+    * two typos fixed
+
+  Revision 1.20  1999/05/03 07:30:07  michael
   * Fixes in getenum*
 
   Revision 1.19  1999/04/08 11:31:04  peter
