@@ -151,7 +151,8 @@ unit pstatmnt;
                      (p^._low = hcaselabel^._high + 1) then
                     begin
                       p^._low := hcaselabel^._low;
-                      dispose(hcaselabel)
+                      freelabel(hcaselabel^._at);
+                      dispose(hcaselabel);
                     end
                   else
                     insertlabel(p^.less)
@@ -162,7 +163,8 @@ unit pstatmnt;
                        (p^._high+1 = hcaselabel^._low) then
                       begin
                         p^._high := hcaselabel^._high;
-                        dispose(hcaselabel)
+                        freelabel(hcaselabel^._at);
+                        dispose(hcaselabel);
                       end
                     else
                       insertlabel(p^.greater)
@@ -1253,7 +1255,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.61  1999-01-25 22:49:09  peter
+  Revision 1.62  1999-01-27 13:06:57  pierre
+   * memory leak in case optimization fixed
+
+  Revision 1.61  1999/01/25 22:49:09  peter
     * more fixes for the on bug with unknown id
 
   Revision 1.60  1999/01/23 23:29:38  florian
