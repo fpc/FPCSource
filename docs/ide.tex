@@ -26,8 +26,8 @@
 The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment)
 provides a comfortable user interface to the compiler. It contains an 
 editor with syntax highlighting, a debugger, symbol browser etc. 
-The IDE is a textmode application which has the same look and feel 
-on all supported operating systems. It is modeled after the IDE of Turbo
+The IDE is a text-mode application which has the same look and feel 
+on all supported operating systems. It is modelled after the IDE of Turbo
 Pascal, so many people should feel comfortable using it.
 
 Currently, the IDE is available for \dos, \windows and \linux.
@@ -93,7 +93,7 @@ this:
 \begin{latexonly}
 \seefig{idestart}.
 \begin{figure}
-\caption{The IDE screen immediatly after startup}
+\caption{The IDE screen immediately after startup}
 \label{fig:idestart}
 \ifpdf
 \epsfig{file=pics/idestart.png,width=\textwidth}
@@ -106,10 +106,10 @@ At top of the screen the \emph{menu bar} is visible, at the bottom
 the \emph{status bar}. The empty space between them is called the
 \emph{desktop}.
 
-The statusbar shows the keyboard shortcuts for frequently used 
+The status bar shows the keyboard shortcuts for frequently used 
 commands, and allows quick access to these commands by clicking 
 them with the mouse. 
-At the right edge of the statusbar, the current amount of unused 
+At the right edge of the status bar, the current amount of unused 
 memory is displayed. This is only an indication, since the IDE 
 tries to allocate more memory from the operating system if it 
 runs out of memory.
@@ -147,12 +147,12 @@ navigating through the menu with the arrow keys.
 
 more information on the menu can be found in \sees{idemenu}
 \item Many commands in the IDE are bound to shortcuts, i.e. typing a special
-combination of keys will execute a command immediatly.
+combination of keys will execute a command immediately.
 \end{itemize}
 \begin{remark}
 \begin{itemize}
 \item When working in a \linux X-Term or through a telnet session, the
-keycombination with \key{Alt} may not be available. To remedy this, the 
+key combination with \key{Alt} may not be available. To remedy this, the 
 \key{Ctrl-Z} combination can be typed first. This means that e.g. \key{Alt-X}
 can be replaced by \key{Ctrl-Z X}.
 \item A complete reference of all keyboard shortcuts can be found in
@@ -178,15 +178,15 @@ button will execute user defined functions,  see \sees{prefmouse}.
 means that the mouse is moved while the left mouse button is being 
 pressed.
 \item 
-The action of mouse buttens may be reversed, i.e. the actions of the left
+The action of mouse buttons may be reversed, i.e. the actions of the left
 mouse button can be assigned to the right mouse button and vice versa  
 \footnote{See \sees{prefmouse} for more information on how to reverse the
 actions of the mouse buttons.}. Throughout the manual, it is assumed 
 that the actions of the mouse buttons are not reversed.
 \item
-The mouse is not allways available, even if a mouse is installed:
+The mouse is not always available, even if a mouse is installed:
 \begin{itemize}
-\item The IDE is running under \linux throught a telnet connection from 
+\item The IDE is running under \linux through a telnet connection from 
 a \windows machine.
 \item The IDE is running under \linux in an X-term under X-windows.
 \end{itemize}
@@ -206,7 +206,7 @@ sufficient to:
 \item Press the highlighted letter in the element's label. If the focus
 is currently on an element that allows to edit, then \key{Alt} should be
 pressed simultaneously with the highlighted letter. For a button, the action
-asociated with the button will then be executed.
+associated with the button will then be executed.
 \end{enumerate}
 Inside edit fields, list boxes, memos, navigation is carried out with the
 usual arrow key commands.
@@ -291,7 +291,7 @@ by pressing \key{Ctrl-F5} or selecting the menu item
 \menu{Window|Size/Move}. . Using the cursor keys the window can be moved. 
 The size/move mode can be left by pressing \key{Enter}. 
 In this case, the window will keep its size and position. 
-Alternativly, pressing \key{Esc} will restore the old position.
+Alternatively, pressing \key{Esc} will restore the old position.
 \end{itemize} 
 To resize a window:
 \begin{itemize}
@@ -361,7 +361,7 @@ case the whole IDE screen can be refreshed by selecting the menu item
 In many cases the IDE displays a dialog window to get user input.
 The main difference to normal windows is that other windows cannot be
 activated while a dialog is active. Also the menu is not accessible while in
-a dialog. This behavior is called \emph{modal}. To activate another window, 
+a dialog. This behaviour is called \emph{modal}. To activate another window, 
 the modal window or dialog must be closed first.
 
 \begin{htmlonly}
@@ -497,7 +497,7 @@ position.
 %
 \subsection{The Search menu}
 \label{se:menusearch}
-The \menu{Search} menu provides acces to the search and replace dialogs, as well as
+The \menu{Search} menu provides access to the search and replace dialogs, as well as
 access to the symbol browser of the IDE. 
 \begin{description}
 \item[Find] (\key{Ctrl-Q F}) Presents the search dialog. A search text 
@@ -882,8 +882,8 @@ The goto line dialog is shown in \seefig{gotoline}.
 \subsection{Syntax highlighting}
 \label{se:syntaxhighlighting}
 The IDE is capable of syntax highlighting, i.e. the color of certain 
-pascal elements can be set. As text is entered in an editor window, 
-the IDE will try to recognize the elements, and set the color of the
+Pascal elements can be set. As text is entered in an editor window, 
+the IDE will try to recognise the elements, and set the color of the
 text accordingly.
 
 
@@ -900,7 +900,7 @@ only the background color will be used.
 \item[Numbers] Numbers in decimal notation.
 \item[Hex numbers] Numbers in hexadecimal notation.
 \item[Assembler] Any assembler blocks.
-\item[Symbols] Recognized symbols (variables, types)
+\item[Symbols] Recognised symbols (variables, types)
 \item[Directives] Compiler directives.
 \item[Tabs] Can be given a different color than other whitespace.
 \end{description}
@@ -1069,7 +1069,7 @@ A search can be repeated (using the same options) in one of 2 ways:
 \item Press \key{Ctrl-L}.
 \end{enumerate}
 
-It is also possible to replace occurences of a text with another text. 
+It is also possible to replace occurrences of a text with another text. 
 This can be done in a similar manner to searching for a text:
 \begin{enumerate}
 \item Select \menu{Search|Replace} from the menu.
@@ -1175,7 +1175,7 @@ members of a complex symbol such as a record or class:
 the members of the selected complex symbol.
 \end{description}
 \item[Preferred pane] Specifies what pane is shown in the browser when it is
-initialy opened:
+initially opened:
 \begin{description}
 \item[scope]
 \item[Reference]
@@ -1279,7 +1279,7 @@ To set a breakpoint on the current source line, use the
 \menu{Debug|Breakpoint} menu entry, or press \key{Ctrl-F8}.
 
 A list of current breakpoints can be obtained through the
-\menu{Debu|Breakpoint list} menu. 
+\menu{Debug|Breakpoint list} menu. 
 \begin{htmlonly}
 The breakpoint list window looks as follows:
 \fpcaddimg{../pics/ide/brklist.png}
@@ -1351,7 +1351,7 @@ before the program stops;
 \item Because the IDE uses GDB to do its debugging, it is necessary to enter all
 expressions in {\em uppercase} on \freebsd. 
 \item Expressions that reference memory locations should be no longer than 16 
-bytes on linux or go32v2 on an Intel processor, since the Intel processor's 
+bytes on \linux or go32v2 on an Intel processor, since the Intel processor's 
 debug registers are used to monitor these locations.
 \item Memory location watches will not function on Win32 unless a special 
 patch is applied. 
@@ -1448,7 +1448,7 @@ The call stack is shown in \seefig{callstack}.
 \end{figure}
 \end{latexonly}
 
-By pressing the space bar in the call stack window, the line curresponding
+By pressing the space bar in the call stack window, the line corresponding
 to the call will be highlighted in the edit window.
 
 % The GDB Window
@@ -1494,7 +1494,7 @@ this menu as well.
 %
 \subsection{The messages window}
 \label{se:toolsmessages}
-The output of the external utilies is redirected by the IDE and it
+The output of the external utilities is redirected by the IDE and it
 will be displayed in the messages window. The messages window is
 displayed automatically, if an external tool was run. The
 messages window can be also displayed manually by the selecting the
@@ -1548,11 +1548,11 @@ window can be used in combination with \file{grep} to find special
 occurrences in the text.
 
 \file{Grep} supports regular expressions. A regular expression is a 
-string with sepcial characters which describe a whole class of 
+string with special characters which describe a whole class of 
 expressions. The command line in \dos or \linux have limited 
 support for regular expressions: entering \var{ls *.pas} 
-(or \var{dir *.pas}) to get a list of all pascal files in a
-directory. \file{*.pas} is something similiar to regular expression. 
+(or \var{dir *.pas}) to get a list of all Pascal files in a
+directory. \file{*.pas} is something similar to regular expression. 
 It uses a wildcard to describe a whole class of strings: these which 
 end with "\file{.pas}". 
 Regular expressions offer much more: for example \var{[A-Z][0-9]+} 
@@ -1563,12 +1563,12 @@ It is outside the scope of this manual to describe regular expressions
 in great detail. Users of a \linux system can get more information on grep
 using \var{man grep} on the command-line.
 %
-% The ascii table.
+% The ASCII table.
 %
 \subsection{The ASCII table}
 \label{se:asciitable}
 The tools menu provides also an ASCII table (\menu{Tools|Ascii table}),
-The ascii table can be used to look up ASCII codes as well as
+The ASCII table can be used to look up ASCII codes as well as
 inserting characters into the window which was active when invoking the
 table. To get the ASCII code of a char move the cursor on this char 
 or click with the mouse on it. To insert a
@@ -1581,7 +1581,7 @@ This is especially useful for pasting graphical characters in a constant
 string.
 
 The ASCII table remains active till another window is explicitly activated,
-thus mulptiple characters can be inserted at once.
+thus multiple characters can be inserted at once.
 \begin{htmlonly}
 The ASCII table looks as follows:
 \fpcaddimg{../pics/ide/ascii.png}
@@ -1630,7 +1630,7 @@ The calculator dialog is shown in \seefig{calculator}.
 \end{figure}
 \end{latexonly}
 The calculator supports all basic mathematical operations such as
-addition, substraction, division and multiplication. They are summarized in
+addition, subtraction, division and multiplication. They are summarised in
 \seet{calculatorbasic}.
 \begin{FPCltable}{p{8cm}lll}{Advanced calculator commands}{calculatorbasic}
 Operation & Button & Key \\ \hline
@@ -1651,9 +1651,9 @@ shown in \seet{calculatoradvanced}.
 \begin{FPCltable}{p{8cm}lll}{Advanced calculator commands}{calculatoradvanced}
 Operation & Button & Key \\ \hline
 Calculate power & \var{x\^y} & \\
-Calculate the reciproke value & \var{1/x} & \\
+Calculate the inverse value & \var{1/x} & \\
 Calculate the square root & \var{sqr} & \\
-Calulate the natural logarithm &  \var{log} & \\
+Calculate the natural logarithm &  \var{log} & \\
 Square the display contents & \var{x\^2} & \\ \hline.
 \end{FPCltable}
 
@@ -1708,11 +1708,11 @@ properties of the highlighted tool can be edited.
 \end{description}
 The definitions of the tools are written in the desktop
 configuration file, so unless auto-saving of the desktop file
-is enabled, the dektop file should be saved explicitly after
+is enabled, the desktop file should be saved explicitly after
 the dialog is closed.
 
 \subsection{Meta parameters}
-When specifing the command line for the called tool, meta parameters can
+When specifying the command line for the called tool, meta parameters can
 be used. Meta parameters are variables and and they are replaced
 by their contents before passing the command line to the tool.
 
@@ -1724,7 +1724,7 @@ Captures the output of the tool and puts it in the messages window.
 \item[\$CAP\_EDIT]
 Captures the output of the tool and puts it in a separate editor window.
 \item[\$COL]
-Replaced by the colomn of the cursor in the active editor window. If there is no
+Replaced by the column of the cursor in the active editor window. If there is no
  active window or the active window is a dialog, then it is replaced by 0.
 \item[\$CONFIG]
 Replaced by the complete filename of the current configuration file.
@@ -1792,14 +1792,14 @@ is used to construct the tool command line.
 See \sees{commanddialogs} for more information on how to create a dialog
 description.
 \item[\$SAVE]
-Befure executing the command, the active editor window is saved, even if it is not modified.
+Before executing the command, the active editor window is saved, even if it is not modified.
 \item[\$SAVE\_ALL]
 Before executing the command, all unsaved editor files are saved without prompting.
 \item[\$SAVE\_CUR]
 Before executing the command the contents of the active editor window are
 saved without prompting if they are modified.
 \item[\$SAVE\_PROMPT]
-Before executing the command, a dialog is displayed askeing whether any
+Before executing the command, a dialog is displayed asking whether any
 unsaved files should be saved before executing the command.
 \item[\$WRITEMSG()]
 Writes the parsed tool output information to a file with name as in the argument.
@@ -1820,7 +1820,7 @@ A \var{OK} and \var{Cancel} button will be added to the bottom of the dialog,
 so these should not be specified in the dialog definition.
 
 A special section is the \var{Main} section. It describes how the result of
-the dialog will be passed on the commandline, and the total size of the dialog.
+the dialog will be passed on the command-line, and the total size of the dialog.
 
 \begin{remark}
 Keywords that contain a string value, should have the string value enclosed
@@ -1953,9 +1953,9 @@ If there is a highlighted letter in it, this letter can be used
 to set or unset the checkbox using the \key{Alt}-letter combination.
 \item[Default] specifies whether the checkbox is checked or not when
 the dialog appears (values \var{on} or \var{off})
-\item[On] the text associated with this combobox if it is in the checked
+\item[On] the text associated with this checkbox if it is in the checked
 state.
-\item[Off] the text associated with this combobox if it is in the
+\item[Off] the text associated with this checkbox if it is in the
 unchecked state.
 \end{description}
 The following is a example of a valid checkbox description:
@@ -1975,7 +1975,7 @@ the command-line of the tool. If it is unchecked, no value will be added.
 % Project management
 \section{Project management and compiler options}
 \label{se:projectmanagement}
-Project mangament in Pascal is much easier than with C. The
+Project management in Pascal is much easier than with C. The
 compiler knows from the source which units, sources etc. it needs.
 So the \fpc IDE does not need a full featured project manager like
 some C development environments offer, nevertheless there are some
@@ -2004,7 +2004,7 @@ active window.
 In the directory dialog, the directories can be specified where the 
 compiler should look for units, libraries, object files. It also says
 where the output files should be stored. Multiple directories (except 
-for the output directory) can be entered, seperated by semicolons.
+for the output directory) can be entered, separated by semicolons.
 
 \begin{htmlonly}
 The directories dialog looks as follows:
@@ -2069,9 +2069,9 @@ The following targets can be set:
 \begin{description}
 \item[Dos (go32v1)] This switch will dissapear in time as this target is no
 longer being maintained.
-\item[Dos (go32v2)] Compile for dos, using version 2 of the Go32 extender.
-\item[FreeBSD] Compile for FreeBSD.
-\item[Linux] Compile for linux.
+\item[Dos (go32v2)] Compile for \dos, using version 2 of the Go32 extender.
+\item[FreeBSD] Compile for \freebsd.
+\item[Linux] Compile for \linux.
 \item[OS/2] Compile for OS/2 (using the EMX extender)
 \item[Win32] Compile for windows 32 bit.
 \end{description}
@@ -2185,7 +2185,7 @@ checked (\seeo{Co} command-line option)
 compiler can use different optimizations for different processors. This
 corresponds to the \var{Op} option.
 \begin{description}
-\item[i386/i486] Code is optimized for less than pentium processors.
+\item[i386/i486] Code is optimized for less than Pentium processors.
 \item[Pentium/pentiumMMX] Code is optimized for Pentium processors.
 \item[PPro/PII/c6x86/K6] Code is optimized for Pentium pro and higher
 processors.
@@ -2194,7 +2194,7 @@ processors.
 \begin{description}
 \item[Generate faster code] Corresponds to the \var{-OG} command-line option.
 \item[Generate smaller code] Corresponds to the \var{-Og} command-line option.
-\item[Use register variables] Corresponsds to the \var{-Or} command-line
+\item[Use register variables] Corresponds to the \var{-Or} command-line
 option.
 \item[Uncertain optimizations] Corresponds to the \var{-Ou} command-line
 option.
@@ -2267,10 +2267,10 @@ In this dialog, the browser options can be set:
 \item[No browser] (default) no browser information is generated by the
 compiler.
 \item[Only global browser] Browser information is generated for global
-symbols only, i.e. symbols defined not in a procedure or function (\var{-b} on the commmand-line)
+symbols only, i.e. symbols defined not in a procedure or function (\var{-b} on the command-line)
 \item[Local and global browser]  Browser information is generated for all 
 symbols, i.e. also for symbols that are defined in procedures or functions 
- (\var{-bl} on the commmand-line)
+ (\var{-bl} on the command-line)
 \end{description}
 \begin{remark}
 If no browser information is generated, the symbol browser of the IDE will
@@ -2330,7 +2330,7 @@ should be generated.
 command-line).
 \item[Use NASM coff] produce NASM coff assembler (go32v2, \var{-Anasmcoff} on the
 command-line)
-\item[Use NASM elf] produce NASM elf assembler (linux, \var{-Anasmelf} on
+\item[Use NASM elf] produce NASM elf assembler (\linux, \var{-Anasmelf} on
 the command-line).
 \item[Use NASM obj] produce NASM obj assembler (\var{-Anasmobj} on the
 command-line).
@@ -2369,7 +2369,7 @@ The linker options dialog is shown in
 \end{center}
 \end{figure}
 \end{latexonly}
-The following opions can be set:
+The following options can be set:
 \begin{description}
 \item[Call linker after] If this option is set then a script is written
 which calls the linker. This corresponds to the \seeo{s} on the
@@ -2425,7 +2425,7 @@ allows.
 \subsection{Debug options}
 \label{se:debugoptions}
 In the debug options dialog some options for inclusion of debug information
-in the binary can be set; it i salso possible to add additional compiler
+in the binary can be set; it i also possible to add additional compiler
 options in this dialog.
 \begin{htmlonly}
 The debug options dialog looks as follows:
@@ -2444,7 +2444,7 @@ The debug options dialog is shown in \seefig{odebug}.
 \end{center}
 \end{figure}
 \end{latexonly}
-The following opions can be set:
+The following options can be set:
 \begin{description}
 \item[Debugging information] tells the compiler which debug information
 should be compiled in. One of following options can be chosen:
@@ -2456,7 +2456,7 @@ binary (option \var{-g} on the command-line). Please note that no debug
 information for units in the Run-Time Library will be included, unless a 
 version of the RTL compiled with debug information is available. Only units
 specific to the current project will have debug information included.
-\item[Generate also backtrace lines information] Will compile with debu
+\item[Generate also backtrace lines information] Will compile with debug
 information, and will additionally include the \file{lineinfo} unit in the
 binary, so in case of an error the backtrace will contain the filenames and
 linenumbers of procedures in the call-stack. (Option \var{-gl} on the
@@ -2487,7 +2487,7 @@ provides 3 names under which the switches can be saved:
 \begin{description}
 \item[Normal] For normal (fast) compilation.
 \item[Debug] For debugging; intended to set most debug switches on. Also
-usefule for setting conditionsl defines that e.g. allow to include some
+useful for setting conditional defines that e.g. allow to include some
 debug code.
 \item[release] For a compile of the program as it should be released, debug
 information should be off, the binary should be stripped, and optimizations
@@ -2524,7 +2524,7 @@ The switches mode dialog is shown in \seefig{oswitch}.
 \section{Customizing the IDE}
 The IDE is configurable in a wide range: Colors can be changed, screen
 resolution. The configuration setting can reached via the
-submenu \var{Environment} in the \var{Options} menu.
+sub-menu \var{Environment} in the \var{Options} menu.
 %
 % general preferences
 %
@@ -2581,7 +2581,7 @@ Here it is possible to set which files are saved when a program is run or
 when the IDE is exited:
 \begin{description}
 \item[Editor files] The contents of all open edit windows will be saved.
-\item[Envitonment] The current environment settings will be saved
+\item[Environment] The current environment settings will be saved
 \item[Desktop] The desktop file with all desktop settings (open windows,
 history lists, breakpoints etc.) will be saved.
 \end{description}
@@ -2675,7 +2675,7 @@ The editor preferences dialog is shown in \seefig{oeeditor}.
 The following elements can be set in the editor preferences dialog:
 \begin{description}
 \item[Create backup files]
-Wheneve an editor file is saved, a backup is made of the old file. On by
+Whenever an editor file is saved, a backup is made of the old file. On by
 default.
 \item[Auto indent mode] 
 Smart indenting is on. This means that pressing \key{Enter} will position the 
@@ -2746,7 +2746,7 @@ opened windows will have these options.
 \subsection{Mouse}
 \label{se:prefmouse}
 The mouse options dialog is called by the menu item
-\menu{Options|Environment|Mouse}. It allows to ajust the behaviour of the
+\menu{Options|Environment|Mouse}. It allows to adjust the behaviour of the
 mouse as well as the sensitivity of the mouse.
 \begin{htmlonly}
 The mouse options dialog looks as follows:
@@ -2789,7 +2789,7 @@ help index.
 \item [Go to cursor] The program is executed until the line where
 the mouse cursor is located.
 \item [Breakpoint] Set a breakpoint at the mouse cursor position.
-\item [Evalute] Evaluate the value of the variable at the mouse
+\item [Evaluate] Evaluate the value of the variable at the mouse
 cursor.
 \item [Add watch] Add the variable at the mouse cursor to the
 watch list.
@@ -2863,7 +2863,7 @@ without needing to compile the sources.
 \section{The help system}
 
 More information on how to handle the IDE, or about the use of various
-calls in the RTL, explanations regarding the syntax of a pascal statement,
+calls in the RTL, explanations regarding the syntax of a Pascal statement,
 can be found in the \emph{help system}. The help system is activated
 by pressing \key{F1}.
 
@@ -2908,7 +2908,7 @@ to display the \fpc help files. \footnote{...but feel free to improve it and sen
 \item
 When the HTML help viewer encounters a graphics file, it will try and find a
 file with the same name but an extension of \file{.ans}; If this file is
-found, this will be interpreted as a file with ansi escape sequences, and 
+found, this will be interpreted as a file with ANSI escape sequences, and 
 these will be used to display a text image. The displays of the IDE dialogs
 in the IDE help files are made in this way.
 \end{enumerate}
@@ -2933,7 +2933,7 @@ The help files dialog is displayed in \seefig{helpfiles}.
 \end{center}
 \end{figure}
 \end{latexonly}
-The dialogs lists the files that will be presented in thetable of contents
+The dialogs lists the files that will be presented in the table of contents
 window of the help system. Each entry has a small descriptive title and a
 filename next to it. The following actions are available when adding help
 files:
@@ -2952,7 +2952,7 @@ removed.
 \end{description}
 
 The \fpc documentation in HTML format can be added to the IDE's help system,
-this way the documentation can be viewed from within the IDE. If \fpc hs
+this way the documentation can be viewed from within the IDE. If \fpc has
 been installed using the installer, the installer should have added the 
 FPC documentation to the list of help files, if the documentation was
 installed as well.
@@ -2999,7 +2999,7 @@ Goto last help topic & \key{Alt-F1} & \\
 Search word at cursor position in help & \key{Ctrl-F1} & \\
 Help index & \key{Shift-F1} & \\
 Close active window & \key{Alt-F3} & \\
-Zomm/Unzoom window & \key{F5} & \\
+Zoom/Unzoom window & \key{F5} & \\
 Move/Zoom active window & \key{Ctrl-F5} & \\
 Switch to next window & \key{F6} & \\
 Switch to last window & \key{Shift-F6} & \\
@@ -3039,7 +3039,7 @@ Char right & \key{Arrow right} & \key{Ctrl-D} \\
 Line up & \key{Arrow up} & \key{Ctrl-E} \\
 Line down & \key{Arrow down} & \key{Ctrl-X} \\
 Word left & \key{Ctrl-Arrow left} & \key{Ctrl-A} \\
-Word right & \key{Ctrl-Arror right} & \key{Ctrl-F} \\
+Word right & \key{Ctrl-Arrow right} & \key{Ctrl-F} \\
 Scroll one line up & \key{Ctrl-W} & \\
 Scroll one line down & \key{Ctrl-Z} & \\
 Page up & \key{PageUp} & \key{Ctrl-R} \\
@@ -3079,8 +3079,8 @@ Copy selected text to cursor position & \key{Ctrl-K-C} & \\
 Move selected text to cursor position & \key{Ctrl-K-V} & \\
 Copy selected text to clipboard & \key{Ctrl-Ins} & \\
 Move selected text to the clipboard & \key{Shift-Del} & \\
-Indent block one coloumn & \key{Ctrl-K-I} & \\
-Unindent block one coloumn & \key{Ctrl-K-U} & \\
+Indent block one column & \key{Ctrl-K-I} & \\
+Unindent block one column & \key{Ctrl-K-U} & \\
 Insert text from clipboard & \key{Shift-Insert} & \\
 Insert file & \key{Ctrl-K-R} & \\
 Write selected text to file & \key{Ctrl-K-W} & \\
@@ -3098,8 +3098,8 @@ Extend selection one char to the left & \key{Shift-Arrow left} & \\
 Extend selection one char to the right & \key{Shift-Arrow right} & \\
 Extend selection to the beginning of the line & \key{Shift-Pos1} & \\
 Extend selection to the end of the line & \key{Shift-End} & \\
-Extend selection to the same coloumn in the last row & \key{Shift-Arrow up} & \\
-Extend selection to the same coloumn in the next row & \key{Shift-Arrow down} & \\
+Extend selection to the same column in the last row & \key{Shift-Arrow up} & \\
+Extend selection to the same column in the next row & \key{Shift-Arrow down} & \\
 Extend selection to the end of the line & \key{Shift-End} & \\
 Extend selection one word to the left & \key{Ctrl-Shift-Arrow left} & \\
 Extend selection one word to the right & \key{Ctrl-Shift-Arrow right} & \\
@@ -3126,7 +3126,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.18  2000-12-08 20:41:50  michael
+%  Revision 1.1.2.19  2000-12-08 21:15:39  michael
+%  + spell-checked
+%
+%  Revision 1.1.2.18  2000/12/08 20:41:50  michael
 %  + Fixed some references
 %
 %  Revision 1.1.2.17  2000/12/08 16:55:54  michael
