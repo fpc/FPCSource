@@ -410,7 +410,7 @@ implementation
                  cg.free_scratch_reg(exprasmlist,pleftreg);
                 {$endif}
                LOC_REGISTER :
-                 rg.ungetregister(exprasmlist,pleftreg);
+                 rg.ungetregisterint(exprasmlist,pleftreg);
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
@@ -436,35 +436,36 @@ implementation
                 begin
                   { clear the register value, indicating result is FALSE }
                   cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
-                {$ifdef newra}
-                  hr:=rg.getregisterint(exprasmlist,OS_INT);
-                {$else}
-                  hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
-                {$endif}
                   case right.location.loc of
-                    LOC_REGISTER,
+                    LOC_REGISTER:
+                      hr:=right.location.register;
                     LOC_CREGISTER:
                       begin
+                         hr:=rg.getregisterint(exprasmlist,OS_INT);
                          { load set value into register }
                          cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,
                             right.location.register,hr);
+                         location_release(exprasmlist,right.location);
                       end;
                     LOC_REFERENCE,
                     LOC_CREFERENCE :
                       begin
+                         hr:=rg.getregisterint(exprasmlist,OS_INT);
                          { load set value into register }
                          cg.a_load_ref_reg(exprasmlist,OS_32,
                             right.location.reference,hr);
+                         location_release(exprasmlist,right.location);
                       end;
                     else
                       internalerror(200203312);
                   end;
-                 location_release(exprasmlist,right.location);
-                 { then do SHR tge register }
+
+                 { then SHR the register }
                  cg.a_op_const_reg(exprasmlist,OP_SHR,
-                    tordconstnode(left).value and 31,hr);
+                   tordconstnode(left).value and 31,hr);
                  { then extract the lowest bit }
                  cg.a_op_const_reg(exprasmlist,OP_AND,1,hr);
+                 location.register:=hr;
                 end
                else
                 begin
@@ -524,13 +525,13 @@ implementation
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER :
-                            rg.ungetregisterint(exprasmlist,right.location.register);
+                      rg.ungetregisterint(exprasmlist,right.location.register);
                     LOC_CONSTANT ,
                     LOC_CREFERENCE,
                     LOC_REFERENCE :
-                         rg.ungetregisterint(exprasmlist,hr2);
-                     else
-                       internalerror(2002032210);
+                      rg.ungetregisterint(exprasmlist,hr2);
+                    else
+                      internalerror(2002032210);
                   end;
                   { free bitnumber register }
                 {$ifdef newra}
@@ -615,7 +616,8 @@ implementation
                   cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,paramanager.getintparaloc(1));
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
-                  r.enum:=accumulator;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_ACCUMULATOR;
                   cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                   { release the allocated register  }
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1112,7 +1114,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-04-22 10:09:35  daniel
+  Revision 1.28  2003-04-22 12:45:58  florian
+    * fixed generic in operator code
+    + added debug code to check if all scratch registers are released
+
+  Revision 1.27  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used

@@ -54,7 +54,11 @@ implementation
      cclasses,globals,
      symconst,symbase,symtype,symsym,paramgr,
      aasmbase,aasmtai,
-     pass_1,cpubase,cgbase,regvars,nflw,rgobj;
+     pass_1,cpubase,cgbase,
+{$ifdef EXTDEBUG}
+     cgobj,
+{$endif EXTDEBUG}
+     regvars,nflw,rgobj;
 
 {*****************************************************************************
                               SecondPass
@@ -166,6 +170,7 @@ implementation
 {$endif TEMPREGDEBUG}
 {$ifdef EXTDEBUG}
          oldloc : tloc;
+         i : longint;
 {$endif EXTDEBUG}
       begin
          if not assigned(p) then
@@ -198,6 +203,14 @@ implementation
                (oldloc<>LOC_INVALID) and
                (p.location.loc=LOC_INVALID) then
              Comment(V_Fatal,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
+
+            { check if all scratch registers are freed }
+            for i:=1 to max_scratch_regs do
+              if not(scratch_regs[i] in cg.unusedscratchregisters) then
+                begin
+                   writenode(p);
+                   internalerror(2003042201);
+                end;
 {$endif EXTDEBUG}
             if codegenerror then
               include(p.flags,nf_error);
@@ -332,7 +345,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2003-01-09 20:40:59  daniel
+  Revision 1.44  2003-04-22 12:45:58  florian
+    * fixed generic in operator code
+    + added debug code to check if all scratch registers are released
+
+  Revision 1.43  2003/01/09 20:40:59  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.42  2003/01/09 15:49:56  daniel
