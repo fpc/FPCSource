@@ -1275,7 +1275,7 @@ implementation
                  { delphi allows to reuse the names in a class, but not
                    in object (tp7 compatible) }
                  if not((m_delphi in aktmodeswitches) and
-                        is_class(procinfo^._class)) then
+                        is_class_or_interface(procinfo^._class)) then
                   begin
                     DuplicateSym(hsym);
                     exit;
@@ -2028,7 +2028,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-01-29 19:46:00  peter
+  Revision 1.54  2002-01-29 21:30:25  peter
+    * allow also dup id in delphi mode in interfaces
+
+  Revision 1.53  2002/01/29 19:46:00  peter
     * fixed recordsymtable.insert_in() for inserting variant record fields
       to not used symtable.insert() because that also updates alignmentinfo
       which was already set
