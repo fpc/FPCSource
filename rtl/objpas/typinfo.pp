@@ -1232,16 +1232,21 @@ end;
 
 Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
 type
-  TGetMethodProcIndex=function(index:longint):PMethod of object;
-  TGetMethodProc=function():PMethod of object;
+  TGetMethodProcIndex=function(Index: Longint): TMethod of object;
+  TGetMethodProc=function(): TMethod of object;
 var
   value: PMethod;
   AMethod : TMethod;
 begin
-  Value:=nil;
+  Result.Code:=nil;
+  Result.Data:=nil;
   case (PropInfo^.PropProcs) and 3 of
     ptfield:
-      Value:=PMethod(Pointer(Instance)+Longint(PropInfo^.GetProc));
+      begin
+        Value:=PMethod(Pointer(Instance)+Longint(PropInfo^.GetProc));
+        if Value<>nil then
+          Result:=Value^;
+      end;
     ptstatic,
     ptvirtual :
       begin
@@ -1251,18 +1256,11 @@ begin
           AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          Value:=TGetMethodProcIndex(AMethod)(PropInfo^.Index)
+          Result:=TGetMethodProcIndex(AMethod)(PropInfo^.Index)
         else
-          Value:=TGetMethodProc(AMethod)();
+          Result:=TGetMethodProc(AMethod)();
       end;
   end;
-  if Value=nil then
-    begin
-      Result.Code:=nil;
-      Result.Data:=nil;
-    end
-  else
-    Result:=Value^;
 end;
 
 
@@ -1438,7 +1436,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-05-24 21:05:19  florian
+  Revision 1.26  2004-06-02 14:33:18  michael
+  + Patch from matthias gaertner to fix GetMethodProp with procedural spec
+
+  Revision 1.25  2004/05/24 21:05:19  florian
     * fixed comp property writing for cpus where comp=int64
 
   Revision 1.24  2004/05/23 19:00:40  florian
