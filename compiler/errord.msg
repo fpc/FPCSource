@@ -67,8 +67,7 @@ general_t_exepath=T_Benutze Pfad fÅr ausfuehrbare Datei: $1
 % looks for it's binaries.
 general_t_unitpath=T_Benutze Unit Pfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for compiled units. You can set this path with the \var{-Fu} or
-% \var{-Up} options.
+% looks for compiled units. You can set this path with the \var{-Fu}
 general_t_includepath=T_Benutze Include Pfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for it's include files (files used in \var{\{\$I xxx\}} statements).
@@ -743,9 +742,16 @@ parser_e_threadvars_only_sg=E_Threadvariablen kînnen nur statisch oder global se
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=F_Direct Assembler wird als Ausgabeformat nicht unterstÅtzt
+parser_f_direct_assembler_not_allowed=F_Direct Assembler wird als binÑres Ausgabeformat nicht unterstÅtzt
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
+parser_w_no_objpas_use_mode=W_Laden sie die OBJPAS Unit nicht manuell, benutzen Sie statdessen {$mode objfpc} oder {$mode delphi}
+% You're trying to load the ObjPas unit manual from a uses clause. This is
+% not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
+% directives which load the unit automaticly
+parser_e_no_object_override=E_OVERRIDE darf in Objekten nicht verwendet werden
+% Override isn't support for objects, use VIRTUAL instead to override
+% a method of an anchestor object
 % \end{description}
 #
 # Type Checking
@@ -856,6 +862,8 @@ sym_f_internal_error_in_symtablestack=F_Interner Fehler in SymTableStack()
 % the circumstances in which the error occurs.
 sym_e_duplicate_id=E_Doppelter Bezeichner $1
 % The identifier was already declared in the current scope.
+sym_h_duplicate_id_where=H_Bezeichner ist bereits definiert in $1 auf Zeile $2
+% The identifier was already declared in a previous scope.
 sym_e_unknown_id=E_Unbekannter Bezeichner $1
 % The identifier encountered hasn't been declared, or is used outside the
 % scope where it's defined.
@@ -1365,6 +1373,11 @@ option_obsolete_switch=W_Sie verwenden den ehemaligen Schalter $1
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
 %
+option_obsolete_switch_use_new=W_Sie benutzen den ehemaligen Schalter $1, bitte benutzen Siease $2
+% this warns you when you use a switch that is not supported anymore. You
+% must now use the second switch instead.
+% It is recommended that you change the switch to overcome problems in the
+% future, when the switch meaning may change.
 # EndOfTeX
 #
 # Logo (option -l)
@@ -1394,140 +1407,141 @@ option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
 ol_begin=**0*_nach boolschen Optionen geben Sie + zum Ein- bzw. - zum Ausschalten an
 ol001=**1a_lîsche die erzeugte Assembler-Datei nicht
 ol002=**2al_liste Quellcode-Zeilen in der Assembler-Datei
-ol003=**1b_erzeuge Browser-Info
-ol137=**2bl_erzeuge Info zu lokalen Symbolen
-ol004=**1B_erzeuge alle Module (Build)
-ol005=**1C<x>_Optionen fuer Code-Erzeugung:
-ol006=3*2CD_erzeuge dynamische Bibliothek
-ol007=**2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
-ol008=**2Ci_IO-PrÅfung
-ol009=**2Cn_lasse die Stufe Linken weg
-ol010=**2Co_prÅfe öberlauf der Integer Operationen
-ol011=**2Cr_fÅhre BereichsprÅfung durch
-ol012=**2Cs<n>_setze Grîsse des Stacks zu <n>
-ol013=**2Ct_fÅhre StackprÅfung durch
-ol014=3*2CS_erzeuge statische Bibliothek
-ol015=3*2Cx_benutze Smartlinking
-ol016=**1d<x>_definiere das Symbol <x>
-ol017=*O1D_erzeuge eine DEF Datei
-ol018=*O2Dd<x>_setze Beschreibung zu <x>
-ol019=*O2Dw_erzeuge PM Anwendung
-ol020=**1e<x>_setze Pfad zur ausfÅhrbaren Datei
-ol021=**1E_identisch mit -Cn
-ol022=**1F<x>_Dateinamen und Pfade:
-ol023=**2FD<x>_setze das Verzeichnis fÅr die Compiler Hilfsprogramme
-ol024=**2Fe<x>_leite die Fehlerausgabe um nach <x>
-ol025=**2FE<x>_setze den Pfad fuer Exe/Unit Dateien auf <x>
-ol026=*L2Fg<x>_identisch mit -Fl
-ol027=**2Fi<x>_ergÑnze <x> zum Include-Pfad
-ol028=**2Fl<x>_ergÑnze <x> zum Bibliotheks-Pfad
-ol029=*L2FL<x>_benutze <x> als dynamischen Linker
-ol030=**2Fo<x>_ergÑnze <x> zum Object-Pfad
-ol031=**2Fr<x>_lade die Fehler-Meldungs Datei <x>
-ol032=**2Fu<x>_ergÑnze <x> zum Unit-Pfad
-ol033=**2FU<x>_setze den Unit Ausgabe Pfad auf <x>, hat Vorrang vor -FE
-ol034=*g1g<x>_erzeuge Debugger Information:
-ol035=*g2gg_benutze gsym
-ol036=*g2gd_benutze dbx
-ol037=*g2gh_benutze Heap Trace Unit
-ol038=**1i_zeige alle Information Åber den Compiler
-ol039=**2iD_zeige Compiler Datum
-ol040=**2iV_zeige Compiler Version
-ol041=**2iSO_zeige Compiler OS
-ol042=**2iSP_zeige Compiler Processor
-ol043=**2iTO_zeige Zielsystem OS
-ol044=**2iTP_zeige Zielsystem Processor
-ol045=**1I<x>_ergÑnze <x> zum Include-Pfad
-ol046=**1k<x>_Åbergebe <x> an den Linker
-ol047=**1l_zeige Logo
-ol048=**1n_Standard Parameter-Datei ignorieren
-ol049=**1o<x>_Ñndere den Namen der erzeugten ausfuehrbaren Datei in <x>
-ol050=**1pg_erzeuge Profiler-Code fÅr gprof
-ol051=*L1P_benutze Pipes anstelle von temporÑren Assembler Dateien
-ol052=**1S<x>_Syntax Optionen:
-ol053=**2S2_schalte einige der Delphi 2 Erweiterungen ein
-ol054=**2Sc_unterstÅtze spezielle C Operatoren (*=,+=,/= and -=)
-ol055=**2Sd_sei Delphi kompatibel
-ol056=**2Se_halte Compiler nach dem ersten Fehler an
-ol057=**2Sg_erlaube LABEL und GOTO
-ol136=**2Sh_benutze ANSI-Strings
-ol058=**2Si_benutze C++ artige INLINE
-ol059=**2Sm_unterstÅtze Macros wie in C (global)
-ol060=**2So_sei TP/BP 7.0 kompatibel
-ol061=**2Sp_sei gpc kompatibel
-ol062=**2Ss_bestimme dass Constructor Name: "Init" und Destructor: "Done" ist
-ol063=**2St_erlaube SchlÅsselwort static in Objekten
-ol064=**1s_rufe weder Assembler noch Linker auf (nur mit -a)
-ol065=**1u<x>_entferne die Definition fÅr das Symbol <x>
-ol066=**1U<x>_Unit Optionen:
-ol067=**2Un_prÅfe den Unit Namen nicht
-ol068=**2Up<x>_gleich wie -Fu<x>
-ol069=**2Us_erzeuge eine System Unit
-ol070=**1v<x>_sei mitteilsam, <x> ist eine Kombination der folgenden Zeichen:
-ol071=**2*_e : zeige Fehler (Standard)     d : zeige Debug Info
-ol072=**2*_w : zeige Warnungen             u : zeige Unit Info
-ol073=**2*_n : zeige Anmerkungen           t : zeige angesprochene/benutzte Dateien
-ol074=**2*_h : zeige Hinweise              m : zeige definierte Macros
-ol075=**2*_i : zeige allgemeine Info       p : zeige compilierte Prozeduren
-ol076=**2*_l : zeige Zeilennummern         c : zeige conditionals
-ol077=**2*_a : zeige alles                 0 : zeige nichts (ausser Fehlern)
-ol078=**2*_b : zeige alle Prozedurdekla-   r : Rhide/GCC kompatibler Modus
-ol079=**2*_    rationen im Fehlerfall      x : Exe-Datei Info (nur Win32)
-ol081=**1X<x>_Optionen fÅr ausfÅhrbare Dateien:
-ol082=*L2Xc_linke mit der c library
-ol083=**2XD_linke mit den dynamischen Bibliotheken (definiert FPC_LINK_DYNAMIC)
-ol084=**2Xs_entferne alle Symbole vom der ausfÅhrbaren Datei
-ol085=**2XS_linke mit den statischen Bibliotheken (definiert FPC_LINK_STATIC)
-ol086=**0*_Optionen fuer den Prozessor:
-ol087=3*1A<x>_Ausgabeformat:
-ol088=3*2Ao_coff-Datei mit Hilfe von GNU AS
-ol089=3*2Anasmcoff_coff-Datei mit Hilfe von Nasm
-ol090=3*2Anasmelf_elf32-Datei (Linux) mit Hilfe von Nasm
-ol091=3*2Anasmobj_obj-Datei mit Hilfe von Nasm
-ol092=3*2Amasm_obj-Datei mit Hilfe von Masm (Mircosoft)
-ol093=3*2Atasm_obj-Datei mit Hilfe von Tasm (Borland)
-ol094=3*1R<x>_Assembler-Leser Format:
-ol095=3*2Ratt_lies AT&T Assembler Variante
-ol096=3*2Rintel_lies Intel Assembler Variante
-ol097=3*2Rdirect_kopiere Assembler-Text direkt in die Assembler-Datei
-ol098=3*1O<x>_Optimierungen:
-ol099=3*2Og_erzeuge kleineren Code
-ol100=3*2OG_erzeuge schnelleren Code (standard)
-ol101=3*2Or_behalte bestimmte Variablen in Registern (noch BUGGY!!!)
-ol102=3*2Ou_aktiviere unsichere Optimierungen (siehe Documentation)
-ol103=3*2O1_Stufe 1 Optimierungen (schnelle Optimierungen)
-ol104=3*2O2_Stufe 2 Optimierungen (-O1 + langsamere Optimierungen)
-ol105=3*2O3_Stufe 3 Optimierungen (gleich wie -O2u)
-ol106=3*2Op<x>_Ziel Processor:
-ol107=3*3Op1_setze Ziel-Processor auf 386/486
-ol108=3*3Op2_setze Ziel-Processor auf Pentium/PentiumMMX (R)
-ol109=3*3Op3_setze Ziel-Processor auf PPro/PII/c6x86/K6 (R)
-ol110=3*1T<x>_Ziel Betriebssystem
-ol111=3*2TGO32V1_Version 1 von DJ Delorie's DOS extender
-ol112=3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
-ol113=3*2TLINUX_Linux
-ol114=3*2TOS2_OS/2 2.x
-ol115=3*2TWin32_Windows 32 Bit
-ol116=6*1A<x>_Ausgabe Format:
-ol117=6*2Ao_Unix o-Datei mit Hilfe von GNU AS
-ol118=6*2Agas_GNU Motorola Assembler
-ol119=6*2Amit_MIT Syntax (alter GAS)
-ol120=6*2Amot_Standard Motorola Assembler
-ol121=6*1O<x>_Optimierungen:
-ol122=6*2Oa_schalte Optimierer ein
-ol123=6*2Og_erzeuge kleineren Code
-ol124=6*2OG_erzeuge schnelleren Code (standard)
-ol125=6*2Ox_optimiere Maximal (noch BUGGY!!!)
-ol126=6*2O2_setze Ziel-Prozessor auf MC68020+
-ol127=6*1R<x>_Assembler-Leser Format:
-ol128=6*2RMOT_lies Motorola Assembler Variante
-ol129=6*1T<x>_Ziel Betriebssystem
-ol130=6*2TAMIGA_Commodore Amiga
-ol131=6*2TATARI_Atari ST/STe/TT
-ol132=6*2TMACOS_Macintosh m68k
-ol133=6*2TLINUX_Linux-68k
-ol134=**1*_
-ol135=**1?_zeigt diese Hilfe an
+ol003=**2ar_liste Register-Belegung/Freigabe-Information in Assembler-Datei
+ol004=**2at_liste Temp-Belegung/Freigabe-Information in Assembler-Datei
+ol005=**1b_erzeuge Browser-Info
+ol006=**2bl_erzeuge Info zu lokalen Symbolen
+ol007=**1B_erzeuge alle Module (Build)
+ol008=**1C<x>_Optionen fuer Code-Erzeugung:
+ol009=3*2CD_erzeuge dynamische Bibliothek
+ol010=**2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
+ol011=**2Ci_IO-PrÅfung
+ol012=**2Cn_lasse die Stufe Linken weg
+ol013=**2Co_prÅfe öberlauf der Integer Operationen
+ol014=**2Cr_fÅhre BereichsprÅfung durch
+ol015=**2Cs<n>_setze Grîsse des Stacks zu <n>
+ol016=**2Ct_fÅhre StackprÅfung durch
+ol017=3*2CS_erzeuge statische Bibliothek
+ol018=3*2Cx_benutze Smartlinking
+ol019=**1d<x>_definiere das Symbol <x>
+ol020=*O1D_erzeuge eine DEF Datei
+ol021=*O2Dd<x>_setze Beschreibung zu <x>
+ol022=*O2Dw_erzeuge PM Anwendung
+ol023=**1e<x>_setze Pfad zur ausfÅhrbaren Datei
+ol024=**1F<x>_Dateinamen und Pfade:
+ol025=**2FD<x>_setze das Verzeichnis fÅr die Compiler Hilfsprogramme
+ol026=**2Fe<x>_leite die Fehlerausgabe um nach <x>
+ol027=**2FE<x>_setze den Pfad fuer Exe/Unit Dateien auf <x>
+ol028=*L2Fg<x>_identisch mit -Fl
+ol029=**2Fi<x>_ergÑnze <x> zum Include-Pfad
+ol030=**2Fl<x>_ergÑnze <x> zum Bibliotheks-Pfad
+ol031=*L2FL<x>_benutze <x> als dynamischen Linker
+ol032=**2Fo<x>_ergÑnze <x> zum Object-Pfad
+ol033=**2Fr<x>_lade die Fehler-Meldungs Datei <x>
+ol034=**2Fu<x>_ergÑnze <x> zum Unit-Pfad
+ol035=**2FU<x>_setze den Unit Ausgabe Pfad auf <x>, hat Vorrang vor -FE
+ol036=*g1g<x>_erzeuge Debugger Information:
+ol037=*g2gg_benutze gsym
+ol038=*g2gd_benutze dbx
+ol039=*g2gh_benutze Heap Trace Unit
+ol040=**1i_zeige alle Information Åber den Compiler
+ol041=**2iD_zeige Compiler Datum
+ol042=**2iV_zeige Compiler Version
+ol043=**2iSO_zeige Compiler OS
+ol044=**2iSP_zeige Compiler Processor
+ol045=**2iTO_zeige Zielsystem OS
+ol046=**2iTP_zeige Zielsystem Processor
+ol047=**1I<x>_ergÑnze <x> zum Include-Pfad
+ol048=**1k<x>_Åbergebe <x> an den Linker
+ol049=**1l_zeige Logo
+ol050=**1n_Standard Parameter-Datei ignorieren
+ol051=**1o<x>_Ñndere den Namen der erzeugten ausfuehrbaren Datei in <x>
+ol052=**1pg_erzeuge Profiler-Code fÅr gprof
+ol053=*L1P_benutze Pipes anstelle von temporÑren Assembler Dateien
+ol054=**1S<x>_Syntax Optionen:
+ol055=**2S2_schalte einige der Delphi 2 Erweiterungen ein
+ol056=**2Sc_unterstÅtze spezielle C Operatoren (*=,+=,/= and -=)
+ol057=**2Sd_sei Delphi kompatibel
+ol058=**2Se_halte Compiler nach dem ersten Fehler an
+ol059=**2Sg_erlaube LABEL und GOTO
+ol160=**2Sh_benutze ANSI-Strings
+ol061=**2Si_benutze C++ artige INLINE
+ol062=**2Sm_unterstÅtze Macros wie in C (global)
+ol063=**2So_sei TP/BP 7.0 kompatibel
+ol064=**2Sp_sei gpc kompatibel
+ol065=**2Ss_bestimme dass Constructor Name: "Init" und Destructor: "Done" ist
+ol066=**2St_erlaube SchlÅsselwort static in Objekten
+ol067=**1s_rufe weder Assembler noch Linker auf (nur mit -a)
+ol068=**1u<x>_entferne die Definition fÅr das Symbol <x>
+ol069=**1U<x>_Unit Optionen:
+ol070=**2Un_prÅfe den Unit Namen nicht
+ol071=**2Us_erzeuge eine System Unit
+ol072=**1v<x>_sei mitteilsam, <x> ist eine Kombination der folgenden Zeichen:
+ol073=**2*_e : zeige Fehler (Standard)     d : zeige Debug Info
+ol074=**2*_w : zeige Warnungen             u : zeige Unit Info
+ol075=**2*_n : zeige Anmerkungen           t : zeige angesprochene/benutzte Dateien
+ol076=**2*_h : zeige Hinweise              m : zeige definierte Macros
+ol077=**2*_i : zeige allgemeine Info       p : zeige compilierte Prozeduren
+ol078=**2*_l : zeige Zeilennummern         c : zeige conditionals
+ol079=**2*_a : zeige alles                 0 : zeige nichts (ausser Fehlern)
+ol080=**2*_b : zeige alle Prozedurdekla-   r : Rhide/GCC kompatibler Modus
+ol081=**2*_    rationen im Fehlerfall      x : Exe-Datei Info (nur Win32)
+ol082=**2*_
+ol083=**1X<x>_Optionen fÅr ausfÅhrbare Dateien:
+ol084=*L2Xc_linke mit der c library
+ol085=**2XD_linke mit den dynamischen Bibliotheken (definiert FPC_LINK_DYNAMIC)
+ol086=**2Xs_entferne alle Symbole vom der ausfÅhrbaren Datei
+ol087=**2XS_linke mit den statischen Bibliotheken (definiert FPC_LINK_STATIC)
+ol088=**0*_Optionen fuer den Prozessor:
+ol089=3*1A<x>_Ausgabeformat:
+ol090=3*2Ao_coff-Datei mit Hilfe von GNU AS
+ol091=3*2Anasmcoff_coff-Datei mit Hilfe von Nasm
+ol092=3*2Anasmelf_elf32-Datei (Linux) mit Hilfe von Nasm
+ol093=3*2Anasmobj_obj-Datei mit Hilfe von Nasm
+ol094=3*2Amasm_obj-Datei mit Hilfe von Masm (Mircosoft)
+ol095=3*2Atasm_obj-Datei mit Hilfe von Tasm (Borland)
+ol096=3*1R<x>_Assembler-Leser Format:
+ol097=3*2Ratt_lies AT&T Assembler Variante
+ol098=3*2Rintel_lies Intel Assembler Variante
+ol099=3*2Rdirect_kopiere Assembler-Text direkt in die Assembler-Datei
+ol100=3*1O<x>_Optimierungen:
+ol101=3*2Og_erzeuge kleineren Code
+ol102=3*2OG_erzeuge schnelleren Code (standard)
+ol103=3*2Or_behalte bestimmte Variablen in Registern (noch BUGGY!!!)
+ol104=3*2Ou_aktiviere unsichere Optimierungen (siehe Documentation)
+ol105=3*2O1_Stufe 1 Optimierungen (schnelle Optimierungen)
+ol106=3*2O2_Stufe 2 Optimierungen (-O1 + langsamere Optimierungen)
+ol107=3*2O3_Stufe 3 Optimierungen (gleich wie -O2u)
+ol108=3*2Op<x>_Ziel Processor:
+ol109=3*3Op1_setze Ziel-Processor auf 386/486
+ol110=3*3Op2_setze Ziel-Processor auf Pentium/PentiumMMX (R)
+ol111=3*3Op3_setze Ziel-Processor auf PPro/PII/c6x86/K6 (R)
+ol112=3*1T<x>_Ziel Betriebssystem
+ol113=3*2TGO32V1_Version 1 von DJ Delorie's DOS extender
+ol114=3*2TGO32V2_Version 2 von DJ Delorie's DOS extender
+ol115=3*2TLINUX_Linux
+ol116=3*2TOS2_OS/2 2.x
+ol117=3*2TWin32_Windows 32 Bit
+ol118=6*1A<x>_Ausgabe Format:
+ol119=6*2Ao_Unix o-Datei mit Hilfe von GNU AS
+ol120=6*2Agas_GNU Motorola Assembler
+ol121=6*2Amit_MIT Syntax (alter GAS)
+ol122=6*2Amot_Standard Motorola Assembler
+ol123=6*1O<x>_Optimierungen:
+ol124=6*2Oa_schalte Optimierer ein
+ol125=6*2Og_erzeuge kleineren Code
+ol126=6*2OG_erzeuge schnelleren Code (standard)
+ol127=6*2Ox_optimiere Maximal (noch BUGGY!!!)
+ol128=6*2O2_setze Ziel-Prozessor auf MC68020+
+ol129=6*1R<x>_Assembler-Leser Format:
+ol130=6*2RMOT_lies Motorola Assembler Variante
+ol131=6*1T<x>_Ziel Betriebssystem
+ol132=6*2TAMIGA_Commodore Amiga
+ol133=6*2TATARI_Atari ST/STe/TT
+ol134=6*2TMACOS_Macintosh m68k
+ol135=6*2TLINUX_Linux-68k
+ol136=**1*_
+ol137=**1?_zeigt diese Hilfe an
 ol_end=**1h_zeigt diese Hilfe ohne Warten an
 
 #
