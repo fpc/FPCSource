@@ -16,21 +16,40 @@
 {$mode objfpc}{$h+}
 program ImgConv;
 
-uses FPImage, FPWriteXPM, FPWritePNG, FPReadXPM, FPReadPNG, sysutils;
+{_$define UseFile}
+
+uses FPImage, FPWriteXPM, FPWritePNG, FPReadXPM, FPReadPNG,
+     {$ifndef UseFile}classes,{$endif}
+     sysutils;
 
 var img : TFPMemoryImage;
     reader : TFPCustomImageReader;
     Writer : TFPCustomimageWriter;
+    ReadFile, WriteFile, WriteOptions : string;
 
 procedure Init;
 var t : char;
 begin
-  T := upcase (paramstr(1)[1]);
-  if T = 'X' then
-    Reader := TFPReaderXPM.Create
+  if paramcount = 4 then
+    begin
+    T := upcase (paramstr(1)[1]);
+    if T = 'X' then
+      Reader := TFPReaderXPM.Create
+    else
+      Reader := TFPReaderPNG.Create;
+    ReadFile := paramstr(2);
+    WriteOptions := paramstr(3);
+    WriteFile := paramstr(4);
+    end
   else
-    Reader := TFPReaderPNG.Create;
-  T := upcase (paramstr(3)[1]);
+    begin
+    Reader := nil;
+    ReadFile := paramstr(1);
+    WriteOptions := paramstr(2);
+    WriteFile := paramstr(3);
+    end;
+  WriteOptions := uppercase (writeoptions);
+  T := WriteOptions[1];
   if T = 'X' then
     Writer := TFPWriterXPM.Create
   else
@@ -39,14 +58,33 @@ begin
 end;
 
 procedure ReadImage;
+{$ifndef UseFile}var str : TStream;{$endif}
 begin
-  img.LoadFromFile (paramstr(2), Reader);
+  if assigned (reader) then
+    img.LoadFromFile (ReadFile, Reader)
+  else
+    {$ifdef UseFile}
+    img.LoadFromFile (ReadFile);
+    {$else}
+    if fileexists (ReadFile) then
+      begin
+      str := TFileStream.create (ReadFile,fmOpenRead);
+      try
+        img.loadFromStream (str);
+      finally
+        str.Free;
+      end;
+      end
+    else
+      writeln ('File ',readfile,' doesn''t exists!');
+    {$endif}
 end;
 
 procedure WriteImage;
 var t : string;
 begin
-  t := UpperCase(paramstr(3));
+  t := WriteOptions;
+  writeln (' WriteImage, options=',t);
   if (t[1] = 'P') then
     with (Writer as TFPWriterPNG) do
       begin
@@ -58,11 +96,15 @@ begin
                ' - WordSized ',WordSized,' - UseAlpha ',UseAlpha);
       end
   else if (t[1] = 'X') then
+    begin
+    if length(t) > 1 then
     with (Writer as TFPWriterXPM) do
       begin
       ColorCharSize := ord(t[2]) - ord('0');
       end;
-  img.SaveToFile (paramstr(4), Writer);
+    end;
+  writeln ('Options checked, now writing...');
+  img.SaveToFile (WriteFile, Writer);
 end;
 
 procedure Clean;
@@ -73,22 +115,29 @@ begin
 end;
 
 begin
-  if paramcount <> 4 then
+  if (paramcount <> 4) and (paramcount <> 3) then
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
     writeln ('X for XPM, P for PNG');
     writeln ('example: imgconv X hello.xpm P hello.png');
-    writeln ('  The PNG has settings when writing:  G : grayscale,');
-    writeln ('    A : use alpha, I : Indexed in palette, W : Word sized.');
+    writeln ('example: imgconv hello.xpm P hello.png');
+    writeln ('Options for');
+    writeln ('  PNG :  G : grayscale, A : use alpha, ');
+    writeln ('         I : Indexed in palette, W : Word sized.');
+    writeln ('  XPM :  Number of chars to use for 1 pixel');
     writeln ('  The color size of an XPM can be set after the X as 1,2,3 or 4');
-    writeln ('example: imgconv X hello.xpm PIA hello.png');
-    writeln ('example: imgconv P hello.png X2 hello.xpm');
+    writeln ('example: imgconv hello.xpm PIA hello.png');
+    writeln ('example: imgconv hello.png X2 hello.xpm');
     end
   else
     try
+      writeln ('Initing');
       Init;
+      writeln ('Reading image');
       ReadImage;
+      writeln ('Writeing image');
       WriteImage;
+      writeln ('Clean up');
       Clean;
     except
       on e : exception do
