@@ -22,6 +22,12 @@
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
 
+{ Using inlining for small system functions/wrappers }
+{$ifdef HASINLINE}
+  {$inline on}
+  {$define SYSTEMINLINE}
+{$endif}
+
 { don't use FPU registervariables on the i386 }
 {$ifdef i386}
   {$maxfpuregisters 0}
@@ -260,8 +266,8 @@ Var
 ****************************************************************************}
 
 Procedure Move(const source;var dest;count:Longint);
-Procedure FillChar(Var x;count:Longint;Value:Boolean);
-Procedure FillChar(Var x;count:Longint;Value:Char);
+Procedure FillChar(Var x;count:Longint;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(Var x;count:Longint;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillChar(Var x;count:Longint;Value:Byte);
 procedure FillByte(var x;count:longint;value:byte);
 Procedure FillWord(Var x;count:Longint;Value:Word);
@@ -287,37 +293,37 @@ Function  lo(w:Word):byte;
 Function  lo(l:Longint):Word;
 Function  lo(l:DWord):Word;
 Function  lo(i:Integer):byte;
-Function  lo(B: Byte):Byte;
+Function  lo(B: Byte):Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  hi(w:Word):byte;
 Function  hi(i:Integer):byte;
 Function  hi(l:Longint):Word;
-Function  hi(b : Byte) : Byte;
+Function  hi(b : Byte) : Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function  hi(l: DWord): Word;
-Function  Swap (X:Word):Word;
-Function  Swap (X:Integer):Integer;
-Function  Swap (X:Cardinal):Cardinal;
-Function  Swap (X:LongInt):LongInt;
 Function  lo(q : QWord) : DWord;
 Function  lo(i : Int64) : DWord;
 Function  hi(q : QWord) : DWord;
 Function  hi(i : Int64) : DWord;
-Function  Swap (X:QWord):QWord;
-Function  Swap (X:Int64):Int64;
+Function  Swap (X:Word):Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Swap (X:Integer):Integer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Swap (X:Cardinal):Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Swap (X:LongInt):LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Swap (X:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Swap (X:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function  Random(l:cardinal):cardinal;
 Function  Random(l:longint):longint;
 Function  Random: extended;
 Procedure Randomize;
 
-Function abs(l:Longint):Longint;
-Function abs(l:Int64):Int64;
-Function sqr(l:Longint):Longint;
-Function sqr(l:Int64):Int64;
-Function sqr(l:QWord):QWord;
-Function odd(l:Longint):Boolean;
-Function odd(l:Cardinal):Boolean;
-Function odd(l:Int64):Boolean;
-Function odd(l:QWord):Boolean;
+Function abs(l:Longint):Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function abs(l:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Longint):Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longint):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Cardinal):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Int64):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:QWord):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { float math routines }
 {$I mathh.inc}
@@ -326,10 +332,10 @@ Function odd(l:QWord):Boolean;
                          Addr/Pointer Handling
 ****************************************************************************}
 
-Function  ptr(sel,off:Longint):farpointer;
-Function  Cseg:Word;
-Function  Dseg:Word;
-Function  Sseg:Word;
+Function  ptr(sel,off:Longint):farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Cseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Dseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {****************************************************************************
                       PChar and String Handling
@@ -504,12 +510,12 @@ Procedure getdir(drivenr:byte;Var dir:ansistring);
 *****************************************************************************}
 
 { os independent calls to allow backtraces }
-function get_frame:longint;
-function get_caller_addr(framebp:longint):longint;
-function get_caller_frame(framebp:longint):longint;
+function get_frame:longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-Function IOResult:Word;
-Function Sptr:Longint;
+Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr:Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {*****************************************************************************
@@ -520,10 +526,10 @@ Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 Procedure Dump_Stack(var f : text;bp:Longint);
 Procedure RunError(w:Word);
-Procedure RunError;
+Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure halt(errnum:byte);
 Procedure AddExitProc(Proc:TProcedure);
-Procedure halt;
+Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {*****************************************************************************
@@ -581,7 +587,12 @@ const
 
 {
   $Log$
-  Revision 1.51  2002-08-06 20:53:38  michael
+  Revision 1.52  2002-08-19 19:34:02  peter
+    * SYSTEMINLINE define that will add inline directives for small
+      functions and wrappers. This will be defined automaticly when
+      the compiler defines the HASINLINE directive
+
+  Revision 1.51  2002/08/06 20:53:38  michael
     + Added support for octal strings (using &)
 
   Revision 1.50  2002/07/26 22:46:06  florian

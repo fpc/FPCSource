@@ -954,14 +954,14 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:longint;assembler;
+function get_frame:longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:longint):longint;assembler;
+function get_caller_addr(framebp:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    framebp,%eax
         orl     %eax,%eax
@@ -972,7 +972,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:longint):longint;assembler;
+function get_caller_frame(framebp:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    framebp,%eax
         orl     %eax,%eax
@@ -987,7 +987,7 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;[internconst:in_const_abs];
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
 asm
         movl    l,%eax
         cltd
@@ -997,7 +997,7 @@ end ['EAX','EDX'];
 
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
+function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 asm
        movl     l,%eax
        andl     $1,%eax
@@ -1006,7 +1006,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
+function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
 asm
         mov     l,%eax
         imull   %eax,%eax
@@ -1014,7 +1014,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Longint;assembler;
+Function Sptr : Longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %esp,%eax
 end;
@@ -1176,7 +1176,12 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.26  2002-07-26 15:45:33  florian
+  Revision 1.27  2002-08-19 19:34:02  peter
+    * SYSTEMINLINE define that will add inline directives for small
+      functions and wrappers. This will be defined automaticly when
+      the compiler defines the HASINLINE directive
+
+  Revision 1.26  2002/07/26 15:45:33  florian
     * changed multi threading define: it's MT instead of MTRTL
 
   Revision 1.25  2002/07/06 20:31:59  carl

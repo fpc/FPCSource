@@ -137,6 +137,17 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$define SYSPROCDEFINED}
 {$endif iA64}
 
+
+procedure fillchar(var x;count : longint;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  fillchar(x,count,byte(value));
+end;
+
+procedure fillchar(var x;count : longint;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  fillchar(x,count,byte(value));
+end;
+
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
 {$I generic.inc}
@@ -157,42 +168,42 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
                                Math Routines
 ****************************************************************************}
 
-function Hi(b : byte): byte;
+function Hi(b : byte): byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
    Hi := b shr 4
 end;
 
-function Lo(b : byte): byte;
+function Lo(b : byte): byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
    Lo := b and $0f
 end;
 
-Function swap (X : Word) : Word;[internconst:in_const_swap_word];
+Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_word];
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function Swap (X : Integer) : Integer;[internconst:in_const_swap_word];
+Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_word];
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function swap (X : Longint) : Longint;[internconst:in_const_swap_long];
+Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_long];
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : Cardinal) : Cardinal;[internconst:in_const_swap_long];
+Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_long];
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : QWord) : QWord;
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
@@ -343,28 +354,26 @@ begin
 end;
 
 
-
-
 {****************************************************************************
                             Memory Management
 ****************************************************************************}
 
-Function Ptr(sel,off : Longint) : farpointer;[internconst:in_const_ptr];
+Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_ptr];
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
 
-Function CSeg : Word;
+Function CSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Cseg:=0;
 End;
 
-Function DSeg : Word;
+Function DSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Dseg:=0;
 End;
 
-Function SSeg : Word;
+Function SSeg : Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Sseg:=0;
 End;
@@ -427,23 +436,13 @@ begin
    end;
 end;
 
-Function IOResult:Word;
+
+Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   IOResult:=InOutRes;
   InOutRes:=0;
 End;
 
-
-procedure fillchar(var x;count : longint;value : boolean);
-begin
-  fillchar(x,count,byte(value));
-end;
-
-
-procedure fillchar(var x;count : longint;value : char);
-begin
-  fillchar(x,count,byte(value));
-end;
 
 {*****************************************************************************
                          Stack check code
@@ -626,13 +625,13 @@ begin
 end;
 
 
-Procedure RunError;
+Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   RunError (0);
 End;
 
 
-Procedure Halt;
+Procedure Halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
   Halt(0);
 End;
@@ -757,7 +756,12 @@ end;
 
 {
   $Log$
-  Revision 1.32  2002-07-28 20:43:48  florian
+  Revision 1.33  2002-08-19 19:34:02  peter
+    * SYSTEMINLINE define that will add inline directives for small
+      functions and wrappers. This will be defined automaticly when
+      the compiler defines the HASINLINE directive
+
+  Revision 1.32  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

@@ -761,7 +761,7 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint;[internconst:in_const_abs];
+function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
 begin
    if l<0 then
      abs:=-l
@@ -773,7 +773,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
-function odd(l:longint):boolean;[internconst:in_const_odd];
+function odd(l:longint):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 begin
    odd:=boolean(l and 1);
 end;
@@ -782,7 +782,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_CARDINAL}
 
-function odd(l:cardinal):boolean;[internconst:in_const_odd];
+function odd(l:cardinal):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 begin
    odd:=boolean(l and 1);
 end;
@@ -792,7 +792,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_INT64}
 
-function odd(l:int64):boolean;[internconst:in_const_odd];
+function odd(l:int64):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 begin
    odd:=boolean(longint(l) and 1);
 end;
@@ -801,7 +801,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_QWORD}
 
-function odd(l:qword):boolean;[internconst:in_const_odd];
+function odd(l:qword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 begin
    odd:=boolean(longint(l) and 1);
 end;
@@ -810,7 +810,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_LONGINT}
 
-function sqr(l:longint):longint;[internconst:in_const_sqr];
+function sqr(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
 begin
    sqr:=l*l;
 end;
@@ -820,7 +820,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ABS_INT64}
 
-function abs(l: Int64): Int64;[internconst:in_const_abs];
+function abs(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
 begin
   if l < 0 then
     abs := -l
@@ -833,7 +833,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_INT64}
 
-function sqr(l: Int64): Int64;[internconst:in_const_sqr];
+function sqr(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
 begin
   sqr := l*l;
 end;
@@ -843,7 +843,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_QWORD}
 
-function sqr(l: QWord): QWord;[internconst:in_const_sqr];
+function sqr(l: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
 begin
   sqr := l*l;
 end;
@@ -946,7 +946,12 @@ end;
 
 {
   $Log$
-  Revision 1.31  2002-07-29 21:28:16  florian
+  Revision 1.32  2002-08-19 19:34:02  peter
+    * SYSTEMINLINE define that will add inline directives for small
+      functions and wrappers. This will be defined automaticly when
+      the compiler defines the HASINLINE directive
+
+  Revision 1.31  2002/07/29 21:28:16  florian
     * several fixes to get further with linux/ppc system unit compilation
 
   Revision 1.30  2002/07/29 09:23:11  jonas
