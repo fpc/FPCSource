@@ -39,6 +39,19 @@ interface
  {$DEFINE GDB_V502}
 {$endif}
 
+{$ifdef GDB_V600}
+  {$define GDB_V503}
+  {$define GDB_V6}
+  {$define GDB_HAS_SYSROOT}
+{$endif def GDB_V600}
+
+{$ifdef GDB_V621}
+  {$define GDB_V503}
+  {$define GDB_V600}
+  {$define GDB_V6}
+  {$define GDB_HAS_SYSROOT}
+{$endif def GDB_V621}
+
 { Default version for GDB 5 is 5.01 for now PM }
 
 {$ifdef GDB_V5}
@@ -319,12 +332,18 @@ type
   ui_file_rewind_ftype = procedure(stream : pui_file);cdecl;
   ui_file_put_method_ftype = procedure(var _object; buffer : pchar;length_buffer : longint);cdecl;
   ui_file_put_ftype = procedure(stream : pui_file;method : ui_file_put_method_ftype;var context);cdecl;
+  {$ifdef GDB_V6}
+  ui_file_read_ftype = function (stream : pui_file; buffer : pchar; len : longint):longint;cdecl;
+  {$endif}
 
   ui_file = record
       magic : plongint;
       to_flush  : ui_file_flush_ftype;
       to_write  : ui_file_write_ftype;
       to_fputs  : ui_file_fputs_ftype;
+      {$ifdef GDB_V6}
+      to_read   : ui_file_read_ftype;
+      {$endif}
       to_delete : ui_file_delete_ftype;
       to_isatty : ui_file_isatty_ftype;
       to_rewind : ui_file_rewind_ftype;
@@ -496,6 +515,11 @@ var
   inferior_ptid : tinferior_ptid;cvar;external;
 {$else}
   inferior_pid : longint;cvar;external;
+{$endif}
+{$ifdef GDB_V6}
+type ui_out = pointer;
+var  uiout : ui_out;cvar;external;
+function cli_out_new (stream : pui_file):ui_out;cdecl;external;
 {$endif}
 
 {$ifdef go32v2}
@@ -1123,7 +1147,11 @@ var
 { external variables }
   error_return : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
   quit_return  : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
+  {$ifdef GDB_V621}
+  deprecated_create_breakpoint_hook : pointer;cvar;external;
+  {$else}
   create_breakpoint_hook : pointer;cvar;external;
+  {$endif}
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.01 but doesn't hurst otherwise }
@@ -1159,6 +1187,11 @@ var
   gdb_stdtarg : pui_file;cvar;public;
   event_loop_p : longint;cvar;public;
 {$endif GDB_V5}
+{$ifdef GDB_V6}
+(* target IO streams *)
+  gdb_stdtargin : pui_file;cvar;public;
+  gdb_stdtargerr : pui_file;cvar;public;
+{$endif}
 
 { used for gdb_stdout and gdb_stderr }
 function xmalloc(size : longint) : pointer;cdecl;external;
@@ -2146,7 +2179,11 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
+  {$ifdef GDB_V621}
+  deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
+  {$else}
   create_breakpoint_hook:=@CreateBreakPointHook;
+  {$endif}
   signal_string:=nil;
   signal_name:=nil;
 end;
@@ -2160,7 +2197,11 @@ begin
       current_target.to_kill;
       current_target.to_close(1);
     end;
+  {$ifdef GDB_V621}
+  deprecated_create_breakpoint_hook:=nil;
+  {$else}
   create_breakpoint_hook:=nil;
+  {$endif}
 end;
 
 
@@ -2640,9 +2681,16 @@ begin
   set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
   error_init;
 {$endif GDB_V5}
+{$ifdef GDB_V6}
+//  gdb_stdtargin := gdb_stdin;
+  gdb_stdtargerr := gdb_stderr;
+{$endif}
 
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
+{$ifdef GDB_V6}
+  uiout := cli_out_new (gdb_stdout);
+{$endif}
   gdb_init;
 {$ifdef supportexceptions}
   {$ifdef unix}
@@ -2682,7 +2730,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-11-05 15:41:30  florian
+  Revision 1.18  2004-10-04 17:59:19  armin
+  * added support for gdb 6.0 and 6.2.1
+
+  Revision 1.17  2003/11/05 15:41:30  florian
    * GDB_V5 define fixed
 
   Revision 1.16  2003/09/18 16:34:19  marco
