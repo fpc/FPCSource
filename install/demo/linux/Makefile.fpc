@@ -1,0 +1,24 @@
+#
+#   Makefile.fpc for FPC linux demos (part of FPC demo package)
+#
+
+[targets]
+programs_linux=deamon
+
+[install]
+
+[defaults]
+defaultrule=all
+
+[dirs]
+fpcdir=../..
+targetdir=.
+
+[postsettings]
+
+[rules]
+clean : execlean fpc_cleanall
+
+execlean :
+
+
