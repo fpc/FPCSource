@@ -63,6 +63,7 @@ unit parabase;
           procedure   reset;
           function    getcopy:tcgpara;
           procedure   check_simple_location;
+          function    is_single_reference(l: pcgparalocation): boolean;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
        end;
@@ -176,6 +177,14 @@ implementation
       end;
 
 
+    function tcgpara.is_single_reference(l: pcgparalocation): boolean;
+      begin
+        result :=
+          (l^.loc = LOC_REFERENCE) and
+          not assigned(l^.next);
+      end;
+
+
     procedure tcgpara.check_simple_location;
       begin
         if not assigned(location) then
@@ -252,7 +261,10 @@ end.
 
 {
    $Log$
-   Revision 1.9  2005-01-18 22:19:20  peter
+   Revision 1.10  2005-01-30 21:51:57  jonas
+     * fixed darwin cycle
+
+   Revision 1.9  2005/01/18 22:19:20  peter
      * multiple location support for i386 a_param_ref
      * remove a_param_copy_ref for i386
 

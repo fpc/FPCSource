@@ -703,7 +703,9 @@ implementation
 {$ifdef cputargethasfixedstack}
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
-                               if ppn.tempcgpara.size=OS_NO then
+                               
+                               if (ppn.tempcgpara.size=OS_NO) and
+                                  not(ppn.tempcgpara.is_single_reference(tmpparaloc)) then
                                  internalerror(200501281);
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
                                { copy parameters in case they were moved to a temp. location because we've a fixed stack }
@@ -713,7 +715,10 @@ implementation
                                      reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
                                      { use concatcopy, because it can also be a float which fails when
                                        load_ref_ref is used }
-                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size]);
+                                     if (ppn.tempcgpara.size <> OS_NO) then
+                                       cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size])
+                                      else
+                                       cg.g_concatcopy(exprasmlist,htempref,href,sizeleft)
                                    end;
                                  LOC_REGISTER:
                                    cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
@@ -1220,7 +1225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.198  2005-01-29 11:36:52  peter
+  Revision 1.199  2005-01-30 21:51:57  jonas
+    * fixed darwin cycle
+
+  Revision 1.198  2005/01/29 11:36:52  peter
     * update x86_64 with new cpupara
 
   Revision 1.197  2005/01/20 17:47:01  peter

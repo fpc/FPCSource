@@ -1379,9 +1379,24 @@ implementation
                       while assigned(paraloc) do
                         begin
                           unget_para(paraloc^);
-                          gen_load_ref(paraloc^,href,sizeleft);
-                          inc(href.offset,TCGSize2Size[paraloc^.size]);
-                          dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                          if (currpara.paraloc[calleeside].is_single_reference(paraloc)) then
+                            begin
+                              gen_load_ref(paraloc^,href,sizeleft);
+                              { May be needed later, when we add support for     }
+                              { passing the same parameter in multiple locations }
+                              { Currently, is_single_reference returns only true }
+                              { if paraloc^.next = nil (JM)                      }
+                              inc(href.offset,sizeleft);
+                              sizeleft := 0;
+                            end
+                          else
+                            begin
+                              if (paraloc^.size = OS_NO) then
+                                internalerror(2005013010);
+                              gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size]);
+                              inc(href.offset,TCGSize2Size[paraloc^.size]);
+                              dec(sizeleft,TCGSize2Size[paraloc^.size]);
+                            end;
                           paraloc:=paraloc^.next;
                         end;
                     end;
@@ -2407,7 +2422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.258  2005-01-24 22:08:32  peter
+  Revision 1.259  2005-01-30 21:51:57  jonas
+    * fixed darwin cycle
+
+  Revision 1.258  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 
