@@ -258,15 +258,12 @@ End;
 Procedure AddRegDeallocFor(asmL: paasmOutput; reg: TRegister; p: pai);
 var hp1: pai;
 begin
-  hp1 := nil;
+  hp1 := p;
   While GetLastInstruction(p, p) And
         Not(RegInInstruction(reg, p)) Do
     hp1 := p;
- If hp1 <> nil Then
-   Begin
-     p := New(PaiRegAlloc, DeAlloc(reg));
-     InsertLLItem(AsmL, hp1, hp1^.next, p);
-   End;
+  p := New(PaiRegAlloc, DeAlloc(reg));
+  InsertLLItem(AsmL, hp1^.previous, hp1, p);
 end;
 
 Procedure BuildLabelTableAndFixRegAlloc(asmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
@@ -328,13 +325,11 @@ Begin
               End;
            end;
       End;
-      P := Pai(p^.Next);
-      While Assigned(p) And
-            (p^.typ in (SkipInstr - [ait_regalloc])) Do
-        begin
-          lastP := p;
-          P := Pai(P^.Next);
-        end;
+      repeat
+        lastP := p;
+        P := Pai(P^.Next);
+      until not(Assigned(p) And
+                (p^.typ in (SkipInstr - [ait_regalloc])));
     End;
   for regCounter := R_EAX to R_EDI do
     if regCounter in usedRegs then
@@ -1941,7 +1936,10 @@ End.
 
 {
  $Log$
- Revision 1.72  1999-11-21 13:06:30  jonas
+ Revision 1.73  1999-11-27 23:45:43  jonas
+   * even more missing register deallocations are added!
+
+ Revision 1.72  1999/11/21 13:06:30  jonas
    * improved fixing of missing regallocs (they're almost all correct
      now!)
 
