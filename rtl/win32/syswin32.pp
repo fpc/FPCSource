@@ -28,11 +28,11 @@ unit syswin32;
 
     { $I heaph.inc}
 
-const
-  UnusedHandle    : longint = -1;
-  StdInputHandle  : longint = 0;
-  StdOutputHandle : longint = 0;
-  StdErrorHandle  : longint = 0;
+    const
+       UnusedHandle    : longint = -1;
+       StdInputHandle  : longint = 0;
+       StdOutputHandle : longint = 0;
+       StdErrorHandle  : longint = 0;
 
   implementation
 
@@ -87,38 +87,99 @@ const
          RunError(202);             }
       end;
 {$endif dummy}
-    var
-       argc : longint;
-       args : pointer;
-       arg_buffer : pointer;
 
     procedure halt(errnum : byte);
 
       begin
          do_exit;
          flush(stderr);
-         LocalFree(arg_buffer);
          ExitProcess(errnum);
       end;
 
     function paramcount : longint;
 
+      var
+         count : longint;
+         cmdline : pchar;
+         quote : set of char;
+
       begin
-         paramcount:=argc-1;
+         cmdline:=GetCommandLine;
+         count:=0;
+         while true do
+           begin
+              { skip leading spaces }
+              while cmdline^ in [' ',#9] do
+                cmdline:=cmdline+1;
+              if cmdline^='"' then
+                begin
+                   quote:=['"'];
+                   cmdline:=cmdline+1;
+                end
+              else
+		quote:=[' ',#9];
+              if cmdline^=#0 then
+                break;
+              inc(count);
+              while (cmdline^<>#0) and not(cmdline^ in quote) do
+                cmdline:=cmdline+1;
+              { skip quote }
+              if cmdline^ in quote then
+                cmdline:=cmdline+1;
+           end;
+         paramcount:=count-1;
       end;
 
     function paramstr(l : longint) : string;
 
       var
-         p : ^pchar;
+         s : string;
+         count : longint;
+         cmdline : pchar;
+         quote : set of char;
 
       begin
+         s:='';
          if (l>=0) and (l<=paramcount) then
            begin
-              p:=args;
-              paramstr:=strpas(p[l]);
-           end
-         else paramstr:='';
+              cmdline:=GetCommandLine;
+              count:=0;
+              while true do
+                begin
+                   { skip leading spaces }
+                   while cmdline^ in [' ',#9] do
+                     cmdline:=cmdline+1;
+                   if cmdline^='"' then
+                     begin
+                        quote:=['"'];
+                        cmdline:=cmdline+1;
+                     end
+                   else
+		     quote:=[' ',#9];
+                   if cmdline^=#0 then
+                     break;
+                   if count=l then
+                     begin
+                        while (cmdline^<>#0) and not(cmdline^ in quote) do
+                          begin
+                             s:=s+cmdline^;
+                             cmdline:=cmdline+1;
+                          end;
+                        break;
+                     end
+                   else
+                     begin
+                        while (cmdline^<>#0) and not(cmdline^ in quote) do
+                          cmdline:=cmdline+1;
+                     end;
+                   { skip quote }
+                   if cmdline^ in quote then
+                     cmdline:=cmdline+1;
+                   inc(count);
+                end;
+
+           end;
+         paramstr:=s;
       end;
 
     procedure randomize;
@@ -324,26 +385,13 @@ procedure getdir(drivenr:byte;var dir:string);
 *****************************************************************************}
 
 procedure Entry;[public,alias: '_mainCRTStartup'];
-{
-  the following procedure is written with the help of an article of
-  the german computer magazine c't (3/97 p. 372)
-}
-var
-   cmdline : pchar;
+
 begin
-   cmdline:=GetCommandLine;
-   argc:=0;
-   while true do
-    begin
-      break;
-    end;
-   arg_buffer:=LocalAlloc(LMEM_FIXED,8);
    { call to the pascal main }
    asm
      call PASCALMAIN
    end;
    { that's all folks }
-   LocalFree(arg_buffer);
    ExitProcess(0);
 end;
 
@@ -411,7 +459,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-26 22:37:22  florian
+  Revision 1.5  1998-04-27 13:58:21  florian
+    + paramstr/paramcount implemented
+
+  Revision 1.4  1998/04/26 22:37:22  florian
     * some small extensions
 
   Revision 1.3  1998/04/26 21:49:57  florian
