@@ -57,12 +57,11 @@
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
-\latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
-  \blankstringtrue
-  \selectlisting{delphi}
-  \stringstyle{\ttfamily}
-  \keywordstyle{\bfseries}
-  \prelisting{\sffamily\sloppy}
+\latex{
+\usepackage{listings}%
+\lstset{language=Delphi}%
+\lstset{pre=\sffamily}%
+\lstset{keywordstyle=\bfseries}%
 }
 %
 % Start of document.
@@ -584,7 +583,6 @@ the next enumerated value.
 When specifying such an enumeration type, it is important to keep in mind
 that you should keep the enumerated elements in ascending order. The
 following will produce a compiler error:
-\renewcommand{\prelisting}{\sffamily}
 \begin{verbatim}
 Type
   EnumType = (one, two, three, forty := 40, thirty := 30);
@@ -1750,14 +1748,14 @@ one.  The \var{Inherited} keyword will not jup to the inhherited method, if
 virtual was used. 
 
 The following code is {\em wrong}:
-\begin{listing}
+\begin{lstlisting}{}
 Type ObjParent = Class
         Procedure MyProc; virtual;
      end;
      ObjChild  = Class(ObjPArent)
        Procedure MyProc; virtual;
      end;
-\end{listing}     
+\end{lstlisting}{}     
 The compiler will produce a warning:
 \begin{verbatim}
 Warning: An inherited method is hidden by OBJCHILD.MYPROC
@@ -1766,14 +1764,14 @@ The compiler will compile it, but using \var{Inherited} can
 produce strange effects.
 
 The correct declaration is as follows:
-\begin{listing}
+\begin{lstlisting}{}
 Type ObjParent = Class
         Procedure MyProc; virtual;
      end;
      ObjChild  = Class(ObjPArent)
        Procedure MyProc; override;
      end;
-\end{listing}
+\end{lstlisting}{}
 This will compile and run without warnings or errors.
 
 \subsection{Message methods}
@@ -1786,9 +1784,9 @@ identifiers.
 
 Message methods that are declared with an integer constant can take only one
 var argument (typed or not):
-\begin{listing}
+\begin{lstlisting}{}
  Procedure TMyObject.MyHandler(Var Msg); Message 1;
-\end{listing}
+\end{lstlisting}{}
 The method implementation of a message function is no different from an
 ordinary method. It is also possible to call a message method directly,
 but you should not do this. Instead use the \var{TObject.Dispatch} method.
@@ -1797,7 +1795,7 @@ The \var{TOBject.Dispatch} method can be used to call a \var{message}
 handler. It is  declared in the system unit will accept a var parameter 
 which must have at the first position a cardinal with the message ID that
 should be called. For example:
-\begin{listing}
+\begin{lstlisting}{}
 Type 
   TMsg = Record
     MSGID : Cardinal
@@ -1806,7 +1804,7 @@ Var
   Msg : TMSg;
 
 MyObject.Dispatch (Msg);
-\end{listing}
+\end{lstlisting}{}
 In this example, the \var{Dispatch} method will look at the object and all 
 it's ancestors (starting at the object, and searching up the class tree), 
 to see if a message method with message \var{MSGID} has been
@@ -1817,15 +1815,15 @@ If no such method is found, \var{DefaultHandler} is called.
 \var{DefaultHandler} is a virtual method of \var{TObject} that doesn't do 
 anything, but which can be overridden to provide any processing you might
 need. \var{DefaultHandler} is declared as follows:
-\begin{listing}
+\begin{lstlisting}{}
    procedure defaulthandler(var message);virtual;
-\end{listing}
+\end{lstlisting}{}
 
 In addition to the message method with a \var{Integer} identifier,
 \fpc also supports a messae method with a string identifier:
-\begin{listing}
+\begin{lstlisting}{}
  Procedure TMyObject.MyStrHandler(Var Msg); Message 'OnClick';
-\end{listing}
+\end{lstlisting}{}
 
 The working of the string message handler is the same as the ordinary
 integer message handler:
@@ -1834,7 +1832,7 @@ The \var{TOBject.DispatchStr} method can be used to call a \var{message}
 handler. It is declared in the system unit and will accept one parameter
 which must have at the first position a cardinal with the message ID that
 should be called. For example:
-\begin{listing}
+\begin{lstlisting}{}
 Type 
   TMsg = Record
     MsgStr : String[10]; // Arbitrary length up to 255 characters.
@@ -1843,7 +1841,7 @@ Var
   Msg : TMSg;
 
 MyObject.DispatchStr (Msg);
-\end{listing}
+\end{lstlisting}{}
 In this example, the \var{DispatchStr} method will look at the object and 
 all it's ancestors (starting at the object, and searching up the class tree), 
 to see if a message method with message \var{MsgStr} has been
@@ -1854,15 +1852,15 @@ If no such method is found, \var{DefaultHandlerStr} is called.
 \var{DefaultHandlerStr} is a virtual method of \var{TObject} that doesn't do 
 anything, but which can be overridden to provide any processing you might
 need. \var{DefaultHandlerStr} is declared as follows:
-\begin{listing}
+\begin{lstlisting}{}
    procedure DefaultHandlerStr(var message);virtual;
-\end{listing}
+\end{lstlisting}{}
 
 In addition to this mechanism, a string message method accepts a \var{self}
 parameter:
-\begin{listing}
+\begin{lstlisting}{}
   TMyObject.StrMsgHandler(Data : Pointer; Self : TMyObject);Message 'OnClick';
-\end{listing}
+\end{lstlisting}{}
 When encountering such a method, the compiler will generate code that loads
 the \var{Self} parameter into the object instance pointer. The result of
 this is that it is possible to pass \var{Self} as a parameter to such a
@@ -3636,13 +3634,13 @@ Const
 \end{verbatim}
 Further, the following non processor specific general-purpose constants
 are also defined:
-\begin{listing}
+\begin{lstlisting}{}
 const
   erroraddr : pointer = nil;
   errorcode : word = 0;
  { max level in dumping on error }
   max_frame_dump : word = 20;
-\end{listing}
+\end{lstlisting}{}
 \emph{ Remark: } Processor specific global constants are named Testxxxx
 where xxxx represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
@@ -3699,7 +3697,7 @@ None.
 \SeeAlso
 \seef{Round}
 \end{function}
-\latex{\inputlisting{refex/ex1.pp}}
+\latex{\lstinputlisting{refex/ex1.pp}}
 \html{\input{refex/ex1.tex}}
 \begin{function}{Addr}
 \Declaration
@@ -3715,7 +3713,7 @@ None
 \SeeAlso
 \seef{SizeOf}
 \end{function}
-\latex{\inputlisting{refex/ex2.pp}}
+\latex{\lstinputlisting{refex/ex2.pp}}
 \html{\input{refex/ex2.tex}}
 \begin{procedure}{Append}
 \Declaration
@@ -3734,7 +3732,7 @@ If the file can't be created, a run-time error will be generated.
 \SeeAlso
 \seep{Rewrite},\seep{Append}, \seep{Reset}
 \end{procedure}
-\latex{\inputlisting{refex/ex3.pp}}
+\latex{\lstinputlisting{refex/ex3.pp}}
 \html{\input{refex/ex3.tex}}
 \begin{function}{Arctan}
 \Declaration
@@ -3748,7 +3746,7 @@ None
 \SeeAlso
 \seef{Sin}, \seef{Cos}
 \end{function}
-\latex{\inputlisting{refex/ex4.pp}}
+\latex{\lstinputlisting{refex/ex4.pp}}
 \html{\input{refex/ex4.tex}}
 \begin{procedure}{Assign}
 \Declaration
@@ -3763,7 +3761,7 @@ None.
 \SeeAlso
 \seep{Reset}, \seep{Rewrite}, \seep{Append}
 \end{procedure}
-\latex{\inputlisting{refex/ex5.pp}}
+\latex{\lstinputlisting{refex/ex5.pp}}
 \html{\input{refex/ex5.tex}}
 \begin{function}{Assigned}
 \Declaration
@@ -3796,7 +3794,7 @@ None.
 \SeeAlso
 \seep{Str},seep{Val},\seef{HexStr}
 \end{function}
-\latex{\inputlisting{refex/ex82.pp}}
+\latex{\lstinputlisting{refex/ex82.pp}}
 \html{\input{refex/ex82.tex}}
 \begin{procedure}{Blockread}
 \Declaration
@@ -3817,7 +3815,7 @@ than \var{count} records were read.
 \SeeAlso
 \seep{Blockwrite}, \seep{Close}, \seep{Reset}, \seep{Assign}
 \end{procedure}
-\latex{\inputlisting{refex/ex6.pp}}
+\latex{\lstinputlisting{refex/ex6.pp}}
 \html{\input{refex/ex6.tex}}
 \begin{procedure}{Blockwrite}
 \Declaration
@@ -3847,7 +3845,7 @@ If the directory \var{S} doesn't exist, a run-time error is generated.
 \SeeAlso
 \seep{Mkdir}, \seep{Rmdir}
 \end{procedure}
-\latex{\inputlisting{refex/ex7.pp}}
+\latex{\lstinputlisting{refex/ex7.pp}}
 \html{\input{refex/ex7.tex}}
 \begin{function}{Chr}
 \Declaration
@@ -3860,7 +3858,7 @@ None.
 \SeeAlso
 \seef{Ord},\seep{Str}
 \end{function}
-\latex{\inputlisting{refex/ex8.pp}}
+\latex{\lstinputlisting{refex/ex8.pp}}
 \html{\input{refex/ex8.tex}}
 \begin{procedure}{Close}
 \Declaration
@@ -3877,7 +3875,7 @@ None.
 \SeeAlso
 \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{procedure}
-\latex{\inputlisting{refex/ex9.pp}}
+\latex{\lstinputlisting{refex/ex9.pp}}
 \html{\input{refex/ex9.tex}}
 \begin{function}{Concat}
 \Declaration
@@ -3892,7 +3890,7 @@ None.
 \SeeAlso
 \seef{Copy}, \seep{Delete}, \seep{Insert}, \seef{Pos}, \seef{Length}
 \end{function}
-\latex{\inputlisting{refex/ex10.pp}}
+\latex{\lstinputlisting{refex/ex10.pp}}
 \html{\input{refex/ex10.tex}}
 \begin{function}{Copy}
 \Declaration
@@ -3909,7 +3907,7 @@ None.
 \SeeAlso
 \seep{Delete}, \seep{Insert}, \seef{Pos}
 \end{function}
-\latex{\inputlisting{refex/ex11.pp}}
+\latex{\lstinputlisting{refex/ex11.pp}}
 \html{\input{refex/ex11.tex}}
 \begin{function}{Cos}
 \Declaration
@@ -3922,7 +3920,7 @@ None.
 \SeeAlso
 \seef{Arctan}, \seef{Sin}
 \end{function}
-\latex{\inputlisting{refex/ex12.pp}}
+\latex{\lstinputlisting{refex/ex12.pp}}
 \html{\input{refex/ex12.tex}}
 \begin{function}{CSeg}
 \Declaration
@@ -3936,7 +3934,7 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\inputlisting{refex/ex13.pp}}
+\latex{\lstinputlisting{refex/ex13.pp}}
 \html{\input{refex/ex13.tex}}
 \begin{procedure}{Dec}
 \Declaration
@@ -3951,7 +3949,7 @@ below its minimum value.
 \SeeAlso
 \seep{Inc}
 \end{procedure}
-\latex{\inputlisting{refex/ex14.pp}}
+\latex{\lstinputlisting{refex/ex14.pp}}
 \html{\input{refex/ex14.tex}}
 \begin{procedure}{Delete}
 \Declaration
@@ -3967,7 +3965,7 @@ None.
 \SeeAlso
 \seef{Copy},\seef{Pos},\seep{Insert}
 \end{procedure}
-\latex{\inputlisting{refex/ex15.pp}}
+\latex{\lstinputlisting{refex/ex15.pp}}
 \html{\input{refex/ex15.tex}}
 \begin{procedure}{Dispose}
 \Declaration
@@ -3983,7 +3981,7 @@ heap.
 \SeeAlso
 \seep{New}, \seep{Getmem}, \seep{Freemem}
 \end{procedure}
-\latex{\inputlisting{refex/ex16.pp}}
+\latex{\lstinputlisting{refex/ex16.pp}}
 \html{\input{refex/ex16.tex}}
 \begin{function}{DSeg}
 \Declaration
@@ -3997,7 +3995,7 @@ None.
 \SeeAlso
 \seef{CSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\inputlisting{refex/ex17.pp}}
+\latex{\lstinputlisting{refex/ex17.pp}}
 \html{\input{refex/ex17.tex}}
 \begin{function}{Eof}
 \Declaration
@@ -4013,7 +4011,7 @@ None.
 \SeeAlso
 \seef{Eoln}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{function}
-\latex{\inputlisting{refex/ex18.pp}}
+\latex{\lstinputlisting{refex/ex18.pp}}
 \html{\input{refex/ex18.tex}}
 \begin{function}{Eoln}
 \Declaration
@@ -4031,7 +4029,7 @@ None.
 \SeeAlso
 \seef{Eof}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{function}
-\latex{\inputlisting{refex/ex19.pp}}
+\latex{\lstinputlisting{refex/ex19.pp}}
 \html{\input{refex/ex19.tex}}
 \begin{procedure}{Erase}
 \Declaration
@@ -4045,7 +4043,7 @@ A run-time error will be generated if the specified file doesn't exist.
 \SeeAlso
 \seep{Assign}
 \end{procedure}
-\latex{\inputlisting{refex/ex20.pp}}
+\latex{\lstinputlisting{refex/ex20.pp}}
 \html{\input{refex/ex20.tex}}
 \begin{procedure}{Exit}
 \Declaration
@@ -4062,7 +4060,7 @@ None.
 \SeeAlso
 \seep{Halt}
 \end{procedure}
-\latex{\inputlisting{refex/ex21.pp}}
+\latex{\lstinputlisting{refex/ex21.pp}}
 \html{\input{refex/ex21.tex}}
 \begin{function}{Exp}
 \Declaration
@@ -4076,7 +4074,7 @@ None.
 \SeeAlso
 \seef{Ln}, \seef{Power}
 \end{function}
-\latex{\inputlisting{refex/ex22.pp}}
+\latex{\lstinputlisting{refex/ex22.pp}}
 \html{\input{refex/ex22.tex}}
 \begin{function}{Filepos}
 \Declaration
@@ -4090,7 +4088,7 @@ None.
 \SeeAlso
 \seef{Filesize}
 \end{function}
-\latex{\inputlisting{refex/ex23.pp}}
+\latex{\lstinputlisting{refex/ex23.pp}}
 \html{\input{refex/ex23.tex}}
 \begin{function}{Filesize}
 \Declaration
@@ -4107,7 +4105,7 @@ None.
 \SeeAlso
 \seef{Filepos}
 \end{function}
-\latex{\inputlisting{refex/ex24.pp}}
+\latex{\lstinputlisting{refex/ex24.pp}}
 \html{\input{refex/ex24.tex}}
 \begin{procedure}{Fillchar}
 \Declaration
@@ -4122,7 +4120,7 @@ No checking on the size of \var{X} is done.
 \SeeAlso
 \seep{Fillword}, \seep{Move}
 \end{procedure}
-\latex{\inputlisting{refex/ex25.pp}}
+\latex{\lstinputlisting{refex/ex25.pp}}
 \html{\input{refex/ex25.tex}}
 \begin{procedure}{Fillword}
 \Declaration
@@ -4137,7 +4135,7 @@ No checking on the size of \var{X} is done.
 \SeeAlso
 \seep{Fillword}, \seep{Move}
 \end{procedure}
-\latex{\inputlisting{refex/ex76.pp}}
+\latex{\lstinputlisting{refex/ex76.pp}}
 \html{\input{refex/ex76.tex}}
 \begin{procedure}{Flush}
 \Declaration
@@ -4151,7 +4149,7 @@ If the disk is full, a run-time error will be generated.
 \SeeAlso
 \seep{Close}
 \end{procedure}
-\latex{\inputlisting{refex/ex26.pp}}
+\latex{\lstinputlisting{refex/ex26.pp}}
 \html{\input{refex/ex26.tex}}
 \begin{function}{Frac}
 \Declaration
@@ -4164,7 +4162,7 @@ None.
 \SeeAlso
 \seef{Round}, \seef{Int}
 \end{function}
-\latex{\inputlisting{refex/ex27.pp}}
+\latex{\lstinputlisting{refex/ex27.pp}}
 \html{\input{refex/ex27.tex}}
 \begin{procedure}{Freemem}
 \Declaration
@@ -4179,7 +4177,7 @@ An error will occur when \var{P} doesn't point to the heap.
 \SeeAlso
 \seep{Getmem}, \seep{New}, \seep{Dispose}
 \end{procedure}
-\latex{\inputlisting{refex/ex28.pp}}
+\latex{\lstinputlisting{refex/ex28.pp}}
 \html{\input{refex/ex28.tex}}
 \begin{procedure}{Getdir}
 \Declaration
@@ -4195,7 +4193,7 @@ An error is returned under \dos, if the drive requested isn't ready.
 \SeeAlso
 \seep{Chdir}
 \end{procedure}
-\latex{\inputlisting{refex/ex29.pp}}
+\latex{\lstinputlisting{refex/ex29.pp}}
 \html{\input{refex/ex29.tex}}
 \begin{procedure}{Getmem}
 \Declaration
@@ -4224,7 +4222,7 @@ None.
 \SeeAlso
 \seep{Exit}
 \end{procedure}
-\latex{\inputlisting{refex/ex30.pp}}
+\latex{\lstinputlisting{refex/ex30.pp}}
 \html{\input{refex/ex30.tex}}
 \begin{function}{HexStr}
 \Declaration
@@ -4242,7 +4240,7 @@ None.
 \SeeAlso
 \seep{Str},seep{Val},\seef{BinStr}
 \end{function}
-\latex{\inputlisting{refex/ex81.pp}}
+\latex{\lstinputlisting{refex/ex81.pp}}
 \html{\input{refex/ex81.tex}}
 \begin{function}{Hi}
 \Declaration
@@ -4258,7 +4256,7 @@ None
 \SeeAlso
 \seef{Lo}
 \end{function}
-\latex{\inputlisting{refex/ex31.pp}}
+\latex{\lstinputlisting{refex/ex31.pp}}
 \html{\input{refex/ex31.tex}}
 \begin{function}{High}
 \Declaration
@@ -4281,7 +4279,7 @@ None.
 \SeeAlso
 \seef{High}, \seef{Ord}, \seef{Pred}, \seef{Succ}
 \end{function}
-\latex{\inputlisting{refex/ex80.pp}}
+\latex{\lstinputlisting{refex/ex80.pp}}
 \html{\input{refex/ex80.tex}}
 \begin{procedure}{Inc}
 \Declaration
@@ -4296,7 +4294,7 @@ over its maximum value.
 \SeeAlso
 \seep{Dec}
 \end{procedure}
-\latex{\inputlisting{refex/ex32.pp}}
+\latex{\lstinputlisting{refex/ex32.pp}}
 \html{\input{refex/ex32.tex}}
 \begin{procedure}{Insert}
 \Declaration
@@ -4311,7 +4309,7 @@ None.
 \SeeAlso
 \seep{Delete}, \seef{Copy}, \seef{Pos}
 \end{procedure}
-\latex{\inputlisting{refex/ex33.pp}}
+\latex{\lstinputlisting{refex/ex33.pp}}
 \html{\input{refex/ex33.tex}}
 \begin{function}{Int}
 \Declaration
@@ -4324,7 +4322,7 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Round}
 \end{function}
-\latex{\inputlisting{refex/ex34.pp}}
+\latex{\lstinputlisting{refex/ex34.pp}}
 \html{\input{refex/ex34.tex}}
 \begin{function}{IOresult}
 \Declaration
@@ -4380,7 +4378,7 @@ None.
 \SeeAlso
 All I/O functions.
 \end{function}
-\latex{\inputlisting{refex/ex35.pp}}
+\latex{\lstinputlisting{refex/ex35.pp}}
 \html{\input{refex/ex35.tex}}
 \begin{function}{Length}
 \Declaration
@@ -4396,7 +4394,7 @@ None.
 \SeeAlso
 \seef{Pos}
 \end{function}
-\latex{\inputlisting{refex/ex36.pp}}
+\latex{\lstinputlisting{refex/ex36.pp}}
 \html{\input{refex/ex36.tex}}
 \begin{function}{Ln}
 \Declaration
@@ -4412,7 +4410,7 @@ An run-time error will occur when \var{X} is negative.
 \SeeAlso
 \seef{Exp}, \seef{Power}
 \end{function}
-\latex{\inputlisting{refex/ex37.pp}}
+\latex{\lstinputlisting{refex/ex37.pp}}
 \html{\input{refex/ex37.tex}}
 \begin{function}{Lo}
 \Declaration
@@ -4428,7 +4426,7 @@ None.
 \SeeAlso
 \seef{Ord}, \seef{Chr}
 \end{function}
-\latex{\inputlisting{refex/ex38.pp}}
+\latex{\lstinputlisting{refex/ex38.pp}}
 \html{\input{refex/ex38.tex}}
 \begin{procedure}{LongJmp}
 \Declaration
@@ -4484,7 +4482,7 @@ None.
 \SeeAlso
 \seef{Upcase}
 \end{function}
-\latex{\inputlisting{refex/ex73.pp}}
+\latex{\lstinputlisting{refex/ex73.pp}}
 \html{\input{refex/ex73.tex}}
 \begin{procedure}{Mark}
 \Declaration
@@ -4497,7 +4495,7 @@ None.
 \SeeAlso
 \seep{Getmem}, \seep{Freemem}, \seep{New}, \seep{Dispose}, \seef{Maxavail}
 \end{procedure}
-\latex{\inputlisting{refex/ex39.pp}}
+\latex{\lstinputlisting{refex/ex39.pp}}
 \html{\input{refex/ex39.tex}}
 \begin{function}{Maxavail}
 \Declaration
@@ -4513,7 +4511,7 @@ None.
 \SeeAlso
 \seep{Release}, \seef{Memavail},\seep{Freemem}, \seep{Getmem}
 \end{function}
-\latex{\inputlisting{refex/ex40.pp}}
+\latex{\lstinputlisting{refex/ex40.pp}}
 \html{\input{refex/ex40.tex}}
 \begin{function}{Memavail}
 \Declaration
@@ -4528,7 +4526,7 @@ None.
 \SeeAlso
 \seef{Maxavail},\seep{Freemem}, \seep{Getmem}
 \end{function}
-\latex{\inputlisting{refex/ex41.pp}}
+\latex{\lstinputlisting{refex/ex41.pp}}
 \html{\input{refex/ex41.tex}}
 \begin{procedure}{Mkdir}
 \Declaration
@@ -4555,7 +4553,7 @@ the compiler, a segmentation-fault will occur.
 \SeeAlso
 \seep{Fillword}, \seep{Fillchar}
 \end{procedure}
-\latex{\inputlisting{refex/ex42.pp}}
+\latex{\lstinputlisting{refex/ex42.pp}}
 \html{\input{refex/ex42.tex}}
 \begin{procedure}{New}
 \Declaration
@@ -4584,7 +4582,7 @@ None.
 \SeeAlso
 \seef{Abs}, \seef{Ord}
 \end{function}
-\latex{\inputlisting{refex/ex43.pp}}
+\latex{\lstinputlisting{refex/ex43.pp}}
 \html{\input{refex/ex43.tex}}
 \begin{function}{Ofs}
 \Declaration
@@ -4601,7 +4599,7 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{CSeg}, \seef{Seg}, \seef{Ptr}
 \end{function}
-\latex{\inputlisting{refex/ex44.pp}}
+\latex{\lstinputlisting{refex/ex44.pp}}
 \html{\input{refex/ex44.tex}}
 \begin{function}{Ord}
 \Declaration
@@ -4614,7 +4612,7 @@ None.
 \SeeAlso
 \seef{Chr}, \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
 \end{function}
-\latex{\inputlisting{refex/ex45.pp}}
+\latex{\lstinputlisting{refex/ex45.pp}}
 \html{\input{refex/ex45.tex}}
 \begin{function}{Paramcount}
 \Declaration
@@ -4629,7 +4627,7 @@ None.
 \SeeAlso
 \seef{Paramstr}
 \end{function}
-\latex{\inputlisting{refex/ex46.pp}}
+\latex{\lstinputlisting{refex/ex46.pp}}
 \html{\input{refex/ex46.tex}}
 \begin{function}{Paramstr}
 \Declaration
@@ -4660,7 +4658,7 @@ None.
 \SeeAlso
 \seef{Cos}, \seef{Sin}
 \end{function}
-\latex{\inputlisting{refex/ex47.pp}}
+\latex{\lstinputlisting{refex/ex47.pp}}
 \html{\input{refex/ex47.tex}}
 \begin{function}{Pos}
 \Declaration
@@ -4676,7 +4674,7 @@ None
 \SeeAlso
 \seef{Length}, \seef{Copy}, \seep{Delete}, \seep{Insert}
 \end{function}
-\latex{\inputlisting{refex/ex48.pp}}
+\latex{\lstinputlisting{refex/ex48.pp}}
 \html{\input{refex/ex48.tex}}
 \begin{function}{Power}
 \Declaration
@@ -4695,7 +4693,7 @@ None.
 \SeeAlso
 \seef{Exp}, \seef{Ln}
 \end{function}
-\latex{\inputlisting{refex/ex78.pp}}
+\latex{\lstinputlisting{refex/ex78.pp}}
 \html{\input{refex/ex78.tex}}
 \begin{function}{Pred}
 \Declaration
@@ -4714,7 +4712,7 @@ range.
 \seef{Ord}, \seef{Pred}, \seef{High}, \seef{Low}
 \end{function}
 for an example, see \seef{Ord}
-\latex{\inputlisting{refex/ex80.pp}}
+\latex{\lstinputlisting{refex/ex80.pp}}
 \html{\input{refex/ex80.tex}}
 \begin{function}{Ptr}
 \Declaration
@@ -4736,7 +4734,7 @@ None.
 \SeeAlso
 \seef{Addr}
 \end{function}
-\latex{\inputlisting{refex/ex59.pp}}
+\latex{\lstinputlisting{refex/ex59.pp}}
 \html{\input{refex/ex59.tex}}
 \begin{function}{Random}
 \Declaration
@@ -4752,7 +4750,7 @@ None.
 \SeeAlso
 \seep{Randomize}
 \end{function}
-\latex{\inputlisting{refex/ex49.pp}}
+\latex{\lstinputlisting{refex/ex49.pp}}
 \html{\input{refex/ex49.tex}}
 \begin{procedure}{Randomize}
 \Declaration
@@ -4787,7 +4785,7 @@ be controlled with the \var{\{\$i\}} compiler switch.
 \SeeAlso
 \seep{Readln}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}
 \end{procedure}
-\latex{\inputlisting{refex/ex50.pp}}
+\latex{\lstinputlisting{refex/ex50.pp}}
 \html{\input{refex/ex50.tex}}
 \begin{procedure}{Readln}
 \Declaration
@@ -4837,7 +4835,7 @@ or doesn't exist.
 \SeeAlso
 \seep{Erase}
 \end{procedure}
-\latex{\inputlisting{refex/ex77.pp}}
+\latex{\lstinputlisting{refex/ex77.pp}}
 \html{\input{refex/ex77.tex}}
 \begin{procedure}{Reset}
 \Declaration
@@ -4854,7 +4852,7 @@ generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
 \SeeAlso
 \seep{Rewrite}, \seep{Assign}, \seep{Close}
 \end{procedure}
-\latex{\inputlisting{refex/ex51.pp}}
+\latex{\lstinputlisting{refex/ex51.pp}}
 \html{\input{refex/ex51.tex}}
 \begin{procedure}{Rewrite}
 \Declaration
@@ -4875,7 +4873,7 @@ generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
 \SeeAlso
 \seep{Reset}, \seep{Assign}, \seep{Close}
 \end{procedure}
-\latex{\inputlisting{refex/ex52.pp}}
+\latex{\lstinputlisting{refex/ex52.pp}}
 \html{\input{refex/ex52.tex}}
 \begin{procedure}{Rmdir}
 \Declaration
@@ -4889,7 +4887,7 @@ If \var{S} doesn't exist, or isn't empty, a run-time error is generated.
 \SeeAlso
 \seep{Chdir}, \seep{Rmdir}
 \end{procedure}
-\latex{\inputlisting{refex/ex53.pp}}
+\latex{\lstinputlisting{refex/ex53.pp}}
 \html{\input{refex/ex53.tex}}
 \begin{function}{Round}
 \Declaration
@@ -4903,7 +4901,7 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Int}, \seef{Trunc}
 \end{function}
-\latex{\inputlisting{refex/ex54.pp}}
+\latex{\lstinputlisting{refex/ex54.pp}}
 \html{\input{refex/ex54.tex}}
 \begin{procedure}{Runerror}
 \Declaration
@@ -4917,7 +4915,7 @@ None.
 \SeeAlso
 \seep{Exit}, \seep{Halt}
 \end{procedure}
-\latex{\inputlisting{refex/ex55.pp}}
+\latex{\lstinputlisting{refex/ex55.pp}}
 \html{\input{refex/ex55.tex}}
 \begin{procedure}{Seek}
 \Declaration
@@ -4934,7 +4932,7 @@ the file, or the file isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEof}, \seef{SeekEoln}
 \end{procedure}
-\latex{\inputlisting{refex/ex56.pp}}
+\latex{\lstinputlisting{refex/ex56.pp}}
 \html{\input{refex/ex56.tex}}
 \begin{function}{SeekEof}
 \Declaration
@@ -4955,7 +4953,7 @@ A run-time error is generated if the file \var{F} isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEoln}, \seep{Seek}
 \end{function}
-\latex{\inputlisting{refex/ex57.pp}}
+\latex{\lstinputlisting{refex/ex57.pp}}
 \html{\input{refex/ex57.tex}}
 \begin{function}{SeekEoln}
 \Declaration
@@ -4976,7 +4974,7 @@ A run-time error is generated if the file \var{F} isn't opened.
 \SeeAlso
 \seef{Eof}, \seef{SeekEof}, \seep{Seek}
 \end{function}
-\latex{\inputlisting{refex/ex58.pp}}
+\latex{\lstinputlisting{refex/ex58.pp}}
 \html{\input{refex/ex58.tex}}
 \begin{function}{Seg}
 \Declaration
@@ -4992,7 +4990,7 @@ None.
 \SeeAlso
 \seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}
 \end{function}
-\latex{\inputlisting{refex/ex60.pp}}
+\latex{\lstinputlisting{refex/ex60.pp}}
 \html{\input{refex/ex60.tex}}
 \begin{function}{SetJmp}
 \Declaration
@@ -5010,7 +5008,7 @@ None.
 \SeeAlso
 \seep{LongJmp}
 \end{function}
-\latex{\inputlisting{refex/ex79.pp}}
+\latex{\lstinputlisting{refex/ex79.pp}}
 \html{\input{refex/ex79.tex}}
 
 \begin{procedure}{SetLength}
@@ -5028,7 +5026,7 @@ None.
 \seef{Length}
 \end{procedure}
 
-\latex{\inputlisting{refex/ex85.pp}}
+\latex{\lstinputlisting{refex/ex85.pp}}
 \html{\input{refex/ex85.tex}}
 
 \begin{procedure}{SetTextBuf}
@@ -5060,7 +5058,7 @@ No checking on \var{Size} is done.
 \SeeAlso
 \seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Append}
 \end{procedure}
-\latex{\inputlisting{refex/ex61.pp}}
+\latex{\lstinputlisting{refex/ex61.pp}}
 \html{\input{refex/ex61.tex}}
 \begin{function}{Sin}
 \Declaration
@@ -5074,7 +5072,7 @@ None.
 \SeeAlso
 \seef{Cos}, \seef{Pi}, \seef{Exp}
 \end{function}
-\latex{\inputlisting{refex/ex62.pp}}
+\latex{\lstinputlisting{refex/ex62.pp}}
 \html{\input{refex/ex62.tex}}
 \begin{function}{SizeOf}
 \Declaration
@@ -5089,7 +5087,7 @@ None.
 \SeeAlso
 \seef{Addr}
 \end{function}
-\latex{\inputlisting{refex/ex63.pp}}
+\latex{\lstinputlisting{refex/ex63.pp}}
 \html{\input{refex/ex63.tex}}
 \begin{function}{Sptr}
 \Declaration
@@ -5103,7 +5101,7 @@ None.
 \SeeAlso
 
 \end{function}
-\latex{\inputlisting{refex/ex64.pp}}
+\latex{\lstinputlisting{refex/ex64.pp}}
 \html{\input{refex/ex64.tex}}
 \begin{function}{Sqr}
 \Declaration
@@ -5116,7 +5114,7 @@ None.
 \SeeAlso
 \seef{Sqrt}, \seef{Ln}, \seef{Exp}
 \end{function}
-\latex{\inputlisting{refex/ex65.pp}}
+\latex{\lstinputlisting{refex/ex65.pp}}
 \html{\input{refex/ex65.tex}}
 \begin{function}{Sqrt}
 \Declaration
@@ -5130,7 +5128,7 @@ If \var{X} is negative, then a run-time error is generated.
 \SeeAlso
 \seef{Sqr}, \seef{Ln}, \seef{Exp}
 \end{function}
-\latex{\inputlisting{refex/ex66.pp}}
+\latex{\lstinputlisting{refex/ex66.pp}}
 \html{\input{refex/ex66.tex}}
 \begin{function}{SSeg}
 \Declaration
@@ -5145,7 +5143,7 @@ None.
 \SeeAlso
 \seef{Sptr}
 \end{function}
-\latex{\inputlisting{refex/ex67.pp}}
+\latex{\lstinputlisting{refex/ex67.pp}}
 \html{\input{refex/ex67.tex}}
 \begin{procedure}{Str}
 \Declaration
@@ -5161,7 +5159,7 @@ None.
 \SeeAlso
 \seep{Val}
 \end{procedure}
-\latex{\inputlisting{refex/ex68.pp}}
+\latex{\lstinputlisting{refex/ex68.pp}}
 \html{\input{refex/ex68.tex}}
 \begin{function}{Succ}
 \Declaration
@@ -5194,7 +5192,7 @@ None.
 \SeeAlso
 \seef{Lo}, \seef{Hi}
 \end{function}
-\latex{\inputlisting{refex/ex69.pp}}
+\latex{\lstinputlisting{refex/ex69.pp}}
 \html{\input{refex/ex69.tex}}
 \begin{function}{Trunc}
 \Declaration
@@ -5208,7 +5206,7 @@ None.
 \SeeAlso
 \seef{Frac}, \seef{Int}, \seef{Trunc}
 \end{function}
-\latex{\inputlisting{refex/ex70.pp}}
+\latex{\lstinputlisting{refex/ex70.pp}}
 \html{\input{refex/ex70.tex}}
 \begin{procedure}{Truncate}
 \Declaration
@@ -5224,7 +5222,7 @@ Errors are reported by IOresult.
 \seep{Append}, \seef{Filepos},
 \seep{Seek}
 \end{procedure}
-\latex{\inputlisting{refex/ex71.pp}}
+\latex{\lstinputlisting{refex/ex71.pp}}
 \html{\input{refex/ex71.tex}}
 \begin{function}{Upcase}
 \Declaration
@@ -5240,7 +5238,7 @@ None.
 \SeeAlso
 \seef{Lowercase}
 \end{function}
-\latex{\inputlisting{refex/ex72.pp}}
+\latex{\lstinputlisting{refex/ex72.pp}}
 \html{\input{refex/ex72.tex}}
 \begin{procedure}{Val}
 \Declaration
@@ -5259,7 +5257,7 @@ position where the conversion went wrong.
 \SeeAlso
 \seep{Str}
 \end{procedure}
-\latex{\inputlisting{refex/ex74.pp}}
+\latex{\lstinputlisting{refex/ex74.pp}}
 \html{\input{refex/ex74.tex}}
 \begin{procedure}{Write}
 \Declaration
@@ -5316,7 +5314,7 @@ controlled with the \var{\{\$i\}} switch.
 \SeeAlso
 \seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}
 \end{procedure}
-\latex{\inputlisting{refex/ex75.pp}}
+\latex{\lstinputlisting{refex/ex75.pp}}
 \html{\input{refex/ex75.tex}}
 %
 % The index.

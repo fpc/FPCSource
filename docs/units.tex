@@ -59,12 +59,11 @@
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
-\latex{\usepackage{listings}\usepackage{lst017}\usepackage{lstdelphi}%
-  \blankstringtrue
-  \selectlisting{delphi}
-  \stringstyle{\ttfamily}
-  \keywordstyle{\bfseries}
-  \prelisting{\sffamily\sloppy}
+\latex{
+\usepackage{listings}%
+\lstset{language=Delphi}%
+\lstset{pre=\sffamily}%
+\lstset{keywordstyle=\bfseries}%
 }
 %
 % Start of document.

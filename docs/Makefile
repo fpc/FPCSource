@@ -44,14 +44,14 @@ endif
 
 # Latex2html conversion.
 ifndef LATEX2HTML
-LATEX2HTML = latex2html
+LATEX2HTML = /usr/local/bin/latex2html
 endif
 
 # Options for converter
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 3.2
+                 -html_version 3.1
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -113,7 +113,7 @@ endif
 #####################################################################
 
 .PHONY: clean dvi help html ps psdist htmldist pdfdist txtdist \
-        htm txt pdf refex alldist messages
+        htm txt pdf refex alldist messages onechap
 
 .SUFFIXES: .dvi .tex .ps .txt .pdf
 
@@ -162,6 +162,8 @@ help:
 clean:
 	-rm -rf $(HTML)
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
+	-rm -f onechap.dvi onechap.aux onechap.log
+
 # Units
 	-$(MAKE) -C crtex clean
 	-$(MAKE) -C dosex clean
@@ -171,7 +173,7 @@ clean:
 	-$(MAKE) -C linuxex clean
 	-$(MAKE) -C mouseex clean
 	-$(MAKE) -C objectex clean
-	-$(MAKE) -C opclean clean
+	-$(MAKE) -C optex clean
 	-$(MAKE) -C printex clean
 	-$(MAKE) -C sockex clean
 	-$(MAKE) -C stringex clean
@@ -214,6 +216,8 @@ messages:
 
 date.inc:
 	@echo \\date\{`date +'%B %Y'`\} > date.inc
+
+onechap: onechap.dvi
 
 units.dvi: units.tex date.inc $(CHAPTERS)
 
@@ -428,7 +432,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.27  1999-06-15 13:53:16  peter
+# Revision 1.28  1999-06-25 22:12:10  michael
+# + Update to version 0.19 of listings package
+#
+# Revision 1.27  1999/06/15 13:53:16  peter
 #   * htmlzip,htmzip,htmltar updates
 #   * include search/ in distro
 #   * fix paths under linux automaticly

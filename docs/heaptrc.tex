@@ -50,7 +50,7 @@ report.
 
 The following example shows how to use the heaptrc unit.
 
-\latex{\inputlisting{heapex/heapex.pp}}
+\latex{\lstinputlisting{heapex/heapex.pp}}
 \html{\input{heapex/heapex.tex}}
 
 This is the memory dump shown when running this program:
@@ -96,20 +96,20 @@ Call trace for block 0x080528A0 size 4
 The \var{FillExtraInfoType} is a procedural type used in the
 \seep{SetExtraInfo} call.
 
-\begin{listing}
+\begin{lstlisting}{}
 type
     FillExtraInfoType = procedure(p : pointer);
-\end{listing}
+\end{lstlisting}{}
 The following typed constants allow to fine-tune the standard dump of the
 memory usage by \seep{DumpHeap}:
 
-\begin{listing}
+\begin{lstlisting}{}
 const
   tracesize = 8;
   quicktrace : boolean = true;
   HaltOnError : boolean = true;
   keepreleased : boolean = false;
-\end{listing}
+\end{lstlisting}{}
 
 \var{Tracesize} specifies how many levels of calls are displayed of the 
 call stack during the memory dump. If you specify \var{keepreleased:=True}
@@ -183,13 +183,16 @@ output, and a \seep{DumpHeap} is executed.
 \seep{DumpHeap}
 \end{procedure}
 
-\latex{\inputlisting{heapex/setinfo.pp}}
+\latex{\lstinputlisting{heapex/setinfo.pp}}
 \html{\input{heapex/setinfo.tex}}
 
 
 %
 % $Log$
-% Revision 1.2  1998-12-15 23:50:52  michael
+% Revision 1.3  1999-06-25 22:12:16  michael
+% + Update to version 0.19 of listings package
+%
+% Revision 1.2  1998/12/15 23:50:52  michael
 % * Some updates
 %
 % Revision 1.1  1998/12/14 23:17:02  michael

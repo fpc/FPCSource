@@ -157,7 +157,7 @@ If not enough memory is available, an 'out of memory' error will occur.
 \seep{DisposeStr}
 \end{function}
 
-\latex{\inputlisting{objectex/ex40.pp}}
+\latex{\lstinputlisting{objectex/ex40.pp}}
 \html{\input{objectex/ex40.tex}}
 
 \begin{procedure}{DisposeStr}
@@ -234,7 +234,7 @@ In case of error (if a object with the same \var{ObjType}) is already
 registered), run-time error 212 occurs.
 \end{procedure}
 
-\latex{\inputlisting{objectex/myobject.pp}}
+\latex{\lstinputlisting{objectex/myobject.pp}}
 \html{\input{objectex/myobject.tex}}
 
 \begin{function}{LongMul}
@@ -294,7 +294,7 @@ None.
 \seef{TRect.Equals}, \seef{TRect.Contains}
 \end{function}
 
-\latex{\inputlisting{objectex/ex1.pp}}
+\latex{\lstinputlisting{objectex/ex1.pp}}
 \html{\input{objectex/ex1.tex}}
 
 \begin{function}{TRect.Equals}      
@@ -336,7 +336,7 @@ None.
 \seepl{Assign}{TRect.Assign}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex2.pp}}
+\latex{\lstinputlisting{objectex/ex2.pp}}
 \html{\input{objectex/ex2.tex}}
 
 \begin{procedure}{TRect.Union}
@@ -351,7 +351,7 @@ None.
 \seepl{Intersect}{TRect.Intersect}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex3.pp}}
+\latex{\lstinputlisting{objectex/ex3.pp}}
 \html{\input{objectex/ex3.tex}}
 
 \begin{procedure}{TRect.Intersect}
@@ -367,7 +367,7 @@ None.
 \seepl{Union}{TRect.Union}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex4.pp}}
+\latex{\lstinputlisting{objectex/ex4.pp}}
 \html{\input{objectex/ex4.tex}}
 
 \begin{procedure}{TRect.Move}
@@ -383,7 +383,7 @@ None.
 \seepl{Grow}{TRect.Grow}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex5.pp}}
+\latex{\lstinputlisting{objectex/ex5.pp}}
 \html{\input{objectex/ex5.tex}}
 
 \begin{procedure}{TRect.Grow}
@@ -405,7 +405,7 @@ None.
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex6.pp}}
+\latex{\lstinputlisting{objectex/ex6.pp}}
 \html{\input{objectex/ex7.tex}}
 
 \begin{procedure}{TRect.Assign}
@@ -462,7 +462,7 @@ the object is indeed allocated on the heap.
 \seepl{Init}{TObject.Init}, \seepl{Done}{TObject.Done}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex7.pp}}
+\latex{\lstinputlisting{objectex/ex7.pp}}
 \html{\input{objectex/ex7.tex}}
 
 \begin{procedure}{TObject.Done}
@@ -479,7 +479,7 @@ None.
 \seepl{Free}{TObject.Free}, \seepl{Init}{TObject.Init}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex8.pp}}
+\latex{\lstinputlisting{objectex/ex8.pp}}
 \html{\input{objectex/ex8.tex}}
 
 \section{TStream}
@@ -538,7 +538,7 @@ On error, \var{TStream.Status} is set, and NIL is returned.
 \seepl{Put}{TStream.Put}
 \end{function}
 
-\latex{\inputlisting{objectex/ex9.pp}}
+\latex{\lstinputlisting{objectex/ex9.pp}}
 \html{\input{objectex/ex9.tex}}
 
 \begin{function}{TStream.StrRead}
@@ -554,7 +554,7 @@ On error, \var{Nil} is returned.
 \seepl{StrWrite}{TStream.StrWrite}, \seefl{ReadStr}{TStream.ReadStr}
 \end{function}
 
-\latex{\inputlisting{objectex/ex10.pp}}
+\latex{\lstinputlisting{objectex/ex10.pp}}
 \html{\input{objectex/ex10.tex}}
 
 
@@ -570,7 +570,7 @@ position in the stream. Otherwise it returns \var{-1}
 \seepl{Seek}{TStream.Seek}, \seefl{GetSize}{TStream.GetSize}
 \end{function}
 
-\latex{\inputlisting{objectex/ex11.pp}}
+\latex{\lstinputlisting{objectex/ex11.pp}}
 \html{\input{objectex/ex11.tex}}
 
 
@@ -586,7 +586,7 @@ the size of the stream, otherwise it returns \var{-1}.
 \seepl{Seek}{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
 \end{function}
 
-\latex{\inputlisting{objectex/ex12.pp}}
+\latex{\lstinputlisting{objectex/ex12.pp}}
 \html{\input{objectex/ex12.tex}}
 
 
@@ -603,7 +603,7 @@ On error (e.g. not enough memory), \var{Nil} is returned.
 \seefl{StrRead}{TStream.StrRead}
 \end{function}
 
-\latex{\inputlisting{objectex/ex13.pp}}
+\latex{\lstinputlisting{objectex/ex13.pp}}
 \html{\input{objectex/ex13.tex}}
 
 \begin{procedure}{TStream.Open}
@@ -774,7 +774,7 @@ No checking is done to see if \var{Buf} is large enough to contain
 \seefl{StrRead}{TStream.StrRead}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex18.pp}}
+\latex{\lstinputlisting{objectex/ex18.pp}}
 \html{\input{objectex/ex18.tex}}
 
 \begin{procedure}{TStream.Write}
@@ -809,7 +809,7 @@ None.
 \seepl{Read}{TStream.Read}, \seepl{Write}{TStream.Write}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex19.pp}}
+\latex{\lstinputlisting{objectex/ex19.pp}}
 \html{\input{objectex/ex19.tex}}
 
 \section{TDosStream}
@@ -912,7 +912,7 @@ If an error occurs, the stream's status is set to \var{stError} and
 \seep{TStream.Truncate}, \seefl{GetSize}{TStream.GetSize}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex16.pp}}
+\latex{\lstinputlisting{objectex/ex16.pp}}
 \html{\input{objectex/ex16.tex}}
 
 \begin{procedure}{TDosStream.Seek}
@@ -929,7 +929,7 @@ and the OS error code is stored in \var{ErrorInfo}.
 \seep{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex17.pp}}
+\latex{\lstinputlisting{objectex/ex17.pp}}
 \html{\input{objectex/ex17.tex}}
 
 \begin{procedure}{TDosStream.Open}
@@ -946,7 +946,7 @@ to \var{stOpenError}, and the OS error code is stored in \var{ErrorInfo}
 \seep{TStream.Open}, \seepl{Close}{TDosStream.Close}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex14.pp}}
+\latex{\lstinputlisting{objectex/ex14.pp}}
 \html{\input{objectex/ex14.tex}}
 
 \begin{procedure}{TDosStream.Read}
@@ -1092,7 +1092,7 @@ see \seepl{Write}{TBufStream.Write} for more info on the errors.
 \seepl{Done}{TBufStream.Done}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex15.pp}}
+\latex{\lstinputlisting{objectex/ex15.pp}}
 \html{\input{objectex/ex15.tex}}
 
 \begin{procedure}{TBufStream.Truncate}
@@ -1259,7 +1259,7 @@ to \var{stError}
 \seep{TStream.Truncate}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex20.pp}}
+\latex{\lstinputlisting{objectex/ex20.pp}}
 \html{\input{objectex/ex20.tex}}
 
 \begin{procedure}{TMemoryStream.Read}
@@ -1380,7 +1380,7 @@ Errors returned can be those of \seefl{GetItem}{TCollection.GetItem}.
 \seepl{Done}{TCollection.Done}.
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex22.pp}}
+\latex{\lstinputlisting{objectex/ex22.pp}}
 \html{\input{objectex/ex22.tex}}
 
 \begin{procedure}{TCollection.Done}
@@ -1413,7 +1413,7 @@ error.
 \seepl{Insert}{TCollection.Insert}
 \end{function}
 
-\latex{\inputlisting{objectex/ex23.pp}}
+\latex{\lstinputlisting{objectex/ex23.pp}}
 \html{\input{objectex/ex23.tex}}
 
 \begin{function}{TCollection.IndexOf}
@@ -1426,7 +1426,7 @@ If \var{Item} isn't present in the collection, -1 is returned.
 \SeeAlso
 \end{function}
 
-\latex{\inputlisting{objectex/ex24.pp}}
+\latex{\lstinputlisting{objectex/ex24.pp}}
 \html{\input{objectex/ex24.pp}}
 
 \begin{function}{TCollection.GetItem}
@@ -1455,7 +1455,7 @@ None.
 \seefl{FirstThat}{TCollection.FirstThat}
 \end{function}
 
-\latex{\inputlisting{objectex/ex25.pp}}
+\latex{\lstinputlisting{objectex/ex25.pp}}
 \html{\input{objectex/ex25.tex}}
 
 \begin{function}{TCollection.FirstThat}
@@ -1471,7 +1471,7 @@ None.
 \seefl{LastThat}{TCollection.LastThat}
 \end{function}
 
-\latex{\inputlisting{objectex/ex26.pp}}
+\latex{\lstinputlisting{objectex/ex26.pp}}
 \html{\input{objectex/ex26.tex}}
 
 \begin{procedure}{TCollection.Pack}
@@ -1488,7 +1488,7 @@ None.
 \seepl{SetLimit}{TCollection.SetLimit}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex26.pp}}
+\latex{\lstinputlisting{objectex/ex26.pp}}
 \html{\input{objectex/ex26.tex}}
 
 \begin{procedure}{TCollection.FreeAll}
@@ -1504,7 +1504,7 @@ does set \var{Count} to zero.
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex28.pp}}
+\latex{\lstinputlisting{objectex/ex28.pp}}
 \html{\input{objectex/ex28.tex}}
 
 
@@ -1522,7 +1522,7 @@ None.
 \seepl{FreeAll}{TCollection.FreeAll}, \seepl{Delete}{TCollection.Delete}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex29.pp}}
+\latex{\lstinputlisting{objectex/ex29.pp}}
 \html{\input{objectex/ex29.tex}}
 
 
@@ -1540,7 +1540,7 @@ If the \var{Item} is not in the collection, \var{Error} will be called with
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex30.pp}}
+\latex{\lstinputlisting{objectex/ex30.pp}}
 \html{\input{objectex/ex30.tex}}
 
 \begin{procedure}{TCollection.Insert}
@@ -1572,7 +1572,7 @@ If the \var{Item} is not in the collection, \var{Error} will be called with
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex31.pp}}
+\latex{\lstinputlisting{objectex/ex31.pp}}
 \html{\input{objectex/ex31.tex}}
 
 \begin{procedure}{TCollection.AtFree}
@@ -1588,7 +1588,7 @@ with \var{CoIndexError}.
 \seepl{Free}{TCollection.Free}, \seepl{AtDelete}{TCollection.AtDelete}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex32.pp}}
+\latex{\lstinputlisting{objectex/ex32.pp}}
 \html{\input{objectex/ex32.tex}}
 
 
@@ -1621,7 +1621,7 @@ with \var{CoIndexError}.
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex33.pp}}
+\latex{\lstinputlisting{objectex/ex33.pp}}
 \html{\input{objectex/ex33.tex}}
 
 \begin{procedure}{TCollection.ForEach}
@@ -1640,7 +1640,7 @@ None.
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex21.pp}}
+\latex{\lstinputlisting{objectex/ex21.pp}}
 \html{\input{objectex/ex21.tex}}
 
 
@@ -1704,7 +1704,7 @@ with \var{CoIndexError}. If the collection fails to expand, then
 \end{procedure}
 
 
-\latex{\inputlisting{objectex/ex34.pp}}
+\latex{\lstinputlisting{objectex/ex34.pp}}
 \html{\input{objectex/ex34.tex}}
 
 \begin{procedure}{TCollection.Store}
@@ -1778,7 +1778,7 @@ TYPE
 In the subsequent examples, the following descendent of
 \var{TSortedCollection} is used:
 
-\latex{\inputlisting{objectex/mysortc.pp}}
+\latex{\lstinputlisting{objectex/mysortc.pp}}
 \html{\input{objectex/mysortc.tex}}
 
 \begin{procedure}{TSortedCollection.Init}
@@ -1882,7 +1882,7 @@ An 'abstract run-time error' will be generated if you call
 \seefl{Search}{TSortedCollection.Search}
 \end{function}
 
-\latex{\inputlisting{objectex/mysortc.pp}}
+\latex{\lstinputlisting{objectex/mysortc.pp}}
 \html{\input{objectex/mysortc.tex}}
 
 
@@ -1906,7 +1906,7 @@ None.
 \seefl{IndexOf}{TCollection.IndexOf}.
 \end{function}
 
-\latex{\inputlisting{objectex/ex36.pp}}
+\latex{\lstinputlisting{objectex/ex36.pp}}
 \html{\input{objectex/ex36.tex}}
 
 \begin{procedure}{TSortedCollection.Insert}
@@ -1926,7 +1926,7 @@ None.
 \seepl{AtInsert}{TCollection.AtInsert}
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex35.pp}}
+\latex{\lstinputlisting{objectex/ex35.pp}}
 \html{\input{objectex/ex35.tex}}
 
 \begin{procedure}{TSortedCollection.Store}
@@ -2002,7 +2002,7 @@ None.
 \seef{TSortedCollection.Compare}
 \end{function}
 
-\latex{\inputlisting{objectex/ex37.pp}}
+\latex{\lstinputlisting{objectex/ex37.pp}}
 \html{\input{objectex/ex37.tex}}
 
 \begin{procedure}{TStringCollection.FreeItem}
@@ -2091,7 +2091,7 @@ None.
 \end{function}
 
 
-\latex{\inputlisting{objectex/ex38.pp}}
+\latex{\lstinputlisting{objectex/ex38.pp}}
 \html{\input{objectex/ex38.tex}}
 
 
@@ -2154,7 +2154,7 @@ strings.
 \SeeAlso
 \end{procedure}
 
-\latex{\inputlisting{objectex/ex39.pp}}
+\latex{\lstinputlisting{objectex/ex39.pp}}
 \html{\input{objectex/ex39.tex}}
 
 \section{TResourceCollection}
