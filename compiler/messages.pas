@@ -400,24 +400,27 @@ begin
   s:=Get(nr);
 { $1 -> s1 }
   i:=pos('$1',s);
-  if i>0 then
+  while (i>0) do
    begin
      Delete(s,i,2);
      Insert(s1,s,i);
+     i := pos('$1',s);
    end;
 { $2 -> s2 }
   i:=pos('$2',s);
-  if i>0 then
+  while (i>0) do
    begin
      Delete(s,i,2);
      Insert(s2,s,i);
+     i := pos('$2',s);
    end;
 { $3 -> s3 }
   i:=pos('$3',s);
-  if i>0 then
+  while (i>0) do
    begin
      Delete(s,i,2);
      Insert(s3,s,i);
+     i := pos('$3',s);
    end;
   Get3:=s;
 end;
@@ -438,7 +441,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-03-10 13:19:10  peter
+  Revision 1.7  2001-04-14 16:05:41  jonas
+    * allow a single replacement string to be substituted more than once per
+      message (already used in assembler reader messages for "fsub x" etc.
+      transformations) (merged)
+
+  Revision 1.6  2001/03/10 13:19:10  peter
     * don't check messagefile for numbers, this allows the usage of
       1.1 msgfiles with a 1.0.x compiler
 
