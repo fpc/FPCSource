@@ -81,129 +81,139 @@ implementation
               varsym :
                  begin
                     hregister:=R_NO;
-                    symtabletype:=p^.symtable^.symtabletype;
-                    { in case it is a register variable: }
-                    if pvarsym(p^.symtableentry)^.reg<>R_NO then
+                    if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
-                         p^.location.loc:=LOC_CREGISTER;
-                         p^.location.register:=pvarsym(p^.symtableentry)^.reg;
-                         unused:=unused-[pvarsym(p^.symtableentry)^.reg];
+                         stringdispose(p^.location.reference.symbol);
+                         p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                         if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
+                           maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                       end
                     else
                       begin
-                         { first handle local and temporary variables }
-                         if (symtabletype in [parasymtable,inlinelocalsymtable,
-                                              inlineparasymtable,localsymtable]) then
+                         symtabletype:=p^.symtable^.symtabletype;
+                         { in case it is a register variable: }
+                         if pvarsym(p^.symtableentry)^.reg<>R_NO then
                            begin
-                              p^.location.reference.base:=procinfo.framepointer;
-                              p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                              if (symtabletype=localsymtable) or (symtabletype=inlinelocalsymtable) then
-                                p^.location.reference.offset:=-p^.location.reference.offset;
-                              if (symtabletype=parasymtable) or (symtabletype=inlineparasymtable) then
-                                inc(p^.location.reference.offset,p^.symtable^.call_offset);
-                              if (lexlevel>(p^.symtable^.symtablelevel)) then
-                                begin
-                                   hregister:=getregister32;
-
-                                   { make a reference }
-                                   hp:=new_reference(procinfo.framepointer,
-                                     procinfo.framepointer_offset);
-
-
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
-
-                                   simple_loadn:=false;
-                                   i:=lexlevel-1;
-                                   while i>(p^.symtable^.symtablelevel) do
-                                     begin
-                                        { make a reference }
-                                        hp:=new_reference(hregister,8);
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
-                                        dec(i);
-                                     end;
-                                   p^.location.reference.base:=hregister;
-                                end;
+                              p^.location.loc:=LOC_CREGISTER;
+                              p^.location.register:=pvarsym(p^.symtableentry)^.reg;
+                              unused:=unused-[pvarsym(p^.symtableentry)^.reg];
                            end
                          else
-                           case symtabletype of
-                              unitsymtable,globalsymtable,
-                              staticsymtable : begin
-                                                  stringdispose(p^.location.reference.symbol);
-                                                  p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                                                  if symtabletype=unitsymtable then
-                                                    concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-                                               end;
-                              objectsymtable : begin
-                                                  if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
-                                                    begin
-                                                       stringdispose(p^.location.reference.symbol);
-                                                       p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                                                       if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
-                                                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
-                                                    end
-                                                  else
-                                                    begin
-                                                       p^.location.reference.base:=R_ESI;
-                                                       p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                                                    end;
-                                               end;
-                              withsymtable:
-                                begin
-                                   hregister:=getregister32;
-                                   p^.location.reference.base:=hregister;
-                                   { make a reference }
-                                   { symtable datasize field
-                                     contains the offset of the temp
-                                     stored }
-                                   hp:=new_reference(procinfo.framepointer,
-                                     p^.symtable^.datasize);
-
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
-
-                                   p^.location.reference.offset:=
-                                     pvarsym(p^.symtableentry)^.address;
-                                end;
-                           end;
-                         { in case call by reference, then calculate: }
-                         if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
-                            ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
-                             { call by value open arrays are also indirect addressed }
-                             is_open_array(pvarsym(p^.symtableentry)^.definition) then
                            begin
-                              simple_loadn:=false;
-                              if hregister=R_NO then
-                                hregister:=getregister32;
-                              if (p^.location.reference.base=procinfo.framepointer) then
+                              { first handle local and temporary variables }
+                              if (symtabletype in [parasymtable,inlinelocalsymtable,
+                                                   inlineparasymtable,localsymtable]) then
                                 begin
-                                   highframepointer:=p^.location.reference.base;
-                                   highoffset:=p^.location.reference.offset;
+                                   p^.location.reference.base:=procinfo.framepointer;
+                                   p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
+                                   if (symtabletype=localsymtable) or (symtabletype=inlinelocalsymtable) then
+                                     p^.location.reference.offset:=-p^.location.reference.offset;
+                                   if (symtabletype=parasymtable) or (symtabletype=inlineparasymtable) then
+                                     inc(p^.location.reference.offset,p^.symtable^.call_offset);
+                                   if (lexlevel>(p^.symtable^.symtablelevel)) then
+                                     begin
+                                        hregister:=getregister32;
+     
+                                        { make a reference }
+                                        hp:=new_reference(procinfo.framepointer,
+                                          procinfo.framepointer_offset);
+     
+     
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+     
+                                        simple_loadn:=false;
+                                        i:=lexlevel-1;
+                                        while i>(p^.symtable^.symtablelevel) do
+                                          begin
+                                             { make a reference }
+                                             hp:=new_reference(hregister,8);
+                                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                             dec(i);
+                                          end;
+                                        p^.location.reference.base:=hregister;
+                                     end;
                                 end
                               else
-                                begin
-                                   highframepointer:=R_EDI;
-                                   highoffset:=p^.location.reference.offset;
-                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                     p^.location.reference.base,R_EDI)));
+                                case symtabletype of
+                                   unitsymtable,globalsymtable,
+                                   staticsymtable : begin
+                                                       stringdispose(p^.location.reference.symbol);
+                                                       p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                                                       if symtabletype=unitsymtable then
+                                                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                                                    end;
+                                   objectsymtable : begin
+                                                       if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
+                                                         begin
+                                                            stringdispose(p^.location.reference.symbol);
+                                                            p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                                                            if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
+                                                              concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                                                         end
+                                                       else
+                                                         begin
+                                                            p^.location.reference.base:=R_ESI;
+                                                            p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
+                                                         end;
+                                                    end;
+                                   withsymtable:
+                                     begin
+                                        hregister:=getregister32;
+                                        p^.location.reference.base:=hregister;
+                                        { make a reference }
+                                        { symtable datasize field
+                                          contains the offset of the temp
+                                          stored }
+                                        hp:=new_reference(procinfo.framepointer,
+                                          p^.symtable^.datasize);
+     
+                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+     
+                                        p^.location.reference.offset:=
+                                          pvarsym(p^.symtableentry)^.address;
+                                     end;
                                 end;
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
-                                hregister)));
-                              clear_reference(p^.location.reference);
-                              p^.location.reference.base:=hregister;
-                          end;
-                         {
-                         if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
-                           ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
-                           begin
-                              simple_loadn:=false;
-                              if hregister=R_NO then
-                                hregister:=getregister32;
-                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
-                                hregister)));
-                              clear_reference(p^.location.reference);
-                              p^.location.reference.base:=hregister;
+                              { in case call by reference, then calculate: }
+                              if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                                 ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
+                                  dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
+                                  { call by value open arrays are also indirect addressed }
+                                  is_open_array(pvarsym(p^.symtableentry)^.definition) then
+                                begin
+                                   simple_loadn:=false;
+                                   if hregister=R_NO then
+                                     hregister:=getregister32;
+                                   if (p^.location.reference.base=procinfo.framepointer) then
+                                     begin
+                                        highframepointer:=p^.location.reference.base;
+                                        highoffset:=p^.location.reference.offset;
+                                     end
+                                   else
+                                     begin
+                                        highframepointer:=R_EDI;
+                                        highoffset:=p^.location.reference.offset;
+                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                          p^.location.reference.base,R_EDI)));
+                                     end;
+                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
+                                     hregister)));
+                                   clear_reference(p^.location.reference);
+                                   p^.location.reference.base:=hregister;
+                               end;
+                              {
+                              if (pvarsym(p^.symtableentry)^.definition^.deftype=objectdef) and
+                                ((pobjectdef(pvarsym(p^.symtableentry)^.definition)^.options and oois_class)<>0) then
+                                begin
+                                   simple_loadn:=false;
+                                   if hregister=R_NO then
+                                     hregister:=getregister32;
+                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
+                                     hregister)));
+                                   clear_reference(p^.location.reference);
+                                   p^.location.reference.base:=hregister;
+                                end;
+                              }
                            end;
-                         }
                       end;
                  end;
               procsym:
@@ -510,7 +520,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:34  pierre
+  Revision 1.3  1998-06-09 16:01:35  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.2  1998/06/08 13:13:34  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

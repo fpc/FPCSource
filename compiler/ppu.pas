@@ -64,6 +64,8 @@ const
   ibtypedconstsym = 25;
   ibabsolutesym   = 26;
   ibpropertysym   = 27;
+  ibvarsym_C      = 28;
+  
   {defenitions}
   iborddef        = 40;
   ibpointerdef    = 41;
@@ -742,7 +744,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-05-28 14:40:26  peter
+  Revision 1.4  1998-06-09 16:01:48  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.3  1998/05/28 14:40:26  peter
     * fixes for newppu, remake3 works now with it
 
   Revision 1.2  1998/05/27 19:45:08  peter

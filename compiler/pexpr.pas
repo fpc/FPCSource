@@ -585,7 +585,9 @@ unit pexpr;
       begin
          if sym=nil then
            begin
-              Message(sym_e_id_no_member);
+              { pattern is still valid unless
+              there is another ID just after the ID of sym }
+              Message1(sym_e_id_no_member,pattern);
               disposetree(p1);
               p1:=genzeronode(errorn);
               { try to clean up }
@@ -1784,7 +1786,16 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-05 14:37:33  pierre
+  Revision 1.26  1998-06-09 16:01:46  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.25  1998/06/05 14:37:33  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 

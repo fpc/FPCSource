@@ -22,7 +22,7 @@
 }
 unit pmodules;
 
-{$define TEST_IMPL}
+{define TEST_IMPL does not work well }
 
   interface
 
@@ -993,7 +993,16 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.25  1998-06-08 22:59:49  peter
+  Revision 1.26  1998-06-09 16:01:47  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.25  1998/06/08 22:59:49  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

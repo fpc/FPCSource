@@ -872,6 +872,7 @@
          tsym.init(n);
          typ:=varsym;
          definition:=p;
+         _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
          refs:=0;
@@ -880,17 +881,18 @@
          case p^.deftype of
         pointerdef,
            enumdef,
-        procvardef : regable:=true;
+        procvardef :
+          var_options:=var_options or vo_regable;
             orddef : case porddef(p)^.typ of
-                      u8bit,s32bit,
-                    bool8bit,uchar,
-                      s8bit,s16bit,
-                     u16bit,u32bit : regable:=true;
+                       u8bit,u16bit,u32bit,
+                       bool8bit,bool16bit,bool32bit,
+                       s8bit,s16bit,s32bit :
+                         var_options:=var_options or vo_regable;
                      else
-                       regable:=false;
+                       var_options:=var_options and not vo_regable;
                      end;
          else
-           regable:=false;
+           var_options:=var_options and not vo_regable;
          end;
          reg:=R_NO;
       end;
@@ -900,6 +902,7 @@
       begin
          tsym.load;
          typ:=varsym;
+         _mangledname:=nil;
          varspez:=tvarspez(readbyte);
          if read_member then
            address:=readlong
@@ -908,8 +911,26 @@
          refs := 0;
          is_valid := 1;
          { symbols which are load are never candidates for a register }
-         regable:=false;
+         var_options:=0;
+         { was regable:=false; }
          reg:=R_NO;
+      end;
+
+    constructor tvarsym.init_C(const n,mangled : string;p : pdef);
+
+      begin
+         init(n,p);
+         var_options:=var_options or vo_is_C_var;
+         _mangledname:=strpnew(target_os.Cprefix+mangled);
+      end;
+      
+    constructor tvarsym.load_C;
+
+      begin
+         load;
+         typ:=varsym;
+         var_options:=readbyte;
+         _mangledname:=strpnew(readstring);
       end;
 
     procedure tvarsym.deref;
@@ -922,7 +943,10 @@
 
       begin
 {$ifndef NEWPPU}
-         writebyte(ibvarsym);
+         if (var_options and vo_is_C_var)<>0 then
+           writebyte(ibvarsym_C)
+         else
+           writebyte(ibvarsym);
 {$endif}
          tsym.write;
          writebyte(byte(varspez));
@@ -931,7 +955,15 @@
            writelong(address);
 
          writedefref(definition);
+         if (var_options and vo_is_C_var)<>0 then
+           begin
+              writebyte(var_options);
+              writestring(mangledname);
+           end;
 {$ifdef NEWPPU}
+         if (var_options and vo_is_C_var)<>0 then
+           ppufile^.writeentry(ibvarsym_C)
+         else
          ppufile^.writeentry(ibvarsym);
 {$endif}
       end;
@@ -940,6 +972,11 @@
       var
         prefix : string;
       begin
+         if assigned(_mangledname) then
+           begin
+              mangledname:=strpas(_mangledname);
+              exit;
+           end;
          case owner^.symtabletype of
            staticsymtable : if (cs_smartlink in aktswitches) then
                               prefix:='_'+owner^.name^+'$$$_'
@@ -981,6 +1018,8 @@
       var
          l,modulo : longint;
       begin
+       if (var_options and vo_is_external)<>0 then
+         exit;
        { handle static variables of objects especially }
        if read_member and (owner^.symtabletype=objectsymtable) and
           ((properties and sp_static)<>0) then
@@ -988,7 +1027,7 @@
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
-            regable:=false;
+            var_options:=var_options or vo_regable;
          end
        else if not(read_member) then
          begin
@@ -1039,7 +1078,7 @@
                 inc(owner^.datasize,l);
 
                 { this symbol can't be loaded to a register }
-                regable:=false;
+                var_options:=var_options and not vo_regable;
               end
             else if owner^.symtabletype=globalsymtable then
               begin
@@ -1059,7 +1098,7 @@
                  inc(owner^.datasize,l);
 
                  { this symbol can't be loaded to a register }
-                 regable:=false;
+                 var_options:=var_options and not vo_regable;
               end
             else if owner^.symtabletype in [recordsymtable,objectsymtable] then
               begin
@@ -1084,7 +1123,7 @@
                  inc(owner^.datasize,l);
 
                  { this symbol can't be loaded to a register }
-                 regable:=false;
+                var_options:=var_options and not vo_regable;
               end
              else if owner^.symtabletype=parasymtable then
               begin
@@ -1201,6 +1240,14 @@
 {$endif i386}
       end;
 {$endif GDB}
+
+    destructor tvarsym.done;
+
+      begin
+         strdispose(_mangledname);
+         inherited done;
+      end;
+      
 
 {****************************************************************************
                              TTYPEDCONSTSYM
@@ -1694,7 +1741,16 @@
 
 {
   $Log$
-  Revision 1.6  1998-06-08 22:59:53  peter
+  Revision 1.7  1998-06-09 16:01:51  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.6  1998/06/08 22:59:53  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

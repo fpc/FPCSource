@@ -1467,6 +1467,7 @@ unit pdecl;
 
       var
          typename : stringid;
+         newtype : ptypesym;
 {$ifdef dummy}
          olddef,newdef : pdef;
          s : string;
@@ -1495,7 +1496,8 @@ unit pdecl;
                 { is that ok ??? }
                 getmem(newdef,SizeOf(olddef));
                 move(olddef^,newdef^,SizeOf(olddef));
-                symtablestack^.insert(new(ptypesym,init(typename,newdef)));
+                newtype:=new(ptypesym,init(typename,newdef));
+                symtablestack^.insert(newtype);
              end
            else
 {$endif testequaltype}
@@ -1511,11 +1513,17 @@ unit pdecl;
                      { we can ignore the result   }
                      { the definition is modified }
                      object_dec(typename,pobjectdef(ptypesym(srsym)^.definition));
+                     newtype:=ptypesym(srsym);
                   end
                 else
-                  symtablestack^.insert(new(ptypesym,init(typename,read_type(typename))));
+                  begin
+                     newtype:=new(ptypesym,init(typename,read_type(typename)));
+                     symtablestack^.insert(newtype);
+                  end;
              end;
            consume(SEMICOLON);
+           if assigned(newtype^.definition) and (newtype^.definition^.deftype=procvardef) then
+             parse_var_proc_directives(newtype);
          until token<>ID;
          typecanbeforward:=false;
 {$ifdef tp}
@@ -1566,6 +1574,7 @@ unit pdecl;
          abssym : pabsolutesym;
          filepos : tfileposinfo;
 
+         Csym : pvarsym;
 
       begin
          hs:='';
@@ -1584,7 +1593,29 @@ unit pdecl;
               sc:=idlist;
               consume(COLON);
               p:=read_type('');
-              if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
+              if do_absolute and (token=ID) and (pattern='CALIAS') then
+                begin
+                   s:=sc^.get_with_tokeninfo(filepos);
+                   if sc^.get<>'' then
+                    Message(parser_e_absolute_only_one_var);
+                   dispose(sc,done);
+                   consume(ID);
+                   if (token<>CCHAR) and (token<>CSTRING) then
+                     consume(CSTRING)
+                   else
+                     begin
+                        Csym:=new(pvarsym,init_C(s,pattern,p));
+                        consume(token);
+                        consume(SEMICOLON);
+                        if (token=ID) and (pattern='EXTERNAL') then
+                          begin
+                             Csym^.var_options:=Csym^.var_options or vo_is_external;
+                             Consume(ID);
+                          end;
+                        symtablestack^.insert(Csym);
+                     end;
+                end
+              else if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
                 begin
                    s:=sc^.get_with_tokeninfo(filepos);
                    if sc^.get<>'' then
@@ -1829,7 +1860,16 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-05 14:37:32  pierre
+  Revision 1.25  1998-06-09 16:01:45  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.24  1998/06/05 14:37:32  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 

@@ -1085,28 +1085,9 @@ implementation
                    ungetpersistanttemp(p^.procdefinition^.parast^.call_offset,
                      p^.procdefinition^.parast^.datasize);
                 end;
-              if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
-                begin
-                   { consider the alignment with the rest (PM) }
-                   pushedparasize:=pushedparasize+pop_size;
-                   must_pop:=false;
-                   if pushedparasize=4 then
-                     { better than an add on all processors }
-                     exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)))
-                   { the pentium has two pipes and pop reg is pairable }
-                   { but the registers must be different!              }
-                   else if (pushedparasize=8) and
-                     not(cs_littlesize in aktswitches) and
-                     (aktoptprocessor=pentium) and
-                     (procinfo._class=nil) then
-                       begin
-                          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
-                          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-                       end
-                   else exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pushedparasize,R_ESP)));
-                end;
            end
          else
+           { now procedure variable case }
            begin
               if (pushedparasize mod 4)<>0 then
                 begin
@@ -1143,6 +1124,29 @@ implementation
               end;
 
 
+             end;
+           { this was only for normal functions
+             displaced here so we also get
+             it to work for procvars PM }
+           if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
+             begin
+                { consider the alignment with the rest (PM) }
+                pushedparasize:=pushedparasize+pop_size;
+                must_pop:=false;
+                if pushedparasize=4 then
+                  { better than an add on all processors }
+                  exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)))
+                { the pentium has two pipes and pop reg is pairable }
+                { but the registers must be different!              }
+                else if (pushedparasize=8) and
+                  not(cs_littlesize in aktswitches) and
+                  (aktoptprocessor=pentium) and
+                  (procinfo._class=nil) then
+                    begin
+                       exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+                       exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
+                    end
+                else exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pushedparasize,R_ESP)));
              end;
       dont_call:
          pushedparasize:=oldpushedparasize;
@@ -1281,7 +1285,6 @@ implementation
                 emitcall(p^.procdefinition^.mangledname);}
               emitcall('IOCHECK',true);
            end;
-         { this should be optimized (PM) }
          if must_pop then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
          { restore registers }
@@ -2190,7 +2193,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:29  pierre
+  Revision 1.3  1998-06-09 16:01:33  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.2  1998/06/08 13:13:29  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

@@ -204,6 +204,7 @@ unit files;
        ibunitname      = 34;
        ibwidestringdef = 35;
        ibstaticlibs    = 36;
+       ibvarsym_C      = 37;
        ibend           = 255;
 
        { unit flags }
@@ -937,7 +938,16 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.16  1998-06-04 10:42:19  pierre
+  Revision 1.17  1998-06-09 16:01:40  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.16  1998/06/04 10:42:19  pierre
     * small bug fix in load_ppu or openppu
 
   Revision 1.15  1998/05/28 14:37:53  peter

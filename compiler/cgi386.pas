@@ -280,7 +280,7 @@ implementation
          i,j,k : longint;
 
       begin
-         if (p^.typ=varsym) and (pvarsym(p)^.regable) then
+         if (p^.typ=varsym) and ((pvarsym(p)^.var_options and vo_regable)<>0) then
            begin
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
@@ -516,7 +516,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1998-06-08 13:13:41  pierre
+  Revision 1.38  1998-06-09 16:01:37  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.37  1998/06/08 13:13:41  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

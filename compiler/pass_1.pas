@@ -118,9 +118,12 @@ unit pass_1;
 
       begin
          case p^.treetype of
-            typeconvn : make_not_regable(p^.left);
-            loadn : if p^.symtableentry^.typ=varsym then
-                      pvarsym(p^.symtableentry)^.regable:=false;
+            typeconvn :
+              make_not_regable(p^.left);
+            loadn :
+              if p^.symtableentry^.typ=varsym then
+                pvarsym(p^.symtableentry)^.var_options :=
+                  pvarsym(p^.symtableentry)^.var_options and not vo_regable;
          end;
       end;
 
@@ -517,7 +520,7 @@ unit pass_1;
                 p^.symtableentry:=pabsolutesym(p^.symtableentry)^.ref;
               p^.symtable:=p^.symtableentry^.owner;
               p^.is_absolute:=true;
-                   end;
+           end;
          case p^.symtableentry^.typ of
             absolutesym :;
             varsym :
@@ -535,7 +538,8 @@ unit pass_1;
                              p^.registers32:=1;
                              { auáerdem kann sie nicht mehr in ein Register
                                geladen werden }
-                             pvarsym(p^.symtableentry)^.regable:=false;
+                             pvarsym(p^.symtableentry)^.var_options :=
+                               pvarsym(p^.symtableentry)^.var_options and not vo_regable;
                           end;
                      end;
                    if (pvarsym(p^.symtableentry)^.varspez=vs_const) then
@@ -5013,7 +5017,16 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.28  1998-06-05 14:37:29  pierre
+  Revision 1.29  1998-06-09 16:01:44  pierre
+    + added procedure directive parsing for procvars
+      (accepted are popstack cdecl and pascal)
+    + added C vars with the following syntax
+      var C calias 'true_c_name';(can be followed by external)
+      reason is that you must add the Cprefix
+
+      which is target dependent
+
+  Revision 1.28  1998/06/05 14:37:29  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 
