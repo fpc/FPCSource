@@ -261,15 +261,27 @@ implementation
                     end
                    else
                     resulttype.setdef(procdeflist);
-                   { if the owner of the procsym is a object,  }
-                   { left must be set, if left isn't set       }
-                   { it can be only self                       }
-                   { this code is only used in TP procvar mode }
-                   if (m_tp_procvar in aktmodeswitches) and
-                      not(assigned(left)) and
-                      (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
+
+                   if (m_tp_procvar in aktmodeswitches) then
                     begin
-                      left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
+                      if assigned(left) then
+                       begin
+                         if left.nodetype=typen then
+                          begin
+                            { we need to return only a voidpointer,
+                              so no need to keep the typen }
+                            left.free;
+                            left:=nil;
+                          end;
+                       end
+                      else
+                       begin
+                         { if the owner of the procsym is a object,  }
+                         { left must be set, if left isn't set       }
+                         { it can be only self                       }
+                         if (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
+                           left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
+                       end;
                     end;
 
                    { process methodpointer }
@@ -913,7 +925,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-04-21 19:02:04  peter
+  Revision 1.36  2002-04-22 16:30:06  peter
+    * fixed @methodpointer
+
+  Revision 1.35  2002/04/21 19:02:04  peter
     * removed newn and disposen nodes, the code is now directly
       inlined from pexpr
     * -an option that will write the secondpass nodes to the .s file, this

@@ -200,7 +200,7 @@ unit cgobj;
           procedure a_load_const_loc(list : taasmoutput;a : aword;const loc : tlocation);
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual; abstract;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual; abstract;
-          procedure a_load_reg_loc(list : taasmoutput;reg : tregister;const loc: tlocation);
+          procedure a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual; abstract;
           procedure a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
@@ -1226,13 +1226,13 @@ unit cgobj;
       end;
 
 
-    procedure tcg.a_load_reg_loc(list : taasmoutput;reg : tregister;const loc: tlocation);
+    procedure tcg.a_load_reg_loc(list : taasmoutput;size : tcgsize;reg : tregister;const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_load_reg_ref(list,loc.size,reg,loc.reference);
+            a_load_reg_ref(list,size,reg,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load_reg_reg(list,loc.size,reg,loc.register);
+            a_load_reg_reg(list,size,reg,loc.register);
           else
             internalerror(200203271);
         end;
@@ -1645,7 +1645,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.16  2002-04-21 15:25:30  carl
+  Revision 1.17  2002-04-22 16:30:05  peter
+    * fixed @methodpointer
+
+  Revision 1.16  2002/04/21 15:25:30  carl
   + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
   + changeregsize -> rg.makeregsize
 

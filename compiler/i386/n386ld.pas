@@ -291,13 +291,13 @@ implementation
                       begin
                          location_reset(location,LOC_CREFERENCE,OS_64);
                          tg.gettempofsizereference(exprasmlist,8,location.reference);
+
+                         { called as type.method, then we only need to return
+                           the address of the function, not the self pointer }
                          if left.nodetype=typen then
                           begin
-                            if left.resulttype.def.deftype<>objectdef then
-                             internalerror(200103261);
-                            hregister:=rg.getexplicitregisterint(exprasmlist,R_EDI);
-                            emit_sym_ofs_reg(A_MOV,S_L,
-                              newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,R_EDI);
+                            { there is no instance, we return 0 }
+                            cg.a_load_const_ref(exprasmlist,OS_ADDR,0,location.reference);
                           end
                          else
                           begin
@@ -325,15 +325,16 @@ implementation
                                       emit_ref_reg(A_LEA,S_L,left.location.reference,R_EDI);
                                  end;
                                else internalerror(26019);
+
                             end;
                             location_release(exprasmlist,left.location);
                             location_freetemp(exprasmlist,left.location);
-                          end;
 
-                         { store the class instance address }
-                         href:=location.reference;
-                         inc(href.offset,4);
-                         emit_reg_ref(A_MOV,S_L,hregister,href);
+                            { store the class instance address }
+                            href:=location.reference;
+                            inc(href.offset,4);
+                            emit_reg_ref(A_MOV,S_L,hregister,href);
+                          end;
 
                          { virtual method ? }
                          if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
@@ -349,14 +350,15 @@ implementation
                                                    tprocdef(resulttype.def).extnumber));
                               emit_ref_reg(A_MOV,S_L,href,R_EDI);
                               { ... and store it }
-                              emit_reg_ref(A_MOV,S_L,R_EDI,location.reference);
+                              cg.a_load_reg_loc(exprasmlist,OS_ADDR,R_EDI,location);
                               rg.ungetregisterint(exprasmlist,R_EDI);
                            end
                          else
                            begin
+                              reference_reset_symbol(href,newasmsymbol(tprocdef(resulttype.def).mangledname),0);
+                              cg.a_loadaddr_ref_reg(exprasmlist,href,R_EDI);
+                              cg.a_load_reg_loc(exprasmlist,OS_ADDR,R_EDI,location);
                               rg.ungetregisterint(exprasmlist,R_EDI);
-                              s:=newasmsymbol(tprocdef(resulttype.def).mangledname);
-                              emit_sym_ofs_ref(A_MOV,S_L,s,0,location.reference);
                            end;
                       end
                     else
@@ -645,7 +647,7 @@ implementation
                    tcg64f32(cg).a_load64_reg_loc(exprasmlist,
                        right.location.registerlow,right.location.registerhigh,left.location)
                   else
-                   cg.a_load_reg_loc(exprasmlist,right.location.register,left.location);
+                   cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER :
                 begin
@@ -777,7 +779,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-04-21 15:36:13  carl
+  Revision 1.38  2002-04-22 16:30:06  peter
+    * fixed @methodpointer
+
+  Revision 1.37  2002/04/21 15:36:13  carl
   * changeregsize -> rg.makeregsize
 
   Revision 1.36  2002/04/19 15:39:35  peter
