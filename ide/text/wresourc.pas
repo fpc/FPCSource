@@ -765,7 +765,7 @@ begin
 end;
 
 constructor TResourceFile.CreateFile(AFileName: string);
-var B: PBufStream;
+var B: PFastBufStream;
 begin
   New(B, Init(AFileName, stCreate, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
@@ -780,7 +780,7 @@ begin
 end;
 
 constructor TResourceFile.LoadFile(AFileName: string);
-var B: PBufStream;
+var B: PFastBufStream;
 begin
   New(B, Init(AFileName, stOpen, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
@@ -797,7 +797,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2000-05-16 21:48:13  pierre
+  Revision 1.11  2000-07-03 08:54:54  pierre
+   * Some enhancements for WinHelp support by G	abor
+
+  Revision 1.10  2000/05/16 21:48:13  pierre
    * dispose of PBufStream before Fail in TResourceFile.LoadFile and CreateFile
 
   Revision 1.9  2000/04/18 11:42:39  pierre

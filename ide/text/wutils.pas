@@ -85,6 +85,7 @@ type
     procedure FreeItem(Item: Pointer); virtual;
     procedure Add(Item: longint);
     function  Contains(Item: longint): boolean;
+    function  AtInt(Index: sw_integer): longint;
   end;
 
 {$ifdef TPUNIXLF}
@@ -110,7 +111,7 @@ function IntToStr(L: longint): string;
 function IntToStrL(L: longint; MinLen: sw_integer): string;
 function IntToStrZ(L: longint; MinLen: sw_integer): string;
 function StrToInt(const S: string): longint;
-function IntToHex(L: longint): string;
+function IntToHex(L: longint; MinLen: integer): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
@@ -262,7 +263,7 @@ begin
     S:=''
   else
     begin
-      I:=StrLen(C); if I>255 then I:=255;
+      I:=StrLen(C); if I>High(S) then I:=High(S);
       S[0]:=chr(I); Move(C^,S[1],I);
     end;
   StrPas:=S;
@@ -390,7 +391,7 @@ begin
   StrToInt:=L;
 end;
 
-function IntToHex(L: longint): string;
+function IntToHex(L: longint; MinLen: integer): string;
 const HexNums : string[16] = '0123456789ABCDEF';
 var S: string;
     R: real;
@@ -409,6 +410,7 @@ begin
     S:=HexNums[ModF(R,16)+1]+S;
     R:=DivF(R,16);
   until R=0;
+  while length(S)<MinLen do S:='0'+S;
   IntToHex:=S;
 end;
 
@@ -628,6 +630,11 @@ function TIntCollection.Contains(Item: longint): boolean;
 var Index: sw_integer;
 begin
   Contains:=Search(pointer(Item),Index);
+end;
+
+function TIntCollection.AtInt(Index: sw_integer): longint;
+begin
+  AtInt:=longint(At(Index));
 end;
 
 procedure TIntCollection.Add(Item: longint);
@@ -1034,7 +1041,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.26  2000-06-26 07:29:23  pierre
+  Revision 1.27  2000-07-03 08:54:54  pierre
+   * Some enhancements for WinHelp support by G	abor
+
+  Revision 1.26  2000/06/26 07:29:23  pierre
    * new bunch of Gabor's changes
 
   Revision 1.25  2000/06/22 09:07:15  pierre

@@ -115,6 +115,17 @@ type
         Flags            : word;
       end;
 
+      TWinHelpPhrIndexHeader = packed record
+        Magic            : longint;
+        NumEntries       : longint;
+        CompressedSize   : longint;
+        PhrImageSize     : longint;
+        PhrImageCompressedSize: longint;
+        Always0          : longint;
+        BitCount_Unk     : word; { BitCount = lower 4 bits }
+        Dunno            : word;
+      end;
+
       TWinHelpTopicBlockHeader = packed record
         LastTopicLink    : longint;
         FirstTopicLink   : longint;
@@ -126,10 +137,48 @@ type
         Data             : record end;
       end;
 
-      TTopicBlock = record
+      TWinHelpTopicHeader = packed record
+        BlockSize        : longint;
+        PrevOffset       : longint; { prev topic }
+        NextOffset       : longint; { next topic }
+        TopicNumber      : longint;
+        NonScrollRgnOfs  : longint; { start of non-scrolling region (topic ofs) }
+        ScrollRgnOfs     : longint; { topic ofs }
+        NextTopic        : longint; { next type 2 record }
+      end;
+
+      TWinHelpTopicLink = packed record
+        BlockSize        : longint;
+        DataLen2         : longint;
+        PrevBlock        : longint;
+        NextBlock        : longint;
+        DataLen1         : longint;
+        RecordType       : byte;
+      end;
+
+      TTopicBlock = object
         Header       : TWinHelpTopicBlockHeader;
         DataSize     : longint;
-        DataPtr      : pointer;
+        DataPtr      : PByteArray;
+      private
+        CurOfs: longint;
+        procedure Seek(Pos: longint);
+        function  GetPos: longint;
+        function  GetSize: longint;
+        procedure Read(var Buf; Count: longint);
+      end;
+
+      PTopicEnumData = ^TTopicEnumData;
+      TTopicEnumData = record
+        TB      : TTopicBlock;
+        BlockNo : longint;
+        TopicPos: longint;
+        TopicOfs: longint;
+        TL      : TWinHelpTopicLink;
+        LinkData1Size: longint;
+        LinkData1: PByteArray;
+        LinkData2Size: longint;
+        LinkData2: PByteArray;
       end;
 
       PWinHelpFile = ^TWinHelpFile;
@@ -148,6 +197,8 @@ type
         PhrasesStart: longint;
         TTLBTreeStart: longint;
         TopicFileStart: longint;
+        PhrIndexStart: longint;
+        PhrImageStart: longint;
         Phrases: PUnsortedStringCollection;
         TreeDone: boolean;
         IndexLoaded: boolean;
@@ -168,15 +219,21 @@ type
         function ReadSystemFile: boolean;
         function ReadPhraseFile: boolean;
         function ReadTTLBTree: boolean;
+        function ReadPhrIndexFile(PhraseOfs: PIntCollection; var IH: TWinHelpPhrIndexHeader): boolean;
+        function ReadPhrImageFile(PhraseOfs: PIntCollection; const IH: TWinHelpPhrIndexHeader): boolean;
         function TopicBlockSize: word;
         function LZ77Compressed: boolean;
+        function UsesHallCompression: boolean;
         procedure ExtractTopicOffset(TopicOffset: longint; var TopicBlockNo, TopicBlockOffset: word);
         function  ReadTopicBlock(BlockNo: word; var T: TTopicBlock; ReadData: boolean): boolean;
+        function  ProcessTopicBlock(BlockNo: longint; EnumProc: pointer): boolean;
+        procedure PhraseDecompress(SrcBufP: pointer; SrcBufSize: longint; DestBufP: pointer; DestBufSize: longint);
+        procedure HallDecompress(SrcBufP: pointer; SrcBufSize: longint; DestBufP: pointer; DestBufSize: longint);
       end;
 
 implementation
 
-uses Crt,CallSpec;
+uses {Crt,}Strings,CallSpec;
 
 function ReadString(F: PStream): string;
 var S: string;
@@ -190,6 +247,32 @@ begin
       S:=S+C;
   until (C=#0) or (F^.Status<>stOK);
   ReadString:=S;
+end;
+
+function TTopicBlock.GetPos: longint;
+begin
+  GetPos:=CurOfs;
+end;
+
+function TTopicBlock.GetSize: longint;
+begin
+  GetSize:=DataSize;
+end;
+
+procedure TTopicBlock.Seek(Pos: longint);
+begin
+  CurOfs:=Pos;
+end;
+
+procedure TTopicBlock.Read(var Buf; Count: longint);
+begin
+  FillChar(Buf,Sizeof(Buf),Count);
+  if Count>(DataSize-CurOfs) then
+  begin
+    Count:=Max(0,DataSize-CurOfs);
+  end;
+  Move(DataPtr^[CurOfs],Buf,Count);
+  Inc(CurOfs,Count);
 end;
 
 constructor TWinHelpFile.Init(AFileName: string; AID: word);
@@ -242,6 +325,11 @@ end;
 function TWinHelpFile.LZ77Compressed: boolean;
 begin
   LZ77Compressed:=(SysHeader.Version>16) and (SysHeader.Flags<>0);
+end;
+
+function TWinHelpFile.UsesHallCompression: boolean;
+begin
+  UsesHallCompression:=(PhrIndexStart<>0) and (PhrImageStart<>0);
 end;
 
 function TWinHelpFile.ReadSystemFile: boolean;
@@ -676,20 +764,11 @@ begin
       F^.Seek(FileOfs); OK:=(F^.Status=stOK);
       if OK then OK:=ReadSystemFile;
     end else
-  if (FileName='|Phrases') then
-    begin
-      PhrasesStart:=FileOfs;
-    end else
-  ;
-  if (FileName='|TOPIC') then
-    begin
-      TopicFileStart:=FileOfs;
-    end else
-  ;
-  if (FileName='|TTLBTREE') then
-    begin
-      TTLBTreeStart:=FileOfs;
-    end else
+  if (FileName='|Phrases') then begin PhrasesStart:=FileOfs; end else
+  if (FileName='|TOPIC') then begin TopicFileStart:=FileOfs; end else
+  if (FileName='|TTLBTREE') then begin TTLBTreeStart:=FileOfs; end else
+  if (FileName='|PhrIndex') then begin PhrIndexStart:=FileOfs; end else
+  if (FileName='|PhrImage') then begin PhrImageStart:=FileOfs; end else
   ;
   IDIRProcessFile:=OK;
 end;
@@ -765,13 +844,13 @@ end;
 
 function TWinHelpFile.TTLBProcessTopicEntry(const TopicTitle: string; FileOfs: longint): boolean;
 var OK: boolean;
-const Count: longint = 0;
+{const Count: longint = 0;}
 begin
-  Inc(Count);
+{  Inc(Count);
   if (Count mod 100)=1 then
   begin
     gotoxy(1,1); write(Count,' - ',IndexEntries^.Count,' - ',Topics^.Count);
-  end;
+  end;}
   OK:=(IndexEntries^.Count<MaxCollectionSize-10);
   if OK then
   begin
@@ -795,8 +874,104 @@ begin
   ReadTTLBTree:=OK;
 end;
 
+function TWinHelpFile.ReadPhrIndexFile(PhraseOfs: PIntCollection; var IH: TWinHelpPhrIndexHeader): boolean;
+var OK: boolean;
+    FH: TWinHelpFileEntryHeader;
+    TotalBitPos,BufBitPos: longint;
+    BitBuf: array[0..1023] of byte;
+    CurFrag: word;
+function GetBit: integer;
+begin
+  BufBitPos:=(TotalBitPos mod ((High(BitBuf)-Low(BitBuf)+1)*8));
+  if (BufBitPos=0) then
+  begin
+    CurFrag:=Min(sizeof(BitBuf),FH.UsedSpace-(TotalBitPos div 8));
+    F^.Read(BitBuf,CurFrag);
+    OK:=OK and (F^.Status=stOK);
+  end;
+  if (BitBuf[Low(BitBuf)+BufBitPos div 8] and (1 shl (BufBitPos mod 8)))<>0 then
+    GetBit:=1
+  else
+    GetBit:=0;
+  Inc(TotalBitPos);
+end;
+var Delta: longint;
+    I,J,LastOfs: longint;
+    BitCount: integer;
+begin
+  F^.Read(FH,sizeof(FH));
+  OK:=(F^.Status=stOK);
+  if OK then
+  begin
+    F^.Read(IH,sizeof(IH));
+    OK:=(F^.Status=stOK) and (IH.Magic=1);
+  end;
+  if OK then
+  begin
+    PhraseOfs^.Add(0);
+    TotalBitPos:=0; LastOfs:=0; BitCount:=(IH.BitCount_Unk and $0f);
+    for I:=1 to IH.NumEntries do
+    begin
+      Delta:=1;
+      while GetBit=1 do
+        Delta:=Delta+(1 shl BitCount);
+      for J:=0 to BitCount-1 do
+        Delta:=Delta+(1 shl J)*GetBit;
+      Inc(LastOfs,Delta);
+      PhraseOfs^.Add(LastOfs);
+    end;
+  end;
+  ReadPhrIndexFile:=OK;
+end;
+
+function TWinHelpFile.ReadPhrImageFile(PhraseOfs: PIntCollection; const IH: TWinHelpPhrIndexHeader): boolean;
+var OK: boolean;
+    FH: TWinHelpFileEntryHeader;
+    PhraseBufSize: longint;
+    PhraseBuf: PByteArray;
+    TempBufSize: longint;
+    TempBuf: pointer;
+    CurOfs,NextOfs: longint;
+    I: longint;
+begin
+  F^.Read(FH,sizeof(FH));
+  OK:=(F^.Status=stOK);
+  OK:=OK and (IH.PhrImageCompressedSize=FH.UsedSpace);
+  if OK then
+  begin
+    PhraseBufSize:=IH.PhrImageSize;
+    GetMem(PhraseBuf,PhraseBufSize);
+    if IH.PhrImageSize=IH.PhrImageCompressedSize then
+      begin
+        F^.Read(PhraseBuf^,PhraseBufSize);
+      end
+    else
+      begin
+        TempBufSize:=IH.PhrImageCompressedSize;
+        GetMem(TempBuf,TempBufSize);
+        F^.Read(TempBuf^,TempBufSize);
+        OK:=(F^.Status=stOK);
+        if OK then LZ77Decompress(TempBuf,TempBufSize,PhraseBuf,PhraseBufSize);
+        FreeMem(TempBuf,TempBufSize);
+      end;
+    if OK then
+    begin
+      for I:=1 to IH.NumEntries do
+      begin
+        CurOfs:=PhraseOfs^.AtInt(I-1);
+        NextOfs:=PhraseOfs^.AtInt(I);
+        Phrases^.InsertStr(MemToStr(PhraseBuf^[CurOfs],NextOfs-CurOfs));
+      end;
+    end;
+    FreeMem(PhraseBuf,PhraseBufSize);
+  end;
+  ReadPhrImageFile:=OK;
+end;
+
 function TWinHelpFile.LoadIndex: boolean;
 var OK: boolean;
+    PO: PIntCollection;
+    IH: TWinHelpPhrIndexHeader;
 begin
   if IndexLoaded then OK:=true else
   begin
@@ -804,6 +979,15 @@ begin
     begin
       F^.Seek(PhrasesStart); OK:=(F^.Status=stOK);
       if OK then OK:=ReadPhraseFile;
+    end else
+    if (PhrIndexStart<>0) and (PhrImageStart<>0) then
+    begin
+      New(PO, Init(1000,1000));
+      F^.Seek(PhrIndexStart); OK:=(F^.Status=stOK);
+      if OK then OK:=ReadPhrIndexFile(PO,IH);
+      if OK then begin F^.Seek(PhrImageStart); OK:=(F^.Status=stOK); end;
+      if OK then OK:=ReadPhrImageFile(PO,IH);
+      Dispose(PO, Done);
     end;
     if TTLBTreeStart<>0 then
     begin
@@ -820,16 +1004,19 @@ var {OfsBitCount: longint;
     OfsMask: longint;}
     BS: longint;
 begin
-  if LZ77Compressed then
-    BS:=16384
+{  if LZ77Compressed then
+    BS:=32768
   else
-    BS:=TopicBlockSize;
+    BS:=TopicBlockSize;}
+  BS:=32768;
+
 {  for OfsBitCount:=0 to 31 do
    if (1 shl OfsBitCount)=BS then
      Break;
   OfsMask:=(1 shl OfsBitCount)-1;
   TopicBlockNo:=(TopicOffset and not OfsMask) shr OfsBitCount;
   TopicBlockOffset:=(TopicOffset and OfsMask);}
+
   TopicBlockNo:=TopicOffset div BS;
   TopicBlockOffset:=TopicOffset mod BS;
 end;
@@ -841,6 +1028,7 @@ var TempBuf: pointer;
     RS,DecompSize: longint;
 const TempBufSize = 16384;
 begin
+  F^.Reset;
   FillChar(T,sizeof(T),0);
   F^.Seek(TopicFileStart+sizeof(TWinHelpFileEntryHeader)+longint(BlockNo)*TopicBlockSize);
   OK:=(F^.Status=stOK);
@@ -888,20 +1076,581 @@ begin
   end;
 end;
 
+procedure TWinHelpFile.PhraseDecompress(SrcBufP: pointer; SrcBufSize: longint; DestBufP: pointer; DestBufSize: longint);
+var SrcBuf: PByteArray absolute SrcBufP;
+    DestBuf: PByteArray absolute DestBufP;
+var SrcOfs: longint;
+function GetByte: byte;
+begin
+  GetByte:=SrcBuf^[SrcOfs];
+  Inc(SrcOfs);
+end;
+var DestOfs: longint;
+procedure PutByte(B: byte);
+begin
+  if DestOfs<DestBufSize then
+    DestBuf^[DestOfs]:=B;
+  Inc(DestOfs);
+end;
+var B: byte;
+    I,Index: longint;
+    S: string;
+begin
+  SrcOfs:=0; DestOfs:=0;
+  while (SrcOfs<SrcBufSize) do
+  begin
+    B:=GetByte;
+    if (B=0) or (B>15) then
+      PutByte(B)
+    else
+      begin
+        Index:=longint(B)*256-256+GetByte;
+        S:=GetStr(Phrases^.At(Index div 2));
+        if (Index mod 2)=1 then S:=S+' ';
+        for I:=1 to length(S) do
+          PutByte(ord(S[I]));
+      end;
+  end;
+end;
+
+procedure TWinHelpFile.HallDecompress(SrcBufP: pointer; SrcBufSize: longint; DestBufP: pointer; DestBufSize: longint);
+var SrcBuf: PByteArray absolute SrcBufP;
+    DestBuf: PByteArray absolute DestBufP;
+var SrcOfs: longint;
+function GetByte: byte;
+begin
+  GetByte:=SrcBuf^[SrcOfs];
+  Inc(SrcOfs);
+end;
+var DestOfs: longint;
+procedure PutByte(B: byte);
+begin
+  if DestOfs<DestBufSize then
+    DestBuf^[DestOfs]:=B;
+  Inc(DestOfs);
+end;
+procedure EmitStr(const S: string);
+var I: longint;
+begin
+  for I:=1 to length(S) do
+    PutByte(ord(S[I]));
+end;
+procedure EmitStrIndex(Index: longint);
+begin
+  EmitStr(GetStr(Phrases^.At(Index)));
+end;
+var B: longint;
+    I,Index: longint;
+    S: string;
+begin
+  SrcOfs:=0; DestOfs:=0;
+  while (SrcOfs<SrcBufSize) do
+  begin
+    B:=GetByte;
+    if (B and 1)=0 then
+      EmitStrIndex(B div 2)
+    else
+      if (B and 3)=1 then
+        EmitStrIndex(B*64+64+GetByte)
+      else
+        if (B and 7)=3 then
+          for I:=1 to (B div 8)+1 do
+            PutByte(GetByte)
+        else
+          if (B and 15)=7 then
+            EmitStr(CharStr(' ',B div 16+1))
+          else
+            EmitStr(CharStr(#0,B div 16+1));
+  end;
+end;
+
+function TWinHelpFile.ProcessTopicBlock(BlockNo: longint; EnumProc: pointer): boolean;
+var TB: TTopicBlock;
+    TL: TWinHelpTopicLink;
+    BlockFileOfs: longint;
+    LinkData1Size: longint;
+    LinkData1: PByteArray;
+    LinkData2Size: longint;
+    LinkData2: PByteArray;
+    TempBufSize: longint;
+    TempBuf: PByteArray;
+    CurBlockOfs,LastLinkOfs: longint;
+    TopicPos,TopicOfs: longint;
+    OK: boolean;
+    TEN: TTopicEnumData;
+    DoCont: boolean;
+begin
+  OK:=ReadTopicBlock(BlockNo,TB,true);
+  if OK then
+  begin
+    TopicOfs:=0; DoCont:=true;
+    BlockFileOfs:=longint(BlockNo)*TopicBlockSize;
+    if TB.Header.FirstTopicLink>0 then
+      TB.Seek((TB.Header.FirstTopicLink and $3fff)-sizeof(TB.Header));
+    if TB.Header.LastTopicLink=-1 then
+      LastLinkOfs:=TB.DataSize-1-sizeof(TL)
+    else
+      LastLinkOfs:={(TB.Header.LastTopicLink-BlockFileOfs-sizeof(TB.Header))}TB.GetSize-1;
+    while (DoCont) and OK and (TB.GetPos<=LastLinkOfs) do
+    begin
+      CurBlockOfs:=TB.GetPos;
+      TopicPos:=TB.GetPos+sizeof(TB.Header);
+      TB.Read(TL,sizeof(TL));
+      if (TL.BlockSize=0) or (TL.DataLen1=0) or (TB.GetPos>LastLinkOfs) or
+         (TB.GetSize-TB.GetPos<TL.BlockSize) then
+        Break;
+      LinkData1Size:=TL.DataLen1-sizeof(TL);
+      GetMem(LinkData1,LinkData1Size);
+      TB.Read(LinkData1^,LinkData1Size);
+      LinkData2Size:=TL.DataLen2;
+      GetMem(LinkData2,LinkData2Size);
+      if TL.DataLen2>TL.BlockSize-TL.DataLen1 then
+        begin
+          TempBufSize:=TL.BlockSize-TL.DataLen1;
+          GetMem(TempBuf,TempBufSize);
+          TB.Read(TempBuf^,TempBufSize);
+          if UsesHallCompression then
+            HallDecompress(TempBuf,TempBufSize,LinkData2,LinkData2Size)
+          else
+            PhraseDecompress(TempBuf,TempBufSize,LinkData2,LinkData2Size);
+          FreeMem(TempBuf,TempBufSize);
+        end
+      else
+        TB.Read(LinkData2^,TL.DataLen2);
+      FillChar(TEN,sizeof(TEN),0);
+      TEN.TB:=TB;
+      TEN.BlockNo:=BlockNo;
+      TEN.TopicPos:=TopicPos;
+      TEN.TopicOfs:=TopicOfs;
+      TEN.TL:=TL;
+      TEN.LinkData1Size:=LinkData1Size;
+      TEN.LinkData1:=LinkData1;
+      TEN.LinkData2Size:=LinkData2Size;
+      TEN.LinkData2:=LinkData2;
+      DoCont:=(longint(CallPointerLocal(EnumProc,PreviousFramePointer,@TEN)) and $ff)<>0;
+      case TL.RecordType of
+        $02: ;
+        $20,$23:
+          begin
+            Inc(TopicOfs,TL.DataLen2);
+          end;
+      end;
+      FreeMem(LinkData1,LinkData1Size);
+      FreeMem(LinkData2,LinkData2Size);
+    end;
+    FreeTopicBlock(TB);
+  end;
+  ProcessTopicBlock:=OK;
+end;
+
 function TWinHelpFile.ReadTopic(T: PTopic): boolean;
 var OK: boolean;
     BlockNo,BlockOfs: word;
-    TB: TTopicBlock;
+    TopicStartPos: longint;
+    GotIt: boolean;
+    TH: TWinHelpTopicHeader;
+    CurLine: string;
+    Lines: PUnsortedStringCollection;
+    EmitSize: longint;
+    LastEmittedChar: integer;
+procedure FlushLine;
 begin
+  Lines^.InsertStr(CurLine); CurLine:='';
+end;
+procedure EmitText(const S: string);
+begin
+  Inc(EmitSize,length(S));
+  if length(CurLine)+length(S)>High(S) then
+    FlushLine;
+  CurLine:=CurLine+S;
+  if length(S)>0 then
+    LastEmittedChar:=ord(S[length(S)]);
+end;
+procedure EmitTextC(C: PChar);
+var RemSize,CurOfs,CurFrag: longint;
+    S: string;
+begin
+  if C=nil then Exit;
+  RemSize:=StrLen(C); CurOfs:=0;
+  while (RemSize>0) do
+  begin
+    CurFrag:=Min(RemSize,255);
+    S[0]:=chr(CurFrag);
+    Move(PByteArray(C)^[CurOfs],S[1],CurFrag);
+    EmitText(S);
+    Dec(RemSize,CurFrag); Inc(CurOfs,CurFrag);
+  end;
+end;
+function SearchTopicStart(P: PTopicEnumData): boolean; {$ifndef FPC}far;{$endif}
+begin
+  case P^.TL.RecordType of
+    $02 : TopicStartPos:=P^.TopicPos;
+  end;
+  GotIt:=(P^.TL.RecordType in [$20,$23]) and (P^.TopicOfs<=BlockOfs) and (BlockOfs<P^.TopicOfs+P^.LinkData2Size);
+  SearchTopicStart:=not GotIt;
+end;
+function RenderTopicProc(P: PTopicEnumData): boolean; {$ifndef FPC}far;{$endif}
+var LinkData1Ofs: longint;
+    LinkData2Ofs: longint;
+function ReadUCHAR: byte;
+begin
+  ReadUCHAR:=P^.LinkData1^[LinkData1Ofs];
+  Inc(LinkData1Ofs);
+end;
+function ReadCHAR: shortint;
+var B: byte;
+    U: shortint absolute B;
+begin
+  B:=ReadUCHAR;
+  ReadCHAR:=U;
+end;
+function ReadUSHORT: word;
+begin
+  ReadUSHORT:=ReadUCHAR+longint(ReadUCHAR)*256;
+end;
+function ReadSHORT: integer;
+var W: word;
+    I: integer absolute W;
+begin
+  W:=ReadUSHORT;
+  ReadSHORT:=I;
+end;
+function ReadComprUSHORT: word;
+var B: byte;
+begin
+  B:=ReadUCHAR;
+  if (B mod 2)=0 then
+    ReadComprUSHORT:=(B div 2)
+  else
+    ReadComprUSHORT:=(B div 2)+longint(ReadUCHAR)*128;
+end;
+{$Q-}
+function ReadLONG: longint;
+begin
+  ReadLONG:=ReadUSHORT+longint(ReadUSHORT)*65536;
+end;
+function ReadULONG: longint;
+begin
+  ReadULONG:=ReadLONG;
+end;
+{$Q+}
+function ReadComprSHORT: integer;
+var B: byte;
+begin
+  B:=ReadUCHAR;
+  if (B mod 2)=0 then
+    ReadComprSHORT:=longint(B div 2)-64
+  else
+    ReadComprSHORT:=((B div 2)+longint(ReadUCHAR)*128)-16384;
+end;
+function ReadComprULONG: longint;
+var W: word;
+begin
+  W:=ReadUSHORT;
+  if (W mod 2)=0 then
+    ReadComprULONG:=(W div 2)
+  else
+    ReadComprULONG:=(W div 2)+longint(ReadUSHORT)*32768;
+end;
+function ReadComprLONG: longint;
+var W: word;
+begin
+  W:=ReadUSHORT;
+  if (W mod 2)=0 then
+    ReadComprLONG:=longint(W div 2)-16384
+  else
+    ReadComprLONG:=(W div 2)+longint(ReadUSHORT)*32768-67108864;
+end;
+function ReadString: string;
+var S: string;
+    B: byte;
+begin
+  S:='';
+  repeat
+    B:=ReadUCHAR;
+    if B<>0 then
+      S:=S+chr(B);
+  until B=0;
+  ReadString:=S;
+end;
+procedure EmitDebugText(const S: string);
+begin
+{$ifdef DEBUGMSG}
+  EmitText(S);
+{$endif}
+end;
+var Finished: boolean;
+    S: string;
+    { ---- }
+    Cmd: integer;
+    I,TopicSize: longint;
+    NumberOfCols,TableType: byte;
+    MinTableWidth: integer;
+    Flags: longint;
+    NumberOfTabStops: integer;
+    TabStop: longint;
+    PType: integer;
+    Len: word;
+    SLen,LinkOfs: longint;
+    SPtr: pointer;
+    SBuf: PChar;
+    PictureSize,PictureStartOfs: longint;
+    FontNumber: integer;
+begin
+  Finished:=((P^.TopicPos>TopicStartPos) or (P^.BlockNo>BlockNo)) and
+            (P^.TL.RecordType=$02); { next topic header found }
+  if (Finished=false) and (P^.TopicPos>=TopicStartPos) then
+  case P^.TL.RecordType of
+    $02 :
+      begin
+        S[0]:=chr(Min(StrLen(pointer(P^.LinkData2)),P^.LinkData2Size));
+        Move(P^.LinkData2^,S[1],ord(S[0]));
+        if S<>'' then
+        begin
+          EmitText('  '+S+' Ü'+hscLineBreak);
+          EmitText(' '+CharStr('ß',length(S)+3)+hscLineBreak);
+        end;
+      end;
+    $20,$23 :
+      begin
+        EmitDebugText(hscLineBreak+'<------ new record ------>'+hscLineBreak);
+        LinkData1Ofs:=0; LinkData2Ofs:=0; EmitSize:=0;
+        { ---- }
+        MinTableWidth:=0;
+        TopicSize:=ReadComprULONG;
+        if P^.TL.RecordType in[$20,$23] then
+          {TopicLen:=}ReadComprUSHORT;
+        if P^.TL.RecordType=$23 then
+        begin
+          NumberOfCols:=ReadUCHAR; TableType:=ReadUCHAR;
+          if TableType in[0,2] then
+            MinTableWidth:=ReadSHORT;
+          for I:=1 to NumberOfCols do
+          begin
+            {GapWidth:=}ReadSHORT;
+            {ColWidth:=}ReadSHORT;
+          end;
+        end;
+
+        if P^.TL.RecordType=$23 then
+        begin
+          {Column:=}ReadSHORT; {-1 = end of topic}
+          {Unknown:=}ReadSHORT; {Always0:=}ReadCHAR;
+        end;
+        {Unknown:=}ReadUCHAR; {Uknown:=}ReadCHAR;
+        ID:=ReadUSHORT;
+        Flags:=ReadUSHORT;
+        if (Flags and 1)<>0 then
+          {Unknown:=}ReadComprLONG;
+        if (Flags and 2)<>0 then
+          {SpacingAbove:=}ReadComprSHORT;
+        if (Flags and 4)<>0 then
+          {SpacingBelow:=}ReadComprSHORT;
+        if (Flags and 8)<>0 then
+          {SpacingLines:=}ReadComprSHORT;
+        if (Flags and 16)<>0 then
+          {LeftIndent:=}ReadComprSHORT;
+        if (Flags and 32)<>0 then
+          {RightIndent:=}ReadComprSHORT;
+        if (Flags and 64)<>0 then
+          {FirstLineIndent:=}ReadComprSHORT;
+        if (Flags and 256)<>0 then {BorderInfo}
+          begin
+            {BorderFlags:=}ReadUCHAR;
+            {BorderWidth:=}ReadSHORT;
+          end;
+        if (Flags and 512)<>0 then {TabInfo}
+          begin
+            NumberOfTabStops:=ReadComprSHORT;
+            for I:=1 to NumberOfTabStops do
+            begin
+              TabStop:=ReadComprUSHORT;
+              if (TabStop and $4000)<>0 then
+                {TabType:=}ReadComprUSHORT;
+            end;
+          end;
+        for I:=10 to 14 do
+          if (Flags and (1 shl I))<>0 then
+            ReadUCHAR;
+        if (TH.NonScrollRgnOfs<>-1) then
+          if (P^.TopicPos=(TH.ScrollRgnOfs and $3fff)) then
+            begin
+              EmitText(hscLineBreak);
+              EmitText(CharStr('Ä',80));
+              EmitText(hscLineBreak);
+            end;
+        while (LinkData2Ofs<P^.LinkData2Size) do
+        begin
+          LinkOfs:=-1;
+          SPtr:=@(P^.LinkData2^[LinkData2Ofs]);
+          SLen:=StrLen(SPtr);
+          if SLen>0 then
+            SBuf:=SPtr
+          else
+            SBuf:=nil;
+          Inc(LinkData2Ofs,SLen+1);
+
+          Cmd:=-1;
+          if (LinkData1Ofs<P^.LinkData1Size) then
+          begin
+            Cmd:=ReadUCHAR;
+            case Cmd of
+              $ff : { End of formatting }
+                    EmitDebugText('[blockend]');
+              $20 : begin
+                      EmitDebugText('[vfld]');
+                      {vfldNumber:=}ReadLONG;
+                    end;
+              $21 : begin
+                      EmitDebugText('[dtype]');
+                      {dtypeNumber:=}ReadSHORT;
+                    end;
+              $3a,
+              $3c : {????}
+                    begin
+                      if LastEmittedChar<>ord(hscLineBreak) then
+                        EmitText(hscLineBreak);
+                      EmitDebugText('[tag0x'+IntToHex(Cmd,2)+']');
+                    end;
+              $80 : begin
+                      FontNumber:=ReadSHORT;
+                      EmitDebugText('[font'+IntToStr(FontNumber)+']');
+                    end;
+              $81 : {LineBreak}
+                    begin
+                      EmitDebugText('[br]');
+                      EmitText(hscLineBreak);
+                    end;
+              $82 : {End Of Paragraph}
+                    begin
+                      EmitDebugText('[eop]');
+                      EmitText(hscLineBreak);
+                    end;
+              $83 : {TAB}
+                    begin
+                      EmitDebugText('[tab]');
+                      EmitText(' ');
+                    end;
+              $86,
+              $87,
+              $88 : { ewc or bmc or bmcwd or bmct or button or mci }
+                    begin
+                      PType:=ReadUCHAR;
+                      PictureSize:=ReadComprLONG;
+                      if PType=$22 then
+                        {NumberOfHotSpots:=}ReadComprSHORT;
+                      PictureStartOfs:=LinkData1Ofs;
+                      PictureSize:=Min(PictureSize,P^.LinkData1Size-LinkData1Ofs);
+                      if PType in[$03,$22] then
+                      begin
+                        {PictureIsEmbedded:=}ReadSHORT;
+                        {PictureNumber:=}ReadSHORT;
+                        for I:=1 to PictureSize-4 do
+                          {PictureData[I-1]:=}ReadCHAR;
+                      end;
+                      if PType=$05 then
+                      begin
+                        {Unknown1:=}ReadSHORT;
+                        {Unknown2:=}ReadSHORT;
+                        {Unknown3:=}ReadSHORT;
+                        { +??? }
+                      end;
+                      while (LinkData1Ofs<PictureStartOfs+PictureSize) do
+                        {}ReadCHAR;
+                      EmitText('[img]');
+                    end;
+              $89 : { end of hotspot }EmitDebugText('[ehs]');
+              $8b : { non-break space }; { does not appear in LinkData2 !!!! }
+              $8c : { non-break hypen };
+              $c6 : {????}
+                    ReadLONG;
+              $c8,  { macro }
+              $cc : { macro without font change }
+                    begin
+                      Len:=ReadSHORT;
+                      for I:=1 to longint(Len)-3 do
+                        {C:=}ReadUCHAR; { string }
+                    end;
+              $e0,  { popup jump } { start with underlined green }
+              $e1 : { topic jump } { start with underlined green }
+                    begin
+                      EmitDebugText('[linkgr]');
+                      LinkOfs:=ReadLONG;
+                      if LinkOfs>0 then
+                      begin
+                        EmitText(hscLink);
+                        AddLinkToTopic(T,ID,LinkOfs);
+                      end;
+                    end;
+              $e2,  { popup jump }
+              $e3,  { topic jump }
+              $e6,  { popup jump without font change }
+              $e7 : { topic jump without font change }
+                    begin
+                      EmitDebugText('[link]');
+                      LinkOfs:=ReadLONG;
+                      if LinkOfs>0 then
+                      begin
+                        EmitText(hscLink);
+                        AddLinkToTopic(T,ID,LinkOfs);
+                      end;
+                    end;
+              $ea,  { popup jump into external file }
+              $eb,  { popup jump into external file without font change }
+              $ee,  { popup jump into external file / secondary window }
+              $ef : { popup jump into external file / secondary window }
+                    begin
+                      EmitDebugText('[linkext]');
+                      Len:=ReadSHORT;
+                      PType:=ReadUCHAR;
+                      LinkOfs:=ReadLONG;
+                      {WindowNo:=}ReadUCHAR;
+                      {NameOfExternalFile:=}ReadString;
+                      {WindowName:=}ReadString;
+                      if LinkOfs>0 then
+                      begin
+                        EmitText(hscLink);
+                        AddLinkToTopic(T,ID,LinkOfs);
+                      end;
+                    end;
+              else EmitDebugText('[tag0x'+IntToHex(Cmd,2)+']');
+            end;
+          end;
+          if SLen>0 then
+            EmitTextC(SPtr);
+{          case Cmd of
+            $81 : EmitText(hscLineBreak);
+            $82 : EmitText(hscLineBreak);
+          end;}
+          if LinkOfs>0 then
+          begin
+            EmitText(hscLink);
+            EmitDebugText('[eol]');
+          end;
+        end;
+      end;
+  end;
+  RenderTopicProc:=not Finished;
+end;
+begin
+  F^.Reset;
   OK:=(TopicFileStart<>0) and (T<>nil);
   if OK then
   begin
     ExtractTopicOffset(T^.FileOfs,BlockNo,BlockOfs);
-    OK:=ReadTopicBlock(BlockNo,TB,true);
-  end;
-  if OK then
-  begin
-    FreeTopicBlock(TB);
+    TopicStartPos:=-1; GotIt:=false;
+    OK:=ProcessTopicBlock(BlockNo,@SearchTopicStart);
+    OK:=OK and GotIt and (TopicStartPos<>-1);
+    if OK then
+    begin
+      CurLine:='';
+      New(Lines, Init(1000,1000));
+      LastEmittedChar:=-1;
+      OK:=ProcessTopicBlock(BlockNo,@RenderTopicProc);
+      FlushLine;
+      BuildTopic(Lines,T);
+      Dispose(Lines, Done);
+    end;
   end;
   ReadTopic:=OK;
 end;
@@ -916,7 +1665,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  2000-06-26 07:29:23  pierre
+  Revision 1.2  2000-07-03 08:54:54  pierre
+   * Some enhancements for WinHelp support by G	abor
+
+  Revision 1.1  2000/06/26 07:29:23  pierre
    * new bunch of Gabor's changes
 
 

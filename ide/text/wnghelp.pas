@@ -203,7 +203,7 @@ constructor TNGHelpFile.Init(AFileName: string; AID: word);
 var OK: boolean;
 begin
   if inherited Init(AID)=false then Fail;
-  F:=New(PBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
+  F:=New(PFastBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
   if OK then
@@ -508,7 +508,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-06-26 07:29:23  pierre
+  Revision 1.3  2000-07-03 08:54:54  pierre
+   * Some enhancements for WinHelp support by G	abor
+
+  Revision 1.2  2000/06/26 07:29:23  pierre
    * new bunch of Gabor's changes
 
   Revision 1.1  2000/06/22 09:07:15  pierre

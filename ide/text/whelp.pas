@@ -273,6 +273,7 @@ function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string)
 procedure DisposeTopic(P: PTopic);
 
 procedure RenderTopic(Lines: PUnsortedStringCollection; T: PTopic);
+procedure BuildTopic(Lines: PUnsortedStringCollection; T: PTopic);
 procedure AddLinkToTopic(T: PTopic; AFileID: word; ACtx: THelpCtx);
 
 function  NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
@@ -395,6 +396,36 @@ begin
     Inc(CurPtr,Size);
     PByteArray(T^.Text)^[CurPtr]:=ord(hscLineBreak);
     Inc(CurPtr);
+    if CurPtr>=T^.TextSize then Break;
+  end;
+end;
+
+procedure BuildTopic(Lines: PUnsortedStringCollection; T: PTopic);
+var Size,CurPtr,I,MSize: sw_word;
+    S: string;
+begin
+  CurPtr:=0;
+  for I:=0 to Lines^.Count-1 do
+  begin
+    S:=GetStr(Lines^.At(I));
+    Size:=length(S);
+    Inc(CurPtr,Size);
+  end;
+  Size:=CurPtr;
+  T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
+  CurPtr:=0;
+  for I:=0 to Lines^.Count-1 do
+  begin
+    S:=GetStr(Lines^.At(I)); Size:=length(S); MSize:=Size;
+    if Size>0 then
+    begin
+      if CurPtr+Size>=T^.TextSize then
+        MSize:=T^.TextSize-CurPtr;
+      Move(S[1],PByteArray(T^.Text)^[CurPtr],MSize);
+      if MSize<>Size then
+        Break;
+      Inc(CurPtr,Size);
+    end;
     if CurPtr>=T^.TextSize then Break;
   end;
 end;
@@ -528,8 +559,8 @@ constructor THelpFile.Init(AID: word);
 begin
   inherited Init;
   ID:=AID;
-  New(Topics, Init(500,500));
-  New(IndexEntries, Init(200,100));
+  New(Topics, Init(2000,1000));
+  New(IndexEntries, Init(2000,1000));
 end;
 
 procedure THelpFile.AddTopic(HelpCtx: THelpCtx; Pos: longint; const Param: string);
@@ -612,7 +643,7 @@ var OK: boolean;
     R: TRecord;
 begin
   if inherited Init(AID)=false then Fail;
-  F:=New(PBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
+  F:=New(PFastBufStream, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
   if OK then
@@ -1179,9 +1210,9 @@ end;
 var KW: PIndexEntry;
     I: sw_integer;
 begin
-  New(Keywords, Init(5000,1000));
+  New(Keywords, Init(5000,5000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
-  New(Lines, Init((Keywords^.Count div 2)+100,100));
+  New(Lines, Init((Keywords^.Count div 2)+100,1000));
   T:=NewTopic(0,0,0,'');
   if HelpFiles^.Count=0 then
     begin
@@ -1236,7 +1267,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2000-06-26 07:29:23  pierre
+  Revision 1.26  2000-07-03 08:54:54  pierre
+   * Some enhancements for WinHelp support by G	abor
+
+  Revision 1.25  2000/06/26 07:29:23  pierre
    * new bunch of Gabor's changes
 
   Revision 1.24  2000/06/22 09:07:14  pierre
