@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1995-98 by the FPC Development Team
+    Copyright (c) 1995-99 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
 
@@ -733,6 +733,8 @@ begin
              readdefref;
              write  (space,' Stored Definition: ');
              readdefref;
+             write  (space,'  Index Definition: ');
+             readdefref;
            end;
 
          ibfuncretsym :
@@ -1421,7 +1423,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-08-31 16:07:37  pierre
+  Revision 1.10  1999-11-08 14:06:45  florian
+    + indexref of propertysym is handle too now
+
+  Revision 1.9  1999/08/31 16:07:37  pierre
    + support for writeusedmacros
 
   Revision 1.8  1999/08/15 10:47:14  peter
