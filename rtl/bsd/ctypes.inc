@@ -42,9 +42,9 @@ Type
     cuchar = byte;
     cInt   = longint;           { minimum range is : 32-bit    }
     cUInt  = Cardinal;          { minimum range is : 32-bit    }
-  {$ifdef 64bitarch}
+  {$ifdef CPU64}
     cLong  = int64;
-  {$ifdef VER_1_0}
+  {$ifdef VER1_0}
     cuLong = int64;
   {$else}
     cuLong = qword;
@@ -65,7 +65,10 @@ Type
 
 {   
    $Log$
-   Revision 1.2  2003-09-16 21:20:40  marco
+   Revision 1.3  2004-05-17 19:20:09  marco
+    * x86_64 patches
+
+   Revision 1.2  2003/09/16 21:20:40  marco
     * pointer's of some basetypes
 
    Revision 1.1  2003/01/03 11:21:32  marco
