@@ -2814,84 +2814,108 @@ exit_label:
       begin
          skipspace;
          case c of
-        'A'..'Z',
-        'a'..'z',
-    '_','0'..'9' : begin
-                     current_scanner.preproc_pattern:=readid;
-                     readpreproc:=_ID;
-                   end;
-             '$' : if (m_mac in aktmodeswitches) then
-                     begin {for hexadecimal numbers, allowed in mode mac OR}
-                       current_scanner.preproc_pattern:=readval_asstring;
-                       readpreproc:=_ID;
-                     end
-                   else
+           '_',
+           'A'..'Z',
+           'a'..'z' :
+             begin
+               current_scanner.preproc_pattern:=readid;
+               readpreproc:=_ID;
+             end;
+           '0'..'9' :
+             begin
+               current_scanner.preproc_pattern:=readval_asstring;
+               { realnumber? }
+               if c='.' then
+                 begin
+                   readchar;
+                   while c in ['0'..'9'] do
                      begin
-                       readpreproc:=_EOF;
-                       checkpreprocstack;
+                       current_scanner.preproc_pattern:=current_scanner.preproc_pattern+c;
+                       readchar;
                      end;
-             '}' : begin
-                     readpreproc:=_END;
-                   end;
-             '(' : begin
+                 end;
+               readpreproc:=_ID;
+             end;
+           '$','%','&' :
+             begin
+               current_scanner.preproc_pattern:=readval_asstring;
+               readpreproc:=_ID;
+             end;
+           '}' :
+             begin
+               readpreproc:=_END;
+             end;
+           '(' :
+             begin
+               readchar;
+               readpreproc:=_LKLAMMER;
+             end;
+           ')' :
+             begin
+               readchar;
+               readpreproc:=_RKLAMMER;
+             end;
+           '+' :
+             begin
+               readchar;
+               readpreproc:=_PLUS;
+             end;
+           '-' :
+             begin
+               readchar;
+               readpreproc:=_MINUS;
+             end;
+           '*' :
+             begin
+               readchar;
+               readpreproc:=_STAR;
+             end;
+           '/' :
+             begin
+               readchar;
+               readpreproc:=_SLASH;
+             end;
+           '=' :
+             begin
+               readchar;
+               readpreproc:=_EQUAL;
+             end;
+           '>' :
+             begin
+               readchar;
+               if c='=' then
+                 begin
+                   readchar;
+                   readpreproc:=_GTE;
+                 end
+               else
+                 readpreproc:=_GT;
+             end;
+           '<' :
+             begin
+               readchar;
+               case c of
+                 '>' :
+                   begin
                      readchar;
-                     readpreproc:=_LKLAMMER;
+                     readpreproc:=_UNEQUAL;
                    end;
-             ')' : begin
+                 '=' :
+                   begin
                      readchar;
-                     readpreproc:=_RKLAMMER;
+                     readpreproc:=_LTE;
                    end;
-             '+' : begin
-                     readchar;
-                     readpreproc:=_PLUS;
-                   end;
-             '-' : begin
-                     readchar;
-                     readpreproc:=_MINUS;
-                   end;
-             '*' : begin
-                     readchar;
-                     readpreproc:=_STAR;
-                   end;
-             '/' : begin
-                     readchar;
-                     readpreproc:=_SLASH;
-                   end;
-             '=' : begin
-                     readchar;
-                     readpreproc:=_EQUAL;
-                   end;
-             '>' : begin
-                     readchar;
-                     if c='=' then
-                      begin
-                        readchar;
-                        readpreproc:=_GTE;
-                      end
-                     else
-                      readpreproc:=_GT;
-                   end;
-             '<' : begin
-                     readchar;
-                     case c of
-                      '>' : begin
-                              readchar;
-                              readpreproc:=_UNEQUAL;
-                            end;
-                      '=' : begin
-                              readchar;
-                              readpreproc:=_LTE;
-                            end;
-                     else   readpreproc:=_LT;
-                     end;
-                   end;
-             #26 :
-               end_of_file;
-         else
-          begin
-            readpreproc:=_EOF;
-            checkpreprocstack;
-          end;
+                 else
+                   readpreproc:=_LT;
+               end;
+             end;
+           #26 :
+             begin
+               readpreproc:=_EOF;
+               checkpreprocstack;
+             end;
+           else
+             Illegal_Char(c);
          end;
       end;
 
@@ -3043,7 +3067,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.76  2004-05-03 10:06:38  olle
+  Revision 1.77  2004-05-16 13:55:26  peter
+    * report about illegal chars in preproctoken instead of end of
+      expression
+    * support realnumbers in preproctoken parser
+
+  Revision 1.76  2004/05/03 10:06:38  olle
     + added language constructs UNIV, C, ... for mode mac
     * consolidated macro expression to conform to Pascal
     * macro true is defined as <> 0
