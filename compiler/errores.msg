@@ -67,8 +67,7 @@ general_t_exepath=T_Usando el path para ejecutables: $1
 % looks for it's binaries.
 general_t_unitpath=T_Usando el path para unidades: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for compiled units. You can set this path with the \var{-Fu} or
-% \var{-Up} options.
+% looks for compiled units. You can set this path with the \var{-Fu}
 general_t_includepath=T_Usando el  path para incluidos: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for it's include files (files used in \var{\{\$I xxx\}} statements).
@@ -743,9 +742,17 @@ parser_e_threadvars_only_sg=E_Threadvars solo pueden ser est ticas o globales
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=F_Ensamblador directo no soportado para formato de salida
+parser_f_direct_assembler_not_allowed=F_Ensamblador directo no soportado para formato binario de salida
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
+% \end{description}
+parser_w_no_objpas_use_mode=W_No carges manuamente la unidad OBJPAS, usa {$mode objfpc} o {$mode delphi}
+% You're trying to load the ObjPas unit manual from a uses clause. This is
+% not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
+% directives which load the unit automaticly
+parser_e_no_object_override=E_OVERRIDE no puede ser usado en objetos
+% Override isn't support for objects, use VIRTUAL instead to override
+% a method of an anchestor object
 % \end{description}
 #
 # Type Checking
@@ -859,6 +866,8 @@ sym_e_duplicate_id=E_Identificador duplicado $1
 sym_e_unknown_id=E_Identificador desconocido $1
 % The identifier encountered hasn't been declared, or is used outside the
 % scope where it's defined.
+sym_h_duplicate_id_where=H_El identificador ya est  definido en $1 en la l¡nea $2
+% The identifier was already declared in a previous scope.
 sym_e_forward_not_resolved=E_Declaraci¢n posterior no solucionada $1
 % This can happen in two cases:
 % \begin{itemize}
@@ -1146,6 +1155,23 @@ asmr_w_assembler_code_not_returned_to_text=E_C¢digo ensamblador no devuelto a se
 asmr_e_not_directive_or_local_symbol=E_No es una directiva o un s¡mbolo local $1
 asmr_w_using_defined_as_local=E_Usando un nombre definido como una etiqueta local
 
+#
+# Assembler/binary writers
+#
+asmw_f_too_many_asm_files=F_Demasiados archivos de ensamblador abiertos
+asmw_f_assembler_output_not_supported=F_Ensamblador de salida seleccionado no soportado
+asmw_f_comp_not_supported=F_Comp no soportado
+asmw_f_direct_not_supported=F_Direct no soportado por escritores binarios
+asmw_e_alloc_data_only_in_bss=E_El alojamiento de datos solo est  permitido en secci¢n bss
+asmw_f_no_binary_writer_selected=F_No hay seleccionado un escritor binario
+asmw_e_opcode_not_in_table=E_Asm: Opcode $1 no esta en la tabla
+asmw_e_invalid_opcode_and_operands=E_Asm: $1 combinacion invalida de opcode y operandos
+asmw_e_16bit_not_supported=E_Asm: Referencias de 16 Bit no soportadas
+asmw_e_invalid_effective_address=E_Asm: Direccion efectiva no valida
+asmw_e_immediate_or_reference_expected=E_Asm: Inmediato o referencia esperado
+asmw_e_value_exceeds_bounds=E_Asm: $1 valor excede los l¡mites $2
+asmw_e_short_jmp_out_of_range=E_Asm: Salto corto es fuera de rango $1
+
 
 #
 # Executing linker/assembler
@@ -1346,6 +1372,11 @@ option_obsolete_switch=W_Estas usando el conmutador obsoleto $1
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
 %
+option_obsolete_switch_use_new=W_Est s usando el conmutador obsoleto $1, porfavor usa $2
+% this warns you when you use a switch that is not supported anymore. You
+% must now use the second switch instead.
+% It is recommended that you change the switch to overcome problems in the
+% future, when the switch meaning may change.
 # EndOfTeX
 #
 # Logo (option -l)
@@ -1373,143 +1404,143 @@ option_info_end=                 fpc-devel@vekoll.saturnus.vein.hu
 # note: the ordering of the enum numbering doens't matter
 #
 ol_begin=**0*_pon + despu‚s de un conmutador boleano para activarlo, - para desactivarlo
-ol001=**1a_el compilador no borra el fichero ensamblador generado
-ol002=**2al_mustra las l¡neas de c¢digo fuente en el fichero ensamblador
-ol003=**1b_generar informaci¢n de browser
-ol137=**2bl_generar informacion de s¡mbolos locales
-ol004=**1B_construir todos los modulos
-ol005=**1C_opciones de generaci¢n de c¢digo
-ol006=3*2CD_crear librer¡a din mica
-ol007=**2Ch<n>_<n> bytes de heap (entre 1023 y 67107840)
-ol008=**2Ci_chequeo de E/S
-ol009=**2Cn_omitir enlazado
-ol010=**2Co_chequea el desbordamiento de operaciones con enteros
-ol011=**2Cr_chequeo de rango
-ol012=**2Cs<n>_pone el tama¤o del stack a <n>
-ol013=**2Ct_chequeo del stack
-ol014=3*2CS_crear librer¡a est tica
-ol015=3*2Cx_usar enlaze-inteligente
-ol016=**1d<x>_define el s¡mbolo <x>
-ol017=*O1D_genera un fichero DEF
-ol018=*O2Dd<x>_pone la descripci¢n a <x>
-ol019=*O2Dw_aplicacion PM
-ol020=**1e<x>_pone el path a ejecutables
-ol021=**1E_igual a -Cn
-ol022=**1F_pone nombres de ficheros y paths
-ol023=**2FD<x>_pone el directorio donde buscar para utilidades del compilador
-ol024=**2Fe<x>_redirecciona la salida de errores a <x>
-ol025=**2FE<x>_pone el path de destino de ejecutable/unidad a <x>
-ol026=*L2Fg<x>_igual a -Fl
-ol027=**2Fi<x>_a¤ade <x> al path de incluidos
-ol028=**2Fl<x>_a¤ade <x> al path de librerias
-ol029=*L2FL<x>_usa <x> como enlazador din mico
-ol030=**2Fo<x>_a¤ade <x> al path de objetos
-ol031=**2Fr<x>_carga fichero de mensages de error <x>
-ol032=**2Fu<x>_a¤ade <x> al path de unidades
-ol033=**2FU<x>_pone el path de destino de unidades a <x>, anula -FE
-ol034=*g1g_genera informaci¢n de depuraci¢n
-ol035=*g2gg_usa gsym
-ol036=*g2gd_usa dbx
-ol037=*g2gh_usa la unidad de trazado del heap
-ol038=**1i_informaci¢n
-ol039=**2iD_devuelve la fecha del compilador
-ol040=**2iV_devuelve la versi¢n del compilador
-ol041=**2iSO_devuelve el OS de origen
-ol042=**2iSP_devuelve el procesador de origen
-ol043=**2iTO_devuelve el OS de destino
-ol044=**2iTP_devuelve el procesador de destino
-ol045=**1I<x>_a¤ade <x> al path de a¤adidos
-ol046=**1k<x>_Pasa <x> al enlazador
-ol047=**1l_escribe logotipo
-ol048=**1n_no lee el fichero de configuraci¢n por defecto
-ol049=**1o<x>_cambia el nombre del ejecutable producido a <x>
-ol050=**1pg_genera c¢digo de perfil para gprof
-ol051=*L1P_usa pipes en vez de crear ficheros ensamblador temporales
-ol052=**1S_opciones de sintaxis
-ol053=**2S2_habilita algunas extensiones de Delphi 2
-ol054=**2Sc_soportar operadores tipo C (*=,+=,/= y -=)
-ol055=**2Sd_intenta ser compatible con Delphi
-ol056=**2Se_el compilador se para despu‚s del primer error
-ol057=**2Sg_permite LABEL y GOTO
-ol136=**2Sh_Usar cadenas ansi (ansistrings)
-ol058=**2Si_soportar INLINE estilo C++
-ol059=**2Sm_soportar macros tipo C (globales)
-ol060=**2So_intenta ser compatible con TP/BP 7.0
-ol061=**2Sp_intenta ser compatible con gpc
-ol062=**2Ss_nombre del constructor tiene que ser init (destructor tiene que ser done)
-ol063=**2St_permite la palabra clave static en objetos
-ol064=**1s_no llama al ensamblador ni al enlazador (solo con -a)
-ol065=**1u<x>_indefine el s¡mbolo <x>
-ol066=**1U_opciones de unidad
-ol067=**2Un_no testea el nombre de unidad
-ol068=**2Up<x>_igual a -Fu<x>
-ol069=**2Us_compila una unidad de sistema
-ol070=**1v<x>_Ser explicativo. <x> es una combinaci¢n de las siguientes letras :
-ol071=**2*_e : muestra errores (defecto)   d : muestra info de depuraci¢n
-ol072=**2*_w : muestra advertencias        u : muestra info de unidades
-ol073=**2*_n : muestra notas               t : muestra ficheros inten./usados
-ol074=**2*_h : muestra trucos              m : muestra macros definidas
-ol075=**2*_i : muestra informaci¢n general p : muestra procedures compilados
-ol076=**2*_l : muestra n£mero de l¡nea     c : muestra condicionales
-ol077=**2*_a : muestra todo                0 : no muestra nada (excepto errores)
-ol078=**2*_b : muestra toda la declaraci¢n r : modo compatible con Rhide/GCC
-ol079=**2*_    del procedure si ocurre     x : info. de ejecutable (solo Win32)
-ol080=**2*_    un error
-ol081=**1X_opciones del ejecutable
-ol082=*L2Xc_enlaza con la librer¡a c
-ol083=**2XD_enlaza con librer¡as din micass (define FPC_LINK_DYNAMIC)
-ol084=**2Xs_elimina todos los s¡mbolos del ejecutable
-ol085=**2XS_enlaza con librer¡as est ticas (define FPC_LINK_STATIC)
-ol086=**0*_Opciones espec¡ficas del procesador:
-ol087=3*1A<x>_formato de salida
-ol088=3*2Ao_fichero coff usando GNU AS
-ol089=3*2Anasmcoff_fichero coff usando Nasm
-ol090=3*2Anasmelf_fichero elf32 (linux) usando Nasm
-ol091=3*2Anasmobj_obj usando Nasm
-ol092=3*2Amasm_obj usando Masm (Mircosoft)
-ol093=3*2Atasm_obj usando Tasm (Borland/Inprise)
-ol094=3*1R<x>_tipo de lectura de ensamblador
-ol095=3*2Ratt_lee ensamblador estilo AT&T
-ol096=3*2Rintel_lee ensamblador estilo Intel
-ol097=3*2Rdirect_copiar texto ensamblador directamente al fichero ensamblador
-ol098=3*1O<x>_optimizaciones
-ol099=3*2Og_generar c¢digo m s peque¤o
-ol100=3*2OG_generar c¢digo m s r pido (defecto)
-ol101=3*2Or_mantener ciertas variables en registros (todab¡a con fallos!!!)
-ol102=3*2Ou_habilita las optimizaciones inciertas (mira la documentaci¢n)
-ol103=3*2O1_nivel 1 de optimizaci¢n (optimizaciones r pidas)
-ol104=3*2O2_nivel 2 de optimizaci¢n (-O1 + optimizaciones lentas)
-ol105=3*2O3_nivel 3 de optimizaci¢n (igual que -O2u)
-ol106=3*2Op_procesador de destino
-ol107=3*3Op1_pone el procesador de destino en 386/486
-ol108=3*3Op2_pone el procesador de destino en Pentium/PentiumMMX (tm)
-ol109=3*3Op3_pone el procesador de destino en PPro/PII/c6x86/K6 (tm)
-ol110=3*1T<x>_Sistema operativo de destino
-ol111=3*2TGO32V1_versi¢n 1 del extensor del DOS de DJ Delorie
-ol112=3*2TGO32V2_versi¢n 2 del extensor del DOS de DJ Delorie
-ol113=3*2TLINUX_Linux
-ol114=3*2TOS2_OS/2 2.x
-ol115=3*2TWin32_Windows 32 Bit
-ol116=6*1A<x>_formato de salida
-ol117=6*2Ao_Unix o-file usando GNU AS
-ol118=6*2Agas_Ensamblador GNU Motorola
-ol119=6*2Amit_Sintaxis MIT (antiguo GAS)
-ol120=6*2Amot_Ensamblador estandard de Motorola
-ol121=6*1O_optimizaciones
-ol122=6*2Oa_enchega el optimizador
-ol123=6*2Og_generar el c¢digo m s peque¤o
-ol124=6*2OG_generar el c¢digo m s r pido (defecto)
-ol125=6*2Ox_optimizar al m ximo (todab¡a con fallos!!!)
-ol126=6*2O2_pone el procesador de destino para un MC68020+
-ol127=6*1R<x>_estilo de lectura de ensamblador
-ol128=6*2RMOT_lee el estilo de ensamblador de motorola
-ol129=6*1T<x>_Sistema operativo de destino
-ol130=6*2TAMIGA_Commodore Amiga
-ol131=6*2TATARI_Atari ST/STe/TT
-ol132=6*2TMACOS_Macintosh m68k
-ol133=6*2TLINUX_Linux-68k
-ol134=**1*_
-ol135=**1?_muestra esta ayuda
+ol001=**1a_el compilador no borrar  el fichero ensamblador generado
+ol002=**2al_muestra las l¡neas de c¢digo fuente en el fichero ensamblador
+ol003=**2ar_mostrar alojamiento/desaloj. registro info. en fichero ensamblador
+ol004=**2at_mostrar alojamiento/desaloj. temporal info. en fichero ensamblador
+ol005=**1b_generar informaci¢n de navegador
+ol006=**2bl_generar informacion de s¡mbolos locales
+ol007=**1B_construir todos los m¢dulos
+ol008=3*2CD_crear librer¡a din mica
+ol009=**2Ch<n>_<n> bytes de heap (entre 1023 y 67107840)
+ol010=**2Ci_chequeo de E/S
+ol011=**2Cn_omitir enlazado
+ol012=**2Co_chequea el desbordamiento de operaciones con enteros
+ol013=**2Cr_chequeo de rango
+ol014=**2Cs<n>_pone el tama¤o del stack a <n>
+ol015=**2Ct_chequeo del stack
+ol016=3*2CS_crear librer¡a est tica
+ol017=3*2Cx_usar enlaze-inteligente
+ol018=**1d<x>_define el s¡mbolo <x>
+ol019=*O1D_genera un fichero DEF
+ol020=*O2Dd<x>_pone la descripci¢n a <x>
+ol021=*O2Dw_aplicacion PM
+ol022=**1e<x>_pone el path a ejecutables
+ol023=**1E_igual a -Cn
+ol024=**1F_pone nombres de ficheros y paths
+ol025=**2FD<x>_pone el directorio donde buscar para utilidades del compilador
+ol026=**2Fe<x>_redirecciona la salida de errores a <x>
+ol027=**2FE<x>_pone el path de destino de ejecutable/unidad a <x>
+ol028=**2Fi<x>_a¤ade <x> al path de incluidos
+ol029=**2Fl<x>_a¤ade <x> al path de librerias
+ol030=*L2FL<x>_usa <x> como enlazador din mico
+ol031=**2Fo<x>_a¤ade <x> al path de objetos
+ol032=**2Fr<x>_carga fichero de mensages de error <x>
+ol033=**2Fu<x>_a¤ade <x> al path de unidades
+ol034=**2FU<x>_pone el path de destino de unidades a <x>, anula -FE
+ol035=*g1g_genera informaci¢n de depuraci¢n
+ol036=*g2gg_usa gsym
+ol037=*g2gd_usa dbx
+ol038=*g2gh_usa la unidad de trazado del heap
+ol039=**1i_informaci¢n
+ol040=**2iD_devuelve la fecha del compilador
+ol041=**2iV_devuelve la versi¢n del compilador
+ol042=**2iSO_devuelve el OS de origen
+ol043=**2iSP_devuelve el procesador de origen
+ol044=**2iTO_devuelve el OS de destino
+ol045=**2iTP_devuelve el procesador de destino
+ol046=**1I<x>_a¤ade <x> al path de a¤adidos
+ol047=**1k<x>_Pasa <x> al enlazador
+ol048=**1l_escribe logotipo
+ol049=**1n_no lee el fichero de configuraci¢n por defecto
+ol050=**1o<x>_cambia el nombre del ejecutable producido a <x>
+ol051=**1pg_genera c¢digo de perfil para gprof
+ol052=*L1P_usa pipes en vez de crear ficheros ensamblador temporales
+ol053=**1S_opciones de sintaxis
+ol054=**2S2_habilita algunas extensiones de Delphi 2
+ol055=**2Sc_soportar operadores tipo C (*=,+=,/= y -=)
+ol056=**2Sd_intenta ser compatible con Delphi
+ol057=**2Se_el compilador se para despu‚s del primer error
+ol058=**2Sg_permite LABEL y GOTO
+ol059=**2Sh_Usar cadenas ansi (ansistrings)
+ol060=**2Si_soportar INLINE estilo C++
+ol061=**2Sm_soportar macros tipo C (globales)
+ol062=**2So_intenta ser compatible con TP/BP 7.0
+ol063=**2Sp_intenta ser compatible con gpc
+ol064=**2Ss_nombre del constructor tiene que ser init (destructor tiene que ser done)
+ol065=**2St_permite la palabra clave static en objetos
+ol066=**1s_no llama al ensamblador ni al enlazador (solo con -a)
+ol067=**1u<x>_indefine el s¡mbolo <x>
+ol068=**1U_opciones de unidad
+ol069=**2Un_no testea el nombre de unidad
+ol070=**2Us_compila una unidad de sistema
+ol071=**1v<x>_Ser explicativo. <x> es una combinaci¢n de las siguientes letras :
+ol072=**2*_e : muestra errores (defecto)   d : muestra info de depuraci¢n
+ol073=**2*_w : muestra advertencias        u : muestra info de unidades
+ol074=**2*_n : muestra notas               t : muestra ficheros inten./usados
+ol075=**2*_h : muestra trucos              m : muestra macros definidas
+ol076=**2*_i : muestra informaci¢n general p : muestra procedures compilados
+ol077=**2*_l : muestra n£mero de l¡nea     c : muestra condicionales
+ol078=**2*_a : muestra todo                0 : no muestra nada (excepto errores)
+ol079=**2*_b : muestra toda la declaraci¢n r : modo compatible con Rhide/GCC
+ol080=**2*_    del procedure si ocurre     x : info. de ejecutable (solo Win32)
+ol081=**2*_    un error
+ol082=**1X_opciones del ejecutable
+ol083=*L2Xc_enlaza con la librer¡a c
+ol084=**2XD_enlaza con librer¡as din micass (define FPC_LINK_DYNAMIC)
+ol085=**2Xs_elimina todos los s¡mbolos del ejecutable
+ol086=**2XS_enlaza con librer¡as est ticas (define FPC_LINK_STATIC)
+ol087=**0*_Opciones espec¡ficas del procesador:
+ol088=3*1A<x>_formato de salida
+ol089=3*2Ao_fichero coff usando GNU AS
+ol090=3*2Anasmcoff_fichero coff usando Nasm
+ol091=3*2Anasmelf_fichero elf32 (linux) usando Nasm
+ol092=3*2Anasmobj_obj usando Nasm
+ol093=3*2Amasm_obj usando Masm (Mircosoft)
+ol094=3*2Atasm_obj usando Tasm (Borland/Inprise)
+ol095=3*1R<x>_tipo de lectura de ensamblador
+ol096=3*2Ratt_lee ensamblador estilo AT&T
+ol097=3*2Rintel_lee ensamblador estilo Intel
+ol098=3*2Rdirect_copiar texto ensamblador directamente al fichero ensamblador
+ol099=3*1O<x>_optimizaciones
+ol100=3*2Og_generar c¢digo m s peque¤o
+ol101=3*2OG_generar c¢digo m s r pido (defecto)
+ol102=3*2Or_mantener ciertas variables en registros (todab¡a con fallos!!!)
+ol103=3*2Ou_habilita las optimizaciones inciertas (mira la documentaci¢n)
+ol104=3*2O1_nivel 1 de optimizaci¢n (optimizaciones r pidas)
+ol105=3*2O2_nivel 2 de optimizaci¢n (-O1 + optimizaciones lentas)
+ol106=3*2O3_nivel 3 de optimizaci¢n (igual que -O2u)
+ol107=3*2Op_procesador de destino
+ol108=3*3Op1_pone el procesador de destino en 386/486
+ol109=3*3Op2_pone el procesador de destino en Pentium/PentiumMMX (tm)
+ol110=3*3Op3_pone el procesador de destino en PPro/PII/c6x86/K6 (tm)
+ol111=3*1T<x>_Sistema operativo de destino
+ol112=3*2TGO32V1_versi¢n 1 del extensor del DOS de DJ Delorie
+ol113=3*2TGO32V2_versi¢n 2 del extensor del DOS de DJ Delorie
+ol114=3*2TLINUX_Linux
+ol115=3*2TOS2_OS/2 2.x
+ol116=3*2TWin32_Windows 32 Bit
+ol117=6*1A<x>_formato de salida
+ol118=6*2Ao_Unix o-file usando GNU AS
+ol119=6*2Agas_Ensamblador GNU Motorola
+ol120=6*2Amit_Sintaxis MIT (antiguo GAS)
+ol121=6*2Amot_Ensamblador estandard de Motorola
+ol122=6*1O_optimizaciones
+ol123=6*2Oa_enchega el optimizador
+ol124=6*2Og_generar el c¢digo m s peque¤o
+ol125=6*2OG_generar el c¢digo m s r pido (defecto)
+ol126=6*2Ox_optimizar al m ximo (todab¡a con fallos!!!)
+ol127=6*2O2_pone el procesador de destino para un MC68020+
+ol128=6*1R<x>_estilo de lectura de ensamblador
+ol129=6*2RMOT_lee el estilo de ensamblador de motorola
+ol130=6*1T<x>_Sistema operativo de destino
+ol131=6*2TAMIGA_Commodore Amiga
+ol132=6*2TATARI_Atari ST/STe/TT
+ol133=6*2TMACOS_Macintosh m68k
+ol134=6*2TLINUX_Linux-68k
+
+ol136=**1*_
+ol137=**1?_muestra esta ayuda
 ol_end=**1h_muestra esta ayuda sin esperar
 
 #
