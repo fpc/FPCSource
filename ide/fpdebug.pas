@@ -1519,6 +1519,7 @@ begin
                 end;
             end;
           state:=bs_disabled;
+          UpdateSource;
         end;
     end
   else if (GDBState=bs_disabled) and (state=bs_enabled) then
@@ -1750,7 +1751,8 @@ var PB : PBreakpoint;
 
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
-    IsThere:=(P^.typ=bt_file_line) and (OSFileName(FExpand(P^.FileName^))=FileName) and (P^.Line=LineNr);
+    IsThere:=(P^.typ=bt_file_line) and assigned(P^.FileName) and
+      (OSFileName(FExpand(P^.FileName^))=FileName) and (P^.Line=LineNr);
   end;
 begin
     FileName:=OSFileName(FileName);
@@ -3555,7 +3557,13 @@ end.
 
 {
   $Log$
-  Revision 1.39  2002-12-12 00:05:57  pierre
+  Revision 1.41  2002-12-16 09:05:28  pierre
+   * sanity ceck in ToggleFileLine method
+
+  Revision 1.40  2002/02/09 02:04:46  pierre
+   * fix problem with disable all invalid breakpoints
+
+  Revision 1.39  2002/12/12 00:05:57  pierre
    * add code for breakpoint moves + registers in fprags.pas unit
 
   Revision 1.38  2002/11/30 01:56:52  pierre
