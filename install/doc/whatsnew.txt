@@ -47,8 +47,8 @@ API:
 
 Compiler:
   + memory requirements reduced a lot when creating smartlink libraries
-  + identical procedures or functions are now already found in the interface
-    instead of after parsing the implementation also
+  + identical procedures or functions are now already found in the interface instead
+    of after parsing the implementation also
   + overload directive parsing is now D5 compatible
   + stop compiling if -S2 or -Sd is required and give a nicer error message
   + don't allow wrong assemblers for targets (i.e. refuse as.exe for win32)
@@ -56,8 +56,8 @@ Compiler:
   * some -Or and other optimizer fixes
   * fixed some crashes with undeclared identifiers and inlined functions
   * packenum fixes
-  * internal binary writer is now a lot faster when creating smartlink
-    libraries with a lot of files (like the windows unit)
+  * internal binary writer is now a lot faster when creating smartlink libraries
+    with a lot of files (like the windows unit)
   * better targetdir support
   * don't allow word = word like type definitions
   * integer(char) typecast works now
@@ -115,8 +115,7 @@ IDE:
   + don't allow wrong assemblers with specific targets
   + default mode for which assembler to use
   + Recompiling a program does now also use unsaved files still in the editor
-  * the support files are now placed in the same dir as fp.exe where they were
-    expected
+  * the support files are now placed in the same dir as fp.exe where they were expected
 
 Utils:
   + postw32 to postprocess win32 executables to patch the stacksize
