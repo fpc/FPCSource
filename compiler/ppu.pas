@@ -251,86 +251,11 @@ type
 
 implementation
 
-{$ifdef Test_Double_checksum}
   uses
-    comphook;
+{$ifdef Test_Double_checksum}
+    comphook,
 {$endif def Test_Double_checksum}
-
-
-{*****************************************************************************
-                                   Crc 32
-*****************************************************************************}
-
-var
-  Crc32Tbl : array[0..255] of longint;
-
-procedure MakeCRC32Tbl;
-var
-  crc : longint;
-  i,n : byte;
-begin
-  for i:=0 to 255 do
-   begin
-     crc:=i;
-     for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor longint($edb88320)
-      else
-       crc:=crc shr 1;
-     Crc32Tbl[i]:=crc;
-   end;
-end;
-
-
-{$ifopt R+}
-{$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function Crc32(Const HStr:String):longint;
-var
-  i,InitCrc : longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=longint($ffffffff);
-  for i:=1to Length(Hstr) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
-  Crc32:=InitCrc;
-end;
-
-
-
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
-var
-  i : word;
-  p : pchar;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  p:=@InBuf;
-  for i:=1 to InLen do
-   begin
-     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
-     inc(longint(p));
-   end;
-  UpdateCrc32:=InitCrc;
-end;
-
-
-
-Function UpdCrc32(InitCrc:longint;b:byte):longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
-end;
-
-{$ifdef Range_check_on}
-{$R+}
-{$undef Range_check_on}
-{$endif Range_check_on}
+    crc;
 
 {*****************************************************************************
                                   TPPUFile
@@ -998,7 +923,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2000-05-12 08:58:51  pierre
+  Revision 1.59  2000-05-15 13:19:04  pierre
+   CRC stuff moved to CRC unit
+
+  Revision 1.58  2000/05/12 08:58:51  pierre
    * adapted to Delphi 3
 
   Revision 1.57  2000/05/11 06:54:29  florian
