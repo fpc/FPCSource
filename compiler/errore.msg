@@ -1827,6 +1827,7 @@ option_help_pages=11025_[
 3*2TGO32V1_version 1 of DJ Delorie DOS extender
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
 3*2TLINUX_Linux
+3*2Tnetware_Novell Netware Module (experimental)
 3*2TOS2_OS/2 2.x
 3*2TWin32_Windows 32 Bit
 3*1W<x>_Win32 target options
