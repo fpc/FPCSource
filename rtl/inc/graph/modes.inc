@@ -100,7 +100,6 @@ end;
           newModeList.modeinfo[driverNr]^ := mode;
           with newModeList.modeinfo[driverNr]^ do
             begin
-              driverNumber := driverNr;
               internModeNumber := 1;
               next := nil;
             end;
@@ -131,11 +130,9 @@ end;
                 ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
               { save/restore next, drivernr and drivermode in list }
-              driverNr := list^.driverNumber;
               modeNr := list^.internModeNumber;
               prev := list^.next;
               list^ := mode;
-              list^.driverNumber := driverNr;
               list^.internModeNumber := modeNr;
               list^.next := prev;
             end
@@ -145,7 +142,6 @@ end;
               { Increase the number of modes for this driver }
               inc(newModeList.loHiModeNr[driverNr].hi);
               newLst^ := mode;
-              newLst^.driverNumber := driverNr;
 {$ifdef logging}
               logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
                 ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
@@ -293,7 +289,7 @@ end;
          begin
 {$ifdef logging}
            Log('Found driver '+strf(list^.DriverNumber)+
-               ' and mode $'+hexstr(list^.ModeNumber,4)+'... ');
+               ' and mode $'+hexstr(list^.ModeNumber,4)+'...');
 {$endif logging}
              if ((list^.DriverNumber = ReqDriver) and
                  ((list^.ModeNumber = ReqMode) or
@@ -577,7 +573,11 @@ end;
 
 {
 $Log$
-Revision 1.29  2000-07-05 11:25:20  jonas
+Revision 1.30  2000-07-05 13:07:48  jonas
+  * final fixes for linux support (graphdriver value of the modes
+    is now also not modified anymore)
+
+Revision 1.29  2000/07/05 11:25:20  jonas
   * added internModeNumber to modeinfo type to fix Linux compatibility
     with -dnewmodes code
 
