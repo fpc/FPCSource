@@ -235,6 +235,9 @@ uses
 
       first_supreg = $00;
       last_supreg = $20;
+      {Number of first and last imaginary register.}
+      first_imreg     = $21;
+      last_imreg      = $ff;
 
     {Subregisters, situation unknown!!.}
       R_SUBWHOLE=$00;
@@ -541,12 +544,12 @@ uses
       usableregsmm  = [R_M14..R_M31];
       c_countusableregsmm  = 31-14+1;
 
-      { no distinction on this platform }      
+      { no distinction on this platform }
       maxaddrregs = 0;
       addrregs    = [];
       usableregsaddr = [];
       c_countusableregsaddr = 0;
-      
+
 
       firstsaveintreg = RS_R13;
       lastsaveintreg  = RS_R27;
@@ -668,7 +671,7 @@ uses
       RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
       {# Self pointer register : contains the instance address of an
          object or class. }
-      self_pointer_reg  = R_9;
+      self_pointer_reg = R_9;
       NR_SELF_POINTER_REG = NR_R9;
       RS_SELF_POINTER_REG = RS_R9;
       {# Register for addressing absolute data in a position independant way,
@@ -876,7 +879,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-03-19 14:26:26  jonas
+  Revision 1.47  2003-04-22 11:27:48  florian
+    + added first_ and last_imreg
+
+  Revision 1.46  2003/03/19 14:26:26  jonas
     * fixed R_TOC bugs introduced by new register allocator conversion
 
   Revision 1.45  2003/03/11 21:46:24  jonas
