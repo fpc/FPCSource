@@ -205,7 +205,7 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override TARGET_DIRS+=paszlib regexpr netdb
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite
+override TARGET_DIRS+=inet gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=gdbint
@@ -1321,6 +1321,7 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
+TARGET_DIRS_LIBC=1
 endif
 ifeq ($(OS_TARGET),go32v2)
 TARGET_DIRS_GDBINT=1
@@ -1921,6 +1922,49 @@ sqlite_makefiles:
 sqlite:
 	$(MAKE) -C sqlite all
 .PHONY: sqlite_all sqlite_debug sqlite_smart sqlite_release sqlite_examples sqlite_shared sqlite_install sqlite_sourceinstall sqlite_exampleinstall sqlite_distinstall sqlite_zipinstall sqlite_zipsourceinstall sqlite_zipexampleinstall sqlite_zipdistinstall sqlite_clean sqlite_distclean sqlite_cleanall sqlite_info sqlite_makefiles sqlite
+endif
+ifdef TARGET_DIRS_LIBC
+libc_all:
+	$(MAKE) -C libc all
+libc_debug:
+	$(MAKE) -C libc debug
+libc_smart:
+	$(MAKE) -C libc smart
+libc_release:
+	$(MAKE) -C libc release
+libc_examples:
+	$(MAKE) -C libc examples
+libc_shared:
+	$(MAKE) -C libc shared
+libc_install:
+	$(MAKE) -C libc install
+libc_sourceinstall:
+	$(MAKE) -C libc sourceinstall
+libc_exampleinstall:
+	$(MAKE) -C libc exampleinstall
+libc_distinstall:
+	$(MAKE) -C libc distinstall
+libc_zipinstall:
+	$(MAKE) -C libc zipinstall
+libc_zipsourceinstall:
+	$(MAKE) -C libc zipsourceinstall
+libc_zipexampleinstall:
+	$(MAKE) -C libc zipexampleinstall
+libc_zipdistinstall:
+	$(MAKE) -C libc zipdistinstall
+libc_clean:
+	$(MAKE) -C libc clean
+libc_distclean:
+	$(MAKE) -C libc distclean
+libc_cleanall:
+	$(MAKE) -C libc cleanall
+libc_info:
+	$(MAKE) -C libc info
+libc_makefiles:
+	$(MAKE) -C libc makefiles
+libc:
+	$(MAKE) -C libc all
+.PHONY: libc_all libc_debug libc_smart libc_release libc_examples libc_shared libc_install libc_sourceinstall libc_exampleinstall libc_distinstall libc_zipinstall libc_zipsourceinstall libc_zipexampleinstall libc_zipdistinstall libc_clean libc_distclean libc_cleanall libc_info libc_makefiles libc
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
