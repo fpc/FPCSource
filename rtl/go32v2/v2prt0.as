@@ -774,6 +774,10 @@ _pascal_start:
         movl    U_SYSTEM_GO32_INFO_BLOCK+4,%ebx
         movl    %ebx,_ScreenPrimary
         /*  core selector in %fs */
+	/*  keep original fs for debuggers !!!!! (PM) */
+        movw    %fs,%ax
+	     movw	%ax,___v2prt0_start_fs
+
         movw    _core_selector,%ax
         movw    %ax,%fs
 
@@ -814,6 +818,9 @@ _run_mode:
         .globl  _core_selector
 _core_selector:
         .word   0
+        .globl ___v2prt0_start_fs
+___v2prt0_start_fs:
+        .word 0
         .globl  _environ
 _environ:
          .long 0
@@ -846,9 +853,21 @@ __crt0_startup_flags:
 __dos_ds:
         .long   0
 
+        .globl ___PROXY
+___PROXY:
+	.ascii " !proxy"
+	.byte  0
+
+        .globl ___PROXY_LEN
+___PROXY_LEN:
+        .long 7
+
 /*
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1998-12-21 14:14:21  pierre
+  added some c vars needed to avoid loading od crt1.o
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.4  1998/10/14 21:28:45  peter
