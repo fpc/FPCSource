@@ -758,23 +758,19 @@ begin
   InOutRes:=0;
 { Startup }
   { Only AmigaOS v2.04 or greater is supported }
-  If KickVersion < 36 then
+{  If KickVersion < 36 then
    Begin
      WriteLn('v36 or greater of Kickstart required.');
      Halt(1);
-   end;
+   end; }
 end.
 
 
 {
   $Log$
-  Revision 1.2  1998-05-25 12:08:49  carl
-     * Handles now proprely setup
-     * Correct Exit code on init failure
-     * Library pointer now ok (Thanks to Nils Sjoholm)
-     * OpenStdError was never initialized
-     * ;assembler; routines problems bugfixed
-     * stackcheck routine fix
+  Revision 1.3  1998-06-05 12:34:45  carl
+    * temporarily disabled Kickstart version checking, because the offset
+  for getting the version is incorrect!
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
