@@ -2335,7 +2335,7 @@ VAR err : integer;
 {$endif}
     storefilemode,
     timedate : longint;
-    originalcrc : longint;    {crc from zip-header}
+    originalcrc : cardinal;    {crc from zip-header}
     ziptype, aResult : integer;
     p, p1 : pchar;
     isadir : boolean;
@@ -3336,7 +3336,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:43:06  peter
+  Revision 1.7  2003-11-03 09:34:42  marco
+   * fix from peter for 1.9 release problem
+
+  Revision 1.6  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/05/31 11:54:33  marco
