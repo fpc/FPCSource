@@ -425,12 +425,46 @@ end;
 
 Function VariantToAnsiString(Const VargSrc : TVarData) : AnsiString;
 
+Const
+ BS : Array[Boolean] of AnsiString = ('False','True');
+
 begin
+  Try
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt : Result:=IntTostr(VSmallint);
+        VarShortInt : Result:=IntToStr(VShortInt);
+        VarInteger  : Result:=IntToStr(VInteger);
+        VarSingle   : Result:=FloatToStr(VSingle);
+        VarDouble   : Result:=FloatToStr(VDouble);
+        VarCurrency : Result:=FloatToStr(VCurrency);
+        VarDate     : Result:=DateTimeToStr(VDate);
+        VarOleStr   : Result:=WideCharToString(VOleStr);
+        VarBoolean  : Result:=BS[VBoolean];
+        VarByte     : Result:=IntToStr(VByte);
+        VarWord     : Result:=IntToStr(VWord);
+        VarLongWord : Result:=IntToStr(VLongWord);
+        VarInt64    : Result:=IntToStr(VInt64);
+        VarQword    : Result:=IntToStr(VQWord);
+    else
+      VariantTypeMismatch;
+    end;
+  except
+    On EConvertError do
+      VariantTypeMismatch;
+    else
+      Raise;
+  end;
 end;
 
 Function VariantToShortString(Const VargSrc : TVarData) : ShortString;
 
+Var
+  S : AnsiString;
+
 begin
+  S:=VariantToAnsiString(VArgSrc);
+  Result:=S;
 end;
 
 { ---------------------------------------------------------------------
@@ -495,6 +529,9 @@ Const
 
 Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
 
+Var
+  W : WideString;
+
 begin
   If VArgSrc.vType in [varEmpty..varqword] then
     Writeln(F,'Variant has type : ',VarTypeStrings[VArgSrc.vType])
@@ -525,7 +562,10 @@ begin
         vardouble : Write(F,vdouble);
         varcurrency : Write(F,vcurrency) ;
         vardate : Write(F,vdate) ;
-        varolestr : Write(F,Pchar(vOleStr)) ;
+        varolestr : begin
+                    W:=vOleStr;
+                    Write(F,W) ;
+                    end;
         vardispatch : Write(F,'Not suppordted') ;
         varerror : Write(F,'Error') ;
         varboolean : Write(F,vboolean) ;
@@ -547,7 +587,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2003-11-04 22:53:55  michael
+  Revision 1.10  2003-11-04 23:15:58  michael
+  Support for ansistring and better debug outpu
+
+  Revision 1.9  2003/11/04 22:53:55  michael
   + Removed debug statements
 
   Revision 1.8  2003/11/04 22:27:43  michael
