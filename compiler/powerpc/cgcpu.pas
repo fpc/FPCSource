@@ -1027,7 +1027,7 @@ const
             abi_powerpc_aix:
               firstfpureg := RS_F14;
             abi_powerpc_sysv:
-              firstfpureg := RS_F9;
+              firstfpureg := RS_F14;
             else
               internalerror(2003122903);
           end;
@@ -1235,7 +1235,7 @@ const
               abi_powerpc_aix:
                 firstfpureg := RS_F14;
               abi_powerpc_sysv:
-                firstfpureg := RS_F9;
+                firstfpureg := RS_F14;
               else
                 internalerror(2003122903);
             end;
@@ -2299,7 +2299,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.189  2004-12-24 11:51:55  jonas
+  Revision 1.190  2005-01-05 19:01:53  karoly
+    * sysv abi also uses F0-F13 as volatile registers
+
+  Revision 1.189  2004/12/24 11:51:55  jonas
     * fixed a_jmp_name() for darwin
 
   Revision 1.188  2004/12/11 12:42:28  jonas

@@ -73,8 +73,7 @@ unit cpupara;
           abi_powerpc_aix:
             result := [RS_F0..RS_F13];
           abi_powerpc_sysv:
-            {$warning: the 64bit sysv abi also uses RS_F0..RS_F13 like the aix abi above }
-            result := [RS_F0..RS_F8];
+            result := [RS_F0..RS_F13];
           else
             internalerror(2003091401);
         end;
@@ -630,7 +629,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2004-12-24 15:00:11  jonas
+  Revision 1.78  2005-01-05 19:01:53  karoly
+    * sysv abi also uses F0-F13 as volatile registers
+
+  Revision 1.77  2004/12/24 15:00:11  jonas
     * fixed call-by-value passing of records with size 1, 2 or 4 for AIX abi
       (using a hack, normally all records should by passed by value under the
        aix abi, but that's currently impossible)
