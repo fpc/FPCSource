@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -18,15 +18,27 @@ unit amigaprinter;
 
 INTERFACE
 
-uses exec, graphics;
+uses exec, graphics,utility,intuition,prefs;
 
 
 Const
-
+{ V34-V40 commands }
     PRD_RAWWRITE        = CMD_NONSTD + 0;
     PRD_PRTCOMMAND      = CMD_NONSTD + 1;
     PRD_DUMPRPORT       = CMD_NONSTD + 2;
     PRD_QUERY           = CMD_NONSTD + 3;
+
+{ V44 commands }
+    PRD_RESETPREFS	= (CMD_NONSTD+4);	{ PRIVATE: do not use! }
+    PRD_LOADPREFS	= (CMD_NONSTD+5);	{ PRIVATE: do not use! }
+    PRD_USEPREFS	= (CMD_NONSTD+6);	{ PRIVATE: do not use! }
+    PRD_SAVEPREFS	= (CMD_NONSTD+7);	{ PRIVATE: do not use! }
+    PRD_READPREFS	= (CMD_NONSTD+8);
+    PRD_WRITEPREFS	= (CMD_NONSTD+9);
+    PRD_EDITPREFS	= (CMD_NONSTD+10);
+    PRD_SETERRHOOK	= (CMD_NONSTD+11);
+    PRD_DUMPRPORTTAGS	= (CMD_NONSTD+12);
+
 
 { printer command definitions }
 
@@ -172,6 +184,29 @@ Type
         io_Special      : Word;         { option flags }
     end;
 
+{ For PRD_DUMPRPORTTAGS (V44) }
+     PIODRPTagsReq = ^tIODRPTagsReq;
+     tIODRPTagsReq = record
+          io_Message : tMessage;
+          io_Device : PDevice;          { device node pointer  }
+          io_Unit : PUnit;              { unit (driver private)}
+          io_Command : UWORD;           { device command }
+          io_Flags : UBYTE;
+          io_Error : BYTE;              { error or warning num }
+          io_RastPort : PRastPort;      { raster port }
+          io_ColorMap : PColorMap;      { color map }
+          io_Modes : ULONG;             { graphics viewport modes }
+          io_SrcX : UWORD;              { source x origin }
+          io_SrcY : UWORD;              { source y origin }
+          io_SrcWidth : UWORD;          { source x width }
+          io_SrcHeight : UWORD;         { source x height }
+          io_DestCols : LONG;           { destination x width }
+          io_DestRows : LONG;           { destination y height }
+          io_Special : UWORD;           { option flags }
+          io_TagList : PTagItem;        { tag list with additional info }
+       end;
+
+
 Const
 
     SPECIAL_MILCOLS     = $0001;        { DestCols specified in 1/1000" }
@@ -223,12 +258,160 @@ Const
 
     PDERR_TOOKCONTROL   = 8;            { Took control in case 0 of render }
 
+    PDERR_BADPREFERENCES = 9;	{ preferences file corrupt }
+
+{
+	Note: all error codes < 32 are reserved for printer.device.
+	All error codes >= 32 and < 127 are reserved for driver specific
+	errors. Negative errors are reserved for system use (standard I/O
+	errors) and error code 127 is reserved for future expansion.
+}
+    PDERR_LASTSTANDARD	= 31;
+    PDERR_FIRSTCUSTOM	= 32;
+    PDERR_LASTCUSTOM	= 126;
 { internal use }
 
     SPECIAL_DENSITYMASK = $0700;        { masks out density values }
     SPECIAL_DIMENSIONSMASK = SPECIAL_MILCOLS + SPECIAL_MILROWS +
                         SPECIAL_FULLCOLS + SPECIAL_FULLROWS + SPECIAL_FRACCOLS +
                         SPECIAL_FRACROWS + SPECIAL_ASPECT;
+
+{**************************************************************************}
+
+{ The following tags are used for PRD_DUMPRPORTTAGS }
+
+    DRPA_Dummy  = (TAG_USER + $60000);
+
+{**************************************************************************}
+
+{ The following tags are not implemented but reserved for future use. }
+
+    DRPA_ICCProfile	= (DRPA_Dummy+1); { APTR }
+    DRPA_ICCName	= (DRPA_Dummy+2); { STRPTR }
+    DRPA_NoColCorrect	= (DRPA_Dummy+3); { LBOOL }
+
+{**************************************************************************}
+
+{ If the following tag is used io_RastPort and io_ColorMap are
+   ignored.
+}
+   DRPA_SourceHook   = (DRPA_Dummy+4); { struct Hook * }
+
+{ The source hook (DRPA_SourceHook) is called with object NULL and
+   message is a pointer to the following struct.
+
+		VOID hook(struct Hook * hook,
+		          APTR dummy,
+		          struct DRPSourceMsg * drpm);
+}
+
+type
+     PDRPSourceMsg = ^tDRPSourceMsg;
+     tDRPSourceMsg = record
+          x : LONG;
+          y : LONG;
+          width : LONG;
+          height : LONG;
+          buf : PULONG;   { fill this buffer with 0x00RRGGBB pixels }
+       end;
+const
+{**************************************************************************}
+
+{ If these tags are used io_Modes is ignored for aspect ratio }
+
+   DRPA_AspectX      = (DRPA_Dummy+5); { ULONG }
+   DRPA_AspectY      = (DRPA_Dummy+6); { ULONG }
+
+{**************************************************************************}
+
+{ The following tags are used for PRD_EDITPREFS }
+
+   PPRA_Dummy  = (TAG_USER + $70000);
+
+{**************************************************************************}
+
+{ Request to edit prefs (for PRD_EDITPREFS; V44) }
+
+ type
+     PIOPrtPrefsReq = ^tIOPrtPrefsReq;
+     tIOPrtPrefsReq = record
+          io_Message : tMessage;
+          io_Device : PDevice;    { device node pointer  }
+          io_Unit : PUnit;        { unit (driver private)}
+          io_Command : UWORD;     { device command }
+          io_Flags : UBYTE;
+          io_Error : BYTE;        { error or warning num }
+          io_TagList : PTagItem;  { requester tag list }
+       end;
+
+const
+    PPRA_Window	  = (PPRA_Dummy+1); { struct Window * }
+    PPRA_Screen	  = (PPRA_Dummy+2); { struct Screen * }
+    PPRA_PubScreen  = (PPRA_Dummy+3); { STRPTR }
+
+{**************************************************************************}
+
+{ Request to set error hook (for PRD_SETERRHOOK; V44)}
+
+{
+#define PDHOOK_NONE	((struct Hook *) NULL)
+#define PDHOOK_STD	((struct Hook *) 1)
+}
+
+
+  type
+     PIOPrtErrReq = ^tIOPrtErrReq;
+     tIOPrtErrReq = record
+          io_Message : tMessage;
+          io_Device : PDevice;    { device node pointer  }
+          io_Unit : PUnit;        { unit (driver private)}
+          io_Command : UWORD;     { device command }
+          io_Flags : UBYTE;
+          io_Error : BYTE;        { error or warning num }
+          io_Hook : PHook;
+       end;
+
+{**************************************************************************}
+
+{
+	The error hook is called with the IORequest that caused the error as
+	object (2nd Parameter) and a pointer to struct PrtErrMsg as message
+	(3rd Parameter):
+
+		VOID hook(struct Hook * hook,
+		          struct printerIO * ior,
+		          struct PrtErrMsg * pem);
+}
+
+
+    PPrtErrMsg = ^tPrtErrMsg;
+     tPrtErrMsg = record
+          pe_Version : ULONG;
+          pe_ErrorLevel : ULONG;
+          pe_Window : PWindow;
+          pe_ES : PEasyStruct;
+          pe_IDCMP : PULONG;
+          pe_ArgList : APTR;
+       end;
+
+
+  const
+     PDHOOK_VERSION = 1;
+
+  type
+     PIOPrefsReq = ^IOPrefsReq;
+     IOPrefsReq = record
+          io_Message : tMessage;
+          io_Device : PDevice;    { device node pointer  }
+          io_Unit : PUnit;        { unit (driver private)}
+          io_Command : UWORD;     { device command }
+          io_Flags : UBYTE;
+          io_Error : BYTE;        { error or warning num }
+          io_TxtPrefs : PPrinterTxtPrefs;
+          io_UnitPrefs : PPrinterUnitPrefs;
+          io_DevUnitPrefs : PPrinterDeviceUnitPrefs;
+          io_GfxPrefs : PPrinterGfxPrefs;
+       end;
 
 IMPLEMENTATION
 

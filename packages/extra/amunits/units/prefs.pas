@@ -13,11 +13,48 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{
+    History:
+    
+    Update for AmigaOS 3.9.
+    Added some const and a few records.
+    Added reaction and workbench.
+    31 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+    
+}
 
+    
 unit prefs;
 
 INTERFACE
 uses exec, iffparse, graphics, timer, intuition;
+
+
+{ Asl }
+
+const
+   ID_ASL = $41534C20;
+
+{ These members correspond directly to the associated
+  	   members of the 'AslSemaphore' data structure defined
+  	   in the <libraries/asl.h> header file by the same names.
+  	  }
+
+  type
+     PAslPrefs = ^tAslPrefs;
+     tAslPrefs = record
+          ap_Reserved : array[0..3] of LONG;
+          ap_SortBy : UBYTE;
+          ap_SortDrawers : UBYTE;
+          ap_SortOrder : UBYTE;
+          ap_SizePosition : UBYTE;
+          ap_RelativeLeft : WORD;
+          ap_RelativeTop : WORD;
+          ap_RelativeWidth : UBYTE;
+          ap_RelativeHeight : UBYTE;
+       end;
 
 
 { Font }
@@ -77,13 +114,14 @@ const
  ICB_STRGAD_FILTER = 2;
  ICB_MENUSNAP      = 3;
  ICB_MODEPROMOTE   = 4;
+ ICB_SQUARE_RATIO  = 5;
 
  ICF_COERCE_COLORS = 1;
  ICF_COERCE_LACE   = 2;
  ICF_STRGAD_FILTER = 4;
  ICF_MENUSNAP      = 8;
  ICF_MODEPROMOTE   = 16;
-
+ ICF_SQUARE_RATIO  = (1 shl 5);
 
 {***************************************************************************}
 
@@ -485,10 +523,11 @@ const
 const
  ID_PTXT = 1347704916;
  ID_PUNT = 1347767892;
-
+ ID_PDEV = $50444556;
 
  DRIVERNAMESIZE = 30;               { Filename size     }
  DEVICENAMESIZE = 32;               { .device name size }
+ UNITNAMESIZE   = 32;
 
 Type
  pPrinterTxtPrefs = ^tPrinterTxtPrefs;
@@ -546,6 +585,11 @@ const
  PQ_DRAFT  = 0;
  PQ_LETTER = 1;
 
+
+{ PrinterUnitPrefs is used from printer.device to open
+   the connection device
+}
+
 Type
  pPrinterUnitPrefs = ^tPrinterUnitPrefs;
  tPrinterUnitPrefs = record
@@ -554,6 +598,43 @@ Type
     pu_OpenDeviceFlags  : ULONG;                               { Flags for OpenDevice()       }
     pu_DeviceName       : Array[0..DEVICENAMESIZE-1] of Char;  { Name for OpenDevice()        }
  end;
+
+
+  { PrinterDeviceUnitPrefs is used as descriptor for printer device
+     units.
+   }
+     PPrinterDeviceUnitPrefs = ^tPrinterDeviceUnitPrefs;
+     tPrinterDeviceUnitPrefs = record
+          pd_Reserved : array[0..3] of LONG;   { System reserved		   }
+          pd_UnitNum : LONG;                   { Unit number for OpenDevice()	   }
+          pd_UnitName : array[0..(UNITNAMESIZE)-1] of UBYTE;  { Symbolic name of the unit  }
+       end;
+
+{ Reaction }
+  const
+
+     ID_RACT = $52414354;
+
+
+  type
+     PReactionPrefs = ^tReactionPrefs;
+     tReactionPrefs = record
+          rp_BevelType : UWORD;
+          rp_GlyphType : UWORD;
+          rp_LayoutSpacing : UWORD;
+          rp_3DProp : BOOL;
+          rp_LabelPen : UWORD;
+          rp_LabelPlace : UWORD;
+          rp_3DLabel : BOOL;
+          rp_SimpleRefresh : BOOL;
+          rp_3DLook : BOOL;
+          rp_FallbackAttr : tTextAttr;
+          rp_LabelAttr : tTextAttr;
+          rp_FallbackName : array[0..(FONTNAMESIZE)-1] of UBYTE;
+          rp_LabelName : array[0..(FONTNAMESIZE)-1] of UBYTE;
+          rp_Pattern : array[0..255] of UBYTE;
+       end;
+
 
   {     File format for screen mode preferences }
 
@@ -666,6 +747,27 @@ const
 
  WBPF_NOREMAP   = $0010;
     { Don't remap the pattern }
+  { PDTA_DitherQuality: see pictureclass.h  }
+     WBPF_DITHER_MASK = $0300;
+  { DitherQuality: Default  }
+     WBPF_DITHER_DEF = $0000;
+  { DitherQuality: 0  }
+     WBPF_DITHER_BAD = $0100;
+  { DitherQuality: 2  }
+     WBPF_DITHER_GOOD = $0200;
+  { DitherQuality: 4  }
+     WBPF_DITHER_BEST = $0300;
+  { OBP_Precision: see pictureclass.h  }
+     WBPF_PRECISION_MASK = $0C00;
+     WBPF_PRECISION_DEF = $0000;
+     WBPF_PRECISION_ICON = $0400;
+     WBPF_PRECISION_IMAGE = $0800;
+     WBPF_PRECISION_EXACT = $0C00;
+     WBPF_PLACEMENT_MASK = $3000;
+     WBPF_PLACEMENT_TILE = $0000;
+     WBPF_PLACEMENT_CENTER = $1000;
+     WBPF_PLACEMENT_SCALE = $2000;
+     WBPF_PLACEMENT_SCALEGOOD = $3000;
 
 {***************************************************************************}
 
@@ -676,18 +778,53 @@ const
  PAT_WIDTH      = 16;
  PAT_HEIGHT     = 16;
 
+{ Workbench }
+
+ ID_WBNC = $57424E43;
+
+ type
+     PWorkbenchPrefs = ^tWorkbenchPrefs;
+     tWorkbenchPrefs = record
+          { settings from workbench.library }
+          wbp_DefaultStackSize : ULONG;
+          wbp_TypeRestartTime : ULONG;
+	  { settings from icon.library }
+          wbp_IconPrecision : ULONG;
+          wbp_EmbossRect : tRectangle;
+          wbp_Borderless : BOOL;
+          wbp_MaxNameLength : LONG;
+          wbp_NewIconsSupport : BOOL;
+          wbp_ColorIconSupport : BOOL;
+	   { new for V45 }
+          wbp_ImageMemType : ULONG;
+          wbp_LockPens : BOOL;
+          wbp_NoTitleBar : BOOL;
+          wbp_NoGauge : BOOL;
+       end;
+
+     PWorkbenchHiddenDevicePrefs = ^tWorkbenchHiddenDevicePrefs;
+     tWorkbenchHiddenDevicePrefs = record
+          whdp_Name : array[0..0] of UBYTE;  { C String including NULL char  }
+       end;
+
+const
+     ID_WBHD = $57424844;
+
 IMPLEMENTATION
 
 END.
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:48:39  nils
+  Revision 1.3  2003-02-07 20:45:08  nils
+  * update for amigaos 3.9
+
+  Revision 1.2  2002/11/19 18:48:39  nils
     * missing semicolon
 
 }
 
-  
+
 
 
 

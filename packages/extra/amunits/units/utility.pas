@@ -25,6 +25,10 @@
     Added the define use_amiga_smartlink.
     13 Jan 2003.
 
+    Update for AmigaOS 3.9.
+    Added a few overlays.
+    06 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -336,74 +340,60 @@ Type
     ub_Reserved  : Byte;
  END;
 
-function AddNamedObject(nameSpace,
-                        obj : pNamedObject) : Boolean;
+function AddNamedObject(nameSpace,obj : pNamedObject) : Boolean;
 function AllocateTagItems(num : ULONG) : pTagItem;
-function AllocNamedObjectA(name : STRPTR;
-                           TagList : pTagItem) : pNamedObject;
-procedure Amiga2Date(amigatime : ULONG;
-                     resultat : pClockData);
-procedure ApplyTagChanges(TagList,
-                          ChangeList : pTagItem);
+function AllocNamedObjectA(const name : STRPTR;const TagList : pTagItem) : pNamedObject;
+procedure Amiga2Date(amigatime : ULONG;resultat : pClockData);
+procedure ApplyTagChanges(TagList : pTagItem; const ChangeList : pTagItem);
 function AttemptRemNamedObject(obj : pNamedObject) : LongInt;
-function CallHookPkt(h : pHook;
-                     obj, paramPkt : APTR) : ULONG;
-function CheckDate(date : pClockData) : ULONG;
-function CloneTagItems(tagList : pTagItem) : pTagItem;
-function Date2Amiga(date : pClockData) : ULONG;
-procedure FilterTagChanges(changelist, oldvalues : pTagItem;
-                           apply : ULONG);
-function FilterTagItems(taglist : pTagItem ;
-                        tagArray : Pointer;
-                        logic : ULONG) : ULONG;
-function FindNamedObject(nameSpace : pNamedObject;
-                         name : STRPTR;
-                         lastobject: pNamedObject) : pNamedObject;
-function FindTagItem(TagVal : Tag;
-                     TagList : pTagItem) : pTagItem;
+function CallHookPkt(h : pHook;obj, paramPkt : APTR) : ULONG;
+function CheckDate(const date : pClockData) : ULONG;
+function CloneTagItems(const tagList : pTagItem) : pTagItem;
+function Date2Amiga(const date : pClockData) : ULONG;
+procedure FilterTagChanges(changelist, oldvalues : pTagItem;apply : ULONG);
+function FilterTagItems(taglist : pTagItem ;const tagArray : pULONG;logic : ULONG) : ULONG;
+function FindNamedObject(nameSpace : pNamedObject;const name : STRPTR;lastobject: pNamedObject) : pNamedObject;
+function FindTagItem(TagVal : Tag;const TagList : pTagItem) : pTagItem;
 procedure FreeNamedObject(Obj : pNamedObject);
 procedure FreeTagItems(TagList : pTagItem);
-function GetTagData(tagval : Tag;
-                    default : ULONG;
-                    TagList : pTagItem) : ULONG;
+function GetTagData(tagval : Tag;default : ULONG;const TagList : pTagItem) : ULONG;
 function GetUniqueID : ULONG;
-procedure MapTags(TagList : pTagItem;
-                  maplist : pTagItem;
-                  IncludeMiss : ULONG);
+procedure MapTags(TagList : pTagItem;const maplist : pTagItem;IncludeMiss : ULONG);
 function NamedObjectName(Obj : pNamedObject) : STRPTR;
 function NextTagItem(Item : ppTagItem) : pTagItem;
-function PackBoolTags(InitialFlags : ULONG;
-                      TagList, boolmap : pTagItem) : ULONG;
-function PackStructureTags(packk: APTR;
-                           packTable : Pointer;
-                           TagList : pTagItem) : ULONG;
-procedure RefreshTagItemClones(cloneTagItems,
-                               OriginalTagItems : pTagItem);
+function PackBoolTags(InitialFlags : ULONG;const TagList, boolmap : pTagItem) : ULONG;
+function PackStructureTags(packk: APTR;const packTable : pULONG;const TagList : pTagItem) : ULONG;
+procedure RefreshTagItemClones(cloneTagItem : pTagItem; const OriginalTagItems : pTagItem);
 procedure ReleaseNamedObject(Obj : pNamedObject);
-procedure RemNamedObject(Obj : pNamedObject;
-                         Msg : pointer);
+procedure RemNamedObject(Obj : pNamedObject;Msg : pointer);
 function SDivMod32( dividend , divisor : LongInt) : LongInt;
 function SMult32(Arg1, Arg2 : LongInt) : LongInt;
 function SMult64(Arg1, Arg2 : LongInt) : LongInt;
-function Stricmp(Str1, Str2 : STRPTR) : LongInt;
-function Strnicmp(Str1, Str2 : STRPTR;
-                  len : LongInt) : LongInt;
-function TagInArray(t : Tag;
-                    TagArray : Pointer) : Boolean;
+function Stricmp(const Str1: STRPTR;const Str2 : STRPTR) : LongInt;
+function Strnicmp(const Str1: STRPTR;const Str2 : STRPTR;len : LongInt) : LongInt;
+function TagInArray(t : Tag;const TagArray : pULONG) : Boolean;
 function ToLower(c : ULONG) : Char;
 function ToUpper(c : ULONG) : Char;
 function UDivMod32( dividend , divisor : ULONG) : ULONG;
 function UMult32(Arg1, Arg2 : ULONG) : ULONG;
 function UMult64(Arg1, Arg2 : ULONG) : ULONG;
-function UnpackStructureTags(pac: APTR;
-                             packTable: Pointer;
-                             TagList : pTagItem) : ULONG;
+function UnpackStructureTags(const pac: APTR;const packTable: pULONG;TagList : pTagItem) : ULONG;
+
+function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
+FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
+FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
+FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
+FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
+FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 
 
 IMPLEMENTATION
 
-function AddNamedObject(nameSpace,
-                        obj : pNamedObject) : Boolean;
+uses pastoc;
+
+function AddNamedObject(nameSpace,obj : pNamedObject) : Boolean;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -434,8 +424,7 @@ begin
   end;
 end;
 
-function AllocNamedObjectA(name : STRPTR;
-                           TagList : pTagItem) : pNamedObject;
+function AllocNamedObjectA(const name : STRPTR;const TagList : pTagItem) : pNamedObject;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -448,8 +437,7 @@ begin
    end;
 end;
 
-procedure Amiga2Date(amigatime : ULONG;
-                     resultat : pClockData);
+procedure Amiga2Date(amigatime : ULONG;resultat : pClockData);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -461,8 +449,7 @@ begin
    end;
 end;
 
-procedure ApplyTagChanges(TagList,
-                          ChangeList : pTagItem);
+procedure ApplyTagChanges(TagList : pTagItem;const ChangeList : pTagItem);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -486,8 +473,7 @@ begin
    end;
 end;
 
-function CallHookPkt(h : pHook;
-                     obj, paramPkt : APTR) : ULONG;
+function CallHookPkt(h : pHook;obj, paramPkt : APTR) : ULONG;
 begin
    asm
        MOVEM.L a2/a6,-(A7)
@@ -501,7 +487,7 @@ begin
    end;
 end;
 
-function CheckDate(date : pClockData) : ULONG;
+function CheckDate(const date : pClockData) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -513,7 +499,7 @@ begin
    end;
 end;
 
-function CloneTagItems(tagList : pTagItem) : pTagItem;
+function CloneTagItems(const tagList : pTagItem) : pTagItem;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -525,7 +511,7 @@ begin
    end;
 end;
 
-function Date2Amiga(date : pClockData) : ULONG;
+function Date2Amiga(const date : pClockData) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -537,8 +523,7 @@ begin
    end;
 end;
 
-procedure FilterTagChanges(changelist, oldvalues : pTagItem;
-                           apply : ULONG);
+procedure FilterTagChanges(changelist, oldvalues : pTagItem;apply : ULONG);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -551,9 +536,7 @@ begin
    end;
 end;
 
-function FilterTagItems(taglist : pTagItem ;
-                        tagArray : Pointer;
-                        logic : ULONG) : ULONG;
+function FilterTagItems(taglist : pTagItem ;const tagArray : pULONG;logic : ULONG) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -567,9 +550,7 @@ begin
    end;
 end;
 
-function FindNamedObject(nameSpace : pNamedObject;
-                         name : STRPTR;
-                         lastobject: pNamedObject) : pNamedObject;
+function FindNamedObject(nameSpace : pNamedObject;const name : STRPTR;lastobject: pNamedObject) : pNamedObject;
 begin
    asm
        MOVEM.L a2/a6,-(A7)
@@ -583,8 +564,7 @@ begin
    end;
 end;
 
-function FindTagItem(TagVal : Tag;
-                     TagList : pTagItem) : pTagItem;
+function FindTagItem(TagVal : Tag;const TagList : pTagItem) : pTagItem;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -619,9 +599,7 @@ begin
    end;
 end;
 
-function GetTagData(tagval : Tag;
-                    default : ULONG;
-                    TagList : pTagItem) : ULONG;
+function GetTagData(tagval : Tag;default : ULONG;const TagList : pTagItem) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -646,9 +624,7 @@ begin
    end;
 end;
 
-procedure MapTags(TagList : pTagItem;
-                  maplist : pTagItem;
-                  IncludeMiss : ULONG);
+procedure MapTags(TagList : pTagItem;const maplist : pTagItem;IncludeMiss : ULONG);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -685,8 +661,7 @@ begin
    end;
 end;
 
-function PackBoolTags(InitialFlags : ULONG;
-                      TagList, boolmap : pTagItem) : ULONG;
+function PackBoolTags(InitialFlags : ULONG;const TagList, boolmap : pTagItem) : ULONG;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -700,9 +675,7 @@ begin
    end;
 end;
 
-function PackStructureTags(packk: APTR;
-                           packTable : Pointer;
-                           TagList : pTagItem) : ULONG;
+function PackStructureTags(packk: APTR;const packTable : pULONG;const TagList : pTagItem) : ULONG;
 begin
    asm
        MOVEM.L a2/a6,-(A7)
@@ -716,12 +689,11 @@ begin
    end;
 end;
 
-procedure RefreshTagItemClones(cloneTagItems,
-                               OriginalTagItems : pTagItem);
+procedure RefreshTagItemClones(cloneTagItem : pTagItem; const OriginalTagItems : pTagItem);
 begin
    asm
        MOVE.L  A6,-(A7)
-       MOVE.L  cloneTagItems,a0
+       MOVE.L  cloneTagItem,a0
        MOVE.L  OriginalTagItems,a1
        MOVE.L  _UtilityBase,A6
        JSR -084(A6)
@@ -740,8 +712,7 @@ begin
    end;
 end;
 
-procedure RemNamedObject(Obj : pNamedObject;
-                         Msg : pointer);
+procedure RemNamedObject(Obj : pNamedObject;Msg : pointer);
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -792,7 +763,7 @@ begin
    end;
 end;
 
-function Stricmp(Str1, Str2 : STRPTR) : LongInt;
+function Stricmp(const Str1: STRPTR;const Str2 : STRPTR) : LongInt;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -805,8 +776,7 @@ begin
    end;
 end;
 
-function Strnicmp(Str1, Str2 : STRPTR;
-                  len : LongInt) : LongInt;
+function Strnicmp(const Str1: STRPTR;const Str2 : STRPTR;len : LongInt) : LongInt;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -820,8 +790,7 @@ begin
    end;
 end;
 
-function TagInArray(t : Tag;
-                    TagArray : Pointer) : Boolean;
+function TagInArray(t : Tag;const TagArray : pULONG) : Boolean;
 begin
    asm
        MOVE.L  A6,-(A7)
@@ -903,9 +872,7 @@ begin
    end;
 end;
 
-function UnpackStructureTags(pac: APTR;
-                             packTable: Pointer;
-                             TagList : pTagItem) : ULONG;
+function UnpackStructureTags(const pac: APTR;const packTable: pULONG;TagList : pTagItem) : ULONG;
 begin
    asm
        MOVEM.L a2/a6,-(A7)
@@ -919,12 +886,57 @@ begin
    end;
 end;
 
+
+function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
+begin
+       AllocNamedObjectA := AllocNamedObjectA(pas2c(name),TagList);
+end;
+
+FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
+begin
+       FindNamedObject := FindNamedObject(nameSpace,pas2c(name),lastObject);
+end;
+
+FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
+begin
+       Stricmp := Stricmp(pas2c(string1),string2);
+end;
+
+FUNCTION Stricmp(CONST string1 : pCHAR; CONST string2 : string) : LONGINT;
+begin
+       Stricmp := Stricmp(string1,pas2c(string2));
+end;
+
+FUNCTION Stricmp(CONST string1 : string; CONST string2 : string) : LONGINT;
+begin
+       Stricmp := Stricmp(pas2c(string1),pas2c(string2));
+end;
+
+FUNCTION Strnicmp(CONST string1 : string; CONST string2 : pCHAR; length : LONGINT) : LONGINT;
+begin
+       Strnicmp := Strnicmp(pas2c(string1),string2,length);
+end;
+
+FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGINT) : LONGINT;
+begin
+       Strnicmp := Strnicmp(string1,pas2c(string2),length);
+end;
+
+FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
+begin
+       Strnicmp := Strnicmp(pas2c(string1),pas2c(string2),length);
+end;
+
+
 end.
 
 
 {
   $Log$
-  Revision 1.4  2003-01-13 18:14:57  nils
+  Revision 1.5  2003-02-07 20:45:08  nils
+  * update for amigaos 3.9
+
+  Revision 1.4  2003/01/13 18:14:57  nils
   * added the define use_amiga_smartlink
 
   Revision 1.3  2002/11/20 22:09:14  nils

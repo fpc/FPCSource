@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -16,9 +16,26 @@
 
 unit hardblocks;
 
+{
+    History:
+    
+    Updated for AmigaOs 3.9.
+    A few changes in records.
+    28 Jan 2003.
+
+    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+}
+    
 INTERFACE
 
 uses exec;
+
+{	Changes
+**	  Expanded envec
+**	  Added storage for driveinit name up to 31 letters.
+**	  Added storage for filesysten name up to 83 letters.
+**}
+
 
 {--------------------------------------------------------------------
  *
@@ -40,10 +57,19 @@ uses exec;
  *      file system load images, drive bad block maps, spare blocks,
  *      etc.
  *
- *      Though only 512 byte blocks are currently supported by the
- *      file system, this proposal tries to be forward-looking by
- *      making the block size explicit, and by using only the first
- *      256 bytes for all blocks but the LoadSeg data.
+ *	Though all descriptions in this file contemplate 512 blocks
+ *	per track this desecription works functionally with any block
+ *	size. The LSEG blocks should make most efficient use of the
+ *	disk block size possible, for example. While this specification
+ *	can support 256 byte sectors that is deprecated at this time.
+ *
+ *	This version adds some modest storage spaces for inserting
+ *	the actual source filename for files installed on the RDBs
+ *	as either DriveInit code or Filesystem code. This makes
+ *	creating a mountfile suitable for use with the "C:Mount"
+ *	command that can be used for manually mounting the disk if
+ *	ever required.
+ *
  *
  *------------------------------------------------------------------}
 
@@ -106,7 +132,7 @@ type
         rdb_ControllerVendor : Array [0..7] of Char;
         rdb_ControllerProduct : Array [0..15] of Char;
         rdb_ControllerRevision : Array [0..3] of Char;
-        rdb_Reserved5   : Array [0..9] of ULONG;
+        rdb_DriveInitName : array[0..39] of char;
     end;
 
 const
@@ -173,8 +199,8 @@ type
         pb_DriveName    : Array [0..31] of Char; { preferred DOS device name: BSTR form }
                                         { (not used if this name is in use) }
         pb_Reserved2    : Array [0..14] of ULONG; { filler to 32 longwords }
-        pb_Environment  : Array [0..16] of ULONG; { environment vector for this partition }
-        pb_EReserved    : Array [0..14] of ULONG; { reserved for future environment vector }
+        pb_Environment  : Array [0..19] of ULONG; { environment vector for this partition }
+        pb_EReserved    : Array [0..11] of ULONG; { reserved for future environment vector }
     end;
 
 const
@@ -218,7 +244,7 @@ type
                                 {   processing before substitution }
         fhb_GlobalVec   : Longint;      { BCPL global vector when starting task }
         fhb_Reserved2   : Array [0..22] of ULONG; { (those reserved by PatchFlags) }
-        fhb_Reserved3   : Array [0..20] of ULONG;
+        fhb_FileSysName : array[0..83] of char;  { File system file name as loaded. }
     end;
 
 const

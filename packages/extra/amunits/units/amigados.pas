@@ -34,6 +34,10 @@
     Added the define use_amiga_smartlink.
     13 Jan 2003.
     
+    Update for AmigaOS 3.9.
+    Added some const.
+    26 Jan 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -302,7 +306,7 @@ CONST
  LINK_HARD      = 0;
  LINK_SOFT      = 1;       { softlinks are not fully supported yet }
 
-{ values returned by ReadItem }
+{ values returned by  }
  ITEM_EQUAL     = -2;              { "=" Symbol }
  ITEM_ERROR     = -1;              { error }
  ITEM_NOTHING   = 0;               { *N, ;, endstreamch }
@@ -355,7 +359,10 @@ CONST
  FORMAT_USA     = 2;               { mm-dd-yy  }
  FORMAT_CDN     = 3;               { dd-mm-yy  }
  FORMAT_MAX     = FORMAT_CDN;
-
+ FORMAT_DEF	= 4;		{ use default format, as defined
+					   by locale; if locale not
+					   available, use FORMAT_DOS
+					   instead }
 
 {**********************************************************************
 ************************ PATTERN MATCHING ******************************
@@ -1569,33 +1576,33 @@ CONST
 
 
 PROCEDURE AbortPkt(port : pMsgPort; pkt : pDosPacket);
-FUNCTION AddBuffers(name : pCHAR; number : LONGINT) : BOOLEAN;
+FUNCTION AddBuffers(const name : pCHAR; number : LONGINT) : BOOLEAN;
 FUNCTION AddDosEntry(dlist : pDosList) : BOOLEAN;
-FUNCTION AddPart(dirname : pCHAR; filename : pCHAR; size : ULONG) : BOOLEAN;
-FUNCTION AddSegment(name : pCHAR; seg : LONGINT; system : LONGINT) : BOOLEAN;
-FUNCTION AllocDosObject(type_ : ULONG; tags : pTagItem) : POINTER;
-FUNCTION AllocDosObjectTagList(type_ : ULONG; tags : pTagItem) : POINTER;
-FUNCTION AssignAdd(name : pCHAR; lock : LONGINT) : BOOLEAN;
-FUNCTION AssignLate(name : pCHAR; path : pCHAR) : BOOLEAN;
-FUNCTION AssignLock(name : pCHAR; lock : LONGINT) : BOOLEAN;
-FUNCTION AssignPath(name : pCHAR; path : pCHAR) : BOOLEAN;
+FUNCTION AddPart(dirname : pCHAR;const filename : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION AddSegment(const name : pCHAR; seg : LONGINT; system : LONGINT) : BOOLEAN;
+FUNCTION AllocDosObject(type_ : ULONG;const tags : pTagItem) : POINTER;
+FUNCTION AllocDosObjectTagList(type_ : ULONG;const tags : pTagItem) : POINTER;
+FUNCTION AssignAdd(const name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignLate(const name : pCHAR;const path : pCHAR) : BOOLEAN;
+FUNCTION AssignLock(const name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignPath(const name : pCHAR;const path : pCHAR) : BOOLEAN;
 FUNCTION AttemptLockDosList(flags : ULONG) : pDosList;
 FUNCTION ChangeMode(type_ : LONGINT; fh : LONGINT; newmode : LONGINT) : BOOLEAN;
 FUNCTION CheckSignal(mask : LONGINT) : LONGINT;
 FUNCTION Cli : pCommandLineInterface;
 FUNCTION CliInitNewcli(dp : pDosPacket) : LONGINT;
 FUNCTION CliInitRun(dp : pDosPacket) : LONGINT;
-FUNCTION CompareDates(date1 : pDateStamp; date2 : pDateStamp) : LONGINT;
-FUNCTION CreateDir(name : pCHAR) : LONGINT;
-FUNCTION CreateNewProc(tags : pTagItem) : pProcess;
-FUNCTION CreateNewProcTagList(tags : pTagItem) : pProcess;
-FUNCTION CreateProc(name : pCHAR; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
+FUNCTION CompareDates(const date1 : pDateStamp;const date2 : pDateStamp) : LONGINT;
+FUNCTION CreateDir(const name : pCHAR) : LONGINT;
+FUNCTION CreateNewProc(const tags : pTagItem) : pProcess;
+FUNCTION CreateNewProcTagList(const tags : pTagItem) : pProcess;
+FUNCTION CreateProc(const name : pCHAR; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
 FUNCTION CurrentDir(lock : LONGINT) : LONGINT;
 PROCEDURE DateStamp(date : pDateStamp);
 FUNCTION DateToStr(datetime : pDateTime) : BOOLEAN;
-FUNCTION DeleteFile(name : pCHAR) : BOOLEAN;
-FUNCTION DeleteVar(name : pCHAR; flags : ULONG) : BOOLEAN;
-FUNCTION DeviceProc(name : pCHAR) : pMsgPort;
+FUNCTION DeleteFile(const name : pCHAR) : BOOLEAN;
+FUNCTION DeleteVar(const name : pCHAR; flags : ULONG) : BOOLEAN;
+FUNCTION DeviceProc(const name : pCHAR) : pMsgPort;
 FUNCTION DoPkt(port : pMsgPort; action : LONGINT; arg1 : LONGINT; arg2 : LONGINT; arg3 : LONGINT; arg4 : LONGINT; arg5 : LONGINT) : LONGINT;
 FUNCTION DoPkt0(port : pMsgPort; action : LONGINT) : LONGINT;
 FUNCTION DoPkt1(port : pMsgPort; action : LONGINT; arg1 : LONGINT) : LONGINT;
@@ -1607,10 +1614,10 @@ PROCEDURE DOSDelay(timeout : LONGINT);
 PROCEDURE DOSExit(returnCode : LONGINT);
 FUNCTION DOSFlush(fh : LONGINT) : BOOLEAN;
 FUNCTION DOSInput : LONGINT;
-FUNCTION DOSOpen(name : pCHAR; accessMode : LONGINT) : LONGINT;
+FUNCTION DOSOpen(const name : pCHAR; accessMode : LONGINT) : LONGINT;
 FUNCTION DOSOutput : LONGINT;
 FUNCTION DOSRead(file_ : LONGINT; buffer : POINTER; length : LONGINT) : LONGINT;
-FUNCTION DOSRename(oldName : pCHAR; newName : pCHAR) : Boolean;
+FUNCTION DOSRename(const oldName : pCHAR;const newName : pCHAR) : Boolean;
 FUNCTION DOSSeek(file_ : LONGINT; position : LONGINT; offset : LONGINT) : LONGINT;
 FUNCTION DOSWrite(file_ : LONGINT; buffer : POINTER; length : LONGINT) : LONGINT;
 FUNCTION DupLock(lock : LONGINT) : LONGINT;
@@ -1621,20 +1628,20 @@ FUNCTION ExAll(lock : LONGINT; buffer : pExAllData; size : LONGINT; data : LONGI
 PROCEDURE ExAllEnd(lock : LONGINT; buffer : pExAllData; size : LONGINT; data : LONGINT; control : pExAllControl);
 FUNCTION Examine(lock : LONGINT; fileInfoBlock : pFileInfoBlock) : BOOLEAN;
 FUNCTION ExamineFH(fh : LONGINT; fib : pFileInfoBlock) : BOOLEAN;
-FUNCTION Execute(string_ : pCHAR; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
+FUNCTION Execute(const string_ : pCHAR; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
 FUNCTION ExNext(lock : LONGINT; fileInfoBlock : pFileInfoBlock) : BOOLEAN;
 FUNCTION Fault(code : LONGINT; header : pCHAR; buffer : pCHAR; len : LONGINT) : BOOLEAN;
 FUNCTION FGetC(fh : LONGINT) : LONGINT;
 FUNCTION FGets(fh : LONGINT; buf : pCHAR; buflen : ULONG) : pCHAR;
-FUNCTION FilePart(path : pCHAR) : pCHAR;
-FUNCTION FindArg(keyword : pCHAR; arg_template : pCHAR) : LONGINT;
+FUNCTION FilePart(const path : pCHAR) : pCHAR;
+FUNCTION FindArg(const keyword : pCHAR;const arg_template : pCHAR) : LONGINT;
 FUNCTION FindCliProc(num : ULONG) : pProcess;
-FUNCTION FindDosEntry(dlist : pDosList; name : pCHAR; flags : ULONG) : pDosList;
-FUNCTION FindSegment(name : pCHAR; seg : pSegment; system : LONGINT) : pSegment;
-FUNCTION FindVar(name : pCHAR; type_ : ULONG) : pLocalVar;
-FUNCTION Format(filesystem : pCHAR; volumename : pCHAR; dostype : ULONG) : BOOLEAN;
+FUNCTION FindDosEntry(const dlist : pDosList;const name : pCHAR; flags : ULONG) : pDosList;
+FUNCTION FindSegment(const name : pCHAR;const seg : pSegment; system : LONGINT) : pSegment;
+FUNCTION FindVar(const name : pCHAR; type_ : ULONG) : pLocalVar;
+FUNCTION Format(const filesystem : pCHAR;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
 FUNCTION FPutC(fh : LONGINT; ch : LONGINT) : LONGINT;
-FUNCTION FPuts(fh : LONGINT; str : pCHAR) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : pCHAR) : BOOLEAN;
 FUNCTION FRead(fh : LONGINT; block : POINTER; blocklen : ULONG; number : ULONG) : LONGINT;
 PROCEDURE FreeArgs(args : pRDArgs);
 PROCEDURE FreeDeviceProc(dp : pDevProc);
@@ -1644,176 +1651,176 @@ FUNCTION FWrite(fh : LONGINT; block : POINTER; blocklen : ULONG; number : ULONG)
 FUNCTION GetArgStr : pCHAR;
 FUNCTION GetConsoleTask : pMsgPort;
 FUNCTION GetCurrentDirName(buf : pCHAR; len : LONGINT) : BOOLEAN;
-FUNCTION GetDeviceProc(name : pCHAR; dp : pDevProc) : pDevProc;
+FUNCTION GetDeviceProc(const name : pCHAR; dp : pDevProc) : pDevProc;
 FUNCTION GetFileSysTask : pMsgPort;
 FUNCTION GetProgramDir : LONGINT;
 FUNCTION GetProgramName(buf : pCHAR; len : LONGINT) : BOOLEAN;
 FUNCTION GetPrompt(buf : pCHAR; len : LONGINT) : BOOLEAN;
-FUNCTION GetVar(name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
+FUNCTION GetVar(const name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
 FUNCTION Info(lock : LONGINT; parameterBlock : pInfoData) : BOOLEAN;
-FUNCTION Inhibit(name : pCHAR; onoff : LONGINT) : BOOLEAN;
-FUNCTION InternalLoadSeg(fh : LONGINT; table : LONGINT; VAR funcarray : LONGINT; VAR stack : LONGINT) : LONGINT;
+FUNCTION Inhibit(const name : pCHAR; onoff : LONGINT) : BOOLEAN;
+FUNCTION InternalLoadSeg(fh : LONGINT; table : LONGINT;const funcarray : pLONGINT; VAR stack : LONGINT) : LONGINT;
 FUNCTION InternalUnLoadSeg(seglist : LONGINT; freefunc : tPROCEDURE) : BOOLEAN;
 FUNCTION IoErr : LONGINT;
-FUNCTION IsFileSystem(name : pCHAR) : BOOLEAN;
+FUNCTION IsFileSystem(const name : pCHAR) : BOOLEAN;
 FUNCTION IsInteractive(file_ : LONGINT) : BOOLEAN;
-FUNCTION LoadSeg(name : pCHAR) : LONGINT;
-FUNCTION Lock(name : pCHAR; type_ : LONGINT) : LONGINT;
+FUNCTION LoadSeg(const name : pCHAR) : LONGINT;
+FUNCTION Lock(const name : pCHAR; type_ : LONGINT) : LONGINT;
 FUNCTION LockDosList(flags : ULONG) : pDosList;
 FUNCTION LockRecord(fh : LONGINT; offset : ULONG; length : ULONG; mode : ULONG; timeout : ULONG) : BOOLEAN;
 FUNCTION LockRecords(recArray : pRecordLock; timeout : ULONG) : BOOLEAN;
-FUNCTION MakeDosEntry(name : pCHAR; type_ : LONGINT) : pDosList;
-FUNCTION MakeLink(name : pCHAR; dest : LONGINT; soft : LONGINT) : BOOLEAN;
+FUNCTION MakeDosEntry(const name : pCHAR; type_ : LONGINT) : pDosList;
+FUNCTION MakeLink(const name : pCHAR; dest : LONGINT; soft : LONGINT) : BOOLEAN;
 PROCEDURE MatchEnd(anchor : pAnchorPath);
-FUNCTION MatchFirst(pat : pCHAR; anchor : pAnchorPath) : LONGINT;
+FUNCTION MatchFirst(const pat : pCHAR; anchor : pAnchorPath) : LONGINT;
 FUNCTION MatchNext(anchor : pAnchorPath) : LONGINT;
-FUNCTION MatchPattern(pat : pCHAR; str : pCHAR) : BOOLEAN;
-FUNCTION MatchPatternNoCase(pat : pCHAR; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPattern(const pat : pCHAR; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : pCHAR; str : pCHAR) : BOOLEAN;
 FUNCTION MaxCli : ULONG;
 FUNCTION NameFromFH(fh : LONGINT; buffer : pCHAR; len : LONGINT) : BOOLEAN;
 FUNCTION NameFromLock(lock : LONGINT; buffer : pCHAR; len : LONGINT) : BOOLEAN;
-FUNCTION NewLoadSeg(file_ : pCHAR; tags : pTagItem) : LONGINT;
-FUNCTION NewLoadSegTagList(file_ : pCHAR; tags : pTagItem) : LONGINT;
-FUNCTION NextDosEntry(dlist : pDosList; flags : ULONG) : pDosList;
+FUNCTION NewLoadSeg(const file_ : pCHAR;const tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSegTagList(const file_ : pCHAR;const tags : pTagItem) : LONGINT;
+FUNCTION NextDosEntry(const dlist : pDosList; flags : ULONG) : pDosList;
 FUNCTION OpenFromLock(lock : LONGINT) : LONGINT;
 FUNCTION ParentDir(lock : LONGINT) : LONGINT;
 FUNCTION ParentOfFH(fh : LONGINT) : LONGINT;
-FUNCTION ParsePattern(pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
-FUNCTION ParsePatternNoCase(pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
-FUNCTION PathPart(path : pCHAR) : pCHAR;
-FUNCTION PrintFault(code : LONGINT; header : pCHAR) : BOOLEAN;
-FUNCTION PutStr(str : pCHAR) : BOOLEAN;
-FUNCTION ReadArgs(arg_template : pCHAR; arra : pLONGINT; args : pRDArgs) : pRDArgs;
-FUNCTION ReadItem(name : pCHAR; maxchars : LONGINT; cSource : pCSource) : LONGINT;
-FUNCTION ReadLink(port : pMsgPort; lock : LONGINT; path : pCHAR; buffer : pCHAR; size : ULONG) : BOOLEAN;
-FUNCTION Relabel(drive : pCHAR; newname : pCHAR) : BOOLEAN;
-FUNCTION RemAssignList(name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION ParsePattern(const pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
+FUNCTION ParsePatternNoCase(const pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
+FUNCTION PathPart(const path : pCHAR) : pCHAR;
+FUNCTION PrintFault(code : LONGINT;const header : pCHAR) : BOOLEAN;
+FUNCTION PutStr(const str : pCHAR) : BOOLEAN;
+FUNCTION ReadArgs(const arg_template : pCHAR; arra : pLONGINT; args : pRDArgs) : pRDArgs;
+FUNCTION ReadItem(const name : pCHAR; maxchars : LONGINT; cSource : pCSource) : LONGINT;
+FUNCTION ReadLink(port : pMsgPort; lock : LONGINT;const path : pCHAR; buffer : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION Relabel(const drive : pCHAR;const newname : pCHAR) : BOOLEAN;
+FUNCTION RemAssignList(const name : pCHAR; lock : LONGINT) : BOOLEAN;
 FUNCTION RemDosEntry(dlist : pDosList) : BOOLEAN;
 FUNCTION RemSegment(seg : pSegment) : BOOLEAN;
 PROCEDURE ReplyPkt(dp : pDosPacket; res1 : LONGINT; res2 : LONGINT);
-FUNCTION RunCommand(seg : LONGINT; stack : LONGINT; paramptr : pCHAR; paramlen : LONGINT) : LONGINT;
+FUNCTION RunCommand(seg : LONGINT; stack : LONGINT;const paramptr : pCHAR; paramlen : LONGINT) : LONGINT;
 FUNCTION SameDevice(lock1 : LONGINT; lock2 : LONGINT) : BOOLEAN;
 FUNCTION SameLock(lock1 : LONGINT; lock2 : LONGINT) : LONGINT;
 FUNCTION SelectInput(fh : LONGINT) : LONGINT;
 FUNCTION SelectOutput(fh : LONGINT) : LONGINT;
 PROCEDURE SendPkt(dp : pDosPacket; port : pMsgPort; replyport : pMsgPort);
-FUNCTION SetArgStr(string_ : pCHAR) : BOOLEAN;
-FUNCTION SetComment(name : pCHAR; comment : pCHAR) : BOOLEAN;
-FUNCTION SetConsoleTask(task : pMsgPort) : pMsgPort;
-FUNCTION SetCurrentDirName(name : pCHAR) : BOOLEAN;
-FUNCTION SetFileDate(name : pCHAR; date : pDateStamp) : BOOLEAN;
+FUNCTION SetArgStr(const string_ : pCHAR) : BOOLEAN;
+FUNCTION SetComment(const name : pCHAR;const comment : pCHAR) : BOOLEAN;
+FUNCTION SetConsoleTask(const task : pMsgPort) : pMsgPort;
+FUNCTION SetCurrentDirName(const name : pCHAR) : BOOLEAN;
+FUNCTION SetFileDate(const name : pCHAR; date : pDateStamp) : BOOLEAN;
 FUNCTION SetFileSize(fh : LONGINT; pos : LONGINT; mode : LONGINT) : BOOLEAN;
-FUNCTION SetFileSysTask(task : pMsgPort) : pMsgPort;
+FUNCTION SetFileSysTask(const task : pMsgPort) : pMsgPort;
 FUNCTION SetIoErr(result : LONGINT) : LONGINT;
 FUNCTION SetMode(fh : LONGINT; mode : LONGINT) : BOOLEAN;
-FUNCTION SetOwner(name : pCHAR; owner_info : LONGINT) : BOOLEAN;
+FUNCTION SetOwner(const name : pCHAR; owner_info : LONGINT) : BOOLEAN;
 FUNCTION SetProgramDir(lock : LONGINT) : LONGINT;
-FUNCTION SetProgramName(name : pCHAR) : BOOLEAN;
-FUNCTION SetPrompt(name : pCHAR) : BOOLEAN;
-FUNCTION SetProtection(name : pCHAR; protect : LONGINT) : BOOLEAN;
-FUNCTION SetVar(name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
+FUNCTION SetProgramName(const name : pCHAR) : BOOLEAN;
+FUNCTION SetPrompt(const name : pCHAR) : BOOLEAN;
+FUNCTION SetProtection(const name : pCHAR; protect : LONGINT) : BOOLEAN;
+FUNCTION SetVar(const name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
 FUNCTION SetVBuf(fh : LONGINT; buff : pCHAR; type_ : LONGINT; size : LONGINT) : BOOLEAN;
-FUNCTION SplitName(name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
 FUNCTION StartNotify(notify : pNotifyRequest) : BOOLEAN;
 FUNCTION StrToDate(datetime : pDateTime) : BOOLEAN;
-FUNCTION StrToLong(string_ : pCHAR; VAR value : LONGINT) : LONGINT;
-FUNCTION SystemTagList(command : pCHAR; tags : pTagItem) : LONGINT;
-FUNCTION DOSSystem(command : pCHAR; tags : pTagItem) : LONGINT;
+FUNCTION StrToLong(const string_ : pCHAR; VAR value : LONGINT) : LONGINT;
+FUNCTION SystemTagList(const command : pCHAR;const tags : pTagItem) : LONGINT;
+FUNCTION DOSSystem(const command : pCHAR;const tags : pTagItem) : LONGINT;
 FUNCTION UnGetC(fh : LONGINT; character : LONGINT) : LONGINT;
 PROCEDURE UnLoadSeg(seglist : LONGINT);
 PROCEDURE UnLock(lock : LONGINT);
 PROCEDURE UnLockDosList(flags : ULONG);
 FUNCTION UnLockRecord(fh : LONGINT; offset : ULONG; length : ULONG) : BOOLEAN;
 FUNCTION UnLockRecords(recArray : pRecordLock) : BOOLEAN;
-FUNCTION VFPrintf(fh : LONGINT; format : pCHAR; argarray : POINTER) : LONGINT;
-PROCEDURE VFWritef(fh : LONGINT; format : pCHAR; VAR argarray : LONGINT);
-FUNCTION VPrintf(format : pCHAR; argarray : POINTER) : LONGINT;
+FUNCTION VFPrintf(fh : LONGINT;const format : pCHAR;const argarray : POINTER) : LONGINT;
+PROCEDURE VFWritef(fh : LONGINT;const format : pCHAR;const argarray : pLONGINT);
+FUNCTION VPrintf(const format : pCHAR; const argarray : POINTER) : LONGINT;
 FUNCTION WaitForChar(file_ : LONGINT; timeout : LONGINT) : BOOLEAN;
 FUNCTION WaitPkt : pDosPacket;
-FUNCTION WriteChars(buf : pCHAR; buflen : ULONG) : LONGINT;
+FUNCTION WriteChars(const buf : pCHAR; buflen : ULONG) : LONGINT;
 
 FUNCTION BADDR(bval :BPTR): POINTER;
 FUNCTION MKBADDR(adr: Pointer): BPTR;
 
 { overlay function and procedures}
 
-FUNCTION AddBuffers(name : string; number : LONGINT) : BOOLEAN;
-FUNCTION AddPart(dirname : string; filename : pCHAR; size : ULONG) : BOOLEAN;
-FUNCTION AddPart(dirname : pCHAR; filename : string; size : ULONG) : BOOLEAN;
-FUNCTION AddPart(dirname : string; filename : string; size : ULONG) : BOOLEAN;
-FUNCTION AssignAdd(name : string; lock : LONGINT) : BOOLEAN;
-FUNCTION AssignLate(name : string; path : pCHAR) : BOOLEAN;
-FUNCTION AssignLate(name : pChar; path : string) : BOOLEAN;
-FUNCTION AssignLate(name : string; path : string) : BOOLEAN;
-FUNCTION AssignLock(name : string; lock : LONGINT) : BOOLEAN;
-FUNCTION AssignPath(name : string; path : pCHAR) : BOOLEAN;
-FUNCTION AssignPath(name : pCHAR; path : string) : BOOLEAN;
-FUNCTION AssignPath(name : string; path : string) : BOOLEAN;
-FUNCTION CreateDir(name : string) : LONGINT;
-FUNCTION CreateProc(name : string; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
-FUNCTION DeleteFile(name : string) : BOOLEAN;
-FUNCTION DeleteVar(name : string; flags : ULONG) : BOOLEAN;
-FUNCTION DeviceProc(name : string) : pMsgPort;
-FUNCTION DOSOpen(name : string; accessMode : LONGINT) : LONGINT;
-FUNCTION DOSRename(oldName : string; newName : pChar) : boolean;
-FUNCTION DOSRename(oldName : pCHAR; newName : string) : Boolean;
-FUNCTION DOSRename(oldName : string; newName : string) : Boolean;
-FUNCTION Execute(string_ : string; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
+FUNCTION AddBuffers(const name : string; number : LONGINT) : BOOLEAN;
+FUNCTION AddPart(dirname : string;const filename : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : pCHAR;const filename : string; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : string;const filename : string; size : ULONG) : BOOLEAN;
+FUNCTION AssignAdd(const name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignLate(const name : string;const path : pCHAR) : BOOLEAN;
+FUNCTION AssignLate(const name : pChar;const path : string) : BOOLEAN;
+FUNCTION AssignLate(const name : string;const path : string) : BOOLEAN;
+FUNCTION AssignLock(const name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignPath(const name : string; const path : pCHAR) : BOOLEAN;
+FUNCTION AssignPath(const name : pCHAR;const path : string) : BOOLEAN;
+FUNCTION AssignPath(const name : string;const path : string) : BOOLEAN;
+FUNCTION CreateDir(const name : string) : LONGINT;
+FUNCTION CreateProc(const name : string; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
+FUNCTION DeleteFile(const name : string) : BOOLEAN;
+FUNCTION DeleteVar(const name : string; flags : ULONG) : BOOLEAN;
+FUNCTION DeviceProc(const name : string) : pMsgPort;
+FUNCTION DOSOpen(const name : string; accessMode : LONGINT) : LONGINT;
+FUNCTION DOSRename(const oldName : string;const newName : pChar) : boolean;
+FUNCTION DOSRename(const oldName : pCHAR;const newName : string) : Boolean;
+FUNCTION DOSRename(const oldName : string;const newName : string) : Boolean;
+FUNCTION Execute(const string_ : string; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
 FUNCTION Fault(code : LONGINT; header : string; buffer : pCHAR; len : LONGINT) : BOOLEAN;
-FUNCTION FilePart(path : string) : pCHAR;
-FUNCTION FindArg(keyword : string; arg_template : pCHAR) : LONGINT;
-FUNCTION FindArg(keyword : pCHAR; arg_template : string) : LONGINT;
-FUNCTION FindArg(keyword : string; arg_template : string) : LONGINT;
-FUNCTION FindDosEntry(dlist : pDosList; name : string; flags : ULONG) : pDosList;
-FUNCTION FindSegment(name : string; seg : pSegment; system : LONGINT) : pSegment;
-FUNCTION FindVar(name : string; type_ : ULONG) : pLocalVar;
-FUNCTION Format(filesystem : string; volumename : pCHAR; dostype : ULONG) : BOOLEAN;
-FUNCTION Format(filesystem : pCHAR; volumename : string; dostype : ULONG) : BOOLEAN;
-FUNCTION Format(filesystem : string; volumename : string; dostype : ULONG) : BOOLEAN;
-FUNCTION FPuts(fh : LONGINT; str : string) : BOOLEAN;
-FUNCTION GetDeviceProc(name : string; dp : pDevProc) : pDevProc;
-FUNCTION GetVar(name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
-FUNCTION Inhibit(name : string; onoff : LONGINT) : BOOLEAN;
-FUNCTION IsFileSystem(name : string) : BOOLEAN;
-FUNCTION LoadSeg(name : string) : LONGINT;
-FUNCTION Lock(name : string; type_ : LONGINT) : LONGINT;
-FUNCTION MakeDosEntry(name : string; type_ : LONGINT) : pDosList;
-FUNCTION MakeLink(name : string; dest : LONGINT; soft : LONGINT) : BOOLEAN;
-FUNCTION MatchFirst(pat : string; anchor : pAnchorPath) : LONGINT;
-FUNCTION MatchPattern(pat : string; str : pCHAR) : BOOLEAN;
-FUNCTION MatchPattern(pat : pCHAR; str : string) : BOOLEAN;
-FUNCTION MatchPattern(pat : string; str : string) : BOOLEAN;
-FUNCTION MatchPatternNoCase(pat : string; str : pCHAR) : BOOLEAN;
-FUNCTION MatchPatternNoCase(pat : pCHAR; str : string) : BOOLEAN;
-FUNCTION MatchPatternNoCase(pat : string; str : string) : BOOLEAN;
-FUNCTION NewLoadSeg(file_ : string; tags : pTagItem) : LONGINT;
-FUNCTION NewLoadSegTagList(file_ : string; tags : pTagItem) : LONGINT;
-FUNCTION PathPart(path : string) : pCHAR;
-FUNCTION PrintFault(code : LONGINT; header : string) : BOOLEAN;
-FUNCTION PutStr(str : string) : BOOLEAN;
-FUNCTION ReadArgs(arg_template : string; arra : pLONGINT; args : pRDArgs) : pRDArgs;
-FUNCTION ReadItem(name : string; maxchars : LONGINT; cSource : pCSource) : LONGINT;
-FUNCTION ReadLink(port : pMsgPort; lock : LONGINT; path : string; buffer : pCHAR; size : ULONG) : BOOLEAN;
-FUNCTION Relabel(drive : string; newname : pCHAR) : BOOLEAN;
-FUNCTION Relabel(drive : pCHAR; newname : string) : BOOLEAN;
-FUNCTION Relabel(drive : string; newname : string) : BOOLEAN;
-FUNCTION RemAssignList(name : string; lock : LONGINT) : BOOLEAN;
-FUNCTION RunCommand(seg : LONGINT; stack : LONGINT; paramptr : string; paramlen : LONGINT) : LONGINT;
-FUNCTION SetArgStr(string_ : string) : BOOLEAN;
-FUNCTION SetComment(name : string; comment : pCHAR) : BOOLEAN;
-FUNCTION SetComment(name : pCHAR; comment : string) : BOOLEAN;
-FUNCTION SetComment(name : string; comment : string) : BOOLEAN;
-FUNCTION SetCurrentDirName(name : string) : BOOLEAN;
-FUNCTION SetFileDate(name : string; date : pDateStamp) : BOOLEAN;
-FUNCTION SetOwner(name : string; owner_info : LONGINT) : BOOLEAN;
-FUNCTION SetProgramName(name : string) : BOOLEAN;
-FUNCTION SetPrompt(name : string) : BOOLEAN;
-FUNCTION SetProtection(name : string; protect : LONGINT) : BOOLEAN;
-FUNCTION SetVar(name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
-FUNCTION SplitName(name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
-FUNCTION StrToLong(string_ : string; VAR value : LONGINT) : LONGINT;
-FUNCTION SystemTagList(command : string; tags : pTagItem) : LONGINT;
-FUNCTION DOSSystem(command : string; tags : pTagItem) : LONGINT;
+FUNCTION FilePart(const path : string) : pCHAR;
+FUNCTION FindArg(const keyword : string;const arg_template : pCHAR) : LONGINT;
+FUNCTION FindArg(const keyword : pCHAR;const arg_template : string) : LONGINT;
+FUNCTION FindArg(const keyword : string;const arg_template : string) : LONGINT;
+FUNCTION FindDosEntry(const dlist : pDosList;const name : string; flags : ULONG) : pDosList;
+FUNCTION FindSegment(const name : string;const seg : pSegment; system : LONGINT) : pSegment;
+FUNCTION FindVar(const name : string; type_ : ULONG) : pLocalVar;
+FUNCTION Format(const filesystem : string;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : pCHAR;const volumename : string; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : string;const volumename : string; dostype : ULONG) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
+FUNCTION GetDeviceProc(const name : string; dp : pDevProc) : pDevProc;
+FUNCTION GetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
+FUNCTION Inhibit(const name : string; onoff : LONGINT) : BOOLEAN;
+FUNCTION IsFileSystem(const name : string) : BOOLEAN;
+FUNCTION LoadSeg(const name : string) : LONGINT;
+FUNCTION Lock(const name : string; type_ : LONGINT) : LONGINT;
+FUNCTION MakeDosEntry(const name : string; type_ : LONGINT) : pDosList;
+FUNCTION MakeLink(const name : string; dest : LONGINT; soft : LONGINT) : BOOLEAN;
+FUNCTION MatchFirst(const pat : string; anchor : pAnchorPath) : LONGINT;
+FUNCTION MatchPattern(const pat : string; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPattern(const pat : pCHAR; str : string) : BOOLEAN;
+FUNCTION MatchPattern(const pat : string; str : string) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : string; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : pCHAR; str : string) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : string; str : string) : BOOLEAN;
+FUNCTION NewLoadSeg(const file_ : string;const tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSegTagList(const file_ : string;const tags : pTagItem) : LONGINT;
+FUNCTION PathPart(const path : string) : pCHAR;
+FUNCTION PrintFault(code : LONGINT;const header : string) : BOOLEAN;
+FUNCTION PutStr(const str : string) : BOOLEAN;
+FUNCTION ReadArgs(const arg_template : string; arra : pLONGINT; args : pRDArgs) : pRDArgs;
+FUNCTION ReadItem(const name : string; maxchars : LONGINT; cSource : pCSource) : LONGINT;
+FUNCTION ReadLink(port : pMsgPort; lock : LONGINT;const path : string; buffer : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION Relabel(const drive : string;const newname : pCHAR) : BOOLEAN;
+FUNCTION Relabel(const drive : pCHAR;const newname : string) : BOOLEAN;
+FUNCTION Relabel(const drive : string;const newname : string) : BOOLEAN;
+FUNCTION RemAssignList(const name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION RunCommand(seg : LONGINT; stack : LONGINT;const paramptr : string; paramlen : LONGINT) : LONGINT;
+FUNCTION SetArgStr(const string_ : string) : BOOLEAN;
+FUNCTION SetComment(const name : string;const comment : pCHAR) : BOOLEAN;
+FUNCTION SetComment(const name : pCHAR;const comment : string) : BOOLEAN;
+FUNCTION SetComment(const name : string;const comment : string) : BOOLEAN;
+FUNCTION SetCurrentDirName(const name : string) : BOOLEAN;
+FUNCTION SetFileDate(const name : string; date : pDateStamp) : BOOLEAN;
+FUNCTION SetOwner(const name : string; owner_info : LONGINT) : BOOLEAN;
+FUNCTION SetProgramName(const name : string) : BOOLEAN;
+FUNCTION SetPrompt(const name : string) : BOOLEAN;
+FUNCTION SetProtection(const name : string; protect : LONGINT) : BOOLEAN;
+FUNCTION SetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
+FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION StrToLong(const string_ : string; VAR value : LONGINT) : LONGINT;
+FUNCTION SystemTagList(const command : string;const tags : pTagItem) : LONGINT;
+FUNCTION DOSSystem(const command : string;const tags : pTagItem) : LONGINT;
 
 IMPLEMENTATION
 
@@ -1843,7 +1850,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddBuffers(name : pCHAR; number : LONGINT) : BOOLEAN;
+FUNCTION AddBuffers(const name : pCHAR; number : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1874,7 +1881,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddPart(dirname : pCHAR; filename : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : pCHAR;const filename : pCHAR; size : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1891,7 +1898,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddSegment(name : pCHAR; seg : LONGINT; system : LONGINT) : BOOLEAN;
+FUNCTION AddSegment(const name : pCHAR; seg : LONGINT; system : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1908,7 +1915,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AllocDosObject(type_ : ULONG; tags : pTagItem) : POINTER;
+FUNCTION AllocDosObject(type_ : ULONG;const tags : pTagItem) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1921,7 +1928,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AllocDosObjectTagList(type_ : ULONG; tags : pTagItem) : POINTER;
+FUNCTION AllocDosObjectTagList(type_ : ULONG;const tags : pTagItem) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1934,7 +1941,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AssignAdd(name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignAdd(const name : pCHAR; lock : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1950,7 +1957,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AssignLate(name : pCHAR; path : pCHAR) : BOOLEAN;
+FUNCTION AssignLate(const name : pCHAR;const path : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1966,7 +1973,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AssignLock(name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignLock(const name : pCHAR; lock : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1982,7 +1989,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AssignPath(name : pCHAR; path : pCHAR) : BOOLEAN;
+FUNCTION AssignPath(const name : pCHAR;const path : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2074,7 +2081,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CompareDates(date1 : pDateStamp; date2 : pDateStamp) : LONGINT;
+FUNCTION CompareDates(const date1 : pDateStamp;const date2 : pDateStamp) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2087,7 +2094,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateDir(name : pCHAR) : LONGINT;
+FUNCTION CreateDir(const name : pCHAR) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2099,7 +2106,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateNewProc(tags : pTagItem) : pProcess;
+FUNCTION CreateNewProc(const tags : pTagItem) : pProcess;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2111,7 +2118,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateNewProcTagList(tags : pTagItem) : pProcess;
+FUNCTION CreateNewProcTagList(const tags : pTagItem) : pProcess;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2123,7 +2130,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateProc(name : pCHAR; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
+FUNCTION CreateProc(const name : pCHAR; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2176,7 +2183,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DeleteFile(name : pCHAR) : BOOLEAN;
+FUNCTION DeleteFile(const name : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2191,7 +2198,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DeleteVar(name : pCHAR; flags : ULONG) : BOOLEAN;
+FUNCTION DeleteVar(const name : pCHAR; flags : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2207,7 +2214,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DeviceProc(name : pCHAR) : pMsgPort;
+FUNCTION DeviceProc(const name : pCHAR) : pMsgPort;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2371,7 +2378,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DOSOpen(name : pCHAR; accessMode : LONGINT) : LONGINT;
+FUNCTION DOSOpen(const name : pCHAR; accessMode : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2409,7 +2416,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DOSRename(oldName : pCHAR; newName : pCHAR) : Boolean;
+FUNCTION DOSRename(const oldName : pCHAR;const newName : pCHAR) : Boolean;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2572,7 +2579,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Execute(string_ : pCHAR; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
+FUNCTION Execute(const string_ : pCHAR; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2649,7 +2656,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FilePart(path : pCHAR) : pCHAR;
+FUNCTION FilePart(const path : pCHAR) : pCHAR;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2661,7 +2668,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindArg(keyword : pCHAR; arg_template : pCHAR) : LONGINT;
+FUNCTION FindArg(const keyword : pCHAR;const arg_template : pCHAR) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2686,7 +2693,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindDosEntry(dlist : pDosList; name : pCHAR; flags : ULONG) : pDosList;
+FUNCTION FindDosEntry(const dlist : pDosList;const name : pCHAR; flags : ULONG) : pDosList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2700,7 +2707,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindSegment(name : pCHAR; seg : pSegment; system : LONGINT) : pSegment;
+FUNCTION FindSegment(const name : pCHAR;const seg : pSegment; system : LONGINT) : pSegment;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2714,7 +2721,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FindVar(name : pCHAR; type_ : ULONG) : pLocalVar;
+FUNCTION FindVar(const name : pCHAR; type_ : ULONG) : pLocalVar;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2727,7 +2734,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Format(filesystem : pCHAR; volumename : pCHAR; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : pCHAR;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2757,7 +2764,7 @@ BEGIN
   END;
 END;
 
-FUNCTION FPuts(fh : LONGINT; str : pCHAR) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2886,7 +2893,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetDeviceProc(name : pCHAR; dp : pDevProc) : pDevProc;
+FUNCTION GetDeviceProc(const name : pCHAR; dp : pDevProc) : pDevProc;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2953,7 +2960,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetVar(name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
+FUNCTION GetVar(const name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2984,7 +2991,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Inhibit(name : pCHAR; onoff : LONGINT) : BOOLEAN;
+FUNCTION Inhibit(const name : pCHAR; onoff : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3000,7 +3007,7 @@ BEGIN
   END;
 END;
 
-FUNCTION InternalLoadSeg(fh : LONGINT; table : LONGINT; VAR funcarray : LONGINT; VAR stack : LONGINT) : LONGINT;
+FUNCTION InternalLoadSeg(fh : LONGINT; table : LONGINT;const funcarray : pLONGINT; VAR stack : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3042,7 +3049,7 @@ BEGIN
   END;
 END;
 
-FUNCTION IsFileSystem(name : pCHAR) : BOOLEAN;
+FUNCTION IsFileSystem(const name : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3072,7 +3079,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LoadSeg(name : pCHAR) : LONGINT;
+FUNCTION LoadSeg(const name : pCHAR) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3084,7 +3091,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Lock(name : pCHAR; type_ : LONGINT) : LONGINT;
+FUNCTION Lock(const name : pCHAR; type_ : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3144,7 +3151,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MakeDosEntry(name : pCHAR; type_ : LONGINT) : pDosList;
+FUNCTION MakeDosEntry(const name : pCHAR; type_ : LONGINT) : pDosList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3157,7 +3164,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MakeLink(name : pCHAR; dest : LONGINT; soft : LONGINT) : BOOLEAN;
+FUNCTION MakeLink(const name : pCHAR; dest : LONGINT; soft : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3185,7 +3192,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MatchFirst(pat : pCHAR; anchor : pAnchorPath) : LONGINT;
+FUNCTION MatchFirst(const pat : pCHAR; anchor : pAnchorPath) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3210,7 +3217,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MatchPattern(pat : pCHAR; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPattern(const pat : pCHAR; str : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3226,7 +3233,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MatchPatternNoCase(pat : pCHAR; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : pCHAR; str : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3287,7 +3294,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NewLoadSeg(file_ : pCHAR; tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSeg(const file_ : pCHAR;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3300,7 +3307,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NewLoadSegTagList(file_ : pCHAR; tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSegTagList(const file_ : pCHAR;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3313,7 +3320,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NextDosEntry(dlist : pDosList; flags : ULONG) : pDosList;
+FUNCTION NextDosEntry(const dlist : pDosList; flags : ULONG) : pDosList;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3362,7 +3369,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ParsePattern(pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
+FUNCTION ParsePattern(const pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3376,7 +3383,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ParsePatternNoCase(pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
+FUNCTION ParsePatternNoCase(const pat : pCHAR; buf : pCHAR; buflen : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3390,7 +3397,7 @@ BEGIN
   END;
 END;
 
-FUNCTION PathPart(path : pCHAR) : pCHAR;
+FUNCTION PathPart(const path : pCHAR) : pCHAR;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3402,7 +3409,7 @@ BEGIN
   END;
 END;
 
-FUNCTION PrintFault(code : LONGINT; header : pCHAR) : BOOLEAN;
+FUNCTION PrintFault(code : LONGINT;const header : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3418,7 +3425,7 @@ BEGIN
   END;
 END;
 
-FUNCTION PutStr(str : pCHAR) : BOOLEAN;
+FUNCTION PutStr(const str : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3433,7 +3440,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadArgs(arg_template : pCHAR; arra : pLONGINT; args : pRDArgs) : pRDArgs;
+FUNCTION ReadArgs(const arg_template : pCHAR; arra : pLONGINT; args : pRDArgs) : pRDArgs;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3447,7 +3454,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadItem(name : pCHAR; maxchars : LONGINT; cSource : pCSource) : LONGINT;
+FUNCTION ReadItem(const name : pCHAR; maxchars : LONGINT; cSource : pCSource) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3461,7 +3468,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ReadLink(port : pMsgPort; lock : LONGINT; path : pCHAR; buffer : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION ReadLink(port : pMsgPort; lock : LONGINT;const path : pCHAR; buffer : pCHAR; size : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3480,7 +3487,7 @@ BEGIN
   END;
 END;
 
-FUNCTION Relabel(drive : pCHAR; newname : pCHAR) : BOOLEAN;
+FUNCTION Relabel(const drive : pCHAR;const newname : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3496,7 +3503,7 @@ BEGIN
   END;
 END;
 
-FUNCTION RemAssignList(name : pCHAR; lock : LONGINT) : BOOLEAN;
+FUNCTION RemAssignList(const name : pCHAR; lock : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3555,7 +3562,7 @@ BEGIN
   END;
 END;
 
-FUNCTION RunCommand(seg : LONGINT; stack : LONGINT; paramptr : pCHAR; paramlen : LONGINT) : LONGINT;
+FUNCTION RunCommand(seg : LONGINT; stack : LONGINT;const paramptr : pCHAR; paramlen : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3636,7 +3643,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetArgStr(string_ : pCHAR) : BOOLEAN;
+FUNCTION SetArgStr(const string_ : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3651,7 +3658,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetComment(name : pCHAR; comment : pCHAR) : BOOLEAN;
+FUNCTION SetComment(const name : pCHAR;const comment : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3667,7 +3674,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetConsoleTask(task : pMsgPort) : pMsgPort;
+FUNCTION SetConsoleTask(const task : pMsgPort) : pMsgPort;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3679,7 +3686,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetCurrentDirName(name : pCHAR) : BOOLEAN;
+FUNCTION SetCurrentDirName(const name : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3694,7 +3701,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetFileDate(name : pCHAR; date : pDateStamp) : BOOLEAN;
+FUNCTION SetFileDate(const name : pCHAR; date : pDateStamp) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3727,7 +3734,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetFileSysTask(task : pMsgPort) : pMsgPort;
+FUNCTION SetFileSysTask(const task : pMsgPort) : pMsgPort;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3767,7 +3774,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetOwner(name : pCHAR; owner_info : LONGINT) : BOOLEAN;
+FUNCTION SetOwner(const name : pCHAR; owner_info : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3795,7 +3802,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetProgramName(name : pCHAR) : BOOLEAN;
+FUNCTION SetProgramName(const name : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3810,7 +3817,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetPrompt(name : pCHAR) : BOOLEAN;
+FUNCTION SetPrompt(const name : pCHAR) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3825,7 +3832,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetProtection(name : pCHAR; protect : LONGINT) : BOOLEAN;
+FUNCTION SetProtection(const name : pCHAR; protect : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3841,7 +3848,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetVar(name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
+FUNCTION SetVar(const name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3877,7 +3884,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SplitName(name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : pCHAR; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3923,7 +3930,7 @@ BEGIN
   END;
 END;
 
-FUNCTION StrToLong(string_ : pCHAR; VAR value : LONGINT) : LONGINT;
+FUNCTION StrToLong(const string_ : pCHAR; VAR value : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3936,7 +3943,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SystemTagList(command : pCHAR; tags : pTagItem) : LONGINT;
+FUNCTION SystemTagList(const command : pCHAR;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -3949,7 +3956,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DOSSystem(command : pCHAR; tags : pTagItem) : LONGINT;
+FUNCTION DOSSystem(const command : pCHAR;const tags : pTagItem) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4040,7 +4047,7 @@ BEGIN
   END;
 END;
 
-FUNCTION VFPrintf(fh : LONGINT; format : pCHAR; argarray : POINTER) : LONGINT;
+FUNCTION VFPrintf(fh : LONGINT;const format : pCHAR;const argarray : POINTER) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4054,7 +4061,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE VFWritef(fh : LONGINT; format : pCHAR; VAR argarray : LONGINT);
+PROCEDURE VFWritef(fh : LONGINT;const format : pCHAR;const argarray : pLONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4067,7 +4074,7 @@ BEGIN
   END;
 END;
 
-FUNCTION VPrintf(format : pCHAR; argarray : POINTER) : LONGINT;
+FUNCTION VPrintf(const format : pCHAR; const argarray : POINTER) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4107,7 +4114,7 @@ BEGIN
   END;
 END;
 
-FUNCTION WriteChars(buf : pCHAR; buflen : ULONG) : LONGINT;
+FUNCTION WriteChars(const buf : pCHAR; buflen : ULONG) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4121,112 +4128,112 @@ BEGIN
 END;
 
 
-FUNCTION AddBuffers(name : string; number : LONGINT) : BOOLEAN;
+FUNCTION AddBuffers(const name : string; number : LONGINT) : BOOLEAN;
 begin
      AddBuffers := AddBuffers(pas2c(name), number);
 end;
 
-FUNCTION AddPart(dirname : string; filename : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : string;const filename : pCHAR; size : ULONG) : BOOLEAN;
 begin
      AddPart := AddPart(pas2c(dirname),filename,size);
 end;
 
-FUNCTION AddPart(dirname : pCHAR; filename : string; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : pCHAR;const filename : string; size : ULONG) : BOOLEAN;
 begin
      AddPart := AddPart(dirname,pas2c(filename),size);
 end;
 
-FUNCTION AddPart(dirname : string; filename : string; size : ULONG) : BOOLEAN;
+FUNCTION AddPart(dirname : string;const filename : string; size : ULONG) : BOOLEAN;
 begin
      AddPart := AddPart(pas2c(dirname),pas2c(filename),size);
 end;
 
-FUNCTION AssignAdd(name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignAdd(const name : string; lock : LONGINT) : BOOLEAN;
 begin
      AssignAdd := AssignAdd(pas2c(name),lock);
 end;
 
-FUNCTION AssignLate(name : string; path : pCHAR) : BOOLEAN;
+FUNCTION AssignLate(const name : string;const path : pCHAR) : BOOLEAN;
 begin
      AssignLate := AssignLate(pas2c(name),path);
 end;
 
-FUNCTION AssignLate(name : pChar; path : string) : BOOLEAN;
+FUNCTION AssignLate(const name : pChar;const  path : string) : BOOLEAN;
 begin
      AssignLate := AssignLate(name,pas2c(path));
 end;
 
-FUNCTION AssignLate(name : string; path : string) : BOOLEAN;
+FUNCTION AssignLate(const name : string;const path : string) : BOOLEAN;
 begin
      AssignLate := AssignLate(pas2c(name),pas2c(path));
 end;
 
-FUNCTION AssignLock(name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION AssignLock(const name : string; lock : LONGINT) : BOOLEAN;
 begin
      AssignLock := AssignLock(pas2c(name),lock);
 end;
 
-FUNCTION AssignPath(name : string; path : pCHAR) : BOOLEAN;
+FUNCTION AssignPath(const name : string;const path : pCHAR) : BOOLEAN;
 begin
      AssignPath := AssignPath(pas2c(name),path);
 end;
 
-FUNCTION AssignPath(name : pCHAR; path : string) : BOOLEAN;
+FUNCTION AssignPath(const name : pCHAR;const path : string) : BOOLEAN;
 begin
      AssignPath := AssignPath(name,pas2c(path));
 end;
 
-FUNCTION AssignPath(name : string; path : string) : BOOLEAN;
+FUNCTION AssignPath(const name : string;const path : string) : BOOLEAN;
 begin
      AssignPath := AssignPath(pas2c(name),pas2c(path));
 end;
 
-FUNCTION CreateDir(name : string) : LONGINT;
+FUNCTION CreateDir(const name : string) : LONGINT;
 begin
      CreateDir := CreateDir(pas2c(name));
 end;
 
-FUNCTION CreateProc(name : string; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
+FUNCTION CreateProc(const name : string; pri : LONGINT; segList : LONGINT; stackSize : LONGINT) : pMsgPort;
 begin
      CreateProc := CreateProc(pas2c(name),pri,segList,stackSize);
 end;
 
-FUNCTION DeleteFile(name : string) : BOOLEAN;
+FUNCTION DeleteFile(const name : string) : BOOLEAN;
 begin
      DeleteFile := DeleteFile(pas2c(name));
 end;
 
-FUNCTION DeleteVar(name : string; flags : ULONG) : BOOLEAN;
+FUNCTION DeleteVar(const name : string; flags : ULONG) : BOOLEAN;
 begin
      DeleteVar := DeleteVar(pas2c(name),flags);
 end;
 
-FUNCTION DeviceProc(name : string) : pMsgPort;
+FUNCTION DeviceProc(const name : string) : pMsgPort;
 begin
      Deviceproc := DeviceProc(pas2c(name));
 end;
 
-FUNCTION DOSOpen(name : string; accessMode : LONGINT) : LONGINT;
+FUNCTION DOSOpen(const name : string; accessMode : LONGINT) : LONGINT;
 begin
      DOSOpen := DOSOpen(pas2c(name),accessMode);
 end;
 
-FUNCTION DOSRename(oldName : string; newName : pCHAR) : Boolean;
+FUNCTION DOSRename(const oldName : string;const newName : pCHAR) : Boolean;
 begin
      DOSRename := DOSRename(pas2c(oldName),newName);
 end;
 
-FUNCTION DOSRename(oldName : pCHAR; newName : string) : Boolean;
+FUNCTION DOSRename(const oldName : pCHAR;const newName : string) : Boolean;
 begin
      DOSRename := DOSRename(oldName,pas2c(newName));
 end;
 
-FUNCTION DOSRename(oldName : string; newName : string) : Boolean;
+FUNCTION DOSRename(const oldName : string;const newName : string) : Boolean;
 begin
      DOSRename := DOSRename(pas2c(oldName),pas2c(newName));
 end;
 
-FUNCTION Execute(string_ : string; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
+FUNCTION Execute(const string_ : string; file_ : LONGINT; file2 : LONGINT) : BOOLEAN;
 begin
      Execute := Execute(pas2c(string_),file_ ,file2);
 end;
@@ -4236,272 +4243,272 @@ begin
     Fault := Fault(code,pas2c(header),buffer,len);
 end;
 
-FUNCTION FilePart(path : string) : pCHAR;
+FUNCTION FilePart(const path : string) : pCHAR;
 begin
     FilePart := FilePart(pas2c(path));
 end;
 
-FUNCTION FindArg(keyword : string; arg_template : pCHAR) : LONGINT;
+FUNCTION FindArg(const keyword : string;const arg_template : pCHAR) : LONGINT;
 begin
     FindArg := FindArg(pas2c(keyword),arg_template);
 end;
 
-FUNCTION FindArg(keyword : pCHAR; arg_template : string) : LONGINT;
+FUNCTION FindArg(const keyword : pCHAR;const arg_template : string) : LONGINT;
 begin
     FindArg := FindArg(keyword,pas2c(arg_template));
 end;
 
-FUNCTION FindArg(keyword : string; arg_template : string) : LONGINT;
+FUNCTION FindArg(const keyword : string;const arg_template : string) : LONGINT;
 begin
     FindArg := FindArg(pas2c(keyword),pas2c(arg_template));
 end;
 
-FUNCTION FindDosEntry(dlist : pDosList; name : string; flags : ULONG) : pDosList;
+FUNCTION FindDosEntry(const dlist : pDosList;const name : string; flags : ULONG) : pDosList;
 begin
     FindDosEntry := FindDosEntry(dlist,pas2c(name),flags);
 end;
 
-FUNCTION FindSegment(name : string; seg : pSegment; system : LONGINT) : pSegment;
+FUNCTION FindSegment(const name : string;const seg : pSegment; system : LONGINT) : pSegment;
 begin
     FindSegment := FindSegment(pas2c(name),seg,system);
 end;
 
-FUNCTION FindVar(name : string; type_ : ULONG) : pLocalVar;
+FUNCTION FindVar(const name : string; type_ : ULONG) : pLocalVar;
 begin
     FindVar := FindVar(pas2c(name),type_);
 end;
 
-FUNCTION Format(filesystem : string; volumename : pCHAR; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : string;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
 begin
     Format := Format(pas2c(filesystem),volumename,dostype);
 end;
 
-FUNCTION Format(filesystem : pCHAR; volumename : string; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : pCHAR;const volumename : string; dostype : ULONG) : BOOLEAN;
 begin
     Format := Format(filesystem,pas2c(volumename),dostype);
 end;
 
-FUNCTION Format(filesystem : string; volumename : string; dostype : ULONG) : BOOLEAN;
+FUNCTION Format(const filesystem : string;const volumename : string; dostype : ULONG) : BOOLEAN;
 begin
     Format := Format(pas2c(filesystem),pas2c(volumename),dostype);
 end;
 
-FUNCTION FPuts(fh : LONGINT; str : string) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
 begin
     FPuts := FPuts(fh,pas2c(str));
 end;
 
-FUNCTION GetDeviceProc(name : string; dp : pDevProc) : pDevProc;
+FUNCTION GetDeviceProc(const name : string; dp : pDevProc) : pDevProc;
 begin
     GetDeviceProc := GetDeviceProc(pas2c(name),dp);
 end;
 
-FUNCTION GetVar(name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
+FUNCTION GetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
 begin
     GetVar := GetVar(pas2c(name),buffer,size,flags);
 end;
 
-FUNCTION Inhibit(name : string; onoff : LONGINT) : BOOLEAN;
+FUNCTION Inhibit(const name : string; onoff : LONGINT) : BOOLEAN;
 begin
     Inhibit := Inhibit(pas2c(name),onoff);
 end;
 
-FUNCTION IsFileSystem(name : string) : BOOLEAN;
+FUNCTION IsFileSystem(const name : string) : BOOLEAN;
 begin
     IsFileSystem := IsFileSystem(pas2c(name));
 end;
 
-FUNCTION LoadSeg(name : string) : LONGINT;
+FUNCTION LoadSeg(const name : string) : LONGINT;
 begin
     LoadSeg := LoadSeg(pas2c(name));
 end;
 
-FUNCTION Lock(name : string; type_ : LONGINT) : LONGINT;
+FUNCTION Lock(const name : string; type_ : LONGINT) : LONGINT;
 begin
     Lock := Lock(pas2c(name),type_);
 end;
 
-FUNCTION MakeDosEntry(name : string; type_ : LONGINT) : pDosList;
+FUNCTION MakeDosEntry(const name : string; type_ : LONGINT) : pDosList;
 begin
     MakeDosEntry := MakeDosEntry(pas2c(name),type_);
 end;
 
-FUNCTION MakeLink(name : string; dest : LONGINT; soft : LONGINT) : BOOLEAN;
+FUNCTION MakeLink(const name : string; dest : LONGINT; soft : LONGINT) : BOOLEAN;
 begin
     MakeLink := MakeLink(pas2c(name),dest,soft);
 end;
 
-FUNCTION MatchFirst(pat : string; anchor : pAnchorPath) : LONGINT;
+FUNCTION MatchFirst(const pat : string; anchor : pAnchorPath) : LONGINT;
 begin
     MatchFirst := MatchFirst(pas2c(pat),anchor);
 end;
 
-FUNCTION MatchPattern(pat : string; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPattern(const pat : string; str : pCHAR) : BOOLEAN;
 begin
     MatchPattern := MatchPattern(pas2c(pat),str);
 end;
 
-FUNCTION MatchPattern(pat : pCHAR; str : string) : BOOLEAN;
+FUNCTION MatchPattern(const pat : pCHAR; str : string) : BOOLEAN;
 begin
     MatchPattern := MatchPattern(pat,pas2c(str));
 end;
 
-FUNCTION MatchPattern(pat : string; str : string) : BOOLEAN;
+FUNCTION MatchPattern(const pat : string; str : string) : BOOLEAN;
 begin
     MatchPattern := MatchPattern(pas2c(pat),pas2c(str));
 end;
 
-FUNCTION MatchPatternNoCase(pat : string; str : pCHAR) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : string; str : pCHAR) : BOOLEAN;
 begin
     MatchPatternNoCase := MatchPatternNoCase(pas2c(pat),str);
 end;
 
-FUNCTION MatchPatternNoCase(pat : pCHAR; str : string) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : pCHAR; str : string) : BOOLEAN;
 begin
     MatchPatternNoCase := MatchPatternNoCase(pat,pas2c(str));
 end;
 
-FUNCTION MatchPatternNoCase(pat : string; str : string) : BOOLEAN;
+FUNCTION MatchPatternNoCase(const pat : string; str : string) : BOOLEAN;
 begin
     MatchPatternNoCase := MatchPatternNoCase(pas2c(pat),pas2c(str));
 end;
 
-FUNCTION NewLoadSeg(file_ : string; tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSeg(const file_ : string;const tags : pTagItem) : LONGINT;
 begin
     NewLoadSeg := NewLoadSeg(pas2c(file_),tags);
 end;
 
-FUNCTION NewLoadSegTagList(file_ : string; tags : pTagItem) : LONGINT;
+FUNCTION NewLoadSegTagList(const file_ : string;const tags : pTagItem) : LONGINT;
 begin
     NewLoadSegTagList := NewLoadSegTagList(pas2c(file_),tags);
 end;
 
-FUNCTION PathPart(path : string) : pCHAR;
+FUNCTION PathPart(const path : string) : pCHAR;
 begin
     PathPart := PathPart(pas2c(path));
 end;
 
-FUNCTION PrintFault(code : LONGINT; header : string) : BOOLEAN;
+FUNCTION PrintFault(code : LONGINT;const header : string) : BOOLEAN;
 begin
     PrintFault := PrintFault(code,pas2c(header));
 end;
 
-FUNCTION PutStr(str : string) : BOOLEAN;
+FUNCTION PutStr(const str : string) : BOOLEAN;
 begin
     PutStr := PutStr(pas2c(str));
 end;
 
-FUNCTION ReadArgs(arg_template : string; arra : pLONGINT; args : pRDArgs) : pRDArgs;
+FUNCTION ReadArgs(const arg_template : string; arra : pLONGINT; args : pRDArgs) : pRDArgs;
 begin
     ReadArgs := ReadArgs(pas2c(arg_template),arra,args);
 end;
 
-FUNCTION ReadItem(name : string; maxchars : LONGINT; cSource : pCSource) : LONGINT;
+FUNCTION ReadItem(const name : string; maxchars : LONGINT; cSource : pCSource) : LONGINT;
 begin
     ReadItem := ReadItem(pas2c(name),maxchars,cSource);
 end;
 
-FUNCTION ReadLink(port : pMsgPort; lock : LONGINT; path : string; buffer : pCHAR; size : ULONG) : BOOLEAN;
+FUNCTION ReadLink(port : pMsgPort; lock : LONGINT;const path : string; buffer : pCHAR; size : ULONG) : BOOLEAN;
 begin
     ReadLink := ReadLink(port,lock,pas2c(path),buffer,size);
 end;
 
-FUNCTION Relabel(drive : string; newname : pCHAR) : BOOLEAN;
+FUNCTION Relabel(const drive : string;const newname : pCHAR) : BOOLEAN;
 begin
     Relabel := Relabel(pas2c(drive),newname);
 end;
 
-FUNCTION Relabel(drive : pCHAR; newname : string) : BOOLEAN;
+FUNCTION Relabel(const drive : pCHAR;const newname : string) : BOOLEAN;
 begin
     Relabel := Relabel(drive,pas2c(newname));
 end;
 
-FUNCTION Relabel(drive : string; newname : string) : BOOLEAN;
+FUNCTION Relabel(const drive : string;const newname : string) : BOOLEAN;
 begin
     Relabel := Relabel(pas2c(drive),pas2c(newname));
 end;
 
-FUNCTION RemAssignList(name : string; lock : LONGINT) : BOOLEAN;
+FUNCTION RemAssignList(const name : string; lock : LONGINT) : BOOLEAN;
 begin
     RemAssignList := RemAssignList(pas2c(name),lock);
 end;
 
-FUNCTION RunCommand(seg : LONGINT; stack : LONGINT; paramptr : string; paramlen : LONGINT) : LONGINT;
+FUNCTION RunCommand(seg : LONGINT; stack : LONGINT;const paramptr : string; paramlen : LONGINT) : LONGINT;
 begin
     RunCommand := RunCommand(seg,stack,pas2c(paramptr),paramlen);
 end;
 
-FUNCTION SetArgStr(string_ : string) : BOOLEAN;
+FUNCTION SetArgStr(const string_ : string) : BOOLEAN;
 begin
     SetArgStr := SetArgStr(pas2c(string_));
 end;
 
-FUNCTION SetComment(name : string; comment : pCHAR) : BOOLEAN;
+FUNCTION SetComment(const name : string;const comment : pCHAR) : BOOLEAN;
 begin
     SetComment := SetComment(pas2c(name),comment);
 end;
 
-FUNCTION SetComment(name : pCHAR; comment : string) : BOOLEAN;
+FUNCTION SetComment(const name : pCHAR;const comment : string) : BOOLEAN;
 begin
     SetComment := SetComment(name,pas2c(comment));
 end;
 
-FUNCTION SetComment(name : string; comment : string) : BOOLEAN;
+FUNCTION SetComment(const name : string;const comment : string) : BOOLEAN;
 begin
     SetComment := SetComment(pas2c(name),pas2c(comment));
 end;
 
-FUNCTION SetCurrentDirName(name : string) : BOOLEAN;
+FUNCTION SetCurrentDirName(const name : string) : BOOLEAN;
 begin
      SetCurrentDirName := SetCurrentDirName(pas2c(name));
 end;
 
-FUNCTION SetFileDate(name : string; date : pDateStamp) : BOOLEAN;
+FUNCTION SetFileDate(const name : string; date : pDateStamp) : BOOLEAN;
 begin
      SetFileDate := SetFileDate(pas2c(name),date);
 end;
 
-FUNCTION SetOwner(name : string; owner_info : LONGINT) : BOOLEAN;
+FUNCTION SetOwner(const name : string; owner_info : LONGINT) : BOOLEAN;
 begin
      SetOwner := SetOwner(pas2c(name),owner_info);
 end;
 
-FUNCTION SetProgramName(name : string) : BOOLEAN;
+FUNCTION SetProgramName(const name : string) : BOOLEAN;
 begin
      SetProgramName := SetProgramName(pas2c(name));
 end;
 
-FUNCTION SetPrompt(name : string) : BOOLEAN;
+FUNCTION SetPrompt(const name : string) : BOOLEAN;
 begin
      SetPrompt := SetPrompt(pas2c(name));
 end;
 
-FUNCTION SetProtection(name : string; protect : LONGINT) : BOOLEAN;
+FUNCTION SetProtection(const name : string; protect : LONGINT) : BOOLEAN;
 begin
      SetProtection := SetProtection(pas2c(name),protect);
 end;
 
-FUNCTION SetVar(name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
+FUNCTION SetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : BOOLEAN;
 begin
      SetVar := SetVar(pas2c(name),buffer,size,flags);
 end;
 
-FUNCTION SplitName(name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
+FUNCTION SplitName(const name : string; seperator : ULONG; buf : pCHAR; oldpos : LONGINT; size : LONGINT) : INTEGER;
 begin
      SplitName := SplitName(pas2c(name), seperator,buf,oldpos,size);
 end;
 
-FUNCTION StrToLong(string_ : string; VAR value : LONGINT) : LONGINT;
+FUNCTION StrToLong(const string_ : string; VAR value : LONGINT) : LONGINT;
 begin
      StrToLong := StrToLong(pas2c(string_),value);
 end;
 
-FUNCTION SystemTagList(command : string; tags : pTagItem) : LONGINT;
+FUNCTION SystemTagList(const command : string;const tags : pTagItem) : LONGINT;
 begin
      SystemTagList := SystemTagList(pas2c(command),tags);
 end;
 
-FUNCTION DOSSystem(command : string; tags : pTagItem) : LONGINT;
+FUNCTION DOSSystem(const command : string;const tags : pTagItem) : LONGINT;
 begin
      DOSSystem := DOSSystem(pas2c(command),tags);
 end;
@@ -4511,7 +4518,10 @@ END. (* UNIT DOS *)
 
 {
    $Log$
-   Revision 1.5  2003-01-13 18:14:56  nils
+   Revision 1.6  2003-02-07 20:45:08  nils
+   * update for amigaos 3.9
+   
+   Revision 1.5  2003/01/13 18:14:56  nils
    * added the define use_amiga_smartlink
    
    Revision 1.4  2002/11/28 19:39:30  nils

@@ -40,14 +40,31 @@
     Just changed the result to a longint.
     06 Sep 2000.
 
-    Fixed the above functions so that they return a 
+    Fixed the above functions so that they return a
     shortint as they should. Made some changes to the
     stub.
     20 Sep 2000.
-    
+
     Put together exec.pp and exec.inc.
     04 Feb 2003.
 
+    Update for AmigaOS 3.9.
+    Added some consts and a record.
+    Functions added.
+         PROCEDURE NewMinList
+	 FUNCTION AVL_AddNode
+	 FUNCTION AVL_RemNodeByAddress
+	 FUNCTION AVL_RemNodeByKey
+	 FUNCTION AVL_FindNode
+	 FUNCTION AVL_FindPrevNodeByAddress
+	 FUNCTION AVL_FindPrevNodeByKey
+	 FUNCTION AVL_FindNextNodeByAddress
+	 FUNCTION AVL_FindNextNodeByKey
+	 FUNCTION AVL_FindFirstNode
+	 FUNCTION AVL_FindLastNode
+
+    05 Feb 2003.
+    
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -1098,6 +1115,7 @@ CONST
   AFB_68881     = 4;    {  also set for 68882  }
   AFB_68882     = 5;
   AFB_FPU40     = 6;    {  Set if 68040 FPU }
+  AFB_68060     = 7;
 
   AFF_68010     = %00000001;
   AFF_68020     = %00000010;
@@ -1106,6 +1124,7 @@ CONST
   AFF_68881     = %00010000;
   AFF_68882     = %00100000;
   AFF_FPU40     = %01000000;
+  AFF_68060     = (1 shl 7);
 
 {    AFB_RESERVED8 = %000100000000;  }
 {    AFB_RESERVED9 = %001000000000;  }
@@ -1137,6 +1156,22 @@ CONST
   DMA_ReadFromRAM     = 8;      { Set if DMA goes *FROM* RAM to device }
 
 
+{ Don't even think about the contents of this structure. Just embed it
+ * and reference it
+ *}
+  type
+     PAVLNode = ^tAVLNode;
+     tAVLNode = record
+          reserved : array[0..3] of ULONG;
+       end;
+     ppAVLNode = ^pAVLNode;
+
+
+       PAVLNODECOMP = ^AVLNODECOMP;
+       AVLNODECOMP = APTR;
+
+       PAVLKEYCOMP = ^AVLKEYCOMP;
+       AVLKEYCOMP = APTR;
 
 
 
@@ -1146,13 +1181,12 @@ PROCEDURE AddHead(list : pList; node : pNode);
 PROCEDURE AddIntServer(intNumber : LONGINT; interrupt_ : pInterrupt);
 PROCEDURE AddLibrary(lib : pLibrary);
 PROCEDURE AddMemHandler(memhand : pInterrupt);
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; 
-const name : pCHAR);
+PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : pCHAR);
 PROCEDURE AddPort(port : pMsgPort);
 PROCEDURE AddResource(resource : POINTER);
 PROCEDURE AddSemaphore(sigSem : pSignalSemaphore);
 PROCEDURE AddTail(list : pList; node : pNode);
-FUNCTION AddTask(task : pTask; initPC : POINTER; finalPC : POINTER) : POINTER;
+FUNCTION AddTask(task : pTask;const initPC : POINTER;const finalPC : POINTER) : POINTER;
 PROCEDURE Alert(alertNum : ULONG);
 FUNCTION AllocAbs(byteSize : ULONG; location : POINTER) : POINTER;
 FUNCTION Allocate(freeList : pMemHeader; byteSize : ULONG) : POINTER;
@@ -1168,8 +1202,8 @@ FUNCTION AvailMem(requirements : ULONG) : ULONG;
 PROCEDURE CacheClearE(address : POINTER; length : ULONG; caches : ULONG);
 PROCEDURE CacheClearU;
 FUNCTION CacheControl(cacheBits : ULONG; cacheMask : ULONG) : ULONG;
-PROCEDURE CachePostDMA(address : POINTER; VAR length : ULONG; flags : ULONG);
-FUNCTION CachePreDMA(address : POINTER; VAR length : ULONG; flags : ULONG) : POINTER;
+PROCEDURE CachePostDMA(const address : POINTER; VAR length : ULONG; flags : ULONG);
+FUNCTION CachePreDMA(const address : POINTER; VAR length : ULONG; flags : ULONG) : POINTER;
 PROCEDURE Cause(interrupt_ : pInterrupt);
 FUNCTION CheckIO(ioRequest : pIORequest) : pIORequest;
 PROCEDURE ChildFree(tid : POINTER);
@@ -1179,12 +1213,11 @@ PROCEDURE ChildWait(tid : POINTER);
 PROCEDURE CloseDevice(ioRequest : pIORequest);
 PROCEDURE CloseLibrary(lib : pLibrary);
 PROCEDURE ColdReboot;
-PROCEDURE CopyMem(source : POINTER; dest : POINTER; size : ULONG);
-PROCEDURE CopyMemQuick(source : POINTER; dest : POINTER; size : ULONG);
-FUNCTION CreateIORequest(port : pMsgPort; size : ULONG) : POINTER;
+PROCEDURE CopyMem(const source : POINTER; dest : POINTER; size : ULONG);
+PROCEDURE CopyMemQuick(const source : POINTER; dest : POINTER; size : ULONG);
+FUNCTION CreateIORequest(const port : pMsgPort; size : ULONG) : POINTER;
 FUNCTION CreateMsgPort : pMsgPort;
-FUNCTION CreatePool(requirements : ULONG; puddleSize : ULONG; threshSize : ULONG) : 
-POINTER;
+FUNCTION CreatePool(requirements : ULONG; puddleSize : ULONG; threshSize : ULONG) : POINTER;
 PROCEDURE Deallocate(freeList : pMemHeader; memoryBlock : POINTER; byteSize : ULONG);
 PROCEDURE Debug(flags : ULONG);
 PROCEDURE DeleteIORequest(iorequest : POINTER);
@@ -1210,27 +1243,23 @@ PROCEDURE FreeVec(memoryBlock : POINTER);
 FUNCTION GetCC : ULONG;
 FUNCTION GetMsg(port : pMsgPort) : pMessage;
 PROCEDURE InitCode(startClass : ULONG; version : ULONG);
-FUNCTION InitResident(resident_ : pResident; segList : ULONG) : POINTER;
+FUNCTION InitResident(const resident_ : pResident; segList : ULONG) : POINTER;
 PROCEDURE InitSemaphore(sigSem : pSignalSemaphore);
-PROCEDURE InitStruct(initTable : POINTER; memory : POINTER; size : ULONG);
-PROCEDURE MakeFunctions(target : POINTER; functionArray : POINTER; funcDispBase : 
-ULONG);
-FUNCTION MakeLibrary(funcInit : POINTER; structInit : POINTER; libInit : tPROCEDURE; 
-dataSize : ULONG; segList : ULONG) : pLibrary;
+PROCEDURE InitStruct(const initTable : POINTER; memory : POINTER; size : ULONG);
+PROCEDURE MakeFunctions(const target : POINTER;const functionArray : POINTER;const funcDispBase :pointer);
+FUNCTION MakeLibrary(const  funcInit : POINTER;const  structInit : POINTER; libInit : tPROCEDURE;dataSize : ULONG; segList : ULONG) : pLibrary;
 FUNCTION ObtainQuickVector(interruptCode : POINTER) : ULONG;
 PROCEDURE ObtainSemaphore(sigSem : pSignalSemaphore);
 PROCEDURE ObtainSemaphoreList(sigSem : pList);
 PROCEDURE ObtainSemaphoreShared(sigSem : pSignalSemaphore);
 FUNCTION OldOpenLibrary(const libName : pCHAR) : pLibrary;
-FUNCTION OpenDevice(const devName : pCHAR; unite : ULONG; ioRequest : pIORequest; 
-flags : ULONG) : shortint;
+FUNCTION OpenDevice(const devName : pCHAR; unite : ULONG; ioRequest : pIORequest; flags : ULONG) : shortint;
 FUNCTION OpenLibrary(const libName : pCHAR; version : ULONG) : pLibrary;
 FUNCTION OpenResource(const resName : pCHAR) : POINTER;
 PROCEDURE Permit;
 FUNCTION Procure(sigSem : pSignalSemaphore; bidMsg : pSemaphoreMessage) : BOOLEAN;
 PROCEDURE PutMsg(port : pMsgPort; message : pMessage);
-PROCEDURE RawDoFmt(formatString : pCHAR; dataStream : POINTER; putChProc : tPROCEDURE; 
-putChData : POINTER);
+function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 PROCEDURE ReleaseSemaphore(sigSem : pSignalSemaphore);
 PROCEDURE ReleaseSemaphoreList(sigSem : pList);
 PROCEDURE RemDevice(device : pDevice);
@@ -1247,9 +1276,8 @@ PROCEDURE RemTask(task : pTask);
 PROCEDURE ReplyMsg(message : pMessage);
 PROCEDURE SendIO(ioRequest : pIORequest);
 FUNCTION SetExcept(newSignals : ULONG; signalSet : ULONG) : ULONG;
-FUNCTION SetFunction(lib : pLibrary; funcOffset : LONGINT; newFunction : tPROCEDURE) : 
-POINTER;
-FUNCTION SetIntVector(intNumber : LONGINT; interrupt_ : pInterrupt) : pInterrupt;
+FUNCTION SetFunction(lib : pLibrary; funcOffset : LONGINT; newFunction : tPROCEDURE) : POINTER;
+FUNCTION SetIntVector(intNumber : LONGINT;const interrupt_ : pInterrupt) : pInterrupt;
 FUNCTION SetSignal(newSignals : ULONG; signalSet : ULONG) : ULONG;
 FUNCTION SetSR(newSR : ULONG; mask : ULONG) : ULONG;
 FUNCTION SetTaskPri(task : pTask; priority : LONGINT) : shortint;
@@ -1259,31 +1287,36 @@ PROCEDURE SumKickData;
 PROCEDURE SumLibrary(lib : pLibrary);
 FUNCTION SuperState : POINTER;
 FUNCTION Supervisor(userFunction : tPROCEDURE) : ULONG;
-FUNCTION TypeOfMem(address : POINTER) : ULONG;
+FUNCTION TypeOfMem(const address : POINTER) : ULONG;
 PROCEDURE UserState(sysStack : POINTER);
 PROCEDURE Vacate(sigSem : pSignalSemaphore; bidMsg : pSemaphoreMessage);
 FUNCTION Wait(signalSet : ULONG) : ULONG;
 FUNCTION WaitIO(ioRequest : pIORequest) : shortint;
 FUNCTION WaitPort(port : pMsgPort) : pMessage;
 
-{$ifdef amiga_overlays}
+PROCEDURE NewMinList(minlist : pMinList);
+FUNCTION AVL_AddNode(root : ppAVLNode; node : pAVLNode; func : POINTER) : pAVLNode;
+FUNCTION AVL_RemNodeByAddress(root : ppAVLNode; node : pAVLNode) : pAVLNode;
+FUNCTION AVL_RemNodeByKey(root : ppAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+FUNCTION AVL_FindNode(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+FUNCTION AVL_FindPrevNodeByAddress(CONST node : pAVLNode) : pAVLNode;
+FUNCTION AVL_FindPrevNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+FUNCTION AVL_FindNextNodeByAddress(CONST node : pAVLNode) : pAVLNode;
+FUNCTION AVL_FindNextNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+FUNCTION AVL_FindFirstNode(CONST root : pAVLNode) : pAVLNode;
+FUNCTION AVL_FindLastNode(CONST root : pAVLNode) : pAVLNode;
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; 
-const name : String);
+PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
 FUNCTION FindName(list : pList; const name : String) : pNode;
 FUNCTION FindPort(const name : String) : pMsgPort;
 FUNCTION FindResident(const name : String) : pResident;
 FUNCTION FindSemaphore(const sigSem : String) : pSignalSemaphore;
 FUNCTION FindTask(const name : String) : pTask;
 FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
-FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest; 
-flags : ULONG) : shortint;
+FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;flags : ULONG) : shortint;
 FUNCTION OpenLibrary(const libName : String; version : ULONG) : pLibrary;
 FUNCTION OpenResource(const resName : String) : POINTER;
-PROCEDURE RawDoFmt(formatString : String; dataStream : POINTER; putChProc : 
-tPROCEDURE; putChData : POINTER);
-
-{$endif}
+function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc :tPROCEDURE; putChData : POINTER): pointer;
 
 function BitMask(no :shortint): longint;
 function IsListEmpty( list : pList): boolean;
@@ -1291,9 +1324,7 @@ function IsMsgPortEmpty( mp : pMsgPort): boolean;
 
 IMPLEMENTATION
 
-{$ifdef amiga_overlays}
 uses pastoc;
-{$endif}
 
 function BitMask(no :shortint): longint;
 begin
@@ -1379,8 +1410,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; 
-const name : pCHAR);
+PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : pCHAR);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1440,7 +1470,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AddTask(task : pTask; initPC : POINTER; finalPC : POINTER) : POINTER;
+FUNCTION AddTask(task : pTask;const initPC : POINTER;const finalPC : POINTER) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1641,7 +1671,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE CachePostDMA(address : POINTER; VAR length : ULONG; flags : ULONG);
+PROCEDURE CachePostDMA(const address : POINTER; VAR length : ULONG; flags : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1654,7 +1684,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CachePreDMA(address : POINTER; VAR length : ULONG; flags : ULONG) : POINTER;
+FUNCTION CachePreDMA(const address : POINTER; VAR length : ULONG; flags : ULONG) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1767,7 +1797,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE CopyMem(source : POINTER; dest : POINTER; size : ULONG);
+PROCEDURE CopyMem(const source : POINTER; dest : POINTER; size : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1780,7 +1810,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE CopyMemQuick(source : POINTER; dest : POINTER; size : ULONG);
+PROCEDURE CopyMemQuick(const source : POINTER; dest : POINTER; size : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1793,7 +1823,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreateIORequest(port : pMsgPort; size : ULONG) : POINTER;
+FUNCTION CreateIORequest(const port : pMsgPort; size : ULONG) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -1817,7 +1847,7 @@ BEGIN
   END;
 END;
 
-FUNCTION CreatePool(requirements : ULONG; puddleSize : ULONG; threshSize : ULONG) : 
+FUNCTION CreatePool(requirements : ULONG; puddleSize : ULONG; threshSize : ULONG) :
 POINTER;
 BEGIN
   ASM
@@ -2121,7 +2151,7 @@ BEGIN
   END;
 END;
 
-FUNCTION InitResident(resident_ : pResident; segList : ULONG) : POINTER;
+FUNCTION InitResident(const resident_ : pResident; segList : ULONG) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2145,7 +2175,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE InitStruct(initTable : POINTER; memory : POINTER; size : ULONG);
+PROCEDURE InitStruct(const initTable : POINTER; memory : POINTER; size : ULONG);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2158,8 +2188,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE MakeFunctions(target : POINTER; functionArray : POINTER; funcDispBase : 
-ULONG);
+PROCEDURE MakeFunctions(const target : POINTER;const functionArray : POINTER;const funcDispBase :pointer);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2172,8 +2201,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MakeLibrary(funcInit : POINTER; structInit : POINTER; libInit : tPROCEDURE; 
-dataSize : ULONG; segList : ULONG) : pLibrary;
+FUNCTION MakeLibrary(const funcInit : POINTER;const structInit : POINTER; libInit : tPROCEDURE; dataSize : ULONG; segList : ULONG) : pLibrary;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2246,7 +2274,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenDevice(const devName : pCHAR; unite : ULONG; ioRequest : pIORequest; 
+FUNCTION OpenDevice(const devName : pCHAR; unite : ULONG; ioRequest : pIORequest;
 flags : ULONG) : shortint;
 BEGIN
   ASM
@@ -2325,8 +2353,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE RawDoFmt(formatString : pCHAR; dataStream : POINTER; putChProc : tPROCEDURE; 
-putChData : POINTER);
+function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2337,6 +2364,7 @@ BEGIN
     MOVEA.L _ExecBase,A6
     JSR -522(A6)
     MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
   END;
 END;
 
@@ -2521,7 +2549,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetFunction(lib : pLibrary; funcOffset : LONGINT; newFunction : tPROCEDURE) : 
+FUNCTION SetFunction(lib : pLibrary; funcOffset : LONGINT; newFunction : tPROCEDURE) :
 POINTER;
 BEGIN
   ASM
@@ -2536,7 +2564,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetIntVector(intNumber : LONGINT; interrupt_ : pInterrupt) : pInterrupt;
+FUNCTION SetIntVector(intNumber : LONGINT;const interrupt_ : pInterrupt) : pInterrupt;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2655,7 +2683,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TypeOfMem(address : POINTER) : ULONG;
+FUNCTION TypeOfMem(const address : POINTER) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -2726,9 +2754,150 @@ BEGIN
   END;
 END;
 
-{$ifdef amiga_overlays}
-PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; 
-const name : String);
+PROCEDURE NewMinList(minlist : pMinList);
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	minlist,A0
+	MOVEA.L	_ExecBase,A6
+	JSR	-828(A6)
+	MOVEA.L	(A7)+,A6
+  END;
+END;
+
+FUNCTION AVL_AddNode(root : ppAVLNode; node : pAVLNode; func : POINTER) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	node,A1
+	MOVEA.L	func,A2
+	MOVEA.L	_ExecBase,A6
+	JSR	-852(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_RemNodeByAddress(root : ppAVLNode; node : pAVLNode) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	node,A1
+	MOVEA.L	_ExecBase,A6
+	JSR	-858(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_RemNodeByKey(root : ppAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	key,A1
+	MOVEA.L	func,A2
+	MOVEA.L	_ExecBase,A6
+	JSR	-864(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindNode(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	key,A1
+	MOVEA.L	func,A2
+	MOVEA.L	_ExecBase,A6
+	JSR	-870(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindPrevNodeByAddress(CONST node : pAVLNode) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	node,A0
+	MOVEA.L	_ExecBase,A6
+	JSR	-876(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindPrevNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	key,A1
+	MOVEA.L	func,A2
+	MOVEA.L	_ExecBase,A6
+	JSR	-882(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindNextNodeByAddress(CONST node : pAVLNode) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	node,A0
+	MOVEA.L	_ExecBase,A6
+	JSR	-888(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindNextNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	key,A1
+	MOVEA.L	func,A2
+	MOVEA.L	_ExecBase,A6
+	JSR	-894(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindFirstNode(CONST root : pAVLNode) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	_ExecBase,A6
+	JSR	-900(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+FUNCTION AVL_FindLastNode(CONST root : pAVLNode) : pAVLNode;
+BEGIN
+  ASM
+	MOVE.L	A6,-(A7)
+	MOVEA.L	root,A0
+	MOVEA.L	_ExecBase,A6
+	JSR	-906(A6)
+	MOVEA.L	(A7)+,A6
+	MOVE.L	D0,@RESULT
+  END;
+END;
+
+
+PROCEDURE AddMemList(size : ULONG; attributes : ULONG; pri : LONGINT; base : POINTER; const name : String);
 BEGIN
     AddMemList(size,attributes,pri,base,pas2c(name));
 END;
@@ -2756,7 +2925,7 @@ FUNCTION OldOpenLibrary(const libName : String) : pLibrary;
 BEGIN
     OldOpenLibrary := OldOpenLibrary(pas2c(libName));
 END;
-FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest; 
+FUNCTION OpenDevice(const devName : String; unite : ULONG; ioRequest : pIORequest;
 flags : ULONG) : shortint;
 BEGIN
     OpenDevice := OpenDevice(pas2c(devName),unite,ioRequest,flags);
@@ -2769,20 +2938,17 @@ FUNCTION OpenResource(const resName : String) : POINTER;
 BEGIN
     OpenResource := OpenResource(pas2c(resName));
 END;
-PROCEDURE RawDoFmt(formatString : String; dataStream : POINTER; putChProc : 
-tPROCEDURE; putChData : POINTER);
+function RawDoFmt(const formatString : String;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 BEGIN
-    RawDoFmt(pas2c(formatString),dataStream,putChProc,putChData);
+    RawDoFmt := RawDoFmt(pas2c(formatString),dataStream,putChProc,putChData);
 END;
-
-{$endif}
 
 END. (* UNIT EXEC *)
 
 {
   $Log$
-  Revision 1.1  2003-02-04 18:07:40  nils
-    * initial release
+  Revision 1.2  2003-02-07 20:45:08  nils
+  * update for amigaos 3.9
 
   Revision 1.1.2.2  2001/07/24 07:34:30  pierre
    * amigaoverlays include file insertion commented out as it does seem necessary

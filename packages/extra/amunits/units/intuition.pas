@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -34,6 +34,10 @@
    
    Added the define use_amiga_smartlink.
    13 Jan 2003.
+
+   Update for AmigaOS 3.9.
+   New consts and new records.
+   04 Feb 2003.
 
    nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 
@@ -2928,6 +2932,17 @@ Type
     o_Class   : pIClass;
   END;
 
+{ BOOPSI class libraries should use this structure as the base for their
+ * library data.  This allows developers to obtain the class pointer for
+ * performing object-less inquiries. }
+
+
+       PClassLibrary = ^tClassLibrary;
+       tClassLibrary = record
+            cl_Lib : tLibrary;    { Embedded library }
+            cl_Pad : UWORD;       { Align the structure }
+            cl_Class : PIClass;   { Class pointer }
+         end;
 
 {
  * NOTE:  <intuition/iobsolete.h> is included at the END of this file!
@@ -2936,89 +2951,197 @@ Type
 { Gadget Class attributes      }
 CONST
     GA_Dummy           =  (TAG_USER +$30000);
+    
+    { (LONG) Left edge of the gadget relative to the left edge of
+     * the window }
     GA_Left            =  (GA_Dummy + $0001);
+    
+    { (LONG) Left edge of the gadget relative to the right edge of
+     * the window }
     GA_RelRight        =  (GA_Dummy + $0002);
+    
+    { (LONG) Top edge of the gadget relative to the top edge of
+     * the window }
     GA_Top             =  (GA_Dummy + $0003);
+
+    { (LONG) Top edge of the gadget relative to the bottom edge
+     * of the window }
     GA_RelBottom       =  (GA_Dummy + $0004);
+    
+    { (LONG) Width of the gadget }
     GA_Width           =  (GA_Dummy + $0005);
+    
+    { (LONG) Width of the gadget relative to the width of the
+     * window }
     GA_RelWidth        =  (GA_Dummy + $0006);
+    
+    { (LONG) Height of the gadget }
     GA_Height          =  (GA_Dummy + $0007);
+
+    { (LONG) Height of the gadget relative to the height of
+     * the window }
     GA_RelHeight       =  (GA_Dummy + $0008);
+    
+    { (STRPTR) Gadget imagry is NULL terminated string }
     GA_Text            =  (GA_Dummy + $0009); { ti_Data is (UBYTE *) }
+    
+    { (struct Image *) Gadget imagry is an image }
     GA_Image           =  (GA_Dummy + $000A);
+    
+    { (struct Border *) Gadget imagry is a border }
     GA_Border          =  (GA_Dummy + $000B);
+
+    { (struct Image *) Selected gadget imagry }
     GA_SelectRender    =  (GA_Dummy + $000C);
+    
+    { (UWORD) One of GFLG_GADGHNONE, GFLG_GADGHBOX, GFLG_GADGHCOMP,
+     * or GFLG_GADGHIMAGE }
     GA_Highlight       =  (GA_Dummy + $000D);
+    
+    { (BOOL) Indicate whether gadget is disabled or not.
+     * Defaults to FALSE. }
     GA_Disabled        =  (GA_Dummy + $000E);
+    
+    { (BOOL) Indicate whether the gadget is for
+     * WFLG_GIMMEZEROZERO window borders or not.  Defaults
+     * to FALSE. }
     GA_GZZGadget       =  (GA_Dummy + $000F);
+    
+    { (UWORD) Gadget ID assigned by the application }
     GA_ID              =  (GA_Dummy + $0010);
+    
+    { (APTR) Application specific data }
     GA_UserData        =  (GA_Dummy + $0011);
+    
+    { (APTR) Gadget specific data }
     GA_SpecialInfo     =  (GA_Dummy + $0012);
+    
+    { (BOOL) Indicate whether the gadget is selected or not.
+     * Defaults to FALSE }
     GA_Selected        =  (GA_Dummy + $0013);
+    
+    { (BOOL) When set tells the system that when this gadget
+     * is selected causes the requester that it is in to be
+     * ended.  Defaults to FALSE. }
     GA_EndGadget       =  (GA_Dummy + $0014);
+    
+    { (BOOL) When set indicates that the gadget is to
+     * notify the application when it becomes active.  Defaults
+     * to FALSE. }
     GA_Immediate       =  (GA_Dummy + $0015);
+    
+    { (BOOL) When set indicates that the application wants to
+     * verify that the pointer was still over the gadget when
+     * the select button is released.  Defaults to FALSE. }
     GA_RelVerify       =  (GA_Dummy + $0016);
+    
+    { (BOOL) When set indicates that the application wants to
+     * be notified of mouse movements while the gadget is active.
+     * It is recommmended that GA_Immediate and GA_RelVerify are
+     * also used so that the active gadget can be tracked by the
+     * application.  Defaults to FALSE. }
     GA_FollowMouse     =  (GA_Dummy + $0017);
+    
+    { (BOOL) Indicate whether the gadget is in the right border
+     * or not.  Defaults to FALSE. }
     GA_RightBorder     =  (GA_Dummy + $0018);
+    
+    { (BOOL) Indicate whether the gadget is in the left border
+     * or not.  Defaults to FALSE. }
     GA_LeftBorder      =  (GA_Dummy + $0019);
+    
+    { (BOOL) Indicate whether the gadget is in the top border
+     * or not.  Defaults to FALSE. }
     GA_TopBorder       =  (GA_Dummy + $001A);
+    
+    { (BOOL) Indicate whether the gadget is in the bottom border
+     * or not.  Defaults to FALSE. }
     GA_BottomBorder    =  (GA_Dummy + $001B);
+    
+    { (BOOL) Indicate whether the gadget is toggle-selected
+     * or not.  Defaults to FALSE. }
     GA_ToggleSelect    =  (GA_Dummy + $001C);
 
-    { internal use only, until further notice, please }
+    { (BOOL) Reserved for system use to indicate that the
+     * gadget belongs to the system.  Defaults to FALSE. }
     GA_SysGadget       =  (GA_Dummy + $001D);
-        { bool, sets GTYP_SYSGADGET field in type      }
+    
+    { (UWORD) Reserved for system use to indicate the
+     * gadget type. }
     GA_SysGType        =  (GA_Dummy + $001E);
-        { e.g., GTYP_WUPFRONT, ...     }
 
+    { (struct Gadget *) Previous gadget in the linked list.
+     * NOTE: This attribute CANNOT be used to link new gadgets
+     * into the gadget list of an open window or requester.
+     * You must use AddGList(). }
     GA_Previous        =  (GA_Dummy + $001F);
-        { previous gadget (or (struct Gadget **)) in linked list
-         * NOTE: This attribute CANNOT be used to link new gadgets
-         * into the gadget list of an open window or requester.
-         * You must use AddGList().
-         }
 
+    { (struct Gadget *) Next gadget in the linked list. }
     GA_Next            =  (GA_Dummy + $0020);
-         { not implemented }
 
+    { (struct DrawInfo *) Some gadgets need a DrawInfo at creation time }
     GA_DrawInfo        =  (GA_Dummy + $0021);
-        { some fancy gadgets need to see a DrawInfo
-         * when created or for layout
-         }
 
-{ You should use at most ONE of GA_Text, GA_IntuiText, and GA_LabelImage }
- GA_IntuiText          =  (GA_Dummy + $0022);
-        { ti_Data is (struct IntuiText *) }
+    { You should use at most ONE of GA_Text, GA_IntuiText, and GA_LabelImage }
+    { (struct IntuiText *) Label is an IntuiText. }
+    GA_IntuiText          =  (GA_Dummy + $0022);
 
- GA_LabelImage         =  (GA_Dummy + $0023);
-        { ti_Data is an image (object), used in place of
-         * GadgetText
-         }
+    { (Object *) Label is an image object. }
+    GA_LabelImage         =  (GA_Dummy + $0023);
 
- GA_TabCycle           =  (GA_Dummy + $0024);
-        { New for V37:
+    { New for V37:
          * Boolean indicates that this gadget is to participate in
          * cycling activation with Tab or Shift-Tab.
-         }
+    }
+    GA_TabCycle           =  (GA_Dummy + $0024);
 
- GA_GadgetHelp         =  (GA_Dummy + $0025);
-        { New for V39:
+    { New for V39:
          * Boolean indicates that this gadget sends gadget-help
-         }
+    }
+    GA_GadgetHelp         =  (GA_Dummy + $0025);
 
- GA_Bounds             =  (GA_Dummy + $0026);
-        { New for V39:
+    { New for V39:
          * ti_Data is a pointer to an IBox structure which is
          * to be copied into the extended gadget's bounds.
-         }
+    }
+    GA_Bounds             =  (GA_Dummy + $0026);
 
- GA_RelSpecial         =  (GA_Dummy + $0027);
-        { New for V39:
+    { New for V39:
          * Boolean indicates that this gadget has the "special relativity"
          * property, which is useful for certain fancy relativity
          * operations through the GM_LAYOUT method.
-         }
+    }
+    GA_RelSpecial         =  (GA_Dummy + $0027);
 
+    
+     GA_TextAttr = GA_Dummy + 40;
+  { (struct TextAttr  ) Indicate the font to use for the gadget.
+         New for V42.  }
+
+     GA_ReadOnly = GA_Dummy + 41;
+  { (BOOL) Indicate that the gadget is read-only (non-selectable).
+         Defaults to FALSE. New for V42.  }
+
+     GA_Underscore = GA_Dummy + 42;
+  { (UBYTE) Underscore/escape character for keyboard shortcuts.
+         Defaults to '_' . New for V44.  }
+
+     GA_ActivateKey = GA_Dummy + 43;
+  { (STRPTR) Set/Get the gadgets shortcut/activation key(s)
+         Defaults to NULL. New for V44.  }
+
+     GA_BackFill = GA_Dummy + 44;
+  { (struct Hook  ) Backfill pattern hook.
+         Defaults to NULL. New for V44.  }
+
+     GA_GadgetHelpText = GA_Dummy + 45;
+  { (STRPTR)   RESERVERD/PRIVATE DO NOT USE
+         Defaults to NULL. New for V44.  }
+
+     GA_UserInput = GA_Dummy + 46;
+  { (BOOL) Notification tag indicates this notification is from the activite
+  	   gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
+         Defaults to FALSE. New for V44.  }
 { PROPGCLASS attributes }
 
  PGA_Dummy      = (TAG_USER + $31000);
@@ -3075,6 +3198,14 @@ CONST
  LAYOUTA_LayoutObj      = (LAYOUTA_Dummy + $0001);
  LAYOUTA_Spacing        = (LAYOUTA_Dummy + $0002);
  LAYOUTA_Orientation    = (LAYOUTA_Dummy + $0003);
+ 
+ LAYOUTA_ChildMaxWidth = LAYOUTA_Dummy + $0004;
+  { (BOOL) Child objects are of equal width.  Should default to TRUE for
+         gadgets with a horizontal orientation.  New for V42.  }
+
+ LAYOUTA_ChildMaxHeight = LAYOUTA_Dummy + $0005;
+  { (BOOL) Child objects are of equal height.  Should default to TRUE for
+         gadgets with a vertical orientation.  New for V42.  }
 
 { orientation values   }
  LORIENT_NONE   = 0;
@@ -3233,6 +3364,89 @@ Type
                                          *}
  end;
 
+{***************************************************************************}
+
+{ The GM_DOMAIN method is used to obtain the sizing requirements of an
+ * object for a class before ever creating an object. }
+
+{ GM_DOMAIN }
+
+    PgpDomain = ^tgpDomain;
+     tgpDomain = record
+          MethodID : ULONG;
+          gpd_GInfo : PGadgetInfo;
+          gpd_RPort : PRastPort;    { RastPort to layout for }
+          gpd_Which : LONG;
+          gpd_Domain : tIBox;       { Resulting domain }
+          gpd_Attrs : PTagItem;     { Additional attributes }
+       end;
+
+
+  const
+     GDOMAIN_MINIMUM = 0;
+  { Minimum size  }
+
+     GDOMAIN_NOMINAL = 1;
+  { Nominal size  }
+
+     GDOMAIN_MAXIMUM = 2;
+  { Maximum size  }
+
+{***************************************************************************}
+
+{ The GM_KEYTEST method is used to determin if a key press matches an
+ * object's activation key(s). }
+
+{ GM_KEYTEST send this message.
+ }
+ 
+  type
+     PgpKeyTest = ^tgpKeyTest;
+     tgpKeyTest = record
+          MethodID : ULONG;
+          gpkt_GInfo : PGadgetInfo;
+          gpkt_IMsg : PIntuiMessage;   { The IntuiMessage that triggered this }
+          gpkt_VanillaKey : ULONG;
+       end;
+
+{***************************************************************************}
+
+{ The GM_KEYGOACTIVE method is called to "simulate" a gadget going down.
+ * A gadget should render itself in a selected state when receiving
+ * this message. If the class supports this method, it must return
+ * GMR_KEYACTIVE.
+ *
+ * If a gadget returns zero for this method, it will subsequently be
+ * activated via ActivateGadget() with a NULL IEvent.
+ }
+ 
+     PgpKeyInput = ^tgpKeyInput;
+     tgpKeyInput = record
+          MethodID : ULONG;        { GM_KEYGOACTIVE }
+          gpk_GInfo : PGadgetInfo;
+          gpk_IEvent : PInputEvent;
+          gpk_Termination : PLONG;
+       end;
+
+
+  const
+     GMR_KEYACTIVE = 1 shl 4;
+
+  { you MUST set gpk_Termination  }
+     GMR_KEYVERIFY = 1 shl 5;
+
+{ The GM_KEYGOINACTIVE method is called to simulate the gadget release.
+ * Upon receiving this message, the gadget should do everything a
+ * normal gadget release would do.
+ }
+
+  type
+     PgpKeyGoInactive = ^tgpKeyGoInactive;
+     tgpKeyGoInactive = record
+          MethodID : ULONG;
+          gpki_GInfo : PGadgetInfo;
+          gpki_Abort : ULONG;
+       end;
 
 CONST
  ICM_Dummy      = ($0401);       { used for nothing             }
@@ -3348,6 +3562,34 @@ CONST
                      * to FRAME_DEFAULT.
                      }
 
+     IA_Underscore = IA_Dummy + $1c;
+  { V44, Indicate underscore keyboard shortcut for image labels.
+  		       (UBYTE) Defaults to '_'
+  		      }
+
+     IA_Scalable = IA_Dummy + $1d;
+  { V44, Attribute indicates this image is allowed
+  			   to/can scale its rendering.
+  		       (BOOL) Defaults to FALSE.
+  		      }
+
+     IA_ActivateKey = IA_Dummy + $1e;
+  { V44, Used to get an underscored label shortcut.
+  		       Useful for labels attached to string gadgets.
+  		       (UBYTE) Defaults to NULL.
+  		      }
+
+     IA_Screen = IA_Dummy + $1f;
+  { V44 Screen pointer, may be useful/required by certain classes.
+  		       (struct Screen  )
+  		      }
+
+     IA_Precision = IA_Dummy + $20;
+  { V44 Precision value, typically pen precision but may be
+  		       used for similar custom purposes.
+  		       (ULONG)
+  		      }
+
 {* next attribute: (IA_Dummy + $1c)   *}
 
 {***********************************************}
@@ -3377,6 +3619,22 @@ CONST
  MENUCHECK      = ($10); { Menu checkmark image }
  AMIGAKEY       = ($11); { Menu Amiga-key image }
 
+{ Data values for IA_FrameType (recognized by FrameIClass)
+ *
+ * FRAME_DEFAULT:  The standard V37-type frame, which has
+ *	thin edges.
+ * FRAME_BUTTON:  Standard button gadget frames, having thicker
+ *	sides and nicely edged corners.
+ * FRAME_RIDGE:  A ridge such as used by standard string gadgets.
+ *	You can recess the ridge to get a groove image.
+ * FRAME_ICONDROPBOX: A broad ridge which is the standard imagery
+ *	for areas in AppWindows where icons may be dropped.
+ }
+ 
+     FRAME_DEFAULT = 0;
+     FRAME_BUTTON = 1;
+     FRAME_RIDGE = 2;
+     FRAME_ICONDROPBOX = 3;
 
 { image message id's   }
     IM_DRAW     = $202;  { draw yourself, with "state"          }
@@ -3388,6 +3646,7 @@ CONST
     IM_FRAMEBOX = $207;  { get recommended frame around some box}
     IM_HITFRAME = $208;  { hittest with dimensions              }
     IM_ERASEFRAME= $209; { hittest with dimensions              }
+    IM_DOMAINFRAME = $20A;{ query image for its domain info (V44)  }
 
 { image draw states or styles, for IM_DRAW }
     IDS_NORMAL          = (0);
@@ -3398,6 +3657,7 @@ CONST
     IDS_INACTIVENORMAL  = (5);    { normal, in inactive window border }
     IDS_INACTIVESELECTED= (6);    { selected, in inactive border }
     IDS_INACTIVEDISABLED= (7);    { disabled, in inactive border }
+    IDS_SELECTEDDISABLED = 8;     { disabled and selected     }
 
 { oops, please forgive spelling error by jimm }
  IDS_INDETERMINANT = IDS_INDETERMINATE;
@@ -3475,6 +3735,30 @@ Type
                Height : Word;
                end;
    END;
+
+
+{ The IM_DOMAINFRAME method is used to obtain the sizing
+ * requirements of an image object within a layout group.
+ }
+
+{ IM_DOMAINFRAME }
+     PimpDomainFrame = ^timpDomainFrame;
+     timpDomainFrame = record
+          MethodID : ULONG;
+          imp_DrInfo : PDrawInfo;
+          imp_RPort : PRastPort;
+          imp_Which : LONG;
+          imp_Domain : tIBox;
+          imp_Attrs : PTagItem;
+       end;
+
+  { Accepted vales for imp_Which.
+    }
+
+  const
+     IDOMAIN_MINIMUM = 0;
+     IDOMAIN_NOMINAL = 1;
+     IDOMAIN_MAXIMUM = 2;
 
  { **  'boopsi' pointer class interface }
 
@@ -3785,10 +4069,10 @@ FUNCTION AddGadget(window : pWindow; gadget : pGadget; position : ULONG) : WORD;
 FUNCTION AddGList(window : pWindow; gadget : pGadget; position : ULONG; numGad : LONGINT; requester : pRequester) : WORD;
 FUNCTION AllocRemember(VAR rememberKey : pRemember; size : ULONG; flags : ULONG) : POINTER;
 FUNCTION AllocScreenBuffer(sc : pScreen; bm : pBitMap; flags : ULONG) : pScreenBuffer;
-FUNCTION AutoRequest(window : pWindow; body : pIntuiText; posText : pIntuiText; negText : pIntuiText; pFlag : ULONG; nFlag : ULONG; width : ULONG; height : ULONG) : BOOLEAN;
+FUNCTION AutoRequest(window : pWindow;const body : pIntuiText;const posText : pIntuiText;const negText : pIntuiText; pFlag : ULONG; nFlag : ULONG; width : ULONG; height : ULONG) : BOOLEAN;
 PROCEDURE BeginRefresh(window : pWindow);
-FUNCTION BuildEasyRequestArgs(window : pWindow; easyStruct : pEasyStruct; idcmp : ULONG; args : POINTER) : pWindow;
-FUNCTION BuildSysRequest(window : pWindow; body : pIntuiText; posText : pIntuiText; negText : pIntuiText; flags : ULONG; width : ULONG; height : ULONG) : pWindow;
+FUNCTION BuildEasyRequestArgs(window : pWindow;const easyStruct : pEasyStruct; idcmp : ULONG;const args : POINTER) : pWindow;
+FUNCTION BuildSysRequest(window : pWindow;const body : pIntuiText;const posText : pIntuiText;const negText : pIntuiText; flags : ULONG; width : ULONG; height : ULONG) : pWindow;
 FUNCTION ChangeScreenBuffer(sc : pScreen; sb : pScreenBuffer) : ULONG;
 PROCEDURE ChangeWindowBox(window : pWindow; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT);
 FUNCTION ClearDMRequest(window : pWindow) : BOOLEAN;
@@ -3798,15 +4082,15 @@ PROCEDURE CloseScreen(screen : pScreen);
 PROCEDURE CloseWindow(window : pWindow);
 FUNCTION CloseWorkBench : BOOLEAN;
 PROCEDURE CurrentTime(VAR seconds : ULONG; VAR micros : ULONG);
-FUNCTION DisplayAlert(alertNumber : ULONG; string_ : pCHAR; height : ULONG) : BOOLEAN;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : pCHAR; height : ULONG) : BOOLEAN;
 PROCEDURE DisplayBeep(screen : pScreen);
 PROCEDURE DisposeObject(obj : POINTER);
 FUNCTION DoGadgetMethodA(gad : pGadget; win : pWindow; req : pRequester; message : tMsg) : ULONG;
 FUNCTION DoubleClick(sSeconds : ULONG; sMicros : ULONG; cSeconds : ULONG; cMicros : ULONG) : BOOLEAN;
-PROCEDURE DrawBorder(rp : pRastPort; border : pBorder; leftOffset : LONGINT; topOffset : LONGINT);
+PROCEDURE DrawBorder(rp : pRastPort;const border : pBorder; leftOffset : LONGINT; topOffset : LONGINT);
 PROCEDURE DrawImage(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT);
-PROCEDURE DrawImageState(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT; state : ULONG; drawInfo : pDrawInfo);
-FUNCTION EasyRequestArgs(window : pWindow; easyStruct : pEasyStruct; idcmpPtr : ULONG; args : POINTER) : LONGINT;
+PROCEDURE DrawImageState(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT; state : ULONG;const drawInfo : pDrawInfo);
+FUNCTION EasyRequestArgs(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG;const args : POINTER) : LONGINT;
 PROCEDURE EndRefresh(window : pWindow; complete : LONGINT);
 PROCEDURE EndRequest(requester : pRequester; window : pWindow);
 PROCEDURE EraseImage(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT);
@@ -3815,22 +4099,22 @@ PROCEDURE FreeRemember(VAR rememberKey : pRemember; reallyForget : LONGINT);
 PROCEDURE FreeScreenBuffer(sc : pScreen; sb : pScreenBuffer);
 PROCEDURE FreeScreenDrawInfo(screen : pScreen; drawInfo : pDrawInfo);
 PROCEDURE FreeSysRequest(window : pWindow);
-PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : POINTER);
-FUNCTION GetAttr(attrID : ULONG; obj : POINTER; storagePtr : POINTER) : ULONG;
+PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : pInteger);
+FUNCTION GetAttr(attrID : ULONG; obj : POINTER; storagePtr : pULONG) : ULONG;
 PROCEDURE GetDefaultPubScreen(nameBuffer : pCHAR);
 FUNCTION GetDefPrefs(preferences : pPreferences; size : LONGINT) : pPreferences;
 FUNCTION GetPrefs(preferences : pPreferences; size : LONGINT) : pPreferences;
-FUNCTION GetScreenData(buffer : POINTER; size : ULONG; type_ : ULONG; screen : pScreen) : BOOLEAN;
+FUNCTION GetScreenData(buffer : POINTER; size : ULONG; type_ : ULONG;const screen : pScreen) : BOOLEAN;
 FUNCTION GetScreenDrawInfo(screen : pScreen) : pDrawInfo;
 PROCEDURE HelpControl(win : pWindow; flags : ULONG);
 PROCEDURE InitRequester(requester : pRequester);
-FUNCTION IntuiTextLength(iText : pIntuiText) : LONGINT;
-FUNCTION ItemAddress(menuStrip : pMenu; menuNumber : ULONG) : pMenuItem;
+FUNCTION IntuiTextLength(const iText : pIntuiText) : LONGINT;
+FUNCTION ItemAddress(const menuStrip : pMenu; menuNumber : ULONG) : pMenuItem;
 PROCEDURE LendMenus(fromwindow : pWindow; towindow : pWindow);
 FUNCTION LockIBase(dontknow : ULONG) : ULONG;
-FUNCTION LockPubScreen(name : pCHAR) : pScreen;
+FUNCTION LockPubScreen(const name : pCHAR) : pScreen;
 FUNCTION LockPubScreenList : pList;
-FUNCTION MakeClass(classID : pCHAR; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : pCHAR;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 FUNCTION MakeScreen(screen : pScreen) : LONGINT;
 FUNCTION ModifyIDCMP(window : pWindow; flags : ULONG) : BOOLEAN;
 PROCEDURE ModifyProp(gadget : pGadget; window : pWindow; requester : pRequester; flags : ULONG; horizPot : ULONG; vertPot : ULONG; horizBody : ULONG; vertBody : ULONG);
@@ -3838,21 +4122,21 @@ PROCEDURE MoveScreen(screen : pScreen; dx : LONGINT; dy : LONGINT);
 PROCEDURE MoveWindow(window : pWindow; dx : LONGINT; dy : LONGINT);
 PROCEDURE MoveWindowInFrontOf(window : pWindow; behindWindow : pWindow);
 PROCEDURE NewModifyProp(gadget : pGadget; window : pWindow; requester : pRequester; flags : ULONG; horizPot : ULONG; vertPot : ULONG; horizBody : ULONG; vertBody : ULONG; numGad : LONGINT);
-FUNCTION NewObjectA(classPtr : pIClass; classID : pCHAR; tagList : pTagItem) : POINTER;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : pCHAR;const tagList : pTagItem) : POINTER;
 FUNCTION NextObject(objectPtrPtr : POINTER) : POINTER;
-FUNCTION NextPubScreen(screen : pScreen; namebuf : pCHAR) : pCHAR;
+FUNCTION NextPubScreen(const screen : pScreen; namebuf : pCHAR) : pCHAR;
 FUNCTION ObtainGIRPort(gInfo : pGadgetInfo) : pRastPort;
 PROCEDURE OffGadget(gadget : pGadget; window : pWindow; requester : pRequester);
 PROCEDURE OffMenu(window : pWindow; menuNumber : ULONG);
 PROCEDURE OnGadget(gadget : pGadget; window : pWindow; requester : pRequester);
 PROCEDURE OnMenu(window : pWindow; menuNumber : ULONG);
-FUNCTION OpenScreen(newScreen : pNewScreen) : pScreen;
-FUNCTION OpenScreenTagList(newScreen : pNewScreen; tagList : pTagItem) : pScreen;
-FUNCTION OpenWindow(newWindow : pNewWindow) : pWindow;
-FUNCTION OpenWindowTagList(newWindow : pNewWindow; tagList : pTagItem) : pWindow;
+FUNCTION OpenScreen(const newScreen : pNewScreen) : pScreen;
+FUNCTION OpenScreenTagList(const newScreen : pNewScreen;const tagList : pTagItem) : pScreen;
+FUNCTION OpenWindow(const newWindow : pNewWindow) : pWindow;
+FUNCTION OpenWindowTagList(const newWindow : pNewWindow;const tagList : pTagItem) : pWindow;
 FUNCTION OpenWorkBench : ULONG;
 FUNCTION PointInImage(point : ULONG; image : pImage) : BOOLEAN;
-PROCEDURE PrintIText(rp : pRastPort; iText : pIntuiText; left : LONGINT; top : LONGINT);
+PROCEDURE PrintIText(rp : pRastPort;const iText : pIntuiText; left : LONGINT; top : LONGINT);
 FUNCTION PubScreenStatus(screen : pScreen; statusFlags : ULONG) : WORD;
 FUNCTION QueryOverscan(displayID : ULONG; rect : pRectangle; oScanType : LONGINT) : LONGINT;
 PROCEDURE RefreshGadgets(gadgets : pGadget; window : pWindow; requester : pRequester);
@@ -3872,27 +4156,27 @@ PROCEDURE ScreenPosition(screen : pScreen; flags : ULONG; x1 : LONGINT; y1 : LON
 PROCEDURE ScreenToBack(screen : pScreen);
 PROCEDURE ScreenToFront(screen : pScreen);
 PROCEDURE ScrollWindowRaster(win : pWindow; dx : LONGINT; dy : LONGINT; xMin : LONGINT; yMin : LONGINT; xMax : LONGINT; yMax : LONGINT);
-FUNCTION SetAttrsA(obj : POINTER; tagList : pTagItem) : ULONG;
-PROCEDURE SetDefaultPubScreen(name : pCHAR);
+FUNCTION SetAttrsA(obj : POINTER;const tagList : pTagItem) : ULONG;
+PROCEDURE SetDefaultPubScreen(const name : pCHAR);
 FUNCTION SetDMRequest(window : pWindow; requester : pRequester) : BOOLEAN;
 FUNCTION SetEditHook(hook : pHook) : pHook;
-FUNCTION SetGadgetAttrsA(gadget : pGadget; window : pWindow; requester : pRequester; tagList : pTagItem) : ULONG;
+FUNCTION SetGadgetAttrsA(gadget : pGadget; window : pWindow; requester : pRequester;const tagList : pTagItem) : ULONG;
 FUNCTION SetMenuStrip(window : pWindow; menu : pMenu) : BOOLEAN;
 FUNCTION SetMouseQueue(window : pWindow; queueLength : ULONG) : LONGINT;
-PROCEDURE SetPointer(window : pWindow; pointer_ : POINTER; height : LONGINT; width : LONGINT; xOffset : LONGINT; yOffset : LONGINT);
-FUNCTION SetPrefs(preferences : pPreferences; size : LONGINT; inform : LONGINT) : pPreferences;
+PROCEDURE SetPointer(window : pWindow; pointer_ : pword; height : LONGINT; width : LONGINT; xOffset : LONGINT; yOffset : LONGINT);
+FUNCTION SetPrefs(const   preferences : pPreferences; size : LONGINT; inform : LONGINT) : pPreferences;
 FUNCTION SetPubScreenModes(modes : ULONG) : WORD;
-PROCEDURE SetWindowPointerA(win : pWindow; taglist : pTagItem);
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : pCHAR);
+PROCEDURE SetWindowPointerA(win : pWindow;const taglist : pTagItem);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : pCHAR);
 PROCEDURE ShowTitle(screen : pScreen; showIt : LONGINT);
 PROCEDURE SizeWindow(window : pWindow; dx : LONGINT; dy : LONGINT);
-FUNCTION SysReqHandler(window : pWindow; idcmpPtr : ULONG; waitInput : LONGINT) : LONGINT;
-FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : pCHAR; height : ULONG; time : ULONG) : BOOLEAN;
+FUNCTION SysReqHandler(window : pWindow; idcmpPtr : pULONG; waitInput : LONGINT) : LONGINT;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : pCHAR; height : ULONG; time : ULONG) : BOOLEAN;
 PROCEDURE UnlockIBase(ibLock : ULONG);
-PROCEDURE UnlockPubScreen(name : pCHAR; screen : pScreen);
+PROCEDURE UnlockPubScreen(const name : pCHAR; screen : pScreen);
 PROCEDURE UnlockPubScreenList;
 FUNCTION ViewAddress : pView;
-FUNCTION ViewPortAddress(window : pWindow) : pViewPort;
+FUNCTION ViewPortAddress(const window : pWindow) : pViewPort;
 FUNCTION WBenchToBack : BOOLEAN;
 FUNCTION WBenchToFront : BOOLEAN;
 FUNCTION WindowLimits(window : pWindow; widthMin : LONGINT; heightMin : LONGINT; widthMax : ULONG; heightMax : ULONG) : BOOLEAN;
@@ -3920,18 +4204,18 @@ function ITEMNUM( n : Word): Word;
 function MENUNUM( n : Word): Word;
 function SUBNUM( n : Word): Word;
 
-FUNCTION DisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG) : BOOLEAN;
-FUNCTION LockPubScreen(name : string) : pScreen;
-FUNCTION MakeClass(classID : string; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION MakeClass(classID : pCHAR; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION MakeClass(classID : string; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
-FUNCTION NewObjectA(classPtr : pIClass; classID : string; tagList : pTagItem) : POINTER;
-PROCEDURE SetDefaultPubScreen(name : string);
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : pCHAR);
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : string);
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : string);
-FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
-PROCEDURE UnlockPubScreen(name : string; screen : pScreen);
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN;
+FUNCTION LockPubScreen(const name : string) : pScreen;
+FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
+PROCEDURE SetDefaultPubScreen(const name : string);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : pCHAR);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : string);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : string);
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
+PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
 IMPLEMENTATION
 
@@ -4136,7 +4420,7 @@ BEGIN
   END;
 END;
 
-FUNCTION AutoRequest(window : pWindow; body : pIntuiText; posText : pIntuiText; negText : pIntuiText; pFlag : ULONG; nFlag : ULONG; width : ULONG; height : ULONG) : BOOLEAN;
+FUNCTION AutoRequest(window : pWindow;const body : pIntuiText;const posText : pIntuiText;const negText : pIntuiText; pFlag : ULONG; nFlag : ULONG; width : ULONG; height : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4169,7 +4453,7 @@ BEGIN
   END;
 END;
 
-FUNCTION BuildEasyRequestArgs(window : pWindow; easyStruct : pEasyStruct; idcmp : ULONG; args : POINTER) : pWindow;
+FUNCTION BuildEasyRequestArgs(window : pWindow;const easyStruct : pEasyStruct; idcmp : ULONG;const args : POINTER) : pWindow;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4184,7 +4468,7 @@ BEGIN
   END;
 END;
 
-FUNCTION BuildSysRequest(window : pWindow; body : pIntuiText; posText : pIntuiText; negText : pIntuiText; flags : ULONG; width : ULONG; height : ULONG) : pWindow;
+FUNCTION BuildSysRequest(window : pWindow;const body : pIntuiText;const posText : pIntuiText;const negText : pIntuiText; flags : ULONG; width : ULONG; height : ULONG) : pWindow;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4315,7 +4599,7 @@ BEGIN
   END;
 END;
 
-FUNCTION DisplayAlert(alertNumber : ULONG; string_ : pCHAR; height : ULONG) : BOOLEAN;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : pCHAR; height : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4387,7 +4671,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DrawBorder(rp : pRastPort; border : pBorder; leftOffset : LONGINT; topOffset : LONGINT);
+PROCEDURE DrawBorder(rp : pRastPort;const border : pBorder; leftOffset : LONGINT; topOffset : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4415,7 +4699,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE DrawImageState(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT; state : ULONG; drawInfo : pDrawInfo);
+PROCEDURE DrawImageState(rp : pRastPort; image : pImage; leftOffset : LONGINT; topOffset : LONGINT; state : ULONG;const drawInfo : pDrawInfo);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4431,7 +4715,7 @@ BEGIN
   END;
 END;
 
-FUNCTION EasyRequestArgs(window : pWindow; easyStruct : pEasyStruct; idcmpPtr : ULONG; args : POINTER) : LONGINT;
+FUNCTION EasyRequestArgs(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG;const args : POINTER) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4546,7 +4830,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : POINTER);
+PROCEDURE GadgetMouse(gadget : pGadget; gInfo : pGadgetInfo; mousePoint : pInteger);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4559,7 +4843,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetAttr(attrID : ULONG; obj : POINTER; storagePtr : POINTER) : ULONG;
+FUNCTION GetAttr(attrID : ULONG; obj : POINTER; storagePtr : pULONG) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4610,7 +4894,7 @@ BEGIN
   END;
 END;
 
-FUNCTION GetScreenData(buffer : POINTER; size : ULONG; type_ : ULONG; screen : pScreen) : BOOLEAN;
+FUNCTION GetScreenData(buffer : POINTER; size : ULONG; type_ : ULONG;const screen : pScreen) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4663,7 +4947,7 @@ BEGIN
   END;
 END;
 
-FUNCTION IntuiTextLength(iText : pIntuiText) : LONGINT;
+FUNCTION IntuiTextLength(const iText : pIntuiText) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4675,7 +4959,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ItemAddress(menuStrip : pMenu; menuNumber : ULONG) : pMenuItem;
+FUNCTION ItemAddress(const menuStrip : pMenu; menuNumber : ULONG) : pMenuItem;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4712,7 +4996,7 @@ BEGIN
   END;
 END;
 
-FUNCTION LockPubScreen(name : pCHAR) : pScreen;
+FUNCTION LockPubScreen(const name : pCHAR) : pScreen;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4735,7 +5019,7 @@ BEGIN
   END;
 END;
 
-FUNCTION MakeClass(classID : pCHAR; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const  classID : pCHAR;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4854,7 +5138,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NewObjectA(classPtr : pIClass; classID : pCHAR; tagList : pTagItem) : POINTER;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : pCHAR;const tagList : pTagItem) : POINTER;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4880,7 +5164,7 @@ BEGIN
   END;
 END;
 
-FUNCTION NextPubScreen(screen : pScreen; namebuf : pCHAR) : pCHAR;
+FUNCTION NextPubScreen(const screen : pScreen; namebuf : pCHAR) : pCHAR;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4955,7 +5239,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenScreen(newScreen : pNewScreen) : pScreen;
+FUNCTION OpenScreen(const newScreen : pNewScreen) : pScreen;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4967,7 +5251,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenScreenTagList(newScreen : pNewScreen; tagList : pTagItem) : pScreen;
+FUNCTION OpenScreenTagList(const newScreen : pNewScreen;const tagList : pTagItem) : pScreen;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4980,7 +5264,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenWindow(newWindow : pNewWindow) : pWindow;
+FUNCTION OpenWindow(const newWindow : pNewWindow) : pWindow;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -4992,7 +5276,7 @@ BEGIN
   END;
 END;
 
-FUNCTION OpenWindowTagList(newWindow : pNewWindow; tagList : pTagItem) : pWindow;
+FUNCTION OpenWindowTagList(const newWindow : pNewWindow;const tagList : pTagItem) : pWindow;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5032,7 +5316,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE PrintIText(rp : pRastPort; iText : pIntuiText; left : LONGINT; top : LONGINT);
+PROCEDURE PrintIText(rp : pRastPort;const iText : pIntuiText; left : LONGINT; top : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5294,7 +5578,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetAttrsA(obj : POINTER; tagList : pTagItem) : ULONG;
+FUNCTION SetAttrsA(obj : POINTER;const tagList : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5307,7 +5591,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetDefaultPubScreen(name : pCHAR);
+PROCEDURE SetDefaultPubScreen(const name : pCHAR);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5346,7 +5630,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetGadgetAttrsA(gadget : pGadget; window : pWindow; requester : pRequester; tagList : pTagItem) : ULONG;
+FUNCTION SetGadgetAttrsA(gadget : pGadget; window : pWindow; requester : pRequester;const tagList : pTagItem) : ULONG;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5390,7 +5674,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetPointer(window : pWindow; pointer_ : POINTER; height : LONGINT; width : LONGINT; xOffset : LONGINT; yOffset : LONGINT);
+PROCEDURE SetPointer(window : pWindow; pointer_ : pword; height : LONGINT; width : LONGINT; xOffset : LONGINT; yOffset : LONGINT);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5406,7 +5690,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SetPrefs(preferences : pPreferences; size : LONGINT; inform : LONGINT) : pPreferences;
+FUNCTION SetPrefs(const preferences : pPreferences; size : LONGINT; inform : LONGINT) : pPreferences;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5432,7 +5716,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetWindowPointerA(win : pWindow; taglist : pTagItem);
+PROCEDURE SetWindowPointerA(win : pWindow;const taglist : pTagItem);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5444,7 +5728,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : pCHAR);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : pCHAR);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5482,7 +5766,7 @@ BEGIN
   END;
 END;
 
-FUNCTION SysReqHandler(window : pWindow; idcmpPtr : ULONG; waitInput : LONGINT) : LONGINT;
+FUNCTION SysReqHandler(window : pWindow; idcmpPtr : pULONG; waitInput : LONGINT) : LONGINT;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5496,7 +5780,7 @@ BEGIN
   END;
 END;
 
-FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : pCHAR; height : ULONG; time : ULONG) : BOOLEAN;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : pCHAR; height : ULONG; time : ULONG) : BOOLEAN;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5525,7 +5809,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE UnlockPubScreen(name : pCHAR; screen : pScreen);
+PROCEDURE UnlockPubScreen(const name : pCHAR; screen : pScreen);
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5558,7 +5842,7 @@ BEGIN
   END;
 END;
 
-FUNCTION ViewPortAddress(window : pWindow) : pViewPort;
+FUNCTION ViewPortAddress(const window : pWindow) : pViewPort;
 BEGIN
   ASM
     MOVE.L  A6,-(A7)
@@ -5651,62 +5935,62 @@ BEGIN
 END;
 
 
-FUNCTION DisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG) : BOOLEAN;
+FUNCTION DisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG) : BOOLEAN;
 begin
       DisplayAlert := DisplayAlert(alertNumber,pas2c(string_),height);
 end;
 
-FUNCTION LockPubScreen(name : string) : pScreen;
+FUNCTION LockPubScreen(const name : string) : pScreen;
 begin
       LockPubScreen := LockPubScreen(pas2c(name));
 end;
 
-FUNCTION MakeClass(classID : string; superClassID : pCHAR; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : string;const superClassID : pCHAR;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
       MakeClass := MakeClass(pas2c(classID),superClassID,superClassPtr,instanceSize,flags);
 end;
 
-FUNCTION MakeClass(classID : pCHAR; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : pCHAR;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
       MakeClass := MakeClass(classID,pas2c(superClassID),superClassPtr,instanceSize,flags); 
 end;
 
-FUNCTION MakeClass(classID : string; superClassID : string; superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
+FUNCTION MakeClass(const classID : string;const superClassID : string;const superClassPtr : pIClass; instanceSize : ULONG; flags : ULONG) : pIClass;
 begin
       MakeClass := MakeClass(pas2c(classID),pas2c(superClassID),superClassPtr,instanceSize,flags);
 end;
 
-FUNCTION NewObjectA(classPtr : pIClass; classID : string; tagList : pTagItem) : POINTER;
+FUNCTION NewObjectA(classPtr : pIClass;const classID : string;const tagList : pTagItem) : POINTER;
 begin
       NewObjectA := NewObjectA(classPtr,pas2c(classID),taglist);
 end;
 
-PROCEDURE SetDefaultPubScreen(name : string);
+PROCEDURE SetDefaultPubScreen(const name : string);
 begin
       SetDefaultPubScreen(pas2c(name)); 
 end;
 
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : pCHAR);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : pCHAR);
 begin
       SetWindowTitles(window,pas2c(windowTitle),screenTitle);
 end;
 
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : pCHAR; screenTitle : string);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : pCHAR;const screenTitle : string);
 begin
       SetWindowTitles(window,windowTitle,pas2c(screenTitle));
 end;
 
-PROCEDURE SetWindowTitles(window : pWindow; windowTitle : string; screenTitle : string);
+PROCEDURE SetWindowTitles(window : pWindow;const windowTitle : string;const screenTitle : string);
 begin
       SetWindowTitles(window,pas2c(windowTitle),pas2c(screenTitle));
 end;
 
-FUNCTION TimedDisplayAlert(alertNumber : ULONG; string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
+FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : ULONG; time : ULONG) : BOOLEAN;
 begin
       TimedDisplayAlert := TimedDisplayAlert(alertNumber,pas2c(string_),height,time);
 end;
 
-PROCEDURE UnlockPubScreen(name : string; screen : pScreen);
+PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 begin
       UnlockPubScreen(pas2c(name),screen);
 end;
@@ -5716,7 +6000,10 @@ END. (* UNIT INTUITION *)
 
 {
   $Log$
-  Revision 1.3  2003-01-13 20:34:19  nils
+  Revision 1.4  2003-02-07 20:45:08  nils
+  * update for amigaos 3.9
+
+  Revision 1.3  2003/01/13 20:34:19  nils
   * added the define use_amiga_smartlink
 
   Revision 1.2  2002/11/19 18:47:42  nils

@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,7 +13,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{
+    History:
+    
+    Update for AmigaOS 3.9.
+    Added const.
+    31 Jan 2003.
+    
+    nils.sjoholm@mailbox.swipnet.se
+}
+    
 {
         SCSI exec-level device command
 }
@@ -64,6 +73,19 @@ uses exec;
  *      iddisk.device) for the second controller board, instead of
  *      implementing the 100's digit.
  *
+ *
+ *	With the advent of wide SCSI the scheme above fails miserably.
+ *	A new scheme was adopted by Phase V, who appear to be the only
+ *	source of wide SCSI for the Amiga at this time. Thus their
+ *	numbering system kludge is adopted here. When the ID or LUN is
+ *	above 7 the new numbering scheme is used.
+ *
+ *	Unit =
+ *		Board * 10 * 1000 * 1000 +
+ *		LUN	  * 10 * 1000		 +
+ *		ID	  * 10				 +
+ *		HD_WIDESCSI;
+ *
  *      There are optional restrictions on the alignment, bus
  *      accessability, and size of the data for the data phase.
  *      Be conservative to work with all manufacturer's controllers.
@@ -71,7 +93,7 @@ uses exec;
  *------------------------------------------------------------------}
 
 Const
-
+    HD_WIDESCSI         = 8;
     HD_SCSICMD          = 28;   { issue a SCSI command to the unit }
                                 { io_Data points to a SCSICmd }
                                 { io_Length is sizeof(struct SCSICmd) }
