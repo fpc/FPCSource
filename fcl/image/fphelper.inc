@@ -51,6 +51,26 @@ begin
   FColor := AValue;
 end;
 
+procedure TFPCanvasHelper.Changing;
+begin
+  if Assigned(FOnChanging) then FOnChanging(Self);
+end;
+
+procedure TFPCanvasHelper.Changed;
+begin
+  if Assigned(FOnChange) then FOnChange(Self);
+end;
+
+procedure TFPCanvasHelper.Lock;
+begin
+
+end;
+
+procedure TFPCanvasHelper.UnLock;
+begin
+
+end;
+
 procedure TFPCanvasHelper.SetFlags (index:integer; AValue:boolean);
 begin
   if AValue then

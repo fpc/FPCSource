@@ -39,6 +39,8 @@ type
     FFixedCanvas : boolean;
     FCanvas : TFPCustomCanvas;
     FFlags : word;
+    FOnChange: TNotifyEvent;
+    FOnChanging: TNotifyEvent;
     function GetAllocated : boolean;
     procedure NotifyCanvas;
   protected
@@ -51,6 +53,10 @@ type
     procedure DoDeAllocateResources; virtual;
     procedure DoCopyProps (From:TFPCanvasHelper); virtual;
     procedure SetColor (AValue:TFPColor); virtual;
+    procedure Changing; dynamic;
+    procedure Changed; dynamic;
+    Procedure Lock;
+    Procedure UnLock;
   public
     constructor Create; virtual;
     destructor destroy; override;
@@ -65,6 +71,8 @@ type
     property Canvas : TFPCustomCanvas read FCanvas;
     // color of the helper
     property Color : TFPColor read FColor Write SetColor;
+    property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
   TFPCustomFont = class (TFPCanvasHelper)
