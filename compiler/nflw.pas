@@ -82,7 +82,10 @@ interface
        tfornodeclass = class of tfornode;
 
        texitnode = class(tunarynode)
+          onlyassign : boolean;
           constructor create(l:tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -656,7 +659,7 @@ implementation
          {Can we spare the first comparision?}
          if (right.nodetype=ordconstn) and (Tassignmentnode(left).right.nodetype=ordconstn) then
             if (
-                (nf_backward in flags) and 
+                (nf_backward in flags) and
                 (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value)
                )
              or not(
@@ -789,6 +792,21 @@ implementation
     constructor texitnode.create(l:tnode);
       begin
         inherited create(exitn,l);
+        onlyassign:=false;
+      end;
+
+
+    constructor texitnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        onlyassign:=boolean(ppufile.getbyte);
+      end;
+
+
+    procedure texitnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putbyte(byte(onlyassign));
       end;
 
 
@@ -809,6 +827,7 @@ implementation
                begin
                  pt:=cfuncretnode.create(aktprocdef.funcretsym);
                  left:=cassignmentnode.create(pt,left);
+                 onlyassign:=true;
                end;
             end;
          end;
@@ -1386,7 +1405,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-09-01 08:01:16  daniel
+  Revision 1.50  2002-09-01 18:47:00  peter
+    * assignn check in exitnode changed to use a separate boolean as the
+      assignn can be changed to a calln
+
+  Revision 1.49  2002/09/01 08:01:16  daniel
    * Removed sets from Tcallnode.det_resulttype
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example

@@ -465,7 +465,7 @@ implementation
          include(flowcontrol,fc_exit);
          if assigned(left) then
            begin
-             if left.nodetype=assignn then
+             if onlyassign then
                begin
                   { just do a normal assignment followed by exit }
                   secondpass(left);
@@ -1238,7 +1238,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-09-01 14:41:47  peter
+  Revision 1.41  2002-09-01 18:47:00  peter
+    * assignn check in exitnode changed to use a separate boolean as the
+      assignn can be changed to a calln
+
+  Revision 1.40  2002/09/01 14:41:47  peter
     * increase refcount in exit(arg) for arg
 
   Revision 1.39  2002/08/24 18:41:52  peter
