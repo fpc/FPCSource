@@ -19,16 +19,14 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
   asm
     // Save registers.
     movq %rbx,(%rdi)
-    // load old rbp
-    movq (%rbp),%rdx
-    movq %rdx,8(%rdi)
+    movq %rbp,8(%rdi)
     movq %r12,16(%rdi)
     movq %r13,24(%rdi)
     movq %r14,32(%rdi)
     movq %r15,40(%rdi)
-    leaq 16(%rsp),%rdx      // Save SP as it will be after we return.
+    leaq 8(%rsp),%rdx       // Save SP as it will be after we return.
     movq %rdx,48(%rdi)
-    movq 8(%rsp),%rsi       // Save PC we are returning to now.
+    movq 0(%rsp),%rsi       // Save PC we are returning to now.
     movq %rsi,56(%rdi)
     xorq %rax,%rax
   end;
@@ -55,7 +53,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.4  2004-11-01 16:00:28  florian
+  Revision 1.5  2004-11-01 19:42:46  peter
+    * fixes for nostackframe
+
+  Revision 1.4  2004/11/01 16:00:28  florian
     * setjmp must not have a stack frame else the offsets are wrong
 
   Revision 1.3  2004/04/26 19:23:19  florian
