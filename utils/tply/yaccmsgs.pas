@@ -57,7 +57,7 @@ const
 (* sign-on and usage message: *)
 
 sign_on = 'TP Yacc Version 4.1a [April 2000], Copyright (c) 1990-2000 Albert Graef';
-{$ifdef linux}
+{$ifdef Unix}
 usage   = 'Usage: pyacc [options] yacc-file[.y] [output-file[.pas]]';
 {$else}
 usage   = 'Usage: yacc [options] yacc-file[.y] [output-file[.pas]]';

@@ -609,8 +609,12 @@ procedure auxiliary_procs;
 var i : Integer;
 
 begin
-{$ifdef linux}
+{$ifdef Unix}
+ {$ifdef BSD}
+  codfilepath:='/usr/local/lib/fpc/lexyacc/';
+ {$else}
   codfilepath:='/usr/lib/fpc/lexyacc/';
+ {$endif}
 {$else}
   codfilepath:=path(paramstr(0));
 {$endif}
