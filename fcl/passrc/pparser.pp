@@ -100,7 +100,6 @@ type
     FTokenStringBuffer: array[0..1] of String;
     FTokenBufferIndex, FTokenBufferSize: Integer;
 
-    function GetCurColumn: Integer;
     procedure ParseExc(const Msg: String);
   protected
     function CreateElement(AClass: TPTreeElement; const AName: String;
@@ -1816,7 +1815,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-04-15 22:15:57  michael
+  Revision 1.6  2004-05-16 13:24:59  peter
+    * remove not implemented method
+
+  Revision 1.5  2004/04/15 22:15:57  michael
   + Added support for deprecated after function/procedures
 
   Revision 1.4  2003/11/22 12:14:14  sg
