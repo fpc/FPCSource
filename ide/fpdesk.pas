@@ -43,7 +43,14 @@ function  ReadSymbolsFile(const filename : string): boolean;
 implementation
 
 uses Dos,
-     Objects,Drivers,Video,
+     Objects,Drivers,
+{$ifndef FVISION}
+     Video,
+{$else FVISION}
+{$ifndef GRAPH_API}
+     Video,
+{$endif GRAPH_API}
+{$endif FVISION}
      Views,App,HistList,BrowCol,
      WUtils,WResourc,WViews,WEditor,
 {$ifndef NODEBUG}
@@ -947,7 +954,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 12:23:00  peter
+  Revision 1.3  2001-10-11 11:38:22  pierre
+   * small fvision specific changes
+
+  Revision 1.2  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.1  2001/08/04 11:30:23  peter
