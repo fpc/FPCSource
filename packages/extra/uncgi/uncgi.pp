@@ -261,7 +261,7 @@ begin
 end;
 
 function hexconv(h1,h2: char): char;
-  function h2c(c:char):byte;inline;
+  function h2c(c:char):byte;
     begin
       case c of
         '0'..'9':h2c := ord(c) - ord('0');
@@ -560,7 +560,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.10  2003-05-27 20:50:18  mazen
+  Revision 1.11  2003-05-29 08:58:45  michael
+  + Fixed inline error when building
+
+  Revision 1.10  2003/05/27 20:50:18  mazen
   * New implemtation of HexConv
   * New implementation of Chop to fix an incompatibilty
     bug with SysUtils.
