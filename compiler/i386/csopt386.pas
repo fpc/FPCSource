@@ -788,7 +788,8 @@ begin
   until not getNextInstruction(p,p) or
         (PTaiProp(p.optInfo)^.Regs[reg.enum].wState <> tmpState) or
         (p.typ = ait_label);
-  if p.typ = ait_label then
+  if assigned(p) and
+     (p.typ = ait_label) then
     clearRegContentsFrom(reg,p,p);
 {$ifdef replaceregdebug}
   if assigned(p) then
@@ -1996,7 +1997,10 @@ End.
 
 {
   $Log$
-  Revision 1.48  2003-06-08 18:48:03  jonas
+  Revision 1.49  2003-07-24 10:45:40  jonas
+    * fixed nil pointer access
+
+  Revision 1.48  2003/06/08 18:48:03  jonas
     * first small steps towards an oop optimizer
 
   Revision 1.47  2003/06/03 21:09:05  peter
