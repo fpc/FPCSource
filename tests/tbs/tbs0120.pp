@@ -1,9 +1,14 @@
 type
-   te = (enum);
+   te = (enum1,enum2,enum3);
 
 var
-   e : te;
+   e,f : te;
 
 begin
+   e:=enum1;
    inc(e);
+   f:=enum3;
+   dec(f);
+   if e<>f then
+    halt(1);
 end.
