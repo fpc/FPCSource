@@ -587,15 +587,20 @@ implementation
              exit;
            end;
 
-         if left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten] then
-           begin
-             { Not of boolean expression. Turn around the operator and remove
-               the not }
-             result:=left;
-             left.nodetype:=boolean_reverse[left.nodetype];
-             left:=nil;
-             exit;
-           end;
+         if (left.nodetype in [ltn,lten,equaln,unequaln,gtn,gten]) then
+          begin
+            { Not of boolean expression. Turn around the operator and remove
+              the not. This is not allowed for sets with the gten/lten,
+              because there is no ltn/gtn support }
+            if (taddnode(left).left.resulttype.def.deftype<>setdef) or
+               (left.nodetype in [equaln,unequaln]) then
+             begin
+               result:=left;
+               left.nodetype:=boolean_reverse[left.nodetype];
+               left:=nil;
+               exit;
+             end;
+          end;
 
          { constant folding }
          if (left.nodetype=ordconstn) then
@@ -754,7 +759,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-25 09:10:58  peter
+  Revision 1.40  2002-08-25 11:32:33  peter
+    * don't optimize not([lten,gten]) for setdefs
+
+  Revision 1.39  2002/08/25 09:10:58  peter
     * fixed not(not()) removal
 
   Revision 1.38  2002/08/15 15:09:42  carl
