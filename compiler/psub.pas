@@ -736,6 +736,33 @@ begin
     Message(parser_e_no_object_override);
 end;
 
+procedure pd_message(const procnames:Tstringcontainer);
+var
+  pt : ptree;
+begin
+  { check parameter type }
+  if ((aktprocsym^.definition^.options and pocontainsself)=0) and
+     (assigned(aktprocsym^.definition^.para1^.next) or
+      (aktprocsym^.definition^.para1^.paratyp<>vs_var)) then
+   Message(parser_e_ill_msg_param);
+  pt:=comp_expr(true);
+  do_firstpass(pt);
+  if pt^.treetype=stringconstn then
+    begin
+      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pomsgstr;
+      aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
+    end
+  else
+   if is_constintnode(pt) then
+    begin
+      aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pomsgint;
+      aktprocsym^.definition^.messageinf.i:=pt^.value;
+    end
+  else
+    Message(parser_e_ill_msg_expr);
+  disposetree(pt);
+end;
+
 
 procedure pd_cdecl(const procnames:Tstringcontainer);
 begin
@@ -845,7 +872,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=27;
+  num_proc_directives=28;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -938,6 +965,12 @@ const
       flag:poiocheck;
       pd_flags:pd_implemen+pd_body;
       mut_excl:pointernproc+poexternal
+    ),(
+      idtok:_MESSAGE;
+      handler:{$ifndef TP}@{$endif}pd_message;
+      flag:0; { can be pomsgstr or pomsgint }
+      pd_flags:pd_interface+pd_object;
+      mut_excl:poinline+pointernproc+pointerrupt+poexternal
     ),(
       idtok:_NEAR;
       handler:{$ifndef TP}@{$endif}pd_near;
@@ -1792,8 +1825,14 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-06-17 13:19:56  pierre
+  Revision 1.3  1999-07-02 13:02:24  peter
+    * merged
+
+  Revision 1.2  1999/06/17 13:19:56  pierre
    * merged from 0_99_12 branch
+
+  Revision 1.1.2.2  1999/07/02 12:59:52  peter
+    * fixed parsing of message directive
 
   Revision 1.1.2.1  1999/06/17 12:44:47  pierre
     * solve problems related to assignment overloading
