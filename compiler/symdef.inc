@@ -921,11 +921,6 @@
                 begin
                    datasegment^.concat(new(pai_const,init_32bit(low)));
                    datasegment^.concat(new(pai_const,init_32bit($7fffffff)));
-                   inc(nextlabelnr);
-                   if (cs_smartlink in aktmoduleswitches) then
-                     datasegment^.concat(new(pai_symbol,init_global('R_'+current_module^.modulename^+tostr(rangenr+1))))
-                   else
-                     datasegment^.concat(new(pai_symbol,init('R_'+tostr(rangenr+1))));
                    datasegment^.concat(new(pai_const,init_32bit($80000000)));
                    datasegment^.concat(new(pai_const,init_32bit(high)));
                 end;
@@ -3224,7 +3219,10 @@
 
 {
   $Log$
-  Revision 1.73  1998-11-26 14:47:00  michael
+  Revision 1.74  1998-11-27 14:50:47  peter
+    + open strings, $P switch support
+
+  Revision 1.73  1998/11/26 14:47:00  michael
   + Fixed RTTI constants
 
   Revision 1.72  1998/11/25 14:35:28  florian

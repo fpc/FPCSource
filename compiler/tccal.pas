@@ -164,9 +164,10 @@ implementation
                       firstpass(p^.left);
                       allow_array_constructor:=old_array_constructor;
                     end;
-                   { don't generate an type conversion for open arrays   }
-                   { else we loss the ranges                             }
-                   if is_open_array(defcoll^.data) then
+                   { don't generate an type conversion for open arrays and
+                     openstring, else we loss the ranges }
+                   if is_open_array(defcoll^.data) or
+                      is_open_string(defcoll^.data) then
                     begin
                       { insert type conv but hold the ranges of the array }
                       oldtype:=p^.left^.resulttype;
@@ -190,6 +191,7 @@ implementation
                  is_shortstring(p^.left^.resulttype) and
                  is_shortstring(defcoll^.data) and
                  (defcoll^.paratyp=vs_var) and
+                 not(is_open_string(defcoll^.data)) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
                  CGMessage(type_e_strict_var_string_violation);
               { Variablen for call by reference may not be copied }
@@ -978,7 +980,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-11-24 17:03:51  peter
+  Revision 1.14  1998-11-27 14:50:52  peter
+    + open strings, $P switch support
+
+  Revision 1.13  1998/11/24 17:03:51  peter
     * fixed exactmatch removings
 
   Revision 1.12  1998/11/16 10:18:10  peter

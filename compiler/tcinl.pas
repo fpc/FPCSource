@@ -780,43 +780,55 @@ implementation
                             end;
                          arraydef:
                             begin
-                              if is_open_array(p^.left^.resulttype) then
-                                begin
-                                   if p^.inlinenumber=in_low_x then
-                                     begin
-                                        hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,s32bitdef);
-                                        disposetree(p);
-                                        p:=hp;
-                                        firstpass(p);
-                                     end
-                                   else
-                                     begin
-                                        p^.resulttype:=s32bitdef;
-                                        p^.registers32:=max(1,
-                                          p^.registers32);
-                                        p^.location.loc:=LOC_REGISTER;
-                                     end;
-                                end
+                              if p^.inlinenumber=in_low_x then
+                               begin
+                                 hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,s32bitdef);
+                                 disposetree(p);
+                                 p:=hp;
+                                 firstpass(p);
+                               end
                               else
-                                begin
-                                   if p^.inlinenumber=in_low_x then
-                                     hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.lowrange,s32bitdef)
-                                   else
-                                     hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.highrange,s32bitdef);
-                                   disposetree(p);
-                                   p:=hp;
-                                   firstpass(p);
-                                end;
+                               begin
+                                 if is_open_array(p^.left^.resulttype) then
+                                  begin
+                                    p^.resulttype:=s32bitdef;
+                                    p^.registers32:=max(1,p^.registers32);
+                                    p^.location.loc:=LOC_REGISTER;
+                                  end
+                                 else
+                                  begin
+                                    hp:=genordinalconstnode(Parraydef(p^.left^.resulttype)^.highrange,s32bitdef);
+                                    disposetree(p);
+                                    p:=hp;
+                                    firstpass(p);
+                                  end;
+                               end;
                            end;
                          stringdef:
                            begin
                               if p^.inlinenumber=in_low_x then
-                                hp:=genordinalconstnode(0,u8bitdef)
+                               begin
+                                 hp:=genordinalconstnode(0,u8bitdef);
+                                 disposetree(p);
+                                 p:=hp;
+                                 firstpass(p);
+                               end
                               else
-                                hp:=genordinalconstnode(Pstringdef(p^.left^.resulttype)^.len,u8bitdef);
-                              disposetree(p);
-                              p:=hp;
-                              firstpass(p);
+                               begin
+                                 if is_open_string(p^.left^.resulttype) then
+                                  begin
+                                    p^.resulttype:=s32bitdef;
+                                    p^.registers32:=max(1,p^.registers32);
+                                    p^.location.loc:=LOC_REGISTER;
+                                  end
+                                 else
+                                  begin
+                                    hp:=genordinalconstnode(Pstringdef(p^.left^.resulttype)^.len,u8bitdef);
+                                    disposetree(p);
+                                    p:=hp;
+                                    firstpass(p);
+                                  end;
+                               end;
                            end;
                          else
                            CGMessage(type_e_mismatch);
@@ -863,7 +875,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-11-24 17:04:28  peter
+  Revision 1.10  1998-11-27 14:50:53  peter
+    + open strings, $P switch support
+
+  Revision 1.9  1998/11/24 17:04:28  peter
     * fixed length(char) when char is a variable
 
   Revision 1.8  1998/11/14 10:51:33  peter

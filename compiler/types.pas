@@ -46,6 +46,9 @@ unit types;
     { true if p is a char }
     function is_char(def : pdef) : boolean;
 
+    { true if p points to an open string def }
+    function is_open_string(p : pdef) : boolean;
+
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
@@ -258,6 +261,15 @@ unit types;
          else
            is_signed:=false;
          end;
+      end;
+
+
+    { true, if p points to an open array def }
+    function is_open_string(p : pdef) : boolean;
+      begin
+         is_open_string:=(p^.deftype=stringdef) and
+                        (pstringdef(p)^.string_typ=st_shortstring) and
+                        (pstringdef(p)^.len=0);
       end;
 
 
@@ -1020,7 +1032,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.38  1998-11-18 15:44:24  peter
+  Revision 1.39  1998-11-27 14:50:55  peter
+    + open strings, $P switch support
+
+  Revision 1.38  1998/11/18 15:44:24  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.37  1998/11/13 10:15:50  peter

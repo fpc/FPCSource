@@ -216,8 +216,9 @@ unit pexpr;
                  Must_be_valid:=false;
                  do_firstpass(p1);
                  if ((p1^.resulttype^.deftype=objectdef) and
-                    ((pobjectdef(p1^.resulttype)^.options and oo_hasconstructor)<>0))
-                   or is_open_array(p1^.resulttype) then
+                     ((pobjectdef(p1^.resulttype)^.options and oo_hasconstructor)<>0)) or
+                    is_open_array(p1^.resulttype) or
+                    is_open_string(p1^.resulttype) then
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
                  else
                   begin
@@ -1583,16 +1584,21 @@ unit pexpr;
                  p1:=genrealconstnode(d);
                end;
      _STRING : begin
-               { STRING can be also a type cast }
                  pd:=stringtype;
-                 consume(LKLAMMER);
-                 p1:=comp_expr(true);
-                 consume(RKLAMMER);
-                 p1:=gentypeconvnode(p1,pd);
-                 p1^.explizit:=true;
-                 { handle postfix operators here e.g. string(a)[10] }
-                 again:=true;
-                 postfixoperators;
+                 { STRING can be also a type cast }
+                 if token=LKLAMMER then
+                  begin
+                    consume(LKLAMMER);
+                    p1:=comp_expr(true);
+                    consume(RKLAMMER);
+                    p1:=gentypeconvnode(p1,pd);
+                    p1^.explizit:=true;
+                    { handle postfix operators here e.g. string(a)[10] }
+                    again:=true;
+                    postfixoperators;
+                  end
+                 else
+                  p1:=gentypenode(pd);
                end;
        _FILE : begin
                  pd:=cfiledef;
@@ -1908,7 +1914,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.75  1998-11-25 19:12:51  pierre
+  Revision 1.76  1998-11-27 14:50:40  peter
+    + open strings, $P switch support
+
+  Revision 1.75  1998/11/25 19:12:51  pierre
     * var:=new(pointer_type) support added
 
   Revision 1.74  1998/11/13 10:18:11  peter

@@ -57,7 +57,7 @@ const
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {P} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {P} (typesw:modulesw; setsw:ord(cs_openstring)),
    {Q} (typesw:localsw; setsw:ord(cs_check_overflow)),
    {R} (typesw:localsw; setsw:ord(cs_check_range)),
    {S} (typesw:localsw; setsw:ord(cs_check_stack)),
@@ -164,7 +164,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-10-13 16:50:22  pierre
+  Revision 1.17  1998-11-27 14:50:46  peter
+    + open strings, $P switch support
+
+  Revision 1.16  1998/10/13 16:50:22  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

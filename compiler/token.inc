@@ -169,6 +169,7 @@ type
     _PUBLISHED,
     _DESTRUCTOR,
     _CONSTRUCTOR,
+    _SHORTSTRING,
     _FINALIZATION,
     _IMPLEMENTATION,
     _INITIALIZATION
@@ -327,6 +328,7 @@ const
       (str:'PUBLISHED'     ;special:false;keyword:m_none),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all),
       (str:'CONSTRUCTOR'   ;special:false;keyword:m_all),
+      (str:'SHORTSTRING'   ;special:false;keyword:m_none),
       (str:'FINALIZATION'  ;special:false;keyword:m_class),
       (str:'IMPLEMENTATION';special:false;keyword:m_all),
       (str:'INITIALIZATION';special:false;keyword:m_class)
@@ -334,7 +336,10 @@ const
 
 {
   $Log$
-  Revision 1.6  1998-11-13 15:40:33  pierre
+  Revision 1.7  1998-11-27 14:50:54  peter
+    + open strings, $P switch support
+
+  Revision 1.6  1998/11/13 15:40:33  pierre
     + added -Se in Makefile cvstest target
     + lexlevel cleanup
       normal_function_level main_program_level and unit_init_level defined

@@ -68,7 +68,7 @@ implementation
         end;
 
 
-      procedure maybe_push_open_array_high;
+      procedure maybe_push_high;
         var
            r    : preference;
            hreg : tregister;
@@ -78,7 +78,8 @@ implementation
            { open array ? }
            { defcoll^.data can be nil for read/write }
            if assigned(defcoll^.data) and
-              is_open_array(defcoll^.data) then
+              (is_open_array(defcoll^.data) or
+               is_open_string(defcoll^.data)) then
              begin
               { push high }
                case p^.left^.resulttype^.deftype of
@@ -93,17 +94,31 @@ implementation
                                    parraydef(p^.left^.resulttype)^.lowrange
                            end;
                stringdef : begin
-                             if p^.left^.treetype=stringconstn then
-                              len:=str_length(p^.left)
+                             if is_open_string(defcoll^.data) then
+			       begin
+			         if is_open_string(p^.left^.resulttype) then
+				  begin
+                                    r:=new_reference(highframepointer,highoffset+4);
+                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
+                                    hreg:=R_EDI;
+                                    len:=-2;
+				  end
+				 else 
+                                  len:=pstringdef(p^.left^.resulttype)^.len
+			       end
                              else
-                              begin
-                                href:=p^.left^.location.reference;
-                                dec(href.offset);
-                                hreg:=reg32toreg8(getregister32);
-                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,newreference(href),hreg)));
-                                emit_to_reg32(hreg);
-                                len:=-2;
-                              end;
+                             { passing a string to an array of char }
+                               begin
+                                 if (p^.left^.treetype=stringconstn) then
+                                   len:=str_length(p^.left)
+                                 else
+                                   begin
+                                     href:=p^.left^.location.reference;
+                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(href),R_EDI)));
+                                     hreg:=R_EDI;
+                                     len:=-2;
+                                   end;
+                               end;
                            end;
                else
                 len:=0;
@@ -218,7 +233,7 @@ implementation
            begin
               if (p^.left^.location.loc<>LOC_REFERENCE) then
                 CGMessage(cg_e_var_must_be_reference);
-              maybe_push_open_array_high;
+              maybe_push_high;
               inc(pushedparasize,4);
               if inlined then
                 begin
@@ -242,7 +257,7 @@ implementation
 {$endif}
                  push_addr(p^.left) then
                 begin
-                   maybe_push_open_array_high;
+                   maybe_push_high;
                    inc(pushedparasize,4);
                    if inlined then
                      begin
@@ -530,7 +545,7 @@ implementation
                                  is_open_array(defcoll^.data) then
                                begin
                                   { first, push high }
-                                  maybe_push_open_array_high;
+                                  maybe_push_high;
                                   inc(pushedparasize,4);
                                   if inlined then
                                     begin
@@ -1575,7 +1590,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1998-11-26 21:30:03  peter
+  Revision 1.48  1998-11-27 14:50:30  peter
+    + open strings, $P switch support
+
+  Revision 1.47  1998/11/26 21:30:03  peter
     * fix for valuepara
 
   Revision 1.46  1998/11/26 14:39:10  peter

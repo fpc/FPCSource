@@ -131,6 +131,16 @@ unit hcodegen;
        { true, if an error while code generation occurs }
        codegenerror : boolean;
 
+       { this is for open arrays and strings        }
+       { but be careful, this data is in the        }
+       { generated code destroyed quick, and also   }
+       { the next call of secondload destroys this  }
+       { data                                       }
+       { So be careful using the informations       }
+       { provided by this variables                 }
+       highframepointer : tregister;
+       highoffset : longint;
+
     { message calls with codegenerror support }
     procedure cgmessage(const t : tmsgconst);
     procedure cgmessage1(const t : tmsgconst;const s : string);
@@ -344,7 +354,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  1998-11-16 12:12:21  peter
+  Revision 1.23  1998-11-27 14:50:38  peter
+    + open strings, $P switch support
+
+  Revision 1.22  1998/11/16 12:12:21  peter
     - generate_pascii which is obsolete
 
   Revision 1.21  1998/11/04 10:11:38  peter

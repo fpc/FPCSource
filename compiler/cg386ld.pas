@@ -26,17 +26,6 @@ interface
     uses
       tree,i386;
 
-    var
-       { this is for open arrays and strings        }
-       { but be careful, this data is in the        }
-       { generated code destroyed quick, and also   }
-       { the next call of secondload destroys this  }
-       { data                                       }
-       { So be careful using the informations       }
-       { provided by this variables                 }
-       highframepointer : tregister;
-       highoffset : longint;
-
     procedure secondload(var p : ptree);
     procedure secondassignment(var p : ptree);
     procedure secondfuncret(var p : ptree);
@@ -187,16 +176,17 @@ implementation
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
 {$ifndef VALUEPARA}
                              dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) or
-{$else}
-                             push_addr_param(pvarsym(p^.symtableentry)^.definition)) or
-{$endif}
                              { call by value open arrays are also indirect addressed }
                              is_open_array(pvarsym(p^.symtableentry)^.definition) then
+{$else}
+                             push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
+{$endif}
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=getregister32;
-                              if is_open_array(pvarsym(p^.symtableentry)^.definition) then
+                              if is_open_array(pvarsym(p^.symtableentry)^.definition) or
+                                 is_open_string(pvarsym(p^.symtableentry)^.definition) then
                                 begin
                                    if (p^.location.reference.base=procinfo.framepointer) then
                                      begin
@@ -689,7 +679,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1998-11-26 09:53:36  florian
+  Revision 1.33  1998-11-27 14:50:33  peter
+    + open strings, $P switch support
+
+  Revision 1.32  1998/11/26 09:53:36  florian
     * for classes no init/final. code is necessary, fixed
 
   Revision 1.31  1998/11/20 15:35:54  florian

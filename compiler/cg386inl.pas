@@ -203,6 +203,11 @@ implementation
                        CGMessage(parser_e_illegal_colon_qualifier);
                      if ft=ft_typed then
                        never_copy_const_param:=true;
+                     { reset data type }
+                     dummycoll.data:=nil;
+                     { support openstring calling for readln(shortstring) }
+                     if doread and (is_shortstring(hp^.resulttype)) then
+                       dummycoll.data:=openshortstringdef;
                      secondcallparan(hp,@dummycoll,false,false,0);
                      if ft=ft_typed then
                        never_copy_const_param:=false;
@@ -279,7 +284,6 @@ implementation
                                      if doread then
                                        begin
                                          { push maximum string length }
-                                         push_int(pstringdef(pararesult)^.len);
                                          case pstringdef(pararesult)^.string_typ of
                                           st_shortstring:
                                             emitcall ('FPC_READ_TEXT_STRING',true);
@@ -432,17 +436,16 @@ implementation
            { we have at least two args }
            { with at max 2 colon_para in between }
 
-           { first arg longint or float }
+           { string arg }
            hp:=node;
            node:=node^.right;
            hp^.right:=nil;
-           dummycoll.data:=hp^.resulttype;
-           { string arg }
-
            dummycoll.paratyp:=vs_var;
-           secondcallparan(hp,@dummycoll,false
-             ,false,0
-             );
+           if is_shortstring(hp^.resulttype) then
+             dummycoll.data:=openshortstringdef
+           else
+             dummycoll.data:=hp^.resulttype;
+           secondcallparan(hp,@dummycoll,false,false,0);
            if codegenerror then
              exit;
 
@@ -586,15 +589,13 @@ implementation
               end;
             in_high_x :
               begin
-                 if is_open_array(p^.left^.resulttype) then
+                 if is_open_array(p^.left^.resulttype) or
+                    is_open_string(p^.left^.resulttype) then
                    begin
                       secondpass(p^.left);
                       del_reference(p^.left^.location.reference);
                       p^.location.register:=getregister32;
-                      new(r);
-                      reset_reference(r^);
-                      r^.base:=highframepointer;
-                      r^.offset:=highoffset+4;
+                      r:=new_reference(highframepointer,highoffset+4);
                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                         r,p^.location.register)));
                    end
@@ -604,21 +605,20 @@ implementation
               begin
                { sizeof(openarray) handling }
                  if (p^.inlinenumber=in_sizeof_x) and
-                    is_open_array(p^.left^.resulttype) then
+                    (is_open_array(p^.left^.resulttype) or
+                     is_open_string(p^.left^.resulttype)) then
                   begin
                   { sizeof(openarray)=high(openarray)+1 }
                     secondpass(p^.left);
                     del_reference(p^.left^.location.reference);
                     p^.location.register:=getregister32;
-                    new(r);
-                    reset_reference(r^);
-                    r^.base:=highframepointer;
-                    r^.offset:=highoffset+4;
+                    r:=new_reference(highframepointer,highoffset+4);
                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                       r,p^.location.register)));
                     exprasmlist^.concat(new(pai386,op_reg(A_INC,S_L,
                       p^.location.register)));
-                    if parraydef(p^.left^.resulttype)^.elesize<>1 then
+                    if (p^.left^.resulttype^.deftype=arraydef) and
+                       (parraydef(p^.left^.resulttype)^.elesize<>1) then
                       exprasmlist^.concat(new(pai386,op_const_reg(A_IMUL,S_L,
                         parraydef(p^.left^.resulttype)^.elesize,p^.location.register)));
                   end
@@ -970,7 +970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-11-26 13:10:40  peter
+  Revision 1.20  1998-11-27 14:50:32  peter
+    + open strings, $P switch support
+
+  Revision 1.19  1998/11/26 13:10:40  peter
     * new int - int conversion -dNEWCNV
     * some function renamings
 

@@ -24,7 +24,12 @@
                              Needed switches
 ****************************************************************************}
 
-{$I-,Q-,H-,R-}
+{$I-,Q-,H-,R-,V-}
+
+{ needed for insert,delete,readln }
+{$ifdef OPENSTRINGS}
+  {$P+}
+{$endif}
 
 { Stack check gives a note under linux }
 {$ifndef linux}
@@ -432,7 +437,10 @@ const
 
 {
   $Log$
-  Revision 1.43  1998-11-26 23:16:13  jonas
+  Revision 1.44  1998-11-27 14:50:57  peter
+    + open strings, $P switch support
+
+  Revision 1.43  1998/11/26 23:16:13  jonas
     * changed RandSeed and OldRandSeed to Cardinal to avoid negative random numbers
 
   Revision 1.42  1998/11/24 17:12:43  peter

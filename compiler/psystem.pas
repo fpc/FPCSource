@@ -93,6 +93,7 @@ begin
   p^.insert(new(ptypesym,init('longstring',clongstringdef)));
   p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
   p^.insert(new(ptypesym,init('widestring',cwidestringdef)));
+  p^.insert(new(ptypesym,init('openshortstring',openshortstringdef)));
   p^.insert(new(ptypesym,init('word',u16bitdef)));
   p^.insert(new(ptypesym,init('boolean',booldef)));
   p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
@@ -168,6 +169,7 @@ begin
   clongstringdef:=pstringdef(globaldef('longstring'));
   cansistringdef:=pstringdef(globaldef('ansistring'));
   cwidestringdef:=pstringdef(globaldef('widestring'));
+  openshortstringdef:=pstringdef(globaldef('openshortstring'));
   cchardef:=porddef(globaldef('char'));
 {$ifdef i386}
   c64floatdef:=pfloatdef(globaldef('s64real'));
@@ -209,6 +211,8 @@ begin
   clongstringdef:=new(pstringdef,longinit(-1));
   cansistringdef:=new(pstringdef,ansiinit(-1));
   cwidestringdef:=new(pstringdef,wideinit(-1));
+  { length=0 for shortstring is open string (needed for readln(string) }
+  openshortstringdef:=new(pstringdef,shortinit(0));
 {$ifdef i386}
   c64floatdef:=new(pfloatdef,init(s64real));
   s80floatdef:=new(pfloatdef,init(s80real));
@@ -232,7 +236,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-11-16 10:18:09  peter
+  Revision 1.12  1998-11-27 14:50:45  peter
+    + open strings, $P switch support
+
+  Revision 1.11  1998/11/16 10:18:09  peter
     * fixes for ansistrings
 
   Revision 1.10  1998/11/09 11:44:36  peter

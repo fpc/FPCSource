@@ -726,8 +726,15 @@ Begin
 End;
 
 
+{$ifdef OPENSTRINGS}
+Procedure Read_String(var f : TextRec;var s : String);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_STRING'];
+{$else}
 Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_STRING'];
+{$endif}
 var
+{$ifdef OPENSTRINGS}
+  maxlen,
+{$endif}
   sPos,len : Longint;
   p,startp,maxp : pchar;
 Begin
@@ -743,6 +750,9 @@ Begin
    end;
 { Read maximal until Maxlen is reached }
   sPos:=0;
+{$ifdef OPENSTRINGS}
+  MaxLen:=high(s);
+{$endif}
   repeat
     If f.BufPos>=f.BufEnd Then
      begin
@@ -902,15 +912,23 @@ Begin
 End;
 
 
-Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
+{$ifdef OPENSTRINGS}
+Procedure Read_AnsiString(var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
+{$else}
+Procedure Read_AnsiString(Maxlen : Longint;var f : TextRec;var s : AnsiString);[Public,Alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_ANSISTRING'];
+{$endif}
 var
   p,maxp,startp,sidx : PChar;
+{$ifdef OPENSTRINGS}
+  maxlen,
+{$endif}
   spos,len : longint;
 Begin
 { Delete the string }
   Decr_ansi_ref (Pointer(S));
   { We assign room for 1024 characters totally at random.... }
   Pointer(s):=Pointer(NewAnsiString(1024));
+  MaxLen:=1024;
 { Check error and if file is open }
   If (InOutRes<>0) then
    exit;
@@ -1194,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  1998-11-16 12:21:48  peter
+  Revision 1.35  1998-11-27 14:50:58  peter
+    + open strings, $P switch support
+
+  Revision 1.34  1998/11/16 12:21:48  peter
     * fixes for 0.99.8
 
   Revision 1.33  1998/10/23 00:03:29  peter

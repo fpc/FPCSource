@@ -970,8 +970,9 @@
                             end;
                    vs_var : begin
                             { open arrays push also the high valye }
-                              if is_open_array(definition) then
-                                getsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                              if is_open_array(definition) or
+                                 is_open_string(definition) then
+                                getsize:=target_os.size_of_pointer+target_os.size_of_longint
                               else
                                 getsize:=target_os.size_of_pointer;
                             end;
@@ -983,9 +984,8 @@
                                 setdef : getsize:=target_os.size_of_pointer;
                               arraydef : begin
                                          { open arrays push also the high valye }
-                                           if (parraydef(definition)^.lowrange=0) and
-                                              (parraydef(definition)^.highrange=-1) then
-                                             getsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                                           if is_open_array(definition) then
+                                             getsize:=target_os.size_of_pointer+target_os.size_of_longint
                                            else
                                              getsize:=target_os.size_of_pointer;
                                          end;
@@ -1016,8 +1016,9 @@
                 vs_var :
                   begin
                     { open arrays push also the high valye }
-                    if is_open_array(definition) then
-                      getpushsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                    if is_open_array(definition) or
+                       is_open_string(definition) then
+                      getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
                     else
                       getpushsize:=target_os.size_of_pointer;
                   end;
@@ -1032,7 +1033,7 @@
                         getpushsize:=target_os.size_of_pointer;
                       arraydef :
                         if is_open_array(definition) then
-                          getpushsize:=target_os.size_of_pointer+target_os.size_of_pointer
+                          getpushsize:=target_os.size_of_pointer+target_os.size_of_longint
                         else
                           getpushsize:=target_os.size_of_pointer;
                       else
@@ -1803,7 +1804,10 @@
 
 {
   $Log$
-  Revision 1.61  1998-11-18 15:44:18  peter
+  Revision 1.62  1998-11-27 14:50:48  peter
+    + open strings, $P switch support
+
+  Revision 1.61  1998/11/18 15:44:18  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.60  1998/11/16 10:13:51  peter
