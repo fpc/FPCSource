@@ -53,6 +53,9 @@ interface
     { true if p is a char }
     function is_char(def : pdef) : boolean;
 
+    { true if p is a void}
+    function is_void(def : pdef) : boolean;
+
     { true if p is a smallset def }
     function is_smallset(p : pdef) : boolean;
 
@@ -352,6 +355,14 @@ implementation
       begin
         is_boolean:=(def^.deftype=orddef) and
                     (porddef(def)^.typ in [bool8bit,bool16bit,bool32bit]);
+      end;
+
+
+    { true if p is a void }
+    function is_void(def : pdef) : boolean;
+      begin
+        is_void:=(def^.deftype=orddef) and
+                 (porddef(def)^.typ=uvoid);
       end;
 
 
@@ -985,7 +996,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  1999-11-30 10:40:59  peter
+  Revision 1.93  1999-12-31 14:26:28  peter
+    * fixed crash with empty array constructors
+
+  Revision 1.92  1999/11/30 10:40:59  peter
     + ttype, tsymlist
 
   Revision 1.91  1999/11/06 14:34:31  peter

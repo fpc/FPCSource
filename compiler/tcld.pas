@@ -446,6 +446,10 @@ implementation
         { looks a little bit dangerous to me            }
         { len-1 gives problems with is_open_array if len=0, }
         { is_open_array checks now for isconstructor (FK)   }
+      { if no type is set then we set the type to voiddef to overcome a
+        0 addressing }
+        if not assigned(pd) then
+         pd:=voiddef;
       { skip if already done ! (PM) }
         if not assigned(p^.resulttype) or
            (p^.resulttype^.deftype<>arraydef) or
@@ -474,7 +478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-12-09 23:18:05  pierre
+  Revision 1.55  1999-12-31 14:26:27  peter
+    * fixed crash with empty array constructors
+
+  Revision 1.54  1999/12/09 23:18:05  pierre
    * no_fast_exit if procedure contains implicit termination code
 
   Revision 1.53  1999/12/02 17:28:53  peter

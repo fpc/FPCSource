@@ -268,7 +268,8 @@ implementation
                         if is_open_array(def_to) and
                            is_array_constructor(def_from) then
                          begin
-                           if is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
+                           if is_void(parraydef(def_from)^.elementtype.def) or
+                              is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
                             begin
                               doconv:=tc_equal;
                               b:=1;
@@ -847,7 +848,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-12-18 14:55:21  florian
+  Revision 1.54  1999-12-31 14:26:27  peter
+    * fixed crash with empty array constructors
+
+  Revision 1.53  1999/12/18 14:55:21  florian
     * very basic widestring support
 
   Revision 1.52  1999/12/16 19:12:04  peter
