@@ -187,13 +187,16 @@ unit ptconst;
                     datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
-                      consts^.concat(new(pai_string,init(p^.value_str^+#0)))
+                      begin
+                        getmem(ca,p^.length+2);
+                        move(p^.value_str^,ca^,p^.length+1);
+                        generate_pascii(consts,ca,p^.length+1);
+                      end
                     else
                       if is_constcharnode(p) then
                         consts^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
                     else
                       Message(cg_e_illegal_expression);
-                    { insert label }
                 end
               else
                 if p^.treetype=addrn then
@@ -318,8 +321,7 @@ unit ptconst;
                            datasegment^.concat(new(pai_const,init_8bit(strlength)));
                            { this can also handle longer strings }
                            getmem(ca,strlength+1);
-                           move(p^.value_str^,ca^,strlength);
-                           ca[strlength]:=#0;
+                           move(p^.value_str^,ca^,strlength+1);
                            generate_pascii(datasegment,ca,strlength);
                         end
                       else if is_constcharnode(p) then
@@ -331,15 +333,17 @@ unit ptconst;
 
                       if def^.size>strlength then
                         begin
-                           getmem(ca,def^.size-strlength);
+                           getmem(ca,def^.size-strlength+1);
                            { def^.size contains also the leading length, so we }
                            { we have to subtract one                           }
                            fillchar(ca[0],def^.size-strlength-1,' ');
                            ca[def^.size-strlength-1]:=#0;
                            { this can also handle longer strings }
-                           generate_pascii(datasegment,ca,def^.size-strlength-1);
-                        end;
-                    end;
+                           generate_pascii(datasegment,ca,def^.size-strlength);
+                        end
+                      else
+                        datasegment^.concat(new(pai_const,init_8bit(0)));
+                   end;
 {$ifdef UseLongString}
                  st_longstring:
                    begin
@@ -405,7 +409,7 @@ unit ptconst;
                            else Message(cg_e_illegal_expression);
                            consts^.concat(new(pai_const,init_8bit(0)));
                         end;
-                    end;
+                   end;
               end;
               disposetree(p);
            end;
@@ -624,7 +628,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.24  1998-11-05 12:02:55  peter
+  Revision 1.25  1998-11-10 16:10:47  peter
+    * fixed const pchar
+
+  Revision 1.24  1998/11/05 12:02:55  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
