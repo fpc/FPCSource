@@ -2387,7 +2387,14 @@ begin
      halt(1);
    end;
   assign(outfile, outputfilename);
+  {$I-}
   rewrite(outfile);
+  {$I+}
+  if ioresult<>0 then
+   begin
+     writeln('file ',outputfilename,' could not be created!');
+     halt(1);
+   end;
 { write unit header }
   if not includefile then
    begin
@@ -2457,7 +2464,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-02-13 22:20:24  michael
+  Revision 1.7  2004-06-20 17:56:05  marco
+   Patch from Christian Iversen. ioresult check when opening for output
+
+  Revision 1.6  2003/02/13 22:20:24  michael
   + Patch from Jeff Pohlmeyer to process empty structs
 
   Revision 1.5  2002/09/07 15:40:33  peter
