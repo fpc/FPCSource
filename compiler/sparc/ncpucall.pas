@@ -56,14 +56,16 @@ function TSparcCallNode.pass_1:TNode;
   end;
 procedure TSparcCallNode.push_framepointer;
   begin
-    InternalError(2002101000);
   end;
 begin
    ccallnode:=TSparcCallNode;
 end.
 {
   $Log$
-  Revision 1.10  2003-04-27 11:21:36  peter
+  Revision 1.11  2003-04-28 09:49:58  mazen
+  - InternalError removed from TSparcCallNode.push_framepointer as it is called by common coplier code.
+
+  Revision 1.10  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
