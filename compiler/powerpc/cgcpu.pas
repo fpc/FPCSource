@@ -186,8 +186,11 @@ const
     procedure tcgppc.done_register_allocators;
       begin
         rg[R_INTREGISTER].free;
+        rg[R_INTREGISTER]:=nil;
         rg[R_FPUREGISTER].free;
+        rg[R_FPUREGISTER]:=nil;
         rg[R_MMREGISTER].free;
+        rg[R_MMREGISTER]:=nil;
       end;
 
 
@@ -2314,7 +2317,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.148  2003-12-16 21:49:47  florian
+  Revision 1.149  2003-12-18 01:03:52  florian
+    + register allocators are set to nil now after they are freed
+
+  Revision 1.148  2003/12/16 21:49:47  florian
     * fixed ppc compilation
 
   Revision 1.147  2003/12/15 21:37:09  jonas
