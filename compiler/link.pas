@@ -335,6 +335,8 @@ end;
 
 Procedure TLinker.AddSharedLibrary(S:String);
 begin
+  if s='' then
+   exit;
 { remove prefix 'lib' }
   if Copy(s,1,length(target_os.libprefix))=target_os.libprefix then
    Delete(s,1,length(target_os.libprefix));
@@ -351,6 +353,8 @@ var
   ns : string;
   found : boolean;
 begin
+  if s='' then
+   exit;
   ns:=FindLibraryFile(s,target_os.staticlibext,found);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
@@ -517,7 +521,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.87  2000-05-03 16:11:57  peter
+  Revision 1.88  2000-05-17 18:30:35  peter
+    * removed wrong warning for library finding
+
+  Revision 1.87  2000/05/03 16:11:57  peter
     * also allow smartlinking for main programs
 
   Revision 1.86  2000/04/14 11:16:10  pierre
