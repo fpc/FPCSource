@@ -607,6 +607,7 @@ begin
 {$ifndef GABOR}
   switch_to_user:=true;
 {$endif}
+  Command('set print object off');
 end;
 
 procedure TDebugController.SetExe(const exefn:string);
@@ -4065,7 +4066,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2002-04-11 06:41:13  pierre
+  Revision 1.17  2002-04-17 11:11:54  pierre
+    * avoid problems for ClassVariable in Watches window
+
+  Revision 1.16  2002/04/11 06:41:13  pierre
    * fix problem of TWatchesListBox with fvision
 
   Revision 1.15  2002/04/03 06:18:30  pierre
