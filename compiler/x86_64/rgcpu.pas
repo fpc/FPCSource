@@ -36,18 +36,10 @@ unit rgcpu;
 
     type
        trgcpu = class(trgobj)
+          fpuvaroffset : byte;
 
-          { to keep the same allocation order as with the old routines }
-          function getregisterint(list:Taasmoutput;size:Tcgsize):Tregister;override;
-{$ifndef newra}
-          procedure ungetregisterint(list:Taasmoutput;r:Tregister); override;
-          function getexplicitregisterint(list:Taasmoutput;r:Tnewregister):Tregister;override;
-{$endif newra}
-
-          function getregisterfpu(list: taasmoutput) : tregister; override;
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
-
-          procedure ungetreference(list: taasmoutput; const ref : treference); override;
+          function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
+          procedure ungetregisterfpu(list: taasmoutput; r : tregister;size:TCGSize); override;
 
           {# Returns a subset register of the register r with the specified size.
              WARNING: There is no clearing of the upper parts of the register,
@@ -56,12 +48,27 @@ unit rgcpu;
           }
           function makeregsize(reg: tregister; size: tcgsize): tregister; override;
 
+          { pushes and restores registers }
+{$ifdef SUPPORT_MMX}
+          procedure pushusedotherregisters(list:Taasmoutput;
+                                           var pushed:Tpushedsavedother;
+                                           const s:Totherregisterset);
+{$endif SUPPORT_MMX}
+{$ifdef SUPPORT_MMX}
+          procedure popusedotherregisters(list:Taasmoutput;
+                                          const pushed:Tpushedsavedother);
+{$endif SUPPORT_MMX}
+
+          procedure saveusedotherregisters(list:Taasmoutput;
+                                           var saved:Tpushedsavedother;
+                                           const s:Totherregisterset);override;
+          procedure restoreusedotherregisters(list:Taasmoutput;
+                                              const saved:Tpushedsavedother);override;
+
           procedure resetusableregisters;override;
 
          { corrects the fpu stack register by ofs }
          function correct_fpuregister(r : tregister;ofs : byte) : tregister;
-
-         fpuvaroffset : byte;
        end;
 
 
@@ -72,234 +79,16 @@ unit rgcpu;
        globals,verbose,
        tgobj;
 
-{************************************************************************}
-{                         routine helpers                                }
-{************************************************************************}
-
-  const
-    reg2reg64 : array[firstreg..lastreg] of toldregister = (R_NO,
-      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
-      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,R_RIP,
-      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
-      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
-      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
-      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
-      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
-      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    reg2reg32 : array[firstreg..lastreg] of toldregister = (R_NO,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,R_NO,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    reg2reg16 : array[firstreg..lastreg] of toldregister = (R_NO,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,R_NO,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
-      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    reg2reg8 : array[firstreg..lastreg] of toldregister = (R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
-      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
-      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
-      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
-      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
-      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
-      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
-      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
-    );
-
-    { convert a register to a specfied register size }
-    function changeregsize(r:tregister;size:topsize):tregister;
-      var
-        reg : tregister;
-      begin
-        case size of
-          S_B :
-            reg.enum:=reg2reg8[r.enum];
-          S_W :
-            reg.enum:=reg2reg16[r.enum];
-          S_L :
-            reg.enum:=reg2reg32[r.enum];
-          S_Q :
-            reg.enum:=reg2reg64[r.enum];
-          else
-            internalerror(200204101);
-        end;
-        if reg.enum=R_NO then
-         internalerror(200204102);
-        changeregsize:=reg;
-      end;
-
-
-{************************************************************************}
-{                               trgcpu                                   }
-{************************************************************************}
-
-    function trgcpu.getregisterint(list: taasmoutput;size:Tcgsize): tregister;
-    var subreg:Tsubregister;
-
-    begin
-      subreg:=cgsize2subreg(size);
-
-      if countunusedregsint=0 then
-        internalerror(10);
-      result.enum:=R_INTREGISTER;
-{$ifdef TEMPREGDEBUG}
-      if curptree^.usableregsint-countunusedregsint>curptree^.registers32 then
-        internalerror(10);
-{$endif TEMPREGDEBUG}
-{$ifdef EXTTEMPREGDEBUG}
-      if curptree^.usableregs-countunusedregistersint>curptree^^.reallyusedregs then
-        curptree^.reallyusedregs:=curptree^^.usableregs-countunusedregistersint;
-{$endif EXTTEMPREGDEBUG}
-      if RS_RAX in unusedregsint then
-        begin
-          dec(countunusedregsint);
-          exclude(unusedregsint,RS_RAX);
-          include(used_in_proc_int,RS_RAX);
-          result.number:=RS_RAX shl 8 or subreg;
-{$ifdef TEMPREGDEBUG}
-          reg_user[R_RAX]:=curptree^;
-{$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(result));
-        end
-      else if RS_RDX in unusedregsint then
-        begin
-          dec(countunusedregsint);
-          exclude(unusedregsint,RS_RDX);
-          include(used_in_proc_int,RS_RDX);
-          result.number:=RS_RDX shl 8 or subreg;
-{$ifdef TEMPREGDEBUG}
-          reg_user[R_RDX]:=curptree^;
-{$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(result));
-        end
-      else if RS_RBX in unusedregsint then
-        begin
-          dec(countunusedregsint);
-          exclude(unusedregsint,RS_RBX);
-          include(used_in_proc_int,RS_RBX);
-          result.number:=RS_RBX shl 8 or subreg;
-{$ifdef TEMPREGDEBUG}
-          reg_user[R_RBX]:=curptree^;
-{$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(result));
-        end
-      else if RS_RCX in unusedregsint then
-        begin
-          dec(countunusedregsint);
-          exclude(unusedregsint,RS_RCX);
-          include(used_in_proc_int,RS_RCX);
-          result.number:=RS_RCX shl 8 or subreg;
-{$ifdef TEMPREGDEBUG}
-          reg_user[R_RCX]:=curptree^;
-{$endif TEMPREGDEBUG}
-          exprasmlist.concat(tai_regalloc.alloc(result));
-        end
-      else
-        internalerror(10);
-{$ifdef TEMPREGDEBUG}
-      testregisters;
-{$endif TEMPREGDEBUG}
-    end;
-
-
-
-    procedure trgcpu.ungetregisterint(list: taasmoutput; r : tregister);
-      var supreg:Tsuperregister;
-      begin
-         if r.enum=R_NO then
-          exit;
-         if r.enum<>R_INTREGISTER then
-            internalerror(200301234);
-         supreg:=r.number shr 8;
-         if (supreg in [RS_RDI]) then
-           begin
-             list.concat(tai_regalloc.DeAlloc(r));
-             exit;
-           end;
-         if not(supreg in [RS_RAX,RS_RBX,RS_RCX,RS_RDX,RS_RSI]) then
-           exit;
-         inherited ungetregisterint(list,r);
-      end;
-
-
-   function trgcpu.getexplicitregisterint(list: taasmoutput; r : tnewregister) : tregister;
-
-   var r2:Tregister;
-
-    begin
-      if (r shr 8) in [RS_RDI] then
-        begin
-          r2.enum:=R_INTREGISTER;
-          r2.number:=r;
-          list.concat(Tai_regalloc.alloc(r2));
-          getexplicitregisterint:=r2;
-          exit;
-        end;
-      result:=inherited getexplicitregisterint(list,r);
-    end;
-
-
-    function trgcpu.getregisterfpu(list: taasmoutput) : tregister;
+    function trgcpu.getregisterfpu(list: taasmoutput;size: TCGSize) : tregister;
 
       begin
         { note: don't return R_ST0, see comments above implementation of }
         { a_loadfpu_* methods in cgcpu (JM)                              }
-        result.enum := R_ST;
+        result:=NR_ST;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister);
+    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister;size:TCGSize);
 
       begin
         { nothing to do, fpu stack management is handled by the load/ }
@@ -307,12 +96,99 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetreference(list: taasmoutput; const ref : treference);
+{$ifdef SUPPORT_MMX}
+    procedure trgcpu.pushusedotherregisters(list:Taasmoutput;
+                                            var pushed:Tpushedsavedother;
+                                            const s:Totherregisterset);
 
-      begin
-         ungetregisterint(list,ref.base);
-         ungetregisterint(list,ref.index);
-      end;
+{    var r:Toldregister;
+        r2:Tregister;
+        hr:Treference;}
+
+    begin
+(*      used_in_proc_other:=used_in_proc_other+s;
+      for r:=R_MM0 to R_MM6 do
+        begin
+          pushed[r].pushed:=false;
+          { if the register is used by the calling subroutine    }
+          if not is_reg_var_other[r] and
+             (r in s) and
+             { and is present in use }
+             not(r in unusedregsmm) then
+            begin
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_ESP;
+              list.concat(Taicpu.Op_const_reg(A_SUB,S_L,8,r2));
+              reference_reset_base(hr,r2,0);
+              r2.enum:=r;
+              list.concat(Taicpu.Op_reg_ref(A_MOVQ,S_NO,r2,hr));
+              include(unusedregsmm,r);
+              pushed[r].pushed:=true;
+            end;
+        end;*)
+{$ifdef TEMPREGDEBUG}
+      testregisters;
+{$endif TEMPREGDEBUG}
+    end;
+{$endif SUPPORT_MMX}
+
+
+{$ifdef SUPPORT_MMX}
+    procedure trgcpu.popusedotherregisters(list:Taasmoutput;
+                                           const pushed:Tpushedsavedother);
+
+{    var r:Toldregister;
+        r2,r3:Tregister;
+        hr:Treference;}
+
+    begin
+      { restore in reverse order: }
+{      for r:=R_MM6 downto R_MM0 do
+        if pushed[r].pushed then
+          begin
+            r2.enum:=R_INTREGISTER;
+            r2.number:=NR_ESP;
+            reference_reset_base(hr,r2,0);
+            r3.enum:=r;
+            list.concat(Taicpu.op_ref_reg(A_MOVQ,S_NO,hr,r3));
+            list.concat(Taicpu.op_const_reg(A_ADD,S_L,8,r2));
+            exclude(unusedregsmm,r);
+          end;}
+{$ifdef TEMPREGDEBUG}
+      testregisters;
+{$endif TEMPREGDEBUG}
+    end;
+{$endif SUPPORT_MMX}
+
+
+
+    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;var saved:Tpushedsavedother;
+                                            const s:totherregisterset);
+
+    begin
+{$ifdef SUPPORT_MMX}
+      if (aktoptprocessor in [class386,classP5]) or
+         (CS_LittleSize in aktglobalswitches) then
+        pushusedotherregisters(list,saved,s)
+      else
+{$endif SUPPORT_MMX}
+        inherited saveusedotherregisters(list,saved,s);
+    end;
+
+
+    procedure trgcpu.restoreusedotherregisters(list:Taasmoutput;
+                                               const saved:tpushedsavedother);
+
+    begin
+{$ifdef SUPPORT_MMX}
+      if (aktoptprocessor in [class386,classP5]) or
+         (CS_LittleSize in aktglobalswitches) then
+        popusedotherregisters(list,saved)
+      else
+{$endif SUPPORT_MMX}
+        inherited restoreusedotherregisters(list,saved);
+    end;
+
 
    procedure trgcpu.resetusableregisters;
 
@@ -325,43 +201,30 @@ unit rgcpu;
    function trgcpu.correct_fpuregister(r : tregister;ofs : byte) : tregister;
 
      begin
-        correct_fpuregister.enum:=toldregister(longint(r.enum)+ofs);
+        correct_fpuregister:=r;
+        setsupreg(correct_fpuregister,ofs);
      end;
 
 
     function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
-
       var
-        _result : topsize;
+        subreg : tsubregister;
       begin
-        case size of
-          OS_32,OS_S32:
-            begin
-              _result := S_L;
-            end;
-          OS_8,OS_S8:
-            begin
-              _result := S_B;
-            end;
-          OS_16,OS_S16:
-            begin
-              _result := S_W;
-            end;
-          else
-            internalerror(2001092312);
-        end;
-        makeregsize := changeregsize(reg,_result);
+        if getregtype(reg)<>R_INTREGISTER then
+          internalerror(200306032);
+        subreg:=cgsize2subreg(size);
+        result:=reg;
+        setsubreg(result,subreg);
+        add_constraints(result);
       end;
 
-
-
-initialization
-  rg := trgcpu.create(15);
 end.
-
 {
   $Log$
-  Revision 1.5  2003-06-13 21:19:33  peter
+  Revision 1.6  2003-09-24 17:12:02  florian
+    * several fixes for new reg allocator
+
+  Revision 1.5  2003/06/13 21:19:33  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.4  2002/04/25 20:15:40  florian

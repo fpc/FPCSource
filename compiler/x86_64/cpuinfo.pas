@@ -54,6 +54,17 @@ Type
       (no_processor,
        ClassDefault
       );
+
+   tfputype =
+     (no_fpuprocessor,
+      fpu_soft,
+      fpu_standard,
+      fpu_x87,
+      fpu_sse,
+      fpu_sse2,
+      fpu_sse3
+     );
+
 Const
    { Size of native extended type }
    extended_size = 10;
@@ -76,7 +87,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-01-05 13:36:54  florian
+  Revision 1.7  2003-09-24 17:12:02  florian
+    * several fixes for new reg allocator
+
+  Revision 1.6  2003/01/05 13:36:54  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 
