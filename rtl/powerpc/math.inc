@@ -130,6 +130,7 @@ const
 {$endif not FPC_SYSTEM_HAS_TRUNC}
 
 
+(*
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     {$define FPC_SYSTEM_HAS_ROUND}
 {$ifdef hascompilerproc}
@@ -226,6 +227,7 @@ const
 .LRoundPositive:
       end;
 {$endif not FPC_SYSTEM_HAS_ROUND}
+*)
 
 
 {****************************************************************************
@@ -316,7 +318,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2004-10-09 21:00:46  jonas
+  Revision 1.35  2004-11-07 19:09:02  jonas
+    * use generic round, the ppc-specific one is buggy
+
+  Revision 1.34  2004/10/09 21:00:46  jonas
     + cgenmath with libc math functions. Faster than the routines in genmath
       and also have full double support (exp() only has support for values in
       the single range in genmath, for example). Used in FPC_USE_LIBC is
