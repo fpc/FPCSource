@@ -727,12 +727,18 @@ implementation
         i:=0;
         repeat
           case c of
+           '{' :
+             if aktcommentstyle=comment_tp then
+              inc_comment_level;
            '}' :
              if aktcommentstyle=comment_tp then
               begin
                 readchar;
                 dec_comment_level;
-                break;
+                if comment_level=0 then
+                 break
+                else
+                 continue;
               end;
            '*' :
              if aktcommentstyle=comment_oldtp then
@@ -1689,7 +1695,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.98  1999-11-02 15:05:08  peter
+  Revision 1.99  1999-11-03 23:44:28  peter
+    * fixed comment level counting after directive
+
+  Revision 1.98  1999/11/02 15:05:08  peter
     * fixed oldtp comment parsing
 
   Revision 1.97  1999/10/30 12:32:30  peter
