@@ -993,12 +993,18 @@ implementation
          else
            begin
              p:=expr;
+             { save the pattern here for latter usage, the label could be "000",
+               even if we read an expression, the pattern is still valid if it's really
+               a label (FK)
+               if you want to mess here, take care of
+               tests/webtbs/tw3546.pp
+             }
+             s:=pattern;
 
              { When a colon follows a intconst then transform it into a label }
              if (p.nodetype=ordconstn) and
                 try_to_consume(_COLON) then
               begin
-                s:=tostr(tordconstnode(p).value);
                 p.free;
                 searchsym(s,srsym,srsymtable);
                 if assigned(srsym) and
@@ -1177,7 +1183,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2005-02-03 17:10:58  peter
+  Revision 1.153  2005-02-08 21:25:14  florian
+    * fixed usage of 000 as label
+
+  Revision 1.152  2005/02/03 17:10:58  peter
     * check for-loop constants ranges
 
   Revision 1.151  2005/01/31 20:23:53  peter
