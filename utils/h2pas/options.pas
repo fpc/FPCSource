@@ -226,7 +226,10 @@ end;
 end.
 {
    $Log$
-   Revision 1.4  2000-03-27 21:39:20  peter
+   Revision 1.1  2000-07-13 10:16:24  michael
+   + Initial import
+
+   Revision 1.4  2000/03/27 21:39:20  peter
      + -S, -T, -c modes added
      * crash fixes
      * removed double opening of inputfile

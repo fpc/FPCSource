@@ -484,7 +484,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-05-11 17:59:12  peter
+  Revision 1.1  2000-07-13 10:16:22  michael
+  + Initial import
+
+  Revision 1.1  2000/05/11 17:59:12  peter
     * makeini unit added as replacement for old inifiles unit
 
 }

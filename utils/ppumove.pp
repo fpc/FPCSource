@@ -610,7 +610,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-07-04 19:05:54  peter
+  Revision 1.1  2000-07-13 10:16:22  michael
+  + Initial import
+
+  Revision 1.11  2000/07/04 19:05:54  peter
     * be optimistic: version 1.00 for some utils
 
   Revision 1.10  2000/05/17 18:30:57  peter

@@ -1222,7 +1222,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-06-01 10:59:22  peter
+  Revision 1.1  2000-07-13 10:16:22  michael
+  + Initial import
+
+  Revision 1.8  2000/06/01 10:59:22  peter
     * removed warning/notes
 
   Revision 1.7  2000/05/03 13:04:08  pierre

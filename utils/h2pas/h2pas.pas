@@ -6867,7 +6867,10 @@ end.
 
 (*
  $Log$
- Revision 1.7  2000-04-01 20:19:37  florian
+ Revision 1.1  2000-07-13 10:16:23  michael
+ + Initial import
+
+ Revision 1.7  2000/04/01 20:19:37  florian
    + implemented support for 64 bit int types
    + options are written now to output file
    * improved compact mode

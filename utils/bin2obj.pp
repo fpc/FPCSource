@@ -263,7 +263,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-07-04 19:05:54  peter
+  Revision 1.1  2000-07-13 10:16:21  michael
+  + Initial import
+
+  Revision 1.4  2000/07/04 19:05:54  peter
     * be optimistic: version 1.00 for some utils
 
   Revision 1.3  2000/02/07 13:42:39  peter

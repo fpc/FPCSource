@@ -994,7 +994,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 16:46:02  daniel
+  Revision 1.1  2000-07-13 10:16:22  michael
+  + Initial import
+
+  Revision 1.9  2000/01/07 16:46:02  daniel
     * copyright 2000
 
   Revision 1.8  1999/11/30 10:35:36  peter

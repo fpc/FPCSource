@@ -892,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-07-04 19:05:54  peter
+  Revision 1.1  2000-07-13 10:16:21  michael
+  + Initial import
+
+  Revision 1.6  2000/07/04 19:05:54  peter
     * be optimistic: version 1.00 for some utils
 
   Revision 1.5  2000/01/18 20:54:56  peter
