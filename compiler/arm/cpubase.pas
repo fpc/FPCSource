@@ -508,7 +508,7 @@ unit cpubase;
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -589,7 +589,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.32  2004-10-15 09:15:34  mazen
+  Revision 1.33  2004-10-22 16:36:57  florian
+    * first arm fixes for new paraloc handling
+
+  Revision 1.32  2004/10/15 09:15:34  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
