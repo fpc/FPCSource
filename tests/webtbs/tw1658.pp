@@ -36,7 +36,7 @@ var
 begin
   EntryMem:=MemAvail;
   pTempStream := nil;
-  pTempStream := New(PMyStream, Init('TEMP00.TMP', stCreate));
+  pTempStream := New(PMyStream, Init('tw1658.tmp', stCreate));
   if not Assigned(pTempStream) then
     Halt(1);
   pTempStream^.m_fAutoDelete := False;
