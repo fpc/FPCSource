@@ -4,6 +4,8 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
+    Constants for Unix unit.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -13,14 +15,19 @@
 
  **********************************************************************}
 
-{BSD version, only the blocks with BSD in the comment are updated}
 
-Const
-  { Things for LSEEK call, same in linux and BSD }
+const
+  { For getting/setting priority }
+  Prio_Process = 0;
+  Prio_PGrp    = 1;
+  Prio_User    = 2;
+
+  { Things for LSEEK call}
   Seek_set = 0;
   Seek_Cur = 1;
   Seek_End = 2;
-  { Things for OPEN call - after include/sys/fcntl.h, BSD updated.
+
+  { Things for OPEN call - after include/sys/fcntl.h,
    BSD specifies these constants in hex }
   Open_Accmode  = 3;
   Open_RdOnly   = 0;
@@ -44,6 +51,8 @@ Const
   Wait_UnTraced = 2;
   Wait_Any      = -1;
   Wait_MyPGRP   = 0;
+
+
   { Constants to check stat.mode -  checked all STAT constants with BSD}
   STAT_IFMT   = $f000; {00170000 }
   STAT_IFSOCK = $c000; {0140000 }
@@ -92,6 +101,11 @@ Const
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS= $40000000+$2C7400+ 19; // TCGETS is also in termios.inc, but the sysunix needs only this
 
+  ITimer_Real    =0;
+  ITimer_Virtual =1;
+  ITimer_Prof    =2;
+
+{
   {Checked for BSD using Linuxthreads port}
   { cloning flags }
   CSIGNAL       = $000000ff; // signal mask to be sent at exit
@@ -101,17 +115,16 @@ Const
   CLONE_SIGHAND = $00000800; // set if signal handlers shared
   CLONE_PID     = $00001000; // set if pid shared
 
-  ITimer_Real    =0;
-  ITimer_Virtual =1;
-  ITimer_Prof    =2;
-
 type
-  TCloneFunc=function(args:pointer):longint;cdecl;
-
+ TCloneFunc=function(args:pointer):longint;cdecl;
+}
 
 {
   $Log$
-  Revision 1.8  2003-11-17 16:56:20  marco
+  Revision 1.9  2003-11-19 10:12:02  marco
+   * more cleanups
+
+  Revision 1.8  2003/11/17 16:56:20  marco
    * tiocgeta fixed
 
   Revision 1.7  2002/09/07 16:01:17  peter

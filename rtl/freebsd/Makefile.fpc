@@ -10,8 +10,8 @@ fpcpackage=y
 
 [target]
 loaders=prt0 cprt0 gprt0
-units=$(SYSTEMUNIT) objpas strings baseunix syscall unixutil \
-      $(LINUXUNIT) unix initc  \
+units=$(SYSTEMUNIT) objpas strings syscall baseunix unixutil \
+      unix initc  \
       dos dl crt objects printer \
       sysutils typinfo systhrds classes math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
@@ -55,13 +55,11 @@ UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-LINUXUNIT=
 PRT0=prt0
 override FPCOPT+=-dNOMOUSE
 loaders+=gprt0
 else
 SYSTEMUNIT=sysbsd
-LINUXUNIT=linux
 override FPCOPT+=-dUNIX -dNOMOUSE
 PRT0=prt0_10
 endif

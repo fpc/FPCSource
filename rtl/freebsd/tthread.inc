@@ -54,6 +54,7 @@ end;
 
 //function SIGCHLDHandler(Sig: longint): longint; cdecl;//this is std linux C declaration as function
 procedure SIGCHLDHandler(Sig: longint); cdecl;
+
 begin
   fpwaitpid(-1, nil, WNOHANG);
 end;
@@ -73,7 +74,7 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-  Act^.sa_handler := @SIGCHLDHandler;
+  Act^.sa_handler := TSigAction(@SIGCHLDHandler);
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
   Fillchar(Act^.sa_mask,sizeof(Act^.sa_mask),0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
   FpSigAction(SIGCHLD, Act, OldAct);
@@ -605,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-11-17 10:05:51  marco
+  Revision 1.6  2003-11-19 10:12:02  marco
+   * more cleanups
+
+  Revision 1.5  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.4  2003/11/17 08:27:49  marco

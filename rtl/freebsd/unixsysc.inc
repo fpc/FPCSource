@@ -189,6 +189,7 @@ begin
   MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size)=0;
 end;
 
+{
 function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
  
 
@@ -240,10 +241,15 @@ begin
   Clone:=
 	intclone(tclonefunc(func),sp,flags,args);
 end;
+}
+
 
 {
   $Log$
-  Revision 1.14  2003-11-17 10:05:51  marco
+  Revision 1.15  2003-11-19 10:12:02  marco
+   * more cleanups
+
+  Revision 1.14  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.13  2003/11/14 16:21:59  marco
