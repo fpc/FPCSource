@@ -510,10 +510,51 @@ implementation
          end;
       end;
 
+
     procedure dir_message;
+      var
+        hs : string;
+        w  : longint;
       begin
-        do_message(scan_i_user_defined);
+        w:=0;
+        current_scanner.skipspace;
+        { Message level specified? }
+        if c='''' then
+          w:=scan_n_user_defined
+        else
+          begin
+            hs:=current_scanner.readid;
+            if (hs='WARN') or (hs='WARNING') then
+              w:=scan_w_user_defined
+            else
+              if (hs='ERROR') then
+                w:=scan_e_user_defined
+            else
+              if (hs='FATAL') then
+                w:=scan_f_user_defined
+            else
+              if (hs='HINT') then
+                w:=scan_h_user_defined
+            else
+              if (hs='NOTE') then
+                w:=scan_n_user_defined
+            else
+              Message1(scan_w_illegal_directive,hs);
+          end;
+        { Only print message when there was no error }
+        if w<>0 then
+          begin
+            current_scanner.skipspace;
+            if c='''' then
+              hs:=current_scanner.readquotedstring
+            else
+              hs:=current_scanner.readcomment;
+            Message1(w,hs);
+          end
+        else
+          current_scanner.readcomment;
       end;
+
 
     procedure dir_mode;
       begin
@@ -1003,7 +1044,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2004-05-11 22:51:34  olle
+  Revision 1.35  2004-05-19 23:29:56  peter
+    * $message directive compatible with delphi
+
+  Revision 1.34  2004/05/11 22:51:34  olle
     * Performanceimprovement
 
   Revision 1.33  2004/05/11 18:30:50  olle

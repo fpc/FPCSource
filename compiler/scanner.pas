@@ -144,6 +144,7 @@ interface
           function  readval:longint;
           function  readval_asstring:string;
           function  readcomment:string;
+          function  readquotedstring:string;
           function  readstate:char;
           procedure skipspace;
           procedure skipuntildirective;
@@ -1862,6 +1863,48 @@ implementation
       end;
 
 
+    function tscannerfile.readquotedstring:string;
+      var
+        i : longint;
+        msgwritten : boolean;
+      begin
+        i:=0;
+        msgwritten:=false;
+        if (c='''') then
+          begin
+            repeat
+              readchar;
+              case c of
+                #26 :
+                  end_of_file;
+                #10,#13 :
+                  Message(scan_f_string_exceeds_line);
+                '''' :
+                  begin
+                    readchar;
+                    if c<>'''' then
+                     break;
+                  end;
+              end;
+              if i<255 then
+                begin
+                  inc(i);
+                  result[i]:=c;
+                end
+              else
+                begin
+                  if not msgwritten then
+                    begin
+                      Message(scan_e_string_exceeds_255_chars);
+                      msgwritten:=true;
+                    end;
+                 end;
+            until false;
+          end;
+        result[0]:=chr(i);
+      end;
+
+
     function tscannerfile.readstate:char;
       var
         state : char;
@@ -3067,7 +3110,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.77  2004-05-16 13:55:26  peter
+  Revision 1.78  2004-05-19 23:29:56  peter
+    * $message directive compatible with delphi
+
+  Revision 1.77  2004/05/16 13:55:26  peter
     * report about illegal chars in preproctoken instead of end of
       expression
     * support realnumbers in preproctoken parser
