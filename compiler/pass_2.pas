@@ -47,7 +47,7 @@ implementation
      globtype,systems,
      cobjects,comphook,verbose,globals,files,
      symconst,symtable,types,aasm,scanner,
-     pass_1,hcodegen,temp_gen,cpubase,cpuasm
+     pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars
 {$ifndef newcg}
      ,tcflw
 {$endif newcg}
@@ -460,90 +460,6 @@ implementation
          do_secondpass:=codegenerror;
       end;
 
-    var
-       { the array ranges are overestimated !!!  }
-       { max(maxvarregs,maxfpuvarregs) would be }
-       { enough                                 }
-       regvars : array[1..maxvarregs+maxfpuvarregs] of pvarsym;
-       regvars_para : array[1..maxvarregs+maxfpuvarregs] of boolean;
-       regvars_refs : array[1..maxvarregs+maxfpuvarregs] of longint;
-       parasym : boolean;
-
-    procedure searchregvars(p : pnamedindexobject);
-      var
-         i,j,k : longint;
-      begin
-         if (psym(p)^.typ=varsym) and (vo_regable in pvarsym(p)^.varoptions) then
-           begin
-              j:=pvarsym(p)^.refs;
-              { parameter get a less value }
-              if parasym then
-                begin
-                   if cs_littlesize in aktglobalswitches  then
-                     dec(j,1)
-                   else
-                     dec(j,100);
-                end;
-              { walk through all momentary register variables }
-              for i:=1 to maxvarregs do
-                begin
-                   if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
-                     begin
-                        for k:=maxvarregs-1 downto i do
-                          begin
-                             regvars[k+1]:=regvars[k];
-                             regvars_para[k+1]:=regvars_para[k];
-                             regvars_refs[k+1]:=regvars_refs[k];
-                          end;
-                        { calc the new refs
-                        pvarsym(p)^.refs:=j; }
-                        regvars[i]:=pvarsym(p);
-                        regvars_para[i]:=parasym;
-                        regvars_refs[i]:=j;
-                        break;
-                     end;
-                end;
-           end;
-      end;
-
-
-    procedure searchfpuregvars(p : pnamedindexobject);
-      var
-         i,j,k : longint;
-      begin
-         if (psym(p)^.typ=varsym) and (vo_fpuregable in pvarsym(p)^.varoptions) then
-           begin
-              j:=pvarsym(p)^.refs;
-              { parameter get a less value }
-              if parasym then
-                begin
-                   if cs_littlesize in aktglobalswitches  then
-                     dec(j,1)
-                   else
-                     dec(j,100);
-                end;
-              { walk through all momentary register variables }
-              for i:=1 to maxfpuvarregs do
-                begin
-                   if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
-                     begin
-                        for k:=maxfpuvarregs-1 downto i do
-                          begin
-                             regvars[k+1]:=regvars[k];
-                             regvars_para[k+1]:=regvars_para[k];
-                             regvars_refs[k+1]:=regvars_refs[k];
-                          end;
-                        { calc the new refs
-                        pvarsym(p)^.refs:=j; }
-                        regvars[i]:=pvarsym(p);
-                        regvars_para[i]:=parasym;
-                        regvars_refs[i]:=j;
-                        break;
-                     end;
-                end;
-           end;
-      end;
-
     procedure clearrefs(p : pnamedindexobject);
 
       begin
@@ -553,12 +469,6 @@ implementation
       end;
 
     procedure generatecode(var p : ptree);
-      var
-         i       : longint;
-         regsize : topsize;
-         hr      : preference;
-      label
-         nextreg;
       begin
          cleartempgen;
          flowcontrol:=[];
@@ -576,260 +486,53 @@ implementation
          symtablestack^.next^.foreach(@clearrefs);
          if not(do_firstpass(p)) then
            begin
-              { max. optimizations     }
-              { only if no asm is used }
-              { and no try statement   }
-              if (cs_regalloc in aktglobalswitches) and
-                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) and
-                not(pocall_inline in aktprocsym^.definition^.proccalloptions) then
-                begin
-                   { can we omit the stack frame ? }
-                   { conditions:
-                     1. procedure (not main block)
-                     2. no constructor or destructor
-                     3. no call to other procedures
-                     4. no interrupt handler
-                   }
-                   {!!!!!! this doesn work yet, because of problems with
-                     with linux and windows
-                   }
-                   (*
+             if (cs_regalloc in aktglobalswitches) and
+                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+               begin
+			           { can we omit the stack frame ? }
+			           { conditions:
+			             1. procedure (not main block)
+			             2. no constructor or destructor
+			             3. no call to other procedures
+			             4. no interrupt handler
+			           }
+			           {!!!!!! this doesn work yet, because of problems with
+			              with linux and windows
+			           }
+			           (*
+			           if assigned(aktprocsym) then
+			             begin
+			               if not(assigned(procinfo^._class)) and
+			                  not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
+			                  not(po_interrupt in aktprocsym^.definition^.procoptions) and
+			                  ((procinfo^.flags and pi_do_call)=0) and
+			                  (lexlevel>=normal_function_level) then
+			                 begin
+			                  { use ESP as frame pointer }
+			                   procinfo^.framepointer:=stack_pointer;
+			                   use_esp_stackframe:=true;
 
-                   if assigned(aktprocsym) then
-                     begin
-                       if not(assigned(procinfo^._class)) and
-                          not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
-                          not(po_interrupt in aktprocsym^.definition^.procoptions) and
-                          ((procinfo^.flags and pi_do_call)=0) and
-                          (lexlevel>=normal_function_level) then
-                       begin
-                         { use ESP as frame pointer }
-                         procinfo^.framepointer:=stack_pointer;
-                         use_esp_stackframe:=true;
+			                  { calc parameter distance new }
+			                   dec(procinfo^.framepointer_offset,4);
+			                   dec(procinfo^.selfpointer_offset,4);
 
-                         { calc parameter distance new }
-                         dec(procinfo^.framepointer_offset,4);
-                         dec(procinfo^.selfpointer_offset,4);
+			                  { is this correct ???}
+			                  { retoffset can be negativ for results in eax !! }
+			                  { the value should be decreased only if positive }
+			                   if procinfo^.retoffset>=0 then
+			                     dec(procinfo^.retoffset,4);
 
-                         { is this correct ???}
-                         { retoffset can be negativ for results in eax !! }
-                         { the value should be decreased only if positive }
-                         if procinfo^.retoffset>=0 then
-                           dec(procinfo^.retoffset,4);
-
-                         dec(procinfo^.para_offset,4);
-                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
-                       end;
-                     end;
-                   *)
-                   if (p^.registers32<4) then
-                     begin
-                        for i:=1 to maxvarregs do
-                          regvars[i]:=nil;
-                        parasym:=false;
-                        symtablestack^.foreach({$ifndef TP}@{$endif}searchregvars);
-                        { copy parameter into a register ? }
-                        parasym:=true;
-                        symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
-                        { hold needed registers free }
-                        for i:=maxvarregs downto maxvarregs-p^.registers32+1 do
-                          regvars[i]:=nil;
-                        { now assign register }
-                        for i:=1 to maxvarregs-p^.registers32 do
-                          begin
-                             if assigned(regvars[i]) then
-                               begin
-                                  { it is nonsens, to copy the variable to }
-                                  { a register because we need then much   }
-                                  { too pushes ?                           }
-                                  if reg_pushes[varregs[i]]>=regvars[i]^.refs then
-                                    begin
-                                       regvars[i]:=nil;
-                                       goto nextreg;
-                                    end;
-
-                                  { register is no longer available for }
-                                  { expressions                  }
-                                  { search the register which is the most }
-                                  { unused                              }
-                                  usableregs:=usableregs-[varregs[i]];
-{$ifdef i386}
-                                  procinfo^.aktentrycode^.concat(new(pairegalloc,alloc(varregs[i])));
-{$endif i386}
-                                  is_reg_var[varregs[i]]:=true;
-                                  dec(c_usableregs);
-
-                                  { possibly no 32 bit register are needed }
-                                  { call by reference/const ? }
-                                  if (regvars[i]^.varspez=vs_var) or
-                                     ((regvars[i]^.varspez=vs_const) and
-                                       push_addr_param(regvars[i]^.vartype.def)) then
-                                    begin
-                                       regvars[i]^.reg:=varregs[i];
-                                       regsize:=S_L;
-                                    end
-                                  else
-                                   if (regvars[i]^.vartype.def^.deftype in [orddef,enumdef]) and
-                                      (porddef(regvars[i]^.vartype.def)^.size=1) then
-                                    begin
-{$ifdef i386}
-                                       regvars[i]^.reg:=reg32toreg8(varregs[i]);
-{$endif}
-                                       regsize:=S_B;
-                                    end
-                                  else
-                                   if (regvars[i]^.vartype.def^.deftype in [orddef,enumdef]) and
-                                      (porddef(regvars[i]^.vartype.def)^.size=2) then
-                                    begin
-{$ifdef i386}
-                                       regvars[i]^.reg:=reg32toreg16(varregs[i]);
-{$endif}
-                                       regsize:=S_W;
-                                    end
-                                  else
-                                    begin
-                                       regvars[i]^.reg:=varregs[i];
-                                       regsize:=S_L;
-                                    end;
-                                  { parameter must be load }
-                                  if regvars_para[i] then
-                                    begin
-                                       { procinfo is there actual,      }
-                                       { because we can't never be in a }
-                                       { nested procedure              }
-                                       { when loading parameter to reg  }
-                                       new(hr);
-                                       reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.para_offset;
-                                       hr^.base:=procinfo^.framepointer;
-{$ifdef i386}
-                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
-                                         hr,regvars[i]^.reg)));
-{$endif i386}
-{$ifdef m68k}
-                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
-                                         hr,regvars[i]^.reg)));
-{$endif m68k}
-                                       unused:=unused - [regvars[i]^.reg];
-                                    end;
-                                  { procedure uses this register }
-{$ifdef i386}
-                                  usedinproc:=usedinproc or ($80 shr byte(varregs[i]));
-{$endif i386}
-{$ifdef m68k}
-                                  usedinproc:=usedinproc or ($800 shr word(varregs[i]));
-{$endif m68k}
-                               end;
-                             nextreg:
-                               { dummy }
-                               regsize:=S_W;
-                          end;
-                        for i:=1 to maxvarregs do
-                          begin
-                             if assigned(regvars[i]) then
-                               begin
-                                  if cs_asm_source in aktglobalswitches then
-                                    procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
-                                      ' with weight '+tostr(regvars[i]^.refs)+' assigned to register '+
-                                      reg2str(regvars[i]^.reg)))));
-                                  if (status.verbosity and v_debug)=v_debug then
-                                    Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
-                                      tostr(regvars[i]^.refs),regvars[i]^.name);
-                               end;
-                          end;
-                     end;
-                   if ((p^.registersfpu+1)<maxfpuvarregs) then
-                     begin
-                        for i:=1 to maxfpuvarregs do
-                          regvars[i]:=nil;
-                        parasym:=false;
-                        symtablestack^.foreach({$ifndef TP}@{$endif}searchfpuregvars);
-{$ifdef dummy}
-                        { copy parameter into a register ? }
-                        parasym:=true;
-                        symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
-{$endif dummy}
-                        { hold needed registers free }
-
-                        { in non leaf procedures we must be very careful }
-                        { with assigning registers                       }
-                        if aktmaxfpuregisters=-1 then
-                          begin
-                             if (procinfo^.flags and pi_do_call)<>0 then
-                               begin
-                                  for i:=maxfpuvarregs downto 2 do
-                                    regvars[i]:=nil;
-                               end
-                             else
-                               begin
-                                  for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu do
-                                    regvars[i]:=nil;
-                               end;
-                          end
-                        else
-                          begin
-                             for i:=aktmaxfpuregisters+1 to maxfpuvarregs do
-                                regvars[i]:=nil;
-                          end;
-                        { now assign register }
-                        for i:=1 to maxfpuvarregs do
-                          begin
-                             if assigned(regvars[i]) then
-                               begin
-{$ifdef i386}
-                                  { reserve place on the FPU stack }
-                                  regvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
-                                  procinfo^.aktentrycode^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
-                                  { ... and clean it up }
-                                  procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
-{$endif i386}
-{$ifdef m68k}
-                                  regvars[i]^.reg:=fpuvarregs[i];
-{$endif m68k}
-{$ifdef dummy}
-                                  { parameter must be load }
-                                  if regvars_para[i] then
-                                    begin
-                                       { procinfo is there actual,      }
-                                       { because we can't never be in a }
-                                       { nested procedure              }
-                                       { when loading parameter to reg  }
-                                       new(hr);
-                                       reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.para_offset;
-                                       hr^.base:=procinfo^.framepointer;
-{$ifdef i386}
-                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
-                                         hr,regvars[i]^.reg)));
-{$endif i386}
-{$ifdef m68k}
-                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
-                                         hr,regvars[i]^.reg)));
-{$endif m68k}
-                                    end;
-{$endif dummy}
-                               end;
-                          end;
-                       if cs_asm_source in aktglobalswitches then
-                         procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(tostr(p^.registersfpu)+
-                         ' registers on FPU stack used by temp. expressions'))));
-                        for i:=1 to maxfpuvarregs do
-                          begin
-                             if assigned(regvars[i]) then
-                               begin
-                                  if cs_asm_source in aktglobalswitches then
-                                    procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
-                                      ' with weight '+tostr(regvars[i]^.refs)+' assigned to register '+
-                                      reg2str(regvars[i]^.reg)))));
-                                  if (status.verbosity and v_debug)=v_debug then
-                                    Message3(cg_d_register_weight,reg2str(regvars[i]^.reg),
-                                      tostr(regvars[i]^.refs),regvars[i]^.name);
-                               end;
-                          end;
-                        if cs_asm_source in aktglobalswitches then
-                          procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew('Register variable assignment:'))));
-                     end;
-                end;
+			                   dec(procinfo^.para_offset,4);
+			                   aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
+			                 end;
+			             end;
+			            *)
+			          end;
+              { process register variable stuff (JM) }
+              assign_regvars(p);
+              load_regvars(procinfo^.aktentrycode,p);
+              cleanup_regvars(procinfo^.aktexitcode);
+              
               if assigned(aktprocsym) and
                  (pocall_inline in aktprocsym^.definition^.proccalloptions) then
                 make_const_global:=true;
@@ -846,7 +549,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-03 11:15:42  jonas
+  Revision 1.5  2000-08-03 13:17:25  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.4  2000/08/03 11:15:42  jonas
     - disable regvars for inlined procedures (merged from fixes branch)
 
   Revision 1.3  2000/07/21 15:14:02  jonas

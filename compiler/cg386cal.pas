@@ -1376,7 +1376,8 @@ implementation
     procedure secondprocinline(var p : ptree);
        var st : psymtable;
            oldprocsym : pprocsym;
-           para_size : longint;
+           para_size, i : longint;
+           tmpreg: tregister;
            oldprocinfo : pprocinfo;
            oldinlining_procedure,
            nostackframe,make_global : boolean;
@@ -1389,6 +1390,19 @@ implementation
            mangled_length  : longint;
 {$endif GDB}
        begin
+          { deallocate the registers used for the current procedure's regvars }
+          if assigned(aktprocsym^.definition^.regvarinfo) then
+            with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
+              for i := 1 to maxvarregs do
+                if assigned(regvars[i]) then
+                  begin
+                    case regsize(regvars[i]^.reg) of
+                      S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
+                      S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
+                      S_L: tmpreg := regvars[i]^.reg;
+                    end;
+                    exprasmlist^.concat(new(pairegalloc,dealloc(tmpreg)));
+                  end;
           oldinlining_procedure:=inlining_procedure;
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
@@ -1468,7 +1482,7 @@ implementation
           exprasmlist^.concat(new(pai_asm_comment,init(strpnew('End of inlined proc'))));
 {$endif extdebug}
           exprasmlist^.concat(new(Pai_Marker, Init(InlineEnd)));
-
+          
           {we can free the local data now, reset also the fixup address }
           if st^.datasize>0 then
             begin
@@ -1498,6 +1512,22 @@ implementation
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
           inlining_procedure:=oldinlining_procedure;
+
+          { reallocate the registers used for the current procedure's regvars, }
+          { since they may have been used and then deallocated in the inlined  }
+          { procedure (JM)                                                     }
+          if assigned(aktprocsym^.definition^.regvarinfo) then
+            with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
+              for i := 1 to maxvarregs do
+                if assigned(regvars[i]) then
+                  begin
+                    case regsize(regvars[i]^.reg) of
+                      S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
+                      S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
+                      S_L: tmpreg := regvars[i]^.reg;
+                    end;
+                    exprasmlist^.concat(new(pairegalloc,alloc(tmpreg)));
+                  end;
        end;
 
 
@@ -1505,7 +1535,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-07-27 13:03:35  jonas
+  Revision 1.6  2000-08-03 13:17:26  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.5  2000/07/27 13:03:35  jonas
     * release alignopts
 
   Revision 1.4  2000/07/21 15:14:01  jonas

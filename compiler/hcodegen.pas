@@ -110,6 +110,18 @@ implementation
           constructor init(const a : treference;p : pdef);
        end;
 
+       pregvarinfo = ^tregvarinfo;
+       tregvarinfo = record
+          regvars : array[1..maxvarregs] of pvarsym;
+          regvars_para : array[1..maxvarregs] of boolean;
+          regvars_refs : array[1..maxvarregs] of longint;
+
+          fpuregvars : array[1..maxfpuvarregs] of pvarsym;
+          fpuregvars_para : array[1..maxfpuvarregs] of boolean;
+          fpuregvars_refs : array[1..maxfpuvarregs] of longint;
+       end;
+
+
     var
        { info about the current sub routine }
        procinfo : pprocinfo;
@@ -450,7 +462,17 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-08-03 13:17:26  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

@@ -415,6 +415,8 @@
           { it's a tree, but this not easy to handle }
           { used for inlined procs                   }
           code : pointer;
+          { info about register variables (JM) }
+          regvarinfo: pointer;
           { true, if the procedure is only declared }
           { (forward procedure) }
           forwarddef,
@@ -535,7 +537,17 @@
 
 {
   $Log$
-  Revision 1.4  2000-08-02 19:49:59  peter
+  Revision 1.5  2000-08-03 13:17:26  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.4  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.3  2000/07/13 12:08:27  michael

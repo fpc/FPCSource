@@ -164,7 +164,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     uses
        strings,globtype,systems,globals,verbose,files,types,pbase,
-       tgeni386,temp_gen,hcodegen,ppu
+       tgeni386,temp_gen,hcodegen,ppu,regvars
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -3543,6 +3543,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           if not(cs_littlesize in aktglobalswitches) then
            exprasmlist^.insert(new(pai_align,init(16)));
        end;
+       if inlined then
+         load_regvars(exprasmlist,nil);
       exprasmlist:=oldexprasmlist;
   end;
 
@@ -3960,6 +3962,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
+       if inlined then
+         cleanup_regvars(exprasmlist);
       exprasmlist:=oldexprasmlist;
   end;
 
@@ -4025,7 +4029,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.6  2000-08-02 08:05:04  jonas
+  Revision 1.7  2000-08-03 13:17:25  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.6  2000/08/02 08:05:04  jonas
     * fixed web bug1087
     * allocate R_ECX explicitely if it's used
     (merged from fixes branch)

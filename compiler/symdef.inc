@@ -2631,6 +2631,7 @@
          interfacedef:=false;
          _class := nil;
          code:=nil;
+         regvarinfo := nil;
          count:=false;
          is_used:=false;
       end;
@@ -2670,6 +2671,8 @@
          localst:=nil;
          forwarddef:=false;
          interfacedef:=false;
+         code := nil;
+         regvarinfo := nil;
          lastref:=nil;
          lastwritten:=nil;
          defref:=nil;
@@ -2849,6 +2852,8 @@ Const local_symtable_index : longint = $8001;
            dispose(localst,done);
          if (pocall_inline in proccalloptions) and assigned(code) then
            disposetree(ptree(code));
+         if assigned(regvarinfo) then
+           dispose(pregvarinfo(regvarinfo));
          if (po_msgstr in procoptions) then
            strdispose(messageinf.str);
          if
@@ -4188,7 +4193,17 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.4  2000-08-02 19:49:59  peter
+  Revision 1.5  2000-08-03 13:17:26  jonas
+    + allow regvars to be used inside inlined procs, which required  the
+      following changes:
+        + load regvars in genentrycode/free them in genexitcode (cgai386)
+        * moved all regvar related code to new regvars unit
+        + added pregvarinfo type to hcodegen
+        + added regvarinfo field to tprocinfo (symdef/symdefh)
+        * deallocate the regvars of the caller in secondprocinline before
+          inlining the called procedure and reallocate them afterwards
+
+  Revision 1.4  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.3  2000/07/13 12:08:27  michael
