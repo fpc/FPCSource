@@ -66,7 +66,7 @@ implementation
 {$ifdef i386}
      ,i386,tgeni386,cgai386
      ,cg386con,cg386mat,cg386cnv,cg386set,cg386add
-     ,cg386mem,cg386cal,cg386ld,cg386flw
+     ,cg386mem,cg386cal,cg386ld,cg386flw,cg386inl
 {$endif}
      ;
 
@@ -506,7 +506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1998-08-28 10:54:20  peter
+  Revision 1.51  1998-08-31 12:22:14  peter
+    * secondinline moved to cg386inl
+
+  Revision 1.50  1998/08/28 10:54:20  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.49  1998/08/19 16:07:42  jonas
