@@ -24,7 +24,6 @@ procedure invalidvariantop;
   end;
 
 procedure vardisperror;
-
   begin
      HandleErrorFrame(222,get_frame);
   end;
@@ -95,13 +94,13 @@ function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;
 
 function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
   begin
-        variantmanager.vartointf(result,v);
+    variantmanager.vartointf(result,v);
   end;
 
 
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
   begin
-        variantmanager.varfromintf(result,i);
+    variantmanager.varfromintf(result,i);
   end;
 
 
@@ -595,7 +594,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.24  2005-02-14 17:13:29  peter
+  Revision 1.25  2005-02-24 22:36:36  florian
+    + some variant stuff fixed and added
+
+  Revision 1.24  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.23  2005/02/01 20:22:24  florian

@@ -638,7 +638,7 @@ begin
   Result:=CheckVarArray(psa);
   if Result<>VAR_OK then
     exit;
-  Inc(psa^.LockCount);
+  InterlockedIncrement(psa^.LockCount);
 end;
 
 Function SafeArrayUnlock(psa: PVarArray): HRESULT;stdcall;
@@ -646,8 +646,11 @@ begin
   Result:=CheckVarArray(psa);
   if (Result<>VAR_OK) then
     exit;
-  If (psa^.LockCount>0) then
-    Dec(psa^.LockCount);
+  if InterlockedDecrement(psa^.LockCount)<0 then
+    begin
+      InterlockedIncrement(psa^.LockCount);
+      result:=VAR_UNEXPECTED;
+    end;
 end;
 
 Function SafeArrayGetElement(psa: PVarArray; Indices: PVarArrayCoorArray;
@@ -712,7 +715,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.19  2005-02-14 17:13:31  peter
+  Revision 1.20  2005-02-24 22:36:36  florian
+    + some variant stuff fixed and added
+
+  Revision 1.19  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.18  2005/02/08 21:17:25  florian
