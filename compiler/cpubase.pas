@@ -1077,14 +1077,19 @@ end;
 procedure InitCpu;
 
 begin
+{$ifndef NOAG386BIN}
   if not assigned(instabcache) then
     BuildInsTabCache;
+{$endif NOAG386BIN}
 end;
 
 end.
 {
   $Log$
-  Revision 1.8  1999-08-19 13:02:10  pierre
+  Revision 1.9  1999-08-19 20:05:09  michael
+  + Fixed ifdef NOAG386BIN bug
+
+  Revision 1.8  1999/08/19 13:02:10  pierre
     + label faillabel added for _FAIL support
 
   Revision 1.7  1999/08/18 13:26:23  jonas
