@@ -31,6 +31,10 @@ unit temp_gen;
 {$ifdef m68k}
       m68k,
 {$endif m68k}
+{$ifdef alpha}
+      cpubase,
+      cpuinfo,
+{$endif m68k}
        cobjects,globals,tree,hcodegen,verbose,files,aasm;
 
     type
@@ -368,7 +372,9 @@ unit temp_gen;
            led to problems with local arrays
            with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo.framepointer) and
+{$ifndef alpha}
                   (ref.index=R_NO) and
+{$endif}                  
                   (ref.offset<firsttemp));
       end;
 
@@ -524,7 +530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  1999-06-09 23:00:13  peter
+  Revision 1.33  1999-08-02 00:34:06  michael
+  * alpha has no index
+
+  Revision 1.32  1999/06/09 23:00:13  peter
     * small ansistring fixes
     * val_ansistr_sint destsize changed to longint
     * don't write low/hi ascii with -al
