@@ -212,6 +212,7 @@ implementation
                                      end;
                                    objectsymtable:
                                      begin
+                                        getexplicitregister32(R_ESI);
                                         if (sp_static in pvarsym(p^.symtableentry)^.symoptions) then
                                           begin
                                              p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
@@ -1004,7 +1005,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2000-02-09 13:22:47  peter
+  Revision 1.100  2000-02-09 18:08:33  jonas
+    * added regallocs for esi
+
+  Revision 1.99  2000/02/09 13:22:47  peter
     * log truncated
 
   Revision 1.98  2000/02/01 12:54:20  peter

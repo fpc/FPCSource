@@ -610,6 +610,9 @@ implementation
                                     if (p^.symtable^.symtabletype<>withsymtable) then
                                       begin
                                          secondpass(p^.methodpointer);
+{$ifndef noAllocEDI}
+                                         getexplicitregister32(R_ESI);
+{$endif noAllocEDI}
                                          case p^.methodpointer^.location.loc of
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
@@ -619,9 +622,6 @@ implementation
                                               end;
                                             else
                                               begin
-{$ifndef noAllocEDI}
-                                                 getexplicitregister32(R_ESI);
-{$endif noAllocEDI}
                                                  if (p^.methodpointer^.resulttype^.deftype=classrefdef) or
                                                     ((p^.methodpointer^.resulttype^.deftype=objectdef) and
                                                    pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
@@ -642,6 +642,7 @@ implementation
                                            not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
                                           begin
                                              { class method needs current VMT }
+                                             getexplicitregister32(R_ESI);
                                              new(r);
                                              reset_reference(r^);
                                              r^.base:=R_ESI;
@@ -705,6 +706,7 @@ implementation
                           ) then
                           begin
                              { class method needs current VMT }
+                             getexplicitregister32(R_ESI);
                              new(r);
                              reset_reference(r^);
                              r^.base:=R_ESI;
@@ -812,6 +814,7 @@ implementation
                    { also class methods                       }
                    { Here it is quite tricky because it also depends }
                    { on the methodpointer                        PM }
+                   getexplicitregister32(R_ESI);
                    if assigned(aktprocsym) then
                      begin
                        if (((sp_static in aktprocsym^.symoptions) or
@@ -930,6 +933,7 @@ implementation
                      begin
                        { load ESI }
                        inc(p^.right^.location.reference.offset,4);
+                       getexplicitregister32(R_ESI);
                        emit_ref_reg(A_MOV,S_L,
                          newreference(p^.right^.location.reference),R_ESI);
                        dec(p^.right^.location.reference.offset,4);
@@ -1351,7 +1355,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2000-02-09 13:22:45  peter
+  Revision 1.126  2000-02-09 18:08:33  jonas
+    * added regallocs for esi
+
+  Revision 1.125  2000/02/09 13:22:45  peter
     * log truncated
 
   Revision 1.124  2000/02/04 20:00:21  florian

@@ -791,6 +791,7 @@ implementation
     procedure secondselfn(var p : ptree);
       begin
          reset_reference(p^.location.reference);
+         getexplicitregister32(R_ESI);
          if (p^.resulttype^.deftype=classrefdef) or
            ((p^.resulttype^.deftype=objectdef)
              and pobjectdef(p^.resulttype)^.is_class
@@ -891,7 +892,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2000-02-09 13:22:47  peter
+  Revision 1.71  2000-02-09 18:08:33  jonas
+    * added regallocs for esi
+
+  Revision 1.70  2000/02/09 13:22:47  peter
     * log truncated
 
   Revision 1.69  2000/01/09 15:19:23  peter
