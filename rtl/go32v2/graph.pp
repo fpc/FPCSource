@@ -1294,7 +1294,7 @@ const CrtAddress: word = 0;
      Y:= Y + StartYViewPort;
 {$ifndef asmgraph}
      offset := y * 80 + x shr 2 + VideoOfs;
-     PortW[$3c4] := FirstPlane shl (x and 3);
+     PortW[$3ce] := ((x and 3) shl 8) + 4;
      GetPixelX := Mem[SegA000:offset];
 {$else asmgraph}
     asm
@@ -1424,7 +1424,6 @@ const CrtAddress: word = 0;
  Procedure PutPixelX(X,Y: Integer; color:word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
-     dummy: byte;
 {$endif asmgraph}
   begin
     X:= X + StartXViewPort;
@@ -1438,12 +1437,9 @@ const CrtAddress: word = 0;
          exit;
      end;
 {$ifndef asmgraph}
-    Dummy := color;
     offset := y * 80 + x shr 2 + VideoOfs;
     PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
-    If CurrentWriteMode = XorPut Then
-      Dummy := Dummy Xor Mem[SegA000:offset];
-    Mem[SegA000:offset] := Dummy;
+    Mem[SegA000:offset] := color;
 {$else asmgraph}
      asm
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
@@ -1485,15 +1481,27 @@ const CrtAddress: word = 0;
  Var offset: Word;
      dummy: Byte;
  begin
-   dummy := CurrentColor;
    offset := y * 80 + x shr 2 + VideoOfs;
-   PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
    case CurrentWriteMode of
-     XorPut: dummy := dummy xor Mem[Sega000:offset];
-     OrPut: dummy := dummy or Mem[SegA000:offset];
-     AndPut: dummy := dummy and Mem[SegA000:offset];
-     NotPut: dummy := Not dummy;
+     XorPut:
+       begin
+         PortW[$3ce] := ((x and 3) shl 8) + 4;
+         dummy := CurrentColor xor Mem[Sega000: offset];
+       end;
+     OrPut:
+       begin
+         PortW[$3ce] := ((x and 3) shl 8) + 4;
+         dummy := CurrentColor or Mem[Sega000: offset];
+       end;
+     AndPut:
+       begin
+         PortW[$3ce] := ((x and 3) shl 8) + 4;
+         dummy := CurrentColor and Mem[Sega000: offset];
+       end;
+     NotPut: dummy := Not CurrentColor;
+     else dummy := CurrentColor;
    end;
+   PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
    Mem[Sega000: offset] := Dummy;
  end;
 {$else asmgraph}
@@ -1795,10 +1803,9 @@ const CrtAddress: word = 0;
      Port[$03C7] := ColorNum;
      { we must convert to lsb values... because the vga uses the 6 msb bits }
      { which is not compatible with anything.                               }
-     { not true. It's 6bit lsb, not msb, so no shifts necessary! (JM) }
-     RedValue := Integer(Port[$3C9]);
-     GreenValue := Integer(Port[$3C9]);
-     BlueValue := Integer(Port[$3C9]);
+     RedValue := Integer(Port[$3C9]) shl 2;
+     GreenValue := Integer(Port[$3C9]) shl 2;
+     BlueValue := Integer(Port[$3C9]) shl 2;
    end;
 
 
@@ -2091,7 +2098,7 @@ const CrtAddress: word = 0;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
-         { now check all supPorted modes...}
+         { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
              InitMode(mode);
@@ -2586,7 +2593,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-05-12 08:52:09  jonas
+  Revision 1.11  2000-07-07 19:05:34  jonas
+    * fixed getpixelx/directputpixelx (only pascal version, assembler
+      versions are still wrong)
+    * fixed getrvgagbpalette procedur e(also returns 8 instead of 6 bit
+      values now)
+
+  Revision 1.10  2000/05/12 08:52:09  jonas
     * fixed bug in setvgargbpalette (now you can again pass values in the
       range 0..255 instead of 0..63)
 
