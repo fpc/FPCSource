@@ -287,6 +287,13 @@ interface
     procedure swap_qword(var q : qword);
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
+    
+    {# Routine to get the required alignment for size of data, which will 
+       be placed in bss segment, according to the current alignment requirements }
+    function var_align(siz: longint): longint;
+    {# Routine to get the required alignment for size of data, which will 
+       be placed in data/const segment, according to the current alignment requirements }
+    function const_align(siz: longint): longint;
 
 
 implementation
@@ -1321,6 +1328,20 @@ implementation
         until false;
         UpdateAlignment(a,b);
       end;
+      
+      
+    function var_align(siz: longint): longint;
+      begin
+        siz := size_2_align(siz);
+        var_align := used_align(siz,aktalignment.varalignmin,aktalignment.varalignmax);
+      end;
+      
+    function const_align(siz: longint): longint;
+      begin
+        siz := size_2_align(siz);
+        const_align := used_align(siz,aktalignment.constalignmin,aktalignment.constalignmax);
+      end;
+
 
 {****************************************************************************
                                     Init
@@ -1477,7 +1498,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-10-16 19:01:43  peter
+  Revision 1.68  2002-11-09 15:38:39  carl
+    + added var_align/const_align routines
+
+  Revision 1.67  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility
