@@ -80,9 +80,6 @@ Report bugs,suggestions etc to:
 *L1P_use pipes instead of creating temporary assembler files
 **1S_syntax options
 **2S2_switch some Delphi 2 extension on
-**2Sa_semantic check of expressions (higher level includes lower)
-**3Sa4_assigment results are typed (allows a:=b:=0)
-**3Sa9_allows expressions with no side effect
 **2Sc_supports operators like C (*=,+=,/= and -=)
 **2Sg_allows LABEL and GOTO
 **2Si_support C++ stlyed INLINE
