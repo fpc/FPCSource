@@ -872,7 +872,7 @@ implementation
                              assigned(methodpointer) then
                             tloadnode(hpt).set_mp(methodpointer.getcopy);
                           resulttypepass(hpt);
-                          right:=hpt;
+                          result:=hpt;
                         end
                       else
                         begin
@@ -1743,7 +1743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2001-10-12 16:04:32  peter
+  Revision 1.51  2001-10-13 09:01:14  jonas
+    * fixed bug with using procedures as procvar parameters in TP/Delphi mode
+
+  Revision 1.50  2001/10/12 16:04:32  peter
     * nested inline fix (merged)
 
   Revision 1.49  2001/09/02 21:12:06  peter
