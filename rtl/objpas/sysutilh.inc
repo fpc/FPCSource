@@ -97,6 +97,8 @@ type
    EOutOfMemory     = Class(EHeapMemoryError);
    EAccessViolation = Class(Exception);
    EInvalidCast = Class(Exception);
+   EVariantError = Class(Exception);
+
 
    { String conversion errors }
    EConvertError = class(Exception);
@@ -147,7 +149,11 @@ Type
 
 {
   $Log$
-  Revision 1.10  2001-08-12 22:11:48  peter
+  Revision 1.11  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.10  2001/08/12 22:11:48  peter
     * freeandnil added
 
   Revision 1.9  2001/06/03 15:18:01  peter

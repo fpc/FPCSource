@@ -1562,11 +1562,18 @@ begin
   InOutRes:=0;
 { Reset internal error variable }
   errno:=0;
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}
 end.
 
 {
   $Log$
-  Revision 1.16  2001-07-30 20:53:50  peter
+  Revision 1.17  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.16  2001/07/30 20:53:50  peter
     * fixed getdir() that was broken when a directory on a different drive
       was asked
 

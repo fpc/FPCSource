@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface and OS-dependent part of variant support
-       
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -32,10 +32,11 @@ Implementation
     Windows external definitions.
   ---------------------------------------------------------------------}
 
+{$ifdef HASVARIANT}
 const
   oleaut = 'oleaut32.dll';
 
-{ Variant functions }  
+{ Variant functions }
 
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;external oleaut;
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;external oleaut;
@@ -65,12 +66,17 @@ function SafeArrayPutElement(psa: PVarArray; Indices: PVarArrayCoorArray;  const
 function SafeArrayRedim(psa: PVarArray; const NewBound: TVarArrayBound): HRESULT; stdcall;external oleaut;
 function SafeArrayUnaccessData(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
+{$endif HASVARIANT}
 
 end.
 
 {
   $Log$
-  Revision 1.1  2000-08-29 18:16:22  michael
+  Revision 1.2  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.1  2000/08/29 18:16:22  michael
   + new include files
 
   Revision 1.2  2000/08/29 17:35:55  michael
@@ -78,5 +84,4 @@ end.
 
   Revision 1.1  2000/08/29 08:23:14  michael
   + Initial implementation of varutils
-
 }

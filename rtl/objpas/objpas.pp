@@ -28,8 +28,6 @@ unit objpas;
     type
        integer = longint;
 
-{ Old compilers search for these variables in objpas unit }
-
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
@@ -55,7 +53,6 @@ unit objpas;
 
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
-
 
 Type
    TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
@@ -345,17 +342,19 @@ begin
    ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
 end;
 
-
 Initialization
   ResetResourceTables;
-
 finalization
 
 end.
 
 {
   $Log$
-  Revision 1.6  2001-08-01 21:43:11  peter
+  Revision 1.7  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.6  2001/08/01 21:43:11  peter
     * generate error for closefile
 
   Revision 1.5  2000/12/16 15:58:18  jonas
@@ -369,5 +368,4 @@ end.
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
-
 }

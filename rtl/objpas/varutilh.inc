@@ -1,27 +1,45 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2000,2001 by the Free Pascal development team
+
+    This include file contains the implementation for variants
+    support in FPC as far as it is part of the system unit
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{$ifdef HASVARIANT}
+
 Type
 
   // Types needed to make this work. These should be moved to the system unit.
-  
+
   currency            = int64;
   HRESULT             = Longint;
   PSmallInt           = ^Smallint;
   PLongint            = ^Longint;
   PSingle             = ^Single;
-  PDouble             = ^Double;    
+  PDouble             = ^Double;
   PCurrency           = ^Currency;
   TDateTime           = Double;
   PDate               = ^TDateTime;
-  PPWideChar          = ^PWideChar;    
-  Error               = Longint;  
+  PPWideChar          = ^PWideChar;
+  Error               = Longint;
   PError              = ^Error;
   PWordBool           = ^WordBool;
   PByte               = ^Byte;
- 
+
   EVarianterror = Class(Exception)
     ErrCode : longint;
     Constructor CreateCode(Code : Longint);
   end;
-  
+
   TVarArrayBound = packed record
     ElementCount: Longint;
     LowBound: Longint;
@@ -40,7 +58,7 @@ Type
     Data: Pointer;
     Bounds: TVarArrayBoundArray;
   end;
-      
+
   TVarType = Word;
   PVarData = ^TVarData;
   TVarData = packed record
@@ -75,7 +93,7 @@ Type
   Variant = TVarData;
   PVariant = ^Variant;
 
-{ Variant functions }  
+{ Variant functions }
 
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;
@@ -121,21 +139,31 @@ Function VariantToByte(Const VargSrc : TVarData) : Byte;
 // Names match the ones in Borland varutils unit.
 
 const
-  VAR_OK            = HRESULT($00000000); 
-  VAR_TYPEMISMATCH  = HRESULT($80020005); 
-  VAR_BADVARTYPE    = HRESULT($80020008); 
-  VAR_EXCEPTION     = HRESULT($80020009); 
-  VAR_OVERFLOW      = HRESULT($8002000A); 
-  VAR_BADINDEX      = HRESULT($8002000B); 
-  VAR_ARRAYISLOCKED = HRESULT($8002000D); 
-  VAR_NOTIMPL       = HRESULT($80004001); 
-  VAR_OUTOFMEMORY   = HRESULT($8007000E); 
-  VAR_INVALIDARG    = HRESULT($80070057); 
-  VAR_UNEXPECTED    = HRESULT($8000FFFF); 
+  VAR_OK            = HRESULT($00000000);
+  VAR_TYPEMISMATCH  = HRESULT($80020005);
+  VAR_BADVARTYPE    = HRESULT($80020008);
+  VAR_EXCEPTION     = HRESULT($80020009);
+  VAR_OVERFLOW      = HRESULT($8002000A);
+  VAR_BADINDEX      = HRESULT($8002000B);
+  VAR_ARRAYISLOCKED = HRESULT($8002000D);
+  VAR_NOTIMPL       = HRESULT($80004001);
+  VAR_OUTOFMEMORY   = HRESULT($8007000E);
+  VAR_INVALIDARG    = HRESULT($80070057);
+  VAR_UNEXPECTED    = HRESULT($8000FFFF);
 
-  ARR_NONE          = $0000;  
-  ARR_FIXEDSIZE     = $0010;  
+  ARR_NONE          = $0000;
+  ARR_FIXEDSIZE     = $0010;
   ARR_OLESTR        = $0100;
-  ARR_UNKNOWN       = $0200; 
+  ARR_UNKNOWN       = $0200;
   ARR_DISPATCH      = $0400;
-  ARR_VARIANT       = $0800; 
+  ARR_VARIANT       = $0800;
+
+{$endif HASVARIANT}
+
+{
+  $Log$
+  Revision 1.2  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+}

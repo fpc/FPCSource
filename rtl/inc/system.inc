@@ -200,6 +200,13 @@ End;
 
 {$i objpas.inc}
 
+{*****************************************************************************
+                            Variant support
+*****************************************************************************}
+
+{$ifdef HASVARIANT}
+{$i variant.inc}
+{$endif HASVARIANT}
 {****************************************************************************
                          Run-Time Type Information (RTTI)
 ****************************************************************************}
@@ -666,7 +673,11 @@ end;
 
 {
   $Log$
-  Revision 1.21  2001-08-01 15:00:10  jonas
+  Revision 1.22  2001-08-19 21:02:01  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.21  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

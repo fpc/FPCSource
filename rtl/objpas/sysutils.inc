@@ -192,8 +192,18 @@ begin
   211 : E:=EAbstractError.Create(SAbstractError);
   215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
+// !!!!! 217 : ;
+// !!!!! 218 : ;
   219 : E:=EInvalidCast.Create(SInvalidCast);
+  220 : E:=EVariantError.Create(SInvalidVarCast);
+  221 : E:=EVariantError.Create(SInvalidVarOp);
+  222 : E:=EVariantError.Create(SDispatchError);
+  223 : E:=EVariantError.Create(SVarArrayCreate);
+  224 : E:=EVariantError.Create(SVarNotArray);
+  225 : E:=EVariantError.Create(SVarArrayBounds);
   227 : E:=EAssertionFailed.Create(SAssertionFailed);
+// !!!!! 228 : ;
+// !!!!! 229 : ;
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
@@ -318,7 +328,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-08-12 22:11:48  peter
+  Revision 1.6  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.5  2001/08/12 22:11:48  peter
     * freeandnil added
 
   Revision 1.4  2001/06/03 15:18:01  peter

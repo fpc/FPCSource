@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
-      windows ole2 opengl32 os_types winsock initc \
+      windows ole2 activex opengl32 os_types winsock initc \
       dos crt objects graph \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
@@ -120,6 +120,8 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+activex$(PPUEXT) : activex.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 os_types$(PPUEXT) : $(INC)/os_types.pp
@@ -174,7 +176,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
 varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
-                    $(OBJPASDIR)/varutilh.inc
+                    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 #

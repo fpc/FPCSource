@@ -165,9 +165,6 @@ Type
 { procedure type }
   TProcedure  = Procedure;
 
-{ Text file }
-  TextFile    = Text;
-
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -535,6 +532,13 @@ const
 
 {$i objpash.inc}
 
+{*****************************************************************************
+                           Variant support
+*****************************************************************************}
+
+{$ifdef HASVARIANT}
+{$i varianth.inc}
+{$endif HASVARIANT}
 
 {*****************************************************************************
                    Internal helper routines support
@@ -546,7 +550,11 @@ const
 
 {
   $Log$
-  Revision 1.34  2001-08-01 18:01:20  peter
+  Revision 1.35  2001-08-19 21:02:01  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.34  2001/08/01 18:01:20  peter
     * WChar fix to compile also with 1.0.x
 
   Revision 1.33  2001/08/01 15:00:11  jonas

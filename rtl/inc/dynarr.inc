@@ -37,17 +37,19 @@ type
 
 function fpc_dynarray_length(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
-     fpc_dynarray_length := 0;
      if assigned(p) then
-       fpc_dynarray_length:=pdynarray(p-sizeof(tdynarray))^.high+1;
+       fpc_dynarray_length:=pdynarray(p-sizeof(tdynarray))^.high+1
+     else
+       fpc_dynarray_length:=0;
   end;
 
 
 function fpc_dynarray_high(p : pointer) : tdynarrayindex;[Public,Alias:'FPC_DYNARRAY_HIGH']; {$ifdef hascompilerproc} compilerproc; {$endif}
   begin
-     fpc_dynarray_high := -1;
      if assigned(p) then
-       fpc_dynarray_high:=pdynarray(p-sizeof(tdynarray))^.high;
+       fpc_dynarray_high:=pdynarray(p-sizeof(tdynarray))^.high
+     else
+       fpc_dynarray_high:=-1;
   end;
 
 { releases and finalizes the data of a dyn. array and sets p to nil }
@@ -228,7 +230,11 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.8  2001-08-01 15:00:10  jonas
+  Revision 1.9  2001-08-19 21:02:01  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.8  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

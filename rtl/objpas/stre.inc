@@ -32,6 +32,7 @@ Const
    SAssertError = '%s (%s, line %d)';
    SAssertionFailed = 'Assertion failed';
    SDiskFull = 'Disk Full';
+   SDispatchError = 'No variant method call dispatch';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file';
    SExceptionErrorMessage = 'exception at %p';
@@ -54,6 +55,8 @@ Const
    SInvalidInteger = '"%s" is an invalid integer';
    SInvalidOp = 'Invalid floating point operation';
    SInvalidPointer = 'Invalid pointer operation';
+   SInvalidVarCast = 'Invalid variant type case';
+   SInvalidVarOp = 'Invalid variant operation';
    SOutOfMemory = 'Out of memory';
    SOverflow = 'Floating point overflow';
    SRangeError = 'Range check error';
@@ -61,10 +64,17 @@ Const
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
    SUnderflow = 'Floating point underflow';
    SUnknownErrorCode = 'Unknown error code: %d';
+   SVarArrayBounds = 'Variant array bounds error';
+   SVarArrayCreate = 'Variant array cannot be created';
+   SVarNotArray = 'Variant doesn''t contain an array';
    
 {
   $Log$
-  Revision 1.4  2000-08-30 06:50:49  michael
+  Revision 1.5  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.4  2000/08/30 06:50:49  michael
   + Merged changes from fixes
 
   Revision 1.3  2000/08/13 17:55:38  michael
@@ -76,6 +86,4 @@ Const
   Revision 1.1.2.1  2000/08/22 19:21:48  michael
   + Implemented syserrormessage. Made dummies for go32v2 and OS/2
   * Changed linux/errors.pp so it uses pchars for storage.
-
-
 }

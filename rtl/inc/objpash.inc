@@ -45,6 +45,8 @@
        vmtDefaultHandlerStr    = vmtMethodStart+28;
 
     type
+       TextFile = Text;
+
        { now the let's declare the base classes for the class object }
        { model                                                       }
        TObject = class;
@@ -157,6 +159,11 @@
        end;
        IInterface = IUnknown;
 
+       {$M+}
+       IInvokable = interface(IInterface)
+       end;
+       {$M-}
+
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
           ['{00020400-0000-0000-C000-000000000046}']
@@ -183,6 +190,7 @@
           class function NewInstance : TObject;override;
           property RefCount : longint read frefcount;
        end;
+       TInterfacedClass = class of TInterfacedObject;
 
        { some pointer definitions }
        PUnknown = ^IUnknown;
@@ -203,61 +211,39 @@
          Next    : PExceptObject;
        end;
 
-       Const
-          ExceptProc : TExceptProc = Nil;
-          RaiseProc : TExceptProc = Nil;
+    Const
+       ExceptProc : TExceptProc = Nil;
+       RaiseProc : TExceptProc = Nil;
 
-       Function RaiseList : PExceptObject;
-
+    Function RaiseList : PExceptObject;
 
 {*****************************************************************************
-                              Variant Type
+                              Array of const support
 *****************************************************************************}
 
-    Const
-       varEmpty     = $0000;
-       varNull      = $0001;
-       varSmallint  = $0002;
-       varInteger   = $0003;
-       varSingle    = $0004;
-       varDouble    = $0005;
-       varCurrency  = $0006;
-       varDate      = $0007;
-       varOleStr    = $0008;
-       varDispatch  = $0009;
-       varError     = $000A;
-       varBoolean   = $000B;
-       varVariant   = $000C;
-       varUnknown   = $000D;
-       varByte      = $0011;
-       varString    = $0100;
-       varAny       = $0101;
-       varTypeMask  = $0FFF;
-       varArray     = $2000;
-       varByRef     = $4000;
+   const
+      vtInteger    = 0;
+      vtBoolean    = 1;
+      vtChar       = 2;
+      vtExtended   = 3;
+      vtString     = 4;
+      vtPointer    = 5;
+      vtPChar      = 6;
+      vtObject     = 7;
+      vtClass      = 8;
+      vtWideChar   = 9;
+      vtPWideChar  = 10;
+      vtAnsiString = 11;
+      vtCurrency   = 12;
+      vtVariant    = 13;
+      vtInterface  = 14;
+      vtWideString = 15;
+      vtInt64      = 16;
+      vtQWord      = 17;
 
-       vtInteger    = 0;
-       vtBoolean    = 1;
-       vtChar       = 2;
-       vtExtended   = 3;
-       vtString     = 4;
-       vtPointer    = 5;
-       vtPChar      = 6;
-       vtObject     = 7;
-       vtClass      = 8;
-       vtWideChar   = 9;
-       vtPWideChar  = 10;
-       vtAnsiString = 11;
-       vtCurrency   = 12;
-       vtVariant    = 13;
-       vtInterface  = 14;
-       vtWideString = 15;
-       vtInt64      = 16;
-       vtQWord      = 17;
-
-    Type
-       PVarRec = ^TVarRec;
-       TVarRec = record
+   type
+      PVarRec = ^TVarRec;
+      TVarRec = record
          case VType : Longint of
            vtInteger    : (VInteger: Longint);
            vtBoolean    : (VBoolean: Boolean);
@@ -268,19 +254,26 @@
            vtPChar      : (VPChar: PChar);
            vtObject     : (VObject: TObject);
            vtClass      : (VClass: TClass);
-//           vtWideChar   : (VWideChar: WideChar);
-//           vtPWideChar  : (VPWideChar: PWideChar);
+           vtWideChar   : (VWideChar: WideChar);
+           vtPWideChar  : (VPWideChar: PWideChar);
            vtAnsiString : (VAnsiString: Pointer);
-//           vtCurrency   : (VCurrency: PCurrency);
-//           vtVariant    : (VVariant: PVariant);
+   //           vtCurrency   : (VCurrency: PCurrency);
+{$ifdef HASVARIANT}
+           vtVariant    : (VVariant: PVariant);
+{$endif HASVARIANT}
            vtInterface  : (VInterface: Pointer);
            vtWideString : (VWideString: Pointer);
            vtInt64      : (VInt64: PInt64);
            vtQWord      : (VQWord: PQWord);
        end;
+
 {
   $Log$
-  Revision 1.12  2001-08-12 22:11:48  peter
+  Revision 1.13  2001-08-19 21:02:01  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+  Revision 1.12  2001/08/12 22:11:48  peter
     * freeandnil added
 
   Revision 1.11  2001/04/13 23:49:48  peter
@@ -315,5 +308,4 @@
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
-
 }

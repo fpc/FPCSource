@@ -359,7 +359,7 @@ Lkbd_chain:
 	popl	%ds
 	popl	%ebx
 	popl	%eax
-	ljmp	%cs:___djgpp_old_kbd
+	ljmp	*%cs:___djgpp_old_kbd
 
 	.balign 16,,7
 	.global	___djgpp_kbd_hdlr_pc98
@@ -411,7 +411,7 @@ ___djgpp_timer_hdlr:
    	.byte	0x2e				/* CS: */
 	testb	$4, ___djgpp_hwint_flags	/* IRET or chain? */
 	jne	2f
-	ljmp	%cs:___djgpp_old_timer
+	ljmp	*%cs:___djgpp_old_timer
 2:
 	pushl	%eax
 	movb	$0x20,%al			/* EOI the interrupt */
@@ -483,3 +483,11 @@ already_forced:
 	.global ___djgpp_hw_lock_end
 ___djgpp_hw_lock_end:
         ret                                     /* LD does weird things */
+
+/*
+   $Log$
+   Revision 1.3  2001-08-19 21:02:01  florian
+     * fixed and added a lot of stuff to get the Jedi DX( headers
+       compiled
+
+*/

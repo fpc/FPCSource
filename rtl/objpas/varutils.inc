@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2001 by the Free Pascal development team
 
     Variant routines for non-windows oses.
 
@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-
+{$ifdef HASVARIANT}
 { ---------------------------------------------------------------------
     Some general stuff: Error handling and so on.
   ---------------------------------------------------------------------}
@@ -685,3 +685,12 @@ begin
   else
     Result:=psa^.ElementSize;
 end;
+
+{$endif HASVARIANT}
+{
+  $Log$
+  Revision 1.4  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+}

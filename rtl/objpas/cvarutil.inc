@@ -1,3 +1,20 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2000,2001 by the Free Pascal development team
+
+    Interface and OS-dependent part of variant support
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{$ifdef HASVARIANT}
+
 Resourcestring
 
   SNoWidestrings = 'No widestrings supported';
@@ -20,9 +37,9 @@ Constructor EVariantError.CreateCode (Code : longint);
 begin
   ErrCode:=Code;
 end;
-  
+
 Procedure VariantTypeMismatch;
-  
+
 begin
   Raise EVariantError.CreateCode(VAR_TYPEMISMATCH);
 end;
@@ -39,7 +56,7 @@ end;
 { ---------------------------------------------------------------------
     OS-independent functions not present in Windows
   ---------------------------------------------------------------------}
-  
+
 Function VariantToSmallInt(Const VargSrc : TVarData) : SmallInt;
 
 begin
@@ -119,7 +136,7 @@ end;
 Function VariantToCurrency(Const VargSrc : TVarData) : Currency;
 
 begin
-  Try 
+  Try
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=VSmallInt;
@@ -137,15 +154,15 @@ begin
   except
     On EConvertError do
       VariantTypeMismatch;
-    else  
-      Raise;  
-  end;   
+    else
+      Raise;
+  end;
 end;
 
 Function VariantToDate(Const VargSrc : TVarData) : TDateTime;
 
 begin
-  Try 
+  Try
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=FloatToDateTime(VSmallInt);
@@ -165,7 +182,7 @@ begin
       VariantTypeMismatch;
     else
       Raise;
-  end;   
+  end;
 end;
 
 Function VariantToBoolean(Const VargSrc : TVarData) : Boolean;
@@ -190,7 +207,7 @@ end;
 Function VariantToByte(Const VargSrc : TVarData) : Byte;
 
 begin
-  Try 
+  Try
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=VSmallInt;
@@ -208,7 +225,16 @@ begin
   except
     On EConvertError do
       VariantTypeMismatch;
-    else  
+    else
       Raise;
-  end;   
+  end;
 end;
+
+{$endif HASVARIANT}
+{
+  $Log$
+  Revision 1.2  2001-08-19 21:02:02  florian
+    * fixed and added a lot of stuff to get the Jedi DX( headers
+      compiled
+
+}
