@@ -1,0 +1,15 @@
+#
+#   Makefile.fpc for FCL Pascal source file parsing and writing units
+#
+
+[package]
+main=fcl
+
+[target]
+units=pastree pscanner pparser paswrite
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
