@@ -19,20 +19,25 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The DOS unit.}
-This chapter describes the \var{DOS} unit for Free pascal, both under \dos
-and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
-The unit was ported to \linux by Mark May\footnote{Current
-e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van
-Canneyt.
-Under \linux, some of the functionality is lost, as it is either impossible 
-or meaningless to implement it. Other than that, 
-the functionality for both operating systems is the same.
-This chapter is divided in two sections. 
+\FPCexampledir{dosex}
+
+This chapter describes the \var{DOS} unit for Free pascal, both under
+\dos, \ostwo, \windows and \linux. 
+The unit was first written for \dos by Florian kl\"ampfl. It was ported to 
+\linux by Mark May\footnote{Current e-mail address \textsf{mmay@dnaco.net}}, 
+and enhanced by Micha\"el Van Canneyt.
+
+Under non-\dos systems, some of the functionality is lost, as it is either impossible 
+or meaningless to implement it. Other than that, the functionality for all 
+operating systems is the same.
+
+This chapter is divided in two sections:
 \begin{itemize}
 \item The first section lists the pre-defined constants, types and variables. 
 \item The second section describes the functions which appear in the
 interface part of the DOS unit.
 \end{itemize}
+
 \section{Types, Variables, Constants}
 \subsection {Constants}
 The DOS unit implements the following constants:
@@ -61,16 +66,14 @@ The DOS unit implements the following constants:
 The following string types are defined for easy handling of
 filenames :
 \begin{verbatim}
-  ComStr  = String[127]; { For command-lines } 
-  PathStr = String[79];  { For full path for file names }
-  DirStr  = String[67];  { For Directory and (DOS) drive string }
-  NameStr = String[8];   { For Name of file }
-  ExtStr  = String[4];   { For Extension of file }
+  ComStr  = String[255];   { For command-lines } 
+  PathStr = String[255];   { For full path for file names }
+  DirStr  = String[255];   { For Directory and (DOS) drive string }
+  NameStr = String[255];   { For Name of file }
+  ExtStr  = String[255];   { For Extension of file }
 \end{verbatim}
-Under \linux, these strings all have length 255.
 \begin{verbatim}
-{$PACKRECORDS 1}
-  SearchRec = Record
+  SearchRec = Packed Record
     Fill : array[1..21] of byte;  
     { Fill replaced with declarations below, for Linux}
     Attr : Byte; {attribute of found file}
@@ -184,7 +187,6 @@ Other values are possible, but are not documented.
 \begin{procedure}{AddDisk}
 \Declaration
 Procedure AddDisk (Const S : String);
-
 \Description
 \var{AddDisk} adds a filename \var{S} to the internal list of disks. It is
 implemented for \linux only.
@@ -203,16 +205,16 @@ initialization code presets the first three disks to:
 The first call to \var{AddDisk} will therefore add a name for the second
 harddisk, The second call for the third drive, and so on until 23 drives
 have been added (corresponding to drives \var{'D:'} to \var{'Z:'})
-
 \Errors
 None
 \SeeAlso
 \seef{DiskFree}, \seef{DiskSize} 
 \end{procedure}
+
+
 \begin{function}{DiskFree}
 \Declaration
 Function DiskFree (Drive: byte) : Int64;
-
 \Description
 
 \var{DiskFree} returns the number of free bytes on a disk. The parameter
@@ -241,12 +243,12 @@ These settings can be coded in \var{dos.pp}, in the initialization part.
 \SeeAlso
 \seef{DiskSize}, \seep{AddDisk}
 \end{function}
-\latex{\lstinputlisting{dosex/ex6.pp}}
-\html{\input{dosex/ex6.tex}}
+
+\FPCexample{ex6}
+
 \begin{function}{DiskSize}
 \Declaration
 Function DiskSize (Drive: byte) : Int64;
-
 \Description
 
 \var{DiskSize} returns the total size (in bytes) of a disk. The parameter
@@ -277,7 +279,6 @@ For an example, see \seef{DiskFree}.
 \begin{function}{DosExitCode}
 \Declaration
 Function DosExitCode  : Word;
-
 \Description
 
 \var{DosExitCode} contains (in the low byte) the exit-code of a program 
@@ -287,12 +288,12 @@ None.
 \SeeAlso
 \seep{Exec}
 \end{function}
-\latex{\lstinputlisting{dosex/ex5.pp}}
-\html{\input{dosex/ex5.tex}}
+
+\FPCexample{ex5}
+
 \begin{function}{DosVersion}
 \Declaration
 Function DosVersion  : Word;
-
 \Description
 \var{DosVersion} returns the \dos version number. On \linux systems, it
 returns the Linux version (The first 2 numbers, e.g Linux version 2.1.76 will
@@ -303,13 +304,13 @@ None.
 
 \end{function}
 
-\latex{\lstinputlisting{dosex/ex1.pp}}
-\html{\input{dosex/ex1.tex}}
+
+\FPCexample{ex1}
+
 
 \begin{function}{EnvCount}
 \Declaration
-Function EnvCount  : longint;
-\Description
+Function EnvCount  : longint;\Description
 \var{EnvCount} returns the number of environment variables.
 \Errors
 None.
@@ -319,8 +320,7 @@ None.
 
 \begin{function}{EnvStr}
 \Declaration
-Function EnvStr (Index: integer) : string;
-\Description
+Function EnvStr (Index: integer) : string;\Description
 
 \var{EnvStr} returns the \var{Index}-th \var{Name=Value} pair from the list
 of environment variables. 
@@ -331,12 +331,12 @@ The length is limited to 255 characters. This may cause problems under
 \SeeAlso
 \seef{EnvCount}, \seef{Dos:GetEnv}
 \end{function}
-\latex{\lstinputlisting{dosex/ex13.pp}}
-\html{\input{dosex/ex13.tex}}
+
+\FPCexample{ex13}
+
 \begin{procedure}{Exec}
 \Declaration
 Procedure Exec (const Path: pathstr; const ComLine: comstr);
-
 \Description
 
 \var{Exec} executes the program in \var{Path}, with the options given by
@@ -353,7 +353,6 @@ For an example, see \seef{DosExitCode}
 \begin{functionl}{FExpand}{Dos:FExpand}
 \Declaration
 Function FExpand (const path: pathstr) : pathstr;
-
 \Description
 
 \var{FExpand} takes its argument and expands it to a complete filename, i.e.
@@ -367,11 +366,10 @@ the name is left as it is. (filenames are case sensitive under Unix)
 \SeeAlso
 \lstinputlisting{dosex/ex5.pp}
 \end{functionl}
-\html{\input{dosex/ex5.tex}}
+
 \begin{procedure}{FindClose}
 \Declaration
 Procedure FindClose (Var F: SearchRec);
-
 \Description
 
 \textbf{\linux only}
@@ -398,7 +396,6 @@ None.
 \begin{procedure}{FindFirst}
 \Declaration
 Procedure FindFirst (const Path: pathstr; Attr: word; var F: SearchRec);
-
 \Description
 
 \var{FindFirst} searches the file specified in \var{Path}, checks the
@@ -416,12 +413,12 @@ Errors are reported in DosError.
 \seep{FindNext},
 \seep{FindClose}
 \end{procedure}
-\latex{\lstinputlisting{dosex/ex7.pp}}
-\html{\input{dosex/ex7.tex}}
+
+\FPCexample{ex7}
+
 \begin{procedure}{FindNext}
 \Declaration
 Procedure FindNext (var f: searchRec);
-
 \Description
 
 \var{FindNext} takes as an argument a \var{SearchRec} from a previous
@@ -438,7 +435,6 @@ For an example, see \seep{FindFirst}.
 \begin{functionl}{FSearch}{Dos:FSearch}
 \Declaration
 Function FSearch (Path: pathstr; DirList: string) : pathstr;
-
 \Description
 \var{FSearch} searches the file \var{Path} in all directories listed in
 \var{DirList}. The full name of the found file is returned.
@@ -451,14 +447,14 @@ None.
 \SeeAlso
 \seefl{FExpand}{Dos:FExpand}
 \end{functionl}
-\latex{\lstinputlisting{dosex/ex10.pp}}
-\html{\input{dosex/ex10.tex}}
+
+\FPCexample{ex10}
+
  
 \begin{procedure}{FSplit}
 \Declaration
 Procedure FSplit (path: pathstr; \\ var dir: dirstr; var name: namestr;
   var ext: extstr);
-
 \Description
 
 \var{FSplit} splits a full file name into 3 parts : A \var{Path}, a
@@ -471,12 +467,12 @@ None.
 \SeeAlso
 \seefl{FSearch}{Dos:FSearch}
 \end{procedure}
-\latex{\lstinputlisting{dosex/ex12.pp}}
-\html{\input{dosex/ex12.tex}}
+
+\FPCexample{ex12}
+
 \begin{procedure}{GetCBreak}
 \Declaration
 Procedure GetCBreak (var breakvalue: boolean);
-
 \Description
 
 \var{GetCBreak} gets the status of CTRL-Break checking under \dos.
@@ -492,8 +488,7 @@ not implemented, i.e. the call does nothing.
 
 \begin{procedurel}{GetDate}{Dos:GetDate}
 \Declaration
-Procedure GetDate (var year, month, mday, wday: word);
-\Description
+Procedure GetDate (var year, month, mday, wday: word);\Description
 
 \var{GetDate} returns the system's date. \var{Year} is a number in the range
 1980..2099.\var{mday} is the day of the month,
@@ -503,12 +498,12 @@ None.
 \SeeAlso
 \seepl{GetTime}{Dos:GetTime},\seep{SetDate}
 \end{procedurel}
-\latex{\lstinputlisting{dosex/ex2.pp}}
-\html{\input{dosex/ex2.tex}}
+
+\FPCexample{ex2}
+
 \begin{functionl}{GetEnv}{Dos:GetEnv}
 \Declaration
 Function GetEnv (EnvVar: String) : String;
-
 \Description
 
 \var{Getenv} returns the value of the environment variable \var{EnvVar}.
@@ -520,12 +515,12 @@ None.
 \SeeAlso
 \seef{EnvCount}, \seef{EnvStr}
 \end{functionl}
-\latex{\lstinputlisting{dosex/ex14.pp}}
-\html{\input{dosex/ex14.tex}}
+
+\FPCexample{ex14}
+
 \begin{procedure}{GetFAttr}
 \Declaration
 Procedure GetFAttr (var F; var Attr: word);
-
 \Description
 
 \var{GetFAttr} returns the file attributes of the file-variable \var{f}.
@@ -552,12 +547,12 @@ Errors are reported in \var{DosError}
 \SeeAlso
 \seep{SetFAttr}
 \end{procedure}
-\latex{\lstinputlisting{dosex/ex8.pp}}
-\html{\input{dosex/ex8.tex}}
+
+\FPCexample{ex8}
+
 \begin{procedure}{GetFTime}
 \Declaration
 Procedure GetFTime (var F; var Time: longint);
-
 \Description
 
 \var{GetFTime} returns the modification time of a file.
@@ -569,27 +564,25 @@ Errors are reported in \var{DosError}
 \SeeAlso
 \seep{SetFTime}, \seep{PackTime},\seep{UnPackTime}
 \end{procedure}
-\latex{\lstinputlisting{dosex/ex9.pp}}
-\html{\input{dosex/ex9.tex}}
+
+\FPCexample{ex9}
+
 \begin{procedure}{GetIntVec}
 \Declaration
 Procedure GetIntVec (IntNo: byte; var Vector: pointer);
-
 \Description
 
 \var{GetIntVec} returns the address of interrupt vector
 \var{IntNo}.
 \Errors
-None. Under \linux, this call exists bout isn't implemented,
-i.e. it does nothing.
+Under non- \dos operating systems, this call does nothing.
 \SeeAlso
 \seep{SetIntVec}
 \end{procedure}
 
 \begin{function}{GetLongName}
 \Declaration
-function GetLongName(var p : String) : boolean;
-\Description
+function GetLongName(var p : String) : boolean;\Description
 This function is only implemented in the GO32V2 version of \fpc.
 
 \var{GetLongName} changes the filename \var{p} to a long filename
@@ -601,16 +594,15 @@ The function returns \var{True} if the \dos call was successful,
 
 This function should only be necessary when using the DOS extender
 under Windows 95 and higher.
-\errors
+\Errors
 If the \dos call was not succesfull, \var{False} is returned.
-\seealso
+\SeeAlso
 \seef{GetShortName}
 \end{function}
 
 \begin{function}{GetShortName}
 \Declaration
-function GetShortName(var p : String) : boolean;
-\Description
+function GetShortName(var p : String) : boolean;\Description
 This function is only implemented in the GO32V2 version of \fpc.
 
 \var{GetShortName} changes the filename \var{p} to a short filename
@@ -622,16 +614,15 @@ The function returns \var{True} if the \dos call was successful,
 
 This function should only be necessary when using the DOS extender
 under Windows 95 and higher.
-\errors
+\Errors
 If the \dos call was not successful, \var{False} is returned.
-\seealso
+\SeeAlso
 \seef{GetLongName}
 \end{function}
 
 \begin{procedurel}{GetTime}{Dos:GetTime}
 \Declaration
 Procedure GetTime (var hour, minute, second, sec100: word);
-
 \Description
 
 \var{GetTime} returns the system's time. \var{Hour} is a on a 24-hour time
@@ -644,13 +635,13 @@ None.
 \seep{SetTime}
 \end{procedurel}
 
-\latex{\lstinputlisting{dosex/ex3.pp}}
-\html{\input{dosex/ex3.tex}}
+
+\FPCexample{ex3}
+
 
 \begin{procedure}{GetVerify}
 \Declaration
 Procedure GetVerify (var verify: boolean);
-
 \Description
 
 \var{GetVerify} returns the status of the verify flag under \dos. When
@@ -666,7 +657,6 @@ Under \linux,  Verify is always
 \begin{procedure}{Intr}
 \Declaration
 Procedure Intr (IntNo: byte; var Regs: registers);
-
 \Description
 
 \var{Intr} executes a software interrupt number \var{IntNo} (must be between
@@ -678,24 +668,22 @@ kernel. The only allowed interrupt is 80h, the Linux kernel entry interrupt.
 \SeeAlso
 \seep{MSDos}, see the \linux unit.
 \end{procedure}
+
 \begin{procedure}{Keep}
 \Declaration
 Procedure Keep (ExitCode: word);
-
 \Description
-
 \var{Keep} terminates the program, but stays in memory. This is used for TSR
 (Terminate Stay Resident) programs which catch some interrupt.
 \var{ExitCode} is the same parameter as the \var{Halt} function takes.
 \Errors
-Under \linux, this call does nothing.
+Under non-\dos operating systems, this call does nothing.
 \SeeAlso
 \seem{Halt}{}
 \end{procedure}
 \begin{procedure}{MSDos}
 \Declaration
 Procedure MSDos (var regs: registers);
-
 \Description
 
 \var{MSDos} executes an MS-\dos call (int 21h). This is the same as doing a
@@ -708,7 +696,6 @@ None.
 \begin{procedure}{PackTime}
 \Declaration
 Procedure PackTime (var T: datetime; var P: longint);
-
 \Description
 
 \var{UnPackTime} converts the date and time specified in \var{T}
@@ -718,12 +705,12 @@ None.
 \SeeAlso
 \seep{SetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{UnPackTime}
 \end{procedure}
-\latex{\lstinputlisting{dosex/ex4.pp}}
-\html{\input{dosex/ex4.tex}}
+
+\FPCexample{ex4}
+
 \begin{procedure}{SetCBreak}
 \Declaration
 Procedure SetCBreak (breakvalue: boolean);
-
 \Description
 
 \var{SetCBreak} sets the status of CTRL-Break checking under \dos.
@@ -739,7 +726,6 @@ but is not implemented, i.e. it does nothing.
 \begin{procedure}{SetDate}
 \Declaration
 Procedure SetDate (year,month,day: word);
-
 \Description
 
 \var{SetDate} sets the system's internal date. \var{Year} is a number
@@ -756,7 +742,6 @@ root-only privilege, and is hence not implemented.
 \begin{procedure}{SetFAttr}
 \Declaration
 Procedure SetFAttr (var F; Attr: word);
-
 \Description
 
 \var{SetFAttr} sets the file attributes of the file-variable \var{F}.
@@ -782,7 +767,6 @@ Under \linux the call exists, but is not implemented, i.e. it does nothing.
 \begin{procedure}{SetFTime}
 \Declaration
 Procedure SetFTime (var F; Time: longint);
-
 \Description
 
 \var{SetFTime} sets the modification time of a file,
@@ -794,26 +778,23 @@ Errors are reported in \var{DosError}
 \SeeAlso
 \seep{GetFTime}, \seep{PackTime},\seep{UnPackTime}
 \end{procedure}
+
 \begin{procedure}{SetIntVec}
 \Declaration
 Procedure SetIntVec (IntNo: byte; Vector: pointer);
-
 \Description
-
 \var{SetIntVec} sets interrupt vector \var{IntNo} to \var{Vector}.
 \var{Vector} should point to an interrupt procedure.
 \Errors
-Under \linux, this
-call exists but is not implemented, the kernel manages all interrupts.
+Under non- \dos operating systems, this call does nothing.
 \SeeAlso
 \seep{GetIntVec}
 \end{procedure}
+
 \begin{procedure}{SetTime}
 \Declaration
 Procedure SetTime (hour,minute,second,sec100: word);
-
 \Description
-
 \var{SetTime} sets the system's internal clock. The \var{Hour} parameter is
 on a 24-hour time scale.
 \Errors
@@ -825,7 +806,6 @@ as setting the time is a root-only privilege.
 \begin{procedure}{SetVerify}
 \Declaration
 Procedure SetVerify (verify: boolean);
-
 \Description
 
 \var{SetVerify} sets the status of the verify flag under \dos. When
@@ -841,7 +821,6 @@ Under \linux,  Verify is always
 \begin{procedure}{SwapVectors}
 \Declaration
 Procedure SwapVectors ;
-
 \Description
 
 \var{SwapVectors} swaps the contents of the internal table of interrupt 
@@ -857,7 +836,6 @@ managed by the kernel.
 \begin{procedure}{UnPackTime}
 \Declaration
 Procedure UnPackTime (p: longint; var T: datetime);
-
 \Description
 
 \var{UnPackTime} converts the file-modification time in \var{p}

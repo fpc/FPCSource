@@ -872,14 +872,16 @@ indices, enumeration types, subrange types, etc. Specifying the
 \var{\{\$R+\}} switch tells the computer to generate code to check these
 indices. If, at run-time, an index or enumeration type is specified that is
 out of the declared range of the compiler, then a run-time error is
-generated, and the program exits with exit code 201.
+generated, and the program exits with exit code 201. This can happen when
+doing a typecast (implicit or explicit) on an enumeration type or subrange
+type.
 
 The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range checking
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
 \begin{remark} 
-\item The standard functions \var{val} and \var{Read} will also check ranges
+The standard functions \var{val} and \var{Read} will also check ranges
 when the call is compiled in \var{\{\$R+\}} mode.
 \end{remark}
 
@@ -2436,8 +2438,31 @@ ppc386  prlen.pp
 \end{verbatim}
 Supposing, of course, that the program source resides in \file{prlen.pp}.
 
-You cannot use procedures or functions that have a variable number of
-arguments in C. Pascal doesn't support this feature of C.
+To use functions in C that have a variable number of arguments, you must
+compile your unit or program in \var{objfpc} mode or \var{Delphi} mode,
+and use the \var{Array of const} argument, as in the following example:
+
+\begin{verbatim}
+program testaocc;
+
+{$mode objfpc}
+
+Const 
+  P : Pchar 
+    = 'example'; 
+  F : Pchar 
+    = 'This %s uses printf to print numbers (%d) and strings.'#10;
+
+procedure printf(fm: pchar;args: array of const);cdecl;external 'c';
+
+begin
+ printf(F,[P,123]);
+end.
+\end{verbatim}
+The output of this program looks like this:
+\begin{verbatim}
+This example uses printf to print numbers (123) and strings.
+\end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Making a shared library
@@ -3060,8 +3085,8 @@ Offset & What is stored & Optional ? \\ \hline
 +x & parameters & Yes \\
 +12 & function result & Yes \\
 +8 & self & Yes \\
-+4 & Frame pointer of parent procedure & Yes \\
-+0 & Return address & No\\ \hline
++4 & Return address & No\\ 
++0 & Frame pointer of parent procedure & Yes \\ \hline
 \end{FPCltable}
 
 \subsection{ Intel x86 version }
@@ -3080,12 +3105,17 @@ size will be used instead, otherwise the default stack size is used.
 
 \subsubsection{ Linux }
 
-Under Linux, stack size is only limited by the available memory of
+Under \linux, stack size is only limited by the available memory of
+the system.
+
+\subsubsection{ Windows }
+
+Under \windows, stack size is only limited by the available memory of
 the system.
 
 \subsubsection{ OS/2 }
 
-Under OS/2, stack size is determined by one of the runtime
+Under \ostwo, stack size is determined by one of the runtime
 environment variables set for EMX. Therefore, the stack size
 is user defined.
 

@@ -86,7 +86,7 @@ on a port to ALPHA Architecture}. Currently, it supports 6 operating systems:
 \item \linux
 \item \atari (version 0.99.5 only)
 \item \amiga (version 0.99.5 only)
-\item \windowsnt
+\item \windows
 \item \ostwo (using the EMX package, so it also works on DOS/Windows)
 \end{itemize}
 and work is in progress to port it to other platforms (notably, \freebsd).
@@ -99,8 +99,8 @@ And, unlike these ancestors, it supports multiple platforms.
 It also differs from them in the sense that you cannot use compiled units
 from one system for the other.
 
-Also, at the time of writing, there is no Integrated Development Environment
-(IDE) available for \fpc. This gap will, hopefully, be filled in the future.
+Also, at the time of writing, there is only a early beta version of an
+Integrated Development Environment (IDE) available for \fpc. 
 
 \fpc consists of three parts :
 \begin{enumerate}
@@ -161,13 +161,10 @@ The compiler needs at least the following hardware:
 \begin{enumerate}
 \item An I386 or higher processor. A coprocessor is not required, although it
 will slow down your program's performance if you do floating point calculations.
-\item 2 Mb of free memory. Under \dos, if you use DPMI memory management,
+\item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
 such as under Windows, you will need at least 16 Mb.
 \item At least 500 Kb. free disk space.
 \end{enumerate}
-
-%
-%
 
 % Software requirements
 \subsection{Software requirements}
@@ -186,6 +183,18 @@ recompiling of the compiler and Run-Time Library, this is needed.
 \end{enumerate}
 Other than that, \fpc should run on almost any I386 \linux system.
 
+\subsubsection{Under Windows}
+The \dos distribution contains all the files you need to run the compiler
+and compile pascal programs. However, it may be a good idea to install
+the \file{mingw32} tools or the \var{cygwin} development tools. Links
+to both of these tools can be found on \var{http://www.freepascal.org}
+
+\subsubsection{Under OS/2}
+While the \fpc distribution comes with all necessary tools, it is a good
+idea to install the EMX extender in order to compile and run
+programs with the Free Pascal compiler. The EMX extender can be found on:\\
+\var{http://www.leo.org/pub/comp/os/os2/leo/gnu/emx+gcc/index.html}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Installing the compiler.
 \section{Installing the compiler.}
@@ -193,7 +202,7 @@ The installation of \fpc is easy, but is platform-dependent.
 We discuss the process for each platform separately.
 
 % Installing under DOS
-\subsection{Installing under DOS}
+\subsection{Installing under DOS or Windows}
 \subsubsection{Mandatory installation steps.}
 First, you must get the latest distribution files of \fpc. They come as zip
 files, which you must unzip first, or you can download the compiler as a
@@ -249,7 +258,7 @@ it is necessary to install a coprocessor emulation, since \fpc uses the
 coprocessor to do all floating point operations.
 
 The installation of the coprocessor emulation is handled by the
-installation program (\file{INSTALL.EXE}). However,
+installation program (\file{INSTALL.EXE}) under \dos and \windows.
 
 %
 % Installing under Linux
@@ -332,7 +341,7 @@ If you want the \fpc compiler to use this configuration file, it must be
 present in \file{/etc}, or you can set the environment variable
 \var{PPC\_CONFIG\_PATH}. Under \file{csh}, you can do this by adding  a
 \begin{verbatim}
-setenv PPC_CONFIG_PATH /usr/lib/ppc/0.99.1
+setenv PPC_CONFIG_PATH /usr/lib/ppc/0.99.14
 \end{verbatim}
 line to your \file{.login} file in your home directory.
 (see also the next section)
@@ -374,8 +383,8 @@ these programs.
 
 The compiler is called
 \begin{itemize}
-\item \file{PPC386.EXE} under \dos, and
 \item \file{ppc386} under \linux
+\item \file{PPC386.EXE} under other target systems.
 \end{itemize}
 To compile a program (e.g \verb|demo\hello.pp|) simply type :
 \begin{verbatim}
@@ -385,14 +394,14 @@ at the command prompt. If you don't have a configuration file, then you may
 need to tell the compiler where it can find the units, for instance as
 follows:
 \begin{verbatim}
-ppc386 -Upc:\pp\rtl\dos\go32v2 hello
+ppc386 -Fuc:\pp\units\go32v2\rtl hello
 \end{verbatim}
 under \dos, and under \linux you could type
 \begin{verbatim}
-ppc386 -Up/usr/lib/fpc/0.99.7/linuxunits hello
+ppc386 -Fu/usr/lib/fpc/0.99.14/units/linux/rtl hello
 \end{verbatim}
 This is, of course, assuming that you installed under \verb|C:\PP| or
-\file{/usr/lib/fpc/0.99.7}, respectively.
+\file{/usr/lib/fpc/0.99.14}, respectively.
 
 If you got no error messages, the compiler has generated an executable
 called \file{hello} (no extension) under \linux, and a file \file{hello.exe}
@@ -406,9 +415,6 @@ If all went well, you should see the following friendly greeting:
 \begin{verbatim}
 Hello world
 \end{verbatim}
-In the \dos case, this friendly greeting may be preceded by some ugly
-message from the \file{GO32} extender program. This unfriendly behavior can
-be switched off by setting the \file{GO32} environment variable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Usage
@@ -473,7 +479,38 @@ look for compiled versions of these units in the following way:
 \end{enumerate}
 You can add a directory to the unit search path with the \var{-Fu} option 
 (\seeo{Fu}). Every occurrence of one of this options will {\em insert} 
-a directory to the unit search path.
+a directory to the unit search path. i.e. last path on the command line 
+will be searched first.
+
+The compiler adds several paths to the unit search path:
+\begin{enumerate}
+\item The contents of the environment variable \var{XXUNITS}, where \var{XX}
+musrt be replaced with one of the supported targets: \var{GO32V2},
+\var{LINUX},\var{WIN32}, \var{OS2}.
+\item The standard unit directory. This directory is determined
+from the \var{FPCDIR} environment variable. If this variable is not set,
+then it is defaulted to the following:
+\begin{itemize}
+\item On \linux: 
+\begin{verbatim}
+  /usr/local/lib/fpc/VERSION
+or
+  /usr/lib/fpc/VERSION
+\end{verbatim}
+whichever is found first.
+\item On other OSes: the compiler binary directory, with '../' appended
+to it, if it exists.
+\end{itemize}
+After this directory is determined , the following paths are added to the
+search path:
+\begin{enumerate}
+\item FPCDIR/units/TARGET
+\item FPCDIR/units/TARGET/rtl
+\end{enumerate}
+Here target must be replaced by the name of the target you are compiling for.
+\end{enumerate}
+You can see what paths the compiler will search by giving the compiler
+the \var{-vu} option.
 
 On \linux, the compiler will first convert the filename of a unit to
 all-lowercase. This is necessary, since Pascal is case-independent, and
@@ -487,7 +524,7 @@ same directories, but with the truncated name.
 For instance, suppose that the file \file{foo.pp} needs the unit
 \file{bar}. Then the command
 \begin{verbatim}
-ppc386 -Up.. -Upunits foo.pp
+ppc386 -Fu.. -Fuunits foo.pp
 \end{verbatim}
 will tell the compiler to look for the unit \file{bar} in the following
 places:
@@ -496,6 +533,7 @@ places:
 \item In the directory where the compile binary is (not under \linux).
 \item In the parent directory of the current directory.
 \item In the subdirectory \file{units} of the current directory
+\item In the standard unit directory.
 \end{enumerate}
 
 If the compiler finds the unit it needs, it will look for the source file of
@@ -513,7 +551,7 @@ It is recommended to set the unit search path in the configuration file
 path on the command-line every time you want to compile something.
 
 % Include files.
-\section{Include files}
+\subsection{Include files}
 If you include files in your source with the \var{\{\$I filename\}}
 directive, the compiler will look for it in the following places:
 
@@ -547,7 +585,7 @@ will cause the compiler to look in the following directories for
 \end{enumerate}
 
 % Object files.
-\section{Object files}
+\subsection{Object files}
 When you link to object files (using the \var{\{\$L file.o\}} directive,
 the compiler will look for this file in the same way as it looks for include
 files:
@@ -562,6 +600,7 @@ option.
 
 % Configuration file
 \subsection{Configuration file}
+\label{searchconfig}
 Unless you specify the \var{-n} (\seeo{n}) option, the compiler will look
 for a configuration file \file{ppc386.cfg} in the following places:
 
@@ -582,6 +621,15 @@ for a configuration file \file{ppc386.cfg} in the following places:
 \end{enumerate}
 \end{itemize}
 
+\subsection{About long filenames}
+\fpc can handle long filenames under \windows; it will use support for
+long filenames if it is available. 
+
+If no support for long filenames is present, it will truncate unit names
+to 8 characters.
+
+It is not recommended to put units in directories that contain spaces in 
+their names, since the linker doesn't understand such filenames.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compiling a program
@@ -664,13 +712,7 @@ file, which will be linked as a whole into your program.
 
 Not only is it possible to compile a shared library under \windows and 
 \linux, but also it is possible to take existing units and put them 
-together in 1 static or shared library.
-
-
-begin{}
-
-
-
+together in 1 static or shared library (using the \file{ppumove} tool)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Creating an executable for GO32V1, PMODE/DJ targets
@@ -1165,23 +1207,9 @@ before the options that you type on the command line.
 You can specify comments in the configuration file with the \var{\#} sign.
 Everything from the \var{\#} on will be ignored.
 
-The compiler looks for the \file{ppc386.cfg} file in the following places :
-\begin{itemize}
-\item Under \linux
-\begin{enumerate}
-\item The current directory.
-\item In your home directory, it looks for \file{.ppc386.cfg}.
-\item The directory specified in the environment variable
-\var{PPC\_CONFIG\_PATH}, and if it's not set under \file{/etc}.
-\end{enumerate}
-\item Under all other OSes:
-\begin{enumerate}
-\item The current directory.
-\item If it is set, the directory specified in the environment variable.
-\var{PPC\_CONFIG\_PATH}.
-\item The directory where the compiler is.
-\end{enumerate}
-\end{itemize}
+The algorithm to determine which file is used as a configuration file
+is decribed in \ref{searchconfig} on page \pageref{searchconfig}.
+
 When the compiler has finished reading the configuration file, it continues
 to treat the command line options.
 
@@ -1221,7 +1249,7 @@ encountered, after which normal processing is resumed.
 Example :
 \begin{verbatim}
 #IFDEF VER0_99_5
--Up/usr/lib/fpc/0.99.5/linuxunits
+-Fu/usr/lib/fpc/0.99.5/linuxunits
 #ENDIF
 \end{verbatim}
 In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
@@ -1241,7 +1269,7 @@ encountered, after which normal processing is resumed.
 Example :
 \begin{verbatim}
 #IFNDEF VER0_99_5
--Up/usr/lib/fpc/0.99.6/linuxunits
+-Fu/usr/lib/fpc/0.99.6/linuxunits
 #ENDIF
 \end{verbatim}
 In the above example, \file{/usr/lib/fpc/0.99.6/linuxunits} will be added to
@@ -1263,9 +1291,9 @@ encountered, after which normal processing is resumed.
 Example :
 \begin{verbatim}
 #IFDEF VER0_99_5
--Up/usr/lib/fpc/0.99.6/linuxunits
+-Fu/usr/lib/fpc/0.99.6/linuxunits
 #ELSE
--Up/usr/lib/fpc/0.99.5/linuxunits
+-Fu/usr/lib/fpc/0.99.5/linuxunits
 #ENDIF
 \end{verbatim}
 In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
@@ -1432,14 +1460,17 @@ they are in Delphi. Using the \var{-So} switch will solve this problem if
 you want to compile Turbo Pascal code that uses these words.
 \item The reserved words \var{FAR, NEAR} are ignored. This is
 because \fpc is a 32 bit compiler, so they're obsolete.
-\item \var{INTERRUPT} only will work on a DOS machine.
+\item \var{INTERRUPT} will work only on the \dos target.
 \item Boolean expressions are only evaluated until their result is completely
 determined. The rest of the expression will be ignored.
 \item By default the compiler uses  \var{AT\&T} assembler syntax.
-This is mainly because \fpc uses \gnu \var{as}. However other assembler
-forms are available, \progref.
+This is mainly because \fpc uses \gnu \var{as}. However, other assembler
+forms are available. For more information, see \progref.
 \item Turbo Vision is not completely available. There is FreeVision, but the
-degree of compatibility with Turbo Vision is unclear at this time.
+degree of compatibility with Turbo Vision is unclear at this
+time\footnote{At the time of writing, FreeVision has been taken off the
+net, because there are some copyright issues which make it impossible to
+distribute it.}.
 \item The 'overlay' unit is not available. It also isn't necessary, since
 \fpc is a 32 bit compiler, so program size shouldn't be a point.
 \item There are more reserved words. (see appendix \ref{ch:reserved} for a
@@ -1581,7 +1612,7 @@ begin
 end;
 
 \end{verbatim}
-\item recursive function calls are handled dfferently. Consider the
+\item recursive function calls are handled differently. Consider the
 following example :
 \begin{verbatim}
 Function expr : Longint;
@@ -1638,7 +1669,7 @@ this by calling \dos function \var{71A0h} and checking whether long
 filenames are supported on the \file{C:} drive. 
 
 It is possible to disable the long filename support by setting the
-\var{LFNSupport} variable to \var{False}
+\var{LFNSupport} variable to \var{False}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Utilities.
@@ -1648,6 +1679,17 @@ It is possible to disable the long filename support by setting the
 \label{ch:Utilities}
 Besides the compiler and the Run-Time Library, \fpc comes with some utility
 programs and units. Here we list these programs and units.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Demo programs and examples.
+\section{Demo programs and examples}
+Also distributed with \fpc comes a series of demonstration programs.
+These programs have no other purpose than demonstrating the capabilities of
+\fpc. They are located in the \file{demo} directory of the sources.
+
+All example programs of the documentation are available. Check out the
+directories that end on \file{ex} in the documentation sources. There you
+will find all example sources.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied programs
@@ -1678,16 +1720,6 @@ letters:
 \item [a:\ ] show everything (default if no -V option is present).
 \end{description}
 
-\subsection{Demo programs}
-Also distributed with \fpc comes a series of demonstration programs.
-These programs have no other purpose than demonstrating the capabilities of
-\fpc. They are located in the \file{demo} directory of the sources.
-
-\subsection{Documentation Example programs}
-
-All example programs of the documentation are available. Check out the
-directories that end on \file{ex} in the documentation sources. There you
-will find all example sources.
 
 \subsection{ppumove program}
 
@@ -2039,6 +2071,7 @@ code.
 \item [objects]  This unit provides basic routines for handling objects.
 \item [objpas] is used for Delphi compatibility; you should never load this
 unit explicitly; it is automatically loaded if you request Delphi mode.
+\item [ports] provides access to the PC hardware ports.
 \item [strings] This unit provides basic string handling routines for the 
 \var{pchar} type, comparable to similar routines in standard \var{C} 
 libraries.
@@ -2064,8 +2097,6 @@ draw lines on the screen, display texts etc. It provides the same functions
 as the Turbo Pascal unit.
 \item [go32] This unit provides access to possibilities of the \var{GO32}
 \dos extender.
-\item [ports] This unit provides access to the ports[] construct of 
-Turbo Pascal.
 \item [printer]  This unit provides all you need for rudimentary access 
 to the printer.
 \end{itemize}
@@ -2073,6 +2104,7 @@ to the printer.
 %
 % Under Windows
 %
+\subsection{Under Windows}
 \begin{itemize}
 \item [dos] This unit provides basic routines for
 accessing the operating system \dos. It emulates this functionality
@@ -2130,13 +2162,27 @@ extensively. Programs using this construct must be run as ruit or setuid
 root, and are a serious security risk on your system.
 \end{itemize}
 
+\subsection{under OS/2}
+\begin{itemize}
+\item [doscalls] interface to \file{doscalls.dll}.
+\item [dive] interface to \file{dive.dll}
+\item [emx] Provides access to the EMX extender.
+\item [pm*] various programs to access o program manager functions.
+\item [viocalls] interface to \file{viocalls.dll} screen handling library.
+\item [moucalls] interface to \file{moucalls.dll} mouse handling library.
+\item [kbdcalls] interface to \file{kbdcalls.dll} keyboard handling library.
+\item [moncalls] interface to \file{moncalls.dll} monitoring handling library.
+\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debugging
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Debugging your Programs}
 
-\fpc supports debug information for the \gnu debugger \var{gdb}.
+\fpc supports debug information for the \gnu debugger \var{gdb}, or 
+it's derivatives \file{Insight} on win32 or \file{ddd} on \linux.
+
 This chapter describes shortly how to use this feature. It doesn't attempt
 to describe completely the \gnu debugger, however.
 For more information on the workings of the \gnu debugger, see the \var{gdb}
@@ -2162,7 +2208,7 @@ program. You will notice that the size of the executable increases
 substantially because of this\footnote{A good reason not to include debug
 information in an executable you plan to distribute.}.
 
-Note that the above will only generate debug information {\var for the code
+Note that the above will only generate debug information {\em for the code
 that has been generated} when compiling \file{hello.pp}. This means that if
 you used some units (the system unit, for instance) which were not compiled
 with debugging support, no debugging support will be available for the code

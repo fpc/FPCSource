@@ -21,14 +21,16 @@
 % Documentation for the 'Graph' unit of Free Pascal.
 % Michael Van Canneyt, July 1997
 \chapter{The GRAPH unit.}
-This document describes the \var{GRAPH} unit for Free Pascal, under \dos.
-The unit was first written for \dos by Florian kl\"ampfl. 
-This chapter is divided in three sections. 
+This document describes the \var{GRAPH} unit for Free Pascal, for all
+platforms. The unit was first written for \dos by Florian kl\"ampfl. 
+This chapter is divided in 4 sections. 
 \begin{itemize}
 \item The first section gives an introduction to the graph unit.
 \item The second section lists the pre-defined constants, types and variables. 
 \item The second section describes the functions which appear in the
 interface part of the \file{GRAPH} unit.
+\item The last part describes some system-specific issues.
+
 \end{itemize}
 \section{Introduction}
 \label{se:Introduction}
@@ -1183,4 +1185,14 @@ None.
 \SeeAlso
 \seef{TextHeight}
 \end{function}
-                                                                                                                                                                                                                                                               
+
+% Target specific issues.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Target specific issues}                                                                                                                                                                                                                                                               
+In what follows we describe some things that are different on the various
+platforms:
+
+\subsection{\dos}
+\subsection{\windows}
+\subsection{\linux}
+

@@ -20,8 +20,10 @@
 %
 \chapter{The CRT unit.}
 \label{ch:crtunit}
+
+\FPCexampledir{crtex}
 This chapter describes the \var{CRT} unit for Free Pascal, both under \dos
-and \linux. The unit was first written for \dos by Florian kl\"ampfl. 
+\linux and \windows. The unit was first written for \dos by Florian kl\"ampfl. 
 The unit was ported to \linux by Mark May\footnote{Current
 e-mail address \textsf{mmay@dnaco.net}}, and enhanced by Micha\"el Van Canneyt
 and Peter Vreman. It works on the \linux console, and in xterm and rxvt windows
@@ -102,28 +104,30 @@ screen. It is defined on \dos only.
 \begin{verbatim}
 var lastmode : Word;
 \end{verbatim}
+
+% Procedures and functions.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Procedures and Functions}
+
 \begin{procedure}{AssignCrt}
 \Declaration
 Procedure AssignCrt (Var F: Text);
-
 \Description
-
-Assigns a file F to the console. Everything written to the file F goes to
-the console instead. If the console contains a window, everything is written
-to the window instead.
+\var{AssignCrt} Assigns a file F to the console. Everything written to 
+the file F goes to the console instead. If the console contains a window, 
+everything is written to the window instead.
 
 \Errors
 None.
 \SeeAlso
 \seep{Window}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex1.pp}}
- \html{\input{crtex/ex1.tex}}
-\begin{procedure}{BigCursor}
-\Declaration
-Procedure BigCursor ;
 
+\FPCexample{ex1}
+ 
+\begin{procedure}{CursorBig}
+\Declaration
+Procedure CursorBig ;
 \Description
 Makes the cursor a big rectangle. 
 Not implemented on \linux.
@@ -132,10 +136,10 @@ None.
 \SeeAlso
 \seep{CursorOn}, \seep{CursorOff}
 \end{procedure}
+
 \begin{procedure}{ClrEol}
 \Declaration
 Procedure ClrEol ;
-
 \Description
  ClrEol clears the current line, starting from the cursor position, to the
 end of the window. The cursor doesn't move
@@ -144,12 +148,12 @@ None.
 \SeeAlso
 \seep{DelLine}, \seep{InsLine}, \seep{ClrScr}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex9.pp}}
- \html{\input{crtex/ex9.tex}}
+
+\FPCexample{ex9}
+ 
 \begin{procedure}{ClrScr}
 \Declaration
 Procedure ClrScr ;
-
 \Description
  ClrScr clears the current window (using the current colors), 
 and sets the cursor in the top left
@@ -159,12 +163,12 @@ None.
 \SeeAlso
  \seep{Window} 
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex8.pp}}
- \html{\input{crtex/ex8.tex}}
+
+\FPCexample{ex8}
+ 
 \begin{procedure}{CursorOff}
 \Declaration
 Procedure CursorOff ;
-
 \Description
 Switches the cursor off (i.e. the cursor is no
 longer visible). 
@@ -172,24 +176,22 @@ Not implemented on \linux.
 \Errors
 None.
 \SeeAlso
-\seep{CursorOn}, \seep{BigCursor}
+\seep{CursorOn}, \seep{CursorBig}
 \end{procedure}
 \begin{procedure}{CursorOn}
 \Declaration
 Procedure CursorOn ;
-
 \Description
 Switches the cursor on. 
 Not implemented on \linux.
 \Errors
 None.
 \SeeAlso
-\seep{BigCursor}, \seep{CursorOff}
+\seep{CursorBig}, \seep{CursorOff}
 \end{procedure}
 \begin{procedure}{Delay}
 \Declaration
 Procedure Delay (DTime: Word);
-
 \Description
 Delay waits a specified number of milliseconds. The number of specified
 seconds is an approximation, and may be off a lot, if system load is high.
@@ -198,12 +200,12 @@ None
 \SeeAlso
 \seep{Sound}, \seep{NoSound}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex15.pp}}
- \html{\input{crtex/ex15.tex}}
+
+\FPCexample{ex15}
+ 
 \begin{procedure}{DelLine}
 \Declaration
 Procedure DelLine ;
-
 \Description
  DelLine removes the current line. Lines following the current line are 
 scrolled 1 line up, and an empty line is inserted at the bottom of the
@@ -213,12 +215,12 @@ None.
 \SeeAlso
 \seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex11.pp}}
- \html{\input{crtex/ex11.tex}}
+
+\FPCexample{ex11}
+ 
 \begin{procedure}{GotoXY}
 \Declaration
 Procedure GotoXY (X: Byte; Y: Byte);
-
 \Description
  Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
 vertical direction relative to the origin of the current window. The origin
@@ -229,12 +231,12 @@ None.
 \SeeAlso
  \seef{WhereX}, \seef{WhereY}, \seep{Window} 
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex6.pp}}
- \html{\input{crtex/ex6.tex}}
+
+\FPCexample{ex6}
+ 
 \begin{procedure}{HighVideo}
 \Declaration
 Procedure HighVideo ;
-
 \Description
  HighVideo switches the output to highlighted text. (It sets the high
 intensity bit of the video attribute)
@@ -245,12 +247,12 @@ None.
  \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
 \seep{NormVideo}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex14.pp}}
- \html{\input{crtex/ex14.tex}}
+
+\FPCexample{ex14}
+ 
 \begin{procedure}{InsLine}
 \Declaration
 Procedure InsLine ;
-
 \Description
  InsLine inserts an empty line at the current cursor position. 
 Lines following the current line are scrolled 1 line down, 
@@ -261,12 +263,12 @@ None.
 \SeeAlso
 \seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex10.pp}}
- \html{\input{crtex/ex10.tex}}
+
+\FPCexample{ex10}
+ 
 \begin{function}{KeyPressed}
 \Declaration
 Function KeyPressed  : Boolean;
-
 \Description
  The Keypressed function scans the keyboard buffer and sees if a key has
 been pressed. If this is the case, \var{True} is returned. If not,
@@ -279,12 +281,12 @@ None.
 \SeeAlso
 \seef{ReadKey}
 \end{function}
-\latex{\lstinputlisting{crtex/ex2.pp}}
- \html{\input{crtex/ex2.tex}}
+
+\FPCexample{ex2}
+ 
 \begin{procedure}{LowVideo}
 \Declaration
 Procedure LowVideo ;
-
 \Description
  LowVideo switches the output to non-highlighted text. (It clears the high
 intensity bit of the video attribute)
@@ -299,7 +301,6 @@ For an example, see \seep{HighVideo}
 \begin{procedure}{NormVideo}
 \Declaration
 Procedure NormVideo ;
-
 \Description
  NormVideo switches the output to the defaults, read at startup. (The
 defaults are read from the cursor position at startup)
@@ -314,7 +315,6 @@ For an example, see \seep{HighVideo}
 \begin{procedure}{NoSound}
 \Declaration
 Procedure NoSound ;
-
 \Description
 
 Stops the speaker sound.
@@ -324,12 +324,12 @@ None.
 \SeeAlso
 \seep{Sound}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex16.pp}}
- \html{\input{crtex/ex16.tex}}
+
+\FPCexample{ex16}
+ 
 \begin{function}{ReadKey}
 \Declaration
 Function ReadKey  : Char;
-
 \Description
 
 The ReadKey function reads 1 key from the keyboard buffer, and returns this.
@@ -344,12 +344,14 @@ None.
 \SeeAlso
 \seef{KeyPressed}
 \end{function}
-\latex{\lstinputlisting{crtex/ex3.pp}}
- \html{\input{crtex/ex3.tex}}
+
+
+\FPCexample{ex3}
+
+
 \begin{procedure}{Sound}
 \Declaration
 Procedure Sound (hz : word);
-
 \Description
  Sounds the speaker at a frequency of \var{hz}.
 This is not supported in \linux
@@ -358,10 +360,10 @@ None.
 \SeeAlso
 \seep{NoSound}
 \end{procedure}
+
 \begin{procedure}{TextBackground}
 \Declaration
 Procedure TextBackground (CL: Byte);
-
 \Description
 
 TextBackground sets the background color to \var{CL}. \var{CL} can be one of the
@@ -373,12 +375,12 @@ None.
  \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
 \seep{NormVideo}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex13.pp}}
- \html{\input{crtex/ex13.tex}}
+
+\FPCexample{ex13}
+ 
 \begin{procedure}{TextColor}
 \Declaration
 Procedure TextColor (CL: Byte);
-
 \Description
 
 TextColor sets the foreground color to \var{CL}. \var{CL} can be one of the
@@ -390,12 +392,26 @@ None.
  \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
 \seep{NormVideo}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex12.pp}}
- \html{\input{crtex/ex12.tex}}
+
+\FPCexample{ex12}
+
+\begin{procedure}{TextMode}
+\Declaration
+procedure TextMode(Mode: Integer);
+\Description
+\var{TextMode} sets the textmode of the screen (i.e. the number of lines
+and columns of the screen). The lower byte is use to set the VGA text mode.
+
+This procedure is only implemented on \dos.
+\Errors
+None.
+\SeeAlso
+\seep{Window}
+\end{procedure}
+ 
 \begin{function}{WhereX}
 \Declaration
 Function WhereX  : Byte;
-
 \Description
 
 WhereX returns the current X-coordinate of the cursor, relative to the
@@ -407,12 +423,12 @@ None.
 \SeeAlso
  \seep{GotoXY}, \seef{WhereY}, \seep{Window} 
 \end{function}
-\latex{\lstinputlisting{crtex/ex7.pp}}
- \html{\input{crtex/ex7.tex}}
+
+\FPCexample{ex7}
+ 
 \begin{function}{WhereY}
 \Declaration
 Function WhereY  : Byte;
-
 \Description
 
 WhereY returns the current Y-coordinate of the cursor, relative to the
@@ -424,12 +440,12 @@ None.
 \SeeAlso
  \seep{GotoXY}, \seef{WhereX}, \seep{Window} 
 \end{function}
-\latex{\lstinputlisting{crtex/ex7.pp}}
- \html{\input{crtex/ex7.tex}}
+
+\FPCexample{ex7}
+ 
 \begin{procedure}{Window}
 \Declaration
 Procedure Window (X1, Y1, X2, Y2: Byte);
-
 \Description
  Window creates a window on the screen, to which output will be sent.
 \var{(X1,Y1)} are the coordinates of the upper left corner of the window,
@@ -444,5 +460,7 @@ None.
 \SeeAlso
 \seep{GotoXY}, \seef{WhereX}, \seef{WhereY}, \seep{ClrScr}
 \end{procedure}
-\latex{\lstinputlisting{crtex/ex5.pp}}
-\html{\input{crtex/ex5.tex}}
+
+
+\FPCexample{ex5}
+

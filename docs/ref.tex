@@ -333,6 +333,7 @@ public
 published
 read
 register
+saveregisters
 stdcall
 virtual
 write
@@ -2977,6 +2978,16 @@ end; ['EAX','EBX'];
 \end{verbatim}
 This will tell the compiler that it should save and restore the contents of
 the \var{EAX} and \var{EBX} registers when it encounters this asm statement.
+
+\fpc supports various styles of assembler syntax. By default, \var{AT\&T}
+syntax is assumed. You can change the default assembler style with the
+\var{\{\$asmmode xxx\}} switch in your code, or the \var{-R} command-line
+option. More about this can be found in the \progref.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Using functions and procedures.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Using functions and procedures}
 \label{ch:Procedures}
 \fpc supports the use of functions and procedures, but with some extras:
@@ -3238,6 +3249,9 @@ begin
  printf(Fmt,[P,123]);
 end.
 \end{verbatim}
+Remark that this is not true for Delphi, so code relying on this feature 
+will not be portable.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Function overloading
 \section{Function overloading}
@@ -3388,6 +3402,7 @@ various possibilities:
 does support a number of additional modifiers. They are used mainly for assembler and
 reference to C object files. More on the use of modifiers can be found in
 the \progref.
+
 \subsection{Public}
 The \var{Public} keyword is used to declare a function globally in a unit.
 This is useful if you don't want a function to be accessible from the unit
@@ -3412,6 +3427,7 @@ If another program or unit uses this unit, it will not be able to use the
 function \var{Second}, since it isn't declared in the interface part.
 However, it will be possible to access the function \var{Second} at the
 assembly-language level, by using it's mangled name (see the \progref).
+
 \subsection{cdecl}
 \label{se:cdecl}
 The \var{cdecl} modifier can be used to declare a function that uses a C
@@ -3440,6 +3456,7 @@ sensitive, this means also that the name of the
 function must be exactly the same. the \fpc compiler will use the name {\em
 exactly} as it is typed in the declaration.
 \end{remark}
+
 \subsection{popstack}
 \label{se:popstack}
 Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
@@ -3448,6 +3465,7 @@ that a function uses the C calling convention. In difference with the
 for a normal pascal function.
 With \var{popstack} you could access functions by their pascal names in a
 library.
+
 \subsection{Export}
 Sometimes you must provide a callback function for a C library, or you want
 your routines to be callable from a C program. Since \fpc and C use
@@ -3470,6 +3488,7 @@ This modifier works in the same way as the \var{export} modifier.
 More information about these modifiers can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
 \end{remark}
+
 \subsection{StdCall}
 As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
 This modifier does actually nothing, since the \fpc compiler by default
@@ -3478,6 +3497,15 @@ modifier does under Delphi (which pushes parameters on the stack from left to
 right).
 More information about this modifier can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
+
+\subsection{saveregisters}
+As of version 0.99.15, \fpc has the \var{saveregisters} modifier. If this
+modifier is specified after a procedure or function, then the \fpc compiler
+will save all registers on procedure entry, and restore them when the
+procedure exits (except for registers where return values are stored).
+
+You should not need this modifier, except maybe when calling assembler code.
+
 \subsection{Alias}
 The \var{Alias} modifier allows you to specify a different name for a
 procedure or function. This is mostly useful for referring to this procedure
@@ -4353,19 +4381,45 @@ second section contains the supported functions and procedures.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Types, Constants and Variables
 \section{Types, Constants and Variables}
+
 \subsection{Types}
 The following integer types are defined in the System unit:
 \begin{verbatim}
-shortint = -128..127;
+Shortint = -128..127;
+SmallInt = -32768..32767;
 Longint  = $80000000..$7fffffff;
-integer  = -32768..32767;
 byte     = 0..255;
 word     = 0..65535;
+dword    = cardinal;
+longword = cardinal;
+Integer  = smallint;
+\end{verbatim}
+The following types are used for the functions that need compiler magic
+such as \seep{Val} or \seep{Str}:
+\begin{verbatim}
+StrLenInt = LongInt;
+ValSInt = Longint; 
+ValUInt = Cardinal;
+ValReal = Extended;
+\end{verbatim}
+The following character types are defined for Delphi compatibility:
+\begin{verbatim}
+TAnsiChar   = Char;
+AnsiChar    = TAnsiChar;
 \end{verbatim}
 And the following pointer types:
 \begin{verbatim}
   PChar = ^char;
   pPChar = ^PChar;
+  PAnsiChar   = PChar;
+  PQWord      = ^QWord;
+  PInt64      = ^Int64;
+  pshortstring = ^shortstring;
+  plongstring  = ^longstring; 
+  pansistring  = ^ansistring; 
+  pwidestring  = ^widestring; 
+  pextended    = ^extended;   
+  ppointer     = ^pointer;    
 \end{verbatim}
 For the \seef{SetJmp} and \seep{LongJmp} calls, the following jump bufer
 type is defined (for the I386 processor):
@@ -4376,7 +4430,115 @@ type is defined (for the I386 processor):
     end;
   PJmp_buf = ^jmp_buf;
 \end{verbatim}
+The following records and pointers can be used if you want to scan the 
+entries in the string message handler tables:
+\begin{verbatim}
+  tmsgstrtable = record
+     name : pshortstring;
+     method : pointer;   
+  end;
+  pmsgstrtable = ^tmsgstrtable;
+
+  tstringmessagetable = record
+     count : dword;
+     msgstrtable : array[0..0] of tmsgstrtable;
+  end;
+  pstringmessagetable = ^tstringmessagetable;
+\end{verbatim}
+
+The base class for all classes is defined as:
+\begin{verbatim}
+Type
+  TObject = Class 
+  Public
+    constructor create;
+    destructor destroy;virtual;
+    class function newinstance : tobject;virtual;
+    procedure freeinstance;virtual;
+    function safecallexception(exceptobject : tobject;
+      exceptaddr : pointer) : longint;virtual;
+    procedure defaulthandler(var message);virtual;
+    procedure free;
+    class function initinstance(instance : pointer) : tobject;
+    procedure cleanupinstance;
+    function classtype : tclass;
+    class function classinfo : pointer;
+    class function classname : shortstring;
+    class function classnameis(const name : string) : boolean;
+    class function classparent : tclass;
+    class function instancesize : longint;
+    class function inheritsfrom(aclass : tclass) : boolean;
+    class function inheritsfrom(aclass : tclass) : boolean;
+    class function stringmessagetable : pstringmessagetable;
+    procedure dispatch(var message);
+    procedure dispatchstr(var message);
+    class function methodaddress(const name : shortstring) : pointer;
+    class function methodname(address : pointer) : shortstring;
+    function fieldaddress(const name : shortstring) : pointer; 
+    procedure AfterConstruction;virtual;
+    procedure BeforeDestruction;virtual;
+    procedure DefaultHandlerStr(var message);virtual;
+  end;
+  TClass = Class Of TObject;
+  PClass = ^TClass;
+\end{verbatim}
+Unhandled exceptions can be treated using a constant of the 
+\var{TExceptProc} type:
+\begin{verbatim}
+TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
+\end{verbatim}
+\var{Obj} is the exception object that was used to raise the exception,
+\var{Addr} and \var{Frame} contain the exact address and stack frame 
+where the exception was raised.
+
+The \var{TVarRec} type is used to access the elements passed in a \var{Array
+of Const} argument to a function or procedure:
+\begin{verbatim}
+Type
+  PVarRec = ^TVarRec;
+  TVarRec = record   
+    case VType : Longint of
+    vtInteger    : (VInteger: Longint);
+    vtBoolean    : (VBoolean: Boolean);
+    vtChar       : (VChar: Char);
+    vtExtended   : (VExtended: PExtended);
+    vtString     : (VString: PShortString);
+    vtPointer    : (VPointer: Pointer);
+    vtPChar      : (VPChar: PChar);
+    vtObject     : (VObject: TObject);
+    vtClass      : (VClass: TClass);  
+    vtAnsiString : (VAnsiString: Pointer);   
+    vtWideString : (VWideString: Pointer);  
+    vtInt64      : (VInt64: PInt64);
+  end;
+\end{verbatim}
+The heap manager uses the \var{TMemoryManager} type:
+\begin{verbatim}
+  PMemoryManager = ^TMemoryManager;
+  TMemoryManager = record
+    Getmem      : Function(Size:Longint):Pointer;
+    Freemem     : Function(var p:pointer):Longint;
+    FreememSize : Function(var p:pointer;Size:Longint):Longint;
+    AllocMem    : Function(Size:longint):Pointer;
+    ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
+    MemSize     : function(p:pointer):Longint;
+    MemAvail    : Function:Longint;
+    MaxAvail    : Function:Longint;
+    HeapSize    : Function:Longint;
+  end;
+\end{verbatim}
+More information on using this record can be found in \progref.
+
 \subsection{Constants}
+The following constants define the maximum values that can be used with
+various types:
+\begin{verbatim}
+  MaxSIntValue = High(ValSInt);
+  MaxUIntValue = High(ValUInt);
+  maxint   = maxsmallint;
+  maxLongint  = $7fffffff;
+  maxSmallint = 32767;
+\end{verbatim}
 The following constants for file-handling are defined in the system unit:
 \begin{verbatim}
 Const
@@ -4402,6 +4564,84 @@ represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
 is running on.
 \end{remark}
+The following constants are defined to access VMT entries:
+\begin{verbatim}
+   vmtInstanceSize         = 0;
+   vmtParent               = 8;
+   vmtClassName            = 12;
+   vmtDynamicTable         = 16;
+   vmtMethodTable          = 20;
+   vmtFieldTable           = 24;
+   vmtTypeInfo             = 28;
+   vmtInitTable            = 32;
+   vmtAutoTable            = 36;
+   vmtIntfTable            = 40;
+   vmtMsgStrPtr            = 44;
+   vmtMethodStart          = 48;
+   vmtDestroy              = vmtMethodStart;
+   vmtNewInstance          = vmtMethodStart+4;
+   vmtFreeInstance         = vmtMethodStart+8;
+   vmtSafeCallException    = vmtMethodStart+12;
+   vmtDefaultHandler       = vmtMethodStart+16;
+   vmtAfterConstruction    = vmtMethodStart+20;
+   vmtBeforeDestruction    = vmtMethodStart+24;
+   vmtDefaultHandlerStr    = vmtMethodStart+28;
+\end{verbatim}
+You should always use the constant names, and never their values, because
+the VMT table can change, breaking your code.
+
+The following constants will be used for the planned \var{variant} support:
+\begin{verbatim}
+  varEmpty     = $0000;
+  varNull      = $0001;
+  varSmallint  = $0002;
+  varInteger   = $0003;
+  varSingle    = $0004;
+  varDouble    = $0005;
+  varCurrency  = $0006;
+  varDate      = $0007;
+  varOleStr    = $0008;
+  varDispatch  = $0009;
+  varError     = $000A;
+  varBoolean   = $000B;
+  varVariant   = $000C;
+  varUnknown   = $000D;
+  varByte      = $0011;
+  varString    = $0100;
+  varAny       = $0101;
+  varTypeMask  = $0FFF;
+  varArray     = $2000;
+  varByRef     = $4000;
+\end{verbatim}
+The following constants are used in the \var{TVarRec} record:
+\begin{verbatim}
+vtInteger    = 0;
+vtBoolean    = 1;          
+vtChar       = 2; 
+vtExtended   = 3; 
+vtString     = 4; 
+vtPointer    = 5; 
+vtPChar      = 6; 
+vtObject     = 7; 
+vtClass      = 8; 
+vtWideChar   = 9; 
+vtPWideChar  = 10;
+vtAnsiString = 11;
+vtCurrency   = 12;
+vtVariant    = 13;
+vtInterface  = 14;
+vtWideString = 15;
+vtInt64      = 16;
+vtQWord      = 17;
+\end{verbatim}
+The \var{ExceptProc} is called when an unhandled exception occurs:
+\begin{verbatim}
+Const
+  ExceptProc : TExceptProc = Nil;
+\end{verbatim}
+It is set in the \file{objpas} unit, but you can set it yourself to change
+the default exception handling.
+
 \subsection{Variables}
 The following variables are defined and initialized in the system unit:
 \begin{verbatim}
@@ -4426,6 +4666,8 @@ you did). In your exit procedure you then restore the value of
 \var{ExitProc}, such that if it was non-\var{Nil} the exit-procedure can be
 called.
 
+\FPCexample{ex98}
+
 The \var{ErrorAddr} and \var{ExitCode} can be used to check for
 error-conditions. If \var{ErrorAddr} is non-\var{Nil}, a run-time error has
 occurred. If so, \var{ExitCode} contains the error code. If \var{ErrorAddr} is
@@ -4433,7 +4675,11 @@ occurred. If so, \var{ExitCode} contains the error code. If \var{ErrorAddr} is
 program terminated normally.
 
 \var{ExitCode} is always passed to the operating system as the exit-code of
-your process.
+your process. 
+
+\begin{remark}
+The maximum error code under \linux is 127.
+\end{remark}
 
 Under \file{GO32}, the following constants are also defined :
 \begin{verbatim}
@@ -4444,6 +4690,12 @@ const
    segB800 = $B800;
 \end{verbatim}
 These constants allow easy access to the bios/screen segment via mem/absolute.
+
+The randomize function uses a seed stored in the \var{RandSeed} variable:
+\begin{verbatim}
+  RandSeed    : Cardinal;
+\end{verbatim}
+This variable is initialized in the initialization code of the system unit.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and Procedures
@@ -4740,6 +4992,9 @@ Function Cos (X : Real) : Real;
 
 \Description
 \var{Cos} returns the cosine of \var{X}, where X is an angle, in radians.
+
+If the absolute value of the argument is larger than \var{2^63}, then the
+result is undefined.
 \Errors
 None.
 \SeeAlso
@@ -5058,6 +5313,21 @@ None.
 \seep{Freemem}, \seep{Dispose}, \seep{New}
 \end{procedure}
 For an example, see \seep{Freemem}.
+
+\begin{procedure}{GetMemoryManager}
+\Declaration
+procedure GetMemoryManager(var MemMgr: TMemoryManager);
+\Description
+\var{GetMemoryManager} stores the current Memory Manager record in
+\var{MemMgr}.
+\Errors
+None.
+\SeeAlso 
+\seep{SetMemoryManager}, \seef{IsMemoryManagerSet}.
+\end{procedure}
+
+For an example, see \progref.
+
 \begin{procedure}{Halt}
 \Declaration
 Procedure Halt [(Errnum : byte)];
@@ -5110,7 +5380,7 @@ None
 
 \begin{function}{High}
 \Declaration
-Function High (Type identifier or variable reference) : Longint;
+Function High (Type identifier or variable reference) : Ordinal;
 
 \Description
  The return value of \var{High} depends on it's argument:
@@ -5123,7 +5393,8 @@ Function High (Type identifier or variable reference) : Longint;
 procedure, then \var{High} returns the highest index of the array, as if the
 array has a zero-based index.
 \end{enumerate}
-
+The return type is always the same type as the type of the argument
+(This can lead to some nasty surprises !).
 \Errors
 None.
 \SeeAlso
@@ -5164,6 +5435,18 @@ None.
 \end{procedure}
 
 \FPCexample{ex33}
+\begin{function}{IsMemoryManagerSet}
+\Declaration
+function  IsMemoryManagerSet: Boolean;
+\Description
+\var{IsMemoryManagerSet} will return \var{True} if the memory manager has
+been set to another value than the system heap manager, it will return
+\var{False} otherwise.
+\Errors
+None.
+\SeeAlso
+\seep{SetMemoryManager}, \seep{GetMemoryManager}
+\end{function}
 
 \begin{function}{Int}
 \Declaration
@@ -5311,6 +5594,7 @@ None.
 \seef{SetJmp}
 \end{procedure}
 For an example, see \seef{SetJmp}
+
 \begin{function}{Low}
 \Declaration
 Function Low (Type identifier or variable reference) : Longint;
@@ -5323,7 +5607,7 @@ value in the range of the given ordinal type.
 \item If the argument is an array type or an array type variable then
 \var{Low} returns the lowest possible value of it's index.
 \end{enumerate}
-
+The return type is always the same type as the type of the argument
 \Errors
 None.
 \SeeAlso
@@ -5875,6 +6159,20 @@ None.
 
 \FPCexample{ex60}
 
+\begin{procedure}{SetMemoryManager}
+\Declaration
+procedure SetMemoryManager(const MemMgr: TMemoryManager);
+\Description
+\var{SetMemoryManager} sets the current memory manager record to 
+\var{MemMgr}. 
+\Errors
+None.
+\SeeAlso
+\seep{GetMemoryManager}, \seef{IsMemoryManagerSet}
+\end{procedure}
+
+For an example, see \progref.
+
 \begin{function}{SetJmp}
 \Declaration
 Function SetJmp (Var Env : Jmp\_Buf) : Longint;
@@ -5955,7 +6253,10 @@ Function Sin (X : Real) : Real;
 
 \Description
 \var{Sin} returns the sine of its argument \var{X}, where \var{X} is an
-angle in radians.
+angle in radians. 
+
+If the absolute value of the argument is larger than \var{2^63}, then the
+result is undefined.
 \Errors
 None.
 \SeeAlso
