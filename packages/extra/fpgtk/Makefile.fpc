@@ -10,6 +10,7 @@ version=1.0.8
 
 [target]
 units=fpglib fpgtk fpgtkext
+rsts=fpgtk fpgtkext
 
 [install]
 fpcpackage=y
