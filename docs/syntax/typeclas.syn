@@ -43,7 +43,13 @@
 \)
 \lit*;
 \[
-\lit*{virtual} \lit*;
+  \( \lit*{virtual}  \\
+     \lit*{override} \\
+     \lit*{message} 
+      \( \synt{integer\ constant} \\
+         \synt{string\ constant} \)
+  \) 
+\lit*;
 \]
 \[ \synt{call\ modifiers} \lit*; \]
 \[

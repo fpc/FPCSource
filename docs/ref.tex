@@ -800,10 +800,10 @@ error if S is an ansistring:
 \begin{verbatim}
   Len:=S[0];
 \end{verbatim}
-Instead, you must use the \seefl{Length} function to get the length of a
+Instead, you must use the \seef{Length} function to get the length of a
 string.
 
-To set the length of an ansistring, you can use the \seepl{SetLength}
+To set the length of an ansistring, you can use the \seep{SetLength}
 function.
 Constant ansistrings have a reference count of -1 and are treated specially.
 
@@ -1723,7 +1723,8 @@ an object. To get the size of the class instance data, use the
 \var{TObject.InstanceSize} method.
 \end{itemize}
 \section{Methods}
-Method invocation for classes is no different than for objects. The
+\seubsection{invocation}
+Method invocaticn for classes is no different than for objects. The
 following is a valid method invocation:
 \begin{verbatim}
 Var  AnObject : TAnObject;
@@ -1731,6 +1732,138 @@ begin
   AnObject := TAnObject.Create;
   ANobject.AMethod;
 \end{verbatim}
+\subsection{Virtual methods}
+Classes have virtual methods, just as objects do. There is however a
+difference between the two. For objects, it is sufficient to redeclare the
+same method in a descendent object with the keyword \var{virtual} to
+override it. For classes, the situation is different: you {\em must}
+override virtual methods with the \var{override} keyword. Failing to do so,
+will start a {\em new} batch of virtual methods, hiding the previous
+one.  The \var{Inherited} keyword will not jup to the inhherited method, if
+virtual was used. 
+
+The following code is {\em wrong}:
+\begin{listing}
+Type ObjParent = Class
+        Procedure MyProc; virtual;
+     end;
+     ObjChild  = Class(ObjPArent)
+       Procedure MyProc; virtual;
+     end;
+\end{listing}     
+The compiler will produce a warning:
+\begin{verbatim}
+Warning: An inherited method is hidden by OBJCHILD.MYPROC
+\end{verbatim}
+The compiler will compile it, but using \var{Inherited} can
+produce strange effects.
+
+The correct declaration is as follows:
+\begin{listing}
+Type ObjParent = Class
+        Procedure MyProc; virtual;
+     end;
+     ObjChild  = Class(ObjPArent)
+       Procedure MyProc; override;
+     end;
+\end{listing}
+This will compile and run without warnings or errors.
+
+\subsection{Message methods}
+New in classes are \var{message} methods. Pointers to message methods are 
+stored in a special table, together with the integer or string cnstant that
+they were declared with. They are primarily intended to ease programming of
+callback functions in several \var{GUI} toolkits, such as \var{Win32} or
+\var{GTK}. In difference with Delphi, \fpc also accepts strings as message
+identifiers.
+
+Message methods that are declared with an integer constant can take only one
+var argument (typed or not):
+\begin{listing}
+ Procedure TMyObject.MyHandler(Var Msg); Message 1;
+\end{listing}
+The method implementation of a message function is no different from an
+ordinary method. It is also possible to call a message method directly,
+but you should not do this. Instead use the \var{TObject.Dispatch} method.
+
+The \var{TOBject.Dispatch} method can be used to call a \var{message}
+handler. It is  declared in the system unit will accept a var parameter 
+which must have at the first position a cardinal with the message ID that
+should be called. For example:
+\begin{listing}
+Type 
+  TMsg = Record
+    MSGID : Cardinal
+    Data : Pointer;
+Var
+  Msg : TMSg;
+
+MyObject.Dispatch (Msg);
+\end{listing}
+In this example, the \var{Dispatch} method will look at the object and all 
+it's ancestors (starting at the object, and searching up the class tree), 
+to see if a message method with message \var{MSGID} has been
+declared. If such a method is found, it is called, and passed the 
+\var{Msg} parameter.
+
+If no such method is found, \var{DefaultHandler} is called.
+\var{DefaultHandler} is a virtual method of \var{TObject} that doesn't do 
+anything, but which can be overridden to provide any processing you might
+need. \var{DefaultHandler} is declared as follows:
+\begin{listing}
+   procedure defaulthandler(var message);virtual;
+\end{listing}
+
+In addition to the message method with a \var{Integer} identifier,
+\fpc also supports a messae method with a string identifier:
+\begin{listing}
+ Procedure TMyObject.MyStrHandler(Var Msg); Message 'OnClick';
+\end{listing}
+
+The working of the string message handler is the same as the ordinary
+integer message handler:
+
+The \var{TOBject.DispatchStr} method can be used to call a \var{message}
+handler. It is declared in the system unit and will accept one parameter
+which must have at the first position a cardinal with the message ID that
+should be called. For example:
+\begin{listing}
+Type 
+  TMsg = Record
+    MsgStr : String[10]; // Arbitrary length up to 255 characters.
+    Data : Pointer;
+Var
+  Msg : TMSg;
+
+MyObject.DispatchStr (Msg);
+\end{listing}
+In this example, the \var{DispatchStr} method will look at the object and 
+all it's ancestors (starting at the object, and searching up the class tree), 
+to see if a message method with message \var{MsgStr} has been
+declared. If such a method is found, it is called, and passed the 
+\var{Msg} parameter.
+
+If no such method is found, \var{DefaultHandlerStr} is called.
+\var{DefaultHandlerStr} is a virtual method of \var{TObject} that doesn't do 
+anything, but which can be overridden to provide any processing you might
+need. \var{DefaultHandlerStr} is declared as follows:
+\begin{listing}
+   procedure DefaultHandlerStr(var message);virtual;
+\end{listing}
+
+In addition to this mechanism, a string message method accepts a \var{self}
+parameter:
+\begin{listing}
+  TMyObject.StrMsgHandler(Data : Pointer; Self : TMyObject);Message 'OnClick';
+\end{listing}
+When encountering such a method, the compiler will generate code that loads
+the \var{Self} parameter into the object instance pointer. The result of
+this is that it is possible to pass \var{Self} as a parameter to such a
+method. 
+
+{\em remark:} The type of the \var{Self} parameter must be of the same class
+as the class you define the method for.
+
 \section{Properties}
 Classes can contain properties as part of their fields list. A property
 acts like a normal field, i.e. you can get or set it's value, but
@@ -3502,7 +3635,7 @@ const
   errorcode : word = 0;
  { max level in dumping on error }
   max_frame_dump : word = 20;
-\end{verbatim}
+\end{listing}
 \emph{ Remark: } Processor specific global constants are named Testxxxx
 where xxxx represents the processor number (such as Test8086, Test68000),
 and are used to determine on what generation of processor the program
@@ -4872,6 +5005,25 @@ None.
 \end{function}
 \latex{\inputlisting{refex/ex79.pp}}
 \html{\input{refex/ex79.tex}}
+
+\begin{procedure}{SetLength}
+\Declaration
+Procedure SetLength(var S : String; Len : Longint);
+\Description
+\var{SetLength} sets the lentgth of the string \var{S} to \var{Len}. \var{S}
+can be an ansistring or a short string. 
+For \var{ShortStrings}, \var{Len} can maximally be 255. For \var{AnsiStrings}
+it can have any value. For \var{AnsiString} strings, \var{SetLength} {\em
+must} be used to set the length of the string.
+\Errors
+None.
+\SeeAlso
+\seef{Length}
+\end{procedure}
+
+\latex{\inputlisting{refex/ex85.pp}}
+\html{\input{refex/ex85.tex}}
+
 \begin{procedure}{SetTextBuf}
 \Declaration
 Procedure SetTextBuf (Var f : Text; Var Buf[; Size : Word]);
