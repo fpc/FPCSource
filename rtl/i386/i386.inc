@@ -17,7 +17,6 @@
 
 {$asmmode ATT}
 
-
 {****************************************************************************
                                Primitives
 ****************************************************************************}
@@ -421,7 +420,7 @@ end['EAX','EBX','ECX','EDX','ESI'];
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}
-{$ifndef TEST_GENERIC}
+{$ifndef HAS_GENERICCONSTRUCTOR}
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 procedure fpc_help_constructor; assembler; [public,alias:'FPC_HELP_CONSTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 asm
@@ -657,7 +656,6 @@ asm
 .LDISPOSE_CLASS1:
         popl    %edi
 end;
-{$endif TEST_GENERIC}
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
 procedure fpc_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -675,10 +673,7 @@ asm
 .LHFC_1:
 end;
 
-
-{$ifndef TEST_GENERIC}
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
-
 { we want the stack for debugging !! PM }
 procedure fpc_check_object(obj : pointer);[public,alias:'FPC_CHECK_OBJECT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -744,7 +739,9 @@ asm
         popl    %ebp
         ret     $8
 end;
-{$endif TEST_GENERIC}
+
+{$endif HAS_GENERICCONSTRUCTOR}
+
 
 {****************************************************************************
                                  String
@@ -1174,7 +1171,10 @@ end;
 
 {
   $Log$
-  Revision 1.40  2003-03-17 14:30:11  peter
+  Revision 1.41  2003-03-26 00:19:10  peter
+    * ifdef HAS_GENERICCONSTRUCTOR
+
+  Revision 1.40  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
       of longint
 
