@@ -66,7 +66,7 @@ endif
 # Default target
 #####################################################################
 
-override OS_TARGET:=linux
+override OS_TARGET:=freebsd
 
 #####################################################################
 # FPC version/target Detection
@@ -116,13 +116,11 @@ export FPC OS_TARGET OS_SOURCE CPU_TARGET CPU_SOURCE FPC_VERSION
 #####################################################################
 
 # Include files
-
-INC=../inc
 UNIXINC=../unix
+INC=../inc
 
 # INCUNITS is defined in makefile.inc
 # They are default units for all platforms.
-
 include $(INC)/Makefile.inc
 #####################################################################
 # FPCDIR Setting
@@ -1533,7 +1531,7 @@ endif
 # Users rules
 #####################################################################
 
-classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
+classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) $(UNIXINC)/classes$(PASEXT)
 
 inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 

@@ -5,7 +5,7 @@
 [targets]
 dirs=../xml ../shedit
 units=classes $(INCUNITS)
-rst=ssockets cachecls
+rst=classes ssockets cachecls
 
 [defaults]
 defaulttarget=go32v2

@@ -1,35 +1,36 @@
 #
-#   Makefile.fpc for Free Component Library for Win32
+#   Makefile.fpc for Free Component Library for FreeBSD
 #
 
 [targets]
-dirs=../xml ../shedit
-units=classes $(INCUNITS) process fileinfo
+dirs=../db ../xml ../shedit
+units=classes $(INCUNITS) process asyncio ssockets http
 rst=classes ssockets cachecls
 
 [defaults]
-defaulttarget=win32
+defaulttarget=freebsd
 
 [require]
 options=-S2
-packages=paszlib
+packages=zlib inet
 
 [install]
 unitsubdir=fcl
 packagename=fcl
 
 [libs]
-libname=fpfcl
+libname=libfpfcl.so
+libversion=1.0
 
 [dirs]
 fpcdir=../..
 targetdir=.
-incdir=$(INC)
-sourcesdir=$(INC)
-
+incdir=$(INC) $(UNIXINC)
+sourcesdir=$(INC) $(UNIXINC)
 
 [presettings]
 # Include files
+UNIXINC=../unix
 INC=../inc
 
 # INCUNITS is defined in makefile.inc
@@ -38,7 +39,7 @@ include $(INC)/Makefile.inc
 
 
 [rules]
-classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
+classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) $(UNIXINC)/classes$(PASEXT)
 
 inifiles$(PPUEXT): classes$(PPUEXT) $(INC)/inifiles$(PASEXT)
 

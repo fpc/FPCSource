@@ -5,7 +5,7 @@
 [targets]
 dirs=../db ../xml ../shedit
 units=classes $(INCUNITS) process asyncio ssockets http
-rst=ssockets cachecls
+rst=classes ssockets cachecls
 
 [defaults]
 defaulttarget=linux
@@ -25,18 +25,19 @@ libversion=1.0
 [dirs]
 fpcdir=../..
 targetdir=.
-incdir=$(INC)
-sourcesdir=$(INC)
-
+incdir=$(INC) $(UNIXINC)
+sourcesdir=$(INC) $(UNIXINC)
 
 [presettings]
 # Include files
+
 INC=../inc
+UNIXINC=../unix
 
 # INCUNITS is defined in makefile.inc
 # They are default units for all platforms.
-include $(INC)/Makefile.inc
 
+include $(INC)/Makefile.inc
 
 [rules]
 classes$(PPUEXT): $(addprefix $(INC)/,$(INCNAMES)) classes$(PASEXT)
