@@ -138,8 +138,10 @@ implementation
           exit;
 
          { check the type }
-         if (p^.left^.resulttype=nil) or (p^.left^.resulttype^.deftype<>pointerdef) then
-           CGMessage(type_e_pointer_type_expected);
+         if p^.left^.resulttype=nil then
+          p^.left^.resulttype:=generrordef;
+         if (p^.left^.resulttype^.deftype<>pointerdef) then
+           CGMessage1(type_e_pointer_type_expected,p^.left^.resulttype^.typename);
 
          if (p^.left^.location.loc<>LOC_REFERENCE) {and
             (p^.left^.location.loc<>LOC_CREGISTER)} then
@@ -172,34 +174,34 @@ implementation
               { proc/procvar 2 procvar ? }
               if p^.left^.treetype=calln then
                 begin
-                     { is it a procvar, this is needed for @procvar in tp mode ! }
-                     if assigned(p^.left^.right) then
-                       begin
-                         { just return the load of the procvar, remove the
-                           addrn and calln nodes }
-                         hp:=p^.left^.right;
-                         putnode(p^.left);
-                         putnode(p);
-                         firstpass(hp);
-                         p:=hp;
-                         exit;
-                       end
-                     else
-                        begin
-                          { generate a methodcallnode or proccallnode }
-                          if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                             (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
-                           begin
-                             hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
-                               getcopy(p^.left^.methodpointer));
-                             disposetree(p);
-                             firstpass(hp);
-                             p:=hp;
-                             exit;
-                           end
-                          else
-                           hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
-                        end;
+                   { is it a procvar, this is needed for @procvar in tp mode ! }
+                   if assigned(p^.left^.right) then
+                     begin
+                       { just return the load of the procvar, remove the
+                         addrn and calln nodes }
+                       hp:=p^.left^.right;
+                       putnode(p^.left);
+                       putnode(p);
+                       firstpass(hp);
+                       p:=hp;
+                       exit;
+                     end
+                   else
+                      begin
+                        { generate a methodcallnode or proccallnode }
+                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                           (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.is_class) then
+                         begin
+                           hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
+                             getcopy(p^.left^.methodpointer));
+                           disposetree(p);
+                           firstpass(hp);
+                           p:=hp;
+                           exit;
+                         end
+                        else
+                         hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
+                      end;
 
                    { result is a procedure variable }
                    { No, to be TP compatible, you must return a pointer to
@@ -218,6 +220,7 @@ implementation
                         pprocvardef(p^.resulttype)^.proccalloptions:=hp3^.proccalloptions;
                         pprocvardef(p^.resulttype)^.procoptions:=hp3^.procoptions;
                         pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
+                        pprocvardef(p^.resulttype)^.symtablelevel:=hp3^.symtablelevel;
 
                       { method ? then set the methodpointer flag }
                         if (hp3^.owner^.symtabletype=objectsymtable) and
@@ -589,7 +592,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-08-04 00:23:44  florian
+  Revision 1.24  1999-08-05 16:53:25  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.23  1999/08/04 00:23:44  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.22  1999/08/03 22:03:35  peter

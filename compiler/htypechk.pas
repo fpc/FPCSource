@@ -51,6 +51,7 @@ interface
     function  is_procsym_load(p:Ptree):boolean;
     function  is_procsym_call(p:Ptree):boolean;
     function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
+    function  test_local_to_procvar(from_def:pprocvardef;to_def:pdef):boolean;
 
 
 implementation
@@ -668,10 +669,24 @@ implementation
             end;
        end;
 
+    { local routines can't be assigned to procvars }
+    function test_local_to_procvar(from_def:pprocvardef;to_def:pdef):boolean;
+      begin
+         if (from_def^.symtablelevel>1) and (to_def^.deftype=procvardef) then
+           CGMessage(type_e_cannot_local_proc_to_procvar);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.33  1999-08-04 13:02:43  jonas
+  Revision 1.34  1999-08-05 16:52:55  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.33  1999/08/04 13:02:43  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

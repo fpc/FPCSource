@@ -840,9 +840,11 @@ implementation
       var
         found : longint;
         next_char_loaded : boolean;
+        oldcommentstyle : tcommentstyle;
       begin
          found:=0;
          next_char_loaded:=false;
+         oldcommentstyle:=aktcommentstyle;
          repeat
            case c of
              #26 :
@@ -851,7 +853,10 @@ implementation
                begin
                  if not(m_nested_comment in aktmodeswitches) or
                     (comment_level=0) then
-                  found:=1;
+                  begin
+                    found:=1;
+                    aktcommentstyle:=comment_tp;
+                  end;
                  inc_comment_level;
                end;
              '}' :
@@ -885,12 +890,23 @@ implementation
                   until false;
                 end;
              '(' :
-               if (m_tp in aktmodeswitches) or
-                  (m_delphi in aktmodeswitches) then
                 begin
                   readchar;
                   if c='*' then
-                    skipoldtpcomment
+                    begin
+                      readchar;
+                      if c='$' then
+                       begin
+                         found:=2;
+                         inc_comment_level;
+                         aktcommentstyle:=comment_oldtp;
+                       end
+                      else
+                       begin
+                         skipoldtpcomment;
+                         aktcommentstyle:=oldcommentstyle;
+                       end;
+                    end
                   else
                     next_char_loaded:=true;
                 end;
@@ -915,7 +931,17 @@ implementation
          until (found=2);
       end;
 
+
+{****************************************************************************
+                      Include directive scanning/parsing
+****************************************************************************}
+
 {$i scandir.inc}
+
+
+{****************************************************************************
+                             Comment Handling
+****************************************************************************}
 
     procedure tscannerfile.skipcomment;
       begin
@@ -1087,6 +1113,10 @@ implementation
         aktcommentstyle:=comment_none;
       end;
 
+
+{****************************************************************************
+                               Token Scanner
+****************************************************************************}
 
     procedure tscannerfile.readtoken;
       var
@@ -1733,7 +1763,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  1999-08-04 13:03:05  jonas
+  Revision 1.91  1999-08-05 16:53:11  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.90  1999/08/04 13:03:05  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

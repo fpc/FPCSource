@@ -2142,6 +2142,7 @@
          proccalloptions:=[];
          procoptions:=[];
          retdef:=voiddef;
+         symtablelevel:=0;
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -2756,6 +2757,33 @@ Const local_symtable_index : longint = $8001;
            is_used:=true;
       end;
 
+
+    function tprocdef.procname: string;
+      var
+        s : string;
+        l : longint;
+      begin
+         s:=mangledname;
+         { delete leading $$'s }
+         l:=pos('$$',s);
+         while l<>0 do
+           begin
+              delete(s,1,l+1);
+              l:=pos('$$',s);
+           end;
+         { delete leading _$'s }
+         l:=pos('_$',s);
+         while l<>0 do
+           begin
+              delete(s,1,l+1);
+              l:=pos('_$',s);
+           end;
+         l:=pos('$',s);
+         if l=0 then
+          procname:=s
+         else
+          procname:=Copy(s,1,l-1);
+      end;
 
 {$IfDef GDB}
     function tprocdef.cplusplusmangledname : string;
@@ -3557,7 +3585,14 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.140  1999-08-04 13:03:07  jonas
+  Revision 1.141  1999-08-05 16:53:13  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.140  1999/08/04 13:03:07  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

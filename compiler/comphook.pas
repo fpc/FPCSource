@@ -25,24 +25,27 @@ interface
 
 Const
 { <$10000 will show file and line }
-  V_Fatal       = $0;
-  V_Error       = $1;
-  V_Normal      = $2; { doesn't show a text like Error: }
-  V_Warning     = $4;
-  V_Note        = $8;
-  V_Hint        = $10;
-  V_Macro       = $100;
-  V_Procedure   = $200;
-  V_Conditional = $400;
-  V_Info        = $10000;
-  V_Status      = $20000;
-  V_Used        = $40000;
-  V_Tried       = $80000;
-  V_Debug       = $100000;
-
-  V_ShowFile    = $ffff;
-  V_All         = $ffffffff;
-  V_Default     = V_Fatal + V_Error + V_Normal;
+  V_None         = $0;
+  V_Fatal        = $1;
+  V_Error        = $2;
+  V_Normal       = $4; { doesn't show a text like Error: }
+  V_Warning      = $8;
+  V_Note         = $10;
+  V_Hint         = $20;
+  V_Macro        = $100;
+  V_Procedure    = $200;
+  V_Conditional  = $400;
+  V_Assem        = $800;
+  V_Info         = $10000;
+  V_Status       = $20000;
+  V_Used         = $40000;
+  V_Tried        = $80000;
+  V_Debug        = $100000;
+  V_Declarations = $200000;
+  V_Executable   = $400000;
+  V_ShowFile     = $ffff;
+  V_All          = $ffffffff;
+  V_Default      = V_Fatal + V_Error + V_Normal;
 
 type
   PCompilerStatus = ^TCompilerStatus;
@@ -265,7 +268,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-05-04 21:44:38  florian
+  Revision 1.17  1999-08-05 16:52:53  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.16  1999/05/04 21:44:38  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.15  1999/01/15 12:27:23  peter

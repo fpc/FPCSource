@@ -1305,8 +1305,8 @@ unit pdecl;
                      end
                    else
                      begin
-                        Message(type_e_class_type_expected);
-                        object_dec:=new(perrordef,init);
+                        object_dec:=generrordef;
+                        Message1(type_e_class_type_expected,generrordef^.typename);
                      end;
                    typecanbeforward:=storetypeforwardsallowed;
                    exit;
@@ -1352,7 +1352,7 @@ unit pdecl;
               childof:=pobjectdef(id_type(pattern));
               if (childof^.deftype<>objectdef) then
                begin
-                 Message(type_e_class_type_expected);
+                 Message1(type_e_class_type_expected,childof^.typename);
                  childof:=nil;
                end
               else
@@ -2385,7 +2385,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.141  1999-08-04 13:02:51  jonas
+  Revision 1.142  1999-08-05 16:53:02  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.141  1999/08/04 13:02:51  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

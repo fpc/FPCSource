@@ -437,18 +437,9 @@ begin
      symtablestack^.insert(aktprocsym);
    end;
 
-  { create a new procdef }
-  { register object/class methods in symtable symtable }
-  { but not internal functions !!! }
   st:=symtablestack;
-  if assigned(procinfo._class) and
-     (symtablestack^.symtabletype in [globalsymtable,staticsymtable]) then
-    begin
-      { change symtablestack to get correct definition registration }
-      pd:=new(pprocdef,init);
-    end
-  else
-    pd:=new(pprocdef,init);
+  pd:=new(pprocdef,init);
+  pd^.symtablelevel:=symtablestack^.symtablelevel;
 
   if assigned(procinfo._class) then
     pd^._class := procinfo._class;
@@ -2033,7 +2024,14 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-08-04 13:03:01  jonas
+  Revision 1.12  1999-08-05 16:53:06  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.11  1999/08/04 13:03:01  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

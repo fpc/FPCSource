@@ -307,6 +307,9 @@ implementation
             (pvarsym(p^.left^.symtableentry)^.varstate=vs_declared) then
            pvarsym(p^.left^.symtableentry)^.varstate:=vs_assigned;
 
+         { check if local proc/func is assigned to procvar }
+         if p^.right^.resulttype^.deftype=procvardef then
+           test_local_to_procvar(pprocvardef(p^.right^.resulttype),p^.left^.resulttype);
 
 
          p^.resulttype:=voiddef;
@@ -477,7 +480,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-08-04 00:23:41  florian
+  Revision 1.39  1999-08-05 16:53:24  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.38  1999/08/04 00:23:41  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.37  1999/08/03 22:03:33  peter

@@ -330,6 +330,7 @@
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
           para1           : pdefcoll;
+          symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
           constructor init;
           constructor load;
@@ -421,6 +422,7 @@
           procedure setmangledname(const s : string);
           procedure load_references;
           function  write_references : boolean;
+          function  procname: string;
           { debug }
 {$ifdef GDB}
           function  cplusplusmangledname : string;
@@ -515,7 +517,14 @@
 
 {
   $Log$
-  Revision 1.37  1999-08-03 22:03:16  peter
+  Revision 1.38  1999-08-05 16:53:15  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.37  1999/08/03 22:03:16  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 

@@ -859,7 +859,7 @@ Begin
         begin
           Consume(AS_DOLLAR);
           if actasmtoken<>AS_ID then
-           Comment(V_Error,'assem_e_dollar_without_identifier');
+           Message(asmr_e_dollar_without_identifier);
         end;
       AS_STRING:
         Begin
@@ -1564,7 +1564,7 @@ Begin
           if asmsym<>'' then
            begin
              if maxvalue<>$ffffffff then
-              Comment(V_Warning,'32bit constant created for address');
+              Message(asmr_w_32bit_const_for_address);
              ConcatConstSymbol(curlist,asmsym,value)
            end
           else
@@ -1825,7 +1825,7 @@ Begin
                l1:=l2;
             end;
           ConcatAlign(curlist,l1);
-          Comment(V_Note,'.align is target specific, use .balign or .p2align');
+          Message(asmr_n_align_is_target_specific);
           if actasmtoken<>AS_SEPARATOR then
            Consume(AS_SEPARATOR);
         end;
@@ -1954,7 +1954,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  1999-08-04 00:23:25  florian
+  Revision 1.57  1999-08-05 16:53:08  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.56  1999/08/04 00:23:25  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.55  1999/08/03 22:03:09  peter

@@ -577,8 +577,11 @@ unit pstatmnt;
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
-                                    message(type_e_class_type_expected);
                                     ot:=pobjectdef(generrordef);
+                                    if (srsym^.typ=typesym) then
+                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename)
+                                    else
+                                      Message1(type_e_class_type_expected,ot^.typename);
                                  end;
                                sym:=new(pvarsym,init(objname,ot));
                                exceptsymtable:=new(psymtable,init(stt_exceptsymtable));
@@ -602,8 +605,11 @@ unit pstatmnt;
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
-                                    message(type_e_class_type_expected);
                                     ot:=pobjectdef(generrordef);
+                                    if (srsym^.typ=typesym) then
+                                      Message1(type_e_class_type_expected,ptypesym(srsym)^.definition^.typename)
+                                    else
+                                      Message1(type_e_class_type_expected,ot^.typename);
                                  end;
                                exceptsymtable:=nil;
                             end;
@@ -850,10 +856,12 @@ unit pstatmnt;
                    consume(_ID);
 
                    pd:=p^.resulttype;
+                   if pd=nil then
+                    pd:=generrordef;
                    pd2:=pd;
-                   if (p^.resulttype = nil) or (pd^.deftype<>pointerdef) then
+                   if (pd^.deftype<>pointerdef) then
                      begin
-                        Message(type_e_pointer_type_expected);
+                        Message1(type_e_pointer_type_expected,pd^.typename);
                         p:=factor(false);
                         consume(_RKLAMMER);
                         new_dispose_statement:=genzeronode(errorn);
@@ -922,9 +930,11 @@ unit pstatmnt;
             end
           else
             begin
-               if (p^.resulttype=nil) or (p^.resulttype^.deftype<>pointerdef) then
+               if p^.resulttype=nil then
+                p^.resulttype:=generrordef;
+               if (p^.resulttype^.deftype<>pointerdef) then
                  Begin
-                    Message(type_e_pointer_type_expected);
+                    Message1(type_e_pointer_type_expected,p^.resulttype^.typename);
                     new_dispose_statement:=genzeronode(errorn);
                  end
                else
@@ -1291,7 +1301,14 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.97  1999-08-04 13:02:59  jonas
+  Revision 1.98  1999-08-05 16:53:05  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.97  1999/08/04 13:02:59  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

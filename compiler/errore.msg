@@ -258,7 +258,9 @@ scan_e_wrong_switch_toggle=E_Wrong switch toggle, use ON/OFF or +/-
 scan_e_resourcefiles_not_supported=E_Resource files are not supported for this target
 % The target you are compiling for doesn't support Resource files. The
 % only target which can use resource files is Win32
-%
+scan_w_include_env_not_found=W_Include environment $1 not found in environment
+% The included environment variable can't be found in the environment, it'll
+% be replaced by an empty string instead.
 % \end{description}
 #
 # Parser
@@ -799,23 +801,26 @@ type_e_incompatible_types=E_Incompatible types: got "$1" expected "$2"
 % \end{verbatim}
 type_e_not_equal_types=E_Type mismatch between $1 and $2
 % The types are not equal
-type_e_integer_expr_expected=E_Integer expression expected
-% The compiler expects an expression of type integer, but gets a different
-% type.
-type_e_ordinal_expr_expected=E_Ordinal expression expected
-% The expression must be of ordinal type, i.e., maximum a \var{Longint}.
-% This happens, for instance, when you specify a second argument
-% to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
 type_e_type_id_expected=E_Type identifier expected
 % The identifier is not a type, or you forgot to supply a type identifier.
 type_e_variable_id_expected=E_Variable identifier expected
 % This happens when you pass a constant to a \var{Inc} var or \var{Dec}
 % procedure. You can only pass variables as arguments to these functions.
-type_e_pointer_type_expected=E_pointer type expected
+type_e_integer_expr_expected=E_Integer expression expected, but got "$1"
+% The compiler expects an expression of type integer, but gets a different
+% type.
+type_e_boolean_expr_expected=E_Boolean expression expected, but got "$1"
+% The expression must be a boolean type, it should be return true or
+% false.
+type_e_ordinal_expr_expected=E_Ordinal expression expected
+% The expression must be of ordinal type, i.e., maximum a \var{Longint}.
+% This happens, for instance, when you specify a second argument
+% to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
+type_e_pointer_type_expected=E_pointer type expected, but got "$1"
 % The variable or expression isn't of the type \var{pointer}. This
 % happens when you pass a variable that isn't a pointer to \var{New}
 % or \var{Dispose}.
-type_e_class_type_expected=E_class type expected
+type_e_class_type_expected=E_class type expected, but got "$1"
 % The variable of expression isn't of the type \var{class}. This happens
 % typically when
 % \begin{enumerate}
@@ -886,6 +891,10 @@ type_e_argument_must_be_lvalue=E_Argument must be l-value
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
 % used on the left side of an assignment, but they can't be used as l-values
+type_e_cannot_local_proc_to_procvar=E_Can't assign local procedure/function to procedure variable
+% It's not allowed to assign a local procedure/function to a
+% procedure variable, because the calling of local procedure/function is
+% different. You can only assign local procedure/function to a void pointer.
 % \end{description}
 #
 # Symtable
@@ -1196,8 +1205,9 @@ asmr_e_no_var_type_specified=No type of variable specified
 asmr_w_assembler_code_not_returned_to_text=E_assembler code not returned to text section
 asmr_e_not_directive_or_local_symbol=E_Not a directive or local symbol $1
 asmr_w_using_defined_as_local=E_Using a defined name as a local label
-
-
+asmr_e_dollar_without_identifier=E_Dollar token is used without an identifier
+asmr_w_32bit_const_for_address=W_32bit constant created for address
+asmr_n_align_is_target_specific=N_.align is target specific, use .balign or .p2align
 #
 # Assembler/binary writers
 #

@@ -473,6 +473,7 @@ implementation
                              Helper Routines
 *****************************************************************************}
 
+{$ifdef unused}
     function demangledparas(s : string) : string;
       var
          r : string;
@@ -487,22 +488,30 @@ implementation
               delete(s,1,l+1);
               l:=pos('$$',s);
            end;
+         { delete leading _$'s }
+         l:=pos('_$',s);
+         while l<>0 do
+           begin
+              delete(s,1,l+1);
+              l:=pos('_$',s);
+           end;
          l:=pos('$',s);
          if l=0 then
            exit;
          delete(s,1,l);
-         l:=pos('$',s);
-         if l=0 then
-           l:=length(s)+1;
          while s<>'' do
-           begin
-              r:=r+copy(s,1,l-1)+',';
-              delete(s,1,l);
-           end;
+          begin
+            l:=pos('$',s);
+            if l=0 then
+             l:=length(s)+1;
+            r:=r+copy(s,1,l-1)+',';
+            delete(s,1,l);
+          end;
          delete(r,1,1);
          delete(r,length(r),1);
          demangledparas:=r;
       end;
+{$endif}
 
 
     procedure numberunits;
@@ -2335,7 +2344,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-08-04 13:03:09  jonas
+  Revision 1.38  1999-08-05 16:53:18  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.37  1999/08/04 13:03:09  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

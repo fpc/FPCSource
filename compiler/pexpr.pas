@@ -1548,7 +1548,7 @@ unit pexpr;
                  pd2:=pd;
 
                  if (pd^.deftype<>pointerdef) then
-                   Message(type_e_pointer_type_expected)
+                   Message1(type_e_pointer_type_expected,pd^.typename)
                  else if {(ppointerdef(pd)^.definition^.deftype<>objectdef)}
                        token=_RKLAMMER then
                   begin
@@ -2062,7 +2062,14 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.132  1999-08-04 13:49:45  florian
+  Revision 1.133  1999-08-05 16:53:04  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.132  1999/08/04 13:49:45  florian
     * new(...)^. is now allowed
 
   Revision 1.131  1999/08/04 13:02:55  jonas

@@ -39,12 +39,13 @@ uses
 
 Const
 { <$10000 will show file and line }
-  V_Fatal        = $0;
-  V_Error        = $1;
-  V_Normal       = $2; { doesn't show a text like Error: }
-  V_Warning      = $4;
-  V_Note         = $8;
-  V_Hint         = $10;
+  V_None         = $0;
+  V_Fatal        = $1;
+  V_Error        = $2;
+  V_Normal       = $4; { doesn't show a text like Error: }
+  V_Warning      = $8;
+  V_Note         = $10;
+  V_Hint         = $20;
   V_Macro        = $100;
   V_Procedure    = $200;
   V_Conditional  = $400;
@@ -506,7 +507,14 @@ end.
 
 {
   $Log$
-  Revision 1.41  1999-07-10 10:26:22  peter
+  Revision 1.42  1999-08-05 16:53:28  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.41  1999/07/10 10:26:22  peter
     * merged
 
   Revision 1.40  1999/06/18 11:03:09  peter

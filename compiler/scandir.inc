@@ -541,12 +541,12 @@ const
          begin
          { case insensitive }
            hs:=upper(hs);
-         { save old }
-           path:=hs;
          { remove %'s }
            Delete(hs,1,1);
            if hs[length(hs)]='%' then
             Delete(hs,length(hs),1);
+         { save old }
+           path:=hs;
          { first check for internal macros }
            if hs='TIME' then
             hs:=gettimestr
@@ -568,13 +568,10 @@ const
            else
             hs:=getenv(hs);
            if hs='' then
-            Comment(V_Warning,'Include environment '+path+' not found in environment')
-           else
-            begin
-              { make it a stringconst }
-              hs:=''''+hs+'''';
-              current_scanner^.insertmacro(@hs[1],length(hs));
-            end;
+            Message1(scan_w_include_env_not_found,path);
+           { make it a stringconst }
+           hs:=''''+hs+'''';
+           current_scanner^.insertmacro(@hs[1],length(hs));
          end
         else
          begin
@@ -1085,12 +1082,21 @@ const
           { conditionals already read the comment }
             if (current_scanner^.comment_level>0) then
              current_scanner^.readcomment;
+            { we've read the whole comment }
+            aktcommentstyle:=comment_none;
           end;
       end;
 
 {
   $Log$
-  Revision 1.58  1999-08-04 13:03:03  jonas
+  Revision 1.59  1999-08-05 16:53:10  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.58  1999/08/04 13:03:03  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

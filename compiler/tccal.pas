@@ -194,6 +194,9 @@ implementation
                  allow_array_constructor:=old_array_constructor;
                  must_be_valid:=store_valid;
                end;
+              { check if local proc/func is assigned to procvar }
+              if p^.left^.resulttype^.deftype=procvardef then
+                test_local_to_procvar(pprocvardef(p^.left^.resulttype),defcoll^.data);
               { generate the high() value tree }
               if push_high_param(defcoll^.data) then
                 gen_high_tree(p,is_open_string(defcoll^.data));
@@ -1192,7 +1195,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-08-04 00:23:34  florian
+  Revision 1.57  1999-08-05 16:53:19  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.56  1999/08/04 00:23:34  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.55  1999/08/03 22:03:27  peter

@@ -121,7 +121,7 @@ implementation
            exit;
          if not is_boolean(p^.left^.resulttype) then
           begin
-            Comment(V_Error,'Expected boolean type but got "'+p^.left^.resulttype^.typename+'"');
+            Message1(type_e_boolean_expr_expected,p^.left^.resulttype^.typename);
             exit;
           end;
 
@@ -488,7 +488,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1999-08-04 00:23:39  florian
+  Revision 1.16  1999-08-05 16:53:20  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.15  1999/08/04 00:23:39  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.14  1999/08/03 22:03:30  peter

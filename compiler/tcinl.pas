@@ -216,14 +216,14 @@ implementation
                  in_const_odd :
                    begin
                      if isreal then
-                      CGMessage(type_e_integer_expr_expected)
+                      CGMessage1(type_e_integer_expr_expected,p^.left^.resulttype^.typename)
                      else
                       hp:=genordinalconstnode(byte(odd(vl)),booldef);
                    end;
                  in_const_swap_word :
                    begin
                      if isreal then
-                      CGMessage(type_e_integer_expr_expected)
+                      CGMessage1(type_e_integer_expr_expected,p^.left^.resulttype^.typename)
                      else
                       hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
                    end;
@@ -710,7 +710,7 @@ implementation
                                            end;
                                          isreal:=(hpp^.left^.resulttype^.deftype=floatdef);
                                          if (not is_integer(length_para^.left^.resulttype)) then
-                                          CGMessage(type_e_integer_expr_expected)
+                                          CGMessage1(type_e_integer_expr_expected,length_para^.left^.resulttype^.typename)
                                         else
                                           length_para^.left:=gentypeconvnode(length_para^.left,s32bitdef);
                                         if assigned(frac_para) then
@@ -718,7 +718,7 @@ implementation
                                             if isreal then
                                              begin
                                                if (not is_integer(frac_para^.left^.resulttype)) then
-                                                 CGMessage(type_e_integer_expr_expected)
+                                                 CGMessage1(type_e_integer_expr_expected,frac_para^.left^.resulttype^.typename)
                                                else
                                                  frac_para^.left:=gentypeconvnode(frac_para^.left,s32bitdef);
                                              end
@@ -841,7 +841,7 @@ implementation
                   if assigned(hpp) and hpp^.is_colon_para then
                     begin
                       if (not is_integer(hpp^.resulttype)) then
-                        CGMessage(type_e_integer_expr_expected)
+                        CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
                       else
                         hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                       hpp:=hpp^.right;
@@ -850,7 +850,7 @@ implementation
                           if isreal then
                            begin
                              if (not is_integer(hpp^.resulttype)) then
-                               CGMessage(type_e_integer_expr_expected)
+                               CGMessage1(type_e_integer_expr_expected,hpp^.resulttype^.typename)
                              else
                                hpp^.left:=gentypeconvnode(hpp^.left,s32bitdef);
                            end
@@ -1119,7 +1119,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-08-04 00:23:40  florian
+  Revision 1.46  1999-08-05 16:53:23  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.45  1999/08/04 00:23:40  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.44  1999/08/03 22:03:32  peter

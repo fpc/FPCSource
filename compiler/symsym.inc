@@ -393,10 +393,9 @@
               if pd^.forwarddef then
                 begin
                    if assigned(pd^._class) then
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+name+
-                       demangledparas(pd^.demangled_paras))
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+demangledname)
                    else
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,name+pd^.demangled_paras);
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,demangledname);
                    { Turn futher error messages off }
                    pd^.forwarddef:=false;
                 end;
@@ -2117,7 +2116,14 @@
 
 {
   $Log$
-  Revision 1.107  1999-08-04 13:45:30  florian
+  Revision 1.108  1999-08-05 16:53:17  peter
+    * V_Fatal=1, all other V_ are also increased
+    * Check for local procedure when assigning procvar
+    * fixed comment parsing because directives
+    * oldtp mode directives better supported
+    * added some messages to errore.msg
+
+  Revision 1.107  1999/08/04 13:45:30  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
