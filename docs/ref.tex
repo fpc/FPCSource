@@ -1677,7 +1677,7 @@ equal to \var{X}.}
 \function{Exp}{(Var X : real)}{Real}
 {\var{Exp} returns the exponent of \var{X}, i.e. the number \var{e} to the
 power \var{X}.}
-{None.}{\seef{Ln}}
+{None.}{\seef{Ln}, \seef{Power}}
 
 \input{refex/ex22.tex}
 
@@ -1881,7 +1881,7 @@ which is limited to 255. If the strings \var{S} is empty, 0 is returned.
 \var{X} must be positive.
 }
 {An run-time error will occur when \var{X} is negative.}
-{\seef{Exp}}
+{\seef{Exp}, \seef{Power}}
 
 \input{refex/ex37.tex}
 
@@ -2035,19 +2035,33 @@ The search is case-sensitive.
 
 \input{refex/ex48.tex}
 
+\function{Power}{(base,expon : Real)}{Real}
+{
+\var{Power} returns the value of \var{base} to the power \var{expon}. 
+\var{Base} and \var{expon} can be of type longint, in which case the 
+result will also be a longint.
+ 
+The function actually returns \var{Exp(expon*Ln(base))}
+}{None.}{\seef{Exp}, \seef{Ln}}
+
+\input{refex/ex78.tex}
+
 \function{Ptr}{(Sel,Off : Longint)}{Pointer}
-{\var{Ptr} returns a pointer, pointing to the address specified by
-segment{Sel} and offset \var{Off}.
+{
+\var{Ptr} returns a pointer, pointing to the address specified by
+segment \var{Sel} and offset \var{Off}.
 
 {\em Remark 1:} In the 32-bit flat-memory model supported by \fpc, this
-function is obsolete.}
+function is obsolete.
 
 {\em Remark 2:} The returned address is simply the offset. If you recompile
 the RTL with \var{-dDoMapping} defined, then the compiler returns the
-following : \verb|ptr:=pointer($e0000000+sel shl 4+off)| under \dos, or
-\verb|ptr:=pointer(sel shl 4+off)| on other OSes.
+following : \var{ptr:=pointer(\$e0000000+sel shl 4+off)} under \dos, or
+\var{ptr:=pointer(sel shl 4+off)} on other OSes.
+}
 {None.}
 {\seef{Addr}}
+
 \input{refex/ex59.tex}
 
 \function{Random}{[(L : longint)]}{Longint or Real}
