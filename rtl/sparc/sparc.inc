@@ -29,6 +29,13 @@ function get_fsr : dword;assembler;nostackframe;
   end;
 
 
+function get_got : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT'];
+  asm
+    retl
+    add %o7,%l7,%l7
+  end;
+
+
 procedure set_fsr(fsr : dword);assembler;
   var
     _fsr : dword;
@@ -353,7 +360,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2005-01-18 20:37:26  florian
+  Revision 1.18  2005-01-27 21:26:39  florian
+    + getgot function added
+
+  Revision 1.17  2005/01/18 20:37:26  florian
     * set floating point precision and ieee compliance
 
   Revision 1.16  2004/11/21 19:11:33  peter
