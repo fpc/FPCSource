@@ -1136,6 +1136,7 @@ implementation
           begin
            if (Errorcount<>0) then
              exit;
+           { do not claim for inherited private fields !! }
            if (psym(p)^.refs=0) and (psym(p)^.owner^.symtabletype=objectsymtable) then
              MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
            { units references are problematic }
@@ -1157,8 +1158,12 @@ implementation
 
     procedure objectprivatesymbolused(p : pnamedindexobject);
       begin
+         {
+           Don't test simple object aliases PM
+         }
          if (psym(p)^.typ=typesym) and
-            (ptypesym(p)^.restype.def^.deftype=objectdef) then
+            (ptypesym(p)^.restype.def^.deftype=objectdef) and
+            (ptypesym(p)^.restype.def^.typesym=ptypesym(p)) then
            pobjectdef(ptypesym(p)^.restype.def)^.symtable^.foreach(
              {$ifndef TP}@{$endif}TestPrivate);
       end;
@@ -2766,7 +2771,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2000-01-07 01:14:41  peter
+  Revision 1.74  2000-01-09 00:37:56  pierre
+   * avoid testing object types that are simple aliases for unused privates
+
+  Revision 1.73  2000/01/07 01:14:41  peter
     * updated copyright to 2000
 
   Revision 1.72  2000/01/03 19:26:04  peter
