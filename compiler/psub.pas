@@ -336,95 +336,84 @@ implementation
          aktlocalswitches:=entryswitches;
          oldaktmaxfpuregisters:=aktmaxfpuregisters;
          aktmaxfpuregisters:=localmaxfpuregisters;
-{$ifndef NOPASS2}
          if assigned(code) then
           begin
-            { only generate the code if no type errors are found, else
-              finish at least the type checking pass }
+            { the procedure is now defined }
+            aktprocsym.definition.forwarddef:=false;
+
+             { only generate the code if no type errors are found, else
+               finish at least the type checking pass }
+{$ifndef NOPASS2}
             if (status.errorcount=0) then
-              generatecode(code)
-            else
-              do_resulttypepass(code);
-          end;
-         { set switches to status at end of procedure }
-         aktlocalswitches:=exitswitches;
-
-         if assigned(code) then
-           begin
-              aktprocsym.definition.code:=code;
-
-              { the procedure is now defined }
-              aktprocsym.definition.forwarddef:=false;
-           end;
-
+              begin
+                generatecode(code);
+                aktprocsym.definition.code:=code;
 {$ifdef newcg}
-         stackframe:=tg.gettempsize;
+                stackframe:=tg.gettempsize;
 {$else newcg}
-         stackframe:=gettempsize;
+                stackframe:=gettempsize;
 {$endif newcg}
 
-         { first generate entry code with the correct position and switches }
-         aktfilepos:=entrypos;
-         aktlocalswitches:=entryswitches;
+                { first generate entry code with the correct position and switches }
+                aktfilepos:=entrypos;
+                aktlocalswitches:=entryswitches;
 {$ifdef newcg}
-         if assigned(code) then
-           cg^.g_entrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+                cg^.g_entrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 {$else newcg}
-         if assigned(code) then
-           genentrycode(procinfo^.aktentrycode,make_global,stackframe,parasize,nostackframe,false);
+                genentrycode(procinfo^.aktentrycode,make_global,stackframe,parasize,nostackframe,false);
 {$endif newcg}
 
-         { FPC_POPADDRSTACK destroys all registers (JM) }
-         if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
-           usedinproc := $ff;
+                { FPC_POPADDRSTACK destroys all registers (JM) }
+                if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
+                 usedinproc := $ff;
 
-         { now generate exit code with the correct position and switches }
-         aktfilepos:=exitpos;
-         aktlocalswitches:=exitswitches;
-         if assigned(code) then
-           begin
+                { now generate exit code with the correct position and switches }
+                aktfilepos:=exitpos;
+                aktlocalswitches:=exitswitches;
 {$ifdef newcg}
-             cg^.g_exitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
+                cg^.g_exitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
 {$else newcg}
-             genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
+                genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
 {$endif newcg}
-             { now all the registers used are known }
+
+                { now all the registers used are known }
 {$ifdef newcg}
-             aktprocsym.definition.usedregisters:=tg.usedinproc;
+                aktprocsym.definition.usedregisters:=tg.usedinproc;
 {$else newcg}
-             aktprocsym.definition.usedregisters:=usedinproc;
+                aktprocsym.definition.usedregisters:=usedinproc;
 {$endif newcg}
-             procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
-             procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
+                procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
+                procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
 {$ifdef i386}
    {$ifndef NoOpt}
-             if (cs_optimize in aktglobalswitches) and
-             { do not optimize pure assembler procedures }
-               ((procinfo^.flags and pi_is_assembler)=0)  then
-                 Optimize(procinfo^.aktproccode);
+                if (cs_optimize in aktglobalswitches) and
+                { do not optimize pure assembler procedures }
+                   ((procinfo^.flags and pi_is_assembler)=0)  then
+                  Optimize(procinfo^.aktproccode);
    {$endif NoOpt}
 {$endif i386}
-             { save local data (casetable) also in the same file }
-             if assigned(procinfo^.aktlocaldata) and
-                (not procinfo^.aktlocaldata.empty) then
-               begin
-                  procinfo^.aktproccode.concat(Tai_section.Create(sec_data));
-                  procinfo^.aktproccode.concatlist(procinfo^.aktlocaldata);
-                  procinfo^.aktproccode.concat(Tai_section.Create(sec_code));
-               end;
-             { now we can insert a cut }
-             if (cs_create_smart in aktmoduleswitches) then
-               codeSegment.concat(Tai_cut.Create);
+                { save local data (casetable) also in the same file }
+                if assigned(procinfo^.aktlocaldata) and
+                   (not procinfo^.aktlocaldata.empty) then
+                 begin
+                   procinfo^.aktproccode.concat(Tai_section.Create(sec_data));
+                   procinfo^.aktproccode.concatlist(procinfo^.aktlocaldata);
+                   procinfo^.aktproccode.concat(Tai_section.Create(sec_code));
+                end;
 
-             { add the procedure to the codesegment }
-             codeSegment.concatlist(procinfo^.aktproccode);
-           end;
+                { add the procedure to the codesegment }
+                if (cs_create_smart in aktmoduleswitches) then
+                 codeSegment.concat(Tai_cut.Create);
+                codeSegment.concatlist(procinfo^.aktproccode);
+              end
+            else
+              do_resulttypepass(code);
+{$else NOPASS2}
+            do_resulttypepass(code);
 {$endif NOPASS2}
+          end;
 
-         { ... remove symbol tables, for the browser leave the static table }
-      {    if (cs_browser in aktmoduleswitches) and (symtablestack.symtabletype=staticsymtable) then
-          symtablestack.next:=symtablestack.next^.next
-         else }
+         { ... remove symbol tables }
          if lexlevel>=normal_function_level then
            symtablestack:=symtablestack.next.next
          else
@@ -814,7 +803,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-04-13 23:49:24  peter
+  Revision 1.30  2001-04-14 14:05:47  peter
+    * better skipping of secondpass if error
+
+  Revision 1.29  2001/04/13 23:49:24  peter
     * when errors are found don't generate code, but still run the
       resulttype pass
 
