@@ -60,6 +60,9 @@ implementation
     {$ifndef NOTARGETGO32V2}
       ,t_go32v2
     {$endif}
+    {$ifndef NOTARGETBEOS}
+      ,t_beos
+    {$endif}
 
 {**************************************
              Assemblers
@@ -82,7 +85,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2001-04-18 22:02:01  peter
+  Revision 1.2  2001-06-03 15:12:47  peter
+    * t_beos target inclusion
+
+  Revision 1.1  2001/04/18 22:02:01  peter
     * registration of targets and assemblers
 
 }
