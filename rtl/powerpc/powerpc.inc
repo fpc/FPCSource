@@ -761,6 +761,8 @@ asm
       lbz     r9, 0(r4)
       { load length result }
       lbz     r10, 0(r3)
+      { length 0? }
+      cmplwi  r10,0
       { go to last current character of result }
       add     r4,r9,r4
 
@@ -773,10 +775,12 @@ asm
 
       { and concatenate }
       mtctr   r9
+      beq     LShortStrConcatDone
 LShortStrConcatLoop:
       lbzu    r10,1(r4)
       stbu    r10,1(r3)
       bdnz    LShortStrConcatLoop
+LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
 
 
@@ -952,7 +956,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.18  2002-09-07 16:01:26  peter
+  Revision 1.19  2002-09-10 17:47:20  jonas
+    * fixed bug with concatting 0-length shortstrings
+
+  Revision 1.18  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.17  2002/08/31 21:29:57  florian
