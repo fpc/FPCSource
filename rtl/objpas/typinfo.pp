@@ -636,18 +636,12 @@ unit typinfo;
       hence can be treated like an integer type.
       }
       var
-         s: AnsiString;
          Index,Ivalue : Longint;
       begin
-         { Another dirty trick which is necessary to increase the reference
-	   counter of Value... }
-         s := Value;
-	 Pointer(s) := nil;
-
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
-              PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Longint(Pointer(Value)) ;
+	      PAnsiString(Pointer(Instance) + Longint(PropInfo^.SetProc))^ := Value;
             ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
             ptvirtual:
@@ -868,7 +862,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-11-04 16:28:26  florian
+  Revision 1.5  2000-11-25 18:36:55  sg
+  * (Final) fix for AnsiString reference counter problem in SetStrProp
+
+  Revision 1.4  2000/11/04 16:28:26  florian
     * interfaces support
 
   Revision 1.3  2000/07/17 08:37:58  sg
