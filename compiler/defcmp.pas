@@ -268,7 +268,7 @@ implementation
                end;
              end;
 
-          stringdef :
+           stringdef :
              begin
                case def_from.deftype of
                  stringdef :
@@ -323,7 +323,7 @@ implementation
                    end;
                  arraydef :
                    begin
-                   { array of char to string, the length check is done by the firstpass of this node }
+                     { array of char to string, the length check is done by the firstpass of this node }
                      if is_chararray(def_from) or
                         (is_char(tarraydef(def_from).elementtype.def) and
                          is_open_array(def_from)) then
@@ -337,7 +337,19 @@ implementation
                          eq:=te_convert_l1
                         else
                          eq:=te_convert_l2;
-                      end;
+                      end
+                     else
+                     { array of widechar to string, the length check is done by the firstpass of this node }
+                      if is_widechararray(def_from) or
+                         (is_widechar(tarraydef(def_from).elementtype.def) and
+                          is_open_array(def_from)) then
+                       begin
+                         doconv:=tc_chararray_2_string;
+                         if is_widestring(def_to) then
+                          eq:=te_convert_l1
+                         else
+                          eq:=te_convert_l3;
+                       end;
                    end;
                  pointerdef :
                    begin
@@ -361,8 +373,6 @@ implementation
                           else if is_pwidechar(def_from) then
                            begin
                              doconv:=tc_pwchar_2_string;
-                             { prefer ansistrings because pchars can overflow shortstrings, }
-                             { but only if ansistrings are the default (JM)                 }
                              if is_widestring(def_to) then
                                eq:=te_convert_l1
                              else
@@ -596,7 +606,8 @@ implementation
                       begin
                         { string to char array }
                         if (not is_special_array(def_to)) and
-                           is_char(tarraydef(def_to).elementtype.def) then
+                           (is_char(tarraydef(def_to).elementtype.def)or
+                            is_widechar(tarraydef(def_to).elementtype.def)) then
                          begin
                            doconv:=tc_string_2_chararray;
                            eq:=te_convert_l1;
@@ -678,7 +689,7 @@ implementation
                             eq:=te_convert_l1;
                           end
                          else
-                          { pwidechar(ansistring) }
+                          { pwidechar(widestring) }
                           if is_pwidechar(def_to) and
                              is_widestring(def_from) then
                            begin
@@ -1323,7 +1334,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2005-01-03 17:55:57  florian
+  Revision 1.64  2005-01-06 13:30:40  florian
+    * widechararray patch from Peter
+
+  Revision 1.63  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
 
   Revision 1.62  2004/12/05 12:28:10  peter

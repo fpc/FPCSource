@@ -655,25 +655,31 @@ implementation
           internalerror(200104023);
       end;
 
-    function ttypeconvnode.resulttype_chararray_to_string : tnode;
 
+    function ttypeconvnode.resulttype_chararray_to_string : tnode;
+      var
+        chartype : string[8];
       begin
+        if is_widechar(tarraydef(left.resulttype).elementtype.def) then
+          chartype:='widechar'
+        else
+          chartype:='char';
         result := ccallnode.createinternres(
-          'fpc_chararray_to_'+tstringdef(resulttype.def).stringtypname,
-          ccallparanode.create(left,nil),resulttype);
+           'fpc_'+chartype+'array_to_'+tstringdef(resulttype.def).stringtypname,
+           ccallparanode.create(left,nil),resulttype);
         left := nil;
       end;
 
+
     function ttypeconvnode.resulttype_string_to_chararray : tnode;
-
       var
-        arrsize : aint;
-
+        arrsize  : aint;
+        chartype : string[8];
       begin
          with tarraydef(resulttype.def) do
           begin
             if highrange<lowrange then
-             internalerror(75432653);
+             internalerror(200501051);
             arrsize := highrange-lowrange+1;
           end;
          if (left.nodetype = stringconstn) and
@@ -685,9 +691,13 @@ implementation
              result := nil;
              exit;
            end;
+        if is_widechar(tarraydef(resulttype).elementtype.def) then
+          chartype:='widechar'
+        else
+          chartype:='char';
         result := ccallnode.createinternres(
           'fpc_'+tstringdef(left.resulttype.def).stringtypname+
-          '_to_chararray',ccallparanode.create(left,ccallparanode.create(
+          '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
           cordconstnode.create(arrsize,s32inttype,true),nil)),resulttype);
         left := nil;
       end;
@@ -2541,7 +2551,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.170  2005-01-03 17:55:57  florian
+  Revision 1.171  2005-01-06 13:30:41  florian
+    * widechararray patch from Peter
+
+  Revision 1.170  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
 
   Revision 1.169  2004/12/27 16:54:29  peter
