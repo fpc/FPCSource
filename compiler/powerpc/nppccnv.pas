@@ -291,6 +291,8 @@ implementation
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
+              truelabel:=oldtruelabel;
+              falselabel:=oldfalselabel;
               location_copy(location,left.location);
               exit;
            end;
@@ -354,7 +356,6 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hreg1);
                 cg.a_label(exprasmlist,hlabel);
-                cg.ungetregister(exprasmlist,hreg1);
               end;
             else
               internalerror(10062);
@@ -370,7 +371,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2004-02-03 22:32:54  peter
+  Revision 1.51  2004-03-17 20:06:56  jonas
+    * fixed missing restoring of true/falselabels in case of explicit
+      integer to same-sized boolean conversions
+
+  Revision 1.50  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
