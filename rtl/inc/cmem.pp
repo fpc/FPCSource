@@ -88,7 +88,7 @@ begin
     begin
       if p<>nil then
         begin
-          dec(size,sizeof(ptrint));
+          dec(p,sizeof(ptrint));
           free(p);
           p:=nil;
         end;
@@ -97,7 +97,7 @@ begin
     begin
       inc(size,sizeof(ptrint));
       if p=nil then
-        p:=calloc(Size,1)
+        p:=malloc(Size)
       else
         begin
           dec(p,sizeof(ptrint));
@@ -165,7 +165,10 @@ end.
 
 {
  $Log$
- Revision 1.4  2004-03-23 22:35:20  peter
+ Revision 1.5  2004-05-05 13:00:43  jonas
+   * fixed reallocmem (bug noted by Vincent Snijders)
+
+ Revision 1.4  2004/03/23 22:35:20  peter
    * dec ptr before free in reallocmem
 
  Revision 1.3  2004/03/17 12:50:53  michael
