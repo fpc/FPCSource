@@ -35,7 +35,7 @@ unit Graph;
                               declarations here so it can be used independently
                               of the svgalib unit. Removed things that are NOT
                               part of Borland's Graph from the unit interface.
-  
+
 
   License Conditions:
 
@@ -77,7 +77,6 @@ interface
 
 { ---------------------------------------------------------------------
    Constants
-
   ---------------------------------------------------------------------}
 
 const
@@ -130,7 +129,6 @@ const
   NormWidth       = 1;
   ThickWidth      = 3;
 
-const
   LeftText      = 0;
   CenterText    = 1;
   RightText     = 2;
@@ -139,7 +137,6 @@ const
   BaseLine      = 3;
   LeadLine      = 4;
 
-const
   { Error codes }
   grOK             = 0;
   grNoInitGraph    = -1;
@@ -156,14 +153,18 @@ const
   grIOerror        = -12;
   grInvalidFont    = -13;
   grInvalidFontNum = -14;
-  
-  
+
+  { graphic drivers }
+  CurrentDriver = -128;
+  Detect = 0;
+
+  { graph modes }
+   Default = 0;
+
 
 { ---------------------------------------------------------------------
    Types
-
   ---------------------------------------------------------------------}
-
 
 Type
   FillPatternType = array[1..8] of byte;
@@ -240,12 +241,12 @@ Type
   ---------------------------------------------------------------------}
 
 { Retrieving coordinates }
-function  GetX: Integer;                                        
-function  GetY: Integer;                                        
+function  GetX: Integer;
+function  GetY: Integer;
 
 { Pixel-oriented routines }
 procedure PutPixel(X, Y: Integer; Pixel: Word);
-function  GetPixel(X, Y: Integer): Word;        
+function  GetPixel(X, Y: Integer): Word;
 
 { Line-oriented primitives }
 procedure SetWriteMode(WriteMode: Integer);
@@ -269,7 +270,7 @@ procedure FloodFill(X, Y: Integer; Border: Word);
 { Nonlinearly bounded primitives }
 
 procedure Arc(X, Y: Integer; StAngle, EndAngle, Radius: Word);
-procedure GetArcCoords(var ArcCoords: ArcCoordsType);   
+procedure GetArcCoords(var ArcCoords: ArcCoordsType);
 procedure Circle(X, Y: Integer; Radius: Word);
 procedure Ellipse(X, Y: Integer; StAngle, EndAngle: Word; XRadius, YRadius : Word);
 procedure FillEllipse(X, Y: Integer; XRadius, YRadius : Word);
@@ -430,7 +431,7 @@ uses Objects, Linux;
 {$linklib vgagl}
 {$linklib c}
 
-Const 
+Const
   { Text }
 
   WRITEMODE_OVERWRITE = 0;
@@ -545,7 +546,7 @@ var
   ThePalette : PaletteType;
   TheTextSettings : TextSettingsType;
   TheFillSettings : FillSettingsType;
-      
+
 const
   BgiColors: array[0..15] of LongInt
     = ($000000, $000080, $008000, $008080,
@@ -642,7 +643,7 @@ type
               Width, Height: Integer;
               Data: record end;
             end;
-        
+
 
  { Storing screen regions }
 type
@@ -1203,12 +1204,12 @@ end;
   ---------------------------------------------------------------------}
 
 
-function GetX: Integer;                                 
+function GetX: Integer;
 begin
   GetX := CurX - DrawDelta.X
 end;
 
-function GetY: Integer;                                 
+function GetY: Integer;
 begin
   GetY := CurY - DrawDelta.Y
 end;
@@ -1220,7 +1221,7 @@ begin
     then gl_setpixel(X + DrawDelta.X, Y + DrawDelta.Y, Pixel)
 end;
 
-function GetPixel(X, Y: Integer): Word;                 
+function GetPixel(X, Y: Integer): Word;
 begin
   if NoGraphics
     then GetPixel := 0
@@ -1361,7 +1362,7 @@ end;
 Var LastArcCoords : ArcCoordsType;
 
 
-procedure SetArcCoords (X,y,xradius,yradius,Stangle,endangle : integer);   
+procedure SetArcCoords (X,y,xradius,yradius,Stangle,endangle : integer);
 
 begin
   LastArcCoords.X:=X;
@@ -1373,7 +1374,7 @@ begin
 end;
 
 
-procedure GetArcCoords(var ArcCoords: ArcCoordsType);   
+procedure GetArcCoords(var ArcCoords: ArcCoordsType);
 
 begin
   ArcCoords:=LastArcCoords;
@@ -1396,7 +1397,7 @@ procedure Ellipse(X, Y: Integer;
 
 Var I : longint;
     tmpang : real;
-    
+
 begin
  SetArcCoords (X,Y,xradius,yradius,Stangle,EndAngle);
  For i:= StAngle To EndAngle Do
@@ -1413,7 +1414,7 @@ procedure FillEllipse(X, Y: Integer; XRadius, YRadius : Word);
 Var I,tmpcolor : longint;
     tmpang : real;
     tmpx,tmpy : Integer;
-    
+
 begin
  tmpcolor:=Thecolor;
  SetColor(TheFillColor);
@@ -1450,7 +1451,7 @@ procedure Sector(X, Y: Integer;
 Var I,tmpcolor : longint;
     tmpang : real;
     ac : arccoordstype;
-    
+
 begin
  tmpcolor:=Thecolor;
  SetColor(TheFillColor);
@@ -1499,7 +1500,7 @@ begin
   getmaxcolor:=16;
 end;
 
-procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);        
+procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);
 var
   SaveClipRect: TRect;
 begin
@@ -1569,7 +1570,7 @@ Procedure DetectGraph (Var Driver,Mode : Integer);
 
 begin
   Driver:=9;
-  Mode:=vga_getdefaultmode;  
+  Mode:=vga_getdefaultmode;
   If Mode=-1 then mode:=0;
 end;
 
@@ -1583,7 +1584,7 @@ var
 begin
     If Mode=0 then
       VgaMode := vga_getdefaultmode
-    else 
+    else
       VGAMode :=Mode;
     if (VgaMode = -1) then VgaMode := G320X200X256;
     if (not vga_hasmode(VgaMode))
@@ -1754,7 +1755,7 @@ end;
 Procedure RestoreCRTmode;
 
 begin
-  vga_setmode(GTEXT);  
+  vga_setmode(GTEXT);
 end;
 
 Procedure SetActivePage (Page : Word);
@@ -1788,7 +1789,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-09-13 19:22:06  michael
+  Revision 1.10  1999-01-25 20:31:30  peter
+    + detect,default constants
+
+  Revision 1.9  1998/09/13 19:22:06  michael
   + Implemented dummies for all missing functions
 
   Revision 1.8  1998/09/11 09:24:55  michael
