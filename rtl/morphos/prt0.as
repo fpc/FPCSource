@@ -19,14 +19,17 @@
 	.globl	_start
 	.align	4
 _start:
-	stwu	1,-16(1)
+	stwu	1,-12(1)
 	mflr	0
-	stw	0,20(1)
+	stw	13,8(1)
+	stw	0,16(1)
+	mr		13,1
 
 	/* Get ExecBase */
-	lwz	3,4(0)
-	lis	12,_ExecBase@ha
-	stw	3,_ExecBase@l(12)
+	li		3,4
+	lwz	3,(3)
+	lis	4,_ExecBase@ha
+	stw	3,_ExecBase@l(4)
 
 	/* ARGC & ARGV and ENVP STUFF MISSING!!! */
 	/* AFAIK there is no such thing as ENVP on MorphOS, just like */
@@ -36,9 +39,10 @@ _start:
 
 	bl	PASCALMAIN
 
-	lwz	0,20(1)
-	addi	1,1,16
-	mtlr	0
+	lwz	0,16(1)
+   mtlr  0
+   lwz   13,8(1)
+	lwz   1,0(1)
 	blr
 
 	.globl	_ExecBase
@@ -58,7 +62,10 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.1  2004-03-16 10:29:22  karoly
+  Revision 1.2  2004-04-09 02:54:25  karoly
+   * execbase loading oops fixed.
+
+  Revision 1.1  2004/03/16 10:29:22  karoly
    * first implementation of some startup code for MOS
 
 */
