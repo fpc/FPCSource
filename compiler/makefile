@@ -190,9 +190,9 @@ TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=mkdep$(EXEEXT)
 
-PASFILES:=$(shell ls *.pas)
-INCFILES:=$(shell ls *.inc)
-MSGFILES:=$(shell ls *.msg)
+PASFILES:=$(wildcard *.pas)
+INCFILES:=$(wildcard *.inc)
+MSGFILES:=$(wildcard *.msg)
 
 #####################################################################
 # Default makefile
@@ -245,6 +245,7 @@ dependencies : $(MAKEDEP)
 	$(MAKEDEP) pp.pas $(PPDEFS) '-F$$(COMPILER)' > depend
 
 include depend
+
 endif
 
 #####################################################################
@@ -419,7 +420,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.19  1998-06-23 14:00:15  peter
+# Revision 1.20  1998-06-24 14:02:58  peter
+#   * new depend for the new ra units
+#
+# Revision 1.19  1998/06/23 14:00:15  peter
 #   * renamed RA* units
 #
 # Revision 1.18  1998/06/10 10:42:44  peter
