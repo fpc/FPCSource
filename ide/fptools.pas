@@ -129,6 +129,7 @@ function GetHotKeyName(Key: word): string;
 
 function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
 
+procedure InitToolProcessing;
 function  ProcessMessageFile(const MsgFileName: string): boolean;
 procedure AddToolCommand(Command: string);
 procedure AddToolMessage(ModuleName, Text: string; Row, Col: longint);
@@ -740,6 +741,20 @@ var
       vtCheckBox   :
         begin
           OK:=OK and (Sec^.SearchEntry(tieName)<>nil);
+          if Typ='' then
+            Typ:=tieOffParm;
+          if F^.GetEntry(Sec^.GetName,tieDefault,'')<>'' then
+            begin
+              Typ:=F^.GetEntry(Sec^.GetName,tieDefault,'');
+            end;
+          Typ:=UpcaseStr(Trim(Typ));
+          if Typ=tieOnParm then
+            Typ:='1'
+          else if Typ=tieOffParm then
+            Typ:='0'
+          else if (Typ<>'0') and (Typ<>'1') then
+            Ok:=false;
+          ViewValues[ViewCount]:=Typ;
           if OK=false then
             begin ErrorBox(FormatStrStr2(msg_propertymissingin,tieName,Sec^.GetName),nil); Exit; end;
         end;
@@ -919,7 +934,10 @@ begin
 {              MaxLen:=F^.GetIntEntry(ViewNames[I],tieMaxLen,80);}
               New(Memo, Init(ViewBounds[I],nil,nil,nil));
               if ViewValues[I]<>'' then
-                Memo^.AddLine(ViewValues[I]);
+                begin
+                  Memo^.AddLine(ViewValues[I]);
+                  Memo^.TextEnd;
+                end;
               ViewPtrs[I]:=Memo;
             end;
           vtCheckBox :
@@ -1280,9 +1298,6 @@ begin
 end;
 var Pass: sw_integer;
 begin
-  AbortTool:=false;
-  CaptureToolTo:=capNone;
-  ToolFilter:='';
   W:=FirstEditorWindow;
   Err:=0;
   for Pass:=0 to 3 do
@@ -1292,6 +1307,14 @@ begin
     end;
   if AbortTool then Err:=-1;
   ParseToolParams:=Err;
+end;
+
+procedure InitToolProcessing;
+begin
+  AbortTool:=false;
+  CaptureToolTo:=capNone;
+  ToolFilter:='';
+  ToolOutput:='';
 end;
 
 function ProcessMessageFile(const MsgFileName: string): boolean;
@@ -1364,8 +1387,11 @@ begin
 end;
 begin
   if not Assigned(ToolTempFiles) then Exit;
+{$ifndef DEBUG}
   ToolTempFiles^.ForEach(@DeleteIt);
-  Dispose(ToolTempFiles, Done); ToolTempFiles:=nil;
+{$endif ndef DEBUG}
+  Dispose(ToolTempFiles, Done);
+  ToolTempFiles:=nil;
 end;
 
 constructor TToolMessage.Init(AModule: PString; ALine: string; ARow, ACol: sw_integer);
@@ -1595,7 +1621,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:48  peter
+  Revision 1.3  2002-08-29 10:05:01  pierre
+    +  InitToolProcessing new procedure to set default values only once.
+    * handle 'on' 'off' '0' or '1' in value or default lines for checkboxes
+
+  Revision 1.2  2001/08/05 02:01:48  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:24  peter
