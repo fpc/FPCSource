@@ -49,6 +49,7 @@ Type
 { ************************************************************************* }
 { ************************* Some general type definitions ***************** }
 { ************************************************************************* }
+  TRefCompare = Function(const r1, r2: TReference): Boolean;
   TRegArray = Array[LoReg..HiReg] of TRegister;
   TRegSet = Set of LoReg..HiReg;
 { possible actions on an operand: read, write or modify (= read & write) }
@@ -184,11 +185,18 @@ Type
 
     { returns whether the reference Ref is used somewhere in the loading }
     { sequence Content                                                   }
-    Function RefInSequence(Const Ref: TReference; Content: TContent): Boolean;
+    Function RefInSequence(Const Ref: TReference; Content: TContent;
+      RefsEq: TRefCompare): Boolean;
 
    { returns whether the instruction P reads from and/or writes }
    { to Reg                                                     }
-   Function RefInInstruction(Const Ref: TReference; p: Pai): Boolean;
+   Function RefInInstruction(Const Ref: TReference; p: Pai;
+     RefsEq: TRefCompare): Boolean;
+
+   { returns whether two references with at least one pointing to an array }
+   { may point to the same memory location                                 }
+   Function ArrayRefsEq(const r1, r2: TReference): Boolean;
+
   End;
 
 { ************************************************************************* }
@@ -407,21 +415,36 @@ Begin
           End
 End;
 
+Function TPaiProp.ArrayRefsEq(const r1, r2: TReference): Boolean;
+Begin
+  ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
+                 (R1.Segment = R2.Segment) And (R1.Base = R2.Base) And
+                 (R1.Symbol=R2.Symbol);
+End;
+
 Procedure TPaiProp.DestroyRefs(Const Ref: TReference; WhichReg: TRegister;
             var InstrSinceLastMod: TInstrSinceLastMod);
 { destroys all registers which possibly contain a reference to Ref, WhichReg }
 { is the register whose contents are being written to memory (if this proc   }
 { is called because of a "mov?? %reg, (mem)" instruction)                    }
-Var Counter: TRegister;
+Var RefsEq: TRefCompare;
+    Counter: TRegister;
 Begin
   WhichReg := RegMaxSize(WhichReg);
-  If ((Ref.base = ProcInfo.FramePointer)
+  If (Ref.base = procinfo^.FramePointer) or
+      Assigned(Ref.Symbol) Then
+    Begin
+      If
 {$ifdef refsHaveIndexReg}
-      And (Ref.Index = R_NO
+         (Ref.Index = R_NO) And
 {$endif refsHaveIndexReg}
-      ) Or
-     Assigned(Ref.Symbol)
-    Then
+         (Not(Assigned(Ref.Symbol)) or
+          (Ref.base = R_NO)) Then
+  { local variable which is not an array }
+        RefsEq := {$ifdef fpc}@{$endif}RefsEqual
+      Else
+  { local variable which is an array }
+        RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq;
 {write something to a parameter, a local or global variable, so
    * with uncertain optimizations on:
       - destroy the contents of registers whose contents have somewhere a
@@ -438,12 +461,12 @@ Begin
                ((Not(cs_UncertainOpts in aktglobalswitches) And
                  (NrOfMods <> 1)
                 ) Or
-                (RefInSequence(Ref,Regs[Counter]) And
+                (RefInSequence(Ref,Regs[Counter], RefsEq) And
                  ((Counter <> WhichReg) Or
                   ((NrOfMods <> 1) And
  {StarMod is always of the type ait_instruction}
                    (PInstr(StartMod)^.oper[0].typ = top_ref) And
-                   RefsEqual(PInstr(StartMod)^.oper[0].ref^, Ref)
+                   RefsEq(PInstr(StartMod)^.oper[0].ref^, Ref)
                   )
                  )
                 )
@@ -482,7 +505,10 @@ Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
 Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
-    DestroyReg(Counter, InstrSinceLastMod);
+    Begin
+      ReadReg(Counter);
+      DestroyReg(Counter, InstrSinceLastMod);
+    End;
   CondRegs.Init;
 { FPURegs.Init; }
 End;
@@ -492,7 +518,11 @@ Procedure TPaiProp.DestroyOp(const o:Toper; var InstrSinceLastMod:
 Begin
   Case o.typ Of
     top_reg: DestroyReg(o.reg, InstrSinceLastMod);
-    top_ref: DestroyRefs(o.ref^, R_NO, InstrSinceLastMod);
+    top_ref:
+      Begin
+        ReadRef(o.ref^);
+        DestroyRefs(o.ref^, R_NO, InstrSinceLastMod);
+      End;
     top_symbol:;
   End;
 End;
@@ -593,7 +623,8 @@ Begin
   Else s := 0
 End;
 
-Function TPaiProp.RefInInstruction(Const Ref: TReference; p: Pai): Boolean;
+Function TPaiProp.RefInInstruction(Const Ref: TReference; p: Pai;
+  RefsEq: TRefCompare): Boolean;
 Var Count: AWord;
     TmpResult: Boolean;
 Begin
@@ -603,15 +634,15 @@ Begin
       Count := 0;
       Repeat
         If (PInstr(p)^.oper[Count].typ = Top_Ref) Then
-          TmpResult := RefsEqual(Ref, PInstr(p)^.oper[Count].ref^);
+          TmpResult := RefsEq(Ref, PInstr(p)^.oper[Count].ref^);
         Inc(Count);
       Until (Count = MaxOps) or TmpResult;
     End;
   RefInInstruction := TmpResult;
 End;
 
-Function TPaiProp.RefInSequence(Const Ref: TReference; Content: TContent):
-           Boolean;
+Function TPaiProp.RefInSequence(Const Ref: TReference; Content: TContent;
+  RefsEq: TRefCompare): Boolean;
 Var p: Pai;
     Counter: Byte;
     TmpResult: Boolean;
@@ -753,7 +784,10 @@ End.
 
 {
  $Log$
- Revision 1.5  1999-08-26 14:50:52  jonas
+ Revision 1.6  1999-09-29 13:50:34  jonas
+   * fixes from daopt386.pas integrated
+
+ Revision 1.5  1999/08/26 14:50:52  jonas
    * fixed small type in TP conditional
 
  Revision 1.4  1999/08/18 14:32:22  jonas
