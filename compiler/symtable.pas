@@ -232,6 +232,7 @@ unit symtable;
 {$endif GDB}
           constructor init(t : tsymtabletype;const n : string);
           constructor loadasunit;
+          destructor done;virtual;
           procedure writeasunit;
 {$ifdef GDB}
 {$ifdef OLDPPU}
@@ -2657,6 +2658,12 @@ const localsymtablestack : psymtable = nil;
       end;
 
 
+     destructor tunitsymtable.done;
+       begin
+          unitsym:=nil;
+          inherited done;
+       end;
+       
        procedure tunitsymtable.load_symtable_refs;
          var
             b : byte;
@@ -3217,7 +3224,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.10  1999-05-09 12:46:26  peter
+  Revision 1.11  1999-05-10 15:02:51  pierre
+  unitsym finally problem fixed
+
+  Revision 1.10  1999/05/09 12:46:26  peter
     + hint where a duplicate sym is already defined
 
   Revision 1.9  1999/05/08 19:52:40  peter
