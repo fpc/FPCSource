@@ -279,6 +279,7 @@ asm
         movl    p,%edi
         subl    %eax,%esi
         jz      .LSTRSCANLOOP
+        xorl    %eax,%eax
 .LSTRSCANALIGNLOOP:
         movb    (%edi),%al
 // at .LSTRSCANFOUND, one is substracted from edi to calculate the position,
@@ -414,7 +415,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.10  2000-06-12 19:53:32  peter
+  Revision 1.11  2000-06-23 11:13:56  jonas
+    * fixed bug in strscan :(
+
+  Revision 1.10  2000/06/12 19:53:32  peter
     * change .align to .balign
 
   Revision 1.9  2000/06/11 14:25:23  jonas
