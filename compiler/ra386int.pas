@@ -1205,6 +1205,8 @@ var
     toffset,
     tsize   : longint;
   begin
+    if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
+     exit;
     l:=0;
     if actasmtoken=AS_DOT then
      begin
@@ -1237,7 +1239,17 @@ var
     if actasmtoken in [AS_PLUS,AS_MINUS] then
      inc(l,BuildConstExpression);
     if opr.typ=OPR_REFERENCE then
-     inc(opr.ref.offset,l)
+     begin
+       { don't allow direct access to fields of parameters, becuase that
+         will generate buggy code }
+       case opr.ref.options of
+         ref_parafixup :
+           Message(asmr_e_cannot_access_field_directly_for_parameters);
+         ref_selffixup :
+           Message(asmr_e_cannot_access_object_field_directly);
+       end;
+       inc(opr.ref.offset,l)
+     end
     else
      inc(opr.val,l);
   end;
@@ -1339,8 +1351,8 @@ Begin
                      reset_reference(opr.Ref);
                    end;
                   BuildReference;
+                  MaybeRecordOffset;
                 end;
-               MaybeRecordOffset;
              end;
          end;
       end;
@@ -1740,7 +1752,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  1999-09-07 13:03:10  peter
+  Revision 1.46  1999-09-08 16:04:03  peter
+    * better support for object fields and more error checks for
+      field accesses which create buggy code
+
+  Revision 1.45  1999/09/07 13:03:10  peter
     * better OFFSET support for reference reading
 
   Revision 1.44  1999/09/07 07:45:41  peter

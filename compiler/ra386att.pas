@@ -1180,6 +1180,8 @@ end;
 
 
 Procedure T386ATTOperand.BuildOperand;
+var
+  expr : string;
 
   procedure AddLabelOperand(hl:pasmlabel);
   begin
@@ -1194,6 +1196,36 @@ Procedure T386ATTOperand.BuildOperand;
        InitRef;
        opr.ref.symbol:=hl;
      end;
+  end;
+
+  procedure MaybeRecordOffset;
+  var
+    l,
+    toffset,
+    tsize   : longint;
+  begin
+    if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
+     exit;
+    l:=0;
+    if actasmtoken=AS_DOT then
+     begin
+       if expr<>'' then
+         begin
+           BuildRecordOffsetSize(expr,toffset,tsize);
+           inc(l,toffset);
+           SetSize(tsize);
+         end;
+     end;
+    if actasmtoken in [AS_PLUS,AS_MINUS] then
+     inc(l,BuildConstExpression(true,false));
+    if opr.typ=OPR_REFERENCE then
+     begin
+       if opr.ref.options=ref_parafixup then
+        Message(asmr_e_cannot_access_field_directly_for_parameters);
+       inc(opr.ref.offset,l)
+     end
+    else
+     inc(opr.val,l);
   end;
 
   function MaybeBuildReference:boolean;
@@ -1218,7 +1250,7 @@ Procedure T386ATTOperand.BuildOperand;
         Begin
           if not SetupVar(actasmpattern) then
             Message(asmr_e_invalid_reference_syntax);
-          Consume(actasmtoken);
+          Consume(AS_ID);
           case actasmtoken of
             AS_END,
             AS_SEPARATOR,
@@ -1237,12 +1269,10 @@ Procedure T386ATTOperand.BuildOperand;
   end;
 
 var
-  expr,
   tempstr : string;
   tempreg : tregister;
   hl      : PAsmLabel;
-  tsize,l,
-  toffset : longint;
+  l       : longint;
 Begin
   tempstr:='';
   expr:='';
@@ -1360,23 +1390,12 @@ Begin
             begin
               expr:=actasmpattern;
               Consume(AS_ID);
-              if actasmtoken=AS_DOT then
-               begin
-                 BuildRecordOffsetSize(expr,toffset,tsize);
-                 inc(opr.ref.offset,toffset);
-                 SetSize(tsize);
-               end;
+              MaybeRecordOffset;
             end;
          end;
-        if opr.typ=OPR_REFERENCE then
-         begin
-           { Do we have a +[constant] ? }
-           if actasmtoken in [AS_PLUS,AS_MINUS] then
-            inc(opr.ref.offset,BuildConstExpression(true,false));
-           { Do we have a indexing reference, then parse it also }
-           if actasmtoken=AS_LPAREN then
-             BuildReference;
-         end;
+        { Do we have a indexing reference, then parse it also }
+        if actasmtoken=AS_LPAREN then
+         BuildReference;
       end;
 
     AS_REGISTER: { Register, a variable reference or a constant reference  }
@@ -1954,7 +1973,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  1999-08-05 16:53:08  peter
+  Revision 1.58  1999-09-08 16:04:01  peter
+    * better support for object fields and more error checks for
+      field accesses which create buggy code
+
+  Revision 1.57  1999/08/05 16:53:08  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives

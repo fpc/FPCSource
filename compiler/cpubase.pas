@@ -679,7 +679,7 @@ const
 *****************************************************************************}
 
 type
-  trefoptions=(ref_none,ref_parafixup,ref_localfixup);
+  trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
 
   { immediate/reference record }
   preference = ^treference;
@@ -824,7 +824,7 @@ var
 
   procedure InitCpu;
   procedure DoneCpu;
-  
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -1086,7 +1086,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-28 15:34:19  florian
+  Revision 1.11  1999-09-08 16:04:05  peter
+    * better support for object fields and more error checks for
+      field accesses which create buggy code
+
+  Revision 1.10  1999/08/28 15:34:19  florian
     * bug 519 fixed
 
   Revision 1.9  1999/08/19 20:05:09  michael

@@ -383,6 +383,8 @@ type tmsgconst=(
   asmr_e_dollar_without_identifier,
   asmr_w_32bit_const_for_address,
   asmr_n_align_is_target_specific,
+  asmr_e_cannot_access_field_directly_for_parameters,
+  asmr_e_cannot_access_object_field_directly,
   asmw_f_too_many_asm_files,
   asmw_f_assembler_output_not_supported,
   asmw_f_comp_not_supported,

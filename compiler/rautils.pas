@@ -691,8 +691,10 @@ Begin
   SetupSelf:=false;
   if assigned(procinfo._class) then
    Begin
+     opr.typ:=OPR_REFERENCE;
      opr.ref.offset:=procinfo.ESI_offset;
      opr.ref.base:=procinfo.framepointer;
+     opr.ref.options:=ref_selffixup;
      SetupSelf:=true;
    end
   else
@@ -737,6 +739,17 @@ Begin
         pvarsym(sym)^.varstate:=vs_used;
         inc(pvarsym(sym)^.refs);
         case pvarsym(sym)^.owner^.symtabletype of
+          objectsymtable :
+            begin
+              { this is not allowed, because we don't know if the self
+                register is still free, and loading it first is also
+                not possible, because this could break code }
+              opr.typ:=OPR_CONSTANT;
+              opr.val:=pvarsym(sym)^.address;
+              hasvar:=true;
+              SetupVar:=true;
+              Exit;
+            end;
           unitsymtable,
           globalsymtable,
           staticsymtable :
@@ -1146,39 +1159,44 @@ Begin
    i:=255;
   base:=Copy(s,1,i-1);
   delete(s,1,i);
-  getsym(base,false);
-  sym:=srsym;
-  st:=nil;
-  { we can start with a var,type,typedconst }
-  case sym^.typ of
-    varsym :
-      begin
-        case pvarsym(sym)^.definition^.deftype of
-          recorddef :
-            st:=precorddef(pvarsym(sym)^.definition)^.symtable;
-          objectdef :
-            st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
-        end;
-      end;
-    typesym :
-      begin
-        case ptypesym(sym)^.definition^.deftype of
-          recorddef :
-            st:=precorddef(ptypesym(sym)^.definition)^.symtable;
-          objectdef :
-            st:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
-        end;
-      end;
-    typedconstsym :
-      begin
-        case pvarsym(sym)^.definition^.deftype of
-          recorddef :
-            st:=precorddef(ptypedconstsym(sym)^.definition)^.symtable;
-          objectdef :
-            st:=pobjectdef(ptypedconstsym(sym)^.definition)^.symtable;
-        end;
-      end;
-  end;
+  if base='SELF' then
+   st:=procinfo._class^.symtable
+  else
+   begin
+     getsym(base,false);
+     sym:=srsym;
+     st:=nil;
+     { we can start with a var,type,typedconst }
+     case sym^.typ of
+       varsym :
+         begin
+           case pvarsym(sym)^.definition^.deftype of
+             recorddef :
+               st:=precorddef(pvarsym(sym)^.definition)^.symtable;
+             objectdef :
+               st:=pobjectdef(pvarsym(sym)^.definition)^.symtable;
+           end;
+         end;
+       typesym :
+         begin
+           case ptypesym(sym)^.definition^.deftype of
+             recorddef :
+               st:=precorddef(ptypesym(sym)^.definition)^.symtable;
+             objectdef :
+               st:=pobjectdef(ptypesym(sym)^.definition)^.symtable;
+           end;
+         end;
+       typedconstsym :
+         begin
+           case pvarsym(sym)^.definition^.deftype of
+             recorddef :
+               st:=precorddef(ptypedconstsym(sym)^.definition)^.symtable;
+             objectdef :
+               st:=pobjectdef(ptypedconstsym(sym)^.definition)^.symtable;
+           end;
+         end;
+     end;
+   end;
   { now walk all recordsymtables }
   while assigned(st) and (s<>'') do
    begin
@@ -1189,6 +1207,11 @@ Begin
      base:=Copy(s,1,i-1);
      delete(s,1,i);
      sym:=st^.search(base);
+     if not assigned(sym) then
+      begin
+        GetRecordOffsetSize:=false;
+        exit;
+      end;
      st:=nil;
      case sym^.typ of
        varsym :
@@ -1410,7 +1433,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-09-04 20:29:11  florian
+  Revision 1.26  1999-09-08 16:04:04  peter
+    * better support for object fields and more error checks for
+      field accesses which create buggy code
+
+  Revision 1.25  1999/09/04 20:29:11  florian
     * bug 577 fixed
 
   Revision 1.24  1999/08/27 14:37:50  peter

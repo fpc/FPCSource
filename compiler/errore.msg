@@ -1219,6 +1219,13 @@ asmr_w_using_defined_as_local=E_Using a defined name as a local label
 asmr_e_dollar_without_identifier=E_Dollar token is used without an identifier
 asmr_w_32bit_const_for_address=W_32bit constant created for address
 asmr_n_align_is_target_specific=N_.align is target specific, use .balign or .p2align
+asmr_e_cannot_access_field_directly_for_parameters=E_Can't access fields directly for parameters
+% You should load the parameter first into a register and then access the
+% fields using that register.
+asmr_e_cannot_access_object_field_directly=E_Can't access fields of objects/classes directly
+% You should load the self pointer first into a register and then access the
+% fields using the register as base. By default the self pointer is available
+% in the esi register on i386.
 #
 # Assembler/binary writers
 #
