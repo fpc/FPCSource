@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
-    Linux version of custom app object routines.
+    OS/2 version of custom app object routines.
     
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,36 +17,27 @@
 { taken from dos unit }
 
 type  
-  PPchar = ^Pchar;
+    PPChar = ^PChar;
 
-function envs:PPchar;assembler;
+var EnvC: longint; external name '_envc';
+    EnvP: PPChar; external name '_environ';
 
-asm
-    movl envp,%eax
-end ['EAX'];
+function EnvStr (Index: longint): string;
 
-function envcount:longint;assembler;
-asm
-    movl envc,%eax
-end ['EAX'];
-
-function envstr(index : longint) : string;
-
-var hp:Pchar;
+var HP: PChar;
 
 begin
-  if (index<=0) or (index>envcount) then
-    begin
-    envstr:='';
-    exit;
-    end;
-  hp:=envs[index-1];
-  envstr:=strpas(hp);
+    if (Index <= 0) or (Index > EnvC) then
+        begin
+            EnvStr := '';
+            exit;
+        end;
+    HP := EnvP [Pred (Index)];
+    EnvStr := StrPas (HP);
 end;
+                                                           
 
-                                                            
-
-Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
+procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 Var
   S : String;  
@@ -54,9 +45,9 @@ Var
   
 begin
   List.Clear;
-  For J:=1 to envcount-1 do
+  For J := 1 to Pred (EnvC) do
     begin
-    S:=Envsttr(J);
+    S:=EnvStr(J);
     If NamesOnly then
       begin
       I:=Pos('=',S);
@@ -66,3 +57,11 @@ begin
     List.Add(S);
     end;
 end;
+
+{
+  $Log$
+  Revision 1.2  2003-06-06 22:39:59  hajny
+    * OS/2 version of custapp.inc fixed
+
+
+}
