@@ -502,9 +502,16 @@ initialization
     {$IFDEF Win32}
     LoadGLu('glu32.dll');
     {$ELSE}
+    {$ifdef darwin}
+    LoadGLu('/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGLU.dylib');
+    {$else}
     LoadGLu('libGLU.so.1');
     {$ENDIF}
-  except end;
+    {$endif}
+  except
+    writeln('error opening libGLU: ',getlastdlerror);
+    halt(1);
+  end;
 
 finalization
 
@@ -515,7 +522,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-10-13 14:36:47  sg
+  Revision 1.3  2004-11-24 20:04:09  jonas
+    + basic Mac OS X support, only bounce works for now though
+
+  Revision 1.2  2002/10/13 14:36:47  sg
   * Win32 fix: The OS symbol is called "Win32", not "Windows"
 
   Revision 1.1  2002/10/13 13:57:31  sg
@@ -524,3 +534,4 @@ end.
     by Tom Nuydens of delphi3d.net
 
 }
+

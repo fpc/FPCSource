@@ -14,6 +14,7 @@ uses SysUtils;
 function LoadLibrary(Name: PChar): THandle;
 function GetProcAddress(Lib: THandle; ProcName: PChar): Pointer;
 function FreeLibrary(Lib: THandle): Boolean;
+function getlastdlerror: pchar;
 
 
 implementation
@@ -27,11 +28,18 @@ const
 function dlopen(Name: PChar; Flags: LongInt) : Pointer; cdecl; external 'dl';
 function dlsym(Lib: Pointer; Name: PChar) : Pointer; cdecl; external 'dl';
 function dlclose(Lib: Pointer): LongInt; cdecl; external 'dl';
+function dlerror: pchar; cdecl; external 'dl';
 {$else}
 function dlopen(Name: PChar; Flags: LongInt) : Pointer; cdecl; external 'c';
 function dlsym(Lib: Pointer; Name: PChar) : Pointer; cdecl; external 'c';
 function dlclose(Lib: Pointer): LongInt; cdecl; external 'c';
+function dlerror: pchar; cdecl; external 'c';
 {$endif}
+
+function getlastdlerror: pchar;
+begin
+  getlastdlerror := dlerror;
+end;
 
 function LoadLibrary(Name: PChar): THandle;
 begin
@@ -56,7 +64,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-08-25 18:16:38  marco
+  Revision 1.3  2004-11-24 20:04:09  jonas
+    + basic Mac OS X support, only bounce works for now though
+
+  Revision 1.2  2003/08/25 18:16:38  marco
    * BSD fix
 
   Revision 1.1  2002/10/13 13:57:30  sg

@@ -2253,9 +2253,16 @@ initialization
     {$IFDEF Win32}
     LoadOpenGL('opengl32.dll');
     {$ELSE}
+    {$ifdef darwin}
+    LoadOpenGL('/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib');
+    {$ELSE}
     LoadOpenGL('libGL.so.1');
+    {$endif}
     {$ENDIF}
-  except end;
+  except
+    writeln('Error opening OpenGL library');
+    halt(1);
+  end;
 
 finalization
 

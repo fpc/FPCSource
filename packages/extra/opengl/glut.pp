@@ -636,7 +636,11 @@ initialization
     {$IFDEF Win32}
     LoadGlut('glut32.dll');
     {$ELSE}
+    {$ifdef darwin}
+    LoadGlut('/System/Library/Frameworks/GLUT.framework/Versions/Current/GLUT');
+    {$else}
     LoadGlut('libglut.so.3');
+    {$endif}
     {$ENDIF}
   except
     writeln('Can''t load glut library');
@@ -653,3 +657,4 @@ end.
 {
   $Log:
 }
+
