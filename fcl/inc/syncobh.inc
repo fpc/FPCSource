@@ -14,6 +14,8 @@
  **********************************************************************}
 
 type
+   TWaitResult = (wrSignaled, wrTimeout, wrAbandoned, wrError);
+
    TSyncroObject = class(TObject)
       procedure Acquire;virtual;abstract;
       procedure Release;virtual;abstract;
@@ -58,7 +60,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2001-04-13 18:02:57  peter
+    * added missing twaitresult type
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
- 
+
 }
