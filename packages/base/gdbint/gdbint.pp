@@ -145,6 +145,28 @@ interface
   {$LINKLIB gcc}
 {$endif netbsd}
 
+{$ifdef openbsd}
+  {$undef NotImplemented}
+ {$ifndef GDB_V5}
+  {$LINKLIB ncurses}
+ {$endif not GDB_V5}
+  {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+      {$LINKLIB ncurses}
+      {$LINKLIB m}
+      {$LINKLIB iberty}
+      {$LINKLIB intl}
+      { does not seem to exist on netbsd LINKLIB dl}
+    {$endif GDB_V5}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif netbsd}
+
 {$ifdef win32}
   {$undef NotImplemented}
 {$ifndef GDB_V5}
@@ -2549,7 +2571,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-31 11:54:32  marco
+  Revision 1.7  2002-07-30 16:40:41  marco
+   * Gdbint openbsd support
+
+  Revision 1.6  2002/05/31 11:54:32  marco
   * Renamefest for 1.0, many 1.1.x spots patched also.
 
   Revision 1.5  2002/05/13 13:45:35  peter
