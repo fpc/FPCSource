@@ -468,6 +468,7 @@ Function SysCall(callnr:longint;var regs:SysCallregs):longint;
 
 Function  GetEpochTime:longint;
 Procedure GetTimeOfDay(var tv:timeval;var tz:timezone);
+Procedure SetTimeOfDay(Const tv:timeval;const tz:timezone);
 Function  GetTimeOfDay: longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
@@ -1130,6 +1131,19 @@ begin
   regs.reg2:=longint(@tv);
   regs.reg3:=longint(@tz);
   SysCall(SysCall_nr_gettimeofday,regs);
+  LinuxError:=Errno;
+end;
+
+Procedure SetTimeOfDay(Const tv:timeval;Const tz:timezone);
+{
+ Get the time of day and timezone.
+}
+var
+  regs : SysCallregs;
+begin
+  regs.reg2:=longint(@tv);
+  regs.reg3:=longint(@tz);
+  SysCall(SysCall_nr_settimeofday,regs);
   LinuxError:=Errno;
 end;
 
@@ -3505,7 +3519,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  1998-07-28 09:27:06  michael
+  Revision 1.13  1998-08-12 11:10:25  michael
+  Added settimeofday function
+
+  Revision 1.12  1998/07/28 09:27:06  michael
   restored previous version. A bug in the compiler prevents compilation.
 
   Revision 1.10  1998/06/16 08:21:58  michael
