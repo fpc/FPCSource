@@ -4658,7 +4658,7 @@ end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
-  IsChangedOnDisk:=OnDiskLoadTime<>GetFileTime(FileName);
+  IsChangedOnDisk:=(OnDiskLoadTime<>GetFileTime(FileName)) and (OnDiskLoadTime<>-1);
 end;
 
 function TFileEditor.SaveFile: boolean;
@@ -4715,6 +4715,8 @@ begin
   begin
     FileName := FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
+    { if we rename the file the OnDiskLoadTime is wrong so we reset it }
+    OnDiskLoadTime:=-1;
     SaveAs := SaveFile;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
@@ -5152,7 +5154,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.65  1999-12-08 16:02:46  pierre
+  Revision 1.66  1999-12-23 23:32:49  pierre
+   * avoid wrong warning for renamed files
+
+  Revision 1.65  1999/12/08 16:02:46  pierre
    * fix for bugs 746,748 and 750
 
   Revision 1.64  1999/12/01 17:25:00  pierre
