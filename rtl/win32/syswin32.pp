@@ -241,16 +241,15 @@ end;
 {*****************************************************************************
                               Heap Management
 *****************************************************************************}
-
    { memory functions }
-   function GlobalAlloc(mode,size:longint):longint;
-     external 'kernel32' name 'GlobalAlloc';
-   function GlobalLock(handle:longint):pointer;
-     external 'kernel32' name 'GlobalLock';
-{$ifdef SYSTEMDEBUG}
-   function GlobalSize(h:longint):longint;
-     external 'kernel32' name 'GlobalSize';
-{$endif}
+   function GetProcessHeap : DWord;
+     external 'kernel32' name 'GetProcessHeap';
+   function HeapAlloc(hHeap : DWord; dwFlags : DWord; dwBytes : DWord) : Longint;
+     external 'kernel32' name 'HeapAlloc';
+{$IFDEF SYSTEMDEBUG}
+   function HeapSize(hHeap : DWord; dwFlags : DWord; ptr : Pointer) : DWord;
+     external 'kernel32' name 'HeapSize';
+{$ENDIF}
 
 var
   heap : longint;external name 'HEAP';
@@ -270,14 +269,13 @@ end ['EAX'];
 
 function Sbrk(size : longint):longint;
 var
-  h,l : longint;
+  l : longint;
 begin
-  h:=GlobalAlloc(258,size);
-  l:=longint(GlobalLock(h));
-  if l=0 then
-    l:=-1;
+  l := HeapAlloc(GetProcessHeap(), 0, size);
+  if (l = 0) then
+    l := -1;
 {$ifdef DUMPGROW}
-  Writeln('new heap part at $',hexstr(l,8), ' size = ',GlobalSize(h));
+  Writeln('new heap part at $',hexstr(l,8), ' size = ',HeapSize(GetProcessHeap()));
 {$endif}
   sbrk:=l;
 end;
@@ -1324,7 +1322,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-09-04 19:36:59  peter
+    * new heapalloc calls, patch from Thomas Schatzl
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }
