@@ -915,7 +915,7 @@ var
   spos,len : longint;
 Begin
 { Delete the string }
-  Decr_ansi_ref (S);
+  Decr_ansi_ref (Pointer(S));
   { We assign room for 1024 characters totally at random.... }
   Pointer(s):=Pointer(NewAnsiString(1024));
 { Check error and if file is open }
@@ -1242,7 +1242,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  1998-09-24 23:32:24  peter
+  Revision 1.29  1998-09-28 14:27:08  michael
+  + AnsiStrings update
+
+  Revision 1.28  1998/09/24 23:32:24  peter
     * fixed small bug with a #13#10 on a line
 
   Revision 1.27  1998/09/18 12:23:22  peter
