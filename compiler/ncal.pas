@@ -2022,19 +2022,17 @@ type
                   end;
                 temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,true);
                 addstatement(newstatement,temp);
-                resulttypepass(newstatement);
                 addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(temp),curpara.left));
-                resulttypepass(newstatement);
                 { after the assignment, turn the temp into a non-persistent one, so }
                 { that it will be freed once it's used as parameter                 }
                 addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
-                resulttypepass(newstatement);
                 curpara.left := ctemprefnode.create(temp);
-                { the para's themselves are "resulttypepassed" in in tcallnode.pass_1 }
               end;
             curpara := tcallparanode(curpara.right);
           end;
+        if assigned(newblock) then
+          firstpass(newblock);
         result := newblock;
       end;
 {$endif callparatemp}
@@ -2059,13 +2057,13 @@ type
          inlined:=false;
          inlinecode := nil;
 
-{$ifdef callparatemp}
-         callparatemps := extract_functioncall_paras;
-{$endif callparatemp}
-
          { work trough all parameters to get the register requirements }
          if assigned(left) then
            tcallparanode(left).det_registers;
+
+{$ifdef callparatemp}
+         callparatemps := extract_functioncall_paras;
+{$endif callparatemp}
 
          { function result node }
          if assigned(funcretnode) then
@@ -2525,7 +2523,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2003-04-27 07:29:50  peter
+  Revision 1.146  2003-04-27 09:08:44  jonas
+    * do callparatemp stuff only after the parameters have been firstpassed,
+      because some nodes are turned into calls during the firstpass
+
+  Revision 1.145  2003/04/27 07:29:50  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
