@@ -767,12 +767,13 @@ var
 begin
   if not assigned(p) then
    begin
+     { only when a new block has to be allocated, the getmem_cnt increases! }
+     inc(getmem_cnt);
      p:=TraceGetMem(size);
      TraceReallocMem:=P;
      exit;
    end;
    dec(p,sizeof(theap_mem_info)+extra_info_size);
-  { remove heap_mem_info from linked list }
   pp:=pheap_mem_info(p);
   if pp^.next<>nil then
    pp^.next^.previous:=pp^.previous;
@@ -803,6 +804,7 @@ begin
       traceReAllocMem := p;
       exit;
     end;
+  { remove heap_mem_info from linked list }
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -837,7 +839,6 @@ begin
   if usecrc then
     pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
   inc(p,sizeof(theap_mem_info)+extra_info_size);
-  inc(getmem_cnt);
   TraceReAllocmem:=p;
 end;
 
@@ -965,7 +966,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2000-01-20 12:35:35  jonas
+  Revision 1.35  2000-01-20 13:17:11  jonas
+    * another problme with realloc fixed (one left)
+
+  Revision 1.34  2000/01/20 12:35:35  jonas
     * fixed problem with reallocmem and heaptrc
 
   Revision 1.33  2000/01/07 16:41:34  daniel
