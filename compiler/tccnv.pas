@@ -66,15 +66,28 @@ implementation
 
         procedure update_constsethi(p:pdef);
         begin
-          if pd=nil then
-            pd:=p;
           if ((p^.deftype=orddef) and
-              (porddef(p)^.high>constsethi)) then
-            constsethi:=porddef(p)^.high
-          else
-            if ((p^.deftype=enumdef) and
-                (penumdef(p)^.max>constsethi)) then
-              constsethi:=penumdef(p)^.max;
+             (porddef(p)^.high>constsethi)) then
+            begin
+               constsethi:=porddef(p)^.high;
+               if pd=nil then
+                 begin
+                    if (constsethi>255) or
+                      (porddef(p)^.low<0) then
+                      pd:=u8bitdef
+                    else
+                      pd:=p;
+                 end;
+               if constsethi>255 then
+                 constsethi:=255;
+            end
+          else if ((p^.deftype=enumdef) and
+            (penumdef(p)^.max>constsethi)) then
+            begin
+               if pd=nil then
+                 pd:=p;
+               constsethi:=penumdef(p)^.max;
+            end;
         end;
 
         procedure do_set(pos : longint);
@@ -1011,7 +1024,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2000-02-13 22:46:28  florian
+  Revision 1.61  2000-02-14 18:12:50  florian
+    * fixed set problem s:=[<word>];
+
+  Revision 1.60  2000/02/13 22:46:28  florian
     * fixed an internalerror with writeln
     * fixed arrayconstructor_to_set to force the generation of better code
       and added a more strict type checking
