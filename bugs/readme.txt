@@ -66,7 +66,8 @@ Fixed bugs:
                  (already fixed ) but also for SET_IN_BYTE
   bug0047.pp    compiling with -So crashes the compiler              OK 0.99.1 (CEC)
   bug0049.pp    shows an error while defining subrange types         OK 0.99.7 (PFV)
-  bug0050.pp   can't set a function result in a nested procedure of a function OK 0.99.7 (PM)
+  bug0050.pp    can't set a function result in a nested procedure of a function OK 0.99.7 (PM)
+  bug0051.pp    Graph, shows a problem with putpixel                 OK 0.99.9 (PM)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
   bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
@@ -74,6 +75,7 @@ Fixed bugs:
                 - i386 ONLY)
   bug0056.pp    shows a _very_ simple expression which generates     OK 0.99.1 (FK)
                 wrong assembler
+  bug0057.pp    Graph, shows a crash with switch graph/text/graph    OK 0.99.9 (PM)
   bug0058.pp    causes an internal error 10 (problem with getregisterOK 0.99.1 (FK)
                 in secondsmaller - i386 ONLY)
   bug0059.pp    shows the problem with syntax error with ordinal     OK 0.99.1 (FK)
@@ -205,7 +207,7 @@ Fixed bugs:
                Solved, but you still need to use the file name from other
                units                                                 OK 0.99.9 (PM) 
   bug0181.pp   shows a problem with name mangling                    OK 0.99.9 (PM)
-  bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.0 (PM)
+  bug0182.pp   @record.field doesn't work in constant expr           OK 0.99.9 (PM)
   bug0184.pp   multiple copies of the same constant set are stored in executable OK 0.99.9 (PFV)
 
 Unproducable bugs:
@@ -213,21 +215,29 @@ Unproducable bugs:
 bug0048.pp   shows a problem with putimage on some computers
              (I can't reproduce the bug neither with a Millenium II
               nor a Trio64 card (FK)  )
+             (maybe fixed : there was a problem in SetVESAmode for cards
+              that use a different read and write window !!
+              0.99.9  (PM) )
+
 
 Unfixed not important bugs (mostly incompatibilities):
 ------------------------------------------------------
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
+bug0155.pp   Asm, Missing string return for asm functions
+             (this is a feature rather than a bug :
+              complex return values are not allowed for assembler
+              functions (PM) )
+
 
 Unfixed bugs:
 -------------
-bug0051.pp   Graph, shows a problem with putpixel
 bug0052.pp   Graph, collects missing graph unit routines
-bug0057.pp   Graph, shows a crash with switch graph/text/graph
-
+             (partial fix : works for this example but fillpoly is
+	      still not really implemented 0.99.9 (PM))
+ 
 bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
-bug0155.pp   Asm, Missing string return for asm functions
 bug0175.pp   Asm, mov word,%eax should not be allowed without casting
 
 bug0152.pp   End value of loop variable must be calculated before loop
