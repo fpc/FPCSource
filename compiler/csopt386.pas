@@ -730,14 +730,24 @@ begin
           exit;
         end;
       If tmpResult and
-{ don't take into account instructions that will be removed }
+         { don't take into account instructions that will be removed }
          Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
+          { if the newReg gets stored back to the oldReg, we can change }
+          { "mov %oldReg,%newReg; <operations on %newReg>; mov %newReg, }
+          { %oldReg" to "<operations on %oldReg>"                       } 
           removeLast := storeBack(endP);
           sequenceEnd :=
             removeLast or
+            { no support for (i)div, mul and imul with hardcoded operands }
             (noHardCodedRegs(paicpu(endP),orgReg,newReg) and
+            { if newReg gets loaded with a new value, we can stop   }
+            { replacing newReg with oldReg here (possibly keeping   }
+            { the original contents of oldReg so we still know them }
+            { afterwards)                                           }
              RegLoadedWithNewValue(newReg,true,paicpu(endP)) or
+            { we can also stop if we reached the end of the use of }
+            { newReg's current contents                            }
              (GetNextInstruction(endp,hp) and
               FindRegDealloc(newReg,hp)));
           newRegModified :=
@@ -820,7 +830,8 @@ begin
          RegLoadedWithNewValue(newReg,true,endP) then
         GetLastInstruction(endP,hp)
       else hp := endP;
-      if (p <> endp) or
+      if removeLast or
+         (p <> endp) or
          not RegLoadedWithNewValue(newReg,true,endP) then
         RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
@@ -1107,10 +1118,11 @@ Begin
 {$ifdef replacereg}
                     top_Reg:
                       { try to replace the new reg with the old reg }
-                      if (paicpu(p)^.opcode = A_MOV) and
+                      if not(PPaiProp(p^.optInfo)^.canBeRemoved) and
+                         (paicpu(p)^.opcode = A_MOV) and
                          getLastInstruction(p,hp4) then
                         begin
-                          Case paicpu(p)^.oper[1].typ of
+                          case paicpu(p)^.oper[1].typ of
                             top_Reg:
                               { we only have to start replacing from the instruction after the mov, }
                               { but replacereg only starts with getnextinstruction(p,p)             }
@@ -1200,7 +1212,8 @@ begin
 {$endif noinstremove}
           Begin
 {$IfDef TP}
-            Dispose(PPaiProp(p^.OptInfo));
+            if assigned(p^.optInfo) then
+              Dispose(PPaiProp(p^.OptInfo));
 {$EndIf TP}
             p^.OptInfo := nil;
             p := pai(p^.next);;
@@ -1221,7 +1234,13 @@ End.
 
 {
  $Log$
- Revision 1.51  2000-02-12 19:28:56  jonas
+ Revision 1.52  2000-02-17 07:46:49  jonas
+   * -dreplacereg no logner tries to optimize "movl %reg1,%reg1" (which are
+     always marked as CanBeRemoved)
+   + some comments in -dreplacereg code
+   * small fix which could cause crash when optimizer is compiler with -dTP
+
+ Revision 1.51  2000/02/12 19:28:56  jonas
    * fix for imul optimization in popt386 (exclude top_ref as first
      argument)
    * in csopt386: change "mov reg1,reg2; <several operations on reg2>;
