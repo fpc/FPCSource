@@ -1151,18 +1151,14 @@ const
             else
               begin
                 reference_reset_base(href,r,0);
-{$ifndef newra}
-                href.index := get_scratch_reg_int(list,OS_32);
-{$else newra}
-                href.index := rg.getregisterint(list,OS_32);
-{$endif newra}
+                { can't use getregisterint here, the register colouring }
+                { is already done when we get here                      }
+                href.index.enum := R_INTREGISTER;
+                href.index.number := NR_R11;
+                a_reg_alloc(list,href.index);
                 a_load_const_reg(list,OS_S32,-localsize,href.index);
                 a_load_store(list,A_STWUX,r,href);
-{$ifndef newra}
-                free_scratch_reg(list,href.index);
-{$else newra}
-                rg.ungetregisterint(list,href.index);
-{$endif newra}
+                a_reg_dealloc(list,href.index);
               end;
           end;
 
@@ -1672,18 +1668,12 @@ const
             else
               begin
                 reference_reset_base(href,r,0);
-{$ifndef newra}
-                href.index := get_scratch_reg_int(list,OS_32);
-{$else newra}
-                href.index := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
+                href.index.enum := R_INTREGISTER;
+                href.index.number := NR_R11;
+                a_reg_alloc(list,href.index);
                 a_load_const_reg(list,OS_S32,-localsize,href.index);
                 a_load_store(list,A_STWUX,r,href);
-{$ifndef newra}
-                free_scratch_reg(list,href.index);
-{$else newra}
-                rg.ungetregisterint(list,href.index);
-{$endif newra}
+                a_reg_dealloc(list,href.index);
               end;
           end;
       end;
@@ -2723,7 +2713,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-07-20 20:39:20  jonas
+  Revision 1.116  2003-07-23 11:02:23  jonas
+    * don't use rg.getregisterint() anymore in g_stackframe_entry_*, because
+      the register colouring has already occurred then, use a hard-coded
+      register instead
+
+  Revision 1.115  2003/07/20 20:39:20  jonas
     * fixed newra bug due to the fact that we sometimes need a temp reg
       when loading/storing to memory (base+index+offset is not possible)
       and because a reference is often freed before it is last used, this
