@@ -1895,9 +1895,9 @@ implementation
            { unitsym are only loaded for browsing PM    }
            { this was buggy anyway because we could use }
            { unitsyms from other units in _USES !!      }
-           if (symtabletype=unitsymtable) and (hp^.typ=unitsym) and
+           {if (symtabletype=unitsymtable) and (hp^.typ=unitsym) and
               assigned(current_module) and (current_module^.globalsymtable<>@self) then
-             hp:=nil;
+             hp:=nil;}
            if assigned(hp) and
               (cs_browser in aktmoduleswitches) and make_ref then
              begin
@@ -2793,7 +2793,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2000-03-01 00:03:10  pierre
+  Revision 1.80  2000-03-01 13:56:31  pierre
+   * fix for bug 840
+
+  Revision 1.79  2000/03/01 00:03:10  pierre
     * fixes for locals in inlined procedures
       fix for bug797
     + stabs generation for inlined paras and locals
