@@ -104,6 +104,7 @@ end;
 
 Procedure Close(var t : Text);[Public,Alias: 'CLOSE_TEXT',IOCheck];
 Begin
+  if InOutRes <> 0 then Exit;
   If (TextRec(t).mode<>fmClosed) Then
    Begin
    { Write pending buffer }
@@ -136,24 +137,28 @@ End;
 
 Procedure Rewrite(var t : Text);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   OpenText(t,fmOutput,1);
 End;
 
 
 Procedure Reset(var t : Text);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   OpenText(t,fmInput,0);
 End;
 
 
 Procedure Append(var t : Text);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   OpenText(t,fmAppend,1);
 End;
 
 
 Procedure Flush(var t : Text);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   If TextRec(t).mode<>fmOutput Then
    exit;
 { Not the flushfunc but the inoutfunc should be used, becuase that
@@ -164,6 +169,7 @@ End;
 
 Procedure Erase(var t:Text);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   If TextRec(t).mode=fmClosed Then
    Do_Erase(PChar(@TextRec(t).Name));
 End;
@@ -171,6 +177,7 @@ End;
 
 Procedure Rename(var t : text;p:pchar);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   If TextRec(t).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@TextRec(t).Name),p);
@@ -183,6 +190,7 @@ Procedure Rename(var t : Text;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
+  If InOutRes <> 0 then exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(t,Pchar(@p));
@@ -193,6 +201,7 @@ Procedure Rename(var t : Text;c : char);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin
+  If InOutRes <> 0 then exit;
   p[0]:=c;
   p[1]:=#0;
   Rename(t,Pchar(@p));
@@ -201,6 +210,7 @@ End;
 
 Function Eof(Var t: Text): Boolean;[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
 {$IFNDEF EXTENDED_EOF}
   {$IFDEF EOF_CTRLZ}
     Eof:=TextRec(t).Buffer[TextRec(t).BufPos]=#26;
@@ -408,6 +418,7 @@ const
   eol : array[0..1] of char=(#13,#10);
 {$ENDIF SHORT_LINEBREAK}
 begin
+  If InOutRes <> 0 then exit;
 { Write EOL }
   WriteBuffer(f,eol,eollen);
 { Flush }
@@ -418,6 +429,7 @@ end;
 
 Procedure Write_Str(Len : Longint;var f : TextRec;const s : String);[Public,Alias: 'WRITE_TEXT_STRING'];
 Begin
+  If InOutRes <> 0 then exit;
   If f.mode<>fmOutput Then
    exit;
   If Len>Length(s) Then
@@ -432,6 +444,7 @@ Procedure Write_Array(Len : Longint;var f : TextRec;const p : array00);[Public,A
 var
   ArrayLen : longint;
 Begin
+  If InOutRes <> 0 then exit;
   If f.mode<>fmOutput Then
    exit;
   ArrayLen:=StrLen(p);
@@ -445,6 +458,7 @@ Procedure Write_PChar(Len : Longint;var f : TextRec;p : PChar);[Public,Alias: 'W
 var
   PCharLen : longint;
 Begin
+  If InOutRes <> 0 then exit;
   If f.mode<>fmOutput Then
    exit;
   PCharLen:=StrLen(p);
@@ -458,6 +472,7 @@ Procedure Write_LongInt(Len : Longint;var t : TextRec;l : Longint);[Public,Alias
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str(l,s);
   Write_Str(Len,t,s);
 End;
@@ -467,6 +482,7 @@ Procedure Write_Real(fixkomma,Len : Longint;var t : TextRec;r : real);[Public,Al
 var
    s : String;
 Begin
+  If InOutRes <> 0 then exit;
 {$ifdef i386}
    Str_real(Len,fixkomma,r,rt_s64real,s);
 {$else}
@@ -480,18 +496,21 @@ Procedure Write_Cardinal(Len : Longint;var t : TextRec;l : cardinal);[Public,Ali
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str(L,s);
   Write_Str(Len,t,s);
 End;
 
-
+{$ifdef SUPPORT_SINGLE}
 Procedure Write_Single(fixkomma,Len : Longint;var t : TextRec;r : single);[Public,Alias: 'WRITE_TEXT_SINGLE'];
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str_real(Len,fixkomma,r,rt_s32real,s);
   Write_Str(Len,t,s);
 End;
+{$endif SUPPORT_SINGLE}
 
 
 {$ifdef SUPPORT_EXTENDED}
@@ -499,6 +518,7 @@ Procedure Write_Extended(fixkomma,Len : Longint;var t : TextRec;r : extended);[P
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str_real(Len,fixkomma,r,rt_s80real,s);
   Write_Str(Len,t,s);
 End;
@@ -510,6 +530,7 @@ Procedure Write_Comp(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Al
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str_real(Len,fixkomma,r,rt_s64bit,s);
   Write_Str(Len,t,s);
 End;
@@ -520,6 +541,7 @@ Procedure Write_Fixed(fixkomma,Len : Longint;var t : TextRec;r : fixed);[Public,
 var
   s : String;
 Begin
+  If InOutRes <> 0 then exit;
   Str_real(Len,fixkomma,r,rt_f32bit,s);
   Write_Str(Len,t,s);
 End;
@@ -527,6 +549,7 @@ End;
 
 Procedure Write_Boolean(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TEXT_BOOLEAN'];
 Begin
+  If InOutRes <> 0 then exit;
 { Can't use array[boolean] because b can be >0 ! }
   if b then
     Write_Str(Len,t,'TRUE')
@@ -537,6 +560,7 @@ End;
 
 Procedure Write_Char(Len : Longint;var t : TextRec;c : Char);[Public,Alias: 'WRITE_TEXT_CHAR'];
 Begin
+  If InOutRes <> 0 then exit;
   If t.mode<>fmOutput Then
    exit;
   If Len>1 Then
@@ -553,6 +577,7 @@ Procedure w(var t : TextRec);[Public,Alias: 'WRITELN_TEXT'];
 var
   hs : String;
 Begin
+  If InOutRes <> 0 then exit;
   {$IFDEF SHORT_LINEBREAK}
    hs:=#10;
   {$ELSE}
@@ -669,6 +694,7 @@ end;
 
 Procedure ReadLn_End(var f : TextRec);[Public,Alias: 'READLN_END'];
 Begin
+  If InOutRes <> 0 then exit;
   if not OpenInput(f) then
    exit;
 { Read until a linebreak }
@@ -692,6 +718,7 @@ var
 Begin
   { Delete the string }
   s:='';
+  If InOutRes <> 0 then exit;
   if not OpenInput(f) then
    exit;
   Temp:=f.BufPos;
@@ -731,6 +758,7 @@ End;
 Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
 Begin
   c:=#0;
+  If InOutRes <> 0 then exit;
   if not OpenInput(f) then
    exit;
   If f.BufPos>=f.BufEnd Then
@@ -748,6 +776,7 @@ var
 Begin
 { Delete the string }
   s^:=#0;
+  If InOutRes <> 0 then exit;
   p:=s;
   if not OpenInput(f) then
    exit;
@@ -781,6 +810,7 @@ var
 Begin
 { Delete the string }
   s[0]:=#0;
+  If InOutRes <> 0 then exit;
   p:=pchar(@s);
   if not OpenInput(f) then
    exit;
@@ -814,6 +844,7 @@ var
   base : longint;
 Begin
   l:=0;
+  If InOutRes <> 0 then exit;
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -829,8 +860,9 @@ Procedure Read_Integer(var f : TextRec;var l : Integer);[Public,Alias: 'READ_TEX
 var
   ll : Longint;
 Begin
-  Read_Longint(f,ll);
   l:=0;
+  If InOutRes <> 0 then exit;
+  Read_Longint(f,ll);
   If (ll<-32768) or (ll>32767) Then
    RunError(106);
   l:=ll;
@@ -841,8 +873,9 @@ Procedure Read_Word(var f : TextRec;var l : Word);[Public,Alias: 'READ_TEXT_WORD
 var
   ll : Longint;
 Begin
-  Read_Longint(f,ll);
   l:=0;
+  If InOutRes <> 0 then exit;
+  Read_Longint(f,ll);
   If (ll<0) or (ll>$ffff) Then
    RunError(106);
   l:=ll;
@@ -853,8 +886,9 @@ Procedure Read_Byte(var f : TextRec;var l : byte);[Public,Alias: 'READ_TEXT_BYTE
 var
   ll : Longint;
 Begin
-  Read_Longint(f,ll);
   l:=0;
+  If InOutRes <> 0 then exit;
+  Read_Longint(f,ll);
   If (ll<0) or (ll>255) Then
    RunError(106);
   l:=ll;
@@ -865,8 +899,9 @@ Procedure Read_Shortint(var f : TextRec;var l : shortint);[Public,Alias: 'READ_T
 var
    ll : Longint;
 Begin
-  Read_Longint(f,ll);
   l:=0;
+  If InOutRes <> 0 then exit;
+  Read_Longint(f,ll);
   If (ll<-128) or (ll>127) Then
    RunError(106);
   l:=ll;
@@ -880,6 +915,7 @@ var
   base : longint;
 Begin
   l:=0;
+  If InOutRes <> 0 then exit;
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -897,6 +933,7 @@ var
   code : Word;
 Begin
   d:=0.0;
+  If InOutRes <> 0 then exit;
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -935,6 +972,7 @@ var
   code : Word;
 Begin
   d:=0.0;
+  If InOutRes <> 0 then exit;
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -974,6 +1012,7 @@ var
   code : Word;
 Begin
   d:=comp(0.0);
+  If InOutRes <> 0 then exit;
   hs:='';
   if not OpenInput(f) then
    exit;
@@ -1009,6 +1048,7 @@ End;
 {$IFNDEF NEW_READWRITE}
 Procedure r(var f : TextRec);[Public,Alias: 'READLN_TEXT'];
 Begin
+  If InOutRes <> 0 then exit;
   if not OpenInput(f) then
    exit;
   while (f.BufPos<f.BufEnd) do
@@ -1047,7 +1087,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-07-01 15:30:00  peter
+  Revision 1.14  1998-07-02 12:14:56  carl
+    + Each IOCheck routine now check InOutRes before, just like TP
+
+  Revision 1.13  1998/07/01 15:30:00  peter
     * better readln/writeln
 
   Revision 1.12  1998/07/01 14:48:10  carl
