@@ -4,7 +4,7 @@
 
 [default]
 fpcdir=..
-rule=alltests
+rule=allexectests
 
 
 [rules]
