@@ -30,7 +30,7 @@ interface
        aasm,
        node,
        symsym,
-       cpubase;
+       cpubase, tgcpu;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
@@ -40,13 +40,16 @@ interface
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
 
+    procedure sync_regvars(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: regvar_booleanarray);
+
 implementation
 
     uses
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      cgbase,cpuasm,tgcpu,cgobj,cgcpu,cga;
+      cgbase,cpuasm,cgobj,cgcpu,cga;
 
     var
       parasym : boolean;
@@ -287,7 +290,7 @@ implementation
                       hr.offset:=-vsym.address+vsym.owner.address_fixup
                     else hr.offset:=vsym.address+vsym.owner.address_fixup;
                     hr.base:=procinfo^.framepointer;
-                    cg.a_load_reg_ref(exprasmlist,def_cgsize(vsym.vartype.def),vsym.reg,hr);
+                    cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
 {                    asml.concat(Taicpu.op_reg_ref(A_MOV,regsize(vsym.reg),vsym.reg,hr)); }
                   end;
                 asml.concat(Tairegalloc.dealloc(makereg32(reg)));
@@ -317,7 +320,7 @@ implementation
             opsize := OS_32
           else
             opsize := def_cgsize(vsym.vartype.def);
-          cg.a_load_ref_reg(exprasmlist,opsize,hr,makereg32(vsym.reg));
+          cg.a_load_ref_reg(asml,opsize,hr,makereg32(vsym.reg));
 {          asml.concat(Taicpu.op_ref_reg(opcode,opsize,hr,makereg32(vsym.reg))); }
           regvar_loaded[makereg32(vsym.reg)] := true;
         end;
@@ -414,6 +417,24 @@ implementation
     end;
 
 
+    procedure sync_regvars(list1, list2: taasmoutput; const regvarsloaded1,
+      regvarsloaded2: regvar_booleanarray);
+    var
+      counter: tregister;
+    begin
+      for counter := low(regvar_loaded) to high(regvar_loaded) do
+        begin
+           regvar_loaded[counter] := regvarsloaded1[counter] and
+             regvarsloaded2[counter];
+           if regvarsloaded1[counter] xor regvarsloaded2[counter] then
+             if regvarsloaded1[counter] then
+               load_regvar_reg(list2,counter)
+             else
+               load_regvar_reg(list1,counter);
+        end;
+    end;
+
+
     procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
@@ -442,7 +463,11 @@ end.
 
 {
   $Log$
-  Revision 1.20  2001-11-05 16:49:32  jonas
+  Revision 1.21  2001-12-03 12:17:02  jonas
+    * forgot to commit yesterday :( (less unnecessary loading of regvars with
+      if-statements)
+
+  Revision 1.20  2001/11/05 16:49:32  jonas
     * constant regvars (addresses of var/out para's and const para's) aren't
       saved to memory anymore when their register will be destroyed
     * unit has been made mostly processor independent
