@@ -1041,7 +1041,33 @@ function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPIT
 { was missing, bug report 1808 PM }
 function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
 
-{ translated macro's }
+{ wgl Windows OpenGL helper functions }
+function wglUseFontBitmaps(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
+function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';
+function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC; external 'opengl32' name 'wglCreateLayerContext';
+function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL; external 'opengl32' name 'wglCopyContext';
+function wglDeleteContext(_para1:HGLRC):WINBOOL; external 'opengl32' name 'wglDeleteContext';
+function wglGetCurrentContext:HGLRC; external 'opengl32' name 'wglGetCurrentContext';
+function wglGetCurrentDC:HDC; external 'opengl32' name 'wglGetCurrentDC';
+function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglMakeCurrent';
+function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglShareLists';
+function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsW';
+{ Delphi doesn't declare these, but we do: }
+function wglUseFontOutlines(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
+  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
+function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
+function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
+  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
+function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL; external 'opengl32' name 'wglDescribeLayerPlane';
+function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglGetLayerPaletteEntries';
+function wglGetProcAddress(_para1:LPCSTR):PROC; external 'opengl32' name 'wglGetProcAddress';
+function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL; external 'opengl32' name 'wglRealizeLayerPalette';
+function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglSetLayerPaletteEntries';
+function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL; external 'opengl32' name 'wglSwapLayerBuffers';
+function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
+  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
+
+{ translated macros }
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
 function Animate_Open(hwnd : HWND;szName : LPTSTR) : LRESULT;
 function Animate_Play(hwnd : HWND;from,_to : longint;rep : UINT) : LRESULT;
@@ -2303,7 +2329,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  2002-10-11 09:40:43  michael
+  Revision 1.15  2002-11-29 16:40:49  sg
+  * Added wgl* functions (moved from opengl32 unit, to get more compatible
+    to Delphi)
+
+  Revision 1.14  2002/10/11 09:40:43  michael
   + Fixed globalmemorystatus (bug 2076)
 
   Revision 1.13  2002/10/11 09:37:40  michael
