@@ -23,7 +23,7 @@ ts010003.pp       tests the crt unit colors
 ts010004.pp       tests forward classes
 ts010005.pp       tests method overriding
 ts010006.pp       tests libraries
-
+ts010015.pp       tests typed files.
 
 ts10100.pp        tests for delphi object model
 -
