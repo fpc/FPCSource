@@ -21,7 +21,7 @@
  ****************************************************************************}
 program Delp;
 uses
-  dos;
+  dos,getopts;
 
 const
   version='v1.00';
@@ -158,6 +158,36 @@ begin
   until s='';
 end;
 
+Var quiet: boolean;
+
+procedure usage;
+
+begin
+  Writeln('Delp [options]');
+  Writeln('Where options is one of:');
+  writeln('  -e    Delete executables also (Not on linux)');
+  writeln('  -h    Displat (this) help message.');
+  writeln('  -q    Be quiet.');
+  Halt(1);
+end;
+
+procedure processoptions;
+
+Var c : char;
+    
+begin
+  quiet:=false;
+  Repeat
+    C:=Getopt('chq');
+    Case C of 
+      'e' : AddMAsk('*.exe');
+      'h' : Usage;
+      'q' : Quiet:=True;
+      EndOfOptions : ;
+    end;
+  Until C=EndOfOptions;
+end;
+
 
 var
   Dir    : Searchrec;
@@ -165,16 +195,20 @@ var
   hp     : pmaskitem;
   found  : boolean;
 begin
+  ProcessOptions;
   AddMask('*.ppw *.ow *.aw *.sw');
-  AddMask('*.exe *.so *.dll');
+  AddMask('*.so *.dll');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.log *.bak');
   AddMask('*.ppu *.o *.a *.s');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
-  WriteLn('DelPascal ',version,' (C) 1999 Peter Vreman');
-  Writeln;
+  if not quiet then
+    begin
+    WriteLn('DelPascal ',version,' (C) 1999 Peter Vreman');
+    Writeln;
+    end;
   FindFirst('*.*',$20,Dir);
   Total:=0;
   while (doserror=0) do
@@ -200,20 +234,25 @@ begin
    begin
      if hp^.Files>0 then
       begin
-        WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
+        if not quiet then
+          WriteLn(' - Removed ',hp^.Files:2,' ',hp^.Mask,' (',DStr(hp^.Size)+' Bytes)');
         inc(Total,hp^.Size);
         found:=true;
       end;
      hp:=hp^.next;
    end;
-  if not found then
-   WriteLn(' - No Redundant Files Found!')
-  else
-   WriteLn(' - Total ',DStr(Total),' Bytes Freed');
+  if not quiet then
+    if not found then
+      WriteLn(' - No Redundant Files Found!')
+    else
+      WriteLn(' - Total ',DStr(Total),' Bytes Freed');
 end.
 {
   $Log$
-  Revision 1.5  2000-01-12 10:40:59  peter
+  Revision 1.6  2000-01-23 14:20:44  michael
+  + Added option to delete executables, plus help and quiet
+
+  Revision 1.5  2000/01/12 10:40:59  peter
     * fixed bug which sometimes matched .ppw with .pp
 
   Revision 1.4  2000/01/07 16:46:02  daniel
