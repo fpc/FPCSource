@@ -5,18 +5,19 @@
 # A database to connect to. (default 'testdb')
 #
 # Collect  the database
-DATABASE=testdb.gdb
+DATABASE=test.gdb
 # Choose one of the following:
 # ISQL=isql
-ISQL=/usr/interbase/bin/isql
+ISQL=/opt/interbase/bin/isql
 #
 # Don't edit after this.
 #
 echo -n "Creating and filling table FPdev in database $DATABASE..."
 # >/dev/null 2>&1
 ${ISQL} << EOF
+set sql dialect 3;
 CREATE DATABASE "$DATABASE";
-create table FPdev ( 
+create table FPDEV ( 
 id INT NOT NULL,
 UserName varchar(50),
 InstEmail CHAR(50),

@@ -1,82 +1,90 @@
-// $Id$
+{   $Id$     
+    
+    Copyright (c) 2000 by Pavel Stingl
 
-// Test program for interbase.pp unit
 
-program testib;
+    Interbase testing program
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-uses Interbase,SysUtils,db;
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+program TestIB;
 
 {$linklib dl}
 {$linklib crypt}
 
-const
-  dbpath = 'testdb.gdb';
-  
+uses Interbase, SysUtils;
+
 var
-  DBS : TIBDatabase;
-  DS : TIBDataset;
-  x  : integer;
-  S  : TSystemTime;
+  Database : TIBDatabase;
+  Trans    : TIBTransaction;
+  Query    : TIBQuery;
+  x        : integer;
 
 begin
-  DBS := TIBDatabase.Create(nil);
-  DS := TIBDataset.Create(nil);
-  DS.Database := DBS;
-  DBS.DatabaseName := dbpath;
-  DBS.UserName := 'SYSDBA';
-  DBS.Password := 'masterkey';
-  WriteLn('Clearing ''John Doe'' entry from table');
-  DS.SQL.Add('delete from fpdev where username = ''John Doe''');
-  DS.Open;
-  DS.Close;
-  DS.sql.clear;
-  WriteLn('Inserting ''John Doe'' developer to fpdev table');
-  DS.SQL.Add('insert into fpdev values (9,''John Doe'',''jd@unknown.net'')');
-  DS.Open;
-  DS.Close;
-  DS.sql.clear;
-  WriteLn('Making list from fpdev table');
-  DS.SQL.Add('select * from fpdev');
-  DS.Open;
-  while not DS.EOF do
+  Database := TIBDatabase.Create(nil);
+  Trans    := TIBTransaction.Create(nil);
+  Query    := TIBQuery.Create(nil);
+  
+  Database.DatabaseName := 'test.gdb';
+  Database.UserName     := 'sysdba';
+  Database.Password     := 'masterkey';
+  Database.Transaction  := Trans;
+  Trans.Action          := caRollback;
+  Trans.Active          := True;
+  
+  
+  Write('Opening database... Database.Connected = ');
+  Database.Open;
+  WriteLn(Database.Connected);
+  
+  // Assigning database to dataset
+  Query.Database := Database;
+  
+  Query.SQL.Add('select * from fpdev');
+  Query.Open;
+  
+  WriteLn;
+  
+  while not Query.EOF do
   begin
-    for x := 0 to DS.FieldCount - 2 do
-      Write(DS.Fields[x].AsString,',');
-    WriteLn(DS.Fields[DS.FieldCount-1].AsString);
-    DS.Next;
+    for x := 0 to Query.FieldCount - 2 do
+      Write(Query.Fields[x].AsString,',');
+    WriteLn(Query.Fields[Query.FieldCount - 1].AsString);
+    Query.Next;
   end;
   
-  DS.Close;
-  DS.SQL.Clear;
-  DS.Free;
-
   WriteLn;
-  WriteLn('Trying to perform test of datatypes interpretation...');
-  WriteLn('Some problems with TDateTimeField, see source');
-  DS := TIBDataset.Create(nil);
-  DS.Database := DBS;
-  DS.SQL.Add('select * from test');
-  DS.Open;
-  while not DS.EOF do
-  begin
-    { Warning - TDateTimeField.AsDateTime returns wrong values,
-      but conversions in TIBDataset are OK! }
-    for x := 0 to DS.FieldCount - 1 do
-      if (DS.Fields[x].DataType = ftDateTime) then
-        WriteLn(DS.Fields[x].FieldName, ' : "',
-          FormatDateTime('DD.MM.YYYY HH:MM:SS',DS.Fields[x].AsDateTime),'"')
-      else WriteLn(DS.Fields[x].FieldName, ' : "',DS.Fields[x].AsString,'"');
-    DS.Next;
+  
+  
+  try
+    WriteLn('Trying to insert new record to table fpdev');
+    Query.Close;
+    Query.SQL.Clear;
+    Query.SQL.Add('insert into fpdev values (''9'',''John Doe'',''jd@unknown.net'')');
+    Query.ExecSQL;
+    Trans.CommitRetaining;
+    WriteLn('Insert succeeded.');
+  except
+    on E:Exception do
+    begin
+      WriteLn(E.Message);
+      WriteLn('Error when inserting record. Transaction rollback.');
+      Trans.RollbackRetaining;
+    end;
   end;
-  DS.Free;
-  DBS.EndTransaction;
-  DBS.Close;
-  DBS.Free;
+  
+  WriteLn;
+  
+  Trans.Commit;
+  
+  Write('Closing database... Database.Connected = ');
+  Database.Close;
+  WriteLn(Database.Connected);
 end.
-
-{
-  $Log$
-  Revision 1.2  2000-07-13 11:32:57  michael
-  + removed logs
- 
-}
