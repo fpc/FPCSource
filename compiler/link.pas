@@ -159,30 +159,6 @@ end;
 procedure TLinker.AddModuleFiles(hp:pmodule);
 var
   mask : longint;
-
-  {$IFDEF NEWST}
-  procedure addobj(action:pointer);{$IFDEF TP}far;{$ENDIF}
-
-  begin
-    if Plinkitem(action)^.needlink and mask<>0 then
-        addobject(Plinkitem(action)^.data^);
-  end;
-
-  procedure addstat(action:pointer);{$IFDEF TP}far;{$ENDIF}
-
-  begin
-    if Plinkitem(action)^.needlink and mask<>0 then
-        addstaticlibrary(Plinkitem(action)^.data^);
-  end;
-
-  procedure addshar(action:pointer);{$IFDEF TP}far;{$ENDIF}
-
-  begin
-    if Plinkitem(action)^.needlink and mask<>0 then
-        addsharedlibrary(Plinkitem(action)^.data^);
-  end;
-  {$ENDIF NEWST}
-
 begin
   with hp^ do
    begin
@@ -191,99 +167,73 @@ begin
       begin
         { create mask which unit files need linking }
         mask:=link_allways;
-        if hp^.is_unit then
+        { static linking ? }
+        if (cs_link_static in aktglobalswitches) then
          begin
-           { static linking ? }
-           if (cs_link_static in aktglobalswitches) then
+           if (flags and uf_static_linked)=0 then
             begin
-              if (flags and uf_static_linked)=0 then
+              { if smart not avail then try static linking }
+              if (flags and uf_static_linked)<>0 then
                begin
-                 { if smart not avail then try static linking }
-                 if (flags and uf_static_linked)<>0 then
-                  begin
-                    Comment(V_Hint,'unit '+modulename^+' can''t be static linked, switching to smart linking');
-                    mask:=mask or link_smart;
-                  end
-                 else
-                  Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+                 Comment(V_Hint,'unit '+modulename^+' can''t be static linked, switching to smart linking');
+                 mask:=mask or link_smart;
                end
               else
-                mask:=mask or link_static;
-            end;
-           { smart linking ? }
-           if (cs_link_smart in aktglobalswitches) then
-            begin
-              if (flags and uf_smart_linked)=0 then
-               begin
-                 { if smart not avail then try static linking }
-                 if (flags and uf_static_linked)<>0 then
-                  begin
-                    Comment(V_Hint,'unit '+modulename^+' can''t be smart linked, switching to static linking');
-                    mask:=mask or link_static;
-                  end
-                 else
-                  Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
-               end
-              else
-               mask:=mask or link_smart;
-            end;
-           { shared linking }
-           if (cs_link_shared in aktglobalswitches) then
-            begin
-              if (flags and uf_shared_linked)=0 then
-               begin
-                 { if shared not avail then try static linking }
-                 if (flags and uf_static_linked)<>0 then
-                  begin
-                    Comment(V_Hint,'unit '+modulename^+' can''t be shared linked, switching to static linking');
-                    mask:=mask or link_static;
-                  end
-                 else
-                  Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
-               end
-              else
-               mask:=mask or link_shared;
-            end;
-         end
-        else
+               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+            end
+           else
+             mask:=mask or link_static;
+         end;
+        { smart linking ? }
+        if (cs_link_smart in aktglobalswitches) then
          begin
-           { for programs link always static }
-           mask:=mask or link_static;
+           if (flags and uf_smart_linked)=0 then
+            begin
+              { if smart not avail then try static linking }
+              if (flags and uf_static_linked)<>0 then
+               begin
+                 Comment(V_Hint,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                 mask:=mask or link_static;
+               end
+              else
+               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+            end
+           else
+            mask:=mask or link_smart;
+         end;
+        { shared linking }
+        if (cs_link_shared in aktglobalswitches) then
+         begin
+           if (flags and uf_shared_linked)=0 then
+            begin
+              { if shared not avail then try static linking }
+              if (flags and uf_static_linked)<>0 then
+               begin
+                 Comment(V_Hint,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                 mask:=mask or link_static;
+               end
+              else
+               Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
+            end
+           else
+            mask:=mask or link_shared;
          end;
         { unit files }
-      {$IFDEF NEWST}
-        linkunitofiles.foreach(@addobj);
-        linkunitofiles.freeall;
-        linkunitstaticlibs.foreach(@addstat);
-        linkunitstaticlibs.freeall;
-        linkunitsharedlibs.foreach(@addshar);
-        linkunitsharedlibs.freeall;
-      {$ELSE}
         while not linkunitofiles.empty do
          AddObject(linkunitofiles.getusemask(mask));
         while not linkunitstaticlibs.empty do
          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
         while not linkunitsharedlibs.empty do
          AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
-      {$ENDIF NEWST}
       end;
    { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
-   {$IFDEF NEWST}
-     linkotherofiles.foreach(@addobj);
-     linkotherofiles.freeall;
-     linkotherstaticlibs.foreach(@addstat);
-     linkotherstaticlibs.freeall;
-     linkothersharedlibs.foreach(@addshar);
-     linkothersharedlibs.freeall;
-   {$ELSE}
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask));
      while not linkotherstaticlibs.empty do
       AddStaticLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
       AddSharedLibrary(linkothersharedlibs.Getusemask(mask));
-   {$ENDIF NEWST}
    end;
 end;
 
@@ -567,7 +517,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.86  2000-04-14 11:16:10  pierre
+  Revision 1.87  2000-05-03 16:11:57  peter
+    * also allow smartlinking for main programs
+
+  Revision 1.86  2000/04/14 11:16:10  pierre
     * partial linklib change
       I could not use Pavel's code because it broke the current way
       linklib is used, which is messy :(
