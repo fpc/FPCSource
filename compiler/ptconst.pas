@@ -69,7 +69,12 @@ unit ptconst;
         begin
            if ((p^.value>porddef(def)^.high) or
                (p^.value<porddef(def)^.low)) then
-             Message(parser_e_range_check_error);
+             begin
+                if (cs_check_range in aktlocalswitches) then
+                  Message(parser_e_range_check_error)
+                else
+                  Message(parser_w_range_check_error);
+             end;
         end;
 
 {$R-}  {Range check creates problem with init_8bit(-1) !!}
@@ -512,7 +517,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.17  1998-10-09 08:56:29  pierre
+  Revision 1.18  1998-10-12 09:50:05  florian
+    + support of <procedure var type>:=<pointer> in delphi mode added
+
+  Revision 1.17  1998/10/09 08:56:29  pierre
     * several memory leaks fixed
 
   Revision 1.16  1998/09/24 23:49:18  peter

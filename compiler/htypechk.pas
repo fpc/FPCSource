@@ -357,6 +357,17 @@ implementation
                            def_from^.deftype:=procdef;
                          end
                         else
+                         { for example delphi allows the assignement from pointers }
+                         { to procedure variables                                  }
+                         if (m_pointer_2_procedure in aktmodeswitches) and
+                           (def_from^.deftype=pointerdef) and
+                           (ppointerdef(def_from)^.definition^.deftype=orddef) and
+                           (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
+                         begin
+                            doconv:=tc_equal;
+                            b:=true;
+                         end
+                        else
                         { nil is compatible with procvars }
                          if (fromtreetype=niln) then
                           begin
@@ -639,7 +650,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-30 16:42:52  peter
+  Revision 1.5  1998-10-12 09:49:58  florian
+    + support of <procedure var type>:=<pointer> in delphi mode added
+
+  Revision 1.4  1998/09/30 16:42:52  peter
     * fixed bool-bool cnv
 
   Revision 1.3  1998/09/24 23:49:05  peter

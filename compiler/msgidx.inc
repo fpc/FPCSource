@@ -80,6 +80,7 @@ type tmsgconst=(
   parser_n_interface_name_diff_implementation_name,
   parser_e_too_much_lexlevel,
   parser_e_range_check_error,
+  parser_w_range_check_error,
   parser_e_double_caselabel,
   parser_e_type_const_not_possible,
   parser_e_no_overloaded_procvars,

@@ -432,8 +432,12 @@ implementation
                      begin
                         if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
                            (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
-                          CGMessage(parser_e_range_check_error);
-
+                           begin
+                              if (cs_check_range in aktlocalswitches) then
+                                CGMessage(parser_e_range_check_error)
+                              else
+                                CGMessage(parser_w_range_check_error);
+                           end;
                         dec(p^.left^.location.reference.offset,
                             get_mul_size*parraydef(p^.left^.resulttype)^.lowrange);
                      end
@@ -673,7 +677,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1998-10-02 07:20:37  florian
+  Revision 1.15  1998-10-12 09:49:53  florian
+    + support of <procedure var type>:=<pointer> in delphi mode added
+
+  Revision 1.14  1998/10/02 07:20:37  florian
     * range checking in units doesn't work if the units are smartlinked, fixed
 
   Revision 1.13  1998/09/27 10:16:23  florian

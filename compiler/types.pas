@@ -353,7 +353,12 @@ unit types;
               if lv<=hv then
                 begin
                    if (l<lv) or (l>hv) then
-                    Message(parser_e_range_check_error);
+                     begin
+                        if (cs_check_range in aktlocalswitches) then
+                          Message(parser_e_range_check_error)
+                        else
+                          Message(parser_w_range_check_error);
+                     end;
                 end
               else
                 { this happens with the wrap around problem  }
@@ -362,11 +367,21 @@ unit types;
                 begin
                    if ((l>=0) and (l<lv)) or
                       ((l<0) and (l>hv)) then
-                    Message(parser_e_range_check_error);
+                     begin
+                        if (cs_check_range in aktlocalswitches) then
+                          Message(parser_e_range_check_error)
+                        else
+                          Message(parser_w_range_check_error);
+                     end;
                 end;
            end
          else if (l<lv) or (l>hv) then
-           Message(parser_e_range_check_error);
+           begin
+              if (cs_check_range in aktlocalswitches) then
+                Message(parser_e_range_check_error)
+              else
+                Message(parser_w_range_check_error);
+           end;
       end;
 
 
@@ -967,7 +982,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.33  1998-10-06 20:43:30  peter
+  Revision 1.34  1998-10-12 09:50:06  florian
+    + support of <procedure var type>:=<pointer> in delphi mode added
+
+  Revision 1.33  1998/10/06 20:43:30  peter
     * fixed set of bugs. like set of false..true set of #1..#255 and
       set of #1..true which was allowed
 
