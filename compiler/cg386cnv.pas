@@ -601,7 +601,7 @@ implementation
              end;
            st_ansistring :
              begin
-               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(pfrom^.location.reference),
+               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
                  pto^.location.register)));
              end;
            st_longstring:
@@ -1449,7 +1449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1998-11-29 12:40:19  peter
+  Revision 1.39  1998-11-29 22:37:30  peter
+    * fixed constant ansistring -> pchar
+
+  Revision 1.38  1998/11/29 12:40:19  peter
     * newcnv -> not oldcnv
 
   Revision 1.37  1998/11/26 21:33:06  peter
