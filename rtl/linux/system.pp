@@ -146,18 +146,14 @@ end;
 
 procedure SysInitExecPath;
 var
-  hs   : string[16];
-  link : string;
   i    : longint;
 begin
-  i:=Fpreadlink('/proc/self/exe',@link[1],high(link));
+  i:=Fpreadlink('/proc/self/exe',@execpathstr,high(execpathstr));
   { it must also be an absolute filename, linux 2.0 points to a memory
     location so this will skip that }
-  if (i>0) and (link[1]='/') then
-   begin
-     link[0]:=chr(i);
-     ExecPathStr:=link;
-   end;
+  execpathstr[0]:=#0;
+  if (i>0) and (execpathstr[1]='/') then
+     execpathstr[0]:=char(i);
 end;
 
 
@@ -188,7 +184,10 @@ End.
 
 {
   $Log$
-  Revision 1.16  2004-07-08 19:45:42  daniel
+  Revision 1.17  2004-07-08 21:22:15  daniel
+    * Tweaking...
+
+  Revision 1.16  2004/07/08 19:45:42  daniel
     * Use /proc/self/exe instead of /proc/[getpid]/exe
 
   Revision 1.15  2004/06/17 16:16:13  peter
