@@ -109,14 +109,17 @@ End;
 
 Function ParamStr(l: Longint): String;
 Var
-  b      : Array[0..255] of Char;
 {$ifndef crtlib}
   i      : longint;
   pp     : ppchar;
+{$else}
+  b      : Array[0..255] of Char;
+
 {$endif}
 Begin
 {$ifdef crtlib}
   _rtl_paramstr(@b, l);
+  ParamStr:=StrPas(b);
 {$else}
   if l>argc then
    begin
@@ -131,11 +134,10 @@ Begin
      inc(i);
    end;
   if pp^<>nil then
-   move (pp^^,b[0],255)
+    Paramstr:=StrPas(pp^)
   else
-   b[0]:=#0;
+    ParamStr:='';  
 {$endif}
-  ParamStr:=StrPas(b);
 End;
 
 
@@ -675,7 +677,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  1998-07-30 13:26:15  michael
+  Revision 1.11  1998-08-11 08:30:37  michael
+  + Fixed paramstr() - sometimes there are no 255 characters available.
+
+  Revision 1.10  1998/07/30 13:26:15  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
