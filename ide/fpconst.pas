@@ -22,7 +22,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.0';
+     VersionStr           = '1.0.2';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -474,7 +474,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.19  2005-01-08 11:43:18  florian
+  Revision 1.20  2005-01-08 13:43:44  florian
+    * updated version and copyright
+
+  Revision 1.19  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.18  2004/12/30 16:14:13  florian

@@ -4100,7 +4100,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2004 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2005 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);
@@ -4493,7 +4493,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.55  2005-01-08 11:43:18  florian
+  Revision 1.56  2005-01-08 13:43:44  florian
+    * updated version and copyright
+
+  Revision 1.55  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.54  2005/01/07 19:09:28  florian
