@@ -963,26 +963,27 @@ implementation
           begin
             secondpass(left);
             clear_location(location);
+            opsize:=def_opsize(resulttype.def);
             location.loc:=LOC_REGISTER;
             case left.location.loc of
               LOC_REGISTER :
                 begin
                   location.register:=left.location.register;
-                  emit_reg(A_NOT,S_L,location.register);
+                  emit_reg(A_NOT,opsize,location.register);
                 end;
               LOC_CREGISTER :
                 begin
-                  location.register:=getregister32;
-                  emit_reg_reg(A_MOV,S_L,left.location.register,location.register);
-                  emit_reg(A_NOT,S_L,location.register);
+                  location.register:=def_getreg(resulttype.def);
+                  emit_reg_reg(A_MOV,opsize,left.location.register,location.register);
+                  emit_reg(A_NOT,opsize,location.register);
                 end;
               LOC_REFERENCE,LOC_MEM :
                 begin
                   del_reference(left.location.reference);
-                  location.register:=getregister32;
-                  emit_ref_reg(A_MOV,S_L,
+                  location.register:=def_getreg(resulttype.def);
+                  emit_ref_reg(A_MOV,opsize,
                     newreference(left.location.reference),location.register);
-                  emit_reg(A_NOT,S_L,location.register);
+                  emit_reg(A_NOT,opsize,location.register);
                 end;
             end;
           end;
@@ -997,7 +998,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-04-02 21:20:38  peter
+  Revision 1.12  2001-04-04 22:37:06  peter
+    * fix for not with no 32bit values
+
+  Revision 1.11  2001/04/02 21:20:38  peter
     * resulttype rewrite
 
   Revision 1.10  2001/02/03 12:52:34  jonas
