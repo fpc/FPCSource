@@ -336,6 +336,9 @@ interface
 implementation
 
     uses
+{$ifdef macos}
+      macutils,
+{$endif}
       comphook;
 
     procedure abstract;
@@ -476,14 +479,19 @@ implementation
         if (length(s)>0) and (s[1]='/') then
           path_absolute:=true;
 {$else unix}
-  {$ifdef amiga}
+{$ifdef amiga}
         if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
           path_absolute:=true;
-  {$else}
+{$else}
+{$ifdef macos}
+        if IsMacFullPath(s) then
+          path_absolute:=true;
+{$else}
         if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or
            ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
           path_absolute:=true;
-  {$endif amiga}
+{$endif macos}
+{$endif amiga}
 {$endif unix}
      end;
 
@@ -1170,7 +1178,11 @@ implementation
 {$ifdef Unix}
        sepch:=':';
 {$else}
+{$ifdef macos}
+       sepch:=',';
+{$else}
        sepch:=';';
+{$endif macos}
 {$endif Unix}
        FindFilePchar:=false;
        pc:=path;
@@ -1223,7 +1235,11 @@ implementation
        found:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath,foundfile);
        if not found then
         begin
+{$ifdef macos}
+          p:=GetEnvPchar('Commands');
+{$else}
           p:=GetEnvPchar('PATH');
+{$endif}
           found:=FindFilePChar(FixFileName(AddExtension(bin,source_info.exeext)),p,foundfile);
           FreeEnvPChar(p);
         end;
@@ -1432,7 +1448,7 @@ implementation
             newmask.b := newmask.b or (1 shl (31-26));
 
           { Precision (inexact result): bit 28 }
-          if (exUnderflow in mask) then
+          if (exPrecision in mask) then
             newmask.b := newmask.b and not(1 shl (31-28))
           else
             newmask.b := newmask.b or (1 shl (31-28));
@@ -1920,7 +1936,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2004-08-02 07:15:54  michael
+  Revision 1.135  2004-08-20 10:29:31  olle
+    + made fpc work as an MPW tool, by itself calling asm and link.
+    * bugfix in fp exception flag settings routine
+
+  Revision 1.134  2004/08/02 07:15:54  michael
   + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
 
   Revision 1.133  2004/07/17 15:51:57  jonas
