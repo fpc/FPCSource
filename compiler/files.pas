@@ -196,12 +196,14 @@ unit files;
        usedunits      : tlinkedlist; { Used units for this program }
        loaded_units   : tlinkedlist; { All loaded units }
 
+  function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
-  implementation
 
-  uses
-    dos,verbose,systems,
-    symtable,scanner;
+implementation
+
+uses
+  dos,verbose,systems,
+  symtable,scanner;
 
 {****************************************************************************
                                   TINPUTFILE
@@ -581,6 +583,30 @@ unit files;
        else
         get_file_path:='';
      end;
+
+
+    function get_source_file(moduleindex,fileindex : word) : pinputfile;
+      var
+         hp : pmodule;
+         f : pinputfile;
+      begin
+         hp:=pmodule(loaded_units.first);
+         while assigned(hp) and (hp^.unit_index<>moduleindex) do
+           hp:=pmodule(hp^.next);
+         get_source_file:=nil;
+         if not assigned(hp) then
+           exit;
+         f:=pinputfile(hp^.sourcefiles^.files);
+         while assigned(f) do
+           begin
+              if f^.ref_index=fileindex then
+                begin
+                   get_source_file:=f;
+                   exit;
+                end;
+              f:=pinputfile(f^.ref_next);
+           end;
+      end;
 
 
 {****************************************************************************
@@ -1051,7 +1077,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.81  1998-12-28 23:26:14  peter
+  Revision 1.82  1999-01-12 14:25:26  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.81  1998/12/28 23:26:14  peter
     + resource file handling ($R directive) for Win32
 
   Revision 1.80  1998/12/16 00:27:19  peter

@@ -80,15 +80,18 @@ uses
     dpmiexcp,
   {$endif GO32V2}
   {$ifdef LINUX}
-{    catch, }
+    catch,
   {$endif LINUX}
 {$endif}
 {$ifdef USEEXCEPT}
   tpexcept,
 {$endif USEEXCEPT}
-{$ifdef UseBrowser}
-  browser,
-{$endif UseBrowser}
+{$ifdef BrowserLog}
+  browlog,
+{$endif BrowserLog}
+{$ifdef BrowserCol}
+  browcol,
+{$endif BrowserCol}
   dos,verbose,comphook,systems,
   globals,options,parser,symtable,link,import,export;
 
@@ -134,9 +137,12 @@ begin
   DoneSymtable;
   DoneGlobals;
   linker.done;
-{$ifdef UseBrowser}
-  DoneBrowser;
-{$endif UseBrowser}
+{$ifdef BrowserLog}
+  DoneBrowserLog;
+{$endif BrowserLog}
+{$ifdef BrowserCol}
+  DoneBrowserCol;
+{$endif BrowserCol}
 end;
 
 
@@ -146,9 +152,12 @@ begin
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
   InitVerbose;
-{$ifdef UseBrowser}
-  InitBrowser;
-{$endif UseBrowser}
+{$ifdef BrowserLog}
+  InitBrowserLog;
+{$endif BrowserLog}
+{$ifdef BrowserCol}
+  InitBrowserCol;
+{$endif BrowserCol}
   InitGlobals;
   InitSymtable;
   linker.init;
@@ -252,7 +261,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-12-15 10:23:23  peter
+  Revision 1.17  1999-01-12 14:25:25  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.16  1998/12/15 10:23:23  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.15  1998/10/29 11:35:40  florian

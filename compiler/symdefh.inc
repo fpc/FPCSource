@@ -375,12 +375,11 @@
           localst : psymtable;
           { pointer to the parameter symbol table }
           parast : psymtable;
-{$ifdef UseBrowser}
+          { browser info }
           lastref,
           defref,
           lastwritten : pref;
           refcount : longint;
-{$endif UseBrowser}
           _class : pobjectdef;
           _mangledname : pchar;
           { it's a tree, but this not easy to handle }
@@ -412,11 +411,11 @@
           procedure deref;virtual;
           function mangledname : string;
           procedure setmangledname(const s : string);
-{$ifdef UseBrowser}
           procedure load_references;
           function  write_references : boolean;
+{$ifdef BrowserLog}
           procedure add_to_browserlog;
-{$endif UseBrowser}
+{$endif BrowserLog}
        end;
 
        tstringtype = (st_shortstring, st_longstring, st_ansistring, st_widestring);
@@ -494,7 +493,12 @@
 
 {
   $Log$
-  Revision 1.13  1998-12-30 22:15:53  peter
+  Revision 1.14  1999-01-12 14:25:33  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.13  1998/12/30 22:15:53  peter
     + farpointer type
     * absolutesym now also stores if its far
 

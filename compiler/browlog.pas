@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1993-98 by the FPC development team
 
-    Support routines for the browser
+    Support routines for creating the browser log
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 {$ifdef TP}
   {$N+,E+}
 {$endif}
-unit browser;
+unit browlog;
 
 interface
 uses
-  cobjects,files;
+  cobjects,globtype,files,symtable;
 
 const
 {$ifdef TP}
@@ -35,20 +35,10 @@ const
 {$else}
   logbufsize   = 16384;
 {$endif}
-type
-  pref = ^tref;
-  tref = object
-    nextref     : pref;
-    posinfo     : tfileposinfo;
-    moduleindex : word;
-    is_written  : boolean;
-    constructor init(ref:pref;pos:pfileposinfo);
-    destructor  done; virtual;
-    function  get_file_line : string;
-  end;
 
-  pbrowser=^tbrowser;
-  tbrowser=object
+type
+  pbrowserlog=^tbrowserlog;
+  tbrowserlog=object
     fname    : string;
     logopen  : boolean;
     stderrlog : boolean;
@@ -73,78 +63,52 @@ type
   end;
 
 var
-  browse : tbrowser;
+  browserlog : tbrowserlog;
 
-  procedure InitBrowser;
-  procedure DoneBrowser;
-  function get_source_file(moduleindex,fileindex : word) : pinputfile;
+  procedure WriteBrowserLog;
+
+  procedure InitBrowserLog;
+  procedure DoneBrowserLog;
+
 
 implementation
 
   uses
-    comphook,globals,symtable,systems,verbose;
+    comphook,globals,systems,verbose;
 
-{****************************************************************************
-                               TRef
-****************************************************************************}
-
-
-    constructor tref.init(ref :pref;pos : pfileposinfo);
-      begin
-        nextref:=nil;
-        if assigned(pos) then
-          posinfo:=pos^;
-        if assigned(current_module) then
-          moduleindex:=current_module^.unit_index;
-        if assigned(ref) then
-          ref^.nextref:=@self;
-        is_written:=false;
-      end;
-
-
-    destructor tref.done;
-      var
-         inputfile : pinputfile;
-      begin
-         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-         if inputfile<>nil then
-           dec(inputfile^.ref_count);
-         if assigned(nextref) then
-          dispose(nextref,done);
-         nextref:=nil;
-      end;
-
-
-    function tref.get_file_line : string;
+    function get_file_line(ref:pref): string;
       var
          inputfile : pinputfile;
       begin
         get_file_line:='';
-        inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-        if assigned(inputfile) then
-          if status.use_gccoutput then
-          { for use with rhide
-            add warning so that it does not interpret
-            this as an error !! }
-            get_file_line:=lower(inputfile^.name^)
-              +':'+tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
-          else
-            get_file_line:=inputfile^.name^
-              +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
-        else
-          if status.use_gccoutput then
-            get_file_line:='file_unknown:'
-              +tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
-          else
-            get_file_line:='file_unknown('
-              +tostr(posinfo.line)+','+tostr(posinfo.column)+')'
+        with ref^ do
+         begin
+           inputfile:=get_source_file(moduleindex,posinfo.fileindex);
+           if assigned(inputfile) then
+             if status.use_gccoutput then
+             { for use with rhide
+               add warning so that it does not interpret
+               this as an error !! }
+               get_file_line:=lower(inputfile^.name^)
+                 +':'+tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
+             else
+               get_file_line:=inputfile^.name^
+                 +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
+           else
+             if status.use_gccoutput then
+               get_file_line:='file_unknown:'
+                 +tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
+             else
+               get_file_line:='file_unknown('
+                 +tostr(posinfo.line)+','+tostr(posinfo.column)+')'
+         end;
       end;
 
 {****************************************************************************
                               TBrowser
 ****************************************************************************}
 
-    constructor tbrowser.init;
+    constructor tbrowserlog.init;
       begin
         fname:=FixFileName('browser.log');
         logopen:=false;
@@ -152,7 +116,7 @@ implementation
       end;
 
 
-    destructor tbrowser.done;
+    destructor tbrowserlog.done;
       begin
         if logopen then
          closelog;
@@ -160,13 +124,13 @@ implementation
       end;
 
 
-    procedure tbrowser.setfilename(const fn:string);
+    procedure tbrowserlog.setfilename(const fn:string);
       begin
         fname:=FixFileName(fn);
       end;
 
 
-    procedure tbrowser.createlog;
+    procedure tbrowserlog.createlog;
       begin
         if logopen then
          closelog;
@@ -183,7 +147,7 @@ implementation
       end;
 
 
-    procedure tbrowser.flushlog;
+    procedure tbrowserlog.flushlog;
       begin
         if logopen then
          if not stderrlog then
@@ -201,7 +165,7 @@ implementation
       end;
 
 
-    procedure tbrowser.closelog;
+    procedure tbrowserlog.closelog;
       begin
         if logopen then
          begin
@@ -211,8 +175,8 @@ implementation
            logopen:=false;
          end;
       end;
-      
-    procedure tbrowser.list_elements;
+
+    procedure tbrowserlog.list_elements;
 
       begin
 
@@ -227,7 +191,7 @@ implementation
          stderrlog:=false;
       end;
 
-    procedure tbrowser.list_debug_infos;
+    procedure tbrowserlog.list_debug_infos;
 {$ifndef debug}
       begin
       end;
@@ -250,8 +214,8 @@ implementation
            end;
       end;
 {$endif debug}
-      
-    procedure tbrowser.addlog(const s:string);
+
+    procedure tbrowserlog.addlog(const s:string);
       begin
         if not logopen then
          exit;
@@ -279,7 +243,7 @@ implementation
       end;
 
 
-    procedure tbrowser.addlogrefs(p:pref);
+    procedure tbrowserlog.addlogrefs(p:pref);
       var
         ref : pref;
       begin
@@ -287,14 +251,14 @@ implementation
         Ident;
         while assigned(ref) do
          begin
-           Browse.AddLog(ref^.get_file_line);
+           Browserlog.AddLog(get_file_line(ref));
            ref:=ref^.nextref;
          end;
         Unident;
       end;
 
 
-    procedure tbrowser.browse_symbol(const sr : string);
+    procedure tbrowserlog.browse_symbol(const sr : string);
       var
          sym,symb : psym;
          symt : psymtable;
@@ -429,135 +393,65 @@ implementation
              addlog('!!!Symbol '+ss+' not found !!!');
            make_ref:=true;
       end;
-      
-    procedure tbrowser.ident;
+
+    procedure tbrowserlog.ident;
       begin
         inc(identidx,2);
       end;
 
 
-    procedure tbrowser.unident;
+    procedure tbrowserlog.unident;
       begin
         dec(identidx,2);
       end;
+
 
 {****************************************************************************
                              Helpers
 ****************************************************************************}
 
+   procedure WriteBrowserLog;
+     var
+       p : psymtable;
+       hp : pmodule;
+     begin
+       browserlog.CreateLog;
+       browserlog.list_debug_infos;
+       hp:=pmodule(loaded_units.first);
+       while assigned(hp) do
+         begin
+            p:=psymtable(hp^.globalsymtable);
+            if assigned(p) then
+              p^.writebrowserlog;
+            if cs_local_browser in aktmoduleswitches then
+              begin
+                 p:=psymtable(hp^.localsymtable);
+                 if assigned(p) then
+                   p^.writebrowserlog;
+              end;
+            hp:=pmodule(hp^.next);
+         end;
+       browserlog.CloseLog;
+     end;
 
-    function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
-      var
-         hp : pmodule;
-         f : pinputfile;
-
-      begin
-         hp:=pmodule(loaded_units.first);
-         while assigned(hp) and (hp^.unit_index<>moduleindex) do
-           hp:=pmodule(hp^.next);
-         get_source_file:=nil;
-         if not assigned(hp) then
-           exit;
-         f:=pinputfile(hp^.sourcefiles^.files);
-         while assigned(f) do
-           begin
-              if f^.ref_index=fileindex then
-                begin
-                   get_source_file:=f;
-                   exit;
-                end;
-              f:=pinputfile(f^.ref_next);
-           end;
-      end;
-
-  procedure InitBrowser;
+  procedure InitBrowserLog;
     begin
-       browse.init;
+       browserlog.init;
     end;
-    
-  procedure DoneBrowser;
+
+  procedure DoneBrowserLog;
     begin
-       browse.done;
+       browserlog.done;
     end;
-    
+
 end.
 {
   $Log$
-  Revision 1.12  1998-10-09 16:36:01  pierre
-    * some memory leaks specific to usebrowser define fixed
-    * removed tmodule.implsymtable (was like tmodule.localsymtable)
+  Revision 1.1  1999-01-12 14:25:24  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
 
-  Revision 1.11  1998/10/08 17:17:09  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.10  1998/09/28 16:57:12  pierre
-    * changed all length(p^.value_str^) into str_length(p)
-      to get it work with and without ansistrings
-    * changed sourcefiles field of tmodule to a pointer
-
-  Revision 1.9  1998/09/23 15:38:59  pierre
-    * browser bugfixes
-      was adding a reference when looking for the symbol
-      if -bSYM_NAME was used
-
-  Revision 1.8  1998/09/22 17:13:42  pierre
-    + browsing updated and developed
-      records and objects fields are also stored
-
-  Revision 1.7  1998/09/21 08:45:05  pierre
-    + added vmt_offset in tobjectdef.write for fututre use
-      (first steps to have objects without vmt if no virtual !!)
-    + added fpu_used field for tabstractprocdef  :
-      sets this level to 2 if the functions return with value in FPU
-      (is then set to correct value at parsing of implementation)
-      THIS MIGHT refuse some code with FPU expression too complex
-      that were accepted before and even in some cases
-      that don't overflow in fact
-      ( like if f : float; is a forward that finally in implementation
-       only uses one fpu register !!)
-      Nevertheless I think that it will improve security on
-      FPU operations !!
-    * most other changes only for UseBrowser code
-      (added symtable references for record and objects)
-      local switch for refs to args and local of each function
-      (static symtable still missing)
-      UseBrowser still not stable and probably broken by
-      the definition hash array !!
-
-  Revision 1.6  1998/09/01 07:54:16  pierre
-    * UseBrowser a little updated (might still be buggy !!)
-    * bug in psub.pas in function specifier removed
-    * stdcall allowed in interface and in implementation
-      (FPC will not yet complain if it is missing in either part
-      because stdcall is only a dummy !!)
-
-  Revision 1.5  1998/06/13 00:10:04  peter
-    * working browser and newppu
-    * some small fixes against crashes which occured in bp7 (but not in
-      fpc?!)
-
-  Revision 1.4  1998/06/11 10:11:57  peter
-    * -gb works again
-
-  Revision 1.3  1998/05/20 09:42:32  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.2  1998/04/30 15:59:39  pierre
-    * GDB works again better :
-      correct type info in one pass
-    + UseTokenInfo for better source position
-    * fixed one remaining bug in scanner for line counts
-    * several little fixes
 }
 

@@ -197,12 +197,10 @@
 {$endif GDB}
             if target_os.endian=endian_big then
              flags:=flags or uf_big_endian;
-{$ifdef UseBrowser}
             if cs_browser in aktmoduleswitches then
              flags:=flags or uf_has_browser;
             if cs_local_browser in aktmoduleswitches then
              flags:=flags or uf_local_browser;
-{$endif UseBrowser}
           end;
 
        { open ppufile }
@@ -325,9 +323,7 @@
         incfile_found : boolean;
         ppufiletime,
         source_time   : longint;
-{$ifdef UseBrowser}
-        hp : pinputfile;
-{$endif UseBrowser}
+        hp            : pinputfile;
       begin
         ppufiletime:=getnamedfiletime(current_module^.ppufilename^);
         current_module^.sources_avail:=true;
@@ -384,11 +380,9 @@
                      end;
                   end;
                end;
-{$ifdef UseBrowser}
               new(hp,init(hs));
               { the indexing is wrong here PM }
               current_module^.sourcefiles^.register_file(hp);
-{$endif UseBrowser}
             end;
            Message1(unit_u_ppu_source,hs+temp);
          end;
@@ -448,7 +442,12 @@
 
 {
   $Log$
-  Revision 1.27  1998-12-08 10:18:14  peter
+  Revision 1.28  1999-01-12 14:25:35  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.27  1998/12/08 10:18:14  peter
     + -gh for heaptrc unit
 
   Revision 1.26  1998/11/26 14:36:02  peter

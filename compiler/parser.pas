@@ -49,9 +49,12 @@ unit parser;
       cobjects,comphook,globals,verbose,
       symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
-{$ifdef UseBrowser}
-      browser,
-{$endif UseBrowser}
+{$ifdef BrowserLog}
+      browlog,
+{$endif BrowserLog}
+{$ifdef BrowserCol}
+      browcol,
+{$endif BrowserCol}
 {$ifdef UseExcept}
       tpexcept,compiler,
 {$endif UseExcept}
@@ -159,14 +162,9 @@ unit parser;
          oldaktasmmode      : tasmmode;
          oldaktmodeswitches : tmodeswitches;
 {$ifdef USEEXCEPT}
-  recoverpos : jmp_buf;
-  oldrecoverpos : pjmp_buf;
+         recoverpos    : jmp_buf;
+         oldrecoverpos : pjmp_buf;
 {$endif useexcept}
-{$ifdef usebrowser}
-{$ifdef dummydebug}
-         hp : pmodule;
-{$endif debug}
-{$endif usebrowser}
 
       begin
          inc(compile_level);
@@ -274,29 +272,29 @@ unit parser;
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
 {$ifdef USEEXCEPT}
-  if setjmp(recoverpos)=0 then
-   begin
-     oldrecoverpos:=recoverpospointer;
-     recoverpospointer:=@recoverpos;
+         if setjmp(recoverpos)=0 then
+          begin
+            oldrecoverpos:=recoverpospointer;
+            recoverpospointer:=@recoverpos;
 {$endif USEEXCEPT}
-         if (token=_UNIT) or (compile_level>1) then
-           begin
-             current_module^.is_unit:=true;
-             proc_unit;
-           end
-         else
-           proc_program(token=_LIBRARY);
-
+            if (token=_UNIT) or (compile_level>1) then
+              begin
+                current_module^.is_unit:=true;
+                proc_unit;
+              end
+            else
+              proc_program(token=_LIBRARY);
 {$ifdef USEEXCEPT}
-       recoverpospointer:=oldrecoverpos;
-     end
-     else
-       begin
-          recoverpospointer:=oldrecoverpos;
-          longjump_used:=true;
-       end;
+            recoverpospointer:=oldrecoverpos;
+          end
+         else
+          begin
+            recoverpospointer:=oldrecoverpos;
+            longjump_used:=true;
+          end;
 {$endif USEEXCEPT}
-         { clear memory }
+
+       { clear memory }
 {$ifdef Splitheap}
          if testsplit then
            begin
@@ -306,10 +304,9 @@ unit parser;
            end;
 {$endif Splitheap}
 
-         { restore old state, close trees, > 0.99.5 has heapblocks, so
-           it's the default to release the trees }
+       { restore old state, close trees, > 0.99.5 has heapblocks, so
+         it's the default to release the trees }
          codegen_donemodule;
-
 
        { free ppu }
          if assigned(current_module^.ppufile) then
@@ -330,10 +327,6 @@ unit parser;
 
          if (compile_level>1) then
            begin
-              { reset ranges/stabs in exported definitions }
-              { reset_global_defs;
-                moved to pmodules (PM) }
-
               { restore scanner }
               c:=oldc;
               pattern:=oldpattern;
@@ -383,35 +376,34 @@ unit parser;
                Message1(exec_i_closing_script,AsmRes.Fn);
                AsmRes.WriteToDisk;
              end;
-{$ifdef UseBrowser}
-          { Write Browser }
-{$ifdef dummydebug}
-            hp:=pmodule(loaded_units.first);
-            while assigned(hp) do
-              begin
-                 writeln('Unit ',hp^.modulename^,' has index ',hp^.unit_index);
-                 hp:=pmodule(hp^.next);
-              end;
-{$endif dummydebug}
+
+{$ifdef BrowserLog}
+          { Write Browser Log }
             if cs_browser in aktmoduleswitches then
-              if Browse.elements_to_list^.empty then
+             begin
+               if browserlog.elements_to_list^.empty then
                 begin
-                   Message1(parser_i_writing_browser_log,Browse.Fname);
-                   write_browser_log;
+                  Message1(parser_i_writing_browser_log,browserlog.Fname);
+                  WriteBrowserLog;
                 end
-              else
-                Browse.list_elements;
-{$endif UseBrowser}
-            if assigned(aktprocsym) then
-              begin
-                 if (aktprocsym^.owner=nil) then
-                   begin
-                      { init parts are not needed in units !! }
-                      if current_module^.is_unit then
-                        aktprocsym^.definition^.forwarddef:=false;
-                      dispose(aktprocsym,done);
-                   end;
-              end;
+               else
+                browserlog.list_elements;
+             end;
+{$endif BrowserLog}
+
+{$ifdef BrowserCol}
+          { Write Browser Collections }
+            CreateBrowserCol;
+{$endif}
+
+          { Free last aktprocsym }
+            if assigned(aktprocsym) and (aktprocsym^.owner=nil) then
+             begin
+               { init parts are not needed in units !! }
+               if current_module^.is_unit then
+                 aktprocsym^.definition^.forwarddef:=false;
+               dispose(aktprocsym,done);
+             end;
           end;
 
          dec(compile_level);
@@ -424,7 +416,12 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.63  1998-12-11 00:03:26  peter
+  Revision 1.64  1999-01-12 14:25:29  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.63  1998/12/11 00:03:26  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.62  1998/12/01 12:51:21  peter

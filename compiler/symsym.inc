@@ -38,7 +38,6 @@
          isstabwritten := false;
 {$endif GDB}
          fileinfo:=tokenpos;
-{$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
@@ -48,7 +47,6 @@
             inc(refcount);
           end;
          lastref:=defref;
-{$endif UseBrowser}
       end;
 
     constructor tsym.load;
@@ -63,18 +61,15 @@
            properties:=symprop(readbyte)
          else
            properties:=sp_public;
-{$ifdef UseBrowser}
          lastref:=nil;
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
-{$endif UseBrowser}
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
       end;
 
-{$ifdef UseBrowser}
 
     procedure tsym.load_references;
       var
@@ -143,15 +138,16 @@
       end;
 
 
+{$ifdef BrowserLog}
     procedure tsym.add_to_browserlog;
       begin
         if assigned(defref) then
          begin
-           Browse.AddLog('***'+name+'***');
-           Browse.AddLogRefs(defref);
+           browserlog.AddLog('***'+name+'***');
+           browserlog.AddLogRefs(defref);
          end;
       end;
-{$endif UseBrowser}
+{$endif BrowserLog}
 
 
     destructor tsym.done;
@@ -160,28 +156,27 @@
          if not(use_big) then
 {$endif tp}
            strdispose(_name);
-{$ifdef UseBrowser}
          if assigned(defref) then
-          dispose(defref,done);
-{$endif UseBrowser}
+           dispose(defref,done);
          if assigned(left) then
            dispose(left,done);
          if assigned(right) then
            dispose(right,done);
       end;
 
-    procedure tsym.write;
 
+    procedure tsym.write;
       begin
          writestring(name);
          if object_options then
            writebyte(byte(properties));
       end;
 
-    procedure tsym.deref;
 
+    procedure tsym.deref;
       begin
       end;
+
 
     function tsym.name : string;
 {$ifdef tp}
@@ -462,7 +457,7 @@
          current_ppu^.writeentry(ibprocsym);
       end;
 
-{$ifdef UseBrowser}
+
     procedure tprocsym.load_references;
       var
         prdef : pprocdef;
@@ -493,6 +488,8 @@
           end;
       end;
 
+
+{$ifdef BrowserLog}
     procedure tprocsym.add_to_browserlog;
       var
         prdef : pprocdef;
@@ -505,7 +502,8 @@
               prdef:=pprocdef(prdef)^.nextoverloaded;
            end;
       end;
-{$endif UseBrowser}
+{$endif BrowserLog}
+
 
 {$ifdef GDB}
     function tprocsym.stabstring : pchar;
@@ -1646,8 +1644,6 @@
       end;
 
 
-{$ifdef UseBrowser}
-
     procedure ttypesym.load_references;
       begin
          inherited load_references;
@@ -1656,6 +1652,7 @@
          if (definition^.deftype=objectdef) then
              pobjectdef(definition)^.publicsyms^.load_browser;
       end;
+
 
     function ttypesym.write_references : boolean;
       begin
@@ -1676,6 +1673,8 @@
              pobjectdef(definition)^.publicsyms^.write_browser;
       end;
 
+
+{$ifdef BrowserLog}
     procedure ttypesym.add_to_browserlog;
       begin
          inherited add_to_browserlog;
@@ -1684,7 +1683,8 @@
          if (definition^.deftype=objectdef) then
              pobjectdef(definition)^.publicsyms^.writebrowserlog;
       end;
-{$endif UseBrowser}
+{$endif BrowserLog}
+
 
 {$ifdef GDB}
     function ttypesym.stabstring : pchar;
@@ -1755,7 +1755,12 @@
 
 {
   $Log$
-  Revision 1.67  1998-12-30 22:15:54  peter
+  Revision 1.68  1999-01-12 14:25:36  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.67  1998/12/30 22:15:54  peter
     + farpointer type
     * absolutesym now also stores if its far
 

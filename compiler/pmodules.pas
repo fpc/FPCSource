@@ -303,7 +303,7 @@ unit pmodules;
             end;
            pu:=pused_unit(pu^.next);
          end;
-{$ifdef UseBrowser}
+        { load browser info if turned on }
         if cs_browser in aktmoduleswitches then
           punitsymtable(current_module^.globalsymtable)^.load_symtable_refs;
         if ((current_module^.flags and uf_has_browser)<>0) and
@@ -314,7 +314,6 @@ unit pmodules;
               stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
            psymtable(current_module^.localsymtable)^.load_browser;
          end;
-{$endif UseBrowser}
         { remove the map, it's not needed anymore }
         dispose(current_module^.map);
         current_module^.map:=nil;
@@ -631,10 +630,10 @@ unit pmodules;
 
 
      procedure write_gdb_info;
-      var
+{$IfDef GDB}
+       var
          hp : pused_unit;
        begin
-{$IfDef GDB}
          if not (cs_debuginfo in aktmoduleswitches) then
           exit;
          { now insert the units in the symtablestack }
@@ -670,8 +669,11 @@ unit pmodules;
                    punitsymtable(current_module^.globalsymtable)^.concatstabto(debuglist);
                 end;
            end;
-{$EndIf GDB}
         end;
+{$Else GDB}
+       begin
+       end;
+{$EndIf GDB}
 
     procedure parse_implementation_uses(symt:Psymtable);
       begin
@@ -887,11 +889,10 @@ unit pmodules;
 
          { number the definitions, so a deref from other units works }
          refsymtable^.number_defs;
-{$ifdef UseBrowser}
          refsymtable^.number_symbols;
          { we don't want implementation units symbols in unitsymtable !! PM }
          refsymtable:=st;
-{$endif UseBrowser}
+
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
@@ -1043,14 +1044,12 @@ unit pmodules;
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
          { write local browser }
-{$ifdef UseBrowser}
          if cs_local_browser in aktmoduleswitches then
           begin
             current_module^.localsymtable:=refsymtable;
             refsymtable^.write;
             refsymtable^.write_browser;
           end;
-{$endif UseBrowser}
 
 {$ifdef GDB}
          pu:=pused_unit(usedunits.first);
@@ -1062,10 +1061,8 @@ unit pmodules;
 {$endif GDB}
 
          { remove static symtable (=refsymtable) here to save some mem }
-{$ifndef UseBrowser}
          dispose(st,done);
          current_module^.localsymtable:=nil;
-{$endif UseBrowser}
 
          if is_assembler_generated then
           begin
@@ -1232,7 +1229,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.93  1999-01-06 12:39:46  peter
+  Revision 1.94  1999-01-12 14:25:31  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.93  1999/01/06 12:39:46  peter
     * renamed resource -> comprsrc (conflicted with FV)
 
   Revision 1.92  1998/12/28 23:26:23  peter

@@ -45,9 +45,6 @@ implementation
 {$ifdef m68k}
       ,m68k,tgen68k
 {$endif}
-{$ifdef UseBrowser}
-      ,browser
-{$endif UseBrowser}
       ;
 
 {*****************************************************************************
@@ -746,14 +743,12 @@ implementation
                      end;
                  end ; { of while assigned(p^.symtableprocentry) do }
 {$endif TEST_PROCSYMS}
-     {$ifdef UseBrowser}
                    if make_ref then
                      begin
                         procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@p^.fileinfo));
                         if procs^.data^.defref=nil then
                           procs^.data^.defref:=procs^.data^.lastref;
                      end;
-     {$endif UseBrowser}
 
                    p^.procdefinition:=procs^.data;
                    p^.resulttype:=procs^.data^.retdef;
@@ -994,7 +989,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-12-11 00:03:52  peter
+  Revision 1.18  1999-01-12 14:25:40  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.17  1998/12/11 00:03:52  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.16  1998/12/10 14:57:52  pierre

@@ -2139,7 +2139,6 @@
          { this is used by insert
           to check same names in parast and localst }
          localst^.next:=parast;
-{$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
@@ -2149,7 +2148,6 @@
             inc(refcount);
           end;
          lastref:=defref;
-{$endif UseBrowser}
        { first, we assume, that all registers are used }
 {$ifdef i386}
          usedregisters:=$ff;
@@ -2199,16 +2197,13 @@
          parast:=nil;
          localst:=nil;
          forwarddef:=false;
-{$ifdef UseBrowser}
          lastref:=nil;
          lastwritten:=nil;
          defref:=nil;
          refcount:=0;
-{$endif UseBrowser}
       end;
 
 
-{$ifdef UseBrowser}
     procedure tprocdef.load_references;
       var
         pos : tfileposinfo;
@@ -2284,12 +2279,13 @@
       end;
 
 
+{$ifdef BrowserLog}
     procedure tprocdef.add_to_browserlog;
       begin
          if assigned(defref) then
           begin
-            Browse.AddLog('***'+mangledname);
-            Browse.AddLogRefs(defref);
+            browserlog.AddLog('***'+mangledname);
+            browserlog.AddLogRefs(defref);
             if (current_module^.flags and uf_local_browser)<>0 then
               begin
                  if assigned(parast) then
@@ -2299,15 +2295,13 @@
               end;
           end;
       end;
-{$endif UseBrowser}
+{$endif BrowserLog}
 
 
     destructor tprocdef.done;
       begin
-{$ifdef UseBrowser}
          if assigned(defref) then
            dispose(defref,done);
-{$endif UseBrowser}
          if assigned(parast) then
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
@@ -2488,7 +2482,6 @@
          if {$ifdef tp}not(use_big) and{$endif} (assigned(_mangledname)) then
            strdispose(_mangledname);
          setstring(_mangledname,s);
-{$ifdef UseBrowser}
          if assigned(parast) then
            begin
               stringdispose(parast^.name);
@@ -2499,7 +2492,6 @@
               stringdispose(localst^.name);
               localst^.name:=stringdup('locals of '+s);
            end;
-{$endif UseBrowser}
       end;
 
 
@@ -3282,7 +3274,12 @@
 
 {
   $Log$
-  Revision 1.85  1998-12-30 22:15:52  peter
+  Revision 1.86  1999-01-12 14:25:32  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.85  1998/12/30 22:15:52  peter
     + farpointer type
     * absolutesym now also stores if its far
 

@@ -31,7 +31,6 @@
                   constsym,enumsym,typedconstsym,errorsym,syssym,
                   labelsym,absolutesym,propertysym,funcretsym,
                   macrosym);
-                  { varsym_C,typedconstsym_C); }
 
        { this object is the base for all symbol objects }
        psym = ^tsym;
@@ -50,12 +49,10 @@
 {$ifdef GDB}
           isstabwritten : boolean;
 {$endif GDB}
-{$ifdef UseBrowser}
           lastref,
           defref,
           lastwritten : pref;
           refcount    : longint;
-{$endif UseBrowser}
           constructor init(const n : string);
           constructor load;
           destructor done;virtual;
@@ -69,11 +66,11 @@
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
-{$ifdef UseBrowser}
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
+{$ifdef BrowserLog}
           procedure add_to_browserlog;virtual;
-{$endif UseBrowser}
+{$endif BrowserLog}
        end;
 
        plabelsym = ^tlabelsym;
@@ -137,11 +134,11 @@
           procedure check_forward;
           procedure write;virtual;
           procedure deref;virtual;
-{$ifdef UseBrowser}
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
+{$ifdef BrowserLog}
           procedure add_to_browserlog;virtual;
-{$endif UseBrowser}
+{$endif BrowserLog}
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -159,11 +156,11 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
-{$ifdef UseBrowser}
           procedure load_references;virtual;
           function  write_references : boolean;virtual;
+{$ifdef BrowserLog}
           procedure add_to_browserlog;virtual;
-{$endif UseBrowser}
+{$endif BrowserLog}
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -324,7 +321,12 @@
 
 {
   $Log$
-  Revision 1.11  1998-12-30 22:15:55  peter
+  Revision 1.12  1999-01-12 14:25:37  peter
+    + BrowserLog for browser.log generation
+    + BrowserCol for browser info in TCollections
+    * released all other UseBrowser
+
+  Revision 1.11  1998/12/30 22:15:55  peter
     + farpointer type
     * absolutesym now also stores if its far
 
