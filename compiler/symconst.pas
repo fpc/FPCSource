@@ -108,8 +108,9 @@ type
     sp_published,
     sp_protected,
     sp_static,
-    sp_primary_typesym    { this is for typesym, to know who is the primary symbol of a def }
-{$ifdef tp}
+    sp_hint_deprecated,
+    sp_hint_platform,
+    sp_hint_library
     ,sp_7
     ,sp_8
     ,sp_9
@@ -128,7 +129,6 @@ type
     ,sp_22
     ,sp_23
     ,sp_24
-{$endif}
   );
   tsymoptions=set of tsymoption;
 
@@ -136,7 +136,6 @@ type
   tdefoption=(df_none,
     df_need_rtti,          { the definitions needs rtti }
     df_has_rtti            { the rtti is generated      }
-{$ifdef tp}
     ,df_3
     ,df_4
     ,df_5
@@ -159,7 +158,6 @@ type
     ,df_22
     ,df_23
     ,df_24
-{$endif}
   );
   tdefoptions=set of tdefoption;
 
@@ -451,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-05-08 21:06:31  florian
+  Revision 1.18  2001-06-03 21:57:38  peter
+    + hint directive parsing support
+
+  Revision 1.17  2001/05/08 21:06:31  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

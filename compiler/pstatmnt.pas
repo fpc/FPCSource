@@ -122,7 +122,7 @@ implementation
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
-              emptystats;
+              consume_emptystats;
            end;
          consume(_END);
          statements_til_end:=cblocknode.create(first);
@@ -316,7 +316,7 @@ implementation
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
-              emptystats;
+              consume_emptystats;
            end;
          consume(_UNTIL);
          dec(statement_level);
@@ -539,7 +539,7 @@ implementation
                 end;
               if not try_to_consume(_SEMICOLON) then
                 break;
-              emptystats;
+              consume_emptystats;
            end;
          p_try_block:=cblocknode.create(first);
 
@@ -668,7 +668,7 @@ implementation
                        end;
                      if not try_to_consume(_SEMICOLON) then
                         break;
-                     emptystats;
+                     consume_emptystats;
                    until (token=_END) or (token=_ELSE);
                    if token=_ELSE then
                      { catch the other exceptions }
@@ -1141,7 +1141,7 @@ implementation
                      end;
                    consume(_SEMICOLON);
                 end;
-              emptystats;
+              consume_emptystats;
            end;
 
          { don't consume the finalization token, it is consumed when
@@ -1222,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-05-17 13:25:24  jonas
+  Revision 1.31  2001-06-03 21:57:37  peter
+    + hint directive parsing support
+
+  Revision 1.30  2001/05/17 13:25:24  jonas
     * fixed web bugs 1480 and 1481
 
   Revision 1.29  2001/05/04 15:52:04  florian

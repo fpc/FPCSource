@@ -166,7 +166,7 @@ implementation
           else
             begin
              { read identifiers }
-               sc:=idlist;
+               sc:=consume_idlist;
 {$ifdef fixLeaksOnError}
                strContStack.push(sc);
 {$endif fixLeaksOnError}
@@ -693,7 +693,7 @@ begin
                    if lexlevel>normal_function_level then
                      Message(parser_e_no_local_operator);
                    consume(_OPERATOR);
-                   if (token in [_PLUS..last_overloaded]) then
+                   if (token in [first_overloaded..last_overloaded]) then
                     begin
                       procinfo^.flags:=procinfo^.flags or pi_operator;
                       optoken:=token;
@@ -1432,6 +1432,19 @@ const
         parse_proc_direc:=false;
         name:=pattern;
         found:=false;
+
+      { Hint directive? Then exit immediatly }
+        if (m_hintdirective in aktmodeswitches) then
+         begin
+           case idtoken of
+             _LIBRARY,
+             _PLATFORM,
+             _DEPRECATED :
+               exit;
+           end;
+         end;
+
+      { retrieve data for directive if found }
         for p:=1 to num_proc_directives do
          if proc_direcdata[p].idtok=idtoken then
           begin
@@ -1851,7 +1864,10 @@ const
 end.
 {
   $Log$
-  Revision 1.24  2001-05-08 21:06:31  florian
+  Revision 1.25  2001-06-03 21:57:36  peter
+    + hint directive parsing support
+
+  Revision 1.24  2001/05/08 21:06:31  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

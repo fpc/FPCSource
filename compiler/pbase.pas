@@ -98,14 +98,16 @@ interface
     procedure consume_all_until(atoken : ttoken);
 
     { consumes tokens while they are semicolons }
-    procedure emptystats;
+    procedure consume_emptystats;
+
+    { reads a list of identifiers into a string list }
+    function consume_idlist : tidstringlist;
 
     { consume a symbol, if not found give an error and
       and return an errorsym }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
 
-    { reads a list of identifiers into a string list }
-    function idlist : tidstringlist;
+    function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
     { just for an accurate position of the end of a procedure (PM) }
     var
@@ -251,12 +253,25 @@ implementation
       end;
 
 
-    procedure emptystats;
+    procedure consume_emptystats;
       begin
          repeat
          until not try_to_consume(_SEMICOLON);
       end;
 
+
+    { reads a list of identifiers into a string list }
+    function consume_idlist : tidstringlist;
+      var
+        sc : tIdstringlist;
+      begin
+         sc:=TIdStringlist.Create;
+         repeat
+           sc.add(orgpattern,akttokenpos);
+           consume(_ID);
+         until not try_to_consume(_COMMA);
+         consume_idlist:=sc;
+      end;
 
 
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
@@ -300,18 +315,35 @@ implementation
       end;
 
 
-    { reads a list of identifiers into a string list }
-    function idlist : tidstringlist;
-      var
-        sc : tIdstringlist;
+    function try_consume_hintdirective(var symopt:tsymoptions):boolean;
       begin
-         sc:=TIdStringlist.Create;
-         repeat
-           sc.add(orgpattern,akttokenpos);
-           consume(_ID);
-         until not try_to_consume(_COMMA);
-         idlist:=sc;
+        try_consume_hintdirective:=false;
+        if not(m_hintdirective in aktmodeswitches) then
+         exit;
+        repeat
+          case idtoken of
+            _LIBRARY :
+              begin
+                include(symopt,sp_hint_library);
+                try_consume_hintdirective:=true;
+              end;
+            _DEPRECATED :
+              begin
+                include(symopt,sp_hint_deprecated);
+                try_consume_hintdirective:=true;
+              end;
+            _PLATFORM :
+              begin
+                include(symopt,sp_hint_platform);
+                try_consume_hintdirective:=true;
+              end;
+            else
+              break;
+          end;
+          consume(Token);
+        until false;
       end;
+
 
 {$ifdef fixLeaksOnError}
 procedure pbase_do_stop;
@@ -337,7 +369,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2001-05-06 14:49:17  peter
+  Revision 1.13  2001-06-03 21:57:35  peter
+    + hint directive parsing support
+
+  Revision 1.12  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

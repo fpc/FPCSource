@@ -216,7 +216,7 @@ implementation
       var
         low,high,mid : longint;
       begin
-        if not (length(s) in [2..tokenidlen]) then
+        if not (length(s) in [tokenlenmin..tokenlenmax]) then
          begin
            is_keyword:=false;
            exit;
@@ -1900,7 +1900,7 @@ implementation
            idtoken:=_ID;
          { keyword or any other known token,
            pattern is always uppercased }
-           if (pattern[1]<>'_') and (length(pattern) in [2..tokenidlen]) then
+           if (pattern[1]<>'_') and (length(pattern) in [tokenlenmin..tokenlenmax]) then
             begin
               low:=ord(tokenidx^[length(pattern),pattern[1]].first);
               high:=ord(tokenidx^[length(pattern),pattern[1]].last);
@@ -2593,7 +2593,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.17  2001-05-27 14:30:55  florian
+  Revision 1.18  2001-06-03 21:57:38  peter
+    + hint directive parsing support
+
+  Revision 1.17  2001/05/27 14:30:55  florian
     + some widestring stuff added
 
   Revision 1.16  2001/04/13 22:12:34  peter

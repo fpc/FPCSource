@@ -117,4 +117,6 @@ Changes in the syntax or semantic of FPC:
   13/04/01   in FPC mode you're now always forced to use @ to get the address
              of a procedure and load it in a procedure variable. Before it was
              sometimes a bit more relaxed
+  03/06/01   hint directives (library,platform,deprecated) are parsed, but
+             futher ignored
 

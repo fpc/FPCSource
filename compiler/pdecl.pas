@@ -154,6 +154,7 @@ implementation
                    sym:=readconstant(name,filepos);
                    if assigned(sym) then
                     symtablestack.insert(sym);
+                   try_consume_hintdirective(sym.symoptions);
                    consume(_SEMICOLON);
                 end;
 
@@ -218,6 +219,7 @@ implementation
                       else
 {$endif DELPHI_CONST_IN_RODATA}
                        readtypedconst(tt,ttypedconstsym(sym),false);
+                      try_consume_hintdirective(sym.symoptions);
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -453,6 +455,12 @@ implementation
                      consume(_SEMICOLON);
                     parse_var_proc_directives(tsym(newtype));
                   end;
+                objectdef,
+                recorddef :
+                  begin
+                    try_consume_hintdirective(newtype.symoptions);
+                    consume(_SEMICOLON);
+                  end;
                 else
                   consume(_SEMICOLON);
               end;
@@ -543,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-05-08 21:06:31  florian
+  Revision 1.31  2001-06-03 21:57:35  peter
+    + hint directive parsing support
+
+  Revision 1.30  2001/05/08 21:06:31  florian
     * some more support for widechars commited especially
       regarding type casting and constants
 

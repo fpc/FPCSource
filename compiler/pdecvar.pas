@@ -125,6 +125,7 @@ implementation
          uniondef : trecorddef;
          unionsym : tvarsym;
          uniontype : ttype;
+         dummysymoptions : tsymoptions;
       begin
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
@@ -141,7 +142,7 @@ implementation
                not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
              C_name:=orgpattern;
-             sc:=idlist;
+             sc:=consume_idlist;
 {$ifdef fixLeaksOnError}
              strContStack.push(sc);
 {$endif fixLeaksOnError}
@@ -151,11 +152,7 @@ implementation
                 (token=_ID) and (orgpattern='__asmname__') then
                begin
                  consume(_ID);
-                 C_name:=pattern;
-                 if token=_CCHAR then
-                  consume(_CCHAR)
-                 else
-                  consume(_CSTRING);
+                 C_name:=get_stringconst;
                  Is_gpc_name:=true;
                end;
              { this is needed for Delphi mode at least
@@ -165,13 +162,13 @@ implementation
               begin
                 { for records, don't search the recordsymtable for
                   the symbols of the types }
-                    oldsymtablestack:=symtablestack;
-                    symtablestack:=symtablestack.next;
+                oldsymtablestack:=symtablestack;
+                symtablestack:=symtablestack.next;
                 read_type(tt,'');
-                    symtablestack:=oldsymtablestack;
-                  end
-                 else
-                  read_type(tt,'');
+                symtablestack:=oldsymtablestack;
+              end
+             else
+              read_type(tt,'');
              if (variantrecordlevel>0) and tt.def.needs_inittable then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
@@ -291,6 +288,10 @@ implementation
                   readtypedconst(tt,tconstsym,false);
                   symdone:=true;
                end;
+             { hint directive }
+             {$warning hintdirective not stored in syms}
+             dummysymoptions:=[];
+             try_consume_hintdirective(dummysymoptions);
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
                consume(_SEMICOLON);
@@ -529,7 +530,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-04-18 22:01:57  peter
+  Revision 1.17  2001-06-03 21:57:36  peter
+    + hint directive parsing support
+
+  Revision 1.16  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.15  2001/04/13 01:22:12  peter

@@ -143,7 +143,8 @@ interface
          m_add_pointer,         { allow pointer add/sub operations }
          m_default_ansistring,  { ansistring turned on by default }
          m_out,                 { support the calling convention OUT }
-         m_default_para         { support default parameters }
+         m_default_para,        { support default parameters }
+         m_hintdirective        { support hint directives }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -219,7 +220,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-01-20 18:32:52  hajny
+  Revision 1.12  2001-06-03 21:57:35  peter
+    + hint directive parsing support
+
+  Revision 1.11  2001/01/20 18:32:52  hajny
     + APPTYPE support under OS/2, app_fs, GetEnvPChar for OS/2
 
   Revision 1.10  2000/11/29 00:30:30  florian

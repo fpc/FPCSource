@@ -603,6 +603,11 @@ implementation
          parse_proc_directives(pdflags);
          dec(lexlevel);
 
+      { hint directives, these can be separated by semicolons here,
+        that need to be handled here with a loop (PFV) }
+         while try_consume_hintdirective(aktprocsym.symoptions) do
+          Consume(_SEMICOLON);
+
       { set aktfilepos to the beginning of the function declaration }
          oldfilepos:=aktfilepos;
          aktfilepos:=aktprocsym.definition.fileinfo;
@@ -813,7 +818,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-04-21 12:03:12  peter
+  Revision 1.33  2001-06-03 21:57:37  peter
+    + hint directive parsing support
+
+  Revision 1.32  2001/04/21 12:03:12  peter
     * m68k updates merged from fixes branch
 
   Revision 1.31  2001/04/18 22:01:57  peter

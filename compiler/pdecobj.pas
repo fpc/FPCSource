@@ -158,7 +158,7 @@ implementation
                             varspez:=vs_out;
                          end
                        else varspez:=vs_value;
-                       sc:=idlist;
+                       sc:=consume_idlist;
 {$ifdef fixLeaksOnError}
                        strContStack.push(sc);
 {$endif fixLeaksOnError}
@@ -1039,7 +1039,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-05-04 15:52:03  florian
+  Revision 1.26  2001-06-03 21:57:36  peter
+    + hint directive parsing support
+
+  Revision 1.25  2001/05/04 15:52:03  florian
     * some Delphi incompatibilities fixed:
        - out, dispose and new can be used as idenfiers now
        - const p = apointerype(nil); is supported now

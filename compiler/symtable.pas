@@ -244,12 +244,6 @@ interface
     procedure InitSymtable;
     procedure DoneSymtable;
 
-
-    const
-       { last operator which can be overloaded, the first_overloaded should
-         be in tokens.pas after NOTOKEN }
-       first_overloaded = _PLUS;
-       last_overloaded  = _ASSIGNMENT;
     type
        toverloaded_operators = array[NOTOKEN..last_overloaded] of tprocsym;
     var
@@ -2006,7 +2000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-05-06 14:49:18  peter
+  Revision 1.36  2001-06-03 21:57:38  peter
+    + hint directive parsing support
+
+  Revision 1.35  2001/05/06 14:49:18  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

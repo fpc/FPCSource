@@ -68,7 +68,7 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para];
+          m_out,m_default_para,m_hintdirective];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer];
@@ -1282,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-06-03 20:21:08  peter
+  Revision 1.37  2001-06-03 21:57:35  peter
+    + hint directive parsing support
+
+  Revision 1.36  2001/06/03 20:21:08  peter
     * Kylix fixes, mostly case names of units
 
   Revision 1.35  2001/05/30 21:35:48  peter

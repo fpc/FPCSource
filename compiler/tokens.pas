@@ -28,9 +28,6 @@ interface
 uses
   globtype;
 
-const
-  tokenidlen=14;
-
 type
   ttoken=(NOTOKEN,
     { operators, which can also be overloaded }
@@ -181,6 +178,7 @@ type
     _PROGRAM,
     _STDCALL,
     _SYSCALL,
+    _VARARGS,
     _VIRTUAL,
     _ABSOLUTE,
     _ABSTRACT,
@@ -191,6 +189,7 @@ type
     _OPERATOR,
     _OVERLOAD,
     _OVERRIDE,
+    _PLATFORM,
     _POPSTACK,
     _PROPERTY,
     _REGISTER,
@@ -206,6 +205,7 @@ type
     _PROTECTED,
     _PUBLISHED,
     _THREADVAR,
+    _DEPRECATED,
     _DESTRUCTOR,
     _IMPLEMENTS,
     _INTERNPROC,
@@ -222,13 +222,21 @@ type
     _RESOURCESTRING
   );
 
+const
+  tokenlenmin = 2;
+  tokenlenmax = 14;
+
+  { last operator which can be overloaded, the first_overloaded should
+    be declared directly after NOTOKEN }
+  first_overloaded = succ(NOTOKEN);
+  last_overloaded  = _ASSIGNMENT;
+
+type
   tokenrec=record
-    str     : string[tokenidlen];
+    str     : string[tokenlenmax];
     special : boolean;
     keyword : tmodeswitch;
     op      : ttoken;
-{ unused currently? (JM)
-    encoded : longint; }
   end;
 
   ttokenarray=array[ttoken] of tokenrec;
@@ -239,7 +247,7 @@ type
   end;
 
   ptokenidx=^ttokenidx;
-  ttokenidx=array[2..tokenidlen,'A'..'Z'] of tokenidxrec;
+  ttokenidx=array[tokenlenmin..tokenlenmax,'A'..'Z'] of tokenidxrec;
 
 const
   arraytokeninfo : ttokenarray =(
@@ -392,6 +400,7 @@ const
       (str:'PROGRAM'       ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'STDCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SYSCALL'       ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'VARARGS'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'VIRTUAL'       ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSOLUTE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSTRACT'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -402,6 +411,7 @@ const
       (str:'OPERATOR'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'PLATFORM'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'POPSTACK'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PROPERTY'      ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'REGISTER'      ;special:false;keyword:m_none;op:NOTOKEN),
@@ -417,6 +427,7 @@ const
       (str:'PROTECTED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PUBLISHED'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'THREADVAR'     ;special:false;keyword:m_class;op:NOTOKEN),
+      (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:m_none;op:NOTOKEN),
@@ -479,7 +490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-05-06 17:12:43  jonas
+  Revision 1.11  2001-06-03 21:57:38  peter
+    + hint directive parsing support
+
+  Revision 1.10  2001/05/06 17:12:43  jonas
     - commented out an unused field in tokenrec
 
   Revision 1.9  2001/05/04 15:52:04  florian

@@ -1132,7 +1132,7 @@ implementation
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
-                   idlist;
+                   consume_idlist;
                    consume(_RKLAMMER);
                 end;
               consume(_SEMICOLON);
@@ -1328,7 +1328,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-06-03 15:15:31  peter
+  Revision 1.35  2001-06-03 21:57:36  peter
+    + hint directive parsing support
+
+  Revision 1.34  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix
