@@ -1371,7 +1371,7 @@ implementation
 
     function ttypeconvnode.first_int_to_real: tnode;
       var
-        fname: string[19];
+        fname: string[32];
         typname : string[12];
       begin
         { Get the type name  }
@@ -1385,7 +1385,8 @@ implementation
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_'+typname
             else
-              fname := 'fpc_qword_to_'+typname;
+{$warning generic conversion from int to float does not support unsigned integers}            
+              fname := 'fpc_int64_to_'+typname;
             result := ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -1395,10 +1396,11 @@ implementation
         else
           { other integers are supposed to be 32 bit }
           begin
+{$warning generic conversion from int to float does not support unsigned integers}            
             if is_signed(left.resulttype.def) then
               fname := 'fpc_longint_to_'+typname
             else
-              fname := 'fpc_longword_to_'+typname;
+              fname := 'fpc_longint_to_'+typname;
             result := ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -2025,7 +2027,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2003-01-16 22:13:52  peter
+  Revision 1.102  2003-02-15 22:15:57  carl
+   * generic conversaion routines only work on signed types
+
+  Revision 1.101  2003/01/16 22:13:52  peter
     * convert_l3 convertlevel added. This level is used for conversions
       where information can be lost like converting widestring->ansistring
       or dword->byte
