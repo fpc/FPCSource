@@ -83,14 +83,14 @@ Begin
    new(aOld);
    new(aHup);
    new(aTerm);
-   aTerm^.sa_handler{.sh} := TSigAction(@DoSig);
+   aTerm^.sa_handler{.sh} := SigactionHandler(@DoSig);
 
    aTerm^.sa_mask := zerosigs;
    aTerm^.sa_flags := 0;
    {$ifndef BSD}                {Linux'ism}
     aTerm^.sa_restorer := nil;
    {$endif}
-   aHup^.sa_handler := TSigAction(@DoSig);
+   aHup^.sa_handler := SigactionHandler(@DoSig);
    aHup^.sa_mask := zerosigs;
    aHup^.sa_flags := 0;
    {$ifndef BSD}                {Linux'ism}
@@ -142,7 +142,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  2004-06-04 12:37:52  marco
+  Revision 1.5  2005-04-06 10:47:01  marco
+   * sigactionhandler fix
+
+  Revision 1.4  2004/06/04 12:37:52  marco
    * modernized. Now only uses baseunix,sysutils
 
   Revision 1.3  2002/09/07 15:06:35  peter
