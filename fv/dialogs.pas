@@ -1853,6 +1853,7 @@ END;
 PROCEDURE TButton.DrawFocus;
 VAR B: Byte; I, J, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
+    StoreUseFixedFont: boolean;
     C : char;
 BEGIN
    If not TextModeGFV then Begin
@@ -1886,9 +1887,12 @@ BEGIN
      If not TextModeGFV then Begin
        MoveCStr(Db[0], Title^, Bc);                        { Move title to buffer }
        GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
+       StoreUseFixedFont:=UseFixedFont;
+       UseFixedFont:=false;
        WriteLine(I, FontHeight DIV 2, CStrLen(Title^),
          1, Db);                                        { Write the title }
        GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
+       UseFixedFont:=StoreUseFixedFont;
      End Else Begin
        I:=I div SysFontWidth;
        If DownFlag then
@@ -2536,7 +2540,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TRadioButtons.SetData (Var Rec);
 BEGIN
-   Sel := Sw_Integer(Rec);                               { Set selection }
+   Sel := Sw_word(Rec);                               { Set selection }
    Inherited SetData(Rec);                            { Call ancestor }
 END;
 
@@ -4200,7 +4204,10 @@ END;
 END.
 {
  $Log$
- Revision 1.16  2002-05-24 21:00:10  pierre
+ Revision 1.17  2002-05-31 12:35:21  pierre
+  * use graph mode to display button title
+
+ Revision 1.16  2002/05/24 21:00:10  pierre
   * correct cursor position for TInputLine
 
  Revision 1.15  2002/05/23 12:16:11  pierre
