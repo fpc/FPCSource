@@ -1,0 +1,100 @@
+{
+    $Id$
+    Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
+
+    Symbol table constants
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ****************************************************************************
+}
+
+    const
+       def_alignment = 4;
+
+       { different options }
+       sp_public     = 0;
+       sp_forwarddef = 1;
+       sp_protected  = 2;
+       sp_private    = 4;
+       sp_static     = 8;
+       sp_published  = 16;
+
+       { flags for a definition }
+       df_needsrtti = $1;           { the definitions needs rtti }
+       df_hasrtti   = $2;           { the rtti is generated      }
+
+       { options for tprocdef and tprocvardef }
+       poexceptions     = $1;        { unused }
+       povirtualmethod  = $2;        { Procedure is a virtual method }
+       poclearstack     = $4;        { Use IBM flat calling convention. (Used by GCC.) }
+       poconstructor    = $8;        { Procedure is a constructor }
+       podestructor     = $10;       { Procedure is a destructor }
+       pointernproc     = $20;       { Procedure has compiler magic}
+       poexports        = $40;       { Procedure is exported }
+       poiocheck        = $80;       { IO checking should be done after a call to the procedure }
+       poabstractmethod = $100;      { Procedure is an abstract method }
+       pointerrupt      = $200;      { Procedure is an interrupt handler }
+       poinline         = $400;      { Procedure is an assembler macro }
+       poassembler      = $800;      { Procedure is written in assembler }
+       pooperator       = $1000;     { Procedure defines an operator }
+       poexternal       = $2000;     { Procedure is external (in other object or lib)}
+       poleftright      = $4000;     { Push parameters from left to right }
+       poproginit       = $8000;     { Program initialization }
+       postaticmethod   = $10000;    { static method }
+       pooverridingmethod=$20000;    { method with override directive }
+       poclassmethod    = $40000;    { class method }
+       pounitinit       = $80000;    { unit initialization }
+       pomethodpointer  = $100000;   { method pointer, only in procvardef, also used for 'with object do' }
+       pocdecl          = $200000;   { procedure uses C styled calling }
+       popalmossyscall  = $400000;   { procedure is a PalmOS system call }
+       pointernconst    = $800000;   { procedure has constant evaluator intern }
+       poregister       = $1000000;  { procedure uses register (fastcall) calling }
+       pounitfinalize   = $2000000;  { unit finalization }
+       postdcall        = $4000000;  { procedure uses stdcall call }
+
+       { relevant options for assigning a proc or a procvar to a procvar }
+       po_compatibility_options = $7FFFFFFF-
+         (pomethodpointer+povirtualmethod+pooverridingmethod);
+
+       { options for objects and classes }
+       oo_is_abstract  = $1;
+       oo_is_class     = $2;
+       oo_hasvirtual   = $4;
+       oo_hasprivate   = $8;
+       oo_hasprotected = $10;
+       oo_isforward    = $20;
+       oo_can_have_published = $40;
+       oo_hasconstructor = $80;
+       oo_hasdestructor = $100;
+       oo_hasvmt        = $200;
+
+       { options for properties }
+       ppo_indexed = $1;
+       ppo_defaultproperty = $2;
+       ppo_stored = $4;
+
+       { options for variables }
+       vo_regable     = 1;
+       vo_is_C_var    = 2;
+       vo_is_external = 4;
+       vo_is_dll_var  = 8;
+
+{
+  $Log$
+  Revision 1.1  1999-01-12 14:32:49  peter
+    * splitted from symtable.pas
+
+}
+
