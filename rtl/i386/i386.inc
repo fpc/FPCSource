@@ -546,10 +546,16 @@ begin
         cld
         movl    p,%edi
         movl    $0xff,%ecx
+        orl     %edi,%edi
+        jnz     .LStrPasNotNil
+        decl    %ecx
+        jmp     .LStrPasNil
+.LStrPasNotNil:
         xorl    %eax,%eax
         movl    %edi,%esi
         repne
         scasb
+.LStrPasNil:
         movl    %ecx,%eax
 {$ifdef NEWATT}
         movl    __RESULT,%edi
@@ -794,7 +800,10 @@ end;
 
 {
   $Log$
-  Revision 1.44  1999-04-19 06:13:28  florian
+  Revision 1.45  1999-04-22 10:52:40  peter
+    * nil check for strpas
+
+  Revision 1.44  1999/04/19 06:13:28  florian
     * the class helper routines doesn't store the registers properly,
       fixed
 
