@@ -136,9 +136,14 @@ end;
 LineSettingsType = Record
   LineStyle,Pattern, Width : Word;
 end;
-PaletteType = Record
- Size : Byte;
- Colors : array[0..MAxColor] of shortint;
+RGBRec = packed record
+  Red: smallint;
+  Green: smallint;
+  Blue : smallint;
+end;
+PaletteType = record
+  Size   : longint;
+  Colors : array[0..MaxColors] of RGBRec;
 end;
 PointType = Record
   X,Y : Integer;
