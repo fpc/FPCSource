@@ -2,8 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This file implements the node for sub procedure calling
-
+    This file implements the node for sub procedure calling.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,13 +23,12 @@
 unit ncal;
 
 {$i fpcdefs.inc}
-{ define nice_ncal}
 
 interface
 
     uses
        cutils,cclasses,
-       globtype,
+       globtype,cpuinfo,
        node,
        {$ifdef state_tracking}
        nstate,
@@ -38,11 +36,35 @@ interface
        symbase,symtype,symppu,symsym,symdef,symtable;
 
     type
+       pcandidate = ^tcandidate;
+       tcandidate = record
+          next        : pcandidate;
+          data        : tprocdef;
+          wrongpara,
+          firstpara   : tparaitem;
+          exact_count,
+          equal_count,
+          cl1_count,
+          cl2_count   : integer; { should be signed }
+          ordinal_distance : bestreal;
+          invalid : boolean;
+          wrongparanr : byte;
+       end;
+
        tcallnode = class(tbinarynode)
+       private
+          paralength : smallint;
+          function  candidates_find:pcandidate;
+          procedure candidates_free(procs:pcandidate);
+          procedure candidates_list(procs:pcandidate;all:boolean);
+          procedure candidates_get_information(procs:pcandidate);
+          function  candidates_choose_best(procs:pcandidate;var bestpd:tprocdef):integer;
+          procedure candidates_find_wrong_para(procs:pcandidate);
+       public
           { the symbol containing the definition of the procedure }
           { to call                                               }
           symtableprocentry : tprocsym;
-          { the symtable containing symtableprocentry }
+          { symtable where the entry was found, needed for with support }
           symtableproc   : tsymtable;
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
@@ -78,9 +100,6 @@ interface
           procedure verifyabstract(p : tnamedindexitem;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
-       {$ifdef nice_ncal}
-          function  choose_definition_to_call(paralength:byte;var errorexit:boolean):Tnode;
-       {$endif}
           function  det_resulttype:tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
@@ -98,9 +117,6 @@ interface
           cpf_convlevel1found,
           cpf_convlevel2found,
           cpf_is_colon_para
-{$ifdef nice_ncal}
-          ,cpf_nomatchfound
-{$endif}
        );
 
        tcallparanode = class(tbinarynode)
@@ -158,7 +174,7 @@ implementation
       systems,
       verbose,globals,
       symconst,paramgr,defutil,defcmp,
-      htypechk,pass_1,cpuinfo,cpubase,
+      htypechk,pass_1,cpubase,
       nbas,ncnv,nld,ninl,nadd,ncon,
       rgobj,cgbase
       ;
@@ -234,11 +250,192 @@ type
       end;
 
 
-      constructor tobjectinfoitem.create(def : tobjectdef);
+      function is_better_candidate(currpd,bestpd:pcandidate):integer;
+        var
+          res : integer;
         begin
-          inherited create;
-          objinfo := def;
+          {
+            Return values:
+              > 0 when currpd is better than bestpd
+              < 0 when bestpd is better than currpd
+              = 0 when both are equal
+
+            Too choose the best candidate we use the following order:
+            - Incompatible flag
+            - (Smaller) Number of convertlevel 2 parameters (needs less).
+            - (Smaller) Number of convertlevel 1 parameters.
+            - (Bigger) Number of exact parameters.
+            - (Smaller) Number of equal parameters.
+            - (Smaller) Total of ordinal distance. For example, the distance of a word
+              to a byte is 65535-255=65280.
+          }
+          if bestpd^.invalid then
+           begin
+             if currpd^.invalid then
+              res:=0
+             else
+              res:=1;
+           end
+          else
+           if currpd^.invalid then
+            res:=-1
+          else
+           begin
+             { less cl2 parameters? }
+             res:=(bestpd^.cl2_count-currpd^.cl2_count);
+             if (res=0) then
+              begin
+                { less cl1 parameters? }
+                res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                if (res=0) then
+                 begin
+                   { more exact parameters? }
+                   res:=(currpd^.exact_count-bestpd^.exact_count);
+                   if (res=0) then
+                    begin
+                      { less equal parameters? }
+                      res:=(bestpd^.equal_count-currpd^.equal_count);
+                      if (res=0) then
+                       begin
+                         { smaller ordinal distance? }
+                         if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                          res:=1
+                         else
+                          if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                           res:=-1
+                         else
+                          res:=0;
+                       end;
+                    end;
+                 end;
+              end;
+           end;
+          is_better_candidate:=res;
         end;
+
+
+    procedure var_para_allowed(var eq:tequaltype;def_from,def_to:Tdef);
+      begin
+        { Note: eq must be already valid, it will only be updated! }
+        case def_to.deftype of
+          formaldef :
+            begin
+              { all types can be passed to a formaldef }
+              eq:=te_equal;
+            end;
+          orddef :
+            begin
+              { allows conversion from word to integer and
+                byte to shortint, but only for TP7 compatibility }
+              if (m_tp7 in aktmodeswitches) and
+                 (def_from.deftype=orddef) and
+                 (def_from.size=def_to.size) then
+                eq:=te_convert_l1;
+            end;
+          pointerdef :
+            begin
+              { an implicit pointer conversion is allowed }
+              if (def_from.deftype=pointerdef) then
+                eq:=te_convert_l1;
+            end;
+          stringdef :
+            begin
+              { all shortstrings are allowed, size is not important }
+              if is_shortstring(def_from) and
+                 is_shortstring(def_to) then
+                eq:=te_equal;
+            end;
+          objectdef :
+            begin
+              { child objects can be also passed }
+              { in non-delphi mode, otherwise    }
+              { they must match exactly, except  }
+              { if they are objects              }
+              if (def_from.deftype=objectdef) and
+                 (
+                  not(m_delphi in aktmodeswitches) or
+                  (
+                   (tobjectdef(def_from).objecttype=odt_object) and
+                   (tobjectdef(def_to).objecttype=odt_object)
+                  )
+                 ) and
+                 (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
+                eq:=te_convert_l1;
+            end;
+          filedef :
+            begin
+              { an implicit file conversion is also allowed }
+              { from a typed file to an untyped one           }
+              if (def_from.deftype=filedef) and
+                 (tfiledef(def_from).filetyp = ft_typed) and
+                 (tfiledef(def_to).filetyp = ft_untyped) then
+                eq:=te_convert_l1;
+            end;
+        end;
+      end;
+
+
+    procedure para_allowed(var eq:tequaltype;p:tcallparanode;def_to:tdef);
+      begin
+        { Note: eq must be already valid, it will only be updated! }
+        case def_to.deftype of
+          formaldef :
+            begin
+              { all types can be passed to a formaldef }
+              eq:=te_equal;
+            end;
+          stringdef :
+            begin
+              { to support ansi/long/wide strings in a proper way }
+              { string and string[10] are assumed as equal }
+              { when searching the correct overloaded procedure   }
+              if (p.resulttype.def.deftype=stringdef) and
+                 (tstringdef(def_to).string_typ=tstringdef(p.resulttype.def).string_typ) then
+                eq:=te_equal
+              else
+              { Passing a constant char to ansistring or shortstring or
+                a widechar to widestring then handle it as equal. }
+               if (p.left.nodetype=ordconstn) and
+                  (
+                   is_char(p.resulttype.def) and
+                   (is_shortstring(def_to) or is_ansistring(def_to))
+                  ) or
+                  (
+                   is_widechar(p.resulttype.def) and
+                   is_widestring(def_to)
+                  ) then
+                eq:=te_equal
+            end;
+          setdef :
+            begin
+              { set can also be a not yet converted array constructor }
+              if (p.resulttype.def.deftype=arraydef) and
+                 (tarraydef(p.resulttype.def).IsConstructor) and
+                 not(tarraydef(p.resulttype.def).IsVariant) then
+                eq:=te_equal;
+            end;
+          procvardef :
+            begin
+              { in tp7 mode proc -> procvar is allowed }
+              if (m_tp_procvar in aktmodeswitches) and
+                 (p.left.nodetype=calln) and
+                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to))>=te_equal) then
+               eq:=te_equal;
+            end;
+        end;
+      end;
+
+
+{****************************************************************************
+                              TOBJECTINFOITEM
+ ****************************************************************************}
+
+    constructor tobjectinfoitem.create(def : tobjectdef);
+      begin
+        inherited create;
+        objinfo := def;
+      end;
+
 
 {****************************************************************************
                              TCALLPARANODE
@@ -330,70 +527,12 @@ type
       end;
 
 
-    function is_var_para_incompatible(from_def,to_def:Tdef):boolean;
-
-    {Might be an idea to move this to defbase...}
-
-    begin
-        is_var_para_incompatible:=
-               { allows conversion from word to integer and
-                byte to shortint, but only for TP7 compatibility }
-                (not(
-                   (m_tp7 in aktmodeswitches) and
-                   (from_def.deftype=orddef) and
-                   (to_def.deftype=orddef) and
-                   (from_def.size=to_def.size)
-                    ) and
-              { an implicit pointer conversion is allowed }
-                not(
-                   (from_def.deftype=pointerdef) and
-                   (to_def.deftype=pointerdef)
-                    ) and
-              { child objects can be also passed }
-              { in non-delphi mode, otherwise    }
-              { they must match exactly, except  }
-              { if they are objects              }
-                not(
-                    (from_def.deftype=objectdef) and
-                    (to_def.deftype=objectdef) and
-
-                    ((
-                      (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
-                      (m_delphi in aktmodeswitches) and
-                      (tobjectdef(from_def).objecttype=odt_object) and
-                      (tobjectdef(to_def).objecttype=odt_object)
-                     ) or
-
-                    (
-                      (tobjectdef(from_def).is_related(tobjectdef(to_def))) and
-                      (not (m_delphi in aktmodeswitches))
-                    ))
-
-                   ) and
-              { passing a single element to a openarray of the same type }
-                not(
-                   (is_open_array(to_def) and
-                   equal_defs(tarraydef(to_def).elementtype.def,from_def))
-                   ) and
-              { an implicit file conversion is also allowed }
-              { from a typed file to an untyped one           }
-                not(
-                   (from_def.deftype=filedef) and
-                   (to_def.deftype=filedef) and
-                   (tfiledef(to_def).filetyp = ft_untyped) and
-                   (tfiledef(from_def).filetyp = ft_typed)
-                    ) and
-                not(equal_defs(from_def,to_def)));
-
-    end;
-
     procedure tcallparanode.insert_typeconv(defcoll : tparaitem;do_count : boolean);
       var
         oldtype     : ttype;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
-        p1 : tnode;
       begin
          inc(parsing_para_level);
 
@@ -475,14 +614,8 @@ type
          { test conversions }
          if not(is_shortstring(left.resulttype.def) and
                 is_shortstring(defcoll.paratype.def)) and
-                (defcoll.paratype.def.deftype<>formaldef) then
+            (defcoll.paratype.def.deftype<>formaldef) then
            begin
-              if (defcoll.paratyp in [vs_var,vs_out]) and
-               is_var_para_incompatible(left.resulttype.def,defcoll.paratype.def) then
-                  begin
-                     CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
-                       left.resulttype.def.typename,defcoll.paratype.def.typename);
-                  end;
               { Process open parameters }
               if paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
                begin
@@ -495,11 +628,11 @@ type
                begin
                  { for ordinals, floats and enums, verify if we might cause
                    some range-check errors. }
-                 if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and 
+                 if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
                     (left.nodetype in [vecn,loadn,calln]) then
                    begin
                       if (left.resulttype.def.size > defcoll.paratype.def.size) then
-                        begin 
+                        begin
                           if (cs_check_range in aktlocalswitches) then
                              Message(type_w_smaller_possible_range_check)
                           else
@@ -719,6 +852,7 @@ type
          procdefinition:=nil;
          restypeset := false;
          funcretrefnode:=nil;
+         paralength:=-1;
       end;
 
 
@@ -823,6 +957,7 @@ type
         right:=procvar;
       end;
 
+
     function tcallnode.getcopy : tnode;
       var
         n : tcallnode;
@@ -843,6 +978,7 @@ type
          n.funcretrefnode:=nil;
         result:=n;
       end;
+
 
     procedure tcallnode.insertintolist(l : tnodelist);
 
@@ -884,747 +1020,450 @@ type
 
 
     procedure tcallnode.verifyabstractcalls;
-     var
-       objectdf : tobjectdef;
-       parents : tlinkedlist;
-       objectinfo : tobjectinfoitem;
-       stritem : tstringlistitem;
-       _classname : string;
-     begin
-       objectdf := nil;
-       { verify if trying to create an instance of a class which contains
-         non-implemented abstract methods }
+      var
+        objectdf : tobjectdef;
+        parents : tlinkedlist;
+        objectinfo : tobjectinfoitem;
+        stritem : tstringlistitem;
+        _classname : string;
+      begin
+        objectdf := nil;
+        { verify if trying to create an instance of a class which contains
+          non-implemented abstract methods }
 
-       { first verify this class type, no class than exit  }
-       { also, this checking can only be done if the constructor is directly
-         called, indirect constructor calls cannot be checked.
-       }
-       if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
-           if (methodpointer.resulttype.def.deftype = classrefdef) and
-             (methodpointer.nodetype in [typen,loadvmtn]) then
-             begin
-               if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
-                   objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
+        { first verify this class type, no class than exit  }
+        { also, this checking can only be done if the constructor is directly
+          called, indirect constructor calls cannot be checked.
+        }
+        if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
+            if (methodpointer.resulttype.def.deftype = classrefdef) and
+              (methodpointer.nodetype in [typen,loadvmtn]) then
+              begin
+                if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
+                    objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
 
-             end;
-       if not assigned(objectdf) then exit;
-       if assigned(objectdf.symtable.name) then
-         _classname := objectdf.symtable.name^
-       else
-         _classname := '';
+              end;
+        if not assigned(objectdf) then exit;
+        if assigned(objectdf.symtable.name) then
+          _classname := objectdf.symtable.name^
+        else
+          _classname := '';
 
-       parents := tlinkedlist.create;
-       AbstractMethodsList := tstringlist.create;
+        parents := tlinkedlist.create;
+        AbstractMethodsList := tstringlist.create;
 
-       { insert all parents in this class : the first item in the
-         list will be the base parent of the class .
-       }
-       while assigned(objectdf) do
+        { insert all parents in this class : the first item in the
+          list will be the base parent of the class .
+        }
+        while assigned(objectdf) do
+          begin
+            objectinfo:=tobjectinfoitem.create(objectdf);
+            parents.insert(objectinfo);
+            objectdf := objectdf.childof;
+        end;
+        { now all parents are in the correct order
+          insert all abstract methods in the list, and remove
+          those which are overriden by parent classes.
+        }
+        objectinfo:=tobjectinfoitem(parents.first);
+        while assigned(objectinfo) do
+          begin
+             objectdf := objectinfo.objinfo;
+             if assigned(objectdf.symtable) then
+               objectdf.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}verifyabstract,nil);
+             objectinfo:=tobjectinfoitem(objectinfo.next);
+          end;
+        if assigned(parents) then
+          parents.free;
+        { Finally give out a warning for each abstract method still in the list }
+        stritem := tstringlistitem(AbstractMethodsList.first);
+        while assigned(stritem) do
          begin
-           objectinfo:=tobjectinfoitem.create(objectdf);
-           parents.insert(objectinfo);
-           objectdf := objectdf.childof;
-       end;
-       { now all parents are in the correct order
-         insert all abstract methods in the list, and remove
-         those which are overriden by parent classes.
-       }
-       objectinfo:=tobjectinfoitem(parents.first);
-       while assigned(objectinfo) do
-         begin
-            objectdf := objectinfo.objinfo;
-            if assigned(objectdf.symtable) then
-              objectdf.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}verifyabstract,nil);
-            objectinfo:=tobjectinfoitem(objectinfo.next);
+           if assigned(stritem.fpstr) then
+              Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^));
+           stritem := tstringlistitem(stritem.next);
          end;
-       if assigned(parents) then
-         parents.free;
-       { Finally give out a warning for each abstract method still in the list }
-       stritem := tstringlistitem(AbstractMethodsList.first);
-       while assigned(stritem) do
+        if assigned(AbstractMethodsList) then
+          AbstractMethodsList.Free;
+      end;
+
+
+    function Tcallnode.candidates_find:pcandidate;
+
+      var
+        j          : integer;
+        pd         : tprocdef;
+        procs,hp   : pcandidate;
+        found,
+        has_overload_directive : boolean;
+        srsymtable : tsymtable;
+        srprocsym  : tprocsym;
+
+        procedure proc_add(pd:tprocdef);
+        var
+          i : integer;
         begin
-          if assigned(stritem.fpstr) then
-             Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^));
-          stritem := tstringlistitem(stritem.next);
-        end;
-       if assigned(AbstractMethodsList) then
-         AbstractMethodsList.Free;
-   end;
-
-
-{$ifdef nice_ncal}
-
-    function Tcallnode.choose_definition_to_call(paralength:byte;var errorexit:boolean):Tnode;
-
-      { check if the resulttype.def from tree p is equal with def, needed
-        for stringconstn and formaldef }
-      function is_equal(p:tcallparanode;def:tdef) : boolean;
-
-        begin
-           { safety check }
-           if not (assigned(def) or assigned(p.resulttype.def)) then
-            begin
-              is_equal:=false;
-              exit;
-            end;
-           { all types can be passed to a formaldef }
-           is_equal:=(def.deftype=formaldef) or
-             (defbase.is_equal(p.resulttype.def,def))
-           { integer constants are compatible with all integer parameters if
-             the specified value matches the range }
-             or
-             (
-              (tbinarynode(p).left.nodetype=ordconstn) and
-              is_integer(p.resulttype.def) and
-              is_integer(def) and
-              (tordconstnode(p.left).value>=torddef(def).low) and
-              (tordconstnode(p.left).value<=torddef(def).high)
-             )
-           { to support ansi/long/wide strings in a proper way }
-           { string and string[10] are assumed as equal }
-           { when searching the correct overloaded procedure   }
-             or
-             (
-              (def.deftype=stringdef) and (p.resulttype.def.deftype=stringdef) and
-              (tstringdef(def).string_typ=tstringdef(p.resulttype.def).string_typ)
-             )
-             or
-             (
-              (p.left.nodetype=stringconstn) and
-              (is_ansistring(p.resulttype.def) and is_pchar(def))
-             )
-             or
-             (
-              (p.left.nodetype=ordconstn) and
-              (is_char(p.resulttype.def) and (is_shortstring(def) or is_ansistring(def)))
-             )
-           { set can also be a not yet converted array constructor }
-             or
-             (
-              (def.deftype=setdef) and (p.resulttype.def.deftype=arraydef) and
-              (tarraydef(p.resulttype.def).IsConstructor) and not(tarraydef(p.resulttype.def).IsVariant)
-             )
-           { in tp7 mode proc -> procvar is allowed }
-             or
-             (
-              (m_tp_procvar in aktmodeswitches) and
-              (def.deftype=procvardef) and (p.left.nodetype=calln) and
-              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def),false))
-             )
-             ;
+          { generate new candidate entry }
+          new(hp);
+          fillchar(hp^,sizeof(tcandidate),0);
+          hp^.data:=pd;
+          hp^.next:=procs;
+          procs:=hp;
+          { Setup first parameter, skip all default parameters
+            that are not passed. Ignore this skipping for varargs }
+          hp^.firstpara:=tparaitem(pd.Para.first);
+          if not(po_varargs in pd.procoptions) then
+           begin
+             for i:=1 to pd.maxparacount-paralength do
+              hp^.firstpara:=tparaitem(hp^.firstPara.next);
+           end;
         end;
 
-        procedure get_candidate_information(var cl2_count,cl1_count,equal_count,exact_count:byte;
-                                            var ordspace:double;
-                                            treeparas:Tcallparanode;candparas:Tparaitem);
-
-        {Gets information how the parameters would be converted to the candidate.}
-
-        var hcvt:Tconverttype;
-            from_def,to_def:Tdef;
-
-        begin
-            cl2_count:=0;
-            cl1_count:=0;
-            equal_count:=0;
-            exact_count:=0;
-            ordspace:=0;
-            while candparas<>nil do
-                begin
-                    from_def:=treeparas.resulttype.def;
-                    to_def:=candparas.paratype.def;
-                    if to_def=from_def then
-                        inc(exact_count)
-                    { if a type is totally included in the other        }
-                    { we don't fear an overflow ,                       }
-                    { so we can do as if it is an equal match           }
-                    else if (treeparas.left.nodetype=ordconstn) and is_integer(to_def) then
-                        begin
-                            inc(equal_count);
-                            ordspace:=ordspace+(double(Torddef(from_def).low)-Torddef(to_def).low)+
-                                         (double(Torddef(to_def).high)-Torddef(from_def).high);
-                        end
-                    else if ((from_def.deftype=orddef) and (to_def.deftype=orddef)) and
-                     (is_in_limit(from_def,to_def) or
-                      ((candparas.paratyp in [vs_var,vs_out]) and (from_def.size=to_def.size))
-                     ) then
-                        begin
-                            ordspace:=ordspace+Torddef(to_def).high;
-                            ordspace:=ordspace-Torddef(to_def).low;
-                            inc(equal_count);
-                        end
-                    else if is_equal(treeparas,to_def) then
-                        inc(equal_count)
-                    else
-                        case isconvertable(from_def,to_def,
-                         hcvt,treeparas.left.nodetype,false) of
-                            0:
-                                internalerror(200208021);
-                            1:
-                                inc(cl1_count);
-                            2:
-                                inc(cl2_count);
-                        end;
-                    treeparas:=Tcallparanode(treeparas.right);
-                    candparas:=Tparaitem(candparas.next);
-                end;
-        end;
-
-    type  Tcandidate_array=array[1..$ffff] of Tprocdef;
-          Pcandidate_array=^Tcandidate_array;
-
-    var candidate_alloc,candidates_left,candidate_count:cardinal;
-        c1,c2,delete_start:cardinal;
-        cl2_count1,cl1_count1,equal_count1,exact_count1:byte;
-        ordspace1:double;
-        cl2_count2,cl1_count2,equal_count2,exact_count2:byte;
-        ordspace2:double;
-        i,n:cardinal;
-        pt:Tcallparanode;
-        def:Tprocdef;
-        hcvt:Tconverttype;
-        pdc:Tparaitem;
-        hpt:Tnode;
-        srprocsym:Tprocsym;
-        srsymtable:Tsymtable;
-        candidate_defs:Pcandidate_array;
-
-    begin
-        if fileinfo.line=398 then
-          i:=0;
-        choose_definition_to_call:=nil;
-        errorexit:=true;
+      begin
+        procs:=nil;
 
         { when the definition has overload directive set, we search for
           overloaded definitions in the class, this only needs to be done once
           for class entries as the tree keeps always the same }
         if (not symtableprocentry.overloadchecked) and
-         (po_overload in symtableprocentry.first_procdef.procoptions) and
-         (symtableprocentry.owner.symtabletype=objectsymtable) then
-            search_class_overloads(symtableprocentry);
+           (po_overload in symtableprocentry.first_procdef.procoptions) and
+           (symtableprocentry.owner.symtabletype=objectsymtable) then
+         search_class_overloads(symtableprocentry);
 
-        {Collect all procedures which have the same # of parameters }
-        candidates_left:=0;
-        candidate_count:=0;
-        candidate_alloc:=32;
-        getmem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
-        srprocsym:=symtableprocentry;
-        srsymtable:=symtableprocentry.owner;
-        repeat
-            for i:=1 to srprocsym.procdef_count do
+        { link all procedures which have the same # of parameters }
+        for j:=1 to symtableprocentry.procdef_count do
+          begin
+            pd:=symtableprocentry.procdef[j];
+            { only when the # of parameter are supported by the
+              procedure }
+            if (paralength>=pd.minparacount) and
+               ((po_varargs in pd.procoptions) or { varargs }
+                (paralength<=pd.maxparacount)) then
+              proc_add(pd);
+           end;
+
+        { remember if the procedure is declared with the overload directive,
+          it's information is still needed also after all procs are removed }
+        has_overload_directive:=(po_overload in symtableprocentry.first_procdef.procoptions);
+
+        { when the definition has overload directive set, we search for
+          overloaded definitions in the symtablestack. The found
+          entries are only added to the procs list and not the procsym, because
+          the list can change in every situation }
+        if has_overload_directive and
+           (symtableprocentry.owner.symtabletype<>objectsymtable) then
+          begin
+            srsymtable:=symtableprocentry.owner.next;
+            while assigned(srsymtable) do
+             begin
+               if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
                 begin
-                    def:=srprocsym.procdef[i];
-                    { only when the # of parameters are supported by the procedure }
-                    if (paralength>=def.minparacount) and
-                       ((po_varargs in def.procoptions) or (paralength<=def.maxparacount)) then
+                  srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
+                  { process only visible procsyms }
+                  if assigned(srprocsym) and
+                     (srprocsym.typ=procsym) and
+                     srprocsym.is_visible_for_proc(aktprocdef) then
+                   begin
+                     { if this procedure doesn't have overload we can stop
+                       searching }
+                     if not(po_overload in srprocsym.first_procdef.procoptions) then
+                      break;
+                     { process all overloaded definitions }
+                     for j:=1 to srprocsym.procdef_count do
                       begin
-                        candidate_defs^[i]:=def;
-                        inc(candidates_left);
+                        pd:=srprocsym.procdef[j];
+                        { only when the # of parameter are supported by the
+                          procedure }
+                        if (paralength>=pd.minparacount) and
+                           ((po_varargs in pd.procoptions) or { varargs }
+                           (paralength<=pd.maxparacount)) then
+                         begin
+                           found:=false;
+                           hp:=procs;
+                           while assigned(hp) do
+                            begin
+                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false)>=te_equal then
+                               begin
+                                 found:=true;
+                                 break;
+                               end;
+                              hp:=hp^.next;
+                            end;
+                           if not found then
+                             proc_add(pd);
+                         end;
+                      end;
+                   end;
+                end;
+               srsymtable:=srsymtable.next;
+             end;
+          end;
+        candidates_find:=procs;
+      end;
+
+
+    procedure tcallnode.candidates_free(procs:pcandidate);
+      var
+        hpnext,
+        hp : pcandidate;
+      begin
+        hp:=procs;
+        while assigned(hp) do
+         begin
+           hpnext:=hp^.next;
+           dispose(hp);
+           hp:=hpnext;
+         end;
+      end;
+
+
+    procedure tcallnode.candidates_list(procs:pcandidate;all:boolean);
+      var
+        hp : pcandidate;
+      begin
+        hp:=procs;
+        while assigned(hp) do
+         begin
+           if all or
+              (not hp^.invalid) then
+             MessagePos1(hp^.data.fileinfo,sym_b_param_list,hp^.data.fullprocname);
+           hp:=hp^.next;
+         end;
+      end;
+
+
+    procedure Tcallnode.candidates_get_information(procs:pcandidate);
+      var
+        hp       : pcandidate;
+        currpara : tparaitem;
+        currparanr : byte;
+        def_from,
+        def_to   : tdef;
+        pt       : tcallparanode;
+        eq       : tequaltype;
+        convtype : tconverttype;
+        pdoper   : tprocdef;
+      begin
+        { process all procs }
+        hp:=procs;
+        while assigned(hp) do
+         begin
+           currparanr:=paralength;
+           currpara:=hp^.firstpara;
+           pt:=tcallparanode(left);
+           while assigned(pt) do
+            begin
+              { retrieve current parameter definitions to compares }
+              def_from:=pt.resulttype.def;
+              def_to:=currpara.paratype.def;
+{$ifdef extdebug}
+              if not(assigned(def_from)) then
+               internalerror(200212091);
+              if not(
+                     assigned(def_to) or
+                     ((po_varargs in hp^.data.procoptions) and
+                      (currparanr>hp^.data.minparacount))
+                    ) then
+               internalerror(200212092);
+{$endif extdebug}
+
+              { varargs are always equal, but not exact }
+              if (po_varargs in hp^.data.procoptions) and
+                 (currparanr>hp^.data.minparacount) then
+               begin
+                 inc(hp^.equal_count);
+               end
+              else
+              { same definition -> exact }
+               if (def_from=def_to) then
+                begin
+                  inc(hp^.exact_count);
+                end
+              else
+              { for value and const parameters check if a integer is constant or
+                included in other integer -> equal and calc ordinal_distance }
+               if not(currpara.paratyp in [vs_var,vs_out]) and
+                  is_integer(def_from) and
+                  is_integer(def_to) and
+                  is_in_limit(def_from,def_to) then
+                 begin
+                   inc(hp^.equal_count);
+                   hp^.ordinal_distance:=hp^.ordinal_distance+
+                     abs(bestreal(torddef(def_from).low-torddef(def_to).low));
+                   hp^.ordinal_distance:=hp^.ordinal_distance+
+                     abs(bestreal(torddef(def_to).high-torddef(def_from).high));
+                 end
+              else
+              { generic type comparision }
+               begin
+                 eq:=compare_defs_ext(def_from,def_to,pt.left.nodetype,
+                                      false,true,convtype,pdoper);
+
+                 { when the types are not equal we need to check
+                   some special case for parameter passing }
+                 if (eq<te_equal) then
+                  begin
+                    if currpara.paratyp in [vs_var,vs_out] then
+                      begin
+                        { para requires an equal type so the previous found
+                          match was not good enough, reset to incompatible }
+                        eq:=te_incompatible;
+                        { var_para_allowed will return te_equal and te_convert_l1 to
+                          make a difference for best matching }
+                        var_para_allowed(eq,pt.resulttype.def,currpara.paratype.def)
                       end
                     else
-                      candidate_defs^[i]:=nil;
-                    inc(candidate_count);
-                    if candidate_alloc=candidate_count then
-                      begin
-                        candidate_alloc:=candidate_alloc*2;
-                        reallocmem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
-                      end;
-                end;
-            if po_overload in srprocsym.first_procdef.procoptions then
-                begin
-                    repeat
-                        srprocsym:=nil;
-                        repeat
-                            srsymtable:=srsymtable.next;
-                        until (srsymtable=nil) or (srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable]);
-                        if assigned(srsymtable) then
-                            srprocsym:=Tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
-                    until (srsymtable=nil) or (srprocsym<>nil);
-                    if not assigned(srprocsym) then
-                      break;
-                end
-            else
-                break;
-        until false;
+                      para_allowed(eq,pt,def_to);
+                  end;
 
-        { no procedures found? then there is something wrong
-          with the parameter size }
-        if candidates_left=0 then
-            begin
-                { in tp mode we can try to convert to procvar if
-                  there are no parameters specified }
-                if not(assigned(left)) and
-                 (m_tp_procvar in aktmodeswitches) then
-                    begin
-                        hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
-                        if (symtableprocentry.owner.symtabletype=objectsymtable) and
-                         assigned(methodpointer) then
-                            tloadnode(hpt).set_mp(methodpointer.getcopy);
-                        resulttypepass(hpt);
-                        choose_definition_to_call:=hpt;
-                    end
-                else
-                    begin
-                        if assigned(left) then
-                            aktfilepos:=left.fileinfo;
-                        cgmessage(parser_e_wrong_parameter_size);
-                        symtableprocentry.write_parameter_lists(nil);
-                    end;
-                exit;
-            end;
-        {Walk through all candidates and remove the ones
-         that have incompatible parameters.}
-        for i:=1 to candidate_count do
-            if assigned(candidate_defs^[i]) then
-                begin
-                    def:=candidate_defs^[i];
-                    {Walk through all parameters.}
-                    pdc:=Tparaitem(def.para.first);
-                    pt:=Tcallparanode(left);
-                    while assigned(pdc) do
-                        begin
-                            if pdc.paratyp in [vs_var,vs_out] then
-                                if is_var_para_incompatible(pt.resulttype.def,pdc.paratype.def) and
-                                 not(is_shortstring(pt.resulttype.def) and is_shortstring(pdc.paratype.def)) and
-                                 (pdc.paratype.def.deftype<>formaldef) then
-                                    begin
-                                      {Not convertable, def is no longer a candidate.}
-                                      candidate_defs^[i]:=nil;
-                                      dec(candidates_left);
-                                      break;
-                                    end
-                                else
-                                    exclude(pt.callparaflags,cpf_nomatchfound)
-                            else
-                                if (pt.resulttype.def<>pdc.paratype.def) and
-                                 ((isconvertable(pt.resulttype.def,pdc.paratype.def,
-                                                 hcvt,pt.left.nodetype,false)=0) and
-                                  not is_equal(pt,pdc.paratype.def)) then
-                                    begin
-                                      {Not convertable, def is no longer a candidate.}
-                                      candidate_defs^[i]:=nil;
-                                      dec(candidates_left);
-                                      break;
-                                    end
-                                else
-                                    exclude(pt.callparaflags,cpf_nomatchfound);
-                            pdc:=Tparaitem(pdc.next);
-                            pt:=Tcallparanode(pt.right);
-                        end;
-                end;
-        {Are there any candidates left?}
-        if candidates_left=0 then
-            begin
-                {There is an error, must be wrong type, because
-                 wrong size is already checked (PFV) }
-                pt:=Tcallparanode(left);
-                n:=0;
-                while assigned(pt) do
-                    if cpf_nomatchfound in pt.callparaflags then
-                        break
-                    else
-                        begin
-                            pt:=tcallparanode(pt.right);
-                            inc(n);
-                        end;
-                if not(assigned(pt) and assigned(pt.resulttype.def)) then
-                    internalerror(39393);
-                {Def contains the last candidate tested.}
-                pdc:=Tparaitem(def.para.first);
-                for i:=1 to n do
-                    pdc:=Tparaitem(pdc.next);
-                aktfilepos:=pt.fileinfo;
-                cgmessage3(type_e_wrong_parameter_type,tostr(n+1),
-                           pt.resulttype.def.typename,pdc.paratype.def.typename);
-                symtableprocentry.write_parameter_lists(nil);
-                exit;
-            end;
-       {If there is more candidate that can be called, we have to
-        find the most suitable one. We collect the following
-        information:
-        - Amount of convertlevel 2 parameters.
-        - Amount of convertlevel 1 parameters.
-        - Amount of equal parameters.
-        - Amount of exact parameters.
-        - Amount of ordinal space the destination parameters
-          provide. For exampe, a word provides 65535-255=65280
-          of ordinal space above a byte.
+                 case eq of
+                   te_exact :
+                     internalerror(200212071); { already checked }
+                   te_equal :
+                     inc(hp^.equal_count);
+                   te_convert_l1 :
+                     inc(hp^.cl1_count);
+                   te_convert_l2,
+                   te_convert_operator :
+                     inc(hp^.cl2_count);
+                   te_incompatible :
+                     hp^.invalid:=true;
+                   else
+                     internalerror(200212072);
+                 end;
+               end;
 
-        The first criterium is the candidate that has the least
-        convertlevel 2 parameters. The next criterium is
-        the candidate that has the most exact parameters, next
-        criterium is the least ordinal space and
-        the last criterium is the most equal parameters. (DM)}
-        if candidates_left>1 then
-            begin
-                {Find the first candidate.}
-                c1:=1;
-                while c1<=candidate_count do
-                    if assigned(candidate_defs^[c1]) then
-                        break
-                    else
-                        inc(c1);
-                delete_start:=c1;
-                {Get information about candidate c1.}
-                get_candidate_information(cl2_count1,cl1_count1,equal_count1,
-                                          exact_count1,ordspace1,Tcallparanode(left),
-                                          Tparaitem(candidate_defs^[c1].para.first));
-                {Find the other candidates and eliminate the lesser ones.}
-                c2:=c1+1;
-                while c2<=candidate_count do
-                    if assigned(candidate_defs^[c2]) then
-                        begin
-                            {Candidate found, get information on it.}
-                            get_candidate_information(cl2_count2,cl1_count2,equal_count2,
-                                                      exact_count2,ordspace2,Tcallparanode(left),
-                                                      Tparaitem(candidate_defs^[c2].para.first));
-                            {Is c1 the better candidate?}
-                            if (cl2_count1<cl2_count2) or
-                             ((cl2_count1=cl2_count2) and (exact_count1>exact_count2)) or
-                             ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1>equal_count2)) or
-                             ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1=equal_count2) and (ordspace1<ordspace2)) then
-                                {C1 is better, drop c2.}
-                                candidate_defs^[c2]:=nil
-                            {Is c2 the better candidate?}
-                            else if (cl2_count2<cl2_count1) or
-                             ((cl2_count2=cl2_count1) and (exact_count2>exact_count1)) or
-                             ((cl2_count2=cl2_count1) and (exact_count2=exact_count1) and (equal_count2>equal_count1)) or
-                             ((cl2_count2=cl2_count1) and (exact_count2=exact_count1) and (equal_count2=equal_count1) and (ordspace2<ordspace1)) then
-                                begin
-                                    {C2 is better, drop all previous
-                                     candidates.}
-                                    for i:=delete_start to c2-1 do
-                                      candidate_defs^[i]:=nil;
-                                    delete_start:=c2;
-                                    c1:=c2;
-                                    cl2_count1:=cl2_count2;
-                                    cl1_count1:=cl1_count2;
-                                    equal_count1:=equal_count2;
-                                    exact_count1:=exact_count2;
-                                    ordspace1:=ordspace2;
-                                end;
-                            {else the candidates have no advantage over each other,
-                             do nothing}
-                            inc(c2);
-                        end
-                    else
-                        inc(c2);
-            end;
-        {Count the candidates that are left.}
-        candidates_left:=0;
-        for i:=1 to candidate_count do
-            if assigned(candidate_defs^[i]) then
-              begin
-                inc(candidates_left);
-                procdefinition:=candidate_defs^[i];
-              end;
-        if candidates_left>1 then
-            begin
-                cgmessage(cg_e_cant_choose_overload_function);
-                symtableprocentry.write_parameter_lists(nil);
-                exit;
-            end;
-        freemem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
-        if make_ref then
-            begin
-                Tprocdef(procdefinition).lastref:=Tref.create(Tprocdef(procdefinition).lastref,@fileinfo);
-                inc(Tprocdef(procdefinition).refcount);
-                if Tprocdef(procdefinition).defref=nil then
-                    Tprocdef(procdefinition).defref:=Tprocdef(procdefinition).lastref;
-            end;
-        { big error for with statements
-          symtableproc:=procdefinition.owner;
-          but neede for overloaded operators !! }
-        if symtableproc=nil then
-            symtableproc:=procdefinition.owner;
-        errorexit:=false;
-    end;
+              { stop checking when an incompatible parameter is found }
+              if hp^.invalid then
+               begin
+                 { store the current parameter info for
+                   a nice error message when no procedure is found }
+                 hp^.wrongpara:=currpara;
+                 hp^.wrongparanr:=currparanr;
+                 break;
+               end;
 
-    function tcallnode.det_resulttype:tnode;
+              { next parameter in the call tree }
+              pt:=tcallparanode(pt.right);
 
-
-    var lastpara,paralength:byte;
-        oldcallprocdef:Tabstractprocdef;
-        pt:Tcallparanode;
-        i,n:byte;
-        e,is_const:boolean;
-        pdc:Tparaitem;
-        hpt:Tnode;
-
-    label errorexit;
-
-    begin
-        result:=nil;
-
-        oldcallprocdef:=aktcallprocdef;
-        aktcallprocdef:=nil;
-
-        { determine length of parameter list }
-        pt:=tcallparanode(left);
-        paralength:=0;
-        while assigned(pt) do
-          begin
-            include(pt.callparaflags,cpf_nomatchfound);
-            inc(paralength);
-            pt:=tcallparanode(pt.right);
-          end;
-
-        { determine the type of the parameters }
-        if assigned(left) then
-          begin
-            tcallparanode(left).get_paratype;
-            if codegenerror then
-             goto errorexit;
-          end;
-
-        { procedure variable ? }
-        if assigned(right) then
-           begin
-              set_varstate(right,true);
-              resulttypepass(right);
-              if codegenerror then
-               exit;
-
-              procdefinition:=tabstractprocdef(right.resulttype.def);
-
-              { check the amount of parameters }
-              pdc:=tparaitem(procdefinition.Para.first);
-              pt:=tcallparanode(left);
-              lastpara:=paralength;
-              while assigned(pdc) and assigned(pt) do
-                begin
-                  { only goto next para if we're out of the varargs }
-                  if not(po_varargs in procdefinition.procoptions) or
-                     (lastpara<=procdefinition.maxparacount) then
-                    pdc:=tparaitem(pdc.next);
-                  pt:=tcallparanode(pt.right);
-                  dec(lastpara);
-                end;
-              if assigned(pt) or assigned(pdc) then
-                begin
-                   if assigned(pt) then
-                     aktfilepos:=pt.fileinfo;
-                   CGMessage(parser_e_wrong_parameter_size);
-                end;
-           end
-        else
-        { not a procedure variable }
-            begin
-                { do we know the procedure to call ? }
-                if not(assigned(procdefinition)) then
-                    begin
-                        result:=choose_definition_to_call(paralength,e);
-                        if e then
-                            goto errorexit;
-                    end;
-(*              To do!!!
-                { add needed default parameters }
-                if assigned(procdefinition) and
-                 (paralength<procdefinition.maxparacount) then
-                    begin
-                        { add default parameters, just read back the skipped
-                          paras starting from firstPara.previous, when not available
-                          (all parameters are default) then start with the last
-                          parameter and read backward (PFV) }
-                        if not assigned(procs^.firstpara) then
-                            pdc:=tparaitem(procs^.data.Para.last)
-                        else
-                            pdc:=tparaitem(procs^.firstPara.previous);
-                        while assigned(pdc) do
-                            begin
-                                if not assigned(pdc.defaultvalue) then
-                                    internalerror(751349858);
-                                left:=ccallparanode.create(genconstsymtree(tconstsym(pdc.defaultvalue)),left);
-                                pdc:=tparaitem(pdc.previous);
-                            end;
-                    end;
-*)
-            end;
-        { handle predefined procedures }
-        is_const:=(po_internconst in procdefinition.procoptions) and
-                  ((block_type in [bt_const,bt_type]) or
-                   (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
-        if (procdefinition.proccalloption=pocall_internproc) or is_const then
-            begin
-                if assigned(left) then
-                    begin
-                        { ptr and settextbuf needs two args }
-                        if assigned(tcallparanode(left).right) then
-                            begin
-                                hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,left);
-                                left:=nil;
-                            end
-                        else
-                            begin
-                                hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,Tcallparanode(left).left);
-                                Tcallparanode(left).left:=nil;
-                            end;
-                    end
-                else
-                    hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,nil);
-                result:=hpt;
-                goto errorexit;
-            end;
-{$ifdef dummy}
-        { Calling a message method directly ? }
-        if assigned(procdefinition) and
-         (po_containsself in procdefinition.procoptions) then
-            message(cg_e_cannot_call_message_direct);
-{$endif}
-
-        { ensure that the result type is set }
-        if not restypeset then
-            resulttype:=procdefinition.rettype
-        else
-            resulttype:=restype;
-
-        { modify the exit code, in case of special cases }
-        if (not is_void(resulttype.def)) then
-            begin
-                if paramanager.ret_in_acc(resulttype.def) then
-                    begin
-                        { wide- and ansistrings are returned in EAX    }
-                        { but they are imm. moved to a memory location }
-                        if is_widestring(resulttype.def) or
-                         is_ansistring(resulttype.def) then
-                            begin
-                                { we use ansistrings so no fast exit here }
-                                if assigned(procinfo) then
-                                    procinfo.no_fast_exit:=true;
-                            end;
-                    end;
-            end;
-        { constructors return their current class type, not the type where the
-          constructor is declared, this can be different because of inheritance }
-        if (procdefinition.proctypeoption=potype_constructor) then
-            begin
-                if assigned(methodpointer) and
-                 assigned(methodpointer.resulttype.def) and
-                 (methodpointer.resulttype.def.deftype=classrefdef) then
-                    resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
-
+              { next parameter for definition, only goto next para
+                if we're out of the varargs }
+              if not(po_varargs in hp^.data.procoptions) or
+                 (currparanr<=hp^.data.maxparacount) then
+                currpara:=tparaitem(currpara.next);
+              dec(currparanr);
             end;
 
-        { flag all callparanodes that belong to the varargs }
-        if (po_varargs in procdefinition.procoptions) then
-            begin
-                pt:=tcallparanode(left);
-                i:=paralength;
-                while (i>procdefinition.maxparacount) do
-                    begin
-                        include(tcallparanode(pt).flags,nf_varargs_para);
-                        pt:=tcallparanode(pt.right);
-                        dec(i);
-                    end;
-            end;
-
-        { insert type conversions }
-        if assigned(left) then
-            begin
-                aktcallprocdef:=procdefinition;
-                tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
-            end;
-    errorexit:
-        { Reset some settings back }
-        aktcallprocdef:=oldcallprocdef;
-    end;
-
-{$else}
-    function tcallnode.det_resulttype:tnode;
-      type
-         pprocdefcoll = ^tprocdefcoll;
-         tprocdefcoll = record
-            data      : tprocdef;
-            nextpara  : tparaitem;
-            firstpara : tparaitem;
-            next      : pprocdefcoll;
+           { next candidate }
+           hp:=hp^.next;
          end;
+      end;
+
+
+    function Tcallnode.candidates_choose_best(procs:pcandidate;var bestpd:tprocdef):integer;
       var
-         hp,procs,hp2 : pprocdefcoll;
-         pd : tprocdef;
-         oldcallprocdef : tabstractprocdef;
-         def_from,def_to,conv_to : tdef;
-         hpt : tnode;
-         pt : tcallparanode;
-         exactmatch : boolean;
-         paralength,lastpara : longint;
-         lastparatype : tdef;
-         pdc : tparaitem;
-         { only Dummy }
-         hcvt : tconverttype;
+        besthpstart,
+        hp       : pcandidate;
+        cntpd,
+        res      : integer;
+      begin
+        {
+          Returns the number of candidates left and the
+          first candidate is returned in pdbest
+        }
+        { Setup the first procdef as best, only count it as a result
+          when it is valid }
+        bestpd:=procs^.data;
+        if procs^.invalid then
+         cntpd:=0
+        else
+         cntpd:=1;
+        if assigned(procs^.next) then
+         begin
+           besthpstart:=procs;
+           hp:=procs^.next;
+           while assigned(hp) do
+            begin
+              res:=is_better_candidate(hp,besthpstart);
+              if (res>0) then
+               begin
+                 { hp is better, flag all procs to be incompatible }
+                 while (besthpstart<>hp) do
+                  begin
+                    besthpstart^.invalid:=true;
+                    besthpstart:=besthpstart^.next;
+                  end;
+                 { besthpstart is already set to hp }
+                 bestpd:=besthpstart^.data;
+                 cntpd:=1;
+               end
+              else
+               if (res<0) then
+                begin
+                  { besthpstart is better, flag current hp to be incompatible }
+                  hp^.invalid:=true;
+                end
+              else
+               begin
+                 { res=0, both are valid }
+                 if not hp^.invalid then
+                   inc(cntpd);
+               end;
+              hp:=hp^.next;
+            end;
+         end;
+
+        candidates_choose_best:=cntpd;
+      end;
+
+
+    procedure tcallnode.candidates_find_wrong_para(procs:pcandidate);
+      var
+        currparanr : smallint;
+        hp : pcandidate;
+        pt : tcallparanode;
+      begin
+        { Only process the first overloaded procdef }
+        hp:=procs;
+        { Find callparanode corresponding to the argument }
+        pt:=tcallparanode(left);
+        currparanr:=paralength;
+        while assigned(pt) and
+              (currparanr>hp^.wrongparanr) do
+         begin
+           pt:=tcallparanode(pt.right);
+           dec(currparanr);
+         end;
+        if (currparanr<>hp^.wrongparanr) or
+           not assigned(pt) then
+          internalerror(200212094);
+        { Show error message, when it was a var or out parameter
+          guess that it is a missing typeconv }
+        if hp^.wrongpara.paratyp in [vs_var,vs_out] then
+          CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
+            pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename)
+        else
+          CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,
+            tostr(hp^.wrongparanr),pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename);
+      end;
+
+
+    function tcallnode.det_resulttype:tnode;
+      var
+        procs : pcandidate;
+        oldcallprocdef : tabstractprocdef;
+        hpt : tnode;
+        pt : tcallparanode;
+        lastpara : longint;
+        pdc : tparaitem;
+        cand_cnt : integer;
+        i : longint;
+        is_const : boolean;
       label
         errorexit;
-
-      { check if the resulttype.def from tree p is equal with def, needed
-        for stringconstn and formaldef }
-      function is_equal(p:tcallparanode;def:tdef) : boolean;
-
-        begin
-           { safety check }
-           if not (assigned(def) or assigned(p.resulttype.def)) then
-            begin
-              is_equal:=false;
-              exit;
-            end;
-           { all types can be passed to a formaldef }
-           is_equal:=(def.deftype=formaldef) or
-             (defcmp.equal_defs(p.resulttype.def,def))
-           { integer constants are compatible with all integer parameters if
-             the specified value matches the range }
-             or
-             (
-              (tbinarynode(p).left.nodetype=ordconstn) and
-              is_integer(p.resulttype.def) and
-              is_integer(def) and
-              is_in_limit_value(tordconstnode(p.left).value,p.resulttype.def,def)
-             )
-           { to support ansi/long/wide strings in a proper way }
-           { string and string[10] are assumed as equal }
-           { when searching the correct overloaded procedure   }
-             or
-             (
-              (def.deftype=stringdef) and (p.resulttype.def.deftype=stringdef) and
-              (tstringdef(def).string_typ=tstringdef(p.resulttype.def).string_typ)
-             )
-             or
-             (
-              (p.left.nodetype=stringconstn) and
-              (is_ansistring(p.resulttype.def) and is_pchar(def))
-             )
-             or
-             (
-              (p.left.nodetype=ordconstn) and
-              (is_char(p.resulttype.def) and (is_shortstring(def) or is_ansistring(def)))
-             )
-           { set can also be a not yet converted array constructor }
-             or
-             (
-              (def.deftype=setdef) and (p.resulttype.def.deftype=arraydef) and
-              (tarraydef(p.resulttype.def).IsConstructor) and not(tarraydef(p.resulttype.def).IsVariant)
-             )
-           { in tp7 mode proc -> procvar is allowed }
-             or
-             (
-              (m_tp_procvar in aktmodeswitches) and
-              (def.deftype=procvardef) and (p.left.nodetype=calln) and
-              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def))>=te_equal)
-             )
-             ;
-        end;
-
-      var
-        i,j : longint;
-        has_overload_directive,
-        found,
-        is_const : boolean;
-        bestord  : torddef;
-        eq : tequaltype;
-        srprocsym  : tprocsym;
-        srsymtable : tsymtable;
       begin
          result:=nil;
          procs:=nil;
-         has_overload_directive:=false;
 
          oldcallprocdef:=aktcallprocdef;
          aktcallprocdef:=nil;
@@ -1682,110 +1521,7 @@ type
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-                   { when the definition has overload directive set, we search for
-                     overloaded definitions in the class, this only needs to be done once
-                     for class entries as the tree keeps always the same }
-                   if (not symtableprocentry.overloadchecked) and
-                      (po_overload in symtableprocentry.first_procdef.procoptions) and
-                      (symtableprocentry.owner.symtabletype=objectsymtable) then
-                    search_class_overloads(symtableprocentry);
-
-                   { link all procedures which have the same # of parameters }
-                   for j:=1 to symtableprocentry.procdef_count do
-                     begin
-                       pd:=symtableprocentry.procdef[j];
-                       { only when the # of parameter are supported by the
-                         procedure }
-                       if (paralength>=pd.minparacount) and
-                          ((po_varargs in pd.procoptions) or { varargs }
-                           (paralength<=pd.maxparacount)) then
-                         begin
-                            new(hp);
-                            hp^.data:=pd;
-                            hp^.next:=procs;
-                            hp^.firstpara:=tparaitem(pd.Para.first);
-                            if not(po_varargs in pd.procoptions) then
-                             begin
-                               { if not all parameters are given, then skip the
-                                 default parameters }
-                               for i:=1 to pd.maxparacount-paralength do
-                                hp^.firstpara:=tparaitem(hp^.firstPara.next);
-                             end;
-                            hp^.nextpara:=hp^.firstpara;
-                            procs:=hp;
-                         end;
-                      end;
-
-                   { remember if the procedure is declared with the overload directive,
-                     it's information is still needed also after all procs are removed }
-                   has_overload_directive:=(po_overload in symtableprocentry.first_procdef.procoptions);
-
-                   { when the definition has overload directive set, we search for
-                     overloaded definitions in the symtablestack. The found
-                     entries are only added to the procs list and not the procsym, because
-                     the list can change in every situation }
-                   if has_overload_directive and
-                      (symtableprocentry.owner.symtabletype<>objectsymtable) then
-                     begin
-                       srsymtable:=symtableprocentry.owner.next;
-                       while assigned(srsymtable) do
-                        begin
-                          if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
-                           begin
-                             srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
-                             { process only visible procsyms }
-                             if assigned(srprocsym) and
-                                (srprocsym.typ=procsym) and
-                                srprocsym.is_visible_for_proc(aktprocdef) then
-                              begin
-                                { if this procedure doesn't have overload we can stop
-                                  searching }
-                                if not(po_overload in srprocsym.first_procdef.procoptions) then
-                                 break;
-                                { process all overloaded definitions }
-                                for j:=1 to srprocsym.procdef_count do
-                                 begin
-                                   pd:=srprocsym.procdef[j];
-                                   { only when the # of parameter are supported by the
-                                     procedure }
-                                   if (paralength>=pd.minparacount) and
-                                      ((po_varargs in pd.procoptions) or { varargs }
-                                      (paralength<=pd.maxparacount)) then
-                                    begin
-                                      found:=false;
-                                      hp:=procs;
-                                      while assigned(hp) do
-                                       begin
-                                         if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,false)>=te_equal then
-                                          begin
-                                            found:=true;
-                                            break;
-                                          end;
-                                         hp:=hp^.next;
-                                       end;
-                                      if not found then
-                                       begin
-                                         new(hp);
-                                         hp^.data:=pd;
-                                         hp^.next:=procs;
-                                         hp^.firstpara:=tparaitem(pd.Para.first);
-                                         if not(po_varargs in pd.procoptions) then
-                                          begin
-                                            { if not all parameters are given, then skip the
-                                              default parameters }
-                                            for i:=1 to pd.maxparacount-paralength do
-                                             hp^.firstpara:=tparaitem(hp^.firstPara.next);
-                                          end;
-                                         hp^.nextpara:=hp^.firstpara;
-                                         procs:=hp;
-                                       end;
-                                    end;
-                                 end;
-                              end;
-                           end;
-                          srsymtable:=srsymtable.next;
-                        end;
-                     end;
+                   procs:=candidates_find;
 
                    { no procedures found? then there is something wrong
                      with the parameter size }
@@ -1800,7 +1536,7 @@ type
                         like a bug. It's also not documented }
                       if (m_delphi in aktmodeswitches) and
                          (nf_auto_inherited in flags) and
-                         (has_overload_directive) and
+                         (po_overload in symtableprocentry.first_procdef.procoptions) and
                          (symtableprocentry.procdef_count>=2) then
                         result:=cnothingnode.create
                       else
@@ -1831,462 +1567,59 @@ type
                       goto errorexit;
                     end;
 
-                { now we can compare parameter after parameter }
-                   pt:=tcallparanode(left);
-                   { we start with the last parameter }
-                   lastpara:=paralength+1;
-                   lastparatype:=nil;
-                   while assigned(pt) do
-                     begin
-                        dec(lastpara);
-                        { walk all procedures and determine how this parameter matches and set:
-                           1. pt.exact_match_found if one parameter has an exact match
-                           2. exactmatch if an equal or exact match is found
+                   { Retrieve information about the candidates }
+                   candidates_get_information(procs);
 
-                           3. Para.argconvtyp to exact,equal or convertable
-                                (when convertable then also convertlevel is set)
-                           4. pt.convlevel1found if there is a convertlevel=1
-                           5. pt.convlevel2found if there is a convertlevel=2
-                        }
-                        exactmatch:=false;
-                        hp:=procs;
-                        while assigned(hp) do
-                          begin
-                             { varargs are always equal, but not exact }
-                             if (po_varargs in hp^.data.procoptions) and
-                                (lastpara>hp^.data.minparacount) then
-                              begin
-                                hp^.nextPara.argconvtyp:=act_equal;
-                                exactmatch:=true;
-                              end
-                             else
-                              begin
-                                if is_equal(pt,hp^.nextPara.paratype.def) then
-                                 begin
-                                   if hp^.nextPara.paratype.def=pt.resulttype.def then
-                                    begin
-                                       include(pt.callparaflags,cpf_exact_match_found);
-                                       hp^.nextPara.argconvtyp:=act_exact;
-                                    end
-                                   else
-                                    hp^.nextPara.argconvtyp:=act_equal;
-                                   exactmatch:=true;
-                                 end
-                                else
-                                 begin
-                                   hp^.nextPara.argconvtyp:=act_convertable;
-                                   { var and out parameters are not be convertable
-                                     in Delphi/tp mode. The only exception is when the
-                                     procedure is defined in the system unit }
-                                   if (hp^.nextPara.paratyp in [vs_var,vs_out]) and
-                                      (procs^.data.owner.unitid<>1) and
-                                      ((m_delphi in aktmodeswitches) or
-                                       (m_tp7 in aktmodeswitches)) then
-                                    hp^.nextPara.convertlevel:=0
-                                   else
-                                    begin
-                                      eq:=compare_defs(pt.resulttype.def,hp^.nextPara.paratype.def,pt.left.nodetype);
-                                      case eq of
-                                        te_equal,
-                                        te_exact,
-                                        te_convert_l1 :
-                                          hp^.nextPara.convertlevel:=1;
-                                        te_convert_operator,
-                                        te_convert_l2 :
-                                          hp^.nextPara.convertlevel:=2;
-                                        te_incompatible :
-                                          hp^.nextPara.convertlevel:=0;
-                                        else
-                                          internalerror(200211271);
-                                      end;
-                                    end;
-                                   case hp^.nextPara.convertlevel of
-                                    1 : include(pt.callparaflags,cpf_convlevel1found);
-                                    2 : include(pt.callparaflags,cpf_convlevel2found);
-                                   end;
-                                 end;
-                              end;
+                   { Choose the best candidate and count the number of
+                     candidates left }
+                   cand_cnt:=candidates_choose_best(procs,tprocdef(procdefinition));
 
-                             hp:=hp^.next;
-                          end;
-
-                        { If there was an exactmatch then delete all convertables }
-                        if exactmatch then
-                          begin
-                            hp:=procs;
-                            procs:=nil;
-                            while assigned(hp) do
-                              begin
-                                 hp2:=hp^.next;
-                                 { keep if not convertable }
-                                 if (hp^.nextPara.argconvtyp<>act_convertable) then
-                                  begin
-                                    hp^.next:=procs;
-                                    procs:=hp;
-                                  end
-                                 else
-                                  dispose(hp);
-                                 hp:=hp2;
-                              end;
-                          end
-                        else
-                        { No exact match was found, remove all procedures that are
-                          not convertable (convertlevel=0) }
-                          begin
-                            hp:=procs;
-                            procs:=nil;
-                            while assigned(hp) do
-                              begin
-                                 hp2:=hp^.next;
-                                 { keep if not convertable }
-                                 if (hp^.nextPara.convertlevel<>0) then
-                                  begin
-                                    hp^.next:=procs;
-                                    procs:=hp;
-                                  end
-                                 else
-                                  begin
-                                    { save the type for nice error message }
-                                    lastparatype:=hp^.nextPara.paratype.def;
-                                    dispose(hp);
-                                  end;
-                                 hp:=hp2;
-                              end;
-                          end;
-                        { update nextpara for all procedures }
-                        hp:=procs;
-                        while assigned(hp) do
-                          begin
-                            { only goto next para if we're out of the varargs }
-                            if not(po_varargs in hp^.data.procoptions) or
-                               (lastpara<=hp^.data.maxparacount) then
-                              hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                            hp:=hp^.next;
-                          end;
-                        { load next parameter or quit loop if no procs left }
-                        if assigned(procs) then
-                          pt:=tcallparanode(pt.right)
-                        else
-                          break;
-                     end;
-
-                 { All parameters are checked, check if there are any
-                   procedures left }
-                   if not assigned(procs) then
+                   { All parameters are checked, check if there are any
+                     procedures left }
+                   if cand_cnt>0 then
                     begin
-                      { there is an error, must be wrong type, because
-                        wrong size is already checked (PFV) }
-                      if (not assigned(lastparatype)) or
-                         (not assigned(pt)) or
-                         (not assigned(pt.resulttype.def)) then
-                        internalerror(39393)
-                      else
+                      { Multiple candidates left? }
+                      if cand_cnt>1 then
+                       begin
+                         CGMessage(cg_e_cant_choose_overload_function);
+                         candidates_list(procs,false);
+                         { we'll just use the first candidate to make the
+                           call }
+                       end;
+
+                      { assign procdefinition }
+                      if symtableproc=nil then
+                        symtableproc:=procdefinition.owner;
+
+                      { update browser information }
+                      if make_ref then
                         begin
-                          aktfilepos:=pt.fileinfo;
-                          CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
-                            pt.resulttype.def.typename,lastparatype.typename);
+                           tprocdef(procdefinition).lastref:=tref.create(tprocdef(procdefinition).lastref,@fileinfo);
+                           inc(tprocdef(procdefinition).refcount);
+                           if tprocdef(procdefinition).defref=nil then
+                             tprocdef(procdefinition).defref:=tprocdef(procdefinition).lastref;
                         end;
-                      symtableprocentry.write_parameter_lists(nil);
+                    end
+                   else
+                    begin
+                      { No candidates left, this must be a type error,
+                        because wrong size is already checked. procdefinition
+                        is filled with the first (random) definition that is
+                        found. We use this definition to display a nice error
+                        message that the wrong type is passed }
+                      candidates_find_wrong_para(procs);
+                      candidates_list(procs,true);
+
+                      { We can not proceed, release all procs and exit }
+                      candidates_free(procs);
                       goto errorexit;
                     end;
 
-                   { if there are several choices left then for orddef }
-                   { if a type is totally included in the other        }
-                   { we don't fear an overflow ,                       }
-                   { so we can do as if it is an exact match           }
-                   { this will convert integer to longint              }
-                   { rather than to words                              }
-                   { conversion of byte to integer or longint          }
-                   { would still not be solved                         }
-                   if assigned(procs) and assigned(procs^.next) then
-                     begin
-                        hp:=procs;
-                        while assigned(hp) do
-                          begin
-                            hp^.nextpara:=hp^.firstpara;
-                            hp:=hp^.next;
-                          end;
-                        pt:=tcallparanode(left);
-                        while assigned(pt) do
-                          begin
-                             { matches a parameter of one procedure exact ? }
-                             exactmatch:=false;
-                             def_from:=pt.resulttype.def;
-                             hp:=procs;
-                             while assigned(hp) do
-                               begin
-                                  if not is_equal(pt,hp^.nextPara.paratype.def) then
-                                    begin
-                                       def_to:=hp^.nextPara.paratype.def;
-                                       if ((def_from.deftype=orddef) and (def_to.deftype=orddef)) and
-                                         (is_in_limit(def_from,def_to) or
-                                         ((hp^.nextPara.paratyp in [vs_var,vs_out]) and
-                                         (def_from.size=def_to.size))) then
-                                         begin
-                                            exactmatch:=true;
-                                            conv_to:=def_to;
-                                            { there's no use in continuing the search, it will }
-                                            { only result in conv_to being overwritten         }
-                                            break;
-                                         end;
-                                    end;
-                                  hp:=hp^.next;
-                               end;
-
-                             { .... if yes, del all the other procedures }
-                             if exactmatch then
-                               begin
-                                  { the first .... }
-                                  while (assigned(procs)) and not(is_in_limit(def_from,procs^.nextPara.paratype.def)) do
-                                    begin
-                                       hp:=procs^.next;
-                                       dispose(procs);
-                                       procs:=hp;
-                                    end;
-                                  { and the others }
-                                  hp:=procs;
-                                  while (assigned(hp)) and assigned(hp^.next) do
-                                    begin
-                                       def_to:=hp^.next^.nextPara.paratype.def;
-                                       if not(is_in_limit(def_from,def_to)) then
-                                         begin
-                                            hp2:=hp^.next^.next;
-                                            dispose(hp^.next);
-                                            hp^.next:=hp2;
-                                         end
-                                       else
-                                         begin
-                                           { did we possibly find a better match? }
-                                           if (conv_to.size>def_to.size) or
-                                              is_in_limit(def_to,conv_to) then
-                                             begin
-                                                { is it the same as the previous best? }
-                                                if not defcmp.equal_defs(def_to,conv_to) then
-                                                  begin
-                                                    { no -> remove all previous best matches }
-                                                    hp := hp^.next;
-                                                    while procs <> hp do
-                                                      begin
-                                                        hp2 := procs;
-                                                        procs := procs^.next;
-                                                        dispose(hp2);
-                                                      end;
-                                                    { set new match type }
-                                                    conv_to:=def_to;
-                                                  end
-                                                { the new one matches just as well as the }
-                                                { old one -> keep both                    }
-                                                else
-                                                  hp := hp^.next;
-                                             end
-                                           { not a better match -> remove }
-                                           else
-                                             begin
-                                               hp2 := hp^.next^.next;
-                                               dispose(hp^.next);
-                                               hp^.next:=hp2;
-                                             end;
-                                         end;
-                                    end;
-                               end;
-                             { update nextpara for all procedures }
-                             hp:=procs;
-                             while assigned(hp) do
-                               begin
-                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                                  hp:=hp^.next;
-                               end;
-                             pt:=tcallparanode(pt.right);
-                          end;
-                     end;
-
-                   { let's try to eliminate equal if there is an exact match
-                     is there }
-                   if assigned(procs) and assigned(procs^.next) then
-                     begin
-                        { reset nextpara for all procs left }
-                        hp:=procs;
-                        while assigned(hp) do
-                         begin
-                           hp^.nextpara:=hp^.firstpara;
-                           hp:=hp^.next;
-                         end;
-
-                        pt:=tcallparanode(left);
-                        while assigned(pt) do
-                          begin
-                             if cpf_exact_match_found in pt.callparaflags then
-                               begin
-                                 hp:=procs;
-                                 procs:=nil;
-                                 while assigned(hp) do
-                                   begin
-                                      hp2:=hp^.next;
-                                      { keep the exact matches, dispose the others }
-                                      if (hp^.nextPara.argconvtyp=act_exact) then
-                                       begin
-                                         hp^.next:=procs;
-                                         procs:=hp;
-                                       end
-                                      else
-                                       dispose(hp);
-                                      hp:=hp2;
-                                   end;
-                               end;
-                             { update nextpara for all procedures }
-                             hp:=procs;
-                             while assigned(hp) do
-                               begin
-                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                                  hp:=hp^.next;
-                               end;
-                             pt:=tcallparanode(pt.right);
-                          end;
-                     end;
-
-                   { Check if there are integer constant to integer
-                     parameters then choose the best matching integer
-                     parameter and remove the others, this is Delphi
-                     compatible. 1 = byte, 256 = word, etc. }
-                   if assigned(procs) and assigned(procs^.next) then
-                     begin
-                        { reset nextpara for all procs left }
-                        hp:=procs;
-                        while assigned(hp) do
-                         begin
-                           hp^.nextpara:=hp^.firstpara;
-                           hp:=hp^.next;
-                         end;
-
-                        pt:=tcallparanode(left);
-                        while assigned(pt) do
-                          begin
-                            bestord:=nil;
-                            if (pt.left.nodetype=ordconstn) and
-                               is_integer(pt.resulttype.def) then
-                             begin
-                               hp:=procs;
-                               while assigned(hp) do
-                                begin
-                                  def_to:=hp^.nextPara.paratype.def;
-                                  { to be sure, it couldn't be something else,
-                                    also the defs here are all in the range
-                                    so now find the closest range }
-                                  if not is_integer(def_to) then
-                                   internalerror(43297815);
-                                  if (not assigned(bestord)) or
-                                     ((torddef(def_to).low>bestord.low) or
-                                      (torddef(def_to).high<bestord.high)) then
-                                   bestord:=torddef(def_to);
-                                  hp:=hp^.next;
-                                end;
-                             end;
-                            { if a bestmatch is found then remove the other
-                              procs which don't match the bestord }
-                            if assigned(bestord) then
-                             begin
-                               hp:=procs;
-                               procs:=nil;
-                               while assigned(hp) do
-                                begin
-                                  hp2:=hp^.next;
-                                  { keep matching bestord, dispose the others }
-                                  if (torddef(hp^.nextPara.paratype.def)=bestord) then
-                                   begin
-                                     hp^.next:=procs;
-                                     procs:=hp;
-                                   end
-                                  else
-                                   dispose(hp);
-                                  hp:=hp2;
-                                end;
-                             end;
-
-                            { update nextpara for all procedures }
-                            hp:=procs;
-                            while assigned(hp) do
-                             begin
-                               hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                               hp:=hp^.next;
-                             end;
-                            pt:=tcallparanode(pt.right);
-                          end;
-                     end;
-
-                   { Check if there are convertlevel 1 and 2 differences
-                     left for the parameters, then discard all convertlevel
-                     2 procedures. The value of convlevelXfound can still
-                     be used, because all convertables are still here or
-                     not }
-                   if assigned(procs) and assigned(procs^.next) then
-                     begin
-                        { reset nextpara for all procs left }
-                        hp:=procs;
-                        while assigned(hp) do
-                         begin
-                           hp^.nextpara:=hp^.firstpara;
-                           hp:=hp^.next;
-                         end;
-
-                        pt:=tcallparanode(left);
-                        while assigned(pt) do
-                          begin
-                             if (cpf_convlevel1found in pt.callparaflags) and
-                               (cpf_convlevel2found in pt.callparaflags) then
-                               begin
-                                 hp:=procs;
-                                 procs:=nil;
-                                 while assigned(hp) do
-                                   begin
-                                      hp2:=hp^.next;
-                                      { keep all not act_convertable and all convertlevels=1 }
-                                      if (hp^.nextPara.argconvtyp<>act_convertable) or
-                                         (hp^.nextPara.convertlevel=1) then
-                                       begin
-                                         hp^.next:=procs;
-                                         procs:=hp;
-                                       end
-                                      else
-                                       dispose(hp);
-                                      hp:=hp2;
-                                   end;
-                               end;
-                             { update nextpara for all procedures }
-                             hp:=procs;
-                             while assigned(hp) do
-                               begin
-                                  hp^.nextpara:=tparaitem(hp^.nextPara.next);
-                                  hp:=hp^.next;
-                               end;
-                             pt:=tcallparanode(pt.right);
-                          end;
-                     end;
-
-                   if not(assigned(procs)) or assigned(procs^.next) then
-                     begin
-                        CGMessage(cg_e_cant_choose_overload_function);
-                        symtableprocentry.write_parameter_lists(nil);
-                        goto errorexit;
-                     end;
-                   if make_ref then
-                     begin
-                        procs^.data.lastref:=tref.create(procs^.data.lastref,@fileinfo);
-                        inc(procs^.data.refcount);
-                        if procs^.data.defref=nil then
-                          procs^.data.defref:=procs^.data.lastref;
-                     end;
-
-                   procdefinition:=procs^.data;
-                   { big error for with statements
-                   symtableproc:=procdefinition.owner;
-                   but neede for overloaded operators !! }
-                   if symtableproc=nil then
-                     symtableproc:=procdefinition.owner;
+                   candidates_free(procs);
                end; { end of procedure to call determination }
 
-
               { add needed default parameters }
-              if assigned(procs) and
+              if assigned(procdefinition) and
                  (paralength<procdefinition.maxparacount) then
                begin
                  { add default parameters, just read back the skipped
@@ -2333,13 +1666,6 @@ type
              goto errorexit;
            end;
 
-{$ifdef dummy}
-         { Calling a message method directly ? }
-         if assigned(procdefinition) and
-            (po_containsself in procdefinition.procoptions) then
-           message(cg_e_cannot_call_message_direct);
-{$endif}
-
          { ensure that the result type is set }
          if not restypeset then
            resulttype:=procdefinition.rettype
@@ -2371,7 +1697,6 @@ type
                 assigned(methodpointer.resulttype.def) and
                 (methodpointer.resulttype.def.deftype=classrefdef) then
                resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
-
            end;
 
          { flag all callparanodes that belong to the varargs }
@@ -2395,12 +1720,9 @@ type
           end;
 
       errorexit:
-         { Reset some settings back }
-         if assigned(procs) then
-           dispose(procs);
          aktcallprocdef:=oldcallprocdef;
       end;
-{$endif}
+
 
     function tcallnode.pass_1 : tnode;
       var
@@ -2680,7 +2002,6 @@ type
         docompare :=
           inherited docompare(p) and
           (symtableprocentry = tcallnode(p).symtableprocentry) and
-          (symtableproc = tcallnode(p).symtableproc) and
           (procdefinition = tcallnode(p).procdefinition) and
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
           ((restypeset and tcallnode(p).restypeset and
@@ -2857,7 +2178,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2002-12-07 14:27:07  carl
+  Revision 1.117  2002-12-11 22:42:28  peter
+    * tcallnode.det_resulttype rewrite, merged code from nice_ncal and
+      the old code. The new code collects the information about possible
+      candidates only once resultting in much less calls to type compare
+      routines
+
+  Revision 1.116  2002/12/07 14:27:07  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for
