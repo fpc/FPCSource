@@ -104,7 +104,7 @@ Const
   self_pointer  = R_16;
   accumulator   = R_0;
   global_pointer = R_29;
-  scratchregister = R_1;
+  scratch_register = R_1;
 
   { sizes }
   pointersize   = 8;
@@ -235,7 +235,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-05 15:50:34  michael
+  Revision 1.8  1999-08-05 17:10:58  florian
+    * some more additions, especially procedure
+      exit code generation
+
+  Revision 1.7  1999/08/05 15:50:34  michael
   * more changes
 
   Revision 1.6  1999/08/05 14:58:17  florian

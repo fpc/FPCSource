@@ -46,6 +46,7 @@ unit cgobj;
           procedure g_incr_data(list : paasmoutput;p : psym);
           procedure g_finalize_data(list : paasmoutput;p : pnamedindexobject);
           procedure g_copyvalueparas(list : paasmoutput;p : pnamedindexobject);
+          procedure g_finalizetempansistrings(list : paasmoutput);
 
           procedure g_entrycode(list : paasmoutput;
             const proc_names : tstringcontainer;make_global : boolean;
@@ -66,10 +67,20 @@ unit cgobj;
           procedure a_call_name(list : paasmoutput;const s : string;
             offset : longint);virtual;
 
-          procedure a_load_const8_ref(list : paasmoutput;b : byte;const ref : treference);virtual;
-          procedure a_load_const16_ref(list : paasmoutput;w : word;const ref : treference);virtual;
-          procedure a_load_const32_ref(list : paasmoutput;l : longint;const ref : treference);virtual;
-          procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
+          procedure a_load8_const_reg(list : paasmoutput;b : byte;register : tregister);virtual;
+          procedure a_load16_const_reg(list : paasmoutput;w : word;register : tregister);virtual;
+          procedure a_load32_const_reg(list : paasmoutput;l : longint;register : tregister);virtual;
+          procedure a_load64_const_reg(list : paasmoutput;q : qword;register : tregister);virtual;
+
+          procedure a_load8_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
+          procedure a_load16_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
+          procedure a_load32_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
+          procedure a_load64_reg_ref(list : paasmoutput;register : tregister;const ref : treference);virtual;
+
+          procedure a_load8_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
+          procedure a_load16_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
+          procedure a_load32_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
+          procedure a_load64_ref_reg(list : paasmoutput;const ref : treference;register : tregister);virtual;
 
           procedure a_loadaddress_ref_reg(list : paasmoutput;ref : treference;r : tregister);virtual;
 
@@ -86,17 +97,22 @@ unit cgobj;
           procedure g_profilecode(list : paasmoutput);virtual;
           procedure g_stackcheck(list : paasmoutput;stackframesize : longint);virtual;
 
+          procedure a_load8_const_ref(list : paasmoutput;b : byte;const ref : treference);virtual;
+          procedure a_load16_const_ref(list : paasmoutput;w : word;const ref : treference);virtual;
+          procedure a_load32_const_ref(list : paasmoutput;l : longint;const ref : treference);virtual;
+          procedure a_load64_const_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
           { passing parameters, per default the parameter is pushed }
           { nr gives the number of the parameter (enumerated from   }
           { left to right), this allows to move the parameter to    }
           { register, if the cpu supports register calling          }
           { conventions                                             }
           procedure a_param_reg(list : paasmoutput;r : tregister;nr : longint);virtual;
-          procedure a_param_const8(list : paasmoutput;b : byte;nr : longint);virtual;
-          procedure a_param_const16(list : paasmoutput;w : word;nr : longint);virtual;
-          procedure a_param_const32(list : paasmoutput;l : longint;nr : longint);virtual;
-          procedure a_param_const64(list : paasmoutput;q : qword;nr : longint);virtual;
-          procedure a_param_ref(list : paasmoutput;r : treference;nr : longint);virtual;
+          procedure a_param8_const(list : paasmoutput;b : byte;nr : longint);virtual;
+          procedure a_param16_const(list : paasmoutput;w : word;nr : longint);virtual;
+          procedure a_param32_const(list : paasmoutput;l : longint;nr : longint);virtual;
+          procedure a_param64_const(list : paasmoutput;q : qword;nr : longint);virtual;
+          { uses the addr of ref as param, was emitpushreferenceaddr }
+          procedure a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);virtual;
        end;
 
     var
@@ -120,8 +136,8 @@ unit cgobj;
       end;
 
 {*****************************************************************************
-                  per default, this methods nothing, can overriden
-*****************************************************************************}
+            this methods must be overridden for extra functionality
+******************************************************************************}
 
     procedure tcg.g_interrupt_stackframe_entry(list : paasmoutput);
 
@@ -138,47 +154,51 @@ unit cgobj;
       begin
       end;
 
+{*****************************************************************************
+          for better code generation these methods should be overridden
+******************************************************************************}
+
     procedure tcg.a_param_reg(list : paasmoutput;r : tregister;nr : longint);
 
       begin
          a_push_reg(list,r);
       end;
 
-    procedure tcg.a_param_const8(list : paasmoutput;b : byte;nr : longint);
+    procedure tcg.a_param8_const(list : paasmoutput;b : byte;nr : longint);
 
       begin
          {!!!!!!!! a_push_const8(list,b); }
       end;
 
-    procedure tcg.a_param_const16(list : paasmoutput;w : word;nr : longint);
+    procedure tcg.a_param16_const(list : paasmoutput;w : word;nr : longint);
 
       begin
          {!!!!!!!! a_push_const16(list,w); }
       end;
 
-    procedure tcg.a_param_const32(list : paasmoutput;l : longint;nr : longint);
+    procedure tcg.a_param32_const(list : paasmoutput;l : longint;nr : longint);
 
       begin
          {!!!!!!!! a_push_const32(list,l); }
       end;
 
-    procedure tcg.a_param_const64(list : paasmoutput;q : qword;nr : longint);
+    procedure tcg.a_param64_const(list : paasmoutput;q : qword;nr : longint);
 
       begin
          {!!!!!!!! a_push_const64(list,q); }
       end;
 
-    procedure tcg.a_param_ref(list : paasmoutput;r : treference;nr : longint);
+    procedure tcg.a_param_ref_addr(list : paasmoutput;r : treference;nr : longint);
 
       begin
-         a_loadaddress_ref_reg(list,r,scratchregister);
-         a_param_reg(list,scratchregister,nr);
+         a_loadaddress_ref_reg(list,r,scratch_register);
+         a_param_reg(list,scratch_register,nr);
       end;
 
     procedure tcg.g_stackcheck(list : paasmoutput;stackframesize : longint);
 
       begin
-         a_param_const32(list,stackframesize,1);
+         a_param32_const(list,stackframesize,1);
          a_call_name_ext(list,'FPC_STACKCHECK',0);
       end;
 
@@ -187,7 +207,34 @@ unit cgobj;
 
       begin
          a_call_name(list,s,offset);
-         { concat_external(s,m); }
+      end;
+
+    procedure tcg.a_load8_const_ref(list : paasmoutput;b : byte;const ref : treference);
+
+      begin
+         a_load8_const_reg(list,b,scratch_register);
+         a_load8_reg_ref(list,scratch_register,ref);
+      end;
+
+    procedure tcg.a_load16_const_ref(list : paasmoutput;w : word;const ref : treference);
+
+      begin
+         a_load16_const_reg(list,w,scratch_register);
+         a_load16_reg_ref(list,scratch_register,ref);
+      end;
+
+    procedure tcg.a_load32_const_ref(list : paasmoutput;l : longint;const ref : treference);
+
+      begin
+         a_load32_const_reg(list,l,scratch_register);
+         a_load32_reg_ref(list,scratch_register,ref);
+      end;
+
+    procedure tcg.a_load64_const_ref(list : paasmoutput;q : qword;const ref : treference);
+
+      begin
+         a_load64_const_reg(list,q,scratch_register);
+         a_load64_reg_ref(list,scratch_register,ref);
       end;
 
 {*****************************************************************************
@@ -252,11 +299,11 @@ unit cgobj;
               procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
               reset_reference(hr);
               hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
-              a_param_ref(list,hr,2);
+              a_param_ref_addr(list,hr,2);
               reset_reference(hr);
               hr.base:=procinfo.framepointer;
               hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
-              a_param_ref(list,hr,1);
+              a_param_ref_addr(list,hr,1);
               reset_reference(hr);
               a_call_name(list,'FPC_ADDREF',0);
            end;
@@ -287,6 +334,29 @@ unit cgobj;
       begin
          cg^.g_copyvalueparas(_list,s);
       end;
+
+    procedure tcg.g_finalizetempansistrings(list : paasmoutput);
+
+      var
+         hp : ptemprecord;
+         hr : treference;
+
+      begin
+         hp:=tg.templist;
+         while assigned(hp) do
+           begin
+              if hp^.temptype in [tt_ansistring,tt_freeansistring] then
+                begin
+                   procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                   reset_reference(hr);
+                   hr.base:=procinfo.framepointer;
+                   hr.offset:=hp^.pos;
+                   a_param_ref_addr(list,hr,1);
+                   a_call_name(list,'FPC_ANSISTR_DECR_REF',0);
+                end;
+              hp:=hp^.next;
+           end;
+     end;
 
     procedure _finalize_data(s : pnamedindexobject);{$ifndef FPC}far;{$endif}
 
@@ -388,9 +458,9 @@ unit cgobj;
                 begin
                    hr.symbol:=newasmsymbol('U_'+target_info.system_unit+'_ISCONSOLE');
                    if apptype=at_cui then
-                     a_load_const8_ref(list,1,hr)
+                     a_load8_const_ref(list,1,hr)
                    else
-                     a_load_const8_ref(list,0,hr);
+                     a_load8_const_ref(list,0,hr);
                    dispose(hr.symbol,done);
                 end;
 
@@ -438,7 +508,7 @@ unit cgobj;
               reset_reference(hr);
               hr.offset:=procinfo.retoffset;
               hr.base:=procinfo.framepointer;
-              a_load_const32_ref(list,0,hr);
+              a_load32_const_ref(list,0,hr);
            end;
 
          _list:=list;
@@ -497,148 +567,182 @@ unit cgobj;
   {$endif GDB}
     end;
 
-  procedure tcg.g_exitcode(list : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
-{$ifdef GDB}
-    var
-       mangled_length : longint;
-       p : pchar;
-{$endif GDB}
-  begin
-{$ifdef dummy}
-      { !!!! insert there automatic destructors }
-      if aktexitlabel^.is_used then
-        list^.insert(new(pai_label,init(aktexitlabel)));
+    procedure tcg.g_exitcode(list : paasmoutput;parasize:longint;nostackframe,inlined:boolean);
 
-      { call the destructor help procedure }
-      if (aktprocsym^.definition^.options and podestructor)<>0 then
-        begin
-          if procinfo._class^.isclass then
-            begin
-              list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
-                newcsymbol('FPC_DISPOSE_CLASS',0))));
-              concat_external('FPC_DISPOSE_CLASS',EXT_NEAR);
-            end
-          else
-            begin
-              list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
-                newcsymbol('FPC_HELP_DESTRUCTOR',0))));
-              list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
-              concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
-            end;
-        end;
-      _list:=list;
-      { finalize local data }
-      aktprocsym^.definition^.localst^.foreach({$ifdef FPC}@{$endif FPC}finalize_data);
+      var
+  {$ifdef GDB}
+         mangled_length : longint;
+         p : pchar;
+  {$endif GDB}
+         noreraiselabel : pasmlabel;
 
-      { finalize paras data }
-      if assigned(aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach({$ifdef FPC}@{$endif FPC}finalize_data);
+      begin
+         if aktexitlabel^.is_used then
+           list^.insert(new(pai_label,init(aktexitlabel)));
 
-      { call __EXIT for main program }
-      if (not DLLsource) and (not inlined) and ((aktprocsym^.definition^.options and poproginit)<>0) then
-       begin
-         list^.concat(new(pai386,op_csymbol(A_CALL,S_NO,newcsymbol('FPC_DO_EXIT',0))));
-         concat_external('FPC_DO_EXIT',EXT_NEAR);
-       end;
+         { call the destructor help procedure }
+         if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+           begin
+             if procinfo._class^.is_class then
+               a_call_name(list,'FPC_DISPOSE_CLASS',0)
+             else
+               begin
+                  a_load32_const_reg(list,procinfo._class^.vmt_offset,scratch_register);
+                  a_call_name(list,'FPC_HELP_DESTRUCTOR',0);
+               end;
+           end;
 
-      { handle return value }
-      if (aktprocsym^.definition^.options and poassembler)=0 then
-          if (aktprocsym^.definition^.options and poconstructor)=0 then
-            handle_return_value(list,inlined)
-          else
-              begin
-                  { successful constructor deletes the zero flag }
-                  { and returns self in eax                      }
-                  list^.concat(new(pai_label,init(quickexitlabel)));
-                  { eax must be set to zero if the allocation failed !!! }
-                  list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESI,R_EAX)));
-                  list^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_EAX,R_EAX)));
-              end;
+         { finalize temporary data }
+         g_finalizetempansistrings(list);
 
-      { stabs uses the label also ! }
-      if aktexit2label^.is_used or
-         ((cs_debuginfo in aktmoduleswitches) and not inlined) then
-        list^.concat(new(pai_label,init(aktexit2label)));
-      { gives problems for long mangled names }
-      {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
+         _list:=list;
 
-      { should we restore edi ? }
-      { for all i386 gcc implementations }
-      if ((aktprocsym^.definition^.options and pocdecl)<>0) then
-        begin
-          list^.insert(new(pai386,op_reg(A_POP,S_L,R_EDI)));
-          list^.insert(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           list^.insert(new(pai386,op_reg(A_POP,S_L,R_EBX)));
-          { here we could reset R_EBX
-            but that is risky because it only works
-            if genexitcode is called after genentrycode
-            so lets skip this for the moment PM
-          aktprocsym^.definition^.usedregisters:=
-            aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
-          }
-        end;
+         { finalize local data }
+         aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}_finalize_data);
 
-      if not(nostackframe) and not inlined then
-          list^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
-      { parameters are limited to 65535 bytes because }
-      { ret allows only imm16                         }
-      if (parasize>65535) and not(aktprocsym^.definition^.options and poclearstack<>0) then
-       CGMessage(cg_e_parasize_too_big);
+         { finalize paras data }
+         if assigned(aktprocsym^.definition^.parast) then
+           aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}_finalize_data);
 
-      { at last, the return is generated }
+         { do we need to handle exceptions because of ansi/widestrings ? }
+         if (procinfo.flags and pi_needs_implicit_finally)<>0 then
+           begin
+              getlabel(noreraiselabel);
 
-      if not inlined then
-      if (aktprocsym^.definition^.options and pointerrupt)<>0 then
-          generate_interrupt_stackframe_exit
-      else
-       begin
-       {Routines with the poclearstack flag set use only a ret.}
-       { also routines with parasize=0           }
-         if (parasize=0) or (aktprocsym^.definition^.options and poclearstack<>0) then
-          list^.concat(new(pai386,op_none(A_RET,S_NO)))
+              a_call_name(list,'FPC_POPADDRSTACK',0);
+
+              list^.concat(new(pai386,
+                op_reg(A_POP,S_L,R_EAX)));
+              list^.concat(new(pai386,
+                op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
+              emitjmp(C_E,noreraiselabel);
+              { must be the return value finalized before reraising the exception? }
+              if (procinfo.retdef<>pdef(voiddef)) and
+                (procinfo.retdef^.needs_inittable) and
+                ((procinfo.retdef^.deftype<>objectdef) or
+                not(pobjectdef(procinfo.retdef)^.is_class)) then
+                begin
+                   reset_reference(hr);
+                   hr.offset:=procinfo.retoffset;
+                   hr.base:=procinfo.framepointer;
+                   finalize(procinfo.retdef,hr,ret_in_param(procinfo.retdef));
+                end;
+
+              a_call_name(list,'FPC_RERAISE',0);
+              exprasmlist^.concat(new(pai_label,init(noreraiselabel)));
+           end;
+
+         { call __EXIT for main program }
+         if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
+           a_call_name(list,'FPC_DO_EXIT',0);
+
+         { handle return value }
+         if not(po_assembler in aktprocsym^.definition^.procoptions) then
+             if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
+               handle_return_value(inlined)
+             else
+                 begin
+                     { successful constructor deletes the zero flag }
+                     { and returns self in eax                   }
+                     exprasmlist^.concat(new(pai_label,init(quickexitlabel)));
+                     { eax must be set to zero if the allocation failed !!! }
+                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESI,R_EAX)));
+                     exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,R_EAX,R_EAX)));
+                 end;
+
+         { stabs uses the label also ! }
+         if aktexit2label^.is_used or
+            ((cs_debuginfo in aktmoduleswitches) and not inlined) then
+           exprasmlist^.concat(new(pai_label,init(aktexit2label)));
+         { gives problems for long mangled names }
+         {list^.concat(new(pai_symbol,init(aktprocsym^.definition^.mangledname+'_end')));}
+
+         { should we restore edi ? }
+         { for all i386 gcc implementations }
+         if (po_savestdregs in aktprocsym^.definition^.procoptions) then
+           begin
+             if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+              exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
+             exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
+             exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+             { here we could reset R_EBX
+               but that is risky because it only works
+               if genexitcode is called after genentrycode
+               so lets skip this for the moment PM
+             aktprocsym^.definition^.usedregisters:=
+               aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
+             }
+           end;
+
+         if not(nostackframe) and not inlined then
+             exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+{$ifdef i386}
+         { parameters are limited to 65535 bytes because }
+         { ret allows only imm16                    }
+         if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+          CGMessage(cg_e_parasize_too_big);
+{$endif i386}
+         { at last, the return is generated }
+
+         if not inlined then
+           if (po_interrupt in aktprocsym^.definition^.procoptions) then
+             generate_interrupt_stackframe_exit
          else
-          list^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
-       end;
-
-{$ifdef GDB}
-      if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-              aktprocsym^.concatstabto(list);
-              if assigned(procinfo._class) then
-                  list^.concat(new(pai_stabs,init(strpnew(
-                   '"$t:v'+procinfo._class^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))));
-
-              if (porddef(aktprocsym^.definition^.retdef) <> voiddef) then
-                if ret_in_param(aktprocsym^.definition^.retdef) then
-                  list^.concat(new(pai_stabs,init(strpnew(
-                   '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
-                else
-                  list^.concat(new(pai_stabs,init(strpnew(
-                   '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
-
-              mangled_length:=length(aktprocsym^.definition^.mangledname);
-              getmem(p,mangled_length+50);
-              strpcopy(p,'192,0,0,');
-              strpcopy(strend(p),aktprocsym^.definition^.mangledname);
-              list^.concat(new(pai_stabn,init(strnew(p))));
-              {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
-               +aktprocsym^.definition^.mangledname))));
-              p[0]:='2';p[1]:='2';p[2]:='4';
-              strpcopy(strend(p),'_end');}
-              freemem(p,mangled_length+50);
-              list^.concat(new(pai_stabn,init(
-                strpnew('224,0,0,'+lab2str(aktexit2label)))));
-               { strpnew('224,0,0,'
-               +aktprocsym^.definition^.mangledname+'_end'))));}
+          {Routines with the poclearstack flag set use only a ret.}
+          { also routines with parasize=0     }
+            if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+             exprasmlist^.concat(new(pai386,op_none(A_RET,S_NO)))
+            else
+             exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
           end;
-{$endif GDB}
-      curlist:=nil;
-{$endif dummy}
-  end;
+
+         exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
+
+    {$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) and not inlined  then
+             begin
+                 aktprocsym^.concatstabto(exprasmlist);
+                 if assigned(procinfo._class) then
+                   if (not assigned(procinfo.parent) or
+                      not assigned(procinfo.parent^._class)) then
+                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      '"$t:v'+procinfo._class^.numberstring+'",'+
+                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))))
+                   else
+                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      '"$t:r'+procinfo._class^.numberstring+'",'+
+                      tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
+
+                 if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
+                   if ret_in_param(aktprocsym^.definition^.retdef) then
+                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                   else
+                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                      '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+
+                 mangled_length:=length(aktprocsym^.definition^.mangledname);
+                 getmem(p,mangled_length+50);
+                 strpcopy(p,'192,0,0,');
+                 strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                 exprasmlist^.concat(new(pai_stabn,init(strnew(p))));
+                 {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
+                  +aktprocsym^.definition^.mangledname))));
+                 p[0]:='2';p[1]:='2';p[2]:='4';
+                 strpcopy(strend(p),'_end');}
+                 freemem(p,mangled_length+50);
+                 exprasmlist^.concat(new(pai_stabn,init(
+                   strpnew('224,0,0,'+aktexit2label^.name))));
+                  { strpnew('224,0,0,'
+                  +aktprocsym^.definition^.mangledname+'_end'))));}
+             end;
+    {$endif GDB}
+         exprasmlist:=oldexprasmlist;
+
+      end;
 {*****************************************************************************
                        some abstract definitions
  ****************************************************************************}
@@ -701,7 +805,11 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-05 14:58:11  florian
+  Revision 1.12  1999-08-05 17:10:56  florian
+    * some more additions, especially procedure
+      exit code generation
+
+  Revision 1.11  1999/08/05 14:58:11  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

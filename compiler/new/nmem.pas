@@ -168,7 +168,8 @@ unit nmem;
                                 begin
                                    location.reference.base:=procinfo.framepointer;
                                    location.reference.offset:=pvarsym(symtableentry)^.address;
-                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) then
+                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) and
+				     not(use_esp_stackframe) then
                                      location.reference.offset:=-location.reference.offset;
                                    if (lexlevel>(symtable^.symtablelevel)) then
                                      begin
@@ -749,7 +750,11 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-05 14:58:13  florian
+  Revision 1.7  1999-08-05 17:10:57  florian
+    * some more additions, especially procedure
+      exit code generation
+
+  Revision 1.6  1999/08/05 14:58:13  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 
