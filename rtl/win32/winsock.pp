@@ -807,8 +807,8 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 
     procedure GetAcceptExSockaddrs(lpOutputBuffer:Pointer;
                                    dwReceiveDataLength,dwLocalAddressLength,dwRemoteAddressLength:dword;
-                                   var LocalSockaddr:TSockAddr; var LocalSockaddrLength:tOS_INT;
-                                   var RemoteSockaddr:TSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
+                                   var LocalSockaddr:PSockAddr; var LocalSockaddrLength:tOS_INT;
+                                   var RemoteSockaddr:PSockAddr; var RemoteSockaddrLength:tOS_INT);stdcall;
                                    external winsockdll name 'GetAcceptExSockaddrs';
 
     function WSAMakeSyncReply(Buflen,Error:Word):dword;
@@ -911,7 +911,10 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 end.
 {
   $Log$
-  Revision 1.14  2004-06-14 08:27:06  michael
+  Revision 1.15  2004-09-18 16:19:18  marco
+   *  GetAcceptExSockaddrs corrected. Double indirection.
+
+  Revision 1.14  2004/06/14 08:27:06  michael
   + Fix for bug 3166 by Michalis Kamburelis
 
   Revision 1.13  2004/06/06 04:01:45  marco
