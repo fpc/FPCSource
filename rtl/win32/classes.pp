@@ -38,6 +38,9 @@ uses
 
 implementation
 
+uses
+  sysconst;
+
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
@@ -50,7 +53,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2004-01-10 19:35:18  michael
+  Revision 1.4  2004-01-13 18:04:25  florian
+    * make win32 fixed
+
+  Revision 1.3  2004/01/10 19:35:18  michael
   + Moved all resource strings to rtlconst/sysconst
 
   Revision 1.2  2003/10/07 16:20:21  florian
