@@ -115,9 +115,10 @@ begin
   if FileExists(DynamicLinker) then
    begin
      Glibc2:=true;
-     { also glibc 2.1 / 2.1.1 ? }
+     { also glibc 2.1 / 2.1.1 / 2.1.2 ? }
      if FileExists('/lib/ld-2.1.so') or
-        FileExists('/lib/ld-2.1.1.so') then
+        FileExists('/lib/ld-2.1.1.so') or
+        FileExists('/lib/ld-2.1.2.so') then
       Glibc21:=true;
    end
   else
@@ -716,7 +717,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.61  1999-07-18 10:19:53  florian
+  Revision 1.62  1999-07-27 11:05:51  peter
+    * glibc 2.1.2 support
+
+  Revision 1.61  1999/07/18 10:19:53  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
