@@ -91,17 +91,21 @@ unit rgobj;
           { registers, otherwise the result is undefined              }
           function isaddressregister(reg: tregister): boolean; virtual;
 
-          { tries to allocate the passed register, if possible }
+          {# tries to allocate the passed register, if possible }
           function getexplicitregisterint(list: taasmoutput; r : tregister) : tregister;virtual;
 
-          { deallocate any kind of register }
+          {# deallocate any kind of register }
           procedure ungetregister(list: taasmoutput; r : tregister); virtual;
 
-          { deallocate any kind of register }
+          {# deallocate any kind of register }
           procedure ungetreference(list: taasmoutput; const ref : treference); virtual;
 
-          { reset the register allocator information (usable registers etc) }
+          {# reset the register allocator information (usable registers etc) }
           procedure cleartempgen;virtual;
+          
+          {# convert a register to a specified register size, and return that register size }
+          function makeregsize(reg: tregister; size: tcgsize): tregister; virtual;
+          
 
           { saves register variables (restoring happens automatically) }
           procedure saveregvars(list: taasmoutput; const s: tregisterset);
@@ -784,6 +788,14 @@ unit rgobj;
       begin
         rg.ungetreference(list,ref);
       end;
+      
+ { on most processors , this routine does nothing, overriden currently  }
+ { only by 80x86 processor.                                             }
+ function trgobj.makeregsize(reg: tregister; size: tcgsize): tregister; 
+   begin
+     makeregsize := reg;
+   end;
+      
 
 
 {****************************************************************************
@@ -836,13 +848,18 @@ unit rgobj;
       end;
 
 
+
 finalization
   rg.free;
 end.
 
 {
   $Log$
-  Revision 1.7  2002-04-20 21:32:25  carl
+  Revision 1.8  2002-04-21 15:23:03  carl
+  + makeregsize
+  + changeregsize is now a local routine
+
+  Revision 1.7  2002/04/20 21:32:25  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
