@@ -36,6 +36,7 @@ var
   CompilerCPU : string;
   CompilerVersion : string;
   PPFile : string;
+  PPFileInfo : string;
   TestName : string;
   Note : string;
 
@@ -93,6 +94,35 @@ begin
   Str(l,s);
   ToStr:=s;
 end;
+
+function ToStrZero(l:longint;nbzero : byte):string;
+var
+  s : string;
+begin
+  Str(l,s);
+  while length(s)<nbzero do
+    s:='0'+s;
+  ToStrZero:=s;
+end;
+
+
+procedure SetPPFileInfo;
+Var
+  info : searchrec;
+  dt : DateTime;
+begin
+  FindFirst (PPFile,anyfile,Info);
+  If DosError=0 then
+    begin
+      UnpackTime(info.time,dt);
+      PPFileInfo:=PPFile+' '+ToStr(dt.year)+'/'+ToStrZero(dt.month,2)+'/'+
+        ToStrZero(dt.day,2)+' '+ToStrZero(dt.Hour,2)+':'+ToStrZero(dt.min,2)+':'+ToStrZero(dt.sec,2);
+    end
+  else
+    PPFileInfo:=PPfile;
+  FindClose (Info);
+end;
+
 
 
 procedure TrimB(var s:string);
@@ -397,7 +427,9 @@ begin
    begin
      if ExecuteResult<>0 then
       begin
-        AddLog(ResLogFile,'Success, compilation failed '+PPFile);
+        AddLog(ResLogFile,'Success, compilation failed '+PPFileInfo);
+        { avoid to try again }
+        AddLog(ForceExtension(PPFile,'elg'),'Success, compilation failed '+PPFileInfo);
         RunCompiler:=true;
       end
      else
@@ -405,9 +437,11 @@ begin
         AddLog(FailLogFile,TestName);
         if Note<>'' then
           AddLog(FailLogFile,Note);
-        AddLog(ResLogFile,'Failed, compilation successfull '+PPFile);
+        AddLog(ResLogFile,'Failed, compilation successful '+PPFileInfo);
         AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-        AddLog(LongLogFile,'Failed, compilation successfull '+PPFile);
+        AddLog(LongLogFile,'Failed, compilation successful '+PPFileInfo);
+        { avoid to try again }
+        AddLog(ForceExtension(PPFile,'elg'),'Failed, compilation successful '+PPFileInfo);
         if Note<>'' then
           AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
@@ -420,17 +454,19 @@ begin
         AddLog(FailLogFile,TestName);
         if Note<>'' then
           AddLog(FailLogFile,Note);
-        AddLog(ResLogFile,'Failed to compile '+PPFile);
+        AddLog(ResLogFile,'Failed to compile '+PPFileInfo);
         AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-        AddLog(LongLogFile,'Failed to compile '+PPFile);
+        AddLog(LongLogFile,'Failed to compile '+PPFileInfo);
         if Note<>'' then
           AddLog(LongLogFile,Note);
         CopyFile(OutName,LongLogFile,true);
+        { avoid to try again }
+        AddLog(ForceExtension(PPFile,'elg'),'Failed to compile '++PPFileInfo);
         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
      else
       begin
-        AddLog(ResLogFile,'Successfully compiled '+PPFile);
+        AddLog(ResLogFile,'Successfully compiled '+PPFileInfo);
         RunCompiler:=true;
       end;
    end;
@@ -451,15 +487,15 @@ begin
   if ExecuteResult<>Config.ResultCode then
    begin
      AddLog(FailLogFile,TestName);
-     AddLog(ResLogFile,'Failed to run '+PPFile);
+     AddLog(ResLogFile,'Failed to run '+PPFileInfo);
      AddLog(LongLogFile,'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-     AddLog(LongLogFile,'Failed to run '+PPFile+' ('+ToStr(ExecuteResult)+')');
+     AddLog(LongLogFile,'Failed to run '+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
      Copyfile(OutName,LongLogFile,true);
      Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
    end
   else
    begin
-     AddLog(ResLogFile,'Successfully run '+PPFile);
+     AddLog(ResLogFile,'Successfully run '+PPFileInfo);
      RunExecutable:=true;
    end;
 end;
@@ -516,11 +552,14 @@ begin
      end
     else
      begin
+       If PPFile<>'' then
+         HelpScreen;
        PPFile:=ForceExtension(Para,'pp');
      end;
     end;
   if (PPFile='') then
    HelpScreen;
+  SetPPFileInfo;
   TestName:=Copy(PPFile,1,Pos('.pp',PPFile)-1);
   Verbose(V_Debug,'Running test '+TestName+', file '+PPFile);
 end;
@@ -529,14 +568,19 @@ end;
 procedure RunTest;
 var
   Res : boolean;
+  OutName : string;
 begin
   Res:=GetConfig(ppfile,Config);
+  OutName:=ForceExtension(PPFile,'elg');
 
   if Res then
    begin
      if Config.UsesGraph and (not DoGraph) then
       begin
-        Verbose(V_Abort,'Skipping test because it uses graph');
+        AddLog(ResLogFile,'Skipping test because it uses graph '+PPFileInfo);
+        { avoid a second attempt by writing to elg file }
+        AddLog(OutName,'Skipping test because it uses graph '+PPFileInfo);
+        Verbose(V_Abort,'Skipping test because it uses graph ');
         Res:=false;
       end;
    end;
@@ -545,7 +589,10 @@ begin
    begin
      if Config.IsInteractive and (not DoInteractive) then
       begin
-        Verbose(V_Abort,'Skipping test because it is interactive');
+        { avoid a second attempt by writing to elg file }
+        AddLog(OutName,'Skipping test because it is interactive '+PPFileInfo);
+        AddLog(ResLogFile,'Skipping test because it is interactive '+PPFileInfo);
+        Verbose(V_Abort,'Skipping test because it is interactive ');
         Res:=false;
       end;
    end;
@@ -554,7 +601,10 @@ begin
    begin
      if Config.IsKnown and (not DoKnown) then
       begin
-        Verbose(V_Abort,'Skipping test because it is a known bug');
+        { avoid a second attempt by writing to elg file }
+        AddLog(OutName,'Skipping test because it is a known bug '+PPFileInfo);
+        AddLog(ResLogFile,'Skipping test because it is a known bug '+PPFileInfo);
+        Verbose(V_Abort,'Skipping test because it is a known bug ');
         Res:=false;
       end;
    end;
@@ -567,6 +617,9 @@ begin
         Res:=GetCompilerVersion;
         if CompilerVersion<Config.NeedVersion then
          begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,'Skipping test because compiler version too low '+PPFileInfo);
+           AddLog(ResLogFile,'Skipping test because compiler version too low '+PPFileInfo);
            Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.NeedVersion);
            Res:=false;
          end;
@@ -581,6 +634,9 @@ begin
         Res:=GetCompilerCPU;
         if Upper(Config.NeedCPU)<>Upper(CompilerCPU) then
          begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,'Skipping test because for other cpu '+PPFileInfo);
+           AddLog(ResLogFile,'Skipping test because for other cpu '+PPFileInfo);
            Verbose(V_Abort,'Compiler cpu wrong '+CompilerCPU+' <> '+Config.NeedCPU);
            Res:=false;
          end;
@@ -598,7 +654,10 @@ begin
    begin
      if (Config.NoRun) then
       begin
-        Verbose(V_Debug,'Skipping run test');
+        { avoid a second attempt by writing to elg file }
+        AddLog(OutName,'Skipping run test '+PPFileInfo);
+        AddLog(ResLogFile,'Skipping run test '+PPFileInfo);
+        Verbose(V_Debug,'Skipping run test ');
       end
      else
       begin
@@ -621,7 +680,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-07-31 09:00:16  pierre
+  Revision 1.11  2002-01-29 12:51:08  pierre
+    + PPFileInfo to also display time stamp of test file
+    * generate .elg file in several cases
+      to avoid trying to recompute the same test
+      over and over again.
+
+  Revision 1.10  2001/07/31 09:00:16  pierre
    + %Note= comment added
 
   Revision 1.9  2001/07/04 11:23:39  florian
