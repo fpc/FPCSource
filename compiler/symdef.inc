@@ -639,7 +639,9 @@
          calcsavesize;
          has_jumps:=false;
          rangenr:=0;
-         first:=nil;
+         first:=basedef^.first;
+         while assigned(first) and (penumsym(first)^.value<>minval) do
+          first:=first^.next;
          correct_owner_symtable;
       end;
 
@@ -3291,7 +3293,10 @@
 
 {
   $Log$
-  Revision 1.91  1999-02-08 09:51:21  pierre
+  Revision 1.92  1999-02-17 10:14:20  peter
+    * set the first enumsym also for subrange types
+
+  Revision 1.91  1999/02/08 09:51:21  pierre
    * gdb info for local functions was wrong
 
   Revision 1.90  1999/01/26 09:57:29  pierre
