@@ -33,6 +33,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       RecentFileCount  : integer = 0;
       HighlightExts    : string[80] = '*.pas;*.pp;*.inc';
       TabsPattern      : string = 'make*;make*.*';
+      SourceDirs       : string = '';
       PrimaryFile      : string = '';
       IsEXECompiled    : boolean = false;
       MainFile         : string = '';
@@ -63,7 +64,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.6  1999-02-04 13:15:40  pierre
+  Revision 1.7  1999-02-05 12:07:55  pierre
+    + SourceDirs added
+
+  Revision 1.6  1999/02/04 13:15:40  pierre
    + TabsPattern added
 
   Revision 1.5  1999/01/21 11:54:26  peter
