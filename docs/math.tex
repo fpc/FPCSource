@@ -62,7 +62,7 @@ argument \var{x} should lie between -1 and 1 (borders included).
 If the argument \var{x} is not in the allowed range, an
 \var{EInvalidArgument} exception is raised.
 \SeeAlso
-\seef{arsin}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
+\seef{arcsin}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
 \end{function}
 
 \FPCexample{ex1}
@@ -81,7 +81,7 @@ compatibility.
 If the argument \var{x} is not in the allowed range, an \var{EInvalidArgument}
 exception is raised.
 \SeeAlso
-\seef{cosh}, \seef{sinh}, \seef{arsin}, \seef{arsinh}, \seef{artanh},
+\seef{cosh}, \seef{sinh}, \seef{arcsin}, \seef{arsinh}, \seef{artanh},
 \seef{tanh}
 \end{function}
 
@@ -97,7 +97,7 @@ argument \var{x} should lie between -1 and 1.
 If the argument \var{x} is not in the allowed range, an \var{EInvalidArgument}
 exception is raised.
 \SeeAlso
-\seef{arcos}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
+\seef{arccos}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
 \end{function}
 
 \FPCexample{ex2}
@@ -107,7 +107,7 @@ exception is raised.
 \Declaration
 Function arctan2(x,y : float) : float;
 \Description
-\var{arctan2} calculates \var{arctan(y/x), and returns an angle in the
+\var{arctan2} calculates \var{arctan(y/x)}, and returns an angle in the
 correct quadrant. The returned angle will be in the range $-\pi$ to
 $\pi$ radians.
 The values of \var{x} and \var{y} must be between -2\^{}64 and 2\^{}64,
@@ -118,7 +118,7 @@ On Intel systems this function is implemented with the native intel
 \Errors
 If \var{x} is zero, an overflow error will occur.
 \SeeAlso
-\seef{arcos}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
+\seef{arccos}, \seef{arcosh}, \seef{arsinh}, \seef{artanh}
 \end{function}
 
 \FPCexample{ex6}
@@ -135,7 +135,7 @@ compatibility.
 \Errors
 None.
 \SeeAlso
-\seef{arcosh}, \seef{arcos}, \seef{arsin}, \seef{artanh}
+\seef{arcosh}, \seef{arccos}, \seef{arcsin}, \seef{artanh}
 \end{function}
 
 \FPCexample{ex4}
@@ -154,7 +154,7 @@ The \var{arctanh} variant of this function is supplied for \delphi compatibility
 In case \var{x} is not in the interval [-1,1], an \var{EInvalidArgument}
 exception is raised.
 \SeeAlso
-\seef{arcosh}, \seef{arcos}, \seef{arsin}, \seef{artanh}
+\seef{arcosh}, \seef{arccos}, \seef{arcsin}, \seef{artanh}
 \Errors
 \SeeAlso
 \end{function}
@@ -434,11 +434,11 @@ will occur.
 Function max(Int1,Int2:Cardinal):Cardinal;
 Function max(Int1,Int2:Integer):Integer;
 \Description
-\var{Max} returns the the maximum of \var{Int1} and \var{Int2}.
+\var{Max} returns the maximum of \var{Int1} and \var{Int2}.
 \Errors
 None.
 \SeeAlso
-\seef{min}, \seef{maxIntValue}, \seef{\maxvalue}
+\seef{min}, \seef{maxIntValue}, \seef{maxvalue}
 \end{function}
 
 \FPCexample{ex24}
@@ -447,124 +447,164 @@ None.
 \Declaration
 function MaxIntValue(const Data: array of Integer): Integer;
 \Description
-\var{MaxIntValue} returns the biggest integer out of the \var{Data}
+\var{MaxIntValue} returns the largest integer out of the \var{Data}
 array.
+
+This function is provided for \delphi compatibility, use the \seef{maxvalue}
+function instead.
 \Errors
 None.
 \SeeAlso
 \seef{maxvalue}, \seef{minvalue}, \seef{minIntValue}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex25}
 
 
 \begin{function}{maxvalue}
 \Declaration
 Function maxvalue(const data : array of float) : float;
+Function maxvalue(const data : array of Integer) : Integer;
+Function maxvalue(const data : PFloat; Const N : Integer) : float;
+Function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 \Description
+\var{Maxvalue} returns the largest value in the \var{data} 
+array with integer or float values. The return value has 
+the same type as the elements of the array.
 
+The third and fourth forms accept a pointer to an array of \var{N} 
+integer or float values.
 \Errors
+None.
 \SeeAlso
+\seef{maxIntValue}, \seef{minvalue}, \seef{minIntValue}
 \end{function}
 
-\FPCexample{}
-
+\FPCexample{ex26}
 
 \begin{function}{mean}
 \Declaration
 Function mean(const data : array of float) : float;
+Function mean(const data : PFloat; Const N : longint) : float;
 \Description
+\var{Mean} returns the average value of \var{data}.
 
+The second form accepts a pointer to an array of \var{N} values.
 \Errors
+None.
 \SeeAlso
+\seep{meanandstddev}, \seep{momentskewkurtosis}, \seef{sum}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex27}
 
-
-  var mean,stddev : float);
 \begin{procedure}{meanandstddev}
 \Declaration
-Procedure meanandstddev(const data : array of float;
+Procedure meanandstddev(const data : array of float; 
+                        var mean,stddev : float);
+procedure meanandstddev(const data : PFloat;
+  Const N : Longint;var mean,stddev : float);
 \Description
+\var{meanandstddev} calculates the mean and standard deviation of \var{data}
+and returns the result in \var{mean} and \var{stddev}, respectively.
 
+The second form accepts a pointer to an array of \var{N} values.
 \Errors
+None.
 \SeeAlso
+\seef{mean},\seef{sum}, \seef{sumofsquares}, \seep{momentskewkurtosis}
 \end{procedure}
 
-\FPCexample{}
+\FPCexample{ex28}
 
 
 \begin{function}{min}
 \Declaration
 Function min(Int1,Int2:Cardinal):Cardinal;
-\Description
-
-\Errors
-\SeeAlso
-\end{function}
-
-\FPCexample{}
-
-
-\begin{function}{min}
-\Declaration
 Function min(Int1,Int2:Integer):Integer;
 \Description
-
+\var{min} returns the smallest value of \var{Int1} and \var{Int2};
 \Errors
+None.
 \SeeAlso
+\seef{max}
 \end{function}
 
-\FPCexample{}
-
+\FPCexample{ex29}
 
 \begin{function}{minIntValue}
 \Declaration
 Function minIntValue(const Data: array of Integer): Integer;
 \Description
+\var{MinIntvalue} returns the smallest value in the \var{Data} array.
 
+This function is provided for \delphi compatibility, use \var{minvalue}
+instead.
 \Errors
+None
 \SeeAlso
+\seef{minvalue}, \seef{maxIntValue}, \seef{maxvalue}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex30}
 
 
 \begin{function}{minvalue}
 \Declaration
 Function minvalue(const data : array of float) : float;
+Function minvalue(const data : array of Integer) : Integer;
+Function minvalue(const data : PFloat; Const N : Integer) : float;
+Function minvalue(const data : PInteger; Const N : Integer) : Integer;
 \Description
+\var{Minvalue} returns the smallest value in the \var{data} 
+array with integer or float values. The return value has 
+the same type as the elements of the array.
 
+The third and fourth forms accept a pointer to an array of \var{N} 
+integer or float values.
 \Errors
+None.
 \SeeAlso
+\seef{maxIntValue}, \seef{maxvalue}, \seef{minIntValue}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex31}
 
 
 \begin{procedure}{momentskewkurtosis}
 \Declaration
-Procedure momentskewkurtosis(const data : array of float;
+procedure momentskewkurtosis(const data : array of float;
+  var m1,m2,m3,m4,skew,kurtosis : float);
+procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
+  var m1,m2,m3,m4,skew,kurtosis : float);
 \Description
-
+\var{momentskewkurtosis} calculates the 4 first moments of the distribution
+of valuesin \var{data} and returns them in \var{m1},\var{m2},\var{m3} and
+\var{m4}, as well as the \var{skew} and \var{kurtosis}.
 \Errors
+None.
 \SeeAlso
+\seef{mean}, \seep{meanandstddev}
 \end{procedure}
 
-\FPCexample{}
-
+\FPCexample{ex32}
 
 \begin{function}{norm}
 \Declaration
 Function norm(const data : array of float) : float;
+Function norm(const data : PFloat; Const N : Integer) : float;
 \Description
+\var{Norm} calculates the Euclidian norm of the array of data.
+This equals \var{sqrt(sumofsquares(data))}.
 
+The second form accepts a pointer to an array of \var{N} values.
 \Errors
+None.
 \SeeAlso
+\seef{sumofsquares}
 \end{function}
 
-\FPCexample{}
+\FPCexample{ex33}
 
 
 \begin{function}{popnstddev}
@@ -595,9 +635,12 @@ Function popnvariance(const data : array of float) : float;
 \Declaration
 Function power(base,exponent : float) : float;
 \Description
-
+\var{power} raises \var{base} to the power \var{power}. This is equivalent
+to \var{exp(power*ln(base))}. Therefore \var{base} should be non-negative.
 \Errors
+None.
 \SeeAlso
+\seef{intpower}
 \end{function}
 
 \FPCexample{}
