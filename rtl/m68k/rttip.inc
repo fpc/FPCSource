@@ -16,8 +16,12 @@
 { Run-Time type information routines - processor dependent part }
 
 
-Procedure Initialize (Data,TypeInfo : pointer);[Alias : 'INITIALIZE'];
+Procedure Initialize (Data,TypeInfo : pointer);[Alias : 'FPC_INITIALIZE'];
 
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -52,8 +56,12 @@ begin
   end;
 end;
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Alias : 'FINALIZE'];
+Procedure Finalize (Data,TypeInfo: Pointer);[Alias : 'FPC_FINALIZE'];
 
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -88,8 +96,12 @@ begin
   end;
 end;
 
-Procedure Addref (Data,TypeInfo : Pointer); [alias : 'ADDREF'];
+Procedure Addref (Data,TypeInfo : Pointer); [alias : 'FPC_ADDREF'];
 
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -124,8 +136,11 @@ begin
   end;
 end;
 
-Procedure DecRef (Data, TypeInfo : Pointer);
-
+Procedure DecRef (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];
+{ this definition is sometimes (depending on switches)
+  already defined or not so define it locally to avoid problems PM }
+Type
+    Pbyte = ^Byte;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -162,7 +177,11 @@ end;
 
 {
  $Log$
- Revision 1.2  1998-06-08 19:26:53  michael
+ Revision 1.3  1998-10-13 08:00:07  pierre
+   * some bugs related to FPC_ prefix fixed
+   * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
+
+ Revision 1.2  1998/06/08 19:26:53  michael
  + Implemented DecRef
 
  Revision 1.1  1998/06/08 15:32:08  michael

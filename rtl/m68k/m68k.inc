@@ -46,7 +46,7 @@
 
 
 
-   Procedure FillChar(var x; count: longint; value: byte);
+   Procedure FillChar(var x;count:longint;value:byte);[public,alias: 'FPC_FILL_OBJECT'];
    begin
      asm
       move.l 8(a6), a0      { destination                   }
@@ -127,7 +127,7 @@
             move.l (a0),-(sp)
             { push method pointer }
             move.l a5,-(sp)
-            jsr GETMEM
+            jsr FPC_GETMEM
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
             { Memory size to a5 }
@@ -158,7 +158,7 @@
             move.l  (a0),-(sp)
             move.l  a5,-(sp)
             {                }
-            jsr  FILLOBJECT
+            jsr  FPC_FILLOBJECT
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
             { set the VMT address for the new created object }
@@ -211,7 +211,7 @@
             move.l d6,a1
             move.l a0,(a1)
             move.l a1,-(sp)
-            jsr    FREEMEM
+            jsr    FPC_FREEMEM
          @LHD_3:
             { Restore all registers in the correct order }
             movem.l (sp)+,d0-a7
@@ -285,7 +285,7 @@
 @co_re:
      move.l   (sp)+,d0
      move.b   #210,d0
-     jsr      HALT_ERROR
+     jsr      FPC_HALT_ERROR
 @end:
      move.l   (sp)+,d0
   end;
@@ -297,10 +297,10 @@
       end;
 
 
-    function get_caller_addr(BP : longint) : longint;
+    function get_caller_addr(framebp:longint):longint;
       begin
          asm
-            move.l BP,a0
+            move.l FRAMEBP,a0
             cmp.l #0,a0
             beq @Lnul_address
             move.l 4(a0),a0
@@ -309,11 +309,11 @@
          end ['a0'];
       end;
 
-    function get_caller_frame(bp : longint) : longint;
+    function get_caller_frame(framebp:longint):longint;
 
       begin
          asm
-            move.l bp,a0
+            move.l FRAMEBP,a0
             cmp.l  #0,a0
             beq    @Lnul_frame
             move.l (a0),a0
@@ -643,7 +643,7 @@ end;
   beq     @reboundend
 @rebounderr:
   move.l  #201,d0
-  jsr     HALT_ERROR
+  jsr     FPC_HALT_ERROR
 @reboundend:
  end;
 
@@ -676,7 +676,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  1998-09-14 10:48:29  peter
+  Revision 1.12  1998-10-13 08:00:06  pierre
+    * some bugs related to FPC_ prefix fixed
+    * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
+
+  Revision 1.11  1998/09/14 10:48:29  peter
     * FPC_ names
     * Heap manager is now system independent
 

@@ -42,7 +42,7 @@
 
 
 
-Procedure Single_Norm;Assembler;
+Procedure Single_Norm;[alias : 'FPC_SINGLE_NORM'];Assembler;
 {--------------------------------------------}
 { Low-level routine to normalize single  e   }
 {  IEEE floating point values. Never called  }
@@ -328,7 +328,7 @@ XDEF SINGLE_ADD
    moveq.l #-1,d1
 @alabel15:
    swap    d2                      { put sign into d2 (exponent is in d0)  }
-   jmp     SINGLE_NORM             { leave registers on stack for norm_sf  }
+   jmp     FPC_SINGLE_NORM             { leave registers on stack for norm_sf  }
 end;
 
 
@@ -493,7 +493,7 @@ XDEF SINGLE_MUL
    or.b    #1,d1      { set "sticky bit" if any low-order set      }
 @mlabel9:
    addq.w  #8,sp      { remove accumulator from stack              }
-   jmp     SINGLE_NORM{ (result in d4)                             }
+   jmp     FPC_SINGLE_NORM{ (result in d4)                             }
 
 @mretz:
    addq.w  #8,sp      { release accumulator space                  }
@@ -668,7 +668,7 @@ XDEF SINGLE_DIV
    moveq.l #-1,d1     { prevent tie case                              }
 @dlabel10:
    move.l  d3,d4      { save quotient mantissa                        }
-   jmp     SINGLE_NORM{ (registers on stack removed by norm_sf)       }
+   jmp     FPC_SINGLE_NORM{ (registers on stack removed by norm_sf)       }
 end;
 
 
@@ -785,11 +785,11 @@ XDEF LONG2SINGLE
 @l2slabel1:
    swap     d2           { follow SINGLE_NORM conventions   }
    clr.w    d1           { set rounding = 0                 }
-   jmp      SINGLE_NORM
+   jmp      FPC_SINGLE_NORM
 end;
 
 
-Procedure LongDiv; Assembler;
+Procedure LongDiv; [alias : 'FPC_LONGDIV'];Assembler;
 {--------------------------------------------}
 { Low-level routine to do signed long        }
 { division.                                  }
@@ -898,23 +898,27 @@ XDEF LONGDIV
    move.l      (sp)+,d4
 @zerodiv2:
    move.l      #200,d0
-   jsr         HALT_ERROR { RunError(200)                          }
+   jsr         FPC_HALT_ERROR { RunError(200)                          }
    rts                    { this should never occur...             }
 end;
 
 
-Procedure LongMod;Assembler;
+Procedure LongMod;[alias : 'FPC_LONGMOD'];Assembler;
 { see longdiv for info on calling convention }
 asm
 XDEF LONGMOD
-   jsr     LONGDIV
+   jsr     FPC_LONGDIV
    move.l  d1,d0      { return the remainder in d0 }
    rts
 end;
 
 {
   $Log$
-  Revision 1.3  1998-07-01 14:28:32  carl
+  Revision 1.4  1998-10-13 08:00:04  pierre
+    * some bugs related to FPC_ prefix fixed
+    * problems with pbyte sometimes defined and sometimes not for rttip.inc solved
+
+  Revision 1.3  1998/07/01 14:28:32  carl
     * LONGDIV bugfixed with signed and modulo
     * LONGDIV bugfix when divisor is less then 16 bits
 
