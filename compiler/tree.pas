@@ -294,9 +294,9 @@ unit tree;
   implementation
 
     uses
-{$ifdef extdebug}
+{ $ifdef extdebug}
        types,
-{$endif extdebug}
+{ $endif extdebug}
        verbose,files;
 
 {****************************************************************************
@@ -1540,7 +1540,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.14  1998-06-05 14:37:40  pierre
+  Revision 1.15  1998-06-06 08:39:07  peter
+    * it needs types
+
+  Revision 1.14  1998/06/05 14:37:40  pierre
     * fixes for inline for operators
     * inline procedure more correctly restricted
 
