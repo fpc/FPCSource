@@ -38,4 +38,6 @@ Changes in the syntax or semantic of FPC:
              getting the address of an untyped const is now
              forbidden as in BP 
   27/04/99   New unit format PPU016, you need to recompile all older units
-  
+  01/05/99   Internal assembler. Assembler readers now support MMX,KNI
+             instructions.
+	     
