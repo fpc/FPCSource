@@ -1529,6 +1529,7 @@ implementation
                              hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
                              left:=nil;
                              result:=hp;
+                             exit;
                            end;
                        end
 
@@ -2578,7 +2579,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.173  2005-01-07 21:14:21  florian
+  Revision 1.174  2005-01-09 15:04:36  peter
+    * fix crash with -CR
+
+  Revision 1.173  2005/01/07 21:14:21  florian
     + compiler side of variant<->interface implemented
 
   Revision 1.172  2005/01/06 13:40:41  florian
