@@ -243,13 +243,6 @@ implementation
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
               end;
-            { Floats are passed in int registers }
-            case paracgsize of
-              OS_F32 :
-                paracgsize:=OS_32;
-              OS_F64 :
-                paracgsize:=OS_64;
-            end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].Alignment:=std_param_align;
@@ -257,8 +250,9 @@ implementation
             while (paralen>0) do
               begin
                 paraloc:=hp.paraloc[side].add_location;
-                { We can allocate at maximum 32 bits per register }
-                if paracgsize in [OS_64,OS_S64] then
+                { Floats are passed in int registers,
+                  We can allocate at maximum 32 bits per register }
+                if paracgsize in [OS_64,OS_S64,OS_F32,OS_F64] then
                   paraloc^.size:=OS_32
                 else
                   paraloc^.size:=paracgsize;
@@ -322,7 +316,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-09-25 20:28:39  florian
+  Revision 1.43  2004-09-27 21:24:17  peter
+    * fixed passing of flaot parameters. The general size is still float,
+      only the size of the locations is now OS_32
+
+  Revision 1.42  2004/09/25 20:28:39  florian
     * handling of C styled varargs fixed
 
   Revision 1.41  2004/09/21 17:25:13  peter

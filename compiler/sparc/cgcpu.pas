@@ -698,16 +698,6 @@ implementation
          FpuLoadInstr : Array[OS_F32..OS_F64] of TAsmOp =
            (A_LDF,A_LDDF);
        begin
-          { several functions call this procedure with OS_32 or OS_64 }
-          { so this makes life easier (FK)                            }
-          case size of
-             OS_32,OS_F32:
-               size:=OS_F32;
-             OS_64,OS_F64,OS_C64:
-               size:=OS_F64;
-             else
-               internalerror(200201121);
-          end;
          handle_load_store(list,false,fpuloadinstr[size],reg,ref);
        end;
 
@@ -717,16 +707,6 @@ implementation
          FpuLoadInstr : Array[OS_F32..OS_F64] of TAsmOp =
            (A_STF,A_STDF);
        begin
-          { several functions call this procedure with OS_32 or OS_64 }
-          { so this makes life easier (FK)                            }
-          case size of
-             OS_32,OS_F32:
-               size:=OS_F32;
-             OS_64,OS_F64,OS_C64:
-               size:=OS_F64;
-             else
-               internalerror(200201121);
-          end;
          handle_load_store(list,true,fpuloadinstr[size],reg,ref);
        end;
 
@@ -1256,7 +1236,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2004-09-26 21:04:35  florian
+  Revision 1.92  2004-09-27 21:24:17  peter
+    * fixed passing of flaot parameters. The general size is still float,
+      only the size of the locations is now OS_32
+
+  Revision 1.91  2004/09/26 21:04:35  florian
     + partial overflow checking on sparc; multiplication still missing
 
   Revision 1.90  2004/09/26 17:36:12  florian
