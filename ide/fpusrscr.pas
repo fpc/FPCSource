@@ -140,6 +140,7 @@ type
       NewScreenBufferHandle : THandle;
       IDEActive : boolean;
       ConsoleMode,IdeMode      : Dword;
+      IdeScreenMode : TVideoMode;
       procedure BufferCopy(src,dest : THandle);
     end;
 {$endif}
@@ -163,9 +164,7 @@ uses
     ,Dpmiexcp, Go32
     {$endif}
   {$endif}
-  {$ifdef fvision}
-    ,Drivers
-  {$endif}
+    ,Drivers,App
   {$ifdef TEST_GRAPH_SWITCH}
     ,Graph,VESA
   {$else not TEST_GRAPH_SWITCH}
@@ -783,6 +782,7 @@ begin
 {$ifdef fvision}
   if TextModeGFV then
 {$endif fvision}
+  IdeScreenMode.row:=0;
   SwitchBackToIDEScreen;
 end;
 
@@ -986,6 +986,7 @@ begin
   if TextModeGFV then
 {$endif fvision}
     begin
+      IdeScreenMode:=ScreenMode;
       GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
       { set the dummy buffer as active already now PM }
       SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
@@ -1061,6 +1062,13 @@ begin
       res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
       if not res then
         error:=GetLastError;
+{$ifdef DEBUG}
+      IdeScreenMode.row:=WindowPos.bottom+1;
+      IdeScreenMode.col:=WindowPos.right+1;
+{$endif DEBUG}
+      { needed to force the correct size for videobuf }
+      if Assigned(Application) and (IdeScreenMode.row<>0)then
+        Application^.SetScreenVideoMode(IdeScreenMode);
     end;
   IDEActive:=true;
 end;
@@ -1104,7 +1112,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-09-03 05:45:39  pierre
+  Revision 1.16  2002-09-04 08:35:31  pierre
+   * remember IDE screen mode for win32
+     to avoid videobuf writes after allocated size.
+
+  Revision 1.15  2002/09/03 05:45:39  pierre
    * fix compilation without DEBUG conditional
 
   Revision 1.14  2002/09/02 09:29:55  pierre
