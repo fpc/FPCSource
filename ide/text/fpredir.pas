@@ -109,7 +109,9 @@ var
 
 { For linux the following functions exist
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
-Function  Dup2(oldfile,newfile:longint):Boolean; }
+Function  Dup2(oldfile,newfile:longint):Boolean;
+Function  fdClose(fd:longint):boolean;
+}
 {$ifdef go32v2}
 
 function dup(fh : longint;var nh : longint) : boolean;
@@ -141,6 +143,15 @@ begin
     MsDos (Regs);
     If (Regs.Flags and fCarry)<>0 then
       Dup2:=false;
+end;
+
+Function FdClose (Handle : Longint) : boolean;
+var Regs: registers;
+begin
+  Regs.Eax := $3e00;
+  Regs.Ebx := Handle;
+  MsDos(Regs);
+  FdClose:=(Regs.Flags and fCarry)=0;
 end;
 
 {$endif def go32v2}
@@ -282,6 +293,7 @@ end;
     dup2(TempHOut,StdOutputHandle);
 {$endif}
     Close (FOUT);
+    fdClose(TempHOut);
     RedirChangedOut:=false;
   end;
 
@@ -298,6 +310,7 @@ end;
     dup2(TempHIn,StdInputHandle);
 {$endif}
     Close (FIn);
+    fdClose(TempHIn);
     RedirChangedIn:=false;
   end;
 
@@ -314,6 +327,7 @@ end;
     dup2(TempHError,StdErrorHandle);
 {$endif}
     Close (FERR);
+    fdClose(TempHError);
     RedirChangedError:=false;
   end;
 
@@ -413,7 +427,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.13  1999-03-09 01:34:35  peter
+  Revision 1.14  1999-03-20 00:04:49  pierre
+   * handle loss fixed
+
+  Revision 1.13  1999/03/09 01:34:35  peter
     * linux unit
 
   Revision 1.12  1999/03/08 14:58:10  peter
