@@ -172,22 +172,15 @@ Begin
                       If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
                     end
                   else
-                    Begin
-                      if FindLabel(pai_labeled(p)^.lab, hp1) then
-                        begin
-                          hp2:=pai(hp1^.next);
-                          asml^.remove(p);
-                          dispose(p,done);
-{                          If Not(pai_label(hp1)^.l^.is_used) Then
-                            Begin
-                              AsmL^.remove(hp1);
-                              Dispose(hp1, done);
-                            End;}
-                          p:=hp2;
-                          continue;
-                        end;
-                      If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
-                    end;
+                    if FindLabel(pai_labeled(p)^.lab, hp1) then
+                      Begin
+                        hp2:=pai(hp1^.next);
+                        asml^.remove(p);
+                        dispose(p,done);
+                        p:=hp2;
+                        continue;
+                      end
+                    Else If (LabDif <> 0) Then GetFinalDestination(pai_labeled(p));
               end
           end;
         ait_instruction:
@@ -1296,6 +1289,31 @@ Begin
                                 dispose(hp1, done);
                               End;
                 End;
+{$IfDef Ver0_99_11}
+              A_SETE..A_SETGE,A_SETC,A_SETNC,A_SETA..A_SETBE,A_SETO..A_SETNLE:
+                Begin
+                  If (Pai386(p)^.Op1t = top_ref) And
+                     GetNextInstruction(p, hp1) And
+                     GetNextInstruction(hp1, hp2) And
+                     (hp2^.typ = ait_instruction) And
+                     (Pai386(hp2)^._operator in [A_LEAVE,A_RET]) And
+                     (TReference(Pai386(p)^.Op1^).Base = ProcInfo.FramePointer) And
+                     (TReference(Pai386(p)^.Op1^).Index = R_NO) And
+                     (TReference(Pai386(p)^.Op1^).Offset >= ProcInfo.RetOffset) And
+                     (hp1^.typ = ait_instruction) And
+                     (Pai386(hp1)^._operator = A_MOV) And
+                     (Pai386(hp1)^.Size = S_B) And
+                     (Pai386(hp1)^.Op1t = top_ref) And
+                     RefsEqual(TReference(Pai386(hp1)^.Op1^), TReference(Pai386(p)^.Op1^)) Then
+                    Begin
+                      Dispose(PReference(Pai386(p)^.Op1));
+                      Pai386(p)^.Op1 := Pai386(hp1)^.Op2;
+                      Pai386(p)^.Opxt := top_reg;
+                      AsmL^.Remove(hp1);
+                      Dispose(hp1, Done)
+                    End
+                End;
+{$EndIf Ver0_99_11}
               A_SUB:
                 {change "subl $2, %esp; pushw x" to "pushl x"}
                 Begin
@@ -1512,7 +1530,11 @@ End.
 
 {
  $Log$
- Revision 1.23  1998-11-03 16:26:09  jonas
+ Revision 1.24  1998-11-26 15:41:45  jonas
+   + change "setxx mem; movb mem, reg8" to "setxx reg8" if mem is a local
+     variable/parameter or function result (between {$ifdef ver0_99_11})
+
+ Revision 1.23  1998/11/03 16:26:09  jonas
    * "call x;jmp y" optimization not done anymore for P6 and equivalents
    * made FPU optimizations simpler and more effective
 
