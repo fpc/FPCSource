@@ -801,7 +801,8 @@ implementation
                  end
                else
                 { call can happend with a property }
-                if (p^.left^.treetype=calln) and
+                if { (p^.left^.treetype=calln) and  Don't think that
+                      this is necessary (FK) }
                    (p^.left^.resulttype^.deftype=objectdef) and
                    pobjectdef(p^.left^.resulttype)^.is_class then
                  begin
@@ -841,7 +842,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-09-10 15:42:50  peter
+  Revision 1.56  1999-09-13 20:49:41  florian
+    * hopefully an error in Peter's previous commit fixed
+
+  Revision 1.55  1999/09/10 15:42:50  peter
     * fixed with <calln> do
     * fixed finalize/initialize call for new/dispose
 
