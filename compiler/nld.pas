@@ -492,6 +492,8 @@ implementation
 
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                   registers32:=1;
+                if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
+                  include(current_procinfo.flags,pi_do_call);
                 if nf_write in flags then
                   Tvarsym(symtableentry).trigger_notifications(vn_onwrite)
                 else
@@ -1245,7 +1247,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-05-26 19:38:28  peter
+  Revision 1.97  2003-06-07 14:39:18  jonas
+    * set pi_do_call for accesses to threadvars
+
+  Revision 1.96  2003/05/26 19:38:28  peter
     * generic fpc_shorstr_concat
     + fpc_shortstr_append_shortstr optimization
 
