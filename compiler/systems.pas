@@ -127,6 +127,7 @@ interface
              ,as_i386_nasmwdosx
              ,as_i386_nasmelf
              ,as_i386_nasmobj
+             ,as_i386_nasmbeos
              ,as_i386_tasm
              ,as_i386_masm
              ,as_i386_wasm
@@ -648,7 +649,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.73  2003-11-17 23:23:47  florian
+  Revision 1.74  2003-11-29 15:53:06  florian
+    + nasmelf mode for BeOS
+    + DQWORD directive in intel assembler mode
+
+  Revision 1.73  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.72  2003/11/12 16:05:39  florian

@@ -890,17 +890,41 @@ interface
               '.stab','.stabstr','')
           );
 
+       as_i386_nasmbeos_info : tasminfo =
+          (
+            id           : as_i386_nasmbeos;
+            idtxt  : 'NASMELF';
+            asmbin : 'nasm';
+            asmcmd : '-f elf -o $OBJ $ASM';
+            supported_target : system_i386_beos;
+            outputbinary: false;
+            allowdirect : true;
+            needar : true;
+            labelprefix_only_inside_procedure: false;
+            labelprefix : '..@';
+            comment : '; ';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
+              '.stab','.stabstr','')
+          );
+
 
 initialization
   RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmwdosx_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
+  RegisterAssembler(as_i386_nasmbeos_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmelf_info,T386NasmAssembler);
 end.
 {
   $Log$
-  Revision 1.41  2003-10-21 15:15:36  peter
+  Revision 1.42  2003-11-29 15:53:06  florian
+    + nasmelf mode for BeOS
+    + DQWORD directive in intel assembler mode
+
+  Revision 1.41  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.40  2003/10/01 20:34:49  peter

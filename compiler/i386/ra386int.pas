@@ -41,7 +41,7 @@ Unit Ra386int;
        {------------------ Assembler directives --------------------}
       AS_DB,AS_DW,AS_DD,AS_END,
        {------------------ Assembler Operators  --------------------}
-      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_NEAR,AS_FAR,
+      AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
       AS_AND,AS_OR,AS_XOR);
 
@@ -114,7 +114,7 @@ Unit Ra386int;
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
        _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
-        'BYTE','WORD','DWORD','QWORD','TBYTE','NEAR','FAR','HIGH',
+        'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','NEAR','FAR','HIGH',
         'LOW','OFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR');
 
@@ -1731,6 +1731,7 @@ Unit Ra386int;
             AS_BYTE,
             AS_WORD,
             AS_TBYTE,
+            AS_DQWORD,
             AS_QWORD :
               Begin
                 { load the size in a temp variable, so it can be set when the
@@ -1741,6 +1742,7 @@ Unit Ra386int;
                   AS_WORD  : size:=2;
                   AS_BYTE  : size:=1;
                   AS_QWORD : size:=8;
+                  AS_DQWORD : size:=16;
                   AS_TBYTE : size:=extended_size;
                 end;
                 Consume(actasmtoken);
@@ -1975,7 +1977,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-11-29 14:41:02  peter
+  Revision 1.67  2003-11-29 15:53:06  florian
+    + nasmelf mode for BeOS
+    + DQWORD directive in intel assembler mode
+
+  Revision 1.66  2003/11/29 14:41:02  peter
     * support type()
 
   Revision 1.65  2003/11/12 16:05:39  florian
