@@ -366,11 +366,14 @@ Functions for various conversions.
 \funcref{FloatToStrF}{Convert float to formatted string}
 \funcref{FloatToStr}{Convert float to string}
 \funcref{FloatToText}{Convert float to string}
+\funcref{FormatFloat}{Format a floating point value}
 \funcref{GetDirs}{Split string in list of directories}
 \funcref{IntToHex}{return hexadecimal representation of integer}
 \funcref{IntToStr}{return decumal representation of integer}
 \funcref{StrToIntDef}{Convert string to integer with default value}
 \funcref{StrToInt}{Convert string to integer}
+\funcref{StrToFloat}{Convert string to float}
+\funcref{TextToFloat}{Convert null-terminated string to float}
 \end{funclist}
 
 \section{Date and time functions}
@@ -2202,8 +2205,7 @@ two following formats:
 \Errors
 None.
 \SeeAlso
-\seef{FloatToStrF}
-%, \seef{FormatFloat}
+\seef{FloatToStrF}, \seef{FormatFloat}, \seef{StrToFloat}
 \end{function}
 
 \FPCexample{ex67}
@@ -2424,6 +2426,50 @@ Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; 
 
 \FPCexample{ex72}
 
+\begin{function}{FormatFloat}
+\Declaration
+Function FormatFloat(Const format: String; Value: Extended): String;
+\Description
+FormatFloat formats the floating-point value given by \var{Value} using 
+the format specifications in \var{Format}. The format specifier can give
+format specifications for positive, negative or zero values (separated by 
+a semicolon).
+
+
+If the formatspecifier is empty or the value needs more than 18 digits to
+be correctly represented, the result is formatted with a call to 
+\seef{FloatToStrF} with the \var{ffGeneral} format option.
+
+The following format specifiers are supported:
+\begin{description}
+\item[0] is a digit place holder. If there is a corresponding digit in 
+the value being formatted, then it replaces the 0. If not, the 0 is left
+as-is.
+\item[\#] is also a digit place holder. If there is a corresponding digit in
+the value being formatted, then it replaces the \#. If not, it is removed.
+by a space.
+\item[.] determines the location of the decimal point. Only the first '.'
+character is taken into account. If the value contains digits after the
+decimal point, then it is replaced by the value of the \var{DecimalSeparator}
+character.
+\item[,] determines the use of the thousand separator character in the
+output string. If the format string contains one or more ',' charactes, 
+then thousand separators will be used. The \var{ThousandSeparator} character
+is used.
+\item[E+] determines the use of scientific notation. If 'E+' or 'E-' (or
+their lowercase counterparts) are present then scientific notation is used.
+The number of digits in the output string is determined by the number of
+\var{0} characters after the '\var{E+}'
+\item[;] This character separates sections for positive, negative, and zero numbers in the
+format string.	
+\end{description}
+\Errors
+If an error occurs, an exception is raised.
+\SeeAlso
+\seef{FloatToStr}
+\end{function}
+
+\FPCexample{ex89}
 
 \begin{function}{IntToHex}
 \Declaration
@@ -2616,6 +2662,24 @@ for a list of errors, see \seef{Format}.
 
 \FPCexample{ex81}
 
+\begin{function}{StrToFloat}
+\Declaration
+Function StrToFloat(Const S : String) : Extended;
+\Description
+\var{StrToFloat} converts the string \var{S} to a floating point value.
+\var{S} should contain a valid stroing representation of a floating point 
+value (either in decimal or scientific notation). If the string
+contains a decimal value, then the decimal separator character can either be
+a '.' or the value of the \var{DecimalSeparator} variable.
+\Errors
+If the string \var{S} doesn't contain a valid floating point string, then an
+exception will be raised.
+\SeeAlso
+\seef{TextToFloat},\seef{FloatToStr},\seef{FormatFloat},\seef{StrToInt}
+\end{function}
+
+\FPCexample{ex90}
+
 
 \begin{function}{StrToInt}
 \Declaration
@@ -2655,6 +2719,26 @@ None.
 
 \FPCexample{ex83}
 
+\begin{function}{TextToFloat}
+\Declaration
+Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+\Description
+\var{TextToFloat} converts the string in \var{Buffer} to a floating point 
+value. \var{Buffer} should contain a valid stroing representation of a 
+floating point value (either in decimal or scientific notation). 
+If the buffer contains a decimal value, then the decimal separator 
+character can either be a '.' or the value of the \var{DecimalSeparator} 
+variable.
+
+The function returns \var{True} if the conversion was successful.
+\Errors
+If there is an invalid character in the buffer, then the function returns
+\var{False}
+\SeeAlso
+\seef{StrToFloat},\seef{FloatToStr}, \seef{FormatFloat}
+\end{function}
+
+\FPCexample{ex91}
 
 \begin{function}{Trim}
 \Declaration
