@@ -47,9 +47,9 @@
 % About this document
 \section{About this document}
 
-This document tries to make the internal working of \fpc more clear.
+This document tries to make the internal workings of \fpc more clear.
 It is assumed that the reader has some knowledge about compiler
-building
+building.
 
 This document describes the compiler as it is/functions at the time of
 writing. Since the compiler is under continuous development, some of the
@@ -91,7 +91,7 @@ list or you can contact the developers.
 
 The symbol table is used to store informations about all
 symbols, declarations and definitions in a program.
-In an abtract view, a symbol table is a data base with a string field
+In an abstract view, a symbol table is a data base with a string field
 as index. \fpc implements the symbol table mainly as a binary tree,
 for big symbol tables some hash technics are used. The implementation
 can be found in symtable.pas, object tsymtable.
@@ -106,17 +106,17 @@ informations about symbols and types to generate the code.
 % Definitions
 \section{Definitions}
 
-Definitions are one of the importantest data structures in \fpc.
+Definitions are one of the most important data structures in \fpc.
 They are used to describe types, for example the type of a variable
 symbol is given by a definition and the result type
 of a expression is given as a definition. 
 They have nothing to do with the definition of a procedure.
 Definitions are implemented as a object (symtable.pas, tdef and
-it's decendants). There are a lot of different
+it's descendents). There are a lot of different
 definitions: for example to describe
-ordinal type, arrays, pointers, procedures
+ordinal types, arrays, pointers, procedures
 
-To make it more clear let's have a look to the fields of tdef:
+To make it more clear let's have a look at the fields of tdef:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Symbols
@@ -159,8 +159,8 @@ assembler for the GNU AS, the NASM (Netwide assembler) and
 the assemblers of Borland and Microsoft. The default assembler
 is the GNU AS, because it is fast and and available on
 many platforms. Why don't we use the NASM? It is 2-4 times
-slower than the GNU AS and it is create for
-man kind written assembler, while the GNU AS is designed
+slower than the GNU AS and it is created for
+hand-written assembler, while the GNU AS is designed
 as back end for a compiler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -174,7 +174,7 @@ as back end for a compiler.
 \chapter{The register allocation}
 
 The register allocation is very hairy, so it gets
-an own chapter in that manual. Please be careful when changing things
+an own chapter in this manual. Please be careful when changing things
 regarding the register allocation and test such changes intensive.
 
 Future versions will may be implement another kind of register allocation 
@@ -183,9 +183,9 @@ to make this part of the compiler more robust, see
 system is less or more working and changing it would be a lot of
 work, so we have to live with it.
 
-The current register allocation mechanism was implement 5 years
-ago and I didn't think, that the compiler becomes
-so popular, so not much time was spend in the design
+The current register allocation mechanism was implemented 5 years
+ago and I didn't think, that the compiler would become
+so popular, so not much time was spent in the design
 of the register allocation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,15 +195,15 @@ of the register allocation.
 The register allocation is done in the first and second pass of
 the compiler.
 The first pass of a node has to calculate how much registers
-are necessary to generate code for the node, it have
+are necessary to generate code for the node, it has
 also to take care of child nodes i.e. how much registers
 they need.
 
 The register allocation is done via \var{getregister\*}
-(where * is \var{32} or \var{mmx}).
+%(where * is \var{32} or \var{mmx}).
 
 Registers can be released via \var{ungetregister\*}. All registers
-of a reference (i.e.base and index) can be released by
+of a reference (i.e. base and index) can be released by
 \var{del\_reference}. These procedures take care of the register type,
 i.e. stack/base registers and registers allocated by register
 variables aren't added to the set of unused registers.
@@ -218,7 +218,7 @@ occurs.
 \subsection{The first pass}
 
 This is a part of the first pass for a pointer dereferencation
-(\var{p\^}), the type determination and some other stuff are left out
+(\var{p\^\ }), the type determination and some other stuff are left out
 
 \begin{verbatim}
 procedure firstderef(var p : ptree);
@@ -321,8 +321,8 @@ generate code for a binary+ node (a node with two or more
 childs). If a node calls second pass for a child node,
 it has to ensure that enough registers are free
 to evalute the child node (\var{usableregs>=childnode\^.registers32}).
-If this condition isn't true, the current node have
-to store and restore all registers which the node does own to
+If this condition isn't true, the current node has
+to store and restore all registers which the node owns to
 release registers. This should be done using the
 procedures \var{maybe\_push} and \var{restore}. If still
 \var{usableregs<childnode\^.registers32}, the child nodes have to solve
