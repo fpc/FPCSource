@@ -480,9 +480,12 @@ begin
   if (st.st_mode and STAT_IFMT)=STAT_IFDIR then
    info.fmode:=$10
   else
-   info.fmode:=$20;
+   info.fmode:=$0;
   if (st.st_mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
+  if s[f.NamePos+1]='.' then
+   info.fmode:=info.fmode or $2;   
+
   If ((Info.FMode and Not(f.searchattr))=0) Then
    Begin
      f.Name:=Copy(s,f.NamePos+1,255);
@@ -625,7 +628,8 @@ Begin
    end;
 {Create Info}
   f.SearchSpec := Path;
-  f.SearchAttr := Attr;
+  {We always also search for readonly and archive, regardless of Attr:}
+  f.SearchAttr := Attr or archive or readonly; 	
   f.SearchPos  := 0;
   f.NamePos := Length(f.SearchSpec);
   while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
@@ -702,14 +706,12 @@ Begin
   if fpS_ISDIR(LinAttr) then
    Attr:=$10
   else
-   Attr:=$20;
+   Attr:=$0;
   if fpAccess(strpas(@textrec(f).name),W_OK)<0 then
    Attr:=Attr or $1;
-  if (not fpS_ISDIR(LinAttr)) and (filerec(f).name[0]='.')  then
-   Attr:=Attr or $2;
+  if filerec(f).name[0]='.' then
+   Attr:=Attr or $2;   
 end;
-
-
 
 Procedure getftime (var f; var time : longint);
 Var
@@ -728,7 +730,30 @@ Begin
   PackTime(DT,Time);
 End;
 
+Procedure setftime(var f; time : longint);
 
+Var
+  utim: utimbuf;
+  DT: DateTime;
+  path: pathstr;
+  index: Integer;
+
+Begin
+  doserror:=0;
+  with utim do
+    begin
+    actime:=getepochtime;
+    UnPackTime(Time,DT);
+    modtime:=DTToUnixDate(DT);
+    end;
+  for Index:=0 to FilerecNameLength-1 do
+    path[Index+1]:=filerec(f).name[Index];
+  if fputime(path,@utim)<0 then
+    begin
+    Time:=0;
+    doserror:=3;
+    end;
+End;
 
 {******************************************************************************
                              --- Environment ---
@@ -830,31 +855,6 @@ Begin
 End;
 
 
-Procedure setftime(var f; time : longint);
-
-Var
-  utim: utimbuf;
-  DT: DateTime;
-  path: pathstr;
-  index: Integer;
-
-Begin
-  doserror:=0;
-  with utim do
-    begin
-    actime:=getepochtime;
-    UnPackTime(Time,DT);
-    modtime:=DTToUnixDate(DT);
-    end;
-  for Index:=0 to FilerecNameLength-1 do
-    path[Index+1]:=filerec(f).name[Index];
-  if fputime(path,@utim)<0 then
-    begin
-    Time:=0;
-    doserror:=3;
-    end;
-End;
-
 
 Procedure setfattr (var f;attr : word);
 Begin
@@ -903,8 +903,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2003-11-17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
+  Revision 1.21  2003-12-03 20:17:03  olle
+    * files are not pretended to have attr ARCHIVED anymore
+    + FindFirst etc now also filters on attr HIDDEN
+    * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
 
   Revision 1.19  2003/10/17 22:13:30  olle
     * changed i386 to cpui386
