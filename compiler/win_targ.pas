@@ -155,7 +155,7 @@ unit win_targ;
       begin
          { that IS wrong for DRV files
          hs:=SplitName(module); }
-         hs:=DDLName(module);
+         hs:=DllName(module);
          { search for the module }
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
@@ -710,7 +710,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.22  1999-04-07 14:04:40  pierre
+  Revision 1.23  1999-04-07 14:18:32  pierre
+   * typo correction
+
+  Revision 1.22  1999/04/07 14:04:40  pierre
     * adds .dll as library suffix only if
       the name does not end with .dll .drv or .exe !
 
