@@ -38,9 +38,11 @@ istream.pp   testprogram for input/output streams.
 testproc.pp  testprogram for TProcess object. Needs doecho to be compiled
              also.
 socksvr.pp   Unix socket server application. Tests TUnixServer in ssockets.
-isocksvr.pp   Inet socket server application. Tests TInetServer in ssockets.
-dsocksvr.pp   Unix socket server application. Tests ssockets.
+isocksvr.pp  Inet socket server application. Tests TInetServer in ssockets.
+dsocksvr.pp  Unix socket server application. Tests ssockets.
 sockcli.pp   Unix socket client application. Tests TUnixStream in ssockets.
-isockcli.pp   Inet socket server application. Tests TInetStream in ssockets.
-dsockcli.pp   Dual socket server application. Tests ssockets.
-sstream.pp    Tests TStringStream object.
+isockcli.pp  Inet socket server application. Tests TInetStream in ssockets.
+dsockcli.pp  Dual socket server application. Tests ssockets.
+sstream.pp   Tests TStringStream object.
+testol.pp    Tests TObjectList in contnrs. (MVC)
+testcont.pp  Tests TStack/TQueue in contnrs. (MVC)
