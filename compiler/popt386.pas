@@ -1193,7 +1193,7 @@ Begin
                             Pai386(hp1)^.opcode := A_AND;
                             l := 1 shl (Pai386(hp1)^.oper[0].val-1);
                             Case Pai386(p)^.opsize Of
-                              S_L: Pai386(hp1)^.LoadConst(0,l Xor $ffffffff);
+                              S_L: Pai386(hp1)^.LoadConst(0,l Xor longint(-1));
                               S_B: Pai386(hp1)^.LoadConst(0,l Xor $ff);
                               S_W: Pai386(hp1)^.LoadConst(0,l Xor $ffff);
                             End;
@@ -1511,7 +1511,10 @@ End.
 
 {
  $Log$
- Revision 1.50  1999-05-02 21:33:55  florian
+ Revision 1.51  1999-05-05 10:05:54  florian
+   * a delphi compiled compiler recompiles ppc
+
+ Revision 1.50  1999/05/02 21:33:55  florian
    * several bugs regarding -Or fixed
 
  Revision 1.49  1999/05/02 14:26:31  peter

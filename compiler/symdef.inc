@@ -2492,7 +2492,7 @@ Const local_symtable_index : longint = $8001;
          not(use_big) and
 {$endif}
            assigned(_mangledname) then
-           strdispose(_mangledname);
+           globals.strdispose(_mangledname);
          inherited done;
       end;
 
@@ -3459,7 +3459,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.108  1999-04-28 22:30:52  pierre
+  Revision 1.109  1999-05-05 10:05:56  florian
+    * a delphi compiled compiler recompiles ppc
+
+  Revision 1.108  1999/04/28 22:30:52  pierre
    * delete -> deleteindex in tdef.correct_owner_symtable
 
   Revision 1.107  1999/04/28 06:02:11  florian

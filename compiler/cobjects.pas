@@ -1302,15 +1302,6 @@ end;
         grow;
       end;
 
-
-    destructor tindexarray.done;
-      begin
-        clear;
-        if assigned(data) then
-         freemem(data,size*4);
-      end;
-
-
     function  tdynamicarray.size:longint;
       begin
         size:=limit*elemlen;
@@ -1422,6 +1413,15 @@ end;
         first:=nil;
       end;
 
+    destructor tindexarray.done;
+      begin
+        if assigned(data) then
+          begin
+             clear;
+             freemem(data,size*4);
+             data:=nil;
+          end;
+      end;
 
     function tindexarray.search(nr:longint):Pnamedindexobject;
       begin
@@ -1450,7 +1450,7 @@ end;
       var
         i : longint;
       begin
-        for i:=1to count do
+        for i:=1 to count do
          if assigned(data^[i]) then
           proc2call(data^[i]);
       end;
@@ -1935,7 +1935,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-05-05 09:19:03  florian
+  Revision 1.28  1999-05-05 10:05:48  florian
+    * a delphi compiled compiler recompiles ppc
+
+  Revision 1.27  1999/05/05 09:19:03  florian
     * more fixes to get it with delphi running
 
   Revision 1.26  1999/04/21 09:43:31  peter

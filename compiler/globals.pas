@@ -227,7 +227,19 @@ unit globals;
    procedure InitGlobals;
    procedure DoneGlobals;
 
+    procedure strdispose(var p : pchar);
+
   implementation
+
+    procedure strdispose(var p : pchar);
+
+      begin
+         if assigned(p) then
+           begin
+              freemem(p,strlen(p)+1);
+              p:=nil;
+           end;
+      end;
 
 {$ifdef FPC}
     function getspeedvalue(const s : string) : longint;
@@ -1191,7 +1203,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-05-04 21:44:43  florian
+  Revision 1.6  1999-05-05 10:05:50  florian
+    * a delphi compiled compiler recompiles ppc
+
+  Revision 1.5  1999/05/04 21:44:43  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.4  1999/04/26 13:31:32  peter
