@@ -95,7 +95,10 @@ type
     // Extra additions
     ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, ssScroll);
 
-  { THelpContext = -MaxLongint..MaxLongint; }
+  THelpContext = -MaxLongint..MaxLongint;
+  THelpType = (htKeyword, htContext);
+
+  TShortCut = Low(Word)..High(Word);
 
 { Standard events }
 
@@ -259,6 +262,35 @@ type
 { TPersistent class reference type }
 
   TPersistentClass = class of TPersistent;
+
+{ TInterfaced Persistent }
+
+{$ifdef HASINTF}
+  TInterfacedPersistent = class(TPersistent, IInterface)
+  private
+    FOwnerInterface: IInterface;
+  protected
+    { IInterface }
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+  public
+    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    procedure AfterConstruction; override;
+  end;
+{$endif HASINTF}
+
+{ TRecall class }
+
+  TRecall = class(TObject)
+  private
+    FStorage, FReference: TPersistent;
+  public
+    constructor Create(AStorage, AReference: TPersistent);
+    destructor Destroy; override;
+    procedure Store;
+    procedure Forget;
+    property Reference: TPersistent read FReference;
+  end;
 
 { TCollection class }
 
@@ -496,6 +528,13 @@ type
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
   end;
+
+{$ifdef HASINTF}
+  IStreamPersist = interface ['{B8CD12A3-267A-11D4-83DA-00C04F60B2DD}']
+    procedure LoadFromStream(Stream: TStream);
+    procedure SaveToStream(Stream: TStream);
+  end;
+{$endif HASINTF}
 
 { THandleStream class }
 
@@ -1245,7 +1284,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.10  2001-05-14 21:17:24  florian
+  Revision 1.11  2001-08-12 22:10:36  peter
+    * some interface updates for 1.1
+
+  Revision 1.10  2001/05/14 21:17:24  florian
     * TGUID and IUnknown is defined in the system unit by
       1.1 and above
 

@@ -11,10 +11,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 {****************************************************************************}
 {*                             TPersistent                                  *}
 {****************************************************************************}
-
 
 procedure TPersistent.AssignError(Source: TPersistent);
 
@@ -79,9 +79,91 @@ begin
    If OwnerName<>'' then Result:=OwnerName+'.'+Result;
    end;
 end;
+
+
+{****************************************************************************}
+{*                          TInterfacedPersistent                           *}
+{****************************************************************************}
+
+{$ifdef HASINTF}
+procedure TInterfacedPersistent.AfterConstruction;
+begin
+  inherited;
+//  if GetOwner<>nil then
+//   GetOwner.GetInterface(IUnknown,FOwnerInterface);
+end;
+
+
+function TInterfacedPersistent._AddRef: Integer;stdcall;
+begin
+  if FOwnerInterface<>nil then
+    Result:=FOwnerInterface._AddRef
+  else
+    Result:=-1;
+end;
+
+
+function TInterfacedPersistent._Release: Integer;stdcall;
+begin
+  if FOwnerInterface <> nil then
+    Result:=FOwnerInterface._Release
+  else
+    Result:=-1;
+end;
+
+
+function TInterfacedPersistent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
+begin
+  if GetInterface(IID, Obj) then
+    Result:=0
+  else
+    Result:=HResult($80004002);
+end;
+{$endif HASINTF}
+
+
+{****************************************************************************}
+{*                                TRecall                                   *}
+{****************************************************************************}
+
+constructor TRecall.Create(AStorage,AReference: TPersistent);
+begin
+  inherited Create;
+  FStorage:=AStorage;
+  FReference:=AReference;
+  Store;
+end;
+
+
+destructor TRecall.Destroy;
+begin
+  if Assigned(FReference) then
+   FReference.Assign(FStorage);
+  Forget;
+  inherited;
+end;
+
+
+procedure TRecall.Forget;
+begin
+  FReference:=nil;
+  FreeAndNil(FStorage);
+end;
+
+
+procedure TRecall.Store;
+begin
+  if Assigned(FReference) then
+    FStorage.Assign(FReference);
+end;
+
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2001-08-12 22:10:36  peter
+    * some interface updates for 1.1
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
- 
+
 }
