@@ -2600,6 +2600,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
+   { DO NOT RELY on the fact that the ptree is not yet swaped
+     because of inlining code PM }
     procedure firstcomplex(p : ptree);
       var
          hp : ptree;
@@ -2608,7 +2610,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          if (p^.treetype in [orn,andn]) and
             (p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
-           p^.swaped:=false
+           begin
+             { p^.swaped:=false}
+             if p^.swaped then
+               internalerror(234234);
+           end
          else
            if (p^.left^.registers32<p^.right^.registers32) and
            { the following check is appropriate, because all }
@@ -2620,10 +2626,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               hp:=p^.left;
               p^.left:=p^.right;
               p^.right:=hp;
-              p^.swaped:=true;
-            end
-         else
-           p^.swaped:=false;
+              p^.swaped:=not p^.swaped;
+            end;
+         {else
+           p^.swaped:=false; do not modify }
       end;
 
 
@@ -3962,7 +3968,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.106  2000-05-26 20:16:00  jonas
+  Revision 1.107  2000-06-05 20:39:05  pierre
+   * fix for inline bug
+
+  Revision 1.106  2000/05/26 20:16:00  jonas
     * fixed wrong register deallocations in several ansistring related
       procedures. The IDE's now function fine when compiled with -OG3p3r
 
