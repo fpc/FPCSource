@@ -544,6 +544,14 @@ begin
   S[L]:=#0;
 end;
 
+Procedure PCharToString (Var S : String);
+Var L : Longint;
+begin
+  L:=strlen(pchar(@S[0]));
+  Move (S[0],S[1],L);
+  S[0]:=char(l);
+end;
+
 
 procedure FindMatch(var f:searchrec);
 begin
@@ -716,6 +724,14 @@ begin
   { allow slash as backslash }
   StringToPchar(name);
   StringToPchar(ext);
+
+  StringToPchar(dir);
+  if SearchPath(@dir, @name, @ext, 255, @value, temp)>0 then
+    begin
+      fsearch := strpas(value);
+      exit;
+    end;
+  PCharToString(dir);
 
   repeat
     i:=pos(';',dirlist);
@@ -934,7 +950,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2000-02-26 13:24:26  peter
+  Revision 1.35  2000-04-17 20:43:27  pierre
+   fix bug 902 for win32 and linux
+
+  Revision 1.34  2000/02/26 13:24:26  peter
     * fixed fexpand with empty argument to return current dir
 
   Revision 1.33  2000/02/09 16:59:34  peter

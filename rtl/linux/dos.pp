@@ -708,8 +708,13 @@ End;
 
 
 Function FSearch(path : pathstr;dirlist : string) : pathstr;
+Var
+  info:stat;
 Begin
-  FSearch:=Linux.FSearch(path,dirlist);
+  if FStat(path,info) then
+    FSearch:=path
+  else
+    FSearch:=Linux.FSearch(path,dirlist);
 End;
 
 
@@ -909,7 +914,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2000-03-19 18:48:19  peter
+  Revision 1.20  2000-04-17 20:43:27  pierre
+   fix bug 902 for win32 and linux
+
+  Revision 1.19  2000/03/19 18:48:19  peter
     * dosexitcode finally works correct
 
   Revision 1.18  2000/03/16 15:23:02  marco
