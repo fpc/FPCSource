@@ -1307,7 +1307,10 @@ function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeI
   end;
 
 
-function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source:
+PChar;
+  SourceBytes: SizeUInt): SizeUInt;
+  
   var
     i,j : SizeUInt;
     w : word;
@@ -1325,7 +1328,7 @@ function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; S
             // 2 or 3 bytes?
             if b>=$80 then
               begin
-                w:=b and $3c;
+                w:=b and $3f;
                 if i>=SourceBytes then
                   exit;
                 // 3 bytes?
@@ -1337,14 +1340,16 @@ function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; S
                       exit;
                     if (b and $c0)<>$80 then
                       exit;
-                    w:=(w shl 6) or (b and $3c);
+                    w:=(w shl 6) or (b and $3f);
                   end;
                 b:=byte(Source[i]);
-                w:=(w shl 6) or (b and $3c);
+                w:=(w shl 6) or (b and $3f);
                 if (b and $c0)<>$80 then
                   exit;
                 inc(i);
-              end;
+              end
+            else
+              w:=b;
             Dest[j]:=WideChar(w);
             inc(j);
           end;
@@ -1473,7 +1478,10 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.54  2005-03-14 21:09:04  florian
+  Revision 1.55  2005-03-14 21:32:04  florian
+    * utf8 to unicode (utf-16) fix from Matthias
+
+  Revision 1.54  2005/03/14 21:09:04  florian
     * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
 
   Revision 1.53  2005/02/26 15:00:14  florian
