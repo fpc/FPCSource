@@ -130,8 +130,8 @@ This file should contain ANSI drawing commands to draw on a screen.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Navigating in the IDE
 \section{Navigating in the IDE}
-The IDE can be navigated both with the keyboard and with a mouse, if your
-system has a mouse.
+The IDE can be navigated both with the keyboard and with a mouse, if the
+system is equipped with a mouse.
 %
 % Using the keyboard
 %
@@ -437,8 +437,8 @@ current window's contents are then saved to this new filename, and the
 filename is stored for further save actions.
 \item[Change dir] Presents a dialog in which a directory can be selected.
 The current working directory is then changed to the selected directory.
-\item[Dos shell] Executes a command shell. After the shell exited, the
-IDE resumes.
+\item[Command shell] Executes a command shell. After the shell exited, the
+IDE resumes. Which command shell is executed depends on the system. 
 \item[Exit] (\key{ALT-X}) Exits the IDE. If any unsaved files are 
 in the editor, the IDE will ask if these files should be saved.
 \end{description}
@@ -632,7 +632,7 @@ see \sees{toolsmessages}.
 \item[Goto previous] (\key{Alt-F7}) Goto previous message
 \item[Grep] (\key{SHIFT-F2}) Prompts for a regular expression and options
 to be given to grep, and then executes \file{grep} with the given expression and
-options. For this to work, the \file{grep} program must be installed on your
+options. For this to work, the \file{grep} program must be installed on the
 system, and be in a directory that is in the \var{PATH}. For more
 information, see \sees{grep}.
 \item[Calculator] 
@@ -1083,11 +1083,12 @@ the search text will be replaced.
 \section{The symbol browser}
 \label{se:browser}
 The symbol browser allows to find all occurrences of a symbol. A symbol 
-can be a variable, type, procedure or constant that occurs in your program.
+can be a variable, type, procedure or constant that occurs in the
+program or unit sources.
 
 To enable the symbol browser, the program or unit must be compiled with
 browser information. This can be done by setting the browser information
-option in the compiler options dialog.
+options in the compiler options dialog.
 
 The IDE allows to browse several types of symbols:
 \begin{description}
@@ -1107,8 +1108,57 @@ containing the symbol will be highlighted.
 If the location is in a source file that is not yet displayed, a new 
 window will be opened with the source file loaded.
 
-After the desired location was reached, the browse window can be closed 
+After the desired location was reached, the browser window can be closed 
 with the usual commands. 
+
+The behaviour of the browser can be customized with the browser options
+dialog, using the \menu{Options|Browser} menu.
+\begin{htmlonly}
+The browser options dialog looks as follows:
+\fpcaddimg{../pics/ide/obrowser.png}
+\end{htmlonly}
+\begin{latexonly}
+The brow
+\begin{figure}[ht]
+\caption{The browser options dialog.}\label{fig:obrowser}
+\ifpdf
+\epsfig{file=pics/ide/obrowser.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/obrowser.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+The following options can be set in the browser options dialog:
+\begin{description}
+\item[Symbols] Here the types of symbols displayed in the browser can be
+selected:
+\begin{description}
+\item[Labels] labels are shown.
+\item[Constants] Constants are shown.
+\item[Types] Types are shown.
+\item[Variables] Variables are shown.
+\item[Procedures] Procedures are shown.
+\item[Inherited]
+\end{description}
+\item[Sub-browsing] Specifies what the browser should do when displaying the
+members of a complex symbol such as a record or class:
+\begin{description}
+\item[New browser] The members are shown in a new browser window.
+\item[Replace current] The contents of the current window are replaced with
+the members of the selected complex symbol.
+\end{description}
+\item[Preferred pane] Specifies what pane is shown in the browser when it is
+initialy opened:
+\begin{description}
+\item[scope]
+\item[Reference]
+\end{description}
+\item[Display] Determines how the browser should display the symbols:
+\begin{description}
+\item[Qualified symbols]
+\item[Sort always] sorts the symbols in the browser window. 
+\end{description}
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running programs
@@ -1405,7 +1455,7 @@ The GDB window is shown in \seefig{gdbwin}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
-\section{The Tools menu}
+\section{Using Tools}
 \label{se:toolsmenu}
 The tools menu provides easy access to external tools. It also has
 three pre-defined tools for programmers: an ASCII table,  a grep tool
@@ -1727,50 +1777,44 @@ unsaved files should be saved before executing the command.
 Writes the parsed tool output information to a file with name as in the argument.
 \end{description}	
 
-\subsection{Building your own tool command line dialog box}
+\subsection{Building tools with a command line dialog box}
 \label{se:commanddialogs}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Project management
-\section{Project management}
+\section{Project management and compiler options}
 \label{se:projectmanagement}
-Luckily, project mangament in pascal is much easier than with C. The
+Project mangament in Pascal is much easier than with C. The
 compiler knows from the source which units, sources etc. it needs.
 So the \fpc IDE does not need a full featured project manager like
-some C development environments offer. But some things make life easier...
-
+some C development environments offer, nevertheless there are some
+settings in the IDE which apply to projects.
+%
+% The primary file
+%
 \subsection{The primary file}
 \label{se:primaryfile}
-Without a primary file the IDE compiles/runs the source of the actived
-window when you start your program. If you have specified a primary
-file, the IDE compiles/runs always this source, no matter if another
-source window is active. Select the menu item \var{Compile|Primary file...}
-to get a file dialog where you can enter the primary file. Only the command
-\var{Compile|Compile} compiles still the active window, this is usefull
-if you have a large project and you want only check the syntax of the
-current source.
+Without a primary file the IDE compiles/runs the source of the active
+window when a program is started. If a primary file is specified, 
+the IDE compiles/runs always this source, even if another
+source window is active. With the menu item \menu{Compile|Primary file...}
+a file dialog can be opened where the primary file can be selected. 
+Only the command \var{Compile|Compile} compiles still the active window, 
+this is useful if a large project is being edited, and only the syntax of 
+the current source should be checked. 
 
-The menu item \var{Compiler|Clear primary file} restores the default behavior
-i.e. the compile and run commands apply to the active window.
-
-\subsection{The switches mode}
-\label{se:compilermode}
-The IDE allows you to work with three different sets of compiler
-switches: Normal, Debug and Release. The different switch
-sets can be selected in the \var{Switches Mode} dialog which
-is executed by the menu item \var{Options|Mode...}.
-Change the switches mode doesn't do any active switch change, i.e.
-the debug mode doesn't include debug information automatically,
-it just loads another set of switches which were adjusted before
-by the user in the compiler or directory dialog.
-
+The menu item \menu{Compiler|Clear primary file} restores the default
+behaviour of the IDE, i.e. the 'compile' and 'run' commands apply to the 
+active window.
+%
+% The directory dialog
+%
 \subsection{The directory dialog}
-In the directory dialog, you've to specify the directories where
-the compiler should look for units, library etc, where the
-output files should be stored etc. You can specify multiple
-directories (except for the output directory) seperated by
-semicolon.
+In the directory dialog, the directories can be specified where the 
+compiler should look for units, libraries, object files. It also says
+where the output files should be stored. Multiple directories (except 
+for the output directory) can be entered, seperated by semicolons.
 
 \begin{htmlonly}
 The directories dialog looks as follows:
@@ -1789,18 +1833,404 @@ The directories dialog is shown in \seefig{odirs}.
 \end{center}
 \end{figure}
 \end{latexonly}
-
+The following directories can be specified:
 \begin{description}
-\item Nothing yet !!!!!!!!!!!!!!
+\item[EXE \& PPU directories] Specifies where the compiled units and
+executables will go. (\seeo{-FE} on the command line.)
+\item[Object directories] Specifies where the compiler looks for external
+object files. (\seeo{-Fo} on the command line.)
+\item[Library directories] Specifies where the compiler (more exactly, the
+linker) looks for external libraries. (\seeo{-Fl} on the command line.)
+\item[Include directories] Specifies where the compiler will look for 
+include files, included with the \var{\{\$i \}} directive. 
+(\seeo{-Fi} or \seeo{-I} on the command line.)
+\item[Unit directories] Specifies where the compiler will look for compiled
+units. The compiler always looks first in the current directory, and also in
+some standard directories. (\seeo{-Fu} on the command line.)
+\end{description}
+%
+% The target operating system.
+%
+\subsection{The target operating system}
+The menu item \menu{Compile|Target} allows to specify the target
+operating system for which the sources will be compiled. 
+Changing the target doesn't affect any compiler switches or 
+directories. It does affect some defines defined by the compiler.
+The settings here correspond to the option \seeo{-T}
+on the command-line.
+\begin{htmlonly}
+The target dialog looks as follows:
+\fpcaddimg{../pics/ide/target.png}
+\end{htmlonly}
+\begin{latexonly}
+The compilation target dialog is shown in \seefig{target}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The compilation target dialog.}\label{fig:target}
+\ifpdf
+\epsfig{file=pics/ide/target.png}%,width=\textwidth}
+\else
+\epsfig{file=pics/ide/target.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following targets can be set:
+\begin{description}
+\item[Dos (go32v1)] This switch will dissapear in time as this target is no
+longer being maintained.
+\item[Dos (go32v2)] Compile for dos, using version 2 of the Go32 extender.
+\item[FreeBSD] Compile for FreeBSD.
+\item[Linux] Compile for linux.
+\item[OS/2] Compile for OS/2 (using the EMX extender)
+\item[Win32] Compile for windows 32 bit.
+\end{description}
+The currently selected target operating system is shown in the menu item in
+the \menu{Compile} menu. Standard this should be the operating system for
+which the IDE was compiled.
+%
+% Other compiler options
+%
+\subsection{Compiler options}
+The menu \menu{Options|Compiler} allows to set other options that affect the
+compilers behaviour. When this menu item is chosen, a dialog pops up that
+displays several tabs.
+
+There are 5 tabs:
+\begin{description}
+\item[Syntax] Here options can be set that affect the various syntax aspects
+of the code. They correspond mostly to the \var{-S} option on the command
+line (\sees{sourceoptions}).
+\item[Code generation] These options control the generated code; they are
+mostly concerned with the \var{-C} and \var{-X} command-line options.
+\item[Verbose] These set the verbosity of the compiler when compiling. The
+messages of the compiler are shown in the compiler messages window (can be
+called with \key{F12}).
+\item[Browser] options concerning the generated browser information. Browser
+information needs to be generated for the symbol browser to work.
+\item[Assembler] Options concerning the reading of assembler blocks (-R on
+the command line) and the generated assembler (\var{-A} on the command line)
 \end{description}
 
-\subsection{The target operating system}
-The menu item \var{Compile|Target} allows you to specify the target
-operating system. Changing the target doesn't affect any compiler
-switches or directories.
+Under the tab pages, the {\em Conditional defines} entry box is visible;
+here symbols to define can be entered. The symbols should be separated with
+semicolons.
 
-\subsection{The configuration files}
-%%%!!!!!!!!!!!!!!
+\begin{htmlonly}
+The syntax tab of the compiler options  looks as follows:
+\fpcaddimg{../pics/ide/ocompa.png}
+\end{htmlonly}
+\begin{latexonly}
+The syntax tab of the compiler options dialog is shown in \seefig{ocompa}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The syntax options tab.}\label{fig:ocompa}
+\ifpdf
+\epsfig{file=pics/ide/ocompa.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/ocompa.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+In this dialog, the following options can be set:
+\begin{description}
+\item[Delphi 2 extensions on]
+Enables the use of classes and exceptions (\seeo{Sd} on the command-line).
+\item[C-like operators]
+Allows the use of some extended operators such as \var{+=, -=} etc.
+(\seeo{Sc} on the command-line).
+\item[Stop after first error]  when checked, the compiler stops after the
+first error. Normally the compiler continues compiling till a fatal error is
+reached. (\seeo{Se} on the command-line)
+\item[Allow label and goto] Allow the use of label declarations and goto
+statements (\seeo{Sg} on the command line).
+\item[C++ styled inline] allows the use of inlined functions (\seeo{Sc} on
+the command-line).
+\item[TP/BP 7.0 compatibility] Try to be more \tp compatible (\seeo{So} on
+the command-line).
+\item[Delphi compatibility] try to be more \delphi compatible (\seeo{Sd} on
+the command-line).
+\item[Allow STATIC in objects] Allow the \var{Static} modifier for object
+methods (\seeo{St} on the command-line)
+\item[Strict var-strings] Not used.
+\item[Extended syntax] Not used.
+\item[Allow MMX operations] Allow MMX operations.
+\end{description}
+
+\begin{htmlonly}
+The code generation tab of the compiler options  looks as follows:
+\fpcaddimg{../pics/ide/ocompb.png}
+\end{htmlonly}
+\begin{latexonly}
+The code generation tab of the compiler options dialog is shown in
+\seefig{ocompb}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The code generation options tab.}\label{fig:ocompb}
+\ifpdf
+\epsfig{file=pics/ide/ocompb.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/ocompb.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+In this dialog, the following options can be set:
+\begin{description}
+\item[Run-time checks] Controls what run-time checking code is generated. If
+such a check fails, a run-time error is generated.
+the following checking code can be generated:
+\begin{description}
+\item[Range checking] Code that checks the results of enumeration and subset
+type operations is generated (\seeo{Cr} command-line option)
+\item[Stack checking] Code that checks whether the stack limit is not
+reached is generated (\seeo{Cs} command-line option)
+\item[I/O checking] Code that checks the result of IO operations is
+generated. (\seeo{Ci} command-line option).
+\item[Integer overflow checking] The result of integer operations is
+checked (\seeo{Co} command-line option)
+\end{description}
+\item[Target processor] Set the target process for optimizations. The
+compiler can use different optimizations for different processors. This
+corresponds to the \var{Op} option.
+\begin{description}
+\item[i386/i486] Code is optimized for less than pentium processors.
+\item[Pentium/pentiumMMX] Code is optimized for Pentium processors.
+\item[PPro/PII/c6x86/K6] Code is optimized for Pentium pro and higher
+processors.
+\end{description}
+\item[Optimizations] What optimizations should be used when compiling:
+\begin{description}
+\item[Generate faster code] Corresponds to the \var{-OG} command-line option.
+\item[Generate smaller code] Corresponds to the \var{-Og} command-line option.
+\item[Use register variables] Corresponsds to the \var{-Or} command-line
+option.
+\item[Uncertain optimizations] Corresponds to the \var{-Ou} command-line
+option.
+\item[Level 1 optimizations] Corresponds to the \var{O1} command-line
+option.
+\item[Level 2 optimizations] Corresponds to the \var{O1} command-line
+option.
+\end{description}
+\end{description}
+More information on these switches can be found in \sees{codegen}.
+
+\begin{htmlonly}
+The verbose tab of the compiler options looks as follows:
+\fpcaddimg{../pics/ide/ocompc.png}
+\end{htmlonly}
+\begin{latexonly}
+The verbose tab of the compiler options dialog is shown in
+\seefig{ocompc}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The verbosity options tab.}\label{fig:ocompc}
+\ifpdf
+\epsfig{file=pics/ide/ocompc.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/ocompc.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+In this dialog, the following verbosity options (\seeo{v} on the
+command-line) can be set:
+\begin{description}
+\item[Warnings] Generate warnings, corresponds to \var{-vw} on the
+command-line.
+\item[Notes] Generate notes, corresponds to \var{-vn} on the
+command-line.
+\item[Hints] Generate hints, corresponds to \var{-vh} on the
+command-line.
+\item[General info] Generate general information, corresponds to \var{-vi} on the
+command-line.
+\item[User,tried info] Generate information on used and tried files. Corresponds to \var{-vut} on the
+command-line.
+\item[All] Switch on full verbosity. Corresponds to \var{-va} on the
+command-line.
+\item[Show all procedure if error] If an error using overloaded procedure
+occurs, show all procedures. Corresponds to \var{-vb} on the
+command-line.
+\end{description}
+
+\begin{htmlonly}
+The browser tab of the compiler options looks as follows:
+\fpcaddimg{../pics/ide/ocompd.png}
+\end{htmlonly}
+\begin{latexonly}
+The browser tab of the compiler options dialog is shown in
+\seefig{ocompd}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The browser options tab.}\label{fig:ocompd}
+\ifpdf
+\epsfig{file=pics/ide/ocompd.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/ocompd.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+In this dialog, the browser options can be set:
+\begin{description}
+\item[No browser] (default) no browser information is generated by the
+compiler.
+\item[Only global browser] Browser information is generated for global
+symbols only, i.e. symbols defined not in a procedure or function (\var{-b} on the commmand-line)
+\item[Local and global browser]  Browser information is generated for all 
+symbols, i.e. also for symbols that are defined in procedures or functions 
+ (\var{-bl} on the commmand-line)
+\end{description}
+\begin{remark}
+If no browser information is generated, the symbol browser of the IDE will
+not work.
+\end{remark}
+
+\begin{htmlonly}
+The assembler tab of the compiler options looks as follows:
+\fpcaddimg{../pics/ide/ocompe.png}
+\end{htmlonly}
+\begin{latexonly}
+The assembler tab of the compiler options dialog is shown in
+\seefig{ocompe}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The assembler options tab.}\label{fig:ocompe}
+\ifpdf
+\epsfig{file=pics/ide/ocompe.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/ocompe.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+In this dialog, the assembler reader and writer options can be set:
+\begin{description}
+\item[Assembler reader] This allows to set the style of the assembler blocks
+in the sources:
+\begin{description}
+\item[Direct assembler] The assembler blocks are copied as-is to the output 
+(\var{-Rdirect} on the command-line).
+\item[AT\&T assembler] The assembler is written in \var{AT\&T} style
+assembler (\var{-Ratt} on the command-line).
+\item[Intel style assembler] The assembler is written in \var{Intel} style
+assembler blocks (\var{-Rintel} on the command-line).
+\end{description}
+remark that this option is global, but locally the assembler style can be
+changed with compiler directives. 
+\item[Assembler info] When writing assembler files, this option decides
+which extra information is written to the assembler file in comments:
+\begin{description} 
+\item[List source] The source lines are written to the assembler files
+together with the generated assembler (\var{-al} on the command line).
+\item[List register allocation] The compilers internal register
+allocation/deallocation information is written to the assembler file
+(\var{-ar} on the command-line).
+\item[List temp allocation] The temporary register allocation/deallocation
+is written to the assembler file. (\var{-at} on the command-line).
+\end{description}
+The latter two of these options are mainly useful for debugging the
+compiler itself, it should be rarely necessary to use these.
+\item[Assembler output] This option tells the compiler what assembler output
+should be generated.
+\begin{description}
+\item[Use default output] This depends on the target.
+\item[Use GNU as] assemble using \gnu \file{as} (\var{-Aas} on the
+command-line).
+\item[Use NASM coff] produce NASM coff assembler (go32v2, \var{-Anasmcoff} on the
+command-line)
+\item[Use NASM elf] produce NASM elf assembler (linux, \var{-Anasmelf} on
+the command-line).
+\item[Use NASM obj] produce NASM obj assembler (\var{-Anasmobj} on the
+command-line).
+\item[Use MASM] produce MASM (Microsoft assembler) assembler (\var{-Amasm} on the
+command-line).
+\item[Use TASM] produce TASM (Turbo Assembler) assembler (\var{-Atasm} on the
+command-line).
+\item[Use coff] Write binary coff files directly using the internal
+assembler (go32v2, \var{-Acoff} on the command-line).
+\item[Use pecoff] Write binary pecoff files files directly using the
+internal writer. (Win32)
+\end{description}
+\end{description}
+%
+% Linker options
+%
+\subsection{Linker options}
+The linker options can be set in the menu \menu{Options|Linker}. It allows
+to determine how libraries and units are linked, and how the linker should
+be called. 
+\begin{htmlonly}
+The linker options dialog looks as follows:
+\fpcaddimg{../pics/ide/olinker.png}
+\end{htmlonly}
+\begin{latexonly}
+The linker options dialog is shown in
+\seefig{olinker}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The linker options dialog.}\label{fig:olinker}
+\ifpdf
+\epsfig{file=pics/ide/olinker.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/olinker.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following opions can be set:
+\begin{description}
+\item[Call linker after] 
+\item[Preferred library type]
+\begin{description}
+\item[Target default]
+\item[Dynamic libraries]
+\item[Static libraries]
+\item[Smart libraries]
+\end{description}
+\end{description}
+%
+% The switches mode.
+%
+\subsection{The switches mode}
+\label{se:compilermode}
+The IDE allows to save a set of compiler settings under a common name; it
+provides 3 names under which the switches can be saved:
+\begin{description}
+\item[Normal] For normal (fast) compilation.
+\item[Debug] For debugging; intended to set most debug switches on. Also
+usefule for setting conditionsl defines that e.g. allow to include some
+debug code.
+\item[release] For a compile of the program as it should be released, debug
+information should be off, the binary should be stripped, and optimizations
+should be used.
+\end{description}
+Selecting one of these modes will load the compiler options as they were
+saved the last time the selected mode was active, i.e. it doesn't
+specifically set or unset options. 
+
+When setting and saving compiler options, be sure to select the correct
+switch mode first; it makes little sense to set debug options while the
+release switch is active.
+
+\begin{htmlonly}
+The switches mode dialog looks as follows:
+\fpcaddimg{../pics/ide/oswitch.png}
+\end{htmlonly}
+\begin{latexonly}
+The switches mode dialog is shown in \seefig{oswitch}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The switches mode dialog.}\label{fig:oswitch}
+\ifpdf
+\epsfig{file=pics/ide/oswitch.png}%,width=\textwidth}
+\else
+\epsfig{file=pics/ide/oswitch.eps}%,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Customize the IDE
@@ -1834,34 +2264,54 @@ The preferences dialog is shown in \seefig{oprefs}.
 \begin{description}
 \item[Video modes]
 The drop down list at the top of the dialog allows to select a video mode.
-\begin{remark}
-The video mode must be selected by pressing space or clicking
-on it. If the drop down list is opened while leaving the dialog,
-the new video mode will not be applied.
-\end{remark}
 The available video modes depend on the system on which the IDE
 is running. 
 \begin{remark}
-If you're using VESA modes under DOS, the display refresh rate may be
-annoying low. On older graphics card (1998 and before),
-you can try to use the \emph{UniVBE} driver of \emph{SciTech}. But
-it is quite outdated (last update somewhere in 1998). For newer
-graphics cards which support VESA 3.0, you can try to get one
-of the TSR programs
-\footnote{\textbf{T}erminate and \textbf{S}tay \textbf{R}esisdent}
-available at the net to customize the refresh rate.
+\begin{enumerate}
+\item The video mode must be selected by pressing space or clicking
+on it. If the drop down list is opened while leaving the dialog,
+the new video mode will not be applied.
+\item For the \dos version of the IDE, the following should be noted:
+When using VESA modes, the display refresh rate may be very low. 
+On older graphics card (1998 and before), it is possible to use the
+{\em UniVBE} driver of {\em SciTech}.
+% It is quite outdated 
+%(last update somewhere in 1998). 
+%For newer graphics cards which support VESA 3.0, you can try to get one
+%of the TSR programs
+%\footnote{\textbf{T}erminate and \textbf{S}tay \textbf{R}esisdent}
+% available at the net to customize the refresh rate.
 %%%%!!!!!!!! footnote with URL
+\end{enumerate}
 \end{remark}
 \item[Desktop File]
+Specifies where the desktop file is saved: the current directory, or the
+directory where the config file was found;
 \item[Auto save]
-\item[Options]
+Here it is possible to set which files are saved when a program is run or
+when the IDE is exited:
+\begin{description}
+\item[Editor files] The contents of all open edit windows will be saved.
+\item[Envitonment] The current environment settings will be saved
+\item[Desktop] The desktop file with all desktop settings (open windows,
+history lists, breakpoints etc.) will be saved.
+\end{description}
+\item[Options] 
+Some special behaviour of the IDE can be specified here:
+\begin{description}
+\item[Auto track source]
+\item[Close on go to source] When checked, the messages window is closed 
+when the 'go to source line' action is executed.
+\item[Change dir on open] When a file is opened, the directory of that file
+is made the current working directory.
+\end{description}
 \end{description}
 %
 % Desktop customization
 %
 \subsection{The desktop}
 \label{se:prefdesktop}
-The desktop preferences dialog allows you to specify what elements of the
+The desktop preferences dialog allows to specify what elements of the
 desktop are saved across sessions, i.e. they are saved when the IDE is left,
 and they are again restored when the IDE is started the next time. 
 They are saved in a file \file{fp.dsk}.
@@ -1883,16 +2333,31 @@ The desktop preferences dialog is shown in \seefig{odesktop}.
 \end{center}
 \end{figure}
 \end{latexonly}
-The following elements can be saved accros sessions:
+The following elements can be saved and restored across IDE sessions:
 \begin{description}
-\item[History lists]
+\item[History lists] Most entry boxes have a history list where previous
+entries are saved and can be selected. When this option is saved, these
+entries are saved in the desktop file. On by default.
 \item[Clipboard content]
+When checked, the contents of the clipboard is also saved to disk. Off by
+default.
 \item[Watch expressions]
-\item[Breakpoints]
+When checked, all watch expressions are saved in the desktop file. Off by
+default.
+\item[Breakpoints] 
+When checked, all break points with their properties are saved in the
+desktop file. Off by default.
 \item[Open windows]
+When checked, the list of files in open editor windows is saved in the 
+desktop file, and the windows will be restored the next time the IDE 
+is run. On by default.
 \item[Symbol information]
+When checked, the information for the symbol browser is saved in the desktop
+file. Off by default.
 \item[CodeComplete wordlist]
+When checked, the list of code-completion words is saved. On by default.
 \item[CodeTemplates]
+When checked, the defined code-templates are saved. On by default.
 \end{description}
 
 %
@@ -1921,22 +2386,63 @@ The editor preferences dialog is shown in \seefig{oeeditor}.
 The following elements can be set in the editor preferences dialog:
 \begin{description}
 \item[Create backup files]
-\item[Auto indent mode]
-\item[Use tab characters]
+Wheneve an editor file is saved, a backup is made of the old file. On by
+default.
+\item[Auto indent mode] 
+Smart indenting is on. This means that pressing \key{Enter} will position the 
+cursor on the next line in the same column where text starts on the current
+line. On by default.
+\item[Use tab characters] 
+When the tab key is pressed, use a tab character. Normally, when the tab key
+is pressed, spaces are inserted. When this option is checked, tab characters 
+will be inserted instead. Off by default.
 \item[Backspace unindents]
+Pressing the \key{Bksp} key will unindent if the beginning of the text on
+the current line is reached, instead of deleting just the previous
+character. On by default.
 \item[Persistent blocks]
+When a selection is made, and the cursor is moved, the selection is not
+destroyed, i.e. the selected block stays selected. On by default. 
 \item[Syntax highlight]
+Use syntax highlighting on the files that have an extension which appears in
+the list of highlight extensions. On by default.
 \item[Block insert cursor]
+The insert cursor is a block instead of an underscore character. By default
+the overwrite cursor is a block. This option reverses that behaviour. Off by
+default.
 \item[Vertical blocks]
+When selecting blocks over several lines, the block doesn't select the whole
+lines in the block, it selects the lines till the column on which the cursor
+is located. Off by default.
 \item[Highlight column]
+When checked, the current column (i.e. the column where the cursor is) is
+highlighted. Off by default.
 \item[Highlight row]
+When checked, the current row (i.e. the row where the cursor is) is
+highlighted. Off by default.
 \item[Auto closing brackets]
+When an opening bracket character is typed, the closing bracket is also
+inserted at once. Off by default.
 \item[Keep trailing spaces]
+When saving a file, the spaces at the end of lines are stripped off. This
+behaviour disables that behaviour, i.e. any trailing spaces are also saved
+to file. Off by default.
 \item[Codecomplete enabled]
+Enable code completion. On by default.
 \item[enable folds]
+???. Off by default.
 \item[Tab size]
+The number of spaces that are inserted when the \key{Tab} key is pressed.
+The default value is 8.
 \item[Highlight extensions]
+When syntax highlighting is on, the list of file masks entered here will be
+used to determine which files are highlighted. File masks should be
+separated with semicolon (;) characters. The default is
+\file{*.pas;*.pp;*.inc}.
 \item[File patterns needing tabs]
+Some files (such as makefiles) need actual tab characters instead of spaces. 
+Here a series of file masks can be entered for which tab characters will
+always be used. Default is \file{make*;make*.*}.
 \end{description}
 
 %
@@ -1966,45 +2472,48 @@ The mouse options dialog is shown in \seefig{omouse}.
 \end{latexonly}
 \begin{description}
 \item[Mouse double click]
-The slider can be used to adjust the double click speed. 
+The slider can be used to adjust the double click speed. Fast means that the
+time between two clicks is very short, slow means that the time between two
+mouse clicks can be quite long.
 \item[Reverse mouse buttons]
-the behavior of the left and right mouse buttons can be changed by
+the behaviour of the left and right mouse buttons can be changed by
 by checking the checkbox; this is especially useful for left-handed people.
 \item[Ctrl+Right mouse button]
+Assigns an action to a right mouse button click while holding the 
+\key{Ctrl} key pressed.
 \item[Ctrl+Left mouse button]
-The two lists with the radio buttons allows you
-to configure the behavior of the
-right mouse button, if it is clicked together while
-pressing the \key{Ctrl} or
-\key{Alt} key in an edit window.
+Assigns an action to a left mouse button click while holding the 
+\key{Ctrl} key pressed.
 \end{description}
+
 The following actions can be assigned to \key{Ctrl}-right mouse button or
 \key{Alt}-right mouse button:
-
 \begin{description}
 \item [Topic search] The keyword at the mouse cursor is searched in the
-help index
+help index.
 \item [Go to cursor] The program is executed until the line where
-the mouse cursor is located
-\item [Breakpoint] Set a breakpoint at the mouse cursor position
+the mouse cursor is located.
+\item [Breakpoint] Set a breakpoint at the mouse cursor position.
 \item [Evalute] Evaluate the value of the variable at the mouse
-cursor
+cursor.
 \item [Add watch] Add the variable at the mouse cursor to the
-watch window
+watch list.
 \item [Browse symbol] The symbol at the mouse cursor is displayed
-by the browser
+in the browser.
 \end{description}
+
 %
 % Color customization
 %
 \subsection{Colors}
 \label{se:prefcolors}
-Allmost all elements of the IDE such as borders input fields, buttons and so
+Almost all elements of the IDE such as borders input fields, buttons and so
 on can have their color set in this dialog. The dialog sets the colors for
 all elements at once, i.e. it is not so that the color of one particular
 button can be set.
 
-The syntax highlighting colors of the IDE can also be set in this dialog.
+The syntax highlighting colors for the editor windows of the IDE can also 
+be set in this dialog.
 \begin{htmlonly}
 The colors dialog looks as follows:
 \fpcaddimg{../pics/ide/oecolors.png}
@@ -2025,21 +2534,34 @@ The colors dialog is shown in \seefig{ocolors}.
 The following elements are visible in the color dialog:
 \begin{description}
 \item[group]
+Here the group to be customized is displayed; A group is a specific window
+or series of windows in the editor. A special group is {\em Syntax} which
+sets the colors for syntax highlighting.
 \begin{description}
-\item[Browser]
-\item[Clock]
-\item[Desktop]
-\item[Dialogs]
-\item[Editor]
-\item[Help]
-\item[Menus]
-\item[Syntax]
+\item[Browser] Sets the colors for the symbol browser window.
+\item[Clock] Sets the colors for the clock in the menu.
+\item[Desktop] Sets the colors for the desktop.
+\item[Dialogs] Sets the colors for the dialog windows.
+\item[Editor] Sets the colors for the editor windows.
+\item[Help] Sets the colors for the help windows.
+\item[Menus] Sets the colors used in the menus.
+\item[Syntax] Sets the colors used when performing syntax highlighting in the
+editor windows.
 \end{description}
 \item[item]
+Here the item for the current group can be selected. The foreground and
+background of this item can be set using the color selectors on the right of
+the dialog.
 \item[Foreground]
+Sets the foreground color of the selected item. 
 \item[background]
+Sets the background color of the selected item.
 \item[Sample text]
+This shows the colors of the selected item in a sample text.
 \end{description}
+Setting a good color scheme is important especially for syntax highlighting;
+a good syntax highlighting scheme helps in eliminating errors when typing,
+without needing to compile the sources. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The help system
@@ -2074,15 +2596,31 @@ The IDE contains a help system which can display the following file formats:
 \begin{description}
 \item[TPH] The help format for the Turbo Pascal help viewer.
 \item[INF] The OS/2 help format.
-\item[NG] The NGHelp format.
+\item[NG] The Norton Guide Help format.
 \item[HTML] HTML files. 
-The HTML viewer of the  help system is limited, it can only handle the 
-most basic HTML files not including graphics, since it is only designed 
-to display the \fpc help files \footnote{...but feel free to improve it and send patches to the 
-\fpc development team...}.
 \end{description}
-The menu item \menu{Help|Files} permits you to add and delete
-help files.
+In future some more formats may be added. However, the above formats should 
+cover already a wide spectrum of help files available.
+
+\begin{remark}
+Concerning the support for HTML files the following should be noted:
+\begin{enumerate}
+\item
+The HTML viewer of the  help system is limited, it can only handle the 
+most basic HTML files (graphics excluded), since it is only designed 
+to display the \fpc help files. \footnote{...but feel free to improve it and send patches to the 
+\fpc development team...}.
+\item
+When the HTML help viewer encounters a graphics file, it will try and find a
+file with the same name but an extension of \file{.ans}; If this file is
+found, this will be interpreted as a file with ansi escape sequences, and 
+these will be used to display a text image. The displays of the IDE dialogs
+in the IDE help files are made in this way.
+\end{enumerate}
+\end{remark}
+
+The menu item \menu{Help|Files} permits to add and delete help files to the
+list of files in the help table of contents.
 \begin{htmlonly}
 The Help files dialog looks as follows:
 \fpcaddimg{../pics/ide/helpfils.png}
@@ -2119,18 +2657,23 @@ removed.
 \end{description}
 
 The \fpc documentation in HTML format can be added to the IDE's help system,
-this way the documentation can be viewed from within the IDE.
+this way the documentation can be viewed from within the IDE. If \fpc hs
+been installed using the installer, the installer should have added the 
+FPC documentation to the list of help files, if the documentation was
+installed as well.
 
 %
 % The about dialog.
 %
 \subsection{The about dialog}
 \label{se:about}
-The \emph{about dialog} (\menu{Help|About...}) shows some information
-about the IDE, such as the version number, the date it was built, what
-compiler and debugger it uses. When reporting bugs about the IDE, please 
-It also contains copyright information.
+The {\em about dialog}, reachable through (\menu{Help|About...}) shows some 
+information about the IDE, such as the version number, the date it was built,
+what compiler and debugger it uses. When reporting bugs about the IDE, please 
+use the information given by this dialog to identify the version of the IDE
+that was used.
 
+It also displays some copyright information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Keyboard shortcuts
@@ -2287,7 +2830,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.12  2000-11-28 22:53:06  michael
+%  Revision 1.1.2.13  2000-12-03 22:32:06  michael
+%  + More compiler options
+%
+%  Revision 1.1.2.12  2000/11/28 22:53:06  michael
 %  + Better sized pictures, start of options
 %
 %  Revision 1.1.2.11  2000/11/21 22:02:25  peter
