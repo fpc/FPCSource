@@ -2,7 +2,6 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs=uncgi
 dirs_linux=unzip \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \

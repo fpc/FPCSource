@@ -207,7 +207,6 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override TARGET_DIRS+=uncgi
 ifeq ($(OS_TARGET),linux)
 override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil
 endif
@@ -1378,7 +1377,6 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-TARGET_DIRS_UNCGI=1
 ifeq ($(OS_TARGET),linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_X11=1
@@ -1505,49 +1503,6 @@ TARGET_DIRS_ZLIB=1
 TARGET_DIRS_TCL=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_FPGTK=1
-endif
-ifdef TARGET_DIRS_UNCGI
-uncgi_all:
-	$(MAKE) -C uncgi all
-uncgi_debug:
-	$(MAKE) -C uncgi debug
-uncgi_smart:
-	$(MAKE) -C uncgi smart
-uncgi_release:
-	$(MAKE) -C uncgi release
-uncgi_examples:
-	$(MAKE) -C uncgi examples
-uncgi_shared:
-	$(MAKE) -C uncgi shared
-uncgi_install:
-	$(MAKE) -C uncgi install
-uncgi_sourceinstall:
-	$(MAKE) -C uncgi sourceinstall
-uncgi_exampleinstall:
-	$(MAKE) -C uncgi exampleinstall
-uncgi_distinstall:
-	$(MAKE) -C uncgi distinstall
-uncgi_zipinstall:
-	$(MAKE) -C uncgi zipinstall
-uncgi_zipsourceinstall:
-	$(MAKE) -C uncgi zipsourceinstall
-uncgi_zipexampleinstall:
-	$(MAKE) -C uncgi zipexampleinstall
-uncgi_zipdistinstall:
-	$(MAKE) -C uncgi zipdistinstall
-uncgi_clean:
-	$(MAKE) -C uncgi clean
-uncgi_distclean:
-	$(MAKE) -C uncgi distclean
-uncgi_cleanall:
-	$(MAKE) -C uncgi cleanall
-uncgi_info:
-	$(MAKE) -C uncgi info
-uncgi_makefiles:
-	$(MAKE) -C uncgi makefiles
-uncgi:
-	$(MAKE) -C uncgi all
-.PHONY: uncgi_all uncgi_debug uncgi_smart uncgi_release uncgi_examples uncgi_shared uncgi_install uncgi_sourceinstall uncgi_exampleinstall uncgi_distinstall uncgi_zipinstall uncgi_zipsourceinstall uncgi_zipexampleinstall uncgi_zipdistinstall uncgi_clean uncgi_distclean uncgi_cleanall uncgi_info uncgi_makefiles uncgi
 endif
 ifdef TARGET_DIRS_UNZIP
 unzip_all:
