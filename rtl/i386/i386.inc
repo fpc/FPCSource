@@ -840,7 +840,11 @@ end;
 
 {
   $Log$
-  Revision 1.47.2.1  1999-07-04 12:29:22  peter
+  Revision 1.47.2.2  1999-07-09 16:25:31  michael
+  + Florians Fix from main branch
+
+  Revision 1.47.2.1  1999/07/04 12:29:22  peter
+
     * fix from main branch
 
   Revision 1.48  1999/07/03 09:03:47  florian
