@@ -21,7 +21,11 @@ unit ncurses;
 interface
 
 {$packrecords C}
+{$ifdef OpenBSD}		// openbsd curses=ncurses. Openbsd ocurses=old curses.
+{$linklib curses}
+{$else}
 {$linklib ncurses}
+{$endif}
 {$linklib c}
 
 { Manually Added types }
@@ -1683,7 +1687,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2003-02-09 19:05:05  marco
+  Revision 1.5  2003-02-09 19:10:13  marco
+   OpenBSD links curses, not ncurses
+
+  Revision 1.4  2003/02/09 19:05:05  marco
    * And now with new refreshing "external;" added.
 
   Revision 1.3  2003/02/09 16:22:51  marco
