@@ -30,7 +30,7 @@ unit ncgmem;
 interface
 
     uses
-      node,nmem;
+      node,nmem,cpuinfo;
 
     type
        tcgloadvmtnode = class(tloadvmtnode)
@@ -69,6 +69,13 @@ interface
           procedure pass_2;override;
        end;
 
+       tcgvecnode = class(tvecnode)
+         function get_mul_size : aword;
+         procedure second_wideansistring;virtual;
+         procedure second_dynamicarray;virtual;
+         procedure pass_2;override;
+       end;
+
 implementation
 
     uses
@@ -78,7 +85,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       nld,ncon,nadd,
-      cpuinfo,cpubase,cpupara,
+      cpubase,cpupara,
       cgobj,cgcpu,
       tgobj,rgobj
 {$ifdef GDB}
@@ -453,6 +460,39 @@ implementation
             end;
        end;
 
+
+{*****************************************************************************
+                            TCGVECNODE
+*****************************************************************************}
+
+     function tcgvecnode.get_mul_size : aword;
+       begin
+         if nf_memindex in flags then
+          get_mul_size:=1
+         else
+          begin
+            if (left.resulttype.def.deftype=arraydef) then
+             get_mul_size:=tarraydef(left.resulttype.def).elesize
+            else
+             get_mul_size:=resulttype.def.size;
+          end
+       end;
+
+     procedure tcgvecnode.second_wideansistring;
+       begin
+       end;
+
+     procedure tcgvecnode.second_dynamicarray;
+       begin
+       end;
+
+     procedure tcgvecnode.pass_2;
+       begin
+          {!!!!}
+          writeln('FIX ME: tcgvecnode.pass_2');
+       end;
+
+
 begin
    cloadvmtnode:=tcgloadvmtnode;
    chnewnode:=tcghnewnode;
@@ -463,10 +503,15 @@ begin
    csubscriptnode:=tcgsubscriptnode;
    cselfnode:=tcgselfnode;
    cwithnode:=tcgwithnode;
+   cvecnode:=tcgvecnode;
 end.
 {
   $Log$
-  Revision 1.17  2002-07-11 14:41:28  florian
+  Revision 1.18  2002-07-28 21:34:31  florian
+    * more powerpc fixes
+    + dummy tcgvecnode
+
+  Revision 1.17  2002/07/11 14:41:28  florian
     * start of the new generic parameter handling
 
   Revision 1.16  2002/07/07 09:52:32  florian

@@ -38,7 +38,7 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386vecnode = class(tvecnode)
+       ti386vecnode = class(tcgvecnode)
           procedure pass_2;override;
        end;
 
@@ -101,20 +101,7 @@ implementation
 
     procedure ti386vecnode.pass_2;
 
-          function get_mul_size:longint;
-          begin
-            if nf_memindex in flags then
-             get_mul_size:=1
-            else
-             begin
-               if (left.resulttype.def.deftype=arraydef) then
-                get_mul_size:=tarraydef(left.resulttype.def).elesize
-               else
-                get_mul_size:=resulttype.def.size;
-             end
-          end;
-
-          procedure calc_emit_mul;
+       procedure calc_emit_mul;
           var
              l1,l2 : longint;
           begin
@@ -520,7 +507,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-07-20 11:58:04  florian
+  Revision 1.39  2002-07-28 21:34:31  florian
+    * more powerpc fixes
+    + dummy tcgvecnode
+
+  Revision 1.38  2002/07/20 11:58:04  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

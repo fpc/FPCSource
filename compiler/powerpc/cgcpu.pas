@@ -191,6 +191,15 @@ const
                a_load_reg_ref(list,size,tmpreg,ref);
                free_scratch_reg(list,tmpreg);
             end;
+          LOC_FPUREGISTER:
+            case size of
+               OS_32:
+                 a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
+               OS_64:
+                 a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+               else
+                 internalerror(2002072801);
+            end;
           else
             internalerror(2002081103);
         end;
@@ -363,8 +372,19 @@ const
          op: tasmop;
          ref2: treference;
        begin
-         if not(size in [OS_F32,OS_F64]) then
-           internalerror(200201121);
+          { several functions call this procedure with OS_32 or OS_64 }
+          { so this makes life easier (FK)                            }
+          case size of
+             OS_32,OS_F32:
+               size:=OS_F32;
+             OS_64,OS_F64:
+               size:=OS_F64;
+             else
+               begin
+                  writeln(ord(size));
+                  internalerror(200201121);
+               end;
+          end;
          ref2 := ref;
          fixref(list,ref2);
          op := fpuloadinstr[size,ref2.index <> R_NO,false];
@@ -1393,7 +1413,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-07-28 16:01:59  jonas
+  Revision 1.28  2002-07-28 21:34:31  florian
+    * more powerpc fixes
+    + dummy tcgvecnode
+
+  Revision 1.27  2002/07/28 16:01:59  jonas
     + tcg64fppc.a_op64_const_reg_reg() and tcg64fppc.a_op64_reg_reg_reg()
     * several fixes, most notably in a_load_reg_reg(): it didn't do any
       conversion from smaller to larger sizes or vice versa
