@@ -208,7 +208,13 @@ implementation
           else
             internalerror(10062);
         end;
-        location.register := hreg1;
+        with Location do
+          begin
+            location.register := hreg1;
+            if Size in [OS_64, OS_S64]
+            then
+              RegisterHigh:=Tregister(LongInt(hReg1)+1);{Alrady allocated OS_64}
+          end;
         truelabel:=oldtruelabel;
         falselabel:=oldfalselabel;
       end;
@@ -219,7 +225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-02-03 22:32:54  peter
+  Revision 1.24  2004-03-15 14:37:06  mazen
+  + support for LongBool(Int64) type cast
+
+  Revision 1.23  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
