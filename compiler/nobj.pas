@@ -261,7 +261,7 @@ implementation
             for i:=1 to Tprocsym(p).procdef_count do
               begin
                 def:=Tprocsym(p).procdef[i];
-                if po_msgint in def.procoptions then
+                if po_msgstr in def.procoptions then
                   begin
                     new(pt);
                     pt^.data:=def;
@@ -278,6 +278,7 @@ implementation
          objectlibrary.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
+         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_label.Create(p^.nl));
          dataSegment.concat(Tai_const.Create_8bit(strlen(p^.data.messageinf.str)));
          dataSegment.concat(Tai_string.Create_pchar(p^.data.messageinf.str));
@@ -315,6 +316,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
+         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_label.Create(r));
          genstrmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -351,6 +353,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
+         datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_label.Create(r));
          genintmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -428,6 +431,7 @@ implementation
            begin
               objectlibrary.getdatalabel(r);
               gendmt:=r;
+              datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
               dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
               dataSegment.concat(Tai_const.Create_32bit(0));
@@ -470,6 +474,7 @@ implementation
               hp:=tprocsym(p).first_procdef;
               objectlibrary.getdatalabel(l);
 
+              consts.concat(tai_align.create(const_align(POINTER_SIZE)));
               Consts.concat(Tai_label.Create(l));
               Consts.concat(Tai_const.Create_8bit(length(p.name)));
               Consts.concat(Tai_string.Create(p.name));
@@ -490,6 +495,7 @@ implementation
          if count>0 then
            begin
               objectlibrary.getdatalabel(l);
+              datasegment.concat(tai_align.create(const_align(POINTER_SIZE)));
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
               _class.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}genpubmethodtableentry,nil);
@@ -846,6 +852,7 @@ implementation
           begin
             { label for GUID }
             objectlibrary.getdatalabel(tmplabel);
+            rawdata.concat(tai_align.create(const_align(pointer_size)));
             rawdata.concat(Tai_label.Create(tmplabel));
             rawdata.concat(Tai_const.Create_32bit(curintf.iidguid.D1));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid.D2));
@@ -865,6 +872,7 @@ implementation
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
+        rawdata.concat(tai_align.create(const_align(pointer_size))); 
         rawdata.concat(Tai_label.Create(tmplabel));
         rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
         if curintf.objecttype=odt_interfacecom then
@@ -1088,6 +1096,7 @@ implementation
         { 2. step calc required fieldcount and their offsets in the object memory map
              and write data }
         objectlibrary.getdatalabel(intftable);
+        dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
         dataSegment.concat(Tai_label.Create(intftable));
         gintfwritedata;
         _class.implementedinterfaces.clearimplprocs; { release temporary information }
@@ -1201,6 +1210,7 @@ implementation
             fieldtablelabel:=_class.generate_field_table;
             { write class name }
             objectlibrary.getdatalabel(classnamelabel);
+            dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
             dataSegment.concat(Tai_label.Create(classnamelabel));
             dataSegment.concat(Tai_const.Create_8bit(length(_class.objrealname^)));
             dataSegment.concat(Tai_string.Create(_class.objrealname^));
@@ -1223,6 +1233,7 @@ implementation
                typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));
          end;
 {$endif GDB}
+         dataSegment.concat(tai_align.create(const_align(POINTER_SIZE)));
          dataSegment.concat(Tai_symbol.Createdataname_global(_class.vmt_mangledname,0));
 
          { determine the size with symtable.datasize, because }
@@ -1319,7 +1330,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2002-10-20 15:33:36  peter
+  Revision 1.34  2002-11-09 15:35:35  carl
+    * major alignment updates for objects/class tables
+
+  Revision 1.33  2002/10/20 15:33:36  peter
     * having overloads is the same as overload directive for hiding of
       parent methods. This is required becuase it can be possible that a
       method will then hide a method in the parent that an overloaded
