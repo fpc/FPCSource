@@ -28,17 +28,6 @@ Const
 
 Type
 
-  { TOwnerStream }
-  TOwnerStream = Class(TStream)
-  Protected
-    FOwner : Boolean;
-    FSource : TStream;
-  Public
-    Constructor Create(ASource : TStream);
-    Destructor Destroy; override;
-    Property Source : TStream Read FSource;
-    Property SourceOwner : Boolean Read Fowner Write FOwner;
-  end;
 
   { TBufStream }
   TBufStream = Class(TOwnerStream)
@@ -287,19 +276,6 @@ begin
   Inc(FTotalPos,Result);
 end;
 
-{ TOwnerStream }
-
-constructor TOwnerStream.Create(ASource: TStream);
-begin
-  FSource:=ASource;
-end;
-
-destructor TOwnerStream.Destroy;
-begin
-  If FOwner then
-    FreeAndNil(FSource);
-  inherited Destroy;
-end;
 
 end.
 
