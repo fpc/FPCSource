@@ -526,9 +526,12 @@ implementation
              psymtable(hp1^.globalsymtable)^.unitid:=-1;
            hp1:=pmodule(hp1^.next);
          end;
+        { Our own symtable gets unitid 0, for a program there is
+          no globalsymtable }
+        if assigned(current_module^.globalsymtable) then
+          psymtable(current_module^.globalsymtable)^.unitid:=0;
         { number units }
         counter:=1;
-        psymtable(current_module^.globalsymtable)^.unitid:=0;
         hp:=pused_unit(current_module^.used_units.first);
         while assigned(hp) do
          begin
@@ -2338,7 +2341,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-07-23 16:05:33  peter
+  Revision 1.30  1999-07-24 00:13:26  peter
+    * also number units for program
+
+  Revision 1.29  1999/07/23 16:05:33  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

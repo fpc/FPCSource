@@ -1238,8 +1238,11 @@ unit pmodules;
          if token=_USES then
            loadunits;
 
-
+         { reset ranges/stabs in exported definitions }
          reset_global_defs;
+
+         { All units are read, now give them a number }
+         numberunits;
 
          {Insert the name of the main program into the symbol table.}
          if current_module^.modulename^<>'' then
@@ -1349,7 +1352,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.132  1999-07-23 11:37:48  peter
+  Revision 1.133  1999-07-24 00:13:25  peter
+    * also number units for program
+
+  Revision 1.132  1999/07/23 11:37:48  peter
     * error for illegal type reference, instead of 10998
 
   Revision 1.131  1999/07/22 09:37:54  florian
