@@ -101,7 +101,8 @@ interface
              target_i386_beos,          { 16 }
              target_i386_netbsd,        { 17 }
              target_m68k_netbsd,        { 18 }
-             target_i386_Netware        { 19 }
+             target_i386_Netware,       { 19 }
+             target_i386_qnx            { 20 }
        );
 
        tasm = (as_none
@@ -676,7 +677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.31  2001-11-15 20:48:43  hajny
+  Revision 1.32  2001-12-15 05:43:20  carl
+  + QNX target
+
+  Revision 1.31  2001/11/15 20:48:43  hajny
     * Target_Mode corrected back to OS_Mode
 
   Revision 1.30  2001/09/30 21:27:59  peter
