@@ -95,7 +95,7 @@ interface
         has_constructor,
         has_virtual_method : boolean;
         procedure newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
-        procedure newvmtentry(sym:tprocsym;is_visible:boolean);
+        function  newvmtentry(sym:tprocsym):pvmtentry;
         procedure eachsym(sym : tnamedindexitem;arg:pointer);
         procedure disposevmttree;
         procedure writevirtualmethods(List:TAAsmoutput);
@@ -549,22 +549,15 @@ implementation
       end;
 
 
-    procedure tclassheader.newvmtentry(sym:tprocsym;is_visible:boolean);
-      var
-        i : cardinal;
-        vmtentry : pvmtentry;
+    function tclassheader.newvmtentry(sym:tprocsym):pvmtentry;
       begin
         { generate new vmtentry }
-        new(vmtentry);
-        vmtentry^.speedvalue:=sym.speedvalue;
-        vmtentry^.name:=stringdup(sym.name);
-        vmtentry^.next:=firstvmtentry;
-        vmtentry^.firstprocdef:=nil;
-        firstvmtentry:=vmtentry;
-
-        { inserts all definitions }
-        for i:=1 to sym.procdef_count do
-          newdefentry(vmtentry,sym.procdef[i],is_visible);
+        new(result);
+        result^.speedvalue:=sym.speedvalue;
+        result^.name:=stringdup(sym.name);
+        result^.next:=firstvmtentry;
+        result^.firstprocdef:=nil;
+        firstvmtentry:=result;
       end;
 
 
@@ -585,13 +578,6 @@ implementation
         if (tsym(sym).typ<>procsym) then
           exit;
 
-        { is this symbol visible from the class that we are
-          generating. This will be used to hide the other procdefs.
-          When the symbol is not visible we don't hide the other
-          procdefs, because they can be reused in the next class.
-          The check to skip the invisible methods that are in the
-          list is futher down in the code }
-        is_visible:=tprocsym(sym).is_visible_for_object(_class);
         { check the current list of symbols }
         _name:=sym.name;
         _speed:=sym.speedvalue;
@@ -609,6 +595,15 @@ implementation
               for i:=1 to Tprocsym(sym).procdef_count do
                 begin
                  pd:=Tprocsym(sym).procdef[i];
+
+                 { is this procdef visible from the class that we are
+                   generating. This will be used to hide the other procdefs.
+                   When the symbol is not visible we don't hide the other
+                   procdefs, because they can be reused in the next class.
+                   The check to skip the invisible methods that are in the
+                   list is futher down in the code }
+                 is_visible:=pd.is_visible_for_object(_class);
+
                  if pd.procsym=sym then
                   begin
                     pdoverload:=(po_overload in pd.procoptions);
@@ -779,7 +774,20 @@ implementation
             end;
            vmtentry:=vmtentry^.next;
          end;
-        newvmtentry(tprocsym(sym),is_visible);
+
+        { Generate new procsym entry in vmt }
+        vmtentry:=newvmtentry(tprocsym(sym));
+
+        { Add procdefs }
+        for i:=1 to Tprocsym(sym).procdef_count do
+          begin
+            pd:=Tprocsym(sym).procdef[i];
+            { new entry is needed, override was not possible }
+            if (_class=pd._class) and
+               (po_overridingmethod in pd.procoptions) then
+              MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+            newdefentry(vmtentry,pd,pd.is_visible_for_object(_class));
+          end;
       end;
 
 
@@ -1381,7 +1389,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.76  2004-09-21 17:25:12  peter
+  Revision 1.77  2004-10-12 14:34:49  peter
+    * fixed visibility for procsyms
+    * fixed override check when there was no entry yet
+
+  Revision 1.76  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.75  2004/09/13 20:31:07  peter

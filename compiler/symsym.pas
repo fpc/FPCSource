@@ -125,6 +125,7 @@ interface
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
+          function is_visible_for_object(currobjdef:tdef):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
 {$endif GDB}
@@ -525,6 +526,9 @@ implementation
 {$ifdef GDB}
          is_global:=false;
 {$endif GDB}
+         { the tprocdef have their own symoptions, make the procsym
+           always visible }
+         symoptions:=[sp_public];
          overloadchecked:=false;
          overloadcount:=0;
          procdef_count:=0;
@@ -1011,6 +1015,27 @@ implementation
                 end;
               p:=hp;
            end;
+      end;
+
+
+    function tprocsym.is_visible_for_object(currobjdef:tdef):boolean;
+      var
+        p : pprocdeflist;
+      begin
+        { This procsym is visible, when there is at least
+          one of the procdefs visible }
+        result:=false;
+        p:=pdlistfirst;
+        while assigned(p) do
+          begin
+             if p^.own and
+                p^.def.is_visible_for_object(tobjectdef(currobjdef)) then
+               begin
+                 result:=true;
+                 exit;
+               end;
+             p:=p^.next;
+          end;
       end;
 
 
@@ -2229,7 +2254,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2004-10-11 20:48:34  peter
+  Revision 1.186  2004-10-12 14:34:49  peter
+    * fixed visibility for procsyms
+    * fixed override check when there was no entry yet
+
+  Revision 1.185  2004/10/11 20:48:34  peter
     * don't generate stabs for self when it is in a regvar
 
   Revision 1.184  2004/10/11 15:48:15  peter

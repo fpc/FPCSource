@@ -123,7 +123,7 @@ interface
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
-         function is_visible_for_object(currobjdef:Tdef):boolean;
+         function is_visible_for_object(currobjdef:Tdef):boolean;virtual;
       end;
 
 {************************************************
@@ -1487,7 +1487,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.44  2004-07-09 22:17:32  peter
+  Revision 1.45  2004-10-12 14:34:49  peter
+    * fixed visibility for procsyms
+    * fixed override check when there was no entry yet
+
+  Revision 1.44  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

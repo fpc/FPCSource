@@ -1326,39 +1326,42 @@ implementation
                if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
                 begin
                   srprocsym:=tprocsym(srsymtable.speedsearch(sym.name,sym.speedvalue));
-                  { process only visible procsyms }
                   if assigned(srprocsym) and
-                     (srprocsym.typ=procsym) and
-                     srprocsym.is_visible_for_object(topclassh) then
+                     (srprocsym.typ=procsym) then
                    begin
-                     { if this procedure doesn't have overload we can stop
+                     { if this visible procedure doesn't have overload we can stop
                        searching }
-                     if not(po_overload in srprocsym.first_procdef.procoptions) then
+                     if not(po_overload in srprocsym.first_procdef.procoptions) and
+                        srprocsym.first_procdef.is_visible_for_object(topclassh) then
                       break;
                      { process all overloaded definitions }
                      for j:=1 to srprocsym.procdef_count do
                       begin
                         pd:=srprocsym.procdef[j];
-                        { only when the # of parameter are supported by the
-                          procedure }
-                        if (FParalength>=pd.minparacount) and
-                           ((po_varargs in pd.procoptions) or { varargs }
-                           (FParalength<=pd.maxparacount)) then
-                         begin
-                           found:=false;
-                           hp:=FProcs;
-                           while assigned(hp) do
-                            begin
-                              { Only compare visible parameters for the user }
-                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
-                               begin
-                                 found:=true;
-                                 break;
-                               end;
-                              hp:=hp^.next;
-                            end;
-                           if not found then
-                             proc_add(pd);
+                        { only visible procedures need to be added }
+                        if pd.is_visible_for_object(topclassh) then
+                          begin
+                            { only when the # of parameter are supported by the
+                              procedure }
+                            if (FParalength>=pd.minparacount) and
+                               ((po_varargs in pd.procoptions) or { varargs }
+                               (FParalength<=pd.maxparacount)) then
+                             begin
+                               found:=false;
+                               hp:=FProcs;
+                               while assigned(hp) do
+                                begin
+                                  { Only compare visible parameters for the user }
+                                  if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
+                                   begin
+                                     found:=true;
+                                     break;
+                                   end;
+                                  hp:=hp^.next;
+                                end;
+                               if not found then
+                                 proc_add(pd);
+                             end;
                          end;
                       end;
                    end;
@@ -1922,7 +1925,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2004-10-08 17:09:43  peter
+  Revision 1.100  2004-10-12 14:34:49  peter
+    * fixed visibility for procsyms
+    * fixed override check when there was no entry yet
+
+  Revision 1.99  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.98  2004/09/27 15:15:52  peter
