@@ -151,47 +151,55 @@ begin
       begin
         { create mask which unit files need linking }
         mask:=link_allways;
-        { static linking ? }
-        if (cs_link_static in aktglobalswitches) then
+        if hp^.is_unit then
          begin
-           if (flags and uf_static_linked)=0 then
-             Comment(V_Error,'unit '+modulename^+' can''t be static linked')
-           else
-             mask:=mask or link_static;
-         end;
-        { smart linking ? }
-        if (cs_link_smart in aktglobalswitches) then
-         begin
-           if (flags and uf_smart_linked)=0 then
+           { static linking ? }
+           if (cs_link_static in aktglobalswitches) then
             begin
-              { if smart not avail then try static linking }
-              if (flags and uf_static_linked)<>0 then
+              if (flags and uf_static_linked)=0 then
+                Comment(V_Error,'unit '+modulename^+' can''t be static linked')
+              else
+                mask:=mask or link_static;
+            end;
+           { smart linking ? }
+           if (cs_link_smart in aktglobalswitches) then
+            begin
+              if (flags and uf_smart_linked)=0 then
                begin
-                 Comment(V_Warning,'unit '+modulename^+' can''t be smart linked, switching to static linking');
-                 mask:=mask or link_static;
+                 { if smart not avail then try static linking }
+                 if (flags and uf_static_linked)<>0 then
+                  begin
+                    Comment(V_Warning,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                    mask:=mask or link_static;
+                  end
+                 else
+                  Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
                end
               else
-               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
-            end
-           else
-            mask:=mask or link_smart;
-         end;
-        { shared linking }
-        if (cs_link_shared in aktglobalswitches) then
-         begin
-           if (flags and uf_shared_linked)=0 then
+               mask:=mask or link_smart;
+            end;
+           { shared linking }
+           if (cs_link_shared in aktglobalswitches) then
             begin
-              { if shared not avail then try static linking }
-              if (flags and uf_static_linked)<>0 then
+              if (flags and uf_shared_linked)=0 then
                begin
-                 Comment(V_Warning,'unit '+modulename^+' can''t be shared linked, switching to static linking');
-                 mask:=mask or link_static;
+                 { if shared not avail then try static linking }
+                 if (flags and uf_static_linked)<>0 then
+                  begin
+                    Comment(V_Warning,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                    mask:=mask or link_static;
+                  end
+                 else
+                  Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
                end
               else
-               Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
-            end
-           else
-            mask:=mask or link_shared;
+               mask:=mask or link_shared;
+            end;
+         end
+        else
+         begin
+           { for programs link always static }
+           mask:=mask or link_static;
          end;
         { unit files }
         while not linkunitofiles.empty do
@@ -444,7 +452,7 @@ begin
   end;
 
 { Fix command line options }
-  If not SharedLibFiles.Empty then
+  If (DynamicLinker<>'') and (not SharedLibFiles.Empty) then
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
   if Strip and not(cs_debuginfo in aktmoduleswitches) and
                            not (Target_Link.StripBind) then
@@ -514,7 +522,10 @@ begin
       WriteResFileName(s);
    end;
 
-  { Write sharedlibraries like -l<lib> }
+  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  if (DynamicLinker<>'') and (not SharedLibFiles.Empty) then
+   WriteResFileName(DynamicLinker);
   While not SharedLibFiles.Empty do
    begin
      S:=SharedLibFiles.Get;
@@ -717,7 +728,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.62  1999-07-27 11:05:51  peter
+  Revision 1.63  1999-07-29 01:31:39  peter
+    * fixed shared library linking for glibc2 systems
+
+  Revision 1.62  1999/07/27 11:05:51  peter
     * glibc 2.1.2 support
 
   Revision 1.61  1999/07/18 10:19:53  florian
