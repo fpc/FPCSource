@@ -1386,14 +1386,14 @@ const
              if target_info.system = system_powerpc_macos then
                begin
                  if ref2.base <> R_NO then
-                   internalerror(2002103102);
+                   internalerror(2002103102); //TODO: Implement this if needed
 
                  reference_reset(tmpref);
                  tmpref.offset := ref2.offset;
                  tmpref.symbol := ref2.symbol;
                  tmpref.symaddr := refs_full;
-                 tmpref.base := R_2;
-                 list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
+                 tmpref.base := R_NO;
+                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,R_TOC,tmpref));
                end
              else
                begin
@@ -1758,26 +1758,35 @@ const
           begin
             if target_info.system = system_powerpc_macos then
               begin
-                (* base is often erroneous set to r13, when r2 is ment.
                 if ref.base <> R_NO then
                   begin
+                    {Generates
+                      add   tempreg, ref.base, RTOC
+                      op    reg, symbolplusoffset, tempreg
+                    which is eqvivalent to the more comprehensive
+                      addi  tempreg, RTOC, symbolplusoffset
+                      add   tempreg, ref.base, RTOC
+                      op    reg, tempreg
+                    but which saves one instruction.}
+
                     tmpreg := get_scratch_reg_address(list);
                     reference_reset(tmpref);
                     tmpref.symbol := ref.symbol;
                     tmpref.offset := ref.offset;
                     tmpref.symaddr := refs_full;
-                    list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,
-                        ref.base,tmpref));
-                    list.concat(taicpu.op_reg_reg(op,reg,tmpreg));
-                    //list.concat(tai_comment.create('HALABALO'));
+                    tmpref.base:= tmpreg;
+
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
+                        ref.base,R_TOC));
+                    list.concat(taicpu.op_reg_ref(op,reg,tmpref));
                   end
-                else *)
+                else
                   begin
                     reference_reset(tmpref);
                     tmpref.symbol := ref.symbol;
                     tmpref.offset := ref.offset;
                     tmpref.symaddr := refs_full;
-                    tmpref.base:= R_2;
+                    tmpref.base:= R_TOC;
                     list.concat(taicpu.op_reg_ref(op,reg,tmpref));
                   end;
               end
@@ -1924,7 +1933,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-11-07 15:50:23  jonas
+  Revision 1.66  2002-11-28 10:55:16  olle
+    * macos: changing code gen for references to globals
+
+  Revision 1.65  2002/11/07 15:50:23  jonas
     * fixed bctr(l) problems
 
   Revision 1.64  2002/11/04 18:24:19  olle
