@@ -619,6 +619,25 @@ function  TTYname(Handle:Longint):string;
 function  TTYname(var F:Text):string;
 
 {**************************
+     Port IO functions
+***************************}
+
+Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+Procedure WritePort (Port : Longint; Value : Byte);
+Procedure WritePort (Port : Longint; Value : Word);
+Procedure WritePort (Port : Longint; Value : Longint);
+Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
+Procedure ReadPort (Port : Longint; Var Value : Byte);
+Procedure ReadPort (Port : Longint; Var Value : Word);
+Procedure ReadPort (Port : Longint; Var Value : Longint);
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
+
+
+{**************************
     Utility functions
 ***************************}
 
@@ -3266,6 +3285,219 @@ begin
   S_ISSOCK:=(m and STAT_IFMT)=STAT_IFSOCK;
 end;
 
+{--------------------------------
+      Port IO functions
+--------------------------------}
+
+
+
+Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+{
+  Set permissions on NUM ports starting with port FROM to VALUE
+  this works ONLY as root.
+}
+
+Var Sr : Syscallregs;
+
+begin
+  Sr.Reg2:=From;
+  Sr.Reg3:=Num;
+  Sr.Reg4:=Value;
+  IOPerm:=Syscall(Syscall_nr_ioperm,sr)=0;
+  LinuxError:=Errno;
+end;
+
+
+
+Procedure WritePort (Port : Longint; Value : Byte);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	movb 12(%ebp),%al
+	outb %al,%dx
+	end;
+end;
+
+Procedure WritePort (Port : Longint; Value : Word);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	movw 12(%ebp),%ax
+	outw %ax,%dx
+	end ['EAX','EBX'];
+end;
+
+
+
+Procedure WritePort (Port : Longint; Value : Longint);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	movl 12(%ebp),%eax
+	outl %eax,%dx
+	end ['EAX','EBX'];
+end;
+
+
+
+Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
+{
+ Writes 'Count' longints from 'Buf' to Port
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsl
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
+{
+ Writes 'Count' words from 'Buf' to Port
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsw
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
+{
+ Writes 'Count' bytes from 'Buf' to Port
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%esi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	outsb
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Byte);
+{
+  Reads 'Value' from port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	inb %dx,%al
+	andl $255,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Word);
+{
+  Reads 'Value' from port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	inw %dx,%ax
+	andl $65535,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
+end;
+
+
+
+Procedure ReadPort (Port : Longint; Var Value : Longint);
+{
+  Reads 'Value' from port 'Port'
+}
+
+begin
+	asm
+	movl 8(%ebp),%edx
+	inl %dx,%eax
+	movl %eax,12(%ebp)
+	end ['EAX','EBX'];
+end;
+
+Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' longints from port 'Port' to 'Buf'.
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insl
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' words from port 'Port' to 'Buf'.
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insw
+  end ['ECX','ESI','EDX'];
+end;
+
+
+
+Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
+{
+  Reads 'Count' bytes from port 'Port' to 'Buf'.
+}
+begin
+  asm
+	movl 16(%ebp),%ecx
+	movl 12(%ebp),%edi
+	movl 8(%ebp),%edx
+	cld
+	rep
+	insb
+  end ['ECX','ESI','EDX'];
+end;
+
+
 
 Begin
   InitEpochToLocal;
@@ -3273,7 +3505,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  1998-05-06 18:45:32  peter
+  Revision 1.9  1998-06-03 11:55:33  michael
+  + Added IO port calls
+
+  Revision 1.8  1998/05/06 18:45:32  peter
     * fixed the shell() bug (the correct code was also in Popen) moved the
       argv generation to CreateShellArgv
     + Execve with pchar instead of string
