@@ -155,6 +155,9 @@ var
 procedure myexit;
 begin
   exitproc:=oldexit;
+{$ifdef nocatch}
+  exit;
+{$endif nocatch}
 { Show Runtime error if there was an error }
   if (erroraddr<>nil) then
    begin
@@ -200,7 +203,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-12-06 01:15:22  florian
+  Revision 1.29  2004-01-26 17:39:12  florian
+    * when compiled with -dnocatch, known rtes aren't translated anymore
+      and a stack dump is written
+
+  Revision 1.28  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.27  2003/09/06 16:47:24  florian
