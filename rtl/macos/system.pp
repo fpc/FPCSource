@@ -268,7 +268,7 @@ Sys_ETXTBSY     = 26;   { Text file busy. The new process was
                           or while the pure procedure file was being
                           executed an open(2) call requested write access
                           requested write access.
-						  (Probably not applicable on macos)}
+              (Probably not applicable on macos)}
 Sys_EFBIG       = 27;   { File too large }
 Sys_ENOSPC      = 28;   { No space left on device }
 Sys_ESPIPE      = 29;   { Illegal seek }
@@ -1140,6 +1140,7 @@ begin
     Halt(3);  //exit code 3 according to MPW
 
   { Setup heap }
+  MaxApplZone;
   if Mac_FreeMem - intern_heapsize < 30000 then
     Halt(3);  //exit code 3 according to MPW
   theHeap:= Sbrk(intern_heapsize);
@@ -1167,7 +1168,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-04-29 11:27:36  olle
+  Revision 1.15  2004-05-11 18:05:41  olle
+    + added call to MaxApplZone to have the whole MacOS heap available
+
+  Revision 1.14  2004/04/29 11:27:36  olle
     * do_read/do_write addr arg changed to pointer
     * misc internal changes
 

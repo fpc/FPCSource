@@ -107,6 +107,8 @@ external 'InterfaceLib';
  
 function Mac_FreeMem: Longint;
 external 'InterfaceLib' name 'FreeMem';
+procedure MaxApplZone;
+external 'InterfaceLib' name 'MaxApplZone';
 
 {************** from OSUtils.p ***************}
 
