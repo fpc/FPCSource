@@ -187,7 +187,7 @@ distclean: clean
 # Include depencies (linux only)
 #####################################################################
 
-ifdef inlinux
+ifdef USEDEPEND
 $(MAKEDEP) : $(RTLDIR)/utils/mkdep.pp
 	$(COMPILER) $(RTLDIR)/utils/mkdep.pp
 	$(COPY) $(RTLDIR)/utils/$(MAKEDEP) $(MAKEDEP)
@@ -258,6 +258,9 @@ cycle:
 	make remake3
 	make echotime
 
+cycledep:
+	make cycle USEDEPEND=1
+
 cvstest:
 	make cycle 'LOCALOPT=-n' 'RTLOPTS=-n'
 
@@ -325,7 +328,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1998-10-09 08:54:18  pierre
+# Revision 1.9  1998-10-09 11:07:44  peter
+#   + cycledep
+#
+# Revision 1.8  1998/10/09 08:54:18  pierre
 #   + added cvstest target
 #     uses -n option to avoid use of local ppc386.cfg
 #
