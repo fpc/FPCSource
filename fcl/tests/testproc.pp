@@ -16,13 +16,13 @@ Var S : TProcess;
     I,Count : longint;
     
 begin
-  S:=TProcess.Create(theprogram,[poExecuteOnCreate,poUsePipes]);
+  S:=TProcess.Create(theprogram,[poExecuteOnCreate,poUsePipes,poNoConsole]);
   Repeat
     Count:=s.output.read(buf,BufSize);
     // reverse print for fun.
     For I:=Count downto 1 do
       write(buf[i]);
-  until Count<BufSize;  
+  until Count=0;  
   writeln;
   S.Free;  
 end.
