@@ -33,6 +33,9 @@ uses
 {$ifdef fpc}
   keyboard,video,mouse,
 {$endif fpc}
+{$ifdef HasSignal}
+  fpcatch,
+{$endif HasSignal}
   Dos,Objects,
   BrowCol,
   Drivers,Views,App,Dialogs,
@@ -43,9 +46,9 @@ uses
   ASCIITab,
 {$endif FVISION}
   WUtils,WViews,WHTMLScn,WHelp,
-  FPIDE,FPCalc,FPCompil,
+  FPIDE,FPCalc,FPCompil,FPString,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
+  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp;
 
 
@@ -139,6 +142,7 @@ begin
 {$ifdef Unix}
           'T' :  DebuggeeTTY:=Copy(Param,2,High(Param));
 {$endif Unix}
+          'M' : TryToMaximizeScreen:=true;
 {$endif fpc}
         end;
       end
@@ -213,9 +217,31 @@ begin
 end;
 
 var CanExit : boolean;
+    SetJmpRes : longint;
+    StoreExitProc : pointer;
+    ErrS : String;
+    P : record
+          l1 : longint;
+          s : pstring;
+        end;
 {$ifdef win32}
   ShowMouseExe : string;
 {$endif win32}
+const
+  ExitIntercepted : boolean = false;
+  SeenExitCode : longint =0;
+  SeenErrorAddr : pointer = nil;
+
+procedure InterceptExit;
+begin
+  if StopJmpValid then
+    begin
+      ExitIntercepted:=true;
+      SeenExitCode:=ExitCode;
+      SeenErrorAddr:=ErrorAddr;
+      LongJmp(StopJmp,1);
+    end;
+end;
 
 BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
@@ -274,14 +300,53 @@ BEGIN
     ShowReadme:=false; { do not show next time }
   end;
 
+  StoreExitProc:=ExitProc;
+  ExitProc:=@InterceptExit;
+
   repeat
-    IDEApp.Run;
+    SetJmpRes:=setjmp(StopJmp);
+    StopJmpValid:=true;
+    if SetJmpRes=0 then
+      IDEApp.Run
+    else
+      begin
+        if (SetJmpRes=1) and ExitIntercepted then
+          begin
+            { If ExitProc=@InterceptExit then
+              ExitProc:=StoreExitProc;}
+            Str(SeenExitCode,ErrS);
+            if Assigned(Application) then
+              begin
+                P.l1:=SeenExitCode;
+                ErrS:=hexstr(longint(SeenErrorAddr),8);
+                P.s:=@ErrS;
+                WarningBox(error_programexitedwitherror,@P);
+              end
+            else
+              writeln('Abnormal exit error: ',ErrS);
+          end
+        else
+          begin
+            Str(SetJmpRes,ErrS);
+          { Longjmp was called by fpcatch }
+            if Assigned(Application) then
+              begin
+                P.l1:=SetJmpRes;
+                WarningBox(error_programexitedwithsignal,@P);
+              end
+            else
+              writeln('Signal error: ',ErrS);
+          end;
+      end;
     if (AutoSaveOptions and asEditorFiles)=0 then
       CanExit:=IDEApp.AskSaveAll
     else
       CanExit:=IDEApp.SaveAll;
+    StopJmpValid:=false;
   until CanExit;
 
+  If ExitProc=pointer(@InterceptExit) then
+    ExitProc:=StoreExitProc;
   IDEApp.AutoSave;
 
   DoneDesktopFile;
@@ -319,7 +384,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2002-01-09 09:46:10  pierre
+  Revision 1.4  2002-03-20 14:53:37  pierre
+   + rescue handlers in main loop
+
+  Revision 1.3  2002/01/09 09:46:10  pierre
    * fix problems with -S option
 
   Revision 1.2  2001/08/05 12:23:00  peter
