@@ -536,12 +536,12 @@ end;
     Shell(Progname+' '+Comline);
 {$else}
 {$ifdef win32}
-    StoreInherit:=ExecInheritsHandles;
-    ExecInheritsHandles:=true;
+    StoreInherit:=ExecInheritedHandles;
+    ExecInheritedHandles:=true;
 {$endif win32}
     Dos.Exec (ProgName, ComLine);
 {$ifdef win32}
-    ExecInheritsHandles:=StoreInherit;
+    ExecInheritedHandles:=StoreInherit;
 {$endif win32}
 {$endif}
     IOStatus:=DosError;
@@ -716,7 +716,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.21  1999-09-21 11:28:22  pierre
+  Revision 1.22  1999-09-22 09:03:58  peter
+    * typo fixed for win32
+
+  Revision 1.21  1999/09/21 11:28:22  pierre
    + Redir for win32
 
   Revision 1.20  1999/08/05 16:54:36  peter
