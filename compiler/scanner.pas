@@ -526,6 +526,8 @@ implementation
                             l:=tvarsym(srsym).getsize;
                           typedconstsym :
                             l:=ttypedconstsym(srsym).getsize;
+                          typesym:
+                            l:=ttypesym(srsym).restype.def.size;
                           else
                             Message(scan_e_error_in_preproc_expr);
                         end;
@@ -3239,8 +3241,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.84  2004-08-02 07:15:54  michael
-  + Patch from Christian Iversen to implement LIBPREFIX/SUFFIX/EXTENSION directives
+  Revision 1.85  2004-08-02 20:45:40  florian
+    * sizeof in the preprocessor handles types now as well
+
+  Revision 1.84  2004/08/02 07:15:54  michael
+  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
 
   Revision 1.83  2004/07/23 00:25:05  olle
     + Added compile time function OPTION(x) for MacPas
