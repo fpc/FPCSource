@@ -816,8 +816,8 @@ uses
     constructor tasmsymbol.init(const s:string;_typ:TAsmsymtype);
       begin;
         inherited initname(s);
-        reset;
         typ:=_typ;
+        reset;
       end;
 
     procedure tasmsymbol.GenerateAltSymbol;
@@ -1044,7 +1044,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.73  2000-01-19 22:53:57  florian
+  Revision 1.74  2000-01-23 16:31:38  peter
+    * fixed uninited asmsymbol.typ var
+
+  Revision 1.73  2000/01/19 22:53:57  florian
     * empty records/objects would generate static data of size 0 which is optimized away, tai_datablock
       checks now the size and sets it to a value > 0
 
