@@ -41,7 +41,7 @@ Interface
 {returns which button was pressed after last call to function}
   Function mouse_press(var x,y:Longint;button:Longint):Longint;
 {returns which button was realeased after last call to function}
-  Function mouse_release (var row,col:Longint;button : Longint):integer;
+  Function mouse_release (var x,y:Longint;button:Longint):integer;
 {set's mouse y range}
   Procedure mouse_yrange (min,max:Longint);
 {set's mouse y range}
@@ -54,6 +54,8 @@ Interface
   Function IsRPressed:Boolean;
 {return if left button pressed}
   Function IsLPressed:Boolean;
+{return if middle button pressed}
+  Function IsMPressed:Boolean;
 {return mouse X coordinate in textmode}
   Function MouseX:longint;
 {return mouse Y coordinate in textmode}
@@ -67,6 +69,8 @@ Var
   MouseFound:Boolean;
 
 Implementation
+
+{$I386_ATT}
 
 Function Check_Mouse:Boolean;
 begin
@@ -151,7 +155,7 @@ begin
   end;
 end;
 
-function mouse_release (var row,col:Longint;button : Longint):integer;
+function mouse_release (var x,y:Longint;button : Longint):integer;
 begin
 {$IFDEF MOUSECHECK}
   If (Not MouseFound) Then Exit;
@@ -226,7 +230,7 @@ Begin
 {$ENDIF}
   asm
         xorl    %ebx,%ebx
-        movl    $0xa,%ax
+        movl    $0xa,%eax
         movl    $0xff,%ecx
         xorl    %edx,%edx
         movb    8(%ebp),%dh
@@ -297,6 +301,7 @@ Begin
         pushl   %ebp
         int     $0x33
         popl    %ebp
+        movl    %ebx,%eax
         shrl    $1,%eax
         andl    $1,%eax
         movb    %al,__RESULT
@@ -313,6 +318,24 @@ Begin
         pushl   %ebp
         int     $0x33
         popl    %ebp
+        movl    %ebx,%eax
+        andl    $1,%eax
+        movb    %al,__RESULT
+  end;
+end;
+
+Function IsMPressed:Boolean;
+Begin
+{$IFDEF MOUSECHECK}
+  If (Not MouseFound) Then Exit;
+{$ENDIF}
+  asm
+        movl    $3,%eax
+        pushl   %ebp
+        int     $0x33
+        popl    %ebp
+        movl    %ebx,%eax
+        shrl    $2,%eax
         andl    $1,%eax
         movb    %al,__RESULT
   end;
@@ -382,7 +405,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  1998-03-26 12:25:22  peter
+  Revision 1.3  1998-04-05 13:56:54  peter
+    - fixed mouse to compile with $i386_att
+    + linux crt supports redirecting (not Esc-codes anymore)
+
+  Revision 1.2  1998/03/26 12:25:22  peter
     * integrated both mouse units
 
   Revision 1.1.1.1  1998/03/25 11:18:41  root

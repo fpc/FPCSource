@@ -112,6 +112,8 @@ Var
   ScrnCol     : TScreenColors;
   CurrX,CurrY : Byte;
   ExitSave    : Pointer;
+  Redir       : boolean; { is the output being redirected (not a TTY) }
+
 
 {*****************************************************************************
                     Some Handy Functions Not in the System.PP
@@ -432,7 +434,15 @@ begin
      y:=CurrY;
      CurrY:=$ff;
    end;
-  ttySendStr(XY2Ansi(x,y,CurrX,CurrY));
+  if Redir then
+
+   begin
+     if longint(y)-longint(CurrY)=1 then
+      ttySendStr(#10);
+   end
+  else
+
+   ttySendStr(XY2Ansi(x,y,CurrX,CurrY));
   CurrX:=x;
   CurrY:=y;
 end;
@@ -446,7 +456,9 @@ procedure ttyColor(a:byte);
 begin
   if a<>TextAttr then
    begin
-     ttySendStr(Attr2Ansi(a,TextAttr));
+     if not Redir then
+
+      ttySendStr(Attr2Ansi(a,TextAttr));
      TextAttr:=a;
      OldTextAttr:=a;
    end;
@@ -678,7 +690,8 @@ Begin
   oldflush:=ttySetFlush(Flushing);
   if FullWin then
    begin
-     ttySendStr(#27'[H'#27'[2J');
+     if not Redir then
+      ttySendStr(#27'[H'#27'[2J');
      CurrX:=1;
      CurrY:=1;
      FillChar(Scrn,sizeof(Scrn),' ');
@@ -701,15 +714,15 @@ Procedure ClrEol;
 }
 Begin
   if FullWin then
-   ttySendStr(#27'[K')
-  else
-
    begin
-
+     if not Redir then
+      ttySendStr(#27'[K');
+   end
+  else
+   begin
      ttySendStr(Space(WinMaxX-CurrX));
      ttyGotoXY(0,CurrY);
    end;
-
 End;
 
 
@@ -995,7 +1008,6 @@ Begin
       end;
      if State=1 then
       PushKey(ch);
-
    end
   else
    Begin
@@ -1187,12 +1199,11 @@ end;
 
 
 Function CrtWrite(Var F: TextRec): Integer;
-
 {
   Top level write function for CRT
 }
 Var
-  Temp     : String;
+  Temp : String;
 Begin
   Move(F.BufPTR^[0],Temp[1],F.BufPos);
   temp[0]:=chr(F.BufPos);
@@ -1235,7 +1246,7 @@ Function CrtRead(Var F: TextRec): Integer;
   Read from CRT associated file.
 }
 Begin
-  F.BufEnd:=fdRead(LongInt(F.Handle), F.BufPtr^, F.BufSize);
+  F.BufEnd:=fdRead(F.Handle, F.BufPtr^, F.BufSize);
   F.BufPos:=F.BufEnd;
   CrtWrite(F);
   CrtRead:=0;
@@ -1409,26 +1420,36 @@ Begin
   AssignCrt(Input);
   TextRec(Output).Mode:=fmOutput;
   TextRec(Input).Mode:=fmInput;
+  Redir:=not IsAtty(TextRec(Output).Handle);
 {Set default Terminal Settings}
   SetRawMode(True);
 {Get Current X&Y or Reset to Home}
-
-  GetXY(CurrX,CurrY);
-  if (CurrX=0) then
+  if Redir then
    begin
      CurrX:=1;
      CurrY:=1;
-     ttySendStr(#27'[H');
-   end;
-
-{Reset Attribute (TextAttr=7 at startup)}
-
-  ttySendStr(#27'[m');
+   end
+  else
+   begin
+     GetXY(CurrX,CurrY);
+     if (CurrX=0) then
+      begin
+        CurrX:=1;
+        CurrY:=1;
+        ttySendStr(#27'[H');
+      end;
+   {Reset Attribute (TextAttr=7 at startup)}
+      ttySendStr(#27'[m');
+    end;
 End.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-04-05 13:56:54  peter
+    - fixed mouse to compile with $i386_att
+    + linux crt supports redirecting (not Esc-codes anymore)
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.10  1998/03/16 23:38:52  peter
     + support for textattr:= setting between writes
