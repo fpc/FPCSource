@@ -473,6 +473,7 @@ begin
          prev^.next:=p^.next
         else
          first:=p^.next;
+        dispose(p^.data);
         dispose(p);
         Delete:=true;
         exit;
@@ -1853,7 +1854,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-11-12 22:20:37  peter
+  Revision 1.20  2000-12-23 19:52:24  peter
+    * fixed memleak in stringqueue.delete
+
+  Revision 1.19  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.18  2000/11/04 14:25:19  florian
