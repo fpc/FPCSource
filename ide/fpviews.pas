@@ -832,7 +832,7 @@ begin
   Count:=0;
   for I:=ord(Low(tToken)) to ord(High(tToken)) do
   with TokenInfo^[TToken(I)] do
-     if (str<>'') and (str[1] in['A'..'Z']) {and (keyword=m_all)} then
+     if (str<>'') and (str[1] in['A'..'Z']) and (length(str)>1) then
        Inc(Count);
   GetReservedWordCount:=Count;
 end;
@@ -848,7 +848,7 @@ begin
   while (I<=ord(High(tToken))) and (Idx=-1) do
    with TokenInfo^[TToken(I)] do
     begin
-      if (str<>'') and (str[1] in['A'..'Z']) { and (keyword=m_all)} then
+      if (str<>'') and (str[1] in['A'..'Z']) and (length(str)>1) then
         begin
           Inc(Count);
           if Count=Index then
@@ -4495,7 +4495,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.58  2005-02-14 17:13:18  peter
+  Revision 1.59  2005-03-07 17:16:56  peter
+    * ignore reserved tokens of length 1
+
+  Revision 1.58  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.57  2005/01/16 00:43:03  florian
