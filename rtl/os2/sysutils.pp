@@ -936,12 +936,8 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
-var P: PChar;
-
 begin
-    if DosScanEnv (PChar (EnvVar), P) = 0
-                  then GetEnvironmentVariable := StrPas (P)
-                                             else GetEnvironmentVariable := '';
+    GetEnvironmentVariable := StrPas (GetEnvPChar (EnvVar));
 end;
 
 
@@ -958,7 +954,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  2003-01-03 20:41:04  peter
+  Revision 1.21  2003-01-04 16:25:08  hajny
+    * modified to make use of the common GetEnv code
+
+  Revision 1.20  2003/01/03 20:41:04  peter
     * FileCreate(string,mode) overload added
 
   Revision 1.19  2002/11/18 19:51:00  hajny
