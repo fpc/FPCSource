@@ -142,6 +142,7 @@
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
+          function gettypename:string;virtual;
        end;
 
        { tpointerdef and tclassrefdef should get a common
@@ -516,7 +517,18 @@
 
 {
   $Log$
-  Revision 1.28  1999-05-19 16:48:28  florian
+  Revision 1.29  1999-05-23 18:42:15  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.28  1999/05/19 16:48:28  florian
     * tdef.typename: returns a now a proper type name for the most types
 
   Revision 1.27  1999/05/13 21:59:42  peter

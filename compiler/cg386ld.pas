@@ -237,6 +237,7 @@ implementation
                            is always an reference! }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
                             is_open_array(pvarsym(p^.symtableentry)^.definition) or
+                            is_array_of_const(pvarsym(p^.symtableentry)^.definition) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                              push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
                            begin
@@ -780,9 +781,13 @@ implementation
       begin
         if not p^.cargs then
          begin
-           reset_reference(p^.location.reference);
-           gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
-           href:=p^.location.reference;
+            reset_reference(p^.location.reference);
+            if parraydef(p^.resulttype)^.highrange=-1 then
+              begin
+              end
+            else
+              gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
+            href:=p^.location.reference;
          end;
         hp:=p;
         while assigned(hp) do
@@ -871,7 +876,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-05-21 13:54:51  peter
+  Revision 1.58  1999-05-23 18:42:02  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.57  1999/05/21 13:54:51  peter
     * NEWLAB for label as symbol
 
   Revision 1.56  1999/05/17 23:51:38  peter

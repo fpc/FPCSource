@@ -1240,7 +1240,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-05-21 13:54:50  peter
+  Revision 1.53  1999-05-23 18:42:01  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.52  1999/05/21 13:54:50  peter
     * NEWLAB for label as symbol
 
   Revision 1.51  1999/05/18 21:58:27  florian

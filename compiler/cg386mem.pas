@@ -501,7 +501,8 @@ implementation
               { offset can only differ from 0 if arraydef }
               if (p^.left^.resulttype^.deftype=arraydef) then
                 begin
-                   if not(is_open_array(p^.left^.resulttype)) then
+                   if not(is_open_array(p^.left^.resulttype)) and
+                      not(is_array_of_const(p^.left^.resulttype)) then
                      begin
                         if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
                            (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
@@ -856,7 +857,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-05-21 13:54:53  peter
+  Revision 1.45  1999-05-23 18:42:04  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.44  1999/05/21 13:54:53  peter
     * NEWLAB for label as symbol
 
   Revision 1.43  1999/05/19 16:48:21  florian

@@ -481,12 +481,12 @@ implementation
                 begin
                    if (porddef(ld)^.typ<>s64bitint) then
                      begin
-                       p^.left:=gentypeconvnode(p^.left,cs64bitdef);
+                       p^.left:=gentypeconvnode(p^.left,cs64bitintdef);
                        firstpass(p^.left);
                      end;
                    if (porddef(rd)^.typ<>s64bitint) then
                      begin
-                        p^.right:=gentypeconvnode(p^.right,cs64bitdef);
+                        p^.right:=gentypeconvnode(p^.right,cs64bitintdef);
                         firstpass(p^.right);
                      end;
                    calcregisters(p,2,0,0);
@@ -1097,7 +1097,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-05-19 20:40:14  florian
+  Revision 1.32  1999-05-23 18:42:18  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.31  1999/05/19 20:40:14  florian
     * fixed a couple of array related bugs:
       - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
       - open arrays with an odd size doesn't work: movsb wasn't generated

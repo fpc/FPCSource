@@ -1011,7 +1011,8 @@ implementation
                                end
                               else
                                begin
-                                 if is_open_array(p^.left^.resulttype) then
+                                 if is_open_array(p^.left^.resulttype) or
+                                   is_array_of_const(p^.left^.resulttype) then
                                   begin
                                     getsymonlyin(p^.left^.symtable,'high'+pvarsym(p^.left^.symtableentry)^.name);
                                     hp:=genloadnode(pvarsym(srsym),p^.left^.symtable);
@@ -1104,7 +1105,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-05-06 09:05:35  peter
+  Revision 1.34  1999-05-23 18:42:20  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.33  1999/05/06 09:05:35  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

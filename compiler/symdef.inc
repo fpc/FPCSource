@@ -3499,9 +3499,26 @@ Const local_symtable_index : longint = $8001;
       end;
 {$endif GDB}
 
+    function terrordef.gettypename:string;
+
+      begin
+         gettypename:='<erroneous type>';
+      end;
+
 {
   $Log$
-  Revision 1.121  1999-05-21 13:55:19  peter
+  Revision 1.122  1999-05-23 18:42:14  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.121  1999/05/21 13:55:19  peter
     * NEWLAB for label as symbol
 
   Revision 1.120  1999/05/20 22:22:43  pierre

@@ -13,7 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-program msg2inc;
 program nasmconv;
 
 var
@@ -295,7 +294,18 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-05-12 16:17:10  peter
+  Revision 1.2  1999-05-23 18:42:24  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.1  1999/05/12 16:17:10  peter
     * init
 
   Revision 1.1  1999/05/12 16:08:27  peter

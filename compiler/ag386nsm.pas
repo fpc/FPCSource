@@ -191,12 +191,18 @@ unit ag386nsm;
           getopstr:=tostr(o.val);
         top_symbol :
           begin
-            hs:='dword '+o.sym^.name;
+            if assigned(o.sym) then
+              hs:='dword '+o.sym^.name
+            else
+              hs:='dword ';
             if o.symofs>0 then
              hs:=hs+'+'+tostr(o.symofs)
             else
              if o.symofs<0 then
-              hs:=hs+tostr(o.symofs);
+              hs:=hs+tostr(o.symofs)
+            else
+             if not(assigned(o.sym)) then
+               hs:=hs+'0';
             getopstr:=hs;
           end;
         top_ref :
@@ -760,7 +766,18 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.38  1999-05-21 13:54:43  peter
+  Revision 1.39  1999-05-23 18:41:57  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.38  1999/05/21 13:54:43  peter
     * NEWLAB for label as symbol
 
   Revision 1.37  1999/05/12 00:19:39  peter

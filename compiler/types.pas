@@ -446,7 +446,8 @@ implementation
 
     function push_high_param(def : pdef) : boolean;
       begin
-         push_high_param:=is_open_array(def) or is_open_string(def);
+         push_high_param:=is_open_array(def) or is_open_string(def) or
+           is_array_of_const(def);
       end;
 
 
@@ -884,7 +885,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-05-19 20:55:08  florian
+  Revision 1.65  1999-05-23 18:42:23  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.64  1999/05/19 20:55:08  florian
     * fix of my previous commit
 
   Revision 1.63  1999/05/19 20:40:15  florian

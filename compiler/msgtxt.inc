@@ -589,7 +589,7 @@ const msgtxt : array[0..000095,1..240] of char=(
   '3*2Anasmcoff_coff file using Nasm'#000+
   '3*2Anasmelf_elf32 (Linux) file using Nasm'#000+
   '3*2Anasmobj_ob','j file using Nasm'#000+
-  '3*2Amasm_obj file using Masm (Mircosoft)'#000+
+  '3*2Amasm_obj file using Masm (Microsoft)'#000+
   '3*2Atasm_obj file using Tasm (Borland)'#000+
   '3*1R<x>_assembler reading style:'#000+
   '3*2Ratt_read AT&T style assembler'#000+

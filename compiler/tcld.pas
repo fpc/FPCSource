@@ -439,7 +439,7 @@ implementation
         parraydef(p^.resulttype)^.definition:=pd;
         parraydef(p^.resulttype)^.IsConstructor:=true;
         parraydef(p^.resulttype)^.IsVariant:=varia;
-        p^.location.loc:=LOC_REFERENCE;
+        p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -457,7 +457,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-05-19 15:26:41  florian
+  Revision 1.32  1999-05-23 18:42:22  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.31  1999/05/19 15:26:41  florian
     * if a non local variables isn't initialized the compiler doesn't write
       any longer "local var. seems not to be ..."
 

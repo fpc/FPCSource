@@ -284,7 +284,7 @@ unit symtable;
        s32bitdef : porddef;        { Pointer to 32-Bit signed          }
 
        cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
-       cs64bitdef : porddef;       { pointer to 64 bit signed def, }
+       cs64bitintdef : porddef;    { pointer to 64 bit signed def, }
                                    { calculated by the int unit on i386 }
 
        s32floatdef : pfloatdef;    { pointer for realconstn            }
@@ -2345,7 +2345,18 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.15  1999-05-17 23:51:41  peter
+  Revision 1.16  1999-05-23 18:42:16  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.15  1999/05/17 23:51:41  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

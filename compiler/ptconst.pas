@@ -714,6 +714,14 @@ unit ptconst;
                    consume(RKLAMMER);
                 end;
            end;
+         errordef:
+           begin
+              { try to consume something useful }
+              if token=LKLAMMER then
+                consume_all_until(RKLAMMER)
+              else
+                consume_all_until(SEMICOLON);
+           end;
          else Message(parser_e_type_const_not_possible);
          end;
       end;
@@ -721,7 +729,18 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.44  1999-05-21 13:55:11  peter
+  Revision 1.45  1999-05-23 18:42:13  florian
+    * better error recovering in typed constants
+    * some problems with arrays of const fixed, some problems
+      due my previous
+       - the location type of array constructor is now LOC_MEM
+       - the pushing of high fixed
+       - parameter copying fixed
+       - zero temp. allocation removed
+    * small problem in the assembler writers fixed:
+      ref to nil wasn't written correctly
+
+  Revision 1.44  1999/05/21 13:55:11  peter
     * NEWLAB for label as symbol
 
   Revision 1.43  1999/05/12 00:19:54  peter
