@@ -1,11 +1,13 @@
 { %VERSION=1.1 }
 
+{$mode objfpc}
+
 uses
    erroru;
 
 type
    tr1 = record
-      l1,l2 : longint;
+      l1,l2 : cardinal;
    end;
 
 procedure p1(out b : byte);
