@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  Copyright (c) 2002 Carl Eric Codere                           }
@@ -13,7 +15,7 @@
 {            FPC     = Target is FreePascal compiler             }
 {****************************************************************}
 { REMARKS: This tests secondcalln(), genentrycode() and          }
-{ genexitcode() for standard object with the popstack            }
+{ genexitcode() for standard object with the oldfpccall            }
 { calling convention.                                            }
 {                                                                }
 {****************************************************************}
@@ -161,23 +163,23 @@ type
    object_bigstring : shortstring;
    object_u16bit : word;
    { no parameter testing }
-   procedure method_public_none;popstack;
-   procedure method_public_static_none; static;popstack;
-   procedure method_call_private_none;popstack;
-   procedure method_call_private_static_none; static;popstack;
+   procedure method_public_none;oldfpccall;
+   procedure method_public_static_none; static;oldfpccall;
+   procedure method_call_private_none;oldfpccall;
+   procedure method_call_private_static_none; static;oldfpccall;
    { simple value parameter testing }
-   procedure method_public_u8(x : byte);popstack;
-   procedure method_public_static_u8(x: byte); static;popstack;
-   procedure method_call_private_u8(x: byte);popstack;
-   procedure method_call_private_static_u8(x: byte); static;popstack;
-   function  func_array_mixed_nested(b: byte): tsmallarray;popstack;
+   procedure method_public_u8(x : byte);oldfpccall;
+   procedure method_public_static_u8(x: byte); static;oldfpccall;
+   procedure method_call_private_u8(x: byte);oldfpccall;
+   procedure method_call_private_static_u8(x: byte); static;oldfpccall;
+   function  func_array_mixed_nested(b: byte): tsmallarray;oldfpccall;
  private
-   procedure method_private_none;popstack;
-   procedure method_private_static_none; static;popstack;
-   function func_getu16bit : word;popstack;
+   procedure method_private_none;oldfpccall;
+   procedure method_private_static_none; static;oldfpccall;
+   function func_getu16bit : word;oldfpccall;
    { simple value parameter testing }
-   procedure method_private_u8(x: byte);popstack;
-   procedure method_private_static_u8(x: byte); static;popstack;
+   procedure method_private_u8(x: byte);oldfpccall;
+   procedure method_private_static_u8(x: byte); static;oldfpccall;
  end;
 
 
@@ -195,29 +197,29 @@ type
    constructor constructor_init;
    destructor destructor_params_done;
    procedure method_normal_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);popstack;
+      bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_virtual_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_overriden_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_static_params_mixed(u8 :byte; u16: word;
-      bigstring: shortstring; s32: longint; s64: int64);static;popstack;
+      bigstring: shortstring; s32: longint; s64: int64);static;oldfpccall;
    procedure method_normal_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
 
    { virtual methods which call other methods }
    procedure method_virtual_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
    procedure method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
 
  end;
 
@@ -234,25 +236,25 @@ type
    constructor constructor_params_mixed_call_inherited(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
    procedure method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
 
    { normal methods which call other methods }
    procedure method_normal_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_normal_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_normal_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_normal_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_normal_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    procedure method_normal_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
 
    { virtual methods which call other methods }
    procedure method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;oldfpccall;
 
  end;
 
@@ -269,76 +271,76 @@ type
 {**************************************************************************}
 
   {****************** NO PARAMETERS ******************}
- procedure tnovmtobject.method_public_none;popstack;
+ procedure tnovmtobject.method_public_none;oldfpccall;
   begin
     global_u8bit := RESULT_U8BIT;
   end;
 
 
- procedure tnovmtobject.method_public_static_none;popstack;
+ procedure tnovmtobject.method_public_static_none;oldfpccall;
   begin
     global_u8bit := RESULT_U8BIT;
   end;
 
 
- procedure tnovmtobject.method_call_private_none;popstack;
+ procedure tnovmtobject.method_call_private_none;oldfpccall;
    begin
        method_private_none;
        method_private_static_none;
    end;
 
- procedure tnovmtobject.method_call_private_static_none;popstack;
+ procedure tnovmtobject.method_call_private_static_none;oldfpccall;
    begin
      method_private_static_none;
    end;
 
 
- procedure tnovmtobject.method_private_none;popstack;
+ procedure tnovmtobject.method_private_none;oldfpccall;
   begin
     Inc(global_u16bit, RESULT_U8BIT);
   end;
 
 
- procedure tnovmtobject.method_private_static_none;popstack;
+ procedure tnovmtobject.method_private_static_none;oldfpccall;
   begin
     Inc(global_u16bit, RESULT_U8BIT);
   end;
 
   {******************** PARAMETERS ******************}
 
-  procedure tnovmtobject.method_public_u8(x : byte);popstack;
+  procedure tnovmtobject.method_public_u8(x : byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  procedure tnovmtobject.method_public_static_u8(x: byte);popstack;
+  procedure tnovmtobject.method_public_static_u8(x: byte);oldfpccall;
    begin
      global_u8bit := x;
    end;
 
-  procedure tnovmtobject.method_call_private_u8(x: byte);popstack;
+  procedure tnovmtobject.method_call_private_u8(x: byte);oldfpccall;
    begin
      method_private_static_u8(x);
      method_private_u8(x);
    end;
 
-  procedure tnovmtobject. method_call_private_static_u8(x: byte);popstack;
+  procedure tnovmtobject. method_call_private_static_u8(x: byte);oldfpccall;
    begin
      method_private_static_u8(x);
    end;
 
-   procedure tnovmtobject.method_private_u8(x: byte);popstack;
+   procedure tnovmtobject.method_private_u8(x: byte);oldfpccall;
     begin
       Inc(global_u16bit,x);
     end;
 
-   procedure tnovmtobject.method_private_static_u8(x: byte);popstack;
+   procedure tnovmtobject.method_private_static_u8(x: byte);oldfpccall;
     begin
       Inc(global_u16bit,x);
     end;
 
 
-  function tnovmtobject.func_getu16bit : word;popstack;
+  function tnovmtobject.func_getu16bit : word;oldfpccall;
    begin
      func_getu16bit := object_u16bit;
    end;
@@ -353,7 +355,7 @@ type
               global_bigstring := object_bigstring
               global_s64bit := x;
   }
-  function tnovmtobject.func_array_mixed_nested(b: byte): tsmallarray;popstack;
+  function tnovmtobject.func_array_mixed_nested(b: byte): tsmallarray;oldfpccall;
 
     procedure nested_one_proc(l: longint);
      begin
@@ -441,7 +443,7 @@ destructor tvmtobject.destructor_params_done;
 
 
 procedure tvmtobject.method_normal_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -451,7 +453,7 @@ procedure tvmtobject.method_normal_params_mixed(
  end;
 
 procedure tvmtobject.method_virtual_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -462,14 +464,14 @@ procedure tvmtobject.method_virtual_params_mixed(
 
 { this one should be overriden }
 procedure tvmtobject.method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
  begin
     RunError(211);
  end;
 
 { can't access field of instances in static methods }
 procedure tvmtobject.method_static_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
  begin
    global_u8bit := u8;
    global_u16bit := u16;
@@ -479,7 +481,7 @@ procedure tvmtobject.method_static_params_mixed(
  end;
 
 procedure tvmtobject.method_normal_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -490,38 +492,38 @@ procedure tvmtobject.method_normal_call_inherited_params_mixed(
 
 
 procedure tvmtobject.method_virtual_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
     method_static_params_mixed(u8, u16, bigstring, s32, s64);
   end;
 
 procedure tvmtobject.method_virtual_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
 procedure tvmtobject.method_virtual_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_normal_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
      constructor_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure tvmtobject.method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -591,7 +593,7 @@ constructor theritedvmtobject.constructor_params_mixed_call_inherited
 
 { this one should be overriden }
 procedure theritedvmtobject.method_virtual_overriden_params_mixed(
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
  begin
    object_u8bit := u8;
    object_u16bit := u16;
@@ -601,45 +603,45 @@ procedure theritedvmtobject.method_virtual_overriden_params_mixed(
  end;
 
 procedure theritedvmtobject.method_normal_call_static_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
     method_static_params_mixed(u8, u16, bigstring, s32, s64);
   end;
 
 procedure theritedvmtobject.method_normal_call_virtual_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure theritedvmtobject.method_normal_call_overriden_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
 procedure theritedvmtobject.method_normal_call_normal_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
     method_normal_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure theritedvmtobject.method_normal_call_constructor_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
    begin
      constructor_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 procedure theritedvmtobject.method_normal_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
    Inherited method_normal_call_inherited_params_mixed(u8, u16, bigstring,
      s32, s64);
   end;
 
 procedure theritedvmtobject.method_virtual_call_inherited_params_mixed(
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);popstack;
+      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);oldfpccall;
   begin
    Inherited method_virtual_call_inherited_params_mixed(u8, u16, bigstring,
      s32, s64);
@@ -3293,7 +3295,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-04-22 10:24:29  florian
+  Revision 1.7  2003-09-28 09:25:02  peter
+    * popstack changed to oldfpccall (1.1 only)
+
+  Revision 1.6  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.5  2003/01/05 18:21:30  peter

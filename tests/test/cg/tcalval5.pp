@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  By Carl Eric Codere                                           }
@@ -15,7 +17,7 @@
 {            FPC     = Target is FreePascal compiler             }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() node         }
-{          (value parameters with popstack calling convention)   }
+{          (value parameters with oldfpccall calling convention)   }
 {****************************************************************}
 program tcalval5;
 
@@ -223,19 +225,19 @@ var
 {                        VALUE PARAMETERS                           }
 { ***************************************************************** }
 
-  procedure proc_value_u8bit(v: byte);popstack;
+  procedure proc_value_u8bit(v: byte);oldfpccall;
    begin
      global_u8bit := v;
    end;
 
 
-  procedure proc_value_u16bit(v: word);popstack;
+  procedure proc_value_u16bit(v: word);oldfpccall;
    begin
      global_u16bit := v;
    end;
 
 
-  procedure proc_value_s32bit(v : longint);popstack;
+  procedure proc_value_s32bit(v : longint);oldfpccall;
    begin
      global_s32bit := v;
    end;
@@ -243,7 +245,7 @@ var
 
 
 
-  procedure proc_value_bool8bit(v: boolean);popstack;
+  procedure proc_value_bool8bit(v: boolean);oldfpccall;
    begin
      { boolean should be 8-bit always! }
      if sizeof(boolean) <> 1 then RunError(255);
@@ -251,36 +253,36 @@ var
    end;
 
 
-  procedure proc_value_bool16bit(v: wordbool);popstack;
+  procedure proc_value_bool16bit(v: wordbool);oldfpccall;
    begin
      global_u16bit := word(v);
    end;
 
 
-  procedure proc_value_bool32bit(v : longbool);popstack;
+  procedure proc_value_bool32bit(v : longbool);oldfpccall;
    begin
      global_s32bit := longint(v);
    end;
 
 
-  procedure proc_value_s32real(v : single);popstack;
+  procedure proc_value_s32real(v : single);oldfpccall;
    begin
      global_s32real := v;
    end;
 
-  procedure proc_value_s64real(v: double);popstack;
+  procedure proc_value_s64real(v: double);oldfpccall;
    begin
      global_s64real:= v;
    end;
 
 
-  procedure proc_value_pointerdef(p : pchar);popstack;
+  procedure proc_value_pointerdef(p : pchar);oldfpccall;
    begin
      global_ptr:=p;
    end;
 
 
-  procedure proc_value_procvardef(p : tprocedure);popstack;
+  procedure proc_value_procvardef(p : tprocedure);oldfpccall;
    begin
      global_proc:=p;
    end;
@@ -288,53 +290,53 @@ var
 
 
 
-  procedure proc_value_smallrecord(smallrec : tsmallrecord);popstack;
+  procedure proc_value_smallrecord(smallrec : tsmallrecord);oldfpccall;
    begin
      if (smallrec.b = RESULT_U8BIT) and (smallrec.w = RESULT_U16BIT) then
        global_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_value_largerecord(largerec : tlargerecord);popstack;
+  procedure proc_value_largerecord(largerec : tlargerecord);oldfpccall;
    begin
      if (largerec.b[1] = RESULT_U8BIT) and (largerec.b[2] = RESULT_U8BIT) then
        global_u8bit := RESULT_U8BIT;
    end;
 
-  procedure proc_value_smallset(smallset : tsmallset);popstack;
+  procedure proc_value_smallset(smallset : tsmallset);oldfpccall;
    begin
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_value_largeset(largeset : tlargeset);popstack;
+  procedure proc_value_largeset(largeset : tlargeset);oldfpccall;
    begin
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
    end;
 
-  procedure proc_value_smallstring(s:tsmallstring);popstack;
+  procedure proc_value_smallstring(s:tsmallstring);oldfpccall;
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
    end;
 
 
-  procedure proc_value_bigstring(s:shortstring);popstack;
+  procedure proc_value_bigstring(s:shortstring);oldfpccall;
    begin
      if s = RESULT_BIGSTRING then
        global_u8bit := RESULT_u8BIT;
    end;
 
 
-  procedure proc_value_smallarray(arr : tsmallarray);popstack;
+  procedure proc_value_smallarray(arr : tsmallarray);oldfpccall;
   begin
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_value_smallarray_open(arr : array of byte);popstack;
+  procedure proc_value_smallarray_open(arr : array of byte);oldfpccall;
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[SMALL_INDEX-1] = RESULT_U8BIT then
@@ -342,13 +344,13 @@ var
   end;
 
 {$ifndef tp}
-  procedure proc_value_classrefdef(obj : tclass1);popstack;
+  procedure proc_value_classrefdef(obj : tclass1);oldfpccall;
    begin
      global_class:=obj;
    end;
 
 
-  procedure proc_value_smallarray_const_1(arr : array of const);popstack;
+  procedure proc_value_smallarray_const_1(arr : array of const);oldfpccall;
   var
    i: integer;
   begin
@@ -373,7 +375,7 @@ var
   end;
 
 
-  procedure proc_value_smallarray_const_2(arr : array of const);popstack;
+  procedure proc_value_smallarray_const_2(arr : array of const);oldfpccall;
   var
    i: integer;
   begin
@@ -381,7 +383,7 @@ var
        global_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_value_s64bit(v: int64);popstack;
+  procedure proc_value_s64bit(v: int64);oldfpccall;
    begin
      global_s64bit:= v;
    end;
@@ -389,21 +391,21 @@ var
 
  {********************************* MIXED PARAMETERS *************************}
 
-  procedure proc_value_u8bit_mixed(b1 : byte; v: byte; b2: byte);popstack;
+  procedure proc_value_u8bit_mixed(b1 : byte; v: byte; b2: byte);oldfpccall;
    begin
      global_u8bit := v;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_u16bit_mixed(b1: byte; v: word; b2: byte);popstack;
+  procedure proc_value_u16bit_mixed(b1: byte; v: word; b2: byte);oldfpccall;
    begin
      global_u16bit := v;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_s32bit_mixed(b1 : byte; v : longint; b2: byte);popstack;
+  procedure proc_value_s32bit_mixed(b1 : byte; v : longint; b2: byte);oldfpccall;
    begin
      global_s32bit := v;
      value_u8bit := b2;
@@ -412,7 +414,7 @@ var
 
 
 
-  procedure proc_value_bool8bit_mixed(b1: byte; v: boolean; b2: byte);popstack;
+  procedure proc_value_bool8bit_mixed(b1: byte; v: boolean; b2: byte);oldfpccall;
    begin
      { boolean should be 8-bit always! }
      if sizeof(boolean) <> 1 then RunError(255);
@@ -421,41 +423,41 @@ var
    end;
 
 
-  procedure proc_value_bool16bit_mixed(b1 : byte; v: wordbool; b2: byte);popstack;
+  procedure proc_value_bool16bit_mixed(b1 : byte; v: wordbool; b2: byte);oldfpccall;
    begin
      global_u16bit := word(v);
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_bool32bit_mixed(b1 : byte; v : longbool; b2: byte);popstack;
+  procedure proc_value_bool32bit_mixed(b1 : byte; v : longbool; b2: byte);oldfpccall;
    begin
      global_s32bit := longint(v);
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_s32real_mixed(b1: byte; v : single; b2: byte);popstack;
+  procedure proc_value_s32real_mixed(b1: byte; v : single; b2: byte);oldfpccall;
    begin
      global_s32real := v;
      value_u8bit := b2;
    end;
 
-  procedure proc_value_s64real_mixed(b1: byte; v: double; b2: byte);popstack;
+  procedure proc_value_s64real_mixed(b1: byte; v: double; b2: byte);oldfpccall;
    begin
      global_s64real:= v;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_pointerdef_mixed(b1: byte; p : pchar; b2: byte);popstack;
+  procedure proc_value_pointerdef_mixed(b1: byte; p : pchar; b2: byte);oldfpccall;
    begin
      global_ptr:=p;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_procvardef_mixed(b1: byte; p : tprocedure; b2: byte);popstack;
+  procedure proc_value_procvardef_mixed(b1: byte; p : tprocedure; b2: byte);oldfpccall;
    begin
      global_proc:=p;
      value_u8bit := b2;
@@ -464,7 +466,7 @@ var
 
 
 
-  procedure proc_value_smallrecord_mixed(b1: byte; smallrec : tsmallrecord; b2: byte);popstack;
+  procedure proc_value_smallrecord_mixed(b1: byte; smallrec : tsmallrecord; b2: byte);oldfpccall;
    begin
      if (smallrec.b = RESULT_U8BIT) and (smallrec.w = RESULT_U16BIT) then
        global_u8bit := RESULT_U8BIT;
@@ -472,14 +474,14 @@ var
    end;
 
 
-  procedure proc_value_largerecord_mixed(b1: byte; largerec : tlargerecord; b2: byte);popstack;
+  procedure proc_value_largerecord_mixed(b1: byte; largerec : tlargerecord; b2: byte);oldfpccall;
    begin
      if (largerec.b[1] = RESULT_U8BIT) and (largerec.b[2] = RESULT_U8BIT) then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
 
-  procedure proc_value_smallset_mixed(b1: byte; smallset : tsmallset; b2: byte);popstack;
+  procedure proc_value_smallset_mixed(b1: byte; smallset : tsmallset; b2: byte);oldfpccall;
    begin
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
@@ -487,14 +489,14 @@ var
    end;
 
 
-  procedure proc_value_largeset_mixed(b1: byte; largeset : tlargeset; b2: byte);popstack;
+  procedure proc_value_largeset_mixed(b1: byte; largeset : tlargeset; b2: byte);oldfpccall;
    begin
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
 
-  procedure proc_value_smallstring_mixed(b1: byte; s:tsmallstring; b2: byte);popstack;
+  procedure proc_value_smallstring_mixed(b1: byte; s:tsmallstring; b2: byte);oldfpccall;
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
@@ -502,7 +504,7 @@ var
    end;
 
 
-  procedure proc_value_bigstring_mixed(b1: byte; s:shortstring; b2: byte);popstack;
+  procedure proc_value_bigstring_mixed(b1: byte; s:shortstring; b2: byte);oldfpccall;
    begin
      if s = RESULT_BIGSTRING then
        global_u8bit := RESULT_u8BIT;
@@ -510,14 +512,14 @@ var
    end;
 
 
-  procedure proc_value_smallarray_mixed(b1: byte; arr : tsmallarray; b2: byte);popstack;
+  procedure proc_value_smallarray_mixed(b1: byte; arr : tsmallarray; b2: byte);oldfpccall;
   begin
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
   end;
 
-  procedure proc_value_smallarray_open_mixed(b1: byte; arr : array of byte; b2: byte);popstack;
+  procedure proc_value_smallarray_open_mixed(b1: byte; arr : array of byte; b2: byte);oldfpccall;
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[SMALL_INDEX-1] = RESULT_U8BIT then
@@ -526,21 +528,21 @@ var
   end;
 
 {$ifndef tp}
-  procedure proc_value_classrefdef_mixed(b1: byte; obj : tclass1; b2: byte);popstack;
+  procedure proc_value_classrefdef_mixed(b1: byte; obj : tclass1; b2: byte);oldfpccall;
    begin
      global_class:=obj;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_s64bit_mixed(b1 : byte; v: int64; b2: byte);popstack;
+  procedure proc_value_s64bit_mixed(b1 : byte; v: int64; b2: byte);oldfpccall;
    begin
      global_s64bit:= v;
      value_u8bit := b2;
    end;
 
 
-  procedure proc_value_smallarray_const_1_mixed(b1: byte; arr : array of const; b2: byte);popstack;
+  procedure proc_value_smallarray_const_1_mixed(b1: byte; arr : array of const; b2: byte);oldfpccall;
   var
    i: integer;
   begin
@@ -566,7 +568,7 @@ var
   end;
 
 
-  procedure proc_value_smallarray_const_2_mixed(b1: byte; arr : array of const; b2: byte);popstack;
+  procedure proc_value_smallarray_const_2_mixed(b1: byte; arr : array of const; b2: byte);oldfpccall;
   var
    i: integer;
   begin
@@ -1290,7 +1292,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-04-22 10:24:29  florian
+  Revision 1.6  2003-09-28 09:25:02  peter
+    * popstack changed to oldfpccall (1.1 only)
+
+  Revision 1.5  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.4  2002/09/22 09:08:41  carl

@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {  By Carl Eric Codere                                           }
@@ -15,7 +17,7 @@
 {            FPC     = Target is FreePascal compiler             }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() node         }
-{          (var   parameters with popstack calling convention)   }
+{          (var   parameters with oldfpccall calling convention)   }
 {****************************************************************}
 program tcalvar5;
 {$ifdef fpc}
@@ -219,79 +221,79 @@ var
   {************************************************************************}
   {                           VAR   PARAMETERS                             }
   {************************************************************************}
-  procedure proc_var_s32bit(var v : longint);popstack;
+  procedure proc_var_s32bit(var v : longint);oldfpccall;
    begin
      v:=RESULT_S32BIT;
    end;
 
-  procedure proc_var_s64bit(var v: int64);popstack;
+  procedure proc_var_s64bit(var v: int64);oldfpccall;
    begin
      v:=RESULT_S64BIT;
    end;
 
 
-  procedure proc_var_u8bit(var v: byte);popstack;
+  procedure proc_var_u8bit(var v: byte);oldfpccall;
    begin
      v:=RESULT_U8BIT;
    end;
 
-  procedure proc_var_smallrecord(var smallrec : tsmallrecord);popstack;
+  procedure proc_var_smallrecord(var smallrec : tsmallrecord);oldfpccall;
    begin
      smallrec.b := RESULT_U8BIT;
      smallrec.w := RESULT_U16BIT;
    end;
 
 
-  procedure proc_var_largerecord(var largerec : tlargerecord);popstack;
+  procedure proc_var_largerecord(var largerec : tlargerecord);oldfpccall;
    begin
      largerec.b[1] := RESULT_U8BIT;
      largerec.b[2] := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_smallset(var smallset : tsmallset);popstack;
+  procedure proc_var_smallset(var smallset : tsmallset);oldfpccall;
    begin
      smallset := [A_A,A_D];
    end;
 
 
-  procedure proc_var_largeset(var largeset : tlargeset);popstack;
+  procedure proc_var_largeset(var largeset : tlargeset);oldfpccall;
    begin
      largeset:= largeset + ['I'];
    end;
 
 
-  procedure proc_var_smallstring(var s:tsmallstring);popstack;
+  procedure proc_var_smallstring(var s:tsmallstring);oldfpccall;
    begin
      s:=RESULT_SMALLSTRING;
    end;
 
 
-  procedure proc_var_bigstring(var s:shortstring);popstack;
+  procedure proc_var_bigstring(var s:shortstring);oldfpccall;
    begin
      s:=RESULT_BIGSTRING;
    end;
 
 
-  procedure proc_var_openstring(var s: OpenString);popstack;
+  procedure proc_var_openstring(var s: OpenString);oldfpccall;
    begin
     global_u8bit := high(s);
     s:=RESULT_SMALLSTRING;
    end;
 
-  procedure proc_var_smallarray(var arr : tsmallarray);popstack;
+  procedure proc_var_smallarray(var arr : tsmallarray);oldfpccall;
   begin
     arr[SMALL_INDEX] := RESULT_U8BIT;
     arr[1] := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open(var arr : array of byte);popstack;
+  procedure proc_var_smallarray_open(var arr : array of byte);oldfpccall;
   begin
     arr[high(arr)] := RESULT_U8BIT;
     arr[low(arr)] := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_const_1(var arr : array of const);popstack;
+  procedure proc_var_smallarray_const_1(var arr : array of const);oldfpccall;
   var
    i: integer;
   begin
@@ -307,7 +309,7 @@ var
   end;
 
 
-  procedure proc_var_smallarray_const_2(var arr : array of const);popstack;
+  procedure proc_var_smallarray_const_2(var arr : array of const);oldfpccall;
   var
    i: integer;
   begin
@@ -316,7 +318,7 @@ var
   end;
 
 
-  procedure proc_var_formaldef_array(var buf);popstack;
+  procedure proc_var_formaldef_array(var buf);oldfpccall;
   var
    p: pbytearr;
   begin
@@ -327,7 +329,7 @@ var
   end;
 
 
-procedure proc_var_formaldef_string(var buf);popstack;
+procedure proc_var_formaldef_string(var buf);oldfpccall;
   var
    p: pbytearr;
   begin
@@ -341,26 +343,26 @@ procedure proc_var_formaldef_string(var buf);popstack;
   {************************************************************************}
   {                     MIXED   VAR PARAMETERS                             }
   {************************************************************************}
-  procedure proc_var_s32bit_mixed(b1 : byte;var v : longint; b2: byte);popstack;
+  procedure proc_var_s32bit_mixed(b1 : byte;var v : longint; b2: byte);oldfpccall;
    begin
      v:=RESULT_S32BIT;
      value_u8bit := RESULT_U8BIT;
    end;
 
-  procedure proc_var_s64bit_mixed(b1 : byte;var v: int64; b2: byte);popstack;
+  procedure proc_var_s64bit_mixed(b1 : byte;var v: int64; b2: byte);oldfpccall;
    begin
      v:=RESULT_S64BIT;
      value_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_u8bit_mixed(b1 : byte;var v: byte; b2: byte);popstack;
+  procedure proc_var_u8bit_mixed(b1 : byte;var v: byte; b2: byte);oldfpccall;
    begin
      v:=RESULT_U8BIT;
      value_u8bit := RESULT_U8BIT;
    end;
 
-  procedure proc_var_smallrecord_mixed(b1 : byte; var smallrec : tsmallrecord; b2: byte);popstack;
+  procedure proc_var_smallrecord_mixed(b1 : byte; var smallrec : tsmallrecord; b2: byte);oldfpccall;
    begin
      smallrec.b := RESULT_U8BIT;
      smallrec.w := RESULT_U16BIT;
@@ -368,7 +370,7 @@ procedure proc_var_formaldef_string(var buf);popstack;
    end;
 
 
-  procedure proc_var_largerecord_mixed(b1 : byte; var largerec : tlargerecord; b2: byte);popstack;
+  procedure proc_var_largerecord_mixed(b1 : byte; var largerec : tlargerecord; b2: byte);oldfpccall;
    begin
      largerec.b[1] := RESULT_U8BIT;
      largerec.b[2] := RESULT_U8BIT;
@@ -376,56 +378,56 @@ procedure proc_var_formaldef_string(var buf);popstack;
    end;
 
 
-  procedure proc_var_smallset_mixed(b1 : byte; var smallset : tsmallset; b2: byte);popstack;
+  procedure proc_var_smallset_mixed(b1 : byte; var smallset : tsmallset; b2: byte);oldfpccall;
    begin
      smallset := [A_A,A_D];
      value_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_largeset_mixed(b1 : byte; var largeset : tlargeset; b2: byte);popstack;
+  procedure proc_var_largeset_mixed(b1 : byte; var largeset : tlargeset; b2: byte);oldfpccall;
    begin
      largeset:= largeset + ['I'];
      value_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_smallstring_mixed(b1 : byte; var s:tsmallstring; b2: byte);popstack;
+  procedure proc_var_smallstring_mixed(b1 : byte; var s:tsmallstring; b2: byte);oldfpccall;
    begin
      s:=RESULT_SMALLSTRING;
      value_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_bigstring_mixed(b1 : byte; var s:shortstring; b2: byte);popstack;
+  procedure proc_var_bigstring_mixed(b1 : byte; var s:shortstring; b2: byte);oldfpccall;
    begin
      s:=RESULT_BIGSTRING;
      value_u8bit := RESULT_U8BIT;
    end;
 
 
-  procedure proc_var_openstring_mixed(b1 : byte; var s: OpenString; b2: byte);popstack;
+  procedure proc_var_openstring_mixed(b1 : byte; var s: OpenString; b2: byte);oldfpccall;
    begin
     global_u8bit := high(s);
     s:=RESULT_SMALLSTRING;
     value_u8bit := RESULT_U8BIT;
    end;
 
-  procedure proc_var_smallarray_mixed(b1 : byte; var arr : tsmallarray; b2: byte);popstack;
+  procedure proc_var_smallarray_mixed(b1 : byte; var arr : tsmallarray; b2: byte);oldfpccall;
   begin
     arr[SMALL_INDEX] := RESULT_U8BIT;
     arr[1] := RESULT_U8BIT;
     value_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open_mixed(b1 : byte; var arr : array of byte; b2: byte);popstack;
+  procedure proc_var_smallarray_open_mixed(b1 : byte; var arr : array of byte; b2: byte);oldfpccall;
   begin
     arr[high(arr)] := RESULT_U8BIT;
     arr[low(arr)] := RESULT_U8BIT;
     value_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_const_1_mixed(b1 : byte; var arr : array of const; b2: byte);popstack;
+  procedure proc_var_smallarray_const_1_mixed(b1 : byte; var arr : array of const; b2: byte);oldfpccall;
   var
    i: integer;
   begin
@@ -442,7 +444,7 @@ procedure proc_var_formaldef_string(var buf);popstack;
  end;
 
 
-  procedure proc_var_smallarray_const_2_mixed(b1 : byte; var arr : array of const; b2: byte);popstack;
+  procedure proc_var_smallarray_const_2_mixed(b1 : byte; var arr : array of const; b2: byte);oldfpccall;
   var
    i: integer;
   begin
@@ -452,7 +454,7 @@ procedure proc_var_formaldef_string(var buf);popstack;
 end;
 
 
-  procedure proc_var_formaldef_array_mixed(b1 : byte; var buf; b2: byte);popstack;
+  procedure proc_var_formaldef_array_mixed(b1 : byte; var buf; b2: byte);oldfpccall;
   var
    p: pbytearr;
   begin
@@ -464,7 +466,7 @@ end;
   end;
 
 
-procedure proc_var_formaldef_string_mixed(b1 : byte; var buf; b2: byte);popstack;
+procedure proc_var_formaldef_string_mixed(b1 : byte; var buf; b2: byte);oldfpccall;
   var
    p: pbytearr;
   begin
@@ -823,7 +825,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-04-22 10:24:29  florian
+  Revision 1.6  2003-09-28 09:25:02  peter
+    * popstack changed to oldfpccall (1.1 only)
+
+  Revision 1.5  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.4  2002/09/22 09:08:41  carl
