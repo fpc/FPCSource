@@ -117,7 +117,6 @@ unit scanner;
           procedure skipcomment;
           procedure skipdelphicomment;
           procedure skipoldtpcomment;
-          procedure skipccomment;
           procedure readtoken;
           function  readpreproc:ttoken;
           function  asmgetchar:char;
@@ -1054,65 +1053,6 @@ implementation
       end;
 
 
-    procedure tscannerfile.skipccomment;
-      var
-        found : longint;
-      begin
-        aktcommentstyle:=comment_c;
-        inc_comment_level;
-        readchar;
-      { this is currently not supported }
-        if c='$' then
-         Message(scan_e_wrong_styled_switch);
-      { skip comment }
-        while (comment_level>0) do
-         begin
-           found:=0;
-           repeat
-             case c of
-               #26 :
-                 end_of_file;
-               '*' :
-                 begin
-                   if found=3 then
-                    begin
-                      inc_comment_level;
-                      found:=0;
-                    end
-                   else
-                    found:=1;
-                 end;
-               '/' :
-                 begin
-                   if found=1 then
-                    begin
-                      dec_comment_level;
-                      if comment_level=0 then
-                       found:=2
-                      else
-                       found:=0;
-                    end
-                   else
-                    found:=3;
-                 end;
-               else
-                 found:=0;
-             end;
-             c:=inputpointer^;
-             if c=#0 then
-              reload
-             else
-              inc(longint(inputpointer));
-             case c of
-              #26 : reload;
-              #10,
-              #13 : linebreak;
-             end;
-           until (found=2);
-         end;
-        aktcommentstyle:=comment_none;
-      end;
-
 
 {****************************************************************************
                                Token Scanner
@@ -1410,12 +1350,6 @@ implementation
                        readtoken;
                        exit;
                      end;
-                  '*' :
-                    begin
-                      skipccomment;
-                      readtoken;
-                      exit;
-                    end;
                  end;
                  token:=_SLASH;
                  goto exit_label;
@@ -1763,7 +1697,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  1999-08-05 16:53:11  peter
+  Revision 1.92  1999-08-06 13:11:44  michael
+  * Removed C style comments.
+
+  Revision 1.91  1999/08/05 16:53:11  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
