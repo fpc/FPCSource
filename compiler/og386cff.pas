@@ -815,7 +815,8 @@ unit og386cff;
 {$ifdef EXTDEBUG}
           { check if the section is still the same size }
             if (sects[sec]^.len<>sects[sec]^.size) then
-              Comment(V_Warning,'Size of section changed '+tostr(sects[sec]^.size)+'->'+tostr(sects[sec]^.len)+
+              Comment(V_Warning,'Size of section changed '+
+                tostr(sects[sec]^.size)+'->'+tostr(sects[sec]^.len)+
                 ' ['+target_asm.secnames[sec]+']');
 {$endif EXTDEBUG}
           { fill with zero }
@@ -984,7 +985,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.19  2000-02-09 13:22:54  peter
+  Revision 1.20  2000-03-09 14:29:47  pierre
+   * fix for the stab section size changes with smartlinking
+
+  Revision 1.19  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.18  2000/01/12 10:38:18  peter

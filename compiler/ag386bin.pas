@@ -729,6 +729,11 @@ unit ag386bin;
       var
         hp : pai;
       begin
+        objectalloc^.resetsections;
+        objectalloc^.setsection(sec_code);
+
+        objectoutput^.initwriting(cut_normal);
+        objectoutput^.defaultsection(sec_code);
       { reset the asmsymbol list }
         ResetAsmsymbolList;
         objectoutput^.defaultsection(sec_code);
@@ -795,6 +800,13 @@ unit ag386bin;
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}
+
+        { leave if errors have occured }
+        if errorcount>0 then
+         exit;
+
+        { write last objectfile }
+        objectoutput^.donewriting;
       end;
 
 
@@ -803,6 +815,11 @@ unit ag386bin;
         hp : pai;
         startsec : tsection;
       begin
+        objectalloc^.resetsections;
+        objectalloc^.setsection(sec_code);
+
+        objectoutput^.initwriting(cut_normal);
+        objectoutput^.defaultsection(sec_code);
         startsec:=sec_code;
         { start with list 1 }
         currlistidx:=1;
@@ -850,16 +867,19 @@ unit ag386bin;
            StartFileLineInfo;
 {$endif GDB}
            hp:=TreePass2(hp);
+{$ifdef GDB}
+           EndFileLineInfo;
+{$endif GDB}
            { leave if errors have occured }
            if errorcount>0 then
             exit;
 
-           { end of lists? }
-           if not MaybeNextList(hp) then
-            break;
            { if not end then write the current objectfile }
            objectoutput^.donewriting;
 
+           { end of lists? }
+           if not MaybeNextList(hp) then
+            break;
            { save section for next loop }
            { this leads to a problem if startsec is sec_none !! PM }
            startsec:=objectalloc^.currsec;
@@ -886,10 +906,7 @@ unit ag386bin;
              startsec:=sec_code;
 
            if not MaybeNextList(hp) then
-            break;
-{$ifdef GDB}
-        EndFileLineInfo;
-{$endif GDB}
+             break;
          end;
       end;
 
@@ -903,11 +920,6 @@ unit ag386bin;
         end;
 
       begin
-        objectalloc^.resetsections;
-        objectalloc^.setsection(sec_code);
-
-        objectoutput^.initwriting(cut_normal);
-        objectoutput^.defaultsection(sec_code);
 
         if cs_debuginfo in aktmoduleswitches then
           addlist(debuglist);
@@ -929,13 +941,6 @@ unit ag386bin;
           writetreesmart
         else
           writetree;
-
-        { leave if errors have occured }
-        if errorcount>0 then
-         exit;
-
-        { write last objectfile }
-        objectoutput^.donewriting;
       end;
 
 
@@ -966,7 +971,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.39  2000-03-09 10:07:18  pierre
+  Revision 1.40  2000-03-09 14:29:47  pierre
+   * fix for the stab section size changes with smartlinking
+
+  Revision 1.39  2000/03/09 10:07:18  pierre
    * fix a problem with smartlink and stabs
 
   Revision 1.38  2000/02/18 21:54:07  pierre
