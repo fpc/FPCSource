@@ -43,6 +43,9 @@ Const
   capstyles : Array[1..5] of TgdkCapStyle = 
           (GDK_CAP_ROUND,GDK_CAP_NOT_LAST, GDK_CAP_BUTT,  GDK_CAP_PROJECTING,
           GDK_CAP_NOT_LAST);
+
+  FontName : Pchar = 
+   '-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1';
           
 Var
   SegTriangle : Array[1..3] of TgdkSegment;
@@ -93,7 +96,7 @@ begin
     SegTriangle[i].Y2:=400-Triangle[i+1].Y;
     end;
   gdk_draw_segments(win,gc,@segtriangle[1],3);
-  font:=gdk_font_load('-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1');
+  font:=gdk_font_load(FontName);
   gdk_gc_set_foreground(gc,allocatecolor($ffff,$ffff,0,Widget));
   For I:=1 to 4 do
     gdk_draw_string(win,font,gc,I*100,300,Pchar(format('String %d',[i])));

@@ -15,27 +15,26 @@ Type
 Var
   GameWindow : TBreakOutWindow;
   
-Function close_application( widget : PGtkWidget ;
-                        event : PGdkEvent;
-                        data : gpointer) : boolean; cdecl;
+Function Close( widget : PGtkWidget ;
+                event : PGdkEvent;
+                data : gpointer) : boolean; cdecl;
 Begin
   gtk_main_quit();
-  close_application := false;
+  Close := false;
 End;
 
-function Exposed(Widget: PGtkWidget;event : PGdkEventExpose; Data : gpointer) : Integer; cdecl;
+function Exposed(Widget: PGtkWidget;
+                 event : PGdkEventExpose; 
+                 Data : gpointer) : Integer; cdecl;
 
 begin
-{  gdk_window_clear_area (widget^.window,
-                         event^.area.x, 
-                         event^.area.y,
-                         event^.area.width, 
-                         event^.area.height);
-}  TBreakOutWindow(Data).BreakOut.Draw(Event);
+  TBreakOutWindow(Data).BreakOut.Draw(Event);
   result:=0;
 end;
 
-function KeyPress (Widget: PGtkWidget;event : PGdkEventKey; Data : gpointer) : Integer; cdecl;
+function KeyPress (Widget: PGtkWidget;
+                   event : PGdkEventKey; 
+                   Data : gpointer) : Integer; cdecl;
 
 begin
   with TBreakOutWindow(Data).BreakOut do
@@ -66,7 +65,6 @@ begin
 end;
 
 Begin
-  // Initialize GTK and create the main window
   gtk_init( @argc, @argv );
   GameWindow:=TBreakOutWindow.Create;
   With GameWindow do
@@ -74,7 +72,7 @@ Begin
     window := gtk_window_new( GTK_WINDOW_TOPLEVEL );
     gtk_window_set_policy(PgtkWindow(Window),0,0,1);
     gtk_signal_connect (GTK_OBJECT (window), 'delete_event',
-            GTK_SIGNAL_FUNC( @close_application ), NIL);
+            GTK_SIGNAL_FUNC(@Close), NIL);
     gtk_container_set_border_width (GTK_CONTAINER (window), 10);
     area := gtk_drawing_area_new();
     gtk_container_add( GTK_CONTAINER(window), Area);
@@ -90,11 +88,9 @@ Begin
     gtk_signal_connect (GTK_OBJECT (area),'expose_event',
                         GTK_SIGNAL_FUNC(@Exposed),GameWindow);
     gtk_drawing_area_size (PGTKDRAWINGAREA(area),600,400);
-    // key handling.
     gtk_widget_set_events(window,GDK_KEY_RELEASE_MASK);
     gtk_signal_connect(PGTKObject(Window),'key_press_event',
                        GTK_SIGNAL_FUNC(@KeyPress),GameWindow);
-    // Timer handling.
     gtk_timeout_add(50,@Step,GameWindow);
     gtk_widget_show_all( window ); 
     gtk_main();
