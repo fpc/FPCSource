@@ -429,6 +429,10 @@ Function odd(l:QWord):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 { float math routines }
 {$I mathh.inc}
 
+operator ** (bas,expo : real) e: real;
+operator ** (bas,expo : int64) i: int64;
+
+
 {****************************************************************************
                          Addr/Pointer Handling
 ****************************************************************************}
@@ -722,7 +726,10 @@ const
 
 {
   $Log$
-  Revision 1.84  2004-02-02 20:39:27  florian
+  Revision 1.85  2004-02-20 11:01:20  daniel
+    * Applied
+
+  Revision 1.84  2004/02/02 20:39:27  florian
     + added prefetch(const mem)
 
   Revision 1.83  2004/01/26 11:48:24  florian

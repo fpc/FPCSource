@@ -238,6 +238,18 @@ end;
 { Include generic version }
 {$I genmath.inc}
 
+
+operator ** (bas,expo : real) e: real;
+begin
+  e:=power(bas,expo);
+end;
+
+operator ** (bas,expo : int64) i: int64;
+begin
+  i:=power(bas,expo);
+end;
+  
+
 {****************************************************************************
                   Subroutines for String handling
 ****************************************************************************}
@@ -864,7 +876,10 @@ end;
 
 {
   $Log$
-  Revision 1.53  2004-02-06 20:17:13  daniel
+  Revision 1.54  2004-02-20 11:01:20  daniel
+    * Applied
+
+  Revision 1.53  2004/02/06 20:17:13  daniel
     * Use $ for hex numbers instead of alien 0x
 
   Revision 1.52  2004/01/22 20:12:37  florian
