@@ -17,8 +17,24 @@ fpcdir=.
 rule=help
 
 [prerules]
+# make versions < 3.77 (OS2 version) are buggy
+ifndef inOS2
 override FPCDIR:=$(BASEDIR)
 export FPCDIR
+endif
+
+# New ppc386
+PPNEW=$(BASEDIR)/compiler/ppc386$(SRCEXEEXT)
+
+# Check if there is already a ppc386 binary in compiler, then
+# we will use that version for target and version info
+ifneq ($(wildcard $(PPNEW)),)
+override FPC:=$(PPNEW)
+override FPC_VERSION:=$(shell $(PPNEW) -iV)
+override OS_TARGET:=$(shell $(PPNEW) -iTO)
+override CPU_TARGET:=$(shell $(PPNEW) -iTP)
+export FPC_VERSION OS_TARGET CPU_TARGET
+endif
 
 # Check if install/ subdir is available
 ifneq ($(wildcard install),)
@@ -89,20 +105,9 @@ endif
 # Temporary path to pack a file
 BASEPACKDIR=$(BASEDIR)/basepack
 
-# Use new ppc386
-PPNEW=$(BASEDIR)/compiler/ppc386$(EXEEXT)
-
-# Don't use ppufiles for win32 becuase of commandline length problems
-ifneq ($(OS_TARGET),win32)
-PPUFILESNEW=$(BASEDIR)/compiler/utils/ppufiles$(EXEEXT)
-endif
-
 # Build/install options
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR)
-ifdef PPUFILESNEW
-override INSTALLOPTS+=PPUFILES=$(PPUFILESNEW)
-endif
 
 # Compile also IDE (check for ide and fv dir)
 ifneq ($(wildcard ide),)
@@ -424,12 +429,19 @@ os2zip: checkfpcdir
         $(MAKE) zipinstall OS_TARGET=os2
 
 ##########################################################################
-# Debian / RPM
+# Debian
 ##########################################################################
 
-.PHONY: debcopy deb rpmcopy rpm
+ifdef inUnix
 
-DEBSRCDIR:=/usr/src/fpc-$(FPC_VERSION)
+ifneq ($(wildcard $(CVSINSTALL)/debian/changelog),)
+
+.PHONY: debcopy deb
+
+DEBPACKAGEVERSION:=$(shell head -n 1 $(CVSINSTALL)/debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
+DEBFPCVERSION:=$(shell echo $(DEBPACKAGEVERSION) | awk -F '-' '{ print $$1 }')
+DEBSRCDIR:=/usr/src/fpc-$(DEBFPCVERSION)
+
 debcopy: distclean
         rm -rf $(DEBSRCDIR)
         install -d $(DEBSRCDIR)
@@ -451,6 +463,22 @@ debcopy: distclean
 deb: checkfpcdir debcopy
         cd $(DEBSRCDIR) ; debian/rules binary
 
+endif   # changelog found
+
+endif
+
+
+##########################################################################
+# RPM
+##########################################################################
+
+ifdef inUnix
+
+ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
+
+.PHONY: rpmcopy rpm
+
+RPMFPCVERSION:=$(shell grep 'define fpcversion' $(CVSINSTALL)/fpc.spec | awk '{ print $$3 }')
 
 REDHATDIR=/usr/src/redhat
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
@@ -463,7 +491,7 @@ rpmcopy: distclean
         install -d $(RPMSOURCESDIR)
 # fpc.rpm
         rm -rf $(RPMSRCDIR)
-        cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(FPC_VERSION).spec
+        cp $(CVSINSTALL)/fpc.spec $(RPMSPECDIR)/fpc-$(RPMFPCVERSION).spec
         install -d $(RPMSRCDIR)
         $(COPYTREE) compiler $(RPMSRCDIR)
         $(COPYTREE) rtl $(RPMSRCDIR)
@@ -476,15 +504,19 @@ rpmcopy: distclean
         $(COPYTREE) $(CVSINSTALL)/man $(RPMSRCDIR)
         $(COPYTREE) $(CVSINSTALL)/doc $(RPMSRCDIR)
         find $(RPMSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(FPC_VERSION)-src.tar.gz
+        cd $(RPMSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-$(RPMFPCVERSION)-src.tar.gz
 # fpc-docs.rpm
         rm -rf $(DOCSRCDIR)
-        cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(FPC_VERSION).spec
+        cp $(CVSINSTALL)/fpc-docs.spec $(RPMSPECDIR)/fpc-docs-$(RPMFPCVERSION).spec
         install -d $(DOCSRCDIR)
         $(COPYTREE) docs $(DOCSRCDIR)
         find $(DOCSRCDIR) -name 'CVS*' | xargs -n1 rm -rf
-        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(FPC_VERSION)-src.tar.gz
+        cd $(DOCSRCDIR) ; tar cvz * > $(RPMSOURCESDIR)/fpc-docs-$(RPMFPCVERSION)-src.tar.gz
 
 rpm: checkfpcdir rpmcopy
-        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(FPC_VERSION).spec
-        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(FPC_VERSION).spec
+        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-$(RPMFPCVERSION).spec
+        cd $(RPMSPECDIR) ; rpm --nodeps -ba fpc-docs-$(RPMFPCVERSION).spec
+
+endif   # spec found
+
+endif
