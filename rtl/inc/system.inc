@@ -51,30 +51,30 @@ var
                      Routines which have compiler magic
 ****************************************************************************}
 
-{$I innr.inc}
+{$ifndef INTERNCONSTINTF}
+Function  lo(i : Integer) : byte;  [INTERNPROC: fpc_in_lo_Word];
+Function  lo(w : Word) : byte;     [INTERNPROC: fpc_in_lo_Word];
+Function  lo(l : Longint) : Word;  [INTERNPROC: fpc_in_lo_long];
+Function  lo(l : DWord) : Word;    [INTERNPROC: fpc_in_lo_long];
+Function  hi(i : Integer) : byte;  [INTERNPROC: fpc_in_hi_Word];
+Function  hi(w : Word) : byte;     [INTERNPROC: fpc_in_hi_Word];
+Function  hi(l : Longint) : Word;  [INTERNPROC: fpc_in_hi_long];
+Function  hi(l : DWord) : Word;    [INTERNPROC: fpc_in_hi_long];
 
-Function  lo(i : Integer) : byte;  [INTERNPROC: In_lo_Word];
-Function  lo(w : Word) : byte;     [INTERNPROC: In_lo_Word];
-Function  lo(l : Longint) : Word;  [INTERNPROC: In_lo_long];
-Function  lo(l : DWord) : Word;    [INTERNPROC: In_lo_long];
-Function  hi(i : Integer) : byte;  [INTERNPROC: In_hi_Word];
-Function  hi(w : Word) : byte;     [INTERNPROC: In_hi_Word];
-Function  hi(l : Longint) : Word;  [INTERNPROC: In_hi_long];
-Function  hi(l : DWord) : Word;    [INTERNPROC: In_hi_long];
+Function  lo(q : QWord) : DWord;  [INTERNPROC: fpc_in_lo_qword];
+Function  lo(i : Int64) : DWord;  [INTERNPROC: fpc_in_lo_qword];
+Function  hi(q : QWord) : DWord;  [INTERNPROC: fpc_in_hi_qword];
+Function  hi(i : Int64) : DWord;  [INTERNPROC: fpc_in_hi_qword];
 
-Function  lo(q : QWord) : DWord;  [INTERNPROC: In_lo_qword];
-Function  lo(i : Int64) : DWord;  [INTERNPROC: In_lo_qword];
-Function  hi(q : QWord) : DWord;  [INTERNPROC: In_hi_qword];
-Function  hi(i : Int64) : DWord;  [INTERNPROC: In_hi_qword];
-
-Function chr(b : byte) : Char;      [INTERNPROC: In_chr_byte];
+Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
 {$ifndef INTERNLENGTH}
-Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
-Function Length(c : char) : byte;   [INTERNPROC: In_Length_string];
+Function Length(s : string) : byte; [INTERNPROC: fpc_in_Length_string];
+Function Length(c : char) : byte;   [INTERNPROC: fpc_in_Length_string];
 {$endif INTERNLENGTH}
 
-Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
-Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
+Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
+Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
+{$endif INTERNCONSTINTF}
 
 
 {****************************************************************************
@@ -190,45 +190,45 @@ begin
    Lo := b and $0f
 end;
 
-Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_word];
+Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_word];
+Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
 Begin
   swap:=(X and $ff) shl 8 + (X shr 8)
 End;
 
-Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_long];
+Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_long];
+Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
 Begin
   Swap:=(X and $ffff) shl 16 + (X shr 16)
 End;
 
-Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_qword];
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_swap_qword];
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
 Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
+{$ifdef SUPPORT_DOUBLE}
 operator := (b:real48) d:double;
-
 begin
  D:=real2double(b);
 end;
+{$endif SUPPORT_DOUBLE}
 
 {$ifdef SUPPORT_EXTENDED}
 operator := (b:real48) e:extended;
-
 begin
  e:=real2double(b);
 end;
@@ -477,7 +477,7 @@ end;
                             Memory Management
 ****************************************************************************}
 
-Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_ptr];
+Function Ptr(sel,off : Longint) : farpointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
 Begin
   ptr:=farpointer((sel shl 4)+off);
 End;
@@ -853,7 +853,7 @@ begin
     end;
   for i:=low(s) to high(s) do
      p[i+Reserveentries]:=pchar(s[i]);
-  p[high(s)+1+Reserveentries]:=nil; 
+  p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
 
@@ -885,9 +885,9 @@ begin
       inc(buf);
      inc(nr);
      if buf^='"' Then			// quotes argument?
-      begin 
+      begin
 	inc(buf);
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
+	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote
 	 inc(buf);
         if buf^='"' then		// skip closing quote.
 	  inc(buf);
@@ -896,7 +896,7 @@ begin
        begin				// else std
 	 while not (buf^ in [' ',#0,#9,#10]) do
 	   inc(buf);
-       end;	
+       end;
    end;
   getmem(p,(ReserveEntries+nr)*sizeof(pchar));
   StringToPPChar:=p;
@@ -917,12 +917,12 @@ begin
        inc(buf);
       end;
      if buf^='"' Then			// quotes argument?
-      begin 
+      begin
 	inc(buf);
         p^:=buf;
 	inc(p);
 	p^:=nil;
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
+	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote
 	 inc(buf);
         if buf^='"' then		// skip closing quote.
 	  begin
@@ -937,7 +937,7 @@ begin
 	p^:=nil;
 	 while not (buf^ in [' ',#0,#9,#10]) do
 	   inc(buf);
-       end;	
+       end;
    end;
 end;
 
@@ -948,17 +948,13 @@ end;
                           Abstract/Assert support.
 *****************************************************************************}
 
-procedure AbstractError;[public,alias : 'FPC_ABSTRACTERROR'];
+procedure fpc_AbstractErrorIntern;{$ifdef hascompilerproc}compilerproc;{$endif}[public,alias : 'FPC_ABSTRACTERROR'];
 begin
   If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
   HandleErrorFrame(211,get_frame);
 end;
 
-{$ifdef hascompilerproc}
-{ alias for internal usage in the compiler }
-procedure fpc_AbstractErrorIntern;  compilerproc; external name 'FPC_ABSTRACTERROR';
-{$endif hascompilerproc}
 
 Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);{$ifndef NOSAVEREGISTERS}saveregisters;{$endif} [Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -1002,7 +998,10 @@ end;
 
 {
   $Log$
-  Revision 1.67  2004-10-30 20:49:10  marco
+  Revision 1.68  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.67  2004/10/30 20:49:10  marco
    * arraytostring added
 
   Revision 1.66  2004/10/24 20:01:42  peter

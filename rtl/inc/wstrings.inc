@@ -678,9 +678,6 @@ end;
 {$endif INTERNLENGTH}
 
 
-{ overloaded version of UniqueString for interface }
-procedure UniqueString(Var S : WideString); [external name 'FPC_WIDESTR_UNIQUE'];
-
 Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Make sure reference count of S is 1,
@@ -935,7 +932,7 @@ begin
   else
     begin
       SS := S;
-      fpc_Val_SInt_WideStr := fpc_Val_SInt_ShortStr(DestSize,SS,Code);
+      fpc_Val_SInt_WideStr := int_Val_SInt_ShortStr(DestSize,SS,Code);
     end;
 end;
 
@@ -1237,7 +1234,10 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 
 {
   $Log$
-  Revision 1.45  2004-10-24 20:01:42  peter
+  Revision 1.46  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.45  2004/10/24 20:01:42  peter
     * saveregisters calling convention is obsolete
 
   Revision 1.44  2004/09/29 14:55:49  mazen

@@ -425,7 +425,9 @@ Begin
 End;
 
 
-Procedure SetTextBuf(Var F : Text; Var Buf);[INTERNPROC: In_settextbuf_file_x];
+{$ifndef INTERNCONSTINTF}
+Procedure SetTextBuf(Var F : Text; Var Buf);[INTERNPROC: fpc_In_settextbuf_file_x];
+{$endif}
 
 
 Procedure SetTextBuf(Var F : Text; Var Buf; Size : Longint);
@@ -669,7 +671,7 @@ var
 begin
   if (InOutRes<>0) then
    exit;
-  str(q,s); 
+  str(q,s);
   write_str(len,t,s);
 end;
 
@@ -1289,7 +1291,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2004-11-09 23:10:22  peter
+  Revision 1.28  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.27  2004/11/09 23:10:22  peter
     * use helper call to retrieve address of input/output to reduce
       code that is generated in the main program for loading the
       threadvar

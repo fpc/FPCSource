@@ -39,25 +39,27 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
+{$ifndef INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_PI}
-    function pi : extended;[internproc:in_pi];
+    function pi : extended;[internproc:fpc_in_pi];
     {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    function abs(d : extended) : extended;[internproc:fpc_in_abs_extended];
     {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_extended];
     {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+    function sqrt(d : extended) : extended;[internproc:fpc_in_sqrt_extended];
     {$define FPC_SYSTEM_HAS_ARCTAN}
-    function arctan(d : extended) : extended;[internproc:in_arctan_extended];
+    function arctan(d : extended) : extended;[internproc:fpc_in_arctan_extended];
     {$define FPC_SYSTEM_HAS_LN}
-    function ln(d : extended) : extended;[internproc:in_ln_extended];
+    function ln(d : extended) : extended;[internproc:fpc_in_ln_extended];
     {$define FPC_SYSTEM_HAS_SIN}
-    function sin(d : extended) : extended;[internproc:in_sin_extended];
+    function sin(d : extended) : extended;[internproc:fpc_in_sin_extended];
     {$define FPC_SYSTEM_HAS_COS}
-    function cos(d : extended) : extended;[internproc:in_cos_extended];
+    function cos(d : extended) : extended;[internproc:fpc_in_cos_extended];
+{$endif}
 
     {$define FPC_SYSTEM_HAS_EXP}
-    function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
+    function exp(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_exp];{$endif}
        asm
             // comes from DJ GPP
             fldt        d
@@ -91,7 +93,7 @@
 
 
     {$define FPC_SYSTEM_HAS_FRAC}
-    function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
+    function frac(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_frac];{$endif}
       asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -112,7 +114,7 @@
 
 
     {$define FPC_SYSTEM_HAS_INT}
-    function int(d : extended) : extended;assembler;[internconst:in_const_int];
+    function int(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_int];{$endif}
       asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -131,7 +133,7 @@
 
 
     {$define FPC_SYSTEM_HAS_TRUNC}
-    function trunc(d : extended) : int64;assembler;[internconst:in_const_trunc];
+    function trunc(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_trunc];{$endif}
       var
         oldcw,
         newcw : word;
@@ -155,11 +157,13 @@
 
     {$define FPC_SYSTEM_HAS_ROUND}
 {$ifdef hascompilerproc}
-    function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
+  {$ifndef internconstintf}
+    function round(d : extended) : int64;[internconst:fpc_in_const_round, external name 'FPC_ROUND'];
+  {$endif internconstintf}
 
     function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 {$else}
-    function round(d : extended) : int64;assembler;[internconst:in_const_round];
+    function round(d : extended) : int64;assembler;[internconst:fpc_in_const_round];
 {$endif hascompilerproc}
       var
         oldcw,
@@ -210,7 +214,10 @@
 
 {
   $Log$
-  Revision 1.19  2004-07-09 23:06:11  peter
+  Revision 1.20  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.19  2004/07/09 23:06:11  peter
     * add fclex for fpu exceptions to round/trunc
 
   Revision 1.18  2003/11/29 16:40:12  jonas

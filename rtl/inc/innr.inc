@@ -16,94 +16,94 @@
 
 const
 { Internal functions }
-   in_lo_word           = 1;
-   in_hi_word           = 2;
-   in_lo_long           = 3;
-   in_hi_long           = 4;
-   in_ord_x             = 5;
-   in_length_string     = 6;
-   in_chr_byte          = 7;
-   in_write_x           = 14;
-   in_writeln_x         = 15;
-   in_read_x            = 16;
-   in_readln_x          = 17;
-   in_concat_x          = 18;
-   in_assigned_x        = 19;
-   in_str_x_string      = 20;
-   in_ofs_x             = 21;
-   in_sizeof_x          = 22;
-   in_typeof_x          = 23;
-   in_val_x             = 24;
-   in_reset_x           = 25;
-   in_rewrite_x         = 26;
-   in_low_x             = 27;
-   in_high_x            = 28;
-   in_seg_x             = 29;
-   in_pred_x            = 30;
-   in_succ_x            = 31;
-   in_reset_typedfile   = 32;
-   in_rewrite_typedfile = 33;
-   in_settextbuf_file_x = 34;
-   in_inc_x             = 35;
-   in_dec_x             = 36;
-   in_include_x_y       = 37;
-   in_exclude_x_y       = 38;
-   in_break             = 39;
-   in_continue          = 40;
-   in_assert_x_y        = 41;
-   in_addr_x            = 42;
-   in_typeinfo_x        = 43;
-   in_setlength_x       = 44;
-   in_finalize_x        = 45;
-   in_new_x             = 46;
-   in_dispose_x         = 47;
-   in_exit              = 48;
-   in_copy_x            = 49;
-   in_initialize_x      = 50;
-   in_leave             = 51; {macpas}
-   in_cycle             = 52; {macpas}
+   fpc_in_lo_word           = 1;
+   fpc_in_hi_word           = 2;
+   fpc_in_lo_long           = 3;
+   fpc_in_hi_long           = 4;
+   fpc_in_ord_x             = 5;
+   fpc_in_length_string     = 6;
+   fpc_in_chr_byte          = 7;
+   fpc_in_write_x           = 14;
+   fpc_in_writeln_x         = 15;
+   fpc_in_read_x            = 16;
+   fpc_in_readln_x          = 17;
+   fpc_in_concat_x          = 18;
+   fpc_in_assigned_x        = 19;
+   fpc_in_str_x_string      = 20;
+   fpc_in_ofs_x             = 21;
+   fpc_in_sizeof_x          = 22;
+   fpc_in_typeof_x          = 23;
+   fpc_in_val_x             = 24;
+   fpc_in_reset_x           = 25;
+   fpc_in_rewrite_x         = 26;
+   fpc_in_low_x             = 27;
+   fpc_in_high_x            = 28;
+   fpc_in_seg_x             = 29;
+   fpc_in_pred_x            = 30;
+   fpc_in_succ_x            = 31;
+   fpc_in_reset_typedfile   = 32;
+   fpc_in_rewrite_typedfile = 33;
+   fpc_in_settextbuf_file_x = 34;
+   fpc_in_inc_x             = 35;
+   fpc_in_dec_x             = 36;
+   fpc_in_include_x_y       = 37;
+   fpc_in_exclude_x_y       = 38;
+   fpc_in_break             = 39;
+   fpc_in_continue          = 40;
+   fpc_in_assert_x_y        = 41;
+   fpc_in_addr_x            = 42;
+   fpc_in_typeinfo_x        = 43;
+   fpc_in_setlength_x       = 44;
+   fpc_in_finalize_x        = 45;
+   fpc_in_new_x             = 46;
+   fpc_in_dispose_x         = 47;
+   fpc_in_exit              = 48;
+   fpc_in_copy_x            = 49;
+   fpc_in_initialize_x      = 50;
+   fpc_in_leave             = 51; {macpas}
+   fpc_in_cycle             = 52; {macpas}
 
 { Internal constant functions }
-   in_const_trunc      = 100;
-   in_const_round      = 101;
-   in_const_frac       = 102;
-   in_const_abs        = 103;
-   in_const_int        = 104;
-   in_const_sqr        = 105;
-   in_const_odd        = 106;
-   in_const_ptr        = 107;
-   in_const_swap_word  = 108;
-   in_const_swap_long  = 109;
-   in_const_pi         = 110;
-   in_const_sqrt       = 111;
-   in_const_arctan     = 112;
-   in_const_cos        = 113;
-   in_const_exp        = 114;
-   in_const_ln         = 115;
-   in_const_sin        = 116;
-   in_lo_qword         = 117;
-   in_hi_qword         = 118;
-   in_cos_extended     = 119;
-   in_pi               = 121;
-   in_abs_extended     = 122;
-   in_sqr_extended     = 123;
-   in_sqrt_extended    = 124;
-   in_arctan_extended  = 125;
-   in_ln_extended      = 126;
-   in_sin_extended     = 127;
-   in_const_swap_qword = 128;
-   in_prefetch_var      = 129;
+   fpc_in_const_trunc      = 100;
+   fpc_in_const_round      = 101;
+   fpc_in_const_frac       = 102;
+   fpc_in_const_abs        = 103;
+   fpc_in_const_int        = 104;
+   fpc_in_const_sqr        = 105;
+   fpc_in_const_odd        = 106;
+   fpc_in_const_ptr        = 107;
+   fpc_in_const_swap_word  = 108;
+   fpc_in_const_swap_long  = 109;
+   fpc_in_const_pi         = 110;
+   fpc_in_const_sqrt       = 111;
+   fpc_in_const_arctan     = 112;
+   fpc_in_const_cos        = 113;
+   fpc_in_const_exp        = 114;
+   fpc_in_const_ln         = 115;
+   fpc_in_const_sin        = 116;
+   fpc_in_lo_qword         = 117;
+   fpc_in_hi_qword         = 118;
+   fpc_in_cos_extended     = 119;
+   fpc_in_pi               = 121;
+   fpc_in_abs_extended     = 122;
+   fpc_in_sqr_extended     = 123;
+   fpc_in_sqrt_extended    = 124;
+   fpc_in_arctan_extended  = 125;
+   fpc_in_ln_extended      = 126;
+   fpc_in_sin_extended     = 127;
+   fpc_in_const_swap_qword = 128;
+   fpc_in_prefetch_var      = 129;
 
 { MMX functions }
 { these contants are used by the mmx unit }
 
    { MMX }
-   in_mmx_pcmpeqb      = 200;
-   in_mmx_pcmpeqw      = 201;
-   in_mmx_pcmpeqd      = 202;
-   in_mmx_pcmpgtb      = 203;
-   in_mmx_pcmpgtw      = 204;
-   in_mmx_pcmpgtd      = 205;
+   fpc_in_mmx_pcmpeqb      = 200;
+   fpc_in_mmx_pcmpeqw      = 201;
+   fpc_in_mmx_pcmpeqd      = 202;
+   fpc_in_mmx_pcmpgtb      = 203;
+   fpc_in_mmx_pcmpgtw      = 204;
+   fpc_in_mmx_pcmpgtd      = 205;
 
    { 3DNow }
 
@@ -111,7 +111,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2004-07-05 21:59:18  olle
+  Revision 1.8  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.7  2004/07/05 21:59:18  olle
     * updated according to compiler/compinnr.inc
 
   Revision 1.6  2004/02/02 20:39:27  florian

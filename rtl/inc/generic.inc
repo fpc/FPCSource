@@ -649,14 +649,6 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
-{ also add a strpas alias for internal use in the system unit (JM) }
-function strpas(p:pchar):shortstring; [external name 'FPC_PCHAR_TO_SHORTSTR'];
-
-{$ifndef FPC_UNIT_HAS_STRLEN}
-
-{ if strlen is not yet defined, we need a forward declaration here }
-function strlen(p:pchar):longint; [external name 'FPC_PCHAR_LENGTH'];
-{$endif FPC_UNIT_HAS_STRLEN}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
@@ -953,7 +945,7 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
 {****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
+function abs(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
 begin
    if l<0 then
      abs:=-l
@@ -965,7 +957,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
-function odd(l:longint):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:longint):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
 begin
    odd:=boolean(l and 1);
 end;
@@ -974,7 +966,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGWORD}
 
-function odd(l:longword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:longword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
 begin
    odd:=boolean(l and 1);
 end;
@@ -984,7 +976,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_INT64}
 
-function odd(l:int64):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:int64):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
 begin
    odd:=boolean(longint(l) and 1);
 end;
@@ -993,7 +985,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_QWORD}
 
-function odd(l:qword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:qword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
 begin
    odd:=boolean(longint(l) and 1);
 end;
@@ -1002,7 +994,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_LONGINT}
 
-function sqr(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
+function sqr(l:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
 begin
    sqr:=l*l;
 end;
@@ -1012,7 +1004,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ABS_INT64}
 
-function abs(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
+function abs(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
 begin
   if l < 0 then
     abs := -l
@@ -1025,7 +1017,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_INT64}
 
-function sqr(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
+function sqr(l: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
 begin
   sqr := l*l;
 end;
@@ -1035,7 +1027,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_QWORD}
 
-function sqr(l: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
+function sqr(l: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
 begin
   sqr := l*l;
 end;
@@ -1081,7 +1073,9 @@ procedure inclocked(var l:int64);
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
 
 
-procedure prefetch(const mem);[internproc:in_prefetch_var];
+{$ifndef INTERNCONSTINTF}
+procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
+{$endif}
 
 
 function align(addr : PtrInt;alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1241,7 +1235,10 @@ end;
 
 {
   $Log$
-  Revision 1.86  2004-11-06 13:36:42  florian
+  Revision 1.87  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.86  2004/11/06 13:36:42  florian
     * fixed software longint mod operation
 
   Revision 1.85  2004/11/02 08:50:40  florian

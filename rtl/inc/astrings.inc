@@ -502,11 +502,9 @@ end;
 
 
 {$ifdef HASCOMPILERPROC}
-{ overloaded version of UniqueString for interface }
-Procedure UniqueString(Var S : AnsiString); [external name 'FPC_ANSISTR_UNIQUE'];
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
+Procedure fpc_ansistr_Unique(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE'];
 {$endif}
 {
   Make sure reference count of S is 1,
@@ -690,7 +688,7 @@ begin
   else
     begin
        SS := S;
-       fpc_Val_SInt_AnsiStr := fpc_Val_SInt_ShortStr(DestSize,SS,Code);
+       fpc_Val_SInt_AnsiStr := int_Val_SInt_ShortStr(DestSize,SS,Code);
     end;
 end;
 
@@ -869,7 +867,10 @@ end;
 
 {
   $Log$
-  Revision 1.49  2004-10-31 16:21:30  peter
+  Revision 1.50  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.49  2004/10/31 16:21:30  peter
     * fix shortstr_to_ansistring for 1.0.x
 
   Revision 1.48  2004/10/24 20:01:41  peter

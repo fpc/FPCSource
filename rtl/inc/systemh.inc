@@ -280,7 +280,7 @@ Type
 
   { Needed for fpc_get_output }
   PText               = ^Text;
-  
+
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
 
 { procedure type }
@@ -371,6 +371,11 @@ Var
   StackBottom : Pointer;
   StackLength : Cardinal;
 
+
+{ Numbers for routines that have compiler magic }
+{$I innr.inc}
+
+
 {****************************************************************************
                         Processor specific routines
 ****************************************************************************}
@@ -399,33 +404,34 @@ function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
 procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
-procedure prefetch(const mem);
+procedure prefetch(const mem);{$ifdef INTERNCONSTINTF}[internproc:fpc_in_prefetch_var];{$endif}
 
 
 {****************************************************************************
                           Math Routines
 ****************************************************************************}
 
-Function  lo(w:Word):byte;
-Function  lo(l:Longint):Word;
-Function  lo(l:DWord):Word;
-Function  lo(i:Integer):byte;
 Function  lo(B: Byte):Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  hi(w:Word):byte;
-Function  hi(i:Integer):byte;
-Function  hi(l:Longint):Word;
 Function  hi(b : Byte) : Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  hi(l: DWord): Word;
-Function  lo(q : QWord) : DWord;
-Function  lo(i : Int64) : DWord;
-Function  hi(q : QWord) : DWord;
-Function  hi(i : Int64) : DWord;
-Function  Swap (X:Word):Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Swap (X:Integer):Integer;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Swap (X:Cardinal):Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Swap (X:LongInt):LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Swap (X:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function  Swap (X:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function  lo(i : Integer) : byte;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_Word];{$endif}
+Function  lo(w : Word) : byte;     {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_Word];{$endif}
+Function  lo(l : Longint) : Word;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_long];{$endif}
+Function  lo(l : DWord) : Word;    {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_long];{$endif}
+Function  lo(i : Int64) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_qword];{$endif}
+Function  lo(q : QWord) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_lo_qword];{$endif}
+Function  hi(i : Integer) : byte;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_Word];{$endif}
+Function  hi(w : Word) : byte;     {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_Word];{$endif}
+Function  hi(l : Longint) : Word;  {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_long];{$endif}
+Function  hi(l : DWord) : Word;    {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_long];{$endif}
+Function  hi(i : Int64) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_qword];{$endif}
+Function  hi(q : QWord) : DWord;   {$ifdef INTERNCONSTINTF}[INTERNPROC: fpc_in_hi_qword];{$endif}
+
+Function swap (X : Word) : Word;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
+Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_word];{$endif}
+Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
+Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_long];{$endif}
+Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
+Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_swap_qword];{$endif}
 
 Function Align (Addr : PtrInt; Alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Align (Addr : Pointer; Alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -435,15 +441,15 @@ Function  Random(l:int64):int64;
 Function  Random: extended;
 Procedure Randomize;
 
-Function abs(l:Longint):Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function abs(l:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:Longint):Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:Int64):Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function sqr(l:QWord):QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Longint):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Longword):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:Int64):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function odd(l:QWord):Boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function abs(l:Longint):Longint;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function abs(l:Int64):Int64;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Longint):Longint;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:Int64):Int64;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function sqr(l:QWord):QWord;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longint):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Longword):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:Int64):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
+Function odd(l:QWord):Boolean;{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { float math routines }
 {$I mathh.inc}
@@ -465,8 +471,8 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
                       PChar and String Handling
 ****************************************************************************}
 
-function strpas(p:pchar):shortstring;
-function strlen(p:pchar):longint;{$ifdef INLINEGENERICS}inline;{$endif}
+function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
+function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
 
 { Shortstring functions }
 {$ifndef INTERNSETLENGTH}
@@ -496,7 +502,11 @@ Function  OctStr(Val:int64;cnt:byte):shortstring;
 Function  binStr(Val:int64;cnt:byte):shortstring;
 
 { Char functions }
+{$ifdef INTERNCONSTINTF}
+Function chr(b : byte) : Char;      [INTERNPROC: fpc_in_chr_byte];
+{$else}
 Function  Chr(b:byte):Char;
+{$endif}
 Function  upCase(c:Char):Char;
 Function  lowerCase(c:Char):Char; overload;
 {$ifndef InternCopy}
@@ -515,7 +525,7 @@ function  length(c:char):byte;
 {$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : AnsiString; l : SizeInt);
 {$endif INTERNSETLENGTH}
-Procedure UniqueString (Var S : AnsiString);
+Procedure UniqueString(Var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
 {$ifndef INTERNLENGTH}
 Function  Length (Const S : AnsiString) : SizeInt;
 {$endif INTERNLENGTH}
@@ -539,7 +549,7 @@ function  lowercase(const s : ansistring) : ansistring;
 {$ifndef INTERNSETLENGTH}
 Procedure SetLength (Var S : WideString; l : SizeInt);
 {$endif INTERNSETLENGTH}
-Procedure UniqueString (Var S : WideString);
+procedure UniqueString(Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
 {$ifndef INTERNLENGTH}
 Function  Length (Const S : WideString) : SizeInt;
 {$endif INTERNLENGTH}
@@ -639,9 +649,13 @@ Procedure Truncate (Var F:File);
 Procedure Assign(Var f:TypedFile;const Name:string);
 Procedure Assign(Var f:TypedFile;p:pchar);
 Procedure Assign(Var f:TypedFile;c:char);
+{$ifdef INTERNCONSTINTF}
+Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
+Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
+{$else}
 Procedure Rewrite(Var f:TypedFile);
 Procedure Reset(Var f:TypedFile);
-
+{$endif}
 
 {****************************************************************************
                             Text File Management
@@ -667,7 +681,7 @@ Function  SeekEOLn (Var t:Text):Boolean;
 Function  SeekEOF (Var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
-Procedure SetTextBuf(Var f:Text; Var Buf);
+Procedure SetTextBuf(Var f:Text; Var Buf);{$ifdef INTERNCONSTINTF}[INTERNPROC:fpc_in_settextbuf_file_x];{$endif}
 Procedure SetTextBuf(Var f:Text; Var Buf; Size:Longint);
 Procedure SetTextLineEnding(Var f:Text; Ending:string);
 
@@ -692,7 +706,7 @@ function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$
 function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifdef INTERNCONSTINTF}[internconst:fpc_in_const_ptr];{$endif}
 
 
 {*****************************************************************************
@@ -722,7 +736,7 @@ Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 
-procedure AbstractError;
+procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
 Procedure SysAssert(Const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 
@@ -773,7 +787,10 @@ const
 
 {
   $Log$
-  Revision 1.107  2004-11-09 23:10:22  peter
+  Revision 1.108  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.107  2004/11/09 23:10:22  peter
     * use helper call to retrieve address of input/output to reduce
       code that is generated in the main program for loading the
       threadvar

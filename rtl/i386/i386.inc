@@ -1281,7 +1281,7 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_abs];
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_abs];{$endif}
 asm
 {$ifndef REGCALL}
         movl    l,%eax
@@ -1293,7 +1293,7 @@ end ['EAX','EDX'];
 
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_odd];{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -1308,7 +1308,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_sqr];
+function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_sqr];{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -1510,7 +1510,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2004-11-01 12:43:29  peter
+  Revision 1.66  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.65  2004/11/01 12:43:29  peter
     * shortstr compare with empty string fixed
     * removed special i386 code
 

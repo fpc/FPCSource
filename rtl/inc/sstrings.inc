@@ -601,11 +601,9 @@ begin
     End;
 end;
 
-{$ifdef hascompilerproc}
 { we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
 { we have to pass the DestSize parameter on (JM)                         }
-Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
-{$endif hascompilerproc}
+Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
 
 
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -867,7 +865,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2004-11-02 22:38:58  jonas
+  Revision 1.32  2004-11-17 22:19:04  peter
+  internconst, internproc and some external declarations moved to interface
+
+  Revision 1.31  2004/11/02 22:38:58  jonas
     * fixed endianess bug in fpc_val_int64_shortstr() (webtbf/tw2128)
 
   Revision 1.30  2004/05/01 23:55:18  peter
