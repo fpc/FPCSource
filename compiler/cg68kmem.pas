@@ -485,7 +485,7 @@ implementation
          else
            begin
               { quick hack, to overcome Delphi 2 }
-              if ( cs_regalloc in aktglobalswitches) and
+              if (cs_regalloc in aktglobalswitches) and
                 (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    extraoffset:=0;
@@ -725,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-12-11 00:03:06  peter
+  Revision 1.11  1998-12-11 10:48:11  pierre
+   * #0 char removed
+
+  Revision 1.10  1998/12/11 00:03:06  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.9  1998/11/25 19:12:55  pierre
