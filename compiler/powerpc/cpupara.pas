@@ -28,11 +28,13 @@ unit cpupara;
   interface
 
     uses
+       globtype,
        cpubase,
        symconst,symbase,symtype,symdef,paramgr;
 
     type
        tppcparamanager = class(tparamanager)
+          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
@@ -42,7 +44,6 @@ unit cpupara;
 
     uses
        verbose,
-       globtype,
        cpuinfo,cginfo,cgbase,
        defutil;
 
@@ -120,6 +121,21 @@ unit cpupara;
             else
               internalerror(2002071001);
          end;
+      end;
+
+    function tppcparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        case def.deftype of
+          recorddef:
+            push_addr_param:=true;
+          arraydef:
+            push_addr_param:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
+                             is_open_array(def) or
+                             is_array_of_const(def) or
+                             is_array_constructor(def);
+          else
+            push_addr_param:=inherited push_addr_param(def,calloption);
+        end;
       end;
 
     procedure tppcparamanager.create_param_loc_info(p : tabstractprocdef);
@@ -295,7 +311,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-04-26 11:30:59  florian
+  Revision 1.28  2003-05-11 23:19:32  florian
+    * fixed passing of small const arrays and const records, they are always passed by reference
+
+  Revision 1.27  2003/04/26 11:30:59  florian
     * fixed the powerpc to work with the new function result handling
 
   Revision 1.26  2003/04/23 12:35:35  florian
