@@ -97,6 +97,12 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
+   
+   
+   { Memory management routines }
+   function AllocMem(size : longint) : Pointer;
+   procedure ReAllocMem(var P: Pointer; currentSize: longint; newSize: longint);
+
 
   { Read internationalization settings }
   {$i sysinth.inc}
@@ -270,6 +276,59 @@ begin
   ErrorProc:=@RunErrorToExcept;
 end;
 
+{ ---------------------------------------------------------------------
+    Memory handling routines.
+  ---------------------------------------------------------------------}
+  
+
+function AllocMem(size : longint) : Pointer;
+var
+   newP : Pointer;
+begin
+   GetMem(newP, size);
+   if newP <> nil then
+      FillChar(newP^, size, 0);
+   result := newP;
+end;
+
+{ ReAllocMem
+1. if P is nil and newSize is zero do nothing
+2. if P is nil and newSize is NOT zero allocate memory and clear it to 0
+3. if P is NOT nil and newSize is NOT zero a new memory block is allocated
+   the data is copied from the old block to the new block and the old
+   block is disposed of.
+   
+if P is NOT nil then currentSize must be the size used to allocate memory
+for P whether it was using AllocMem or ReAllocMem.
+   
+This is similar to the functions found in Delphi 1
+The same functions in Dephi 2, 3, and 4 use memory management. When
+I get a chance I might attempt to incorporate that feature.
+}
+
+procedure ReAllocMem(var P: Pointer; currentSize: longint; newSize: longint);
+var
+   newP : Pointer;
+   moveSize : longint;
+begin
+   if ((P = nil) and (newSize > 0)) then
+      P := AllocMem(newSize)
+   else if ((P <> nil) and (newSize > 0)) then
+   begin
+      newP := AllocMem(newSize);
+      if newP <> nil then
+      begin
+         if newSize > currentSize then
+            moveSize := currentSize
+         else
+            moveSize := newSize;
+         Move(P^, newP^, moveSize);
+         FreeMem(P, currentSize);
+         P := newP;
+      end;
+   end;
+end;
+
 
 {  Initialization code. }
 
@@ -279,7 +338,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.24  1999-04-08 12:23:05  peter
+    Revision 1.25  1999-04-08 16:26:31  michael
+    + Added (re)allocmem
+
+    Revision 1.24  1999/04/08 12:23:05  peter
       * removed os.inc
 
     Revision 1.23  1999/02/28 13:17:37  michael
