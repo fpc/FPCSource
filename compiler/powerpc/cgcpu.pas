@@ -523,7 +523,7 @@ const
           freereg := fixref(list,ref2);
           { the caller is expected to have adjusted the reference already }
           { in this case                                                  }
-          if (fromsize > tosize) then
+          if (TCGSize2Size[fromsize] > TCGSize2Size[tosize]) then
             fromsize := tosize;
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
@@ -2451,7 +2451,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2003-12-04 20:37:02  jonas
+  Revision 1.141  2003-12-05 22:53:28  jonas
+    * fixed load_ref_reg for source > dest size
+
+  Revision 1.140  2003/12/04 20:37:02  jonas
     * fixed some int<->boolean type conversion issues
 
   Revision 1.139  2003/11/30 11:32:12  jonas
