@@ -18,7 +18,7 @@
 function strpas(p : pchar) : string;
 begin
 {$ifndef NEWATT}
-  strpasopt:='';
+  strpas:='';
 {$endif}
 asm
 {$ifdef NEWATT}
@@ -109,7 +109,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.11  2000-06-12 08:33:26  jonas
+  Revision 1.12  2000-06-12 13:17:56  jonas
+    * fixed typo :(
+
+  Revision 1.11  2000/06/12 08:33:26  jonas
     * new fixed and faster strpas (previous version only returned the first
       254 chars when the pchar was aligned on a 4 byte boundary and was >=
       255 chars)
