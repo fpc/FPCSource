@@ -688,12 +688,7 @@ begin
    begin
      l:=InOutRes;
      InOutRes:=0;
-     If ErrorProc<>Nil then
-       TErrorProc(Errorproc)(l,pointer(addr));
-{$ifndef RTLLITE}
-     writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
-{$endif}
-     Halt(byte(l));
+     HandleError(l,get_frame);
    end;
   asm
         popal
@@ -704,7 +699,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  1998-12-15 22:42:53  peter
+  Revision 1.36  1998-12-18 17:21:32  peter
+    * fixed io-error handling
+
+  Revision 1.35  1998/12/15 22:42:53  peter
     * removed temp symbols
 
   Revision 1.34  1998/11/30 15:27:28  pierre

@@ -95,7 +95,6 @@ Implementation
 Procedure Halt(ErrNum: Byte);
 Begin
   ExitCode:=Errnum;
-  ErrorAddr:=nil;
   Do_Exit;
 {$ifdef i386}
   asm
@@ -731,7 +730,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  1998-12-15 22:43:08  peter
+  Revision 1.20  1998-12-18 17:21:34  peter
+    * fixed io-error handling
+
+  Revision 1.19  1998/12/15 22:43:08  peter
     * removed temp symbols
 
   Revision 1.18  1998/11/16 10:21:32  peter
