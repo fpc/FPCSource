@@ -64,7 +64,7 @@ implementation
       dos,
 {$endif Delphi}
       cutils,globtype,systems,
-      fmodule,finput,verbose,cpubase,cpuasm,tainst
+      fmodule,finput,verbose,cpubase,cpuasm, tainst
 {$ifdef GDB}
   {$ifdef delphi}
       ,sysutils
@@ -392,7 +392,7 @@ var
            ait_regalloc :
              begin
                if (cs_asm_regalloc in aktglobalswitches) then
-                 AsmWriteLn(target_asm.comment+'Register '+gas_reg2str[tairegalloc(hp).reg]+
+                 AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tairegalloc(hp).reg]+
                    allocstr[tairegalloc(hp).allocation]);
              end;
 
@@ -795,7 +795,10 @@ var
 end.      
 {
   $Log$
-  Revision 1.1  2002-04-14 16:51:54  carl
+  Revision 1.2  2002-04-15 18:53:48  carl
+  + comments in register allocator uses std_Reg2str
+
+  Revision 1.1  2002/04/14 16:51:54  carl
   + basic GNU assembler writer class
 
 }
