@@ -25,11 +25,10 @@ const
  { Should be equal to the maximum offset possible in indirect addressing
    mode with displacement. (CPU SPECIFIC) }
 
-{$ifdef cpu86}
- MAX_DISP = 65535;
-{$endif}
 {$ifdef cpu68k}
  MAX_DISP = 32767;
+{$else}
+ MAX_DISP = 65535;
 {$endif}
 
 { These different alignments are described in the PowerPC ABI
@@ -760,7 +759,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:56  peter
+  Revision 1.3  2003-04-22 13:03:36  florian
+    * fixed for non i386/m68k cpus
+
+  Revision 1.2  2002/09/07 15:40:56  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/05/09 20:16:05  carl
