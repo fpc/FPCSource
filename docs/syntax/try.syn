@@ -1,0 +1,30 @@
+\begin{diagram}{Try..except statement}{trystatement}
+\begin{mysyntdiag}
+\synt{try\ statement}
+\lit*{try}
+\synt{statement\ list}
+\lit*{except}
+\synt{exception\ handling\ statements}
+\lit*{end}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{statement\ list} 
+\<[b] \synt{statement} \\ \lit*; \>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{exception\ handling\ statements}
+\(
+\<[b] \synt{exception\ handler} \\ \lit*; \>
+\[
+  \lit*{else} \synt{statement\ list}
+\]
+\synt{statement\ list}
+\)
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\lit*{on} \[ \synt{identifier} \lit* : \] 
+\synt{class\ type\ identifier}
+\lit*{do}
+\synt{statement}
+\end{mysyntdiag}
+\end{diagram}

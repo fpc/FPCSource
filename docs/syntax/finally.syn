@@ -1,0 +1,14 @@
+\begin{diagram}{Try...finally statement}{tryfinallystatement}
+\begin{mysyntdiag}
+\synt{try statement}
+\lit*{try}
+\synt{statement\ list}
+\lit*{finally}
+\synt{statement\ list}
+\lit*{end}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{statement\ list}
+\<[b] \synt{statement} \\ \lit*; \>
+\end{mysyntdiag}
+\end{diagram}

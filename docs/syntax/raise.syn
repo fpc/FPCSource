@@ -1,0 +1,9 @@
+\begin{psyntax}{Raise statement}{raisestatement}
+\synt{raise\ statement}
+\[
+  \synt{exception\ instance} 
+  \[
+     \lit*{at} \synt{address\ expression}
+  \]
+\]
+\end{psyntax}
