@@ -55,13 +55,9 @@ endif
 # Options for converter
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
-                 -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 4.0 -split 3 
+                 -up_title "Free Pascal manuals"\
+                 -html_version 4.0 -split 3
 endif
-
-# Icons for latex2html
-ICONSERVER=../buttons
-export ICONSERVER
 
 # Ascii mode ? (i.e. no pics)
 ifndef ASCIIMODE
@@ -539,7 +535,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.9  2001-10-11 23:36:54  carl
+# Revision 1.10  2001-10-18 21:41:26  peter
+#   * fixed latex2html settings
+#
+# Revision 1.9  2001/10/11 23:36:54  carl
 # + reinstated Windows NT support
 #
 # Revision 1.8  2001/10/04 21:03:13  michael

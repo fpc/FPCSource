@@ -2,6 +2,8 @@
 #
 ### Command Line Argument Defaults #######################################
 
+$ICONSERVER = '../buttons';
+
 $MAX_SPLIT_DEPTH = 3;	# Stop making separate files at this depth
 
 $MAX_LINK_DEPTH = 2;    # Stop showing child nodes at this depth   
@@ -152,7 +154,6 @@ $TITLES_LANGUAGE = "english";
 # and arbitrary HTML (the "." is the Perl concatenation operator).
 sub top_navigation_panel {
    
-    "<SCRIPT SRC=\"../search/search2.js\"></script>" .
     #  Start with a horizontal rule (3-d dividing line)
     "<BR> <HR>".			
     
