@@ -20,23 +20,21 @@ libgcc=1
 
 
 [rules]
+
+.PHONY: localgdbverexe
+
+localgdbverexe : ./getver$(EXEEXT)
+
+./getver$(EXEEXT) : ./gdbver$(PASEXT)
+        $(COMPILER) -o./getver$(EXEEXT) gdbver$(PASEXT)
+
 ifdef GDBVER
 gdbint$(PPUEXT): gdbint$(PASEXT)
-	$(COMPILER) -d$(GDBVER) gdbint$(PASEXT)
+	$(ECHO) Using GDB $(GDBVER)
+        $(COMPILER) -d$(GDBVER) gdbint$(PASEXT)
 else
-ifeq ($(strip $(shell gdbver$(EXEEXT) -n)),)
-gdbint$(PPUEXT): gdbver$(EXEEXT)
-	$(MAKE) gdbint$(PPUEXT)
-else
-gdbint$(PPUEXT): gdbver$(EXEEXT) gdbint$(PASEXT)
-ifeq ($(shell gdbver$(EXEEXT) -n),5)
-	$(ECHO) Using GDB 5
-	$(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V5
-else
-	$(ECHO) Using GDB 4
-	$(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V4
-endif
-endif
+gdbint$(PPUEXT): localgdbverexe gdbver$(EXEEXT)
+        $(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V$(strip $(shell ./gdbver$(EXEEXT) -n))
 endif
 
 gdbcon$(PPUEXT): gdbcon$(PASEXT) gdbint$(PPUEXT)
