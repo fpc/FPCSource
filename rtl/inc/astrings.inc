@@ -53,22 +53,6 @@ Const
                     Internal functions, not in interface.
 ****************************************************************************}
 
-{$ifdef AnsiStrDebug}
-Procedure DumpAnsiRec(S : Pointer);
-begin
-  If S=Nil then
-    Writeln ('String is nil')
-  Else
-    Begin
-      With PAnsiRec(S-Firstoff)^ do
-       begin
-         Write   ('(Maxlen: ',maxlen);
-         Write   (' Len:',len);
-         Writeln (' Ref: ',ref,')');
-       end;
-    end;
-end;
-{$endif}
 
 
 Function NewAnsiString(Len : Longint) : Pointer;
@@ -695,7 +679,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Longword(C : Longword;Len : Longint; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -801,7 +785,11 @@ end;
 
 {
   $Log$
-  Revision 1.26  2002-09-07 15:07:44  peter
+  Revision 1.27  2002-09-07 21:10:47  carl
+    * cardinal -> longword
+    - remove some unused routines
+
+  Revision 1.26  2002/09/07 15:07:44  peter
     * old logs removed and tabs fixed
 
   Revision 1.25  2002/04/26 15:19:05  peter

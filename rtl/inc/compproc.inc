@@ -60,10 +60,10 @@ function fpc_dynarray_copy(var p : pointer;ti : pointer;
 
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : longint;var s : shortstring); compilerproc;
 procedure fpc_ShortStr_Longint(v : longint;len : longint;var s : shortstring); compilerproc;
-procedure fpc_shortstr_cardinal(v : cardinal;len : longint;var s : shortstring); compilerproc;
+procedure fpc_shortstr_longword(v : longword;len : longint;var s : shortstring); compilerproc;
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : longint;var a : array of char); compilerproc;
 procedure fpc_chararray_Longint(v : longint;len : longint;var a : array of char); compilerproc;
-procedure fpc_chararray_cardinal(v : cardinal;len : longint;var a : array of char); compilerproc;
+procedure fpc_chararray_longword(v : longword;len : longint;var a : array of char); compilerproc;
 Function fpc_Val_SInt_ShortStr(DestSize: longint; Const S: ShortString; var Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; compilerproc;
 Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; compilerproc;
@@ -114,7 +114,7 @@ Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code
 Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc;
 Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring); compilerproc;
-Procedure fpc_AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString); compilerproc;
+Procedure fpc_AnsiStr_Longword(C : Longword;Len : Longint; Var S : AnsiString); compilerproc;
 Procedure fpc_AnsiStr_Longint(L : Longint; Len : Longint; Var S : AnsiString); compilerproc;
 
 Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; compilerproc;
@@ -123,7 +123,7 @@ Function fpc_Val_SInt_WideStr (DestSize: longint; Const S : WideString; Var Code
 Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; compilerproc;
 Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString); compilerproc;
-Procedure fpc_WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString); compilerproc;
+Procedure fpc_WideStr_Longword(C : Longword;Len : Longint; Var S : WideString); compilerproc;
 Procedure fpc_WideStr_Longint(L : Longint; Len : Longint; Var S : WideString); compilerproc;
 
 { from text.inc }
@@ -193,7 +193,6 @@ function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
-
 procedure fpc_help_constructor; compilerproc;
 procedure fpc_help_fail; compilerproc;
 procedure fpc_help_destructor; compilerproc;
@@ -202,7 +201,6 @@ procedure fpc_dispose_class; compilerproc;
 procedure fpc_help_fail_class; compilerproc;
 procedure fpc_check_object(obj : pointer); compilerproc;
 procedure fpc_check_object_ext; compilerproc;
-
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
@@ -265,7 +263,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.21  2002-09-07 15:07:45  peter
+  Revision 1.22  2002-09-07 21:12:04  carl
+    * cardinal -> longword
+    - remove some unused routines
+
+  Revision 1.21  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.20  2002/09/02 19:24:41  peter
