@@ -81,7 +81,7 @@ Begin
  sys_open:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
 End;
 
-function sys_close(fd : cint): cint;
+function sys_close(fd : cint): cint; [public, alias : 'FPC_SYSC_CLOSE'];
 
 begin
  sys_close:=do_syscall(syscall_nr_close,fd);
@@ -139,7 +139,7 @@ end;
 
 function sys_mkdir(const path : pchar; mode: mode_t):cint; [public, alias : 'FPC_SYSC_MKDIR'];
 
-begin 
+begin
   sys_mkdir:=do_syscall(syscall_nr_mkdir,TSysParam(path),TSysParam(mode));
 end;
 
@@ -467,7 +467,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2002-11-12 14:40:18  marco
+ Revision 1.2  2002-12-18 17:51:40  peter
+   * add FPC_SYSC_CLOSE public name
+
+ Revision 1.1  2002/11/12 14:40:18  marco
   * The syscall core of the new system unit.
 
 
