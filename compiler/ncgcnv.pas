@@ -93,18 +93,20 @@ interface
         if (ressize<>leftsize) and
            not is_void(left.resulttype.def) then
           begin
-            location_copy(location,left.location);
             { reuse a loc_reference when the newsize is smaller than
               than the original, else load it to a register }
             if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                (ressize<leftsize) then
              begin
-               location.size:=newsize;
+               left.location.size:=newsize;
                if (target_info.endian = ENDIAN_BIG) then
-                 inc(location.reference.offset,leftsize-ressize);
+                 inc(left.location.reference.offset,leftsize-ressize);
              end
             else
-             location_force_reg(exprasmlist,location,newsize,false);
+              begin
+                location_force_reg(exprasmlist,left.location,newsize,false);
+              end;
+            location_copy(location,left.location);
           end
         else
           begin
@@ -511,7 +513,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  2003-05-23 14:27:35  peter
+  Revision 1.41  2003-05-24 11:59:42  jonas
+    * fixed integer typeconversion problems
+
+  Revision 1.40  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

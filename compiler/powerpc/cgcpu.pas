@@ -422,7 +422,7 @@ const
              (tosize <> fromsize) and
              not(fromsize in [OS_32,OS_S32])) then
            begin
-             case fromsize of
+             case tosize of
                OS_8:
                  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,
                    reg2,reg1,0,31-8+1,31));
@@ -2442,7 +2442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2003-05-23 18:51:26  jonas
+  Revision 1.96  2003-05-24 11:59:42  jonas
+    * fixed integer typeconversion problems
+
+  Revision 1.95  2003/05/23 18:51:26  jonas
     * fixed support for nested procedures and more parameters than those
       which fit in registers (untested/probably not working: calling a
       nested procedure from a deeper nested procedure)

@@ -452,7 +452,16 @@ implementation
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
                   begin
                     if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                     l.register.number:=(l.register.number and not $ff) or cgsize2subreg(dst_size);
+                     begin
+{$ifndef i386}
+                       hregisterhi := l.register;
+{$endif not i386}
+                       l.register.number:=(l.register.number and not $ff) or cgsize2subreg(dst_size);
+{$ifndef i386}
+                       { necessary for all processors that do not have subregisters (JM) }
+                       cg.a_load_reg_reg(list,l.size,dst_size,hregisterhi,l.register);
+{$endif not i386}
+                     end;
                     { for big endian systems, the reference's offset must }
                     { be increased in this case, since they have the      }
                     { MSB first in memory and e.g. byte(word_var) should  }
@@ -1827,7 +1836,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-05-23 14:27:35  peter
+  Revision 1.106  2003-05-24 11:59:42  jonas
+    * fixed integer typeconversion problems
+
+  Revision 1.105  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
