@@ -98,6 +98,7 @@ const
 const
   { Severity values }
   FACILITY_NT_BIT = $10000000;
+  HFILE_ERROR = HFILE(-1);
 
 //
 //  A language ID is a 16 bit value which is the combination of a
@@ -1050,7 +1051,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2003-11-06 22:05:06  marco
+  Revision 1.17  2004-01-19 19:29:11  michael
+  + Added HFILE_ERROR
+
+  Revision 1.16  2003/11/06 22:05:06  marco
    * fixed
 
   Revision 1.15  2003/10/03 20:55:12  florian
