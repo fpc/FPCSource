@@ -197,7 +197,7 @@ procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: tai);
 function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
            hp: tai): boolean;
 procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
-procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai);
+procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
 function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
 //function RegsEquivalent(OldReg, NewReg: tregister; var RegInfo: toptreginfo; OpAct: TopAction): Boolean;
@@ -736,6 +736,8 @@ begin
     exit;
   p := taicpu(hp);
   case p.opcode of
+    A_CALL:
+      regreadbyinstruction := true;
     A_IMUL:
       case p.ops of
         1:
@@ -808,6 +810,8 @@ begin
     exit;
   p := taicpu(p1);
   case p.opcode of
+    A_CALL:
+      regininstruction := true;
     A_IMUL:
       case p.ops of
         1:
@@ -1141,14 +1145,21 @@ begin
 end;
 
 
-procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai);
+procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
 { allocates register reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
+{ note that this routine is both called from the peephole optimizer     }
+{ where optinfo is not yet initialised) and from the cse (where it is)  }
 var
-  hp, start: tai;
-  lastRemovedWasDealloc, firstRemovedWasAlloc, first: boolean;
+  hp: tai;
+  lastRemovedWasDealloc: boolean;
   supreg: tsuperregister;
 begin
+{$ifdef EXTDEBUG}
+  if assigned(p1.optinfo) and
+     (ptaiprop(p1.optinfo)^.usedregs <> initialusedregs) then
+   internalerror(2004101010);
+{$endif EXTDEBUG}
   supreg := getsupreg(reg);
 { if not(supreg in rg.usableregsint+[RS_EDI,RS_ESI]) or
      not(assigned(p1)) then}
@@ -1158,11 +1169,8 @@ begin
     { current block (e.g. esi with self)                                    }
     exit;
   { make sure we allocate it for this instruction }
-  if p1 = p2 then
-    getnextinstruction(p2,p2);
+  getnextinstruction(p2,p2);
   lastRemovedWasDealloc := false;
-  firstRemovedWasAlloc := false;
-  first := true;
 {$ifdef allocregdebug}
   hp := tai_comment.Create(strpnew('allocating '+std_reg2str[supreg]+
     ' from here...')));
@@ -1171,50 +1179,43 @@ begin
     ' till here...')));
   insertllitem(asml,p2,p1.next,hp);
 {$endif allocregdebug}
-  start := p1;
-  repeat
-    if assigned(p1.OptInfo) then
-      include(ptaiprop(p1.OptInfo)^.UsedRegs,supreg);
-    p1 := tai(p1.next);
-    repeat
-      while assigned(p1) and
-            (p1.typ in (SkipInstr-[ait_regalloc])) Do
-        p1 := tai(p1.next);
-{ remove all allocation/deallocation info about the register in between }
-      if assigned(p1) and
-         (p1.typ = ait_regalloc) then
-        if (getsupreg(tai_regalloc(p1).reg) = supreg) then
-          begin
-            if first then
-              begin
-                firstRemovedWasAlloc := (tai_regalloc(p1).ratype=ra_alloc);
-                first := false;
-              end;
-            lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
-            hp := tai(p1.Next);
-            asml.Remove(p1);
-            p1.free;
-            p1 := hp;
-          end
-        else p1 := tai(p1.next);
-    until not(assigned(p1)) or
-          not(p1.typ in SkipInstr);
-  until not(assigned(p1)) or
-        (p1 = p2);
-  if assigned(p1) then
+  if not(supreg in initialusedregs) then
+    begin
+      hp := tai_regalloc.alloc(reg,nil);
+      insertllItem(asmL,p1.previous,p1,hp);
+    end;
+  while assigned(p1) and
+        (p1 <> p2) do
     begin
       if assigned(p1.optinfo) then
-        include(ptaiprop(p1.OptInfo)^.UsedRegs,supreg);
+        include(ptaiprop(p1.optinfo)^.usedregs,supreg);
+      p1 := tai(p1.next);
+      repeat
+        while assigned(p1) and
+              (p1.typ in (SkipInstr-[ait_regalloc])) Do
+          p1 := tai(p1.next);
+{ remove all allocation/deallocation info about the register in between }
+        if assigned(p1) and
+           (p1.typ = ait_regalloc) then
+          if (getsupreg(tai_regalloc(p1).reg) = supreg) then
+            begin
+              lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
+              hp := tai(p1.Next);
+              asml.Remove(p1);
+              p1.free;
+              p1 := hp;
+            end
+          else p1 := tai(p1.next);
+      until not(assigned(p1)) or
+            not(p1.typ in SkipInstr);
+    end;
+  if assigned(p1) then
+    begin
       if lastRemovedWasDealloc then
         begin
           hp := tai_regalloc.DeAlloc(reg,nil);
-          insertLLItem(asmL,p1,p1.next,hp);
+          insertLLItem(asmL,p1.previous,p1,hp);
         end;
-    end;
-  if firstRemovedWasAlloc then
-    begin
-      hp := tai_regalloc.Alloc(reg,nil);
-      insertLLItem(asmL,start.previous,start,hp);
     end;
 end;
 
@@ -2068,7 +2069,13 @@ begin
                   if not(supreg in usedregs) then
                     include(usedregs, supreg)
                   else
-                    addregdeallocfor(list, tai_regalloc(p).reg, p);
+                    begin
+                      //addregdeallocfor(list, tai_regalloc(p).reg, p);
+                      hp1 := tai(p.previous);
+                      list.remove(p);
+                      p.free;
+                      p := hp1;
+                    end;
                 end;
               ra_dealloc :
                 begin
@@ -2085,6 +2092,17 @@ begin
                       list.remove(p);
                       insertllitem(list, hp2, tai(hp2.next), p);
                       p := hp1;
+                    end
+                  else if findregalloc(tai_regalloc(p).reg, tai(p.next),ra_alloc)
+                          and getnextinstruction(p,hp1) and
+                      (hp1.typ = ait_instruction) and
+                      (taicpu(hp1).opcode = A_CALL) then
+                    begin
+                      hp1 := tai(p.previous);
+                      list.remove(p);
+                      p.free;
+                      p := hp1;
+                      include(usedregs,supreg);
                     end;
                 end;
              end;
@@ -2765,7 +2783,10 @@ end.
 
 {
   $Log$
-  Revision 1.72  2004-10-06 19:24:38  jonas
+  Revision 1.73  2004-10-10 15:01:19  jonas
+    * several fixes to allocregbetween()
+
+  Revision 1.72  2004/10/06 19:24:38  jonas
     * take into account the size of a write to determine whether a write to
       one reference influences the contents of another reference
 

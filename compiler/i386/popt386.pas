@@ -939,7 +939,7 @@ begin
                                 TmpUsedRegs := UsedRegs;
                                 { reg1 will be used after the first instruction, }
                                 { so update the allocation info                  }
-                                allocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1);
+                                allocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs);
                                 if GetNextInstruction(hp1, hp2) and
                                    (hp2.typ = ait_instruction) and
                                    taicpu(hp2).is_jmp and
@@ -999,7 +999,7 @@ begin
           {change "mov reg1, mem1; cmp x, mem1" to "mov reg, mem1; cmp x, reg1"}
                                 begin
                                   taicpu(hp1).loadreg(1,taicpu(p).oper[0]^.reg);
-                                  allocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1);
+                                  allocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs);
                                 end;
                     { Next instruction is also a MOV ? }
                       if GetNextInstruction(p, hp1) and
@@ -1022,7 +1022,7 @@ begin
                             mov mem1/reg2, reg1 }
                                     begin
                                       if (taicpu(p).oper[0]^.typ = top_reg) then
-                                        AllocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1);
+                                        AllocRegBetween(asmL,taicpu(p).oper[0]^.reg,p,hp1,usedregs);
                                       asml.remove(hp1);
                                       hp1.free;
                                     end
@@ -1080,7 +1080,7 @@ begin
                                 mov mem1, reg2
                                 mov reg2, mem2}
                                       begin
-                                        AllocRegBetween(asmL,taicpu(hp2).oper[1]^.reg,p,hp2);
+                                        AllocRegBetween(asmL,taicpu(hp2).oper[1]^.reg,p,hp2,usedregs);
                                         taicpu(p).Loadoper(1,taicpu(hp2).oper[1]^);
                                         taicpu(hp1).loadoper(0,taicpu(hp2).oper[1]^);
                                         asml.remove(hp2);
@@ -1110,19 +1110,19 @@ begin
                                           taicpu(hp1).LoadReg(1,taicpu(hp2).oper[1]^.reg);
                                           taicpu(hp2).LoadRef(1,taicpu(hp2).oper[0]^.ref^);
                                           taicpu(hp2).LoadReg(0,taicpu(p).oper[1]^.reg);
-                                          allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2);
+                                          allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2,usedregs);
                                           if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
                                              (getsupreg(taicpu(p).oper[0]^.ref^.base) in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]) then
-                                            allocRegBetween(asmL,taicpu(p).oper[0]^.ref^.base,p,hp2);
+                                            allocRegBetween(asmL,taicpu(p).oper[0]^.ref^.base,p,hp2,usedregs);
                                           if (taicpu(p).oper[0]^.ref^.index <> NR_NO) and
                                              (getsupreg(taicpu(p).oper[0]^.ref^.index) in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]) then
-                                            allocRegBetween(asmL,taicpu(p).oper[0]^.ref^.index,p,hp2);
+                                            allocRegBetween(asmL,taicpu(p).oper[0]^.ref^.index,p,hp2,usedregs);
                                         end
                                       else
                                         if (taicpu(hp1).Oper[0]^.reg <> taicpu(hp2).Oper[1]^.reg) then
                                           begin
                                             taicpu(hp2).LoadReg(0,taicpu(hp1).Oper[0]^.reg);
-                                            allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2);
+                                            allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2,usedregs);
                                           end
                                         else
                                           begin
@@ -1159,12 +1159,7 @@ begin
                                  (taicpu(p).opsize = taicpu(hp1).opsize) and
                                  RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) then
                                 begin
-                                  allocregbetween(asml,taicpu(hp1).oper[1]^.reg,p,hp1);
-                                  { allocregbetween doesn't insert this because at }
-                                  { this time, no regalloc info is available in    }
-                                  { the optinfo field, so do it manually (JM)      }
-                                  hp2 := tai_regalloc.Alloc(taicpu(hp1).oper[1]^.reg,nil);
-                                  insertllitem(asml,p.previous,p,hp2);
+                                  allocregbetween(asml,taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
                                   taicpu(hp1).LoadReg(0,taicpu(hp1).oper[1]^.reg);
                                   taicpu(hp1).LoadRef(1,taicpu(p).oper[1]^.ref^);
                                   taicpu(p).LoadReg(1,taicpu(hp1).oper[0]^.reg);
@@ -2004,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2004-10-05 20:41:02  peter
+  Revision 1.64  2004-10-10 15:01:19  jonas
+    * several fixes to allocregbetween()
+
+  Revision 1.63  2004/10/05 20:41:02  peter
     * more spilling rewrites
 
   Revision 1.62  2004/10/05 17:31:41  peter

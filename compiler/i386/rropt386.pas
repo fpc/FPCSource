@@ -320,8 +320,10 @@ begin
         end
       else
         getLastInstruction(hp,hp);
-      allocRegBetween(asmL,newreg(R_INTREGISTER,reg1,R_SUBWHOLE),start,lastreg1);
-      allocRegBetween(asmL,newreg(R_INTREGISTER,reg2,R_SUBWHOLE),start,lastreg2);
+      allocRegBetween(asmL,newreg(R_INTREGISTER,reg1,R_SUBWHOLE),start,lastreg1,
+        ptaiprop(start.optinfo)^.usedregs);
+      allocRegBetween(asmL,newreg(R_INTREGISTER,reg2,R_SUBWHOLE),start,lastreg2,
+        ptaiprop(start.optinfo)^.usedregs);
     end;
 end;
 
@@ -364,7 +366,10 @@ End.
 
 {
   $Log$
-  Revision 1.28  2004-08-17 16:34:58  jonas
+  Revision 1.29  2004-10-10 15:01:19  jonas
+    * several fixes to allocregbetween()
+
+  Revision 1.28  2004/08/17 16:34:58  jonas
     * do not rename registers across conditional jumps
 
   Revision 1.27  2004/06/20 08:55:31  florian

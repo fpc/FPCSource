@@ -1352,7 +1352,7 @@ begin
         ClearRegContentsFrom(orgsupreg,p,hp);
       if removeLast then
         ptaiprop(endp.optinfo)^.canBeRemoved := true;
-      allocRegBetween(asml,newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE),p,endP);
+      allocRegBetween(asml,newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE),p,endP,ptaiprop(p.optinfo)^.usedregs);
 
     end
 {$ifdef replaceregdebug}
@@ -1560,8 +1560,14 @@ begin
     if (reginfo.new2oldreg[regcounter] <> RS_INVALID) Then
       begin
         include(regsloaded,regcounter);
-        AllocRegBetween(asml,newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE),
-          ptaiprop(prevseqstart.optinfo)^.Regs[reginfo.new2oldreg[regcounter]].StartMod,curseqstart);
+        if assigned(ptaiprop(prevseqstart.optinfo)^.Regs[reginfo.new2oldreg[regcounter]].StartMod) then
+          AllocRegBetween(asml,newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE),
+            ptaiprop(prevseqstart.optinfo)^.Regs[reginfo.new2oldreg[regcounter]].StartMod,curseqstart,
+            ptaiprop(ptaiprop(prevseqstart.optinfo)^.Regs[reginfo.new2oldreg[regcounter]].StartMod.optinfo)^.usedregs)
+        else
+          AllocRegBetween(asml,newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE),
+            prevseqstart,curseqstart,ptaiprop(prevseqstart.optinfo)^.usedregs);
+ 
         if curprev <> prevseqstart then
           begin
             if assigned(reginfo.lastReload[regCounter]) then
@@ -1572,7 +1578,8 @@ begin
               hp := curprev;
             clearRegContentsFrom(regCounter,prevSeq_next,hp);
             getnextInstruction(hp,hp);
-            allocRegBetween(asml,newreg(R_INTREGISTER,regCounter,R_SUBWHOLE),prevseqstart,hp);
+            allocRegBetween(asml,newreg(R_INTREGISTER,regCounter,R_SUBWHOLE),prevseqstart,hp,
+              ptaiprop(prevseqstart.optinfo)^.usedregs);
           end;
         if not(regcounter in reginfo.RegsLoadedforRef) and
                       {old reg                new reg}
@@ -1815,8 +1822,12 @@ begin
                               ptaiprop(hp4.optinfo)^.regs[getsupreg(taicpu(p).oper[1]^.reg)],false,hp1) then
                           begin
                             ptaiprop(p.optinfo)^.canBeRemoved := true;
+                            { this is just a regular move that was here, so the source register should be }
+                            { allocated already at this point -> only allocate from here onwards          }
+                            if not(getsupreg(taicpu(p).oper[0]^.reg) in pTaiProp(p.optinfo)^.usedregs) then
+                              internalerror(2004101011);
                             allocRegBetween(asml,taicpu(p).oper[0]^.reg,
-                              pTaiProp(p.optinfo)^.regs[getsupreg(taicpu(p).oper[0]^.reg)].startMod,hp1);
+                              p,hp1,pTaiProp(p.optinfo)^.usedregs)
                           end
                         else
                           begin
@@ -1836,12 +1847,12 @@ begin
                                      (taicpu(p).oper[1]^.reg = memreg) then
                                     begin
                                       pTaiProp(p.optinfo)^.canberemoved := true;
-                                      allocregbetween(asml,memreg,hp5,p);
+                                      allocregbetween(asml,memreg,hp5,p,ptaiprop(hp5.optinfo)^.usedregs);
                                     end
                                   else
                                     begin
                                       replaceoperandwithreg(asml,p,0,memreg);
-                                      allocregbetween(asml,memreg,hp5,p);
+                                      allocregbetween(asml,memreg,hp5,p,ptaiprop(hp5.optinfo)^.usedregs);
                                       regcounter := getsupreg(memreg);
                                       incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
                                       updatestate(regcounter,p);
@@ -1871,7 +1882,8 @@ begin
                                      opsequal(taicpu(StartMod).oper[0]^,taicpu(p).oper[0]^) then
                                     begin
                                       ptaiprop(p.optinfo)^.CanBeRemoved := True;
-                                      allocRegBetween(asml,taicpu(p).oper[1]^.reg,startMod,p);
+                                      allocRegBetween(asml,taicpu(p).oper[1]^.reg,startmod,p,
+                                        ptaiprop(startmod.optinfo)^.usedregs);
                                     end
                                   else
                                     removePrevNotUsedLoad(p,getsupreg(taicpu(p).oper[1]^.reg),false);
@@ -1884,7 +1896,8 @@ begin
                               begin
                                 taicpu(p).loadreg(0,memreg);
                                 allocRegBetween(asml,memreg,
-                                  ptaiprop(hp1.optinfo)^.regs[getsupreg(memreg)].startMod,p);
+                                  ptaiprop(hp1.optinfo)^.regs[getsupreg(memreg)].startMod,p,
+                                  ptaiprop(ptaiprop(hp1.optinfo)^.regs[getsupreg(memreg)].startMod.optinfo)^.usedregs);
                               end;
                         end;
                       end;
@@ -1919,7 +1932,7 @@ begin
                               if memreg <> NR_NO then
                                 begin
                                   replaceoperandwithreg(asml,p,0,memreg);
-                                  allocregbetween(asml,memreg,hp5,p);
+                                  allocregbetween(asml,memreg,hp5,p,ptaiprop(hp5.optinfo)^.usedregs);
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
                                   updatestate(regcounter,p);
@@ -1951,7 +1964,7 @@ begin
                                   insertllitem(asml,p,p.next,hp1);
                                   replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,
-                                    tai(p.next.next));
+                                    tai(p.next.next),ptaiprop(hp5.optinfo)^.usedregs);
                                   ClearRegContentsFrom(regcounter,hp5,p);
                                 end;
                             end;
@@ -1966,7 +1979,7 @@ begin
                               if memreg <> NR_NO then
                                 begin
                                   replaceoperandwithreg(asml,p,1,memreg);
-                                  allocregbetween(asml,memreg,hp5,p);
+                                  allocregbetween(asml,memreg,hp5,p,ptaiprop(hp5.optinfo)^.usedregs);
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
                                   updatestate(regcounter,p);
@@ -2004,7 +2017,7 @@ begin
                                   insertllitem(asml,p,p.next,hp1);
                                   replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,
-                                    tai(p.next.next));
+                                    tai(p.next.next),ptaiprop(hp5.optinfo)^.usedregs);
                                   ClearRegContentsFrom(regcounter,hp5,p);
                                 end;
                             end;
@@ -2109,7 +2122,10 @@ end.
 
 {
   $Log$
-  Revision 1.67  2004-10-06 19:24:38  jonas
+  Revision 1.68  2004-10-10 15:01:19  jonas
+    * several fixes to allocregbetween()
+
+  Revision 1.67  2004/10/06 19:24:38  jonas
     * take into account the size of a write to determine whether a write to
       one reference influences the contents of another reference
 
