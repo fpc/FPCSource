@@ -1087,20 +1087,15 @@ implementation
          { space for the return value       }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
-              { insert in local symtable }
-              { but with another name, so that recursive calls are possible }
-              symtablestack.insert(aktprocdef.funcretsym);
-              symtablestack.insertvardata(aktprocdef.funcretsym);
-              symtablestack.rename(aktprocdef.funcretsym.name,'$result');
-              { update the symtablesize back to 0 if there were no locals }
-              if not haslocals then
-               symtablestack.datasize:=0;
+             symtablestack.rename(aktprocdef.funcretsym.name,'$result');
+             { update the symtablesize back to 0 if there were no locals }
+             if not haslocals then
+              symtablestack.datasize:=0;
 
-              { set the used registers depending on the function result }
-              procinfo.update_usedinproc_result;
+             { set the used registers depending on the function result }
+             procinfo.update_usedinproc_result;
+           end;
 
-            end;
          { force the asm statement }
          if token<>_ASM then
            consume(_ASM);
@@ -1147,7 +1142,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-12-27 18:18:56  peter
+  Revision 1.83  2002-12-29 18:59:34  peter
+    * fixed parsing of declarations before asm statement
+
+  Revision 1.82  2002/12/27 18:18:56  peter
     * check for else after empty raise statement
 
   Revision 1.81  2002/11/27 02:37:14  peter

@@ -84,21 +84,6 @@ implementation
       var
          storepos : tfileposinfo;
       begin
-         { parse const,types and vars }
-         read_declarations(islibrary);
-
-         { do we have an assembler block without the po_assembler?
-           we should allow this for Delphi compatibility (PFV) }
-         if (token=_ASM) and (m_delphi in aktmodeswitches) then
-          include(aktprocdef.procoptions,po_assembler);
-
-         { Handle assembler block different }
-         if (po_assembler in aktprocdef.procoptions) then
-          begin
-            block:=assembler_block;
-            exit;
-          end;
-
          if not is_void(aktprocdef.rettype.def) then
            begin
               { if the current is a function aktprocsym is non nil }
@@ -119,8 +104,22 @@ implementation
                  symtablestack.insert(aktprocdef.resultfuncretsym);
                end;
            end;
+         { parse const,types and vars }
+         read_declarations(islibrary);
 
          procinfo.handle_body_start;
+
+         { do we have an assembler block without the po_assembler?
+           we should allow this for Delphi compatibility (PFV) }
+         if (token=_ASM) and (m_delphi in aktmodeswitches) then
+          include(aktprocdef.procoptions,po_assembler);
+
+         { Handle assembler block different }
+         if (po_assembler in aktprocdef.procoptions) then
+          begin
+            block:=assembler_block;
+            exit;
+          end;
 
          {Unit initialization?.}
          if (lexlevel=unit_init_level) and (current_module.is_unit)
@@ -819,7 +818,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-12-29 18:25:18  peter
+  Revision 1.85  2002-12-29 18:59:34  peter
+    * fixed parsing of declarations before asm statement
+
+  Revision 1.84  2002/12/29 18:25:18  peter
     * parse declarations before check _ASM token
 
   Revision 1.83  2002/12/29 14:57:50  peter
