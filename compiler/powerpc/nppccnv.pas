@@ -32,6 +32,7 @@ interface
     type
        tppctypeconvnode = class(tcgtypeconvnode)
          protected
+          function first_int_to_int: tnode; override;
           procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
@@ -67,8 +68,42 @@ implementation
 
 
 {*****************************************************************************
+                             FirstTypeConv
+*****************************************************************************}
+
+    function tppctypeconvnode.first_int_to_real: tnode;
+      var
+        fname: string[19];
+      begin
+        { converting a 64bit integer to a float requires a helper }
+        if is_64bitint(left.resulttype.def) then
+          begin
+            if is_signed(left.resulttype.def) then
+              fname := 'fpc_int64_to_double'
+            else
+              fname := 'fpc_qword_to_double';
+            result := ccallnode.createintern(fname,ccallparanode.create(
+              left));
+            firstpass(result);
+            exit;
+          end
+        else
+          { other integers are supposed to be 32 bit }
+          begin
+            if is_signed(left.resulttype.def) then
+              inserttypeconv(left,s32bittype)
+            else
+              inserttypeconv(left,u32bittype);
+            firstpass(left);
+          end;
+        result := inherited first_int_to_real;
+      end;
+
+
+{*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
+
 
     procedure tppctypeconvnode.second_int_to_int;
       var
@@ -180,7 +215,7 @@ implementation
 
 
     procedure tppctypeconvnode.second_int_to_real;
-    
+
       type
         dummyrec = record
           i: int64;
@@ -189,46 +224,69 @@ implementation
         tempconst: trealconstnode;
         ref: treference;
         valuereg, tempreg, leftreg, tmpfpureg: tregister;
+        signed: boolean;
       begin
         { the code here comes from the PowerPC Compiler Writer's Guide }
-        
+
+        { * longint to double                               }
         { addis R0,R0,0x4330  # R0 = 0x43300000             }
         { stw R0,disp(R1)     # store upper half            }
         { xoris R3,R3,0x8000  # flip sign bit               }
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000080000000 }
+
+        { * cardinal to double
+        { addis R0,R0,0x4330  # R0 = 0x43300000             }
+        { stw R0,disp(R1)     # store upper half            }
+        { stw R3,disp+4(R1)   # store lower half            }
+        { lfd FR1,disp(R1)    # float load double of value  }
+        { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
         gettempofsizereference(8,ref);
+
+        signed := is_signed(left.resulttype.def);
+
         { we need a certain constant for the conversion, so create it here }
-        tempconst :=
-          { we need this strange typecast because we want the }
-          { double represented by $4330000080000000, not the  }
-          { double converted from the integer with that value }
-          crealconstnode.create(double(dummyrec($4330000080000000)),
-          pbestrealtype^);
+        if signed then
+          tempconst :=
+            { we need this strange typecast because we want the }
+            { double represented by $4330000080000000, not the  }
+            { double converted from the integer with that value }
+            crealconstnode.create(double(dummyrec($4330000080000000)),
+            pbestrealtype^)
+        else
+          tempconst :=
+            crealconstnode.create(double(dummyrec($4330000000000000)),
+            pbestrealtype^)
+
         resulttypepass(tempconst);
         firstpass(tempconst);
         secondpass(tempconst);
-        if tempconst.location.loc <> LOC_MEM then
+        if (tempconst.location.loc <> LOC_MEM) or
+           { has to be handled by a helper }
+           is_64bitint(left.resulttype.def) then
           internalerror(200110011);
 
         case left.location.loc of
           LOC_REGISTER:
             begin
-              valuereg := left.location.register;
-              leftreg := valuereg;
+              leftreg := left.location.register;
+              valuereg := leftreg;
             end;
           LOC_CREGISTER:
             begin
-              valuereg := cg.get_scratch_reg(exprasmlist);
-              leftreg := valuereg;
+              leftreg := left.location.register;
+              if signed then
+                valuereg := cg.get_scratch_reg(exprasmlist)
+              else
+                valuereg := leftreg;
             end;
           LOC_REFERENCE,LOC_MEM:
             begin
-              valuereg := cg.get_scratch_reg(exprasmlist);
-              leftreg := valuereg;
+              leftreg := cg.get_scratch_reg(exprasmlist);
+              valuereg := leftreg;
               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
-                left.location.reference,valuereg);
+                left.location.reference,leftreg);
             end
           else
             internalerror(200110012);
@@ -236,18 +294,30 @@ implementation
          tempreg := cg.get_scratch_reg(exprasmlist);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
-         exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
-           leftreg,$8000));
+         if signed then
+           exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
+             leftreg,$8000));
          inc(ref.offset,4);
          cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
+
+         if (left.location.loc = LOC_REGISTER) or
+            ((left.location.loc = LOC_CREGISTER) and
+             not signed) then
+           ungetregister(leftreg)
+         else
+           cg.free_scratch_reg(exprasmlist,valuereg);
+
          tmpfpureg := get_scratch_reg_fpu(exprasmlist);
          exprasmlist.concat(taicpu.op_reg_ref(A_LFD,tmpfpureg,tempconst.location.reference));
          tempconst.free;
 
          location.register := getregisterfpu;
          exprasmlist.concat(taicpu.op_reg_ref(A_LFD,location.register,ref));
+
+         { restore original offset before ungeting the tempref }
+         dec(ref.offset,4);
          ungetiftemp(ref);
-         
+
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
          ungetregister(tmpfpureg);
@@ -309,7 +379,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-10-01 12:17:26  jonas
+  Revision 1.3  2001-10-28 14:17:10  jonas
+    + second_int_to_real for cardinal, int64 and qword
+
+  Revision 1.2  2001/10/01 12:17:26  jonas
     + implemented second_int_to_real
     * fixed small bug in second_int_to_int
 
