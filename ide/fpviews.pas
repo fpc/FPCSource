@@ -3225,7 +3225,10 @@ begin
 
   { --- marad‚k sor --- }
   ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[Size.X-1],'³',C1,1);
-  SWriteBuf(0,3,Size.X,Size.Y-4,B);
+  for i:=3 to Size.Y-1 do
+    SWriteBuf(0,i,Size.X,1,B);
+  { SWriteBuf(0,3,Size.X,Size.Y-4,B); this was wrong
+    because WriteBuf then expect a buffer of size size.x*(size.y-4)*2 PM }
 
   { --- Size.X . sor --- }
   MoveChar(B[0],'À',C1,1); MoveChar(B[1],'Ä',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],'Ù',C1,1);
@@ -4172,7 +4175,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-08-09 23:17:50  pierre
+  Revision 1.5  2001-08-29 23:28:20  pierre
+   * fix the tab garbage
+
+  Revision 1.4  2001/08/09 23:17:50  pierre
    * keep tabs in Clipboard
 
   Revision 1.3  2001/08/05 12:23:01  peter
