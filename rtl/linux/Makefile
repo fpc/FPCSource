@@ -1286,7 +1286,7 @@ ggigraph$(PPUEXT) : ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
-		    filutil.inc disk.inc objpas$(PPUEXT) linux$(PPUEXT)
+		    objpas$(PPUEXT) linux$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
