@@ -74,6 +74,7 @@ var
 
 { Default Functions }
 procedure def_stop;
+procedure def_halt(i : longint);
 Function  def_status:boolean;
 Function  def_comment(Level:Longint;const s:string):boolean;
 function  def_internalerror(i:longint):boolean;
@@ -81,11 +82,13 @@ function  def_internalerror(i:longint):boolean;
 { Function redirecting for IDE support }
 type
   tstopprocedure         = procedure;
+  thaltprocedure         = procedure(i : longint);
   tstatusfunction        = function:boolean;
   tcommentfunction       = function(Level:Longint;const s:string):boolean;
   tinternalerrorfunction = function(i:longint):boolean;
 const
   do_stop          : tstopprocedure   = def_stop;
+  do_halt          : thaltprocedure   = def_halt;
   do_status        : tstatusfunction  = def_status;
   do_comment       : tcommentfunction = def_comment;
   do_internalerror : tinternalerrorfunction = def_internalerror;
@@ -150,6 +153,10 @@ begin
 {$endif USEEXCEPT}
 end;
 
+procedure def_halt(i : longint);
+begin
+  halt(i);
+end;
 
 function def_status:boolean;
 begin
@@ -268,7 +275,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-08-05 16:52:53  peter
+  Revision 1.18  1999-09-07 14:03:48  pierre
+   + added do_halt procedure
+
+  Revision 1.17  1999/08/05 16:52:53  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
