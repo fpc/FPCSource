@@ -78,26 +78,20 @@ implementation
 
 function version_string:string;
 begin
-  if patch_nr='0' then
-   version_string := version_nr+'.'+release_nr
-  else
-   version_string := version_nr+'.'+release_nr+'.'+patch_nr;
+  version_string := version_nr+'.'+release_nr+'.'+patch_nr;
 end;
 
 
 function full_version_string:string;
 begin
-  if patch_nr='0' then
-   full_version_string := version_nr+'.'+release_nr+minorpatch
-  else
-   full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
+  full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 end;
 
 end.
 {
   $Log$
-  Revision 1.18  2003-11-01 16:27:46  peter
-    * 1.9.0
+  Revision 1.19  2003-11-01 16:37:17  peter
+    * don't remove .0 when patchlevel = 0
 
   Revision 1.17  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
