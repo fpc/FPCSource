@@ -33,7 +33,7 @@ end;
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-        movl    %rsp,%rax
+        movq    %rsp,%rax
 end ['RAX'];
 
 
@@ -61,11 +61,11 @@ end ['RAX'];
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
-        movl    framebp,%rax
+        movq    framebp,%rax
 {$endif}
-        orl     %rax,%rax
+        orq     %rax,%rax
         jz      .Lgnf_null
-        movl    (%rax),%rax
+        movq    (%rax),%rax
 .Lgnf_null:
 end ['RAX'];
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -300,7 +300,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2004-02-05 01:16:12  florian
+  Revision 1.6  2004-02-06 15:58:21  florian
+    * fixed x86-64 assembler problems
+
+  Revision 1.5  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.4  2004/01/20 12:52:18  florian

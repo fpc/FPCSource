@@ -22,8 +22,7 @@
 
 }
 
-Type
-
+type
   TSysResult = int64;   // all platforms, cint=32-bit.
                         // On platforms with off_t =64-bit, people should
                         // use int64, and typecast all calls that don't
@@ -46,7 +45,10 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.2  2003-05-01 08:05:23  florian
+  Revision 1.3  2004-02-06 15:58:21  florian
+    * fixed x86-64 assembler problems
+
+  Revision 1.2  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.1  2003/04/30 22:11:06  florian

@@ -28,9 +28,9 @@
 
     function Get8087CW:word;assembler;
     asm
-      pushl $0
+      pushq $0
       fnstcw (%rsp)
-      popl %eax
+      popq %rax
     end;
 
 {****************************************************************************
@@ -91,13 +91,13 @@
     {$define FPC_SYSTEM_HAS_FRAC}
     function frac(d : extended) : extended;assembler;[internconst:in_const_frac];
       asm
-            subl $16,%esp
-            fnstcw -4(%ebp)
+            subq $16,%rsp
+            fnstcw -4(%rbp)
             fwait
-            movw -4(%ebp),%cx
+            movw -4(%rbp),%cx
             orw $0x0c3f,%cx
-            movw %cx,-8(%ebp)
-            fldcw -8(%ebp)
+            movw %cx,-8(%rbp)
+            fldcw -8(%rbp)
             fwait
             fldt d
             frndint
@@ -105,14 +105,14 @@
             fsub %st(1),%st
             fstp %st(1)
             fclex
-            fldcw -4(%ebp)
+            fldcw -4(%rbp)
       end ['ECX'];
 
 
     {$define FPC_SYSTEM_HAS_INT}
     function int(d : extended) : extended;assembler;[internconst:in_const_int];
       asm
-            subl $16,%rsp
+            subq $16,%rsp
             fnstcw -4(%rbp)
             fwait
             movw -4(%rbp),%cx
@@ -198,7 +198,10 @@
 
 {
   $Log$
-  Revision 1.2  2004-02-05 01:16:12  florian
+  Revision 1.3  2004-02-06 15:58:21  florian
+    * fixed x86-64 assembler problems
+
+  Revision 1.2  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.1  2003/04/30 22:11:06  florian

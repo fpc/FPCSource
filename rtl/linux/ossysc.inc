@@ -16,6 +16,7 @@
  ****************************************************************************
 }
 
+{$I syscallh.inc}
 {$I ostypes.inc}
 
 {$ifdef FPC_USE_LIBC}
@@ -33,7 +34,6 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-{$I syscallh.inc}
 {$I syscall.inc}
 {$I sysnr.inc}
 {$I bunxmacr.inc}
@@ -479,7 +479,10 @@ end;
 
 {
  $Log$
- Revision 1.15  2004-02-05 01:16:12  florian
+ Revision 1.16  2004-02-06 15:58:21  florian
+   * fixed x86-64 assembler problems
+
+ Revision 1.15  2004/02/05 01:16:12  florian
    + completed x86-64/linux system unit
 
  Revision 1.14  2004/01/31 16:25:48  florian
