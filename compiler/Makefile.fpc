@@ -30,11 +30,11 @@ CPU_TARGET=i386
 endif
 
 # RTL
-RTL=../rtl
-UTILS=../utils
+RTLDIR=../rtl/$(OS_TARGET)
+UTILSDIR=../utils
 
 # Utils used by compiler development/installation
-COMPILERUTILS=utils
+COMPILERUTILSDIR=utils
 
 # Default language for the compiler
 ifndef FPCLANG
@@ -174,9 +174,9 @@ distclean: clean
 # Include depencies
 #####################################################################
 
-$(MAKEDEP): $(UTILS)/ppdep.pp
-        $(COMPILER) $(UTILS)/ppdep.pp
-        $(COPY) $(UTILS)/$(MAKEDEP) $(MAKEDEP)
+$(MAKEDEP): $(UTILSDIR)/ppdep.pp
+        $(COMPILER) $(UTILSDIR)/ppdep.pp
+        $(COPY) $(UTILSDIR)/$(MAKEDEP) $(MAKEDEP)
 
 dependencies : $(MAKEDEP)
         $(MAKEDEP) pp.pas $(FPCOPTDEF) $(LOCALDEF) '-F$$(COMPILER) $$(LOCALOPT)' > depend
@@ -192,8 +192,8 @@ endif
 # Make targets
 #####################################################################
 
-$(MSG2INC): $(COMPILERUTILS)/msg2inc.pp
-        $(COMPILER) -FE. $(COMPILERUTILS)/msg2inc.pp
+$(MSG2INC): $(COMPILERUTILSDIR)/msg2inc.pp
+        $(COMPILER) -FE. $(COMPILERUTILSDIR)/msg2inc.pp
 
 # The msgtxt.inc only depends on the error?.msg file, not on msg2inc,
 # because that one will be new almost everytime
@@ -285,7 +285,7 @@ endif
 
 installlib: quickinstall
 ifdef inlinux
-        $(INSTALLEXE) $(COMPILERUTILS)/samplecfg $(BASEINSTALLDIR)/samplecfg
+        $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
