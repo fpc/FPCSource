@@ -123,7 +123,8 @@
          { can the fpu do the work? }
          if fpuint64 then
            begin
-              c:=comp(z)/comp(n);
+              // the c:=comp(...) is necessary to shut up the compiler
+              c:=comp(comp(z)/comp(n));
               divint64:=qword(c);
            end
          else
@@ -161,27 +162,58 @@
          _f1,bitpos : qword;
          l : longint;
 
+{$ifdef i386}
+         r : qword;
+{$endif i386}
 
       begin
-         mulqword:=0;
-         bitpos:=1;
-
-         // store f1 for overflow checking
-         _f1:=f1;
-
-         for l:=0 to 63 do
+{$ifdef i386}
+         if not(checkoverflow) then
            begin
-              if (f2 and bitpos)<>0 then
-                mulqword:=mulqword+f1;
+              asm
+                 movl f1+4,%edx
+                 movl f2+4,%ecx
+                 orl %ecx,%edx
+                 movl f2,%edx
+                 movl f1,%eax
+                 jnz .Lqwordmultwomul
+                 mull %edx
+                 jmp .Lqwordmulready
+              .Lqwordmultwomul:
+                 imul f1+4,%edx
+                 imul %eax,%ecx
+                 addl %edx,%ecx
+                 mull f2
+                 add %ecx,%edx
+              .Lqwordmulready:
+                 movl %eax,r
+                 movl %edx,r+4
+              end;
+              mulqword:=r;
+           end
+         else
+{$endif i386}
+           begin
+              mulqword:=0;
+              bitpos:=1;
 
-              f1:=f1 shl 1;
-              bitpos:=bitpos shl 1;
+              // store f1 for overflow checking
+              _f1:=f1;
+
+              for l:=0 to 63 do
+                begin
+                   if (f2 and bitpos)<>0 then
+                     mulqword:=mulqword+f1;
+
+                   f1:=f1 shl 1;
+                   bitpos:=bitpos shl 1;
+                end;
+
+              { if one of the operands is greater than the result an }
+              { overflow occurs                                      }
+              if checkoverflow and ((_f1>mulqword) or (f2>mulqword)) then
+                HandleErrorFrame(215,get_frame);
            end;
-
-         { if one of the operands is greater than the result an }
-         { overflow occurs                                      }
-         if checkoverflow and ((_f1>mulqword) or (f2>mulqword)) then
-           HandleErrorFrame(215,get_frame);
       end;
 
     {    multiplies two int64 ....
@@ -202,7 +234,8 @@
          { can the fpu do the work ? }
          if fpuint64 and not(checkoverflow) then
            begin
-              c:=comp(f1)*comp(f2);
+              // the c:=comp(...) is necessary to shut up the compiler
+              c:=comp(comp(f1)*comp(f2));
               mulint64:=int64(c);
            end
          else
@@ -400,7 +433,10 @@
 
 {
   $Log$
-  Revision 1.16  2000-01-23 12:27:39  florian
+  Revision 1.17  2000-01-27 15:43:02  florian
+    * improved qword*qword code, if no overflow checking is done
+
+  Revision 1.16  2000/01/23 12:27:39  florian
     * int64/int64 and int64*int64 is now done by the fpu if possible
 
   Revision 1.15  2000/01/23 12:22:37  florian
