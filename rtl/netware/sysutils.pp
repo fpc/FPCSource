@@ -97,6 +97,12 @@ begin
   FileCreate:=_open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
+Function FileCreate (Const FileName : String; mode:longint) : Longint;
+
+begin
+  FileCreate:=FileCreate (FileName);
+end;
+
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
@@ -481,7 +487,10 @@ end.
 {
 
   $Log$
-  Revision 1.7  2002-09-07 16:01:21  peter
+  Revision 1.8  2003-02-15 19:12:54  armin
+  * changes for new threadvar support
+
+  Revision 1.7  2002/09/07 16:01:21  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/04/01 10:47:31  armin

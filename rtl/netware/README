@@ -1,6 +1,8 @@
     News
     ====
 
+    2003/02/15 armin:
+     - changes for new threadvars
     2002/02/27 armin:
      - changes for current fpc 1.1
     2001/04/16 armin:
@@ -166,6 +168,10 @@
 
       I also have a compiled version of gdbserve.nlm for gdb on my homepage
       but this does not seem to be stable and will only run on netwar 4.x.
+      
+      I also have a patched version of novells RDebug, you can try
+      http://home.arcor.de/armin.diehl/fpcnw/Rdebug.exe
+      
 
     - Netware SDK
       -----------
@@ -204,6 +210,7 @@
         - CPU
         - MMX
 	- WinSock2
+	- SYSTHRDS
 
 
 armin@freepascal.org

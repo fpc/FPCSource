@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=nwpre prelude
-units=$(SYSTEMUNIT) objpas strings \
+units=$(SYSTEMUNIT) systhrds objpas strings \
       netware winsock2 \
       dos crt objects \
       sysutils typinfo math \
@@ -51,6 +51,10 @@ endif
 # ifdef RELEASE
 override FPCOPT+=-Ur
 # endif
+
+#override FPCOPT+=-a
+#override FPCOPT+=-al
+
 
 # for netware always use multithread
 override FPCOPT+=-dMT

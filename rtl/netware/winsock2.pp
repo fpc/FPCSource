@@ -35,7 +35,7 @@ unit winsock2;
   interface
 
     uses
-       os_types,netware;
+       netware;
 
     const
        {
@@ -47,6 +47,11 @@ unit winsock2;
        FD_SETSIZE = 64;
 
     type
+       tOS_INT  = LongInt;
+       tOS_UINT = DWord;
+       ptOS_INT = ^tOS_INT;
+       ptOS_UINT = ^tOS_UINT;
+    
        u_char = char;
        u_short = word;
        u_int = tOS_UINT;

@@ -51,7 +51,7 @@ type
    end;
 
 { include threading stuff }
-{$i threadh.inc}
+{ i threadh.inc}
 
 { include heap support headers }
 {$I heaph.inc}
@@ -85,6 +85,14 @@ PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl;
 PROCEDURE ConsolePrintf3 (FormatStr : PCHAR; P1,P2,P3 : LONGINT);  CDecl;
 PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
 
+type 
+  TSysCloseAllRemainingSemaphores = procedure;
+  TSysReleaseThreadVars = procedure;
+  TSysSetThreadDataAreaPtr = function (newPtr:pointer):pointer;
+  
+procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
+                                   rtv:TSysReleaseThreadVars;
+				   stdata:TSysSetThreadDataAreaPtr);
 
 implementation
 { Indicate that stack checking is taken care by OS}
@@ -107,6 +115,21 @@ begin
 end;
 }
 
+var 
+  CloseAllRemainingSemaphores : TSysCloseAllRemainingSemaphores = nil;
+  ReleaseThreadVars : TSysReleaseThreadVars = nil;
+  SetThreadDataAreaPtr : TSysSetThreadDataAreaPtr = nil;
+
+procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
+                                   rtv:TSysReleaseThreadVars;
+				   stdata:TSysSetThreadDataAreaPtr);
+begin
+  CloseAllRemainingSemaphores := crs;
+  ReleaseThreadVars := rtv;
+  SetThreadDataAreaPtr := stdata;
+end;  
+
+
 
 
 procedure PASCALMAIN;external name 'PASCALMAIN';
@@ -122,14 +145,9 @@ PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nl
 BEGIN
   ArgC := _ArgC;
   ArgV := _ArgV;
+  fpc_threadvar_relocate_proc := nil;
   PASCALMAIN;
 END;
-
-
-{$ifdef MT}
-procedure CloseAllRemainingSemaphores; FORWARD;
-procedure ReleaseThreadVars; FORWARD;
-{$endif}
 
 
 {*****************************************************************************
@@ -142,10 +160,9 @@ var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
-{$ifdef MT}
-  CloseAllRemainingSemaphores;
-  ReleaseThreadVars;
-{$endif}
+  if assigned (CloseAllRemainingSemaphores) then CloseAllRemainingSemaphores;
+  if assigned (ReleaseThreadVars) then ReleaseThreadVars;
+
   FreeSbrkMem;            { free memory allocated by heapmanager }
 
   if not SigTermHandlerActive then
@@ -202,6 +219,10 @@ end;
                               Heap Management
 *****************************************************************************}
 
+var
+  heap : longint;external name 'HEAP';
+  intern_heapsize : longint;external name 'HEAPSIZE';
+
 { first address of heap }
 function getheapstart:pointer;
 assembler;
@@ -213,7 +234,7 @@ end ['EAX'];
 function getheapsize:longint;
 assembler;
 asm
-        movl    HEAPSIZE,%eax
+        movl    intern_HEAPSIZE,%eax
 end ['EAX'];
 
 const HeapInitialMaxBlocks = 32;
@@ -240,8 +261,8 @@ begin
       if HeapSbrkBlockList = nil then
       begin
         _free (P);
-    Sbrk := -1;
-    exit;
+        Sbrk := -1;
+        exit;
       end;
       fillchar (HeapSbrkBlockList^,sizeof(HeapSbrkBlockList^),0);
       HeapSbrkAllocated := HeapInitialMaxBlocks;
@@ -252,8 +273,8 @@ begin
       if p2 = nil then
       begin
         _free (P);
-    Sbrk := -1;
-    exit;
+         Sbrk := -1;
+         exit;
       end;
       inc (HeapSbrkAllocated, HeapInitialMaxBlocks);
     end;
@@ -628,9 +649,6 @@ end;
                              Thread Handling
 *****************************************************************************}
 
-const
-  fpucw : word = $1332;
-
 procedure InitFPU;assembler;
 
   asm
@@ -638,9 +656,6 @@ procedure InitFPU;assembler;
      fldcw   fpucw
   end;
 
-
-{ include threading stuff, this is os dependend part }
-{$I thread.inc}
 
 { if return-value is <> 0, netware shows the message
   Unload Anyway ?
@@ -658,11 +673,13 @@ begin
     oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
     { to allow use of threadvars, we simply set the threadvar-memory
       from the main thread }
-    oldPtr:= _GetThreadDataAreaPtr;
-    _SaveThreadDataAreaPtr (thredvarsmainthread);
+    if assigned (SetThreadDataAreaPtr) then 
+      oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main threadvars }
     result := 0;
     NetwareCheckFunction (result);
-    _SaveThreadDataAreaPtr (oldPtr);
+    if assigned (SetThreadDataAreaPtr) then
+      SetThreadDataAreaPtr (oldPtr);
+      
     _SetThreadGroupID (oldTG);
   end else
     result := 0;
@@ -729,35 +746,18 @@ begin
     handler is called by netware with a differnt thread. To avoid
     problems in the exit routines, we set the data of the main thread
     here }
-  oldPtr:= _GetThreadDataAreaPtr;
-  _SaveThreadDataAreaPtr (thredvarsmainthread);
+  if assigned (SetThreadDataAreaPtr) then
+    oldPtr := SetThreadDataAreaPtr (NIL);  { nil means main thread }
   SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
   do_exit;                       { calls finalize units }
-  _SaveThreadDataAreaPtr (oldPtr);
+  if assigned (SetThreadDataAreaPtr) then
+    SetThreadDataAreaPtr (oldPtr);  
   _SetThreadGroupID (oldTG);
 end;
 
 
-{*****************************************************************************
-                         SystemUnit Initialization
-*****************************************************************************}
-
-Begin
-   StackBottom := SPtr - StackLength;
-{$ifdef MT}
-  { the exceptions use threadvars so do this _before_ initexceptions }
-  AllocateThreadVars;
-{$endif MT}
-  SigTermHandlerActive := false;
-  NetwareCheckFunction := nil;
-  NetwareMainThreadGroupID := _GetThreadGroupID;
-
-  _Signal (_SIGTERM, @TermSigHandler);
-
-{ Setup heap }
-  InitHeap;
-  InitExceptions;
-
+procedure SysInitStdIO;
+begin
 { Setup stdin, stdout and stderr }
   StdInputHandle := _fileno (LONGINT (_GetStdIn^));    // GetStd** returns **FILE !
   StdOutputHandle:= _fileno (LONGINT (_GetStdOut^));
@@ -766,20 +766,36 @@ Begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-
+  
   {$ifdef StdErrToConsole}
   AssignStdErrConsole(StdErr);
   {$else}
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
   {$endif}
+end;
 
-{ Setup environment and arguments }
-  {Setup_Environment;
-  Setup_Arguments;
-}
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+Begin
+  StackBottom := SPtr - StackLength;
+  SigTermHandlerActive := false;
+  NetwareCheckFunction := nil;
+  NetwareMainThreadGroupID := _GetThreadGroupID;
+
+  _Signal (_SIGTERM, @TermSigHandler);
+
+{ Setup heap }
+  InitHeap;
+  SysInitExceptions;
+  SysInitStdIO;
+
 { Reset IO Error }
   InOutRes:=0;
-  {Delphi Compatible}
+
+{Delphi Compatible}
   IsLibrary := FALSE;
   IsConsole := TRUE;
   ExitCode  := 0;
@@ -789,7 +805,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.15  2002-10-13 09:28:45  florian
+  Revision 1.16  2003-02-15 19:12:54  armin
+  * changes for new threadvar support
+
+  Revision 1.15  2002/10/13 09:28:45  florian
     + call to initvariantmanager inserted
 
   Revision 1.14  2002/09/07 16:01:21  peter
