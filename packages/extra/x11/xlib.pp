@@ -233,10 +233,10 @@ type
              create_image : function (para1:PXDisplay; para2:PVisual; para3:dword; para4:longint; para5:longint;
                           para6:Pchar; para7:dword; para8:dword; para9:longint; para10:longint):PXImage;cdecl;
              destroy_image : function (para1:PXImage):longint;
-             get_pixel : function (para1:PXImage; para2:longint; para3:longint):dword;
-             put_pixel : function (para1:PXImage; para2:longint; para3:longint; para4:dword):longint;
-             sub_image : function (para1:PXImage; para2:longint; para3:longint; para4:dword; para5:dword):PXImage;
-             add_pixel : function (para1:PXImage; para2:longint):longint;
+             get_pixel : function (para1:PXImage; para2:longint; para3:longint):dword;cdecl;
+             put_pixel : function (para1:PXImage; para2:longint; para3:longint; para4:dword):longint;cdecl;
+             sub_image : function (para1:PXImage; para2:longint; para3:longint; para4:dword; para5:dword):PXImage;cdecl;
+             add_pixel : function (para1:PXImage; para2:longint):longint;cdecl;
           end;
      end;
 
@@ -374,7 +374,7 @@ type
         private14 : TXPointer;
         max_request_size : dword;
         db : PXrmHashBucketRec;
-        private15 : function (para1:PXDisplay):longint;
+        private15 : function (para1:PXDisplay):longint;cdecl;
         display_name : Pchar;
         default_screen : longint;
         nscreens : longint;
