@@ -464,10 +464,14 @@ begin
                         Message(parser_e_comparative_operator_return_boolean);
                        if assigned(opsym) then
                          opsym^.vartype.def:=aktprocsym^.definition^.rettype.def;
-                       { We need to add the retrun type in the mangledname
+                       { We need to add the return type in the mangledname
                          to allow overloading with just different results !! (PM) }
                        aktprocsym^.definition^.setmangledname(
                          aktprocsym^.definition^.mangledname+'$$'+hs);
+                       if (optoken=_ASSIGNMENT) and
+                          is_equal(aktprocsym^.definition^.rettype.def,
+                             pvarsym(aktprocsym^.definition^.parast^.symindex^.first)^.vartype.def) then
+                         message(parser_e_no_such_assignment);
                      end;
                  end;
   end;
@@ -1992,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2000-03-15 23:10:00  pierre
+  Revision 1.53  2000-03-16 16:41:13  pierre
+   * fix for bug 807
+
+  Revision 1.52  2000/03/15 23:10:00  pierre
     * fix for bug 848 (that still genrated wrong code)
     + better testing for variables used in assembler
       (gives an error if variable is not directly reachable !)

@@ -561,6 +561,9 @@ parser_e_constructors_always_objects=E_constructors and destructors must be meth
 parser_e_operator_not_overloaded=E_Operator is not overloaded
 % You're trying to use an overloaded operator when it isn't overloaded for
 % this type.
+parser_e_no_such_assignment=E_Impossible to overload assignment for equal types
+% You can not overload assignment for types
+% that the compiler considers as equal.
 parser_e_no_reraise_possible=E_Re-raise isn't possible there
 % You are trying to raise an exception where it isn't allowed. You can only
 % raise exceptions in an \var{except} block.

@@ -147,6 +147,7 @@ type tmsgconst=(
   parser_e_void_function,
   parser_e_constructors_always_objects,
   parser_e_operator_not_overloaded,
+  parser_e_no_such_assignment,
   parser_e_no_reraise_possible,
   parser_e_no_new_or_dispose_for_classes,
   parser_e_asm_incomp_with_function_return,
