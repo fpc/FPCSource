@@ -17,13 +17,25 @@
 
     {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
-
     {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    {$define FPC_SYSTEM_HAS_SQRT}
+    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+    {$define FPC_SYSTEM_HAS_ARCTAN}
+    function arctan(d : extended) : extended;[internproc:in_arctan_extended];
+    {$define FPC_SYSTEM_HAS_LN}
+    function ln(d : extended) : extended;[internproc:in_ln_extended];
+    {$define FPC_SYSTEM_HAS_SIN}
+    function sin(d : extended) : extended;[internproc:in_sin_extended];
+    {$define FPC_SYSTEM_HAS_COS}
+    function cos(d : extended) : extended;[internproc:in_cos_extended];
 
 {
   $Log$
-  Revision 1.2  2003-09-03 14:09:37  florian
+  Revision 1.3  2004-01-27 15:04:49  florian
+    * some math nodes are inlined now
+
+  Revision 1.2  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
