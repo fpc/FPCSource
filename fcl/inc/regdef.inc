@@ -1,12 +1,12 @@
 
 Const
-  HKEY_CLASSES_ROOT     = Integer($80000000);
-  HKEY_CURRENT_USER     = Integer($80000001);
-  HKEY_LOCAL_MACHINE    = Integer($80000002);
-  HKEY_USERS            = Integer($80000003);
-  HKEY_PERFORMANCE_DATA = Integer($80000004);
-  HKEY_CURRENT_CONFIG   = Integer($80000005);
-  HKEY_DYN_DATA         = Integer($80000006);
+  HKEY_CLASSES_ROOT     = $80000000;
+  HKEY_CURRENT_USER     = $80000001;
+  HKEY_LOCAL_MACHINE    = $80000002;
+  HKEY_USERS            = $80000003;
+  HKEY_PERFORMANCE_DATA = $80000004;
+  HKEY_CURRENT_CONFIG   = $80000005;
+  HKEY_DYN_DATA         = $80000006;
 
   KEY_ALL_ACCESS         = $F003F;
   KEY_CREATE_LINK        = 32;
@@ -59,12 +59,15 @@ Type
   LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
 
-  HKEY = Integer;
+  HKEY = Cardinal;
   PHKEY = ^HKEY;
 
 {
   $Log$
-  Revision 1.2  2003-03-23 01:40:28  armin
+  Revision 1.3  2003-03-25 20:20:41  michael
+  + HKEY is a cardinal
+
+  Revision 1.2  2003/03/23 01:40:28  armin
   * changed HKEY constants to integer
 
 }
