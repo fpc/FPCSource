@@ -10,7 +10,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-Unit Graph;
+Unit Graph2;
 {-------------------------------------------------------}
 { Differences with TP Graph unit:                       }
 { -  default putimage and getimage only support a max.  }
@@ -341,14 +341,14 @@ Interface
 
 
        MaxColors   = 65535;   { Maximum possible colors using a palette }
-			      { otherwise, direct color encoding        }
+                              { otherwise, direct color encoding        }
 
 
     type
        RGBRec = packed record
-	 Red: integer;
-	 Green: integer;
-	 Blue : integer;
+         Red: integer;
+         Green: integer;
+         Blue : integer;
        end;
 
 {$ifndef FPC}
@@ -385,7 +385,7 @@ Interface
        FillPatternType = array[1..8] of byte;
 
        PointType = record
-	     x,y : integer;
+   	     x,y : integer;
        end;
 
        ViewPortType = record
@@ -466,7 +466,7 @@ TYPE
        { this routine is used to draw all circles/ellipses/sectors     }
        { more info... on this later...                                 }
        ellipseproc = procedure (X,Y: Integer;XRadius: word;
-	  YRadius:word; stAngle,EndAngle: word);
+         YRadius:word; stAngle,EndAngle: word);
 
        { Line routine - draws lines thick/norm widths with current     }
        { color and line style - LINE must be clipped here.             }
@@ -492,11 +492,12 @@ TYPE
 
        { This routine is a hook for SetRGBPalette                       }
        setrgbpaletteproc =
-	 procedure(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+         procedure(ColorNum, RedValue, GreenValue, BlueValue: Integer);
 
        { This routine is a hook for GetRGBPalette                       }
        getrgbpaletteproc =
-	 procedure(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+         procedure(ColorNum: integer; var
+            RedValue, GreenValue, BlueValue: Integer);
 
 TYPE
     {-----------------------------------}
@@ -514,12 +515,13 @@ TYPE
     TModeInfo = record
       DriverNumber: Integer;
       ModeNumber: Integer;
-      MaxColor: Longint;
-      PaletteSize : Longint;
-      XAspect : Integer;
-      YAspect : Integer;
-      MaxX: Integer;
-      MaxY: Integer;
+      MaxColor: Longint;            { Maximum colors on screen        }
+      PaletteSize : Longint;        { Maximum palette entry we can change }
+      XAspect : Integer;            { XAspect ratio correction factor }
+      YAspect : Integer;            { YAspect ratio correction factor }
+      MaxX: Integer;                { Max-X row                       }
+      MaxY: Integer;                { Max. column.                    }
+      DirectColor: boolean;         { Is this a direct color mode??   }
       ModeName: String[18];
       { necessary hooks ... }
       DirectPutPixel : DefPixelProc;
@@ -609,6 +611,13 @@ procedure SetFillPattern(Pattern: FillPatternType; Color: word);
  function  GetBkColor: Word;
  procedure SetColor(Color: Word);
  function  GetMaxColor: word;
+
+ procedure SetAllPalette(var Palette:PaletteType);
+ procedure SetPalette(ColorNum: word; Color: shortint);
+ procedure GetPalette(var Palette: PaletteType);
+ function GetPaletteSize: integer;
+ procedure GetDefaultPalette(var Palette: PaletteType);
+
 
  { -------------------- Shapes/Lines -------------------------------- }
  procedure Rectangle(x1,y1,x2,y2:integer);
@@ -744,8 +753,9 @@ var
   MaxY : Integer;       { Maximum resolution - ABSOLUTE }
   MaxColor : Longint;
   PaletteSize : longint; { Maximum palette entry we can set, usually equal}
-			 { maxcolor.                                      }
+                         { maxcolor.                                      }
   DriverName: String;
+  DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
 
 
@@ -779,9 +789,9 @@ var
     Y   := Y + StartYViewPort;
     if ClipPixels then
       Begin
-	 if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
-		StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-	    exit;
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
       end;
     for x:= x to x2 do
       DirectPutPixel(X,Y);
@@ -807,9 +817,9 @@ var
     Y   := Y + StartYViewPort;
     if ClipPixels then
       Begin
-	 if LineClipped(x,y,x,y2,StartXViewPort,StartYViewPort,
-		StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-	    exit;
+         if LineClipped(x,y,x,y2,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
       end;
     for y := y to y2 do Directputpixel(x,y)
   End;
@@ -882,8 +892,8 @@ var
      if ClipPixels then
        begin
        if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
-	   StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-	      exit;
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+              exit;
        end;
      {******************************************}
      {  SLOPED SOLID LINES                      }
@@ -1014,8 +1024,8 @@ var
       if ClipPixels then
        begin
        if LineClipped(x1,y1,x2,y2,StartXViewPort, StartYViewPort,
-	   StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-	      exit;
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+              exit;
        end;
 
       OldCurrentColor := CurrentColor;
@@ -1023,19 +1033,19 @@ var
       if y1 = y2 then
 	    Begin
 	     { Check if we must swap }
-	 if x1 >= x2 then
+         if x1 >= x2 then
 	       Begin
-		 swtmp := x1;
-		 x1 := x2;
-		 x2 := swtmp;
+	         swtmp := x1;
+	         x1 := x2;
+	         x2 := swtmp;
 	       end;
-	 if LineInfo.Thickness = NormWidth then
+         if LineInfo.Thickness = NormWidth then
 	      Begin
 	       for PixelCount:=x1 to x2 do
 		     { optimization: PixelCount mod 16 }
-		     if LinePatterns[PixelCount and 15] = TRUE then
+  		     if LinePatterns[PixelCount and 15] = TRUE then
 		      begin
-			DirectPutPixel(PixelCount,y2);
+		        DirectPutPixel(PixelCount,y2);
 		      end;
 	      end
 	     else
@@ -1043,45 +1053,45 @@ var
 	       for i:=-1 to 1 do
 		     Begin
 		       for PixelCount:=x1 to x2 do
-			{ Optimization from Thomas - mod 16 = and 15 }
-			 if LinePatterns[PixelCount and 15] = TRUE then
-			   begin
-				 DirectPutPixel(PixelCount,y2+i);
-			   end;
+		        { Optimization from Thomas - mod 16 = and 15 }
+		         if LinePatterns[PixelCount and 15] = TRUE then
+		           begin
+   			         DirectPutPixel(PixelCount,y2+i);
+		           end;
 		     end;
 	      end;
-	end
+        end
       else
       if x1 = x2 then
 	   Begin
 	    { Check if we must swap }
 	    if y1 >= y2 then
 	      Begin
-		swtmp := y1;
-		y1 := y2;
-		y2 := swtmp;
+	        swtmp := y1;
+	        y1 := y2;
+	        y2 := swtmp;
 	      end;
 	    if LineInfo.Thickness = NormWidth then
 	      Begin
-		for PixelCount:=y1 to y2 do
+	        for PixelCount:=y1 to y2 do
 		    { compare if we should plot a pixel here , compare }
 		    { with predefined line patterns...                 }
 		    if LinePatterns[PixelCount and 15] = TRUE then
 		      begin
-		    DirectPutPixel(x1,PixelCount);
+	            DirectPutPixel(x1,PixelCount);
 		      end;
 	      end
 	    else
 	      Begin
-		for i:=-1 to 1 do
+	        for i:=-1 to 1 do
 		     Begin
 		       for PixelCount:=y1 to y2 do
 		       { compare if we should plot a pixel here , compare }
 		       { with predefined line patterns...                 }
-			 if LinePatterns[PixelCount and 15] = TRUE then
-			   begin
-			     DirectPutPixel(x1+i,PixelCount);
-			   end;
+		         if LinePatterns[PixelCount and 15] = TRUE then
+		           begin
+     			     DirectPutPixel(x1+i,PixelCount);
+		           end;
 		     end;
 	      end;
 	   end
@@ -1096,42 +1106,42 @@ var
 	     if deltax >= deltay then
 	       begin
 
-		 Flag := FALSE;
-		 { x is independent variable }
-		 numpixels := deltax + 1;
-		 d := (2 * deltay) - deltax;
-		 dinc1 := deltay Shl 1;
-		 dinc2 := (deltay - deltax) shl 1;
-		 xinc1 := 1;
-		 xinc2 := 1;
-		 yinc1 := 0;
-		 yinc2 := 1;
+	         Flag := FALSE;
+	         { x is independent variable }
+	         numpixels := deltax + 1;
+	         d := (2 * deltay) - deltax;
+	         dinc1 := deltay Shl 1;
+	         dinc2 := (deltay - deltax) shl 1;
+	         xinc1 := 1;
+	         xinc2 := 1;
+	         yinc1 := 0;
+	         yinc2 := 1;
 	      end
 	    else
 	      begin
 
-		Flag := TRUE;
-		{ y is independent variable }
-		numpixels := deltay + 1;
-		d := (2 * deltax) - deltay;
-		dinc1 := deltax Shl 1;
-		dinc2 := (deltax - deltay) shl 1;
-		xinc1 := 0;
-		xinc2 := 1;
-		yinc1 := 1;
-		yinc2 := 1;
+	        Flag := TRUE;
+	        { y is independent variable }
+	        numpixels := deltay + 1;
+	        d := (2 * deltax) - deltay;
+	        dinc1 := deltax Shl 1;
+	        dinc2 := (deltax - deltay) shl 1;
+	        xinc1 := 0;
+	        xinc2 := 1;
+	        yinc1 := 1;
+	        yinc2 := 1;
 	      end;
 
 	    { Make sure x and y move in the right directions }
 	    if x1 > x2 then
 	      begin
-		xinc1 := - xinc1;
-		xinc2 := - xinc2;
+	        xinc1 := - xinc1;
+	        xinc2 := - xinc2;
 	      end;
 	    if y1 > y2 then
 	      begin
-		yinc1 := - yinc1;
-		yinc2 := - yinc2;
+	        yinc1 := - yinc1;
+	        yinc2 := - yinc2;
 	      end;
 
 	    { Start drawing at <x1, y1> }
@@ -1144,44 +1154,44 @@ var
 	       TmpNumPixels := NumPixels-1;
 	       { Draw the pixels }
 	       for i := 0 to TmpNumPixels do
-		 begin
+	         begin
 		     { all depending on the slope, we can determine         }
 		     { in what direction the extra width pixels will be put }
 		       If Flag then
-			  Begin
-			    { compare if we should plot a pixel here , compare }
-			    { with predefined line patterns...                 }
-			    if LinePatterns[i and 15] = TRUE then
-			      begin
-				DirectPutPixel(x-1,y);
-				DirectPutPixel(x,y);
-				DirectPutPixel(x+1,y);
-			      end;
-			  end
+		          Begin
+		            { compare if we should plot a pixel here , compare }
+		            { with predefined line patterns...                 }
+		            if LinePatterns[i and 15] = TRUE then
+		              begin
+		                DirectPutPixel(x-1,y);
+		                DirectPutPixel(x,y);
+		                DirectPutPixel(x+1,y);
+		              end;
+		          end
 		       else
-			  Begin
-			    { compare if we should plot a pixel here , compare }
-			{ with predefined line patterns...                 }
-			    if LinePatterns[i and 15] = TRUE then
-			     begin
-			       DirectPutPixel(x,y-1);
-			       DirectPutPixel(x,y);
-			       DirectPutPixel(x,y+1);
-			     end;
-			  end;
-		   if d < 0 then
-			 begin
-			   d := d + dinc1;
-			   x := x + xinc1;
-			   y := y + yinc1;
-			 end
-		   else
-			 begin
-		   d := d + dinc2;
-		   x := x + xinc2;
-		   y := y + yinc2;
-			 end;
-		end;
+		          Begin
+		            { compare if we should plot a pixel here , compare }
+	                { with predefined line patterns...                 }
+		            if LinePatterns[i and 15] = TRUE then
+		             begin
+		               DirectPutPixel(x,y-1);
+		               DirectPutPixel(x,y);
+		               DirectPutPixel(x,y+1);
+		             end;
+		          end;
+	           if d < 0 then
+		         begin
+		           d := d + dinc1;
+		           x := x + xinc1;
+		           y := y + yinc1;
+		         end
+	           else
+		         begin
+                   d := d + dinc2;
+                   x := x + xinc2;
+                   y := y + yinc2;
+		         end;
+	        end;
 	    end
 	   else
 	    Begin
@@ -1287,7 +1297,7 @@ var
 	     TempTerm := j*ConvFac;
 	     { Calculate points }
 	     xpt^[i]:=round(XRadius*Cos(TempTerm));
-	 { calculate the value of y }
+         { calculate the value of y }
 	     ypt^[i]:=round(YRadius*Sin(TempTerm+Pi));
 	     j:=j+Delta;
 	     inc(i);
@@ -1399,32 +1409,32 @@ Begin
    if LineInfo.Thickness = Normwidth then
      Begin
        If (Alpha>=StAngle) And (Alpha<=EndAngle) then
-	  PutPixel (xm,ym, CurrentColor);
+          PutPixel (xm,ym, CurrentColor);
        If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
-	  PutPixel (xm,yp, CurrentColor);
+          PutPixel (xm,yp, CurrentColor);
        If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
-	  PutPixel (xp,yp, CurrentColor);
+          PutPixel (xp,yp, CurrentColor);
        If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
-	  PutPixel (xp,ym, CurrentColor);
+          PutPixel (xp,ym, CurrentColor);
      end
    else
      Begin
        If (Alpha>=StAngle) And (Alpha<=EndAngle) then
-	  for i:=-1 to 1 do
-	    for j:=-1 to 1 do
-	      PutPixel (xm+i,ym+j, CurrentColor);
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xm+i,ym+j, CurrentColor);
        If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
-	  for i:=-1 to 1 do
-	    for j:=-1 to 1 do
-	      PutPixel (xm+i,yp+j, CurrentColor);
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xm+i,yp+j, CurrentColor);
        If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
-	  for i:=-1 to 1 do
-	    for j:=-1 to 1 do
-	      PutPixel (xp+i,yp+j, CurrentColor);
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xp+i,yp+j, CurrentColor);
        If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
-	  for i:=-1 to 1 do
-	    for j:=-1 to 1 do
-	      PutPixel (xp+i,ym+j, CurrentColor);
+          for i:=-1 to 1 do
+            for j:=-1 to 1 do
+              PutPixel (xp+i,ym+j, CurrentColor);
      end;
 End;
 
@@ -1503,8 +1513,8 @@ End;
      y  := y + StartYViewPort;
      { if line was fully clipped then exit...}
      if LineClipped(x1,y,x2,y,StartXViewPort,StartYViewPort,
-	StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-	 exit;
+        StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+         exit;
 
      OldWriteMode := CurrentWriteMode;
      CurrentWriteMode := NormalPut;
@@ -1521,44 +1531,44 @@ End;
 
      if FillSettings.Pattern = EmptyFill then
        begin
-	 OldCurrentColor := CurrentColor;
-	 CurrentColor := CurrentBkColor;
-	 HLine(x1,x2,y);
-	 CurrentColor := OldCurrentColor;
+         OldCurrentColor := CurrentColor;
+         CurrentColor := CurrentBkColor;
+         HLine(x1,x2,y);
+         CurrentColor := OldCurrentColor;
        end
      else
      if  FillSettings.Pattern = SolidFill then
        begin
-	 HLine(x1,x2,y);
+         HLine(x1,x2,y);
        end
      else
        begin
-	 For i:= 0 to NrIterations do
-	   Begin
-	     for j:=0 to 7 do
-		  Begin
+         For i:= 0 to NrIterations do
+           Begin
+      	     for j:=0 to 7 do
+	          Begin
 			  { x1 mod 8 }
-		  if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
-		     DirectPutpixel(x1,y)
-		  else
-		    begin
-			  { According to the TP graph manual, we overwrite everything }
-			  { which is filled up - checked against VGA and CGA drivers  }
-			  { of TP.                                                    }
-			  OldCurrentColor := CurrentColor;
-			  CurrentColor := CurrentBkColor;
-			  DirectPutPixel(x1,y);
-			  CurrentColor := OldCurrentColor;
-		    end;
-		  Inc(x1);
-		  if x1 > x2 then
-		   begin
-			 CurrentWriteMode := OldWriteMode;
-			 exit;
-		   end;
-		 end;
-	   end;
-	end;
+	          if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
+   	             DirectPutpixel(x1,y)
+	          else
+	            begin
+ 		          { According to the TP graph manual, we overwrite everything }
+		          { which is filled up - checked against VGA and CGA drivers  }
+		          { of TP.                                                    }
+		          OldCurrentColor := CurrentColor;
+		          CurrentColor := CurrentBkColor;
+		          DirectPutPixel(x1,y);
+		          CurrentColor := OldCurrentColor;
+	            end;
+	          Inc(x1);
+	          if x1 > x2 then
+	           begin
+		         CurrentWriteMode := OldWriteMode;
+		         exit;
+	           end;
+	         end;
+           end;
+        end;
      CurrentWriteMode := OldWriteMode;
    end;
 
@@ -1626,14 +1636,14 @@ End;
        { setup pattern styles }
        j:=15;
        for i:=0 to 15 do
-	Begin
-	  { bitwise mask for each bit in the word }
-	  if (word($01 shl i) AND LineInfo.Pattern) <> 0 then
-	      LinePatterns[j]:=TRUE
-	  else
-	      LinePatterns[j]:=FALSE;
-	  Dec(j);
-	end;
+        Begin
+         { bitwise mask for each bit in the word }
+         if (word($01 shl i) AND LineInfo.Pattern) <> 0 then
+	       LinePatterns[j]:=TRUE
+	     else
+	       LinePatterns[j]:=FALSE;
+	     Dec(j);
+        end;
       end;
    end;
 
@@ -1790,13 +1800,13 @@ Begin
       begin
 	    case BitBlt of
 {$R-}
-	 CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
+         CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
 	     XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
 	     OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
 	     AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
 	     NotPut: color:= not pt(Bitmap)[k];
 {$R+}
-	   end;
+   	   end;
 	   putpixel(i,j,color);
 	   Inc(k);
      end;
@@ -1920,6 +1930,7 @@ end;
     MaxY := 0;
     MaxColor := 0;
     PaletteSize := 0;
+    DirectColor := FALSE;
     DefaultHooks;
   end;
 
@@ -1958,9 +1969,9 @@ end;
 
      if (Radius = 1) then
        begin
-	 { must use clipping ... }
-	 { don't need to explicitly set NormalPut mode }
-	 { because PutPixel only supports normal put   }
+         { must use clipping ... }
+         { don't need to explicitly set NormalPut mode }
+         { because PutPixel only supports normal put   }
 	     PutPixel(X, Y,CurrentColor);
 	     Exit;
        end;
@@ -2151,22 +2162,22 @@ end;
 
      case Fillsettings.pattern of
      EmptyFill :
-	   begin
+           begin
 		     Currentcolor:=CurrentBkColor;
 		     for y:=y1 to y2 do
 		       Hline(x1,x2,y);
 		   end;
      SolidFill :
-	   begin
+           begin
 		     CurrentColor:=FillSettings.color;
 		     for y:=y1 to y2 do
 		       Hline(x1,x2,y);
 		  end;
      else
       Begin
-	    CurrentColor:=FillSettings.color;
-	for y:=y1 to y2 do
-		  patternline(x1,x2,y);
+   	    CurrentColor:=FillSettings.color;
+        for y:=y1 to y2 do
+	          patternline(x1,x2,y);
       end;
     end;
     CurrentColor:= Origcolor;
@@ -2443,7 +2454,7 @@ end;
 
       type
 	    ppointtype = ^pointtype;
-	pt = array[0..16000] of pointtype;
+        pt = array[0..16000] of pointtype;
 
       var
 	    i : longint;
@@ -2517,46 +2528,46 @@ end;
 
     if (Graphdriver=Detect) then
       begin
-	  HiMode := -1;
-	  LoMode := -1;
-	  { We start at VGA-1 }
-	  GraphDriver := VGA;
-	  CpyMode := 0;
-	  { search all possible graphic drivers in ascending order...}
-	  { usually the new driver numbers indicate newest hardware...}
-	  { Internal driver numbers start at VGA=9 }
-	  repeat
-	     GetModeRange(GraphDriver,LoMode,HiMode);
-	     { save the highest mode possible...}
-	     if HiMode = -1 then break;
-	     CpyMode:=HiMode;
-	     CpyDriver:=GraphDriver;
-	     { go to next driver if it exists...}
-	     Inc(GraphDriver);
-	  until (CpyMode=-1);
-	IntCurrentDriver := CpyDriver;
-	{ If this is equal to -1 then no graph mode possible...}
-	if CpyMode = -1 then
-	 begin
-	   _GraphResult := grNotDetected;
-	   exit;
-	 end;
-	{ Actually set the graph mode...}
-	SetGraphMode(CpyMode);
+          HiMode := -1;
+          LoMode := -1;
+          { We start at VGA-1 }
+          GraphDriver := VGA;
+          CpyMode := 0;
+          { search all possible graphic drivers in ascending order...}
+          { usually the new driver numbers indicate newest hardware...}
+          { Internal driver numbers start at VGA=9 }
+          repeat
+             GetModeRange(GraphDriver,LoMode,HiMode);
+             { save the highest mode possible...}
+             if HiMode = -1 then break;
+             CpyMode:=HiMode;
+             CpyDriver:=GraphDriver;
+             { go to next driver if it exists...}
+             Inc(GraphDriver);
+          until (CpyMode=-1);
+        IntCurrentDriver := CpyDriver;
+        { If this is equal to -1 then no graph mode possible...}
+        if CpyMode = -1 then
+         begin
+           _GraphResult := grNotDetected;
+           exit;
+         end;
+        { Actually set the graph mode...}
+        SetGraphMode(CpyMode);
       end
     else
       begin
-	{ Search if that graphics modec actually exists...}
-	if SearchMode(GraphDriver,GraphMode) = nil then
-	  begin
-	    _GraphResult := grInvalidMode;
-	    exit;
-	 end
-	else
-	 begin
-	   IntCurrentDriver := GraphDriver;
-	   SetGraphMode(GraphMode);
-	 end;
+        { Search if that graphics modec actually exists...}
+        if SearchMode(GraphDriver,GraphMode) = nil then
+          begin
+            _GraphResult := grInvalidMode;
+            exit;
+         end
+        else
+         begin
+           IntCurrentDriver := GraphDriver;
+           SetGraphMode(GraphMode);
+         end;
       end;
   end;
 
