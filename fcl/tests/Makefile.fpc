@@ -5,7 +5,8 @@
 [targets]
 programs=stringl dparser fstream mstream list threads testrtf \
          cfgtest xmldump htdump testcgi tidea \
-         b64test b64test2 b64enc b64dec restest testz testz2
+         b64test b64test2 b64enc b64dec restest testz testz2 \
+         istream doecho testproc
 programs_win32=showver
 
 rst=restest
