@@ -1035,8 +1035,10 @@ End;
     cmp    bx, ViewHeight
     jg     @putpix320done
   @putpix320noclip:
-    add    bx, StartYViewPort
-    add    di, StartXViewPort
+    movsx  ecx, StartYViewPort
+    movsx  edx, StartXViewPort
+    add    ebx, ecx
+    add    edi, edx
 {    add    edi, [VideoOfs]      no multiple pages in 320*200*256 }
     mov    ax, [pixel]
     shl    ebx, 6
@@ -1070,8 +1072,10 @@ End;
   asm
     movsx  edi, x
     movsx  ebx, y
-    add    di, StartXViewPort
-    add    bx, StartYViewPort
+    movsx  ecx, StartYViewPort
+    movsx  edx, StartXViewPort
+    add    ebx, ecx
+    add    edi, edx
  {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
     shl    ebx, 6
     add    edi, ebx
@@ -1475,7 +1479,7 @@ const CrtAddress: word = 0;
  {************************************************************************}
  var
   SavePtr : pointer;    { pointer to video state                 }
-  CrtSavePtr: pointer;  { pointer to video state when CrtMode gets called }
+{  CrtSavePtr: pointer;}  { pointer to video state when CrtMode gets called }
   StateSize: word;      { size in 64 byte blocks for video state }
   VideoMode: byte;      { old video mode before graph mode       }
   SaveSupPorted : Boolean;    { Save/Restore video state supPorted? }
@@ -1762,7 +1766,7 @@ const CrtAddress: word = 0;
     RestoreVideoState;
     isgraphmode := false;
  end;
-
+(*
  procedure LoadFont8x8;
 
    var
@@ -1797,7 +1801,7 @@ const CrtAddress: word = 0;
             else
               DefaultFontData[chr(c+128),y,x]:=0;
    end;
-
+*)
   function QueryAdapterInfo:PModeInfo;
   { This routine returns the head pointer to the list }
   { of supPorted graphics modes.                      }
@@ -2517,7 +2521,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.11  1999-12-29 16:43:44  jonas
+Revision 1.12  2000-01-02 19:00:30  jonas
+  * another small fix to getpixel320 and putpixel320 (when clip = off)
+
+Revision 1.11  1999/12/29 16:43:44  jonas
   * fixed put- and getpixel320 for fpc
 
 Revision 1.10  1999/12/26 10:36:00  jonas
