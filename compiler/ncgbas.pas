@@ -45,6 +45,18 @@ interface
        tcgblocknode = class(tblocknode)
           procedure pass_2;override;
        end;
+       
+       tcgtempcreatenode = class(ttempcreatenode)
+          procedure pass_2;override;
+       end;
+
+       tcgtemprefnode = class(ttemprefnode)
+          procedure pass_2;override;
+       end;
+
+       tcgtempdeletenode = class(ttempdeletenode)
+          procedure pass_2;override;
+       end;
 
   implementation
 
@@ -63,7 +75,7 @@ interface
 {$ifdef i386}
       ,cgai386
 {$endif}
-      ,tgcpu
+      ,tgcpu,temp_gen
       ;
 {*****************************************************************************
                                  TNOTHING
@@ -219,16 +231,73 @@ interface
          secondpass(left);
       end;
 
+{*****************************************************************************
+                          TTEMPCREATENODE
+*****************************************************************************}
+
+    procedure tcgtempcreatenode.pass_2;
+      begin
+        { if we're secondpassing the same tcgtempcreatenode twice, we have a bug }
+        if tempinfo^.valid then
+          internalerror(200108222);
+
+        { get a (persistent) temp }
+        gettempofsizereferencepersistant(size,tempinfo^.ref);
+        tempinfo^.valid := true;
+      end;
+
+
+{*****************************************************************************
+                             TTEMPREFNODE
+*****************************************************************************}
+
+    procedure tcgtemprefnode.pass_2;
+      begin
+        { check if the temp is valid }
+        if not tempinfo^.valid then
+          internalerror(200108231);
+        { set the temp's location }
+        location.loc := LOC_REFERENCE;
+        location.reference := tempinfo^.ref;
+      end;
+
+{*****************************************************************************
+                           TTEMPDELETENODE
+*****************************************************************************}
+
+    procedure tcgtempdeletenode.pass_2;
+      begin
+        ungetpersistanttempreference(tempinfo^.ref);
+      end;
+
 
 begin
    cnothingnode:=tcgnothingnode;
    casmnode:=tcgasmnode;
    cstatementnode:=tcgstatementnode;
    cblocknode:=tcgblocknode;
+   ctempcreatenode:=tcgtempcreatenode;
+   ctemprefnode:=tcgtemprefnode;
+   ctempdeletenode:=tcgtempdeletenode;
 end.
 {
   $Log$
-  Revision 1.4  2001-06-02 19:22:15  peter
+  Revision 1.5  2001-08-23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.4  2001/06/02 19:22:15  peter
     * refs count for relabeled asmsymbols fixed
 
   Revision 1.3  2001/05/18 22:31:06  peter

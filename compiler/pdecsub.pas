@@ -1116,6 +1116,11 @@ begin
     end;
 end;
 
+procedure pd_compilerproc;
+begin
+  aktprocsym.definition.setmangledname(lower(aktprocsym.name));
+end;
+
 
 type
    pd_handler=procedure;
@@ -1443,7 +1448,7 @@ const
     ),(
       idtok:_COMPILERPROC;
       pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
-      handler  : nil;
+      handler  : {$ifdef FPCPROCVAR}@{$endif}pd_compilerproc;
       pocall   : [pocall_compilerproc];
       pooption : [];
       mutexclpocall : [];
@@ -1841,7 +1846,10 @@ const
                             { also update the realname that is stored in the ppu }
                             stringdispose(aktprocsym._realname);
                             aktprocsym._realname:=stringdup('$'+aktprocsym.name);
-                            aktprocsym.definition.setmangledname(aktprocsym.name);
+                            { the mangeled name is already changed by the pd_compilerproc }
+                            { handler. It must be done immediately because if we have a   }
+                            { call to a compilerproc before it's implementation is        }
+                            { encountered, it must already use the new mangled name (JM)  }
                           end;
                          check_identical_proc:=true;
                          break;
@@ -1918,7 +1926,22 @@ const
 end.
 {
   $Log$
-  Revision 1.34  2001-08-22 21:16:21  florian
+  Revision 1.35  2001-08-23 14:28:36  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.34  2001/08/22 21:16:21  florian
     * some interfaces related problems regarding
       mapping of interface implementions fixed
 

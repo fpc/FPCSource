@@ -104,6 +104,39 @@ procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : longint;var s : WideString);
 Procedure fpc_WideStr_Cardinal(C : Cardinal;Len : Longint; Var S : WideString); compilerproc;
 Procedure fpc_WideStr_Longint(L : Longint; Len : Longint; Var S : WideString); compilerproc;
 
+{ from text.inc }
+Procedure fpc_Write_End(var f:Text); compilerproc;
+Procedure fpc_Writeln_End(var f:Text); compilerproc;
+Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
+Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); compilerproc;
+Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); compilerproc;
+Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); compilerproc;
+{$ifdef HASWIDESTRING}
+Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); compilerproc;
+{$endif HASWIDESTRING}
+Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); compilerproc;
+Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerproc;
+procedure fpc_write_text_qword(len : longint;var t : text;q : qword); compilerproc;
+procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerproc;
+Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
+Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
+Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
+{$ifdef HASWIDECHAR}
+Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
+{$endif HASWIDECHAR}
+Procedure fpc_Read_End(var f:Text); compilerproc;
+Procedure fpc_ReadLn_End(var f : Text); compilerproc;
+Procedure fpc_Read_Text_ShortStr(var f : Text;var s : String); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;var s : PChar); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;var s : array of char); compilerproc;
+Procedure fpc_Read_Text_AnsiStr(var f : Text;var s : AnsiString); compilerproc;
+Procedure fpc_Read_Text_Char(var f : Text; var c : char); compilerproc;
+Procedure fpc_Read_Text_SInt(var f : Text; var l :ValSInt); compilerproc;
+Procedure fpc_Read_Text_UInt(var f : Text; var u :ValUInt); compilerproc;
+Procedure fpc_Read_Text_Float(var f : Text; var v :ValReal); compilerproc;
+Procedure fpc_Read_Text_QWord(var f : text; var q : qword); compilerproc;
+Procedure fpc_Read_Text_Int64(var f : text; var i : int64); compilerproc;
+
 { from int64.inc }
 procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring); compilerproc;
 procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring); compilerproc;
@@ -197,7 +230,22 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.3  2001-08-13 12:40:16  jonas
+  Revision 1.4  2001-08-23 14:28:36  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.3  2001/08/13 12:40:16  jonas
     * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
       same for all string types
     + added the str(x,y) and val(x,y,z) helpers for int64/qword to

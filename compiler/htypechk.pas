@@ -758,6 +758,11 @@ implementation
               exit;
             end;
            case hp.nodetype of
+             temprefn :
+               begin
+                 valid_for_assign := true;
+                 exit;
+               end;
              derefn :
                begin
                  gotderef:=true;
@@ -937,7 +942,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2001-08-06 21:40:46  peter
+  Revision 1.31  2001-08-23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.30  2001/08/06 21:40:46  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.29  2001/06/04 18:04:36  peter

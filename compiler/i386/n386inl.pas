@@ -79,6 +79,7 @@ implementation
                               TI386INLINENODE
 *****************************************************************************}
 
+{$ifndef hascompilerproc}
     procedure StoreDirectFuncResult(var dest:tnode);
       var
         hp : tnode;
@@ -176,6 +177,7 @@ implementation
         { free used registers }
         del_locref(dest.location);
       end;
+{$endif not hascomppilerproc}
 
     procedure ti386inlinenode.pass_2;
        const
@@ -196,7 +198,7 @@ implementation
          addvalue : longint;
          hp : tnode;
 
-
+{$ifndef hascompilerproc}
       procedure handlereadwrite(doread,doln : boolean);
       { produces code for READ(LN) and WRITE(LN) }
 
@@ -544,6 +546,7 @@ implementation
         myexit:
            dummycoll.free;
         end;
+{$endif not hascomppilerproc}
 
 {$ifndef hascompilerproc}
       procedure handle_str;
@@ -1491,6 +1494,7 @@ implementation
                     end;
                   popusedregisters(pushed);
                end;
+{$ifndef hascompilerproc}
             in_write_x :
               handlereadwrite(false,false);
             in_writeln_x :
@@ -1499,6 +1503,14 @@ implementation
               handlereadwrite(true,false);
             in_readln_x :
               handlereadwrite(true,true);
+{$else hascomppilerproc}
+              in_read_x,
+              in_readln_x,
+              in_write_x,
+              in_writeln_x :
+                { should be removed in the resulttype pass already (JM) }
+                internalerror(200108162);
+{$endif not hascomppilerproc}
             in_str_x_string :
               begin
 {$ifndef hascompilerproc}
@@ -1705,7 +1717,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-08-13 15:39:52  jonas
+  Revision 1.19  2001-08-23 14:28:36  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.18  2001/08/13 15:39:52  jonas
     * made in_reset_typedfile/in_rewrite_typedfile handling processor
       independent
 

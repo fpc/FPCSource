@@ -1085,7 +1085,10 @@ implementation
                       resulttypepass(tlabelnode(p).left);
                     end;
 
-                   if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln]) then
+                   { blockn support because a read/write is changed into a blocknode }
+                   { with a separate statement for each read/write operation (JM)    }
+                   { the same is true for val() if the third parameter is not 32 bit }
+                   if not(p.nodetype in [calln,assignn,breakn,inlinen,continuen,labeln,blockn]) then
                      Message(cg_e_illegal_expression);
                    { specify that we don't use the value returned by the call }
                    { Question : can this be also improtant
@@ -1222,7 +1225,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-08-06 21:40:47  peter
+  Revision 1.33  2001-08-23 14:28:36  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.32  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.31  2001/06/03 21:57:37  peter

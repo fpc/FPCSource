@@ -41,8 +41,9 @@ interface
           function docompare(p: tnode): boolean; override;
 {$ifdef hascompilerproc}
         private
-          function str_pass_1: tnode;
-          function reset_rewrite_typed_pass_1: tnode;
+          function handle_str: tnode;
+          function handle_reset_rewrite_typed: tnode;
+          function handle_read_write: tnode;
 {$endif hascompilerproc}
        end;
 
@@ -55,10 +56,10 @@ implementation
 
     uses
       verbose,globals,systems,
-      globtype,
-      symconst,symtype,symdef,symsym,symtable,types,
+      globtype, cutils, aasm,
+      symbase,symconst,symtype,symdef,symsym,symtable,types,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,
       cpubase,hcodegen,tgcpu
 {$ifdef newcg}
       ,cgbase
@@ -93,6 +94,720 @@ implementation
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
+
+
+{$ifdef hascompilerproc}
+    function tinlinenode.handle_str : tnode;
+      var
+        lenpara,
+        fracpara,
+        newparas,
+        dest,
+        source  : tcallparanode;
+        newnode : tnode;
+        len,
+        fraclen : longint;
+        procname: string;
+        is_real : boolean;
+
+      begin
+        result := cerrornode.create;
+        
+        { make sure we got at least two parameters (if we got only one, }
+        { this parameter may not be encapsulated in a callparan)        }
+        if not assigned(left) or
+           (left.nodetype <> callparan) then
+          exit;
+
+        { get destination string }
+        dest := tcallparanode(left);
+
+        { get source para (number) }
+        source := dest;
+        while assigned(source.right) do
+          source := tcallparanode(source.right);
+        is_real := source.resulttype.def.deftype = floatdef;
+        
+        if not assigned(dest) or
+           (dest.left.resulttype.def.deftype<>stringdef) or
+           not(is_real or
+               (source.left.resulttype.def.deftype = orddef)) then
+          begin
+            { the parser will give this message already because we }
+            { return an errornode (JM)                             }
+            { CGMessagePos(fileinfo,cg_e_illegal_expression);      }
+            exit;
+          end;
+
+        { get len/frac parameters }
+        lenpara := nil;
+        fracpara := nil;
+        if (cpf_is_colon_para in tcallparanode(dest.right).callparaflags) then
+          begin
+            lenpara := tcallparanode(dest.right);
+            
+            { we can let the callnode do the type checking of these parameters too, }
+            { but then the error messages aren't as nice                            }
+            if not is_integer(lenpara.resulttype.def) then
+              begin
+                CGMessagePos1(lenpara.fileinfo,
+                  type_e_integer_expr_expected,lenpara.resulttype.def.typename);
+                exit;
+              end;
+            if (cpf_is_colon_para in tcallparanode(lenpara.right).callparaflags) then
+              begin
+                { parameters are in reverse order! }
+                fracpara := lenpara;
+                lenpara := tcallparanode(lenpara.right);
+                if not is_real then
+                  begin
+                    CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
+                    exit
+                  end;
+                if not is_integer(lenpara.resulttype.def) then
+                  begin
+                    CGMessagePos1(lenpara.fileinfo,
+                      type_e_integer_expr_expected,lenpara.resulttype.def.typename);
+                    exit;
+                  end;
+              end;
+          end;
+
+        { generate the parameter list for the compilerproc }
+        newparas := dest;
+
+        { if we have a float parameter, insert the realtype, len and fracpara parameters }
+        if is_real then
+          begin
+            { insert realtype parameter }
+            newparas.right := ccallparanode.create(cordconstnode.create(
+              ord(tfloatdef(source.left.resulttype.def).typ),s32bittype),newparas.right);
+            { if necessary, insert a fraction parameter }
+            if not assigned(fracpara) then
+              begin
+                tcallparanode(newparas.right).right := ccallparanode.create(
+                  cordconstnode.create(-1,s32bittype),tcallparanode(newparas.right).right);
+                fracpara := tcallparanode(tcallparanode(newparas.right).right);
+              end;
+            { if necessary, insert a length para }
+            if not assigned(lenpara) then
+              fracpara.right := ccallparanode.create(cordconstnode.create(-32767,s32bittype),
+                fracpara.right);
+          end
+        else
+          { for a normal parameter, insert a only length parameter if one is missing }
+          if not assigned(lenpara) then
+            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32bittype),
+              newparas.right);
+        
+        { remove the parameters from the original node so they won't get disposed, }
+        { since they're reused                                                     }
+        left := nil;
+
+        { create procedure name }
+        procname := 'fpc_' + lower(tstringdef(dest.resulttype.def).stringtypname)+'_';
+        if is_real then
+          procname := procname + 'float'
+        else
+          case torddef(dest.resulttype.def).typ of
+            u32bit:
+              procname := procname + 'cardinal';
+            u64bit:
+              procname := procname + 'qword';
+            s64bit:
+              procname := procname + 'int64';
+            else
+              procname := procname + 'longint';
+          end;
+
+        { create the call node, }
+        newnode := ccallnode.createintern(procname,newparas);
+        { resulttypepass it }
+        resulttypepass(newnode);
+
+        { and return it (but first free the errornode we generated in the beginning) }
+        result.free;
+        result := newnode;
+      end;
+      
+      
+    function tinlinenode.handle_reset_rewrite_typed: tnode;
+      begin
+        { since this is a "in_xxxx_typedfile" node, we can be sure we have  }
+        { a typed file as argument and we don't have to check it again (JM) }
+
+        { add the recsize parameter }
+        { note: for some reason, the parameter of intern procedures with only one }
+        {   parameter is gets lifted out of its original tcallparanode (see round }
+        {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
+        left := ccallparanode.create(cordconstnode.create(
+          tfiledef(left.resulttype.def).typedfiletype.def.size,s32bittype),
+          ccallparanode.create(left,nil));
+        { create the correct call }
+        if inlinenumber=in_reset_typedfile then
+          result := ccallnode.createintern('fpc_reset_typed',left)
+        else
+          result := ccallnode.createintern('fpc_rewrite_typed',left);
+        firstpass(result);
+        { make sure left doesn't get disposed, since we use it in the new call }
+        left := nil;
+      end;
+
+
+    function tinlinenode.handle_read_write: tnode;
+
+      function reverseparameters(p: tnode): tnode;
+        var
+          hp1, hp2: tnode;
+        begin
+          hp1:=nil;
+          while assigned(p) do
+            begin
+               { pull out }
+               hp2:=p;
+               p:=tcallparanode(p).right;
+               { pull in }
+               tcallparanode(hp2).right:=hp1;
+               hp1:=hp2;
+            end;
+          reverseparameters:=hp1;
+        end;
+
+
+      const
+        procnames: array[boolean,boolean] of string[11] =
+          (('write_text_','read_text_'),('typed_write','typed_read'));
+      
+      var
+        filepara,
+        lenpara,
+        fracpara,
+        nextpara,
+        para          : tcallparanode;
+        newstatement  : tstatementnode;
+        newblock      : tblocknode;
+        p1            : tnode;
+        filetemp,
+        temp          : ttempcreatenode;
+        tempref       : ttemprefnode;
+        procprefix,
+        name          : string[31];
+        srsym         : tsym;
+        tempowner     : tsymtable;
+        restype       : ^ttype;
+        is_typed,
+        do_read,
+        is_real,
+        error_para,
+        found_error,
+        is_ordinal   : boolean;
+      begin
+        filepara := nil;
+        is_typed := false;
+        filetemp := nil;
+        do_read := inlinenumber in [in_read_x,in_readln_x];
+        { if we fail, we can quickly exit this way. We must generate something }
+        { instead of the inline node, because firstpass will bomb with an      }
+        { internalerror if it encounters a read/write                          }
+        result := cerrornode.create;
+
+        { reverse the parameters (needed to get the colon parameters in the }
+        { correct order when processing write(ln)                           }
+        left := reverseparameters(left);
+
+        if assigned(left) then
+          begin
+            { check if we have a file parameter and if yes, what kind it is }
+            filepara := tcallparanode(left);
+
+            if (filepara.resulttype.def.deftype=filedef) then
+              begin
+                if (tfiledef(filepara.resulttype.def).filetyp=ft_untyped) then
+                  begin
+                    CGMessagePos(fileinfo,type_e_no_read_write_for_untyped_file);
+                    exit;
+                  end
+                else 
+                  begin
+                    if (tfiledef(filepara.resulttype.def).filetyp=ft_typed) then
+                      begin
+                        if (inlinenumber in [in_readln_x,in_writeln_x]) then
+                          begin
+                            CGMessagePos(fileinfo,type_e_no_readln_writeln_for_typed_file);
+                            exit;
+                          end;
+                        is_typed := true;
+                      end
+                  end;
+                { the file para is a var parameter, but it must be valid already }
+                set_varstate(filepara,true);
+              end
+            else
+              filepara := nil;
+          end;
+
+        { create a blocknode in which the successive write/read statements will be  }
+        { put, since they belong together. Also create a dummy statement already to }
+        { make inserting of additional statements easier                            }
+        newstatement := cstatementnode.create(nil,cnothingnode.create);
+        newblock := cblocknode.create(newstatement);
+
+        { if we don't have a filepara, create one containing the default }
+        if not assigned(filepara) then
+          begin
+
+            { create a loadnode for the standard input/output handle }
+            if do_read then
+              name := 'INPUT'
+            else
+              name := 'OUTPUT';
+
+            { if we are compiling the system unit, the systemunit symtable is nil. }
+            { however, if we aren't compiling the system unit, another unit could  }
+            { also have defined the INPUT or OUTPUT symbols. Therefore we need the }
+            { separate cases (JM)                                                  }
+            if not (cs_compilesystem in aktmoduleswitches) then
+              begin
+                srsym := searchsymonlyin(systemunit,name);
+                tempowner := systemunit;
+              end
+            else
+              searchsym(name,srsym,tempowner);
+
+            if not assigned(srsym) then
+              internalerror(200108141);
+
+            { create the file parameter }
+            filepara := ccallparanode.create(cloadnode.create(srsym,tempowner),nil);
+          end
+        else
+          { remove filepara from the parameter chain }
+          begin
+            left := filepara.right;
+            filepara.right := nil;
+            { check if we should make a temp to store the result of a complex }
+            { expression (better heuristics, anyone?) (JM)                    }
+            if (filepara.left.nodetype <> loadn) then
+              begin
+                { create a temp which will hold a pointer to the file }
+                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size);
+
+                { add it to the statements }
+                newstatement.left := cstatementnode.create(nil,filetemp);
+                newstatement := tstatementnode(newstatement.left);
+
+                { make sure the resulttype of the temp (and as such of the }
+                { temprefs coming after it) is set (necessary because the  }
+                { temprefs will be part of the filepara, of which we need  }
+                { the resulttype later on and temprefs can only be         }
+                { resulttypepassed if the resulttype of the temp is known) }
+                resulttypepass(filetemp);
+
+                { assign the address of the file to the temp }
+                newstatement.left := cstatementnode.create(nil,
+                  cassignmentnode.create(ctemprefnode.create(filetemp),
+                    caddrnode.create(filepara.left)));
+                newstatement := tstatementnode(newstatement.left);
+                resulttypepass(newstatement.right);
+                { create a new fileparameter as follows: file_type(temp^)    }
+                { (so that we pass the value and not the address of the temp }
+                { to the read/write routine)                                 }
+                nextpara := ccallparanode.create(ctypeconvnode.create(
+                  cderefnode.create(ctemprefnode.create(filetemp)),filepara.left.resulttype),nil);
+                { make sure the type conversion is explicit, otherwise this }
+                { typecast won't work                                       }
+                nextpara.left.toggleflag(nf_explizit);
+
+                { replace the old file para with the new one }
+                filepara.left := nil;
+                filepara.free;
+                filepara := nextpara;
+
+                { the resulttype of the filepara must be set since it's }
+                { used below                                            }
+                filepara.get_paratype;
+              end;
+          end;
+
+        { now, filepara is nowhere referenced anymore, so we can safely dispose it }
+        { if something goes wrong or at the end of the procedure                   }
+
+        { choose the correct procedure prefix }
+        procprefix := 'fpc_'+procnames[is_typed,do_read];
+
+        { we're going to reuse the paranodes, so make sure they don't get freed }
+        { twice                                                                 }
+        para := tcallparanode(left);
+        left := nil;
+
+        { no errors found yet... }
+        found_error := false;
+
+        if is_typed then
+          begin
+            { add the typesize to the filepara }
+            filepara.right := ccallparanode.create(cordconstnode.create(
+              tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32bittype),nil);
+
+            { check for "no parameters" (you need at least one extra para for typed files) }
+            if not assigned(para) then
+              begin
+                CGMessage(parser_e_wrong_parameter_size);
+                found_error := true;
+              end;
+
+            { process all parameters }
+            while assigned(para) do
+              begin
+                { check if valid parameter }
+                if para.left.nodetype=typen then
+                  begin
+                    CGMessagePos(para.left.fileinfo,type_e_cant_read_write_type);
+                    found_error := true;
+                  end;
+
+                if not is_equal(para.left.resulttype.def,tfiledef(filepara.resulttype.def).typedfiletype.def) then
+                  begin
+                    CGMessagePos(para.left.fileinfo,type_e_mismatch);
+                    found_error := true;
+                  end;
+
+                if assigned(para.right) and
+                   (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
+                  begin
+                    CGMessagePos(para.right.fileinfo,parser_e_illegal_colon_qualifier);
+
+                    { skip all colon para's }
+                    nextpara := tcallparanode(tcallparanode(para.right).right);
+                    while assigned(nextpara) and
+                          (cpf_is_colon_para in nextpara.callparaflags) do
+                      nextpara := tcallparanode(nextpara.right);
+
+                    found_error := true;
+                  end
+                else
+                  { get next parameter }
+                  nextpara := tcallparanode(para.right);
+
+                { add fileparameter }
+                para.right := filepara.getcopy;
+
+                { create call statment                                             }
+                { since the parameters are in the correct order, we have to insert }
+                { the statements always at the end of the current block            }
+                newstatement.left := cstatementnode.create(nil,
+                  ccallnode.createintern(procprefix,para));
+                newstatement := tstatementnode(newstatement.left);
+
+                { process next parameter }
+                para := nextpara;
+              end;
+
+            { free the file parameter }
+            filepara.free;
+          end
+        else
+          { text write }
+          begin
+            while assigned(para) do
+              begin
+                { is this parameter faulty? }
+                error_para := false;
+                { is this parameter an ordinal? }
+                is_ordinal := false;
+                { is this parameter a real? }
+                is_real:=false;
+
+                { can't read/write types }
+                if para.left.nodetype=typen then
+                  begin
+                    CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                    error_para := true;
+                  end;
+
+                { support writeln(procvar) }
+                if (para.left.resulttype.def.deftype=procvardef) then
+                  begin
+                    p1:=ccallnode.create(nil,nil,nil,nil);
+                    tcallnode(p1).set_procvar(para.left);
+                    resulttypepass(p1);
+                    para.left:=p1;
+                  end;
+
+                case para.left.resulttype.def.deftype of
+                  stringdef :
+                    begin
+                      name := procprefix+lower(tstringdef(para.left.resulttype.def).stringtypname);
+                    end;
+                  pointerdef :
+                    begin
+                      if not is_pchar(para.left.resulttype.def) then
+                        begin
+                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                          error_para := true;
+                        end
+                      else
+                        name := procprefix+'pchar_as_pointer';
+                    end;
+                  floatdef :
+                    begin
+                      is_real:=true;
+                      name := procprefix+'float';
+                    end;
+                  orddef :
+                    begin
+                      is_ordinal := true;
+                      case torddef(para.left.resulttype.def).typ of
+                        s8bit,s16bit,s32bit :
+                          name := procprefix+'sint';
+                        u8bit,u16bit,u32bit :
+                          name := procprefix+'uint';
+                        uchar :
+                          name := procprefix+'char';
+                        uwidechar :
+                          name := procprefix+'widechar';
+                        s64bit :
+                          name := procprefix+'int64';
+                        u64bit :
+                          name := procprefix+'qword';
+                        bool8bit,
+                        bool16bit,
+                        bool32bit :
+                          begin
+                            if do_read then
+                              begin
+                                CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                                error_para := true;
+                              end
+                            else
+                              name := procprefix+'boolean'
+                            end
+                        else
+                          begin
+                            CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                            error_para := true;
+                          end;
+                      end;
+                    end;
+                  arraydef :
+                    begin
+                      if is_chararray(para.left.resulttype.def) then
+                        name := procprefix+'pchar_as_array'
+                      else
+                        begin
+                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                          error_para := true;
+                        end
+                    end
+                  else
+                    begin
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      error_para := true;
+                    end
+                end;
+
+                { check for length/fractional colon para's }
+                fracpara := nil;
+                lenpara := nil;
+                if assigned(para.right) and
+                   (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
+                  begin
+                    lenpara := tcallparanode(para.right);
+                    if assigned(lenpara.right) and
+                       (cpf_is_colon_para in tcallparanode(lenpara.right).callparaflags) then
+                      fracpara:=tcallparanode(lenpara.right);
+                  end;
+                { get the next parameter now already, because we're going }
+                { to muck around with the pointers                        }
+                if assigned(fracpara) then
+                  nextpara := tcallparanode(fracpara.right)
+                else if assigned(lenpara) then
+                  nextpara := tcallparanode(lenpara.right)
+                else
+                  nextpara := tcallparanode(para.right);
+
+                { check if a fracpara is allowed }
+                if assigned(fracpara) and not is_real then
+                  begin
+                    CGMessagePos(fracpara.fileinfo,parser_e_illegal_colon_qualifier);
+                    error_para := true;
+                  end
+                else if assigned(lenpara) and do_read then
+                  begin
+                    { I think this is already filtered out by parsing, but I'm not sure (JM) }
+                    CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
+                    error_para := true;
+                  end;
+
+                { adjust found_error }
+                found_error := found_error or error_para;
+
+                if not error_para then
+                  begin
+                    { create dummy frac/len para's if necessary }
+                    if not do_read then
+                      begin
+                        { difference in default value for floats and the rest :( }
+                        if not is_real then
+                          begin
+                            if not assigned(lenpara) then
+                              lenpara := ccallparanode.create(cordconstnode.create(0,s32bittype),nil)
+                            else
+                              { make sure we don't pass the successive }
+                              { parameters too. We also already have a }
+                              { reference to the next parameter in     }
+                              { nextpara                               }
+                              lenpara.right := nil;
+                          end
+                        else
+                          begin
+                            if not assigned(lenpara) then
+                              lenpara := ccallparanode.create(
+                                cordconstnode.create(-32767,s32bittype),nil);
+                            { also create a default fracpara if necessary }
+                            if not assigned(fracpara) then
+                              fracpara := ccallparanode.create(
+                                cordconstnode.create(-1,s32bittype),nil);
+                            { add it to the lenpara }
+                            lenpara.right := fracpara;
+                            { and add the realtype para (this also removes the link }
+                            { to any parameters coming after it)                    }
+                            fracpara.right := ccallparanode.create(
+                                cordconstnode.create(ord(tfloatdef(para.left.resulttype.def).typ),
+                                s32bittype),nil);
+                          end;
+                      end;
+
+                    if do_read and
+                      ((is_ordinal and
+                        (torddef(para.left.resulttype.def).typ in [s8bit,s16bit,u8bit,u16bit])
+                       ) or
+                       (is_real and
+                        not is_equal(para.left.resulttype.def,pbestrealtype^.def)
+                       )
+                      ) then
+                      { special handling of reading small numbers, because the helpers  }
+                      { expect a longint/card/bestreal var parameter. Use a temp. can't }
+                      { use functions because then the call to FPC_IOCHECK destroys     }
+                      { their result before we can store it                             }
+                      begin
+                        { get the resulttype of the var parameter of the helper }
+                        if is_real then
+                          restype := pbestrealtype
+                        else if is_signed(para.left.resulttype.def) then
+                          restype := @s32bittype
+                        else
+                          restype := @u32bittype;
+
+                        { create the parameter list: the temp ... }
+                        temp := ctempcreatenode.create(restype^,restype^.def.size);
+                        newstatement.left := cstatementnode.create(nil,temp);
+                        newstatement := tstatementnode(newstatement.left);
+
+                        { ... and the file }
+                        p1 := ccallparanode.create(ctemprefnode.create(temp),
+                          filepara.getcopy);
+
+                        { create the call to the helper }
+                        newstatement.left := cstatementnode.create(nil,
+                          ccallnode.createintern(name,tcallparanode(p1)));
+                        newstatement := tstatementnode(newstatement.left);
+
+                        { assign the result to the original var (this automatically }
+                        { takes care of range checking)                             }
+                        newstatement.left := cstatementnode.create(nil,
+                          cassignmentnode.create(para.left,
+                           ctemprefnode.create(temp)));
+                        newstatement := tstatementnode(newstatement.left);
+
+                        { release the temp location }
+                        newstatement.left := cstatementnode.create(nil,
+                          ctempdeletenode.create(temp));
+                        newstatement := tstatementnode(newstatement.left);
+
+                        { statement of para is used }
+                        para.left := nil;
+
+                        { free the enclosing tcallparanode, but not the }
+                        { parameters coming after it                    }
+                        para.right := nil;
+                        para.free;
+                      end
+                    else
+                      { read of non s/u-8/16bit, or a write }
+                      begin
+                        { add the filepara to the current parameter }
+                        para.right := filepara.getcopy;
+                        { add the lenpara (fracpara and realtype are already linked }
+                        { with it if necessary)                                     }
+                        tcallparanode(para.right).right := lenpara;
+                        { create the call statement }
+                        newstatement.left := cstatementnode.create(nil,
+                          ccallnode.createintern(name,para));
+                        newstatement := tstatementnode(newstatement.left);
+                      end
+                  end
+                else
+                  { error_para = true }
+                  begin
+                    { free the parameter, since it isn't referenced anywhere anymore }
+                    para.right := nil;
+                    para.free;
+                    if assigned(lenpara) then
+                      begin
+                        lenpara.right := nil;
+                        lenpara.free;
+                      end;
+                    if assigned(fracpara) then
+                      begin
+                        fracpara.right := nil;
+                        fracpara.free;
+                      end;
+                  end;
+
+                { process next parameter }
+                para := nextpara;
+              end;
+
+            { if no error, add the write(ln)/read(ln) end calls }
+            if not found_error then
+              begin
+                case inlinenumber of
+                  in_read_x:
+                    newstatement.left := ccallnode.createintern('fpc_read_end',filepara);
+                  in_write_x:
+                    newstatement.left := ccallnode.createintern('fpc_write_end',filepara);
+                  in_readln_x:
+                    newstatement.left := ccallnode.createintern('fpc_readln_end',filepara);
+                  in_writeln_x:
+                    newstatement.left := ccallnode.createintern('fpc_writeln_end',filepara);
+                end;
+                newstatement.left := cstatementnode.create(nil,newstatement.left);
+                newstatement := tstatementnode(newstatement.left);
+              end;
+          end;
+
+          { if we found an error, simply delete the generated blocknode }
+          if found_error then
+            newblock.free
+          else
+            begin
+              { deallocate the temp for the file para if we used one }
+              if assigned(filetemp) then
+                begin
+                  newstatement.left := cstatementnode.create(nil,
+                    ctempdeletenode.create(filetemp));
+                  newstatement := tstatementnode(newstatement.left);
+                end;
+              { otherwise return the newly generated block of instructions, }
+              { but first free the errornode we generated at the beginning }
+              result.free;
+              resulttypepass(newblock);
+              result := newblock
+            end;
+      end;
+{$endif hascompilerproc}
+
 
 
     function tinlinenode.det_resulttype:tnode;
@@ -768,6 +1483,9 @@ implementation
               in_write_x,
               in_writeln_x :
                 begin
+{$ifdef hascompilerproc}
+                  result := handle_read_write;
+{$else hascompilerproc}
                   resulttype:=voidtype;
                { we must know if it is a typed file or not }
                { but we must first do the firstpass for it }
@@ -941,8 +1659,8 @@ implementation
                       exit;
                     set_varstate(left,true);
                  end;
+{$endif hascompilerproc}
                 end;
-
               in_settextbuf_file_x :
                 begin
                   resulttype:=voidtype;
@@ -959,12 +1677,19 @@ implementation
               in_reset_typedfile,
               in_rewrite_typedfile :
                 begin
+{$ifdef hascompilerproc}
+                  result := handle_reset_rewrite_typed;
+{$else hascompilerproc}
                   set_varstate(left,true);
                   resulttype:=voidtype;
+{$endif hascompilerproc}
                 end;
 
               in_str_x_string :
                 begin
+{$ifdef hascompilerproc}
+                  result := handle_str;
+{$else hascompilerproc}
                   resulttype:=voidtype;
                   set_varstate(left,false);
               { remove warning when result is passed }
@@ -978,13 +1703,11 @@ implementation
                 CGMessage(cg_e_illegal_expression);
               { we need a var parameter }
               valid_for_var(tcallparanode(hp).left);
-{$ifndef hascompilerproc}
               { with compilerproc's, this is not necessary anymore, the callnode }
               { will convert it to an openstring itself if necessary (JM)        }
               { generate the high() value for the shortstring }
               if is_shortstring(tcallparanode(hp).left.resulttype.def) then
                 tcallparanode(hp).gen_high_tree(true);
-{$endif not hascompilerproc}
               { !!!! check length of string }
               while assigned(tcallparanode(hp).right) do
                 hp:=tcallparanode(hp).right;
@@ -1044,6 +1767,7 @@ implementation
                        CGMessage(parser_e_illegal_colon_qualifier);
                     end;
                 end;
+{$endif not hascompilerproc}
                 end;
 
               in_val_x :
@@ -1388,120 +2112,6 @@ implementation
 {$maxfpuregisters 0}
 {$endif fpc}
 
-{$ifdef hascompilerproc}
-    function tinlinenode.str_pass_1 : tnode;
-      var
-        lenpara,
-        fracpara,
-        newparas,
-        dest,
-        source  : tcallparanode;
-        newnode : tnode;
-        len,
-        fraclen : longint;
-        procname: string;
-        is_real : boolean;
-
-      begin
-        { get destination string }
-        dest := tcallparanode(left);
-
-        { get source para (number) }
-        source := dest;
-        while assigned(source.right) do
-          source := tcallparanode(source.right);
-        is_real := source.resulttype.def.deftype = floatdef;
-        
-        { get len/frac parameters }
-        lenpara := nil;
-        fracpara := nil;
-        if (cpf_is_colon_para in tcallparanode(dest.right).callparaflags) then
-          begin
-            lenpara := tcallparanode(dest.right);
-            if (cpf_is_colon_para in tcallparanode(lenpara.right).callparaflags) then
-              begin
-                fracpara := lenpara;
-                lenpara := tcallparanode(lenpara.right);
-              end;
-          end;
-
-        { generate the parameter list for the compilerproc }
-        newparas := dest;
-
-        { if we have a float parameter, insert the realtype, len and fracpara parameters }
-        if is_real then
-          begin
-            { insert realtype parameter }
-            newparas.right := ccallparanode.create(cordconstnode.create(
-              ord(tfloatdef(source.left.resulttype.def).typ),s32bittype),newparas.right);
-            { if necessary, insert a fraction parameter }
-            if not assigned(fracpara) then
-              begin
-                tcallparanode(newparas.right).right := ccallparanode.create(
-                  cordconstnode.create(-1,s32bittype),tcallparanode(newparas.right).right);
-                fracpara := tcallparanode(tcallparanode(newparas.right).right);
-              end;
-            { if necessary, insert a length para }
-            if not assigned(lenpara) then
-              fracpara.right := ccallparanode.create(cordconstnode.create(-32767,s32bittype),
-                fracpara.right);
-          end
-        else
-          { for a normal parameter, insert a only length parameter if one is missing }
-          if not assigned(lenpara) then
-            newparas.right := ccallparanode.create(cordconstnode.create(-1,s32bittype),
-              newparas.right);
-        
-        { remove the parameters from the original node so they won't get disposed, }
-        { since they're reused                                                     }
-        left := nil;
-        
-        { create procedure name }
-        procname := 'fpc_' + lowercase(tstringdef(dest.resulttype.def).stringtypname)+'_';
-        if is_real then
-          procname := procname + 'float'
-        else
-          case torddef(dest.resulttype.def).typ of
-            u32bit:
-              procname := procname + 'cardinal';
-            u64bit:
-              procname := procname + 'qword';
-            s64bit:
-              procname := procname + 'int64';
-            else
-              procname := procname + 'longint';
-          end;
-        
-        { create the call node, }
-        newnode := ccallnode.createintern(procname,newparas);
-        { firstpass it }
-        firstpass(newnode);
-        
-        { and return it }
-        result := newnode;
-      end;
-      
-      
-    function tinlinenode.reset_rewrite_typed_pass_1: tnode;
-      begin
-        { add the recsize parameter }
-        { note: for some reason, the parameter of intern procedures with only one }
-        {   parameter is gets lifted out of its original tcallparanode (see round }
-        {   line 1301 of ncal.pas), so recreate a tcallparanode here (JM)         }
-        left := ccallparanode.create(cordconstnode.create(
-          tfiledef(left.resulttype.def).typedfiletype.def.size,s32bittype),
-          ccallparanode.create(left,nil));
-        { create the correct call }
-        if inlinenumber=in_reset_typedfile then
-          result := ccallnode.createintern('fpc_reset_typed',left)
-        else
-          result := ccallnode.createintern('fpc_rewrite_typed',left);
-        firstpass(result);
-        { make sure left doesn't get disposed, since we use it in the new call }
-        left := nil;
-      end;
-{$endif hascompilerproc}
-
 
     function tinlinenode.pass_1 : tnode;
       var
@@ -1693,6 +2303,10 @@ implementation
           in_write_x,
           in_writeln_x :
             begin
+{$ifdef hascompilerproc}
+               { should be handled by det_resulttype }
+               internalerror(200108234);
+{$else hascompilerproc}
                { needs a call }
                procinfo^.flags:=procinfo^.flags or pi_do_call;
                { true, if readln needs an extra register }
@@ -1744,8 +2358,8 @@ implementation
                     if extra_register then
                       inc(registers32);
                  end;
+{$endif hascompilerproc}
             end;
-
          in_settextbuf_file_x :
            internalerror(200104262);
 
@@ -1755,7 +2369,8 @@ implementation
 {$ifndef hascompilerproc}
               procinfo^.flags:=procinfo^.flags or pi_do_call;
 {$else not hascompilerproc}
-              result := reset_rewrite_typed_pass_1;
+              { should already be removed in det_resulttype (JM) }
+              internalerror(200108236);
 {$endif not hascompilerproc}
            end;
 
@@ -1766,7 +2381,8 @@ implementation
               { calc registers }
               left_max;
 {$else not hascompilerproc}
-              result := str_pass_1;
+              { should already be removed in det_resulttype (JM) }
+              internalerror(200108235);
 {$endif not hascompilerproc}
            end;
 
@@ -1926,7 +2542,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2001-08-13 15:39:52  jonas
+  Revision 1.49  2001-08-23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.48  2001/08/13 15:39:52  jonas
     * made in_reset_typedfile/in_rewrite_typedfile handling processor
       independent
 

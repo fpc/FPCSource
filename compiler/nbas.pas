@@ -27,7 +27,7 @@ unit nbas;
 interface
 
     uses
-       aasm,node;
+       aasm,symtype,node,cpubase;
 
     type
        tnothingnode = class(tnode)
@@ -67,12 +67,63 @@ interface
           function det_resulttype:tnode;override;
        end;
 
+       { to allow access to the location by temp references even after the temp has }
+       { already been disposed and to make sure the coherency between temps and     }
+       { temp references is kept after a getcopy                                    }
+       ptempinfo = ^ttempinfo;
+       ttempinfo = record
+         { set to the copy of a tempcreate pnode (if it gets copied) so that the }
+         { refs and deletenode can hook to this copy once they get copied too    }
+         hookoncopy: ptempinfo;
+         ref: treference;
+         restype: ttype;
+         valid: boolean;
+       end;
+
+       { a node which will create a *persistent* temp of a given type with a given size }
+       { (the size is separate to allow creating "void" temps with a custom size)       }
+       ttempcreatenode = class(tnode)
+          size: longint;
+          tempinfo: ptempinfo;
+          constructor create(const _restype: ttype; _size: longint); virtual;
+          function getcopy: tnode; override;
+          function pass_1 : tnode; override;
+          function det_resulttype: tnode; override;
+          function docompare(p: tnode): boolean; override;
+        end;
+
+        { a node which is a reference to a certain temp }
+        ttemprefnode = class(tnode)
+          constructor create(const temp: ttempcreatenode); virtual;
+          function getcopy: tnode; override;
+          function pass_1 : tnode; override;
+          function det_resulttype : tnode; override;
+          function docompare(p: tnode): boolean; override;
+         protected
+          tempinfo: ptempinfo;
+        end;
+
+        { a node which removes a temp }
+        ttempdeletenode = class(tnode)
+          constructor create(const temp: ttempcreatenode);
+          function getcopy: tnode; override;
+          function pass_1: tnode; override;
+          function det_resulttype: tnode; override;
+          function docompare(p: tnode): boolean; override;
+          destructor destroy; override;
+         protected
+          tempinfo: ptempinfo;
+        end;
+
     var
        cnothingnode : class of tnothingnode;
        cerrornode : class of terrornode;
        casmnode : class of tasmnode;
        cstatementnode : class of tstatementnode;
        cblocknode : class of tblocknode;
+       ctempcreatenode : class of ttempcreatenode;
+       ctemprefnode : class of ttemprefnode;
+       ctempdeletenode : class of ttempdeletenode;
 
 implementation
 
@@ -387,16 +438,194 @@ implementation
         docompare := false;
       end;
 
+{*****************************************************************************
+                          TEMPCREATENODE
+*****************************************************************************}
+
+    constructor ttempcreatenode.create(const _restype: ttype; _size: longint);
+      begin
+        inherited create(tempn);
+        size := _size;
+        new(tempinfo);
+        fillchar(tempinfo^,sizeof(tempinfo^),0);
+        tempinfo^.restype := _restype;
+      end;
+
+    function ttempcreatenode.getcopy: tnode;
+      var
+        n: ttempcreatenode;
+      begin
+        n := ttempcreatenode(inherited getcopy);
+        n.size := size;
+        
+        new(n.tempinfo);
+        fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
+        n.tempinfo^.restype := tempinfo^.restype;
+
+        { signal the temprefs that the temp they point to has been copied, }
+        { so that if the refs get copied as well, they can hook themselves }
+        { to the copy of the temp                                          }
+        tempinfo^.hookoncopy := n.tempinfo;
+
+        result := n;
+      end;
+
+    function ttempcreatenode.pass_1 : tnode;
+      begin
+        result := nil;
+      end;
+
+    function ttempcreatenode.det_resulttype: tnode;
+      begin
+        result := nil;
+        { a tempcreatenode doesn't have a resulttype, only temprefnodes do }
+        resulttype := voidtype;
+      end;
+
+    function ttempcreatenode.docompare(p: tnode): boolean;
+      begin
+        result :=
+          inherited docompare(p) and
+          (ttempcreatenode(p).size = size) and
+          is_equal(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
+      end;
+
+{*****************************************************************************
+                             TEMPREFNODE
+*****************************************************************************}
+
+    constructor ttemprefnode.create(const temp: ttempcreatenode);
+      begin
+        inherited create(temprefn);
+        tempinfo := temp.tempinfo;
+      end;
+
+    function ttemprefnode.getcopy: tnode;
+      var
+        n: ttemprefnode;
+      begin
+        n := ttemprefnode(inherited getcopy);
+
+        if assigned(tempinfo^.hookoncopy) then
+          { if the temp has been copied, assume it becomes a new }
+          { temp which has to be hooked by the copied reference  }
+          begin
+            { hook the ref to the copied temp }
+            n.tempinfo := tempinfo^.hookoncopy;
+          end
+        else
+          { if the temp we refer to hasn't been copied, assume }
+          { we're just a new reference to that temp            }
+          begin
+            n.tempinfo := tempinfo;
+          end;
+
+        result := n;
+      end;
+
+    function ttemprefnode.pass_1 : tnode;
+      begin
+        result := nil;
+      end;
+
+    function ttemprefnode.det_resulttype: tnode;
+      begin
+        { check if the temp is already resulttype passed }
+        if not assigned(tempinfo^.restype.def) then
+          internalerror(200108233);
+        result := nil;
+        resulttype := tempinfo^.restype;
+      end;
+
+    function ttemprefnode.docompare(p: tnode): boolean;
+      begin
+        result :=
+          inherited docompare(p) and
+          (ttemprefnode(p).tempinfo = tempinfo);
+      end;
+
+{*****************************************************************************
+                             TEMPDELETENODE
+*****************************************************************************}
+
+    constructor ttempdeletenode.create(const temp: ttempcreatenode);
+      begin
+        inherited create(temprefn);
+        tempinfo := temp.tempinfo;
+      end;
+
+    function ttempdeletenode.getcopy: tnode;
+      var
+        n: ttempdeletenode;
+      begin
+        n := ttempdeletenode(inherited getcopy);
+
+        if assigned(tempinfo^.hookoncopy) then
+          { if the temp has been copied, assume it becomes a new }
+          { temp which has to be hooked by the copied deletenode }
+          begin
+            { hook the tempdeletenode to the copied temp }
+            n.tempinfo := tempinfo^.hookoncopy;
+          end
+        else
+          { if the temp we refer to hasn't been copied, we have a }
+          { problem since that means we now have two delete nodes }
+          { for one temp                                          }
+          internalerror(200108234);        
+        result := n;
+      end;
+
+    function ttempdeletenode.pass_1 : tnode;
+      begin
+        result := nil;
+      end;
+
+    function ttempdeletenode.det_resulttype: tnode;
+      begin
+        result := nil;
+        resulttype := voidtype;
+      end;
+
+    function ttempdeletenode.docompare(p: tnode): boolean;
+      begin
+        result :=
+          inherited docompare(p) and
+          (ttemprefnode(p).tempinfo = tempinfo);
+      end;
+      
+    destructor ttempdeletenode.destroy;
+      begin
+        dispose(tempinfo);
+      end;
+
 begin
    cnothingnode:=tnothingnode;
    cerrornode:=terrornode;
    casmnode:=tasmnode;
    cstatementnode:=tstatementnode;
    cblocknode:=tblocknode;
+   ctempcreatenode:=ttempcreatenode;
+   ctemprefnode:=ttemprefnode;
+   ctempdeletenode:=ttempdeletenode;
 end.
 {
   $Log$
-  Revision 1.13  2001-08-06 21:40:46  peter
+  Revision 1.14  2001-08-23 14:28:35  jonas
+    + tempcreate/ref/delete nodes (allows the use of temps in the
+      resulttype and first pass)
+    * made handling of read(ln)/write(ln) processor independent
+    * moved processor independent handling for str and reset/rewrite-typed
+      from firstpass to resulttype pass
+    * changed names of helpers in text.inc to be generic for use as
+      compilerprocs + added "iocheck" directive for most of them
+    * reading of ordinals is done by procedures instead of functions
+      because otherwise FPC_IOCHECK overwrote the result before it could
+      be stored elsewhere (range checking still works)
+    * compilerprocs can now be used in the system unit before they are
+      implemented
+    * added note to errore.msg that booleans can't be read using read/readln
+
+  Revision 1.13  2001/08/06 21:40:46  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.12  2001/06/11 17:41:12  jonas
