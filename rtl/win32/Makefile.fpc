@@ -88,8 +88,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-override AS=asw
-
 wprt0$(OEXT) : $(PRT0).as
         $(AS) -o wprt0$(OEXT) $(PRT0).as
 
