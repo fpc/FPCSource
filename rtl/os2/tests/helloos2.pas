@@ -1,24 +1,25 @@
-program helloos2;
+program HelloOS2;
 
-var a,b:^word;
+var A,B: ^word;
 
 begin
-        writeln('Hallo Wereld.');
-        if os_mode=osDOS then
-            writeln('We draaien onder DOS.')
-        else
-            writeln('We draaien onder OS/2.');
-        writeln('Vrij geheugen: ',memavail);
-        writeln('Grootste blok: ',maxavail);
-        writeln('Heapstart: ',longint(heaporg));
-        writeln('Heapend: ',longint(heapend));
-        writeln('Geheugen aan het bezetten.');
-        getmem(a,1000);
-        getmem(b,2000);
-        a^:=2;
-        b^:=10;
-        writeln('Vrij geheugen: ',memavail);
-        writeln('Grootste blok: ',maxavail);
-        freemem(a,1000);
-        freemem(b,2000);
+    WriteLn ('Hello World.');
+    case os_mode of
+     osDOS: WriteLn ('Running under DOS.');
+     osDPMI: WriteLn ('Running under DPMI (RSX extender).');
+     else WriteLn ('Running under OS/2.');
+    end;
+    WriteLn ('Free memory: ', MemAvail);
+    WriteLn ('Largest block: ', MaxAvail);
+    WriteLn ('Heap start: ',longint(heaporg));
+    WriteLn ('Heap end: ',longint(heapend));
+    WriteLn ('Memory allocation.');
+    GetMem (A, 1000);
+    GetMem (B, 2000);
+    A^ := 2;
+    B^ := 10;
+    WriteLn ('Free memory: ', MemAvail);
+    WriteLn ('Largest block: ', MaxAvail);
+    FreeMem (A, 1000);
+    FreeMem (B, 2000);
 end.
