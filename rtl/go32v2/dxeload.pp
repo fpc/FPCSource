@@ -91,13 +91,17 @@ begin
         cardinal(addr):=cardinal(data)+cardinal(relocs^[i]);
         addr^:=addr^+cardinal(data);
      end;
+   FreeMem(relocs,dh.nrelocs*sizeof(pointer));
    dxe_load:=pointer( dh.symbol_offset + cardinal(data));
 end;
 
 end.
 {
   $Log$
-  Revision 1.3  2000-12-16 15:57:52  jonas
+  Revision 1.4  2001-07-23 09:52:38  marco
+   * Fixed an unnecessary memleak.
+
+  Revision 1.3  2000/12/16 15:57:52  jonas
     * avoid the longint + cardinal to int64 conversion (merged Pierre's patch)
 
   Revision 1.2  2000/07/13 11:33:40  michael
