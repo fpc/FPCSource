@@ -816,10 +816,15 @@ begin
       result := SysOSAlloc(size);
     { try again }
     if result=nil then
-   begin
+    begin
       result := SysOSAlloc(size);
-      if result=nil then
-        HandleError(203);
+      if (result=nil) then
+        begin
+          if ReturnNilIfGrowHeapFails then
+            exit
+          else
+            HandleError(203);
+        end;
     end;
     { set the total new heap size }
     inc(internal_memavail,size);
@@ -873,12 +878,17 @@ var
   poc: poschunk;
   s: ptrint;
 begin
+  result:=nil;
   { try to find a block in one of the freelists per size }
   s := size shr blockshr;
   pcurr := freelists_fixed[s];
   { no free blocks ? }
   if not assigned(pcurr) then
-    pcurr := alloc_oschunk(s, size);
+    begin
+      pcurr := alloc_oschunk(s, size);
+      if not assigned(pcurr) then
+        exit;
+    end;
   { get a pointer to the block we should return }
   result := pointer(pcurr)+sizeof(tmemchunk_fixed_hdr);
   { flag as in-use }
@@ -902,6 +912,7 @@ var
   pbest : pmemchunk_var;
 {$endif}
 begin
+  result:=nil;
 {$ifdef BESTMATCH}
   pbest := nil;
 {$endif}
@@ -935,6 +946,8 @@ begin
    begin
     // all os-chunks full, allocate a new one
     pcurr := alloc_oschunk(0, size);
+    if not assigned(pcurr) then
+      exit;
   end;
 
      { get pointer of the block we should return }
@@ -1290,7 +1303,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2004-06-27 19:47:27  florian
+  Revision 1.35  2004-06-29 20:50:32  peter
+    * readded support for ReturnIfGrowHeapFails
+
+  Revision 1.34  2004/06/27 19:47:27  florian
     * fixed heap corruption on sparc
 
   Revision 1.33  2004/06/27 11:57:18  florian

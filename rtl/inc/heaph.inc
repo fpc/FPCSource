@@ -45,6 +45,8 @@ const
   growheapsizesmall : ptrint=32*1024; { fixed-size small blocks will grow with 32k }
   growheapsize1 : ptrint=256*1024;  { < 256k will grow with 256k }
   growheapsize2 : ptrint=1024*1024; { > 256k will grow with 1m }
+var
+  ReturnNilIfGrowHeapFails : boolean;
 
 { Default MemoryManager functions }
 Function  SysGetmem(Size:ptrint):Pointer;
@@ -93,7 +95,10 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.10  2004-06-20 09:24:40  peter
+  Revision 1.11  2004-06-29 20:50:32  peter
+    * readded support for ReturnIfGrowHeapFails
+
+  Revision 1.10  2004/06/20 09:24:40  peter
   fixed go32v2 compile
 
   Revision 1.9  2004/06/17 16:16:13  peter
