@@ -1,3 +1,4 @@
+{$mode delphi}
 uses ub0440;
 
 procedure ub0440;
