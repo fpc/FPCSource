@@ -49,6 +49,12 @@ other OS/2 APIs                               low
   - MMOS2
   - SOM
 
+packages                                      low
+  - SVGAlib
+  - GTK
+
 documentation                                 low
 
 sample programs                               low
+
+installation (WarpIN?)                        low
