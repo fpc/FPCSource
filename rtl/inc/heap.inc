@@ -1146,7 +1146,7 @@ begin
   if size<=GrowHeapSize1 then
    begin
      NewPos:=Sbrk(GrowHeapSize1);
-     if NewPos<>-1 then
+     if NewPos>=0 then
       size:=GrowHeapSize1;
    end
   else
@@ -1154,17 +1154,17 @@ begin
    if size<=GrowHeapSize2 then
     begin
       NewPos:=Sbrk(GrowHeapSize2);
-      if NewPos<>-1 then
+      if NewPos>=0 then
        size:=GrowHeapSize2;
     end
   { else alloate the needed bytes }
   else
     NewPos:=SBrk(size);
   { try again }
-  if NewPos=-1 then
+  if NewPos<0 then
    begin
      NewPos:=Sbrk(size);
-     if NewPos=-1 then
+     if NewPos<0 then
       begin
         if ReturnNilIfGrowHeapFails then
           GrowHeap:=1
@@ -1265,7 +1265,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2003-05-01 08:05:23  florian
+  Revision 1.21  2003-05-23 14:53:48  peter
+    * check newpos < 0 instead of = -1
+
+  Revision 1.20  2003/05/01 08:05:23  florian
     * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
 
   Revision 1.19  2002/11/01 17:38:04  peter
