@@ -450,7 +450,7 @@ begin
       (Reg32(p^.oper[0].reg) = reg)));
 end;
 
-Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p: pai);
+Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: pai);
 var
 {$ifdef replaceregdebug}
     hp: pai;
@@ -466,11 +466,17 @@ begin
   if assigned(hp^.previous) then
     hp^.previous^.next := hp;
 {$endif replaceregdebug}
-  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
   PPaiProp(p^.optInfo)^.Regs[reg] := c;
-  while getNextInstruction(p,p) and
-        (PPaiProp(p^.optInfo)^.Regs[reg].wState = tmpState) do
+  While (p <> endP) Do
+    Begin
+      PPaiProp(p^.optInfo)^.Regs[reg] := c;
+      getNextInstruction(p,p);
+    end;
+  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
+  repeat
     PPaiProp(p^.optInfo)^.Regs[reg] := c;
+  until not getNextInstruction(p,p) or
+        (PPaiProp(p^.optInfo)^.Regs[reg].wState <> tmpState);
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
@@ -485,18 +491,26 @@ begin
 {$endif replaceregdebug}
 end;
 
-Procedure ClearRegContentsFrom(reg: TRegister; p: pai);
+Procedure ClearRegContentsFrom(reg: TRegister; p, endP: pai);
+{ first clears the contents of reg from p till endP. Then the contents are }
+{ cleared until the first instruction that changes reg                     }
 var
 {$ifdef replaceregdebug}
     hp: pai;
 {$endif replaceregdebug}
     tmpState: byte;
 begin
-  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
   PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
-  while getNextInstruction(p,p) and
-        (PPaiProp(p^.optInfo)^.Regs[reg].wState = tmpState) do
+  While (p <> endP) Do
+    Begin
+      PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
+      getNextInstruction(p,p);
+    end;
+  tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
+  repeat
     PPaiProp(p^.optInfo)^.Regs[reg].typ := con_unknown;
+  until not getNextInstruction(p,p) or
+        (PPaiProp(p^.optInfo)^.Regs[reg].wState <> tmpState);
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
@@ -647,19 +661,22 @@ begin
   sequenceEnd := false;
   newRegModified := false;
   orgRegRead := false;
+  endP := p;
+(*
   endP := pai(p^.previous);
   { skip over the instructions that will be removed }
   while getNextInstruction(endP,hp) and
         assigned(hp) and
         PPaiProp(hp^.optInfo)^.canBeRemoved do
     endP := hp;
+*)
   while tmpResult and not sequenceEnd do
     begin
       tmpResult :=
         getNextInstruction(endP,endP);
       If tmpResult and
 { don't take into account instructions that will be removed }
-         Not (PPaiProp(hp^.optInfo)^.canBeRemoved) then
+         Not (PPaiProp(endP^.optInfo)^.canBeRemoved) then
         begin
           sequenceEnd :=
             RegLoadedWithNewValue(newReg,paicpu(endP)) or
@@ -724,15 +741,18 @@ begin
 {     isn't used anymore                                                    }
 { In case b, the newreg was completely replaced by oldreg, so it's contents }
 { are unchanged compared the start of this sequence, so restore them        }
-      if (p <> endp) or
-         not RegModifiedByInstruction(newReg,endP) then
-        RestoreRegContentsTo(newReg, c ,p);
+      If RegLoadedWithNewValue(newReg,endP) then
+         GetLastInstruction(endP,hp)
+      else hp := endP;
+      if (p <> endp) or 
+         not RegLoadedWithNewValue(newReg,endP) then
+        RestoreRegContentsTo(newReg, c ,p, hp);
 { In both case a and b, it is possible that the new register was modified   }
 { (e.g. an add/sub), so if it was replaced by oldreg in that instruction,   }
 { oldreg's contents have been changed. To take this into account, we simply }
 { set the contents of orgreg to "unknown" after this sequence               }
       if newRegModified then
-        ClearRegContentsFrom(orgReg,p);
+        ClearRegContentsFrom(orgReg,p,hp);
     end
 {$ifdef replaceregdebug}
      else
@@ -898,8 +918,9 @@ Begin
                                             (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
                                            Begin
 {$ifdef replacereg}
+                                             getLastInstruction(p,hp3);
                                              If not ReplaceReg(RegInfo.New2OldReg[RegCounter],
-                                                      regCounter,p,
+                                                      regCounter,hp3,
                                                       PPaiProp(hp4^.optInfo)^.Regs[regCounter]) then
                                                begin
 {$endif replacereg}
@@ -1093,7 +1114,10 @@ End.
 
 {
  $Log$
- Revision 1.36  1999-12-05 16:48:43  jonas
+ Revision 1.37  2000-01-03 17:11:17  jonas
+   * fixed bug with -dreplacereg
+
+ Revision 1.36  1999/12/05 16:48:43  jonas
    * CSE of constant loading in regs works properly again
    + if a constant is stored into memory using "mov const, ref" and
      there is a reg that contains this const, it is changed into
