@@ -369,6 +369,13 @@ implementation
               (def^.deftype=setdef) and (p^.resulttype^.deftype=arraydef) and
               (parraydef(p^.resulttype)^.IsConstructor) and not(parraydef(p^.resulttype)^.IsVariant)
              )
+           { in tp7 mode proc -> procvar is allowed }
+             or
+             (
+              (m_tp_procvar in aktmodeswitches) and
+              (def^.deftype=procvardef) and (p^.left^.treetype=calln) and
+              (proc_to_procvar_equal(p^.left^.procdefinition,pprocvardef(def)))
+             )
              ;
         end;
 
@@ -1118,7 +1125,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-04-01 21:59:56  peter
+  Revision 1.32  1999-04-14 09:11:22  peter
+    * fixed tp proc -> procvar
+
+  Revision 1.31  1999/04/01 21:59:56  peter
     * type error for array constructor with array,record as argument
 
   Revision 1.30  1999/03/31 13:55:27  peter
