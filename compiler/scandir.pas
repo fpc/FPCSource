@@ -835,6 +835,9 @@ implementation
         aktpackenum:=4;
       end;
 
+    procedure dir_externalsym;
+      begin
+      end;
 
 {****************************************************************************
                          Initialize Directives
@@ -899,6 +902,7 @@ implementation
         AddDirective('SATURATION',{$ifdef FPCPROCVAR}@{$endif}dir_saturation);
         {ad 18.05.2001: Screen and Threadname for Netware}
         AddDirective('SCREENNAME',{$ifdef FPCPROCVAR}@{$endif}dir_screenname);
+        AddDirective('EXTERNALSYM',{$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
 
         AddDirective('SMARTLINK',{$ifdef FPCPROCVAR}@{$endif}dir_smartlink);
         AddDirective('STACKFRAMES',{$ifdef FPCPROCVAR}@{$endif}dir_stackframes);
@@ -925,7 +929,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-05-18 13:34:17  peter
+  Revision 1.16  2002-07-16 15:37:58  florian
+    + Directive $EXTERNALSYM added, it is ignored for now
+
+  Revision 1.15  2002/05/18 13:34:17  peter
     * readded missing revisions
 
   Revision 1.14  2002/05/16 19:46:44  carl
