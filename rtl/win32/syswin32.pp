@@ -267,9 +267,8 @@ var
   h,l : longint;
 begin
   h:=GlobalAlloc(258,size);
-  GlobalLock(h);
-  l:=GlobalSize(h);
-  writeln(l);
+  l:=longint(GlobalLock(h));
+  Writeln('new heap part at $',hexstr(l,8), ' size = ',GlobalSize(h));
   sbrk:=l;
 end;
 
@@ -761,7 +760,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  1998-08-21 10:10:16  peter
+  Revision 1.16  1998-08-24 14:45:22  pierre
+    * sbrk was wrong
+      heap growing now works for win32
+
+  Revision 1.15  1998/08/21 10:10:16  peter
     * winheap turned off by default
 
   Revision 1.14  1998/07/30 13:27:19  michael
