@@ -305,7 +305,7 @@ end;
 
 procedure THttpHeader.SetFieldValues(AIndex: Integer; const AValue: String);
 begin
-  PHttpField(FFields.Items[AIndex])^.Name := AValue;
+  PHttpField(FFields.Items[AIndex])^.Value := AValue;
 end;
 
 function  THttpHeader.GetAccept: String; begin Result := GetFieldByName(fieldAccept) end;
@@ -675,7 +675,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-25 19:30:29  sg
+  Revision 1.2  2003-06-18 19:13:04  sg
+  * Fixed silly typo in THttpHeader.SetHeaderValues
+
+  Revision 1.1  2002/04/25 19:30:29  sg
   * First version (with exception of the HTTP unit: This is an improved version
     of the old asyncio HTTP unit, now adapted to fpAsync)
 
