@@ -841,6 +841,7 @@ implementation
         lt    : pdef;
         vaddr : boolean;
         vtype : longint;
+        freetemp,
         dovariant : boolean;
         elesize : longint;
       begin
@@ -869,6 +870,7 @@ implementation
          begin
            if assigned(hp^.left) then
             begin
+              freetemp:=true;
               secondpass(hp^.left);
               if codegenerror then
                exit;
@@ -917,6 +919,7 @@ implementation
                         begin
                           vtype:=vtString;
                           vaddr:=true;
+                          freetemp:=false;
                         end
                        else
                         if is_ansistring(lt) then
@@ -931,7 +934,7 @@ implementation
                     if vaddr then
                      begin
                        emit_to_reference(hp^.left);
-                       emit_push_lea_loc(hp^.left^.location);
+                       emit_push_lea_loc(hp^.left^.location,freetemp);
                      end
                     else
                      emit_push_loc(hp^.left^.location);
@@ -946,7 +949,7 @@ implementation
                     if vaddr then
                      begin
                        emit_to_reference(hp^.left);
-                       emit_lea_loc_ref(hp^.left^.location,href);
+                       emit_lea_loc_ref(hp^.left^.location,href,freetemp);
                      end
                     else
                      emit_mov_loc_ref(hp^.left^.location,href,S_L);
@@ -978,7 +981,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  1999-08-28 15:34:17  florian
+  Revision 1.82  1999-09-01 09:26:21  peter
+    * fixed temp allocation for arrayconstructor
+
+  Revision 1.81  1999/08/28 15:34:17  florian
     * bug 519 fixed
 
   Revision 1.80  1999/08/26 20:24:37  michael

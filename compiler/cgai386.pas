@@ -78,8 +78,8 @@ unit cgai386;
     procedure release_loc(const t : tlocation);
 
     procedure emit_pushw_loc(const t:tlocation);
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
-    procedure emit_push_lea_loc(const t:tlocation);
+    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
+    procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
     procedure emit_to_reference(var p:ptree);
     procedure emit_to_reg16(var hr:tregister);
     procedure emit_to_reg32(var hr:tregister);
@@ -644,7 +644,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
+    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference;freetemp:boolean);
       begin
         case t.loc of
                LOC_MEM,
@@ -658,7 +658,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
-                           ungetiftemp(t.reference);
+                           if freetemp then
+                            ungetiftemp(t.reference);
                          end;
         else
          internalerror(332);
@@ -666,7 +667,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
 
-    procedure emit_push_lea_loc(const t:tlocation);
+    procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
       begin
         case t.loc of
                LOC_MEM,
@@ -679,8 +680,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  newreference(t.reference),R_EDI);
                                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
                              end;
-                           {   Wrong !!
-                           ungetiftemp(t.reference);}
+                           if freetemp then
+                            ungetiftemp(t.reference);
                          end;
         else
          internalerror(332);
@@ -3293,7 +3294,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.35  1999-08-30 12:00:44  pierre
+  Revision 1.36  1999-09-01 09:26:23  peter
+    * fixed temp allocation for arrayconstructor
+
+  Revision 1.35  1999/08/30 12:00:44  pierre
    * problem with maybe_push/restore solved hopefully
 
   Revision 1.34  1999/08/30 09:41:31  pierre
