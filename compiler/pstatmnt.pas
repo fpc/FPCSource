@@ -1077,8 +1077,8 @@ implementation
         { replace framepointer with stackpointer }
         procinfo^.framepointer:=stack_pointer;
         { set the right value for parameters }
-        dec(aktprocdef.parast.address_fixup,target_info.size_of_pointer);
-        dec(procinfo^.para_offset,target_info.size_of_pointer);
+        dec(aktprocdef.parast.address_fixup,pointer_size);
+        dec(procinfo^.para_offset,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
@@ -1202,7 +1202,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-04-14 16:53:54  carl
+  Revision 1.51  2002-04-15 19:01:28  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.50  2002/04/14 16:53:54  carl
   + asm statement uses ALL_REGISTERS
 
   Revision 1.49  2002/03/31 20:26:36  jonas

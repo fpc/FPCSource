@@ -99,7 +99,7 @@ implementation
                      cg.a_loadaddr_ref_reg(exprasmlist,p.location.reference,
                        scratchreg);
                      reference_release(exprasmlist,p.location.reference);
-                     tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,href);
+                     tg.gettempofsizereference(exprasmlist,pointer_size,href);
                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,scratchreg,href);
                      cg.free_scratch_reg(exprasmlist,scratchreg);
                      p.temp_offset:=href.offset;
@@ -213,7 +213,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-04-06 18:10:42  jonas
+  Revision 1.7  2002-04-15 18:58:47  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.6  2002/04/06 18:10:42  jonas
     * several powerpc-related additions and fixes
 
   Revision 1.5  2002/04/04 19:05:57  peter

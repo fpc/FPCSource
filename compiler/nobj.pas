@@ -140,7 +140,7 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif GDB}
-       systems
+       cpubase
        ;
 
 
@@ -949,12 +949,12 @@ implementation
                 { allocate a pointer in the object memory }
                 with tstoredsymtable(_class.symtable) do
                   begin
-                    if (dataalignment>=target_info.size_of_pointer) then
+                    if (dataalignment>=pointer_size) then
                       datasize:=align(datasize,dataalignment)
                     else
-                      datasize:=align(datasize,target_info.size_of_pointer);
+                      datasize:=align(datasize,pointer_size);
                     _class.implementedinterfaces.ioffsets(i)^:=datasize;
-                    datasize:=datasize+target_info.size_of_pointer;
+                    datasize:=datasize+pointer_size;
                   end;
                 { write vtbl }
                 gintfcreatevtbl(i,rawdata,rawcode);
@@ -1280,7 +1280,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-02-11 18:51:35  peter
+  Revision 1.14  2002-04-15 18:59:07  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.13  2002/02/11 18:51:35  peter
     * fixed vmt generation for private procedures that were skipped after
       my previous changes
 

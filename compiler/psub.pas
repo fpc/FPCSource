@@ -641,7 +641,7 @@ implementation
          if ret_in_param(aktprocdef.rettype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
-            inc(procinfo^.para_offset,target_info.size_of_pointer);
+            inc(procinfo^.para_offset,pointer_size);
           end;
          { allows to access the parameters of main functions in nested functions }
          aktprocdef.parast.address_fixup:=procinfo^.para_offset;
@@ -817,7 +817,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-04-04 18:45:19  carl
+  Revision 1.47  2002-04-15 19:01:28  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.46  2002/04/04 18:45:19  carl
   + added wdosx support (patch from Pavel)
 
   Revision 1.45  2002/03/31 20:26:36  jonas

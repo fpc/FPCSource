@@ -868,7 +868,7 @@ Begin
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
                  push_addr_param(tvarsym(sym).vartype.def)) then
-                SetSize(target_info.size_of_pointer,false);
+                SetSize(pointer_size,false);
             end;
           localsymtable :
             begin
@@ -908,7 +908,7 @@ Begin
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
                   push_addr_param(tvarsym(sym).vartype.def)) then
-                SetSize(target_info.size_of_pointer,false);
+                SetSize(pointer_size,false);
             end;
         end;
         case tvarsym(sym).vartype.def.deftype of
@@ -1585,7 +1585,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2002-04-02 17:11:29  peter
+  Revision 1.29  2002-04-15 19:02:35  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.28  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

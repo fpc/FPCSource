@@ -67,7 +67,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,
-       systems,
+       systems,cpubase,
        { aasm }
        aasm,
        { symtable }
@@ -610,7 +610,7 @@ implementation
         if lexlevel>normal_function_level then
           begin
             procinfo^.framepointer_offset:=paramoffset;
-            inc(paramoffset,target_info.size_of_pointer);
+            inc(paramoffset,pointer_size);
             { this is needed to get correct framepointer push for local
               forward functions !! }
             aktprocdef.parast.symtablelevel:=lexlevel;
@@ -619,7 +619,7 @@ implementation
         if assigned (procinfo^._Class)  and
            is_object(procinfo^._Class) and
            (aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
-          inc(paramoffset,target_info.size_of_pointer);
+          inc(paramoffset,pointer_size);
 
         { self pointer offset                       }
         { self isn't pushed in nested procedure of methods }
@@ -628,14 +628,14 @@ implementation
             procinfo^.selfpointer_offset:=paramoffset;
             if assigned(aktprocdef) and
                not(po_containsself in aktprocdef.procoptions) then
-              inc(paramoffset,target_info.size_of_pointer);
+              inc(paramoffset,pointer_size);
           end;
 
         { con/-destructor flag ? }
         if assigned (procinfo^._Class) and
            is_class(procinfo^._class) and
            (aktprocdef.proctypeoption in [potype_destructor,potype_constructor]) then
-          inc(paramoffset,target_info.size_of_pointer);
+          inc(paramoffset,pointer_size);
 
         procinfo^.para_offset:=paramoffset;
 
@@ -2017,7 +2017,10 @@ const
 end.
 {
   $Log$
-  Revision 1.48  2002-03-29 13:29:32  peter
+  Revision 1.49  2002-04-15 19:00:33  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.48  2002/03/29 13:29:32  peter
     * fixed memory corruption created by previous fix
 
   Revision 1.47  2002/03/29 11:23:24  michael

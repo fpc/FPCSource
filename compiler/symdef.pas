@@ -1157,7 +1157,7 @@ implementation
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -1167,7 +1167,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=ppufile.getlongint;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -1177,7 +1177,7 @@ implementation
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -1187,7 +1187,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=ppufile.getlongint;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -1197,7 +1197,7 @@ implementation
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -1207,7 +1207,7 @@ implementation
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=ppufile.getlongint;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -2138,7 +2138,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=false;
-        savesize:=target_info.size_of_pointer;
+        savesize:=pointer_size;
       end;
 
 
@@ -2148,7 +2148,7 @@ implementation
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=true;
-        savesize:=target_info.size_of_pointer;
+        savesize:=pointer_size;
       end;
 
 
@@ -2158,7 +2158,7 @@ implementation
          deftype:=pointerdef;
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -2266,7 +2266,7 @@ implementation
          deftype:=classrefdef;
          ppufile.gettype(pointertype);
          is_far:=false;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -2468,7 +2468,7 @@ implementation
               tsymtable(current_module.localsymtable).registerdef(self)
             else if assigned(current_module.globalsymtable) then
               tsymtable(current_module.globalsymtable).registerdef(self);
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -2476,7 +2476,7 @@ implementation
       begin
          inherited loaddef(ppufile);
          deftype:=formaldef;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -2633,7 +2633,7 @@ implementation
       begin
         if IsDynamicArray then
           begin
-            size:=target_info.size_of_pointer;
+            size:=pointer_size;
             exit;
           end;
         {Tarraydef.size may never be called for an open array!}
@@ -2997,7 +2997,7 @@ implementation
          rettype:=voidtype;
          symtablelevel:=0;
          fpu_used:=0;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
       end;
 
 
@@ -3072,7 +3072,7 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
          count:=ppufile.getword;
-         savesize:=target_info.size_of_pointer;
+         savesize:=pointer_size;
          for i:=1 to count do
           begin
             hp:=TParaItem.Create;
@@ -3130,10 +3130,10 @@ implementation
           begin
             case pdc.paratyp of
               vs_out,
-              vs_var   : inc(l,target_info.size_of_pointer);
+              vs_var   : inc(l,pointer_size);
               vs_value,
               vs_const : if push_addr_param(pdc.paratype.def) then
-                          inc(l,target_info.size_of_pointer)
+                          inc(l,pointer_size)
                          else
                           inc(l,pdc.paratype.def.size);
             end;
@@ -3851,9 +3851,9 @@ implementation
     function tprocvardef.size : longint;
       begin
          if (po_methodpointer in procoptions) then
-           size:=2*target_info.size_of_pointer
+           size:=2*pointer_size
          else
-           size:=target_info.size_of_pointer;
+           size:=pointer_size;
       end;
 
 
@@ -4181,7 +4181,7 @@ implementation
                   inc(symtable.datasize,c.symtable.datasize);
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(symtable.datasize,target_info.size_of_pointer);
+                    dec(symtable.datasize,pointer_size);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -4205,7 +4205,7 @@ implementation
           begin
              symtable.datasize:=align(symtable.datasize,symtable.dataalignment);
              vmt_offset:=symtable.datasize;
-             inc(symtable.datasize,target_info.size_of_pointer);
+             inc(symtable.datasize,pointer_size);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4292,7 +4292,7 @@ implementation
     function tobjectdef.size : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          size:=target_info.size_of_pointer
+          size:=pointer_size
         else
           size:=symtable.datasize;
       end;
@@ -4309,14 +4309,14 @@ implementation
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         case objecttype of
         odt_class:
-          vmtmethodoffset:=(index+12)*target_info.size_of_pointer;
+          vmtmethodoffset:=(index+12)*pointer_size;
         odt_interfacecom,odt_interfacecorba:
-          vmtmethodoffset:=index*target_info.size_of_pointer;
+          vmtmethodoffset:=index*pointer_size;
         else
 {$ifdef WITHDMT}
-          vmtmethodoffset:=(index+4)*target_info.size_of_pointer;
+          vmtmethodoffset:=(index+4)*pointer_size;
 {$else WITHDMT}
-          vmtmethodoffset:=(index+3)*target_info.size_of_pointer;
+          vmtmethodoffset:=(index+3)*pointer_size;
 {$endif WITHDMT}
         end;
       end;
@@ -5419,7 +5419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-04-14 16:55:43  carl
+  Revision 1.70  2002-04-15 19:06:34  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.69  2002/04/14 16:55:43  carl
   + replace some stuff by ALL_REGISTERS
 
   Revision 1.68  2002/04/02 17:11:29  peter
@@ -5479,7 +5482,7 @@ end.
     * torddef low/high range changed to int64
 
   Revision 1.58  2001/11/30 15:01:51  jonas
-    * tarraydef.size returns target_info.size_of_pointer instead of 4 for
+    * tarraydef.size returns pointer_size instead of 4 for
       dynamic arrays
 
   Revision 1.57  2001/11/18 18:43:14  peter

@@ -43,7 +43,7 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasm,cpuasm,types,verbose,
+       symconst,symbase,symdef,aasm,cpuasm,types,verbose,cpubase,
        { pass 1 }
        node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -918,7 +918,7 @@ implementation
                                    curconstsegment.concat(tai_const.create_8bit(0));
                                  curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                                  { this is more general }
-                                 aktpos:=tobjectdef(t.def).vmt_offset + target_info.size_of_pointer;
+                                 aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
                                end;
 
                              { if needed fill }
@@ -945,7 +945,7 @@ implementation
                          curconstsegment.concat(tai_const.create_8bit(0));
                        curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                        { this is more general }
-                       aktpos:=tobjectdef(t.def).vmt_offset + target_info.size_of_pointer;
+                       aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
                      end;
                    for i:=1 to t.def.size-aktpos do
                      curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -970,7 +970,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-04-04 19:06:03  peter
+  Revision 1.43  2002-04-15 19:01:53  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.42  2002/04/04 19:06:03  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

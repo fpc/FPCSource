@@ -1756,11 +1756,11 @@ implementation
       begin
          inherited create(procinlinen);
          inlineprocdef:=tcallnode(callp).symtableprocentry.defs^.def;
-         retoffset:=-target_info.size_of_pointer; { less dangerous as zero (PM) }
+         retoffset:=-pointer_size; { less dangerous as zero (PM) }
          para_offset:=0;
          para_size:=inlineprocdef.para_size(target_info.alignment.paraalign);
          if ret_in_param(inlineprocdef.rettype.def) then
-           inc(para_size,target_info.size_of_pointer);
+           inc(para_size,pointer_size);
          { copy args }
          if assigned(code) then
            inlinetree:=code.getcopy
@@ -1827,7 +1827,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-04-02 17:11:28  peter
+  Revision 1.68  2002-04-15 18:57:22  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.67  2002/04/02 17:11:28  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -377,7 +377,7 @@ implementation
                { if usetemp is set the value must be in tmpreg }
                if usetemp then
                 begin
-                  tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,withreference);
+                  tg.gettempofsizereference(exprasmlist,pointer_size,withreference);
                   tg.normaltemptopersistant(withreference.offset);
                   { move to temp reference }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,withreference);
@@ -450,7 +450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-04-04 19:05:57  peter
+  Revision 1.7  2002-04-15 18:58:47  carl
+  + target_info.size_of_pointer -> pointer_Size
+
+  Revision 1.6  2002/04/04 19:05:57  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
