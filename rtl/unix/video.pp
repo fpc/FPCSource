@@ -40,7 +40,11 @@ const
   nl: char = #10;
   logend: string = #10#10;
 {$endif logging}
+
+{$ifdef I386}
 {$ASMMODE ATT}
+{$endif I386}
+
 const
   can_delete_term : boolean = false;
   ACSIn : string = '';
@@ -841,7 +845,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2001-07-31 19:33:46  peter
+  Revision 1.6  2001-08-01 21:42:05  peter
+    * m68k warning fix (merged)
+
+  Revision 1.5  2001/07/31 19:33:46  peter
      * make tchattr record endian dependant (merged)
 
   Revision 1.4  2001/07/30 21:38:55  peter
