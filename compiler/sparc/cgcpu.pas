@@ -856,7 +856,7 @@ procedure TCgSparc.a_cmp_const_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:to
     then
       list.concat(taicpu.op_reg_reg(A_CMP,reg,reg))
     else
-      list.concat(taicpu.op_const_reg(A_CMP,a,reg));
+      list.concat(taicpu.op_reg_const(A_CMP,reg,a));
     a_jmp_cond(list,cmp_op,l);
   end;
 procedure TCgSparc.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;a:aword;const ref:TReference;l:tasmlabel);
@@ -1449,7 +1449,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.47  2003-05-06 20:25:20  mazen
+  Revision 1.48  2003-05-07 15:04:30  mazen
+  * invalid genrated code for CASE statement fixed
+
+  Revision 1.47  2003/05/06 20:25:20  mazen
   * Invalid genrated code : A_JMPL changed to A_BA
 
   Revision 1.46  2003/05/06 15:02:40  mazen
