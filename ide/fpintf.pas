@@ -17,17 +17,15 @@
 
 unit FPIntf;
 
-{$ifdef FPC}
-{$ifndef COMPILER_1_0}
 {$mode objfpc}
-{$endif COMPILER_1_0}
-{$endif FPC}
 
 interface
 
 { Run }
 function  GetRunParameters: string;
 procedure SetRunParameters(const Params: string);
+function GetRunDir: string;
+procedure SetRunDir(const Params: string);
 
 { Compile }
 procedure Compile(const FileName, ConfigFile: string);
@@ -42,11 +40,7 @@ implementation
 
 uses
   Compiler,Comphook,
-{$ifdef FPC}
-{$ifndef COMPILER_1_0}
   sysutils,
-{$endif COMPILER_1_0}
-{$endif FPC}
 {$ifndef NODEBUG}
   FPDebug,
 {$endif NODEBUG}
@@ -58,6 +52,7 @@ uses
 ****************************************************************************}
 
 var
+  RunDir,
   RunParameters : string;
 
 function LinkAfter : boolean;
@@ -76,6 +71,20 @@ begin
 {$ifndef NODEBUG}
   If assigned(Debugger) then
     Debugger^.SetArgs(RunParameters);
+{$endif}
+end;
+
+function GetRunDir: string;
+begin
+  GetRunDir:=RunDir;
+end;
+
+procedure SetRunDir(const Params: string);
+begin
+  RunDir:=Params;
+{$ifndef NODEBUG}
+  If assigned(Debugger) then
+    Debugger^.SetDir(RunDir);
 {$endif}
 end;
 
@@ -200,32 +209,8 @@ begin
   else
 {$endif USE_EXTERNAL_COMPILER}
     begin
-{$ifdef COMPILER_1_0}
-      storeexitproc:=exitproc;
-      if SetJmp(CatchErrorLongJumpBuffer)=0 then
-        begin
-          exitproc:=@CatchCompilationErrors;
-{$else : not COMPILER_1_0}
       try
-{$endif COMPILER_1_0}
           Compiler.Compile(cmd);
-{$ifdef COMPILER_1_0}
-        end
-      else
-        begin
-          ExitReason:=ExitCode;
-          ExitCode:=0;
-          ErrorCode:=0;
-          ExitAddr:=ErrorAddr;
-          ErrorAddr:=nil;
-          CompilationPhase:=cpFailed;
-          { FIXME: this is not 64bit compatible PM }
-          CompilerMessageWindow^.AddMessage(V_Error,
-            'Compiler exited with error '+inttostr(ExitReason)+
-            ' at addr '+inttohex(longint(ExitAddr),8),'',0,0);
-        end;
-      exitproc:=storeexitproc;
-{$else : not COMPILER_1_0}
       except
           on e : exception do
             begin
@@ -236,7 +221,6 @@ begin
                 e.message,'',0,0);
             end;
       end;
-{$endif COMPILER_1_0}
     end;
 end;
 
@@ -291,7 +275,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-10-04 15:23:46  pierre
+  Revision 1.6  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.5  2002/10/04 15:23:46  pierre
    * don't use tpexcept anymore
 
   Revision 1.4  2002/09/07 15:40:43  peter

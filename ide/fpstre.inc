@@ -86,6 +86,7 @@ const
       menu_run_traceinto     = '~T~race into';
       menu_run_conttocursor  = '~G~oto Cursor';
       menu_run_untilreturn   = '~U~ntil return';
+      menu_run_rundir        = 'Run ~D~irectory...';
       menu_run_parameters    = 'P~a~rameters...';
       menu_run_resetdebugger = '~P~rogram reset';
 
@@ -950,6 +951,7 @@ const
       hint_symbol            = 'Open a browser a current word (not yet scope sensitive)';
       hint_runmenu           = 'Execution and parameters';
       hint_run               = 'Run the current program';
+      hint_rundir            = 'Set directory that will be used as current working directory at execution';
       hint_runparameters     = 'Set command-line parameters passed to program at execution';
       hint_resetprogram      = 'Reset Program';
       hint_rununtilcursor    = 'Go on until Cursor position';
@@ -1054,7 +1056,15 @@ const
 
 {
   $Log$
-  Revision 1.19  2003-01-22 00:27:58  pierre
+  Revision 1.20  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.19  2003/01/22 00:27:58  pierre
    * implement reloadfile if changed
 
   Revision 1.18  2003/01/14 16:24:02  pierre

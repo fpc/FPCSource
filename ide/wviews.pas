@@ -262,11 +262,7 @@ uses Mouse,
      WinClip,
      FpConst,
 {$endif WinClipSupported}
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      App,MsgBox,StdDlg,
      WConsts,WUtils;
 
@@ -1657,7 +1653,7 @@ begin
 	  begin
             p^.disabled:=false;
             IsEnabled:=true;
-	  end;  
+	  end;
        end;
     P:=P^.Next;
   end;
@@ -2538,7 +2534,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2004-11-06 17:22:53  peter
+  Revision 1.10  2004-11-08 20:28:29  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.9  2004/11/06 17:22:53  peter
     * fixes for new fv
 
   Revision 1.8  2004/02/13 06:26:46  pierre

@@ -19,8 +19,8 @@ interface
 {$i globdir.inc}
 
 uses
-  Objects,Drivers,Views,App,Gadgets,MsgBox,
-  {$ifdef EDITORS}Editors,{$else}WEditor,WCEdit,{$endif}
+  Objects,Drivers,Views,App,Gadgets,MsgBox,Tabs,
+  WEditor,WCEdit,
   Comphook,Browcol,
   WHTMLScn,
   FPViews,FPSymbol,fpstring;
@@ -65,6 +65,7 @@ type
       procedure Modules;
       procedure Globals;
       procedure SearchSymbol;
+      procedure RunDir;
       procedure Parameters;
       procedure DoStepOver;
       procedure DoTraceInto;
@@ -88,7 +89,6 @@ type
       procedure DoShowRegisters;
       procedure DoShowFPU;
       function  AskRecompileIfModified:boolean;
-      procedure DoInformation;
       procedure Messages;
       procedure Calculator;
       procedure DoAsciiTable;
@@ -166,15 +166,8 @@ uses
   FpDpAnsi,WConsts,
   Video,Mouse,Keyboard,
   Compiler,Version,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,HelpCtx,
-{$endif}
   Dos,Memory,Menus,Dialogs,StdDlg,
-{$ifndef FVISION}
-  ColorSel,
-{$endif FVISION}
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
@@ -256,15 +249,8 @@ end;
 constructor TIDEApp.Init;
 var R: TRect;
 begin
-  {$ifndef EDITORS}
-{$ifdef TP}
-  UseSyntaxHighlight:=IDEUseSyntaxHighlight;
-  UseTabsPattern:=IDEUseTabsPattern;
-{$else TP}
   UseSyntaxHighlight:=@IDEUseSyntaxHighlight;
   UseTabsPattern:=@IDEUseTabsPattern;
-{$endif TP}
-  {$endif}
   inherited Init;
   InitAdvMsgBox;
   InsideDone:=false;
@@ -367,9 +353,10 @@ begin
       NewItem(menu_run_traceinto,menu_key_run_traceinto, kbF7, cmTraceInto, hcRun,
       NewItem(menu_run_conttocursor,menu_key_run_conttocursor, kbF4, cmContToCursor, hcContToCursor,
       NewItem(menu_run_untilreturn,'', kbNoKey,cmUntilReturn,hcUntilReturn,
+      NewItem(menu_run_rundir,'', kbNoKey, cmRunDir, hcRunDir,
       NewItem(menu_run_parameters,'', kbNoKey, cmParameters, hcParameters,
       NewItem(menu_run_resetdebugger,menu_key_run_resetdebugger, kbCtrlF2, cmResetDebugger, hcResetDebugger,
-      nil)))))))),
+      nil))))))))),
     NewSubMenu(menu_compile,hcCompileMenu, NewMenu(
       NewItem(menu_compile_compile,menu_key_compile_compile, kbAltF9, cmCompile, hcCompile,
       NewItem(menu_compile_make,menu_key_compile_make, kbF9, cmMake, hcMake,
@@ -379,9 +366,8 @@ begin
       NewItem(menu_compile_primaryfile,'', kbNoKey, cmPrimaryFile, hcPrimaryFile,
       NewItem(menu_compile_clearprimaryfile,'', kbNoKey, cmClearPrimary, hcClearPrimary,
       NewLine(
-      NewItem(menu_compile_information,'', kbNoKey, cmInformation, hcInformation,
       NewItem(menu_compile_compilermessages,menu_key_compile_compilermessages, kbF12, cmCompilerMessages, hcCompilerMessages,
-      nil))))))))))),
+      nil)))))))))),
     NewSubMenu(menu_debug, hcDebugMenu, NewMenu(
       NewItem(menu_debug_output,'', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem(menu_debug_userscreen,menu_key_debug_userscreen, kbAltF5, cmUserScreen, hcUserScreen,
@@ -574,12 +560,10 @@ begin
   { first of all dispatch queued targeted events }
   while GetTargetedEvent(P,Event) do
     P^.HandleEvent(Event);
-{$ifdef FVISION}
   { Handle System events directly }
   Drivers.GetSystemEvent(Event);         { Load system event }
   If (Event.What <> evNothing) Then
     HandleEvent(Event);
-{$endif FVISION}
 
   inherited GetEvent(Event);
 {$ifdef DEBUG}
@@ -676,6 +660,7 @@ begin
              cmGlobals       : Globals;
              cmSymbol        : SearchSymbol;
            { -- Run menu -- }
+             cmRunDir        : RunDir;
              cmParameters    : Parameters;
              cmStepOver      : DoStepOver;
              cmTraceInto     : DoTraceInto;
@@ -690,7 +675,6 @@ begin
              cmTarget        : Target;
              cmPrimaryFile   : DoPrimaryFile;
              cmClearPrimary  : DoClearPrimary;
-             cmInformation   : DoInformation;
              cmCompilerMessages : DoCompilerMessages;
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
@@ -753,10 +737,8 @@ begin
              cmHelpFiles     : HelpFiles;
              cmAbout         : About;
              cmShowReadme    : ShowReadme;
-{$ifdef FVISION}
              cmResizeApp     : ResizeApplication(Event.Id, Event.InfoWord);
              cmQuitApp       : Message(@Self, evCommand, cmQuit, nil);
-{$endif FVISION}
            else DontClear:=true;
            end;
            if DontClear=false then ClearEvent(Event);
@@ -994,7 +976,7 @@ begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmTile,cmCascade],IsThereAnyVisibleWindow);
-  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol{,cmInformation}],IsSymbolInfoAvailable);
+  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals,cmSymbol],IsSymbolInfoAvailable);
 {$ifndef NODEBUG}
   SetCmdState([cmResetDebugger,cmUntilReturn],assigned(debugger) and debugger^.debuggee_started);
 {$endif}
@@ -1028,7 +1010,6 @@ begin
   if PrimaryFile<>'' then
      SetCmdState(CompileCmds,true);
   UpdateMenu(MenuBar^.Menu);
-  Message(ProgramInfoWindow,evBroadcast,cmUpdate,nil);
 end;
 
 procedure TIDEApp.UpdateINIFile;
@@ -1248,7 +1229,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  2004-11-06 22:02:49  peter
+  Revision 1.30  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.29  2004/11/06 22:02:49  peter
     * fixed resize helptext
 
   Revision 1.28  2004/11/04 20:57:59  peter

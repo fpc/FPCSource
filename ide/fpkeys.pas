@@ -53,11 +53,7 @@ Procedure SetKnownKeys;
 implementation
 
 uses
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   WUtils;
 
 {$ifndef NotUseTree}
@@ -344,7 +340,15 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-09-16 16:20:06  peter
+  Revision 1.5  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.4  2004/09/16 16:20:06  peter
     * illegal for-loop var assignemnt
 
   Revision 1.3  2002/09/07 15:40:43  peter

@@ -172,7 +172,7 @@ begin
            SourceDirs:=SourceDirs+';'+Dir;
            {$IFNDEF NODEBUG}
            if assigned(Debugger) then
-             Debugger^.SetDirectories;
+             Debugger^.SetSourceDirs;
            {$ENDIF}
          end;
      OpenEditorWindow(nil,FileName,0,0);
@@ -219,11 +219,21 @@ begin
   D^.HelpCtx:=hcChangeDir;
   ExecuteDialog(D,nil);
   CurDirChanged;
+  { Set new startup dir }
+  GetDir(0,StartUpDir);
 end;
 
 {
   $Log$
-  Revision 1.7  2002-10-12 19:43:07  hajny
+  Revision 1.8  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.7  2002/10/12 19:43:07  hajny
     * missing HasSignal conditionals added (needed for FPC/2)
 
   Revision 1.6  2002/09/07 15:40:43  peter

@@ -21,12 +21,8 @@ interface
 
 uses
   Dos,Objects,Drivers,
-{$ifdef FVISION}
   FVConsts,
-{$else FVISION}
-  Commands,HelpCtx,
-{$endif FVISION}
-  Views,Menus,Dialogs,App,Gadgets,
+  Views,Menus,Dialogs,App,Gadgets,Tabs,
   ASCIITAB,
   WEditor,WCEdit,
   WUtils,WHelp,WHlpView,WViews,WANSI,
@@ -320,22 +316,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
     end;
 
-    PProgramInfoWindow = ^TProgramInfoWindow;
-    TProgramInfoWindow = object(TFPDlgWindow)
-      InfoST: PColorStaticText;
-      LogLB : PMessageListBox;
-      constructor Init;
-      constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);
-      procedure   AddMessage(AClass: longint; Msg, Module: string; Line, Column: longint);
-      procedure   ClearMessages;
-      procedure   SizeLimits(var Min, Max: TPoint); virtual;
-      procedure   Close; virtual;
-      procedure   HandleEvent(var Event: TEvent); virtual;
-      procedure   Update; virtual;
-      destructor  Done; virtual;
-    end;
-
+(*
     PTabItem = ^TTabItem;
     TTabItem = record
       Next : PTabItem;
@@ -372,6 +353,7 @@ type
     private
       InDraw: boolean;
     end;
+*)
 
     PScreenView = ^TScreenView;
     TScreenView = object(TScroller)
@@ -499,7 +481,7 @@ const
 
       CalcClipboard   : extended = 0;
 
-      OpenFileName    : string{$ifdef GABOR}[50]{$endif} = '';
+      OpenFileName    : string = '';
       OpenFileLastExt : string[12] = '*.pas';
       NewEditorOpened : boolean = false;
 
@@ -518,15 +500,9 @@ uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
   cpubase,
-{$ifdef COMPILER_1_0}
-  {$ifdef I386}
-     ra386,
-  {$endif I386}
-{$else}
   {$if defined(I386) or defined(x64_86)}
      rax86,
   {$endif}
-{$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
@@ -598,12 +574,6 @@ const
      VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
      Load:    @TFPASCIIChart.Load;
      Store:   @TFPASCIIChart.Store
-  );
-  RProgramInfoWindow: TStreamRec = (
-     ObjType: 1510;
-     VmtLink: Ofs(TypeOf(TProgramInfoWindow)^);
-     Load:    @TProgramInfoWindow.Load;
-     Store:   @TProgramInfoWindow.Store
   );
   RFPDlgWindow: TStreamRec = (
      ObjType: 1511;
@@ -903,11 +873,7 @@ var
 begin
 {$ifdef I386}
   if index <= ord(lastop) - ord(firstop) then
-{$ifdef COMPILER_1_0}
-    GetAsmReservedWord:=att_op2str[tasmop(Index+ord(firstop))]
-{$else}
     GetAsmReservedWord:=std_op2str[tasmop(Index+ord(firstop))]
-{$endif}
   else
     begin
       index:=index - (ord(lastop) - ord(firstop) );
@@ -2107,12 +2073,7 @@ procedure TSourceWindow.SetTitle(ATitle: string);
 begin
   if Title<>nil then DisposeStr(Title);
   Title:=NewStr(ATitle);
-{$ifdef OLDGVFVISION}
-  If assigned(Owner) then
-    DrawBorder;
-{$else}
   Frame^.DrawView;
-{$endif}
 end;
 
 procedure TSourceWindow.HandleEvent(var Event: TEvent);
@@ -3203,111 +3164,7 @@ begin
 end;
 
 
-constructor TProgramInfoWindow.Init;
-var R,R2: TRect;
-    HSB,VSB: PScrollBar;
-    ST: PStaticText;
-    C: word;
-const White = 15;
-begin
-  Desktop^.GetExtent(R); R.A.Y:=R.B.Y-13;
-  inherited Init(R, dialog_programinformation, wnNoNumber);
-
-  HelpCtx:=hcInfoWindow;
-
-  GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+3;
-  C:=((Desktop^.GetColor(32+6) and $f0) or White)*256+Desktop^.GetColor(32+6);
-  New(InfoST, Init(R,'', C, false)); InfoST^.GrowMode:=gfGrowHiX;
-  Insert(InfoST);
-  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,3); R.B.Y:=R.A.Y+1;
-  New(ST, Init(R, CharStr('Ä', MaxViewWidth))); ST^.GrowMode:=gfGrowHiX; Insert(ST);
-  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,4);
-  R2.Copy(R); Inc(R2.B.Y); R2.A.Y:=R2.B.Y-1;
-  New(HSB, Init(R2)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX; Insert(HSB);
-  R2.Copy(R); Inc(R2.B.X); R2.A.X:=R2.B.X-1;
-  New(VSB, Init(R2)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
-  New(LogLB, Init(R,HSB,VSB));
-  LogLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
-  LogLB^.Transparent:=true;
-  Insert(LogLB);
-  Update;
-end;
-
-constructor TProgramInfoWindow.Load(var S : TStream);
-begin
-  inherited Load(S);
-  GetSubViewPtr(S,InfoST);
-  GetSubViewPtr(S,LogLB);
-end;
-
-procedure TProgramInfoWindow.Store(var S : TStream);
-begin
-  inherited Store(S);
-  PutSubViewPtr(S,InfoST);
-  PutSubViewPtr(S,LogLB);
-end;
-
-procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Line, Column: longint);
-begin
-  if AClass>=V_Info then Line:=0;
-  LogLB^.AddItem(New(PCompilerMessage, Init(AClass, Msg, LogLB^.AddModuleName(Module), Line, Column)));
-end;
-
-procedure TProgramInfoWindow.ClearMessages;
-begin
-  LogLB^.Clear;
-  ReDraw;
-end;
-
-procedure TProgramInfoWindow.SizeLimits(var Min, Max: TPoint);
-begin
-  inherited SizeLimits(Min,Max);
-  Min.X:=30; Min.Y:=9;
-end;
-
-procedure TProgramInfoWindow.Close;
-begin
-  Hide;
-end;
-
-procedure TProgramInfoWindow.HandleEvent(var Event: TEvent);
-begin
-  case Event.What of
-    evBroadcast :
-      case Event.Command of
-        cmUpdate :
-          Update;
-      end;
-  end;
-  inherited HandleEvent(Event);
-end;
-
-procedure TProgramInfoWindow.Update;
-begin
-  ClearFormatParams;
-  AddFormatParamStr(label_proginfo_currentmodule);
-  AddFormatParamStr(MainFile);
-  AddFormatParamStr(label_proginfo_lastexitcode);
-  AddFormatParamInt(LastExitCode);
-  AddFormatParamStr(label_proginfo_availablememory);
-  AddFormatParamInt(MemAvail div 1024);
-  InfoST^.SetText(
-   FormatStrF(
-    {#13+ }
-    '%24s : %s'#13+
-    '%24s : %d'#13+
-    '%24s : %5d'+'K'+#13+
-    '',
-   FormatParams)
-  );
-end;
-
-destructor TProgramInfoWindow.Done;
-begin
-  inherited Done;
-  ProgramInfoWindow:=nil;
-end;
-
+(*
 constructor TTab.Init(var Bounds: TRect; ATabDef: PTabDef);
 begin
   inherited Init(Bounds);
@@ -3694,6 +3551,8 @@ begin
           P:=X;
         end;
 end;
+*)
+
 
 constructor TScreenView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
               AScreen: PScreen);
@@ -4170,9 +4029,7 @@ begin
   R2.Copy(R); R2.B.Y:=R2.A.Y+1;
   Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+OSStr)));
   R2.Move(0,1);
-  Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr+' '+{$i %date%}
-    {$ifdef FVISION}+' FV'{$endif}
-    )));
+  Insert(New(PStaticText, Init(R2, ^C'Version '+VersionStr+' '+{$i %date%})));
   R2.Move(0,1);
 {$ifdef USE_GRAPH_SWITCH}
   Insert(New(PStaticText, Init(R2, ^C'With Graphic Support')));
@@ -4573,7 +4430,6 @@ begin
   RegisterType(RGDBSourceEditor);
   RegisterType(RGDBWindow);
   RegisterType(RFPASCIIChart);
-  RegisterType(RProgramInfoWindow);
   RegisterType(RFPDlgWindow);
 end;
 
@@ -4581,7 +4437,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.46  2004-11-06 17:22:52  peter
+  Revision 1.47  2004-11-08 20:28:29  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.46  2004/11/06 17:22:52  peter
     * fixes for new fv
 
   Revision 1.45  2004/11/05 00:21:56  peter

@@ -64,22 +64,16 @@ uses
   FVConsts, Objects, Drivers, Views, Dialogs, Validate, Dos;
 
 const
-{$ifdef PPC_FPC}
   MaxDir   = 255;   { Maximum length of a DirStr. }
   MaxFName = 255; { Maximum length of a FNameStr. }
 
-  {$ifdef OS_Unix}
-  DirSeparator : Char = '/';
-  {$else}
-  DirSeparator : Char = '\';
-  {$endif}
+  DirSeparator : Char = system.DirectorySeparator;
 
+{$ifdef Unix}
+  AllFiles = '*';
 {$else}
-  MaxDir = 67;   { Maximum length of a DirStr. }
-  MaxFName = 79; { Maximum length of a FNameStr. }
-  DirSeparator: Char = '\';
+  AllFiles = '*.*';
 {$endif}
-
 
 type
   { TSearchRec }
@@ -95,11 +89,7 @@ type
     Attr: Longint;
     Time: Longint;
     Size: Longint;
-{$ifdef PPC_FPC}
-    Name: string[255];
-{$else not PPC_FPC}
-    Name: string[12];
-{$endif not PPC_FPC}
+    Name: string[MaxFName];
   end;
   PSearchRec = ^TSearchRec;
 
@@ -985,11 +975,6 @@ end;
 procedure TFileList.ReadDirectory(AWildCard: PathStr);
 const
   FindAttr = ReadOnly + Archive;
-{$ifdef Unix}
-  AllFiles = '*';
-{$else}
-  AllFiles = '*.*';
-{$endif}
   PrevDir  = '..';
 var
   S: SearchRec;
@@ -1873,16 +1858,12 @@ begin
     end;
     NewCur := AList^.Count-1;
     isFirst := True;
-    NewDir := Dirct + '*.*';
+    NewDir := Dirct + AllFiles;
     FindFirst(NewDir, Directory, SR);
     while DosError = 0 do
     begin
       if (SR.Attr and Directory <> 0) and
-{$ifdef FPC}
          (SR.Name <> '.') and (SR.Name <> '..') then
-{$else : not FPC}
-         (SR.Name[1] <> '.') then
-{$endif not FPC}
       begin
    if isFirst then
    begin
@@ -1893,9 +1874,7 @@ begin
       end;
       FindNext(SR);
     end;
- {$ifdef fpc}
   FindClose(SR);
- {$endif}
     P := PDirEntry(AList^.At(AList^.Count-1))^.DisplayText;
     I := Pos('À',P^);
     if I = 0 then
@@ -1937,7 +1916,7 @@ begin
   Options := Options or ofCentered;
 
   R.Assign(3, 3, 30, 4);
-  DirInput := New(PInputLine, Init(R, 68));
+  DirInput := New(PInputLine, Init(R, FileNameLen+4));
   Insert(DirInput);
   R.Assign(2, 2, 17, 3);
   Control := New(PLabel, Init(R,labels^.get(slDirectoryName), DirInput));
@@ -2620,13 +2599,9 @@ var
   Dlg : PFileDialog;
 begin
   SaveAs := False;
-  {$ifdef cdResource}
-  Dlg := PFileDialog(RezFile^.Get(reSaveAsDlg));
-  {$else}
   Dlg := New(PFileDialog,Init('*.*',strings^.get(sSaveAs),
         labels^.get(slSaveAs),
         fdOkButton or fdHelpButton,0));
-  {$endif cdResource}
     { this might not work }
   PHistory(Dlg^.FileName^.Next^.Next)^.HistoryID := HistoryID;
   Dlg^.HelpCtx := hcSaveAs;
@@ -2648,11 +2623,7 @@ begin
   GetDir(0,Dir);
   {$I+}
   Rec := FExpand(ADir);
-  {$ifdef cdResource}
-  Dlg := PEditChDirDialog(RezFile^.Get(reEditChDirDialog));
-  {$else}
   Dlg := New(PEditChDirDialog,Init(cdHelpButton,HistoryID));
-  {$endif cdResource}
   if (Application^.ExecuteDialog(Dlg,@Rec) = cmOk) then
   begin
     SelectDir := True;

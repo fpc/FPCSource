@@ -262,11 +262,7 @@ implementation
 
 uses Dos,
      WConsts,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      App,WViews;
 
 {$ifndef NOOBJREG}
@@ -2071,7 +2067,15 @@ end;
 END.
 {
  $Log$
- Revision 1.19  2004-05-03 21:12:54  peter
+ Revision 1.20  2004-11-08 20:28:29  peter
+   * Breakpoints are now deleted when removed from source, disabling is
+     still possible from the breakpoint list
+   * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+     FV and 1.9.x compilers
+   * Run directory added to Run menu
+   * Useless programinfo window removed
+
+ Revision 1.19  2004/05/03 21:12:54  peter
    * 64bit fixes
 
  Revision 1.18  2003/06/19 15:20:29  pierre

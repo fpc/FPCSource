@@ -18,11 +18,7 @@ unit FPConst;
 interface
 
 uses Views,App,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      WViews,WEditor,WHTMLHlp;
 
 const
@@ -146,6 +142,7 @@ const
      hidCompilerArgs      = 206;
      hidWatchDialog       = 207;
      hidBreakpointDialog  = 208;
+     hidRunDir            = 209;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -161,7 +158,7 @@ const
      cmTarget            = 215;
      cmPrimaryFile       = 216;
      cmClearPrimary      = 217;
-     cmInformation       = 218;
+     cmRunDir            = 218;
 {     cmWindowList        = 219; defined in command.pas, too! - Gabor }
      cmHelpTopicSearch   = 220;
      cmMsgGotoSource     = 221;
@@ -364,6 +361,7 @@ const
      hcGlobals           = hcShift+cmGlobals;
      hcSymbol            = hcShift+cmSymbol;
      hcRun               = hcShift+cmRun;
+     hcRunDir            = hcShift+cmRunDir;
      hcParameters        = hcShift+cmParameters;
      hcResetDebugger     = hcShift+cmResetDebugger;
      hcContToCursor      = hcShift+cmContToCursor;
@@ -377,7 +375,6 @@ const
      hcTarget            = hcShift+cmTarget;
      hcPrimaryFile       = hcShift+cmPrimaryFile;
      hcClearPrimary      = hcShift+cmClearPrimary;
-     hcInformation       = hcShift+cmInformation;
      hcWindowList        = hcShift+cmWindowList;
      hcNewFromTemplate   = hcShift+cmNewFromTemplate;
      hcHelpTopicSearch   = hcShift+cmHelpTopicSearch;
@@ -474,7 +471,15 @@ implementation
 END.
 {
   $Log$
-  Revision 1.14  2004-11-05 00:21:56  peter
+  Revision 1.15  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.14  2004/11/05 00:21:56  peter
   version info at startup
 
   Revision 1.13  2003/01/22 00:27:58  pierre

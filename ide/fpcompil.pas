@@ -29,11 +29,7 @@ interface
 
 uses
   Objects,
-{$ifdef COMPILER_1_0}
-  Files,
-{$else COMPILER_1_0}
   FInput,
-{$endif COMPILER_1_0}
   Drivers,Views,Dialogs,
   WUtils,WViews,WCEdit,
   FPSymbol,
@@ -85,24 +81,9 @@ type
       procedure   Update;
     end;
 
-{$ifdef COMPILER_1_0}
-    PFPInputFile = ^TFPInputFile;
-    TFPInputFile = object(tinputfile)
-      constructor Init(AEditor: PFileEditor);
-    {$ifdef FPC}protected{$else}public{$endif}
-      function fileopen(const filename: string): boolean; virtual;
-      function fileseek(pos: longint): boolean; virtual;
-      function fileread(var databuf; maxsize: longint): longint; virtual;
-      function fileeof: boolean; virtual;
-      function fileclose: boolean; virtual;
-    private
-      Editor: PFileEditor;
-      S: PStream;
-    end;
-{$else COMPILER_1_0}
     TFPInputFile = class(tinputfile)
       constructor Create(AEditor: PFileEditor);
-    {$ifdef FPC}protected{$else}public{$endif}
+    protected
       function fileopen(const filename: string): boolean; override;
       function fileseek(pos: longint): boolean; override;
       function fileread(var databuf; maxsize: longint): longint; override;
@@ -112,7 +93,6 @@ type
       Editor: PFileEditor;
       S: PStream;
     end;
-{$endif COMPILER_1_0}
 
 const
     CompilerMessageWindow : PCompilerMessageWindow  = nil;
@@ -153,11 +133,7 @@ uses
   Video,
 {$endif fpc}
   StdDlg,App,tokens,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   CompHook, Compiler, systems, browcol,
   WEditor,
   FPString,FPRedir,FPDesk,
@@ -281,11 +257,11 @@ var
   S: string;
 begin
   case TClass and V_LevelMask of
-    V_Fatal   : ClassS:=msg_class_Fatal;  
-    V_Error   : ClassS:=msg_class_Error;  
-    V_Normal  : ClassS:=msg_class_Normal; 
+    V_Fatal   : ClassS:=msg_class_Fatal;
+    V_Error   : ClassS:=msg_class_Error;
+    V_Normal  : ClassS:=msg_class_Normal;
     V_Warning : ClassS:=msg_class_Warning;
-    V_Note    : ClassS:=msg_class_Note;   
+    V_Note    : ClassS:=msg_class_Note;
     V_Hint    : ClassS:=msg_class_Hint;
 {$ifdef VERBOSETXT}
     V_Conditional : ClassS:=msg_class_conditional;
@@ -299,7 +275,7 @@ begin
 {$endif}
     else
       ClassS:='';
-  end;  
+  end;
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   if assigned(Module) and
@@ -387,11 +363,7 @@ end;
 
 procedure TCompilerMessageWindow.AddMessage(AClass: longint;const Msg, Module: string; Line, Column: longint);
 begin
-{$ifdef COMPILER_1_0}
-  if AClass>=V_Info then
-{$else}
   if (AClass and V_LineInfo)<>V_LineInfo then
-{$endif}
     Line:=0;
   MsgLB^.AddItem(New(PCompilerMessage,Init(AClass, Msg, MsgLB^.AddModuleName(Module), Line, Column)));
   if (@Self=CompilerMessageWindow) and ((AClass = V_fatal) or (AClass = V_Error)) then
@@ -660,13 +632,11 @@ const
 
 procedure CompilerStop(err: longint); {$ifndef FPC}far;{$endif}
 begin
-{$ifndef GABOR}
 {$ifdef HasSignal}
   if StopJmpValid then
     Longjmp(StopJmp,LONGJMPCALLED)
   else
     Halt(err);
-{$endif}
 {$endif}
 end;
 
@@ -682,25 +652,6 @@ begin
   CompilerGetNamedFileTime:=t;
 end;
 
-{$ifdef COMPILER_1_0}
-function CompilerOpenInputFile(const filename: string): pinputfile; {$ifndef FPC}far;{$endif}
-var f: pinputfile;
-    W: PSourceWindow;
-begin
-  if assigned(CompilingHiddenFile) and
-     (NameandExtof(filename)=CompilingHiddenFile^.Editor^.Filename) then
-    W:=CompilingHiddenFile
-  else
-    W:=EditorWindowFile(FExpand(filename));
-  if Assigned(W) and (W^.Editor^.GetModified) then
-    f:=new(PFPInputFile, Init(W^.Editor))
-  else
-    f:={$ifndef GABOR}def_openinputfile(filename){$else}nil{$endif};
-  if assigned(W) then
-    W^.Editor^.CompileStamp:=CompileStamp;
-  CompilerOpenInputFile:=f;
-end;
-{$else COMPILER_1_0}
 function CompilerOpenInputFile(const filename: string): tinputfile; {$ifndef FPC}far;{$endif}
 var f: tinputfile;
     W: PSourceWindow;
@@ -713,12 +664,11 @@ begin
   if Assigned(W) and (W^.Editor^.GetModified) then
     f:=TFPInputFile.Create(W^.Editor)
   else
-    f:={$ifndef GABOR}def_openinputfile(filename){$else}nil{$endif};
+    f:=def_openinputfile(filename);
   if assigned(W) then
     W^.Editor^.CompileStamp:=CompileStamp;
   CompilerOpenInputFile:=f;
 end;
-{$endif COMPILER_1_0}
 
 function CompilerComment(Level:Longint; const s:string):boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -831,11 +781,7 @@ procedure DoCompile(Mode: TCompileMode);
   end;
   function GetTargetExeExt : string;
     begin
-{$ifdef COMPILER_1_0}
-        GetTargetExeExt:=target_os.exeext;
-{$else COMPILER_1_0}
         GetTargetExeExt:=target_info.exeext;
-{$endif COMPILER_1_0}
      end;
 var
   s,FileName: string;
@@ -896,6 +842,11 @@ begin
       Application^.Insert(CompilerStatusDialog);
       CompilerStatusDialog^.Update;
     end;
+  { Restore dir that could be changed during debugging }
+  {$I-}
+   ChDir(StartUpDir);
+  {$I+}
+  EatIO;
 { hook compiler output }
   do_status:=@CompilerStatus;
   do_stop:=@CompilerStop;
@@ -918,14 +869,9 @@ begin
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
   DoneTokens;
-{$ifdef COMPILER_1_0}
-  PPasFile:='ppas'+source_os.scriptext;
-{$else COMPILER_1_0}
   PPasFile:='ppas'+source_info.scriptext;
-{$endif COMPILER_1_0}
   WUtils.DeleteFile(GetExePath+PpasFile);
   SetStatus('Compiling...');
-{$ifndef GABOR}
 {$ifdef HasSignal}
   StoreStopJumpValid:=StopJmpValid;
   StoreStopJmp:=StopJmp;
@@ -981,7 +927,6 @@ begin
   StopJmpValid:=StoreStopJumpValid;
   StopJmp:=StoreStopJmp;
 {$endif HasSignal}
-{$endif}
   { Retrieve created exefile }
   If GetEXEPath<>'' then
     EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
@@ -1201,15 +1146,6 @@ begin
 end;
 
 
-{$ifdef COMPILER_1_0}
-constructor TFPInputFile.Init(AEditor: PFileEditor);
-begin
-  if not Assigned(AEditor) then Fail;
-  if inherited Init(AEditor^.FileName)=false then
-    Fail;
-  Editor:=AEditor;
-end;
-{$else COMPILER_1_0}
 constructor TFPInputFile.Create(AEditor: PFileEditor);
 begin
   if not Assigned(AEditor) then Fail;
@@ -1217,7 +1153,7 @@ begin
     Fail;
   Editor:=AEditor;
 end;
-{$endif COMPILER_1_0}
+
 
 function TFPInputFile.fileopen(const filename: string): boolean;
 var OK: boolean;
@@ -1296,7 +1232,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2004-11-06 22:02:48  peter
+  Revision 1.29  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.28  2004/11/06 22:02:48  peter
     * fixed resize helptext
 
   Revision 1.27  2004/11/06 17:22:52  peter

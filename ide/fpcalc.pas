@@ -20,11 +20,7 @@ interface
 
 uses
   Drivers,Objects,Views,Dialogs,App,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   WViews,
   FPViews;
 
@@ -572,7 +568,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2004-03-15 15:50:01  peter
+  Revision 1.12  2004-11-08 20:28:25  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.11  2004/03/15 15:50:01  peter
     * no cdecl for go32v2 signalhandler
 
   Revision 1.10  2004/03/09 12:08:47  marco

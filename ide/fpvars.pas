@@ -27,7 +27,7 @@ uses Objects,Views,App,
 
 type
     TRecentFileEntry = record
-      FileName  : string{$ifdef GABOR}[60]{$endif};
+      FileName  : string;
       LastPos   : TPoint;
     end;
 
@@ -38,28 +38,27 @@ const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
       LastCompileTime  : cardinal = 0;
-      OpenExts         : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
-      HighlightExts    : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
-      TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*;fpcmake.loc';
-      SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
-      StandardUnits    : string{$ifdef GABOR}[40]{$endif} = '';
+      OpenExts         : string = '*.pas;*.pp;*.inc';
+      HighlightExts    : string = '*.pas;*.pp;*.inc';
+      TabsPattern      : string = 'make*;make*.*;fpcmake.loc';
+      SourceDirs       : string = '';
+      StandardUnits    : string = '';
       UseStandardUnitsInCodeComplete : boolean = false;
       UseAllUnitsInCodeComplete : boolean = true;
       ShowOnlyUnique   : boolean = true;
-      PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
-      PrimaryFileMain  : string{$ifdef GABOR}[60]{$endif} = '';
-      PrimaryFileSwitches : string{$ifdef GABOR}[80]{$endif} = '';
-      PrimaryFilePara  : string{$ifdef GABOR}[80]{$endif} = '';
-      GDBOutputFile    : string{$ifdef GABOR}[50]{$endif} = GDBOutputFileName;
+      PrimaryFile      : string = '';
+      PrimaryFileMain  : string = '';
+      PrimaryFileSwitches : string = '';
+      PrimaryFilePara  : string = '';
+      GDBOutputFile    : string = GDBOutputFileName;
       IsEXECompiled    : boolean = false;
       { LinkAfter        : boolean = true; changed into a function }
       MainHasDebugInfo : boolean = false;
       UseMouse         : boolean = true;
-      MainFile         : string{$ifdef GABOR}[60]{$endif} = '';
-      PrevMainFile     : string{$ifdef GABOR}[60]{$endif} = '';
-      EXEFile          : string{$ifdef GABOR}[60]{$endif} = '';
+      MainFile         : string = '';
+      PrevMainFile     : string = '';
+      EXEFile          : string = '';
       CompilationPhase : TCompPhase = cpNothing;
-      ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
       DisassemblyWindow : PDisassemblyWindow = nil;
       BreakpointsWindow : PBreakpointsWindow = nil;
@@ -73,20 +72,20 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ClockView        : PFPClockView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
-      StartupDir       : string{$ifdef GABOR}[60]{$endif} = '.'+DirSep;
-      IDEDir           : string{$ifdef GABOR}[60]{$endif} = '.'+DirSep;
+      StartupDir       : string = '.'+DirSep;
+      IDEDir           : string = '.'+DirSep;
 {$ifdef Unix}
-      SystemIDEDir     : string{$ifdef GABOR}[60]{$endif} = '';
+      SystemIDEDir     : string = '';
 {$endif Unix}
-      INIFileName      : string{$ifdef GABOR}[50]{$endif} = ININame;
-      SwitchesPath     : string{$ifdef GABOR}[60]{$endif} = SwitchesName;
+      INIFileName      : string = ININame;
+      SwitchesPath     : string = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
-      BackgroundPath   : string{$ifdef GABOR}[60]{$endif} = BackgroundName;
-      DesktopPath      : string{$ifdef GABOR}[60]{$endif} = DesktopName;
+      BackgroundPath   : string = BackgroundName;
+      DesktopPath      : string = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows+
                                    dfCodeCompleteWords+dfCodeTemplates;
       DesktopLocation  : byte    = dlConfigFileDir;
@@ -126,7 +125,15 @@ implementation
 END.
 {
   $Log$
-  Revision 1.8  2002-12-12 00:06:41  pierre
+  Revision 1.9  2004-11-08 20:28:28  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.8  2002/12/12 00:06:41  pierre
    Use fpregs unit
 
   Revision 1.7  2002/11/28 12:53:10  pierre

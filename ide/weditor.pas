@@ -20,11 +20,7 @@ interface
 {tes}
 uses
   Dos,Objects,Drivers,Views,Dialogs,Menus,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   WUtils;
 
 const
@@ -476,11 +472,9 @@ type
     public
       procedure   Draw; virtual;
       procedure   DrawCursor; virtual;
-{$ifdef USE_FREEVISION}
       { this is the only way I found to avoid
         having the cursor being updated if lock is on PM }
       procedure   ResetCursor; virtual;
-{$endif USE_FREEVISION}
       procedure   DrawIndicator; virtual;
     public
    {a}function    GetFlags: longint; virtual;
@@ -775,11 +769,8 @@ uses
   WConsts,WViews,WCEdit;
 
 type
-{$ifdef FVISION}
     RecordWord = sw_word;
-{$else  not FVISION}
-    RecordWord = word;
-{$endif not FVISION}
+
      TFindDialogRec = packed record
        Find     : String[FindStrSize];
        Options  : RecordWord{longint};
@@ -2601,9 +2592,7 @@ end;
 procedure TCustomCodeEditor.Lock;
 begin
   Inc(ELockFlag);
-{$ifdef FVISION}
   LockScreenUpdate;
-{$endif FVISION}
 end;
 
 procedure TCustomCodeEditor.UnLock;
@@ -2613,10 +2602,8 @@ begin
     Bug('negative lockflag',nil)
   else
 {$endif DEBUG}
-{$ifdef FVISION}
   UnlockScreenUpdate;
-{$endif FVISION}
-    Dec(ELockFlag);
+  Dec(ELockFlag);
   if (ELockFlag>0) then
     Exit;
 
@@ -3759,7 +3746,7 @@ begin
     Color:=(Color and $F0) or $F;
   CombineColors:=Color;
 end;
-var 
+var
     FoldPrefix,FoldSuffix: string;
 {    SkipLine: boolean;}
 {    FoldStartLine: sw_integer;}
@@ -3933,83 +3920,16 @@ begin
     end;
 end;
 
-{$ifdef USE_FREEVISION}
 procedure TCustomCodeEditor.ResetCursor;
-const
-  sfV_CV_F:word = sfVisible + sfCursorVis + sfFocused;
-var
-  p,p2 : PView;
-{$ifndef FVISION}
-  G : PGroup;
-{$endif FVISION}
-  cur : TPoint;
-
-  function Check0:boolean;
-  var
-    res : byte;
-  begin
-    res:=0;
-    while res=0 do
-     begin
-       p:=p^.next;
-       if p=p2 then
-        begin
-          p:=P^.owner;
-          res:=1
-        end
-       else
-        if ((p^.state and sfVisible)<>0) and
-           (cur.x>=p^.origin.x) and
-           (cur.x<p^.size.x+p^.origin.x) and
-           (cur.y>=p^.origin.y) and
-           (cur.y<p^.size.y+p^.origin.y) then
-          res:=2;
-     end;
-    Check0:=res=2;
-  end;
-
 begin
   if Elockflag>0 then
     begin
       DrawCursorCalled:=true;
       exit;
     end
-{$ifdef FVISION}
-  else inherited ResetCursor;
-{$else not FVISION}
-  else if (state and sfV_CV_F) = sfV_CV_F then
-   begin
-     p:=@Self;
-     cur:=cursor;
-     while true do
-      begin
-        if (cur.x<0) or (cur.x>=p^.size.x) or
-           (cur.y<0) or (cur.y>=p^.size.y) then
-          break;
-        p2:=p;
-        cur.x:=cur.x+p^.origin.x;
-        cur.y:=cur.y+p^.origin.y;
-        G:=p^.owner;
-        if G=Nil then { top view }
-         begin
-           Video.SetCursorPos(cur.x,cur.y);
-           if (state and sfCursorIns)<>0 then
-            Video.SetCursorType(crBlock)
-           else
-            Video.SetCursorType(crUnderline);
-           exit;
-         end;
-        if (G^.state and sfVisible)=0 then
-         break;
-        p:=G^.Last;
-        if Check0 then
-         break;
-      end; { while }
-   end; { if }
-  Video.SetCursorType(crHidden);
-{$endif not FVISION}
+  else
+    inherited ResetCursor;
 end;
-{$endif USE_FREEVISION}
 
 function TCustomCodeEditor.Overwrite: boolean;
 begin
@@ -5592,7 +5512,7 @@ begin
 
   Lock;
 
-  CP.X:=-1; CP.Y:=-1; 
+  CP.X:=-1; CP.Y:=-1;
   Line:=GetDisplayText(CurPos.Y);
   X:=CurPos.X; ShortCut:='';
   if X<=length(Line) then
@@ -7271,7 +7191,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.47  2004-11-06 17:22:53  peter
+  Revision 1.48  2004-11-08 20:28:29  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.47  2004/11/06 17:22:53  peter
     * fixes for new fv
 
   Revision 1.46  2004/11/03 12:08:30  peter

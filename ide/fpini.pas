@@ -32,16 +32,12 @@ implementation
 
 uses
   Dos,Objects,Drivers,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   Version,
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
 {$endif USE_EXTERNAL_COMPILER}
-  WConsts,WUtils,WINI,WViews,{$ifndef EDITORS}WEditor,WCEdit{$else}Editors{$endif},
+  WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
   FPIntf,FPTools,FPSwitch,FPString;
 
@@ -67,6 +63,7 @@ const
   ieRecentFile       = 'RecentFile';
 (*  ieOpenFile         = 'OpenFile';
   ieOpenFileCount    = 'OpenFileCount'; *)
+  ieRunDir           = 'RunDirectory';
   ieRunParameters    = 'Parameters';
   ieDebuggeeRedir    = 'DebugRedirection';
   ieRemoteMachine    = 'RemoteMachine';
@@ -353,11 +350,11 @@ begin
       end;
     end;
   { Run }
+  SetRunDir(INIFile^.GetEntry(secRun,ieRunDir,GetRunDir));
+  SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
   { First read the primary file, which can also set the parameters which can
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
-  SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
-{$ifndef GABOR}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
 {$ifdef SUPPORT_REMOTE}
   RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
@@ -367,7 +364,6 @@ begin
   RemoteIdent :=INIFile^.GetEntry(secRun,ieRemoteIdent,RemoteIdent);
   RemoteDir :=INIFile^.GetEntry(secRun,ieRemoteDirectory,RemoteDir);
 {$endif SUPPORT_REMOTE}
-{$endif}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
@@ -384,12 +380,10 @@ begin
     Delete(S,1,P);
   until S='';
   { Editor }
-{$ifndef EDITORS}
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultIndentSize:=INIFile^.GetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   DefaultSaveExt:=INIFile^.GetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
-{$endif}
   { Highlight }
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
   TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
@@ -553,8 +547,8 @@ begin
   INIFile^.SetIntEntry(secFiles,ieOpenFileCount,OpenFileCount);
 *)
   { Run }
+  INIFile^.SetEntry(secRun,ieRunDir,GetRunDir);
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
-{$ifndef GABOR}
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
 {$ifdef SUPPORT_REMOTE}
@@ -565,7 +559,6 @@ begin
     INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
     INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
 {$endif SUPPORT_REMOTE}
-{$endif}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
@@ -574,12 +567,10 @@ begin
   HelpFiles^.ForEach(@ConcatName);
   INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
   { Editor }
-{$ifndef EDITORS}
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
-{$endif}
   { Highlight }
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
   INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
@@ -648,7 +639,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2002-12-12 00:03:14  pierre
+  Revision 1.12  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.11  2002/12/12 00:03:14  pierre
    * fix problem with breakpoint conditions that showed up again after exit
 
   Revision 1.10  2002/11/28 12:55:06  pierre

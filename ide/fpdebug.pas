@@ -36,6 +36,7 @@ type
        editor window when debugging PM }
      CenterDebuggerRow : boolean;
      Disableallinvalidbreakpoints : boolean;
+     OrigPwd,  { pwd at startup }
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
      HiddenStepsCount : longint;
@@ -51,7 +52,7 @@ type
     constructor Init;
     procedure SetExe(const exefn:string);
     procedure SetWidth(AWidth : longint);
-    procedure SetDirectories;
+    procedure SetSourceDirs;
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
 {    procedure DoStartSession;virtual;
@@ -326,11 +327,7 @@ uses
   fpusrscr,
 {$endif DOS}
   App,Strings,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,HelpCtx,
-{$endif}
 {$ifdef win32}
   Windebug,
 {$endif win32}
@@ -404,6 +401,7 @@ const
      Store:   @TWatch.Store
   );
 
+
   RBreakpointCollection: TStreamRec = (
      ObjType: 1709;
      VmtLink: Ofs(TypeOf(TBreakpointCollection)^);
@@ -417,6 +415,8 @@ const
      Load:    @TWatchesCollection.Load;
      Store:   @TWatchesCollection.Store
   );
+
+
 
 {$ifdef I386}
 const
@@ -542,9 +542,8 @@ begin
   HasExe:=false;
   Debugger:=@self;
   WindowWidth:=-1;
-{$ifndef GABOR}
   switch_to_user:=true;
-{$endif}
+  GetDir(0,OrigPwd);
   Command('set print object off');
 end;
 
@@ -568,7 +567,8 @@ begin
         ' (('+FrameName+' + 12)^ <> 0)');  }
 {$endif FrameNameKnown}
       SetArgs(GetRunParameters);
-      SetDirectories;
+      SetDir(GetRunDir);
+      SetSourceDirs;
       InsertBreakpoints;
       ReadWatches;
     end
@@ -585,12 +585,12 @@ begin
   Command('set width '+inttostr(WindowWidth));
 end;
 
-procedure TDebugController.SetDirectories;
+procedure TDebugController.SetSourceDirs;
   var f,s: string;
       i : longint;
       Dir : SearchRec;
 begin
-  f:=GetSourceDirectories;
+  f:=GetSourceDirectories+';'+OrigPwd;
   repeat
     i:=pos(';',f);
     if i=0 then
@@ -1021,7 +1021,6 @@ end;
 
 function TDebugController.GetPointerAt(addr : CORE_ADDR) : CORE_ADDR;
 var
-  val : CORE_ADDR;
   st : string;
   p : longint;
 begin
@@ -1047,7 +1046,7 @@ var
   PB : PBreakpoint;
   S : String;
   BreakIndex : longint;
-  ebp,stop_addr : CORE_ADDR;
+  stop_addr : CORE_ADDR;
   i,ExitCode : longint;
   ExitAddr,ExitFrame : CORE_ADDR;
 const
@@ -1394,6 +1393,8 @@ begin
   typ:=bt_file_line;
   state:=bs_enabled;
   GDBState:=bs_deleted;
+  AFile:=FEXpand(AFile);
+(*
   { d:test.pas:12 does not work !! }
   { I do not know how to solve this if
   if (Length(AFile)>1) and (AFile[2]=':') then
@@ -1403,10 +1404,10 @@ begin
 {$else}
   CurDir:=LowerCaseStr(GetCurDir);
 {$endif Unix}
-  AFile:=FEXpand(AFile);
   if Pos(CurDir,OSFileName(AFile))=1 then
     FileName:=NewStr(Copy(OSFileName(AFile),length(CurDir)+1,255))
   else
+*)
     FileName:=NewStr(OSFileName(AFile));
   Name:=nil;
   Line:=ALine;
@@ -1634,6 +1635,7 @@ begin
   At:=inherited At(Index);
 end;
 
+
 procedure TBreakpointCollection.Update;
 begin
   if assigned(Debugger) then
@@ -1710,7 +1712,7 @@ procedure TBreakpointCollection.AdaptBreakpoints(Editor : PSourceEditor; Pos, Ch
   procedure AdaptInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-      (OSFileName(P^.FileName^)=OSFileName(FExpand(Editor^.FileName))) then
+       (P^.FileName^=OSFileName(FExpand(Editor^.FileName))) then
         begin
           if P^.state=bs_enabled then
             Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,false);
@@ -1748,7 +1750,7 @@ function TBreakpointCollection.FindBreakpointAt(Editor : PSourceEditor; Line : l
   function IsAtLine(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and
-       (OSFileName(P^.FileName^)=OSFileName(FExpand(Editor^.FileName))) and
+       (P^.FileName^=OSFileName(FExpand(Editor^.FileName))) and
        (Line=P^.Line) then
       IsAtLine:=true
     else
@@ -1788,38 +1790,39 @@ begin
   GetType:=FirstThat(@IsThis);
 end;
 
-function TBreakpointCollection.ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
 
-var PB : PBreakpoint;
+function TBreakpointCollection.ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
 
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThere:=(P^.typ=bt_file_line) and assigned(P^.FileName) and
       (OSFileName(P^.FileName^)=FileName) and (P^.Line=LineNr);
   end;
+
+var
+  PB : PBreakpoint;
 begin
-    FileName:=OSFileName(FileName);
-    PB:=FirstThat(@IsThere);
     ToggleFileLine:=false;
+    FileName:=OSFileName(FExpand(FileName));
+    PB:=FirstThat(@IsThere);
     If Assigned(PB) then
-      if PB^.state=bs_disabled then
-        begin
-          PB^.state:=bs_enabled;
-          ToggleFileLine:=true;
-        end
-      else if PB^.state=bs_enabled then
+      begin
+        { delete it form source window }
         PB^.state:=bs_disabled;
-    If not assigned(PB) then
+        PB^.UpdateSource;
+	{ remove from collection }
+        BreakpointsCollection^.free(PB);
+      end
+    else
       begin
         PB:= New(PBreakpoint,Init_file_line(FileName,LineNr));
         if assigned(PB) then
           Begin
             Insert(PB);
+            PB^.UpdateSource;
             ToggleFileLine:=true;
           End;
       end;
-    if assigned(PB) then
-      PB^.UpdateSource;
     Update;
 end;
 
@@ -1976,16 +1979,6 @@ begin
   DrawView;
 end;
 
-(* function TBreakpointsListBox.AddModuleName(const Name: string): PString;
-var P: PString;
-begin
-  if ModuleNames<>nil then
-    P:=ModuleNames^.Add(Name)
-  else
-    P:=nil;
-  AddModuleName:=P;
-end;  *)
-
 function TBreakpointsListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PBreakpointItem;
     S: string;
@@ -2001,8 +1994,6 @@ begin
     Dispose(List, Done);
   List:=nil;
   MaxWidth:=0;
-  (* if assigned(ModuleNames) then
-    ModuleNames^.FreeAll; *)
   SetRange(0); DrawView;
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
@@ -2011,7 +2002,6 @@ procedure TBreakpointsListBox.TrackSource;
 var W: PSourceWindow;
     P: PBreakpointItem;
     R: TRect;
-    (* Row,Col: sw_integer; *)
 begin
   (*Message(Application,evBroadcast,cmClearLineHighlights,@Self);
   if Range=0 then Exit;*)
@@ -2197,7 +2187,6 @@ destructor TBreakpointsListBox.Done;
 begin
   inherited Done;
   if List<>nil then Dispose(List, Done);
-  (* if ModuleNames<>nil then Dispose(ModuleNames, Done);*)
 end;
 
 {****************************************************************************
@@ -3374,11 +3363,7 @@ GetGDBTargetShortName:='palmos';
 GetGDBTargetShortName:='linux';
 {$endif PALMOSGDB}
 {$else not SUPPORT_REMOTE}
-{$ifdef COMPILER_1_0}
-GetGDBTargetShortName:=source_os.shortname
-{$else}
 GetGDBTargetShortName:=source_info.shortname
-{$endif}
 {$endif not SUPPORT_REMOTE}
 end;
 
@@ -3604,7 +3589,15 @@ end.
 
 {
   $Log$
-  Revision 1.52  2004-11-06 17:22:52  peter
+  Revision 1.53  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.52  2004/11/06 17:22:52  peter
     * fixes for new fv
 
   Revision 1.51  2004/07/09 23:17:25  peter

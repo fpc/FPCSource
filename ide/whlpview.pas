@@ -19,18 +19,13 @@ interface
 
 uses
   Objects,Drivers,Views,
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   WEditor,WCEdit,
   WUtils,WHelp;
 
-{$IFNDEF EDITORS}
 type
-    TEditor = TCodeEditor; PEditor = PCodeEditor;
-{$ENDIF}
+    TEditor = TCodeEditor;
+    PEditor = PCodeEditor;
 
 const
      cmPrevTopic         = 90;
@@ -783,9 +778,7 @@ procedure THelpViewer.RenderTopic;
 begin
   if HelpTopic<>nil then
     HelpTopic^.SetParams(Margin,Size.X);
-{$ifndef EDITORS}
   SetLimit(255,GetLineCount);
-{$endif}
   DrawView;
 end;
 
@@ -1206,9 +1199,7 @@ var NormalColor, LinkColor,
     LastLinkDrawn,LastColorAreaDrawn: sw_integer;
     S: string;
     R: TRect;
-{$ifndef EDITORS}
     SelR : TRect;
-{$endif}
     C,Mask: word;
     CurP: TPoint;
     ANDSB,ORSB: word;
@@ -1223,9 +1214,7 @@ begin
 
   NormalColor:=GetColor(1); LinkColor:=GetColor(2);
   SelectColor:=GetColor(3); SelectionColor:=GetColor(4);
-{$ifndef EDITORS}
   SelR.A:=SelStart; SelR.B:=SelEnd;
-{$endif}
   LastLinkDrawn:=0; LastColorAreaDrawn:=0;
   for DY:=0 to Size.Y-1 do
   begin
@@ -1287,7 +1276,6 @@ begin
           end;
       end;
 
-{$ifndef EDITORS}
       if ((SelR.A.X<>SelR.B.X) or (SelR.A.Y<>SelR.B.Y)) and (SelR.A.Y<=Y) and (Y<=SelR.B.Y) then
       begin
         if Y=SelR.A.Y then MinX:=SelR.A.X else MinX:=0;
@@ -1300,7 +1288,6 @@ begin
             B[ScreenX]:=(B[ScreenX] and $0fff) or ((SelectionColor and $f0) shl 8);
         end;
       end;
-{$endif}
 
     end;
     WriteLine(0,DY,Size.X,1,B);
@@ -1419,7 +1406,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2003-01-18 01:36:23  pierre
+  Revision 1.11  2004-11-08 20:28:29  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.10  2003/01/18 01:36:23  pierre
    * fix web bug 1649
 
   Revision 1.9  2002/09/07 15:40:49  peter

@@ -36,9 +36,6 @@
   {$ifdef DEBUG}
     {$define USE_GRAPH_SWITCH}
   {$endif DEBUG}
-  {$ifdef COMPILER_1_0}
-    {$define USE_GRAPH_SWITCH}
-  {$endif COMPILER_1_0}
 {$endif}
 
 {$ifdef Linux}
@@ -134,7 +131,7 @@
 {$ifdef FPC}
   {$define USERESSTRINGS}
   {$define USE_FREEVISION}
-  
+
   { Use inlining for small functions }
   {$ifndef VER1_0}
     {$inline on}
@@ -150,16 +147,6 @@
 
 {$ifdef SUPPORTVESA}
   {$define VESA}
-{$endif}
-
-{$ifdef GABOR}
-  {.$define NOOBJREG}
-  {$define NODEBUG}
-  {$define DEBUG}
-  {$undef EXEDEBUG}
-  {$undef USERESSTRINGS}
-  {.$define LANG_HUN}
-  {$undef WinClipSupported}
 {$endif}
 
 {$ifdef NOWINCLIP}

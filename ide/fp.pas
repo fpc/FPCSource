@@ -59,17 +59,13 @@ uses
 {$ifndef NODEBUG}
   gdbint,
 {$endif NODEBUG}
-{$ifdef FVISION}
   FVConsts,
-{$else}
-  Commands,
-{$endif}
   Drivers,Views,App,Dialogs,HistList,
   Menus,StdDlg,Validate,
-  {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
-{$ifndef FVISION}
+  WEditor,WCEdit,
+{$ifdef COLORSEL}
   ColorSel,
-{$endif FVISION}
+{$endif COLORSEL}
   ASCIITab,
   WUtils,WViews,WHTMLScn,WHelp,
   FPIDE,FPCalc,FPCompil,FPString,
@@ -212,7 +208,6 @@ begin
   end;
   if ErrS<>'' then
   begin
-    {$ifdef GABOR}{$ifdef TP}asm int 3;end;{$endif}{$endif}
     if Assigned(Application) then
       ErrorBox('Stream error: '+#13+ErrS,nil)
     else
@@ -236,17 +231,13 @@ begin
   RegisterApp;
   RegisterCodeComplete;
   RegisterCodeTemplates;
-{$ifndef FVISION}
+{$ifdef COLORSEL}
   RegisterColorSel;
-{$endif FVISION}
+{$endif COLORSEL}
   RegisterAsciiTab;
   RegisterDialogs;
-{$ifdef EDITORS}
-  RegisterEditors;
-{$else}
   RegisterWEditor;
   RegisterWCEdit;
-{$endif}
   RegisterFPCalc;
   RegisterFPCompile;
   RegisterFPTools;
@@ -505,7 +496,15 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.24  2004-11-05 00:21:56  peter
+  Revision 1.25  2004-11-08 20:28:25  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.24  2004/11/05 00:21:56  peter
   version info at startup
 
   Revision 1.23  2003/09/29 14:36:59  peter

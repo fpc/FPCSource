@@ -63,11 +63,7 @@ procedure RegisterCodeComplete;
 implementation
 
 uses App,Views,MsgBox,Validate,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      systems, BrowCol,
      FPSwitch, FPCompil,
      FPVars, FPSymbol,
@@ -639,7 +635,15 @@ END.
 
 {
  $Log$
- Revision 1.13  2004-03-04 05:37:14  pierre
+ Revision 1.14  2004-11-08 20:28:26  peter
+   * Breakpoints are now deleted when removed from source, disabling is
+     still possible from the breakpoint list
+   * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+     FV and 1.9.x compilers
+   * Run directory added to Run menu
+   * Useless programinfo window removed
+
+ Revision 1.13  2004/03/04 05:37:14  pierre
   * fix a possibly uninitiated var
 
  Revision 1.12  2002/12/18 01:19:20  pierre

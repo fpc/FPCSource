@@ -1300,11 +1300,9 @@ begin
   GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-{$ifdef fvision}
   { Needed to force InitSystemMsg to use the right console handle }
   DoneEvents;
   InitEvents;
-{$endif fvision}
   IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
   WindowPos.left:=0;
@@ -1514,7 +1512,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2004-11-04 11:46:54  peter
+  Revision 1.37  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.36  2004/11/04 11:46:54  peter
   fixed compilation for new fvision
 
   Revision 1.35  2004/09/19 14:51:03  armin

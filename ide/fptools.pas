@@ -140,8 +140,8 @@ procedure InitToolTempFiles;
 procedure DoneToolTempFiles;
 
 const
-     ToolFilter     : string[{$ifndef GABOR}128{$else}40{$endif}]      = '';
-     ToolOutput     : string[{$ifndef GABOR}128{$else}40{$endif}]      = '';
+     ToolFilter     : string[128]      = '';
+     ToolOutput     : string[128]      = '';
      CaptureToolTo  : TCaptureTarget   = capNone;
      ToolMessages   : PCollection      = nil;
      ToolModuleNames: PStoreCollection = nil;
@@ -154,11 +154,7 @@ procedure RegisterFPTools;
 implementation
 
 uses Dos,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
      App,MsgBox,
      WConsts,WUtils,WINI,
      FPConst,FPString,FPVars,FPUtils;
@@ -1621,7 +1617,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-12-18 01:21:16  pierre
+  Revision 1.6  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.5  2002/12/18 01:21:16  pierre
    + Use TEditorInputLine instead of TInputLine
 
   Revision 1.4  2002/09/07 15:40:46  peter

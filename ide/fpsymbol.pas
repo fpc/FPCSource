@@ -19,9 +19,9 @@ unit FPSymbol;
 interface
 
 uses Objects,Drivers,Views,Menus,Dialogs,
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
      Outline,
-{$endif FVISION}
+{$endif HASOUTLINE}
      BrowCol,
      WViews,
      FPViews;
@@ -127,7 +127,7 @@ type
       function    GetPalette: PPalette; virtual;
     end;
 
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
     PSymbolInheritanceView = ^TSymbolInheritanceView;
     TSymbolInheritanceView = object(TOutlineViewer)
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar; ARoot: PObjectSymbol);
@@ -146,7 +146,7 @@ type
       Root         : PObjectSymbol;
       MyBW         : PBrowserWindow;
     end;
-{$endif FVISION}
+{$endif HASOUTLINE}
 
     PBrowserTabItem = ^TBrowserTabItem;
     TBrowserTabItem = record
@@ -195,9 +195,9 @@ type
       Sym           : PSymbol;
       ScopeView     : PSymbolScopeView;
       ReferenceView : PSymbolReferenceView;
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
       InheritanceView: PSymbolInheritanceView;
-{$endif FVISION}
+{$endif HASOUTLIEN}
       MemInfoView   : PSymbolMemInfoView;
       UnitInfoText  : PSymbolMemoView;
       UnitInfoUsed  : PSymbolScopeView;
@@ -229,11 +229,7 @@ const
 implementation
 
 uses App,Strings,
-{$ifdef FVISION}
      FVConsts,
-{$else}
-     Commands,
-{$endif}
 {$ifdef BROWSERCOL}
      symconst,
 {$endif BROWSERCOL}
@@ -249,9 +245,9 @@ procedure CloseAllBrowsers;
        (TypeOf(P^)=TypeOf(TSymbolScopeView)) or
        (TypeOf(P^)=TypeOf(TSymbolReferenceView)) or
        (TypeOf(P^)=TypeOf(TSymbolMemInfoView)) or
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
        (TypeOf(P^)=TypeOf(TSymbolInheritanceView)) or
-{$endif FVISION}
+{$endif HASOUTLINE}
        (TypeOf(P^)=TypeOf(TSymbolMemoView))) then
       Message(P,evCommand,cmClose,nil);
   end;
@@ -1065,7 +1061,7 @@ end;
                           TSymbolInheritanceView
 ****************************************************************************}
 
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
 constructor TSymbolInheritanceView.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar; ARoot: PObjectSymbol);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
@@ -1180,7 +1176,7 @@ begin
     S^.GetText,S,nil,
     S^.Items,S^.References,Anc,S^.MemInfo);
 end;
-{$endif FVISION}
+{$endif HASOUTLINE}
 
 
 {****************************************************************************
@@ -1416,12 +1412,12 @@ begin
       Insert(HSB);
       VSB:=CreateVSB(R);
       Insert(VSB);
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
       New(InheritanceView, Init(R, HSB,VSB, AInheritance));
       InheritanceView^.GrowMode:=gfGrowHiX+gfGrowHiY;
       Insert(InheritanceView);
       InheritanceView^.MyBW:=@Self;
-{$endif FVISION}
+{$endif HASOUTLINE}
     end;
   if assigned(AMemInfo) then
     begin
@@ -1512,15 +1508,15 @@ begin
   New(PageTab, Init(R,
     NewBrowserTabItem(label_browsertab_scope,ScopeView,
     NewBrowserTabItem(label_browsertab_reference,ReferenceView,
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
     NewBrowserTabItem(label_browsertab_inheritance,InheritanceView,
-{$endif FVISION}
+{$endif HASOUTLINE}
     NewBrowserTabItem(label_browsertab_memory,MemInfoView,
     NewBrowserTabItem(label_browsertab_unit,UnitInfo,
     nil))
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
     )
-{$endif FVISION}
+{$endif HASOUTLINE}
     ))));
   PageTab^.GrowMode:=gfGrowHiX;
   Insert(PageTab);
@@ -1530,11 +1526,11 @@ begin
   else
    if assigned(ReferenceView) then
     SelectTab(btReferences)
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
   else
    if assigned(InheritanceView) then
     SelectTab(btInheritance)
-{$endif FVISION}
+{$endif HASOUTLINE}
   ;
 end;
 
@@ -1779,10 +1775,10 @@ begin
     Tabs:=Tabs or (1 shl btScope);
   if assigned(ReferenceView) then
     Tabs:=Tabs or (1 shl btReferences);
-{$ifndef FVISION}
+{$ifdef HASOUTLINE}
   if assigned(InheritanceView) then
     Tabs:=Tabs or (1 shl btInheritance);
-{$endif FVISION}
+{$endif HASOUTLINE}
   if assigned(MemInfoView) then
     Tabs:=Tabs or (1 shl btMemInfo);
   if Assigned(Sym) then
@@ -1814,9 +1810,6 @@ begin
   if assigned(ParentBrowser) and assigned(ParentBrowser^.Prefix) and
      assigned(ParentBrowser^.sym) and
      (ParentBrowser^.sym^.typ<>unitsym)
-{$ifdef COMPILER_1_0}
-     and (ParentBrowser^.sym^.typ<>programsym)
-{$endif COMPILER_1_0}
      then
     begin
       st:=GetStr(ParentBrowser^.Prefix)+' '+Name;
@@ -1837,11 +1830,9 @@ begin
   PB:=New(PBrowserWindow, Init(R,
     st2,SearchFreeWindowNo,S,Line,st,
     Symbols,References,Inheritance,MemInfo));
-{$ifndef GABOR}
   if (assigned(S) and (S^.typ=varsym)) or
      (assigned(ParentBrowser) and ParentBrowser^.IsValid) then
     PB^.IsValid:=true;
-{$endif}
 
   Desktop^.Insert(PB);
 end;
@@ -1849,7 +1840,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-12-02 01:00:12  pierre
+  Revision 1.7  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.6  2002/12/02 01:00:12  pierre
    + Alt+I to disassemble a function from browser window
 
   Revision 1.5  2002/09/07 15:40:45  peter

@@ -45,13 +45,7 @@ implementation
 
 uses Dos,
      Objects,Drivers,
-{$ifndef FVISION}
      Video,
-{$else FVISION}
-{$ifndef GRAPH_API}
-     Video,
-{$endif GRAPH_API}
-{$endif FVISION}
      Views,App,HistList,BrowCol,
      WUtils,WResourc,WViews,WEditor,
 {$ifndef NODEBUG}
@@ -368,15 +362,6 @@ begin
          InitDisassemblyWindow;
          W:=DisassemblyWindow;
        end;
-     hcInfoWindow:
-       begin
-         if ProgramInfoWindow=nil then
-           begin
-             New(ProgramInfoWindow, Init);
-             Desktop^.Insert(ProgramInfoWindow);
-           end;
-         W:=ProgramInfoWindow;
-       end;
      hcWatchesWindow:
        begin
          if WatchesWindow=nil then
@@ -505,7 +490,6 @@ begin
             GetSubViewPtr(S^,ClipboardWindow);
             if Assigned(ClipboardWindow) then Clipboard:=ClipboardWindow^.Editor;
             GetSubViewPtr(S^,CalcWindow);
-            GetSubViewPtr(S^,ProgramInfoWindow);
             GetSubViewPtr(S^,GDBWindow);
             GetSubViewPtr(S^,BreakpointsWindow);
             GetSubViewPtr(S^,WatchesWindow);
@@ -622,7 +606,6 @@ begin
       PutSubViewPtr(S^,CompilerStatusDialog);
       PutSubViewPtr(S^,ClipboardWindow);
       PutSubViewPtr(S^,CalcWindow);
-      PutSubViewPtr(S^,ProgramInfoWindow);
       PutSubViewPtr(S^,GDBWindow);
       PutSubViewPtr(S^,BreakpointsWindow);
       PutSubViewPtr(S^,WatchesWindow);
@@ -963,7 +946,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2004-11-05 16:39:37  peter
+  Revision 1.10  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.9  2004/11/05 16:39:37  peter
     * uninitialized var
 
   Revision 1.8  2004/11/02 23:53:19  peter

@@ -177,8 +177,8 @@ end;
 procedure TIDEApp.DoRun;
 var
   RunDirect : boolean;
+  oldcurrdir : string;
 begin
-
 {$ifndef NODEBUG}
   if not assigned(Debugger) or not Debugger^.HasExe or not Debugger^.IsRunning then
 {$endif}
@@ -216,11 +216,7 @@ begin
       { we use debugger if and only if there are active breakpoints
         AND the target is correct for debugging !! PM }
       if (ActiveBreakpoints or RestartingDebugger) and
-{$ifdef COMPILER_1_0}
-        (target_os.shortname=source_os.shortname)
-{$else COMPILER_1_0}
-        (target_info.shortname=source_info.shortname)
-{$endif COMPILER_1_0}
+         (target_info.shortname=source_info.shortname)
         then
         begin
           if not assigned(Debugger) or Not Debugger^.HasExe then
@@ -240,12 +236,21 @@ begin
 {$endif ndef NODEBUG}
       if Not RunDirect then
         exit;
+      {$I-}
+       GetDir(0,oldcurrdir);
+       chdir(GetRunDir);
+      {$I+}   
+      EatIO;
 {$ifdef Unix}
       if (DebuggeeTTY<>'') then
         DoExecute(ExeFile,GetRunParameters,DebuggeeTTY,DebuggeeTTY,DebuggeeTTY,exNormal)
       else
 {$endif Unix}
       DoExecute(ExeFile,GetRunParameters,'','','',exNormal);
+      {$I-}
+       chdir(oldcurrdir);
+      {$I+}   
+      EatIO;
       { In case we have something that the compiler touched }
       AskToReloadAllModifiedFiles;
       LastExitCode:=ExecuteResult;
@@ -288,6 +293,16 @@ begin
   MenuItem:=PAdvancedMenuBar(MenuBar)^.GetMenuItem(cmUntilReturn);
   if assigned(MenuItem) then
     MenuItem^.Disabled:=not DebuggeeRunning;
+end;
+
+
+procedure TIDEApp.RunDir;
+var
+  s : DirStr;
+begin
+  s:=GetRunDir;
+  SelectDir(s,hidRunDir);
+  SetRunDir(s);
 end;
 
 
@@ -495,7 +510,15 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-12-18 01:21:42  pierre
+  Revision 1.9  2004-11-08 20:28:26  peter
+    * Breakpoints are now deleted when removed from source, disabling is
+      still possible from the breakpoint list
+    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
+      FV and 1.9.x compilers
+    * Run directory added to Run menu
+    * Useless programinfo window removed
+
+  Revision 1.8  2002/12/18 01:21:42  pierre
    + Use TEditorInputLine instead of TInputLine
 
   Revision 1.7  2002/12/16 09:06:08  pierre
