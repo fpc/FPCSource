@@ -226,7 +226,7 @@ begin
     Result:=VAR_OK;
 end;
 
-Function SafeArrayCalculateElementAddress(psa: PVarArray; aElement: Integer): Pointer;
+Function SafeArrayCalculateElementAddress(psa: PVarArray; aElement: SizeInt): Pointer;
 
 begin
   Result:=Pointer(psa^.Data)+(aElement*psa^.ElementSize);
@@ -295,7 +295,6 @@ end;
 Function SafeArrayClearDataSpace(psa: PVarArray; WipeBytes: Boolean {= True}): HRESULT;
 
 var
-  I :  Integer;
   vat: TVariantArrayType;
 
 begin
@@ -317,7 +316,6 @@ end;
 
 Function SafeArrayCopyDataSpace(psa, psaOut: PVarArray): HRESULT;
 var
-  I : Integer;
   vVargSrc, vTarget: Pointer;
   vat: TVariantArrayType;
 begin
@@ -351,10 +349,10 @@ Const
      ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_NONE,ARR_UNKNOWN,
      ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
 
-Function SafeArrayCreate(VarType, Dim: Integer; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
+Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
 var
   res : HRESULT;
-  I   : Longint;
+  I   : SizeInt;
 begin
   Result:=nil;
   if Not (VarType in Supportedpsas) Then
@@ -381,7 +379,7 @@ begin
     end;
 end;
 
-Function SafeArrayAllocDescriptor(DimCount: Integer; var psa: PVarArray): HRESULT;stdcall;
+Function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT;stdcall;
 begin
   try
     psa:=GetMem(SizeOf(TVarArray) + SizeOf(TVarArrayBound) * (DimCount - 1));
@@ -588,7 +586,7 @@ begin
   end;
 end;
 
-Function SafeArrayGetLBound(psa: PVarArray; Dim: Integer; var LBound: Integer): HRESULT;stdcall;
+Function SafeArrayGetLBound(psa: PVarArray; Dim: SizeInt; var LBound: SizeInt): HRESULT;stdcall;
 begin
   Result:=CheckVarArray(psa);
   if Result<>VAR_OK then
@@ -599,7 +597,7 @@ begin
     Result:=VAR_BADINDEX;
 end;
 
-Function SafeArrayGetUBound(psa: PVarArray; Dim: Integer; var UBound: Integer): HRESULT;stdcall;
+Function SafeArrayGetUBound(psa: PVarArray; Dim: SizeInt; var UBound: SizeInt): HRESULT;stdcall;
 begin
   Result:=CheckVarArray(psa);
   if Result<>VAR_OK then
@@ -611,7 +609,7 @@ begin
     Result:=VAR_BADINDEX
 end;
 
-Function SafeArrayGetDim(psa: PVarArray): Integer;stdcall;
+Function SafeArrayGetDim(psa: PVarArray): SizeInt;stdcall;
 begin
   if CheckVarArray(psa)<>VAR_OK then
     Result:=0
@@ -715,7 +713,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.20  2005-02-24 22:36:36  florian
+  Revision 1.21  2005-02-25 14:39:31  peter
+    * 64bit fixes
+
+  Revision 1.20  2005/02/24 22:36:36  florian
     + some variant stuff fixed and added
 
   Revision 1.19  2005/02/14 17:13:31  peter

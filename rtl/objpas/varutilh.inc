@@ -35,18 +35,18 @@ function VariantInit(var Varg: TVarData): HRESULT; stdcall;
 
 function SafeArrayAccessData(psa: PVarArray; var ppvdata: Pointer): HRESULT; stdcall;
 function SafeArrayAllocData(psa: PVarArray): HRESULT; stdcall;
-function SafeArrayAllocDescriptor(DimCount: Integer; var psa: PVarArray): HRESULT; stdcall;
+function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT; stdcall;
 function SafeArrayCopy(psa: PVarArray; var psaout: PVarArray): HRESULT; stdcall;
 function SafeArrayCopyData(psa, psaOut: PVarArray): HRESULT; stdcall;
-function SafeArrayCreate(VarType, Dim: Integer; const Bounds: TVarArrayBoundArray): PVarArray; stdcall;
+function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArray): PVarArray; stdcall;
 function SafeArrayDestroy(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyData(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyDescriptor(psa: PVarArray): HRESULT; stdcall;
-function SafeArrayGetDim(psa: PVarArray): Integer; stdcall;
+function SafeArrayGetDim(psa: PVarArray): SizeInt; stdcall;
 function SafeArrayGetElemsize(psa: PVarArray): LongWord; stdcall;
 function SafeArrayGetElement(psa: PVarArray; Indices: PVarArrayCoorArray;  Data: Pointer): HRESULT; stdcall;
-function SafeArrayGetLBound(psa: PVarArray; Dim: Integer;  var LBound: Integer): HRESULT; stdcall;
-function SafeArrayGetUBound(psa: PVarArray; Dim: Integer;  var UBound: Integer): HRESULT; stdcall;
+function SafeArrayGetLBound(psa: PVarArray; Dim: SizeInt;  var LBound: SizeInt): HRESULT; stdcall;
+function SafeArrayGetUBound(psa: PVarArray; Dim: SizeInt;  var UBound: SizeInt): HRESULT; stdcall;
 function SafeArrayLock(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayPtrOfIndex(psa: PVarArray; Indices: PVarArrayCoorArray;  var Address: Pointer): HRESULT; stdcall;
 function SafeArrayPutElement(psa: PVarArray; Indices: PVarArrayCoorArray;  const Data: Pointer): HRESULT; stdcall;
@@ -104,7 +104,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2005-02-14 17:13:31  peter
+  Revision 1.10  2005-02-25 14:39:31  peter
+    * 64bit fixes
+
+  Revision 1.9  2005/02/14 17:13:31  peter
     * truncate log
 
 }
