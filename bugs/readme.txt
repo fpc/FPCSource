@@ -261,6 +261,11 @@ Fixed bugs:
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
   bug0215.pp   more bugs with static methods                        OK 0.99.11 (PM)
   bug0216.pp   problem with with fields as function args            OK 0.99.11 (PM)
+  bug0218.pp   rounding errors with write/str (the bug is fixed,    OK 0.99.11 (FK)
+               but there is still some rounding error left when
+               writing the extended value PFV;
+               this is also fixed now by using integer constants
+               in str and val FK)
   bug0219.pp   wrong error message                                  OK 0.99.11 (PFV)
   bug0220.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
   bug0223.pp   wrong boolean evaluation in writeln                  OK 0.99.11 (PFV)
@@ -301,9 +306,6 @@ bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0212.pp   problem with properties
 bug0217.pp   in tp mode can't use the procvar in writeln
-bug0218.pp   rounding errors with write/str (the bug is fixed, but there
-             is still some rounding error left when writing the extended
-             value PFV)
 bug0221.pp   syntax parsing incompatibilities with tp7
 bug0222.pp   an record field can't be the counter index (compiles with TP)
 bug0225.pp   Sigsegv when run with range checks on open arrays

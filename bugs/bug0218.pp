@@ -1,10 +1,12 @@
 Program Wrong_Output;
 {}
 Var r:Extended; s:String;
+d : double;
 {}
 Begin
   Writeln('Size of Extended type (r)=',SizeOf(r),' bytes');
   r:=0.000058184639;
+  d:=0.000058184639;
   Writeln('r=',r);
   Writeln('r=',r:16:13);
   Writeln('r=',r:15:12);
