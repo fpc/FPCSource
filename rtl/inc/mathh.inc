@@ -49,7 +49,7 @@
 
     function power(bas,expo : longint) : longint;
 
-{$ifdef _SUPPORT_FIXED}
+{$ifdef HASFIXED}
     function sqrt(d : fixed) : fixed;
     function Round(x: fixed): longint;
     function sqr(d : fixed) : fixed;
@@ -57,11 +57,14 @@
     function frac(d : fixed) : fixed;
     function trunc(d : fixed) : longint;
     function int(d : fixed) : fixed;
-{$endif SUPPORT_FIXED}
+{$endif HASFIXED}
 
 {
   $Log$
-  Revision 1.8  2000-02-09 16:59:30  peter
+  Revision 1.9  2000-02-15 14:36:57  florian
+    * disabled FIXED data type per default
+
+  Revision 1.8  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.7  2000/01/07 16:41:34  daniel

@@ -22,7 +22,9 @@ unit mmx;
        tmmxbyte = array[0..7] of byte;
        tmmxword = array[0..3] of word;
        tmmxinteger = array[0..3] of integer;
+{$ifdef HASFIXED}
        tmmxfixed = array[0..3] of fixed16;
+{$endif HASFIXED}
        tmmxlongint = array[0..1] of longint;
        tmmxcardinal = array[0..1] of cardinal;
        { for the AMD 3D }
@@ -32,7 +34,9 @@ unit mmx;
        pmmxbyte = ^tmmxbyte;
        pmmxword = ^tmmxword;
        pmmxinteger = ^tmmxinteger;
+{$ifdef HASFIXED}
        pmmxfixed = ^tmmxfixed;
+{$endif HASFIXED}
        pmmxlongint = ^tmmxlongint;
        pmmxcardinal = ^tmmxcardinal;
        { for the AMD 3D }
@@ -123,7 +127,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.6  2000-02-09 16:59:29  peter
+    Revision 1.7  2000-02-15 14:37:36  florian
+      * disabled FIXED data type per default
+
+    Revision 1.6  2000/02/09 16:59:29  peter
       * truncated log
 
     Revision 1.5  2000/01/07 16:41:33  daniel

@@ -38,7 +38,9 @@ unit typinfo;
        PDouble      =^Double;
        PExtended    =^Extended;
        PComp        =^Comp;
+{$ifdef HASFIXED}
        PFixed16     =^Fixed16;
+{$endif HASFIXED}
        { Doesn't exist ?
        PFIxed32  = ^Fixed32;
        }
@@ -816,7 +818,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2000-02-09 16:59:33  peter
+  Revision 1.38  2000-02-15 14:39:56  florian
+    * disabled FIXED data type per default
+
+  Revision 1.37  2000/02/09 16:59:33  peter
     * truncated log
 
   Revision 1.36  2000/01/07 16:41:44  daniel

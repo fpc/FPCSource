@@ -255,7 +255,7 @@
                          Fixed data type routines
  ****************************************************************************}
 
-{$ifdef _SUPPORT_FIXED} { Not yet allowed }
+{$ifdef HASFIXED} { Not yet allowed }
 
     function sqrt(d : fixed) : fixed;
 
@@ -366,11 +366,14 @@
       Round:= longint(highf);
     end;
 
-{$endif SUPPORT_FIXED}
+{$endif HASFIXED}
 
 {
   $Log$
-  Revision 1.20  2000-02-09 16:59:29  peter
+  Revision 1.21  2000-02-15 14:37:36  florian
+    * disabled FIXED data type per default
+
+  Revision 1.20  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.19  2000/01/07 16:41:33  daniel
@@ -385,5 +388,4 @@
 
   Revision 1.16  1999/09/15 20:24:11  florian
     * some math functions are now coded inline by the compiler
-
 }
