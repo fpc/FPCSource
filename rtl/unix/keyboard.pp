@@ -1093,6 +1093,12 @@ Begin
               store[arrayind]:=ch;
               inc(arrayind);
             end;
+          if not assigned(NNPT) then
+            begin
+              if ch<>#0 then
+                PushKey(ch);
+              break;
+            end;
         end;
       if assigned(NPT) and NPT^.CanBeTerminal then
         begin
@@ -1710,7 +1716,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-06-27 21:37:38  peter
+  Revision 1.5  2001-08-02 20:56:08  peter
+    * Regenerated
+
+  Revision 1.4  2001/06/27 21:37:38  peter
     * v10 merges
 
   Revision 1.3  2001/04/10 23:35:02  peter

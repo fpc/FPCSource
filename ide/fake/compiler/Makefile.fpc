@@ -4,3 +4,6 @@
 
 [target]
 units=browcol compiler systems version comphook globtype tokens
+
+[default]
+fpcdir=../../..
