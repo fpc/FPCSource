@@ -18,6 +18,8 @@ unit system;
 interface
 
 {$define StdErrToConsole}
+{$define useLongNamespaceByDefault}
+{$define autoHeapRelease}
 
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
@@ -36,8 +38,8 @@ type THandle = DWord;
 {Platform specific information}
 const
  LineEnding = #13#10;
- LFNSupport = false; { ??? - that's how it was declared in dos.pp! }
- DirectorySeparator = '\';
+ LFNSupport : boolean = false;
+ DirectorySeparator = '/';
  DriveSeparator = ':';
  PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
@@ -96,15 +98,6 @@ implementation
 {$I nwsys.inc}
 {$I errno.inc}
 
-{procedure setup_arguments;
-begin
-end;
-}
-
-{procedure setup_environment;
-begin
-end;
-}
 
 var 
   CloseAllRemainingSemaphores : TSysCloseAllRemainingSemaphores = nil;
@@ -153,7 +146,9 @@ END;
                          System Dependent Exit code
 *****************************************************************************}
 
+{$ifdef autoHeapRelease}
 procedure FreeSbrkMem; forward;
+{$endif}
 
 var SigTermHandlerActive : boolean;
 
@@ -162,7 +157,9 @@ begin
   if assigned (CloseAllRemainingSemaphores) then CloseAllRemainingSemaphores;
   if assigned (ReleaseThreadVars) then ReleaseThreadVars;
 
+  {$ifdef autoHeapRelease}
   FreeSbrkMem;            { free memory allocated by heapmanager }
+  {$endif}
 
   if not SigTermHandlerActive then
   begin
@@ -176,17 +173,21 @@ end;
 {*****************************************************************************
                          Stack check code
 *****************************************************************************}
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
+
+const StackErr : boolean = false;
+
+procedure int_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
+  is set this function must preserve all registers
 
   With a 2048 byte safe area used to write to StdIo without crossing
   the stack boundary
 }
 begin
-  IF _stackavail > stack_size + 2048 THEN EXIT;
+  if StackErr then exit;  // avoid recursive calls
+  if _stackavail > stack_size + 2048 THEN EXIT;
+  StackErr := true;
   HandleError (202);
 end;
 {*****************************************************************************
@@ -203,8 +204,14 @@ end;
 function paramstr(l : longint) : string;
 begin
   if (l>=0) and (l+1<=argc) then
-   paramstr:=strpas(argv[l])
-  else
+  begin
+    paramstr:=strpas(argv[l]);
+    if l = 0 then  // fix nlm path
+    begin
+      for l := 1 to length (paramstr) do
+        if paramstr[l] = '\' then paramstr[l] := '/';
+    end;
+  end else
    paramstr:='';
 end;
 
@@ -235,6 +242,8 @@ assembler;
 asm
         movl    intern_HEAPSIZE,%eax
 end ['EAX'];
+
+{$ifdef autoHeapRelease}
 
 const HeapInitialMaxBlocks = 32;
 type THeapSbrkBlockList = array [1.. HeapInitialMaxBlocks] of pointer;
@@ -273,13 +282,14 @@ begin
         end;
     if (HeapSbrkLastUsed = HeapSbrkAllocated) then
     begin  { grow }
-      p2 := _realloc (HeapSbrkBlockList, HeapSbrkAllocated + HeapInitialMaxBlocks);
-      if p2 = nil then
+      p2 := _realloc (HeapSbrkBlockList, (HeapSbrkAllocated + HeapInitialMaxBlocks) * sizeof(pointer));
+      if p2 = nil then  // should we better terminate with error ?
       begin
         _free (Sbrk);
          Sbrk := nil;
          exit;
       end;
+      HeapSbrkBlockList := p2;
       inc (HeapSbrkAllocated, HeapInitialMaxBlocks);
     end;
     inc (HeapSbrkLastUsed);
@@ -304,7 +314,7 @@ begin
 end;
 
 {*****************************************************************************
-      OS Memory allocation / deallocation 
+      OS Memory allocation / deallocation
  ****************************************************************************}
 
 function SysOSAlloc(size: ptrint): pointer;
@@ -328,6 +338,22 @@ begin
       end;
   HandleError (204);  // invalid pointer operation
 end;
+
+{$else autoHeapRelease}
+
+{$define HAS_SYSOSFREE}
+
+procedure SysOSFree(p: pointer; size: ptrint);
+begin
+  _free (p);
+end;
+
+function SysOSAlloc(size: ptrint): pointer;
+begin
+  SysOSAlloc := _malloc (size);
+end;
+
+{$endif autoHeapRelease}
 
 { include standard heap management }
 {$I heap.inc}
@@ -574,7 +600,7 @@ Begin
    end;
 { real open call }
   FileRec(f).Handle := _open(p,oflags,438);
-  //WriteLn ('_open (',p,') liefert ',ErrNo, 'Handle: ',FileRec(f).Handle);
+  //WriteLn ('_open (',p,') returned ',ErrNo, 'Handle: ',FileRec(f).Handle);
   // errno does not seem to be set on succsess ??
   IF FileRec(f).Handle < 0 THEN
     if (ErrNo=Sys_EROFS) and ((OFlags and O_RDWR)<>0) then
@@ -661,16 +687,25 @@ begin
 end;
 
 procedure getdir(drivenr : byte;var dir : shortstring);
-VAR P  : ARRAY [0..255] OF CHAR;
-    Len: LONGINT;
+VAR P : ARRAY [0..255] OF CHAR;
+    i : LONGINT;
 begin
   P[0] := #0;
   _getcwd (@P, SIZEOF (P));
-  Len := _strlen (P);
-  IF Len > 0 THEN
-  BEGIN
-    Move (P, dir[1], Len);
-    BYTE(dir[0]) := Len;
+  i := _strlen (P);
+  if i > 0 then
+  begin
+    Move (P, dir[1], i);
+    BYTE(dir[0]) := i;
+    For i := 1 to length (dir) do
+      if dir[i] = '\' then dir [i] := '/';
+    // fix / after volume, the compiler needs that
+    // normaly root of a volumes is SERVERNAME/SYS:, change that
+    // to SERVERNAME/SYS:/
+    i := pos (':',dir);
+    if (i > 0) then
+      if i = Length (dir) then dir := dir + '/' else
+      if dir [i+1] <> '/' then insert ('/',dir,i+1);
   END ELSE
     InOutRes := 1;
 end;
@@ -818,6 +853,19 @@ Begin
 
   _Signal (_SIGTERM, @TermSigHandler);
 
+  {$ifdef useLongNamespaceByDefault}
+  if _getenv ('FPC_DISABLE_LONG_NAMESPACE') = nil then
+  begin
+    if _SetCurrentNameSpace (NW_NS_LONG) <> 255 then
+    begin
+      if _SetTargetNamespace (NW_NS_LONG) <> 255 then
+        LFNSupport := true
+      else
+        _SetCurrentNameSpace (NW_NS_DOS);
+    end;
+  end;  
+  {$endif useLongNamespaceByDefault}
+
 { Setup heap }
   InitHeap;
   SysInitExceptions;
@@ -841,7 +889,18 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  2004-07-30 15:05:25  armin
+  Revision 1.24  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.23  2004/07/30 15:05:25  armin
   make netware rtl compilable under 1.9.5
 
   Revision 1.22  2004/06/17 16:16:14  peter

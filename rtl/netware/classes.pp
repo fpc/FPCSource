@@ -25,10 +25,11 @@ interface
 
 uses
   sysutils,
-  rtlconst,
   types,
   typinfo,
+  rtlconst,
   systhrds;
+	
 
 {$i classesh.inc}
 
@@ -40,7 +41,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2004-01-22 17:11:23  peter
+  Revision 1.4  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.3  2004/01/22 17:11:23  peter
     * classes uses types to import TPoint and TRect
 
   Revision 1.2  2004/01/10 20:15:21  michael

@@ -147,6 +147,28 @@ begin
   FileTruncate:=(_chsize(Handle,Size) = 0);
 end;
 
+Function FileLock (Handle,FOffset,FLen : Longint) : Longint;
+begin
+  FileLock := _lock (Handle,FOffset,FLen);
+end;
+
+Function FileLock (Handle : Longint; FOffset,FLen : Int64) : Longint;
+begin
+  {$warning need to add 64bit FileLock call }
+  FileLock := FileLock (Handle, longint(FOffset),longint(FLen));
+end;
+
+Function FileUnlock (Handle,FOffset,FLen : Longint) : Longint;
+begin
+  FileUnlock := _unlock (Handle,FOffset,FLen);
+end;
+
+Function FileUnlock (Handle : Longint; FOffset,FLen : Int64) : Longint;
+begin
+  {$warning need to add 64bit FileUnlock call }
+  FileUnlock := FileUnlock (Handle, longint(FOffset),longint(FLen));
+end;
+
 Function FileAge (Const FileName : String): Longint;
 
 VAR Info : NWStatBufT;
@@ -542,7 +564,18 @@ end.
 {
 
   $Log$
-  Revision 1.15  2004-02-15 21:34:06  hajny
+  Revision 1.16  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.15  2004/02/15 21:34:06  hajny
     * overloaded ExecuteProcess added, EnvStr param changed to longint
 
   Revision 1.14  2004/01/20 23:11:20  hajny

@@ -14,14 +14,6 @@
 
  **********************************************************************}
 
-{ 2000/09/03 armin: first version
-  2001/04/08 armin: implemented more functions
-                      OK: Implemented and tested
-                      NI: not implemented
-  2001/04/15 armin: FindFirst bug corrected, FExpand and FSearch tested, GetCBreak, SetCBreak
-                    implemented
-}
-
 unit dos;
 interface
 
@@ -141,10 +133,45 @@ var
 {$endif HASTHREADVAR}
   lastdosexitcode : word;
 
+const maxargs=256;
 procedure exec(const path : pathstr;const comline : comstr);
+var c : comstr;
+    i : integer;
+    args : array[0..maxargs] of pchar;
+    arg0 : pathstr;
+    numargs : integer;
 begin
-  ConsolePrintf ('warning: fpc dos.exec not implemented'#13#10,0);
+  //writeln ('dos.exec (',path,',',comline,')');
+  arg0 := fexpand (path)+#0;
+  args[0] := @arg0[1];
+  numargs := 0;
+  c:=comline;
+  i:=1;
+  while i<=length(c) do
+  begin
+    if c[i]<>' ' then
+    begin
+      {Commandline argument found. append #0 and set pointer in args }
+      inc(numargs);
+      args[numargs]:=@c[i];
+      while (i<=length(c)) and (c[i]<>' ') do
+        inc(i);
+      c[i] := #0;
+    end;
+    inc(i);
+  end;
+  args[numargs+1] := nil;
+  i := spawnvp (P_WAIT,args[0],@args);
+  if i >= 0 then
+  begin
+    doserror := 0;
+    lastdosexitcode := i;
+  end else
+  begin
+    doserror := 8;  // for now, what about errno ?
+  end;
 end;
+
 
 
 function dosexitcode : word;
@@ -208,7 +235,6 @@ begin
     getvolnum := drive-1;
 end;
 
-{$ifdef Int64}
 
 function diskfree(drive : byte) : int64;
 VAR Buf                 : ARRAY [0..255] OF CHAR;
@@ -224,7 +250,7 @@ begin
   if volumeNumber >= 0 then
   begin
     {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (volumeNumber,@Buf,
+    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
                                  TotalBlocks,
                                  SectorsPerBlock,
                                  availableBlocks,
@@ -254,7 +280,7 @@ begin
   if volumeNumber >= 0 then
   begin
     {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (volumeNumber,@Buf,
+    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
                                  TotalBlocks,
                                  SectorsPerBlock,
                                  availableBlocks,
@@ -268,69 +294,6 @@ begin
   end else
     disksize := 0;
 end;
-{$else}
-
-function diskfree(drive : byte) : longint;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
-    TotalBlocks         : WORD;
-    SectorsPerBlock     : WORD;
-    availableBlocks     : WORD;
-    totalDirectorySlots : WORD;
-    availableDirSlots   : WORD;
-    volumeisRemovable   : WORD;
-    volumeNumber        : LONGINT;
-begin
-  volumeNumber := getvolnum (drive);
-  if (volumeNumber >= 0) and (volumeNumber <= 255) then
-  begin
-    {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
-                                 TotalBlocks,
-                                 SectorsPerBlock,
-                                 availableBlocks,
-                                 totalDirectorySlots,
-                                 availableDirSlots,
-                                 volumeisRemovable) = 0 THEN
-    begin
-      diskfree := availableBlocks * SectorsPerBlock * 512;
-    end else
-      diskfree := 0;
-  end else
-    diskfree := 0;
-end;
-
-
-function disksize(drive : byte) : longint;
-VAR Buf                 : ARRAY [0..255] OF CHAR;
-    TotalBlocks         : WORD;
-    SectorsPerBlock     : WORD;
-    availableBlocks     : WORD;
-    totalDirectorySlots : WORD;
-    availableDirSlots   : WORD;
-    volumeisRemovable   : WORD;
-    volumeNumber        : LONGINT;
-begin
-  volumeNumber := getvolnum (drive);
-  if (volumeNumber >= 0) and (volumeNumber <= 255) then
-  begin
-    {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
-                                 TotalBlocks,
-                                 SectorsPerBlock,
-                                 availableBlocks,
-                                 totalDirectorySlots,
-                                 availableDirSlots,
-                                 volumeisRemovable) = 0 THEN
-    begin
-      disksize := TotalBlocks * SectorsPerBlock * 512;
-    end else
-      disksize := 0;
-  end else
-    disksize := 0;
-end;
-
-{$endif}
-
 
 {******************************************************************************
                      --- Findfirst FindNext ---
@@ -346,7 +309,9 @@ BEGIN
       attr := WORD (PNWDirEnt(EntryP)^.d_attr);  // lowest 16 bit -> same as dos
       time := PNWDirEnt(EntryP)^.d_time + (LONGINT (PNWDirEnt(EntryP)^.d_date) SHL 16);
       size := PNWDirEnt(EntryP)^.d_size;
-      name := strpas (PNWDirEnt(EntryP)^.d_nameDOS);
+      name := strpas (PNWDirEnt(EntryP)^.d_name);
+      if name = '' then
+        name := strpas (PNWDirEnt(EntryP)^.d_nameDOS);
       doserror := 0;
     END ELSE
     BEGIN
@@ -431,14 +396,14 @@ procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : ex
 var
    dotpos,p1,i : longint;
 begin
-  { allow slash as backslash }
+  { allow backslash as slash }
   for i:=1 to length(path) do
-   if path[i]='/' then path[i]:='\';
-  { get drive name }
+   if path[i]='\' then path[i]:='/';
+  { get volume name }
   p1:=pos(':',path);
   if p1>0 then
     begin
-       dir:=path[1]+':';
+       dir:=copy(path,1,p1);
        delete(path,1,p1);
     end
   else
@@ -447,14 +412,14 @@ begin
   { if path contains no backslashes                                 }
   while true do
     begin
-       p1:=pos('\',path);
+       p1:=pos('/',path);
        if p1=0 then
          break;
        dir:=dir+copy(path,1,p1);
        delete(path,1,p1);
     end;
   { try to find out a extension }
-  if LFNSupport then
+  //if LFNSupport then
     begin
        Ext:='';
        i:=Length(Path);
@@ -471,7 +436,7 @@ begin
        Ext:=Copy(Path,DotPos,255);
        Name:=Copy(Path,1,DotPos - 1);
     end
-  else
+(*  else
     begin
        p1:=pos('.',path);
        if p1>0 then
@@ -482,115 +447,25 @@ begin
        else
          ext:='';
        name:=path;
-    end;
+    end;*)
 end;
 
 
-function fexpand(const path : pathstr) : pathstr;
-var
-  s,pa : pathstr;
-  i,j  : longint;
+function  GetShortName(var p : String) : boolean;
 begin
-  getdir(0,s);
-  i:=ioresult;
-  if LFNSupport then
-   begin
-     pa:=path;
-   end
-  else
-   if FileNameCaseSensitive then
-    pa:=path
-   else
-    pa:=upcase(path);
-
-  { allow slash as backslash }
-  for i:=1 to length(pa) do
-   if pa[i]='/' then
-    pa[i]:='\';
-
-  if (length(pa)>1) and (pa[2]=':') and (pa[1] in ['A'..'Z','a'..'z']) then
-    begin
-       { Always uppercase driveletter }
-       if (pa[1] in ['a'..'z']) then
-        pa[1]:=Chr(Ord(Pa[1])-32);
-       { we must get the right directory }
-       getdir(ord(pa[1])-ord('A')+1,s);
-       i:=ioresult;
-       if (ord(pa[0])>2) and (pa[3]<>'\') then
-         if pa[1]=s[1] then
-           begin
-             { remove ending slash if it already exists }
-             if s[length(s)]='\' then
-              dec(s[0]);
-             pa:=s+'\'+copy (pa,3,length(pa));
-           end
-         else
-           pa:=pa[1]+':\'+copy (pa,3,length(pa))
-    end
-  else
-    if pa[1]='\' then
-      begin
-        { Do not touch Network drive names if LFNSupport is true }
-        if not ((Length(pa)>1) and (pa[2]='\') and LFNSupport) then
-          pa:=s[1]+':'+pa;
-      end
-    else if s[0]=#3 then
-      pa:=s+pa
-    else
-      pa:=s+'\'+pa;
-
-{ Turbo Pascal gives current dir on drive if only drive given as parameter! }
-if length(pa) = 2 then
- begin
-   getdir(byte(pa[1])-64,s);
-   pa := s;
- end;
-
-{First remove all references to '\.\'}
-  while pos ('\.\',pa)<>0 do
-   delete (pa,pos('\.\',pa),2);
-{Now remove also all references to '\..\' + of course previous dirs..}
-  repeat
-    i:=pos('\..\',pa);
-    if i<>0 then
-     begin
-       j:=i-1;
-       while (j>1) and (pa[j]<>'\') do
-        dec (j);
-       if pa[j+1] = ':' then j := 3;
-       delete (pa,j,i-j+3);
-     end;
-  until i=0;
-
-  { Turbo Pascal gets rid of a \.. at the end of the path }
-  { Now remove also any reference to '\..'  at end of line
-    + of course previous dir.. }
-  i:=pos('\..',pa);
-  if i<>0 then
-   begin
-     if i = length(pa) - 2 then
-      begin
-        j:=i-1;
-        while (j>1) and (pa[j]<>'\') do
-         dec (j);
-        delete (pa,j,i-j+3);
-      end;
-      pa := pa + '\';
-    end;
-  { Remove End . and \}
-  if (length(pa)>0) and (pa[length(pa)]='.') then
-   dec(byte(pa[0]));
-  { if only the drive + a '\' is left then the '\' should be left to prevtn the program
-    accessing the current directory on the drive rather than the root!}
-  { if the last char of path = '\' then leave it in as this is what TP does! }
-  if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
-   dec(byte(pa[0]));
-  { if only a drive is given in path then there should be a '\' at the
-    end of the string given back }
-  if length(pa) = 2 then pa := pa + '\';
-  fexpand:=pa;
+  GetShortName := false;
 end;
 
+function  GetLongName(var p : String) : boolean;
+begin
+  GetLongName := false;
+end;
+
+
+{$define FPC_FEXPAND_DRIVES}
+{$define FPC_FEXPAND_VOLUMES}
+{$define FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$i fexpand.inc}
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
@@ -598,6 +473,7 @@ var
   s      : searchrec;
   newdir : pathstr;
 begin
+  write ('FSearch ("',path,'","',dirlist,'"');
 { check if the file specified exists }
   findfirst(path,anyfile,s);
   if doserror=0 then
@@ -611,9 +487,9 @@ begin
     fsearch:=''
   else
     begin
-       { allow slash as backslash }
+       { allow backslash as slash }
        for i:=1 to length(dirlist) do
-         if dirlist[i]='/' then dirlist[i]:='\';
+         if dirlist[i]='\' then dirlist[i]:='/';
        repeat
          p1:=pos(';',dirlist);
          if p1<>0 then
@@ -626,8 +502,8 @@ begin
             newdir:=dirlist;
             dirlist:='';
           end;
-         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
-          newdir:=newdir+'\';
+         if (newdir<>'') and (not (newdir[length(newdir)] in ['/',':'])) then
+          newdir:=newdir+'/';
          findfirst(newdir+path,anyfile,s);
          if doserror=0 then
           newdir:=newdir+path
@@ -701,19 +577,37 @@ begin
   ConsolePrintf ('warning: fpc dos.envstr not implemented'#13#10,0);
 end;
 
-{ the function exists in clib but i dont know how to set environment vars.
-  may be it's only a dummy in clib }
+{ works fine (at least with netware 6.5) }
 Function  GetEnv(envvar: string): string;
-var
-  envvar0 : array[0..256] of char;
-  p       : pchar;
+var envvar0 : array[0..512] of char;
+    p       : pchar;
+    i,isDosPath,res : longint;
 begin
-  strpcopy(envvar0,envvar);
-  p := _getenv (envvar0);
-  if p = NIL then
-    GetEnv := ''
-  else
-    GetEnv := strpas (p);
+  if upcase(envvar) = 'PATH' then
+  begin  // netware does not have search paths in the environment var PATH
+         // return it here (needed for the compiler)
+    GetEnv := '';
+    i := 1;
+    res := _NWGetSearchPathElement (i, isdosPath, @envvar0[0]);
+    while res = 0 do
+    begin
+      if GetEnv <> '' then GetEnv := GetEnv + ';';
+      GetEnv := GetEnv + envvar0;
+      inc (i);
+      res := _NWGetSearchPathElement (i, isdosPath, @envvar0[0]);
+    end;
+    for i := 1 to length(GetEnv) do
+      if GetEnv[i] = '\' then
+        GetEnv[i] := '/';
+  end else
+  begin
+    strpcopy(envvar0,envvar);
+    p := _getenv (envvar0);
+    if p = NIL then
+      GetEnv := ''
+    else
+      GetEnv := strpas (p);
+  end;
 end;
 
 
@@ -723,7 +617,8 @@ end;
 
 Procedure keep(exitcode : word);
 Begin
- { no netware equivalent }
+ { simply wait until nlm will be unloaded }
+ while true do _delay (60000);
 End;
 
 Procedure getintvec(intno : byte;var vector : pointer);
@@ -750,7 +645,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-02-17 17:37:26  daniel
+  Revision 1.11  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.10  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.9  2004/02/16 22:16:59  hajny
@@ -772,3 +678,4 @@ end.
     * old logs removed and tabs fixed
 
 }
+

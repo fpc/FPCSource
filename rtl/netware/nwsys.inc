@@ -15,13 +15,8 @@
 
  **********************************************************************}
 
-{ 2000/08/27 armin: first version
-  2001/03/08 armin: additional functions
-  2001/04/14 armin: additional functions for crt-unit
-}
 
 CONST Clib       = 'clib';
-
 
 TYPE
   dev_t         = LONGINT;
@@ -106,6 +101,8 @@ FUNCTION _tell   (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'tell';
 FUNCTION _write  (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'write';
 FUNCTION _read   (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'read';
 FUNCTION _filelength (filedes : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'filelength';
+FUNCTION _lock (filedes : LONGINT; Offset, Length : Cardinal) : LONGINT; CDECL; EXTERNAL Clib NAME 'lock';
+FUNCTION _unlock (filedes : LONGINT; Offset, Length : Cardinal) : LONGINT; CDECL; EXTERNAL Clib NAME 'unlock';
 
 TYPE
   NWModifyStructure =
@@ -184,7 +181,7 @@ FUNCTION __get_errno_ptr : _PLONGINT; CDECL; EXTERNAL Clib;
 FUNCTION _malloc (size : LONGINT) : POINTER; CDECL; EXTERNAL CLib NAME 'malloc';
 FUNCTION _realloc (p : POINTER; size : LONGINT) : POINTER; CDECL; EXTERNAL CLib NAME 'realloc';
 PROCEDURE _free (what : POINTER); CDECL; EXTERNAL CLib NAME 'free';
-FUNCTION _stackavail : LONGINT; CDECL; EXTERNAL CLib NAME 'stackavail';
+FUNCTION _stackavail : CARDINAL; CDECL; EXTERNAL CLib NAME 'stackavail';
 
 // Debug
 PROCEDURE _EnterDebugger; CDECL; EXTERNAL Clib NAME 'EnterDebugger';
@@ -332,10 +329,50 @@ CONST _SIGTERM = 6;
 
 PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME 'signal';
 
+FUNCTION _SetCurrentNameSpace (newNameSpace : BYTE) : BYTE;  CDECL; EXTERNAL Clib NAME 'SetCurrentNameSpace';
+FUNCTION _SetTargetNameSpace  (newNameSpace : BYTE) : BYTE;  CDECL; EXTERNAL Clib NAME 'SetTargetNameSpace';
+
+CONST
+  NW_NS_DOS     = 0;
+  NW_NS_MAC     = 1;
+  NW_NS_NFS     = 2;
+  NW_NS_FTAM    = 3;
+  NW_NS_LONG    = 4;
+
+function _NWAddSearchPathAtEnd (searchPath : pchar; var number : longint) : longint; cdecl; external Clib name 'NWAddSearchPathAtEnd';
+function _NWDeleteSearchPath (searchPathNumber : longint) : longint; cdecl; external Clib name 'NWDeleteSearchPath';
+function _NWInsertSearchPath (searchPathNumber : longint; path : pchar) : longint; cdecl; external Clib name 'NWInsertSearchPath';
+function _NWGetSearchPathElement (searchPathNumber : longint; var isDOSSearchPath : longint; searchPath : pchar) : longint; cdecl; external Clib name 'NWGetSearchPathElement';
+
+
+// values for __mode used with spawnxx()
+CONST
+   P_WAIT                    = 0;
+   P_NOWAIT                  = 1;
+   P_OVERLAY                 = 2;
+   P_NOWAITO                 = 4;
+   P_SPAWN_IN_CURRENT_DOMAIN = 8;
+
+
+//function spawnlp(mode:longint; path:Pchar; arg0:Pchar; args:array of const):longint;cdecl;external CLib name 'spawnlp';
+function spawnlp(mode:longint; path:Pchar; arg0:Pchar):longint;cdecl;external Clib name 'spawnlp';
+function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external Clib name 'spawnvp';
+
 
 {
   $Log$
-  Revision 1.9  2003-03-25 18:17:54  armin
+  Revision 1.10  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.9  2003/03/25 18:17:54  armin
   * support for fcl, support for linking without debug info
   * renamed winsock2 to winsock for win32 compatinility
   * new sockets unit for netware
@@ -358,3 +395,4 @@ PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME
         * Additional routines needed for MT
 
 }
+

@@ -3,17 +3,19 @@
   Netware Server Imports for FreePascal, contains definitions for the
   netware server protocol library
 
-  Initial Version 2002/02/23 Armin (diehl@nordrhein.de or armin@freepascal.org)
+  Initial Version 2003/02/23 Armin (diehl@nordrhein.de or armin@freepascal.org)
 
   The C-NDK and Documentation can be found here:
     http://developer.novell.com
 
-  This program is distributed in the hope that it will be useful,but WITHOUT 
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+  This program is distributed in the hope that it will be useful,but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.
 
   Do not blame Novell if there are errors in this file, instead
   contact me and i will se what i can do.
+
+  This module is untested, for the socket functions please use winsock
 }
 
 unit nwprot;
@@ -60,7 +62,7 @@ type
 
 const
    SNPA_MX = 10;   // maximum address mapping size is that largest we currently use
-   
+
 // Simple IP interface information block --
 type
    Pip_if_info = ^Tip_if_info;
@@ -223,32 +225,32 @@ type
     { Declare the context block.  The client must supply the actual
       block by placing NETDB_DEFINE_CONTEXT in one of the C modules
       in the link. }
-      var nwSocketCtx : longint;cvar;external;
+//      var nwSocketCtx : longint;cvar;external;
 
     { ------------------------------------------------------------------------
                             Host file examination
        ------------------------------------------------------------------------  }
 { Local-file-only routines  }
 
-function NWgethostbyname(nwsktctx:Pnwsockent; name:Pchar):Phostent;cdecl;external 'tcpip' name 'NWgethostbyname';
-function NWgethostbyname(var nwsktctx:Tnwsockent; name:Pchar):Phostent;cdecl;external 'tcpip' name 'NWgethostbyname';
+function NWgethostbyname(nwsktctx:Pnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
+function NWgethostbyname(var nwsktctx:Tnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyname';
 
-function NWgethostbyaddr(nwsktctx:Pnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external 'tcpip' name 'NWgethostbyaddr';
-function NWgethostbyaddr(var nwsktctx:Tnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external 'tcpip' name 'NWgethostbyaddr';
+function NWgethostbyaddr(nwsktctx:Pnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
+function NWgethostbyaddr(var nwsktctx:Tnwsockent; addr:Pchar; length:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NWgethostbyaddr';
 
-function NWgethostent(nwsktctx:Pnwsockent):Phostent;cdecl;external 'tcpip' name 'NWgethostent';
-function NWgethostent(var nwsktctx:Tnwsockent):Phostent;cdecl;external 'tcpip' name 'NWgethostent';
+function NWgethostent(nwsktctx:Pnwsockent):Phostent;cdecl;external {'tcpip'} name 'NWgethostent';
+function NWgethostent(var nwsktctx:Tnwsockent):Phostent;cdecl;external {'tcpip'} name 'NWgethostent';
 
-procedure NWsethostent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsethostent';
-procedure NWsethostent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsethostent';
+procedure NWsethostent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsethostent';
+procedure NWsethostent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsethostent';
 
-procedure NWendhostent(nwsktctx:Pnwsockent);cdecl;external 'tcpip' name 'NWendhostent';
-procedure NWendhostent(var nwsktctx:Tnwsockent);cdecl;external 'tcpip' name 'NWendhostent';
+procedure NWendhostent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendhostent';
+procedure NWendhostent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendhostent';
     { Internet Name Service routines  }
     {
        NetDBgethostbyname() -- returns the host entry (struct hostent  ) given
         the name of a host.
-      
+
         The local file sys:/etc/hosts is consulted first to see if the entry
         exists there.  If so, then that is returned.  If not, then if DNS is
         installed on the machine, it will be consulted to perform the lookup.
@@ -258,32 +260,32 @@ procedure NWendhostent(var nwsktctx:Tnwsockent);cdecl;external 'tcpip' name 'NWe
         This function returns NULL when an error occurs.  The integer
         nwsktent->nse_h_errno can be checked to determine the nature of the
         error.
-      
+
         The integer nwsktent->nse_h_errno can have the following values:
-      
+
           HOST_NOT_FOUND       No such host exists.
 
         If the NetDBgethostbyname function succeeds, it will return a pointer
         to a structure of type struct hostent.
-      
+
         Syntax:
           struct hostent   NetDBgethostbyname(struct nwsockent  nwsktent,
                                               char  name);
-      
+
              nwskent: Points to a context block.
-      
+
              name:    Official name of the host.
-      
+
         Returns:
           A pointer to the appropriate struct hostent if any that matches.
           NULL if no match found.
                                                                               }
-function NetDBgethostbyname(nwskent:Pnwsockent; name:Pchar):Phostent;cdecl;external 'tcpip' name 'NetDBgethostbyname';
-function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;external 'tcpip' name 'NetDBgethostbyname';
+function NetDBgethostbyname(nwskent:Pnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
+function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyname';
     {
        NetDBgethostbyaddr() -- returns the host entry (struct hostent  ) given
         the address of a host.
-      
+
         The local file sys:/etc/hosts is consulted first to see if the entry
         exists there.  If so, then that is returned.  If not, then if DNS is
         installed on the machine, it will be consulted to perform the lookup.
@@ -293,70 +295,70 @@ function NetDBgethostbyname(var nwskent:Tnwsockent; name:Pchar):Phostent;cdecl;e
         This function returns NULL when an error occurs.  The integer
         nwsktent->nse_h_errno can be checked to determine the nature of the
         error.
-      
+
         The integer nwsktent->nse_h_errno can have the following values:
-      
+
           HOST_NOT_FOUND       No such host exists.
-      
+
         If the NetDBgethostbyaddr function succeeds, it will return a pointer
         to a structure of type struct hostent.
-      
+
         Syntax:
           struct hostent   NetDBgethostbyaddr(struct nwsockent  nwskent,
                                               char  addr, int len, int type);
-      
+
              nwsktent: (Input) Points to a context block.
-      
+
              addr:     (Input) Internet address of the host.
 
              len:      (Input) Length of the Internet address, in bytes.
-      
+
              type:     (Input) Value corresponding to the type of Internet
                        address.  Currently, the type is always AF_INET.
-      
+
         Returns:
           A pointer to the appropriate struct hostent if any that matches.
           NULL if no match found.
                                                                               }
-function NetDBgethostbyaddr(nwsktent:Pnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external 'tcpip' name 'NetDBgethostbyaddr';
-function NetDBgethostbyaddr(var nwsktent:Tnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external 'tcpip' name 'NetDBgethostbyaddr';
-    {                                                                        
+function NetDBgethostbyaddr(nwsktent:Pnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
+function NetDBgethostbyaddr(var nwsktent:Tnwsockent; addr:Pchar; len:longint; _type:longint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostbyaddr';
+    {
        NetDBgethostent() -- returns the next sequential entry from the
         SYS:ETC/HOSTS file, opening the file it it is not already open.  Once
         the local file is depleted, all of the NIS host entries will be
         retrieved until those are depleted.
-      
+
         Note that there may be duplicate entries in the local and NIS databases.
         The caller should handle these appropriately.
-      
+
         This function returns NULL when an error occurs.  The integer
         nwsktent->nse_h_errno can be checked to determine the nature of the
         error.
-      
+
         The integer nwsktent->nse_h_errno can have the following values:
 
           HOST_NOT_FOUND       No more hosts exist in either SYS:ETC/HOSTS or
                                NIS.
-      
+
         Syntax:
           struct hostent   NetDBgethostent(struct nwsockent  nwsktent,
                                            short   ploc);
-      
+
           nwsktent:  (Input) Points to a context block.
 
           ploc:      (Output) If non-NULL, this short will indicate if this
                      entry is from the local sys:etc/hosts file (NETDB_LOC_LOCAL)
                      or from the NIS database (NETDB_LOC_NIS).
-      
+
                      Pass in NULL if you're not interested in this information.
-      
+
         Returns:
           A pointer to the next host entry if the function is successful.
           NULL if no more entries or an error occurred.
                                                                               }
-function NetDBgethostent(nwsktent:Pnwsockent; ploc:Psmallint):Phostent;cdecl;external 'tcpip' name 'NetDBgethostent';
-function NetDBgethostent(var nwsktent:Tnwsockent; ploc:Psmallint):Phostent;cdecl;external 'tcpip' name 'NetDBgethostent';
-    {                                                                        
+function NetDBgethostent(nwsktent:Pnwsockent; ploc:Psmallint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostent';
+function NetDBgethostent(var nwsktent:Tnwsockent; ploc:Psmallint):Phostent;cdecl;external {'tcpip'} name 'NetDBgethostent';
+    {
        NetDBsethostent() -- rewinds the SYS:ETC/HOSTS file if the file is
         already open.  This call guarantees that the next call to
         NetDBgethostent() will return the FIRST record in the local hosts file,
@@ -366,36 +368,36 @@ function NetDBgethostent(var nwsktent:Tnwsockent; ploc:Psmallint):Phostent;cdecl
         If the stayopen flag is set (nonzero), the SYS:ETC/HOSTS file is NOT
         closed after each call made to NetDBgethostbyname() or
         NetDBgethostbyaddr().
-      
+
         Syntax:
           void NetDBsethostent(struct nwsockent  nwsktent, int stayopen);
-      
+
           nwsktent:  (Input) Points to a context block.
-      
+
           stayopen:  (Input) If nonzero, causes SYS:ETC/HOSTS to remain open
                      after a call to NetDBgethostbyname() or
                      NetDBgethostbyaddr().
-      
+
         Returns:
           Nothing.
                                                                               }
-procedure NetDBsethostent(nwsktent:Pnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NetDBsethostent';
-procedure NetDBsethostent(var nwsktent:Tnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NetDBsethostent';
-    {                                                                        
+procedure NetDBsethostent(nwsktent:Pnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NetDBsethostent';
+procedure NetDBsethostent(var nwsktent:Tnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NetDBsethostent';
+    {
        NetDBendhostent() -- closes the SYS:ETC/HOSTS file.  Also ends access
         to the NIS database.  After this call, the next call to
         NetDBgethostent() will be from the beginning of the local file again.
-      
+
         Syntax:
           void NetDBendhostent(struct nwsockent  nwsktent);
 
           nwsktent:  (Input) Points to a context block.
-      
+
         Returns:
           Nothing.
                                                                               }
-procedure NetDBendhostent(nwsktent:Pnwsockent);cdecl;external 'tcpip' name 'NetDBendhostent';
-procedure NetDBendhostent(var nwsktent:Tnwsockent);cdecl;external 'tcpip' name 'NetDBendhostent';
+procedure NetDBendhostent(nwsktent:Pnwsockent);cdecl;external {'tcpip'} name 'NetDBendhostent';
+procedure NetDBendhostent(var nwsktent:Tnwsockent);cdecl;external {'tcpip'} name 'NetDBendhostent';
     {
        NetDBgethostname() -- this gets the current machine's host name into the
         passed in buffer (if it is large enough).
@@ -418,59 +420,59 @@ procedure NetDBendhostent(var nwsktent:Tnwsockent);cdecl;external 'tcpip' name '
            0: The call succeeded.
           -1: The call failed.
                                                                               }
-function NetDBgethostname(nwsktent:Pnwsockent; name:Pchar; namelen:longint):longint;cdecl;external 'tcpip' name 'NetDBgethostname';
-function NetDBgethostname(var nwsktent:Tnwsockent; name:Pchar; namelen:longint):longint;cdecl;external 'tcpip' name 'NetDBgethostname';
+function NetDBgethostname(nwsktent:Pnwsockent; name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
+function NetDBgethostname(var nwsktent:Tnwsockent; name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'NetDBgethostname';
 
 // Network file examination
-function NWgetnetbyname(nwsktctx:Pnwsockent; name:Pchar):Pnetent;cdecl;external 'tcpip' name 'NWgetnetbyname';
-function NWgetnetbyname(var nwsktctx:Tnwsockent; name:Pchar):Pnetent;cdecl;external 'tcpip' name 'NWgetnetbyname';
+function NWgetnetbyname(nwsktctx:Pnwsockent; name:Pchar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
+function NWgetnetbyname(var nwsktctx:Tnwsockent; name:Pchar):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyname';
 
-function NWgetnetbyaddr(nwsktctx:Pnwsockent; net:longint; _type:longint):Pnetent;cdecl;external 'tcpip' name 'NWgetnetbyaddr';
-function NWgetnetbyaddr(var nwsktctx:Tnwsockent; net:longint; _type:longint):Pnetent;cdecl;external 'tcpip' name 'NWgetnetbyaddr';
+function NWgetnetbyaddr(nwsktctx:Pnwsockent; net:longint; _type:longint):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyaddr';
+function NWgetnetbyaddr(var nwsktctx:Tnwsockent; net:longint; _type:longint):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetbyaddr';
 
-function NWgetnetent(nwsktctx:Pnwsockent):Pnetent;cdecl;external 'tcpip' name 'NWgetnetent';
-function NWgetnetent(var nwsktctx:Tnwsockent):Pnetent;cdecl;external 'tcpip' name 'NWgetnetent';
+function NWgetnetent(nwsktctx:Pnwsockent):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetent';
+function NWgetnetent(var nwsktctx:Tnwsockent):Pnetent;cdecl;external {'tcpip'} name 'NWgetnetent';
 
-procedure NWsetnetent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetnetent';
-procedure NWsetnetent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetnetent';
+procedure NWsetnetent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetnetent';
+procedure NWsetnetent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetnetent';
 
-procedure NWendnetent(nwsktctx:Pnwsockent);cdecl;external 'tcpip' name 'NWendnetent';
-procedure NWendnetent(var nwsktctx:Tnwsockent);cdecl;external 'tcpip' name 'NWendnetent';
+procedure NWendnetent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendnetent';
+procedure NWendnetent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendnetent';
 
 // Service file examination
-function NWgetservbyname(nwsktctx:Pnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external 'tcpip' name 'NWgetservbyname';
-function NWgetservbyname(var nwsktctx:Tnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external 'tcpip' name 'NWgetservbyname';
+function NWgetservbyname(nwsktctx:Pnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
+function NWgetservbyname(var nwsktctx:Tnwsockent; name:Pchar; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyname';
 
-function NWgetservbyport(nwsktctx:Pnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external 'tcpip' name 'NWgetservbyport';
-function NWgetservbyport(var nwsktctx:Tnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external 'tcpip' name 'NWgetservbyport';
+function NWgetservbyport(nwsktctx:Pnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
+function NWgetservbyport(var nwsktctx:Tnwsockent; port:longint; protocol:Pchar):Pservent;cdecl;external {'tcpip'} name 'NWgetservbyport';
 
-function NWgetservent(nwsktctx:Pnwsockent):Pservent;cdecl;external 'tcpip' name 'NWgetservent';
-function NWgetservent(var nwsktctx:Tnwsockent):Pservent;cdecl;external 'tcpip' name 'NWgetservent';
+function NWgetservent(nwsktctx:Pnwsockent):Pservent;cdecl;external {'tcpip'} name 'NWgetservent';
+function NWgetservent(var nwsktctx:Tnwsockent):Pservent;cdecl;external {'tcpip'} name 'NWgetservent';
 
-procedure NWsetservent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetservent';
-procedure NWsetservent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetservent';
+procedure NWsetservent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetservent';
+procedure NWsetservent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetservent';
 
-procedure NWendservent(nwsktctx:Pnwsockent);cdecl;external 'tcpip' name 'NWendservent';
-procedure NWendservent(var nwsktctx:Tnwsockent);cdecl;external 'tcpip' name 'NWendservent';
+procedure NWendservent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendservent';
+procedure NWendservent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendservent';
 
 // Protocol file examination
-function NWgetprotobyname(nwsktctx:Pnwsockent; name:Pchar):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotobyname';
-function NWgetprotobyname(var nwsktctx:Tnwsockent; name:Pchar):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotobyname';
+function NWgetprotobyname(nwsktctx:Pnwsockent; name:Pchar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
+function NWgetprotobyname(var nwsktctx:Tnwsockent; name:Pchar):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobyname';
 
-function NWgetprotobynumber(nwsktctx:Pnwsockent; protocol:longint):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotobynumber';
-function NWgetprotobynumber(var nwsktctx:Tnwsockent; protocol:longint):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotobynumber';
+function NWgetprotobynumber(nwsktctx:Pnwsockent; protocol:longint):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobynumber';
+function NWgetprotobynumber(var nwsktctx:Tnwsockent; protocol:longint):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotobynumber';
 
-function NWgetprotoent(nwsktctx:Pnwsockent):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotoent';
-function NWgetprotoent(var nwsktctx:Tnwsockent):Pprotoent;cdecl;external 'tcpip' name 'NWgetprotoent';
+function NWgetprotoent(nwsktctx:Pnwsockent):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotoent';
+function NWgetprotoent(var nwsktctx:Tnwsockent):Pprotoent;cdecl;external {'tcpip'} name 'NWgetprotoent';
 
-procedure NWsetprotoent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetprotoent';
-procedure NWsetprotoent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external 'tcpip' name 'NWsetprotoent';
+procedure NWsetprotoent(nwsktctx:Pnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetprotoent';
+procedure NWsetprotoent(var nwsktctx:Tnwsockent; stayopen:longint);cdecl;external {'tcpip'} name 'NWsetprotoent';
 
-procedure NWendprotoent(nwsktctx:Pnwsockent);cdecl;external 'tcpip' name 'NWendprotoent';
-procedure NWendprotoent(var nwsktctx:Tnwsockent);cdecl;external 'tcpip' name 'NWendprotoent';
+procedure NWendprotoent(nwsktctx:Pnwsockent);cdecl;external {'tcpip'} name 'NWendprotoent';
+procedure NWendprotoent(var nwsktctx:Tnwsockent);cdecl;external {'tcpip'} name 'NWendprotoent';
 
-function gethostname(name:Pchar; namelen:longint):longint;cdecl;external 'tcpip' name 'gethostname';
-function gethostid:longint;cdecl;external 'tcpip' name 'gethostid';
+function gethostname(name:Pchar; namelen:longint):longint;cdecl;external {'tcpip'} name 'gethostname';
+function gethostid:longint;cdecl;external {'tcpip'} name 'gethostid';
 {-tiuser.h---------------------------------------------------------------------}
 const
    EAGAIN = -(1);
@@ -518,7 +520,7 @@ const
    _T_DEFAULT = $10;
    _T_SUCCESS = $20;
    _T_FAILURE = $40;
-   
+
 var t_errno : longint;cvar;external;
 
     type
@@ -957,7 +959,7 @@ type
    Tmblk_t = Tmsgb;
    Pmblk_t = Pmsgb;
 
-   Pq_xtra = pointer;  // dont know where this is defined  
+   Pq_xtra = pointer;  // dont know where this is defined
 
    Pqueue = ^Tqueue;
    Tqueue = record
@@ -1113,7 +1115,7 @@ const
    STRMEDFRAC = 90;
    MAXBSIZE = MAXMSGSIZE;
 
-type TFuncLongCdecl = function : longint; cdecl;   
+type TFuncLongCdecl = function : longint; cdecl;
 
 function allocb(size:longint; pri:longint):Pmblk_t;cdecl;external 'streams' name 'allocb';
 function allocq:Pqueue_t;cdecl;external 'streams' name 'allocq';
@@ -1325,10 +1327,10 @@ const
     const
        IP_OPTIONS = 1;
 
-function ntohs(value:word):word;cdecl;external 'tcpip' name 'ntohs';
-function htons(value:word):word;cdecl;external 'tcpip' name 'htons';
-function ntohl(value:dword):dword;cdecl;external 'tcpip' name 'ntohl';
-function htonl(value:dword):dword;cdecl;external 'tcpip' name 'htonl';
+function ntohs(value:word):word;cdecl;external {'tcpip'} name 'ntohs';
+function htons(value:word):word;cdecl;external {'tcpip'} name 'htons';
+function ntohl(value:dword):dword;cdecl;external {'tcpip'} name 'ntohl';
+function htonl(value:dword):dword;cdecl;external {'tcpip'} name 'htonl';
 {------------------------------------------------------------------------------}
 
 implementation
@@ -1348,7 +1350,18 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-23 18:41:42  armin
+  Revision 1.2  2004-08-01 20:02:48  armin
+  * changed dir separator from \ to /
+  * long namespace by default
+  * dos.exec implemented
+  * getenv ('PATH') is now supported
+  * changed FExpand to global version
+  * fixed heaplist growth error
+  * support SysOSFree
+  * stackcheck was without saveregisters
+  * fpc can compile itself on netware
+
+  Revision 1.1  2003/02/23 18:41:42  armin
   * added nwprot, contains types/imports for netware server protocol library
 
 }

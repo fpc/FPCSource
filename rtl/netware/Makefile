@@ -225,7 +225,7 @@ else
 SYSTEMUNIT=sysnetwa
 endif
 override FPCOPT+=-Ur
-override FPCOPT+=-dMT
+override FPCOPT+=-dMT -dDEBUG_MT
 CREATESMART=0
 OBJPASDIR=$(RTL)/objpas
 override TARGET_UNITS+=$(SYSTEMUNIT) systhrds objpas strings lineinfo winsock heaptrc matrix initc dos crt objects sysutils classes typinfo math varutils cpu mmx getopts   sockets video mouse keyboard types dateutils rtlconst sysconst strutils convutils aio nwsnut nwserv nwnit nwprot
@@ -1401,7 +1401,8 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) nwsys.inc sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) sysconst$(PPUEXT)
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
+		   sysconst$(PPUEXT) types$(PPUEXT) systhrds$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
@@ -1412,7 +1413,7 @@ gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 		    objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
 	$(COMPILER) -I$(OBJPASDIR) varutils.pp
-types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
@@ -1432,9 +1433,6 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-		    $(OBJPASDIR)/varutilh.inc varutils.pp
-	$(COMPILER) -I$(OBJPASDIR) varutils.pp
 override INSTALLPPUFILES+=nwimp/aio.imp nwimp/aio.imp nwimp/audnlm32.imp \
 nwimp/calnlm32.imp nwimp/ccs.imp nwimp/ccs-os.imp nwimp/clibaux.imp \
 nwimp/clibctx.imp nwimp/clib.imp nwimp/clxnlm32.imp nwimp/dplsv386.imp \
