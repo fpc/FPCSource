@@ -440,6 +440,7 @@ begin
 
            'b' :
              begin
+{$ifdef supportbrowser}
                if UnsetBool(More,0) then
                 begin
                   exclude(initmoduleswitches,cs_browser);
@@ -467,6 +468,7 @@ begin
 {$else}
                    IllegalPara(opt);
 {$endif}
+{$endif supportbrowser}
              end;
 
            'B' :
@@ -2077,7 +2079,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.138  2004-07-05 21:26:28  olle
+  Revision 1.139  2004-08-27 21:59:26  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.138  2004/07/05 21:26:28  olle
     + allow fileextension .p, in mode macpas
 
   Revision 1.137  2004/07/04 12:24:04  jonas

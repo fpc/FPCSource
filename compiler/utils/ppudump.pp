@@ -1836,7 +1836,7 @@ begin
   else
    ppufile.skipuntilentry(ibendimplementation);
 {read the static browser units stuff}
-  if (ppufile.header.flags and uf_local_browser)<>0 then
+  if (ppufile.header.flags and uf_local_symtable)<>0 then
    begin
      if (verbose and v_defs)<>0 then
       begin
@@ -1854,28 +1854,10 @@ begin
         Writeln('Static Symbols');
         Writeln('------------------');
         readsymbols('implementation');
-      end;
+      end
+     else
+      ppufile.skipuntilentry(ibendsyms);
    end;
-{read the definitions}
-  if (verbose and v_defs)<>0 then
-   begin
-     Writeln;
-     Writeln('Implementation definitions');
-     Writeln('----------------------');
-     readdefinitions('implementation',false);
-   end
-  else
-   ppufile.skipuntilentry(ibenddefs);
-{read the symbols}
-  if (verbose and v_syms)<>0 then
-   begin
-     Writeln;
-     Writeln('Implementation Symbols');
-     Writeln('------------------');
-     readsymbols('implementation');
-   end
-  else
-   ppufile.skipuntilentry(ibendsyms);
 {read the browser units stuff}
   if (ppufile.header.flags and uf_has_browser)<>0 then
    begin
@@ -1986,7 +1968,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-07-12 09:14:04  jonas
+  Revision 1.54  2004-08-27 21:59:27  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.53  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).

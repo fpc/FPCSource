@@ -147,6 +147,7 @@ const
   uf_threadvars    = $4000;   { unit has threadvars }
   uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
   uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
+  uf_local_symtable = $20000; { this unit has a local symtable stored }
 
 type
   ppureal=extended;
@@ -1053,7 +1054,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2004-08-22 20:11:38  florian
+  Revision 1.56  2004-08-27 21:59:26  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.55  2004/08/22 20:11:38  florian
     * morphos now takes any pointer var. as libbase
     * alignment for sparc fixed
     * int -> double conversion on sparc fixed

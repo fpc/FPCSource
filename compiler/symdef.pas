@@ -3855,10 +3855,12 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if assigned(localst) and
-            ((proccalloption=pocall_inline) or
-             ((current_module.flags and uf_local_browser)<>0)) then
+         if (proccalloption=pocall_inline) or
+            ((current_module.flags and uf_local_browser)<>0) then
           begin
+            { we must write a localsymtable }
+            if not assigned(localst) then
+              insert_localst;
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
             tlocalsymtable(localst).ppuwrite(ppufile);
@@ -6154,7 +6156,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.252  2004-08-17 16:29:21  jonas
+  Revision 1.253  2004-08-27 21:59:26  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.252  2004/08/17 16:29:21  jonas
     + padalgingment field for recordsymtables (saved by recorddefs)
     + support for Macintosh PowerPC alignment (if the first field of a record
       or union has an alignment > 4, then the record or union size must be

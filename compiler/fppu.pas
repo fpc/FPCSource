@@ -910,14 +910,6 @@ uses
          b : byte;
          i : longint;
       begin
-        { load local symtable first }
-        {if ((flags and uf_local_browser)<>0) then
-          begin
-             localsymtable:=tstaticsymtable.create(modulename^);
-             tstaticsymtable(localsymtable).ppuload(ppufile);
-          end;}
-
-        { load browser }
         if (flags and uf_has_browser)<>0 then
           begin
             tstoredsymtable(globalsymtable).load_references(ppufile,true);
@@ -949,6 +941,8 @@ uses
           flags:=flags or uf_local_browser;
          if do_release then
           flags:=flags or uf_release;
+         if assigned(localsymtable) then
+           flags:=flags or uf_local_symtable;
 {$ifdef cpufpemu}
          if (cs_fp_emulation in aktmoduleswitches) then
            flags:=flags or uf_fpu_emulation;
@@ -994,8 +988,7 @@ uses
              derefdataintflen:=derefdata.size;
            end;
          tstoredsymtable(globalsymtable).buildderefimpl;
-         if {((flags and uf_local_browser)<>0) and}
-            assigned(localsymtable) then
+         if (flags and uf_local_symtable)<>0 then
            begin
              tstoredsymtable(localsymtable).buildderef;
              tstoredsymtable(localsymtable).buildderefimpl;
@@ -1021,8 +1014,7 @@ uses
 
          { write static symtable
            needed for local debugging of unit functions }
-         if {((flags and uf_local_browser)<>0) and}
-            assigned(localsymtable) then
+         if (flags and uf_local_symtable)<>0 then
            tstoredsymtable(localsymtable).ppuwrite(ppufile);
 
          { write all browser section }
@@ -1037,9 +1029,12 @@ uses
              end;
             ppufile.writeentry(ibendbrowser);
           end;
-         if ((flags and uf_local_browser)<>0) and
-            assigned(localsymtable) then
-           tstaticsymtable(localsymtable).write_references(ppufile,true);
+         if ((flags and uf_local_browser)<>0) then
+           begin
+             if not assigned(localsymtable) then
+               internalerror(200408271);
+             tstaticsymtable(localsymtable).write_references(ppufile,true);
+           end;
 
          { the last entry ibend is written automaticly }
 
@@ -1218,8 +1213,11 @@ uses
         numberunits;
 
         { load implementation symtable }
-        localsymtable:=tstaticsymtable.create(modulename^);
-        tstaticsymtable(localsymtable).ppuload(ppufile);
+        if (flags and uf_local_symtable)<>0 then
+          begin
+            localsymtable:=tstaticsymtable.create(modulename^);
+            tstaticsymtable(localsymtable).ppuload(ppufile);
+          end;
 
         { we can now derefence all pointers to the implementation parts }
         oldobjectlibrary:=objectlibrary;
@@ -1521,7 +1519,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.59  2004-07-09 22:17:31  peter
+  Revision 1.60  2004-08-27 21:59:26  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.59  2004/07/09 22:17:31  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

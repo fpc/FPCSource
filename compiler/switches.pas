@@ -60,7 +60,11 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$ifdef supportbrowser}
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
+{$else supportbrowser}
+   {L} (typesw:modulesw; setsw:ord(cs_localnone)),
+{$endif supportbrowser}
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -73,7 +77,11 @@ const
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
+{$ifdef supportbrowser}
    {Y} (typesw:modulesw; setsw:ord(cs_browser)),
+{$else supportbrowser}
+   {Y} (typesw:modulesw; setsw:ord(cs_localnone)),
+{$endif supportbrowser}
    {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
@@ -126,7 +134,7 @@ begin
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
-  
+
 { Handle the switch }
    with switchTablePtr^[switch] do
    begin
@@ -197,7 +205,7 @@ begin
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
-  
+
 { Check the switch }
    with switchTablePtr^[switch] do
    begin
@@ -218,7 +226,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2004-07-14 23:19:22  olle
+  Revision 1.16  2004-08-27 21:59:26  peter
+  browser disabled
+  uf_local_symtable ppu flag when a localsymtable is stored
+
+  Revision 1.15  2004/07/14 23:19:22  olle
     + added external facilities for macpas
 
   Revision 1.14  2004/06/20 08:55:30  florian
