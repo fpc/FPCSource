@@ -9,15 +9,25 @@ XMLRead:
 Provides a simple XML reader, which can read XML data from a file or stream.
 This simple parser will be replaced by a much improved one soon, which will be
 able to handle different character encodings, namespaces and entity references.
-(This parser cannot handle entity references correctly! And I don't plan to fix
-this old parser as this is much work. Additionally, it reads the file directly,
-i.e. it doesn't support Unicode or different charsets yet.)
+(This parser reads the file directly, i.e. it doesn't support Unicode or
+different charsets yet.)
+Regarding entity references: The pre-defined entities "lt", "gt", "amp", "apos"
+and "quot" are replaced by their normal value during reading. Other entity
+references are stored as TDOMEntityReference nodes in the DOM tree.
+Regarding whitespace handling: Whitespace directly after the beginning of a
+tag is discarded, and sections of the XML file which contain only whitespace and
+no other text content are discarded as well.
 
 XMLWrite:
 Writes a DOM structure as XML data into a file or stream. It can deal both with
 XML files and XML fragments.
 At the moment it supports only the node types which can be read by XMLRead.
-Please note that the writer replaces the '"' character in attribute values with
-'&quot;' and the '<' character in text nodes with '&lt;'. As this are entity
-references ('quot' and 'lt' are predefined entities in XML), the reader won't
-be able to read such files!
+Please note that the writer replaces some characters by entity references
+automatically:
+For attribute values, '"' gets replaced by '&quot;', and '&' gets replaced by
+'&amp'. For normal text nodes, the following replacements will be done:
+'<' => '&lt;'
+'>' => '&gt;'
+'&' => '&amp;'
+The XML reader (in xmlread.pp) will convert these entity references back to
+their original characters.
