@@ -732,8 +732,8 @@ ___prt1_startup:
         call _setup_go32_info_block
         incl ___environ_changed
 
-        finit                   /* initialize fpu */
-        fwait
+        fninit                   /* initialize fpu */
+        /* fwait  maybe this one is responsible of exceptions */
         fldcw   ___fpucw
 
         pushl   U_SYSTEM_ENVP
@@ -864,7 +864,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.2  1998-12-21 14:14:21  pierre
+  Revision 1.3  1999-01-05 10:44:59  pierre
+   * suppressed fwaits to avoid FPU not present exceptions
+
+  Revision 1.2  1998/12/21 14:14:21  pierre
   added some c vars needed to avoid loading od crt1.o
 
   Revision 1.1  1998/12/21 13:07:03  peter
