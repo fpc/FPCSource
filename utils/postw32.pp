@@ -21,27 +21,48 @@
 
  ****************************************************************************
 }
-
-program post_process_win32_executable;
-
-
+program postw32;
 uses
-  globtype,globals,strings;
+{$ifdef fpc}
+  strings
+{$else}
+  sysutils
+{$endif}
+  ;
 
 const
-execinfo_f_cant_open_executable='Cannot open file ';
-execinfo_x_codesize='Code size: ';
-execinfo_x_initdatasize='Size of Initialized Data: ';
-execinfo_x_uninitdatasize='Size of Uninitialized Data: ';
-execinfo_f_cant_process_executable='Cannot process file ';
-execinfo_x_stackreserve='Size of Stack Reserve: ';
-execinfo_x_stackcommit='Size of Stack Commit: ';
+  execinfo_f_cant_open_executable='Cannot open file ';
+  execinfo_x_codesize='Code size: ';
+  execinfo_x_initdatasize='Size of Initialized Data: ';
+  execinfo_x_uninitdatasize='Size of Uninitialized Data: ';
+  execinfo_f_cant_process_executable='Cannot process file ';
+  execinfo_x_stackreserve='Size of Stack Reserve: ';
+  execinfo_x_stackcommit='Size of Stack Commit: ';
+
+type
+  tapptype = (at_none,
+    at_gui,at_cui
+  );
+
 var
-verbose:longbool;
-ii,jj:longint;
-code:integer;
-DllVersion : sTring;
-Dllmajor,Dllminor : word;
+  verbose:longbool;
+  stacksize,
+  ii,jj:longint;
+  code:integer;
+  DllVersion : sTring;
+  Dllmajor,Dllminor : word;
+  apptype : tapptype;
+
+function tostr(i : longint) : string;
+{
+return string of value i
+}
+var
+  hs : string;
+begin
+  str(i,hs);
+  tostr:=hs;
+end;
 
 procedure Message1(const info,fn:string);
 var
@@ -241,20 +262,22 @@ begin
   postprocessexecutable:=true;
 end;
 
+
 var
   fn,s:string;
-
 function GetSwitchValue(const key,shortkey,default:string;const PossibleValues:array of pchar):string;
 var
   i,j,k:longint;
   x:double;
   s1,s2:string;
   code:integer;
-procedure Error;
+
+  procedure Error;
   begin
    writeln('Error: unrecognized option ',paramstr(i),' ',s1);
    halt(1);
   end;
+
 begin
   for i:=1 to paramcount do
    if(paramstr(i)=key)or(paramstr(i)=shortkey)then
@@ -297,6 +320,7 @@ begin
     end;
   GetSwitchValue:=default;
 end;
+
 procedure help_info;
 begin
   fn:=paramstr(0);
@@ -316,53 +340,51 @@ begin
   writeln('-h | --help | -?                 - show this screen');
   halt;
 end;
+
 begin
-aktglobalswitches:=[];
-verbose:=false;
-if paramcount=0 then
-  help_info;
-for ii:=1 to paramcount do
-  if(paramstr(ii)='-h')or(paramstr(ii)='--help')or(paramstr(ii)='-?')then
-   help_info
-  else if(paramstr(ii)='-v')or(paramstr(ii)='--verbose')then
-   begin
-    verbose:=true;
-    break;
-   end;
-fn:=GetSwitchValue('--input','-i','',['*s']);
-val(GetSwitchValue('--stack','-s','33554432',['*i']),stacksize,code);
-                                                 {value from
-                                                 systems.pas
-                                                 for Win32 target}
-
-s:=GetSwitchValue('--subsystem','-m','console',['gui','console']);
-if s='gui' then
-  apptype:=at_GUI
-else
-  apptype:=at_cui;
-
-dllversion:=GetSwitchValue('--version','-V','1.0',['*r']);
-ii:=pos('.',dllversion);
-if ii=0 then
-  begin
-   ii:=succ(length(dllversion));
-   dllversion:=dllversion+'.0';
-  end
-else if ii=1 then
-  begin
-   ii:=2;
-   dllversion:='0.'+dllversion;
-  end;
-val(copy(dllversion,1,pred(ii)),dllmajor,code);
-val(copy(dllversion,succ(ii),length(dllversion)),dllminor,code);
-if verbose then
-  writeln('Image Version: ',dllmajor,'.',dllminor);
-PostProcessExecutable(fn,false);
+  verbose:=false;
+  if paramcount=0 then
+    help_info;
+  for ii:=1 to paramcount do
+    if(paramstr(ii)='-h')or(paramstr(ii)='--help')or(paramstr(ii)='-?')then
+     help_info
+    else if(paramstr(ii)='-v')or(paramstr(ii)='--verbose')then
+     begin
+      verbose:=true;
+      break;
+     end;
+  fn:=GetSwitchValue('--input','-i','',['*s']);
+  val(GetSwitchValue('--stack','-s','33554432',['*i']),stacksize,code);
+  s:=GetSwitchValue('--subsystem','-m','console',['gui','console']);
+  if s='gui' then
+    apptype:=at_GUI
+  else
+    apptype:=at_cui;
+  dllversion:=GetSwitchValue('--version','-V','1.0',['*r']);
+  ii:=pos('.',dllversion);
+  if ii=0 then
+    begin
+     ii:=succ(length(dllversion));
+     dllversion:=dllversion+'.0';
+    end
+  else if ii=1 then
+    begin
+     ii:=2;
+     dllversion:='0.'+dllversion;
+    end;
+  val(copy(dllversion,1,pred(ii)),dllmajor,code);
+  val(copy(dllversion,succ(ii),length(dllversion)),dllminor,code);
+  if verbose then
+    writeln('Image Version: ',dllmajor,'.',dllminor);
+  PostProcessExecutable(fn,false);
 end.
 
 {
   $Log$
-  Revision 1.1  2000-04-14 11:10:46  pierre
+  Revision 1.1  2000-06-01 10:58:47  peter
+    * moved to utils
+
+  Revision 1.1  2000/04/14 11:10:46  pierre
    renamed to fit in 8.3 limitation
 
 }
