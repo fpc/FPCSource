@@ -166,6 +166,8 @@ implementation
                             { Some instructions don't allow memory references
                               for destination }
                             case instr.opcode of
+                              A_MOVZX,
+                              A_MOVSX,
                               A_MULSS,
                               A_MULSD,
                               A_SUBSS,
@@ -323,7 +325,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2005-02-14 17:13:10  peter
+  Revision 1.13  2005-03-10 00:27:04  peter
+  movzx,movsx don't support memory destinations
+
+  Revision 1.12  2005/02/14 17:13:10  peter
     * truncate log
 
 }
