@@ -304,31 +304,16 @@ End;
 Function IsConsole : Boolean;
 var
   ThisTTY: String[30];
-  FName : String;
-  TTYfd: longint;
 begin
   IsConsole:=false;
   { check for tty }
-  ThisTTY:=TTYName(stdinputhandle);
   if IsATTY(stdinputhandle) then
    begin
      { running on a tty, find out whether locally or remotely }
+     ThisTTY:=TTYName(stdinputhandle);
      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
         (ThisTTY[9] >= '0') and (ThisTTY[9] <= '9') then
-      begin
-        { running on the console }
-        FName:='/dev/vcsa' + ThisTTY[9];
-        { check with read only as it might already be
-          open in ReadWrite by video unit }
-        TTYFd:=fdOpen(FName, 0, Open_RdOnly); { open console }
-      end
-     else
-      TTYFd:=-1;
-     if TTYFd<>-1 then
-      begin
-        IsConsole:=true;
-        fdClose(TTYFd);
-      end;
+       IsConsole:=true;
    end;
 end;
 
@@ -569,15 +554,9 @@ end;
 Procedure LoadDefaultSequences;
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
-  { linux default values }
-  if IsConsole then
-    begin
-      DoAddSequence(#127,8,0);
-    end
-  else
-    begin
-      DoAddSequence(#127,0,kbDel);
-    end;
+  { linux default values, the next setting is
+    compatible with xterms from XFree 4.x }
+  DoAddSequence(#127,8,0);
   { all Esc letter }
   DoAddSequence(#27'A',0,kbAltA);
   DoAddSequence(#27'a',0,kbAltA);
@@ -1526,7 +1505,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-10-12 16:03:15  peter
+  Revision 1.10  2002-03-03 13:23:51  peter
+    * adjust backspace sequence so it works according to the latest
+      XFree xterms and linux consoles
+
+  Revision 1.9  2001/10/12 16:03:15  peter
     * pollkey fixes (merged)
 
   Revision 1.8  2001/09/21 21:33:36  michael
