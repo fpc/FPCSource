@@ -26,21 +26,11 @@ Unit aopt;
 
 Interface
 
-Uses Aasm, cobjects, aoptobj, aoptda, aoptcs, aoptpeep, aoptcpu;
+Uses Aasm, cobjects, aoptobj, aoptcpud, aoptcpub {aoptcs, aoptpeep} ;
 
 Type
 
-  TAsmOptimizer = Object
-    { the PAasmOutput list this optimizer instance works on }
-    AsmL: PAasmOutput;
-
-    { The labeltable contains the addresses of the Pai objects that are }
-    { labels                                                            }
-    LabelInfo: PLabelInfo;
-
-    { Start and end of the block that is currently being optimized, }
-    { initialized by InitDFA                                        }
-    BlockStart, BlockEnd: Pai;
+  TAsmOptimizer = Object(TAoptObj)
 
     { _AsmL is the PAasmOutpout list that has to be optimized }
     Constructor Init(_AsmL: PAasmOutput);
@@ -52,14 +42,22 @@ Type
     private
 
     Function FindLoHiLabels: Pai;
+    Procedure BuildLabelTableAndFixRegAlloc;
 
   End;
 
 Implementation
 
+uses cpuinfo, globtype, globals, tainst;
+
 Constructor TAsmOptimizer.Init(_AsmL: PAasmOutput);
 Begin
   AsmL := _AsmL;
+{setup labeltable, always necessary}
+  New(LabelInfo);
+  LabelInfo^.LowLabel := High(AWord);
+  LabelInfo^.HighLabel := 0;
+  LabelInfo^.LabelDif := 0;
 End;
 
 Function TAsmOptimizer.FindLoHiLabels: Pai;
@@ -70,26 +68,28 @@ Var LabelFound: Boolean;
 Begin
   LabelFound := False;
   P := BlockStart;
-  While Assigned(P) And
-        ((P^.typ <> Ait_Marker) Or
-         (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
+  With LabelInfo^ Do
     Begin
-      If (Pai(p)^.typ = ait_label) Then
-        If (Pai_Label(p)^.l^.is_used)
-          Then
-            Begin
-              LabelFound := True;
-              If (Pai_Label(p)^.l^.labelnr < LowLabel) Then
-                LowLabel := Pai_Label(p)^.l^.labelnr;
-              If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
-                HighLabel := Pai_Label(p)^.l^.labelnr;
-            End;
-      GetNextInstruction(p, p);
-    End;
-  FindLoHiLabels := p;
-  If LabelFound
-    Then LabelDif := HighLabel-LowLabel+1
-    Else LabelDif := 0;
+      While Assigned(P) And
+            ((P^.typ <> Ait_Marker) Or
+             (Pai_Marker(P)^.Kind <> AsmBlockStart)) Do
+        Begin
+          If (Pai(p)^.typ = ait_label) Then
+            If (Pai_Label(p)^.l^.is_used) Then
+              Begin
+                LabelFound := True;
+                If (Pai_Label(p)^.l^.labelnr < LowLabel) Then
+                  LowLabel := Pai_Label(p)^.l^.labelnr;
+                If (Pai_Label(p)^.l^.labelnr > HighLabel) Then
+                  HighLabel := Pai_Label(p)^.l^.labelnr
+              End;
+          GetNextInstruction(p, p)
+        End;
+      FindLoHiLabels := p;
+      If LabelFound
+        Then LabelDif := HighLabel-LowLabel+1
+        Else LabelDif := 0
+    End
 End;
 
 Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
@@ -99,7 +99,7 @@ Var p, hp1, hp2: Pai;
     UsedRegs: TRegSet;
 Begin
   UsedRegs := [];
-  With LabelInfo Do
+  With LabelInfo^ Do
     If (LabelDif <> 0) Then
       Begin
         GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
@@ -127,7 +127,7 @@ Begin
                           If hp2 <> nil Then
                             Begin
                               hp1 := New(PaiRegAlloc, DeAlloc(PaiRegAlloc(p)^.Reg));
-                              InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
+                              InsertLLItem(Pai(hp2^.previous), hp2, hp1);
                             End;
                         End;
                     End
@@ -144,51 +144,51 @@ Begin
                         Begin
                           hp1 := Pai(p^.previous);
                           AsmL^.Remove(p);
-                          InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                          InsertLLItem(hp2, Pai(hp2^.Next), p);
                           p := hp1;
-                        End;
-                End;
-            end;
+                        End
+                    End
+                End
+            End
           End;
         P := Pai(p^.Next);
         While Assigned(p) And
               (p^.typ in (SkipInstr - [ait_regalloc])) Do
-          P := Pai(P^.Next);
-      End;
+          P := Pai(P^.Next)
+      End
 End;
 
 
 
 Procedure TAsmOptimizer.Optimize;
 Var HP: Pai;
-    AsmDFA: TAsmDFA;
+    DFA: PAOptDFACpu;
 Begin
-{setup labeltable, always necessary}
   BlockStart := Pai(AsmL^.First);
-{Blockend now either contains an ait_marker with Kind = AsmBlockStart, or nil}
   While Assigned(BlockStart) Do
     Begin
       { Initialize BlockEnd and the LabelInfo (low and high label) }
       BlockEnd := FindLoHiLabels;
       { initialize the LabelInfo (labeltable) and fix the regalloc info }
-      BuilLabelTableAndFixRegAlloc;
+      BuildLabelTableAndFixRegAlloc;
       { peephole optimizations, twice because you can't do them all in one }
       { pass                                                               }
-      PeepHoleOptPass1;
-      PeepHoleOptPass1;
+{      PeepHoleOptPass1;
+      PeepHoleOptPass1;}
       If (cs_slowoptimize in aktglobalswitches) Then
         Begin
+          New(DFA,Init(AsmL,BlockStart,BlockEnd,LabelInfo));
           { data flow analyzer }
-          DFAPass2;
+          DFA^.DoDFA;
           { common subexpression elimination }
-          CSE;
+{          CSE;}
         End;
       { more peephole optimizations }
-      PeepHoleOptPass2;
+{      PeepHoleOptPass2;}
       {dispose labeltabel}
-      If Assigned(LabelInfo.LabelTable) Then
+      If Assigned(LabelInfo^.LabelTable) Then
         Begin
-          Dispose(LabelInfo.LabelTable);
+          Dispose(LabelInfo^.LabelTable);
           LabelInfo := Nil
         End;
       { continue where we left off, BlockEnd is either the start of an }
@@ -213,18 +213,31 @@ Begin
          { otherwise there is no assembler block anymore after the current }
          { one, so optimize the next block of "normal" instructions        }
         End
-   End
+    End;
 End;
 
 Destructor TAsmOptimizer.Done;
 Begin
+  Dispose(LabelInfo)
 End;
+
+End.
 
 {Virtual methods, most have to be overridden by processor dependent methods}
 
 {
  $Log$
- Revision 1.2  1999-08-09 14:07:22  jonas
+ Revision 1.3  1999-08-18 14:32:20  jonas
+   + compilable!
+   + dataflow analyzer finished
+   + start of CSE units
+   + aoptbase which contains a base object for all optimizer objects
+   * some constants and type definitions moved around to avoid circular
+     dependencies
+   * moved some methods from base objects to specialized objects because
+     they're not used anywhere else
+
+ Revision 1.2  1999/08/09 14:07:22  jonas
  commit.msg
 
  Revision 1.1  1999/08/08 13:24:50  jonas

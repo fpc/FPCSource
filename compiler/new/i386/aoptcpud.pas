@@ -26,24 +26,30 @@ Unit aoptcpud;
 
 Interface
 
-uses Aasm, AoptCpub, AoptObj, AoptDA;
+uses Aasm, cpubase, AoptCpub, AoptObj, AoptDA;
 
-Type TAsmDFACpu = Object(TAsmDFA)
-       { uses the same constructor as TAoptDFA = constructor from TAoptObj }
+Type
+  PAOptDFACpu = ^TAOptDFACpu;
+  TAOptDFACpu = Object(TAOptDFA)
+    { uses the same constructor as TAoptDFA = constructor from TAoptObj }
 
-       { handles the processor dependent dataflow analizing               }
-       Procedure CpuDFA(p: PInstr); Virtual;
-
-     End;
+    { handles the processor dependent dataflow analizing               }
+    Procedure CpuDFA(p: PInstr); Virtual;
+    Function TCh2Reg(Ch: TChange): TRegister; Virtual;
+    Function RegReadByInstr(Reg: TRegister; p: Pai): Boolean; Virtual;
+  End;
 
 Implementation
 
-Procedure TAsmDFACpu(p: PInstr);
+uses cpuinfo;
+
+Procedure TAOptDFACpu.CpuDFA(p: PInstr);
 { Analyzes the Data Flow of an assembler list. Analyses the reg contents     }
 { for the instructions between blockstart and blockend. Returns the last pai }
 { which has been processed                                                   }
 Var CurProp: PPaiProp;
     InstrProp: TAsmInstrucProp;
+    TmpRef: TReference;
     Cnt: Byte;
 Begin
   CurProp := PPaiProp(p^.OptInfo);
@@ -55,7 +61,7 @@ Begin
         If (p^.OpCode = A_IDIV) or
            (p^.OpCode = A_DIV) Then
           CurProp^.ReadReg(R_EDX);
-        DestroyReg(R_EAX)
+        CurProp^.DestroyReg(R_EAX, InstrSinceLastMod)
       End;
     A_IMUL:
       Begin
@@ -122,14 +128,14 @@ Begin
           {$endif arithopt}
               C_CDirFlag: CurProp^.CondRegs.ClearFlag(DirFlag);
               C_SDirFlag: CurProp^.CondRegs.SetFlag(DirFlag);
-              C_Rop1: ReadOp(CurProp, p^.oper[0]);
-              C_Rop2: ReadOp(CurProp, p^.oper[1]);
-              C_ROp3: ReadOp(CurProp, p^.oper[2]);
+              C_Rop1: CurProp^.ReadOp(p^.oper[0]);
+              C_Rop2: CurProp^.ReadOp(p^.oper[1]);
+              C_Rop3: CurProp^.ReadOp(p^.oper[2]);
               C_Wop1..C_RWop1:
                 Begin
                   If (InstrProp.Ch[Cnt] = C_RWop1) Then
-                    ReadOp(CurProp, p^.oper[0]);
-                  DestroyOp(p, p^.oper[0], InstrSinceLastMod);
+                    CurProp^.ReadOp(p^.oper[0]);
+                  CurProp^.DestroyOp(p^.oper[0], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
               C_Mop1:
@@ -138,8 +144,8 @@ Begin
               C_Wop2..C_RWop2:
                 Begin
                   If (InstrProp.Ch[Cnt] = C_RWop2) Then
-                    ReadOp(CurProp, p^.oper[1]);
-                  DestroyOp(p, p^.oper[1], InstrSinceLastMod);
+                    CurProp^.ReadOp(p^.oper[1]);
+                  CurProp^.DestroyOp(p^.oper[1], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
               C_Mop2:
@@ -148,8 +154,8 @@ Begin
               C_Wop3..C_RWop3:
                 Begin
                   If (InstrProp.Ch[Cnt] = C_RWop3) Then
-                    ReadOp(CurProp, p^.oper[2]);
-                  DestroyOp(p, p^.oper[2], InstrSinceLastMod);
+                    CurProp^.ReadOp(p^.oper[2]);
+                  CurProp^.DestroyOp(p^.oper[2], InstrSinceLastMod);
                 End;
         {$ifdef arithopt}
               C_Mop3:
@@ -160,10 +166,10 @@ Begin
                   CurProp^.ReadReg(R_EDI);
                   FillChar(TmpRef, SizeOf(TmpRef), 0);
                   TmpRef.Base := R_EDI;
-                  DestroyRefs(p, TmpRef, R_NO, InstrSinceLastMod)
+                  CurProp^.DestroyRefs(TmpRef, R_NO, InstrSinceLastMod)
                 End;
               C_RFlags, C_WFlags, C_RWFlags, C_FPU:;
-              Else DestroyAllRegs(CurProp, InstrSinceLastMod)
+              Else CurProp^.DestroyAllRegs(InstrSinceLastMod)
             End;
             Inc(Cnt)
           End
@@ -171,12 +177,96 @@ Begin
   End
 End;
 
+Function TAOptDFACpu.RegReadByInstr(Reg: TRegister; p: Pai): Boolean;
+Var Cnt: AWord;
+    InstrProp: TAsmInstrucProp;
+    TmpResult: Boolean;
+Begin
+  TmpResult := False;
+  If (p^.typ = ait_instruction) Then
+    Case PInstr(p)^.opcode of
+      A_IMUL:
+        With PInstr(p)^ Do
+          TmpResult :=
+            RegInOp(Reg,oper[0]) or
+            RegInOp(Reg,oper[1]) or
+            ((ops = 1) and
+             (reg = R_EAX));
+      A_DIV, A_IDIV, A_MUL:
+        With PInstr(p)^ Do
+          TmpResult :=
+            RegInOp(Reg,oper[0]) or
+            (Reg = R_EAX) or
+            ((Reg = R_EDX) and
+             ((opcode = A_DIV) or
+              (opcode = A_IDIV)) and
+             (opsize = S_L))
+      Else
+        Begin
+          Cnt := 1;
+          InstrProp := AsmInstr[PInstr(p)^.OpCode];
+          While (Cnt <= MaxCh) And
+                (InstrProp.Ch[Cnt] <> C_None) And
+                Not(TmpResult) Do
+            Begin
+              Case InstrProp.Ch[Cnt] Of
+                C_REAX..C_REDI,C_RWEAX..C_RWEDI
+  {$ifdef arithopt}
+                ,C_MEAX..C_MEDI
+  {$endif arithopt}:
+                  TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
+                C_ROp1,C_RWOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                  TmpResult := RegInOp(Reg,PInstr(p)^.oper[0]);
+                C_ROp2,C_RWOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                  TmpResult := RegInOp(Reg,PInstr(p)^.oper[1]);
+                C_ROp3,C_RWOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                  TmpResult := RegInOp(Reg,PInstr(p)^.oper[2]);
+                C_WOp1: TmpResult := (PInstr(p)^.oper[0].typ = top_ref) And
+                                     RegInRef(Reg,PInstr(p)^.oper[0].ref^);
+                C_WOp2: TmpResult := (PInstr(p)^.oper[1].typ = top_ref) And
+                                     RegInRef(Reg,PInstr(p)^.oper[1].ref^);
+                C_WOp3: TmpResult := (PInstr(p)^.oper[2].typ = top_ref) And
+                                     RegInRef(Reg,PInstr(p)^.oper[2].ref^);
+                C_WMemEDI: TmpResult := (Reg = R_EDI);
+                C_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7]
+              End;
+              Inc(Cnt)
+            End
+        End
+    End
+End;
+
+Function TAOptDFACpu.TCh2Reg(Ch: TChange): TRegister;
+Begin
+  If (Ch <= C_REDI) Then
+    TCh2Reg := TRegister(Byte(Ch))
+  Else
+    If (Ch <= C_WEDI) Then
+      TCh2Reg := TRegister(Byte(Ch) - Byte(C_REDI))
+    Else
+      If (Ch <= C_RWEDI) Then
+        TCh2Reg := TRegister(Byte(Ch) - Byte(C_WEDI))
+      Else
+        If (Ch <= C_MEDI) Then
+          TCh2Reg := TRegister(Byte(Ch) - Byte(C_RWEDI))
+End;
+
 
 End.
 
 {
   $Log$
-  Revision 1.1  1999-08-11 14:22:56  jonas
+  Revision 1.2  1999-08-18 14:32:26  jonas
+    + compilable!
+    + dataflow analyzer finished
+    + start of CSE units
+    + aoptbase which contains a base object for all optimizer objects
+    * some constants and type definitions moved around to avoid circular
+      dependencies
+    * moved some methods from base objects to specialized objects because
+      they're not used anywhere else
+
+  Revision 1.1  1999/08/11 14:22:56  jonas
     + first version, added TAsmDFACpu object and CpuDFA method
 
 }

@@ -3,7 +3,8 @@
     Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
     Development Team
 
-    This unit contains the assembler optimizer data flow analyzer.
+    This unit contains the data flow analyzer object of the assembler
+    optimizer.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,29 +26,34 @@ Unit aoptda;
 
 Interface
 
-uses aasm, aoptcpub, aoptcpu;
+uses aasm, cpubase, aoptcpub, aoptbase, aoptcpu;
 
-Type TAsmDFA = Object(TAoptCpu)
-       { uses the same constructor as TAoptCpu = constructor from TAoptObj }
+Type
+  TAOptDFA = Object(TAoptCpu)
+    { uses the same constructor as TAoptCpu = constructor from TAoptObj }
 
-       { gathers the information regarding the contents of every register }
-       { at the end of every instruction                                  }
-       Procedure TAsmOptimizer.DoDFA;
+    { gathers the information regarding the contents of every register }
+    { at the end of every instruction                                  }
+    Procedure DoDFA;
 
-       { handles the processor dependent dataflow analizing               }
-       Procedure CpuDFA(p: PInstr); Virtual;
+    { handles the processor dependent dataflow analizing               }
+    Procedure CpuDFA(p: PInstr); Virtual;
 
-      { How many instructions are between the current instruction and the }
-      { last one that modified the register                               }
-      NrOfInstrSinceLastMod: TInstrSinceLastMod;
+    { How many instructions are between the current instruction and the }
+    { last one that modified the register                               }
+    InstrSinceLastMod: TInstrSinceLastMod;
 
-     End;
+    { convert a TChange value into the corresponding register }
+    Function TCh2Reg(Ch: TChange): TRegister; Virtual;
+    { returns whether the instruction P reads from register Reg }
+    Function RegReadByInstr(Reg: TRegister; p: Pai): Boolean; Virtual;
+  End;
 
 Implementation
 
-uses cpubase
+uses globals, aoptobj;
 
-Procedure TAsmOptimizer.DoDFAPass2;
+Procedure TAOptDFA.DoDFA;
 { Analyzes the Data Flow of an assembler list. Analyses the reg contents     }
 { for the instructions between blockstart and blockend. Returns the last pai }
 { which has been processed                                                   }
@@ -61,8 +67,8 @@ Begin
   UsedRegs.init;
   UsedRegs.Update(p);
   NewBlockStart := SkipHead(p);
-{ done implicitely by the constructor
-  FillChar(NrOfInstrSinceLastMod, SizeOf(NrOfInstrSinceLastMod), 0); }
+  { done implicitely by the constructor
+  FillChar(InstrSinceLastMod, SizeOf(InstrSinceLastMod), 0); }
   While (P <> BlockEnd) Do
     Begin
       CurProp := New(PPaiProp, init);
@@ -71,50 +77,49 @@ Begin
           GetLastInstruction(p, hp);
           CurProp^.Regs := PPaiProp(hp^.OptInfo)^.Regs;
           CurProp^.CondRegs.Flags :=
-          PPaiProp(hp^.OptInfo)^.CondRegs.Flags;
+            PPaiProp(hp^.OptInfo)^.CondRegs.Flags;
         End;
       CurProp^.UsedRegs.InitWithValue(UsedRegs.GetUsedRegs);
-      UsedRegs.Update(Pai(p^.Next)));
+      UsedRegs.Update(Pai(p^.Next));
       PPaiProp(p^.OptInfo) := CurProp;
       For TmpReg := R_EAX To R_EDI Do
-        Inc(NrOfInstrSinceLastMod[TmpReg]);
+        Inc(InstrSinceLastMod[TmpReg]);
       Case p^.typ Of
         ait_label:
           If (Pai_label(p)^.l^.is_used) Then
-            CurProp^.DestroyAllRegs(NrOfInstrSinceLastMod);
+            CurProp^.DestroyAllRegs(InstrSinceLastMod);
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
-
         ait_instruction:
-          if not(pai386(p)^.is_jmp) then
+          if not(PInstr(p)^.is_jmp) then
             begin
               If IsLoadMemReg(p) Then
                 Begin
                   CurProp^.ReadRef(PInstr(p)^.oper[LoadSrc].ref);
                   TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
                   If RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^) And
-                     (CurProp^.Regs[TmpReg].Typ = Con_Ref) Then
+                     (CurProp^.GetRegContentType(TmpReg) = Con_Ref) Then
                     Begin
                       { a load based on the value this register already }
                       { contained                                       }
                       With CurProp^.Regs[TmpReg] Do
                         Begin
-                          IncWState;
+                          CurProp^.IncWState(TmpReg);
                            {also store how many instructions are part of the  }
                            { sequence in the first instruction's PPaiProp, so }
                            { it can be easily accessed from within            }
                            { CheckSequence                                    }
-                          Inc(NrOfMods, NrOfInstrSinceLastMod[TmpReg]);
+                          Inc(NrOfMods, InstrSinceLastMod[TmpReg]);
                           PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
-                                    NrOfInstrSinceLastMod[TmpReg] := 0
+                          InstrSinceLastMod[TmpReg] := 0
                         End
                     End
                   Else
                     Begin
                       { load of a register with a completely new value }
-                      CurProp^.DestroyReg(TmpReg, NrOfInstrSinceLastMod);
-                      If Not(RegInRef(TmpReg, Pai386(p)^.oper[LoadSrc].ref^)) Then
+                      CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
+                      If Not(RegInRef(TmpReg, PInstr(p)^.oper[LoadSrc].ref^)) Then
                         With CurProp^.Regs[TmpReg] Do
                           Begin
                             Typ := Con_Ref;
@@ -133,19 +138,48 @@ Begin
                   TmpReg := RegMaxSize(PInstr(p)^.oper[LoadDst].reg);
                   With CurProp^.Regs[TmpReg] Do
                     Begin
-                      CurProp^.DestroyReg(TmpReg, NrOfInstrSinceLastMod);
+                      CurProp^.DestroyReg(TmpReg, InstrSinceLastMod);
                       typ := Con_Const;
                       StartMod := Pointer(PInstr(p)^.oper[LoadSrc].val);
                     End
                 End
               Else CpuDFA(Pinstr(p));
             End;
-        Else CurProp^.DestroyAllRegs(NrOfInstrSinceLastMod);
+        Else CurProp^.DestroyAllRegs(InstrSinceLastMod);
       End;
-      Inc(InstrCnt);
+{      Inc(InstrCnt);}
       GetNextInstruction(p, p);
     End;
 End;
 
+Procedure TAoptDFA.CpuDFA(p: PInstr);
+Begin
+  Abstract
+End;
+
+Function TAOptDFA.TCh2Reg(Ch: TChange): TRegister;
+Begin
+  Abstract
+End;
+
+Function TAOptDFA.RegReadByInstr(Reg: TRegister; p: Pai): Boolean;
+Begin
+  Abstract
+End;
+
 
 End.
+
+{
+  $Log$
+  Revision 1.4  1999-08-18 14:32:21  jonas
+    + compilable!
+    + dataflow analyzer finished
+    + start of CSE units
+    + aoptbase which contains a base object for all optimizer objects
+    * some constants and type definitions moved around to avoid circular
+      dependencies
+    * moved some methods from base objects to specialized objects because
+      they're not used anywhere else
+
+}

@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1999 by Jonas Maebe, member of the Free Pascal
     Development Team
@@ -22,7 +22,7 @@
 
  ****************************************************************************
 }
-Unit aoptcpub; { Assembler OPTimizer CPU Base }
+Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 
 { enable the following define if memory references can have both a base and }
 { index register in 1 operand                                               }
@@ -40,6 +40,8 @@ Unit aoptcpub; { Assembler OPTimizer CPU Base }
 
 Interface
 
+uses aasm, cpubase, cpuasm, aoptbase;
+
 Type
 
 { possible actions on an operand: read, write or modify (= read & write) }
@@ -53,6 +55,10 @@ Type
 
   TFlagContents = (F_Unknown, F_Clear, F_Set);
 
+{ ************************************************************************* }
+{ **************************** TCondRegs ********************************** }
+{ ************************************************************************* }
+{ Info about the conditional registers                                      }
   TCondRegs = Object
                 Flags: Array[TFlag] of TFlagContents;
                 Constructor Init;
@@ -60,6 +66,7 @@ Type
                 Procedure SetFlag(f: TFlag);
                 Procedure ClearFlag(f: TFlag);
                 Function GetFlag(f: TFlag): TFlagContents;
+                Destructor Done;
               End;
 
 { What an instruction can change }
@@ -94,6 +101,21 @@ Type
              { assume all integer/general purpose registers are changed }
              C_All);
 
+{ ************************************************************************* }
+{ **************************** TAoptBaseCpu ******************************* }
+{ ************************************************************************* }
+
+  TAoptBaseCpu = Object(TAoptBase)
+    Function RegMaxSize(Reg: TRegister): TRegister; Virtual;
+    Function RegsSameSize(Reg1, Reg2: TRegister): Boolean; Virtual;
+    Function IsLoadMemReg(p: pai): Boolean; Virtual;
+    Function IsLoadConstReg(p: pai): Boolean; Virtual;
+    Function IsStoreRegMem(p: pai): Boolean; Virtual;
+  End;
+
+{ ************************************************************************* }
+{ ******************************* Constants ******************************* }
+{ ************************************************************************* }
 Const
 
 {$ifndef arithopt}
@@ -139,18 +161,12 @@ Const
 
   StoreDst = 1;
 
-
-{ low and high maximum width general purpose (integer) register }
-  LoGPReg = R_EAX;
-  HiGPReg = R_EDI;
-
-{ low and high of every possible width general purpose register (same as }
-{ above on most architctures apart from the 80x86)                       }
-  LoReg = R_EAX;
-  HiReg = R_BL;
-
-{ Stack pointer }
-  StackPtr = R_ESP;
+Type
+{ the properties of a cpu instruction }
+  TAsmInstrucProp = Record
+                      { what it changes }
+                      Ch: Array[1..MaxCh] of TChange;
+                    End;
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_<NONE>} (Ch: (C_All, C_None, C_None)), { new }
@@ -321,6 +337,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INT01} (Ch: (C_All, C_None, C_None)), { new }
   {A_INT1} (Ch: (C_All, C_None, C_None)), { new }
+{!!!} {A_INT03} (Ch: (C_None, C_None, C_None)),
   {A_INT3} (Ch: (C_None, C_None, C_None)),
   {A_INTO} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INVD} (Ch: (C_All, C_None, C_None)), { new }
@@ -466,6 +483,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_PXOR} (Ch: (C_All, C_None, C_None)), { new }
   {A_RCL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
   {A_RCR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
+{!!!}  {A_RDSHR} (Ch: (C_All, C_None, C_None)), { new }
   {A_RDMSR} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
   {A_RDPMC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
   {A_RDTSC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
@@ -475,6 +493,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_RETN} (Ch: (C_All, C_None, C_None)), { new }
   {A_ROL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
   {A_ROR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
+{!!!}  {A_RSDC} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_RSLDT} (Ch: (C_All, C_None, C_None)), { new }
   {A_RSM} (Ch: (C_All, C_None, C_None)), { new }
   {A_SAHF} (Ch: (C_WFlags, C_REAX, C_None)),
   {A_SAL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
@@ -492,6 +512,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_SIDT} (Ch: (C_Wop1, C_None, C_None)),
   {A_SLDT} (Ch: (C_Wop1, C_None, C_None)),
   {A_SMI} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SMINT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SMINTOLD} (Ch: (C_All, C_None, C_None)), { new }
   {A_SMSW} (Ch: (C_Wop1, C_None, C_None)),
   {A_STC} (Ch: (C_WFlags, C_None, C_None)),
   {A_STD} (Ch: (C_SDirFlag, C_None, C_None)),
@@ -501,12 +523,22 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_STOSW} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
   {A_STR}  (Ch: (C_Wop1, C_None, C_None)),
   {A_SUB} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
+{!!!}  {A_SVDC} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SVLDT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SVTS} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSCALL} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSENTER} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSEXIT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSRET} (Ch: (C_All, C_None, C_None)), { new }
   {A_TEST} (Ch: (C_WFlags, C_Rop1, C_Rop2)),
+{!!!}  {A_UD1} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_UD2} (Ch: (C_All, C_None, C_None)), { new }
   {A_UMOV} (Ch: (C_All, C_None, C_None)), { new }
   {A_VERR} (Ch: (C_WFlags, C_None, C_None)),
   {A_VERW} (Ch: (C_WFlags, C_None, C_None)),
   {A_WAIT} (Ch: (C_None, C_None, C_None)),
   {A_WBINVD} (Ch: (C_None, C_None, C_None)), { new }
+{!!!}  {A_WRSHR} (Ch: (C_All, C_None, C_None)), { new }
   {A_WRMSR} (Ch: (C_All, C_None, C_None)), { new }
   {A_XADD} (Ch: (C_All, C_None, C_None)), { new }
   {A_XBTS} (Ch: (C_All, C_None, C_None)), { new }
@@ -516,13 +548,100 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_XOR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
   {A_CMOV} (Ch: (C_ROp1, C_WOp2, C_RFLAGS)), { new }
   {A_J} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None))  { new }
+  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None)),  { new }
+{!!!! From here everything is new !!!!!!!!}
+  {ADDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {ADDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {ANDNPS} (Ch: (C_All, C_None, C_None)), { new }
+  {ANDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPEQPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPEQSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLEPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLESS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNEQPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNEQSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLEPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLESS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPORDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPORDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPUNORDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPUNORDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPSS} (Ch: (C_All, C_None, C_None)), { new }
+  {COMISS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTPI2PS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTSI2SS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
+  {DIVPS} (Ch: (C_All, C_None, C_None)), { new }
+  {DIVSS} (Ch: (C_All, C_None, C_None)), { new }
+  {LDMXCSR} (Ch: (C_All, C_None, C_None)), { new }
+  {MAXPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MAXSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MINPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MINSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVAPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVLHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVHLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVMSKPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVNTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVUPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MULPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MULSS} (Ch: (C_All, C_None, C_None)), { new }
+  {ORPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RCPPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RCPSS} (Ch: (C_All, C_None, C_None)), { new }
+  {RSQRTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RSQRTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {SHUFPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SQRTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SQRTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {STMXCSR} (Ch: (C_All, C_None, C_None)), { new }
+  {SUBPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SUBSS} (Ch: (C_All, C_None, C_None)), { new }
+  {UCOMISS} (Ch: (C_All, C_None, C_None)), { new }
+  {UNPCKHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {UNPCKLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {XORPS} (Ch: (C_All, C_None, C_None)), { new }
+  {FXRSTOR} (Ch: (C_All, C_None, C_None)), { new }
+  {FXSAVE} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHNTA} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT0} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT1} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT2} (Ch: (C_All, C_None, C_None)), { new }
+  {SFENCE} (Ch: (C_All, C_None, C_None)), { new }
+  {MASKMOVQ} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVNTQ} (Ch: (C_All, C_None, C_None)), { new }
+  {PAVGB} (Ch: (C_All, C_None, C_None)), { new }
+  {PAVGW} (Ch: (C_All, C_None, C_None)), { new }
+  {PEXTRW} (Ch: (C_All, C_None, C_None)), { new }
+  {PINSRW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMAXSW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMAXUB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMINSW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMINUB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMOVMSKB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMULHUW} (Ch: (C_All, C_None, C_None)), { new }
+  {PSADBW} (Ch: (C_All, C_None, C_None)), { new }
+  {PSHUFW} (Ch: (C_All, C_None, C_None)) { new }
   );
 
 Implementation
 
-{************************ TCondRegs ************************}
+uses cpuinfo;
 
+{ ************************************************************************* }
+{ **************************** TCondRegs ********************************** }
+{ ************************************************************************* }
 Constructor TCondRegs.init;
 Begin
   FillChar(Flags, SizeOf(Flags), Byte(F_Unknown))
@@ -540,7 +659,7 @@ End;
 
 Procedure TCondRegs.ClearFlag(f: TFlag);
 Begin
-  Flags[f] : =F_Clear
+  Flags[f] := F_Clear
 End;
 
 Function TCondRegs.GetFlag(f: TFlag): TFlagContents;
@@ -548,11 +667,82 @@ Begin
   GetFlag := Flags[f]
 End;
 
+Destructor TCondRegs.Done; {$ifdef inl} inline; {$endif inl}
+Begin
+End;
+{ ************************************************************************* }
+{ **************************** TAoptBaseCpu ******************************* }
+{ ************************************************************************* }
+
+Function TAoptBaseCpu.RegMaxSize(Reg: TRegister): TRegister;
+Begin
+  RegMaxSize := Reg;
+  If (Reg >= R_AX)
+    Then
+      If (Reg <= R_DI)
+        Then RegMaxSize := Reg16ToReg32(Reg)
+        Else
+          If (Reg <= R_BL)
+            Then RegMaxSize := Reg8toReg32(Reg)
+End;
+
+Function TAOptBaseCpu.RegsSameSize(Reg1, Reg2: TRegister): Boolean;
+Begin
+  If (Reg1 <= R_EDI)
+    Then RegsSameSize := (Reg2 <= R_EDI)
+    Else
+      If (Reg1 <= R_DI)
+        Then RegsSameSize := (Reg2 in [R_AX..R_DI])
+        Else
+          If (Reg1 <= R_BL)
+            Then RegsSameSize := (Reg2 in [R_AL..R_BL])
+            Else RegsSameSize := False
+End;
+
+Function TAOptBaseCpu.IsLoadMemReg(p: pai): Boolean;
+Begin
+  IsLoadMemReg :=
+    (p^.typ = ait_instruction) and
+    ((PInstr(p)^.OpCode = A_MOV) or
+     (PInstr(p)^.OpCode = A_MOVZX) or
+     (PInstr(p)^.OpCode = A_MOVSX)) And
+    (PInstr(p)^.oper[LoadSrc].typ = top_ref);
+End;
+
+Function TAOptBaseCpu.IsLoadConstReg(p: pai): Boolean;
+Begin
+  IsLoadConstReg :=
+    (p^.typ = ait_instruction) and
+    (PInstr(p)^.OpCode = A_MOV) And
+    (PInstr(p)^.oper[LoadSrc].typ = top_const);
+End;
+
+Function TAOptBaseCpu.IsStoreRegMem(p: pai): Boolean;
+Begin
+  IsStoreRegMem :=
+    (p^.typ = ait_instruction) and
+    ((PInstr(p)^.OpCode = A_MOV) or
+     (PInstr(p)^.OpCode = A_MOVZX) or
+     (PInstr(p)^.OpCode = A_MOVSX)) And
+    (PInstr(p)^.oper[StoreDst].typ = top_ref);
+End;
+
+
 End.
 
 {
  $Log$
- Revision 1.2  1999-08-11 14:24:38  jonas
+ Revision 1.3  1999-08-18 14:32:25  jonas
+   + compilable!
+   + dataflow analyzer finished
+   + start of CSE units
+   + aoptbase which contains a base object for all optimizer objects
+   * some constants and type definitions moved around to avoid circular
+     dependencies
+   * moved some methods from base objects to specialized objects because
+     they're not used anywhere else
+
+ Revision 1.2  1999/08/11 14:24:38  jonas
    - removed RefsHaveSymbol define (I think references on all processors can have a symbol)
 
  Revision 1.1  1999/08/09 14:07:28  jonas
