@@ -478,13 +478,13 @@ install:
 #####################################################################
 
 pstar:
-        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdocps
+        $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier=1 USETAR=y FULLZIPNAME=doc-ps
 
 pszip:
         $(MAKE) zipinstall ZIPTARGET=psinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-ps
 
 pdftar:
-        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdoc
+        $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier=1 USETAR=y FULLZIPNAME=doc-pdf
 
 pdfzip:
         $(MAKE) zipinstall ZIPTARGET=pdfinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-pdf
@@ -496,7 +496,7 @@ txtzip:
         $(MAKE) zipinstall ZIPTARGET=txtinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-txt
 
 htmltar:
-        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier=1 USETAR=y FULLZIPNAME=fpcdochtml
+        $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier=1 USETAR=y FULLZIPNAME=doc-html
 
 htmlzip:
         $(MAKE) zipinstall ZIPTARGET=htmlinstall UNIXHier= USEZIP=y FULLZIPNAME=doc-html
@@ -574,7 +574,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.10  2005-02-19 22:24:47  peter
+# Revision 1.11  2005-02-20 00:38:28  michael
+# + Changed tar.gz names to resemble zip names
+#
+# Revision 1.10  2005/02/19 22:24:47  peter
 #   * updated html target
 #
 # Revision 1.9  2005/02/18 23:04:15  michael
