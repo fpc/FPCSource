@@ -7,15 +7,13 @@ var
 
 begin
   str(MinCurrency:0:4,s);
-  { output according to delphi }
-  if s<>'-922337203685477.5810' then
+  if s<>'-922337203685477.5807' then
     begin
       writeln(s);
       halt(1);
     end;
   str(MaxCurrency:0:4,s);
-  { output according to delphi }
-  if s<>'922337203685477.5810' then
+  if s<>'922337203685477.5807' then
     begin
       writeln(s);
       halt(1);
