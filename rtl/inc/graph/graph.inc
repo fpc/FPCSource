@@ -1441,7 +1441,8 @@ const CrtAddress: word = 0;
          jne @novga
          { now check if this is the ATI EGA }
          mov ax,1c00h       { get state size for save...     }
-         mov cx,00h
+                            { ... all important data         }
+         mov cx,07h
 {$ifdef fpc}
          push ebp
 {$endif fpc}
@@ -2315,7 +2316,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.4  1999-07-12 13:27:08  jonas
+Revision 1.5  1999-07-14 14:32:12  florian
+  * small VGA detection problem solved
+
+Revision 1.4  1999/07/12 13:27:08  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal
