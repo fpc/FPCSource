@@ -1065,8 +1065,13 @@ implementation
                  (paralength<p^.procdefinition^.maxparacount) then
                begin
                  { add default parameters, just read back the skipped
-                   paras starting from firstpara^.previous }
-                 pdc:=pparaitem(procs^.firstpara^.previous);
+                   paras starting from firstpara^.previous, when not available
+                   (all parameters are default) then start with the last
+                   parameter and read backward (PFV) }
+                 if not assigned(procs^.firstpara) then
+                  pdc:=pparaitem(procs^.data^.para^.last)
+                 else
+                  pdc:=pparaitem(procs^.firstpara^.previous);
                  while assigned(pdc) do
                   begin
                     if not assigned(pdc^.defaultvalue) then
@@ -1248,7 +1253,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-06 19:39:28  peter
+  Revision 1.5  2000-08-08 19:23:28  peter
+    * crash fix for default para when all parameters were omitted
+
+  Revision 1.4  2000/08/06 19:39:28  peter
     * default parameters working !
 
   Revision 1.3  2000/07/13 12:08:28  michael
