@@ -12,6 +12,10 @@
   uses
     BseDOS;
 {$ENDIF}
+{$IFDEF PPC_FPC}
+  uses
+    DosCalls;
+{$ENDIF}
 
 { not converted to the new error handling scheme (ie: calling
   ErrorHandler, instead of dumping an error code to ErrorCode) }
@@ -150,7 +154,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-01-06 01:20:31  peter
+  Revision 1.2  2000-07-09 07:56:09  hajny
+    * proper units added
+
+  Revision 1.1  2000/01/06 01:20:31  peter
     * moved out of packages/ back to topdir
 
   Revision 1.1  1999/11/24 23:36:38  peter
