@@ -1097,6 +1097,10 @@ unit pdecl;
               read_type(tt,typename);
               { update the definition of the type }
               newtype^.restype:=tt;
+              if not assigned(tt.sym) then
+                tt.sym:=newtype;
+              if assigned(tt.def) and not assigned(tt.def^.typesym) then
+                tt.def^.typesym:=newtype;
             end;
            if assigned(newtype^.restype.def) and
               (newtype^.restype.def^.deftype=procvardef) then
@@ -1282,7 +1286,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.9  2000-08-16 18:33:53  peter
+  Revision 1.10  2000-08-17 09:17:19  pierre
+   * fix go32v2 cycle problem
+
+  Revision 1.9  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)
