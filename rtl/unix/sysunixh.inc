@@ -21,11 +21,11 @@
 
 {$I heaph.inc}
 
-{$ifdef m68k}
+{$ifdef cpum68k}
 { used for single computations }
 const
   BIAS4 = $7f-1;
-{$endif}
+{$endif cpum68k}
 
 {Platform specific information}
 type
@@ -62,7 +62,10 @@ var
 
 {
   $Log$
-  Revision 1.17  2003-10-16 15:43:13  peter
+  Revision 1.18  2003-10-17 20:49:02  olle
+    * Changed m68k to cpum68k
+
+  Revision 1.17  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.16  2002/10/15 19:30:15  peter
