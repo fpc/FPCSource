@@ -2214,16 +2214,17 @@
          name:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
+	 
          oldread_member:=read_member;
          read_member:=true;
-         if (options and (oo_hasprivate or oo_hasprotected))<>0 then
-           object_options:=true;
+         object_options:=true;
          publicsyms:=new(psymtable,loadasstruct(objectsymtable));
          object_options:=false;
+         read_member:=oldread_member;
+	 
          publicsyms^.defowner:=@self;
          publicsyms^.datasize:=savesize;
          publicsyms^.name := stringdup(name^);
-         read_member:=oldread_member;
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
@@ -2349,16 +2350,16 @@
       var
          oldread_member : boolean;
       begin
-         oldread_member:=read_member;
-         read_member:=true;
          tdef.write;
          writelong(size);
          writestring(name^);
          writedefref(childof);
          writelong(options);
          current_ppu^.writeentry(ibobjectdef);
-         if (options and (oo_hasprivate or oo_hasprotected))<>0 then
-           object_options:=true;
+	 
+         oldread_member:=read_member;
+         read_member:=true;
+         object_options:=true;
          publicsyms^.writeasstruct;
          object_options:=false;
          read_member:=oldread_member;
@@ -2530,7 +2531,10 @@
 
 {
   $Log$
-  Revision 1.23  1998-08-19 00:42:42  peter
+  Revision 1.24  1998-08-20 12:53:26  peter
+    * object_options are always written for object syms
+
+  Revision 1.23  1998/08/19 00:42:42  peter
     + subrange types for enums
     + checking for bounds type with ranges
 

@@ -1463,19 +1463,20 @@
          inherited done;
       end;
 
+
     procedure ttypesym.deref;
 
       begin
          resolvedef(definition);
          if assigned(definition) then
-           if definition^.sym=nil then
+	  begin
+            if definition^.sym=nil then
              definition^.sym:=@self;
-         if definition^.deftype=recorddef then
-           precdef(definition)^.symtable^.name:=stringdup('record '+name);
-         {if definition^.deftype=objectdef then
-           pobjectdef(definition)^.publicsyms^.name:=stringdup('object '+name);
-           done in tobjectdef.load }
+            if definition^.deftype=recorddef then
+             precdef(definition)^.symtable^.name:=stringdup('record '+name);
+	  end;   
       end;
+
 
     procedure ttypesym.write;
 
@@ -1553,7 +1554,10 @@
 
 {
   $Log$
-  Revision 1.32  1998-08-20 09:26:46  pierre
+  Revision 1.33  1998-08-20 12:53:27  peter
+    * object_options are always written for object syms
+
+  Revision 1.32  1998/08/20 09:26:46  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 
