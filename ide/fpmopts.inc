@@ -688,8 +688,8 @@ type
 
 function TVideoModeCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var R: Sw_integer;
-    K1: PVideoModeList absolute Key1;
-    K2: PVideoModeList absolute Key2;
+    K1: PVideoMode absolute Key1;
+    K2: PVideoMode absolute Key2;
 begin
   if K1^.Col<K2^.Col then R:=-1 else
   if K1^.Col>K2^.Col then R:= 1 else
@@ -703,44 +703,32 @@ end;
 
 procedure TVideoModeCollection.FreeItem(Item: Pointer);
 begin
-  { don't do anything here }
+  FreeMem(Item,sizeof(TVideoMode));
 end;
 
 procedure TIDEApp.Preferences;
-function SearchVideoMode(Col,Row: word; Color: boolean): PVideoModeList;
-var I,P: PVideoModeList;
-begin
-  I:=nil; P:=Video.Modes;
-  while (I=nil) and (P<>nil) do
-    begin
-      if (P^.Col=Col) and (P^.Row=Row) and (P^.Color=Color) then
-        I:=P
-      else
-        P:=P^.Next;
-    end;
-  SearchVideoMode:=I;
-end;
 var R,R2: TRect;
     D: PCenterDialog;
     C: PVideoModeCollection;
     VMLB: PVideoModeListBox;
-    VP: PVideoModeList;
     VM: TVideoMode;
+    CurVP,VP: PVideoMode;
     RB1: PPlainRadioButtons;
     CB1,CB2: PPlainCheckBoxes;
-    CurM: PVideoModeList;
     CurIdx: integer;
+    i : word;
 begin
   New(C, Init(10,50));
-  VP:=Video.Modes; CurM:=nil;
-  while VP<>nil do
-    begin
+  for i:=0 to GetVideoModeCount-1 do
+   begin
+      GetVideoModeData(i,VM);
+      GetMem(VP,sizeof(TVideoMode));
+      Move(VM,VP^,sizeof(TVideoMode));
       C^.Insert(VP);
-      if (VP^.Row=ScreenMode.Row) and (VP^.Col=ScreenMode.Col) and
-         (VP^.Color=ScreenMode.Color) then
-       CurM:=VP;
-      VP:=VP^.Next;
-    end;
+      if (VM.Row=ScreenMode.Row) and (VM.Col=ScreenMode.Col) and
+         (VM.Color=ScreenMode.Color) then
+       CurVP:=VP;
+   end;
   R.Assign(0,0,64,15);
   New(D, Init(R, dialog_preferences));
   with D^ do
@@ -752,8 +740,8 @@ begin
     R.B.Y:=R.A.Y+3;
     R2.Copy(R); R2.Grow(-1,-1);
     New(VMLB, Init(R2, Min(4,C^.Count), C));
-    if CurM=nil then CurIdx:=-1 else
-      CurIdx:=C^.IndexOf(CurM);
+    if CurVP=nil then CurIdx:=-1 else
+      CurIdx:=C^.IndexOf(CurVP);
     if CurIdx<>-1 then
       VMLB^.FocusItem(CurIdx);
     Insert(New(PGroupView, Init(R, label_preferences_videomode, VMLB)));
@@ -801,7 +789,7 @@ begin
    begin
      if (C^.count>0) then
        begin
-         with PVideoModeList(C^.At(VMLB^.Focused))^ do
+         with PVideoMode(C^.At(VMLB^.Focused))^ do
            begin
              VM.Col:=Col;
              VM.Row:=Row;
@@ -1285,7 +1273,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-08-05 12:23:00  peter
+  Revision 1.3  2001-10-11 11:35:53  pierre
+   * adapt to new video unit layout
+
+  Revision 1.2  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.1  2001/08/04 11:30:23  peter

@@ -3914,7 +3914,7 @@ end;
 {$endif FVISION}
 
 function TVideoModeListBox.GetText(Item: pointer; MaxLen: sw_integer): string;
-var P: PVideoModeList;
+var P: PVideoMode;
     S: string;
 begin
   P:=Item;
@@ -4148,8 +4148,7 @@ begin
       if VESAGetModeInfo(ML.Modes[I],MI) then
       with MI do
         if (Attributes and vesa_vma_GraphicsMode)=0 then
-          RegisterVideoMode(XResolution,YResolution,
-            (Attributes and vesa_vma_ColorMode)<>0,{$ifdef FPC}@{$endif}VESASetVideoModeProc,ML.Modes[I]);
+          RegisterVesaVideoMode(ML.Modes[I]);
     end;
 end;
 {$endif}
@@ -4181,7 +4180,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2001-09-27 22:29:12  pierre
+  Revision 1.8  2001-10-11 11:36:30  pierre
+   * adapt to new video unit layout
+
+  Revision 1.7  2001/09/27 22:29:12  pierre
    * avoid to give the same core to all new files
 
   Revision 1.6  2001/09/25 22:46:50  pierre

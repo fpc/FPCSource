@@ -125,10 +125,37 @@ function VESASetMode(Mode: word): boolean;
 function VESAGetMode(var Mode: word): boolean;
 function VESASelectMemoryWindow(Window: byte; Position: word): boolean;
 function VESAReturnMemoryWindow(Window: byte; var Position: word): boolean;
+function RegisterVesaVideoMode(Mode : word) : boolean;
 
 implementation
 
-uses pmode;
+uses
+{$ifdef FPC}
+  video, mouse,
+{$endif FPC}
+  pmode;
+
+type
+
+       PVesaVideoMode = ^TVesaVideoMode;
+       TVesaVideoMode = record
+         {Col,Row      : word;
+          Color        : boolean;}
+         V            : TVideoMode;
+         Mode         : word;
+         { zero based vesa specific driver count }
+         VideoIndex   : word;
+         Next         : PVesaVideoMode;
+       end;
+
+const
+  VesaVideoModeHead : PVesaVideoMode = nil;
+  VesaRegisteredModes : word = 0;
+Var
+  SysGetVideoModeCount : function : word;
+  SysSetVideoMode : function (Const VideoMode : TVideoMode) : boolean;
+  SysGetVideoModeData : Function (Index : Word; Var Data : TVideoMode) : boolean;
+
 
 function VESAGetInfo(var B: TVESAInfoBlock): boolean;
 var r: registers;
@@ -210,6 +237,39 @@ begin
   VESAGetModeInfo:=OK;
 end;
 
+function RegisterVesaVideoMode(Mode : word) : boolean;
+var B: TVESAModeInfoBlock;
+    VH : PVesaVideoMode;
+    DoAdd : boolean;
+begin
+  if not VESAGetModeInfo(Mode,B) then
+    RegisterVesaVideoMode:=false
+  else
+    begin
+      VH:=VesaVideoModeHead;
+      DoAdd:=true;
+      RegisterVesaVideoMode:=false;
+      while assigned(VH) do
+        begin
+          if VH^.mode=mode then
+            DoAdd:=false;
+          VH:=VH^.next;
+        end;
+      if DoAdd then
+        begin
+          New(VH);
+          VH^.next:=VesaVideoModeHead;
+          VH^.mode:=mode;
+          VH^.v.color:=(B.Attributes and vesa_vma_ColorMode)<>0;
+          VH^.v.col:=B.XResolution;
+          VH^.v.row:=B.YResolution;
+          VH^.VideoIndex:=VesaRegisteredModes;
+          Inc(VesaRegisteredModes);
+          RegisterVesaVideoMode:=true;
+        end;
+    end;
+end;
+
 function VESASetMode(Mode: word): boolean;
 var r: registers;
     OK: boolean;
@@ -257,14 +317,107 @@ var OK: boolean;
     VI: TVESAInfoBlock;
 begin
   OK:=VESAGetInfo(VI);
+  if OK then
+
   VESAInit:=OK;
 end;
 
+{$ifdef FPC}
+Function VesaGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
+Var
+  PrevCount : word;
+  VH : PVesaVideoMode;
+
+begin
+  PrevCount:=SysGetVideoModeCount();
+  VesaGetVideoModeData:=(Index<PrevCount);
+  If VesaGetVideoModeData then
+    begin
+      VesaGetVideoModeData:=SysGetVideoModeData(Index,Data);
+      exit;
+    end;
+  VesaGetVideoModeData:=(Index-PrevCount)<VesaRegisteredModes;
+  If VesaGetVideoModeData then
+    begin
+      VH:=VesaVideoModeHead;
+      while assigned(VH) and (VH^.VideoIndex<>Index-PrevCount) do
+        VH:=VH^.next;
+      if assigned(VH) then
+        Data:=VH^.v
+      else
+        VesaGetVideoModeData:=false;
+    end;
+end;
+
+function SetVESAMode(const VideoMode: TVideoMode): Boolean;
+
+  var
+     w : word;
+     res : boolean;
+     VH : PVesaVideoMode;
+
+  begin
+     res:=false;
+     VH:=VesaVideoModeHead;
+     while assigned(VH) do
+       begin
+         if (VideoMode.col=VH^.v.col) and
+            (VideoMode.row=VH^.v.row) and
+            (VideoMode.color=VH^.v.color) then
+           begin
+             res:=VESASetMode(VH^.mode);
+             if res then
+               begin
+                  ScreenWidth:=VideoMode.Col;
+                  ScreenHeight:=VideoMode.Row;
+                  ScreenColor:=VideoMode.Color;
+                  // cheat to get a correct mouse
+                  {
+                  mem[$40:$84]:=ScreenHeight-1;
+                  mem[$40:$4a]:=ScreenWidth;
+                  memw[$40:$4c]:=ScreenHeight*((ScreenWidth shl 1)-1);
+                  }
+                  DoCustomMouse(true);
+               end;
+           end;
+         if res then
+           exit;
+         VH:=VH^.next;
+       end;
+     SetVESAMode:=SysSetVideoMode(VideoMode);
+  end;
+
+
+Function VesaGetVideoModeCount : Word;
+
+begin
+  VesaGetVideoModeCount:=SysGetVideoModeCount()+VesaRegisteredModes;
+end;
+
+
+Var
+  Driver : TVideoDriver;
+
 BEGIN
+{ Get the videodriver to be used }
+  GetVideoDriver (Driver);
+{ Change needed functions }
+  SysGetVideoModeCount:=Driver.GetVideoModeCount;
+  Driver.GetVideoModeCount:=@VesaGetVideoModeCount;
+  SysGetVideoModeData:=Driver.GetVideoModeData;
+  Driver.GetVideoModeData:=@VesaGetVideoModeData;
+  SysSetVideoMode:=Driver.SetVideoMode;
+  Driver.SetVideoMode:=@SetVESAMode;
+
+  SetVideoDriver (Driver);
+{$endif FPC}
 END.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:25  peter
+  Revision 1.2  2001-10-11 11:35:34  pierre
+   * adapt to new video unit layout
+
+  Revision 1.1  2001/08/04 11:30:25  peter
     * ide works now with both compiler versions
 
   Revision 1.1  2000/07/13 09:48:36  michael
