@@ -1,6 +1,15 @@
 Todo list for OS/2 version of FPC (Free Pascal Compiler).
 Please indent tasks which are done with 8 spaces.
 
+Persons:
+
+TH - Tomas Hajny
+RB - Ramon Bosque
+KB - Karoly Balogh
+YP - Yuri Prokushev
+AS - Andry Svirgunov
+BM - Bob Martin
+
 Item                                          Priority        Implemented by
 -----------------------------------------------------------------------------
 Free Vision                                   high
@@ -22,19 +31,23 @@ RTL
     - winsock
     - graph
     - pass dos compatibility tests
+    - exception handler
+    - WriteLn support for PM apps (message boxes)
 
 ? enhance ld linker                           high
 
 libgdb                                        medium
 
-OS/2 only rtl                                 medium
-  - system
+OS/2 native rtl                               medium
+  - System
+  - CRT
   - DOS
   - sysutils.pp
-  - ports.pas
+  - linker (LINK386, ...)
   - loaders (prt*) for EXEs and DLLs
   - autothunking for 16-bit calls
-  - ? linker (ALINK)
+  - smartlinking
+  - {$linklib dllname} (autolinking like for win32/linux)
 
 FCL                                           medium
           - disk.inc................................................TH
@@ -45,23 +58,74 @@ FCL                                           medium
   - ? unit HTTPApp
 
 other OS/2 APIs                               low
-  - TCP/IP
-    - Sockets (so32dll)
-          - FTP API.................................................YP
   - NetAPI (NetBIOS)
-          - DIVE....................................................KB
-  - DART
   - Unicode
-  - OpenGL/MesaGL
-  - MMOS2
-  - SOM
-  - WPS
+  - OpenGL/MesaGL/Mesa3D/WarpMesaGL
+  - EPM
+  - LVM
+  - SOM (SOM2/SOM3?)
+    - Base classes
+    - WPS
+      - Base classes
+      - IBM MM classes
+      - CW MM classes
+    - XWorkplace classes
 
 packages                                      low
   - SVGAlib
-  - GTK
+  - Xlib (Everblue, XFreeOS/2)
+    - GTK
+    - Gnome
+  - MMOS/2
+          - mmbase.pas..............................................AS/YP
+          - mci.pas.................................................AS/YP
+          - mciapi.pas..............................................AS/YP
+          - mcidrv.pas..............................................AS/YP
+          - mmio.pas................................................AS/YP
+          - dive.pas................................................KB
+          - sw.pas..................................................YP
+  - WarpOverlay!
+          - hwvideo.pas.............................................YP
+  - REXX
+    - rxstrings.pp (overloaded functions like len, pos, etc.)
+          - rexxsaa.pp..............................................YP
+  - TCP/IP
+    - Sockets (so32dll)
+    - tcp32dll
+          - FTP API.................................................YP
 
-documentation                                 low
+documentation (pasdoc/fpdoc?)                 low
+  - CPI
+    - os2defs
+    - doscalls
+    - kbdcalls
+    - moucalls
+    - moncalls
+  - PM
+    - PMWin
+    - PMGPI
+    - PMBitmap
+    - PMStdDlg
+    - PMHelp
+    - PMDev
+    - PMSpl
+  - TCP/IP
+    - ftpapi
+    - so32dll
+    - tcp32dll
+  - MMOS/2
+    - mmbase.pas
+    - mci.pas
+    - mciapi.pas
+    - mcidrv.pas
+    - mmio.pas
+    - dive.pas
+    - sw.pas
+  - WarpOverlay!
+    - hwvideo.pas
+  - REXX
+    - rexxsaa.pp
+    - rxstrings.pp
 
 sample programs                               low
 
