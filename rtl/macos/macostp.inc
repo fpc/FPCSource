@@ -396,7 +396,7 @@ procedure ExitToShell;
 external 'InterfaceLib';
 
 procedure SysBeep(dur: Integer);
-external 'SysBeep';
+external 'InterfaceLib';
 
 function TickCount: Longint;
 external 'InterfaceLib';
