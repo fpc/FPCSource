@@ -217,7 +217,7 @@ unit agppcgas;
           getopstr:=reg2str[o.reg];
         { no top_ref jumping for powerpc }
         top_const:
-          getopstr:=tostr(o.val);
+          getopstr:=tostr(longint(o.val));
         top_ref:
           getopstr:=getreferencestring(o.ref^);
         top_symbol:
@@ -340,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-07-21 16:56:20  jonas
+  Revision 1.7  2002-07-26 11:19:57  jonas
+    * fixed range errors
+
+  Revision 1.6  2002/07/21 16:56:20  jonas
     * fixed bugs with writing out unconditinal jumps
 
   Revision 1.5  2002/07/12 10:10:01  jonas

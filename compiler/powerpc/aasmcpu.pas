@@ -120,7 +120,7 @@ implementation
       begin
          inherited create(op);
          ops:=1;
-         loadconst(0,_op1);
+         loadconst(0,cardinal(_op1));
       end;
 
 
@@ -137,14 +137,14 @@ implementation
          inherited create(op);
          ops:=2;
          loadreg(0,_op1);
-         loadconst(1,_op2);
+         loadconst(1,cardinal(_op2));
       end;
 
      constructor taicpu.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
       begin
          inherited create(op);
          ops:=2;
-         loadconst(0,_op1);
+         loadconst(0,cardinal(_op1));
          loadreg(1,_op2);
       end;
 
@@ -162,8 +162,8 @@ implementation
       begin
          inherited create(op);
          ops:=2;
-         loadconst(0,_op1);
-         loadconst(1,_op2);
+         loadconst(0,cardinal(_op1));
+         loadconst(1,cardinal(_op2));
       end;
 
 
@@ -182,7 +182,7 @@ implementation
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,_op3);
+         loadconst(2,cardinal(_op3));
       end;
 
      constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
@@ -207,7 +207,7 @@ implementation
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,_op1);
+         loadconst(0,cardinal(_op1));
          loadreg(1,_op2);
          loadreg(2,_op3);
       end;
@@ -216,9 +216,9 @@ implementation
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,_op1);
+         loadconst(0,cardinal(_op1));
          loadreg(1,_op2);
-         loadconst(2,_op3);
+         loadconst(2,cardinal(_op3));
       end;
 
 
@@ -249,7 +249,7 @@ implementation
          loadreg(0,_op1);
          loadbool(0,_op2);
          loadreg(0,_op3);
-         loadconst(0,_op4);
+         loadconst(0,cardinal(_op4));
       end;
 
      constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
@@ -258,9 +258,9 @@ implementation
          ops:=5;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,_op3);
-         loadconst(3,_op4);
-         loadconst(4,_op5);
+         loadconst(2,cardinal(_op3));
+         loadconst(3,cardinal(_op4));
+         loadconst(4,cardinal(_op5));
       end;
 
     constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -275,8 +275,8 @@ implementation
       begin
          inherited create(op);
          ops:=3;
-         loadconst(0,_op1);
-         loadconst(1,_op2);
+         loadconst(0,cardinal(_op1));
+         loadconst(1,cardinal(_op2));
          loadsymbol(2,_op3,0);
       end;
 
@@ -337,7 +337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-07 09:44:31  florian
+  Revision 1.2  2002-07-26 11:19:57  jonas
+    * fixed range errors
+
+  Revision 1.1  2002/07/07 09:44:31  florian
     * powerpc target fixed, very simple units can be compiled
 
   Revision 1.8  2002/05/18 13:34:26  peter
