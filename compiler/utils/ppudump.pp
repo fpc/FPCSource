@@ -580,6 +580,8 @@ begin
        readtype;
        write(space,'    Default : ');
        readsymref;
+       write(space,'    Symbol  : ');
+       readsymref;
        dec(params);
      until params=0;
    end;
@@ -1644,7 +1646,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-01-06 12:08:16  peter
+  Revision 1.12  2002-03-01 14:08:47  peter
+    * parasym added
+
+  Revision 1.11  2002/01/06 12:08:16  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 
