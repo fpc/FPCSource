@@ -53,8 +53,8 @@ the number of times this button has been pressed since the last call to this
 function with \var{Button} as parameter. For \var{Button} you can use the 
 \var{LButton}, \var{RButton} and \var{MButton} constants for resp. the left, 
 right and middle button.
-For two-button mice, checking the status of the middle button seems to give
-and clear the stats of the right button.
+With certain mouse drivers, checking the middle button when using a
+two-button mouse to gives and clears the stats of the right button.
 
 \Errors
 None.
@@ -76,8 +76,8 @@ the number of times this button has been released since the last call to this
 function with \var{Button} as parameter. For button you can use the
 \var{LButton}, \var{RButton} and \var{MButton} constants for resp. 
 the left, right and middle button.
-For two-button mice, checking the stats of the middle button seems to give
-and clear the stats of the right button.
+With certain mouse drivers, checking the middle button when using a
+two-button mouse to gives and clears the stats of the right button.
 
 \Errors
 None.
@@ -113,7 +113,7 @@ Procedure HideMouse ;
 
 \var{HideMouse} makes the mouse cursor invisible.
 Multiple calls to HideMouse will require just as many calls to ShowMouse to
-make the mouse cursor again visible.
+make the mouse cursor visible again.
 
 \Errors
 None.
@@ -299,7 +299,7 @@ Procedure SetMouseWindow (xmin,ymin,xmax,ymax: Longint);
 
 \var{SetMousWindow}
 defines a rectangle on screen with top-left corner at (\var{xmin,ymin}) and
-botto-right corner at (\var{xmax,ymax}), out of which the mouse 
+bottom-right corner at (\var{xmax,ymax}), out of which the mouse 
 cursor can't move.
 This procedure is simply a wrapper for the \seep{SetMouseXRange} and 
 \seep{SetMouseYRange} procedures.
@@ -356,7 +356,7 @@ Procedure ShowMouse ;
 \Description
 
 \var{ShowMouse} makes the mouse cursor visible.
-At the start of your progam, the mouse is invisible.
+At the start of your progam, the mouse cursor is invisible.
 
 \Errors
 None.
