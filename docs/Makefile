@@ -51,7 +51,7 @@ endif
 ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals" -contents_in_navigation\
-                 -html_version 3.1
+                 -html_version 3.2
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -441,7 +441,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.29  1999-07-16 10:15:31  peter
+# Revision 1.30  1999-07-29 21:03:41  peter
+#   * html 3.2, because 3.1 is buggy !!
+#
+# Revision 1.29  1999/07/16 10:15:31  peter
 #   * install targets renamed
 #
 # Revision 1.28  1999/06/25 22:12:10  michael
