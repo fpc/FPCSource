@@ -22,7 +22,7 @@
 #INSTALLDEBUG=1
 
 # Which docs are made when 'html' is specified
-HTML = user units ref prog fcl
+HTML = user units ref prog 
 
 # Can be 'report','book' or 'html'
 PREAMBLETYPE = report
@@ -558,7 +558,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.13  2002-03-19 14:33:18  pierre
+# Revision 1.14  2002-04-23 18:03:50  michael
+# + removed fcl target in HTML
+#
+# Revision 1.13  2002/03/19 14:33:18  pierre
 #  * remove ipcex directory target from examples
 #
 # Revision 1.12  2002/03/12 22:13:42  michael
