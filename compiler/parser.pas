@@ -467,8 +467,11 @@ implementation
             tppumodule(current_module).ppufile:=nil;
           end;
        { free scanner }
-         current_scanner.free;
-         current_scanner:=nil;
+         if assigned(current_scanner) then
+          begin
+            current_scanner.free;
+            current_scanner:=nil;
+          end;
          current_module.scanner:=nil;
 
          if (compile_level>1) then
@@ -592,7 +595,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-08-15 19:10:35  peter
+  Revision 1.42  2002-08-16 15:31:08  peter
+    * fixed possible crashes with current_scanner
+
+  Revision 1.41  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.40  2002/08/12 16:46:04  peter

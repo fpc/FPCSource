@@ -431,7 +431,13 @@ uses
         if assigned(externals) then
          externals.free;
         if assigned(scanner) then
-         tscannerfile(scanner).free;
+         begin
+            { also update current_scanner if it was pointing
+              to this module }
+            if current_scanner=tscannerfile(scanner) then
+             current_scanner:=nil;
+            tscannerfile(scanner).free;
+         end;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -597,7 +603,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.26  2002-08-12 16:46:04  peter
+  Revision 1.27  2002-08-16 15:31:08  peter
+    * fixed possible crashes with current_scanner
+
+  Revision 1.26  2002/08/12 16:46:04  peter
     * tscannerfile is now destroyed in tmodule.reset and current_scanner
       is updated accordingly. This removes all the loading and saving of
       the old scanner and the invalid flag marking
