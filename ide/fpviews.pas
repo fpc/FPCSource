@@ -1137,7 +1137,7 @@ Const
   FreePascalCommentPrefix2 : string[2] = '(*';
   FreePascalCommentPrefix3 : string[2] = '//';
   FreePascalCommentSingleLinePrefix : string[2] = '//';
-  FreePascalCommentSuffix1 : string[1] = '{';
+  FreePascalCommentSuffix1 : string[1] = '}';
   FreePascalCommentSuffix2 : string[2] = '*)';
   FreePascalStringPrefix : string[1] = '''';
   FreePascalStringSuffix : string[1] = '''';
@@ -4360,7 +4360,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.32  2002-09-12 08:42:07  pierre
+  Revision 1.33  2002-09-12 08:49:10  pierre
+   * fix typo bug in last commit
+
+  Revision 1.32  2002/09/12 08:42:07  pierre
    * removed lots of unnecessary copies of strings for syntax highlighting
 
   Revision 1.31  2002/09/11 11:23:48  pierre
