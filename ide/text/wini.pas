@@ -45,6 +45,7 @@ type
       function    GetName: string;
       function    AddEntry(const S: string): PINIEntry;
       function    SearchEntry(Tag: string): PINIEntry; virtual;
+      procedure   DeleteEntry(Tag: string);
       procedure   ForEachEntry(EnumProc: pointer); virtual;
       destructor  Done; virtual;
     private
@@ -67,6 +68,7 @@ type
       function    GetIntEntry(const Section, Tag: string; Default: longint): longint; virtual;
       procedure   SetIntEntry(const Section, Tag: string; Value: longint); virtual;
       procedure   DeleteSection(const Section: string); virtual;
+      procedure   DeleteEntry(const Section, Tag: string);
       destructor  Done; virtual;
     private
       ReadOnly: boolean;
@@ -227,6 +229,15 @@ end;
 begin
   Tag:=UpcaseStr(Tag);
   SearchEntry:=Entries^.FirstThat(@MatchingEntry);
+end;
+
+procedure TINISection.DeleteEntry(Tag: string);
+var
+  P : PIniEntry; 
+begin
+  P:=SearchEntry(Tag);
+  if assigned(P) then
+    Entries^.Free(P);
 end;
 
 destructor TINISection.Done;
@@ -442,6 +453,14 @@ begin
     Sections^.Free(P);
 end;
 
+procedure TINIFile.DeleteEntry(const Section, Tag: string);
+var P: PINISection;
+begin
+  P:=SearchSection(Section);
+  if P<>nil then
+    P^.DeleteEntry(Tag);
+end;
+                                                                                                                                                                                                                                                               
 destructor TINIFile.Done;
 begin
   if IsModified then
@@ -456,7 +475,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-03-01 15:42:15  peter
+  Revision 1.7  1999-03-05 17:53:03  pierre
+   + saving and opening of open files on exit
+
+  Revision 1.6  1999/03/01 15:42:15  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog

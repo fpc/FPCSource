@@ -85,19 +85,22 @@ BEGIN
   InitTools;
   InitTemplates;
 
-{ load old options }
-  ReadINIFile;
   ReadSwitches(SwitchesPath);
 
   MyApp.Init;
+  { load all options after init because of open files }
+  ReadINIFile;
 
   ProcessParams(false);
 
   MyApp.Run;
+
+  { must be written before done for open files }
+  WriteINIFile;
+
   MyApp.Done;
 
   WriteSwitches(SwitchesPath);
-  WriteINIFile;
 
   DoneTemplates;
   DoneTools;
@@ -111,11 +114,15 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.13  1999-03-01 15:41:48  peter
+  Revision 1.14  1999-03-05 17:53:00  pierre
+   + saving and opening of open files on exit
+
+  Revision 1.13  1999/03/01 15:41:48  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -34,9 +34,9 @@ function  WriteINIFile: boolean;
 implementation
 
 uses
-  Dos,Objects,Drivers,
+  Dos,Objects,Drivers,App,
   WINI,{$ifndef EDITORS}WEditor{$else}Editors{$endif},
-  FPDebug,FPConst,FPVars,
+  FPDebug,FPConst,FPVars,FPViews,
   FPIntf,FPTools,FPSwitch;
 
 const
@@ -56,6 +56,8 @@ const
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
+  ieOpenFile         = 'OpenFile';
+  ieOpenFileCount    = 'OpenFileCount';
   ieRunParameters    = 'Parameters';
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
@@ -207,10 +209,12 @@ function ReadINIFile: boolean;
 var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
+    X,Y : sw_integer;
     BreakPointCount:longint;
     OK: boolean;
     ts : TSwitchMode;
     W: word;
+    R : TRect;
 begin
   OK:=ExistsFile(INIPath);
   if OK then
@@ -293,6 +297,44 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
   AppPalette:=PS;
+  for I:=INIFile^.GetIntEntry(secFiles,ieOpenFileCount,0) downto 1 do
+    begin
+      S:=INIFile^.GetEntry(secFiles,ieOpenFile+IntToStr(I),'');
+      if (S='') then
+        break;
+      P:=Pos(',',S); if P=0 then P:=length(S)+1;
+      S1:=copy(S,1,P-1);
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      X:=Max(0,StrToInt(copy(S,1,P-1)));
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      Y:=Max(0,StrToInt(copy(S,1,P-1)));
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      R.A.X:=Max(0,StrToInt(copy(S,1,P-1)));
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      R.A.Y:=Max(0,StrToInt(copy(S,1,P-1)));
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      R.B.X:=Max(0,StrToInt(copy(S,1,P-1)));
+      Delete(S,1,P);
+      P:=Pos(',',S);
+      if P=0 then P:=length(S)+1;
+      R.B.Y:=Max(0,StrToInt(copy(S,1,P-1)));
+      if (R.A.X<R.B.X) and (R.A.Y<R.B.Y) then
+        TryToOpenFile(@R,S1,X,Y)
+      else
+        TryToOpenFile(nil,S1,X,Y);
+      { remove it because otherwise we allways keep old files }  
+      INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
+    end;
   Dispose(INIFile, Done);
  end;
   ReadINIFile:=OK;
@@ -301,11 +343,14 @@ end;
 function WriteINIFile: boolean;
 var INIFile: PINIFile;
     S: string;
+    R : TRect;
     S1,S2,S3: string;
     W: word;
     BreakPointCount:longint;
-    I: integer;
+    I,OpenFileCount: integer;
     OK: boolean;
+    PW,PPW : PSourceWindow;
+
 procedure ConcatName(P: PString); {$ifndef FPC}far;{$endif}
 begin
   if (S<>'') then S:=S+';';
@@ -323,6 +368,31 @@ begin
          S:='';
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
+
+    PW:=FirstEditorWindow;
+    PPW:=PW;
+    I:=1;
+    while assigned(PW) do
+      begin
+        If PW^.HelpCtx=hcSourceWindow then
+          begin
+            With PW^.editor^ do
+              S:=FileName+','+IntToStr(CurPos.X)+','+IntToStr(CurPos.Y);
+            PW^.GetBounds(R);
+            S:=S+','+IntToStr(R.A.X)+','+IntToStr(R.A.Y)+','+
+              IntToStr(R.B.X)+','+IntToStr(R.B.Y);
+            INIFile^.SetEntry(secFiles,ieOpenFile+IntToStr(I),S);
+            Inc(I);
+            OpenFileCount:=I-1;
+          end;
+          
+        PW:=PSourceWindow(PW^.next);
+        While assigned(PW) and (PW<>PPW) and (PW^.HelpCtx<>hcSourceWindow) do
+          PW:=PSourceWindow(PW^.next);
+        If PW=PPW then                                                                                                                                                                                                                                         
+          break;
+      end;
+  INIFile^.SetIntEntry(secFiles,ieOpenFileCount,OpenFileCount);
   { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
   { Compile }
@@ -391,11 +461,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-03-01 15:41:55  peter
+  Revision 1.15  1999-03-05 17:53:02  pierre
+   + saving and opening of open files on exit
+
+  Revision 1.14  1999/03/01 15:41:55  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
