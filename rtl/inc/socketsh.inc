@@ -156,7 +156,33 @@ Type
     port  :Word;
     addr  :Cardinal;
     pad   :array [1..8] of byte; { to get to the size of sockaddr... }
-    end;
+  end;
+
+  Tin6_addr = packed record
+  case byte of
+    0: (u6_addr8  : array[0..15] of byte);
+    1: (u6_addr16 : array[0..7] of Word);
+    2: (u6_addr32 : array[0..3] of Cardinal);
+    3: (s6_addr8  : array[0..15] of shortint);
+    4: (s6_addr   : array[0..15] of shortint);
+    5: (s6_addr16 : array[0..7] of smallint);
+    6: (s6_addr32 : array[0..3] of LongInt);
+  end;
+
+  TInetSockAddr6 = packed Record
+    {$ifdef BSD}  // as per RFC 2553
+      sin6_len   : byte;
+      sin6_family: byte;
+    {$ELSE}
+      sin6_family: word;
+    {$ENDIF}
+    sin6_port     : Word;
+    sin6_flowinfo : LongInt;
+    sin6_addr     : Tin6_addr;
+    sin6_scope_id : LongInt;
+  end;
+  sockaddr_in6 = TInetSockAddr6;
+  psockaddr_in6 = ^sockaddr_in6;
 
   TSockArray = Array[1..2] of Longint;
 
@@ -195,7 +221,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.11  2003-11-22 16:28:56  michael
+  Revision 1.12  2003-11-23 11:00:07  michael
+  + Added IPV6 patch from Johannes Berg
+
+  Revision 1.11  2003/11/22 16:28:56  michael
   + Added several constants
 
   Revision 1.10  2003/11/09 21:43:15  michael
