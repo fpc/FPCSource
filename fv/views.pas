@@ -374,6 +374,7 @@ TYPE
          HoldLimit: PComplexArea;                     { Hold limit values }
 
          RevCol    : Boolean;
+         BackgroundChar : Char;
 
       CONSTRUCTOR Init (Var Bounds: TRect);
       CONSTRUCTOR Load (Var S: TStream);
@@ -947,6 +948,7 @@ BEGIN
    State := sfVisible;                                { Default state }
    EventMask := evMouseDown + evKeyDown + evCommand;  { Default event masks }
    GOptions := goTabSelect;                           { Set new options }
+   BackgroundChar := ' ';
    SetBounds(Bounds);                                 { Set view bounds }
 END;
 
@@ -1679,7 +1681,7 @@ BEGIN
      If (State AND sfDisabled = 0) Then
        Bc := GetColor(1) AND $F0 SHR 4 Else           { Select back colour }
        Bc := GetColor(4) AND $F0 SHR 4;               { Disabled back colour }
-     GetViewSettings(ViewPort, TextModeGFV);          { Get view settings }
+     GetViewSettings(ViewPort, TextModeGFV or UseFixedFont);          { Get view settings }
      If not TextModeGFV and not UseFixedFont Then Begin            { GRAPHICS MODE GFV }
        If (ViewPort.X1 <= RawOrigin.X) Then X1 := 0     { Right to left edge }
          Else X1 := ViewPort.X1-RawOrigin.X;            { Offset from left }
@@ -1710,7 +1712,7 @@ BEGIN
            Bc := GetColor(1) Else           { Select back colour }
            Bc := GetColor(4);               { Disabled back colour }
          For X := X1 To X2 Do Begin
-           Buf[X-X1]:=(Bc shl 8) or $20;
+           Buf[X-X1]:=(Bc shl 8) or ord(BackgroundChar){$20};
          End;
          For Y := Y1 To Y2 Do Begin
            WriteAbs(X1,Y, X2-X1, Buf);
@@ -2591,14 +2593,14 @@ BEGIN
       (Y1<RawOrigin.Y+RawSize.Y) and
       (X2>=RawOrigin.X) and                      { No need to parse childs for Shadows }
       (Y2>=RawOrigin.Y) Then                     { No draw child clear }
-   ReDrawVisibleArea(X1, Y1, X2, Y2,Last^.Next); { Redraw each subview }
+   ReDrawVisibleArea(X1, Y1, X2, Y2,First); { Redraw each subview }
 (*   { redraw group members }
    If (DrawMask AND vdNoChild = 0) and
       (X1<RawOrigin.X+RawSize.X) and                  { No need to parse childs for Shadows }
       (Y1<RawOrigin.Y+RawSize.Y) Then Begin           { No draw child clear }
      P := Last;                                       { Start on Last }
      While (P <> Nil) Do Begin
-       P^.ReDrawVisibleArea(X1, Y1, X2, Y2,Last^.Next,P); { Redraw each subview }
+       P^.ReDrawVisibleArea(X1, Y1, X2, Y2,First,P); { Redraw each subview }
        P := P^.PrevView;                              { Move to prior view }
      End;
    End; *)
@@ -2845,7 +2847,7 @@ BEGIN
          I := I - (P^.Origin.X * FontWidth);          { Subtract x origin }
        End;
        { make sure that I is a multiple of FontWidth }
-       if TextModeGFV then
+       if TextModeGFV or UseFixedFont then
          I:= (I div FontWidth) * FontWidth;
        P^.DisplaceBy(I, 0);                           { Displace the view }
      End;
@@ -2861,7 +2863,7 @@ BEGIN
          I := I - (P^.Origin.Y * FontHeight);         { Subtract y origin }
        End;
        { make sure that I is a multiple of FontHeight }
-       if TextModeGFV then
+       if TextModeGFV or UseFixedFont then
          I:= (I div FontHeight) * FontHeight;
        P^.DisplaceBy(0, I);                           { Displace the view }
      End;
@@ -4614,7 +4616,7 @@ BEGIN
                  x:=(RawOrigin.X + X1 + ((x2-x1)*(j-y1)) div (y2-y1));
                  if (x>=0) and (x<=Graph.GetMaxX) and (y>=0) and (y<=Graph.GetMaxY) then
                    SetExtraInfo(x div SysFontWidth,y div SysFontHeight,
-                     x mod SysFontWidth,y mod SysFontHeight, true);
+                     x mod SysFontWidth,y mod SysFontHeight, Colour);
                end;
            end
          else
@@ -4625,7 +4627,7 @@ BEGIN
                  y:=(RawOrigin.y + y1 + ((j-x1)*(y2-y1)) div (x2-x1));
                  if (x>=0) and (x<=Graph.GetMaxX) and (y>=0) and (y<=Graph.GetMaxY) then
                    SetExtraInfo(x div SysFontWidth,y div SysFontHeight,
-                     x mod SysFontWidth,y mod SysFontHeight, true);
+                     x mod SysFontWidth,y mod SysFontHeight, Colour);
                end;
            end;
        end;
@@ -4904,6 +4906,9 @@ BEGIN
              $F0 SHR 4);                                { Set back colour }
            SetColor(Hi(P^[I]) AND $0F);                 { Set text colour }
            Bar(K, Y, K+Cw, Y+FontHeight-1);             { Clear text backing }
+{$IFDEF GRAPH_API}
+           SetTextJustify(LeftText,TopText);
+{$ENDIF GRAPH_API}
            OutTextXY(K, Y+2, Chr(Lo(P^[I])));           { Write text char }
            Inc(K,Cw);
          End;
@@ -5001,8 +5006,12 @@ BEGIN
        End;
 
       { increase position on screen }
-      inc(X,(i-j));
-
+      If (X >= 0) AND (Y >= 0) AND ((GOptions and goGraphView)=0) Then
+        inc(X,(i-j))
+      else if X>0 then
+        inc(X,(i-j)*FontWidth)
+      else
+        dec(X,(i-j)*FontWidth);
       { Swap colors }
       if FoundSwap then
        begin
@@ -5543,11 +5552,13 @@ BEGIN
    If TextModeGFV then
      Y:=0 else
      begin
-       If (Options AND ofFramed<>0) Then Y := 1
+       Y:=0;
+       (* If (Options AND ofFramed<>0) Then Y := 1
          Else Y := 0;                                     { Initial value }
        If (GOptions AND goThickFramed<>0) Then Inc(Y, 3); { Adjust position }
+       *)
      end;
-   ClearArea(0, Y, RawSize.X, Y+FontHeight, Bc);      { Clear background }
+   ClearArea(0, Y, RawSize.X, Y+FontHeight-1, Bc);      { Clear background }
    If not TextModeGFV then
      Inherited DrawBorder
    Else Begin                                     { TEXT GFV MODE }
@@ -5771,7 +5782,10 @@ END.
 
 {
  $Log$
- Revision 1.33  2002-06-10 13:47:38  pierre
+ Revision 1.34  2002-08-22 13:40:49  pierre
+  * several graphic mode improovements
+
+ Revision 1.33  2002/06/10 13:47:38  pierre
   * correct the check for drawing a double line border
 
  Revision 1.32  2002/06/10 12:39:43  pierre

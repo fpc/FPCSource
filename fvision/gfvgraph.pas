@@ -135,7 +135,7 @@ CONST
 
 type
 
-  textrainfo = array[0..0] of byte;
+  textrainfo = array[0..0] of word;
   pextrainfo = ^textrainfo;
 
   TSpVideoBuf = array [0..0] of pextrainfo;
@@ -222,7 +222,7 @@ PROCEDURE OutTextXY(X,Y: Integer; TextString: String);
 
 {$IFDEF GRAPH_API}
 procedure GraphUpdateScreen(Force: Boolean);
-procedure SetExtraInfo(x,y,xi,yi : longint; shouldskip : boolean);
+procedure SetExtraInfo(x,y,xi,yi : longint; color : word);
 procedure SetupExtraInfo;
 procedure FreeExtraInfo;
 
@@ -469,8 +469,11 @@ END;
 PROCEDURE OutTextXY(X,Y: Integer; TextString: string);
 {$IFDEF GRAPH_API}
 var
-  i,j,xi,yj : longint;
+  i,j,xi,yj,xs,ys : longint;
   Ts: Graph.ViewPortType;
+  Txs : TextSettingsType;
+  tw, th : integer;
+  color : word;
 {$ENDIF GRAPH_API}
 
 BEGIN
@@ -479,13 +482,30 @@ BEGIN
    if true then
      begin
        Graph.GetViewSettings(Ts);
-       For j:=0 to TextWidth(TextString) -1 do
-         For i:=0 to TextHeight(TextString)-1 do
+       Graph.GetTextSettings(Txs);
+       tw:=TextWidth(TextString);
+       th:=TextHeight(TextString);
+       case Txs.Horiz of
+         centertext : Xs:=(tw shr 1);
+         lefttext   : Xs:=0;
+         righttext  : Xs:=tw;
+       end;
+       case txs.vert of
+         centertext : Ys:=-(th shr 1);
+         bottomtext : Ys:=-th;
+         toptext    : Ys:=0;
+       end;
+       x:=x-xs;
+       y:=y+ys;
+
+       For j:=0 to tw-1 do
+         For i:=0 to th-1 do
            begin
              xi:=x+i+Ts.x1;
              yj:=y+j+Ts.y1;
+             Color:=GetPixel(xi,yj);
              SetExtraInfo(xi div SysFontWidth,yj div SysFontHeight,
-               xi mod SysFontWidth,yj mod SysFontHeight, true);
+               xi mod SysFontWidth,yj mod SysFontHeight, Color);
            end;
      end;
 {$ENDIF GRAPH_API}
@@ -583,27 +603,23 @@ end;
 const
   SetExtraInfoCalled : boolean = false;
 
-procedure SetExtraInfo(x,y,xi,yi : longint; shouldskip : boolean);
+procedure SetExtraInfo(x,y,xi,yi : longint; color : word);
 var
   i,k,l : longint;
   extrainfo : pextrainfo;
 
 begin
   i:=y*TextScreenWidth+x;
-  if not assigned(SpVideoBuf^[i]) then
+  if not assigned(SpVideoBuf^[i]) or (SpVideoBuf^[i]=EmptyVideoBufCell) then
     begin
-      GetMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
-      FillChar(SpVideoBuf^[i]^,SysFontHeight*((SysFontWidth +7) div 8),#0);
+      GetMem(SpVideoBuf^[i],SysFontHeight*SysFontWidth*Sizeof(word));
+      FillChar(SpVideoBuf^[i]^,SysFontHeight*SysFontWidth*Sizeof(word),#255);
     end;
   extrainfo:=SpVideoBuf^[i];
-  k:=xi mod 8;
-  l:=yi*((SysFontWidth +7) div 8) + xi div 8;
-  if l>=SysFontHeight*((SysFontWidth +7) div 8) then
+  l:=yi*SysFontWidth + xi;
+  if l>=SysFontHeight*SysFontWidth then
     RunError(219);
-  if shouldskip then
-    extrainfo^[l]:=extrainfo^[l] or (1 shl k)
-  else
-    extrainfo^[l]:=extrainfo^[l] and not (1 shl k);
+  extrainfo^[l]:=color;
   SetExtraInfoCalled:=true;
 end;
 
@@ -611,8 +627,8 @@ procedure SetupExtraInfo;
 begin
   if not assigned(EmptyVideoBufCell) then
     begin
-      GetMem(EmptyVideoBufCell,SysFontHeight*((SysFontWidth +7) div 8));
-      FillChar(EmptyVideoBufCell^,SysFontHeight*((SysFontWidth +7) div 8),#0);
+      GetMem(EmptyVideoBufCell,SysFontHeight*SysFontWidth*Sizeof(word));
+      FillChar(EmptyVideoBufCell^,SysFontHeight*SysFontWidth*Sizeof(word),#255);
     end;
 end;
 
@@ -625,13 +641,15 @@ begin
     begin
       for i:=0 to (TextScreenWidth+1)*(TextScreenHeight+1) - 1 do
         if assigned(SpVideoBuf^[i]) and (SpVideoBuf^[i]<>EmptyVideoBufCell) then
-          FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+          FreeMem(SpVideoBuf^[i],SysFontHeight*SysFontWidth*Sizeof(word));
       if assigned(EmptyVideoBufCell) then
-        FreeMem(EmptyVideoBufCell,SysFontHeight*((SysFontWidth +7) div 8));
+        FreeMem(EmptyVideoBufCell,SysFontHeight*SysFontWidth*Sizeof(word));
       FreeMem(SpVideoBuf,sizeof(pextrainfo)*(TextScreenWidth+1)*(TextScreenHeight+1));
       SpVideoBuf:=nil;
     end;
 end;
+
+{define Use_ONLY_COLOR}
 
 procedure GraphUpdateScreen(Force: Boolean);
 var
@@ -640,11 +658,18 @@ var
    xi,yi,k,l : longint;
    ch : char;
    attr : byte;
-   SavedColor,SavedBkColor : longint;
-   CurColor,CurBkColor : longint;
+   color : word;
+   SavedColor : longint;
+{$ifndef Use_ONLY_COLOR}
+   SavedBkColor,CurBkColor : longint;
+{$endif not Use_ONLY_COLOR}
+   CurColor : longint;
    NextColor,NextBkColor : longint;
    StoreFillSettings: FillSettingsType;
    Ts: Graph.ViewPortType;
+{$ifdef debug}
+   ChangedCount, SpecialCount : longint;
+{$endif debug}
 begin
 {$ifdef USE_VIDEO_API}
   if force or SetExtraInfoCalled then
@@ -666,16 +691,27 @@ begin
    end;
   if SmallForce then
     begin
+{$ifdef debug}
+      SpecialCount:=0;
+      ChangedCount:=0;
+{$endif debug}
       SetExtraInfoCalled:=false;
       SavedColor:=Graph.GetColor;
+{$ifndef Use_ONLY_COLOR}
       SavedBkColor:=Graph.GetBkColor;
-      CurColor:=SavedColor;
       CurBkColor:=SavedBkColor;
+{$endif not Use_ONLY_COLOR}
+      CurColor:=SavedColor;
       Graph.GetViewSettings(Ts);
       Graph.SetViewPort(0,0,Graph.GetMaxX,Graph.GetMaxY,false);
       Graph.GetFillSettings(StoreFillSettings);
+{$ifdef Use_ONLY_COLOR}
+      Graph.SetFillStyle(SolidFill,0);
+{$else not Use_ONLY_COLOR}
       Graph.SetFillStyle(EmptyFill,0);
+{$endif not Use_ONLY_COLOR}
       Graph.SetWriteMode(CopyPut);
+      Graph.SetTextJustify(LeftText,TopText);
       for y := 0 to TextScreenHeight - 1 do
         begin
            for x := 0  to TextScreenWidth - 1 do
@@ -687,29 +723,42 @@ begin
                    ch:=chr(VideoBuf^[i] and $ff);
                    if ch<>#0 then
                      begin
+                       {$ifdef debug}
+                       Inc(ChangedCount);
+                       {$endif debug}
                        if (SpVideoBuf^[i]=EmptyVideoBufCell) then
                          SpVideoBuf^[i]:=nil;
                        Attr:=VideoBuf^[i] shr 8;
                        NextColor:=Attr and $f;
                        NextBkColor:=(Attr and $70) shr 4;
+{$ifndef Use_ONLY_COLOR}
                        if NextBkColor<>CurBkColor then
                          begin
                            Graph.SetBkColor(NextBkColor);
                            CurBkColor:=NextBkColor;
                          end;
+{$else Use_ONLY_COLOR}
+                       if NextBkColor<>CurColor then
+                         begin
+                           Graph.SetColor(NextBkColor);
+                           CurColor:=NextBkColor;
+                         end;
+{$endif Use_ONLY_COLOR}
                        if (x=CursorX) and (y=CursorY) then
                          HideCursor;
-                       if not assigned(SpVideoBuf^[i]) then
-                         Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth-1,(y+1)*SysFontHeight-1)
-                       else
+                       Graph.Bar(x*SysFontWidth,y*SysFontHeight,(x+1)*SysFontWidth-1,(y+1)*SysFontHeight-1);
+                       if assigned(SpVideoBuf^[i]) then
                          begin
+                           {$ifdef debug}
+                           Inc(SpecialCount);
+                           {$endif debug}
                            For yi:=0 to SysFontHeight-1 do
                              For xi:=0 to SysFontWidth-1 do
                                begin
-                                 k:=xi mod 8;
-                                 l:=yi*((SysFontWidth +7) div 8) + xi div 8;
-                                 if SpVideoBuf^[i]^[l] and (1 shl k) = 0 then
-                                   Graph.PutPixel(x*SysfontWidth+xi,y*SysFontHeight+yi,CurBkColor);
+                                 l:=yi*SysFontWidth + xi;
+                                 color:=SpVideoBuf^[i]^[l];
+                                 if color<>$ffff then
+                                   Graph.PutPixel(x*SysfontWidth+xi,y*SysFontHeight+yi,color);
                                end;
                          end;
                        if NextColor<>CurColor then
@@ -719,12 +768,13 @@ begin
                          end;
                        { SetBkColor does change the palette index 0 entry...
                          which leads to troubles if we want to write in dark }
-                       if (CurColor=0) then
+                       (* if (CurColor=0) and (ch<>' ') and assigned(SpVideoBuf^[i]) then
                          begin
                            Graph.SetBkColor(0);
                            CurBkColor:=0;
-                         end;
-                       Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight+2,ch);
+                         end; *)
+                       if ch<>' ' then
+                         Graph.OutTextXY(x*SysFontWidth,y*SysFontHeight+2,ch);
                        if (x=CursorX) and (y=CursorY) then
                          ShowCursor;
                      end;
@@ -735,7 +785,7 @@ begin
                          SpVideoBuf^[i]:=nil
                        else
                          begin
-                           FreeMem(SpVideoBuf^[i],SysFontHeight*((SysFontWidth +7) div 8));
+                           FreeMem(SpVideoBuf^[i],SysFontHeight*SysFontWidth*sizeof(word));
                            SpVideoBuf^[i]:=EmptyVideoBufCell;
                          end;
                      end;
@@ -744,7 +794,9 @@ begin
         end;
       Graph.SetFillStyle(StoreFillSettings.pattern,StoreFillSettings.color);
       Graph.SetColor(SavedColor);
+{$ifndef Use_ONLY_COLOR}
       Graph.SetBkColor(SavedBkColor);
+{$endif not Use_ONLY_COLOR}
       Graph.SetViewPort(TS.X1,Ts.Y1,ts.X2,ts.Y2,ts.Clip);
     end;
 {$else not USE_VIDEO_API}
@@ -757,7 +809,10 @@ end;
 END.
 {
  $Log$
- Revision 1.16  2002-06-06 06:41:14  pierre
+ Revision 1.17  2002-08-22 13:40:49  pierre
+  * several graphic mode improovements
+
+ Revision 1.16  2002/06/06 06:41:14  pierre
   + Cursor functions for UseFixedFont case
 
  Revision 1.15  2002/05/31 12:37:47  pierre
