@@ -105,7 +105,7 @@ AUX = $(addsuffix .aux, $(HTML) onechap)
 LOG = $(addsuffix .log, $(HTML) onechap)
 LOT = $(addsuffix .lot, $(HTML) onechap)
 OUT = $(addsuffix .out, $(HTML) onechap)
-CHK = $(addsuffix .chk, $(HTML) progex unitex refex htex onechap)
+CHK = $(addsuffix .chk, $(HTML) progex unitex refex htex onechap scripts)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
              strings objects heaptrc sysutils ipc mouse gpm dxeload \
@@ -195,6 +195,8 @@ clean:
 	-$(MAKE) -C gpmex clean
 # Reference
 	-$(MAKE) -C refex clean
+# Programmers manual
+	-$(MAKE) -C progex clean
 
 $(TXT) : %.txt: %.dvi
 
@@ -248,7 +250,14 @@ date.inc:
 preamble.inc:
 	cp -f preamble.$(PREAMBLETYPE) preamble.inc
 
-includes: date.inc preamble.inc
+scripts.chk:
+	chmod +x tex2htex
+	chmod +x pp2tex
+	chmod +x progex/c2tex
+	touch scripts.chk
+
+includes: date.inc preamble.inc scripts.chk
+
 
 #
 # DVI files
@@ -287,7 +296,7 @@ all : dvi ps pdf txt html
 #####################################################################
 
 htex: htex.chk
-htex.chk: $(wildcard *.tex)
+htex.chk: $(wildcard *.tex) includes
 	./tex2htex
 	touch htex.chk
 
@@ -318,7 +327,7 @@ else
 	-t "Unit reference for Free Pascal" units.htex
 	-sed -f foot.sed <units/footnode.html >units/footnote.html
 	-mv units/footnote.html units/footnode.html
-ifndef LOG
+ifndef DEBUG
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
 endif
@@ -336,7 +345,7 @@ else
 	-t "Free Pascal reference guide" ref.htex
 	-sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	-mv ref/footnote.html ref/footnode.html
-ifndef LOG
+ifndef DEBUG
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
 endif
@@ -354,7 +363,7 @@ else
 	-t "Free Pascal programmers guide" prog.htex
 	-sed -f foot.sed <prog/footnode.html >prog/footnote.html
 	-mv prog/footnote.html prog/footnode.html
-ifndef LOG
+ifndef DEBUG
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
 endif
@@ -372,7 +381,7 @@ else
 	-t "Free Pascal Compiler Documentation" internal.htex
 	-sed -f foot.sed <internal/footnode.html >internal/footnote.html
 	-mv internal/footnote.html internal/footnode.html
-ifndef LOG
+ifndef DEBUG
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
 endif
@@ -390,7 +399,7 @@ else
 	-t "Free Pascal reference guide" onechap.htex
 	-sed -f foot.sed <onechap/footnode.html >onechap/footnote.html
 	-mv onechap/footnote.html onechap/footnode.html
-ifndef LOG
+ifndef DEBUG
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
 	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
 endif
@@ -429,25 +438,8 @@ htmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
-	cp -R search $(DOCINSTALLDIR)
-	sed s/DOCDIR/"$(subst /,\/,$(DOCINSTALLDIR))"/ $(DOCINSTALLDIR)/search/fpchelp.idksm.linux > $(DOCINSTALLDIR)/search/fpchelp.idksm
-	cp -f $(DOCINSTALLDIR)/search/filelist.txt.linux $(DOCINSTALLDIR)/search/filelist.txt
-	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
 	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
-
-doshtmlinstall: html
-	install -d -m 755 $(DOCINSTALLDIR)
-	cp fpctoc.html $(DOCINSTALLDIR)
-	cp -R buttons $(DOCINSTALLDIR)
-	cp -R search $(DOCINSTALLDIR)
-	rm -f $(DOCINSTALLDIR)/search/*.linux
-	cp -R $(HTML) $(DOCINSTALLDIR)
-	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
-
-www-install: psdist htmlinstall
-	scp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
-	ssh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
 
 install:
 	@echo Choose install from:
@@ -484,12 +476,12 @@ htmltar:
 	rm -rf $(DOCPREFIX)
 
 htmlzip:
-	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	zip -D9rq doc-html $(DOCPREFIX)/*
 	rm -rf $(DOCPREFIX)
 
 htmzip:
-	$(MAKE) doshtmlinstall DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	makehtm `find $(DOCPREFIX) -name '*.html'`
 	zip -D9rq doc-htm `find $(DOCPREFIX) -name '*.htm' -or -name '*.gif' -or -name '*.css'`
 	rm -rf $(DOCPREFIX)
@@ -530,7 +522,11 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.6  2001-07-29 20:28:00  peter
+# Revision 1.7  2001-09-22 11:15:04  peter
+#   * chmod the scripts
+#   * fixed html installation
+#
+# Revision 1.6  2001/07/29 20:28:00  peter
 #   * move preamble to separate include file so changes only need to
 #     be done to this file.
 #
