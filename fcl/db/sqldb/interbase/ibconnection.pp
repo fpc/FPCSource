@@ -392,6 +392,7 @@ begin
       CheckError('FreeStatement', Status);
     Statement := nil;
     end;
+  reAllocMem((cursor as tibcursor).SQLDA,0);
 end;
 
 procedure TIBConnection.PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string);
