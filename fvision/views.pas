@@ -1712,7 +1712,7 @@ BEGIN
            Bc := GetColor(1) Else           { Select back colour }
            Bc := GetColor(4);               { Disabled back colour }
          For X := X1 To X2 Do Begin
-           Buf[X-X1]:=(Bc shl 8) or ord(BackgroundChar){$20};
+           Buf[X-X1]:=(Bc shl 8) or ord(BackgroundChar){not a directive,was $20};
          End;
          For Y := Y1 To Y2 Do Begin
            WriteAbs(X1,Y, X2-X1, Buf);
@@ -2830,7 +2830,8 @@ END;
 {  InsertBefore -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.InsertBefore (P, Target: PView);
-VAR SaveState : Word; I: Sw_Word;
+VAR SaveState : Word;
+    I: Sw_integer;
 BEGIN
    If (P <> Nil) AND (P^.Owner = Nil) AND             { View valid }
    ((Target = Nil) OR (Target^.Owner = @Self))        { Target valid }
@@ -5782,7 +5783,10 @@ END.
 
 {
  $Log$
- Revision 1.36  2002-09-09 08:04:06  pierre
+ Revision 1.37  2002-09-09 08:06:33  pierre
+  * remove other warnings
+
+ Revision 1.36  2002/09/09 08:04:06  pierre
   * remove all warnings about far
 
  Revision 1.35  2002/09/07 15:06:38  peter
