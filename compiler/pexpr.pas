@@ -1612,6 +1612,7 @@ unit pexpr;
                     p1^.resulttype:=pd2;
                     consume(_RKLAMMER);
                   end;
+                  postfixoperators;
                end;
        _SELF : begin
                  again:=true;
@@ -2061,7 +2062,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.131  1999-08-04 13:02:55  jonas
+  Revision 1.132  1999-08-04 13:49:45  florian
+    * new(...)^. is now allowed
+
+  Revision 1.131  1999/08/04 13:02:55  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 
