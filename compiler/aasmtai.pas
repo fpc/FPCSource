@@ -1617,17 +1617,7 @@ implementation
       begin
         for i:=0 to opercnt-1 do
           begin
-            with oper[i]^ do
-              begin
-                case typ of
-                  top_ref:
-                    dispose(ref);
-{$ifdef ARM}
-                  top_shifterop:
-                     dispose(shifterop);
-{$endif ARM}
-                end;
-              end;
+            clearop(i);
             dispose(oper[i]);
           end;
         inherited destroy;
@@ -2002,7 +1992,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2004-03-14 20:10:56  peter
+  Revision 1.78  2004-03-14 22:47:56  peter
+    * fix memleak with top_local
+
+  Revision 1.77  2004/03/14 20:10:56  peter
     * disable some debuginfo info when valgrind support is used
 
   Revision 1.76  2004/03/02 17:32:12  florian
