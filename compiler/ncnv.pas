@@ -1952,7 +1952,9 @@ implementation
             { left is a class }
             if is_class(left.resulttype.def) then
              begin
-               { the operands must be related }
+               { the operands must be related
+                 no, because the class instance could be a child class of the current one which
+                 implements additional interfaces (FK)
                b:=false;
                o:=tobjectdef(left.resulttype.def);
                while assigned(o) do
@@ -1967,6 +1969,7 @@ implementation
                  end;
                  if not(b) then
                    CGMessage2(type_e_classes_not_related,left.resulttype.def.typename,right.resulttype.def.typename);
+                 }
              end
             { left is an interface }
             else if is_interface(left.resulttype.def) then
@@ -2056,7 +2059,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2002-10-02 20:17:14  florian
+  Revision 1.84  2002-10-02 20:23:50  florian
+    - removed the relation check for <class> as <interface> because we don't
+      know the runtime type of <class>! It could be a child class of the given type
+      which implements additional interfaces
+
+  Revision 1.83  2002/10/02 20:17:14  florian
     + the as operator for <class> as <interface> has to check the parent classes as well
 
   Revision 1.82  2002/09/30 07:00:47  florian
