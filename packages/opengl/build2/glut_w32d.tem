@@ -1,0 +1,114 @@
+{$MODE delphi}
+
+unit GLUT;
+
+interface
+
+uses GL;
+
+{$IFDEF Linux}
+  {$DEFINE gldecl := cdecl}
+{$ELSE}
+  {$IFDEF Win32}
+    {$DEFINE gldecl := stdcall}
+  {$ENDIF}
+{$ENDIF}
+
+
+function InitGLUTFromLibrary(libname: PChar): Boolean;
+
+// determines automatically which library to use:
+function InitGLUT: Boolean;
+
+
+var
+  GLUTInitialized: Boolean;
+
+
+%GLUTDeclsIF
+
+%GLUTProcsPD
+
+
+implementation
+
+{$IFDEF Linux}
+{$LINKLIB Xmu}
+type
+  HInstance = LongWord;
+
+function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
+function dlclose(handle: Pointer): LongInt; external 'dl';
+function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
+
+function LoadLibrary(name: PChar): HInstance;
+begin
+  Result := LongWord(dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY}));
+end;
+
+procedure FreeLibrary(handle: HInstance);
+begin
+  dlclose(Pointer(handle));
+end;
+
+function GetProcAddress(handle: HInstance; name: PChar): Pointer;
+begin
+  Result := dlsym(Pointer(handle), name);
+  if Result = nil then WriteLn('Unresolved: ', name);
+end;
+
+{$ENDIF}
+
+{$IFDEF Win32}
+type
+  HInstance = LongWord;
+
+function LoadLibrary(name: PChar): HInstance;
+begin
+  Result := 0;
+end;
+
+procedure FreeLibrary(handle: HInstance);
+begin
+end;
+
+function GetProcAddress(handle: HInstance; name: PChar): Pointer;
+begin
+  Result := NIL;
+  if Result = nil then WriteLn('Unresolved: ', name);
+end;
+{$ENDIF}
+
+var
+  libGLUT: HInstance;
+
+function InitGLUTFromLibrary(libname: PChar): Boolean;
+begin
+  Result := False;
+  libGLUT := LoadLibrary(libname);
+  if libGLUT = 0 then exit;
+
+%GLUTProcsPL
+
+  GLUTInitialized := True;
+  Result := True;
+end;
+
+
+function InitGLUT: Boolean;
+begin
+{$IFDEF Win32}
+  Result := InitGLUTFromLibrary('glut32.dll');
+{$ELSE}
+  {$IFDEF Linux}
+  Result := InitGLUTFromLibrary('libglut.so');
+  {$ELSE}
+    {$ERROR Unsupported platform}
+  {$ENDIF}
+{$ENDIF}
+end;
+
+
+finalization
+  if libGLUT <> 0 then FreeLibrary(libGLUT);
+end.

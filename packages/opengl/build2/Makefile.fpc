@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for auto generation of OpenGL units
+#
+
+[targets]
+units=buildgl
+programs=c_gen
+
+[require]
+packages=fcl
+
+[dirs]
+fpcdir=../../..
+
+[defaults]
+defaultrule=all_units
+
+[rules]
+.PHONY: all_units linuxd w32d w32s
+
+all_units: linuxd w32d w32s
+
+linuxd: c_gen$(EXEEXT) ogl_lind.gen
+	c_gen ogl_lind.gen
+
+w32d: c_gen$(EXEEXT) ogl_w32d.gen
+	c_gen ogl_w32d.gen
+
+w32s: c_gen$(EXEEXT) ogl_w32s.gen
+	c_gen ogl_w32s.gen
+
