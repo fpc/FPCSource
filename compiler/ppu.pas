@@ -242,7 +242,6 @@ implementation
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
-    systems,
     crc;
 
 {*****************************************************************************
@@ -984,7 +983,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  2003-05-26 15:49:54  jonas
+  Revision 1.38  2003-05-26 19:39:51  peter
+    * removed systems unit
+
+  Revision 1.37  2003/05/26 15:49:54  jonas
     * endian fix is now done using a define instead of with source_info
 
   Revision 1.36  2003/05/24 13:37:10  jonas
