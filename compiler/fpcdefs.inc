@@ -65,7 +65,7 @@
 {$ifdef powerpc}
   {$define cpuflags}
   {$define noopt}
-  {$define oldregvars}
+  {define oldregvars}
 {$endif powerpc}
 
 {$ifdef arm}
@@ -84,7 +84,10 @@
 
 {
   $Log$
-  Revision 1.42  2004-10-04 21:23:15  florian
+  Revision 1.43  2004-10-10 14:57:29  jonas
+    - disabled oldregvars because it no longer compiles
+
+  Revision 1.42  2004/10/04 21:23:15  florian
     * rtti alignment fixed
 
   Revision 1.41  2004/09/21 19:59:51  peter
