@@ -76,6 +76,8 @@ type
     file_end,
     line_start,
     line_end : longint;
+    signal_name,
+    signal_string : pchar;
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
@@ -304,7 +306,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:27  peter
+  Revision 1.2  2002-02-11 18:51:39  peter
+    * signal_name added
+
+  Revision 1.1  2001/08/04 11:30:27  peter
     * ide works now with both compiler versions
 
 }
