@@ -1040,12 +1040,12 @@ unit pexpr;
                { insert at the end of the tree, to get the correct order }
                  if not assigned(buildp) then
                   begin
-                    buildp:=gensinglenode(arrayconstructn,p1);
+                    buildp:=gennode(arrayconstructn,p1,nil);
                     lastp:=buildp;
                   end
                  else
                   begin
-                    lastp^.right:=gensinglenode(arrayconstructn,p1);
+                    lastp^.right:=gennode(arrayconstructn,p1,nil);
                     lastp:=lastp^.right;
                   end;
                { there could be more elements }
@@ -1843,7 +1843,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.61  1998-10-05 13:57:15  peter
+  Revision 1.62  1998-10-12 10:05:41  peter
+    * fixed mem leak with arrayconstrutor
+
+  Revision 1.61  1998/10/05 13:57:15  peter
     * crash preventions
 
   Revision 1.60  1998/10/05 12:32:46  peter
