@@ -247,6 +247,7 @@ type
        Tdictionary=class
        private
          FRoot      : TNamedIndexItem;
+         FCount     : longint;
          FHashArray : Pdictionaryhasharray;
          procedure cleartree(var obj:TNamedIndexItem);
          function  insertNode(NewNode:TNamedIndexItem;var currNode:TNamedIndexItem):TNamedIndexItem;
@@ -954,9 +955,11 @@ end;
          FFirst:=p.FFirst;
          if (FLast=nil) then
            Flast:=p.Flast;
+         inc(FCount,p.FCount);
          { p becomes empty }
          p.FFirst:=nil;
          p.Flast:=nil;
+         p.FCount:=0;
       end;
 
 
@@ -980,10 +983,12 @@ end;
              else
                FLast:=p.FLast;
              Item.Next:=p.FFirst;
+             inc(FCount,p.FCount);
            end;
          { p becomes empty }
          p.FFirst:=nil;
          p.Flast:=nil;
+         p.FCount:=0;
       end;
 
 
@@ -999,9 +1004,11 @@ end;
            p.FFirst.Previous:=Flast;
          end;
         Flast:=p.Flast;
+        inc(FCount,p.FCount);
         { make p empty }
         p.Flast:=nil;
         p.FFirst:=nil;
+        p.FCount:=0;
       end;
 
 
@@ -1372,6 +1379,9 @@ end;
                   lr:=left;
                 end;
              end;
+            if root<>nil then
+              begin
+                dec(FCount);
             if root.FLeft<>nil then
              begin
                { Now the Node pointing to root must point to the left
@@ -1393,6 +1403,7 @@ end;
                else
                 oldroot.FRight:=root.FRight;
              end;
+              end;
             delete_from_tree:=root;
           end;
 
@@ -1424,6 +1435,7 @@ end;
               else
                FHashArray^[p]:=n.FRight;
               delete:=n;
+              dec(FCount);
               exit;
             end;
          end
@@ -1442,6 +1454,7 @@ end;
               else
                FRoot:=n.FRight;
               delete:=n;
+              dec(FCount);
               exit;
             end;
          end;
@@ -1523,7 +1536,6 @@ end;
       begin
         hp:=nil;
         Replace:=false;
-{        newobj.FSpeedValue:=GetSpeedValue(newobj.FName^);}
         { must be the same name and hash }
         if (oldobj.FSpeedValue<>newobj.FSpeedValue) or
            (oldobj.FName^<>newobj.FName^) then
@@ -1591,7 +1603,7 @@ end;
 
     function Tdictionary.insert(obj:TNamedIndexItem):TNamedIndexItem;
       begin
-{        obj.FSpeedValue:=GetSpeedValue(obj.FName^);}
+        inc(FCount);
         if assigned(FHashArray) then
          insert:=insertNode(obj,FHashArray^[obj.SpeedValue mod hasharraysize])
         else
@@ -1930,8 +1942,8 @@ end;
       begin
         osize:=size;
         inc(size,gsize);
-        reallocmem(data,size*4);
-        fillchar(data^[osize+1],gsize*4,0);
+        reallocmem(data,size*sizeof(pointer));
+        fillchar(data^[osize+1],gsize*sizeof(pointer),0);
       end;
 
 
@@ -2291,7 +2303,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-04-28 18:02:54  peter
+  Revision 1.32  2004-05-23 14:31:31  peter
+    * count fixes for tlinkedlist
+
+  Revision 1.31  2004/04/28 18:02:54  peter
     * add TList to cclasses, remove classes dependency from t_win32
 
   Revision 1.30  2004/01/15 15:16:17  daniel
