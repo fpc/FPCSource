@@ -3526,7 +3526,11 @@ implementation
       begin
         s:='';
         if assigned(_class) then
-         s:=_class.objrealname^+'.';
+         begin
+           if po_classmethod in procoptions then
+            s:=s+'class ';
+           s:=s+_class.objrealname^+'.';
+         end;
         s:=s+procsym.realname+typename_paras;
         fullprocname:=s;
       end;
@@ -4075,12 +4079,16 @@ implementation
       var
         s: string;
       begin
+         s:='<';
+         if po_classmethod in procoptions then
+           s := s+'class method'
+         else
+           s := s+'procedure variable';
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           s:='<procedure variable type of function'+typename_paras+
-             ':'+rettype.def.gettypename
+           s:=s+' type of function'+typename_paras+':'+rettype.def.gettypename
          else
-           s:='<procedure variable type of procedure'+typename_paras;
+           s:=s+' type of procedure'+typename_paras;
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
@@ -5538,7 +5546,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2002-12-15 19:34:31  florian
+  Revision 1.118  2002-12-27 15:23:09  peter
+    * write class methods in fullname
+
+  Revision 1.117  2002/12/15 19:34:31  florian
     + some front end stuff for vs_hidden added
 
   Revision 1.116  2002/12/15 11:26:02  peter
