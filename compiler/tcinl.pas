@@ -1084,7 +1084,8 @@ implementation
                       { first param must be var }
                       valid_for_assign(p^.left^.left,false);
                       { check type }
-                      if (p^.left^.resulttype^.deftype=setdef) then
+                      if assigned(p^.left^.resulttype) and
+                         (p^.left^.resulttype^.deftype=setdef) then
                         begin
                            { two paras ? }
                            if assigned(p^.left^.right) then
@@ -1335,7 +1336,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-16 13:06:07  florian
+  Revision 1.6  2000-08-24 13:12:38  jonas
+    * fixed crash when using include/exclude with undeclared variable as
+      first parameter (merged from fixes branch)
+
+  Revision 1.5  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.4  2000/08/01 14:07:49  jonas
