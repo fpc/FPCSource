@@ -372,7 +372,7 @@ implementation
                else
                 begin
                   location_force_reg(exprasmlist,left.location,opsize,false);
-                  location_force_reg(exprasmlist,right.location,opsize,true);
+                  location_force_reg(exprasmlist,right.location,opsize,false);
                   { allocate a register for the result }
                   location.register:=cg.getintregister(exprasmlist,location.size);
                   { emit bit test operation }
@@ -870,7 +870,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2004-12-05 12:28:11  peter
+  Revision 1.73  2004-12-11 01:04:26  jonas
+    * fixed regvar problem due to emit_bit_test() changing a register that
+      was allowed to be a LOC_CREGISTER
+
+  Revision 1.72  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
