@@ -481,7 +481,6 @@ implementation
                   emit_ref_reg(A_LEA,S_L,hr,pto^.location.register);
                 end
                else
-
                 emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
                   pto^.location.register);
              end;
@@ -500,6 +499,9 @@ implementation
 
 
     procedure second_string_to_chararray(pto,pfrom : ptree;convtyp : tconverttype);
+      var
+         l1 : pasmlabel;
+         hr : preference;
       begin
          case pstringdef(pfrom^.resulttype)^.string_typ of
            st_shortstring :
@@ -508,8 +510,28 @@ implementation
              end;
            st_ansistring :
              begin
-               {!!!!!!!}
-               internalerror(8888);
+               clear_location(pto^.location);
+               pto^.location.loc:=LOC_REFERENCE;
+               reset_reference(pto^.location.reference);
+               getlabel(l1);
+               case pfrom^.location.loc of
+                  LOC_CREGISTER,LOC_REGISTER:
+                    pto^.location.reference.base:=pfrom^.location.register;
+                  LOC_MEM,LOC_REFERENCE:
+                    begin
+                      pto^.location.reference.base:=getregister32;
+                      emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                        pto^.location.reference.base);
+                      del_reference(pfrom^.location.reference);
+                    end;
+               end;
+               emit_const_reg(A_CMP,S_L,0,pto^.location.reference.base);
+               emitjmp(C_NZ,l1);
+               new(hr);
+               reset_reference(hr^);
+               hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+               emit_ref_reg(A_LEA,S_L,hr,pto^.location.reference.base);
+               emitlab(l1);
              end;
            st_longstring:
              begin
@@ -1165,38 +1187,30 @@ implementation
 
     procedure second_ansistring_to_pchar(pto,pfrom : ptree;convtyp : tconverttype);
       var
-         l1,l2 : pasmlabel;
+         l1 : pasmlabel;
          hr : preference;
       begin
          clear_location(pto^.location);
          pto^.location.loc:=LOC_REGISTER;
          getlabel(l1);
-         getlabel(l2);
          case pfrom^.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
-              emit_const_reg(A_CMP,S_L,0,
-                pfrom^.location.register);
+              pto^.location.register:=pfrom^.location.register;
             LOC_MEM,LOC_REFERENCE:
               begin
-                 emit_const_ref(A_CMP,S_L,0,
-                   newreference(pfrom^.location.reference));
-                  del_reference(pfrom^.location.reference);
-                  pto^.location.register:=getregister32;
-               end;
+                pto^.location.register:=getregister32;
+                emit_ref_reg(A_MOV,S_L,newreference(pfrom^.location.reference),
+                  pto^.location.register);
+                del_reference(pfrom^.location.reference);
+              end;
          end;
-         emitjmp(C_Z,l1);
-         if pfrom^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-           emit_ref_reg(A_MOV,S_L,newreference(
-             pfrom^.location.reference),
-             pto^.location.register);
-         emitjmp(C_None,l2);
-         emitlab(l1);
+         emit_const_reg(A_CMP,S_L,0,pto^.location.register);
+         emitjmp(C_NZ,l1);
          new(hr);
          reset_reference(hr^);
          hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-         emit_ref_reg(A_LEA,S_L,hr,
-           pto^.location.register);
-         emitlab(l2);
+         emit_ref_reg(A_LEA,S_L,hr,pto^.location.register);
+         emitlab(l1);
       end;
 
 
@@ -1477,7 +1491,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  1999-10-22 14:36:04  peter
+  Revision 1.92  1999-10-25 10:32:43  peter
+    * ansistring 2 chararray support
+    * optimized ansitring 2 pchar
+
+  Revision 1.91  1999/10/22 14:36:04  peter
     * fixed esi reload with as
 
   Revision 1.90  1999/10/06 08:32:00  peter
