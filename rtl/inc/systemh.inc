@@ -230,7 +230,7 @@ Type
 
   PSmallInt           = ^Smallint;
   PShortInt           = ^Shortint;
-  PInteger            = ^Longint;
+  PInteger            = ^Integer;
   PByte               = ^Byte;
   PWord               = ^word;
   PDWord              = ^DWord;
@@ -796,7 +796,10 @@ const
 
 {
   $Log$
-  Revision 1.111  2004-12-05 14:36:37  hajny
+  Revision 1.112  2005-01-24 18:03:19  peter
+    * pinteger in non-delphi/objfpc mode is psmallint
+
+  Revision 1.111  2004/12/05 14:36:37  hajny
     + GetProcessID added
 
   Revision 1.110  2004/11/26 22:26:30  peter

@@ -26,7 +26,8 @@ unit objpas;
     const
        MaxInt  = MaxLongint;
     type
-       integer = longint;
+       Integer  = longint;
+       PInteger = ^Integer;
 
        { Ansistring are the default }
        PString = PAnsiString;
@@ -184,14 +185,14 @@ Var Len : longint;
 begin
 {
   Paramstr(0) should return the name of the binary.
-  Since this functionality is included in the system unit, 
-  we fetch it from there. 
-  Normally, pathnames are less than 255 chars anyway, 
+  Since this functionality is included in the system unit,
+  we fetch it from there.
+  Normally, pathnames are less than 255 chars anyway,
   so this will work correct in 99% of all cases.
   In time, the system unit should get a GetExeName call.
 }
   if (Param=0) then
-    Result:=System.Paramstr(0) 
+    Result:=System.Paramstr(0)
   else if (Param>0) and (Param<argc) then
     begin
     Len:=0;
@@ -390,7 +391,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-05-29 08:43:52  michael
+  Revision 1.13  2005-01-24 18:03:19  peter
+    * pinteger in non-delphi/objfpc mode is psmallint
+
+  Revision 1.12  2003/05/29 08:43:52  michael
   + Paramstr(0) must return binary name
 
   Revision 1.11  2002/09/07 16:01:22  peter

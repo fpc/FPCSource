@@ -39,6 +39,7 @@ Version: 1.40 - 16-SEP-2004
 {$asmmode intel}
 
 {-------------------------------------------------------------------------}
+(*
 {Just to show that a good Pascal algorithm can beat the default BASM}
 procedure MoveJOH_PAS_3(const Source; var Dest; Count : Integer);
 var
@@ -102,6 +103,7 @@ begin
         PInteger(I)^ := Temp;
       end;
 end; {MoveJOH_PAS}
+*)
 
 const
   SMALLMOVESIZE = 36;
