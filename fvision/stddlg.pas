@@ -2519,8 +2519,11 @@ begin
     FindFirst(ExpPath, Directory, SR);
     PathValid := (DosError = 0) and (SR.Attr and Directory <> 0);
 {$ifdef NetDrive}
-    if (DosError=66) or (DosError=123) then
+    if (DosError<>0) and (length(ExpPath)>2) and
+       (ExpPath[1]='\') and (ExpPath[2]='\')then
       begin
+        { Checking '\\machine\sharedfolder' directly always fails..
+          rather try '\\machine\sharedfolder\*' PM }
       {$ifdef fpc}
         FindClose(SR);
       {$endif}
