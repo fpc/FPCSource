@@ -320,6 +320,7 @@ type
       asmsymbollist : pasmsymbollist;
 
     function newasmsymbol(const s : string) : pasmsymbol;
+    function getasmsymbol(const s : string) : pasmsymbol;
     function renameasmsymbol(const sold, snew : string) : pasmsymbol;
 
   { label functions }
@@ -825,6 +826,11 @@ uses
         newasmsymbol:=hp;
       end;
 
+    { returns nil if non existing symbol }
+    function getasmsymbol(const s : string) : pasmsymbol;
+      begin
+        getasmsymbol:=pasmsymbol(asmsymbollist^.search(s));
+      end;
 
     { renames an asmsymbol }
     function renameasmsymbol(const sold, snew : string) : pasmsymbol;
@@ -971,7 +977,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.33  1999-03-02 02:56:08  peter
+  Revision 1.34  1999-03-03 11:59:27  pierre
+   + getasmsymbol to search for existing assembler symbol only
+
+  Revision 1.33  1999/03/02 02:56:08  peter
     + stabs support for binary writers
     * more fixes and missing updates from the previous commit :(
 
