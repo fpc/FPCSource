@@ -92,6 +92,8 @@ interface
 
 implementation
 
+{$ASMMODE ATT}
+
     function strcopy(dest,source : pchar) : pchar;
 
       begin
@@ -585,7 +587,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-23 01:14:06  peter
+  Revision 1.3  1998-05-30 14:30:22  peter
+    * force att reading
+
+  Revision 1.2  1998/05/23 01:14:06  peter
     + I386_ATT switch
 
 }

@@ -15,6 +15,8 @@
 
  **********************************************************************}
 
+{$ASMMODE ATT}
+
 {****************************************************************************
                                 Move / Fill
 ****************************************************************************}
@@ -147,7 +149,7 @@ end;
                               Object Helpers
 ****************************************************************************}
 
-{$I386_DIRECT}
+{$ASMMODE DIRECT}
 
 procedure int_help_constructor;assembler; [public,alias:'HELP_CONSTRUCTOR'];
 asm
@@ -308,6 +310,8 @@ asm
         popal
         addl	$4,%esp
 end;
+
+{$ASMMODE ATT}
 
 
 {****************************************************************************
@@ -704,7 +708,6 @@ begin
 end;
 
 
-{$I386_ATT}
 
 Function Random(L: LongInt): LongInt;assembler;
 asm
@@ -720,7 +723,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1998-05-25 10:40:49  peter
+  Revision 1.11  1998-05-30 14:30:21  peter
+    * force att reading
+
+  Revision 1.10  1998/05/25 10:40:49  peter
     * remake3 works again on tflily
 
   Revision 1.5  1998/04/29 13:28:19  peter
