@@ -167,7 +167,7 @@ Begin
   SendMessage(HEdit,WM_SetText,1,LongInt(Empty));
 End;
 
-Function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint): Longint;
+Function WindowProc (Window:HWnd;AMessage : UINT; WParam : WParam; LParam:LParam): LResult;
 stdcall;
 export;
 
@@ -196,11 +196,15 @@ Begin
                 End;
     wm_Size:
              Begin
-               GetClientRect(HStatus,@R);
-               StatH := R.Bottom-R.Top;
-               GetClientRect(Window,@R);
-               MoveWindow (hStatus,r.left,r.bottom-StatH,r.right,r.bottom,true);
-               MoveWindow (HEdit,0,0,r.right-r.left,r.bottom-r.top-StatH,true);
+               if HStatus<>0 then
+                 begin
+                   GetClientRect(HStatus,@R);
+                   StatH := R.Bottom-R.Top;
+                   GetClientRect(Window,@R);
+                   MoveWindow (hStatus,r.left,r.bottom-StatH,r.right,r.bottom,true);
+                   if HEdit<>0 then
+                     MoveWindow (HEdit,0,0,r.right-r.left,r.bottom-r.top-StatH,true);
+                 end;
              End;
     wm_Command:
                 Begin
@@ -336,10 +340,13 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
+  Revision 1.2  2002-02-21 11:43:54  pierre
+   * fix range check problems and wrong uses of HEdit and HStatus handles
+
+  Revision 1.1  2001/05/03 21:39:34  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:10  michael
   + removed logs
- 
+
 }
