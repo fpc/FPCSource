@@ -106,6 +106,7 @@ implementation
          resultset : Tconstset;
          i       : longint;
          b       : boolean;
+         c1,c2   :char;
          s1,s2   : pchar;
          ws1,ws2 : pcompilerwidestring;
          l1,l2   : longint;
@@ -468,41 +469,41 @@ implementation
 
          { concating strings ? }
          concatstrings:=false;
-         s1:=nil;
-         s2:=nil;
 
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
-              s1:=strpnew(char(byte(tordconstnode(left).value)));
-              s2:=strpnew(char(byte(tordconstnode(right).value)));
+              c1:=char(byte(tordconstnode(left).value));
               l1:=1;
+              c2:=char(byte(tordconstnode(right).value));
               l2:=1;
+              s1:=@c1;
+              s2:=@c2;
               concatstrings:=true;
            end
-         else
-           if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
+         else if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
-              s1:=tstringconstnode(left).getpcharcopy;
+              s1:=tstringconstnode(left).value_str;
               l1:=tstringconstnode(left).len;
-              s2:=strpnew(char(byte(tordconstnode(right).value)));
+              c2:=char(byte(tordconstnode(right).value));
+              s2:=@c2;
               l2:=1;
               concatstrings:=true;
            end
-         else
-           if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
+         else if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
-              s1:=strpnew(char(byte(tordconstnode(left).value)));
+              c1:=char(byte(tordconstnode(left).value));
               l1:=1;
-              s2:=tstringconstnode(right).getpcharcopy;
+              s1:=@c1;
+              s2:=tstringconstnode(right).value_str;
               l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
-              s1:=tstringconstnode(left).getpcharcopy;
+              s1:=tstringconstnode(left).value_str;
               l1:=tstringconstnode(left).len;
-              s2:=tstringconstnode(right).getpcharcopy;
+              s2:=tstringconstnode(right).value_str;
               l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end;
@@ -524,8 +525,6 @@ implementation
                  unequaln :
                    t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
               end;
-              ansistringdispose(s1,l1);
-              ansistringdispose(s2,l2);
               result:=t;
               exit;
            end;
@@ -1914,7 +1913,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.111  2004-02-20 21:55:59  peter
+  Revision 1.112  2004-02-21 22:08:46  daniel
+    * Avoid memory allocation and string copying
+
+  Revision 1.111  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.110  2004/02/05 01:24:08  florian
