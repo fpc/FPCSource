@@ -59,11 +59,14 @@
     function divqword(z,n : qword) : qword;[public,alias: 'FPC_DIV_QWORD'];
 
       var
-         shift,lzz,lzn : longint;          
+         shift,lzz,lzn : longint;
+         one : qword;
 
       begin
-         {!!!!!!!!
-         divqword:=0;
+         { we can't write qword direct currently }
+         divqword:=divqword xor divqword;
+         tqwordrec(one).high:=0;
+         tqwordrec(one).high:=1;
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -77,12 +80,11 @@
            if z>n then
              begin
                 z:=z-n;
-                divqword:=divqword+(1 shl shift);
+                divqword:=divqword+(one shl shift);
              end;
            dec(shift);
-           n:=n shr 1;
+           n:=n shr one;
          until shift<=0;
-         }
       end;
 
     function modqword(z,n : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
@@ -133,16 +135,16 @@
            q2:=n;
 
          { the div is coded by the compiler as call to divqword }
-         {!!!!!!!
          if sign then
            divint64:=-q1 div q2
          else
            divint64:=q1 div q2;
-         }
       end;
 
-    { multiplies two qwords }
-    function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;[public,alias: 'FPC_MUL_QWORD'];
+    { multiplies two qwords 
+      the longbool for checkoverflow avoids a misaligned stack
+    }
+    function mulqword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD'];
 
       var
          zero,bitpos64,bitpos : qword;
@@ -187,8 +189,9 @@
          ... using the the qword multiplication
        fpuint64 = true:
          ... using the comp multiplication
+       the longbool for checkoverflow avoids a misaligned stack
      }
-    function mulint64(f1,f2 : int64;checkoverflow : boolean) : int64;[public,alias: 'FPC_MUL_INT64'];
+    function mulint64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64'];
 
       var
          sign : boolean;
@@ -259,7 +262,10 @@
 
 {
   $Log$
-  Revision 1.5  1999-05-25 20:36:41  florian
+  Revision 1.6  1999-06-02 10:13:16  florian
+    * multiplication fixed
+
+  Revision 1.5  1999/05/25 20:36:41  florian
     * some bugs removed
 
   Revision 1.4  1999/05/24 08:43:46  florian
