@@ -780,8 +780,8 @@ unit cgcpu;
           list.concat(taicpu.op_reg_const(A_CMP,reg,a))
         { CMN reg,0 and CMN reg,$80000000 are different from CMP reg,$ffffffff
           and CMP reg,$7fffffff regarding the flags according to the ARM manual }
-        else if is_shifter_const(not(a),b) and (a<>$7fffffff) and (a<>$ffffffff) then
-          list.concat(taicpu.op_reg_const(A_CMN,reg,not(a)))
+        else if is_shifter_const(-a,b) and (a<>$7fffffff) and (a<>$ffffffff) then
+          list.concat(taicpu.op_reg_const(A_CMN,reg,-a))
         else
           begin
             tmpreg:=getintregister(list,size);
@@ -1281,7 +1281,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2004-03-06 20:35:19  florian
+  Revision 1.47  2004-03-10 22:35:40  florian
+    + fixed code generation for cmn
+
+  Revision 1.46  2004/03/06 20:35:19  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
