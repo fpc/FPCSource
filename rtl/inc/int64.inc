@@ -392,13 +392,6 @@
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
-    if negative and (s='-9223372036854775808') then
-     begin
-       Code:=0;
-       ValInt64:=Int64($80000000) shl 32;
-       exit;
-     end;
-
     { high(int64) produces 0 in version 1.0 (JM) }
     with qwordrec(maxint64) do
       begin
@@ -424,7 +417,7 @@
        Temp:=Temp*Int64(base);
      If (u >= base) or
         ((base = 10) and
-         (maxint64-temp < u)) or
+         (maxint64-temp+ord(negative) < u)) or
         ((base <> 10) and
          (qword(maxqword-temp) < u)) or
         (prev > maxqword div qword(base)) Then
@@ -486,7 +479,10 @@
 
 {
   $Log$
-  Revision 1.3  2000-07-28 12:29:49  jonas
+  Revision 1.4  2000-11-17 17:01:23  jonas
+    * fixed bug for val when processing -2147483648 and low(int64) (merged)
+
+  Revision 1.3  2000/07/28 12:29:49  jonas
     * fixed web bug1069
     * fixed similar (and other) problems in val() for int64 and qword
       (both merged from fixes branch)

@@ -359,13 +359,6 @@ begin
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
    exit;
-  if negative and (s='-2147483648') then
-   begin
-     Code:=0;
-     ValSignedInt:=$80000000;
-     exit;
-   end;
-
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -379,7 +372,7 @@ begin
      Temp := Temp*ValUInt(base);
      If (u >= base) or
         ((base = 10) and
-         (MaxSIntValue-temp < u)) or
+         (MaxSIntValue-temp+ord(negative) < u)) or
         ((base <> 10) and
          (ValUInt(MaxUIntValue-Temp) < u)) or
         (prev > ValUInt(MaxUIntValue) div ValUInt(Base)) Then
@@ -560,7 +553,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-11-06 20:34:24  peter
+  Revision 1.6  2000-11-17 17:01:23  jonas
+    * fixed bug for val when processing -2147483648 and low(int64) (merged)
+
+  Revision 1.5  2000/11/06 20:34:24  peter
     * changed ver1_0 defines to temporary defs
 
   Revision 1.4  2000/10/21 18:20:17  florian
