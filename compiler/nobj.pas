@@ -1357,6 +1357,7 @@ implementation
           end;
          { write virtual methods }
          writevirtualmethods(dataSegment);
+         datasegment.concat(Tai_const.create(ait_const_ptr,0));
          { write the size of the VMT }
          dataSegment.concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
       end;
@@ -1400,7 +1401,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.82  2004-11-17 22:21:35  peter
+  Revision 1.83  2004-11-20 14:39:27  florian
+    * write nil entry after last entry to vmt table so the size of the vmt can be determined
+
+  Revision 1.82  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
