@@ -547,8 +547,8 @@ implementation
     function tarrayconstructornode.det_resulttype:tnode;
       var
         htype : ttype;
-        hp : tarrayconstructornode;
-        len : longint;
+        hp    : tarrayconstructornode;
+        len   : longint;
         varia : boolean;
       begin
         result:=nil;
@@ -601,8 +601,11 @@ implementation
       var
         thp,
         chp,
-        hp : tarrayconstructornode;
+        hp        : tarrayconstructornode;
+        dovariant : boolean;
+        htype     : ttype;
       begin
+        dovariant:=(nf_forcevaria in flags) or parraydef(resulttype.def)^.isvariant;
         result:=nil;
       { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
@@ -611,9 +614,8 @@ implementation
            while assigned(hp) do
             begin
               firstpass(hp.left);
-              set_varstate(hp.left,true);
               { Insert typeconvs for array of const }
-              if parraydef(resulttype.def)^.IsVariant then
+              if dovariant then
                begin
                  case hp.left.resulttype.def^.deftype of
                    enumdef :
@@ -661,6 +663,8 @@ implementation
            if (nf_cargs in flags) and (not(nf_cargswap in flags)) then
             begin
               chp:=nil;
+              { save resulttype }
+              htype:=resulttype;
               { we need a copy here, because self is destroyed }
               { by firstpass later                             }
               hp:=tarrayconstructornode(getcopy);
@@ -675,6 +679,7 @@ implementation
               include(chp.flags,nf_cargswap);
               calcregisters(chp,0,0,0);
               chp.location.loc:=LOC_MEM;
+              chp.resulttype:=htype;
               result:=chp;
               exit;
             end;
@@ -732,7 +737,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-04 22:42:40  peter
+  Revision 1.13  2001-04-05 21:03:08  peter
+    * array constructor fix
+
+  Revision 1.12  2001/04/04 22:42:40  peter
     * move constant folding into det_resulttype
 
   Revision 1.11  2001/04/02 21:20:31  peter
