@@ -376,6 +376,8 @@ rtl :
 rtlclean :
 	$(MAKE) -C $(RTLDIR) libsclean
 
+rtlinstall:
+	$(MAKE) -C $(RTLDIR) install
 
 #####################################################################
 # local user configurable file
@@ -403,7 +405,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.37  1999-09-03 08:37:34  pierre
+# Revision 1.38  1999-10-15 20:47:52  michael
+# Added rtlinstall target
+#
+# Revision 1.37  1999/09/03 08:37:34  pierre
 #   *  tokens.dat only used for TP, and also removed from
 #      compiler dependencies
 #
