@@ -1,340 +1,330 @@
 {
-
-  System independent low-level video interface for os/2
-
-
+  System independent low-level video interface for OS/2
 
   $Id$
-
 }
-
-
 
 uses
 {$IFDEF PPC_FPC}
- VioCalls;
+ DosCalls, VioCalls;
 {$ELSE}
  {$IFDEF PPC_VIRTUAL}
  Os2Base;
  {$ENDIF}
 {$ENDIF}
 
+const
+    InitVideoCalled: boolean = false;
+    OrigEmpty: boolean = false;
+    LastCursorType: word = crUnderline;
+    EmptyCell: cardinal = $0720;
 
+{$IFDEF PPC_VIRTUAL}
+type
+    TVioCursorInfo = VioCursorInfo;
+    TVioModeInfo = VioModeInfo;
+    TVioIntensity = VioIntensity;
+{$ENDIF}
 
-var videobuf:Pvideobuf;
-
-    videobufsize:cardinal;
-
-    lastcursortype:word=crunderline;
-
-    cell_width,cell_height:word;
-
+var OrigCurType: TVioCursorInfo;
+    OrigVioMode: TVioModeInfo;
+    OrigHighBit: TVioIntensity;
+    CellHeight: byte;
 
 
 {$ASMMODE ATT}
 
+procedure CheckCellHeight;
 
-
-procedure update_cell_size;
-
-
+var OldCD, CD: TVioCursorInfo;
 
 begin
-
-    {This function cannot fail when the default handle is used.}
-
-    viogetdevicecellsize(cell_height,cell_width,0);
-
+    VioGetCurType (OldCD, 0);
+    Move (OldCD, CD, SizeOf (CD));
+    with CD do
+        begin
+            Attr := 0;
+            yStart := word (-90);
+            cEnd := word (-100);
+        end;
+    VioSetCurType (CD, 0);
+    VioGetCurType (CD, 0);
+    CellHeight := CD.cEnd;
+    VioSetCurType (OldCD, 0);
 end;
 
 
+procedure RegisterVideoModes;
+begin
+{ BW modes are rejected on my (colour) configuration. I can't imagine
+  OS/2 running on MCGA anyway... ;-)
 
-procedure initvideo;
+    RegisterVideoMode (40, 25, False, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 25, False, @DefaultVideoModeSelector, 0);
+}
+    RegisterVideoMode (40, 25, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 25, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 30, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 43, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (80, 50, True, @DefaultVideoModeSelector, 0);
+
+{ The following modes wouldn't work on plain VGA; is it useful to check
+  for their availability on the program startup?
+
+    RegisterVideoMode (132, 25, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (132, 30, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (132, 43, True, @DefaultVideoModeSelector, 0);
+    RegisterVideoMode (132, 50, True, @DefaultVideoModeSelector, 0);
+}
+end;
 
 
+procedure SetHighBitBlink (Blink: boolean);
+
+var VI: TVioIntensity;
 
 begin
-
-    initvideocalled:=true;
-
-    {Get the address of the videobuffer.}
-
-    if viogetbuf(videobuf,videobufsize,0)=0 then
-
+    with VI do
         begin
+            cb := 6;
+            rType := 2;
+            fs := byte (not (Blink));
+        end;
+    VioSetState (VI, 0);
+end;
 
-            update_cell_size;
 
-            sethighbitblink;
+procedure InitVideo;
 
-            setcursortype(lastcursortype);
+var P: PVideoModeList;
+    MI: TVioModeInfo;
 
+begin
+    InitVideoCalled := true;
+    VideoBufSize := 0;
+    MI.cb := SizeOf (MI);
+    VioGetMode (MI, 0);
+    if OrigEmpty then
+        begin
+{Remember original video mode, cursor type and high bit behaviour setting}
+            Move (MI, OrigVioMode, SizeOf (OrigVioMode));
+            VioGetCurType (OrigCurType, 0);
+            with OrigHighBit do
+                begin
+                    cb := 6;
+                    rType := 2;
+                end;
+            VioGetState (OrigHighBit, 0);
+{Register the curent video mode in Modes if not there yet}
+            with OrigVioMode do
+                begin
+                    P := Modes;
+                    while (P <> nil) and ((P^.Row <> Row) or (P^.Col <> Col)
+                                      or (P^.Color <> (Color >= Colors_16))) do
+                        P := P^.Next;
+                    if P = nil then
+{Assume we have at least 16 colours available in "colour" modes}
+                        RegisterVideoMode (Col, Row, Color >= Colors_16,
+                                                 @DefaultVideoModeSelector, 0);
+                end;
+        end;
+    with MI do
+        begin
+            ScreenWidth := Col;
+            ScreenHeight := Row;
+            ScreenColor := Color >= Colors_16;
+        end;
+    VioGetCurPos (CursorY, CursorX, 0);
+    LowAscii := true;
+    SetCursorType (LastCursorType);
+{Get the address of the videobuffer.}
+    if VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0) = 0 then
+        begin
+            VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+            SetHighBitBlink (true);
         end
-
     else
-
-        errcode:=errvioinit;
-
+        ErrorHandler (errVioInit, nil);
 end;
 
 
-
-procedure setcursorpos(newcursorx,newcursory:word);
-
-
+procedure SetCursorPos (NewCursorX, NewCursorY: word);
 
 begin
-
-    if viosetcurpos(newcursory,newcursorx,0)<>0 then
-
-        {Do not set an error code; people should fix invalid newcursorx or
-
-         newcursory values when designing, there is no need for detecting
-
-         these errors at runtime.}
-
-        runerror(225);
-
-end;
-
-
-
-function getcursortype:word;
-
-
-
-var cd:Tviocursorinfo;
-
-
-
-begin
-
-    viogetcurtype(cd,0);    {Never fails, because handle is default handle.}
-
-    if cd.attr=-1 then
-
-        getcursortype:=crhidden
-
-    else
-
-        {Because the cursor's start and end lines are returned, we'll have
-
-         to guess heuristically what cursor type we have.}
-
-        case cd.cend-cd.ystart of
-
-            0:
-
-                {Propably this does not occur, but you'll never know.}
-
-                getcursortype:=crhidden;
-
-            1..cell_height div 4:
-
-                getcursortype=crunderline;
-
-            cell_height div 4..cell_height div 2:
-
-                getcursortype:=crhalfblock;
-
-            else
-
-                getcursortype:=crblock;
-
-        end;
-
-end;
-
-
-
-procedure setcursortype;
-
-
-
-begin
-
-end;
-
-
-
-procedure donevideo;
-
-
-
-begin
-
-    If initvideocalled then
-
+    if VioSetCurPos (NewCursorY, NewCursorX, 0) = 0 then
         begin
+            CursorX := NewCursorX;
+            CursorY := NewCursorY;
+        end
+    else
+        {Do not set an error code; people should fix invalid NewCursorX
+         or NewCursorY values when designing, there is no need for detecting
+         these errors at runtime.}
+        RunError (225);
+end;
 
-            lastcursortype:=getcursortype;
 
-            clearscreen;
+function GetCursorType: word;
 
-            setcursortype(crunderline);
+var CD: TVioCursorInfo;
 
-            setcursorpos(0,0);
-
-            initvideocalled:=false;
-
-            videobufsize:=0;
-
+begin
+    VioGetCurType (CD, 0);    {Never fails, because handle is default handle.}
+    with CD do
+        begin
+            CursorLines := Succ (cEnd) - yStart;
+            if Attr = word (-1) then
+                GetCursorType := crHidden
+            else
+{Because the cursor's start and end lines are returned, we'll have
+ to guess heuristically what cursor type we have.}
+                if CursorLines = 0 then
+{Probably this does not occur, but you'll never know.}
+                    GetCursorType := crHidden
+                else if CursorLines <= Succ (CellHeight div 4) then
+                    GetCursorType := crUnderline
+                else if CursorLines <= Succ (CellHeight div 2) then
+                    GetCursorType := crHalfBlock
+                else
+                    GetCursorType := crBlock;
         end;
-
 end;
 
 
+procedure SetCursorType (NewType: word);
 
-
-
-function GetCapabilities: Word;
-
-
+var CD: TVioCursorInfo;
 
 begin
-
-  GetCapabilities := $3F;
-
+    VioGetCurType (CD, 0);
+    with CD do
+        begin
+            case NewType of
+                crHidden: Attr := word (-1);
+                crUnderline:
+                    begin
+                        yStart := word (-90);
+                        cEnd := word (-100);
+                    end;
+                crHalfBlock:
+                    begin
+                        yStart := word (-50);
+                        cEnd := word (-100);
+                    end;
+                crBlock:
+                    begin
+                        yStart := 0;
+                        cEnd := word (-100);
+                    end;
+            end;
+            VioSetCurType (CD, 0);
+            VioGetCurType (CD, 0);
+            CursorLines := Succ (cEnd) - yStart;
+        end;
 end;
 
 
-
-
-
-procedure SetCursorPos(NewCursorX, NewCursorY: Word);
-
-
+procedure DoneVideo;
 
 begin
-
+    if InitVideoCalled then
+        begin
+            LastCursorType := GetCursorType;
+            ClearScreen;
+{Restore original settings}
+            VioSetMode (OrigVioMode, 0);
+            CheckCellHeight;
+{Set CursorX and CursorY}
+            SetCursorPos (0, 0);
+            VioSetState (OrigHighBit, 0);
+            VioSetCurType (OrigCurType, 0);
+            VideoBufSize := 0;
+            InitVideoCalled := false;
+        end;
 end;
 
 
-
-
-
-function GetCursorType: Word;
-
-
+function GetCapabilities: word;
 
 begin
-
+    GetCapabilities := $3F;
 end;
 
 
+function DefaultVideoModeSelector (const VideoMode: TVideoMode; Params: longint): boolean;
 
-
-
-procedure SetCursorType(NewType: Word);
-
-
+var OldMI, MI: TVioModeInfo;
 
 begin
-
+    OldMI.cb := SizeOf (OldMI);
+    if VioGetMode (OldMI, 0) <> 0 then
+        DefaultVideoModeSelector := false
+    else
+        begin
+            with MI do
+                begin
+                    cb := 8;
+                    fbType := 0;
+                    if VideoMode.Color then
+                        Color := Colors_16
+                    else
+                        Color := Colors_2;
+                    Col := VideoMode.Col;
+                    Row := VideoMode.Row;
+                end;
+            if VioSetMode (MI, 0) = 0 then
+                if VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0) = 0 then
+                    begin
+                        VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+                        DefaultVideoModeSelector := true;
+                        SetHighBitBlink (true);
+                        CheckCellHeight;
+                        SetCursorType (LastCursorType);
+                        ClearScreen;
+                    end
+                else
+                    begin
+                        DefaultVideoModeSelector := false;
+                        VioSetMode (OldMI, 0);
+                        VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0);
+                        VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+                        SetHighBitBlink (true);
+                        CheckCellHeight;
+                        SetCursorType (LastCursorType);
+                        ClearScreen;
+                    end
+            else
+                begin
+                    DefaultVideoModeSelector := false;
+                    VioGetBuf (VideoBuf, PWord (VideoBufSize)^, 0);
+                    VideoBuf := SelToFlat (TFarPtr (VideoBuf));
+                    SetHighBitBlink (true);
+                    SetCursorType (LastCursorType);
+                end;
+        end;
 end;
-
-
-
-
-
-function DefaultVideoModeSelector(const VideoMode: TVideoMode; Params: Longint): Boolean;
-
-
-
-begin
-
-end;
-
-
-
 
 
 procedure ClearScreen;
 
-
-
 begin
-
+    VioScrollDown (0, 0, word (-1), word (-1), 0, PWord (@EmptyCell)^, 0);
 end;
 
 
-
-
-
-procedure UpdateScreen(Force: Boolean);
-
+procedure UpdateScreen (Force: boolean);
 begin
-
-  if LockUpdateScreen<>0 then
-
-   exit;
-
-  if not force then
-
-   begin
-
-	 asm
-
-		movl    VideoBuf,%esi
-
-		movl    OldVideoBuf,%edi
-
-		movl    VideoBufSize,%ecx
-
-		shrl    $2,%ecx
-
-		repe
-
-		cmpsl
-
-		orl     %ecx,%ecx
-
-		jz      .Lno_update
-
-		movb    $1,force
-
-.Lno_update:
-
-	 end;
-
-   end;
-
-  if Force then
-
-   begin
-
-	 dosmemput(videoseg,0,videobuf^,VideoBufSize);
-
-	 move(videobuf^,oldvideobuf^,VideoBufSize);
-
-   end;
-
+    VioShowBuf (0, VideoBufSize, 0);
 end;
-
-
-
-
-
-procedure RegisterVideoModes;
-
-begin
-
-  RegisterVideoMode(40, 25, False, DefaultVideoModeSelector, $00000000);
-
-  RegisterVideoMode(40, 25, True, DefaultVideoModeSelector, $00000001);
-
-  RegisterVideoMode(80, 25, False, DefaultVideoModeSelector, $00000002);
-
-  RegisterVideoMode(80, 25, True, DefaultVideoModeSelector, $00000003);
-
-end;
-
 
 
 {
 
   $Log$
-  Revision 1.2  2000-07-13 11:32:26  michael
+  Revision 1.3  2000-09-24 19:53:03  hajny
+    * OS/2 implementation almost finished, not debugged yet
+
+  Revision 1.2  2000/07/13 11:32:26  michael
   + removed logs
  
 }
