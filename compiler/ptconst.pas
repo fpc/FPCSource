@@ -642,6 +642,7 @@ unit ptconst;
                end
               else
                Message(cg_e_illegal_expression);
+              disposetree(p);
            end;
          { reads a typed constant record }
          recorddef:
@@ -763,7 +764,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.56  1999-11-08 14:02:16  florian
+  Revision 1.57  1999-11-08 16:24:28  pierre
+   * missing disposetree added to avoid memory loss
+
+  Revision 1.56  1999/11/08 14:02:16  florian
     * problem with "index X"-properties solved
     * typed constants of class references are now allowed
 
