@@ -24,7 +24,9 @@ uses
   dos,getopts;
 
 const
-  version='v1.01';
+  Version   = 'Version 0.99.14';
+  Title     = 'DelPascal';
+  Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
 function DStr(l:longint):string;
 var
@@ -174,13 +176,13 @@ end;
 procedure processoptions;
 
 Var c : char;
-    
+
 begin
   quiet:=false;
   Repeat
     C:=Getopt('chq');
-    Case C of 
-      'e' : AddMAsk('*.exe');
+    Case C of
+      'e' : AddMAsk('*.exe *.so *.dll');
       'h' : Usage;
       'q' : Quiet:=True;
       EndOfOptions : ;
@@ -197,7 +199,6 @@ var
 begin
   ProcessOptions;
   AddMask('*.ppw *.ow *.aw *.sw');
-  AddMask('*.so *.dll');
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.log *.bak');
@@ -206,8 +207,9 @@ begin
   AddMask('*.ppo *.oo *.ao *.so');
   if not quiet then
     begin
-    WriteLn('DelPascal ',version,' (C) 1999 Peter Vreman');
-    Writeln;
+      writeln(Title+' '+Version);
+      writeln(Copyright);
+      Writeln;
     end;
   FindFirst('*.*',$20,Dir);
   Total:=0;
@@ -249,7 +251,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-01-23 14:23:48  michael
+  Revision 1.8  2000-01-23 16:40:28  peter
+    * *.dll, *.so are also executables and only turned on by -e
+    * title+copyright like ppudump
+
+  Revision 1.7  2000/01/23 14:23:48  michael
   + Typos fixed, version updated
 
   Revision 1.6  2000/01/23 14:20:44  michael
