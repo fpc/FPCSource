@@ -2459,6 +2459,7 @@ type
               { handle predefined procedures }
               if (procdefinition.proccalloption=pocall_inline) then
                 begin
+                   current_procinfo.flags:=current_procinfo.flags+((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
                    if assigned(right) then
@@ -2612,10 +2613,7 @@ type
            end;
       errorexit:
          if assigned(inlinecode) then
-           begin
-             procdefinition.proccalloption:=pocall_inline;
-             current_procinfo.flags:=current_procinfo.flags+((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
-           end;
+           procdefinition.proccalloption:=pocall_inline;
       end;
 
 {$ifdef state_tracking}
@@ -2701,7 +2699,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.213  2003-12-16 21:29:24  florian
+  Revision 1.214  2003-12-16 22:09:31  florian
+    * better inheritence of procinfo flags of inlined procedures
+
+  Revision 1.213  2003/12/16 21:29:24  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.212  2003/12/08 22:37:28  peter
