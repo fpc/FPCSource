@@ -357,7 +357,6 @@ implementation
                        Message(parser_e_invalid_property_index_value);
                        p.index:=0;
                      end;
-                   inserttypeconv(pt,sinttype);
                    p.indextype.setdef(pt.resulttype.def);
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
@@ -1312,7 +1311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2005-01-04 16:37:38  peter
+  Revision 1.90  2005-01-04 16:52:07  peter
+    * don't typecast index of indexed properties
+
+  Revision 1.89  2005/01/04 16:37:38  peter
     * give error when property doesn't reference a method or field
 
   Revision 1.88  2004/12/11 15:19:08  jonas
