@@ -514,6 +514,8 @@ Begin
   If erroraddr<>nil Then
    Begin
      Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
+     { to get a nice symify }
+     Writeln(stdout,'  0x',HexStr(Longint(Erroraddr),8));
      dump_stack(stdout,ErrorBase);
      Writeln(stdout,'');
    End;
@@ -606,7 +608,10 @@ end;
 
 {
   $Log$
-  Revision 1.70  1999-11-09 20:14:12  daniel
+  Revision 1.71  1999-11-09 22:40:12  pierre
+   + get also first BackTrace address with '  0x' prefix
+
+  Revision 1.70  1999/11/09 20:14:12  daniel
   * Committed new random generator.
 
   Revision 1.69  1999/11/06 14:35:39  peter
