@@ -31,17 +31,27 @@ interface
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,
        node,symconst,SymType,
-       RgCpu;
+       rgcpu;
 
     type
       TCgSparc=class(tcg)
       protected
         rgint,
-        rgfpu : trgcpu;
+        rgfpu  : trgcpu;
         function IsSimpleRef(const ref:treference):boolean;
      public
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
+        function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getaddressregister(list:Taasmoutput):Tregister;override;
+        function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
+        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
+        procedure add_move_instruction(instr:Taicpu);override;
+        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
+        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         { sparc special, needed by cg64 }
         procedure handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:taasmoutput;op:Tasmop;src:tregister;a:aword;dst:tregister);
@@ -51,6 +61,8 @@ interface
         procedure a_paramaddr_ref(list:TAasmOutput;const r:TReference;const LocPara:TParaLocation);override;
         procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const locpara : tparalocation);override;
         procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const locpara : tparalocation);override;
+        procedure a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);override;
+        procedure a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);override;
         procedure a_call_name(list:TAasmOutput;const s:string);override;
         procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
         { General purpose instructions }
@@ -108,7 +120,7 @@ implementation
   uses
     globtype,globals,verbose,systems,cutils,
     symdef,symsym,defutil,paramgr,
-    rgobj,tgobj,cpupi;
+    tgobj,cpupi;
 
 
 {****************************************************************************
@@ -222,20 +234,121 @@ implementation
 
     procedure Tcgsparc.init_register_allocators;
       begin
-        {rg:=Trgcpu.create(15,chr(RS_O0)+chr(RS_O1)+chr(RS_O2)+chr(RS_O3)+
-                             chr(RS_O4)+chr(RS_O5)+chr(RS_O7)+
-                             chr(RS_L0)+chr(RS_L1)+chr(RS_L2)+chr(RS_L3)+
-                             chr(RS_L4)+chr(RS_L5)+chr(RS_L6)+chr(RS_L7));}
-        rgint:=TrgCpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],first_int_imreg,[]);
-        {$warning FIX ME}
+        rgint:=Trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_O0,RS_O1,RS_O2,RS_O3,RS_O4,RS_O5,RS_O7,
+             RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7],
+            first_int_imreg,[]);
         rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31],first_fpu_imreg,[]);
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,
+             RS_F8,RS_F9,RS_F10,RS_F11,RS_F12,RS_F13,RS_F14,RS_F15,
+             RS_F16,RS_F17,RS_F18,RS_F19,RS_F20,RS_F21,RS_F22,RS_F23,
+             RS_F24,RS_F25,RS_F26,RS_F27,RS_F28,RS_F29,RS_F30,RS_F31],
+            first_fpu_imreg,[]);
       end;
 
 
     procedure Tcgsparc.done_register_allocators;
       begin
         rgint.free;
+        rgfpu.free;
+      end;
+
+
+    function tcgsparc.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        result:=rgint.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgsparc.getaddressregister(list:Taasmoutput):Tregister;
+      begin
+        result:=rgint.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgsparc.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        if size=OS_F64 then
+          result:=rgfpu.getregister(list,R_SUBFD)
+        else
+          result:=rgfpu.getregister(list,R_SUBWHOLE);
+      end;
+
+
+    function tcgsparc.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+      begin
+        internalerror(200310241);
+        result:=RS_INVALID;
+      end;
+
+
+    procedure tcgsparc.getexplicitregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.getexplicitregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.getexplicitregister(list,r);
+          else
+            internalerror(200310091);
+        end;
+      end;
+
+
+    procedure tcgsparc.ungetregister(list:Taasmoutput;r:Tregister);
+      begin
+        case getregtype(r) of
+          R_INTREGISTER :
+            rgint.ungetregister(list,r);
+          R_FPUREGISTER :
+            rgfpu.ungetregister(list,r);
+          else
+            internalerror(200310091);
+        end;
+      end;
+
+
+    procedure tcgsparc.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        case rt of
+          R_INTREGISTER :
+            rgint.allocexplicitregisters(list,r);
+          R_FPUREGISTER :
+            rgfpu.allocexplicitregisters(list,r);
+          else
+            internalerror(200310092);
+        end;
+      end;
+
+
+    procedure tcgsparc.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+      begin
+        case rt of
+          R_INTREGISTER :
+            rgint.deallocexplicitregisters(list,r);
+          R_FPUREGISTER :
+            rgfpu.deallocexplicitregisters(list,r);
+          else
+            internalerror(200310093);
+        end;
+      end;
+
+
+    procedure tcgsparc.add_move_instruction(instr:Taicpu);
+      begin
+        rgint.add_move_instruction(instr);
+      end;
+
+
+    procedure tcgsparc.do_register_allocation(list:Taasmoutput;headertai:tai);
+      begin
+        { Int }
+        rgint.do_register_allocation(list,headertai);
+        rgint.translate_registers(list);
+
+        { FPU }
+        rgfpu.do_register_allocation(list,headertai);
+        rgfpu.translate_registers(list);
       end;
 
 
@@ -347,6 +460,55 @@ implementation
           else
             internalerror(200307021);
         end;
+      end;
+
+
+    procedure tcgsparc.a_loadany_param_ref(list : taasmoutput;const locpara : tparalocation;const ref:treference;shuffle : pmmshuffle);
+      var
+        href,
+        tempref : treference;
+        templocpara : tparalocation;
+      begin
+        { Load floats like ints }
+        templocpara:=locpara;
+        case locpara.size of
+          OS_F32 :
+            templocpara.size:=OS_32;
+          OS_F64 :
+            templocpara.size:=OS_64;
+        end;
+        { Word 0 is in register, word 1 is in reference }
+        if (templocpara.loc=LOC_REFERENCE) and (templocpara.low_in_reg) then
+          begin
+            tempref:=ref;
+            cg.a_load_reg_ref(list,OS_INT,OS_INT,templocpara.register,tempref);
+            inc(tempref.offset,4);
+            reference_reset_base(href,templocpara.reference.index,templocpara.reference.offset);
+            cg.a_load_ref_ref(list,OS_INT,OS_INT,href,tempref);
+          end
+        else
+          inherited a_loadany_param_ref(list,templocpara,ref,shuffle);
+      end;
+
+
+    procedure tcgsparc.a_loadany_param_reg(list : taasmoutput;const locpara : tparalocation;const reg:tregister;shuffle : pmmshuffle);
+      var
+        href : treference;
+      begin
+        { Word 0 is in register, word 1 is in reference, not
+          possible to load it in 1 register }
+        if (locpara.loc=LOC_REFERENCE) and (locpara.low_in_reg) then
+          internalerror(200307011);
+        { Float load use a temp reference }
+        if locpara.size in [OS_F32,OS_F64] then
+          begin
+            tg.GetTemp(list,TCGSize2Size[locpara.size],tt_normal,href);
+            a_loadany_param_ref(list,locpara,href,shuffle);
+            a_loadfpu_ref_reg(list,locpara.size,href,reg);
+            tg.Ungettemp(list,href);
+          end
+        else
+          inherited a_loadany_param_reg(list,locpara,reg,shuffle);
       end;
 
 
@@ -1052,7 +1214,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-10-24 11:14:46  mazen
+  Revision 1.71  2003-10-24 15:20:37  peter
+    * added more register functions
+
+  Revision 1.70  2003/10/24 11:14:46  mazen
   * rg.[un]GetRegister* ==> [Un]Get[*]Register
 
   Revision 1.69  2003/10/01 20:34:49  peter

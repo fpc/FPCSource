@@ -27,85 +27,44 @@ unit rgcpu;
 interface
 
     uses
-      cpubase,
-      cpuinfo,
-      aasmcpu,
-      aasmtai,
-      cclasses,globtype,
-      cgbase,aasmbase,rgobj;
+      cgbase,rgobj;
 
     type
       trgcpu=class(trgobj)
-        function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
-        procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
+        procedure add_constraints(reg:tregister);override;
       end;
 
 
 implementation
 
     uses
-      cgobj,verbose;
+      cpubase;
 
-
-    function TRgCpu.GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;
+    procedure trgcpu.add_constraints(reg:tregister);
       var
-        i: Tsuperregister;
+        supreg,i: Tsuperregister;
         r: Tregister;
       begin
-        for i:=firstsavefpureg to lastsavefpureg do
-         begin
-            if (i in unusedregsfpu) and
-               (
-                (size=OS_F32) or
-                (not odd(i-RS_F0))
-               ) then
-              begin
-                 exclude(unusedregsfpu,i);
-                 dec(countunusedregsfpu);
-                 r:=newreg(R_FPUREGISTER,i,R_SUBNONE);
-                 list.concat(tai_regalloc.alloc(r));
-                 result := r;
-                 { double need 2 FPU registers }
-                 if size=OS_F64 then
-                   begin
-                     r:=newreg(R_FPUREGISTER,i+1,R_SUBNONE);
-                     exclude(unusedregsfpu,i+1);
-                     dec(countunusedregsfpu);
-                     list.concat(tai_regalloc.alloc(r));
-                   end;
-                 exit;
-              end;
-         end;
-        internalerror(10);
-      end;
-
-
-    procedure trgcpu.UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);
-      var
-        r : tregister;
-        supreg : tsuperregister;
-      begin
-        supreg:=getsupreg(reg);
-        { double need 2 FPU registers }
-        if (size=OS_F64) then
+        { Let 64bit floats conflict with all odd float regs }
+        if getsubreg(reg)=R_SUBFD then
           begin
-            { Only even FP registers are allowed }
-            if odd(supreg-RS_F0) then
-              internalerror(200306101);
-            r:=newreg(R_FPUREGISTER,supreg+1,R_SUBNONE);
-            inc(countunusedregsfpu);
-            include(unusedregsfpu,getsupreg(r));
-            list.concat(tai_regalloc.dealloc(r));
+            supreg:=getsupreg(reg);
+            i:=RS_F1;
+            while (i<=RS_F31) do
+              begin
+                add_edge(supreg,i);
+                inc(i,2);
+              end;
           end;
-        inc(countunusedregsfpu);
-        include(unusedregsfpu,supreg);
-        list.concat(tai_regalloc.dealloc(reg));
       end;
 
 end.
 {
   $Log$
-  Revision 1.19  2003-10-01 20:34:50  peter
+  Revision 1.20  2003-10-24 15:20:37  peter
+    * added more register functions
+
+  Revision 1.19  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
