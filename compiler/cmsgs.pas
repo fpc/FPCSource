@@ -124,7 +124,7 @@ begin
   msgparts:=n;
   if n<>high(idxmax)+1 then
    fail;
-  for i:=1to n do
+  for i:=1 to n do
    begin
      msgidxmax[i]:=idxmax[i-1];
      getmem(msgidx[i],msgidxmax[i]*4);
@@ -137,7 +137,7 @@ destructor TMessage.Done;
 var
   i : longint;
 begin
-  for i:=1to msgparts do
+  for i:=1 to msgparts do
    freemem(msgidx[i],msgidxmax[i]*4);
   if msgallocsize>0 then
    begin
@@ -461,7 +461,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2003-04-22 14:33:38  peter
+  Revision 1.8  2003-05-10 23:57:23  florian
+    * vmtpointer_offset must be adjusted in after_pass1 as well
+
+  Revision 1.7  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.6  2002/05/18 13:34:06  peter

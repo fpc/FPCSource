@@ -81,6 +81,7 @@ unit cpupi;
              inc(procdef.parast.address_fixup,ofs);
              inc(framepointer_offset,ofs);
              inc(selfpointer_offset,ofs);
+             inc(vmtpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
@@ -114,7 +115,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-05-09 19:00:30  jonas
+  Revision 1.14  2003-05-10 23:57:23  florian
+    * vmtpointer_offset must be adjusted in after_pass1 as well
+
+  Revision 1.13  2003/05/09 19:00:30  jonas
     * call inherited after_header as well
 
   Revision 1.12  2003/04/27 11:21:36  peter
