@@ -54,8 +54,12 @@ unit objpas;
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
 
-Type
-   TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
+{****************************************************************************
+                             Resource strings.
+****************************************************************************}
+
+   type
+     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
    Function Hash(S : AnsiString) : longint;
    Procedure ResetResourceTables;
@@ -68,6 +72,11 @@ Type
    Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
    Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
 
+   { Delphi compatibility }
+   type
+     PResStringRec=^AnsiString;
+     TResStringRec=AnsiString;
+   Function LoadResString(p:PResStringRec):AnsiString;
 
 
   implementation
@@ -342,6 +351,13 @@ begin
    ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
 end;
 
+Function LoadResString(p:PResStringRec):AnsiString;
+
+begin
+  Result:=p^;
+end;
+
+
 Initialization
   ResetResourceTables;
 finalization
@@ -350,7 +366,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-08-19 21:02:02  florian
+  Revision 1.8  2001-10-22 21:19:33  peter
+    * LoadResString, PResStringRec, TResStringRec compatibility added
+
+  Revision 1.7  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 
