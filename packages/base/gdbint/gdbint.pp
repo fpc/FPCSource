@@ -169,7 +169,7 @@ interface
 {$ifdef openbsd}
   {$undef NotImplemented}
  {$ifndef GDB_V5}
-  {$LINKLIB ncurses}
+  {$LINKLIB curses}
  {$endif not GDB_V5}
   {$LINKLIB gdb}
  {$ifdef GDB_HAS_SIM}
@@ -2656,7 +2656,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-12-02 13:59:56  pierre
+  Revision 1.13  2003-02-09 23:08:38  marco
+   * ncurses to curses for openbsd rename
+
+  Revision 1.12  2002/12/02 13:59:56  pierre
    + add sim library for powerpc cpu
 
   Revision 1.11  2002/11/21 00:42:27  pierre
