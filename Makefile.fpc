@@ -134,15 +134,15 @@ override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 .PHONY: help checkfpcdir
 
 help:
-        @echo
-        @echo Directory targets:
-        @echo
-        @echo $(TARGET_DIRS)
-        @echo
-        @echo Packing targets are:
-        @echo
-        @echo go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip
-        @echo
+        @$(ECHO)
+        @$(ECHO) Directory targets:
+        @$(ECHO)
+        @$(ECHO) $(TARGET_DIRS)
+        @$(ECHO)
+        @$(ECHO) Packing targets are:
+        @$(ECHO)
+        @$(ECHO) go32v2zip,win32zip,linuxzip,freebsdzip,sourcezip,os2zip
+        @$(ECHO)
         @exit
 
 
@@ -259,7 +259,6 @@ clean: $(addsuffix _distclean,$(TARGET_DIRS))
 
 distclean: clean
 
-
 build: build-stamp.$(OS_TARGET)
 build-stamp.$(OS_TARGET):
 # create new compiler
@@ -285,7 +284,7 @@ endif
 ifdef IDE
         $(MAKE) ide_full $(BUILDOPTS)
 endif
-        $(ECHO) Build > build-stamp.$(OS_TARGET)
+        $(ECHOREDIR) Build > build-stamp.$(OS_TARGET)
 
 installbase: build-stamp.$(OS_TARGET)
 # create dirs
