@@ -17,6 +17,8 @@ var i: integer;
     b: byte;
     l: longint;
     c: cardinal;
+    n: int64;
+    q: qword;
 begin
   i := 32767;
   i := i + 15;
@@ -117,4 +119,110 @@ begin
       doerror(16);
   end;
 
+{$ifdef fpc}
+{$ifndef ver1_0}
+  
+  n := high(int64);
+  try
+    n := n+1;
+    doerror(17);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(18);
+  end;
+
+  n := low(int64);
+  try
+    n := n-1;
+    doerror(19);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(20);
+  end;
+
+  n := 0;
+  try
+    n := n-1;
+  except
+    on eintoverflow do
+      doerror(39);
+  end;
+
+
+  n := low(int64);
+  try
+    n := n*2;
+    doerror(21);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(22);
+  end;
+
+  n := high(int64) div 2;
+  try
+    n := n*3;
+    doerror(23);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(24);
+  end;
+
+
+  q := 0;
+  try
+    q := q-1;
+    doerror(25);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(26);
+  end;
+
+
+  q := qword(high(qword));
+  try
+    q := q+1;
+    doerror(27);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(28);
+  end;
+
+  q := qword(high(qword)) div qword(2);
+  try
+    q := q*qword(3);
+    doerror(29);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(30);
+  end;
+
+  q := high(qword);
+  try
+    q := q*high(qword);
+    doerror(31);
+  except
+    on eintoverflow do
+      ;
+    else
+      doerror(32);
+  end;
+
+{$endif ver1_0}
+{$endif fpc}
+
 End.
+
