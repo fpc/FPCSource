@@ -12,8 +12,17 @@ Unit ActiveX;
 //
 //--------------------------------------------------------------------------
 
+{$Mode objfpc}
+
+{$ifndef NO_SMART_LINK}
+{$smartlink on}
+{$endif}
+
 Interface
-{$Mode Delphi}
+
+{$define read_interface}
+{$undef read_implementation}
+
 Uses Windows;
 
 {$ifndef DO_NO_IMPORTS}
@@ -741,6 +750,7 @@ TYPE
                           hr : Hresult;
                           END;
    MULTI_QI            = TagMULTI_QI;
+   PMulti_QI           = PMultiQI;
 
 
    HContext            = Pointer;
@@ -1840,7 +1850,7 @@ TYPE
        Function QueryGetData(const pformatetc : FORMATETC):HRESULT; STDCALL;
        Function GetCanonicalFormatTEtc(const pformatetcIn : FORMATETC;Out pformatetcOut : FORMATETC):HResult; STDCALl;
        Function SetData (Const pformatetc : FORMATETC;const medium:STGMEDIUM;FRelease : BOOL):HRESULT; StdCall;
-       Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetc : IENUMFORMATETC):HRESULT; StdCall;
+       Function EnumFormatEtc(dwDirection : DWord; OUT enumformatetcpara : IENUMFORMATETC):HRESULT; StdCall;
        Function DAdvise(const formatetc : FORMATETC;advf :DWORD; CONST AdvSink : IAdviseSink;OUT dwConnection:DWORD):HRESULT;StdCall;
        Function DUnadvise(dwconnection :DWord) :HRESULT;StdCall;
        Function EnumDAvise(Out enumAdvise : IEnumStatData):HResult;StdCall;
@@ -1890,7 +1900,7 @@ TYPE
        ['{a5029fb6-3c34-11d1-9c99-00c04fb998aa}']
        Function Send(Var Msg: RPCOLEMESSAGE;Const pSync : ISynchronize;Out PulStatus : ULong):HResult; StdCall;
        Function Receive(Var Msg: RPCOLEMESSAGE;Out PulStatus : ULong):HResult; StdCall;
-       Function GetDestCTXEx(Out MSG : RPCOLEMESSAGE;Out vDestContext : DWord;Out pvDestContext : Pointer ):HResult StdCall;
+       Function GetDestCTXEx(Out MSG : RPCOLEMESSAGE;Out vDestContext : DWord;Out pvDestContext : Pointer ):HResult;StdCall;
        End;
 
     IRpcChannelBuffer3 = Interface (IRpcChannelBuffer2)
@@ -1899,9 +1909,9 @@ TYPE
        Function Receive(Var msg : RPCOLEMESSAGE;ulSize : ULong;Out ulStatus : ULONG):HResult; StdCall;
        Function Cancel (Const msg : RPCOLEMESSAGE):HResult; StdCall;
        Function GetCallContext(Const msg : RPCOLEMESSAGE; Const riid : TIID; Out pInterface : Pointer):HResult; StdCall;
-       Function GetDestCTXEx(Const Msg : RPCOLEMESSAGE;Out vDestContext : DWord;Out pvDestContext : Pointer ):HResult StdCall;
-       Function GetState(Const Msg : RPCOLEMESSAGE;Out State: DWord):HResult StdCall;
-       Function RegisterAsync(Const Msg : RPCOLEMESSAGE;Const asyncmgr : IAsyncManager):HResult StdCall;
+       Function GetDestCTXEx(Const Msg : RPCOLEMESSAGE;Out vDestContext : DWord;Out pvDestContext : Pointer ):HResult;StdCall;
+       Function GetState(Const Msg : RPCOLEMESSAGE;Out State: DWord):HResult;StdCall;
+       Function RegisterAsync(Const Msg : RPCOLEMESSAGE;Const asyncmgr : IAsyncManager):HResult;StdCall;
        End;
 
     IRpcSyntaxNegotiate = Interface (IUnknown)
@@ -2614,12 +2624,36 @@ TYPE
 
 {$ENDIF}
 
+{ ******************************************************************************************************************
+                                                          stuff from objbase.h
+  ****************************************************************************************************************** }
+{$IFDEF HASINTF}
+
+{$i wininc/objbase.inc}
+
+{ redefinitions }
+  function CoCreateGuid(out _para1:TGUID):HRESULT;external 'ole32.dll' name 'CoCreateGuid';
+
+{ additional definitions }
+
+  function IsEqualGUID(const guid1,guid2 : TGUID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
+  function IsEqualIID(const iid1,iid2 : TIID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
+  function IsEqualCLSID(const clsid1,clsid2 : TCLSID) : Boolean;external 'ole32.dll' name 'IsEqualGUID';
+
+{$ENDIF HASINTF}
+
 implementation
+{$undef read_interface}
+{$define read_implementation}
+
 end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:28  peter
+  Revision 1.7  2002-10-10 16:10:45  florian
+    + declarations of objbase.h added
+
+  Revision 1.6  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/07/28 20:43:49  florian
