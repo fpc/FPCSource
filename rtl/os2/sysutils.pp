@@ -192,11 +192,12 @@ function DosScanEnv (Name: PChar; var Value: PChar): longint; cdecl;
                                                  external 'DOSCALLS' index 227;
 
 function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: longint;
-                       AFileStatus: PFileStatus; FileStatusLen: longint;
-                       var Count: longint; InfoLevel: longint): longint; cdecl;
+                       AFileStatus: PFileStatus; FileStatusLen: cardinal;
+                    var Count: cardinal; InfoLevel: cardinal): longint; cdecl;
                                                  external 'DOSCALLS' index 264;
+
 function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
-                FileStatusLen: longint; var Count: longint): longint; cdecl;
+                FileStatusLen: cardinal; var Count: cardinal): longint; cdecl;
                                                  external 'DOSCALLS' index 265;
 
 function DosFindClose (Handle: longint): longint; cdecl;
@@ -410,7 +411,7 @@ function FindFirst (const Path: string; Attr: longint; var Rslt: TSearchRec): lo
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
-    Count: longint;
+    Count: cardinal;
     Err: longint;
 
 begin
@@ -459,7 +460,7 @@ function FindNext (var Rslt: TSearchRec): longint;
 
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
-    Count: longint;
+    Count: cardinal;
     Err: longint;
 
 begin
@@ -951,7 +952,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2002-09-23 17:42:37  hajny
+  Revision 1.19  2002-11-18 19:51:00  hajny
+    * another bunch of type corrections
+
+  Revision 1.18  2002/09/23 17:42:37  hajny
     * AnsiString to PChar typecast
 
   Revision 1.17  2002/09/07 16:01:25  peter

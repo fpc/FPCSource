@@ -846,7 +846,7 @@ procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
 
 var path0: array[0..255] of char;
-    Count: longint;
+    Count: cardinal;
 
 begin
     {No error.}
@@ -856,7 +856,7 @@ begin
         New (F.FStat);
         F.Handle := $FFFFFFFF;
         Count := 1;
-        DosError := Integer(DosFindFirst (Path, F.Handle,
+        DosError := integer (DosFindFirst (Path, F.Handle,
                        Attr and FindResvdMask, F.FStat, SizeOf (F.FStat^),
                                                            Count, ilStandard));
         if (DosError = 0) and (Count = 0) then DosError := 18;
@@ -883,7 +883,7 @@ end;
 
 
 procedure FindNext (var F: SearchRec);
-var Count: longint;
+var Count: cardinal;
 
 
 begin
@@ -893,7 +893,8 @@ begin
     if os_mode = osOS2 then
     begin
         Count := 1;
-        DosError := Integer(DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^), Count));
+        DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
+                                                                       Count));
         if (DosError = 0) and (Count = 0) then DosError := 18;
     end else _findnext (F);
     DosSearchRec2SearchRec (F);
@@ -1217,7 +1218,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-09-07 16:01:24  peter
+  Revision 1.20  2002-11-18 19:51:00  hajny
+    * another bunch of type corrections
+
+  Revision 1.19  2002/09/07 16:01:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.18  2002/07/11 16:00:05  hajny
