@@ -4,7 +4,7 @@
 
 Const
   { Amount of Control Chars }
-  NCCS = 19;
+  NCCS = 32;
   NCC = 8;
 
 {$Ifndef BSD}
@@ -92,22 +92,22 @@ Type
   end;
   TTermio=Termio;
 
-  Termios = packed record
+{$PACKRECORDS C}
+  Termios = record
     c_iflag,
     c_oflag,
     c_cflag,
-    c_lflag  : longint;
+    c_lflag  : cardinal;
     c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
-   {$IFDEF BSD}
     c_ispeed,
-    c_ospeed : longint; 
-   {$endif}
+    c_ospeed : cardinal; 
   end;
   TTermios=Termios;
+{$PACKRECORDS Default}
 
-const
-  InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);
+{const
+  InitCC:array[0..NCCS-1] of byte=(3,34,177,25,4,0,1,0,21,23,32,0,22,17,27,26,0,0,0);}
 
 const
 {c_cc characters}

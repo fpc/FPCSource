@@ -379,8 +379,8 @@ Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 Function  IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
 Function  TCGetAttr(fd:longint;var tios:TermIOS):boolean;
 Function  TCSetAttr(fd:longint;OptAct:longint;const tios:TermIOS):boolean;
-Procedure CFSetISpeed(var tios:TermIOS;speed:Longint);
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Longint);
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
 Procedure CFMakeRaw(var tios:TermIOS);
 Function  TCSendBreak(fd,duration:longint):boolean;
 Function  TCSetPGrp(fd,id:longint):boolean;
@@ -2021,7 +2021,7 @@ end;
 
 
 
-Procedure CFSetISpeed(var tios:TermIOS;speed:Longint);
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
 begin
  {$ifndef BSD}
   tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
@@ -2032,7 +2032,7 @@ end;
 
 
 
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Longint);
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
 begin
   {$ifndef BSD}
    CFSetISpeed(tios,speed);
@@ -3032,7 +3032,11 @@ End.
 
 {
   $Log$
-  Revision 1.21  2002-03-06 11:34:04  michael
+  Revision 1.22  2002-08-06 13:30:46  sg
+  * replaced some Longints with Cardinals, to mach the C headers
+  * updated the termios record
+
+  Revision 1.21  2002/03/06 11:34:04  michael
   + Forgot to patch linux.pp
 
   Revision 1.20  2002/01/02 12:22:54  marco
