@@ -639,6 +639,7 @@ end;
 constructor TStringQueue.Init;
 begin
   first:=nil;
+  last:=nil;
 end;
 
 
@@ -691,6 +692,8 @@ begin
    begin
      if p^.data^=s then
       begin
+        if p=last then
+          last:=prev;
         if assigned(prev) then
          prev^.next:=p^.next
         else
@@ -744,6 +747,7 @@ begin
      first:=first^.next;
      dispose(newnode);
    end;
+  last:=nil;
 end;
 
 
@@ -2319,7 +2323,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  1999-11-14 15:56:36  peter
+  Revision 1.47  1999-11-15 14:59:55  pierre
+   * last was not handled correctly in TStringQueue
+
+  Revision 1.46  1999/11/14 15:56:36  peter
     * fixed stringqueue.delete
 
   Revision 1.45  1999/11/12 11:03:49  peter
