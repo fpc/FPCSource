@@ -2736,7 +2736,10 @@ Const local_symtable_index : longint = $8001;
     destructor tprocdef.done;
       begin
          if assigned(defref) then
-           dispose(defref,done);
+           begin
+             defref^.freechain;
+             dispose(defref,done);
+           end;
          if assigned(parast) then
            dispose(parast,done);
          if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
@@ -3921,7 +3924,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.194  2000-02-09 13:23:04  peter
+  Revision 1.195  2000-02-11 13:53:49  pierre
+   * avoid stack overflow in tref.done (bug 846)
+
+  Revision 1.194  2000/02/09 13:23:04  peter
     * log truncated
 
   Revision 1.193  2000/02/05 14:33:32  florian

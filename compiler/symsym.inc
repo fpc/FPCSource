@@ -147,7 +147,10 @@
     destructor tsym.done;
       begin
          if assigned(defref) then
-           dispose(defref,done);
+           begin
+             defref^.freechain;
+             dispose(defref,done);
+           end;
         inherited done;
       end;
 
@@ -2122,7 +2125,10 @@
 
 {
   $Log$
-  Revision 1.138  2000-02-09 13:23:05  peter
+  Revision 1.139  2000-02-11 13:53:49  pierre
+   * avoid stack overflow in tref.done (bug 846)
+
+  Revision 1.138  2000/02/09 13:23:05  peter
     * log truncated
 
   Revision 1.137  2000/02/04 08:47:10  florian

@@ -79,6 +79,7 @@ unit symtable;
          moduleindex : word;
          is_written  : boolean;
          constructor init(ref:pref;pos:pfileposinfo);
+         procedure   freechain;
          destructor  done; virtual;
        end;
 
@@ -803,6 +804,19 @@ implementation
         is_written:=false;
       end;
 
+    procedure tref.freechain;
+      var
+        p,q : pref;
+      begin
+        p:=nextref;
+        nextref:=nil;
+        while assigned(p) do
+          begin
+            q:=p^.nextref;
+            dispose(p,done);
+            p:=q;
+          end;
+      end;
 
     destructor tref.done;
       var
@@ -811,8 +825,6 @@ implementation
          inputfile:=get_source_file(moduleindex,posinfo.fileindex);
          if inputfile<>nil then
            dec(inputfile^.ref_count);
-         if assigned(nextref) then
-          dispose(nextref,done);
          nextref:=nil;
       end;
 
@@ -2769,7 +2781,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2000-02-09 13:23:05  peter
+  Revision 1.77  2000-02-11 13:53:49  pierre
+   * avoid stack overflow in tref.done (bug 846)
+
+  Revision 1.76  2000/02/09 13:23:05  peter
     * log truncated
 
   Revision 1.75  2000/01/12 10:38:18  peter
