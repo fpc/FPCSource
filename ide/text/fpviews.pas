@@ -1114,7 +1114,7 @@ begin
     SetCmdState(EditorCmds,Active);
   end;
   if Active=false then
-     SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmds,false);
+     SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -2779,7 +2779,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.42  1999-09-16 14:34:59  pierre
+  Revision 1.43  1999-10-25 16:55:13  pierre
+   * adapted to a small weditor change
+
+  Revision 1.42  1999/09/16 14:34:59  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
