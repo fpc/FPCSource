@@ -563,20 +563,11 @@ begin
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
- {$ifndef ver1_0}
-    InitCriticalSection(SynchronizeCritSect);
-    ExecuteEvent := RtlEventCreate;
-    SynchronizeMethod := nil;
-  {$endif}
 end;
 
 Function CDoneThreads : Boolean;
 
 begin
-  {$ifndef ver1_0}
-    DoneCriticalSection(SynchronizeCritSect);
-    RtlEventDestroy(ExecuteEvent);
-  {$endif}
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
@@ -626,7 +617,6 @@ begin
     rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitFor        :=@intrtleventWaitFor;
     rtleventsync           :=trtleventsynchandler(@intrtleventsync);
-    rtlchksyncunix         :=@checksynchronize;
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -639,7 +629,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2005-02-25 21:52:07  florian
+  Revision 1.23  2005-02-25 22:02:48  florian
+    * another "transfer to linux"-commit
+
+  Revision 1.22  2005/02/25 21:52:07  florian
     * "transfer to linux"-commit
 
   Revision 1.21  2005/02/14 17:13:31  peter

@@ -256,12 +256,6 @@ begin
   currenttm.rtleventsync(m,p);
 end;
 
-procedure RTLchecksynchronize;
-
-begin
- currenttm.rtlchksyncunix;
-end;
-
 
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
@@ -427,15 +421,6 @@ begin
 end;
 
 
-procedure NORTLChkSyncUnix;
-
-begin
-  NoThreadError;
-end;
-
-
-
-
 Var
   NoThreadManager : TThreadManager;
 
@@ -475,7 +460,6 @@ begin
     rtleventStartWait      :=@NortleventStartWait;
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync           :=@Nortleventsync;
-    rtlchksyncunix         :=@nortlchksyncunix;
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -483,7 +467,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2005-02-14 17:13:29  peter
+  Revision 1.23  2005-02-25 22:02:46  florian
+    * another "transfer to linux"-commit
+
+  Revision 1.22  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.21  2005/02/07 17:36:54  peter

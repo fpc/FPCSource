@@ -46,7 +46,6 @@ type
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
   TRTLCreateEventHandler    = function:PRTLEvent;
   TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
-  TRTLCheckSyncUnixHandler  = procedure;
 
   // TThreadManager interface.
   TThreadManager = Record
@@ -81,7 +80,6 @@ type
     RTLEventStartWait      : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventSync           : TRTLEventSyncHandler;
-    RTLChkSyncUnix         : TRTLCheckSyncUnixHandler;
   end;
 
 {*****************************************************************************
@@ -149,11 +147,13 @@ procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventStartWait(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);
-procedure RTLchecksynchronize;
 
 {
   $Log$
-  Revision 1.27  2005-02-14 17:13:29  peter
+  Revision 1.28  2005-02-25 22:02:48  florian
+    * another "transfer to linux"-commit
+
+  Revision 1.27  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.26  2005/02/06 11:20:52  peter
