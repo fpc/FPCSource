@@ -1078,6 +1078,11 @@ implementation
           end;
       end;
 
+    procedure dir_coperators;
+      begin
+        do_moduleswitch(cs_support_c_operators);
+      end;
+
 
 {****************************************************************************
                          Initialize Directives
@@ -1097,6 +1102,7 @@ implementation
         AddDirective('CALLING',directive_all, @dir_calling);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEPAGE',directive_all, @dir_codepage);
+        AddDirective('COPERATORS',directive_all, @dir_coperators);
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
@@ -1183,7 +1189,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2005-01-20 17:05:53  peter
+  Revision 1.54  2005-01-20 17:32:33  peter
+    * $COPERATORS added
+
+  Revision 1.53  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.52  2005/01/18 15:44:43  peter
