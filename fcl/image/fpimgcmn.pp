@@ -112,7 +112,7 @@ begin
     begin
     t := (byte(result) xor d^);
     result := CRCtable[t] xor (result shr 8);
-    inc (longword(d));
+    inc (d);
     end;
 end;
 
