@@ -458,7 +458,7 @@ implementation
         aiclass[ait_stop]:=tai_stop;
 {$endif ia64}
 {$ifdef SPARC}
-        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
+//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}
         aiclass[ait_cut]:=tai_cut;
         aiclass[ait_regalloc]:=tai_regalloc;
@@ -469,7 +469,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-08-18 20:06:25  peter
+  Revision 1.38  2002-08-23 13:11:11  mazen
+  fixed compilation problem related to tai_labeled_instruction
+
+  Revision 1.37  2002/08/18 20:06:25  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu
