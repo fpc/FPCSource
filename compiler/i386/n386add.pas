@@ -317,6 +317,8 @@ interface
         if (((nodetype = addn) and
              is_shortstring(resulttype.def)) or
             ((nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
+              not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
+                  ((right.nodetype=stringconstn) and (str_length(right)=0))) and
              is_shortstring(left.resulttype.def))) then
           begin
             if nodetype = addn then
@@ -1551,7 +1553,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2002-08-23 16:14:49  peter
+  Revision 1.50  2002-10-20 13:11:27  jonas
+    * re-enabled optimized version of comparisons with the empty string that
+      I accidentally disabled in revision 1.26
+
+  Revision 1.49  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
