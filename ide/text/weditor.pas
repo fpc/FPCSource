@@ -1079,10 +1079,11 @@ begin
    if CurPos.Y>Delta.Y+Size.Y-1 then D.Y:=CurPos.Y-Size.Y+1;
   if CurPos.X<Delta.X then D.X:=CurPos.X else
    if CurPos.X>Delta.X+Size.X-1 then D.X:=CurPos.X-Size.X+1;
-  if ((Delta.X<>D.X) or (Delta.Y<>D.Y)) and Center then
+  if {((Delta.X<>D.X) or (Delta.Y<>D.Y)) and }Center then
   begin
-     while (CurPos.Y-D.Y)<(Size.Y div 2) do Dec(D.Y);
-     while (CurPos.Y-D.Y)>(Size.Y div 2) do Inc(D.Y);
+     { loose centering for debugger PM }
+     while (CurPos.Y-D.Y)<(Size.Y div 3) do Dec(D.Y);
+     while (CurPos.Y-D.Y)>2*(Size.Y div 3) do Inc(D.Y);
   end;
   if (Delta.X<>D.X) or (Delta.Y<>D.Y) then
     ScrollTo(D.X,D.Y);
@@ -3290,7 +3291,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-02-04 17:19:26  peter
+  Revision 1.12  1999-02-05 12:04:56  pierre
+   + 'loose' centering for debugger
+
+  Revision 1.11  1999/02/04 17:19:26  peter
     * linux fixes
 
   Revision 1.10  1999/02/04 10:13:00  pierre
