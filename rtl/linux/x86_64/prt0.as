@@ -79,9 +79,15 @@ __data_start:
 2:      .long 0
         .long 2,4,0
 3:      .align 4
+
+	.section	.note.GNU-stack,"",@progbits
+
 #
 # $Log$
-# Revision 1.3  2004-02-08 15:33:50  florian
+# Revision 1.4  2004-02-20 23:48:27  peter
+#   * c stub implemented
+#
+# Revision 1.3  2004/02/08 15:33:50  florian
 #   * linking problems fixed
 #   + abi tag added
 #
