@@ -168,7 +168,7 @@ End;
 ******************************************************************************}
 
 {$ifdef HASTHREADVAR}
-{thread}var
+threadvar
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
@@ -950,7 +950,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.20  2004-02-16 22:16:59  hajny
+  Revision 1.21  2004-02-17 17:37:26  daniel
+    * Enable threadvars again
+
+  Revision 1.20  2004/02/16 22:16:59  hajny
     * LastDosExitCode changed back from threadvar temporarily
 
   Revision 1.19  2004/02/15 21:34:06  hajny
