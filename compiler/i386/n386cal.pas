@@ -1463,6 +1463,7 @@ implementation
           { we're inlining a procedure }
           inlining_procedure:=true;
           { save old procinfo }
+          oldprocdef:=aktprocdef;
           getmem(oldprocinfo,sizeof(tprocinfo));
           move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
           { set new procinfo }
@@ -1592,7 +1593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2001-11-02 22:58:09  peter
+  Revision 1.37  2001-11-02 23:24:40  peter
+    * fixed crash with inlining after aktprocdef change
+
+  Revision 1.36  2001/11/02 22:58:09  peter
     * procsym definition rewrite
 
   Revision 1.35  2001/10/25 21:22:41  peter
