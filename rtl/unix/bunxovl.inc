@@ -144,7 +144,7 @@ begin
 end;
 
 {$ifdef FPC_USE_LIBC} // can't remember why this is the case. Might be legacy.
-function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external clib name 'read';
+function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external clib name 'read';
 {$else}
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
 {$endif}
@@ -331,7 +331,10 @@ end;
 
 {
  $Log$
- Revision 1.10  2004-03-28 19:36:19  marco
+ Revision 1.11  2004-06-01 10:30:03  jonas
+   * fixed missing cdecl procedure directive
+
+ Revision 1.10  2004/03/28 19:36:19  marco
   * fix for recursive fpc.exe ?
 
  Revision 1.9  2004/01/04 21:04:08  jonas
