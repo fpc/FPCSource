@@ -323,7 +323,7 @@ interface
       end;
     end;
 
-    Function GetInstruction(hp : tai):string; {CHANGED from methot to proc}
+    Function GetInstruction(hp : tai):string; {CHANGED from method to proc}
     var op: TAsmOp;
         s: string;
         i: byte;
@@ -334,15 +334,15 @@ interface
         begin
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
-             A_B,A_BA,A_BLA:
+             A_BA,A_BLA:
                s:=#9+op2str[op]+#9;
-             A_BL:
+             A_B,A_BL:
                s:=#9+op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
           s:=s+getopstr_jmp(taicpu(hp).oper[0]);
-          if op=A_BL then
+          if (op=A_B) or (op=A_BL) then
             s:=s+'[PR]';
         end
       else
@@ -753,16 +753,21 @@ interface
                          begin
                             AsmWriteLn(#9'export'#9'.'+s+'[PR] => ''.'+tai_symbol(hp).sym.name+'[PR]''');
                             AsmWriteLn(#9'export'#9+s+'[DS] => '''+tai_symbol(hp).sym.name+'[DS]''');
-                            AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
                          end
                        else
                          begin
                             AsmWriteLn(#9'export'#9'.'+s+'[PR]');
                             AsmWriteLn(#9'export'#9+s+'[DS]');
-                            AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
                          end;
+                       {Entry in transition vector: }
+                       AsmWriteLn(#9'csect'#9+s+'[DS]');
+                       AsmWriteLn(#9'dc.l'#9'.'+s);
+                       AsmWriteln(#9'dc.l'#9'TOC[tc0]');
+                       {Entry in TOC: }
                        AsmWriteLn(#9'toc');
                        AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[DS]');
+                       {Start the section of the body of the proc: }
+                       AsmWriteLn(#9'csect'#9'.'+s+'[PR]');
                        AsmWrite('.');
                        AsmWrite(s);
                        AsmWriteLn(':');
@@ -985,7 +990,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2002-10-07 21:19:53  florian
+  Revision 1.10  2002-10-10 19:39:37  florian
+    * changes from Olle to get simple programs compiled and assembled
+
+  Revision 1.9  2002/10/07 21:19:53  florian
     * more mpw fixes
 
   Revision 1.8  2002/10/06 22:46:20  florian
