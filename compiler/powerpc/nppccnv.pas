@@ -287,7 +287,8 @@ implementation
               exit;
            end;
 *)
-         secondpass(left);
+{        Already done in tppctypeconvnode.pass_2! (JM)
+         secondpass(left); }
          if codegenerror then
            exit;
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
@@ -428,7 +429,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-05-11 13:06:44  jonas
+  Revision 1.36  2003-05-11 20:42:08  jonas
+    * fixed bug in second_int_to_bool I introduced previous time
+      (secondpass was being called twice!)
+
+  Revision 1.35  2003/05/11 13:06:44  jonas
     * fixed second_int_to_bool() (but still problem with typecasts used for
       var parameters, not sure about solution)
 
