@@ -1061,6 +1061,11 @@ type
         oldleft : tcallparanode;
       begin
         oldleft:=tcallparanode(left);
+        if oldleft.left.nodetype<>arrayconstructorn then
+          begin
+            CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resulttype.def.typename);
+            exit;
+          end;
         { Get arrayconstructor node and insert typeconvs }
         hp:=tarrayconstructornode(oldleft.left);
         hp.insert_typeconvs;
@@ -1779,7 +1784,12 @@ type
             { constructor call via classreference => allocate memory }
             if (procdefinition.proctypeoption=potype_constructor) and
                is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
-              vmttree:=methodpointer.getcopy
+              begin
+                vmttree:=methodpointer.getcopy;
+                { Only a typenode can be passed when it is called with <class of xx>.create }
+                if vmttree.nodetype=typen then
+                  vmttree:=cloadvmtaddrnode.create(vmttree);
+              end
             else
               vmttree:=cpointerconstnode.create(0,voidpointertype);
           end
@@ -2585,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.202  2003-10-30 16:23:13  peter
+  Revision 1.203  2003-10-31 15:52:58  peter
+    * support creating classes using <class of tobject>.create
+
+  Revision 1.202  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.201  2003/10/29 22:01:20  florian

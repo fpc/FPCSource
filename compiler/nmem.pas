@@ -146,10 +146,14 @@ implementation
         if codegenerror then
          exit;
 
-        if left.resulttype.def.deftype<>objectdef then
-          Message(parser_e_pointer_to_class_expected);
-
-        resulttype.setdef(tclassrefdef.create(left.resulttype));
+        case left.resulttype.def.deftype of
+          classrefdef :
+            resulttype:=left.resulttype;
+          objectdef :
+            resulttype.setdef(tclassrefdef.create(left.resulttype));
+          else
+            Message(parser_e_pointer_to_class_expected);
+        end;
       end;
 
 
@@ -920,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-10-23 14:44:07  peter
+  Revision 1.69  2003-10-31 15:52:58  peter
+    * support creating classes using <class of tobject>.create
+
+  Revision 1.68  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
