@@ -26,6 +26,9 @@ uses
 { try to only do syntax on part of file until current position
   does work correctly now ? at least I hope so PM }
 {$define TEST_PARTIAL_SYNTAX}
+{ Please "change" this to a field in TCodeEditor and check for this it a normal
+  "if"-construct in UpdateAttrs(). WEditor contains a _generic_ editor object
+  and should stay as flexible as possible. - Gabor }
 
 const
       cmFileNameChanged      = 51234;
@@ -271,6 +274,7 @@ type
       CompleteState: TCompleteState;
       CodeCompleteFrag: PString;
       CodeCompleteWord: PString;
+      AlwaysShowScrollBars: boolean;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -332,6 +336,9 @@ type
       procedure   SetErrorMessage(const S: string); virtual;
       procedure   AdjustSelection(DeltaX, DeltaY: sw_integer);
       procedure   AdjustSelectionPos(CurPosX, CurPosY: sw_integer; DeltaX, DeltaY: sw_integer);
+      function    IsFlagSet(AFlag: longint): boolean;
+      procedure   GetContent(ALines: PUnsortedStringCollection); virtual;
+      procedure   SetContent(ALines: PUnsortedStringCollection); virtual;
       procedure   Lock;
       procedure   UnLock;
     private
@@ -350,6 +357,7 @@ type
       IndicatorDrawCalled  : boolean;
       CurEvent    : PEvent;
       function    Overwrite: boolean;
+      function    IsModal: boolean;
       function    GetLine(I: sw_integer): PLine;
       procedure   CheckSels;
       procedure   CodeCompleteCheck;
@@ -1228,8 +1236,8 @@ begin
   Flags:=AFlags;
   if ((OldFlags xor Flags) and efCodeComplete)<>0 then
     ClearCodeCompleteWord;
-  SetInsertMode((Flags and efInsertMode)<>0);
-  if (Flags and efSyntaxHighlight)<>0 then
+  SetInsertMode(IsFlagSet(efInsertMode));
+  if IsFlagSet(efSyntaxHighlight) then
     UpdateAttrs(0,attrAll) else
   for I:=0 to GetLineCount-1 do
     SetLineFormat(I,'');
@@ -1249,6 +1257,39 @@ begin
   if ErrorMessage<>nil then DisposeStr(ErrorMessage);
   ErrorMessage:=NewStr(S);
   DrawView;
+end;
+
+procedure TCodeEditor.GetContent(ALines: PUnsortedStringCollection);
+procedure AddIt(P: PLine); {$ifndef FPC}far;{$endif}
+begin
+  if Assigned(P) and Assigned(P^.Text) then
+    ALines^.Insert(NewStr(GetStr(P^.Text)));
+end;
+begin
+  if Assigned(Lines) then
+    Lines^.ForEach(@AddIt);
+end;
+
+procedure TCodeEditor.SetContent(ALines: PUnsortedStringCollection);
+procedure AddIt(P: PString); {$ifndef FPC}far;{$endif}
+begin
+  AddLine(GetStr(P));
+end;
+begin
+  Lock;
+  TextStart; HideSelect; DeleteAllLines;
+  if Assigned(ALines) then
+    ALines^.ForEach(@AddIt);
+  LimitsChanged;
+  if IsFlagSet(efSyntaxHighlight) then
+    UpdateAttrsRange(0,Min(Delta.Y+Size.Y,GetLineCount-1),
+      attrAll
+{$ifndef TEST_PARTIAL_SYNTAX}
+      +attrForceFull
+{$endif TEST_PARTIAL_SYNTAX}
+      );
+  TextStart;
+  UnLock;
 end;
 
 procedure TCodeEditor.Lock;
@@ -1326,6 +1367,11 @@ begin
     end;
 end;
 
+function TCodeEditor.IsFlagSet(AFlag: longint): boolean;
+begin
+  IsFlagSet:=(Flags and AFlag)=AFlag;
+end;
+
 procedure TCodeEditor.AdjustSelection(DeltaX, DeltaY: sw_integer);
 begin
   AdjustSelectionPos(CurPos.X,CurPos.Y,DeltaX,DeltaY);
@@ -1359,6 +1405,15 @@ begin
   DrawView;
 end;
 
+function TCodeEditor.IsModal: boolean;
+var IsM: boolean;
+begin
+  IsM:=GetState(sfModal);
+  if Assigned(Owner) then
+    IsM:=IsM or Owner^.GetState(sfModal);
+  IsModal:=IsM;
+end;
+
 procedure TCodeEditor.UpdateIndicator;
 begin
   if Indicator<>nil then
@@ -1368,9 +1423,9 @@ begin
 {$ifdef debug}
     Indicator^.StoreUndo:=StoreUndo;
 {$ifdef TEST_PARTIAL_SYNTAX}
-    Indicator^.SyntaxComplete:=SyntaxComplete and ((Flags and efSyntaxHighlight)<>0);
+    Indicator^.SyntaxComplete:=SyntaxComplete and IsFlagSet(efSyntaxHighlight);
 {$endif TEST_PARTIAL_SYNTAX}
-    Indicator^.UseTabs:=((Flags and efUseTabCharacters)<>0);
+    Indicator^.UseTabs:=IsFlagSet(efUseTabCharacters);
 {$endif debug}
     if lockflag>0 then
       IndicatorDrawCalled:=true
@@ -1505,19 +1560,24 @@ begin
                  Message(@Self,evCommand,cmNewLine,nil);
              kbEsc :
                if CompleteState=csOffering then
-                 CodeCompleteCancel;
+                 CodeCompleteCancel else
+                if IsModal then
+                  DontClear:=true;
            else
             case Event.CharCode of
              #9,#32..#255 :
-               begin
-                 NoSelect:=true;
-                 AddChar(Event.CharCode);
-                 NoSelect:=false;
-                 if (CompleteState<>csDenied) or (Event.CharCode=#32) then
-                   CCAction:=ccCheck
-                 else
-                   CCAction:=ccClear;
-               end;
+               if (Event.CharCode=#9) and IsModal then
+                 DontClear:=true
+               else
+                 begin
+                   NoSelect:=true;
+                   AddChar(Event.CharCode);
+                   NoSelect:=false;
+                   if (CompleteState<>csDenied) or (Event.CharCode=#32) then
+                     CCAction:=ccCheck
+                   else
+                     CCAction:=ccClear;
+                 end;
             else
               DontClear:=true;
             end; { case Event.CharCode .. }
@@ -1795,7 +1855,7 @@ begin
      end;
     GetDisplayTextFormat(AY,LineText,Format);
 
-{    if (Flags and efSyntaxHighlight)<>0 then MaxX:=length(LineText)+1
+{    if FlagSet(efSyntaxHighlight) then MaxX:=length(LineText)+1
        else }MaxX:=Size.X+Delta.X;
     for X:=1 to Min(MaxX,255) do
     begin
@@ -1813,7 +1873,7 @@ begin
       end else
       { no highlight }
       begin
-   if (Flags and efVerticalBlocks<>0) then
+   if IsFlagSet(efVerticalBlocks) then
       begin
         if (SelStart.X<=AX) and (AX<=SelEnd.X) and
       (SelStart.Y<=AY) and (AY<=SelEnd.Y) then
@@ -1829,13 +1889,13 @@ begin
          this give BoundsCheckError with -Cr quite often PM }
        Color:=ColorTab[ord(Format[X]) mod (coLastColor + 1)] else Color:=ColorTab[coTextColor];
 
-    if ( ((Flags and efHighlightRow)   <>0) and
-       (PX.Y=CurPos.Y) ) and (HighlightRow=-1) then
+    if IsFlagSet(efHighlightRow) and
+       (PX.Y=CurPos.Y) and (HighlightRow=-1) then
       begin
         Color:=CombineColors(Color,HighlightRowColor);
         FreeFormat[X]:=false;
       end;
-    if ( ((Flags and efHighlightColumn)<>0) and (PX.X=CurPos.X) ) then
+    if IsFlagSet(efHighlightColumn) and (PX.X=CurPos.X) then
       begin
         Color:=CombineColors(Color,HighlightColColor);
         FreeFormat[X]:=false;
@@ -1876,7 +1936,7 @@ end;
 
 function TCodeEditor.Overwrite: boolean;
 begin
-  Overwrite:=(Flags and efInsertMode)=0;
+  Overwrite:=not IsFlagSet(efInsertMode);
 end;
 
 function TCodeEditor.GetLineCount: sw_integer;
@@ -2025,9 +2085,10 @@ begin
   { I disagree here
     I don't want the editor to change the position of the tabs
     in my makefiles !! PM
-  if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
+  if FlagSet(efUseTabCharacters) and (TabSize>0) then
    SetLineText(I,CompressUsingTabs(S,TabSize))
   else                  }
+  { ... then you better make this optional - Gabor }
    SetLineText(I,S);
 end;
 
@@ -2163,7 +2224,7 @@ var S, PreS: string;
 begin
   S:=GetLineText(CurPos.Y);
   if CurPos.Y>0 then
-    PreS:=RTrim(GetLineText(CurPos.Y-1),(Flags and efUseTabCharacters)=0)
+    PreS:=RTrim(GetLineText(CurPos.Y-1),not IsFlagSet(efUseTabCharacters))
   else
     PreS:='';
   if CurPos.X>=length(PreS) then
@@ -2336,7 +2397,7 @@ end;
 
 procedure TCodeEditor.LineDown;
 begin
-  if CurPos.Y<GetLineCount-1 then
+  if (CurPos.Y<GetLineCount-1) then
      SetCurPtr(CurPos.X,CurPos.Y+1);
 end;
 
@@ -2456,7 +2517,7 @@ begin
     begin
       S:=GetDisplayText(CurPos.Y);
       SelBack:=length(S)-SelEnd.X;
-      SetDisplayText(CurPos.Y,RTrim(S,(Flags and efUseTabCharacters)=0));
+      SetDisplayText(CurPos.Y,RTrim(S,not IsFlagSet(efUseTabCharacters)));
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
@@ -2537,7 +2598,7 @@ begin
    begin
      S:=GetDisplayText(CurPos.Y);
      CP:=CurPos.X-1;
-     if (Flags and efBackspaceUnindents)<>0 then
+     if IsFlagSet(efBackspaceUnindents) then
       if Trim(copy(S,1,CP+1))='' then
       begin
         Y:=CurPos.Y;
@@ -3027,6 +3088,7 @@ var OSS,OSE: TPoint;
     Line,ShortCut: string;
     X,Y,I,LineIndent: sw_integer;
     CodeLines: PUnsortedStringCollection;
+    CanJump: boolean;
 begin
   {
     The usage of editing primitives in this routine make it pretty slow, but
@@ -3057,20 +3119,34 @@ begin
         DelChar;
       for Y:=0 to CodeLines^.Count-1 do
       begin
+        CanJump:=false;
         if Y>0 then
-          for X:=1 to LineIndent do  { indent template lines to align }
-            AddChar(' ');            { them to the first line         }
+          begin
+             CanJump:=Trim(GetLineText(CurPos.Y))='';
+             if CanJump=false then
+               begin
+                 for X:=1 to LineIndent do  { indent template lines to align }
+                   AddChar(' ');            { them to the first line         }
+               end
+             else
+              SetCurPtr(CurPos.X+LineIndent,CurPos.Y);
+          end;
         Line:=CodeLines^.At(Y)^;
         for X:=1 to length(Line) do
           AddChar(Line[X]);
         if Y<CodeLines^.Count-1 then
           begin
             InsertLine;               { line break }
-            while CurPos.X>0 do       { unindent }
-            begin
-              SetCurPtr(CurPos.X-1,CurPos.Y);
-              DelChar;
-            end;
+            if CanJump=false then
+              begin
+                while CurPos.X>0 do       { unindent }
+                begin
+                  SetCurPtr(CurPos.X-1,CurPos.Y);
+                  DelChar;
+                end;
+              end
+            else
+              SetCurPtr(0,CurPos.Y);
           end;
       end;
     end;
@@ -3095,12 +3171,12 @@ begin
   SP:=CurPos;
   HoldUndo:=StoreUndo;
   StoreUndo:=false;
-  if (C<>TAB) or ((Flags and efUseTabCharacters)<>0) then
+  if (C<>TAB) or IsFlagSet(efUseTabCharacters) then
     SC:=C
   else
     begin
       LocTabSize:=TabSize - (CurPos.X mod TabSize);
-      if (CurPos.Y<=1) or ((Flags and efAutoIndent)=0) then
+      if (CurPos.Y<=1) or not IsFlagSet(efAutoIndent) then
         SC:=CharStr(' ',LocTabSize)
       else
         begin
@@ -3146,7 +3222,7 @@ begin
   Addaction(eaInsertText,SP,CurPos,C);
   StoreUndo:=false;
 {$endif Undo}
-  if ((Flags and efAutoBrackets)<>0) then
+  if IsFlagSet(efAutoBrackets) then
     begin
       BI:=Pos(C,OpenBrackets);
       if (BI>0) then
@@ -3945,7 +4021,7 @@ begin
      else begin SetSelection(CurPos,OldPos); Extended:=true; end;
     DrawView;
   end else
-   if (Flags and efPersistentBlocks)=0 then
+   if not IsFlagSet(efPersistentBlocks) then
       begin HideSelect; DrawView; end;
 {  if PointOfs(SelStart)=PointOfs(SelEnd) then
      SetSelection(CurPos,CurPos);}
@@ -3955,7 +4031,7 @@ begin
      ((Highlight.A.X<>HighLight.B.X) or (Highlight.A.Y<>HighLight.B.Y)) then
      HideHighlight;
   if (OldPos.Y<>CurPos.Y) and (0<=OldPos.Y) and (OldPos.Y<GetLineCount) then
-     SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y),(Flags and efUseTabCharacters)=0));
+     SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y),not IsFlagSet(efUseTabCharacters)));
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (GetErrorMessage<>'') then
     SetErrorMessage('');
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (HighlightRow<>-1) then
@@ -4007,7 +4083,7 @@ var Line: string;
     CurWord,NewWord: string;
 begin
   SetCodeCompleteFrag('');
-  if ((Flags and efCodeComplete)=0) or (IsReadOnly=true) then Exit;
+  if (not IsFlagSet(efCodeComplete)) or (IsReadOnly=true) then Exit;
 
   Lock;
 
@@ -4289,7 +4365,7 @@ var
 var CurLine: Sw_integer;
     Line,NextLine,PrevLine,OldLine: PLine;
 begin
-  if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
+  if (not IsFlagSet(efSyntaxHighlight)) or (FromLine>=GetLineCount) then
   begin
     SetLineFormat(FromLine,'');
     UpdateAttrs:=GetLineCount;
@@ -4303,7 +4379,7 @@ begin
     Exit;
   end;
 {$ifdef TEST_PARTIAL_SYNTAX}
-  If ((Flags and efSyntaxHighlight)<>0) and (LastSyntaxedLine<FromLine)
+  If IsFlagSet(efSyntaxHighlight) and (LastSyntaxedLine<FromLine)
      and (FromLine<GetLineCount) then
     CurLine:=LastSyntaxedLine
   else
@@ -4452,7 +4528,7 @@ var OK: boolean;
     VerticalBlock: boolean;
     SEnd: TPoint;
 begin
-  if (Editor^.Flags and efVerticalBlocks)<>0 then
+  if Editor^.IsFlagSet(efVerticalBlocks) then
     begin
       NotImplemented;
       Exit;
@@ -4468,7 +4544,7 @@ begin
   begin
     StartPos:=CurPos; DestPos:=CurPos;
     EPos:=CurPos;
-    VerticalBlock:=(Editor^.Flags and efVerticalBlocks)<>0;
+    VerticalBlock:=Editor^.IsFlagSet(efVerticalBlocks);
     LineDelta:=0; LineCount:=(Editor^.SelEnd.Y-Editor^.SelStart.Y)+1;
     OK:=GetLineCount<MaxLineCount;
     OrigS:=GetDisplayText(DestPos.Y);
@@ -4742,8 +4818,20 @@ begin
 end;
 
 procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
+  procedure ShowSBar(SBar: PScrollBar);
+  begin
+    if Assigned(SBar) and (SBar^.GetState(sfVisible)=false) then
+        SBar^.Show;
+  end;
 begin
   inherited SetState(AState,Enable);
+
+  if AlwaysShowScrollBars then
+   begin
+     ShowSBar(HScrollBar);
+     ShowSBar(VScrollBar);
+   end;
+
   if (AState and (sfActive+sfSelected+sfFocused))<>0 then
     begin
       SelectionChanged;
@@ -4775,7 +4863,7 @@ begin
   S.Read(Flags,SizeOf(Flags));
   S.Read(TabSize,SizeOf(TabSize));
 
-  if (Flags and efStoreContent)<>0 then
+  if IsFlagSet(efStoreContent) then
     begin
       S.Read(TSize,SizeOf(TSize));
       New(TS, Init(@S,S.GetPos,TSize));
@@ -4813,7 +4901,7 @@ begin
   S.Write(Flags,SizeOf(Flags));
   S.Write(TabSize,SizeOf(TabSize));
 
-  if (Flags and efStoreContent)<>0 then
+  if IsFlagSet(efStoreContent) then
     begin
       { NS.Init;
       SaveToStream(@NS);
@@ -4821,6 +4909,7 @@ begin
       NS.Done;
         This is waste of time PM
         use Seek instead !! }
+      { yep. and this won't work for serial streams. - Gabor }
       TSize:=0;
       TSizePos:=S.GetPos;
       S.Write(TSize,SizeOf(TSize));
@@ -4865,7 +4954,7 @@ begin
   LimitsChanged;
   if not AllLinesComplete then
     SetModified(true);
-  if (Flags and efSyntaxHighlight)<>0 then
+  if IsFlagSet(efSyntaxHighlight) then
     UpdateAttrsRange(0,Min(Delta.Y+Size.Y,GetLineCount-1),
       attrAll
 {$ifndef TEST_PARTIAL_SYNTAX}
@@ -4916,10 +5005,10 @@ begin
         if Line=StartP.Y then S:=copy(S,LinePosToCharIdx(Line,StartP.X),255);
       end;
     { Remove all traling spaces PM }
-    if (Flags and efKeepTrailingSpaces)=0 then
+    if not IsFlagSet(efKeepTrailingSpaces) then
       While (Length(S)>0) and (S[Length(S)]=' ') do
        Dec(S[0]);
-    { if (Flags and efUseTabCharacters)<>0 then
+    { if FlagSet(efUseTabCharacters) then
       S:=CompressUsingTabs(S,TabSize);
       }
     Stream^.Write(S[1],length(S));
@@ -5033,7 +5122,7 @@ begin
         end;
     end;
 {$I-}
-  if (Flags and efBackupFiles)<>0 then
+  if IsFlagSet(efBackupFiles) then
   begin
      BAKName:=DirAndNameOf(FileName)+'.bak';
      Assign(f,BAKName);
@@ -5109,7 +5198,7 @@ begin
    cmFileNameChanged :
      if (Event.InfoPtr=nil) or (Event.InfoPtr=@Self) then
      begin
-       B:=(Flags and efSyntaxHighlight)<>0;
+       B:=IsFlagSet(efSyntaxHighlight);
        SH:=UseSyntaxHighlight(@Self);
        if SH<>B then
          if SH then
@@ -5504,12 +5593,12 @@ end;
 
 function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
 begin
-  DefUseSyntaxHighlight:=(Editor^.Flags and efSyntaxHighlight)<>0;
+  DefUseSyntaxHighlight:=Editor^.IsFlagSet(efSyntaxHighlight);
 end;
 
 function DefUseTabsPattern(Editor: PFileEditor): boolean;
 begin
-  DefUseTabsPattern:=(Editor^.Flags and efUseTabCharacters)<>0;
+  DefUseTabsPattern:=Editor^.IsFlagSet(efUseTabCharacters);
 end;
 
 procedure RegisterCodeEditors;
@@ -5524,7 +5613,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.79  2000-02-05 14:50:59  florian
+  Revision 1.80  2000-02-07 12:11:15  pierre
+   Gabors changes
+
+  Revision 1.79  2000/02/05 14:50:59  florian
     * applied fix from Gabor regarding the limited line length of the clipboard
 
   Revision 1.78  2000/01/28 22:20:04  pierre
