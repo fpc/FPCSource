@@ -6,3 +6,4 @@ Register variables:
 Common subexpression elimination (assembler)
   Multidimensional array index operation. testcse1.pp
   CSE and range checking ................ testcse2.pp
+  web bug 972............................ testcse3.pp
