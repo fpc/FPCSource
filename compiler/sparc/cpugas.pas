@@ -22,34 +22,17 @@ unit CpuGas;
 {$MACRO ON}{$INCLUDE fpcdefs.inc}
 interface
 uses
-  cclasses,cpubase,
-  globals,
-  aasmbase,aasmtai,aasmcpu,assemble,aggas;
+  cpubase,
+  aasmtai,aasmcpu,assemble,aggas;
 type
   TGasSPARC=class(TGnuAssembler)
     procedure WriteInstruction(hp:Tai);override;
   end;
 implementation
 uses
-  finput,
   cutils,systems,
   verbose;
 {$DEFINE gas_reg2str:=std_reg2str}
-const
-  line_length = 70;
-var
-{$ifdef GDB}
-      n_line:byte;     { different types of source lines }
-      linecount,
-      includecount:longint;
-      funcname:pchar;
-      stabslastfileinfo:tfileposinfo;
-{$endif}
-      lastsec:tsection; { last section type written }
-      lastfileinfo:tfileposinfo;
-      infile,
-      lastinfile:tinputfile;
-      symendcount:longint;
 function GetReferenceString(var ref:TReference):string;
   begin
     GetReferenceString:='+';
@@ -209,7 +192,11 @@ initialization
 end.
 {
     $Log$
-    Revision 1.13  2003-05-06 14:55:27  mazen
+    Revision 1.14  2003-05-07 11:55:34  mazen
+    - unused units removed from uses clause
+    - unused variables removed from implemntation declarations
+
+    Revision 1.13  2003/05/06 14:55:27  mazen
     * comment changed to ;# instead of ##
     * .bss section changed to .section ".bss"
 
