@@ -51,7 +51,7 @@ end;
 
 procedure CheckCygwinVersion;
 begin
-  if GetCygwinVersionHigh < 1003 shr 16 then
+  if GetCygwinVersionHigh < 1003 shl 16 then
     begin
       Writeln('The cygwin1.dll that you have in "',CygwinFullName,'" is too old');
       Writeln('If the IDE does not work correctly, please consider');
