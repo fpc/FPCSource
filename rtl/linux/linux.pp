@@ -486,9 +486,6 @@ Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word)
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure GetTime(Var Hour,Minute,Second:Word);
 Procedure GetDate(Var Year,Month,Day:Word);
-{ For compatibility with earlier versions }
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Integer);
-Function  LocalToEpoch(year,month,day,hour,minute,second:Integer):Longint;
 Procedure GetTime(Var Hour,Minute,Second:Integer);
 Procedure GetDate(Var Year,Month,Day:Integer);
 
@@ -750,7 +747,7 @@ begin
   getmem(pp,4*4);
   temp:='/bin/sh'#0'-c'#0+prog+#0;
   GetMem(PP[0],Length(Temp));
-  Move(@Temp[1],PP[0]^,Length(Temp)); 
+  Move(@Temp[1],PP[0]^,Length(Temp));
   p:=pp+SizeOf(Pointer);
   p^:=@pp[0][8];
   p:=p+SizeOf(Pointer);
@@ -1358,24 +1355,11 @@ Begin
 End;
 
 
-
-{ The now following are for compatibility with earlier versions
-  of the linux unit... }
-
-Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Integer);
-begin
-  EpochToLocal(epoch,word(year),word(month),word(day),word(hour),word(minute),word(second));
-end;
-
-Function  LocalToEpoch(year,month,day,hour,minute,second:Integer):Longint;
-begin
-  LocalToEpoch:=LocalToEpoch(word(year),word(month),word(day),word(hour),word(minute),word(second));
-end;
-
 Procedure GetTime(Var Hour,Minute,Second:Integer);
 begin
  GetTime(Word(Hour),Word(Minute),Word(Second));
 end;
+
 
 Procedure GetDate(Var Year,Month,Day:Integer);
 begin
@@ -3753,7 +3737,11 @@ End.
 
 {
   $Log$
-  Revision 1.44  1999-07-31 23:55:04  michael
+  Revision 1.45  1999-08-11 22:02:25  peter
+    * removed old integer versions of localtoepoch and epochtolocal, you
+      need to use the word versions instead else you got an overloaded bug
+
+  Revision 1.44  1999/07/31 23:55:04  michael
   + FCNTL patch from Sebastian Guenther
 
   Revision 1.43  1999/07/29 16:33:24  michael
