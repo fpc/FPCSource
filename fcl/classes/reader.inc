@@ -1017,6 +1017,7 @@ var
   Ident: String;
   Method: TMethod;
   Handled: Boolean;
+  TmpStr: String;
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1072,7 +1073,12 @@ begin
         end;
       end;
     tkSString, tkLString, tkAString, tkWString:
-      SetStrProp(Instance, PropInfo, ReadString);
+      begin
+        TmpStr:=ReadString;
+        if Assigned(FOnReadStringProperty) then
+          FOnReadStringProperty(Self,Instance,PropInfo,TmpStr);
+        SetStrProp(Instance, PropInfo, TmpStr);
+      end;
     {!!!: tkVariant}
     tkClass:
       case FDriver.NextValue of
@@ -1304,7 +1310,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-12-15 08:57:24  michael
+  Revision 1.3  2004-12-27 13:53:27  michael
+  + Patch for localization of string properties
+
+  Revision 1.2  2003/12/15 08:57:24  michael
   Patch from Darek Mazur for reading idents from property stream
 
   Revision 1.2  2003/12/15 08:55:56  michael

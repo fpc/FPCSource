@@ -834,6 +834,10 @@ type
   TCreateComponentEvent = procedure(Reader: TReader;
     ComponentClass: TComponentClass; var Component: TComponent) of object;
 
+  TReadWriteStringPropertyEvent = procedure(Sender:TObject;
+    const Instance: TPersistent; PropInfo: PPropInfo;
+    var Content:string) of object;
+    
   TReader = class(TFiler)
   private
     FDriver: TAbstractObjectReader;
@@ -852,6 +856,7 @@ type
     FOnCreateComponent: TCreateComponentEvent;
     FPropName: string;
     FCanHandleExcepts: Boolean;
+    FOnReadStringProperty:TReadWriteStringPropertyEvent;
     procedure DoFixupReferences;
     procedure FreeFixups;
     function FindComponentClass(const AClassName: string): TComponentClass;
@@ -911,6 +916,7 @@ type
     property OnAncestorNotFound: TAncestorNotFoundEvent read FOnAncestorNotFound write FOnAncestorNotFound;
     property OnCreateComponent: TCreateComponentEvent read FOnCreateComponent write FOnCreateComponent;
     property OnFindComponentClass: TFindComponentClassEvent read FOnFindComponentClass write FOnFindComponentClass;
+    property OnReadStringProperty: TReadWriteStringPropertyEvent read FOnReadStringProperty write FOnReadStringProperty;
   end;
 
 
@@ -1002,6 +1008,7 @@ type
     FChildPos: Integer;
     FOnFindAncestor: TFindAncestorEvent;
     FOnWriteMethodProperty: TWriteMethodPropertyEvent;
+    FOnWriteStringProperty: TReadWriteStringPropertyEvent;
     procedure AddToAncestorList(Component: TComponent);
     procedure WriteComponentData(Instance: TComponent);
   protected
@@ -1039,6 +1046,7 @@ type
     property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
     property OnFindAncestor: TFindAncestorEvent read FOnFindAncestor write FOnFindAncestor;
     property OnWriteMethodProperty: TWriteMethodPropertyEvent read FOnWriteMethodProperty write FOnWriteMethodProperty;
+    property OnWriteStringProperty: TReadWriteStringPropertyEvent read FOnWriteStringProperty write FOnWriteStringProperty;
 
     property Driver: TAbstractObjectWriter read FDriver;
   end;
@@ -1470,7 +1478,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.3  2004-08-07 16:32:52  florian
+  Revision 1.4  2004-12-27 13:53:27  michael
+  + Patch for localization of string properties
+
+  Revision 1.3  2004/08/07 16:32:52  florian
     * tcomponent.destroying is now called in tcomponent.beforedestruction
 
   Revision 1.2  2003/10/07 19:41:11  marco

@@ -697,6 +697,8 @@ begin
         if StrValue <> DefStrValue then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          if Assigned(FOnWriteStringProperty) then
+            FOnWriteStringProperty(Self,Instance,PropInfo,StrValue);
           WriteString(StrValue);
           Driver.EndProperty;
         end;
@@ -832,7 +834,10 @@ end;}
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
+  Revision 1.2  2004-12-27 13:53:27  michael
+  + Patch for localization of string properties
+
+  Revision 1.1  2003/10/06 20:33:58  peter
     * classes moved to rtl for 1.1
     * classes .inc and classes.pp files moved to fcl/classes for
       backwards 1.0.x compatiblity to have it in the fcl
