@@ -199,7 +199,10 @@
 
 {
   $Log$
-  Revision 1.5  1998-04-27 18:25:36  florian
+  Revision 1.6  1998-05-06 12:37:22  michael
+  + Removed log from before restored version.
+
+  Revision 1.5  1998/04/27 18:25:36  florian
     + constants for CreateFile added
 
   Revision 1.4  1998/04/26 22:37:22  florian
@@ -213,28 +216,4 @@
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
-
-  Revision 1.5  1998/03/05 22:37:37  florian
-    * some stuff added
-
-  Revision 1.4  1998/01/26 12:02:33  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/win32/win32.inc
-  description:
-  ----------------------------
-  revision 1.3
-  date: 1997/12/19 11:47:09;  author: florian;  state: Exp;  lines: +2 -2
-  *** empty log message ***
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:42:45;  author: michael;  state: Exp;  lines: +15 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 10:15:33;  author: florian;  state: Exp;
-  Win32 files added (they are untested)
-  =============================================================================
 }

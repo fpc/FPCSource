@@ -671,72 +671,9 @@ End.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
 
-  Revision 1.15  1998/03/11 23:07:42  peter
-    * exit call moved to prt1/gprt1, halt() jmps to it
-
-  Revision 1.14  1998/02/08 21:52:54  peter
-    * Fixed a wrong result type by using Unusedhandle
-
-  Revision 1.13  1998/02/03 14:00:42  peter
-    * Faster getdir() and fixed memory leak in it
-
-  Revision 1.12  1998/01/27 17:48:30  peter
-    * faster FileSize() by using FStat() instead of LSeeks
-
-  Revision 1.11  1998/01/26 12:01:09  michael
-  + Added log at the end
-  
-  revision 1.10
-  date: 1998/01/25 21:53:33;  author: peter;  state: Exp;  lines: +21 -15
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-  ----------------------------
-  revision 1.9
-  date: 1998/01/11 02:47:33;  author: michael;  state: Exp;  lines: +287 -429
-  * Changed files to use the new filestructure in /inc directory.
-    (By Peter Vreman)
-  ----------------------------
-  revision 1.8
-  date: 1998/01/07 00:05:03;  author: michael;  state: Exp;  lines: +17 -2
-  + Final adjustments  for a uniform file handling interface.
-     (From Peter Vreman)
-  ----------------------------
-  revision 1.7
-  date: 1998/01/06 00:29:34;  author: michael;  state: Exp;  lines: +260 -272
-  Implemented a system independent sequence of reset/rewrite/append fileopenfunc etc system \n (from Peter Vreman)
-  ----------------------------
-  revision 1.6
-  date: 1998/01/05 16:51:22;  author: michael;  state: Exp;  lines: +2 -28
-  + Moved init of heap to heap.inc: INITheap() (From Peter Vreman)
-  ----------------------------
-  revision 1.5
-  date: 1998/01/05 13:42:28;  author: michael;  state: Exp;  lines: +85 -72
-  * Changes to implement a more uniform file opening scheme (by Peter Vreman)
-    Minor adjustments (unneeded vars etc.)
-  ----------------------------
-  revision 1.4
-  date: 1998/01/01 16:53:02;  author: michael;  state: Exp;  lines: +9 -1
-  * Bug fixes in Blockread/Write and Chdir, they now return sensible error
-    numbers.
-  ----------------------------
-  revision 1.3
-  date: 1997/12/23 16:30:14;  author: michael;  state: Exp;  lines: +78 -74
-  * more efficient opening of stdin, stdout and stderr (from Peter Vreman)
-  + Added correct IOresult return value for open function. (from Peter Vreman)
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:18;  author: michael;  state: Exp;  lines: +12 -19
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 }

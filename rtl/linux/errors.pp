@@ -171,10 +171,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
 
-  Revision 1.1  1998/02/13 08:49:46  michael
-  + Initial implementation
-
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 }

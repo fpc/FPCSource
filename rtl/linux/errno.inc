@@ -144,27 +144,9 @@ Sys_EDQUOT	= 122;	{ Quota exceeded }
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:38:22  michael
+  + Removed log from before restored version.
 
-  Revision 1.3  1998/01/26 12:00:40  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/linux/errno.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:18;  author: michael;  state: Exp;  lines: +14 -1
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 }

@@ -4552,25 +4552,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:36:50  michael
+  + Removed log from before restored version.
 
-  Revision 1.3  1998/01/26 12:02:36  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/win32/struct.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:42:49;  author: michael;  state: Exp;  lines: +10 -16
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 23:28:32;  author: florian;  state: Exp;
-  - Win32: base.pp compilable, but there is a compiler bug, so wrong assembler
-           is created
-  - Win32: API interface units renamed to *.pp
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 }

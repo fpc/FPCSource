@@ -1461,7 +1461,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  1998-04-16 07:49:11  michael
+  Revision 1.4  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
+
+  Revision 1.3  1998/04/16 07:49:11  michael
   * fixed bug. Clrscr and Clreol didn't take change in textattr in account.
 
   Revision 1.2  1998/04/05 13:56:54  peter
@@ -1470,89 +1473,4 @@ End.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
   * Restored version
-
-  Revision 1.10  1998/03/16 23:38:52  peter
-    + support for textattr:= setting between writes
-
-  Revision 1.9  1998/01/26 12:00:45  michael
-  + Added log at the end
-
-  revision 1.8
-  date: 1998/01/20 00:18:14;  author: peter;  state: Exp;  lines: +2 -2
-    * column 80 works now the same as under dos (wraps to next line)
-  ----------------------------
-  revision 1.7
-  date: 1998/01/19 10:04:02;  author: michael;  state: Exp;  lines: +2 -2
-  * Bugfix from Peter Vreman.
-  ----------------------------
-  revision 1.6
-  date: 1998/01/05 13:43:17;  author: michael;  state: Exp;  lines: +129 -109
-  * Minor bugfixes, bugs appeared when making/compiling examples.
-    (by Peter Vreman)
-  ----------------------------
-  revision 1.5
-  date: 1997/12/28 17:53:04;  author: michael;  state: Exp;  lines: +52 -4
-  * Bug fixed : CR now sends CR/LF; importat for Readln. (Peter Vreman fixed
-    this)
-  * GetXY function now tries to read initial conditions.
-  ----------------------------
-  revision 1.4
-  date: 1997/12/19 15:22:14;  author: michael;  state: Exp;  lines: +10 -22
-  * changed setrawmode to use termios functions in linux unit.
-  ----------------------------
-  revision 1.3
-  date: 1997/12/15 12:44:56;  author: michael;  state: Exp;  lines: +6 -1
-  * added key handling for xterm.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:14;  author: michael;  state: Exp;  lines: +12 -16
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:54;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:54;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
-
-
-  Pre CVS Log:
-
-
-  Version    Date       What/who
-  -------    ----       -------
-
-  0.1        96/97      Written by Mark May (mmay@ndaco.com)
-                        Major overhaul to improve screen output performance by
-
-                        Michael Van Canneyt  (michael@tfdec1.fys.kuleuven.ac.be)
-                        Also added some documentation.
-                        Balazs Scheidler changed color handling to lookup-table
-  0.2        7/97       changes by  Hans-Peter Zorn <hzorn@aixterm1.urz.uni-heidelberg.de>
-                        to make key-handling work in an xterm.
-                        Alt-key becomes ESC + Key.
-
-  0.3        10/97      Modified by Matthias K"oppe
-
-                        <mkoeppe@csmd.cs.uni-magdeburg.de> :
-                        Fixed key decoding for function keys F6..F12
-
-
-  0.4        11/97      Modified by Peter Vreman <pfv@worldonline.nl>
-                        Optimised keyboard handling.
-
-
-  0.5        11/97      Modified by Peter Vreman <pfv@worldonline.nl>
-                        Inplemented bigger buffer for output, ANSI codes
-                        are handled too.
-
-                        Unit now depends on linux unit only.
-
-  0.6        01/98      Modified by Peter Vreman
-                        Implemented missing function/procedures, the interface
-                        is now 100% the same BP7.
-                        The screen is not cleared at startup anymore. The
-                        cursor stays at the current position.
 }

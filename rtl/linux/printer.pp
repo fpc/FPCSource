@@ -254,35 +254,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
 
-  Revision 1.5  1998/01/26 12:00:53  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/linux/printer.pp
-  description:
-  ----------------------------
-  revision 1.4
-  date: 1998/01/11 02:53:26;  author: michael;  state: Exp;  lines: +7 -4
-  * Corrected small things discovered when making examples.
-  ----------------------------
-  revision 1.3
-  date: 1998/01/06 00:29:34;  author: michael;  state: Exp;  lines: +11 -13
-  Implemented a system independent sequence of reset/rewrite/append fileopenfunc etc system \n (from Peter Vreman)
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:17;  author: michael;  state: Exp;  lines: +12 -19
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:55;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 }

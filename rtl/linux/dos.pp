@@ -1040,66 +1040,12 @@ End.
 
 {
   $Log$
-  Revision 1.2  1998-05-04 17:40:43  peter
+  Revision 1.3  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
+
+  Revision 1.2  1998/05/04 17:40:43  peter
     * findfirst did some strange init with searchpos
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
   * Restored version
-
-  Revision 1.11  1998/03/10 14:46:09  michael
-  + better checking in weekday function
-
-  Revision 1.10  1998/01/27 17:47:42  peter
-    * Speeeeedup of Findfirst with no wildcards
-
-  Revision 1.9  1998/01/26 12:01:28  michael
-  + Added log at the end
-  
-  Working file: rtl/linux/dos.pp
-  description:
-  ----------------------------
-  revision 1.8
-  date: 1998/01/19 16:21:33;  author: peter;  state: Exp;  lines: +58 -117
-  + Weekday from mailinglist which is a lot smaller and faster
-  * FExpand now uses the FExpand from linux.pp
-  ----------------------------
-  revision 1.7
-  date: 1998/01/19 10:03:00;  author: michael;  state: Exp;  lines: +6 -1
-  * BugFix for findfirst/findnext routines. (From Peter Vreman)
-  ----------------------------
-  revision 1.6
-  date: 1998/01/13 17:14:37;  author: michael;  state: Exp;  lines: +3 -3
-  + Entered new FStat call using File or Text var.
-  + GetTme call in DOS now refers to Linux.gettime !
-  ----------------------------
-  revision 1.5
-  date: 1998/01/09 13:12:38;  author: michael;  state: Exp;  lines: +20 -20
-  * Fixed some bugs that showed when writing examples (From Peter Vreman)
-  ----------------------------
-  revision 1.4
-  date: 1997/12/10 12:22:26;  author: michael;  state: Exp;  lines: +2 -2
-  + changed longint(f) to word(f) in getfattr;
-  ----------------------------
-  revision 1.3
-  date: 1997/12/04 13:43:50;  author: michael;  state: Exp;  lines: +23 -15
-  * changed attribute and time functions.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:14;  author: michael;  state: Exp;  lines: +14 -21
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:54;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:54;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
-   Date          Version          Who         Comments
-   1996          0.8              Michael     Initial implementation
-   11/97         0.9              Peter Vreman <pfv@worldonline.nl>
-                                              Unit now depends on the
-                                              linux unit only.
-                                              Cleaned up code.
 }

@@ -3221,7 +3221,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  1998-04-15 11:23:53  michael
+  Revision 1.7  1998-05-06 12:35:26  michael
+  + Removed log from before restored version.
+
+  Revision 1.6  1998/04/15 11:23:53  michael
   + Added some calls to make common API more efficient
 
   Revision 1.5  1998/04/10 15:23:03  michael
@@ -3239,91 +3242,4 @@ End.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
   * Restored version
-
-  Revision 1.17  1998/02/23 14:17:51  michael
-  * Fixed pclose bug. Programs went into a neverending loop.
-
-  Revision 1.16  1998/02/08 01:58:11  peter
-    + Overloaded functions Dup/Dup2 for longint,file
-    * Better Pipe support
-    * Some cleanup
-
-  Revision 1.15  1998/01/26 12:01:18  michael
-  + Added log at the end
-
-  revision 1.14
-  date: 1998/01/19 10:03:01; author: michael; state: Exp; lines: +2 -2
-  * BugFix for findfirst/findnext routines. (From Peter Vreman)
-  ----------------------------
-  revision 1.13
-  date: 1998/01/16 00:02:57; author: michael; state: Exp; lines: +25 -9
-  FExpand expands ~/ to HOME (Fro Peter Vreman)
-  ----------------------------
-  revision 1.12
-  date: 1998/01/13 17:14:38; author: michael; state: Exp; lines: +23 -1
-  + Entered new FStat call using File or Text var.
-  + GetTme call in DOS now refers to Linux.gettime !
-  ----------------------------
-  revision 1.11
-  date: 1998/01/11 02:49:36; author: michael; state: Exp; lines: +29 -19
-  + Fixed bugs discoverd when writing examples, changed procedure to
-    function : boolean in some cases.
-  ----------------------------
-  revision 1.10
-  date: 1998/01/08 00:18:13; author: michael; state: Exp; lines: +17 -7
-  * Made Dup,Dup2 functions retuning Boolean;
-  * Name in Dirent is now Array [0..255] of char instead of string.
-  + Implemented OpenDir with string as path, instead of pchar.
-  ----------------------------
-  revision 1.9
-  date: 1998/01/06 15:04:50; author: michael; state: Exp; lines: +5 -5
-  * Some boolean functions had an undefined result. Fixed that.
-  ----------------------------
-  revision 1.8
-  date: 1998/01/05 16:43:19; author: michael; state: Exp; lines: +19 -5
-  * Nicer implementation of GetDate and GetTime, using a newly implemented
-    GetTimeOfDay function (overloaded). (From Peter Vreman)
-  ----------------------------
-  revision 1.7
-  date: 1997/12/22 18:50:31; author: michael; state: Exp; lines: +8 -5
-  * Bug fixed in fexpand, extra / was sometimes added for filename
-  * fdsets are treated correctly now.
-  ----------------------------
-  revision 1.6
-  date: 1997/12/19 15:23:02; author: michael; state: Exp; lines: +9 -9
-  * changed some termios functions to procedures.
-  ----------------------------
-  revision 1.5
-  date: 1997/12/15 12:56:19; author: michael; state: Exp; lines: +4 -4
-  * fixed bug in fdset handling functions.
-  ----------------------------
-  revision 1.4
-  date: 1997/12/10 13:32:43; author: michael; state: Exp; lines: +558 -326
-  + added termios functies
-  * epochtolocal geeft nu tijd in Local time...
-  ----------------------------
-  revision 1.3
-  date: 1997/12/04 13:43:51; author: michael; state: Exp; lines: +61 -73
-  * changed attribute and time functions.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:15; author: michael; state: Exp; lines: +15 -22
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:54; author: michael; state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:54; author: michael; state: Exp; lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
-
-   Date          Version          Who         Comments
-   96/97         0.8              Michael     Initial implementation
-                                              Code cleanup
-   11/97         0.9              Peter       <pfv@worldonline.nl>
-                                              Code cleanup, added
-                                              some calls
-  ---------------------------------------------------------------------
 }

@@ -119,37 +119,9 @@ type
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:38:22  michael
+  + Removed log from before restored version.
 
-  Revision 1.5  1998/01/26 12:01:13  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/linux/systypes.inc
-  description:
-  ----------------------------
-  revision 1.4
-  date: 1998/01/11 02:53:27;  author: michael;  state: Exp;  lines: +7 -2
-  * Corrected small things discovered when making examples.
-  ----------------------------
-  revision 1.3
-  date: 1998/01/08 00:18:12;  author: michael;  state: Exp;  lines: +4 -4
-  * Made Dup,Dup2 functions retuning Boolean;
-  * Name in Dirent is now Array [0..255] of char instead of string.
-  + Implemented OpenDir with string as path, instead of pchar.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:31:20;  author: michael;  state: Exp;  lines: +14 -0
-  + Added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:56;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:56;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 }

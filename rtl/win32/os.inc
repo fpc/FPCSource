@@ -20,23 +20,9 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-05-06 12:37:22  michael
+  + Removed log from before restored version.
 
-  Revision 1.3  1998/01/26 12:02:26  michael
-  + Added log at the end
-
-
-  
-  Working file: rtl/win32/os.inc
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:42:45;  author: michael;  state: Exp;  lines: +14 -0
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 10:15:32;  author: florian;  state: Exp;
-  Win32 files added (they are untested)
-  =============================================================================
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 }

@@ -543,7 +543,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-04-27 18:29:09  florian
+  Revision 1.7  1998-05-06 12:36:51  michael
+  + Removed log from before restored version.
+
+  Revision 1.6  1998/04/27 18:29:09  florian
     + do_open implemented, the file-I/O should be now complete
 
   Revision 1.5  1998/04/27 13:58:21  florian
@@ -560,62 +563,4 @@ end.
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
-
-  Revision 1.13  1998/03/05 22:37:36  florian
-    * some stuff added
-
-  Revision 1.12  1998/01/26 12:02:28  michael
-  + Added log at the end
-
-  Working file: rtl/win32/syswin32.pp
-  description:
-  ----------------------------
-  revision 1.11
-  date: 1998/01/25 21:53:37;  author: peter;  state: Exp;  lines: +415 -408
-    + Universal Handles support for StdIn/StdOut/StdErr
-    * Updated layout of sysamiga.pas
-  ----------------------------
-  revision 1.10
-  date: 1998/01/16 22:22:59;  author: michael;  state: Exp;  lines: +408 -544
-  * Synchronised with other system files (Peter Vreman)
-  ----------------------------
-  revision 1.9
-  date: 1998/01/07 00:04:55;  author: michael;  state: Exp;  lines: +84 -124
-  + Final adjustments  for a uniform file handling interface.
-     (From Peter Vreman)
-  ----------------------------
-  revision 1.8
-  date: 1998/01/05 16:51:26;  author: michael;  state: Exp;  lines: +18 -52
-  + Moved init of heap to heap.inc: INITheap() (From Peter Vreman)
-  ----------------------------
-  revision 1.7
-  date: 1997/12/19 11:47:08;  author: florian;  state: Exp;  lines: +2 -2
-  *** empty log message ***
-  ----------------------------
-  revision 1.6
-  date: 1997/12/01 12:42:52;  author: michael;  state: Exp;  lines: +12 -5
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.5
-  date: 1997/11/27 23:04:10;  author: florian;  state: Exp;  lines: +1 -13
-  Old log entries to log-file added
-  ----------------------------
-  revision 1.4
-  date: 1997/11/27 23:01:09;  author: florian;  state: Exp;  lines: +8 -3
-  This was a test
-  ----------------------------
-  revision 1.3
-  date: 1997/11/27 22:49:06;  author: florian;  state: Exp;  lines: +12 -9
-  - CPU.PP added
-  - some bugs in DOS fixed (espsecially for go32v1)
-  - the win32 system unit is now compilable
-  ----------------------------
-  revision 1.2
-  date: 1997/11/27 17:40:12;  author: florian;  state: Exp;  lines: +8 -1
-  Added log and id to syswin32.pp for test purposes
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 10:15:33;  author: florian;  state: Exp;
-  Win32 files added (they are untested)
-  =============================================================================
 }

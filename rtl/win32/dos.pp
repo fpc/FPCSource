@@ -638,7 +638,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-27 14:01:38  florian
+  Revision 1.5  1998-05-06 12:36:50  michael
+  + Removed log from before restored version.
+
+  Revision 1.4  1998/04/27 14:01:38  florian
     * was uncompilable
 
   Revision 1.3  1998/04/26 22:37:02  florian
@@ -649,10 +652,4 @@ end.
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
   * Restored version
-
-  Revision 1.2  1998/03/10 13:23:56  florian
-    * just a few things adapted to win32
-
-  Revision 1.1  1998/03/09 23:19:12  florian
-    + Initial revision, just copied from the DOS version
 }
