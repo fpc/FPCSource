@@ -631,18 +631,20 @@ object or class type definition.
 
 It is of the following form:
 \begin{verbatim}
-{$PACKRECORDS xx}
+{$PACKRECORDS n}
 \end{verbatim}
 
-Where \var{xxx} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}. 
-This means that the elements of a record will be aligned on 1,2, 4 or 
-16 byte boundaries. Thus, the size of a record will always be a multiple of
-the alignment size.
+Where \var{n} is one of 1,2,4,16 or \var{NORMAL} or \var{DEFAULT}. 
+This means that the elements of a record that have size greater than \var{n}
+will be aligned on \var{n} byte boundaries. Elements with size less than or
+equal to \var{n} will be aligned to a natural boundary, i.e. to a power of
+two that is equal to or larger than the element's size.
+
 The default alignment (which can be selected with \var{DEFAULT}) is 2, 
 contrary to Turbo Pascal, where it is 1.
 
-More information of this can be found in the reference guide, in the section
-about record types.
+More information on this and an exmple program can be found in the reference 
+guide, in the section about record types.
 
 {\em Remark:}
 Sets are always put in 32 bit or 32 bytes, this cannot be changed

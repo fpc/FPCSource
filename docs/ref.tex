@@ -955,20 +955,25 @@ The reason for this is that by default, elements of a record are aligned at
 2-byte boundaries, for performance reasons. This default behaviour can be
 changed with the \var{\{\$PackRecords n\}} switch. Possible values for
 \var{n} are 1, 2, 4, 16 or \var{Default}. 
+
 This switch tells the compiler to align elements of a record or object or 
-class on 1,2,4 or 16 byte boundaries. The keyword \var{Default} selects the
-default value for the platform you're working on (currently 2 on all
-platforms)
+class that have size larger than \var{n} on \var{n} byte boundaries.
+Elements that have size smaller or equal than \var{n} are aligned on 
+natural boundaries, i.e. to the first power of two that is larger than or
+equal to the size of the record element.
+
+The keyword \var{Default} selects the default value for the platform 
+you're working on (currently, this is 2 on all platforms)
 
 Take a look at the following program:
 \begin{listing}
 Program PackRecordsDemo;
 
-type {$PackRecords 2}
+type
+   {$PackRecords 2}
      Trec1 = Record
        A : byte;
        B : Word;
-       
      end;
      
      {$PackRecords 1}
@@ -977,19 +982,104 @@ type {$PackRecords 2}
        B : Word;
        end;
 
+   {$PackRecords 2}
+     Trec3 = Record
+       A,B : byte;
+     end;
+     
+    {$PackRecords 1}
+     Trec4 = Record
+       A,B : Byte;
+       end;
+
+   {$PackRecords 4}
+     Trec5 = Record
+       A : Byte;
+       B : Array[1..3] of byte;
+       C : byte;
+     end;
+     
+     {$PackRecords 8}
+     Trec6 = Record
+       A : Byte;
+       B : Array[1..3] of byte;
+       C : byte;
+       end;
+
+   {$PackRecords 4}
+     Trec7 = Record
+       A : Byte;
+       B : Array[1..7] of byte;
+       C : byte;
+     end;
+     
+     {$PackRecords 8}
+     Trec8 = Record
+       A : Byte;
+       B : Array[1..7] of byte;
+       C : byte;
+       end;
+
+Var rec1 : Trec1;
+    rec2 : Trec2;
+    rec3 : TRec3;
+    rec4 : TRec4;
+    rec5 : Trec5;
+    rec6 : TRec6;
+    rec7 : TRec7;
+    rec8 : TRec8;
+    
 begin
-  WriteLn ('Size Trec1 : ',SizeOf(Trec1));
-  WriteLn ('Size Trec2 : ',SizeOf(Trec2));
+  Write ('Size Trec1 : ',SizeOf(Trec1));
+  Writeln (' Offset B : ',Longint(@rec1.B)-Longint(@rec1));
+  Write ('Size Trec2 : ',SizeOf(Trec2));
+  Writeln (' Offset B : ',Longint(@rec2.B)-Longint(@rec2));
+  Write ('Size Trec3 : ',SizeOf(Trec3));
+  Writeln (' Offset B : ',Longint(@rec3.B)-Longint(@rec3));
+  Write ('Size Trec4 : ',SizeOf(Trec4));
+  Writeln (' Offset B : ',Longint(@rec4.B)-Longint(@rec4));
+  Write ('Size Trec5 : ',SizeOf(Trec5));
+  Writeln (' Offset B : ',Longint(@rec5.B)-Longint(@rec5),
+           ' Offset C : ',Longint(@rec5.C)-Longint(@rec5));
+  Write ('Size Trec6 : ',SizeOf(Trec6));
+  Writeln (' Offset B : ',Longint(@rec6.B)-Longint(@rec6),
+           ' Offset C : ',Longint(@rec6.C)-Longint(@rec6));
+  Write ('Size Trec7 : ',SizeOf(Trec7));
+  Writeln (' Offset B : ',Longint(@rec7.B)-Longint(@rec7),
+           ' Offset C : ',Longint(@rec7.C)-Longint(@rec7));
+  Write ('Size Trec8 : ',SizeOf(Trec8));
+  Writeln (' Offset B : ',Longint(@rec8.B)-Longint(@rec8),
+           ' Offset C : ',Longint(@rec8.C)-Longint(@rec8));
 end.
 \end{listing}
 The output of this program will be :
 \begin{listing}
-Size Trec1 : 4
-Size Trec2 : 3
+Size Trec1 : 4 Offset B : 2
+Size Trec2 : 3 Offset B : 1
+Size Trec3 : 2 Offset B : 1
+Size Trec4 : 2 Offset B : 1
+Size Trec5 : 8 Offset B : 4 Offset C : 7
+Size Trec6 : 8 Offset B : 4 Offset C : 7
+Size Trec7 : 12 Offset B : 4 Offset C : 11
+Size Trec8 : 16 Offset B : 8 Offset C : 15
 \end{listing}
-And this is as expected. In \var{Trec1}, each of the elements \var{A} and
-\var{B} takes 2 bytes of memory, and in  \var{Trec1}, \var{A} takes only 1
-byte of memory.
+And this is as expected. In \var{Trec1}, since \var{B} has size 2, it is 
+aligned on a 2 byte boundary, thus leaving an empty byte between \var{A} 
+and \var{B}, and making the total size 4. In \var{Trec2}, \var{B} is aligned 
+on a 1-byte boundary, right after \var{A}, hence, the total size of the 
+record is 3.
+
+For \var{Trec3}, the sizes of \var{A,B} are 1, and hence they are aligned on 1
+byte boundaries. The same is true for \var{Trec4}.
+
+For \var{Trec5}, since the size of B -- 3 -- is smaller than 4, \var{B} will 
+be on a  4-byte boundary, as this is the first power of two that is 
+larger than it's size. The same holds for \var{Trec6}.
+
+For \var{Trec7}, \var{B} is aligned on a 4 byte boundary, since it's size --
+7 -- is larger than 4. However, in \var{Trec8}, it is aligned on a 8-byte
+boundary, since 8 is the first power of two that is greater than 7, thus
+making the total size of the record 16.
 
 As from version 0.9.3, \fpc supports also the 'packed record', this is a 
 record where all the elements are byte-aligned.
