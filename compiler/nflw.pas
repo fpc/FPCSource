@@ -30,6 +30,9 @@ interface
     uses
        node,cpubase,
        aasmbase,aasmtai,aasmcpu,
+    {$ifdef var_notification}
+       symnot,
+    {$endif}
        symppu,symtype,symbase,symdef,symsym;
 
     type
@@ -66,7 +69,13 @@ interface
        tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
+       {$ifdef var_notification}
+          loopvar_notid:cardinal;
+       {$endif}
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
+       {$ifdef var_notification}
+          procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
+       {$endif}
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -622,6 +631,13 @@ implementation
          include(flags,nf_testatbegin);
       end;
 
+{$ifdef var_notification}
+    procedure Tfornode.loop_var_access(not_type:Tnotification_flag;
+                                       symbol:Tsym);
+
+    begin
+    end;
+{$endif}
 
     function tfornode.det_resulttype:tnode;
       var
@@ -656,24 +672,24 @@ implementation
          set_varstate(left,false);
 
          if assigned(t1) then
-          begin
-            resulttypepass(t1);
-            if codegenerror then
-             exit;
-          end;
+           begin
+             resulttypepass(t1);
+             if codegenerror then
+               exit;
+           end;
 
          { process count var }
          resulttypepass(t2);
          set_varstate(t2,true);
          if codegenerror then
-          exit;
+           exit;
 
          { Check count var, record fields are also allowed in tp7 }
          hp:=t2;
          while (hp.nodetype=subscriptn) or
                ((hp.nodetype=vecn) and
                 is_constintnode(tvecnode(hp).right)) do
-          hp:=tunarynode(hp).left;
+           hp:=tunarynode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
          if (hp.nodetype=funcretn) or
@@ -688,11 +704,16 @@ implementation
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
          else
-          CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
+           CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
 
          resulttypepass(right);
          set_varstate(right,true);
          inserttypeconv(right,t2.resulttype);
+      {$ifdef var_notification}
+         if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
+            loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
+             register_notification([vn_onread,vn_onwrite],@loop_var_access);
+      {$endif}
       end;
 
 
@@ -1365,7 +1386,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2002-08-22 15:15:20  daniel
+  Revision 1.49  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.48  2002/08/22 15:15:20  daniel
    * Fixed the detection wether the first check of a for loop can be skipped
 
   Revision 1.47  2002/08/19 19:36:43  peter

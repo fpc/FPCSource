@@ -77,14 +77,23 @@ interface
        tdoubleaddrnodeclass = class of tdoubleaddrnode;
 
        tderefnode = class(tunarynode)
+       {$ifdef var_notification}
+          write_access:boolean;
+       {$endif}
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
        end;
        tderefnodeclass = class of tderefnode;
 
        tsubscriptnode = class(tunarynode)
           vs : tvarsym;
+       {$ifdef var_notification}
+          write_access:boolean;
+       {$endif}
           constructor create(varsym : tsym;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -93,13 +102,20 @@ interface
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
           function det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
+          write_access:boolean;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
        end;
        tvecnodeclass = class of tvecnode;
 
@@ -569,6 +585,14 @@ implementation
           CGMessage(cg_e_invalid_qualifier);
       end;
 
+{$ifdef var_notification}
+    procedure Tderefnode.mark_write;
+
+    begin
+      write_access:=true;
+    end;
+{$endif}
+
     function tderefnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -638,6 +662,13 @@ implementation
         resulttype:=vs.vartype;
       end;
 
+{$ifdef var_notification}
+    procedure Tsubscriptnode.mark_write;
+
+    begin
+      write_access:=true;
+    end;
+{$endif}
 
     function tsubscriptnode.pass_1 : tnode;
       begin
@@ -752,6 +783,13 @@ implementation
              CGMessage(type_e_array_required);
       end;
 
+{$ifdef var_notification}
+    procedure Tvecnode.mark_write;
+
+    begin
+      write_access:=true;
+    end;
+{$endif}
 
     function tvecnode.pass_1 : tnode;
 {$ifdef consteval}
@@ -1020,7 +1058,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2002-08-19 19:36:43  peter
+  Revision 1.37  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.36  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

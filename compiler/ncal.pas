@@ -894,7 +894,6 @@ implementation
                     else if (treeparas.left.nodetype=ordconstn) and is_integer(to_def) then
                         begin
                             inc(equal_count);
-                            {To do: What to do with overflow??}
                             ordspace:=ordspace+(double(Torddef(from_def).low)-Torddef(to_def).low)+
                                          (double(Torddef(to_def).high)-Torddef(from_def).high);
                         end
@@ -924,13 +923,16 @@ implementation
                 end;
         end;
 
-    var candidates_left,candidate_count,c1,c2:byte;
+    type  Tcandidate_array=array[1..$ffff] of Tprocdef;
+          Pcandidate_array=^Tcandidate_array;
+
+    var candidate_alloc,candidates_left,candidate_count:cardinal;
+        c1,c2,delete_start:cardinal;
         cl2_count1,cl1_count1,equal_count1,exact_count1:byte;
         ordspace1:double;
         cl2_count2,cl1_count2,equal_count2,exact_count2:byte;
         ordspace2:double;
-        i,n:byte;
-        cont:boolean;
+        i,n:cardinal;
         pt:Tcallparanode;
         def:Tprocdef;
         hcvt:Tconverttype;
@@ -938,12 +940,11 @@ implementation
         hpt:Tnode;
         srprocsym:Tprocsym;
         srsymtable:Tsymtable;
-        candidates:set of 0..255;
-        candidates_exactmatch:set of 0..255;
-        delete_mask:set of 0..255;
-        candidate_defs:array[0..255] of Tprocdef;
+        candidate_defs:Pcandidate_array;
 
     begin
+        if fileinfo.line=398 then
+          i:=0;
         choose_definition_to_call:=nil;
         errorexit:=true;
 
@@ -955,25 +956,32 @@ implementation
          (symtableprocentry.owner.symtabletype=objectsymtable) then
             search_class_overloads(symtableprocentry);
 
-        candidates:=[];
-        candidates_exactmatch:=[];
-
         {Collect all procedures which have the same # of parameters }
+        candidates_left:=0;
         candidate_count:=0;
+        candidate_alloc:=32;
+        getmem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
         srprocsym:=symtableprocentry;
         srsymtable:=symtableprocentry.owner;
         repeat
             for i:=1 to srprocsym.procdef_count do
                 begin
                     def:=srprocsym.procdef(i);
-                    candidate_defs[i-1]:=def;
-                    { only when the # of parameter are supported by the
-                      procedure }
+                    { only when the # of parameters are supported by the procedure }
                     if (paralength>=def.minparacount) and
-                     ((po_varargs in def.procoptions) or { varargs }
-                      (paralength<=def.maxparacount)) then
-                        include(candidates,i-1);
+                       ((po_varargs in def.procoptions) or (paralength<=def.maxparacount)) then
+                      begin
+                        candidate_defs^[i]:=def;
+                        inc(candidates_left);
+                      end
+                    else
+                      candidate_defs^[i]:=nil;
                     inc(candidate_count);
+                    if candidate_alloc=candidate_count then
+                      begin
+                        candidate_alloc:=candidate_alloc*2;
+                        reallocmem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
+                      end;
                 end;
             if po_overload in srprocsym.first_procdef.procoptions then
                 begin
@@ -984,15 +992,16 @@ implementation
                         if assigned(srsymtable) then
                             srprocsym:=Tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
                     until (srsymtable=nil) or (srprocsym<>nil);
-                    cont:=assigned(srprocsym);
+                    if not assigned(srprocsym) then
+                      break;
                 end
             else
-                cont:=false;
-        until not cont;
+                break;
+        until false;
 
         { no procedures found? then there is something wrong
           with the parameter size }
-        if candidates=[] then
+        if candidates_left=0 then
             begin
                 { in tp mode we can try to convert to procvar if
                   there are no parameters specified }
@@ -1010,7 +1019,7 @@ implementation
                     begin
                         if assigned(left) then
                             aktfilepos:=left.fileinfo;
-                        CGMessage(parser_e_wrong_parameter_size);
+                        cgmessage(parser_e_wrong_parameter_size);
                         symtableprocentry.write_parameter_lists(nil);
                     end;
                 exit;
@@ -1018,9 +1027,9 @@ implementation
         {Walk through all candidates and remove the ones
          that have incompatible parameters.}
         for i:=1 to candidate_count do
-            if (i-1) in candidates then
+            if assigned(candidate_defs^[i]) then
                 begin
-                    def:=candidate_defs[i-1];
+                    def:=candidate_defs^[i];
                     {Walk through all parameters.}
                     pdc:=Tparaitem(def.para.first);
                     pt:=Tcallparanode(left);
@@ -1030,8 +1039,12 @@ implementation
                                 if is_var_para_incompatible(pt.resulttype.def,pdc.paratype.def) and
                                  not(is_shortstring(pt.resulttype.def) and is_shortstring(pdc.paratype.def)) and
                                  (pdc.paratype.def.deftype<>formaldef) then
-                                    {Not convertable, def is no longer a candidate.}
-                                    exclude(candidates,i-1)
+                                    begin
+                                      {Not convertable, def is no longer a candidate.}
+                                      candidate_defs^[i]:=nil;
+                                      dec(candidates_left);
+                                      break;
+                                    end
                                 else
                                     exclude(pt.callparaflags,cpf_nomatchfound)
                             else
@@ -1039,19 +1052,18 @@ implementation
                                  ((isconvertable(pt.resulttype.def,pdc.paratype.def,
                                                  hcvt,pt.left.nodetype,false)=0) and
                                   not is_equal(pt,pdc.paratype.def)) then
-                                    {Not convertable, def is no longer a candidate.}
-                                    exclude(candidates,i-1)
+                                    begin
+                                      {Not convertable, def is no longer a candidate.}
+                                      candidate_defs^[i]:=nil;
+                                      dec(candidates_left);
+                                      break;
+                                    end
                                 else
                                     exclude(pt.callparaflags,cpf_nomatchfound);
                             pdc:=Tparaitem(pdc.next);
                             pt:=Tcallparanode(pt.right);
                         end;
                 end;
-        {Count the candidates that are left.}
-        candidates_left:=0;
-        for i:=1 to candidate_count do
-            if (i-1) in candidates then
-                inc(candidates_left);
         {Are there any candidates left?}
         if candidates_left=0 then
             begin
@@ -1100,33 +1112,31 @@ implementation
                 {Find the first candidate.}
                 c1:=1;
                 while c1<=candidate_count do
-                    if (c1-1) in candidates then
+                    if assigned(candidate_defs^[c1]) then
                         break
                     else
                         inc(c1);
-                delete_mask:=[c1-1];
+                delete_start:=c1;
                 {Get information about candidate c1.}
                 get_candidate_information(cl2_count1,cl1_count1,equal_count1,
                                           exact_count1,ordspace1,Tcallparanode(left),
-                                          Tparaitem(candidate_defs[c1-1].para.first));
+                                          Tparaitem(candidate_defs^[c1].para.first));
                 {Find the other candidates and eliminate the lesser ones.}
                 c2:=c1+1;
                 while c2<=candidate_count do
-                    if (c2-1) in candidates then
+                    if assigned(candidate_defs^[c2]) then
                         begin
                             {Candidate found, get information on it.}
                             get_candidate_information(cl2_count2,cl1_count2,equal_count2,
                                                       exact_count2,ordspace2,Tcallparanode(left),
-                                                      Tparaitem(candidate_defs[c2-1].para.first));
+                                                      Tparaitem(candidate_defs^[c2].para.first));
                             {Is c1 the better candidate?}
                             if (cl2_count1<cl2_count2) or
                              ((cl2_count1=cl2_count2) and (exact_count1>exact_count2)) or
                              ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1>equal_count2)) or
                              ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1=equal_count2) and (ordspace1<ordspace2)) then
-                                begin
-                                    {C1 is better, drop c2.}
-                                    exclude(candidates,c2-1);
-                                end
+                                {C1 is better, drop c2.}
+                                candidate_defs^[c2]:=nil
                             {Is c2 the better candidate?}
                             else if (cl2_count2<cl2_count1) or
                              ((cl2_count2=cl2_count1) and (exact_count2>exact_count1)) or
@@ -1135,17 +1145,16 @@ implementation
                                 begin
                                     {C2 is better, drop all previous
                                      candidates.}
-                                     include(delete_mask,c1-1);
-                                     candidates:=candidates-delete_mask;
-                                     c1:=c2;
-                                     cl2_count1:=cl2_count2;
-                                     cl1_count1:=cl1_count2;
-                                     equal_count1:=equal_count2;
-                                     exact_count1:=exact_count2;
-                                     ordspace1:=ordspace2;
-                                end
-                            else
-                                include(delete_mask,c2-1);
+                                    for i:=delete_start to c2-1 do
+                                      candidate_defs^[i]:=nil;
+                                    delete_start:=c2;
+                                    c1:=c2;
+                                    cl2_count1:=cl2_count2;
+                                    cl1_count1:=cl1_count2;
+                                    equal_count1:=equal_count2;
+                                    exact_count1:=exact_count2;
+                                    ordspace1:=ordspace2;
+                                end;
                             {else the candidates have no advantage over each other,
                              do nothing}
                             inc(c2);
@@ -1156,20 +1165,18 @@ implementation
         {Count the candidates that are left.}
         candidates_left:=0;
         for i:=1 to candidate_count do
-            if (i-1) in candidates then
+            if assigned(candidate_defs^[i]) then
+              begin
                 inc(candidates_left);
+                procdefinition:=candidate_defs^[i];
+              end;
         if candidates_left>1 then
             begin
                 cgmessage(cg_e_cant_choose_overload_function);
                 symtableprocentry.write_parameter_lists(nil);
                 exit;
             end;
-        for i:=1 to candidate_count do
-            if (i-1) in candidates then
-                begin
-                    procdefinition:=candidate_defs[i-1];
-                    break;
-                end;
+        freemem(candidate_defs,candidate_alloc*sizeof(Tprocdef));
         if make_ref then
             begin
                 Tprocdef(procdefinition).lastref:=Tref.create(Tprocdef(procdefinition).lastref,@fileinfo);
@@ -2587,7 +2594,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2002-08-23 16:13:16  peter
+  Revision 1.90  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.89  2002/08/23 16:13:16  peter
     * also firstpass funcretrefnode if available. This was breaking the
       asnode compilerproc code
 

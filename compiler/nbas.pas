@@ -117,11 +117,17 @@ interface
 
         { a node which is a reference to a certain temp }
         ttemprefnode = class(tnode)
+        {$ifdef var_notification}
+          writeaccess:boolean;
+        {$endif}
           constructor create(const temp: ttempcreatenode); virtual;
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           function getcopy: tnode; override;
           function pass_1 : tnode; override;
           function det_resulttype : tnode; override;
+        {$ifdef var_notification}
+          procedure mark_write;override;
+        {$endif}
           function docompare(p: tnode): boolean; override;
          protected
           tempinfo: ptempinfo;
@@ -670,6 +676,15 @@ implementation
           (ttemprefnode(p).tempinfo = tempinfo);
       end;
 
+{$ifdef var_notification}
+    procedure Ttemprefnode.mark_write;
+
+    begin
+      writeaccess:=true;
+    end;
+{$endif}
+
+
 {*****************************************************************************
                              TEMPDELETENODE
 *****************************************************************************}
@@ -746,7 +761,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-08-18 20:06:23  peter
+  Revision 1.35  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.34  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

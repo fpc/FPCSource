@@ -43,6 +43,9 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
           function docompare(p: tnode) : boolean; override;
        private
           function resulttype_cord_to_pointer : tnode;
@@ -1319,6 +1322,14 @@ implementation
         result:=resulttype_call_helper(convtype);
       end;
 
+    {$ifdef var_notification}
+      procedure Ttypeconvnode.mark_write;
+
+      begin
+        left.mark_write;
+      end;
+    {$endif}
+
 
     function ttypeconvnode.first_cord_to_pointer : tnode;
 
@@ -2015,7 +2026,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2002-08-23 16:14:49  peter
+  Revision 1.74  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.73  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

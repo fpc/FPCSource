@@ -38,6 +38,7 @@ interface
           symtableentry : tsym;
           symtable : tsymtable;
           procdef : tprocdef;
+          write_access : boolean;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -47,6 +48,9 @@ interface
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
           function  det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
           function  docompare(p: tnode): boolean; override;
        {$ifdef extdebug}
           procedure _dowrite;override;
@@ -73,6 +77,7 @@ interface
        tassignmentnodeclass = class of tassignmentnode;
 
        tfuncretnode = class(tnode)
+          write_access : boolean;
           funcretsym : tfuncretsym;
           constructor create(v:tsym);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -81,6 +86,9 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+       {$ifdef var_notification}
+          procedure mark_write;override;
+       {$endif}
           function docompare(p: tnode): boolean; override;
        end;
        tfuncretnodeclass = class of tfuncretnode;
@@ -351,6 +359,14 @@ implementation
          end;
       end;
 
+{$ifdef var_notification}
+    procedure Tloadnode.mark_write;
+
+    begin
+      write_access:=true;
+    end;
+{$endif}
+
 
     function tloadnode.pass_1 : tnode;
       begin
@@ -465,6 +481,9 @@ implementation
 
       begin
          inherited create(assignn,l,r);
+      {$ifdef var_notification}
+         l.mark_write;
+      {$endif}
          assigntype:=at_normal;
       end;
 
@@ -621,7 +640,6 @@ implementation
           test_local_to_procvar(tprocvardef(right.resulttype.def),left.resulttype.def);
       end;
 
-
     function tassignmentnode.pass_1 : tnode;
 
 
@@ -717,6 +735,13 @@ implementation
         resulttype:=funcretsym.returntype;
       end;
 
+{$ifdef var_notification}
+    procedure Tfuncretnode.mark_write;
+
+    begin
+      write_access:=true;
+    end;
+{$endif}
 
     function tfuncretnode.pass_1 : tnode;
       begin
@@ -1120,7 +1145,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-08-25 19:25:19  peter
+  Revision 1.55  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.54  2002/08/25 19:25:19  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

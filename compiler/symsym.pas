@@ -34,6 +34,9 @@ interface
        symconst,symbase,symtype,symdef,
        { ppu }
        ppu,symppu,
+{$ifdef var_notification}
+       cclasses,symnot,
+{$endif}
        { aasm }
        aasmbase,aasmtai,cpubase,
        globals
@@ -170,6 +173,9 @@ interface
           reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
+{$ifdef var_notification}
+          notifications : Tlinkedlist;
+{$endif}
           constructor create(const n : string;const tt : ttype);
           constructor create_dll(const n : string;const tt : ttype);
           constructor create_C(const n,mangled : string;const tt : ttype);
@@ -182,6 +188,10 @@ interface
           function  getsize : longint;
           function  getvaluesize : longint;
           function  getpushsize(is_cdecl:boolean): longint;
+{$ifdef var_notification}
+          function register_notification(flags:Tnotification_flags;
+                                         callback:Tnotification_callback):cardinal;
+{$endif}
 {$ifdef GDB}
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -1536,7 +1546,11 @@ implementation
 
     destructor tvarsym.destroy;
       begin
-         inherited destroy;
+      {$ifdef var_notification}
+        if assigned(notifications) then
+          notifications.destroy;
+      {$endif}
+        inherited destroy;
       end;
 
 
@@ -1620,6 +1634,20 @@ implementation
            end;
       end;
 
+{$ifdef var_notification}
+    function Tvarsym.register_notification(flags:Tnotification_flags;callback:
+                                           Tnotification_callback):cardinal;
+
+    var n:Tnotification;
+
+    begin
+      if not assigned(notifications) then
+        notifications:=Tlinkedlist.create;
+      n:=Tnotification.create(flags,callback);
+      register_notification:=n.id;
+      notifications.concat(n);
+    end;
+{$endif}
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
@@ -2415,7 +2443,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-08-25 19:25:21  peter
+  Revision 1.58  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.57  2002/08/25 19:25:21  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

@@ -334,9 +334,14 @@ interface
           { dermines the number of necessary temp. locations to evaluate
             the node }
 {$ifdef state_tracking}
-      { Does optimizations by keeping track of the variable states
-        in a procedure }
-      function track_state_pass(exec_known:boolean):boolean;virtual;
+          { Does optimizations by keeping track of the variable states
+            in a procedure }
+          function track_state_pass(exec_known:boolean):boolean;virtual;
+{$endif}
+{$ifdef var_notification}
+          { For a t1:=t2 tree, mark the part of the tree t1 that gets
+            written to (normally the loadnode) as write access. }
+          procedure mark_write;virtual;
 {$endif}
           procedure det_temp;virtual;abstract;
 
@@ -713,6 +718,16 @@ implementation
          fileinfo:=filepos;
       end;
 
+{$ifdef var_notification}
+          { For a t1:=t2 tree, mark the part of the tree t1 that gets
+            written to (normally the loadnode) as write access. }
+          procedure Tnode.mark_write;
+          begin
+             writenode(self);
+             runerror(211);
+          end;
+{$endif}
+
 
 {****************************************************************************
                                  TUNARYNODE
@@ -973,7 +988,16 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-08-22 11:21:45  florian
+  Revision 1.40  2002-09-01 08:01:16  daniel
+   * Removed sets from Tcallnode.det_resulttype
+   + Added read/write notifications of variables. These will be usefull
+     for providing information for several optimizations. For example
+     the value of the loop variable of a for loop does matter is the
+     variable is read after the for loop, but if it's no longer used
+     or written, it doesn't matter and this can be used to optimize
+     the loop code generation.
+
+  Revision 1.39  2002/08/22 11:21:45  florian
     + register32 is now written by tnode.dowrite
     * fixed write of value of tconstnode
 
