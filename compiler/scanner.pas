@@ -334,8 +334,8 @@ implementation
           mac : tmacro;
           len : integer;
         begin
-          hs := current_scanner.preproc_pattern;
-          mac:=tmacro(current_scanner.macros.search(hs));
+          readpreproc := current_scanner.preproc_pattern;
+          mac:=tmacro(current_scanner.macros.search(readpreproc));
           if assigned(mac) then
           begin
             if mac.defined and assigned(mac.buftext) then
@@ -349,9 +349,9 @@ implementation
                 len:=mac.buflen;
               hs[0]:=char(len);
               move(mac.buftext^,hs[1],len);
+              readpreproc:=upcase(hs);
             end;
           end;
-          readpreproc := hs;
         end;
 
         function read_factor : string;
@@ -625,7 +625,7 @@ implementation
                            #26 :
                              current_scanner.end_of_file;
                          end;
-                         macrobuffer^[macropos]:=upcase(c);
+                         macrobuffer^[macropos]:=c;
                          inc(macropos);
                          if macropos>maxmacrolen then
                           Message(scan_f_macro_buffer_overflow);
@@ -2916,7 +2916,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.68  2004-02-11 14:13:10  daniel
+  Revision 1.69  2004-02-11 14:46:59  daniel
+    * Better fix for case sensitive macro handling
+
+  Revision 1.68  2004/02/11 14:13:10  daniel
     * Compiler was partially case sensitive in macro expansion
     * Multiple and/or preprocessor statements caused problems
 
