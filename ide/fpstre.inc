@@ -306,7 +306,7 @@ const
       dialog_modifynewbreakpoint = 'Modify/New Breakpoint';
       label_breakpoint_name = '~N~ame';
       label_breakpoint_line = '~L~ine';
-      label_breakpoint_conditions = 'Conditions';
+      label_breakpoint_conditions = '~C~onditions';
       label_breakpoint_ignorecount = '~I~gnore count';
       label_breakpoint_type = '~T~ype';
 
@@ -1058,7 +1058,10 @@ const
 
 {
   $Log$
-  Revision 1.23  2004-11-20 14:21:19  florian
+  Revision 1.24  2004-11-21 20:53:26  peter
+    * fixed breakpoint dialog
+
+  Revision 1.23  2004/11/20 14:21:19  florian
     * implemented reload menu item
     * increased file history to 9 files
 

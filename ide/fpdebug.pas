@@ -1949,6 +1949,10 @@ begin
       begin
         DontClear:=false;
         case Event.KeyCode of
+	  kbEnd :
+	    FocusItem(List^.Count-1);
+	  kbHome :
+	    FocusItem(0);
           kbEnter :
             Message(@Self,evCommand,cmMsgGotoSource,nil);
           kbIns :
@@ -2420,12 +2424,15 @@ begin
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.B.X-3;
   New(NameIL, Init(R, 255)); Insert(NameIL);
   R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
-  Insert(New(PHistory, Init(R2, NameIL, hidWatchDialog)));
+  Insert(New(PHistory, Init(R2, NameIL, hidBreakPointDialogName)));
   R.Copy(R3); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
   R2.Copy(R); R2.Move(-1,-1);
   Insert(New(PLabel, Init(R2, label_breakpoint_name, NameIL)));
   R.Move(0,3);
+  R.B.X:=R.B.X-3;
   New(ConditionsIL, Init(R, 255)); Insert(ConditionsIL);
+  R2.Copy(R); R2.A.X:=R2.B.X; R2.B.X:=R2.A.X+3;
+  Insert(New(PHistory, Init(R2, ConditionsIL, hidBreakPointDialogCond)));
   R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_breakpoint_conditions, ConditionsIL)));
   R.Move(0,3); R.B.X:=R.A.X+36;
   New(LineIL, Init(R, 128)); Insert(LineIL);
@@ -2454,12 +2461,12 @@ begin
 end;
 
 function TBreakpointItemDialog.Execute: Word;
-var R: word;
+var R: sw_word;
     S1: string;
     err: word;
     L: longint;
 begin
-  R:=longint(Breakpoint^.typ);
+  R:=sw_word(Breakpoint^.typ);
   TypeRB^.SetData(R);
 
   If Breakpoint^.typ=bt_file_line then
@@ -3636,7 +3643,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2004-11-11 15:20:52  florian
+  Revision 1.56  2004-11-21 20:53:26  peter
+    * fixed breakpoint dialog
+
+  Revision 1.55  2004/11/11 15:20:52  florian
     * applied Peter's patch from yesterday
 
   Revision 1.54  2004/11/08 21:55:09  peter

@@ -141,8 +141,9 @@ const
      hidConditionalDefines= 205;
      hidCompilerArgs      = 206;
      hidWatchDialog       = 207;
-     hidBreakpointDialog  = 208;
+     hidBreakpointDialogName = 208;
      hidRunDir            = 209;
+     hidBreakpointDialogCond = 210;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -471,7 +472,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.16  2004-11-20 14:21:19  florian
+  Revision 1.17  2004-11-21 20:53:26  peter
+    * fixed breakpoint dialog
+
+  Revision 1.16  2004/11/20 14:21:19  florian
     * implemented reload menu item
     * increased file history to 9 files
 
