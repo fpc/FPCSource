@@ -1526,55 +1526,6 @@ Begin
                       End
                     Else If DoSubAddOpt(p) Then Continue
                 End;
-              A_TEST, A_OR:
-                {removes the line marked with (x) from the sequence
-                 And/or/xor/add/sub/... $x, %y
-                 test/or %y, %y   (x)
-                 j(n)z _Label
-                    as the first instruction already adjusts the ZF}
-                 Begin
-                   If OpsEqual(Paicpu(p)^.oper[0],Paicpu(p)^.oper[1]) Then
-                    If GetLastInstruction(p, hp1) And
-                      (pai(hp1)^.typ = ait_instruction) Then
-                     Case Paicpu(hp1)^.opcode Of
-                       A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
-                         Begin
-                           If OpsEqual(Paicpu(hp1)^.oper[1],Paicpu(p)^.oper[0]) Then
-                             Begin
-                               hp1 := pai(p^.next);
-                               asml^.remove(p);
-                               dispose(p, done);
-                               p := pai(hp1);
-                               continue
-                             End;
-                         End;
-                       A_DEC, A_INC, A_NEG:
-                         Begin
-                           If OpsEqual(Paicpu(hp1)^.oper[0],Paicpu(p)^.oper[0]) Then
-                             Begin
-                               Case Paicpu(hp1)^.opcode Of
-                                 A_DEC, A_INC:
- {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
-                                   Begin
-                                     Case Paicpu(hp1)^.opcode Of
-                                       A_DEC: Paicpu(hp1)^.opcode := A_SUB;
-                                       A_INC: Paicpu(hp1)^.opcode := A_ADD;
-                                     End;
-                                     Paicpu(hp1)^.Loadoper(1,Paicpu(hp1)^.oper[0]);
-                                     Paicpu(hp1)^.LoadConst(0,1);
-                                     Paicpu(hp1)^.ops:=2;
-                                   End
-                                 End;
-                               hp1 := pai(p^.next);
-                               asml^.remove(p);
-                               dispose(p, done);
-                               p := pai(hp1);
-                               continue
-                             End;
-                         End
-                     End
-                    Else
-                 End;
                A_XOR:
                  If (Paicpu(p)^.oper[0].typ = top_reg) And
                     (Paicpu(p)^.oper[1].typ = top_reg) And
@@ -1921,6 +1872,54 @@ Begin
                               InsertLLItem(AsmL,p^.previous, p, hp1);
                             End;
                 End;
+              A_TEST, A_OR:
+                {removes the line marked with (x) from the sequence
+                 And/or/xor/add/sub/... $x, %y
+                 test/or %y, %y   (x)
+                 j(n)z _Label
+                    as the first instruction already adjusts the ZF}
+                 Begin
+                   If OpsEqual(Paicpu(p)^.oper[0],Paicpu(p)^.oper[1]) Then
+                    If GetLastInstruction(p, hp1) And
+                      (pai(hp1)^.typ = ait_instruction) Then
+                     Case Paicpu(hp1)^.opcode Of
+                       A_ADD, A_SUB, A_OR, A_XOR, A_AND, A_SHL, A_SHR:
+                         Begin
+                           If OpsEqual(Paicpu(hp1)^.oper[1],Paicpu(p)^.oper[0]) Then
+                             Begin
+                               hp1 := pai(p^.next);
+                               asml^.remove(p);
+                               dispose(p, done);
+                               p := pai(hp1);
+                               continue
+                             End;
+                         End;
+                       A_DEC, A_INC, A_NEG:
+                         Begin
+                           If OpsEqual(Paicpu(hp1)^.oper[0],Paicpu(p)^.oper[0]) Then
+                             Begin
+                               Case Paicpu(hp1)^.opcode Of
+                                 A_DEC, A_INC:
+ {replace inc/dec with add/sub 1, because inc/dec doesn't set the carry flag}
+                                   Begin
+                                     Case Paicpu(hp1)^.opcode Of
+                                       A_DEC: Paicpu(hp1)^.opcode := A_SUB;
+                                       A_INC: Paicpu(hp1)^.opcode := A_ADD;
+                                     End;
+                                     Paicpu(hp1)^.Loadoper(1,Paicpu(hp1)^.oper[0]);
+                                     Paicpu(hp1)^.LoadConst(0,1);
+                                     Paicpu(hp1)^.ops:=2;
+                                   End
+                                 End;
+                               hp1 := pai(p^.next);
+                               asml^.remove(p);
+                               dispose(p, done);
+                               p := pai(hp1);
+                               continue
+                             End;
+                         End
+                     End
+                 End;
             End;
           End;
       End;
@@ -1932,7 +1931,12 @@ End.
 
 {
  $Log$
- Revision 1.94  2000-06-14 06:05:06  jonas
+ Revision 1.95  2000-07-06 12:30:31  jonas
+   * moved "<flag setting operation>; test/or reg,reg" to "<flag setting
+     operation>" optimization to pass 2 because it caused problems
+     with -dnewoptimizations
+
+ Revision 1.94  2000/06/14 06:05:06  jonas
    + support for inc/dec/imul in foldarithops
 
  Revision 1.93  2000/05/23 10:58:46  jonas
