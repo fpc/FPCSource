@@ -543,8 +543,9 @@ implementation
 
                                     { a class destructor needs a flag }
                                     if pobjectdef(p^.methodpointer^.resulttype)^.is_class and
-                                       assigned(aktprocsym) and
-                                       (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+                                       {assigned(aktprocsym) and
+                                       (aktprocsym^.definition^.proctypeoption=potype_destructor)}
+                                       (p^.procdefinition^.proctypeoption=potype_destructor) then
                                       begin
                                         push_int(0);
                                         emit_reg(A_PUSH,S_L,R_ESI);
@@ -552,8 +553,9 @@ implementation
 
                                     if not(is_con_or_destructor and
                                            pobjectdef(p^.methodpointer^.resulttype)^.is_class and
-                                           assigned(aktprocsym) and
-                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])
+                                           {assigned(aktprocsym) and
+                                          (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])}
+                                           (p^.procdefinition^.proctypeoption in [potype_constructor,potype_destructor])
                                           ) then
                                       emit_reg(A_PUSH,S_L,R_ESI);
                                     { if an inherited con- or destructor should be  }
@@ -1427,7 +1429,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2000-05-09 14:15:03  pierre
+  Revision 1.133  2000-05-15 19:30:27  peter
+    * fixed calling of inherited methods from destructors
+
+  Revision 1.132  2000/05/09 14:15:03  pierre
    * also allow interrupt procvars
 
   Revision 1.131  2000/05/09 10:54:03  pierre
