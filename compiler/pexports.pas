@@ -148,10 +148,10 @@ implementation
                         if (DefString<>'') and UseDeffileForExport then
                          DefFile.AddExport(DefString);
                         { Default to generate a name entry with the provided name }
-                        if not assigned(hp^.name) then
+                        if not assigned(hp.name) then
                          begin
-                           hp^.name:=stringdup(orgs);
-                           hp^.options:=hp^.options or eo_name;
+                           hp.name:=stringdup(orgs);
+                           hp.options:=hp.options or eo_name;
                          end;
                         if hp.sym^.typ=procsym then
                           exportlib.exportprocedure(hp)
@@ -175,7 +175,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2000-12-30 22:53:25  peter
+  Revision 1.11  2001-01-03 13:12:50  jonas
+    * fixed copy/past bugs
+
+  Revision 1.10  2000/12/30 22:53:25  peter
     * export with the case provided in the exports section
 
   Revision 1.9  2000/12/25 00:07:27  peter
