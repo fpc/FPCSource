@@ -451,6 +451,8 @@ begin
   If Result then
     begin
     Result:=GetHostByName(S,H);
+    if not Result then
+      Result:=ResolveHostByName(S,H);
     If Result then
       SaveHostEntry(@H);
     end;
@@ -463,7 +465,7 @@ Var
 
 begin
   ClearData;
-  Result:=GetHostByAddr(Address,H);
+  Result:=ResolveHostByAddr(Address,H);
   If Result then
     SaveHostEntry(@H);
 end;
@@ -495,7 +497,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FHostEntry:=GetHostByName(pchar(FName));
+    FHostEntry:=ResolveHostByName(pchar(FName));
     Result:=FHostEntry<>Nil;
     If Result then
       SaveHostEntry(FHostEntry)
@@ -538,7 +540,7 @@ Var
 
 begin
   ClearData;
-  FHostEntry:=GetHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
+  FHostEntry:=ResolveHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
   Result:=FHostEntry<>Nil;
   If Result then
     SaveHostEntry(FHostEntry)
@@ -950,7 +952,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.6  2003-12-11 09:23:50  marco
+   Revision 1.7  2004-01-31 19:02:50  sg
+   * Tries to first resolve names locally before contacting the DNS server
+
+   Revision 1.6  2003/12/11 09:23:50  marco
     * patch from peter
 
    Revision 1.5  2003/12/10 15:50:50  marco
