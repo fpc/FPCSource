@@ -121,7 +121,13 @@ implementation
                    end;
                  consume(_RECKKLAMMER);
                  if tordconstnode(p).value>255 then
-                   t.setdef(tstringdef.createlong(tordconstnode(p).value))
+                  begin
+                    { longstring is currently unsupported (CEC)! }
+{                   t.setdef(tstringdef.createlong(tordconstnode(p).value))}
+                     Message(parser_e_invalid_string_size);
+                     tordconstnode(p).value:=255;
+                     t.setdef(tstringdef.createshort(tordconstnode(p).value));
+                  end
                  else
                    if tordconstnode(p).value<>255 then
                      t.setdef(tstringdef.createshort(tordconstnode(p).value));
@@ -2229,7 +2235,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2002-06-12 15:46:14  jonas
+  Revision 1.70  2002-07-06 20:18:02  carl
+  * longstring declaration now gives parser error since its not supported!
+
+  Revision 1.69  2002/06/12 15:46:14  jonas
     * fixed web bug 1995
 
   Revision 1.68  2002/05/18 13:34:12  peter
