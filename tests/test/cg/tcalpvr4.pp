@@ -14,7 +14,7 @@
 { DEFINES:                                                       }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() , it         }
-{          verifies procedural variables for oldfpcall              }
+{          verifies procedural variables for oldfpccall              }
 {          calling conventions.                                  }
 {****************************************************************}
 program tcalpvr3;
@@ -529,7 +529,10 @@ end.
 
 {
    $Log$
-   Revision 1.7  2003-10-05 14:39:31  florian
+   Revision 1.8  2003-10-05 21:19:10  peter
+     * oldfpccall typo
+
+   Revision 1.7  2003/10/05 14:39:31  florian
      * fixed oldfpcall directives; was oldfpcall
 
    Revision 1.6  2003/10/03 14:46:37  peter
