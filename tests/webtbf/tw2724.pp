@@ -1,8 +1,9 @@
+{ %fail }
+
 { Source provided for Free Pascal Bug Report 2724 }
 { Submitted by "marco" on  2003-10-08 }
 { e-mail:  }
-
-{$Mode delphi}
+{$ifdef fpc}{$Mode delphi}{$endif}
 type
   TBitSet = class(TBits)
     constructor Create(aSize: integer);
