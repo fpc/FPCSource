@@ -1046,7 +1046,7 @@ function getreferencestring(var ref : treference) : string;
                begin
                   if tai_symbol(hp).sym.typ=AT_FUNCTION then
                     GenProcedureHeader(hp)
-                  else
+                  else if tai_symbol(hp).sym.typ=AT_DATA then
                     begin
                        s:= tai_symbol(hp).sym.name;
                        replaced:= ReplaceForbiddenChars(s);
@@ -1068,7 +1068,9 @@ function getreferencestring(var ref : treference) : string;
                            AsmWriteLn(#9'csect'#9+s+'[TC]');
                            AsmWriteLn(s+':');
                          end;
-                    end;
+                    end
+                  else
+                    InternalError(2003071301);
                 end;
               ait_symbol_end:
 {$ifdef GDB}
@@ -1236,7 +1238,8 @@ function getreferencestring(var ref : treference) : string;
       AsmLn;
       *)
 
-      AsmWriteLn(#9'string asis'); {Interpret strings just to be the content between the quotes.}
+      AsmWriteLn(#9'string asis');  {Interpret strings just to be the content between the quotes.}
+      AsmWriteLn(#9'aligning off'); {We do our own aligning.}
       AsmLn;
     end;
 
@@ -1327,7 +1330,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2003-04-06 21:01:40  olle
+  Revision 1.21  2003-08-18 11:47:15  olle
+    + added asm directive ALIGNING OFF to avoid unexpected aligning by the assembler
+
+  Revision 1.20  2002/10/01 05:17:27  olle
+    * minor fix
+
+  Revision 1.19  2003/04/06 21:01:40  olle
     + line numbers are now emitted in the assembler code
     * bug in export and import directive fixed
     * made code more in sync with aggas.pas
