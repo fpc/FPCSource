@@ -1,3 +1,4 @@
+{ $OPT=-Sg}
 PROGRAM NoLabel; { this program compiles fine with TP but not with FP }
 
  type
@@ -9,7 +10,7 @@ PROGRAM NoLabel; { this program compiles fine with TP but not with FP }
 
  const
     allowed : boolean = false;
-    
+
     constructor ttestobj.init;
       begin
         if not allowed then
@@ -28,7 +29,7 @@ PROGRAM NoLabel; { this program compiles fine with TP but not with FP }
               Halt(1);
            end;
       end;
-         
+
 
 LABEL
   N1,
@@ -61,4 +62,3 @@ BEGIN
   FAIL: Write;
   self:=1;
 END.
-

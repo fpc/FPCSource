@@ -1,3 +1,11 @@
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{$ifdef OK}
 uses graph
 {$ifdef go32v2}
 ,dpmiexcp
@@ -6,7 +14,9 @@ var
    GDriver, GMode: Integer;
    w:word;
    p:pointer;
+{$endif OK}
 begin
+{$ifdef OK}
    GDriver := $FF;
    GMode := $101;
    InitGraph(GDriver, GMode, '');
@@ -19,12 +29,13 @@ begin
    {---runtime-error!------}
    { getimage(0,0,111,111, p); }
    {-----------------------}
-   
+
    { This is the correct usage (PFV) }
    getimage(0,0,111,111, p^);
-   
+
 
    freemem(p, w);
    closegraph;
    readln;
+{$endif OK}
 end.

@@ -1,3 +1,5 @@
+{ $OPT=-Sg }
+
 program bug0035;
 
 {Discovered by Daniel Mantione.}

@@ -1,3 +1,13 @@
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{ Win32 signal support is still missing ! }
+
+{$ifdef OK}
 {$R+}
 { BOUND check error... I don't think this is a code generator error }
 { but an error because the type casting is not considered at all!   }
@@ -21,7 +31,9 @@
 Var
  Sel: Word;
  v: longint;
+{$endif OK}
 Begin
+{$ifdef OK}
  Signal(SIGSEGV,signalhandler(@our_sig));
  v:=$00ffffff;
  Sel:=word(v);
@@ -31,4 +43,5 @@ Begin
  { we should not go to here }
  Writeln('Error : signal not called');
  Halt(1);
+{$endif OK}
 end.

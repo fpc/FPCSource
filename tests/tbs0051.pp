@@ -4,6 +4,14 @@ program TestPutP;
   {$define has_colors_equal}
 {$endif go32v2}
 
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{$ifdef OK}
 uses  crt,graph;
 
 {$ifndef has_colors_equal}
@@ -21,7 +29,9 @@ var   gd,gm,gError,yi,i : integer;
       col: longint;
       error : word;
 
+{$endif OK}
 BEGIN
+{$ifdef OK}
   if paramcount=0 then
     gm:=$111   {640x480/64K  HiColor}
   else
@@ -52,8 +62,9 @@ BEGIN
 
   for i:=0 to 255 do
    if not ColorsEqual(getpixel(i,15),getpixel(i,30)) then
-     Halt(1); 
+     Halt(1);
   {readkey;}delay(1000);
 
   closegraph;
+{$endif OK}
 END.

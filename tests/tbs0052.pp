@@ -1,4 +1,12 @@
-uses 
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{$ifdef OK}
+uses
   crt,graph;
 
 const
@@ -10,7 +18,9 @@ const
     (X: 275; Y: 150), (X: 280; Y : 50), (X:295; Y : 80) );
 
 var Gd, Gm: Integer;
+{$endif OK}
 begin
+{$ifdef OK}
   Gd := Detect;
   InitGraph(Gd, Gm, 'c:\bp\bgi');
   if GraphResult <> grOk then
@@ -32,4 +42,5 @@ begin
   graphdefaults;
   {readln;}delay(1000);
   CloseGraph;
+{$endif OK}
 end.

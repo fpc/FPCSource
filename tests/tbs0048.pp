@@ -1,3 +1,11 @@
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{$ifdef OK}
 uses
    graph,crt;
 
@@ -5,8 +13,10 @@ var
    gd,gm : integer;
    i,size : longint;
    p : pointer;
+{$endif OK}
 
 begin
+{$ifdef OK}
    gd:=detect;
    initgraph(gd,gm,'');
    setcolor(brown);
@@ -27,5 +37,5 @@ begin
      end;
    {readkey;}delay(1000);
    closegraph;
+{$endif OK}
 end.
-   

@@ -1,10 +1,21 @@
+{$ifdef go32v2}
+{$define OK}
+{$endif}
+{$ifdef linux}
+{$define OK}
+{$endif}
+
+{$ifdef OK}
 uses
-   graph,crt;
+   graph,
+   crt;
 
 var
    gd,gm : integer;
+{$endif OK}
 
 begin
+{$ifdef OK}
    gd:=detect;
    initgraph(gd,gm,'');
    line(1,1,100,100);
@@ -14,5 +25,6 @@ begin
    {readkey;}
    delay(1000);
    closegraph;
+{$endif OK}
 end.
-   
+

@@ -8,6 +8,8 @@ all : info
 
 tests : clean all_compilations
 
+cont_tests : all_compilations
+
 ifdef DJGPP
 
 EXEEXT=.exe
@@ -230,7 +232,10 @@ info :
 
 #
 # $Log$
-# Revision 1.5  1999-09-19 11:48:18  peter
+# Revision 1.6  1999-10-13 12:42:09  pierre
+#  * small fixes for win32
+#
+# Revision 1.5  1999/09/19 11:48:18  peter
 #   * remove ppas and retcode
 #
 # Revision 1.4  1999/09/19 11:23:06  peter
