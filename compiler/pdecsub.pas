@@ -86,12 +86,22 @@ implementation
        ;
 
 
-    procedure resetvaluepara(p:tnamedindexitem;arg:pointer);
+    procedure checkvaluepara(p:tnamedindexitem;arg:pointer);
       begin
-        if tsym(p).typ=varsym then
-         with tvarsym(p) do
-          if copy(name,1,3)='val' then
-           aktprocdef.parast.symsearch.rename(name,copy(name,4,length(name)));
+        if tsym(p).typ<>varsym then
+         exit;
+        with tvarsym(p) do
+         begin
+           { do we need a local copy? Then rename the varsym, do this after the
+             insert so the dup id checking is done correctly.
+             array of const and open array do not need this, the local copy routine
+             will patch the pushed value to point to the local copy }
+           if (varspez=vs_value) and
+              paramanager.push_addr_param(vartype.def,aktprocdef.proccalloption) and
+              not(is_array_of_const(vartype.def) or
+                  is_open_array(vartype.def)) then
+            aktprocdef.parast.symsearch.rename(name,'val'+name);
+         end;
       end;
 
 
@@ -352,13 +362,6 @@ implementation
                      if (varspez in [vs_var,vs_const,vs_out]) and
                         paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) then
                        include(vs.varoptions,vo_regable);
-
-                     { do we need a local copy? Then rename the varsym, do this after the
-                       insert so the dup id checking is done correctly }
-                     if (varspez=vs_value) and
-                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption) and
-                        not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
-                       currparast.rename(vs.name,'val'+vs.name);
 
                      { also need to push a high value? }
                      if inserthigh then
@@ -1548,9 +1551,13 @@ const
 
     procedure handle_calling_convention(sym:tprocsym;def:tabstractprocdef);
       begin
-      { set the default calling convention }
+        { set the default calling convention }
         if def.proccalloption=pocall_none then
           def.proccalloption:=aktdefproccall;
+        { generate symbol names for local copies }
+        if (def.deftype=procdef) then
+          tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkvaluepara,nil);
+        { handle proccall specific settings }
         case def.proccalloption of
           pocall_cdecl :
             begin
@@ -1569,8 +1576,6 @@ const
                   end;
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
-                 { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { check C cdecl para types }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
                  { Adjust alignment to match cdecl or stdcall }
@@ -1591,8 +1596,6 @@ const
                   tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def).cplusplusmangledname);
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110235);
-                 { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { check C cdecl para types }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}checkparatype,nil);
                  { Adjust alignment to match cdecl or stdcall }
@@ -1652,8 +1655,6 @@ const
                begin
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110236);
-                 { do not copy on local !! }
-                 tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { Adjust positions of args for cdecl or stdcall }
                  tprocdef(def).parast.dataalignment:=std_param_align;
                end;
@@ -1728,6 +1729,7 @@ const
             end;
          end;
       end;
+
 
 
     procedure parse_proc_directives(var pdflags:word);
@@ -2078,7 +2080,11 @@ const
 end.
 {
   $Log$
-  Revision 1.89  2002-12-15 21:07:30  peter
+  Revision 1.90  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.89  2002/12/15 21:07:30  peter
     * don't allow external in object declarations
 
   Revision 1.88  2002/12/15 19:34:31  florian

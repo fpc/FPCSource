@@ -147,7 +147,9 @@ interface
        crttinode : trttinodeclass;
 
 
-      procedure load_procvar_from_calln(var p1:tnode);
+    procedure load_procvar_from_calln(var p1:tnode);
+    function load_high_value(vs:tvarsym):tnode;
+
 
 implementation
 
@@ -187,6 +189,27 @@ implementation
           p1.free;
           p1:=p2;
         end;
+
+
+    function load_high_value(vs:tvarsym):tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        srsymtable:=vs.owner;
+        if vo_is_local_copy in vs.varoptions then
+         begin
+           { next symtable is always the para symtable }
+           srsymtable:=srsymtable.next;
+           if not(srsymtable.symtabletype in [parasymtable,inlineparasymtable]) then
+             internalerror(200212171);
+         end;
+        srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
+        if assigned(srsym) then
+          result:=cloadnode.create(srsym,srsymtable)
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
 
 
 {*****************************************************************************
@@ -695,8 +718,8 @@ implementation
 
         { check if the assignment may cause a range check error }
         { if its not explicit, and only if the values are       }
-        { ordinals, enumdef and floatdef                        }                           
-        if (right.nodetype = typeconvn) and 
+        { ordinals, enumdef and floatdef                        }
+        if (right.nodetype = typeconvn) and
            not (nf_explizit in ttypeconvnode(right).flags) then
          begin
             if assigned(left.resulttype.def) and
@@ -711,7 +734,7 @@ implementation
                   end;
               end;
          end;
-         
+
 
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
@@ -1074,13 +1097,14 @@ implementation
               exit;
             end;
          end;
-        { C Arguments are pushed on the stack and
-          are not accesible after the push }
-        if not(nf_cargs in flags) then
-         location.loc:=LOC_CREFERENCE
-        else
-         location.loc:=LOC_INVALID;
+        { Calculate registers }
+        location.loc:=LOC_CREFERENCE;
         calcregisters(self,0,0,0);
+        { C Arguments are pushed on the stack and
+          are not accesible after the push. This must be done
+          after calcregisters, because that needs a valid location }
+        if (nf_cargs in flags) then
+          location.loc:=LOC_INVALID;
       end;
 
 
@@ -1244,7 +1268,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2002-12-07 14:27:07  carl
+  Revision 1.72  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.71  2002/12/07 14:27:07  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for

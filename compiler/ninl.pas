@@ -1096,7 +1096,8 @@ implementation
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
-         hp,p1     : tnode;
+         hightree,
+         hp        : tnode;
          srsym     : tsym;
          isreal    : boolean;
          checkrange : boolean;
@@ -1370,7 +1371,22 @@ implementation
               in_sizeof_x:
                 begin
                   set_varstate(left,false);
-                  resulttype:=s32bittype;
+                  if paramanager.push_high_param(left.resulttype.def,aktprocdef.proccalloption) then
+                   begin
+                     hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+                     if assigned(hightree) then
+                      begin
+                        hp:=caddnode.create(addn,hightree,
+                                         cordconstnode.create(1,s32bittype,false));
+                        if (left.resulttype.def.deftype=arraydef) and
+                           (tarraydef(left.resulttype.def).elesize<>1) then
+                          hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
+                            left.resulttype.def).elesize,s32bittype,true));
+                        result:=hp;
+                      end;
+                   end
+                  else
+                   resulttype:=s32bittype;
                 end;
 
               in_typeof_x:
@@ -1519,15 +1535,13 @@ implementation
                         if is_open_array(left.resulttype.def) or
                            is_array_of_const(left.resulttype.def) then
                          begin
-                           srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                           if not assigned(srsym) then
+                           hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
+                           if assigned(hightree) then
                             begin
-                              CGMessage(cg_e_illegal_expression);
-                              goto myexit;
+                              hp:=caddnode.create(addn,hightree,
+                                                  cordconstnode.create(1,s32bittype,false));
+                              result:=hp;
                             end;
-                           hp:=caddnode.create(addn,cloadnode.create(srsym,tloadnode(left).symtable),
-                                                    cordconstnode.create(1,s32bittype,false));
-                           result:=hp;
                            goto myexit;
                          end
                         else
@@ -1576,7 +1590,6 @@ implementation
                    { is now nil                                                }
                    left.free;
                    left := nil;
-                   resulttypepass(result);
                    goto myexit;
                 end;
 
@@ -1685,6 +1698,7 @@ implementation
                 begin
                   result := handle_read_write;
                 end;
+
               in_settextbuf_file_x :
                 begin
                   resulttype:=voidtype;
@@ -1759,13 +1773,9 @@ implementation
                         else
                          begin
                            if is_open_array(left.resulttype.def) or
-                             is_array_of_const(left.resulttype.def) then
+                              is_array_of_const(left.resulttype.def) then
                             begin
-                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                              if assigned(srsym) then
-                                result:=cloadnode.create(srsym,tloadnode(left).symtable)
-                              else
-                                CGMessage(cg_e_illegal_expression);
+                              result:=load_high_value(tvarsym(tloadnode(left).symtableentry));
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
@@ -1786,32 +1796,19 @@ implementation
                                left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype,true);
                             end;
                          end;
-                         if assigned(result) then
-                           resulttypepass(result);
                       end;
                     stringdef:
                       begin
                         if inlinenumber=in_low_x then
                          begin
-                           hp:=cordconstnode.create(0,u8bittype,false);
-                           resulttypepass(hp);
-                           result:=hp;
+                           result:=cordconstnode.create(0,u8bittype,false);
                          end
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
-                            begin
-                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                              hp:=cloadnode.create(srsym,tloadnode(left).symtable);
-                              resulttypepass(hp);
-                              result:=hp;
-                            end
+                            result:=load_high_value(tvarsym(tloadnode(left).symtableentry))
                            else
-                            begin
-                              hp:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8bittype,true);
-                              resulttypepass(hp);
-                              result:=hp;
-                            end;
+                            result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8bittype,true);
                          end;
                      end;
                     else
@@ -1951,6 +1948,14 @@ implementation
                     end
                   else
                     CGMessage(type_e_mismatch);
+
+                  { We've checked the whole statement for correctness, now we
+                    can remove it if assertions are off }
+                  if not(cs_do_assertion in aktlocalswitches) then
+                   begin
+                     { we need a valid node, so insert a nothingn }
+                     result:=cnothingnode.create;
+                   end;
                 end;
 
                else
@@ -1972,7 +1977,6 @@ implementation
 
     function tinlinenode.pass_1 : tnode;
       var
-         srsym   : tsym;
          hp,hpp  : tnode;
          shiftconst: longint;
 
@@ -2018,26 +2022,12 @@ implementation
               include(result.flags,nf_explizit);
               firstpass(result);
             end;
+
           in_sizeof_x:
             begin
-              if paramanager.push_high_param(left.resulttype.def,aktprocdef.proccalloption) then
-               begin
-                 srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                 hp:=caddnode.create(addn,cloadnode.create(srsym,tloadnode(left).symtable),
-                                  cordconstnode.create(1,s32bittype,false));
-                 if (left.resulttype.def.deftype=arraydef) and
-                    (tarraydef(left.resulttype.def).elesize<>1) then
-                   hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                     left.resulttype.def).elesize,s32bittype,true));
-                 firstpass(hp);
-                 result:=hp;
-               end
-              else
-               begin
-                 if registers32<1 then
-                    registers32:=1;
-                 location.loc:=LOC_REGISTER;
-               end;
+              if registers32<1 then
+                 registers32:=1;
+              location.loc:=LOC_REGISTER;
             end;
 
           in_typeof_x:
@@ -2260,22 +2250,11 @@ implementation
 
          in_assert_x_y :
             begin
-              { We've checked the whole statement for correctness, now we
-                can remove it if assertions are off }
-              if not(cs_do_assertion in aktlocalswitches) then
-               begin
-                 { we need a valid node, so insert a nothingn }
-                 result:=cnothingnode.create;
-                 firstpass(result);
-              end
-              else
-               begin
-                 registers32:=left.registers32;
-                 registersfpu:=left.registersfpu;
+              registers32:=left.registers32;
+              registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-                 registersmmx:=left.registersmmx;
+              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-               end;
             end;
 
           else
@@ -2298,7 +2277,6 @@ implementation
      function tinlinenode.first_pi : tnode;
       begin
         result := crealconstnode.create(pi,pbestrealtype^);
-        firstpass(result);
       end;
 
 
@@ -2308,10 +2286,6 @@ implementation
         { on entry left node contains the parameter }
         first_arctan_real := ccallnode.createintern('fpc_arctan_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2321,10 +2295,6 @@ implementation
         { on entry left node contains the parameter }
         first_abs_real := ccallnode.createintern('fpc_abs_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2334,10 +2304,6 @@ implementation
         { on entry left node contains the parameter }
         first_sqr_real := ccallnode.createintern('fpc_sqr_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2347,10 +2313,6 @@ implementation
         { on entry left node contains the parameter }
         first_sqrt_real := ccallnode.createintern('fpc_sqrt_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2360,10 +2322,6 @@ implementation
         { on entry left node contains the parameter }
         first_ln_real := ccallnode.createintern('fpc_ln_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2373,10 +2331,6 @@ implementation
         { on entry left node contains the parameter }
         first_cos_real := ccallnode.createintern('fpc_cos_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2386,10 +2340,6 @@ implementation
         { on entry left node contains the parameter }
         first_sin_real := ccallnode.createintern('fpc_sin_real',
                 ccallparanode.create(left,nil));
-        { now left is nil, nothing left, so no second pass
-          required.
-        }
-        firstpass(result);
         left := nil;
       end;
 
@@ -2399,7 +2349,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2002-12-15 21:30:12  florian
+  Revision 1.103  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.102  2002/12/15 21:30:12  florian
     * tcallnode.paraitem introduced, all references to defcoll removed
 
   Revision 1.101  2002/11/27 20:04:39  peter

@@ -42,6 +42,7 @@ unit cpupara;
        ti386paramanager = class(tparamanager)
           function ret_in_acc(def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
+          function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
@@ -76,6 +77,16 @@ unit cpupara;
           result:=inherited ret_in_param(def,calloption);
       end;
 
+    function ti386paramanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        if ((target_info.system=system_i386_win32) and
+            (calloption=pocall_stdcall) and
+            (def.deftype=recorddef) and (def.size<=8)) then
+         result:=false
+        else
+         result:=inherited push_addr_param(def,calloption);
+      end;
+
     function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
       end;
@@ -100,7 +111,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-18 17:32:00  peter
+  Revision 1.6  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.5  2002/11/18 17:32:00  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.4  2002/11/15 01:58:56  peter

@@ -193,7 +193,7 @@ unit paramgr;
       end;
 
 
-    { true if a parameter is too large to copy and only the address is pushed }
+    { true if a parameter is too large to push and needs a concatcopy to get the value on the stack }
     function tparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
       begin
         copy_value_on_stack:=false;
@@ -414,7 +414,11 @@ end.
 
 {
    $Log$
-   Revision 1.27  2002-12-06 16:56:58  peter
+   Revision 1.28  2002-12-17 22:19:33  peter
+     * fixed pushing of records>8 bytes with stdcall
+     * simplified hightree loading
+
+   Revision 1.27  2002/12/06 16:56:58  peter
      * only compile cs_fp_emulation support when cpufpuemu is defined
      * define cpufpuemu for m68k only
 

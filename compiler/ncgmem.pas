@@ -567,9 +567,7 @@ implementation
             is_array_of_const(left.resulttype.def) then
           begin
             { Get high value }
-            srsym:=searchsymonlyin(tloadnode(left).symtable,
-              'high'+tvarsym(tloadnode(left).symtableentry).name);
-            hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
+            hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
             firstpass(hightree);
             secondpass(hightree);
             { generate compares }
@@ -921,7 +919,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-12-08 13:39:03  carl
+  Revision 1.38  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.37  2002/12/08 13:39:03  carl
     + some documentation added
 
   Revision 1.36  2002/12/07 14:14:19  carl

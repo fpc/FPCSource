@@ -162,6 +162,9 @@ implementation
                  if assigned(hp) then
                   begin
                     p.free;
+                    { run firstpass }
+                    firstpass(hp);
+                    { switch to new node }
                     p:=hp;
                   end;
                  if codegenerror then
@@ -205,7 +208,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-09-05 19:28:30  peter
+  Revision 1.29  2002-12-17 22:19:33  peter
+    * fixed pushing of records>8 bytes with stdcall
+    * simplified hightree loading
+
+  Revision 1.28  2002/09/05 19:28:30  peter
     * removed repetitive pass counting
     * display heapsize also for extdebug
 
