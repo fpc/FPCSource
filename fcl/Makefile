@@ -215,7 +215,7 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=fcl
 override PACKAGE_VERSION=1.0.6
 override TARGET_DIRS+=xml db shedit passrc net
-override TARGET_UNITS+=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog custapp
+override TARGET_UNITS+=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog custapp cgiapp
 ifeq ($(OS_TARGET),linux)
 override TARGET_UNITS+=process resolve ssockets fpasync
 endif
