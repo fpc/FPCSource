@@ -11,7 +11,17 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+**********************************************************************}
+
+{$define FPC_MATH_HAS_ARCTAN2}
+function arctan2(y,x : float) : float;assembler;
+  asm
+     fldt y
+     fldt x
+     fpatan
+     fwait
+  end;
+
 
 function GetRoundMode: TFPURoundingMode;
 begin
@@ -66,6 +76,9 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-04-24 09:16:31  florian
+  Revision 1.2  2003-10-26 15:58:05  florian
+    * fixed arctan2 to handle x=0 correctly as well
+
+  Revision 1.1  2003/04/24 09:16:31  florian
     * initial implementation with code from math.pp
 }

@@ -162,8 +162,8 @@ procedure sincos(theta : float;var sinus,cosinus : float);
 function arccos(x : float) : float;
 function arcsin(x : float) : float;
 
-{ calculates arctan(x/y) and returns an angle in the correct quadrant }
-function arctan2(x,y : float) : float;
+{ calculates arctan(y/x) and returns an angle in the correct quadrant }
+function arctan2(y,x : float) : float;
 
 { hyperbolic functions }
 
@@ -274,6 +274,9 @@ function norm(const data : PFloat; Const N : Integer) : float;
 
 implementation
 
+{ include cpu specific stuff }
+{$i mathu.inc}
+
 ResourceString
   SMathError = 'Math Error : %s';
   SInvalidArgument = 'Invalid argument';
@@ -381,10 +384,23 @@ begin
 end;
 
 
-function arctan2( x,y : float) : float;
+{$ifndef FPC_MATH_HAS_ARCTAN2}
+function arctan2(y,x : float) : float;
   begin
-     ArcTan2:=ArcTan(x/y);
+    if (x=0) then
+      begin
+        if y=0 then
+          arctan2:=0.0
+        else if y>0 then
+          arctan2:=pi/2
+        else if y<0 then
+          arctan2:=-pi/2;
+      end
+    else
+      ArcTan2:=ArcTan(y,x);
   end;
+{$endif FPC_MATH_HAS_ARCTAN2}
+
 
 function cosh(x : float) : float;
 
@@ -1000,13 +1016,13 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-{ include cpu specific stuff }
-{$i mathu.inc}
-
 end.
 {
   $Log$
-  Revision 1.12  2003-09-01 20:46:59  peter
+  Revision 1.13  2003-10-26 15:58:05  florian
+    * fixed arctan2 to handle x=0 correctly as well
+
+  Revision 1.12  2003/09/01 20:46:59  peter
     * small fixes for sparc
 
   Revision 1.11  2003/04/24 09:38:12  florian
