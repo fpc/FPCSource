@@ -144,6 +144,7 @@ Knowledge base
           + 03/1996: released to the internet
           + 07/2000: 1.0 version
           + 12/2000: 1.0.4 version
+          + 03/2002  1.0.6 version
     2. Which versions exist, and which one should I use?
        FPC's version numbering changed a few times over the years.
        Versions before 0.99.5 are considered archaic. After the release
@@ -193,7 +194,7 @@ Knowledge base
        Development snapshots are often quite useful for certain
        categories of users. Ask in the maillists if it is worth the
        trouble in your case if you're not sure.
-       The current release version is 1.0.4 for the OS/2, Linux, Windows
+       The current release version is 1.0.6 for the OS/2, Linux, Windows
        and Dos (Go32V2) targets and 0.99.5d for the 680x0 based systems
        (Amiga and Atari ST). The development versions (snapshots) are
        numbered 1.1.x at the moment
@@ -781,8 +782,6 @@ ShowWindow(GetActiveWindow,0);
        of the sources under Windows 2000 and Windows NT is now a lot
        easier.
          1. Download makew32.zip from the [90]ftp site or a mirror.
-            ( BTW: there is no 1.0.6 at the moment, this is just the
-            future build directory)
          2. Unzip it to your pp directory. (the archive already contains
             the bin/win32/ directories)
          3. Properties of "My Computer", (system properties), tab
