@@ -156,7 +156,7 @@ procedure InitBrowserCol;
 procedure DoneBrowserCol;
 
 function  LoadBrowserCol(S: PStream): boolean;
-procedure StoreBrowserCol(S: PStream);
+function  StoreBrowserCol(S: PStream): boolean;
 procedure RegisterSymbols;
 
 implementation
@@ -443,8 +443,9 @@ begin
   LoadBrowserCol:=true;
 end;
 
-procedure StoreBrowserCol(S: PStream);
+function StoreBrowserCol(S: PStream): boolean;
 begin
+  StoreBrowserCol:=true;
 end;
 
 procedure RegisterSymbols;
@@ -500,7 +501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-08-17 13:25:16  peter
+  Revision 1.5  2000-01-27 23:42:33  peter
+    * storebrowsercol returns boolean now
+
+  Revision 1.4  1999/08/17 13:25:16  peter
     * updates with the compiler browcol
 
   Revision 1.3  1999/08/05 16:54:35  peter
