@@ -121,3 +121,9 @@ begin
 end;
 
 end.
+{
+  $Log$
+  Revision 1.9  2000-02-14 19:27:41  peter
+    * log added
+
+}
