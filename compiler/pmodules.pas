@@ -1174,6 +1174,11 @@ unit pmodules;
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
 
+         { consider these symbols as global ones }
+         { for browser }
+         current_module^.globalsymtable:=current_module^.localsymtable;
+         current_module^.localsymtable:=nil;
+         
          codegen_doneprocedure;
 
          { consume the last point }
@@ -1229,7 +1234,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.94  1999-01-12 14:25:31  peter
+  Revision 1.95  1999-02-03 09:44:36  pierre
+    * symbol nubering begins with 1 in number_symbols
+    * program tmodule has globalsymtable for its staticsymtable
+      (to get it displayed in IDE globals list)
+    + list of symbol (browcol) greatly improved for IDE
+
+  Revision 1.94  1999/01/12 14:25:31  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser

@@ -113,7 +113,7 @@ implementation
 
 uses
   Drivers,Views,App,
-  globals,files,comphook;
+  globtype,globals,files,comphook;
 
 {****************************************************************************
                                    Helpers
@@ -377,7 +377,7 @@ begin
   if assigned(Name) then
     DisposeStr(Name);
   if assigned(Params) then
-    FreeMem(Params,ParamCount*2);
+    FreeMem(Params,ParamCount*4);
 end;
 
 
@@ -435,7 +435,7 @@ procedure CreateBrowserCol;
      begin
        Def:=Table^.GetDefNr(I);
      end;}
-    for I:=1 to symcount-1 do
+    for I:=1 to symcount do
       begin
         Sym:=Table^.GetsymNr(I);
         if Sym=nil then Continue;
@@ -460,6 +460,8 @@ procedure CreateBrowserCol;
                       Inc(ParamCount);
                       Params[ParamCount-1]:=TypeNames^.Add(ParSym^.Name);
                     end;
+                  Symbol^.SetParams(ParamCount,PPointerArray(@Params));
+                  ProcessSymTable(Symbol^.Items,definition^.parast);
                 end;
               if assigned(definition^.localst) and
                  (definition^.localst^.symtabletype<>staticsymtable) then
@@ -488,17 +490,41 @@ procedure CreateBrowserCol;
 var
   T: PSymTable;
   UnitS: PSymbol;
+  hp : pmodule;
 begin
   DisposeBrowserCol;
   NewBrowserCol;
-  T:=SymTableStack;
+{  T:=SymTableStack;
   while assigned(T) do
    begin
      New(UnitS, Init(T^.Name^,unitsym, 0, nil));
      Modules^.Insert(UnitS);
      ProcessSymTable(UnitS^.Items,T);
      T:=T^.Next;
-   end;
+   end;}
+  hp:=pmodule(loaded_units.first);
+  while assigned(hp) do
+    begin
+       t:=psymtable(hp^.globalsymtable);
+       if assigned(t) then
+         begin
+           New(UnitS, Init(T^.Name^,unitsym, 0, nil));
+           Modules^.Insert(UnitS);
+           ProcessSymTable(UnitS^.Items,T);
+           if cs_local_browser in aktmoduleswitches then
+             begin
+                t:=psymtable(hp^.localsymtable);
+                if assigned(t) then
+                  begin
+                    {New(UnitS, Init(T^.Name^,unitsym, 0, nil));
+                    Modules^.Insert(UnitS);}
+                    ProcessSymTable(UnitS^.Items,T);
+                  end;
+             end;
+         end;
+       hp:=pmodule(hp^.next);
+    end;
+   
 end;
 
 
@@ -535,7 +561,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-02-02 16:38:38  peter
+  Revision 1.5  1999-02-03 09:44:32  pierre
+    * symbol nubering begins with 1 in number_symbols
+    * program tmodule has globalsymtable for its staticsymtable
+      (to get it displayed in IDE globals list)
+    + list of symbol (browcol) greatly improved for IDE
+
+  Revision 1.4  1999/02/02 16:38:38  peter
     * no endless loop with localst=staticsymtable
 
   Revision 1.3  1999/01/22 10:19:43  peter
