@@ -18,8 +18,8 @@
 
     type
        qwordrec = packed record
-         low : cardinal;
-         high : cardinal;
+         low : dword;
+         high : dword;
        end;
 
     function count_leading_zero(q : qword) : longint;
@@ -52,7 +52,53 @@
 
     function divqword(z,n : qword) : qword;safecall;
 
+      var
+         shift,lzz,lzn : longint;          
+
       begin
+         divqword:=0;
+         lzz:=count_leading_zeros(z);
+         lzn:=count_leading_zeros(n);
+         { if the denominator contains less zeros }
+         { then the numerator                     }
+         { the d is greater than the n            }
+         if lzn<lzz then
+           exit;
+         shift:=lzn-lzz;
+         n:=n shl shift;
+         repeat                                
+           if z>n then
+             begin
+                z:=z-n;
+                divqword:=divqword+(1 shl shift);
+             end;
+           dec(shift);
+           n:=n shr 1;
+         until shift<=0;
+      end;
+
+    function modqword(z,n : qword) : qword;safecall;
+
+      var
+         shift,lzz,lzn : longint;
+
+      begin
+         modqword:=z;
+         lzz:=count_leading_zeros(z);
+         lzn:=count_leading_zeros(n);
+         { if the denominator contains less zeros }
+         { the d is greater than the n            }
+         if lzn<lzz then
+           exit;
+         shift:=lzn-lzz;
+         n:=n shl shift;
+         repeat                                
+           if z>n then
+             z:=z-n;
+           dec(shift);
+           n:=n shr 1;
+         until shift<=0;
+         modqword:=z;
       end;
 
     function divint64(z,n : int64) : int64;safecall;
@@ -98,7 +144,7 @@
          res:=0;
          bitpos:=1;
 
-         { we can't write qword constants directly :( }
+         { we can't write currently qword constants directly :( }
          bitpos64:=1 shl 63;
 
          for l:=0 to 63 do
@@ -194,7 +240,10 @@
 
 {
   $Log$
-  Revision 1.2  1999-01-06 12:25:03  florian
+  Revision 1.3  1999-05-23 20:27:27  florian
+    + routines for qword div and mod
+
+  Revision 1.2  1999/01/06 12:25:03  florian
     * naming for str(...) routines inserted
     * don't know what in int64 changed
 
