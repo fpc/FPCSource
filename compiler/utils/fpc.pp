@@ -28,7 +28,11 @@ program fpc;
 {$ifdef UNIX}
     exeext='';
 {$else UNIX}
+  {$ifdef AMIGA}
+    exeext='';
+  {$else}
     exeext='.exe';
+  {$endif}
 {$endif UNIX}
 
 
@@ -157,7 +161,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.4  2002-05-18 13:34:27  peter
+  Revision 1.5  2003-04-08 16:01:40  peter
+    * amiga has also no .exe
+
+  Revision 1.4  2002/05/18 13:34:27  peter
     * readded missing revisions
 
 }
