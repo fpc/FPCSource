@@ -218,7 +218,7 @@ uses
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,
-  tgobj,procinfo;
+  procinfo;
 
 {*************************************************************************
                               TExprParse
@@ -769,6 +769,24 @@ end;
 
 
 Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
+
+  function symtable_has_varsyms(st:tsymtable):boolean;
+  var
+    sym : tsym;
+  begin
+    result:=false;
+    sym:=tsym(st.symindex.first);
+    while assigned(sym) do
+      begin
+        if sym.typ=varsym then
+          begin
+            result:=true;
+            exit;
+          end;
+        sym:=tsym(sym.indexnext);
+      end;
+  end;
+
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
@@ -820,7 +838,8 @@ Begin
                   if assigned(current_procinfo.parent) and
                      (tvarsym(sym).owner<>current_procinfo.procdef.localst) and
                      (tvarsym(sym).owner<>current_procinfo.procdef.parast) and
-                     (current_procinfo.procdef.localst.symtablelevel>normal_function_level) then
+                     (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
+                     symtable_has_varsyms(current_procinfo.procdef.localst) then
                     message1(asmr_e_local_para_unreachable,s);
                   opr.localsym:=tvarsym(sym);
                   opr.localsymofs:=0;
@@ -1502,7 +1521,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.69  2003-10-01 20:34:49  peter
+  Revision 1.70  2003-10-08 19:39:58  peter
+    * allow access to parent locals when the currnet localst has no
+      varsyms
+
+  Revision 1.69  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
