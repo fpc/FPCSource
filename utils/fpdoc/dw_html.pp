@@ -80,12 +80,17 @@ type
   end;
 
 
+  { THTMLWriter }
+
   THTMLWriter = class(TFPDocWriter)
   private
-    FAllocator: TFileAllocator;
+    FOnTest: TNotifyEvent;
     FPackage: TPasPackage;
     function GetPageCount: Integer;
+    procedure SetOnTest(const AValue: TNotifyEvent);
   protected
+    FAllocator: TFileAllocator;
+    Procedure CreateAllocator; virtual;
     CurDirectory: String;	// relative to curdir of process
     BaseDirectory: String;	// relative path to package base directory
     PageInfos: TObjectList;	// list of TPageInfo objects
@@ -214,8 +219,7 @@ type
     procedure CreateProcPageBody(AProc: TPasProcedureBase);
     Procedure CreateTopicLinks(Node : TDocNode; PasElement : TPasElement);
   public
-    constructor Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator;
-      APackage: TPasPackage);
+    constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     destructor Destroy; override;
 
     // Single-page generation
@@ -233,9 +237,15 @@ type
     property Package: TPasPackage read FPackage;
     property PageCount: Integer read GetPageCount;
 
-    property OnTest: TNotifyEvent;
+    property OnTest: TNotifyEvent read FOnTest write SetOnTest;
+    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
+    Procedure WriteDoc; override;
   end;
 
+  THTMWriter = class(THTMLWriter)
+  Protected
+    Procedure CreateAllocator; override;
+  end;
 
 
 implementation
@@ -334,8 +344,7 @@ end;
 
 
 
-constructor THTMLWriter.Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator;
-  APackage: TPasPackage);
+constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 
   procedure AddPage(AElement: TPasElement; ASubpageIndex: Integer);
   var
@@ -491,8 +500,8 @@ constructor THTMLWriter.Create(AEngine: TFPDocEngine; AAllocator: TFileAllocator
 var
   i: Integer;
 begin
-  inherited Create(AEngine);
-  FAllocator := AAllocator;
+  inherited ;
+  CreateAllocator;
   FPackage := APackage;
   OutputNodeStack := TList.Create;
 
@@ -2810,6 +2819,21 @@ begin
   FinishElementPage(AProc);
 end;
 
+Function THTMLWriter.InterPretOption(Const Cmd,Arg : String) : boolean;
+
+begin
+  Result:=True;
+  if Cmd = '--html-search' then
+    SearchPage := Arg
+  else
+    Result:=False;
+end;
+
+procedure THTMLWriter.WriteDoc;
+begin
+   WriteLn(Format(SWritingPages, [PageCount]));
+   WriteHTMLPages;
+end;
 
 // private methods
 
@@ -2818,12 +2842,39 @@ begin
   Result := PageInfos.Count;
 end;
 
+procedure THTMLWriter.SetOnTest(const AValue: TNotifyEvent);
+begin
+  if FOnTest=AValue then exit;
+    FOnTest:=AValue;
+end;
+
+procedure THTMLWriter.CreateAllocator;
+begin
+  FAllocator:=TLongNameFileAllocator.Create('.html');
+end;
+
+
+procedure THTMWriter.CreateAllocator;
+begin
+  FAllocator:=TShortNameFileAllocator.Create('.htm');
+end;
+
+initialization
+  // Do not localize.
+  RegisterWriter(THTMLWriter,'html','HTML output using fpdoc.css stylesheet.');
+  RegisterWriter(THTMWriter,'htm','HTM (8.3 filenames) output using fpdoc.css stylesheet.');
+finalization
+  UnRegisterWriter('html');
+  UnRegisterWriter('htm');
 end.
 
 
 {
   $Log$
-  Revision 1.13  2005-01-09 15:59:50  michael
+  Revision 1.14  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.13  2005/01/09 15:59:50  michael
   + Split out latex writer to linear and latex writer
 
   Revision 1.12  2004/12/20 19:01:11  peter

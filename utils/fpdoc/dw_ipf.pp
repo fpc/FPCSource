@@ -22,29 +22,23 @@ unit dw_IPF;
 
 interface
 
-uses DOM, dGlobals, PasTree;
+uses SysUtils, Classes, dWriter, DOM, dGlobals, PasTree;
 
 const
   IPFHighLight : Boolean = False;
-  TexExtension   : String = '.ipf';
-
-procedure CreateIPFDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
-
-
-implementation
-
-uses SysUtils, Classes, dWriter;
+  IPFExtension   : String = '.ipf';
 
 type
   TLabelType = (ltConst,ltVar,ltType,ltFunction,ltProcedure,ltClass,
                 ltChapter,ltSection,ltSubsection,
                 ltTable,ltFigure);
 
+  { TIPFWriter }
+
   TIPFWriter = class(TFPDocWriter)
   protected
     f: Text;
     FLink: String;
-    Package: TPasPackage;
     PackageName: String;
     Module: TPasModule;
     ModuleName: String;
@@ -146,9 +140,14 @@ type
     procedure SortElementList(List : TList);
     Function  ShowMember(M : TPasElement) : boolean;
   public
-    constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine);
-    procedure WriteDoc;
+    constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    procedure WriteDoc; override;
   end;
+
+
+implementation
+
+
 
 
 
@@ -235,8 +234,7 @@ constructor TIPFWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 var
   i: Integer;
 begin
-  inherited Create(AEngine);
-  Package := APackage;
+  inherited ;
 
   { Allocate labels for all elements for which we are going to create
     documentation. This is needed for links to work correctly. }
@@ -256,7 +254,7 @@ var
 begin
   PackageName := LowerCase(Copy(Package.Name, 2, 255));
   If (Engine.OutPut='') then
-    Engine.Output:=PackageName+TexExtension;
+    Engine.Output:=PackageName+IPFExtension;
   Assign(f, Engine.Output);
   Rewrite(f);
   try
@@ -1366,25 +1364,22 @@ begin
   Writeln(':h1.'+{EscapeTex(}ChapterName{)});
 end;
 
-procedure CreateIPFDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
-var
-  Writer: TIPFWriter;
-begin
-  Writer := TIPFWriter.Create(APackage, AEngine);
-  try
-    Writer.WriteDoc;
-  finally
-    Writer.Free;
-  end;
-end;
 
 
+initialization
+  // Do not localize.
+  RegisterWriter(TIPFWriter,'ipf','IPF output.');
+finalization
+  UnRegisterWriter('ipf');
 end.
 
 
 {
   $Log$
-  Revision 1.1  2003-10-08 11:41:54  yuri
+  Revision 1.2  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.1  2003/10/08 11:41:54  yuri
   + Initial OS/2 IPF support added
 
   Revision 1.4  2003/03/18 19:28:44  michael

@@ -12,15 +12,15 @@ Type
 
   TLinearWriter = Class(TFPDocWriter)
     FStream : TStream;
-    Package: TPasPackage;
     PackageName: String;
     Module: TPasModule;
     ModuleName: String;
   Protected
+
     // Writing support.
-    procedure Write(const s: String);
+    procedure Write(const s: String); virtual;
+    procedure WriteLn(const s: String); virtual;
     procedure WriteF(const s: String; const Args: array of const);
-    procedure WriteLn(const s: String);
     procedure WriteLnF(const s: String; const Args: array of const);
     Function  PushWriteContext(S : TStream) : TStream;
     Procedure PopWriteContext(S : TSTream);
@@ -76,8 +76,8 @@ Type
     procedure EndUnitOverview; virtual; Abstract;
     Class Function FileNameExtension : String;virtual; Abstract;
   Public
-    Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine);
-    procedure WriteDoc;
+    Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    procedure WriteDoc; override;
     // Linear Documentation writing methods.
     Procedure ProcessPackage;
     Procedure ProcessTopics(DocNode : TDocNode; Alevel : Integer);
@@ -267,56 +267,64 @@ end;
 Procedure TLinearWriter.StartProcedure;
 
 begin
-  Writeln(SDocProcedure);
+  Writeln(SDocProcedure+':');
 end;
 
 Procedure TLinearWriter.StartSynopsis;
 
 begin
-  Writeln(SDocSynopsis);
+  Writeln('');
+  Writeln(SDocSynopsis+':');
 end;
 
 Procedure TLinearWriter.StartDeclaration;
 
 begin
-  Writeln(SDocDeclaration);
+  Writeln('');
+  Writeln(SDocDeclaration+':');
 end;
 
 Procedure TLinearWriter.StartVisibility;
 
 begin
-  Writeln(SDocVisibility);
+  Writeln('');
+  Writeln(SDocVisibility+':');
 end;
 
 Procedure TLinearWriter.StartDescription;
 
 begin
-  Writeln(SDocDescription);
+  Writeln('');
+  Writeln(SDocDescription+':');
 end;
 
 Procedure TLinearWriter.StartAccess;
 
 begin
-  Writeln(SDocAccess);
+  Writeln('');
+  Writeln(SDocAccess+':');
 end;
 
 Procedure TLinearWriter.StartErrors;
 
 begin
-  Writeln(SDocErrors);
+  Writeln('');
+  Writeln(SDocErrors+':');
 end;
 
 Procedure TLinearWriter.StartSeealso;
 
 begin
-  Writeln(SDocSeeAlso);
+  Writeln('');
+  Writeln(SDocSeeAlso+':');
 end;
 
 
 Procedure TLinearWriter.StartProperty;
 
 begin
-  Writeln(SDocProperty);
+  Writeln('');
+  Writeln(SDocProperty+':');
 end;
 
 Procedure TLinearWriter.EndProcedure;
@@ -655,6 +663,7 @@ begin
     StartSubSection(SDocConstants,EscapeText(ModuleName));
     for i := 0 to ASection.Consts.Count - 1 do
       begin
+      DescrBeginParaGraph;
       ConstDecl := TPasConst(ASection.Consts[i]);
       StartListing(False,'');
       WriteLn(EscapeText(ConstDecl.GetDeclaration(True)));
@@ -662,6 +671,7 @@ begin
       WriteLabel(ConstDecl);
       WriteIndex(ConstDecl);
       WriteDescr(ConstDecl);
+      DescrEndParaGraph;
       end;
     end;
 end;
@@ -717,6 +727,7 @@ begin
     StartSubSection(SDocTypes,ModuleName+'Types');
     for i := 0 to ASection.Types.Count - 1 do
     begin
+      DescrBeginParaGraph;
       TypeDecl := TPasType(ASection.Types[i]);
       StartListing(False,'');
       Writeln(EscapeText(TypeDecl.GetDeclaration(True)));
@@ -728,6 +739,7 @@ begin
         WriteENumElements(TypeDecl as TPasEnumType);
         end;
       WriteDescr(TypeDecl);
+      DescrEndParaGraph;
     end;
   end;
 end;
@@ -742,6 +754,7 @@ begin
     StartSubsection(SDocVariables,ModuleName+'Variables');
     for i := 0 to ASection.Variables.Count - 1 do
     begin
+      DescrBeginParaGraph;
       VarDecl := TPasVariable(ASection.Variables[i]);
       StartListing(False,'');
       WriteLn(EscapeText(VarDecl.GetDeclaration(True)));
@@ -749,6 +762,7 @@ begin
       WriteLabel(VarDecl);
       WriteIndex(VarDecl);
       WriteDescr(VarDecl);
+      DescrEndParaGraph;
     end;
   end;
 end;
@@ -933,7 +947,7 @@ begin
         Writeln(',');
       S:=TDomElement(Node)['id'];
       DescrBeginLink(S);
-      Writeln(EscapeText(S));
+      Write(EscapeText(S));
       DescrEndLink();
       end;
     Node:=Node.NextSibling;
@@ -1138,8 +1152,7 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 var
   i: Integer;
 begin
-  inherited Create(AEngine);
-  Package := APackage;
+  inherited ;
 
   { Allocate labels for all elements for which we are going to create
     documentation. This is needed for links to work correctly. }

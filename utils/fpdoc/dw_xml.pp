@@ -22,14 +22,24 @@ unit dw_XML;
 
 interface
 
-uses DOM, PasTree;
+uses DOM, PasTree, dwriter;
 
-function ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
+Type
+
+  { TXMLWriter }
+
+  TXMLWriter = Class(TFPDocWriter)
+    function ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
+    Procedure WriteDoc; override;
+  end;
+  
+
 
 
 implementation
 
-function ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
+function TXMLWriter.ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
+
 var
   ModuleElement: TDOMElement;
 
@@ -81,6 +91,7 @@ var
     end;
   end;
 
+
 begin
   Result := TXMLDocument.Create;
   Result.AppendChild(Result.CreateComment(' Generated using FPDoc - (c) 2000-2003 Sebastian Guenther, sg@freepascal.org '));
@@ -88,16 +99,30 @@ begin
   ModuleElement := Result.CreateElement('unit');
   ModuleElement['name'] := AModule.Name;
   Result.DocumentElement.AppendChild(ModuleElement);
-
   ProcessSection(AModule.InterfaceSection, 'interface');
 end;
 
+{ TXMLWriter }
+
+procedure TXMLWriter.WriteDoc;
+begin
+
+end;
+
+initialization
+  // Do not localize.
+  RegisterWriter(TXMLWriter,'xml','fpdoc XML output.');
+finalization
+  UnRegisterWriter('xml');
 end.
 
 
 {
   $Log$
-  Revision 1.2  2005-01-09 15:59:50  michael
+  Revision 1.3  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.2  2005/01/09 15:59:50  michael
   + Split out latex writer to linear and latex writer
 
   Revision 1.1  2003/03/17 23:03:20  michael

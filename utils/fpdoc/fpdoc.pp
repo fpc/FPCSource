@@ -17,46 +17,46 @@
 program FPDoc;
 
 uses
-  SysUtils, Classes, Gettext, DOM, XMLWrite,
-  dGlobals, PasTree, PParser, dw_LaTeX,dw_XML, dw_HTML,  dw_ipf, dwlinear;
-
-resourcestring
-  STitle = 'FPDoc - Free Pascal Documentation Tool';
-  SCopyright = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
-  SCmdLineHelp = 'See documentation for usage.';
-  SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
-  SCmdLineInvalidFormat = 'Invalid format "%s" specified';
-  SCmdLineOutputOptionMissing = 'Need an output filename, please specify one with --output=<filename>';
-  SWritingPages = 'Writing %d pages...';
-  SNeedPackageName = 'No package name specified. Please specify one using the --package option.';
-  SDone = 'Done.';
-
-type
-  TCmdLineAction = (actionHelp, actionConvert);
-  TOutputFormat = (fmtHTM, fmtHTML, fmtXHTML, fmtLaTeX, fmtXMLStruct, fmtIPF);
+  SysUtils, Classes, Gettext, DOM, XMLWrite, PasTree, PParser,
+  dGlobals, // GLobal definitions, constants.
+  dwriter,  // TFPDocWriter definition.
+  dwlinear, // Linear (abstract) writer
+  dw_LaTeX, // TLaTex writer
+  dw_XML,   // XML writer
+  dw_HTML,  // HTML writer
+  dw_ipf,   // IPF writer
+  dw_txt;   // TXT writer
 
 const
-  CmdLineAction: TCmdLineAction = actionConvert;
-  OutputFormat: TOutputFormat = fmtHTML;
   OSTarget: String = {$I %FPCTARGETOS%};
   CPUTarget: String = {$I %FPCTARGETCPU%};
 
 var
+  Backend : String;
+  BackendOptions : TStrings;
   InputFiles, DescrFiles: TStringList;
-  PackageName, DocLang, ContentFile, SearchPage: String;
+  PackageName, DocLang, ContentFile : String;
   Engine: TFPDocEngine;
 
+Procedure Usage(AnExitCode : Byte);
+
+begin
+  Writeln(SCmdLineHelp);
+  Halt(AnExitCode);
+end;
 
 procedure InitOptions;
 begin
   InputFiles := TStringList.Create;
   DescrFiles := TStringList.Create;
+  BackendOptions := TStringList.Create;
   Engine := TFPDocEngine.Create;
 end;
 
 procedure FreeOptions;
 begin
   Engine.Free;
+  BackendOptions.Free;
   DescrFiles.Free;
   InputFiles.Free;
 end;
@@ -94,9 +94,10 @@ procedure ParseOption(const s: String);
 var
   i: Integer;
   Cmd, Arg: String;
+  
 begin
   if (s = '-h') or (s = '--help') then
-    CmdLineAction := actionHelp
+    Usage(0)
   else if s = '--hide-protected' then
     Engine.HideProtected := True
   else if s = '--warn-no-node' then
@@ -104,40 +105,30 @@ begin
   else if s = '--show-private' then
     Engine.HidePrivate := False
   else
-  begin
+    begin
     i := Pos('=', s);
     if i > 0 then
-    begin
+      begin
       Cmd := Copy(s, 1, i - 1);
       Arg := Copy(s, i + 1, Length(s));
-    end else
-    begin
+      end
+    else
+      begin
       Cmd := s;
       SetLength(Arg, 0);
-    end;
+      end;
     if Cmd = '--descr' then
       AddToFileList(DescrFiles, Arg)
     else if (Cmd = '-f') or (Cmd = '--format') then
-    begin
-      Arg := UpperCase(Arg);
-      if Arg = 'HTM' then
-        OutputFormat := fmtHTM
-      else if Arg = 'HTML' then
-        OutputFormat := fmtHTML
-      else if Arg = 'XHTML' then
-        OutputFormat := fmtXHTML
-      else if Arg = 'LATEX' then
-        OutputFormat := fmtLaTeX
-      else if Arg = 'IPF' then
-        OutputFormat := fmtIPF
-      else if Arg = 'XML-STRUCT' then
-        OutputFormat := fmtXMLStruct
+      begin
+      Arg:=UpperCase(Arg);
+      If FindWriterClass(Arg)=-1 then
+        WriteLn(StdErr, Format(SCmdLineInvalidFormat, [Arg]))
       else
-        WriteLn(StdErr, Format(SCmdLineInvalidFormat, [Arg]));
-    end else if (Cmd = '-l') or (Cmd = '--lang') then
+        BackEnd:=Arg;
+      end
+    else if (Cmd = '-l') or (Cmd = '--lang') then
       DocLang := Arg
-    else if (Cmd = '--latex-highlight') then
-      LatexHighLight:=True
     else if (Cmd = '-i') or (Cmd = '--input') then
       AddToFileList(InputFiles, Arg)
     else if (Cmd = '-o') or (Cmd = '--output') then
@@ -148,165 +139,100 @@ begin
       ReadContentFile(Arg)
     else if Cmd = '--package' then
       PackageName := Arg
-    else if Cmd = '--html-search' then
-      SearchPage := Arg
     else if Cmd = '--ostarget' then
       OSTarget := Arg
     else if Cmd = '--cputarget' then
       CPUTarget := Arg
-    else if Cmd = '--latex-extension' then
-      TexExtension:=Arg
     else
-      WriteLn(StdErr, Format(SCmdLineInvalidOption, [s]));
-  end;
+      begin
+      BackendOptions.Add(Cmd);
+      BackendOptions.Add(Arg);
+      end;
+    end;
 end;
 
 procedure ParseCommandLine;
+
 var
   i: Integer;
+  
 begin
   for i := 1 to ParamCount do
     ParseOption(ParamStr(i));
+  If (BackEnd='') then
+    BackEnd:='html';
+  if (PackageName='') then
+    begin
+    Writeln(SNeedPackageName);
+    Usage(1);
+    end;
 end;
 
+procedure CreateDocumentation;
 
 var
   i: Integer;
-  Allocator: TFileAllocator;
-  HTMLWriter: THTMLWriter;
+  WriterClass : TFPDocWriterClass;
+  Writer : TFPDocWriter;
+  
+begin
+  for i := 0 to DescrFiles.Count - 1 do
+    Engine.AddDocFile(DescrFiles[i]);
+  Engine.SetPackageName(PackageName);
+  if Length(DocLang) > 0 then
+    TranslateDocStrings(DocLang);
+  for i := 0 to InputFiles.Count - 1 do
+    try
+      ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
+    except
+      on e: EParserError do
+        WriteLn(StdErr, Format('%s(%d,%d): %s',
+          [e.Filename, e.Row, e.Column, e.Message]));
+    end;
+  WriterClass:=GetWriterClass(Backend);
+  Writer:=WriterClass.Create(Engine.Package,Engine);
+  With Writer do
+    Try
+      If BackendOptions.Count>0 then
+        for I:=0 to ((BackendOptions.Count-1) div 2) do
+          If not InterPretOption(BackendOptions[I*2],BackendOptions[I*2+1]) then
+            WriteLn(StdErr, Format(SCmdLineInvalidOption,[BackendOptions[I*2]+' '+BackendOptions[I*2+1]]));
+      WriteDoc;
+    Finally
+      Free;
+    end;
+  if Length(ContentFile) > 0 then
+    Engine.WriteContentFile(ContentFile);
+end;
+
+
+
 begin
 {$IFDEF Unix}
   gettext.TranslateResourceStrings('/usr/local/share/locale/%s/LC_MESSAGES/fpdoc.mo');
 {$ELSE}
   gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
 {$ENDIF}
-
   WriteLn(STitle);
   WriteLn(SCopyright);
   WriteLn;
-
   InitOptions;
-  ParseCommandLine;
-
-  if CmdLineAction = actionHelp then
-    WriteLn(SCmdLineHelp)
-  else
-  begin
-    if (PackageName='') then
-      begin
-      Writeln(SNeedPackageName);
-      Halt(1);
-      end;
-    // Action is to create documentation
-
-    // Read all description files
-    for i := 0 to DescrFiles.Count - 1 do
-      Engine.AddDocFile(DescrFiles[i]);
-
-    // Set the name of the package to be processed
-    Engine.SetPackageName(PackageName);
-
-    // Read all source files
-    for i := 0 to InputFiles.Count - 1 do
-      try
-        ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
-      except
-        on e: EParserError do
-          WriteLn(StdErr, Format('%s(%d,%d): %s',
-            [e.Filename, e.Row, e.Column, e.Message]));
-      end;
-
-    // Translate internal documentation strings
-    if Length(DocLang) > 0 then
-      TranslateDocStrings(DocLang);
-
-    case OutputFormat of
-      fmtHTM:
-        begin
-          Allocator := TShortNameFileAllocator.Create('.htm');
-          try
-            HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
-            try
-              HTMLWriter.SearchPage := SearchPage;
-              WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
-              HTMLWriter.WriteHTMLPages;
-            finally
-              HTMLWriter.Free;
-            end;
-          finally
-            Allocator.Free;
-          end;
-        end;
-      fmtHTML:
-        begin
-          Allocator := TLongNameFileAllocator.Create('.html');
-          try
-            HTMLWriter := THTMLWriter.Create(Engine, Allocator, Engine.Package);
-            try
-              HTMLWriter.SearchPage := SearchPage;
-              WriteLn(Format(SWritingPages, [HTMLWriter.PageCount]));
-              HTMLWriter.WriteHTMLPages;
-            finally
-              HTMLWriter.Free;
-            end;
-          finally
-            Allocator.Free;
-          end;
-        end;
-{      fmtXHTML:
-        begin
-          Allocator := TLongNameFileAllocator.Create('.xml');
-          try
-            BeginXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
-            for i := 0 to InputFiles.Count - 1 do
-              CreateXHTMLDocFromModule(Engine, XHTMLOptions, Allocator,
-                ParseSource(Engine, InputFiles[i]));
-            EndXHTMLDocForPackage(Engine, XHTMLOptions, Allocator);
-          finally
-            Allocator.Free;
-          end;
-        end;}
-      fmtLaTeX:
-        begin
-          if Length(Engine.Output) = 0 then
-            WriteLn(SCmdLineOutputOptionMissing)
-          else
-            CreateLaTeXDocForPackage(Engine.Package, Engine);
-        end;
-      fmtIPF:
-        begin
-          if Length(Engine.Output) = 0 then
-            WriteLn(SCmdLineOutputOptionMissing)
-          else
-            CreateIPFDocForPackage(Engine.Package, Engine);
-        end;
-{      fmtXMLStruct:
-        for i := 0 to InputFiles.Count - 1 do
-        begin
-          XMLDoc := ModuleToXMLStruct(Module);
-          try
-           WriteXMLFile(XMLDoc, StdOut);
-          finally
-            XMLDoc.Free;
-          end;
-        end;}
-    end;
-
-    if Length(ContentFile) > 0 then
-      Engine.WriteContentFile(ContentFile);
-
-
+  Try
+    ParseCommandLine;
+    CreateDocumentation;
+    WriteLn(SDone);
+  Finally
+    FreeOptions;
   end;
-
-  FreeOptions;
-
-  WriteLn(SDone);
 end.
 
 
 {
   $Log$
-  Revision 1.6  2005-01-09 15:59:50  michael
+  Revision 1.7  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.6  2005/01/09 15:59:50  michael
   + Split out latex writer to linear and latex writer
 
   Revision 1.5  2004/08/28 18:03:23  michael

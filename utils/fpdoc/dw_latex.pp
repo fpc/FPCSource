@@ -30,7 +30,7 @@ Procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine)
 
 implementation
 
-uses SysUtils, Classes, dwLinear;
+uses SysUtils, Classes, dwLinear, dwriter;
 
 
 Type
@@ -124,6 +124,8 @@ Type
     procedure DescrEndTableRow; override;
     procedure DescrBeginTableCell; override;
     procedure DescrEndTableCell; override;
+    // TFPDocWriter class methods
+    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
   end;
 
 
@@ -666,12 +668,32 @@ begin
   WriteLn('\end{FPCltable}');
 end;
 
+Function TLatexWriter.InterPretOption(Const Cmd,Arg : String) : boolean;
+
+begin
+  Result:=True;
+  if (cmd= '--latex-highlight') then
+    LatexHighLight:=True
+  else if Cmd = '--latex-extension' then
+     TexExtension:=Arg
+  else
+    Result:=False;
+end;
+
+initialization
+  // Do not localize.
+  RegisterWriter(TLaTeXWriter,'latex','Latex output using fpc.sty class.');
+finalization
+  UnRegisterWriter('latex');
 end.
 
 
 {
   $Log$
-  Revision 1.8  2005-01-09 15:59:50  michael
+  Revision 1.9  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.8  2005/01/09 15:59:50  michael
   + Split out latex writer to linear and latex writer
 
   Revision 1.7  2004/11/15 18:01:16  michael

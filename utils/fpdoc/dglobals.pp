@@ -80,6 +80,23 @@ resourcestring
   SDocNext = 'Next';
   SDocPrevious = 'Previous';
 
+  // Various backend constants
+  SDocChapter    = 'Chapter';
+  SDocSection    = 'Section';
+  SDocSubSection = 'Subsection';
+  SDocTable      = 'Table';
+  SDocListing    = 'Listing';
+
+  STitle = 'FPDoc - Free Pascal Documentation Tool';
+  SCopyright = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
+  SCmdLineHelp = 'See documentation for usage.';
+  SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
+  SCmdLineInvalidFormat = 'Invalid format "%s" specified';
+  SCmdLineOutputOptionMissing = 'Need an output filename, please specify one with --output=<filename>';
+  SWritingPages = 'Writing %d pages...';
+  SNeedPackageName = 'No package name specified. Please specify one using the --package option.';
+  SDone = 'Done.';
+
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
@@ -1152,7 +1169,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-01-09 15:59:50  michael
+  Revision 1.7  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.6  2005/01/09 15:59:50  michael
   + Split out latex writer to linear and latex writer
 
   Revision 1.5  2004/08/28 18:47:48  michael

@@ -24,7 +24,7 @@ unit dWriter;
 
 interface
 
-uses Classes, DOM, dGlobals, PasTree;
+uses Classes, DOM, dGlobals, PasTree, SysUtils;
 
 resourcestring
   SErrFileWriting = 'An error occured during writing of file "%s": %s';
@@ -49,8 +49,9 @@ resourcestring
   SErrUnknownLinkID = 'Warning: Target ID of <link> is unknown: "%s"';
   SErrUnknownPrintShortID = 'Warning: Target ID of <printshort> is unknown: "%s"';
   SErrUnknownLink = 'Could not resolve link to "%s"';
-
-
+  SErralreadyRegistered = 'Class for output format "%s" already registered';
+  SErrUnknownWriterClass = 'Unknown output format "%s"';
+  
 type
   // Phony element for pas pages.
 
@@ -63,10 +64,14 @@ type
     Subtopics : TList;
   end;
 
+  { TFPDocWriter }
+
   TFPDocWriter = class
   private
-    FEngine : TFPDocEngine;
-    FTopics : TList;
+    FEngine  : TFPDocEngine;
+    FPackage : TPasPackage;
+
+    FTopics  : TList;
   protected
 
     procedure Warning(AContext: TPasElement; const AMsg: String);
@@ -139,22 +144,156 @@ type
     procedure DescrBeginTableCell; virtual; abstract;
     procedure DescrEndTableCell; virtual; abstract;
   public
-    constructor Create(AEngine: TFPDocEngine);
+    Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); virtual;
     destructor Destroy;  override;
     property Engine : TFPDocEngine read FEngine;
+    Property Package : TPasPackage read FPackage;
     Property Topics : TList Read FTopics;
+    // Should return True if option was succesfully interpreted.
+    Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
+    Class Procedure Usage(List : TStrings); virtual;
+    procedure WriteDoc; virtual; Abstract;
   end;
 
+  TFPDocWriterClass = Class of TFPDocWriter;
+  EFPDocWriterError = Class(Exception);
+  
+// Register backend
+Procedure RegisterWriter(AClass : TFPDocWriterClass; Const AName,ADescr : String);
+// UnRegister backend
+Procedure UnRegisterWriter(Const AName : String);
+// Return back end class. Exception if not found.
+Function  GetWriterClass(AName : String) : TFPDocWriterClass;
+// Return index of back end class.
+Function  FindWriterClass(AName : String) : Integer;
+// List of backend in name=descr form.
+Procedure EnumWriters(List : TStrings);
 
 implementation
 
-uses SysUtils;
+
+{ ---------------------------------------------------------------------
+  Writer registration
+  ---------------------------------------------------------------------}
+  
+Type
+
+{ TWriterRecord }
+
+  TWriterRecord = Class(TObject)
+  Private
+    FClass : TFPDocWriterClass;
+    FName : String;
+    FDescription : String;
+  Public
+    Constructor Create (AClass : TFPDocWriterClass; Const AName,ADescr : String);
+  end;
+
+{ TWriterRecord }
+
+constructor TWriterRecord.Create(AClass: TFPDocWriterClass; const AName,
+  ADescr: String);
+begin
+  FClass:=AClass;
+  FName:=AName;
+  FDescription:=ADescr;
+end;
+
+Var
+  Writers : TStringList;
+
+Procedure InitWriterList;
+
+begin
+  Writers:=TStringList.Create;
+  Writers.Sorted:=True;
+end;
+
+Procedure DoneWriterList;
+
+Var
+  I : Integer;
+
+begin
+  For I:=Writers.Count-1 downto 0 do
+    Writers.Objects[i].Free;
+  FreeAndNil(Writers);
+end;
+
+procedure RegisterWriter(AClass : TFPDocWriterClass; Const AName, ADescr : String);
+begin
+  If Writers.IndexOf(AName)<>-1 then
+    Raise EFPDocWriterError.CreateFmt(SErralreadyRegistered,[ANAme]);
+  Writers.AddObject(AName,TWriterRecord.Create(AClass,AName,ADescr));
+end;
+
+function  FindWriterClass(AName : String) : Integer;
+
+begin
+  Result:=Writers.IndexOf(AName);
+end;
+
+function GetWriterClass(AName : String) : TFPDocWriterClass;
+
+Var
+  Index : Integer;
+
+begin
+  Index:=FindWriterClass(AName);
+  If Index=-1 then
+    Raise EFPDocWriterError.CreateFmt(SErrUnknownWriterClass,[ANAme]);
+  Result:=(Writers.Objects[Index] as TWriterRecord).FClass;
+end;
+
+// UnRegister backend
+
+Procedure UnRegisterWriter(Const AName : String);
+Var
+  Index : Integer;
+
+begin
+  Index:=Writers.IndexOf(AName);
+  If Index=-1 then
+    Raise EFPDocWriterError.CreateFmt(SErrUnknownWriterClass,[ANAme]);
+  Writers.Objects[Index].Free;
+  Writers.Delete(Index);
+end;
 
 
-constructor TFPDocWriter.Create(AEngine: TFPDocEngine);
+Procedure EnumWriters(List : TStrings);
+
+Var
+  I : Integer;
+
+begin
+  List.Clear;
+  For I:=0 to Writers.Count-1 do
+    With (Writers.Objects[I] as TWriterRecord) do
+      List.Add(FName+'='+FDescription);
+end;
+
+
+
+{ ---------------------------------------------------------------------
+  TFPDocWriter
+  ---------------------------------------------------------------------}
+{
+      fmtIPF:
+        begin
+          if Length(Engine.Output) = 0 then
+            WriteLn(SCmdLineOutputOptionMissing)
+          else
+            CreateIPFDocForPackage(Engine.Package, Engine);
+        end;
+
+
+}
+Constructor TFPDocWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
+
 begin
   inherited Create;
-  FEngine := AEngine;
+  FEngine  := AEngine;
+  FPackage := APackage;
   FTopics:=Tlist.Create;
 end;
 
@@ -168,6 +307,16 @@ begin
     TTopicElement(FTopics[i]).Free;
   FTopics.Free;
   Inherited;
+end;
+
+function TFPDocWriter.InterpretOption(Const Cmd,Arg : String): Boolean;
+begin
+  Result:=False;
+end;
+
+Class procedure TFPDocWriter.Usage(List: TStrings);
+begin
+  // Do nothing.
 end;
 
 Function TFPDocWriter.FindTopicElement(Node : TDocNode): TTopicElement;
@@ -186,10 +335,9 @@ begin
     end;
 end;
 
-
-// ===================================================================
-//   Generic documentation node conversion
-// ===================================================================
+{ ---------------------------------------------------------------------
+  Generic documentation node conversion
+  ---------------------------------------------------------------------}
 
 function IsContentNodeType(Node: TDOMNode): Boolean;
 begin
@@ -813,12 +961,20 @@ begin
   Inherited;
 end;
 
+
+initialization
+  InitWriterList;
+finalization
+  DoneWriterList;
 end.
 
 
 {
   $Log$
-  Revision 1.3  2004-08-28 18:05:17  michael
+  Revision 1.4  2005-01-12 21:11:41  michael
+  + New structure for writers. Implemented TXT writer
+
+  Revision 1.3  2004/08/28 18:05:17  michael
   + Check for non-nil context
 
   Revision 1.2  2004/06/06 10:53:02  michael
