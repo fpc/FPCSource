@@ -394,9 +394,9 @@
       end;
 
 
-    function tprocsym.demangledname:string;
+    function tprocsym.declarationstr:string;
       begin
-        demangledname:=name+definition^.demangled_paras;
+        declarationstr:=realname+definition^.demangled_paras;
       end;
 
 
@@ -424,9 +424,9 @@
               if pd^.forwarddef then
                 begin
                    if assigned(pd^._class) then
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+demangledname)
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,pd^._class^.objname^+'.'+declarationstr)
                    else
-                     MessagePos1(fileinfo,sym_e_forward_not_resolved,demangledname);
+                     MessagePos1(fileinfo,sym_e_forward_not_resolved,declarationstr);
                    { Turn futher error messages off }
                    pd^.forwarddef:=false;
                 end;
@@ -640,16 +640,6 @@
     end;
 {$endif GDB}
 
-
-{****************************************************************************
-                                  TPROGRAMSYM
-****************************************************************************}
-
-    constructor tprogramsym.init(const n : string);
-      begin
-        inherited init(n);
-        typ:=programsym;
-      end;
 
 {****************************************************************************
                                   TERRORSYM
@@ -2218,7 +2208,10 @@
 
 {
   $Log$
-  Revision 1.9  2000-09-24 21:19:52  peter
+  Revision 1.10  2000-10-15 07:47:53  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.9  2000/09/24 21:19:52  peter
     * delphi compile fixes
 
   Revision 1.8  2000/09/19 23:08:03  pierre

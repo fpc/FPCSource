@@ -461,7 +461,9 @@
           procedure setmangledname(const s : string);
           procedure load_references;
           function  write_references : boolean;
+{$ifdef dummy}
           function  procname: string;
+{$endif dummy}
           function  cplusplusmangledname(const rn : string) : string;
           { debug }
 {$ifdef GDB}
@@ -557,7 +559,10 @@
 
 {
   $Log$
-  Revision 1.11  2000-10-14 10:14:53  peter
+  Revision 1.12  2000-10-15 07:47:52  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.11  2000/10/14 10:14:53  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.10  2000/09/24 15:06:29  peter

@@ -87,9 +87,6 @@ implementation
 {$endif}
        ;
 
-    var
-      realname : string;  { contains the real name of a procedure as it's typed }
-
 
     procedure parameter_dec(aktprocdef:pabstractprocdef);
       {
@@ -313,7 +310,7 @@ implementation
 
 
 procedure parse_proc_head(options:tproctypeoption);
-var sp:stringid;
+var orgsp,sp:stringid;
     pd:Pprocdef;
     paramoffset:longint;
     sym:Psym;
@@ -331,12 +328,12 @@ begin
   if (options=potype_operator) then
     begin
       sp:=overloaded_names[optoken];
-      realname:=sp;
+      orgsp:=sp;
     end
   else
     begin
       sp:=pattern;
-      realname:=orgpattern;
+      orgsp:=orgpattern;
       consume(_ID);
     end;
 
@@ -352,7 +349,7 @@ begin
      tokenpos:=storepos;
      { load proc name }
      sp:=pattern;
-     realname:=orgpattern;
+     orgsp:=orgpattern;
      procstartfilepos:=tokenpos;
      { qualifier is class name ? }
      if (sym^.typ<>typesym) or
@@ -460,7 +457,7 @@ begin
          DuplicateSym(aktprocsym);
         { try to recover by creating a new aktprocsym }
         tokenpos:=procstartfilepos;
-        aktprocsym:=new(pprocsym,init(sp));
+        aktprocsym:=new(pprocsym,init(orgsp));
       end;
    end
   else
@@ -483,7 +480,7 @@ begin
 {$endif DONOTCHAINOPERATORS}
        end
       else
-       aktprocsym:=new(pprocsym,init(sp));
+       aktprocsym:=new(pprocsym,init(orgsp));
      symtablestack^.insert(aktprocsym);
    end;
 
@@ -726,7 +723,7 @@ begin
   { only os/2 needs this }
   if target_info.target=target_i386_os2 then
    begin
-     procnames.insert(realname);
+     procnames.insert(aktprocsym^.realname);
      procinfo^.exported:=true;
      if cs_link_deffile in aktglobalswitches then
        deffile.AddExport(aktprocsym^.definition^.mangledname);
@@ -787,7 +784,7 @@ end;
 
 procedure pd_system(const procnames:Tstringcontainer);
 begin
-  aktprocsym^.definition^.setmangledname(realname);
+  aktprocsym^.definition^.setmangledname(aktprocsym^.realname);
 end;
 
 procedure pd_abstract(const procnames:Tstringcontainer);
@@ -889,7 +886,7 @@ end;
 procedure pd_cdecl(const procnames:Tstringcontainer);
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
-    aktprocsym^.definition^.setmangledname(target_os.Cprefix+realname);
+    aktprocsym^.definition^.setmangledname(target_os.Cprefix+aktprocsym^.realname);
   { do not copy on local !! }
   if (aktprocsym^.definition^.deftype=procdef) and
      assigned(aktprocsym^.definition^.parast) then
@@ -900,7 +897,7 @@ procedure pd_cppdecl(const procnames:Tstringcontainer);
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
     aktprocsym^.definition^.setmangledname(
-      target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname(realname));
+      target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname(aktprocsym^.realname));
   { do not copy on local !! }
   if (aktprocsym^.definition^.deftype=procdef) and
      assigned(aktprocsym^.definition^.parast) then
@@ -992,7 +989,7 @@ begin
         else
           Message(parser_w_empty_import_name);}
         { this should work both for win32 and Linux !! PM }
-        import_name:=realname;
+        import_name:=aktprocsym^.realname;
       if not(current_module^.uses_imports) then
        begin
          current_module^.uses_imports:=true;
@@ -1583,7 +1580,7 @@ begin
                    (aktprocsym^.definition^.maxparacount>0)) then
                  begin
                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                aktprocsym^.demangledName);
+                                aktprocsym^.declarationstr);
                     exit;
                  end;
                if hd^.forwarddef then
@@ -1596,7 +1593,7 @@ begin
                       (m_repeat_forward in aktmodeswitches)) then
                      begin
                        MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_header_dont_match_forward,
-                                   aktprocsym^.demangledName);
+                                   aktprocsym^.declarationstr);
                        exit;
                      end;
                    { Check calling convention, no check for internconst,internproc which
@@ -1651,7 +1648,7 @@ begin
                          if hd^.forwarddef and aktprocsym^.definition^.forwarddef then
                            begin
                              MessagePos1(aktprocsym^.definition^.fileinfo,
-                                         parser_e_function_already_declared_public_forward,aktprocsym^.demangledName);
+                                         parser_e_function_already_declared_public_forward,aktprocsym^.declarationstr);
                              check_identical_proc:=true;
                            { Remove other forward from the list to reduce errors }
                              pd^.nextoverloaded:=pd^.nextoverloaded^.nextoverloaded;
@@ -1817,7 +1814,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:51  peter
+  Revision 1.2  2000-10-15 07:47:51  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.1  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
 }

@@ -694,7 +694,7 @@
     procedure load_interface;
       var
         b : byte;
-        newmodulename : pstring;
+        newmodulename : string;
       begin
        { read interface part }
          repeat
@@ -702,11 +702,13 @@
            case b of
              ibmodulename :
                begin
-                 newmodulename:=stringdup(current_ppu^.getstring);
-                 if newmodulename^<>current_module^.modulename^ then
-                   Message2(unit_f_unit_name_error,current_module^.modulename^,newmodulename^);
+                 newmodulename:=current_ppu^.getstring;
+                 if upper(newmodulename)<>current_module^.modulename^ then
+                   Message2(unit_f_unit_name_error,current_module^.realmodulename^,newmodulename);
                  stringdispose(current_module^.modulename);
-                 current_module^.modulename:=newmodulename;
+                 stringdispose(current_module^.realmodulename);
+                 current_module^.modulename:=stringdup(upper(newmodulename));
+                 current_module^.realmodulename:=stringdup(newmodulename);
                end;
              ibsourcefiles :
                readsourcefiles;
@@ -736,7 +738,10 @@
 
 {
   $Log$
-  Revision 1.4  2000-09-24 21:33:47  peter
+  Revision 1.5  2000-10-15 07:47:53  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.4  2000/09/24 21:33:47  peter
     * message updates merges
 
   Revision 1.3  2000/09/21 20:56:19  pierre

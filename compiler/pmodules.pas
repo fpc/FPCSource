@@ -641,7 +641,7 @@ implementation
         symtablestack:=systemunit;
         { add to the used units }
         current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-        unitsym:=new(punitsym,init('SYSTEM',systemunit));
+        unitsym:=new(punitsym,init('System',systemunit));
         inc(unitsym^.refs);
         refsymtable^.insert(unitsym);
         { read default constant definitions }
@@ -660,24 +660,24 @@ implementation
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
-           hp:=loadunit('OBJPAS',false);
+           hp:=loadunit('ObjPas',false);
            psymtable(hp^.globalsymtable)^.next:=symtablestack;
            symtablestack:=hp^.globalsymtable;
            { add to the used units }
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           unitsym:=new(punitsym,init('OBJPAS',hp^.globalsymtable));
+           unitsym:=new(punitsym,init('ObjPas',hp^.globalsymtable));
            inc(unitsym^.refs);
            refsymtable^.insert(unitsym);
          end;
       { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
          begin
-           hp:=loadunit('PROFILE',false);
+           hp:=loadunit('Profile',false);
            psymtable(hp^.globalsymtable)^.next:=symtablestack;
            symtablestack:=hp^.globalsymtable;
            { add to the used units }
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           unitsym:=new(punitsym,init('PROFILE',hp^.globalsymtable));
+           unitsym:=new(punitsym,init('Profile',hp^.globalsymtable));
            inc(unitsym^.refs);
            refsymtable^.insert(unitsym);
          end;
@@ -687,24 +687,24 @@ implementation
            { Heaptrc unit }
            if (cs_gdb_heaptrc in aktglobalswitches) then
             begin
-              hp:=loadunit('HEAPTRC',false);
+              hp:=loadunit('HeapTrc',false);
               psymtable(hp^.globalsymtable)^.next:=symtablestack;
               symtablestack:=hp^.globalsymtable;
               { add to the used units }
               current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-              unitsym:=new(punitsym,init('HEAPTRC',hp^.globalsymtable));
+              unitsym:=new(punitsym,init('HeapTrc',hp^.globalsymtable));
               inc(unitsym^.refs);
               refsymtable^.insert(unitsym);
             end;
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
             begin
-              hp:=loadunit('LINEINFO',false);
+              hp:=loadunit('LineInfo',false);
               psymtable(hp^.globalsymtable)^.next:=symtablestack;
               symtablestack:=hp^.globalsymtable;
               { add to the used units }
               current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-              unitsym:=new(punitsym,init('LINEINFO',hp^.globalsymtable));
+              unitsym:=new(punitsym,init('LineInfo',hp^.globalsymtable));
               inc(unitsym^.refs);
               refsymtable^.insert(unitsym);
             end;
@@ -984,9 +984,7 @@ implementation
 {$ifdef GDB}
          pu     : pused_unit;
 {$endif GDB}
-{$ifndef Dont_use_double_checksum}
-        store_crc,store_interface_crc : longint;
-{$endif}
+         store_crc,store_interface_crc : longint;
          s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
 
@@ -1003,7 +1001,9 @@ implementation
              current_module^.SetFileName(main_file^.path^+main_file^.name^,true);
 
              stringdispose(current_module^.modulename);
-             current_module^.modulename:=stringdup(upper(pattern));
+             stringdispose(current_module^.realmodulename);
+             current_module^.modulename:=stringdup(pattern);
+             current_module^.realmodulename:=stringdup(orgpattern);
           { check for system unit }
              new(s1);
              new(s2);
@@ -1014,7 +1014,7 @@ implementation
                 if ((length(current_module^.modulename^)>8) or
                    (current_module^.modulename^<>s1^) or
                    (current_module^.modulename^<>s2^)) then
-                  Message1(unit_e_illegal_unit_name,current_module^.modulename^);
+                  Message1(unit_e_illegal_unit_name,current_module^.realmodulename^);
               end
              else
               begin
@@ -1022,7 +1022,7 @@ implementation
                    not((current_module^.modulename^=s2^) or
                        ((length(current_module^.modulename^)>8) and
                         (copy(current_module^.modulename^,1,8)=s2^))) then
-                 Message1(unit_e_illegal_unit_name,current_module^.modulename^);
+                 Message1(unit_e_illegal_unit_name,current_module^.realmodulename^);
                 if (current_module^.modulename^=s1^) then
                  Message(unit_w_switch_us_missed);
               end;
@@ -1039,10 +1039,10 @@ implementation
          { handle the global switches }
          setupglobalswitches;
 
-         Message1(unit_u_start_parse_interface,current_module^.modulename^);
+         Message1(unit_u_start_parse_interface,current_module^.realmodulename^);
 
          { update status }
-         status.currentmodule:=current_module^.modulename^;
+         status.currentmodule:=current_module^.realmodulename^;
 
          { maybe turn off m_objpas if we are compiling objpas }
          if (current_module^.modulename^='OBJPAS') then
@@ -1068,7 +1068,7 @@ implementation
          { inside the unit itself (PM)                }
          { this also forbids to have another symbol      }
          { with the same name as the unit                  }
-         refsymtable^.insert(new(punitsym,init(current_module^.modulename^,unitst)));
+         refsymtable^.insert(new(punitsym,init(current_module^.realmodulename^,unitst)));
 
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
@@ -1125,7 +1125,7 @@ implementation
          numberunits;
 
          { ... parse the declarations }
-         Message1(parser_u_parsing_interface,current_module^.modulename^);
+         Message1(parser_u_parsing_interface,current_module^.realmodulename^);
          read_interface_declarations;
 
          { leave when we got an error }
@@ -1142,11 +1142,9 @@ implementation
          write_gdb_info;
 {$endIf Def New_GDB}
 
-  {$ifndef Dont_use_double_checksum}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (Errorcount=0) then
              writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),true);
-  {$endif Test_Double_checksum}
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
@@ -1208,7 +1206,7 @@ implementation
          allow_special:=false;
 {$endif Splitheap}
 
-         Message1(parser_u_parsing_implementation,current_module^.modulename^);
+         Message1(parser_u_parsing_implementation,current_module^.realmodulename^);
 
          { Compile the unit }
          codegen_newprocedure;
@@ -1373,27 +1371,23 @@ implementation
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
          { Write out the ppufile }
-  {$ifndef Dont_use_double_checksum}
-        store_interface_crc:=current_module^.interface_crc;
-        store_crc:=current_module^.crc;
-  {$endif Test_Double_checksum}
+         store_interface_crc:=current_module^.interface_crc;
+         store_crc:=current_module^.crc;
          if (Errorcount=0) then
            writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack),false);
 
-  {$ifndef Dont_use_double_checksum}
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module^.interface_crc then
              Comment(V_Warning,current_module^.ppufilename^+' Interface CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
-  {$ifdef EXTDEBUG}
+{$ifdef EXTDEBUG}
          if not(cs_compilesystem in aktmoduleswitches) then
            if (store_crc<>current_module^.crc) and simplify_ppu then
              Comment(V_Warning,current_module^.ppufilename^+' implementation CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module^.interface_crc));
-  {$endif EXTDEBUG}
-  {$endif ndef Dont_use_Double_checksum}
-          { must be done only after local symtable ref stores !! }
-          closecurrentppu;
+{$endif EXTDEBUG}
+         { must be done only after local symtable ref stores !! }
+         closecurrentppu;
 {$ifdef GDB}
          pu:=pused_unit(usedunits.first);
          while assigned(pu) do
@@ -1410,7 +1404,6 @@ implementation
               dispose(st,done);
               current_module^.localsymtable:=nil;
            end;
-
 
          RestoreUnitSyms;
 
@@ -1486,7 +1479,9 @@ implementation
             begin
               consume(_PROGRAM);
               stringdispose(current_module^.modulename);
+              stringdispose(current_module^.realmodulename);
               current_module^.modulename:=stringdup(pattern);
+              current_module^.realmodulename:=stringdup(orgpattern);
               if (target_info.target=target_i386_WIN32) then
                 exportlib^.preparelib(pattern);
               consume(_ID);
@@ -1541,9 +1536,8 @@ implementation
          numberunits;
 
          {Insert the name of the main program into the symbol table.}
-         if current_module^.modulename^<>'' then
-           {st^.insert(new(pprogramsym,init(current_module^.modulename^)));}
-           st^.insert(new(punitsym,init(current_module^.modulename^,punitsymtable(st))));
+         if current_module^.realmodulename^<>'' then
+           st^.insert(new(punitsym,init(current_module^.realmodulename^,punitsymtable(st))));
 
          { ...is also constsymtable, this is the symtable where }
          { the elements of enumeration types are inserted       }
@@ -1714,7 +1708,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-10-04 14:51:08  pierre
+  Revision 1.14  2000-10-15 07:47:51  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.13  2000/10/04 14:51:08  pierre
    * IsExe restored
 
   Revision 1.12  2000/09/30 16:07:40  peter

@@ -2385,7 +2385,7 @@ implementation
          pu        : pused_unit;
       begin
       { first the unitname }
-        current_ppu^.putstring(name^);
+        current_ppu^.putstring(current_module^.realmodulename^);
         current_ppu^.writeentry(ibmodulename);
 
         writesourcefiles;
@@ -2880,7 +2880,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-14 10:14:53  peter
+  Revision 1.11  2000-10-15 07:47:53  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.10  2000/10/14 10:14:53  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.9  2000/10/01 19:48:25  peter

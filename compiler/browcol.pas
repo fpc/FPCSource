@@ -38,7 +38,7 @@ const
   SymbolTypLen : sw_integer = 6;
 
   RecordTypes : set of tsymtyp =
-    ([typesym,unitsym,programsym]);
+    ([typesym,unitsym]);
 
     sfRecord        = $00000001;
     sfObject        = $00000002;
@@ -766,7 +766,6 @@ begin
                    else
                      S:='func';
     unitsym      : S:='unit';
-    programsym   : S:='prog';
     constsym     : S:='const';
     enumsym      : S:='enum';
     typedconstsym: S:='const';
@@ -2094,7 +2093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 15:06:11  peter
+  Revision 1.10  2000-10-15 07:47:51  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.9  2000/09/24 15:06:11  peter
     * use defines.inc
 
   Revision 1.8  2000/09/11 17:00:22  florian

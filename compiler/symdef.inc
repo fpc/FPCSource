@@ -3056,6 +3056,7 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
+{$ifdef dummy}
     function tprocdef.procname: string;
       var
         s : string;
@@ -3082,6 +3083,7 @@ Const local_symtable_index : longint = $8001;
          else
           procname:=Copy(s,1,l-1);
       end;
+{$endif}
 
     function tprocdef.cplusplusmangledname(const rn : string) : string;
 
@@ -4252,13 +4254,8 @@ Const local_symtable_index : longint = $8001;
          rttilist^.concat(new(pai_const,init_16bit(count)));
 
          { write unit name }
-         if assigned(owner^.name) then
-           begin
-              rttilist^.concat(new(pai_const,init_8bit(length(owner^.name^))));
-              rttilist^.concat(new(pai_string,init(owner^.name^)));
-           end
-         else
-           rttilist^.concat(new(pai_const,init_8bit(0)));
+         rttilist^.concat(new(pai_const,init_8bit(length(current_module^.realmodulename^))));
+         rttilist^.concat(new(pai_string,init(current_module^.realmodulename^)));
 
          { write published properties count }
          count:=0;
@@ -4342,7 +4339,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.22  2000-10-14 10:14:52  peter
+  Revision 1.23  2000-10-15 07:47:52  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.22  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.21  2000/10/04 23:16:48  pierre

@@ -231,7 +231,7 @@ type
               classrefdef,forwarddef);
 
   { possible types for symtable entries }
-  tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,programsym,
+  tsymtyp = (abstractsym,varsym,typesym,procsym,unitsym,
              constsym,enumsym,typedconstsym,errorsym,syssym,
              labelsym,absolutesym,propertysym,funcretsym,
              macrosym);
@@ -271,7 +271,7 @@ const
 
 const
      SymTypeName : array[tsymtyp] of string[12] =
-     ('abstractsym','variable','type','proc','unit','program',
+     ('abstractsym','variable','type','proc','unit',
       'const','enum','typed const','errorsym','system sym',
       'label','absolute','property','funcret',
       'macrosym');
@@ -281,7 +281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 10:14:52  peter
+  Revision 1.9  2000-10-15 07:47:52  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.8  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.7  2000/09/24 15:06:28  peter

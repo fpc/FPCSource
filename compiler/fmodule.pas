@@ -132,6 +132,7 @@ interface
           path,                     { path where the module is find/created }
           outputpath,               { path where the .s / .o / exe are created }
           modulename,               { name of the module in uppercase }
+          realmodulename,           { name of the module in the orignal case }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
@@ -710,13 +711,20 @@ end;
         FSplit(s,p,n,e);
       { Programs have the name program to don't conflict with dup id's }
         if _is_unit then
+         begin
 {$ifdef UNITALIASES}
-          modulename:=stringdup(GetUnitAlias(Upper(n)))
+           modulename:=stringdup(GetUnitAlias(Upper(n)));
+           realmodulename:=stringdup(GetUnitAlias(n));
 {$else}
-          modulename:=stringdup(Upper(n))
+           modulename:=stringdup(Upper(n));
+           realmodulename:=stringdup(n);
 {$endif}
+         end
         else
-          modulename:=stringdup('PROGRAM');
+         begin
+           modulename:=stringdup('PROGRAM');
+           realmodulename:=stringdup('Program');
+         end;
         mainsource:=stringdup(s);
         ppufilename:=nil;
         objfilename:=nil;
@@ -779,7 +787,9 @@ end;
       { search the PPU file if it is an unit }
         if is_unit then
          begin
-           search_unit(modulename^,false);
+           { use the realmodulename so we can also find a case sensitive
+             source filename }
+           search_unit(realmodulename^,false);
            { it the sources_available is changed then we know that
              the sources aren't available }
            if not sources_avail then
@@ -828,6 +838,7 @@ end;
         stringdispose(outputpath);
         stringdispose(path);
         stringdispose(modulename);
+        stringdispose(realmodulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
         localunitsearchpath.done;
@@ -901,7 +912,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:16  peter
+  Revision 1.3  2000-10-15 07:47:51  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.2  2000/09/24 15:06:16  peter
     * use defines.inc
 
   Revision 1.1  2000/08/27 16:11:50  peter

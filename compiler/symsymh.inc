@@ -112,7 +112,7 @@
           constructor load;
           destructor done;virtual;
           function mangledname : string;virtual;
-          function demangledname:string;
+          function declarationstr:string;
           { writes all declarations }
           procedure write_parameter_lists(skipdef:pprocdef);
           { tests, if all procedures definitions are defined and not }
@@ -302,11 +302,6 @@
 {$endif GDB}
        end;
 
-       pprogramsym = ^tprogramsym;
-       tprogramsym = object(tsym)
-          constructor init(const n : string);
-       end;
-
        psyssym = ^tsyssym;
        tsyssym = object(tsym)
           number : longint;
@@ -321,7 +316,10 @@
 
 {
   $Log$
-  Revision 1.5  2000-08-27 20:19:40  peter
+  Revision 1.6  2000-10-15 07:47:53  peter
+    * unit names and procedure names are stored mixed case
+
+  Revision 1.5  2000/08/27 20:19:40  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 
