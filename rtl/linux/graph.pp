@@ -318,6 +318,7 @@ begin
   nrColors:=vga_getcolors;
   if (nrColors=16) or (nrcolors=256) then
     InitColors(nrColors);
+  SetRawMode(True);
 end;
 
 Function ClipCoords (Var X,Y : Integer) : Boolean;
@@ -502,6 +503,7 @@ end;
         _graphresult := grnoinitgraph;
         exit
       end;
+    SetRawMode(False);
     RestoreVideoState;
     isgraphmode := false;
  end;
@@ -593,13 +595,14 @@ end;
 
 initialization
   InitializeGraph;
-  SetRawMode(True);
-finalization
-  SetRawMode(False);
 end.
 {
   $Log$
-  Revision 1.3  2000-07-31 12:30:54  jonas
+  Revision 1.4  2000-08-25 12:31:05  jonas
+    * fixed problem with messed-up terminal after exiting (merged from
+      fixes branch)
+
+  Revision 1.3  2000/07/31 12:30:54  jonas
     * You can now set colors > 15 (merged from fixes branch)
 
   Revision 1.2  2000/07/13 11:33:48  michael
