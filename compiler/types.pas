@@ -876,7 +876,9 @@ implementation
                 { poassembler isn't important for compatibility }
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
-                b:=((pprocvardef(def1)^.procoptions * po_compatibility_options)=
+                b:=(pprocvardef(def1)^.proctypeoption=pprocvardef(def2)^.proctypeoption) and
+                   (pprocvardef(def1)^.proccalloptions=pprocvardef(def2)^.proccalloptions) and
+                   ((pprocvardef(def1)^.procoptions * po_compatibility_options)=
                     (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
                    is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
                 { now evalute the parameters }
@@ -993,7 +995,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  1999-10-01 08:02:51  peter
+  Revision 1.89  1999-10-01 10:04:07  peter
+    * fixed is_equal for proc -> procvar which didn't check the
+      callconvention and type anymore since the splitting of procoptions
+
+  Revision 1.88  1999/10/01 08:02:51  peter
     * forward type declaration rewritten
 
   Revision 1.87  1999/09/15 22:09:27  florian
