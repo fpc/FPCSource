@@ -258,7 +258,7 @@ begin
  GetDir (0, CurDir);
 {$IFDEF NODRIVEC}
  {$IFDEF UNIX}
- CDir = CurDir;
+ CDir := CurDir;
  {$ELSE UNIX}
  CDir := 'C:';
  {$ENDIF UNIX}
@@ -477,7 +477,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-05 14:16:59  hajny
+  Revision 1.8  2004-12-05 16:24:18  jonas
+    * fixed for unix
+
+  Revision 1.7  2004/12/05 14:16:59  hajny
     * popuperr instead of win32err, additional checks (mostly support for more platforms)
 
 
