@@ -110,12 +110,12 @@ uses
       Tsubregister=byte;
 
       Tregister=record
-        enum:Toldregister;
+        enum:TCpuRegister;
         number:Tnewregister;
       end;
 
       {# Set type definition for registers }
-      tregisterset = set of Toldregister;
+      tregisterset = set of TCpuRegister;
       Tsupregset=set of Tsuperregister;
 
       { A type to store register locations for 64 Bit values. }
@@ -129,7 +129,7 @@ uses
 
     Const
       {# First register in the tregister enumeration }
-      firstreg = low(Toldregister);
+      firstreg = low(TCpuRegister);
       {# Last register in the tregister enumeration }
       lastreg  = R_ASR31;
     type
@@ -793,20 +793,20 @@ type
                 (RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7);
 
       maxfpuvarregs = 1;
-      fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
+      fpuvarregs : Array [1..maxfpuvarregs] of TCpuRegister =
                 (R_F2);
 
       {
       max_param_regs_int = 6;
-      param_regs_int: Array[1..max_param_regs_int] of Toldregister =
+      param_regs_int: Array[1..max_param_regs_int] of TCpuRegister =
         (R_3,R_4,R_5,R_6,R_7,R_8,R_9,R_10);
 
       max_param_regs_fpu = 13;
-      param_regs_fpu: Array[1..max_param_regs_fpu] of Toldregister =
+      param_regs_fpu: Array[1..max_param_regs_fpu] of TCpuRegister =
         (R_F1,R_F2,R_F3,R_F4,R_F5,R_F6,R_F7,R_F8,R_F9,R_F10,R_F11,R_F12,R_F13);
 
       max_param_regs_mm = 13;
-      param_regs_mm: Array[1..max_param_regs_mm] of Toldregister =
+      param_regs_mm: Array[1..max_param_regs_mm] of TCpuRegister =
         (R_M1,R_M2,R_M3,R_M4,R_M5,R_M6,R_M7,R_M8,R_M9,R_M10,R_M11,R_M12,R_M13);
       }
 
@@ -1011,7 +1011,7 @@ implementation
           begin
             if r.number>NR_I7 then
               internalerror(200301082);
-            r.enum:=toldregister(r.number shr 8);
+            r.enum:=TCpuRegister(r.number shr 8);
           end;
       end;
 
@@ -1024,7 +1024,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-06-01 21:38:06  peter
+  Revision 1.40  2003-06-04 21:00:54  mazen
+  - making TOldRegister only declared for compatibility and
+    no more used in cpubase
+
+  Revision 1.39  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
