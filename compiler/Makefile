@@ -143,19 +143,27 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
 override PACKAGE_NAME=fpcompiler
 override PACKAGE_VERSION=1.1
-unexport OS_SOURCE FPC_VERSION
+unexport FPC_VERSION
 ifdef ALPHA
-CPU_TARGET=alpha
+PPC_TARGET=alpha
 endif
 ifdef POWERPC
-CPU_TARGET=powerpc
+PPC_TARGET=powerpc
 endif
 ifdef M68K
-CPU_TARGET=m68k
+PPC_TARGET=m68k
 endif
 ifdef I386
-CPU_TARGET=i386
+PPC_TARGET=i386
 endif
+ifndef PPC_TARGET
+PPC_TARGET=$(CPU_TARGET)
+endif
+export PPC_TARGET
+ifndef PPC_OS
+PPC_OS=$(OS_TARGET)
+endif
+export PPC_OS
 UTILSDIR=../utils
 COMPILERUTILSDIR=utils
 ifndef FPCLANG
@@ -171,18 +179,19 @@ ifndef RTLOPTS
 RTLOPTS=$(OPT)
 endif
 MSGFILES=$(wildcard msg/error*.msg)
-ifeq ($(CPU_TARGET),i386)
+ifeq ($(PPC_TARGET),i386)
 CPUSUF=386
 endif
-ifeq ($(CPU_TARGET),alpha)
+ifeq ($(PPC_TARGET),alpha)
 CPUSUF=axp
 endif
-ifeq ($(CPU_TARGET),m68k)
+ifeq ($(PPC_TARGET),m68k)
 CPUSUF=68k
 endif
-ifeq ($(CPU_TARGET),powerpc)
+ifeq ($(PPC_TARGET),powerpc)
 CPUSUF=ppc
 endif
+NOCPUDEF=1
 ifeq ($(OS_TARGET),linux)
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 override LOCALDEF+=-dUNIX
@@ -194,16 +203,19 @@ override LOCALDEF+=-dUNIX
 endif
 endif
 MSGFILE=msg/error$(FPCLANG).msg
-override LOCALDEF+=-dGDB -dBROWSERLOG
-ifeq ($(CPU_TARGET),i386)
+override LOCALDEF+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
+ifeq ($(PPC_TARGET),i386)
 override LOCALDEF+=-dSUPPORT_MMX
+endif
+ifeq ($(PPC_TARGET),m68k)
+override LOCALDEF+=-dNoAg68kMot -dNoAg68kMpw
 endif
 override LOCALOPT+=$(LOCALDEF)
 override FPCOPT:=$(LOCALOPT)
 override TARGET_DIRS+=utils
 override INSTALL_FPCPACKAGE=y
-override COMPILER_INCLUDEDIR+=$(CPU_TARGET)
-override COMPILER_UNITDIR+=$(CPU_TARGET) targets
+override COMPILER_INCLUDEDIR+=$(PPC_TARGET)
+override COMPILER_UNITDIR+=$(PPC_TARGET) targets
 override COMPILER_TARGETDIR+=.
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
@@ -1126,14 +1138,18 @@ endif
 else
 DIFFRESULT=No diff program
 endif
-PPEXENAME=pp$(EXEEXT)
+ifndef EXENAME
 EXENAME=ppc$(CPUSUF)$(EXEEXT)
-TEMPNAME=ppc$(EXEEXT)
+endif
+PPEXENAME=pp$(EXEEXT)
+TEMPNAME=ppc$(SRCEXEEXT)
+PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
 MAKEDEP=ppdep$(EXEEXT)
 MSG2INC=./msg2inc$(EXEEXT)
+.PHONY: alpha i386 m68k powerpc
 alpha:
 	$(MAKE) ALPHA=1 all
 i386:
@@ -1142,7 +1158,9 @@ m68k:
 	$(MAKE) M68K=1 all
 powerpc:
 	$(MAKE) POWERPC=1 all
+.PHONY: all compiler echotime ppuclean execlean clean distclean
 all: $(EXENAME) $(addsuffix _all,$(TARGET_DIRS))
+compiler: $(EXENAME)
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
 ifdef DATE
@@ -1160,26 +1178,13 @@ ENDTIME:=unknown
 endif
 echotime:
 	@echo Start $(STARTTIME) now $(ENDTIME)
-ifndef DIFFRESULT
-next :
-	@echo $(OLDFPC) and $(FPC) are equal
-	$(COPY) $(FPC) $(EXENAME)
-else
-next :
-	$(MAKE) execlean
-	$(MAKE) -C $(UNITDIR_RTL) clean
-	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
-	$(MAKE) clean
-	$(MAKE) $(EXENAME)
-	$(MAKE) echotime
-endif
 ppuclean:
 	-$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 execlean :
-	-$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
+	-$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME)
 clean : execlean fpc_cleanall $(addsuffix _clean,$(TARGET_DIRS))
 distclean: execlean fpc_cleanall $(addsuffix _distclean,$(TARGET_DIRS))
-	-$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+	-$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
 $(MAKEDEP): $(UTILSDIR)/ppdep.pp
 	$(COMPILER) $(UTILSDIR)/ppdep.pp
 	$(COPY) $(UTILSDIR)/$(MAKEDEP) $(MAKEDEP)
@@ -1195,12 +1200,16 @@ msgtxt.inc: $(MSGFILE)
 	$(MSG2INC) $(MSGFILE) msg msg
 msg: msgtxt.inc
 ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
+	     $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+	     $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
+	     $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+	     $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
 	$(COMPILER) pp.pas
@@ -1212,15 +1221,21 @@ endif
 tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
 	$(COMPILER) tokendat.pas
 	./tokendat
-remake: $(EXENAME)
-	$(MOVE) $(EXENAME) $(TEMPNAME)
+ifeq ($(CPU_SOURCE),$(PPC_TARGET))
+ifeq ($(OS_SOURCE),$(OS_TARGET))
+ifndef DIFFRESULT
+next :
+	@echo $(OLDFPC) and $(FPC) are equal
+	$(COPY) $(FPC) $(EXENAME)
+else
+next :
 	$(MAKE) execlean
 	$(MAKE) -C $(UNITDIR_RTL) clean
+	$(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
 	$(MAKE) clean
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
-remake3: $(TEMPNAME3)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
-	$(DIFF) $(TEMPNAME3) $(EXENAME)
+	$(MAKE) $(EXENAME)
+	$(MAKE) echotime
+endif
 $(TEMPNAME1) : $(EXENAME)
 	-$(DEL) $(TEMPNAME1)
 	$(MOVE) $(EXENAME) $(TEMPNAME1)
@@ -1232,6 +1247,15 @@ $(TEMPNAME3) : $(TEMPNAME2)
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next
 	-$(DEL) $(TEMPNAME3)
 	$(MOVE) $(EXENAME) $(TEMPNAME3)
+remake: $(EXENAME)
+	$(MOVE) $(EXENAME) $(TEMPNAME)
+	$(MAKE) execlean
+	$(MAKE) -C $(UNITDIR_RTL) clean
+	$(MAKE) clean
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
+remake3: $(TEMPNAME3)
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
+	$(DIFF) $(TEMPNAME3) $(EXENAME)
 cycle:
 	$(MAKE) clean
 	$(MAKE) -C $(UNITDIR_RTL) clean
@@ -1239,6 +1263,24 @@ cycle:
 	$(MAKE) remake3
 	$(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
 	$(MAKE) echotime
+else
+cycle:
+	$(MAKE) OS_TARGET=$(OS_SOURCE) rtlclean rtl
+	$(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) clean compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) clean compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+endif
+else
+cycle:
+	$(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) rtlclean rtl
+	$(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) clean compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) clean compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+	$(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+endif
 cycledep:
 	$(MAKE) cycle USEDEPEND=1
 cvstest:
@@ -1273,7 +1315,7 @@ ifdef UNIXINSTALLDIR
 endif
 .PHONY: rtl rtlclean rtlinstall
 rtl:
-	$(MAKE) -C $(UNITDIR_RTL) all
+	$(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
 rtlclean:
 	$(MAKE) -C $(UNITDIR_RTL) clean
 rtlinstall:

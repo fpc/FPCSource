@@ -11,8 +11,8 @@ dirs=utils
 
 [compiler]
 targetdir=.
-unitdir=$(CPU_TARGET) targets
-includedir=$(CPU_TARGET)
+unitdir=$(PPC_TARGET) targets
+includedir=$(PPC_TARGET)
 
 [require]
 packages=rtl
@@ -26,22 +26,36 @@ fpcdir=..
 
 
 [prerules]
-# Don't export OS_SOURCE because it can change after the first compile
-unexport OS_SOURCE FPC_VERSION
+# Don't export version it can change after the first compile
+unexport FPC_VERSION
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
-CPU_TARGET=alpha
+PPC_TARGET=alpha
 endif
 ifdef POWERPC
-CPU_TARGET=powerpc
+PPC_TARGET=powerpc
 endif
 ifdef M68K
-CPU_TARGET=m68k
+PPC_TARGET=m68k
 endif
 ifdef I386
-CPU_TARGET=i386
+PPC_TARGET=i386
 endif
+
+# Default is to generate a compiler for the same
+# platform as CPU_TARGET (a native compiler)
+ifndef PPC_TARGET
+PPC_TARGET=$(CPU_TARGET)
+endif
+export PPC_TARGET
+
+# Default is to generate a compiler for the same
+# target as OS_TARGET (a native compiler)
+ifndef PPC_OS
+PPC_OS=$(OS_TARGET)
+endif
+export PPC_OS
 
 # RTL
 UTILSDIR=../utils
@@ -73,18 +87,22 @@ endif
 MSGFILES=$(wildcard msg/error*.msg)
 
 # ppcSUFFIX
-ifeq ($(CPU_TARGET),i386)
+ifeq ($(PPC_TARGET),i386)
 CPUSUF=386
 endif
-ifeq ($(CPU_TARGET),alpha)
+ifeq ($(PPC_TARGET),alpha)
 CPUSUF=axp
 endif
-ifeq ($(CPU_TARGET),m68k)
+ifeq ($(PPC_TARGET),m68k)
 CPUSUF=68k
 endif
-ifeq ($(CPU_TARGET),powerpc)
+ifeq ($(PPC_TARGET),powerpc)
 CPUSUF=ppc
 endif
+
+# Do not define the default -d$(CPU_TARGET) because that
+# will conflict with our -d$(PPC_TARGET)
+NOCPUDEF=1
 
 # Define Unix also for Linux
 ifeq ($(OS_TARGET),linux)
@@ -103,12 +121,16 @@ endif
 MSGFILE=msg/error$(FPCLANG).msg
 
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
-override LOCALDEF+=-dGDB -dBROWSERLOG
+override LOCALDEF+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
 
 # i386 specific
-ifeq ($(CPU_TARGET),i386)
-# also insert MMX support
+ifeq ($(PPC_TARGET),i386)
 override LOCALDEF+=-dSUPPORT_MMX
+endif
+
+# m68k specific
+ifeq ($(PPC_TARGET),m68k)
+override LOCALDEF+=-dNoAg68kMot -dNoAg68kMpw
 endif
 
 override LOCALOPT+=$(LOCALDEF)
@@ -145,9 +167,12 @@ endif
 # Setup os-independent filenames
 #####################################################################
 
-PPEXENAME=pp$(EXEEXT)
+ifndef EXENAME
 EXENAME=ppc$(CPUSUF)$(EXEEXT)
-TEMPNAME=ppc$(EXEEXT)
+endif
+PPEXENAME=pp$(EXEEXT)
+TEMPNAME=ppc$(SRCEXEEXT)
+PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
@@ -158,6 +183,8 @@ MSG2INC=./msg2inc$(EXEEXT)
 #####################################################################
 # CPU targets
 #####################################################################
+
+.PHONY: alpha i386 m68k powerpc
 
 alpha:
         $(MAKE) ALPHA=1 all
@@ -176,7 +203,11 @@ powerpc:
 # Default makefile
 #####################################################################
 
+.PHONY: all compiler echotime ppuclean execlean clean distclean
+
 all: $(EXENAME) $(addsuffix _all,$(TARGET_DIRS))
+
+compiler: $(EXENAME)
 
 ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
@@ -199,30 +230,16 @@ endif
 echotime:
         @echo Start $(STARTTIME) now $(ENDTIME)
 
-ifndef DIFFRESULT
-next :
-        @echo $(OLDFPC) and $(FPC) are equal
-        $(COPY) $(FPC) $(EXENAME)
-else
-next :
-        $(MAKE) execlean
-        $(MAKE) -C $(UNITDIR_RTL) clean
-        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
-        $(MAKE) clean
-        $(MAKE) $(EXENAME)
-        $(MAKE) echotime
-endif
-
 ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
-        -$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT)
+        -$(DEL) fpc$(EXEEXT) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME)
 
 clean : execlean fpc_cleanall $(addsuffix _clean,$(TARGET_DIRS))
 
 distclean: execlean fpc_cleanall $(addsuffix _distclean,$(TARGET_DIRS))
-        -$(DEL) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
 
 
 #####################################################################
@@ -260,12 +277,16 @@ msg: msgtxt.inc
 
 # Make only the compiler
 ifndef COMPLETE
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
+             $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+             $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
         $(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
+             $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+             $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
         $(COMPILER) pp.pas
@@ -279,17 +300,43 @@ tokens.dat : $(wildcard *.pas) $(wildcard *.inc)
         $(COMPILER) tokendat.pas
         ./tokendat
 
-# This target remakes the units with the currently made version
-remake: $(EXENAME)
-        $(MOVE) $(EXENAME) $(TEMPNAME)
+#####################################################################
+# Cycle targets
+#
+# 1. Source CPU = Target CPU  and  Source OS = Target OS
+#    Normal cycle
+# 2. Source CPU = Target CPU  and  Source OS <> Target OS
+#    First source native compiler
+#    Second target native compiler
+#
+# 3. Source CPU <> Target CPU
+#    First source native compiler
+#    Second cross compiler
+#    Third target native compiler
+#
+#####################################################################
+
+ifeq ($(CPU_SOURCE),$(PPC_TARGET))
+
+ifeq ($(OS_SOURCE),$(OS_TARGET))
+
+##########################
+# Normal cycle
+#
+
+ifndef DIFFRESULT
+next :
+        @echo $(OLDFPC) and $(FPC) are equal
+        $(COPY) $(FPC) $(EXENAME)
+else
+next :
         $(MAKE) execlean
         $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) -C $(UNITDIR_RTL) 'FPC=$(FPC)' 'OPT=$(RTLOPTS)'
         $(MAKE) clean
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
-
-remake3: $(TEMPNAME3)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
-        $(DIFF) $(TEMPNAME3) $(EXENAME)
+        $(MAKE) $(EXENAME)
+        $(MAKE) echotime
+endif
 
 $(TEMPNAME1) : $(EXENAME)
         -$(DEL) $(TEMPNAME1)
@@ -305,6 +352,19 @@ $(TEMPNAME3) : $(TEMPNAME2)
         -$(DEL) $(TEMPNAME3)
         $(MOVE) $(EXENAME) $(TEMPNAME3)
 
+# This target remakes the units with the currently made version
+remake: $(EXENAME)
+        $(MOVE) $(EXENAME) $(TEMPNAME)
+        $(MAKE) execlean
+        $(MAKE) -C $(UNITDIR_RTL) clean
+        $(MAKE) clean
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' all
+
+remake3: $(TEMPNAME3)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
+        $(DIFF) $(TEMPNAME3) $(EXENAME)
+
+
 cycle:
         $(MAKE) clean
         $(MAKE) -C $(UNITDIR_RTL) clean
@@ -312,6 +372,48 @@ cycle:
         $(MAKE) remake3
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
         $(MAKE) echotime
+
+else
+
+##########################
+# Cross Target cycle
+#
+
+cycle:
+# ppc (source native)
+        $(MAKE) OS_TARGET=$(OS_SOURCE) rtlclean rtl
+        $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) clean compiler
+# ppcross<ARCH> (source native)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) clean compiler
+# ppc<ARCH> (target native)
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+
+endif
+
+else
+
+##########################
+# Cross CPU cycle
+#
+# ppc1 = native
+# ppc2 = cross running on this platform
+# ppc3/ppcXXX = native
+#
+
+cycle:
+# ppc (source native)
+        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) rtlclean rtl
+        $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) clean compiler
+# ppcross<ARCH> (source native)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) clean compiler
+# ppc<ARCH> (target native)
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' clean compiler
+
+endif
 
 cycledep:
         $(MAKE) cycle USEDEPEND=1
@@ -362,13 +464,13 @@ endif
 
 
 #####################################################################
-# Misc
+# RTL
 #####################################################################
 
 .PHONY: rtl rtlclean rtlinstall
 
 rtl:
-        $(MAKE) -C $(UNITDIR_RTL) all
+        $(MAKE) -C $(UNITDIR_RTL) 'OPT=$(RTLOPTS)' all
 
 rtlclean:
         $(MAKE) -C $(UNITDIR_RTL) clean
