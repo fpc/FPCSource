@@ -1,0 +1,1507 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="typinfo">
+<short>The TYPINFO unit</short>
+<!-- \FPCexampledir{typinfex} -->
+<descr>
+<p>
+The <file>TypeInfo</file> unit contains many routines which can be used for
+the querying of the Run-Time Type Information (RTTI) which is generated
+by the compiler for classes that are compiled under the <var>{$M+}</var>
+switch. This information can be used to retrieve or set property values
+for published properties for totally unknown classes. In particular, it
+can be used to stream classes. The <var>TPersistent</var> class in the 
+<file>Classes</file> unit is compiled in the <var>{$M+}</var> state and serves
+as the base class for all classes that need to be streamed.
+</p>
+<p>
+The unit should be compatible to the Delphi 5 unit with the same name. 
+The only calls that are still missing are the Variant calls, since Free Pascal
+does not support the variant type yet.
+</p>
+<p>
+The examples in this chapter use a <file>rttiobj</file> file, which contains
+an object that has a published property of all supported types. It also
+contains some auxiliary routines and definitions.
+</p>
+</descr>
+
+<topic name="ExaminePropInfo">
+<short>Examining published property information</short>
+<descr>
+<p>
+Functions for retrieving or examining property information
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="FindPropInfo"/></td><td>Getting property type information, With error checking.</td></tr>
+<tr><td><link id="GetPropInfo"/></td><td>Getting property type information, No error checking.</td></tr>
+<tr><td><link id="GetPropInfos"/></td><td>Find property information of a certain kind</td></tr>
+<tr><td><link id="GetObjectPropClass"/></td><td>Return the declared class of an object property </td></tr>
+<tr><td><link id="GetPropList"/></td><td>Get a list of all published properties</td></tr>
+<tr><td><link id="IsPublishedProp"/></td><td>Is a property published</td></tr>
+<tr><td><link id="IsStoredProp"/></td><td>Is a property stored</td></tr>
+<tr><td><link id="PropIsType"/></td><td>Is a property of a certain kind</td></tr>
+<tr><td><link id="PropType"/></td><td>Return the type of a property</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="ManipulatePropValues">
+<short>Getting or setting property values</short>
+<descr>
+<p>
+Functions to set or set a property's value.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="GetEnumProp"/></td><td>Return the value of an enumerated type property</td></tr>
+<tr><td><link id="GetFloatProp"/></td><td>Return the value of a float property</td></tr>
+<tr><td><link id="GetInt64Prop"/></td><td>Return the value of an Int64 property</td></tr>
+<tr><td><link id="GetMethodProp"/></td><td>Return the value of a procedural type property</td></tr>
+<tr><td><link id="GetObjectProp"/></td><td>Return the value of an object property</td></tr>
+<tr><td><link id="GetOrdProp"/></td><td>Return the value of an ordinal type property</td></tr>
+<tr><td><link id="GetPropValue"/></td><td>Return the value of a property as a variant</td></tr>
+<tr><td><link id="GetSetProp"/></td><td>Return the value of a set property</td></tr>
+<tr><td><link id="GetStrProp"/></td><td>Return the value of a string property</td></tr>
+<tr><td><link id="GetVariantProp"/></td><td>Return the value of a variant property</td></tr>
+<tr><td><link id="SetEnumProp"/></td><td>Set the value of an enumerated type property</td></tr>
+<tr><td><link id="SetFloatProp"/></td><td>Set the value of a float property</td></tr>
+<tr><td><link id="SetInt64Prop"/></td><td>Set the value of an Int64 property</td></tr>
+<tr><td><link id="SetMethodProp"/></td><td>Set the value of a procedural type property</td></tr>
+<tr><td><link id="SetObjectProp"/></td><td>Set the value of an object property</td></tr>
+<tr><td><link id="SetOrdProp"/></td><td>Set the value of an ordinal type property</td></tr>
+<tr><td><link id="SetPropValue"/></td><td>Set the value of a property trhough a variant</td></tr>
+<tr><td><link id="SetSetProp"/></td><td>Set the value of a set property</td></tr>
+<tr><td><link id="SetStrProp"/></td><td>Set the value of a string property</td></tr>
+<tr><td><link id="SetVariantProp"/></td><td>Set the value of a variant property</td></tr>
+</table>
+</descr>
+</topic>
+
+<topic name="AuxiliaryTypinfo">
+<short>Auxiliary functions</short>
+<descr>
+<p>
+Other typinfo related functions.
+</p>
+<table>
+<th><td>Name</td><td>Description</td></th>
+<tr><td><link id="GetEnumName"/></td><td>Get an enumerated type element name</td></tr>
+<tr><td><link id="GetEnumValue"/></td><td>Get ordinal number of an enumerated tye, based on the name.</td></tr>
+<tr><td><link id="GetTypeData"/></td><td>Skip type name and return a pointer to the type data</td></tr>
+<tr><td><link id="SetToString"/></td><td>Convert a set to its string representation</td></tr>
+<tr><td><link id="StringToSet"/></td><td>Convert a string representation of a set to a set</td></tr>
+</table>
+</descr>
+</topic>
+
+
+<element name="BooleanIdents">
+<short>Names for boolean values</short>
+</element>
+
+<element name="DotSep">
+<short>Name separator character</short>
+</element>
+
+<element name="ptField">
+<short>Property acces directly from field</short>
+</element>
+
+<element name="ptStatic">
+<short>Property acces via static method</short>
+</element>
+
+<element name="ptVirtual">
+<short>Property acces via virtual method</short>
+</element>
+
+<element name="ptConst">
+<short>Constant used in acces method</short>
+</element>
+
+<element name="tkAny">
+<short>Any property type</short>
+</element>
+
+<element name="tkMethods">
+<short>Only method properties. (event handlers)</short>
+</element>
+
+<element name="tkProperties">
+<short>Real properties. (not methods)</short>
+</element>
+
+<element name="PShortString">
+<short>Pointer to shortstring</short>
+</element>
+
+<element name="PByte">
+<short>Pointer to byte</short>
+</element>
+
+<element name="PWord">
+<short>Pointer to Word</short>
+</element>
+
+<element name="PLongint">
+<short>Pointer to longint</short>
+</element>
+
+<element name="PBoolean">
+<short>Pointer to boolean</short>
+</element>
+
+<element name="PSingle">
+<short>Pointer to single</short>
+</element>
+
+<element name="PDouble">
+<short>Pointer to double</short>
+</element>
+
+<element name="PExtended">
+<short>Pointer to extended</short>
+</element>
+
+<element name="PComp">
+<short>Pointer to comp</short>
+</element>
+
+<element name="PFixed16">
+<short>Pointer to Fixed16</short>
+</element>
+
+<element name="Variant">
+<short>Dummy type. Do not use.</short>
+</element>
+
+<element name="TTypeKind">
+<short>Type of a property.</short>
+</element>
+
+<element name="tkString">
+<short>Alias for the <var>tsSString</var> enumeration value</short>
+</element>
+
+
+<element name="TTypeKind.tkUnknown">
+<short>Unknown property type.</short>
+</element>
+
+<element name="TTypeKind.tkInteger">
+<short>Integer property.</short>
+</element>
+
+<element name="TTypeKind.tkChar">
+<short>Char property.</short>
+</element>
+
+<element name="TTypeKind.tkEnumeration">
+<short>Enumeration type property.</short>
+</element>
+
+<element name="TTypeKind.tkFloat">
+<short>Float property.</short>
+</element>
+
+<element name="TTypeKind.tkSet">
+<short>Set property.</short>
+</element>
+
+<element name="TTypeKind.tkMethod">
+<short>Method property.</short>
+</element>
+
+<element name="TTypeKind.tkSString">
+<short>Shortstring property.</short>
+</element>
+
+<element name="TTypeKind.tkLString">
+<short>Longstring property.</short>
+</element>
+
+<element name="TTypeKind.tkAString">
+<short>Ansistring property.</short>
+</element>
+
+<element name="TTypeKind.tkWString">
+<short>Widestring property.</short>
+</element>
+
+<element name="TTypeKind.tkVariant">
+<short>Variant property.</short>
+</element>
+
+<element name="TTypeKind.tkArray">
+<short>Array property.</short>
+</element>
+
+<element name="TTypeKind.tkRecord">
+<short>Record property.</short>
+</element>
+
+<element name="TTypeKind.tkInterface">
+<short>Interface property.</short>
+</element>
+
+<element name="TTypeKind.tkClass">
+<short>Class property.</short>
+</element>
+
+<element name="TTypeKind.tkObject">
+<short>Object property.</short>
+</element>
+
+<element name="TTypeKind.tkWChar">
+<short>Widechar property.</short>
+</element>
+
+<element name="TTypeKind.tkBool">
+<short>Boolean property.</short>
+</element>
+
+<element name="TTypeKind.tkInt64">
+<short>Int64 property.</short>
+</element>
+
+<element name="TTypeKind.tkQWord">
+<short>QWord property.</short>
+</element>
+
+<element name="TTypeKind.tkDynArray">
+<short>Dynamical array property.</short>
+</element>
+
+<element name="TTypeKind.tkInterfaceRaw">
+<short>Raw interface property.</short>
+</element>
+
+<element name="TTOrdType">
+<short>Size and sign of ordinal property type.</short>
+<descr>
+If the property is and ordinal type, then <var>TTOrdType</var> determines
+the size and sign of the ordinal type:
+</descr>
+</element>
+
+<element name="TTOrdType.otSByte">
+<short>Signed byte</short>
+</element>
+
+<element name="TTOrdType.otUByte">
+<short>Unsigned byte</short>
+</element>
+
+<element name="TTOrdType.otSWord">
+<short>Signed word</short>
+</element>
+
+<element name="TTOrdType.otUWord">
+<short>Unsigned word</short>
+</element>
+
+<element name="TTOrdType.otSLong">
+<short>Signed longint</short>
+</element>
+
+<element name="TTOrdType.otULong">
+<short>Unsigned longing (Cardinal)</short>
+</element>
+
+<element name="TFloatType">
+<short>The size of a float type.</short>
+</element>
+
+<element name="TFloatType.ftSingle">
+<short>Single-sized float</short>
+</element>
+
+<element name="TFloatType.ftDouble">
+<short>Double-sized float</short>
+</element>
+
+<element name="TFloatType.ftExtended">
+<short>Extended-size float</short>
+</element>
+
+<element name="TFloatType.ftComp">
+<short>Comp-type float</short>
+</element>
+
+<element name="TFloatType.ftCurr">
+<short>Currency-type float</short>
+</element>
+
+<element name="TFloatType.ftFixed16">
+<short>16-bit float type</short>
+</element>
+
+<element name="TFloatType.ftFixed32">
+<short>32-bit float type.</short>
+</element>
+
+<element name="TMethodKind">
+<short>Method type description</short>
+</element>
+
+<element name="TMethodKind.mkProcedure">
+<short>Procedure method.</short>
+</element>
+
+<element name="TMethodKind.mkFunction">
+<short>Function method</short>
+</element>
+
+<element name="TMethodKind.mkConstructor">
+<short>Class constructor</short>
+</element>
+
+<element name="TMethodKind.mkDestructor">
+<short>Class Desctructor</short>
+</element>
+
+<element name="TMethodKind.mkClassProcedure">
+<short>Class procedure</short>
+</element>
+
+<element name="TMethodKind.mkClassFunction">
+<short>Class function</short>
+</element>
+
+<element name="TParamFlags">
+<short>The kind of parameter for a method</short>
+</element>
+
+<element name="TParamFlags.pfVar">
+<short>Parameter passed by reference</short>
+</element>
+
+<element name="TParamFlags.pfConst">
+<short>Parameter passed as const (reference)</short>
+</element>
+
+<element name="TParamFlags.pfArray">
+<short>Array parameter</short>
+</element>
+
+<element name="TParamFlags.pfAddress">
+<short>Address is passed</short>
+</element>
+
+<element name="TParamFlags.pfReference">
+<short>Reference passed</short>
+</element>
+
+<element name="TParamFlags.pfOut">
+<short>Out (by reference)</short>
+</element>
+
+<element name="TIntfFlag">
+<short>Type of interface.</short>
+</element>
+
+<element name="TIntfFlags">
+<short>Set of <link id="TIntfFlag"/>.</short>
+</element>
+
+<element name="TIntfFlagsBase">
+<short>Set of <link id="TIntfFlag"/>.</short>
+</element>
+
+<element name="TIntfFlag.ifHasGuid">
+<short>Interface has GUID identifier</short>
+</element>
+
+<element name="TIntfFlag.ifDispInterface">
+<short>Interface is a dual dispatch interface</short>
+</element>
+
+<element name="TIntfFlag.ifDispatch">
+<short>Interface is a dispatch interface</short>
+</element>
+
+<element name="TTypeKinds">
+<short>Set of <link id="TTypeKind"/> enumeration.</short>
+</element>
+
+<element id="TTypeInfo">
+<short>Type information record</short>
+<descr>
+<p>
+The <var>TypeInfo</var> function returns a pointer to a <var>TTypeInfo</var>
+record.
+</p>
+<p>
+Note that the Name field is stored with as much bytes as needed to store the name,
+it is not padded to 255 characters. 
+The type data immediatly follows the <var>TTypeInfo</var> record as a <link
+id="TTypeData"/> record.
+</p>
+</descr>
+</element>
+
+<element name="TTypeInfo.Name">
+<short>Type name</short>
+</element>
+
+<element name="TTypeInfo.Kind">
+<short>Type kind</short>
+</element>
+
+<element name="PTypeInfo">
+<short>Pointer to <link id="TTypeInfo"/> record</short>
+</element>
+<element name="PPTypeInfo">
+<short>Pointer to <link id="PTypeInfo"/> pointer</short>
+</element>
+
+<element name="PTypeData">
+<short>Pointer to <link id="TTypeData"/> record.</short>
+</element>
+
+<element name="TTypeData">
+<short>Class properties type data record.</short>
+<descr>
+<p>
+If the typeinfo kind is <var>tkClass</var>, then the property 
+information follows the <var>UnitName</var> string, as an array of <link
+id="TPropInfo"/> records.
+</p>
+</descr>
+</element>
+
+<element name="TPropData">
+<short>Property data record</short>
+<descr>
+The <var>TPropData</var> record is not used, but is provided for completeness and
+compatibility with Delphi.
+</descr>
+</element>
+
+<element name="PPropInfo">
+<short>Pointer to <link id="TPropInfo"/> record</short>
+</element>
+
+<element name="TPropInfo">
+<short>Record describing one published property of a class</short>
+<descr>
+<p>
+The <var>TPropInfo</var> record describes one published property of a class.
+The property information of a class are stored as an array of
+<var>TPropInfo</var> records.
+</p>
+<p>
+The <var>Name</var> field is stored not with 255 characters, but with just as many characters
+as required to store the name.
+</p>
+</descr>
+</element>
+
+<element name="TPropInfo.PropType">
+<short>Property type</short>
+</element>
+<element name="TPropInfo.GetProc">
+<short>Read handler</short>
+</element>
+<element name="TPropInfo.SetProc">
+<short>Write handler</short>
+</element>
+<element name="TPropInfo.StoredProc">
+<short>Procedure pointer for stored keyword.</short>
+</element>
+<element name="TPropInfo.Index">
+<short>Index for array properties</short>
+</element>
+<element name="TPropInfo.Default">
+<short>Default value</short>
+</element>
+<element name="TPropInfo.NameIndex">
+<short>Index for indexed properties</short>
+</element>
+<element name="TPropInfo.PropProcs">
+<short>Flags describing property procedures.</short>
+</element>
+<element name="TPropInfo.Name">
+<short>Property name</short>
+</element>
+
+<element name="TProcInfoProc">
+<short>Property info callback method</short>
+</element>
+
+<element name="TPropList">
+<short>Array of property information pointers</short>
+</element>
+
+<element name="PPropList">
+<short>Pointer to <link id="TPropList"/></short>
+</element>
+
+<element name="EPropertyError">
+<short>Exception raised in case of an error in one of the functions.</short>
+</element>
+
+<element name="FindPropInfo">
+<short>Return property information by property name.</short>
+<descr>
+<p>
+<var>FindPropInfo</var> examines the published property information of a class and
+returns a pointer to the property information for property <var>PropName</var>.
+The class to be examined can be specified in one of two ways:
+</p>
+<dl>
+<dt>AClass</dt><dd> a class pointer.</dd>
+<dt>Instance</dt><dd> an instance of the class to be investigated.</dd>
+</dl>
+<p>
+If the property does not exist, a <var>EPropertyError</var> exception will be
+raised. The <link id="GetPropInfo"/> function has the same function as the
+<var>FindPropInfo</var> function, but returns <var>Nil</var> if the property does not
+exist.
+</p>
+</descr>
+<errors>
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetPropInfo"/>
+<link id="GetPropList"/>
+<link id="GetPropInfos"/>
+</seealso>
+<example file="typinfex/ex14"/>
+</element>
+
+
+<element name="GetEnumName">
+<short>Return name of enumeration constant.</short>
+<descr>
+<p>
+<var>GetEnumName</var> scans the type information for the enumeration type
+described by <var>TypeInfo</var> and returns the name of the enumeration 
+constant for the element with ordinal value equal to <var>Value</var>.
+</p>
+<p>
+If <var>Value</var> is out of range, the first element of the enumeration type
+is returned. The result is lowercased, but this may change in the future.
+</p>
+<p>
+This can be used in combination with <var>GetOrdProp</var> to stream a property
+of an enumerated type.
+</p>
+</descr>
+<errors>
+No check is done to determine whether <var>TypeInfo</var> really points to the 
+type information for an enumerated type. 
+</errors>
+<seealso>
+<link id="GetOrdProp"/>
+<link id="GetEnumValue"/>
+</seealso>
+<example file="typinfex/ex9"/>
+</element>
+
+
+<element name="GetEnumProp">
+<short>Return the value of an enumeration type property.</short>
+<descr>
+<var>GetEnumProp</var> returns the value of an property of an enumerated type
+and returns the name of the enumerated value for the objetc <var>Instance</var>. 
+The property whose value must be returned can be specified by its property 
+info in <var>PropInfo</var> or by its name in <var>PropName</var>
+</descr>
+<errors>
+No check is done to determine whether <var>PropInfo</var> really points to the 
+property information for an enumerated type. 
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetEnumProp"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex2"/>
+</element>
+
+
+<element name="GetEnumValue">
+<short>Get ordinal value for enumerated type by name</short>
+<descr>
+<p>
+<var>GetEnumValue</var> scans the type information for the enumeration type
+described by <var>TypeInfo</var> and returns the ordinal value for the element
+in the enumerated type that has identifier <var>Name</var>. The identifier is
+searched in a case-insensitive manner.
+</p>
+<p>
+This can be used to set the value of enumerated properties from a stream. 
+</p>
+<p>
+For an example, see <link id="GetEnumName"/>.
+</p>
+</descr>
+<errors>
+If <var>Name</var> is not found in the list of enumerated values, then -1 is
+returned. No check is done whether <var>TypeInfo</var> points to the type information
+for an enumerated type. 
+</errors>
+<seealso>
+<link id="GetEnumName"/>
+<link id="SetOrdProp"/>
+</seealso>
+</element>
+
+
+<element name="GetFloatProp">
+<short>Return value of floating point property</short>
+<descr>
+<var>GetFloatProp</var> returns the value of the float property described by 
+<var>PropInfo</var> or with name <var>Propname</var> for the object <var>Instance</var>. 
+All float types are converted
+to extended.
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid float property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetFloatProp"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex4"/>
+</element>
+
+
+<element name="GetInt64Prop">
+<short>return value of an Int64 property</short>
+<descr>
+<remark>
+Publishing of Int64 properties is not yet supported by Free Pascal. This
+function is provided for Delphi compatibility only at the moment.
+</remark>
+<p>
+<var>GetInt64Prop</var> returns the value of the property of type
+<var>Int64</var> that is described by <var>PropInfo</var> or with name <var>Propname</var> 
+for the object <var>Instance</var>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid <var>Int64</var> property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception
+</errors>
+<seealso>
+<link id="SetInt64Prop"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetMethodProp"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex15"/>
+</element>
+
+
+<element name="GetMethodProp">
+<short>Return value of a method property</short>
+<descr>
+<p>
+<var>GetMethodProp</var> returns the method the property described by
+<var>PropInfo</var> or with name <var>Propname</var> for object <var>Instance</var>.
+The return type <var>TMethod</var> is defined in the <file>SysUtils</file> unit as:
+</p>
+<code>
+TMethod = packed record
+  Code, Data: Pointer;
+end;                                                                         
+</code>
+<p>
+<var>Data</var> points to the instance of the class with the method <var>Code</var>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid method property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetMethodProp"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex6"/>
+</element>
+
+
+<element name="GetObjectProp">
+<short>Return value of an object-type property.</short>
+<descr>
+<p>
+<var>GetObjectProp</var> returns the object which the property described by
+<var>PropInfo</var> with name <var>Propname</var> points to for object <var>Instance</var>.
+</p>
+<p>
+If <var>MinClass</var> is specified, then if the object is not descendent of
+class <var>MinClass</var>, then <var>Nil</var> is returned.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid method property of <var>Instance</var>. 
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetMethodProp"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex5"/>
+</element>
+
+
+<element name="GetObjectPropClass">
+<short>Return class of property.</short>
+<descr>
+<p>
+<var>GetObjectPropClass</var> returns the declared class of the property with name 
+<var>PropName</var>. This may not be the actual class of the property value.
+</p>
+<p>
+For an example, see <link id="GetObjectProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetMethodProp"/>
+<link id="GetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetInt64Prop"/>
+</seealso>
+</element>
+
+
+<element name="GetOrdProp">
+<short>Get the value of an ordinal property</short>
+<descr>
+<p>
+<var>GetOrdProp</var> returns the value of the ordinal property described by
+<var>PropInfo</var> or with name <var>PropName</var> for the object <var>Instance</var>. 
+The value is returned as a longint, which should be typecasted to the 
+needed type.
+</p>
+<p>
+Ordinal properties that can be retrieved include:
+</p>
+<dl>
+<dt>Integers and subranges of integers</dt>
+<dd>The value of the integer will be returned.</dd>
+<dt>Enumerated types and subranges of enumerated types</dt>
+<dd>The ordinal value of the enumerated type will be returned.</dd>
+<dt>Sets</dt>
+<dd>If the base type of the set has less than 31 possible values.
+If a bit is set in the return value, then the corresponding element of the
+base ordinal class of the set type must be included in the set.
+</dd>
+</dl>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid ordinal property of <var>Instance</var>
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetOrdProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+<link id="GetSetProp"/>
+<link id="GetObjectProp"/>
+<link id="GetEnumProp"/>
+</seealso>
+<example file="typinfex/ex1"/>
+</element>
+
+
+<element name="GetPropInfo">
+<short>Return property type information, by property name.</short>
+<descr>
+<p>
+<var>GetPropInfo</var> returns a pointer to the <var>TPropInfo</var> record for a the 
+<var>PropName</var> property of a class. The class to examine can be specified 
+in one of three ways:
+</p>
+<dl>
+<dt>Instance</dt><dd> An instance of the class.</dd>
+<dt>AClass</dt><dd> A class pointer to the class.</dd>
+<dt>TypeInfo</dt><dd> A pointer to the type information of the class.</dd>
+</dl>
+<p>
+In each of these three ways, if <var>AKinds</var> is specified, if the property 
+has <var>TypeKind</var> which is not included in <var>Akinds</var>, <var>Nil</var> will be
+returned.
+</p>
+<p>
+For an example, see most of the other functions.
+</p>
+</descr>
+<errors>
+If the property <var>PropName</var> does not exist, <var>Nil</var> is returned.
+</errors>
+<seealso>
+<link id="GetPropInfos"/>
+<link id="GetPropList"/>
+</seealso>
+</element>
+
+
+<element name="GetPropInfos">
+<short>Return a list of published properties.</short>
+<descr>
+<var>GetPropInfos</var> stores pointers to the property information of all published
+properties of a class with class info <var>TypeInfo</var> in the list pointed to by
+<var>Proplist</var>. The <var>PropList</var> pointer must point to a memory location that
+contains enough space to hold all properties of the class and its parent classes.
+</descr>
+<errors>
+No checks are done to see whether <var>PropList</var> points to a memory area that 
+is big enough to hold all pointers.
+</errors>
+<seealso>
+<link id="GetPropInfo"/>
+<link id="GetPropList"/>
+</seealso>
+<example file="typinfex/ex12"/>
+</element>
+
+
+<element name="GetPropList">
+<short>Return a list of a certain type of published properties.</short>
+<descr>
+<p>
+<var>GetPropList</var> stores pointers to property information of the class with class
+info <var>TypeInfo</var> for properties of kind <var>TypeKinds</var> in the list pointed to
+by <var>Proplist</var>. <var>PropList</var> must contain enough space to hold all properties.
+</p>
+<p>
+The function returns the number of pointers that matched the criteria and were stored
+in <var>PropList</var>.
+</p>
+</descr>
+<errors>
+No checks are done to see whether <var>PropList</var> points to a memory area that is big enough
+to hold all pointers.
+</errors>
+<seealso>
+<link id="GetPropInfos"/>
+<link id="GetPropInfo"/>
+</seealso>
+<example file="typinfex/ex13"/>
+</element>
+
+
+<element name="GetPropValue">
+<short>Get property value as a string.</short>
+<descr>
+Due to missing <var>Variant</var> support, <var>GetPropValue</var> is not yet implemented. 
+The declaration is provided for compatibility with Delphi.
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="GetSetProp">
+<short>Return the value of a set property.</short>
+<descr>
+<p>
+<var>GetSetProp</var> returns the contents of a set property as a string.
+The property to be returned can be specified by it's name in <var>PropName</var>
+or by its property information in <var>PropInfo</var>.
+</p>
+<p>
+The returned set is a string representation of the elements in the set as
+returned by <link id="SetToString"/>. The <var>Brackets</var> option can be used to 
+enclose the string representation in square brackets.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid ordinal property of <var>Instance</var>
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.                                                 
+</errors>
+<seealso>
+<link id="SetSetProp"/>
+<link id="GetStrProp"/>
+<link id="GetFloatProp"/>
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+</seealso>
+<example file="typinfex/ex7"/>
+</element>
+
+
+<element name="GetStrProp">
+<short>Return the value of a string property.</short>
+<descr>
+<var>GetStrProp</var> returns the value of the string property described by
+<var>PropInfo</var> or with name <var>PropName</var> for object <var>Instance</var>. 
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid string property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="SetStrProp"/>
+<link id="GetOrdProp"/>
+<link id="GetFloatProp"/>,
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+</seealso>
+<example file="typinfex/ex3"/>
+</element>
+
+
+<element name="GetTypeData">
+<short>Return a pointer to type data, based on type information.</short>
+<descr>
+<var>GetTypeData</var> returns a pointer to the <var>TTypeData</var> record that
+follows after the <var>TTypeInfo</var> record pointed to by <var>TypeInfo</var>.
+It essentially skips the <var>Kind</var> and <var>Name</var> fields in the 
+<var>TTypeInfo</var> record.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="GetVariantProp">
+<short>Return the value of a variant property.</short>
+<descr>
+Due to mising Variant support, the <var>GetVariantProp</var> function is not 
+yet implemented. Provided for Delphi compatibility only.
+</descr>
+<errors>
+</errors>
+<seealso>
+<link id="SetVariantProp"/>
+</seealso>
+</element>
+
+<element name="IsPublishedProp">
+<short>Check whether a published property exists.</short>
+<descr>
+<p>
+<var>IsPublishedProp</var> returns true if a class has a published property with
+name <var>PropName</var>. The class can be specfied in one of two ways:
+</p>
+<dl>
+<dt>AClass</dt><dd> A class pointer to the class.</dd>
+<dt>Instance</dt><dd> An instance of the class.</dd>
+</dl>
+</descr>
+<errors>
+No checks are done to ensure <var>Instance</var> or <var>AClass</var> are valid
+pointers. Specifying an invalid property name in <var>PropName</var> will result
+in an <var>EPropertyError</var> exception.                                                 
+</errors>
+<seealso>
+<link id="IsStoredProp"/>
+<link id="PropIsType"/>
+</seealso>
+<example file="typinfex/ex10"/>
+</element>
+
+
+<element name="IsStoredProp">
+<short>Check whether a property is stored.</short>
+<descr>
+<p>
+<var>IsStoredProp</var> returns <var>True</var> if the <var>Stored</var> modifier evaluates
+to <var>True</var> for the property described by <var>PropInfo</var> or with name
+<var>PropName</var> for object <var>Instance</var>. 
+It returns <var>False</var> otherwise. If the function returns
+<var>True</var>, this indicates that the property should be written when
+streaming the object <var>Instance</var>.
+</p>
+<p>
+If there was no <var>stored</var> modifier in the declaration of the property, 
+<var>True</var> will be returned. 
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.                                                 
+</errors>
+<seealso>
+<link id="IsPublishedProp"/>
+<link id="PropIsType"/>
+</seealso>
+<example file="typinfex/ex11"/>
+</element>
+
+
+<element name="PropIsType">
+<short>Check the type of a published property.</short>
+<descr>
+<p>
+<var>PropIsType</var> returns <var>True</var> if the property with name <var>PropName</var>
+has type <var>TypeKind</var>. It returns <var>False</var> otherwise. The class to be
+examined can be specified in one of two ways:
+</p>
+<dl>
+<dt>AClass</dt><dd> A class pointer. </dd>
+<dt>Instance</dt><dd> An instance of the class.</dd>
+</dl>
+</descr>
+<errors>
+No checks are done to ensure <var>Instance</var> or <var>AClass</var> are valid
+pointers.Specifying an invalid property name in <var>PropName</var> will result
+in an <var>EPropertyError</var> exception.                                                 
+</errors>
+<seealso>
+<link id="IsPublishedProp"/>
+<link id="IsStoredProp"/>
+<link id="PropType"/>
+</seealso>
+<example file="typinfex/ex16"/>
+</element>
+
+
+<element name="PropType">
+<short>Return the type of a property</short>
+<descr>
+<p>
+<var>Proptype</var> returns the type of the property <var>PropName</var> for a class.
+The class to be examined can be specified in one of 2 ways:
+</p>
+<dl>
+<dt>AClass</dt><dd>A class pointer.</dd>
+<dt>Instance</dt><dd>An instance of the class.</dd>
+</dl>
+</descr>
+<errors>
+No checks are done to ensure <var>Instance</var> or <var>AClass</var> are valid
+pointers. Specifying an invalid property name in <var>PropName</var> will result
+in an <var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="IsPublishedProp"/>
+<link id="IsStoredProp"/>
+<link id="PropIsType"/>
+</seealso>
+<example file="typinfex/ex17"/>
+</element>
+
+
+<element name="SetEnumProp">
+<short>Set value of an enumerated-type property</short>
+<descr>
+<p>
+<var>SetEnumProp</var> sets the property described by <var>PropInfo</var> or with name
+<var>PropName</var> to <var>Value</var>. <var>Value</var> must be a string with the name
+of the enumerate value, i.e. it can be used as an argument to 
+<link id="GetEnumValue"/>.
+</p>
+<p>
+For an example, see <link id="GetEnumProp"/>.
+</p>
+</descr>
+<errors>
+No checks are done to ensure <var>Instance</var> or <var>PropInfo</var> are valid
+pointers. Specifying an invalid property name in <var>PropName</var> will result
+in an <var>EPropertyError</var> exception.                                           
+</errors>
+<seealso>
+<link id="GetEnumProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+</seealso>
+</element>
+
+
+<element name="SetFloatProp">
+<short>Set value of a float property.</short>
+<descr>
+<p>
+<var>SetFloatProp</var> assigns <var>Value</var> to the property described by
+<var>PropInfo</var> or with name <var>Propname</var> for the object <var>Instance</var>.
+</p>
+<p>
+For an example, see <link id="GetFloatProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid float property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetFloatProp"/>
+<link id="SetOrdProp"/>
+<link id="SetStrProp"/>,
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+</seealso>
+</element>
+
+
+
+<element name="SetInt64Prop">
+<short>Set value of a Int64 property</short>
+<descr>
+<p>
+<var>SetInt64Prop</var> assigns <var>Value</var> to the property of type
+<var>Int64</var> that is described by <var>PropInfo</var> or with name <var>Propname</var> 
+for the object <var>Instance</var>.
+</p>
+<p>
+For an example, see <link id="GetInt64Prop"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid <var>Int64</var> property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetInt64Prop"/>
+<link id="GetMethodProp"/>
+<link id="SetOrdProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+</seealso>
+</element>
+
+<element name="SetMethodProp">
+<short>Set the value of a method property</short>
+<descr>
+<p>
+<var>SetMethodProp</var> assigns <var>Value</var> to the method the property described 
+by <var>PropInfo</var> or with name <var>Propname</var> for object <var>Instance</var>.
+</p>
+<p>
+The type <var>TMethod</var> of the <var>Value</var> parameter is defined in the
+<file>SysUtils</file> unit as:
+</p>
+<code>
+TMethod = packed record
+  Code, Data: Pointer;
+end;                                                                         
+</code>
+<p>
+<var>Data</var> should point to the instance of the class with the method <var>Code</var>.
+</p>
+<p>
+For an example, see <link id="GetMethodProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid method property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetMethodProp"/>
+<link id="SetOrdProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+<link id="SetInt64Prop"/>
+</seealso>
+</element>
+
+<element name="SetObjectProp">
+<short>Set the value of an object-type property.</short>
+<descr>
+<p>
+<var>SetObjectProp</var> assigns <var>Value</var> to the the object property described by
+<var>PropInfo</var> or with name <var>Propname</var> for the object <var>Instance</var>. 
+</p>
+<p>
+For an example, see <link id="GetObjectProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid method property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetObjectProp"/>
+<link id="SetOrdProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+</seealso>
+</element>
+
+
+<element name="SetOrdProp">
+<short>Set value of an ordinal property</short>
+<descr>
+<p>
+<var>SetOrdProp</var> assigns <var>Value</var> to the the ordinal property described by 
+<var>PropInfo</var> or with name <var>Propname</var> for the object <var>Instance</var>. 
+</p>
+<p>
+Ordinal properties that can be set include:
+</p>
+<dl>
+<dt>Integers and subranges of integers</dt>
+<dd>The actual value of the integer must be passed.</dd>
+<dt>Enumerated types and subranges of enumerated types</dt>
+<dd>The ordinal value of the enumerated type must be passed.</dd>
+<dt>Subrange types</dt>
+<dd>of integers or enumerated types. Here the ordinal value must be passed.</dd>
+<dt>Sets</dt>
+<dd> If the base type of the set has less than 31 possible values. 
+For each possible value; the corresponding bit of <var>Value</var> must be set.</dd>
+</dl>
+<p>
+For an example, see <link id="GetOrdProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid ordinal property of <var>Instance</var>. 
+No range checking is performed.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetOrdProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+</seealso>
+</element>
+
+
+<element name="SetPropValue">
+<short>Set property value as variant</short>
+<descr>
+Due to missing Variant support, this function is not yet implemented;
+it is provided for Delphi compatibility only.
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="SetSetProp">
+<short>Set value of set-typed property.</short>
+<descr>
+<p>
+<var>SetSetProp</var> sets the property specified by <var>PropInfo</var> or
+<var>PropName</var> for object <var>Instance</var> to <var>Value</var>. <var>Value</var> is a
+string which contains a comma-separated list of values, each value being a
+string-representation of the enumerated value that should be included in
+the set. The value should be accepted by the <link id="StringToSet"/> function.
+</p>
+<p>
+The value can be formed using the <link id="SetToString"/> function.
+</p>
+<p>
+For an example, see <link id="GetSetProp"/>.
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid ordinal property of <var>Instance</var>.
+No range checking is performed.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.                                                 
+</errors>
+<seealso>
+<link id="GetSetProp"/>
+<link id="SetOrdProp"/>
+<link id="SetStrProp"/>
+<link id="SetFloatProp"/>
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+<link id="SetToString"/>
+<link id="StringToSet"/>
+</seealso>
+</element>
+
+
+<element name="SetStrProp">
+<short>Set value of a string property</short>
+<descr>
+<p>
+<var>SetStrProp</var> assigns <var>Value</var> to the string property described by
+<var>PropInfo</var> or with name <var>Propname</var> for object <var>Instance</var>. 
+</p>
+<p>
+For an example, see <link id="GetStrProp"/>
+</p>
+</descr>
+<errors>
+No checking is done whether <var>Instance</var> is non-nil, or whether
+<var>PropInfo</var> describes a valid string property of <var>Instance</var>.
+Specifying an invalid property name in <var>PropName</var> will result in an
+<var>EPropertyError</var> exception.
+</errors>
+<seealso>
+<link id="GetStrProp"/>
+<link id="SetOrdProp"/>
+<link id="SetFloatProp"/>,
+<link id="SetInt64Prop"/>
+<link id="SetMethodProp"/>
+</seealso>
+</element>
+
+
+<element name="SetToString">
+<short>Convert set to a string description</short>
+<descr>
+<p>
+<var>SetToString</var> takes an integer representation of a set (as received e.g.
+by <var>GetOrdProp</var>) and turns it into a string representing the elements in
+the set, based on the type information found in the <var>PropInfo</var> property
+information. By default, the string representation is not surrounded by
+square brackets. Setting the <var>Brackets</var> parameter to <var>True</var> will 
+surround the string representation with brackets.
+</p>
+<p>
+The function returns the string representation of the set.
+</p>
+</descr>
+<errors>
+No checking is done to see whether <var>PropInfo</var> points to valid property
+information.
+</errors>
+<seealso>
+<link id="GetEnumName"/>
+<link id="GetEnumValue"/>
+<link id="StringToSet"/>
+</seealso>
+<example file="typinfex/ex18"/>
+</element>
+
+
+<element name="SetVariantProp">
+<short>Set value of a variant property</short>
+<descr>
+Due to missing Variant support, this function is not yet implemented. 
+Provided for Delphi compatibility only.
+</descr>
+<errors>
+</errors>
+<seealso>
+</seealso>
+</element>
+
+
+<element name="StringToSet">
+<short>Convert string description to a set.</short>
+<descr>
+<p>
+<var>StringToSet</var> converts the string representation of a set in <var>Value</var>
+to a integer representation of the set, using the property information found
+in <var>PropInfo</var>. This property information should point to the property
+information of a set property. The function returns the integer
+representation of the set. (i.e, the set value, typecast to an integer)
+</p>
+<p>
+The string representation can be surrounded with square brackets, and must 
+consist of the names of the elements of the base type of the set. The base
+type of the set should be an enumerated type. The elements should be
+separated by commas, and may be surrounded by spaces.
+each of the names will be fed to the <link id="GetEnumValue"/> function.
+</p>
+<p>
+For an example, see <link id="SetToString"/>.
+</p>
+</descr>
+<errors>
+No checking is done to see whether <var>PropInfo</var> points to valid property
+information. If a wrong name is given for an enumerated value, then an
+<var>EPropertyError</var> will be raised.
+</errors>
+<seealso>
+<link id="GetEnumName"/>
+<link id="GetEnumValue"/>
+<link id="SetToString"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
