@@ -298,7 +298,11 @@ end;
 function LineStart(Buffer, BufPos: PChar): PChar;
 
 begin
-  LineStart:=nil;
+  Result := BufPos;
+  while Result > Buffer do begin
+    Dec(Result);
+    if Result[0] = #10 then break;
+  end;
 end;
 
 
@@ -306,7 +310,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-09-11 21:59:31  fcl
+  Revision 1.12  1999-09-30 19:31:42  fcl
+  * Implemented LineStart  (sg)
+
+  Revision 1.11  1999/09/11 21:59:31  fcl
   * Moved class and registration functions to cregist.inc  (sg)
 
   Revision 1.10  1999/04/13 08:52:29  michael
