@@ -2257,8 +2257,11 @@ end;
       RunError(216);
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
-    if (Graphdriver=Detect) or
-       (GraphMode = detectMode) then
+    if (Graphdriver=Detect)
+{$ifdef newmodes}
+       or (GraphMode = detectMode)
+{$endif}
+       then
       begin
         internDetectGraph(GraphDriver,GraphMode,true);
         If _GraphResult = grNotDetected then Exit;
@@ -2403,7 +2406,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.35  2000-06-18 08:11:53  jonas
+  Revision 1.36  2000-06-18 18:41:18  peter
+    * detectmode between ifdef
+
+  Revision 1.35  2000/06/18 08:11:53  jonas
     * release memory of newmodeinfo in graphexitproc
 
   Revision 1.34  2000/06/18 06:11:20  jonas
