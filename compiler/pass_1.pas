@@ -119,14 +119,14 @@ implementation
          hp : tnode;
       begin
 {$ifdef extdebug}
-         inc(total_of_firstpass);
+{         inc(total_of_firstpass);}
 {$endif extdebug}
          oldcodegenerror:=codegenerror;
          oldpos:=aktfilepos;
          oldlocalswitches:=aktlocalswitches;
 {$ifdef extdebug}
-         if p.firstpasscount>0 then
-          inc(firstpass_several);
+{         if p.firstpasscount>0 then
+          inc(firstpass_several);}
 {$endif extdebug}
          if not(nf_error in p.flags) then
            begin
@@ -181,8 +181,8 @@ implementation
          else
            codegenerror:=true;
 {$ifdef extdebug}
-         if count_ref then
-           inc(p.firstpasscount);
+{         if count_ref then
+           inc(p.firstpasscount);}
 {$endif extdebug}
       end;
 
@@ -197,7 +197,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-05-18 13:34:11  peter
+  Revision 1.24  2002-06-16 08:15:54  carl
+  * commented out uncompilable debug code
+
+  Revision 1.23  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.22  2002/05/16 19:46:42  carl
