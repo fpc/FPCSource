@@ -1,4 +1,4 @@
-unit bug0140;
+unit tbs0140;
 
 { 
  The first compilation runs fine. 

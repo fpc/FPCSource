@@ -184,8 +184,7 @@ clean_fail :
 	-rm $(addsuffix .ref,$(TF_FAIL_LIST)) 
 	-rm log 
 
-again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) \
-	$(addsuffix .ref,$(TF_FAIL_LIST)) 
+again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) $(addsuffix .ref,$(TF_FAIL_LIST)) 
 	grep fails log
 
 all_compilations : allts alltbs alltf alltbf allto alltest alltesi alltis
@@ -221,7 +220,10 @@ info :
 	@echo run \'make tesiexec\' to test executables 
 	@echo that require interactive mode
 # $Log$
-# Revision 1.9  1998-11-10 11:13:07  pierre
+# Revision 1.10  1999-01-15 17:41:58  pierre
+#  + new bugs converted
+#
+# Revision 1.9  1998/11/10 11:13:07  pierre
 #  * more tests
 #
 # Revision 1.8  1998/10/28 09:52:26  pierre
