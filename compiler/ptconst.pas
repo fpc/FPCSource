@@ -257,13 +257,13 @@ implementation
               p:=comp_expr(true);
               case p.nodetype of
                  loadvmtaddrn:
-                   begin
-                      if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
-                        tobjectdef(tclassrefdef(t.def).pointertype.def))) then
-                        Message(cg_e_illegal_expression);
-                      curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymboldata(tobjectdef(
-                        tclassrefdef(p.resulttype.def).pointertype.def).vmt_mangledname)));
-                   end;
+                   with Tclassrefdef(p.resulttype.def) do
+                     begin
+                        if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
+                          message(cg_e_illegal_expression);
+                        curconstSegment.concat(Tai_const_symbol.Create(objectlibrary.newasmsymboldata(
+                          Tobjectdef(pointertype.def).vmt_mangledname)));
+                     end;
                  niln:
                    curconstSegment.concat(Tai_const.Create_32bit(0));
                  else Message(cg_e_illegal_expression);
@@ -273,24 +273,25 @@ implementation
          pointerdef:
            begin
               p:=comp_expr(true);
-              if (p.nodetype=typeconvn) and
-                 (ttypeconvnode(p).left.nodetype in [addrn,niln]) and
-                 equal_defs(t.def,p.resulttype.def) then
-                begin
-                   hp:=ttypeconvnode(p).left;
-                   ttypeconvnode(p).left:=nil;
-                   p.free;
-                   p:=hp;
-                end;
+              if (p.nodetype=typeconvn) then
+                with Ttypeconvnode(p) do
+                  if (left.nodetype in [addrn,niln]) and equal_defs(t.def,p.resulttype.def) then
+                    begin
+                      hp:=left;
+                      left:=nil;
+                      p.free;
+                      p:=hp;
+                    end;
               { allows horrible ofs(typeof(TButton)^) code !! }
-              if (p.nodetype=addrn) and
-                 (taddrnode(p).left.nodetype=derefn) then
-                begin
-                   hp:=tderefnode(taddrnode(p).left).left;
-                   tderefnode(taddrnode(p).left).left:=nil;
-                   p.free;
-                   p:=hp;
-                end;
+              if (p.nodetype=addrn) then
+                with Taddrnode(p) do
+                  if left.nodetype=derefn then
+                    begin
+                      hp:=tderefnode(left).left;
+                      tderefnode(left).left:=nil;
+                      p.free;
+                      p:=hp;
+                   end;
               { const pointer ? }
 {$warning 32bit pointer assumption}
               if (p.nodetype = pointerconstn) then
@@ -947,37 +948,39 @@ implementation
                              consume_all_until(_SEMICOLON);
                           end
                         else
-                          begin
-                             { check position }
-                             if tvarsym(srsym).fieldoffset<aktpos then
-                               Message(parser_e_invalid_record_const);
+                          with Tvarsym(srsym) do
+                            begin
+                               { check position }
+                               if fieldoffset<aktpos then
+                                 message(parser_e_invalid_record_const);
 
-                             { check in VMT needs to be added for TP mode }
-                             if not(m_fpc in aktmodeswitches) and
-                                (oo_has_vmt in tobjectdef(t.def).objectoptions) and
-                                (tobjectdef(t.def).vmt_offset<tvarsym(srsym).fieldoffset) then
-                               begin
-                                 for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
-                                   curconstsegment.concat(tai_const.create_8bit(0));
-                                 curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
-                                 { this is more general }
-                                 aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
-                               end;
+                               { check in VMT needs to be added for TP mode }
+                               with Tobjectdef(t.def) do
+                                 if not(m_fpc in aktmodeswitches) and
+                                    (oo_has_vmt in objectoptions) and
+                                    (vmt_offset<fieldoffset) then
+                                   begin
+                                     for i:=1 to vmt_offset-aktpos do
+                                       curconstsegment.concat(tai_const.create_8bit(0));
+                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname));
+                                     { this is more general }
+                                     aktpos:=vmt_offset + pointer_size;
+                                   end;
+  
+                               { if needed fill }
+                               if fieldoffset>aktpos then
+                                 for i:=1 to fieldoffset-aktpos do
+                                   curconstSegment.concat(Tai_const.Create_8bit(0));
 
-                             { if needed fill }
-                             if tvarsym(srsym).fieldoffset>aktpos then
-                               for i:=1 to tvarsym(srsym).fieldoffset-aktpos do
-                                 curconstSegment.concat(Tai_const.Create_8bit(0));
+                               { new position }
+                               aktpos:=fieldoffset+vartype.def.size;
+  
+                               { read the data }
+                               readtypedconst(vartype,nil,writable);
 
-                             { new position }
-                             aktpos:=tvarsym(srsym).fieldoffset+tvarsym(srsym).vartype.def.size;
-
-                             { read the data }
-                             readtypedconst(tvarsym(srsym).vartype,nil,writable);
-
-                             if token=_SEMICOLON then
-                               consume(_SEMICOLON)
-                             else break;
+                               if token=_SEMICOLON then
+                                 consume(_SEMICOLON)
+                               else break;
                           end;
                      end;
                    if not(m_fpc in aktmodeswitches) and
@@ -1013,7 +1016,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2003-12-29 12:48:39  jonas
+  Revision 1.78  2004-02-07 23:28:34  daniel
+    * Take advantage of our new with statement optimization
+
+  Revision 1.77  2003/12/29 12:48:39  jonas
     + support for currency typed constants if currency=int64. Warning: does
       not work properly for extreme values if bestreal <= double
 

@@ -1373,19 +1373,21 @@ unit raatt;
                        begin
                          case sym.typ of
                            varsym :
-                             begin
-                               if sym.owner.symtabletype in [localsymtable,parasymtable] then
-                                Message(asmr_e_no_local_or_para_allowed);
-                               hs:=tvarsym(sym).mangledname;
-                             end;
+                             with Tvarsym(sym) do
+                               begin
+                                 if owner.symtabletype in [localsymtable,parasymtable] then
+                                  Message(asmr_e_no_local_or_para_allowed);
+                                 hs:=mangledname;
+                               end;
                            typedconstsym :
                              hs:=ttypedconstsym(sym).mangledname;
                            procsym :
-                             begin
-                               if Tprocsym(sym).procdef_count>1 then
-                                Message(asmr_w_calling_overload_func);
-                               hs:=tprocsym(sym).first_procdef.mangledname;
-                             end;
+                             with Tprocsym(sym) do
+                               begin
+                                 if procdef_count>1 then
+                                   message(asmr_w_calling_overload_func);
+                                 hs:=first_procdef.mangledname;
+                               end;
                            typesym :
                              begin
                                if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
@@ -1492,7 +1494,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-12-25 01:25:43  peter
+  Revision 1.9  2004-02-07 23:28:34  daniel
+    * Take advantage of our new with statement optimization
+
+  Revision 1.8  2003/12/25 01:25:43  peter
     * sparc assembler reader updates
 
   Revision 1.7  2003/12/08 17:43:57  florian

@@ -221,12 +221,18 @@ unit rgobj;
         procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
         procedure add_constraints(reg:Tregister);virtual;
 
-        procedure DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
-        procedure DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
-        procedure DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-         const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);virtual;
+        procedure do_spill_read(list:Taasmoutput;instr:Taicpu_abstract;
+                                pos:Tai;regidx:word;
+                                const spilltemplist:Tspill_temp_list;
+                                const regs:Tspillregsinfo);virtual;
+        procedure do_spill_written(list:Taasmoutput;instr:Taicpu_abstract;
+                                   pos:Tai;regidx:word;
+                                   const spilltemplist:Tspill_temp_list;
+                                   const regs:Tspillregsinfo);virtual;
+        procedure do_spill_readwritten(list:Taasmoutput;instr:Taicpu_abstract;
+                                       pos:Tai;regidx:word;
+                                       const spilltemplist:Tspill_temp_list;
+                                       const regs:Tspillregsinfo);virtual;
 
         function instr_spill_register(list:Taasmoutput;
                                       instr:taicpu_abstract;
@@ -438,12 +444,13 @@ implementation
       if reginfo<>nil then
         begin
           for i:=0 to maxreg-1 do
-            begin
-              if reginfo[i].adjlist<>nil then
-                dispose(reginfo[i].adjlist,done);
-              if reginfo[i].movelist<>nil then
-                dispose(reginfo[i].movelist);
-            end;
+            with reginfo[i] do
+              begin
+                if adjlist<>nil then
+                  dispose(adjlist,done);
+                if movelist<>nil then
+                  dispose(movelist);
+              end;
           freemem(reginfo);
           reginfo:=nil;
         end;
@@ -575,9 +582,12 @@ implementation
       procedure addadj(u,v:Tsuperregister);
 
       begin
-        if reginfo[u].adjlist=nil then
-          new(reginfo[u].adjlist,init);
-        reginfo[u].adjlist^.add(v);
+        with reginfo[u] do
+          begin
+            if adjlist=nil then
+              new(adjlist,init);
+            adjlist^.add(v);
+          end;
       end;
 
     begin
@@ -599,9 +609,10 @@ implementation
     var i:word;
 
     begin
-      if live_registers.length>0 then
-        for i:=0 to live_registers.length-1 do
-          add_edge(u,live_registers.buf^[i]);
+      with live_registers do
+        if length>0 then
+          for i:=0 to length-1 do
+            add_edge(u,buf^[i]);
     end;
 
 {$ifdef EXTDEBUG}
@@ -647,19 +658,22 @@ implementation
     var cursize:cardinal;
 
     begin
-      if reginfo[u].movelist=nil then
+      with reginfo[u] do
         begin
-          getmem(reginfo[u].movelist,64);
-          reginfo[u].movelist^.count:=0;
-        end
-      else
-        begin
-	  cursize:=memsize(reginfo[u].movelist);
-	  if (4*(reginfo[u].movelist^.count+1)=cursize) then
-            reallocmem(reginfo[u].movelist,cursize*2);
+          if movelist=nil then
+            begin
+              getmem(movelist,64);
+              movelist^.count:=0;
+            end
+          else
+            begin
+              cursize:=memsize(movelist);
+              if (4*(movelist^.count+1)=cursize) then
+                reallocmem(movelist,cursize*2);
+            end;
+          movelist^.data[movelist^.count]:=data;
+          inc(movelist^.count);
         end;
-      reginfo[u].movelist^.data[reginfo[u].movelist^.count]:=data;
-      inc(reginfo[u].movelist^.count);
     end;
 
 
@@ -669,11 +683,12 @@ implementation
       begin
         supreg:=getsupreg(r);
         if supreg>=first_imaginary then
-          begin
-            if not assigned(reginfo[supreg].live_start) then
-              reginfo[supreg].live_start:=instr;
-            reginfo[supreg].live_end:=instr;
-          end;
+          with reginfo[supreg] do
+            begin
+              if not assigned(live_start) then
+                live_start:=instr;
+              live_end:=instr;
+            end;
       end;
 
 
@@ -710,13 +725,15 @@ implementation
 
     begin
       move_related:=false;
-      if reginfo[n].movelist<>nil then
-        for i:=0 to reginfo[n].movelist^.count-1 do
-          if Tmoveins(reginfo[n].movelist^.data[i]).moveset in [ms_worklist_moves,ms_active_moves] then
-            begin
-              move_related:=true;
-              break;
-            end;
+      with reginfo[n] do
+        if movelist<>nil then
+          with movelist^ do
+            for i:=0 to count-1 do
+              if Tmoveins(data[i]).moveset in [ms_worklist_moves,ms_active_moves] then
+                begin
+                  move_related:=true;
+                  break;
+                end;
     end;
 
     procedure Trgobj.sort_simplify_worklist;
@@ -730,39 +747,42 @@ implementation
         adji,adjj:Psuperregisterworklist;
 
     begin
-      if simplifyworklist.length<2 then
-        exit;
-      p:=1;
-      while 2*p<simplifyworklist.length do
-        p:=2*p;
-      while p<>0 do
+      with simplifyworklist do
         begin
-          for h:=0 to simplifyworklist.length-p-1 do
+          if length<2 then
+            exit;
+          p:=1;
+          while 2*p<length do
+            p:=2*p;
+          while p<>0 do
             begin
-              i:=h;
-              repeat
-                j:=i+p;
-                adji:=reginfo[simplifyworklist.buf^[i]].adjlist;
-                adjj:=reginfo[simplifyworklist.buf^[j]].adjlist;
-                if adji=nil then
-                  leni:=0
-                else
-                  leni:=adji^.length;
-                if adjj=nil then
-                  lenj:=0
-                else
-                  lenj:=adjj^.length;
-                if lenj>=leni then
-                  break;
-                t:=simplifyworklist.buf^[i];
-                simplifyworklist.buf^[i]:=simplifyworklist.buf^[j];
-                simplifyworklist.buf^[j]:=t;
-                if i<p then
-                  break;
-                dec(i,p)
-              until false;
+              for h:=0 to length-p-1 do
+                begin
+                  i:=h;
+                  repeat
+                    j:=i+p;
+                    adji:=reginfo[buf^[i]].adjlist;
+                    adjj:=reginfo[buf^[j]].adjlist;
+                    if adji=nil then
+                      leni:=0
+                    else
+                      leni:=adji^.length;
+                    if adjj=nil then
+                      lenj:=0
+                    else
+                      lenj:=adjj^.length;
+                    if lenj>=leni then
+                      break;
+                    t:=buf^[i];
+                    buf^[i]:=buf^[j];
+                    buf^[j]:=t;
+                    if i<p then
+                      break;
+                    dec(i,p)
+                  until false;
+                end;
+              p:=p shr 1;
             end;
-          p:=p shr 1;
         end;
     end;
 
@@ -774,18 +794,19 @@ implementation
       {If we have 7 cpu registers, and the degree of a node is 7, we cannot
        assign it to any of the registers, thus it is significant.}
       for n:=first_imaginary to maxreg-1 do
-        begin
-          if reginfo[n].adjlist=nil then
-            reginfo[n].degree:=0
-          else
-            reginfo[n].degree:=reginfo[n].adjlist^.length;
-          if reginfo[n].degree>=usable_registers_cnt then
-            spillworklist.add(n)
-          else if move_related(n) then
-            freezeworklist.add(n)
-          else
-            simplifyworklist.add(n);
-	end;
+        with reginfo[n] do
+          begin
+            if adjlist=nil then
+              degree:=0
+            else
+              degree:=adjlist^.length;
+            if degree>=usable_registers_cnt then
+              spillworklist.add(n)
+            else if move_related(n) then
+              freezeworklist.add(n)
+            else
+              simplifyworklist.add(n);
+          end;
       sort_simplify_worklist;
     end;
 
@@ -809,53 +830,57 @@ implementation
         i:cardinal;
 
     begin
-      if reginfo[n].movelist<>nil then
-        for i:=0 to reginfo[n].movelist^.count-1 do
-          begin
-            m:=reginfo[n].movelist^.data[i];
-            if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
-              if Tmoveins(m).moveset=ms_active_moves then
-                begin
-                  {Move m from the set active_moves to the set worklist_moves.}
-                  active_moves.remove(m);
-                  Tmoveins(m).moveset:=ms_worklist_moves;
-                  worklist_moves.concat(m);
-                end;
+      with reginfo[n] do
+        if movelist<>nil then
+          for i:=0 to movelist^.count-1 do
+            begin
+              m:=movelist^.data[i];
+              if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
+                if Tmoveins(m).moveset=ms_active_moves then
+                  begin
+                    {Move m from the set active_moves to the set worklist_moves.}
+                    active_moves.remove(m);
+                    Tmoveins(m).moveset:=ms_worklist_moves;
+                    worklist_moves.concat(m);
+                  end;
           end;
     end;
 
-    procedure trgobj.decrement_degree(m:Tsuperregister);
+    procedure Trgobj.decrement_degree(m:Tsuperregister);
 
     var adj : Psuperregisterworklist;
-        d,n : tsuperregister;
-        i : word;
+        n : tsuperregister;
+        d,i : word;
 
     begin
-      d:=reginfo[m].degree;
-      if d=0 then
-        internalerror(200312151);
-      dec(reginfo[m].degree);
-      if d=usable_registers_cnt then
+      with reginfo[m] do
         begin
-          {Enable moves for m.}
-          enable_moves(m);
-          {Enable moves for adjacent.}
-          adj:=reginfo[m].adjlist;
-          if adj<>nil then
-            for i:=1 to adj^.length do
-              begin
-                n:=adj^.buf^[i-1];
-                if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
-                  enable_moves(n);
-              end;
-          {Remove the node from the spillworklist.}
-          if not spillworklist.delete(m) then
-            internalerror(200310145);
-
-          if move_related(m) then
-            freezeworklist.add(m)
-          else
-            simplifyworklist.add(m);
+          d:=degree;
+          if d=0 then
+            internalerror(200312151);
+          dec(degree);
+          if d=usable_registers_cnt then
+            begin
+              {Enable moves for m.}
+              enable_moves(m);
+              {Enable moves for adjacent.}
+              adj:=adjlist;
+              if adj<>nil then
+                for i:=1 to adj^.length do
+                  begin
+                    n:=adj^.buf^[i-1];
+                    if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
+                      enable_moves(n);
+                  end;
+              {Remove the node from the spillworklist.}
+              if not spillworklist.delete(m) then
+                internalerror(200310145);
+    
+              if move_related(m) then
+                freezeworklist.add(m)
+              else
+                simplifyworklist.add(m);
+            end;
         end;
     end;
 
@@ -872,8 +897,11 @@ implementation
 
       {Push it on the selectstack.}
       selectstack.add(m);
-      include(reginfo[m].flags,ri_selected);
-      adj:=reginfo[m].adjlist;
+      with reginfo[m] do
+        begin
+          include(flags,ri_selected);
+          adj:=adjlist;
+        end;
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
@@ -922,19 +950,21 @@ implementation
         n : tsuperregister;
 
     begin
-      adjacent_ok:=true;
-      adj:=reginfo[v].adjlist;
-      if adj<>nil then
-        for i:=1 to adj^.length do
-          begin
-            n:=adj^.buf^[i-1];
-            if (reginfo[v].flags*[ri_coalesced,ri_selected]=[]) and
-               not ok(n,u) then
+      with reginfo[v] do
+        begin
+          adjacent_ok:=true;
+          adj:=adjlist;
+          if adj<>nil then
+            for i:=1 to adj^.length do
               begin
-                adjacent_ok:=false;
-                break;
+                n:=adj^.buf^[i-1];
+                if (flags*[ri_coalesced,ri_selected]=[]) and not ok(n,u) then
+                  begin
+                    adjacent_ok:=false;
+                    break;
+                  end;
               end;
-          end;
+        end;
     end;
 
     function trgobj.conservative(u,v:Tsuperregister):boolean;
@@ -947,18 +977,21 @@ implementation
     begin
       k:=0;
       supregset_reset(done,false);
-      adj:=reginfo[u].adjlist;
-      if adj<>nil then
-        for i:=1 to adj^.length do
-          begin
-            n:=adj^.buf^[i-1];
-            if reginfo[u].flags*[ri_coalesced,ri_selected]=[] then
+      with reginfo[u] do
+        begin
+          adj:=adjlist;
+          if adj<>nil then
+            for i:=1 to adj^.length do
               begin
-                supregset_include(done,n);
-                if reginfo[n].degree>=usable_registers_cnt then
-                  inc(k);
+                n:=adj^.buf^[i-1];
+                if flags*[ri_coalesced,ri_selected]=[] then
+                  begin
+                    supregset_include(done,n);
+                    if reginfo[n].degree>=usable_registers_cnt then
+                      inc(k);
+                  end;
               end;
-          end;
+        end;
       adj:=reginfo[v].adjlist;
       if adj<>nil then
         for i:=1 to adj^.length do
@@ -1190,18 +1223,21 @@ implementation
         will never converge (PFV) }
       max:=0;
       p:=0;
-      {Safe: This procedure is only called if length<>0}
-      for i:=0 to spillworklist.length-1 do
+      with spillworklist do
         begin
-          adj:=reginfo[spillworklist.buf^[i]].adjlist;
-          if assigned(adj) and (adj^.length>max) then
+          {Safe: This procedure is only called if length<>0}
+          for i:=0 to length-1 do
             begin
-              p:=i;
-              max:=adj^.length;
+              adj:=reginfo[buf^[i]].adjlist;
+              if assigned(adj) and (adj^.length>max) then
+                begin
+                  p:=i;
+                  max:=adj^.length;
+                end;
             end;
+          n:=buf^[p];
+          deleteidx(p);
         end;
-      n:=spillworklist.buf^[p];
-      spillworklist.deleteidx(p);
 
       simplifyworklist.add(n);
       freeze_moves(n);
@@ -1312,11 +1348,12 @@ implementation
       constrained_moves.destroy;
       constrained_moves:=nil;
       for i:=0 to maxreg-1 do
-        if reginfo[i].movelist<>nil then
-          begin
-            dispose(reginfo[i].movelist);
-            reginfo[i].movelist:=nil;
-          end;
+        with reginfo[i] do
+          if movelist<>nil then
+            begin
+              dispose(movelist);
+              movelist:=nil;
+            end;
     end;
 
 
@@ -1398,31 +1435,32 @@ implementation
       begin
         { Insert regallocs for all imaginary registers }
         for supreg:=first_imaginary to maxreg-1 do
-          begin
-            r:=newreg(regtype,supreg,reginfo[supreg].subreg);
-            if assigned(reginfo[supreg].live_start) then
-              begin
+          with reginfo[supreg] do
+            begin
+              r:=newreg(regtype,supreg,subreg);
+              if assigned(live_start) then
+                begin
 {$ifdef EXTDEBUG}
-                if reginfo[supreg].live_start=reginfo[supreg].live_end then
-                  Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
+                  if live_start=live_end then
+                    Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
 {$endif EXTDEBUG}
-                list.insertbefore(Tai_regalloc.alloc(r),reginfo[supreg].live_start);
-                { Insert live end deallocation before reg allocations
+                  list.insertbefore(Tai_regalloc.alloc(r),live_start);
+                  { Insert live end deallocation before reg allocations
                   to reduce conflicts }
-                p:=reginfo[supreg].live_end;
-                while assigned(p) and
-                      assigned(p.previous) and
-                      (tai(p.previous).typ=ait_regalloc) and
-                      tai_regalloc(p.previous).allocation and
-                      (tai_regalloc(p.previous).reg<>r) do
-                  p:=tai(p.previous);
-                list.insertbefore(Tai_regalloc.dealloc(r),p);
-              end
+                  p:=live_end;
+                  while assigned(p) and
+                        assigned(p.previous) and
+                        (tai(p.previous).typ=ait_regalloc) and
+                         tai_regalloc(p.previous).allocation and
+                        (tai_regalloc(p.previous).reg<>r) do
+                    p:=tai(p.previous);
+                  list.insertbefore(Tai_regalloc.dealloc(r),p);
+                end
 {$ifdef EXTDEBUG}
-            else
-              Comment(V_Warning,'Register '+std_regname(r)+' not used');
+              else
+                Comment(V_Warning,'Register '+std_regname(r)+' not used');
 {$endif EXTDEBUG}
-          end;
+            end;
       end;
 
 
@@ -1446,18 +1484,19 @@ implementation
         while assigned(p) do
           begin
             if p.typ=ait_regalloc then
-              begin
-                if (getregtype(Tai_regalloc(p).reg)=regtype) then
-                  begin
-                    supreg:=getsupreg(Tai_regalloc(p).reg);
-                    if Tai_regalloc(p).allocation then
-                      live_registers.add(supreg)
-                    else
-                      live_registers.delete(supreg);
-                    add_edges_used(supreg);
-                    add_constraints(Tai_regalloc(p).reg);
-                  end;
-              end;
+              with Tai_regalloc(p) do
+                begin
+                  if (getregtype(reg)=regtype) then
+                    begin
+                      supreg:=getsupreg(reg);
+                      if allocation then
+                        live_registers.add(supreg)
+                      else
+                        live_registers.delete(supreg);
+                      add_edges_used(supreg);
+                      add_constraints(reg);
+                    end;
+                end;
             add_cpu_interferences(p);
             p:=Tai(p.next);
           end;
@@ -1480,7 +1519,6 @@ implementation
       var
         hp,p,q:Tai;
         i:shortint;
-        r:Preference;
 {$ifdef arm}
         so:pshifterop;
 {$endif arm}
@@ -1495,72 +1533,75 @@ implementation
           begin
             case p.typ of
               ait_regalloc:
-                begin
-                  if (getregtype(Tai_regalloc(p).reg)=regtype) then
-                    setsupreg(Tai_regalloc(p).reg,reginfo[getsupreg(Tai_regalloc(p).reg)].colour);
-
-                  {
-                    Remove sequences of release and
-                    allocation of the same register like:
-
-                       # Register X released
-                       # Register X allocated
-                  }
-                  if assigned(p.previous) and
-                     (Tai(p.previous).typ=ait_regalloc) and
-                     (Tai_regalloc(p.previous).reg=Tai_regalloc(p).reg) and
-                     { allocation,deallocation or deallocation,allocation }
-                     (Tai_regalloc(p.previous).allocation xor Tai_regalloc(p).allocation) then
-                    begin
-                      q:=Tai(p.next);
-                      hp:=tai(p.previous);
-                      list.remove(hp);
-                      hp.free;
-                      list.remove(p);
-                      p.free;
-                      p:=q;
-                      continue;
-                    end;
-                end;
+                with Tai_regalloc(p) do
+                  begin
+                    if (getregtype(reg)=regtype) then
+                      setsupreg(reg,reginfo[getsupreg(reg)].colour);
+  
+                    {
+                      Remove sequences of release and
+                      allocation of the same register like:
+  
+                         # Register X released
+                         # Register X allocated
+                    }
+                    if assigned(previous) and
+                       (Tai(previous).typ=ait_regalloc) and
+                       (Tai_regalloc(previous).reg=reg) and
+                       { allocation,deallocation or deallocation,allocation }
+                       (Tai_regalloc(previous).allocation xor allocation) then
+                      begin
+                        q:=Tai(next);
+                        hp:=tai(previous);
+                        list.remove(hp);
+                        hp.free;
+                        list.remove(p);
+                        p.free;
+                        p:=q;
+                        continue;
+                      end;
+                  end;
               ait_instruction:
-                begin
-                  for i:=0 to Taicpu_abstract(p).ops-1 do
-                    case Taicpu_abstract(p).oper[i]^.typ of
-                      Top_reg:
-                         if (getregtype(Taicpu_abstract(p).oper[i]^.reg)=regtype) then
-                           setsupreg(Taicpu_abstract(p).oper[i]^.reg,reginfo[getsupreg(Taicpu_abstract(p).oper[i]^.reg)].colour);
-                      Top_ref:
-                        begin
-                          if regtype=R_INTREGISTER then
+                with Taicpu_abstract(p) do
+                  begin
+                    for i:=0 to ops-1 do
+                      with oper[i]^ do
+                        case typ of
+                          Top_reg:
+                             if (getregtype(reg)=regtype) then
+                               setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                          Top_ref:
                             begin
-                              r:=Taicpu_abstract(p).oper[i]^.ref;
-                              if r^.base<>NR_NO then
-                                setsupreg(r^.base,reginfo[getsupreg(r^.base)].colour);
-                              if r^.index<>NR_NO then
-                                setsupreg(r^.index,reginfo[getsupreg(r^.index)].colour);
+                              if regtype=R_INTREGISTER then
+                                with ref^ do
+                                  begin
+                                    if base<>NR_NO then
+                                      setsupreg(base,reginfo[getsupreg(base)].colour);
+                                    if index<>NR_NO then
+                                      setsupreg(index,reginfo[getsupreg(index)].colour);
+                                  end;
                             end;
-                        end;
 {$ifdef arm}
-                      Top_shifterop:
-                        begin
-                          so:=Taicpu_abstract(p).oper[i]^.shifterop;
-                          if so^.rs<>NR_NO then
-                            setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
-                        end;
+                          Top_shifterop:
+                            begin
+                              so:=shifterop;
+                              if so^.rs<>NR_NO then
+                                setsupreg(so^.rs,reginfo[getsupreg(so^.rs)].colour);
+                            end;
 {$endif arm}
-                    end;
-
-                  { Maybe the operation can be removed when
-                    it is a move and both arguments are the same }
-                  if Taicpu_abstract(p).is_same_reg_move then
-                    begin
-                      q:=Tai(p.next);
-                      list.remove(p);
-                      p.free;
-                      p:=q;
-                      continue;
-                    end;
-                end;
+                        end;
+  
+                    { Maybe the operation can be removed when
+                      it is a move and both arguments are the same }
+                    if is_same_reg_move then
+                      begin
+                        q:=Tai(p.next);
+                        list.remove(p);
+                        p.free;
+                        p:=q;
+                        continue;
+                      end;
+                  end;
             end;
             p:=Tai(p.next);
           end;
@@ -1648,16 +1689,17 @@ implementation
         { Allocate temps and insert in front of the list }
         templist:=taasmoutput.create;
         {Safe: this procedure is only called if there are spilled nodes.}
-        for i:=0 to spillednodes.length-1 do
-          begin
-            t:=spillednodes.buf^[i];
-            {Alternative representation.}
-            supregset_include(regs_to_spill_set,t);
-            {Clear all interferences of the spilled register.}
-            clear_interferences(t);
-            {Get a temp for the spilled register}
-            tg.gettemp(templist,4,tt_noreuse,spill_temps^[t]);
-          end;
+        with spillednodes do
+          for i:=0 to length-1 do
+            begin
+              t:=buf^[i];
+              {Alternative representation.}
+              supregset_include(regs_to_spill_set,t);
+              {Clear all interferences of the spilled register.}
+              clear_interferences(t);
+              {Get a temp for the spilled register}
+              tg.gettemp(templist,4,tt_noreuse,spill_temps^[t]);
+            end;
         list.insertlistafter(headertai,templist);
         templist.free;
         { Walk through all instructions, we can start with the headertai,
@@ -1667,86 +1709,105 @@ implementation
           begin
             case p.typ of
               ait_regalloc:
-                begin
-                  if (getregtype(Tai_regalloc(p).reg)=regtype) then
-                    begin
-                      {A register allocation of a spilled register can be removed.}
-                      supreg:=getsupreg(Tai_regalloc(p).reg);
-                      if supregset_in(regs_to_spill_set,supreg) then
-                        begin
-                          q:=Tai(p.next);
-                          list.remove(p);
-                          p.free;
-                          p:=q;
-                          continue;
-                        end
-                      else
-                        if Tai_regalloc(p).allocation then
-                          live_registers.add(supreg)
+                with Tai_regalloc(p) do
+                  begin
+                    if (getregtype(reg)=regtype) then
+                      begin
+                        {A register allocation of a spilled register can be removed.}
+                        supreg:=getsupreg(reg);
+                        if supregset_in(regs_to_spill_set,supreg) then
+                          begin
+                            q:=Tai(p.next);
+                            list.remove(p);
+                            p.free;
+                            p:=q;
+                            continue;
+                          end
                         else
-                          live_registers.delete(supreg);
-                    end;
-                end;
+                          if allocation then
+                            live_registers.add(supreg)
+                          else
+                            live_registers.delete(supreg);
+                      end;
+                  end;
               ait_instruction:
-                begin
-                  aktfilepos:=Taicpu_abstract(p).fileinfo;
-                  if instr_spill_register(list,Taicpu_abstract(p),regs_to_spill_set,spill_temps^) then
-                    spill_registers:=true;
-                  if Taicpu_abstract(p).is_reg_move then
-                    add_move_instruction(Taicpu(p));
-                end;
+                with Taicpu_abstract(p) do
+                  begin
+                    aktfilepos:=fileinfo;
+                    if instr_spill_register(list,Taicpu_abstract(p),regs_to_spill_set,spill_temps^) then
+                      spill_registers:=true;
+                  end;
             end;
             p:=Tai(p.next);
           end;
         aktfilepos:=current_procinfo.exitpos;
         {Safe: this procedure is only called if there are spilled nodes.}
-        for i:=0 to spillednodes.length-1 do
-          tg.ungettemp(list,spill_temps^[spillednodes.buf^[i]]);
+        with spillednodes do
+          for i:=0 to length-1 do
+            tg.ungettemp(list,spill_temps^[buf^[i]]);
         freemem(spill_temps);
       end;
 
 
-    procedure trgobj.DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins: tai;
-      begin
-        helpins:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
-        if pos=nil then
-          list.insertafter(helpins,list.first)
-        else
-          list.insertafter(helpins,pos.next);
-        ungetregisterinline(list,instr,regs[regidx].tempreg);
-        forward_allocation(tai(helpins.next),instr);
-      end;
+    procedure Trgobj.do_spill_read(list:Taasmoutput;instr:Taicpu_abstract;
+                                   pos:Tai;regidx:word;
+                                   const spilltemplist:Tspill_temp_list;
+                                   const regs:Tspillregsinfo);
+
+    var helpins:Tai;
+
+    begin
+      with regs[regidx] do
+        begin
+          helpins:=instr.spilling_create_load(spilltemplist[orgreg],tempreg);
+          if pos=nil then
+            list.insertafter(helpins,list.first)
+          else
+            list.insertafter(helpins,pos.next);
+          ungetregisterinline(list,instr,tempreg);
+          forward_allocation(tai(helpins.next),instr);
+        end;
+    end;
 
 
-    procedure trgobj.DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins: tai;
-      begin
-        helpins:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
-        list.insertafter(helpins,instr);
-        ungetregisterinline(list,helpins,regs[regidx].tempreg);
-      end;
+    procedure Trgobj.do_spill_written(list:Taasmoutput;instr:Taicpu_abstract;
+                                      pos:Tai;regidx:word;
+                                      const spilltemplist:Tspill_temp_list;
+                                      const regs:Tspillregsinfo);
+
+    var helpins:Tai;
+
+    begin
+      with regs[regidx] do
+        begin
+          helpins:=instr.spilling_create_store(tempreg,spilltemplist[orgreg]);
+          list.insertafter(helpins,instr);
+          ungetregisterinline(list,helpins,tempreg);
+        end;
+    end;
 
 
-    procedure trgobj.DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins1, helpins2: tai;
-      begin
-        helpins1:=instr.spilling_create_load(spilltemplist[regs[regidx].orgreg],regs[regidx].tempreg);
-        if pos=nil then
-          list.insertafter(helpins1,list.first)
-        else
-          list.insertafter(helpins1,pos.next);
-        helpins2:=instr.spilling_create_store(regs[regidx].tempreg,spilltemplist[regs[regidx].orgreg]);
-        list.insertafter(helpins2,instr);
-        ungetregisterinline(list,helpins2,regs[regidx].tempreg);
-        forward_allocation(tai(helpins1.next),instr);
-      end;
+    procedure Trgobj.do_spill_readwritten(list:Taasmoutput;instr:Taicpu_abstract;
+                                          pos:Tai;regidx:word;
+                                          const spilltemplist:Tspill_temp_list;
+                                          const regs:Tspillregsinfo);
+
+    var helpins1,helpins2:Tai;
+
+    begin
+      with regs[regidx] do
+        begin
+          helpins1:=instr.spilling_create_load(spilltemplist[orgreg],tempreg);
+          if pos=nil then
+            list.insertafter(helpins1,list.first)
+          else
+            list.insertafter(helpins1,pos.next);
+          helpins2:=instr.spilling_create_store(tempreg,spilltemplist[orgreg]);
+          list.insertafter(helpins2,instr);
+          ungetregisterinline(list,helpins2,tempreg);
+          forward_allocation(tai(helpins1.next),instr);
+        end;
+    end;
 
 
     function trgobj.instr_spill_register(list:Taasmoutput;
@@ -1836,12 +1897,13 @@ implementation
               top_ref:
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    begin
-                      if (ref^.base <> NR_NO) then
-                        addreginfo(getsupreg(ref^.base),operand_read);
-                      if (ref^.index <> NR_NO) then
-                        addreginfo(getsupreg(ref^.index),operand_read);
-                    end;
+                    with ref^ do
+                      begin
+                        if (base <> NR_NO) then
+                          addreginfo(getsupreg(base),operand_read);
+                        if (index <> NR_NO) then
+                          addreginfo(getsupreg(index),operand_read);
+                      end;
                 end;
 {$ifdef ARM}
               top_shifterop:
@@ -1860,20 +1922,21 @@ implementation
         { generate the spilling code }
         result := true;
         for counter := 0 to pred(regindex) do
-          begin
-            if regs[counter].mustbespilled then
-              begin
-                pos := get_insert_pos(Tai(instr.previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg);
-                getregisterinline(list,pos,defaultsub,regs[counter].tempreg);
-                if regs[counter].regread then
-                  if regs[counter].regwritten then
-                    DoSpillReadWritten(list,instr,pos,counter,spilltemplist,regs)
+          with regs[counter] do
+            begin
+              if mustbespilled then
+                begin
+                  pos:=get_insert_pos(Tai(instr.previous),regs[0].orgreg,regs[1].orgreg,regs[2].orgreg);
+                  getregisterinline(list,pos,defaultsub,tempreg);
+                  if regread then
+                    if regwritten then
+                      do_spill_readwritten(list,instr,pos,counter,spilltemplist,regs)
+                    else
+                      do_spill_read(list,instr,pos,counter,spilltemplist,regs)
                   else
-                    DoSpillRead(list,instr,pos,counter,spilltemplist,regs)
-                else
-                  DoSpillWritten(list,instr,pos,counter,spilltemplist,regs)
-              end;
-          end;
+                    do_spill_written(list,instr,pos,counter,spilltemplist,regs)
+                end;
+            end;
 
         { substitute registers }
         for counter := 0 to instr.ops-1 do
@@ -1905,7 +1968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2004-02-06 13:34:46  daniel
+  Revision 1.118  2004-02-07 23:28:34  daniel
+    * Take advantage of our new with statement optimization
+
+  Revision 1.117  2004/02/06 13:34:46  daniel
     * Some changes to better accomodate very large movelists
       * movelist resizing now exponential (avoids heap fragmentation, saves
         300 kb memory in make cycle)

@@ -440,14 +440,15 @@ unit cgx86;
         pushsize : tcgsize;
       begin
         check_register_size(size,r);
-        if (locpara.loc=LOC_REFERENCE) and
-           (locpara.reference.index=NR_STACK_POINTER_REG) then
-          begin
-            pushsize:=int_cgsize(locpara.alignment);
-            list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(r,pushsize)));
-          end
-        else
-          inherited a_param_reg(list,size,r,locpara);
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(r,pushsize)));
+            end
+          else
+            inherited a_param_reg(list,size,r,locpara);
       end;
 
 
@@ -455,14 +456,15 @@ unit cgx86;
       var
         pushsize : tcgsize;
       begin
-        if (locpara.loc=LOC_REFERENCE) and
-           (locpara.reference.index=NR_STACK_POINTER_REG) then
-          begin
-            pushsize:=int_cgsize(locpara.alignment);
-            list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
-          end
-        else
-          inherited a_param_const(list,size,a,locpara);
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
+            end
+          else
+            inherited a_param_const(list,size,a,locpara);
       end;
 
 
@@ -471,22 +473,23 @@ unit cgx86;
         pushsize : tcgsize;
         tmpreg : tregister;
       begin
-        if (locpara.loc=LOC_REFERENCE) and
-           (locpara.reference.index=NR_STACK_POINTER_REG) then
-          begin
-            pushsize:=int_cgsize(locpara.alignment);
-            if tcgsize2size[size]<locpara.alignment then
-              begin
-                tmpreg:=getintregister(list,pushsize);
-                a_load_ref_reg(list,size,pushsize,r,tmpreg);
-                list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
-                ungetregister(list,tmpreg);
-              end
-            else
-              list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
-          end
-        else
-          inherited a_param_ref(list,size,r,locpara);
+        with locpara do
+          if (loc=LOC_REFERENCE) and
+             (reference.index=NR_STACK_POINTER_REG) then
+            begin
+              pushsize:=int_cgsize(alignment);
+              if tcgsize2size[size]<alignment then
+                begin
+                  tmpreg:=getintregister(list,pushsize);
+                  a_load_ref_reg(list,size,pushsize,r,tmpreg);
+                  list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+                  ungetregister(list,tmpreg);
+                end
+              else
+                list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
+            end
+          else
+            inherited a_param_ref(list,size,r,locpara);
       end;
 
 
@@ -495,35 +498,39 @@ unit cgx86;
         tmpreg : tregister;
         opsize : topsize;
       begin
-        if (r.segment<>NR_NO) then
-          CGMessage(cg_e_cant_use_far_pointer_there);
-        if (locpara.loc=LOC_REFERENCE) and
-           (locpara.reference.index=NR_STACK_POINTER_REG) then
+        with r do
           begin
-            opsize:=tcgsize2opsize[OS_ADDR];
-            if (r.base=NR_NO) and (r.index=NR_NO) then
-              begin
-                if assigned(r.symbol) then
-                  list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,r.symbol,r.offset))
-                else
-                  list.concat(Taicpu.Op_const(A_PUSH,opsize,r.offset));
-              end
-            else if (r.base=NR_NO) and (r.index<>NR_NO) and
-                    (r.offset=0) and (r.scalefactor=0) and (r.symbol=nil) then
-              list.concat(Taicpu.Op_reg(A_PUSH,opsize,r.index))
-            else if (r.base<>NR_NO) and (r.index=NR_NO) and
-                    (r.offset=0) and (r.symbol=nil) then
-              list.concat(Taicpu.Op_reg(A_PUSH,opsize,r.base))
-            else
-              begin
-                tmpreg:=getaddressregister(list);
-                a_loadaddr_ref_reg(list,r,tmpreg);
-                ungetregister(list,tmpreg);
-                list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
-              end;
-          end
-        else
-          inherited a_paramaddr_ref(list,r,locpara);
+            if (segment<>NR_NO) then
+              cgmessage(cg_e_cant_use_far_pointer_there);
+            with locpara do
+              if (locpara.loc=LOC_REFERENCE) and
+                 (locpara.reference.index=NR_STACK_POINTER_REG) then
+                begin
+                  opsize:=tcgsize2opsize[OS_ADDR];
+                  if (base=NR_NO) and (index=NR_NO) then
+                    begin
+                      if assigned(symbol) then
+                        list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                      else
+                        list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
+                    end
+                  else if (base=NR_NO) and (index<>NR_NO) and
+                          (offset=0) and (scalefactor=0) and (symbol=nil) then
+                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+                  else if (base<>NR_NO) and (index=NR_NO) and
+                          (offset=0) and (symbol=nil) then
+                    list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+                  else
+                    begin
+                      tmpreg:=getaddressregister(list);
+                      a_loadaddr_ref_reg(list,r,tmpreg);
+                      ungetregister(list,tmpreg);
+                      list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                    end;
+                end
+              else
+                inherited a_paramaddr_ref(list,r,locpara);
+        end;
       end;
 
 
@@ -634,21 +641,22 @@ unit cgx86;
 
     procedure tcgx86.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
       begin
-        if (ref.base=NR_NO) and (ref.index=NR_NO) then
-          begin
-            if assigned(ref.symbol) then
-              list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,tcgsize2opsize[OS_ADDR],ref.symbol,ref.offset,r))
-            else
-              a_load_const_reg(list,OS_ADDR,ref.offset,r);
-          end
-        else if (ref.base=NR_NO) and (ref.index<>NR_NO) and
-                (ref.offset=0) and (ref.scalefactor=0) and (ref.symbol=nil) then
-          a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.index,r)
-        else if (ref.base<>NR_NO) and (ref.index=NR_NO) and
-                (ref.offset=0) and (ref.symbol=nil) then
-          a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref.base,r)
-        else
-          list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],ref,r));
+        with ref do
+          if (base=NR_NO) and (index=NR_NO) then
+            begin
+              if assigned(ref.symbol) then
+                list.concat(Taicpu.op_sym_ofs_reg(A_MOV,tcgsize2opsize[OS_ADDR],symbol,offset,r))
+              else
+                a_load_const_reg(list,OS_ADDR,offset,r);
+            end
+          else if (base=NR_NO) and (index<>NR_NO) and
+                  (offset=0) and (scalefactor=0) and (symbol=nil) then
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,index,r)
+          else if (base<>NR_NO) and (index=NR_NO) and
+                  (offset=0) and (symbol=nil) then
+            a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
+          else
+            list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],ref,r));
       end;
 
 
@@ -1844,7 +1852,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.108  2004-02-06 14:37:48  florian
+  Revision 1.109  2004-02-07 23:28:34  daniel
+    * Take advantage of our new with statement optimization
+
+  Revision 1.108  2004/02/06 14:37:48  florian
     * movz*q fixed
 
   Revision 1.107  2004/02/05 18:28:37  peter

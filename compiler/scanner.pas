@@ -2156,15 +2156,16 @@ implementation
                  else
                   low:=mid;
                end;
-              if pattern=tokeninfo^[ttoken(high)].str then
-               begin
-                 if tokeninfo^[ttoken(high)].keyword in aktmodeswitches then
-                  if tokeninfo^[ttoken(high)].op=NOTOKEN then
-                    token:=ttoken(high)
-                  else
-                    token:=tokeninfo^[ttoken(high)].op;
-                 idtoken:=ttoken(high);
-               end;
+              with tokeninfo^[ttoken(high)] do
+                if pattern=str then
+                  begin
+                    if keyword in aktmodeswitches then
+                      if op=NOTOKEN then
+                        token:=ttoken(high)
+                      else
+                        token:=op;
+                    idtoken:=ttoken(high);
+                  end;
             end;
          { Only process identifiers and not keywords }
            if token=_ID then
@@ -2931,7 +2932,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.66  2003-11-12 16:57:59  peter
+  Revision 1.67  2004-02-07 23:28:34  daniel
+    * Take advantage of our new with statement optimization
+
+  Revision 1.66  2003/11/12 16:57:59  peter
     * do nothing for macro's in tempcloseinput,tempopeninput
 
   Revision 1.65  2003/11/10 19:08:59  peter
