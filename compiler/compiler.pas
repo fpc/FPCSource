@@ -77,7 +77,7 @@ uses
 {$ifdef fpc}
   {$ifdef GO32V2}
     emu387,
-    dpmiexcp,
+{    dpmiexcp, }
   {$endif GO32V2}
   {$ifdef LINUX}
     catch,
@@ -266,7 +266,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-03-09 11:52:06  pierre
+  Revision 1.20  1999-04-21 09:43:33  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.19  1999/03/09 11:52:06  pierre
    * compilation after a failure longjumped directly to end
 
   Revision 1.18  1999/02/26 00:48:16  peter

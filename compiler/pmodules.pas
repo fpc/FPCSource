@@ -307,6 +307,7 @@ unit pmodules;
                begin
                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
                  current_module^.do_compile:=true;
+{$ifdef STRANGERECOMPILE}
                  { if the checksum was known but has changed then
                    we should also recompile the loaded unit ! }
                  if (pu^.checksum<>0) and (loaded_unit^.sources_avail) then
@@ -314,6 +315,7 @@ unit pmodules;
                       Message2(unit_u_recompile_crc_change,loaded_unit^.modulename^,current_module^.modulename^);
                       loaded_unit^.do_compile:=true;
                    end;
+{$endif}
                  dispose(current_module^.map);
                  current_module^.map:=nil;
                  exit;
@@ -361,6 +363,7 @@ unit pmodules;
               { checksum change whereas it was already known
                 loade_unit was changed so we need to recompile this unit }
                 begin
+{$ifdef STRANGERECOMPILE}
                   {if (loaded_unit^.sources_avail) then
                    begin
                       loaded_unit^.do_compile:=true;
@@ -369,7 +372,15 @@ unit pmodules;
                   loaded_unit^.do_compile:=true;
                   if(pu^.interface_checksum<>0) then
                     load_refs:=false;
-                 end;
+{$else}
+writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_checksum);
+                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
+                  current_module^.do_compile:=true;
+                  dispose(current_module^.map);
+                  current_module^.map:=nil;
+                  exit;
+{$endif}
+                end;
 {$endif def Double_checksum}
             { setup the map entry for deref }
 {$ifndef NEWMAP}
@@ -1386,7 +1397,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.110  1999-04-17 13:14:52  peter
+  Revision 1.111  1999-04-21 09:43:46  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.110  1999/04/17 13:14:52  peter
     * concat_external added for new init/final
 
   Revision 1.109  1999/04/15 12:19:59  peter

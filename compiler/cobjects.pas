@@ -163,42 +163,46 @@ unit cobjects;
        end;
 
 
-       Pdictionary=^Tdictionary;
-
-       Pdictionaryobject=^Tdictionaryobject;
-       Tdictionaryobject=object
+       Pnamedindexobject=^Tnamedindexobject;
+       Tnamedindexobject=object
+         indexnr    : longint;
          _name      : Pstring;
+         next,
+         left,right : Pnamedindexobject;
          speedvalue : longint;
-         left,right : Pdictionaryobject;
-         owner      : Pdictionary;
-         constructor init(const n:string);
+         constructor init;
+         constructor initname(const n:string);
          destructor  done;virtual;
-         function name:string;
+         procedure setname(const n:string);
+         function  name:string;
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
-       Tdictionaryhasharray=array[0..hasharraysize-1] of Pdictionaryobject;
+       Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamedindexobject;
 
-       Tdictionarycallback = procedure(p:Pdictionaryobject);
+       Tnamedindexcallback = procedure(p:Pnamedindexobject);
 
+       Pdictionary=^Tdictionary;
        Tdictionary=object
          noclear   : boolean;
          replace_existing : boolean;
-         constructor init(usehash:boolean);
-         procedure clear;virtual;
-         procedure foreach(proc2call:Tdictionarycallback);
-         function insert(obj:Pdictionaryobject):Pdictionaryobject;virtual;
-         function rename(const olds,news : string):pdictionaryobject;
-         function search(const s:string):Pdictionaryobject;
-         function speedsearch(const s:string;speedvalue:longint):Pdictionaryobject;virtual;
-         destructor done;virtual;
+         constructor init;
+         destructor  done;virtual;
+         procedure usehash;
+         procedure clear;
+         function  empty:boolean;
+         procedure foreach(proc2call:Tnamedindexcallback);
+         function  insert(obj:Pnamedindexobject):Pnamedindexobject;
+         function  rename(const olds,news : string):Pnamedindexobject;
+         function  search(const s:string):Pnamedindexobject;
+         function  speedsearch(const s:string;speedvalue:longint):Pnamedindexobject;
        private
-         root      : Pdictionaryobject;
+         root      : Pnamedindexobject;
          hasharray : Pdictionaryhasharray;
-         function  insertnode(newnode:pdictionaryobject;var currnode:pdictionaryobject):pdictionaryobject;
-         procedure inserttree(currtree,currroot:pdictionaryobject);
+         procedure cleartree(obj:Pnamedindexobject);
+         function  insertnode(newnode:Pnamedindexobject;var currnode:Pnamedindexobject):Pnamedindexobject;
+         procedure inserttree(currtree,currroot:Pnamedindexobject);
        end;
-
 
        pdynamicarray = ^tdynamicarray;
        tdynamicarray = object
@@ -221,35 +225,25 @@ unit cobjects;
          procedure readpos(pos:longint;var d;len:longint);
        end;
 
-      pindexobject=^tindexobject;
-      tindexobject=object
-        indexnr : longint;
-        next    : pindexobject;
-        constructor init;
-        destructor  done;virtual;
-      end;
-
-      tindexcallback=procedure(p:pindexobject);
-
-      tindexobjectarray=array[1..16000] of pindexobject;
-      pindexobjectarray=^tindexobjectarray;
+      tindexobjectarray=array[1..16000] of Pnamedindexobject;
+      Pnamedindexobjectarray=^tindexobjectarray;
 
       pindexarray=^tindexarray;
       tindexarray=object
-        first : pindexobject;
+        first : Pnamedindexobject;
         count : longint;
         constructor init(Agrowsize:longint);
         destructor  done;
-        procedure clear1;
-        procedure foreach(proc2call : tindexcallback);
-        procedure deleteindex(p:pindexobject);
-        procedure delete(p:pindexobject);
-        procedure insert(p:pindexobject);
-        function  search(nr:longint):pindexobject;
+        procedure clear;
+        procedure foreach(proc2call : Tnamedindexcallback);
+        procedure deleteindex(p:Pnamedindexobject);
+        procedure delete(p:Pnamedindexobject);
+        procedure insert(p:Pnamedindexobject);
+        function  search(nr:longint):Pnamedindexobject;
       private
         growsize,
         size  : longint;
-        data  : pindexobjectarray;
+        data  : Pnamedindexobjectarray;
         procedure grow(gsize:longint);
       end;
 
@@ -943,30 +937,56 @@ end;
         empty:=(first=nil);
       end;
 
+
 {****************************************************************************
-                               Tdictionaryobject
+                               Tnamedindexobject
  ****************************************************************************}
 
-constructor Tdictionaryobject.init(const n:string);
+constructor Tnamedindexobject.init;
 begin
+  { index }
+  indexnr:=-1;
+  next:=nil;
+  { dictionary }
   left:=nil;
   right:=nil;
-  _name:=stringdup(n);
-  speedvalue:=getspeedvalue(n);
+  _name:=nil;
+  speedvalue:=-1;
 end;
 
-destructor Tdictionaryobject.done;
+constructor Tnamedindexobject.initname(const n:string);
+begin
+  { index }
+  indexnr:=-1;
+  next:=nil;
+  { dictionary }
+  left:=nil;
+  right:=nil;
+  speedvalue:=-1;
+  _name:=stringdup(n);
+end;
+
+destructor Tnamedindexobject.done;
 begin
   stringdispose(_name);
-  if assigned(left) then
-    dispose(left,done);
-  if assigned(right) then
-    dispose(right,done);
 end;
 
-function Tdictionaryobject.name:string;
+procedure Tnamedindexobject.setname(const n:string);
 begin
-  name:=_name^;
+  if speedvalue=-1 then
+   begin
+     if assigned(_name) then
+       stringdispose(_name);
+     _name:=stringdup(n);
+   end;
+end;
+
+function Tnamedindexobject.name:string;
+begin
+  if assigned(_name) then
+   name:=_name^
+  else
+   name:='';
 end;
 
 
@@ -974,13 +994,19 @@ end;
                                TDICTIONARY
 ****************************************************************************}
 
-    constructor Tdictionary.init(usehash:boolean);
+    constructor Tdictionary.init;
       begin
         root:=nil;
         hasharray:=nil;
         noclear:=false;
         replace_existing:=false;
-        if usehash then
+      end;
+
+
+    procedure Tdictionary.usehash;
+      begin
+        if not(assigned(root)) and
+           not(assigned(hasharray)) then
          begin
            new(hasharray);
            fillchar(hasharray^,sizeof(hasharray^),0);
@@ -990,9 +1016,21 @@ end;
 
     destructor Tdictionary.done;
       begin
-        clear;
+        if not noclear then
+         clear;
         if assigned(hasharray) then
          dispose(hasharray);
+      end;
+
+
+    procedure Tdictionary.cleartree(obj:Pnamedindexobject);
+      begin
+        if assigned(obj^.left) then
+          cleartree(obj^.left);
+        if assigned(obj^.right) then
+          cleartree(obj^.right);
+        dispose(obj,done);
+        obj:=nil;
       end;
 
 
@@ -1001,20 +1039,34 @@ end;
         w : longint;
       begin
         if assigned(root) then
-          dispose(root,done);
+          cleartree(root);
         if assigned(hasharray) then
          for w:=0 to hasharraysize-1 do
           if assigned(hasharray^[w]) then
-           begin
-             dispose(hasharray^[w],done);
-             hasharray^[w]:=nil;
-           end;
+           cleartree(hasharray^[w]);
       end;
 
 
-    procedure Tdictionary.foreach(proc2call:Tdictionarycallback);
+    function Tdictionary.empty:boolean;
+      var
+        w : longint;
+      begin
+        if assigned(hasharray) then
+         begin
+           empty:=false;
+           for w:=0 to hasharraysize-1 do
+            if assigned(hasharray^[w]) then
+             exit;
+           empty:=true;
+         end
+        else
+         empty:=(root=nil);
+      end;
 
-        procedure a(p:Pdictionaryobject);
+
+    procedure Tdictionary.foreach(proc2call:Tnamedindexcallback);
+
+        procedure a(p:Pnamedindexobject);
         begin
           proc2call(p);
           if assigned(p^.left) then
@@ -1038,9 +1090,8 @@ end;
       end;
 
 
-    function Tdictionary.insert(obj:Pdictionaryobject):Pdictionaryobject;
+    function Tdictionary.insert(obj:Pnamedindexobject):Pnamedindexobject;
       begin
-        obj^.owner:=@self;
         obj^.speedvalue:=getspeedvalue(obj^._name^);
         if assigned(hasharray) then
          insert:=insertnode(obj,hasharray^[obj^.speedvalue mod hasharraysize])
@@ -1049,7 +1100,7 @@ end;
       end;
 
 
-    function tdictionary.insertnode(newnode:pdictionaryobject;var currnode:pdictionaryobject):pdictionaryobject;
+    function tdictionary.insertnode(newnode:Pnamedindexobject;var currnode:Pnamedindexobject):Pnamedindexobject;
       var
         s1,s2:^string;
       begin
@@ -1103,7 +1154,7 @@ end;
       end;
 
 
-    procedure tdictionary.inserttree(currtree,currroot:pdictionaryobject);
+    procedure tdictionary.inserttree(currtree,currroot:Pnamedindexobject);
       begin
         if assigned(currtree) then
          begin
@@ -1114,11 +1165,11 @@ end;
       end;
 
 
-    function tdictionary.rename(const olds,news : string):pdictionaryobject;
+    function tdictionary.rename(const olds,news : string):Pnamedindexobject;
       var
         spdval : longint;
         lasthp,
-        hp,hp2,hp3 : pdictionaryobject;
+        hp,hp2,hp3 : Pnamedindexobject;
       begin
         spdval:=getspeedvalue(olds);
         if assigned(hasharray) then
@@ -1194,15 +1245,15 @@ end;
       end;
 
 
-    function Tdictionary.search(const s:string):Pdictionaryobject;
+    function Tdictionary.search(const s:string):Pnamedindexobject;
       begin
         search:=speedsearch(s,getspeedvalue(s));
       end;
 
 
-    function Tdictionary.speedsearch(const s:string;speedvalue:longint):Pdictionaryobject;
+    function Tdictionary.speedsearch(const s:string;speedvalue:longint):Pnamedindexobject;
       var
-        newnode:Pdictionaryobject;
+        newnode:Pnamedindexobject;
       begin
         if assigned(hasharray) then
          newnode:=hasharray^[speedvalue mod hasharraysize]
@@ -1251,7 +1302,7 @@ end;
 
     destructor tindexarray.done;
       begin
-{        clear1; }
+        clear;
         if assigned(data) then
          freemem(data,size*4);
       end;
@@ -1355,21 +1406,6 @@ end;
 
 
 {****************************************************************************
-                               tindexobject
- ****************************************************************************}
-
-    constructor tindexobject.init;
-      begin
-        indexnr:=-1;
-        next:=nil;
-      end;
-
-    destructor tindexobject.done;
-      begin
-      end;
-
-
-{****************************************************************************
                                tindexarray
  ****************************************************************************}
 
@@ -1384,7 +1420,7 @@ end;
       end;
 
 
-    function tindexarray.search(nr:longint):pindexobject;
+    function tindexarray.search(nr:longint):Pnamedindexobject;
       begin
         if nr<=count then
          search:=data^[nr]
@@ -1393,7 +1429,7 @@ end;
       end;
 
 
-    procedure tindexarray.clear1;
+    procedure tindexarray.clear;
       var
         i : longint;
       begin
@@ -1407,7 +1443,7 @@ end;
       end;
 
 
-    procedure tindexarray.foreach(proc2call : tindexcallback);
+    procedure tindexarray.foreach(proc2call : Tnamedindexcallback);
       var
         i : longint;
       begin
@@ -1420,7 +1456,7 @@ end;
     procedure tindexarray.grow(gsize:longint);
       var
         osize : longint;
-        odata : pindexobjectarray;
+        odata : Pnamedindexobjectarray;
       begin
         osize:=size;
         odata:=data;
@@ -1435,7 +1471,7 @@ end;
       end;
 
 
-    procedure tindexarray.deleteindex(p:pindexobject);
+    procedure tindexarray.deleteindex(p:Pnamedindexobject);
       var
         i : longint;
       begin
@@ -1458,14 +1494,14 @@ end;
       end;
 
 
-    procedure tindexarray.delete(p:pindexobject);
+    procedure tindexarray.delete(p:Pnamedindexobject);
       begin
         deleteindex(p);
         dispose(p,done);
       end;
 
 
-    procedure tindexarray.insert(p:pindexobject);
+    procedure tindexarray.insert(p:Pnamedindexobject);
       var
         i  : longint;
       begin
@@ -1896,7 +1932,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-04-15 10:01:44  peter
+  Revision 1.26  1999-04-21 09:43:31  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.25  1999/04/15 10:01:44  peter
     * small update for storenumber
 
   Revision 1.24  1999/04/14 09:14:47  peter
@@ -1912,7 +1953,7 @@ end.
     * assembler inlining working for ag386bin
 
   Revision 1.21  1999/03/19 16:35:29  pierre
-   * Tdictionaryobject done also removed left and right
+   * Tnamedindexobject done also removed left and right
 
   Revision 1.20  1999/03/18 20:30:45  peter
     + .a writer

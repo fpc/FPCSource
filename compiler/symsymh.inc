@@ -35,18 +35,18 @@
        { this object is the base for all symbol objects }
        psym = ^tsym;
 {$ifdef STORENUMBER}
-       tsym = object(tindexobject)
+       tsym = object(tnamedindexobject)
 {$else}
        tsym = object
           indexnb    : longint;
-{$endif}
-          typ        : tsymtyp;
           _name      : pchar;
           left,right : psym;
+          speedvalue : longint;
 {$ifndef nonextfield}
           nextsym    : psym;
 {$endif nextfield}
-          speedvalue : longint;
+{$endif}
+          typ        : tsymtyp;
           properties : symprop;
           owner      : psymtable;
           fileinfo   : tfileposinfo;
@@ -62,9 +62,11 @@
           destructor done;virtual;
           procedure write;virtual;
           procedure deref;virtual;
+{$ifndef STORENUMBER}
           function name : string;
-          function mangledname : string;virtual;
           procedure setname(const s : string);
+{$endif}
+          function mangledname : string;virtual;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
@@ -343,7 +345,12 @@
 
 {
   $Log$
-  Revision 1.19  1999-04-17 13:16:23  peter
+  Revision 1.20  1999-04-21 09:43:56  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.19  1999/04/17 13:16:23  peter
     * fixes for storenumber
 
   Revision 1.18  1999/04/14 09:15:03  peter

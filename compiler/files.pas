@@ -202,7 +202,7 @@ unit files;
           is_stab_written : boolean;
           u               : pmodule;
           constructor init(_u : pmodule;intface:boolean);
-          constructor init_to_load(const n:string;c:longint;intface:boolean);
+          constructor init_to_load(const n:string;c,intfc:longint;intface:boolean);
           destructor done;virtual;
        end;
 
@@ -763,6 +763,9 @@ uses
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
+{$ifdef Double_checksum}
+        Message1(unit_u_ppu_crc,tostr(ppufile^.header.interface_checksum)+' (intfc)');
+{$endif}
       { check the object and assembler file to see if we need only to
         assemble, only if it's not in a library }
         do_compile:=false;
@@ -1156,7 +1159,7 @@ uses
       end;
 
 
-    constructor tused_unit.init_to_load(const n:string;c:longint;intface:boolean);
+    constructor tused_unit.init_to_load(const n:string;c,intfc:longint;intface:boolean);
       begin
         u:=nil;
         in_interface:=intface;
@@ -1166,11 +1169,7 @@ uses
         name:=stringdup(n);
         checksum:=c;
 {$ifdef Double_checksum}
-        if not in_interface then
-          begin
-             interface_checksum:=c;
-             checksum:=0;
-          end;
+        interface_checksum:=intfc;
 {$endif def Double_checksum}
         unitid:=0;
       end;
@@ -1194,7 +1193,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.90  1999-04-14 09:14:48  peter
+  Revision 1.91  1999-04-21 09:43:36  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.90  1999/04/14 09:14:48  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.89  1999/04/07 15:39:29  pierre

@@ -32,7 +32,7 @@
 
        pdef = ^tdef;
 {$ifdef STORENUMBER}
-       tdef = object(tindexobject)
+       tdef = object(tnamedindexobject)
 {$else}
        tdef = object
           indexnb  : longint;
@@ -179,7 +179,7 @@
        pobjectdef = ^tobjectdef;
        tobjectdef = object(tdef)
           childof : pobjectdef;
-          name : pstring;
+          objname : pstring;
           { privatesyms : psymtable;
           protectedsyms : psymtable; }
           publicsyms : psymtable;
@@ -512,7 +512,12 @@
 
 {
   $Log$
-  Revision 1.20  1999-04-14 09:15:00  peter
+  Revision 1.21  1999-04-21 09:43:52  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.20  1999/04/14 09:15:00  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.19  1999/04/08 15:57:52  peter

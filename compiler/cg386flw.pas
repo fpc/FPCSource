@@ -710,7 +710,11 @@ do_jmp:
 
          { what a hack ! }
          if assigned(p^.exceptsymtable) then
+{$ifdef STORENUMBER}
+           pvarsym(p^.exceptsymtable^.symindex^.first)^.address:=ref.offset;
+{$else}
            pvarsym(p^.exceptsymtable^.searchroot)^.address:=ref.offset;
+{$endif}
 
          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref))));
@@ -798,7 +802,12 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.32  1999-04-17 13:10:58  peter
+  Revision 1.33  1999-04-21 09:43:29  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.32  1999/04/17 13:10:58  peter
     * fixed exit()
 
   Revision 1.31  1999/04/14 09:14:46  peter

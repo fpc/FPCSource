@@ -80,22 +80,22 @@ unit pdecl;
     function read_type(const name : stringid) : pdef;forward;
 
     { search in symtablestack used, but not defined type }
-    procedure testforward_type(p : psym);{$ifndef FPC}far;{$endif}
+    procedure testforward_type(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif}
       var
         reaktvarsymtable : psymtable;
         oldaktfilepos : tfileposinfo;
       begin
-         if not(p^.typ=typesym) then
+         if not(psym(p)^.typ=typesym) then
           exit;
-         if ((p^.properties and sp_forwarddef)<>0) then
+         if ((psym(p)^.properties and sp_forwarddef)<>0) then
            begin
              oldaktfilepos:=aktfilepos;
-             aktfilepos:=p^.fileinfo;
+             aktfilepos:=psym(p)^.fileinfo;
              Message1(sym_e_forward_type_not_resolved,p^.name);
              aktfilepos:=oldaktfilepos;
              { try to recover }
              ptypesym(p)^.definition:=generrordef;
-             p^.properties:=p^.properties and (not sp_forwarddef);
+             psym(p)^.properties:=psym(p)^.properties and (not sp_forwarddef);
            end
          else
           if (ptypesym(p)^.definition^.deftype in [recorddef,objectdef]) then
@@ -1047,7 +1047,7 @@ unit pdecl;
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
                        message1(parser_e_only_one_default_property,
-                         pobjectdef(p2^.owner^.defowner)^.name^)
+                         pobjectdef(p2^.owner^.defowner)^.objname^)
                      else
                        begin
                           p^.options:=p^.options or ppo_defaultproperty;
@@ -1215,7 +1215,7 @@ unit pdecl;
                      correct field addresses
                    }
                    if (childof^.options and oo_isforward)<>0 then
-                     Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
+                     Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
                    aktclass:=fd;
                    { we must inherit several options !!
                      this was missing !!
@@ -1249,7 +1249,7 @@ unit pdecl;
                           correct field addresses
                         }
                         if (childof^.options and oo_isforward)<>0 then
-                          Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
+                          Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
                         aktclass:=fd;
                         aktclass^.set_parent(childof);
                      end
@@ -1498,8 +1498,8 @@ unit pdecl;
               { write class name }
               getlabel(classnamelabel);
               datasegment^.concat(new(pai_label,init(classnamelabel)));
-              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.name^))));
-              datasegment^.concat(new(pai_string,init(aktclass^.name^)));
+              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
+              datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
 
               { generate message and dynamic tables }
               { why generate those if empty ??? }
@@ -2222,7 +2222,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.108  1999-04-17 13:16:19  peter
+  Revision 1.109  1999-04-21 09:43:45  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.108  1999/04/17 13:16:19  peter
     * fixes for storenumber
 
   Revision 1.107  1999/04/14 09:14:50  peter

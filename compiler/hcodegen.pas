@@ -279,7 +279,8 @@ implementation
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
-         asmsymbollist:=new(pasmsymbollist,init(true));
+         asmsymbollist:=new(pasmsymbollist,init);
+         asmsymbollist^.usehash;
       end;
 
 
@@ -320,7 +321,12 @@ end.
 
 {
   $Log$
-  Revision 1.28  1999-03-24 23:17:00  peter
+  Revision 1.29  1999-04-21 09:43:38  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.28  1999/03/24 23:17:00  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.27  1999/02/25 21:02:37  peter

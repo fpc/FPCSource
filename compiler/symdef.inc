@@ -188,7 +188,7 @@
     function tdef.typename:string;
       begin
         if assigned(sym) then
-         typename:=sym^.name
+         typename:=Upper(sym^.name)
         else
          typename:='unknown';
       end;
@@ -315,7 +315,7 @@
     function tdef.allstabstring : pchar;
     var stabchar : string[2];
         ss,st : pchar;
-        name : string;
+        sname : string;
         sym_line_no : longint;
       begin
       ss := stabstring;
@@ -325,15 +325,15 @@
         stabchar := 'Tt';
       if assigned(sym) then
         begin
-           name := sym^.name;
+           sname := sym^.name;
            sym_line_no:=sym^.fileinfo.line;
         end
       else
         begin
-           name := ' ';
+           sname := ' ';
            sym_line_no:=0;
         end;
-      strpcopy(st,'"'+name+':'+stabchar+numberstring+'=');
+      strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
       strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
       allstabstring := strnew(st);
       freemem(st,strlen(ss)+512);
@@ -1636,8 +1636,8 @@
          rangenr:=0;
       end;
 
-    function tarraydef.getrangecheckstring : string;
 
+    function tarraydef.getrangecheckstring : string;
       begin
          if (cs_smartlink in aktmoduleswitches) then
            getrangecheckstring:='R_'+current_module^.modulename^+tostr(rangenr)
@@ -1781,12 +1781,12 @@
     var
        binittable : boolean;
 
-    procedure check_rec_inittable(s : psym);
+    procedure check_rec_inittable(s : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
 
       begin
-         if (s^.typ=varsym) and
-            ((pvarsym(s)^.definition^.deftype<>objectdef)
-              or not(pobjectdef(pvarsym(s)^.definition)^.isclass)) then
+         if (psym(s)^.typ=varsym) and
+            ((pvarsym(s)^.definition^.deftype<>objectdef) or
+             not(pobjectdef(pvarsym(s)^.definition)^.isclass)) then
             binittable:=pvarsym(s)^.definition^.needs_inittable;
       end;
 
@@ -1809,17 +1809,18 @@
 
     procedure trecdef.deref;
       var
+{$ifndef STORENUMBER}
          hp : pdef;
+{$endif}
          oldrecsyms : psymtable;
       begin
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
 {$ifdef STORENUMBER}
-         hp:=pdef(symtable^.defindex^.first);
+         symtable^.deref;
 {$else}
          hp:=symtable^.rootdef;
-{$endif}
          while assigned(hp) do
            begin
               hp^.deref;
@@ -1827,11 +1828,9 @@
               hp^.owner:=symtable;
               hp:=pdef(hp^.next);
            end;
-         {$ifdef tp}
-           symtable^.foreach(derefsym);
-         {$else}
-           symtable^.foreach(@derefsym);
-         {$endif}
+
+         symtable^.foreach({$ifdef fpc}@{$endif}derefsym);
+{$endif}
          aktrecordsymtable:=oldrecsyms;
       end;
 
@@ -1855,23 +1854,23 @@
           StabRecSize : longint = 0;
           RecOffset : Longint = 0;
 
-    procedure addname(p : psym);
+    procedure addname(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
     var
       news, newrec : pchar;
       spec : string[2];
       size : longint;
     begin
     { static variables from objects are like global objects }
-    if ((p^.properties and sp_static)<>0) then
+    if ((psym(p)^.properties and sp_static)<>0) then
       exit;
-    if ((p^.properties and sp_protected)<>0) then
+    if ((psym(p)^.properties and sp_protected)<>0) then
       spec:='/1'
-    else if ((p^.properties and sp_private)<>0) then
+    else if ((psym(p)^.properties and sp_private)<>0) then
       spec:='/0'
     else
       spec:='';
 
-    If p^.typ = varsym then
+    If psym(p)^.typ = varsym then
        begin
        size:=pvarsym(p)^.definition^.size;
        { open arrays made overflows !! }
@@ -1899,7 +1898,9 @@
     function trecdef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
+{$ifndef STORENUMBER}
           cur : psym;
+{$endif}
       begin
         oldrec := stabrecstring;
         oldsize:=stabrecsize;
@@ -1908,11 +1909,7 @@
         strpcopy(stabRecString,'s'+tostr(savesize));
         RecOffset := 0;
 {$ifdef nonextfield}
-        {$ifdef tp}
-          symtable^.foreach(addname);
-        {$else}
-          symtable^.foreach(@addname);
-        {$endif}
+        symtable^.foreach({$ifdef fpc}@{$endif}addname);
 {$else nonextfield}
          cur:=symtable^.searchroot;
          while assigned(cur) do
@@ -1942,22 +1939,24 @@
 
     var
        count : longint;
-    procedure count_inittable_fields(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure count_inittable_fields(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
-         if (sym^.typ=varsym) and (pvarsym(sym)^.definition^.needs_inittable) then
+         if (psym(sym)^.typ=varsym) and
+            (pvarsym(sym)^.definition^.needs_inittable) then
            inc(count);
       end;
 
 
-    procedure count_fields(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure count_fields(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          inc(count);
       end;
 
 
-    procedure write_field_inittable(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure write_field_inittable(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
-         if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
+         if (psym(sym)^.typ=varsym) and
+            pvarsym(sym)^.definition^.needs_inittable then
            begin
               rttilist^.concat(new(pai_const_symbol,init(lab2str(pvarsym(sym)^.definition^.get_inittable_label))));
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
@@ -1965,22 +1964,23 @@
       end;
 
 
-    procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure write_field_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
 
-    procedure generate_child_inittable(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure generate_child_inittable(sym:{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
-         if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
+         if (psym(sym)^.typ=varsym) and
+            pvarsym(sym)^.definition^.needs_inittable then
          { force inittable generation }
            pvarsym(sym)^.definition^.get_inittable_label;
       end;
 
 
-    procedure generate_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure generate_child_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       begin
          pvarsym(sym)^.definition^.get_rtti_label;
       end;
@@ -2658,7 +2658,7 @@ Const local_symtable_index : longint = $8001;
       s := sym^.name;
       if _class <> nil then
         begin
-        s2 := _class^.name^;
+        s2 := _class^.objname^;
         s := s+'__'+tostr(length(s2))+s2;
         end else s := s + '_';
       param := para1;
@@ -2834,7 +2834,7 @@ Const local_symtable_index : longint = $8001;
 {$endif }
         publicsyms^.defowner:=@self;
         set_parent(c);
-        name:=stringdup(n);
+        objname:=stringdup(n);
      end;
 
 
@@ -2877,7 +2877,7 @@ Const local_symtable_index : longint = $8001;
          deftype:=objectdef;
          savesize:=readlong;
          vmt_offset:=readlong;
-         name:=stringdup(readstring);
+         objname:=stringdup(readstring);
          childof:=pobjectdef(readdefref);
          options:=readlong;
          oldread_member:=read_member;
@@ -2888,12 +2888,12 @@ Const local_symtable_index : longint = $8001;
          read_member:=oldread_member;
          publicsyms^.defowner:=@self;
          { publicsyms^.datasize:=savesize; }
-         publicsyms^.name := stringdup(name^);
+         publicsyms^.name := stringdup(objname^);
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
          { it !                                  }
-         if (name^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
+         if (objname^='TOBJECT') and not(cs_compilesystem in aktmoduleswitches) and
            isclass and (childof=pointer($ffffffff)) then
            class_tobject:=@self;
          has_rtti:=true;
@@ -2929,7 +2929,7 @@ Const local_symtable_index : longint = $8001;
         if (options and oo_isforward)<>0 then
           begin
              { ok, in future, the forward can be resolved }
-             Message1(sym_e_class_forward_not_resolved,name^);
+             Message1(sym_e_class_forward_not_resolved,objname^);
              options:=options and not(oo_isforward);
           end;
      end;
@@ -2945,8 +2945,8 @@ Const local_symtable_index : longint = $8001;
         if assigned(publicsyms) then
           dispose(publicsyms,done);
         if (options and oo_isforward)<>0 then
-         Message1(sym_e_class_forward_not_resolved,name^);
-        stringdispose(name);
+         Message1(sym_e_class_forward_not_resolved,objname^);
+        stringdispose(objname);
         tdef.done;
      end;
 
@@ -2982,18 +2982,19 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.deref;
       var
+{$ifndef STORENUMBER}
          hp : pdef;
+{$endif}
          oldrecsyms : psymtable;
       begin
          resolvedef(pdef(childof));
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=publicsyms;
-         { nun die Definitionen dereferenzieren }
+
 {$ifdef STORENUMBER}
-         hp:=pdef(publicsyms^.defindex^.first);
+         publicsyms^.deref;
 {$else}
          hp:=publicsyms^.rootdef;
-{$endif}
          while assigned(hp) do
            begin
               hp^.deref;
@@ -3001,10 +3002,7 @@ Const local_symtable_index : longint = $8001;
               hp^.owner:=publicsyms;
               hp:=pdef(hp^.next);
            end;
-{$ifdef tp}
-         publicsyms^.foreach(derefsym);
-{$else}
-         publicsyms^.foreach(@derefsym);
+         publicsyms^.foreach({$ifdef fpc}@{$endif}derefsym);
 {$endif}
          aktrecordsymtable:=oldrecsyms;
       end;
@@ -3019,15 +3017,15 @@ Const local_symtable_index : longint = $8001;
     begin
         if (options and oo_hasvmt)=0 then
           {internalerror(12346);}
-          Message1(parser_object_has_no_vmt,name^);
+          Message1(parser_object_has_no_vmt,objname^);
         if owner^.name=nil then
             s1:=''
         else
             s1:=owner^.name^;
-        if name=nil then
+        if objname=nil then
             s2:=''
         else
-            s2:=name^;
+            s2:=objname^;
         vmt_mangledname:='VMT_'+s1+'$_'+s2;
     end;
 
@@ -3040,10 +3038,10 @@ Const local_symtable_index : longint = $8001;
          s1:=''
        else
          s1:=owner^.name^;
-       if name=nil then
+       if objname=nil then
          s2:=''
        else
-         s2:=name^;
+         s2:=objname^;
        rtti_name:='RTTI_'+s1+'$_'+s2;
     end;
 
@@ -3061,7 +3059,7 @@ Const local_symtable_index : longint = $8001;
          tdef.write;
          writelong(size);
          writelong(vmt_offset);
-         writestring(name^);
+         writestring(objname^);
          writedefref(childof);
          writelong(options);
          current_ppu^.writeentry(ibobjectdef);
@@ -3076,7 +3074,7 @@ Const local_symtable_index : longint = $8001;
 
 
 {$ifdef GDB}
-    procedure addprocname(p :psym);
+    procedure addprocname(p :{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
     var virtualind,argnames : string;
         news, newrec : pchar;
         pd,ipd : pprocdef;
@@ -3086,7 +3084,7 @@ Const local_symtable_index : longint = $8001;
         sp : char;
 
     begin
-      If p^.typ = procsym then
+      If psym(p)^.typ = procsym then
        begin
                 pd := pprocsym(p)^.definition;
                 { this will be used for full implementation of object stabs
@@ -3139,8 +3137,8 @@ Const local_symtable_index : longint = $8001;
                 ipd^.is_def_stab_written := true;
                 { here 2A must be changed for private and protected }
                 { 0 is private 1 protected and 2 public }
-                if (p^.properties and sp_private)<>0 then sp:='0'
-                else if (p^.properties and sp_protected)<>0 then sp:='1'
+                if (psym(p)^.properties and sp_private)<>0 then sp:='0'
+                else if (psym(p)^.properties and sp_protected)<>0 then sp:='1'
                 else sp:='2';
                 newrec := strpnew(p^.name+'::'+ipd^.numberstring
                      +'=##'+pd^.retdef^.numberstring+';:'+argnames+';'+sp+'A'
@@ -3194,7 +3192,7 @@ Const local_symtable_index : longint = $8001;
          while assigned(cur) do
            begin
               addname(cur);
-              cur:=cur^.nextsym;
+              cur:=psym(cur)^.nextsym;
            end;
 {$endif nonextfield}
       if (options and oo_hasvmt) <> 0 then
@@ -3214,7 +3212,7 @@ Const local_symtable_index : longint = $8001;
          while assigned(cur) do
            begin
               addprocname(cur);
-              cur:=cur^.nextsym;
+              cur:=psym(cur)^.nextsym;
            end;
 {$endif nonextfield}
         if (options and oo_hasvmt) <> 0  then
@@ -3248,8 +3246,8 @@ Const local_symtable_index : longint = $8001;
            rttilist^.concat(new(pai_const,init_8bit(tkobject)));
 
          { generate the name }
-         rttilist^.concat(new(pai_const,init_8bit(length(name^))));
-         rttilist^.concat(new(pai_string,init(name^)));
+         rttilist^.concat(new(pai_const,init_8bit(length(objname^))));
+         rttilist^.concat(new(pai_string,init(objname^)));
 
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
@@ -3275,14 +3273,15 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure count_published_properties(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure count_published_properties(sym:{$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+      {$ifndef fpc}far;{$endif}
       begin
-         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
+         if (psym(sym)^.typ=propertysym) and ((psym(sym)^.properties and sp_published)<>0) then
            inc(count);
       end;
 
 
-    procedure write_property_info(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure write_property_info(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef fpc}far;{$endif}
       var
          proctypesinfo : byte;
 
@@ -3320,11 +3319,13 @@ Const local_symtable_index : longint = $8001;
 
       begin
 
-         if (ppropertysym(sym)^.options and ppo_indexed)<>0 then
+         if (psym(sym)^.typ=propertysym) and
+            ((ppropertysym(sym)^.options and ppo_indexed)<>0) then
            proctypesinfo:=$40
          else
            proctypesinfo:=0;
-         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
+         if (psym(sym)^.typ=propertysym) and
+            ((psym(sym)^.properties and sp_published)<>0) then
            begin
               rttilist^.concat(new(pai_const_symbol,init(ppropertysym(sym)^.proptype^.get_rtti_label)));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
@@ -3348,9 +3349,11 @@ Const local_symtable_index : longint = $8001;
       end;
 
 
-    procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
+    procedure generate_published_child_rtti(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});
+      {$ifndef fpc}far;{$endif}
       begin
-         if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
+         if (psym(sym)^.typ=propertysym) and
+            ((psym(sym)^.properties and sp_published)<>0) then
            ppropertysym(sym)^.proptype^.get_rtti_label;
       end;
 
@@ -3394,8 +3397,8 @@ Const local_symtable_index : longint = $8001;
            rttilist^.concat(new(pai_const,init_8bit(tkobject)));
 
          { generate the name }
-         rttilist^.concat(new(pai_const,init_8bit(length(name^))));
-         rttilist^.concat(new(pai_string,init(name^)));
+         rttilist^.concat(new(pai_const,init_8bit(length(objname^))));
+         rttilist^.concat(new(pai_string,init(objname^)));
 
          { write class type }
          rttilist^.concat(new(pai_const_symbol,init(vmt_mangledname)));
@@ -3473,7 +3476,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.103  1999-04-19 09:28:20  peter
+  Revision 1.104  1999-04-21 09:43:50  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.103  1999/04/19 09:28:20  peter
     * fixed crash when writing overload operator to ppu
 
   Revision 1.102  1999/04/17 22:01:28  pierre

@@ -318,7 +318,8 @@ implementation
          def_from,def_to,conv_to : pdef;
          pt,inlinecode : ptree;
          exactmatch,inlined : boolean;
-         paralength,l : longint;
+         paralength,l,lastpara : longint;
+         lastparatype : pdef;
          pdc : pdefcoll;
 {$ifdef TEST_PROCSYMS}
          symt : psymtable;
@@ -563,10 +564,11 @@ implementation
                 { now we can compare parameter after parameter }
                    pt:=p^.left;
                    { we start with the last parameter }
-                   l:=paralength+1;
+                   lastpara:=paralength+1;
+                   lastparatype:=nil;
                    while assigned(pt) do
                      begin
-                        dec(l);
+                        dec(lastpara);
                         { walk all procedures and determine how this parameter matches and set:
                            1. pt^.exact_match_found if one parameter has an exact match
                            2. exactmatch if an equal or exact match is found
@@ -640,7 +642,11 @@ implementation
                                     procs:=hp;
                                   end
                                  else
-                                  dispose(hp);
+                                  begin
+                                    { save the type for nice error message }
+                                    lastparatype:=hp^.nextpara^.data;
+                                    dispose(hp);
+                                  end;
                                  hp:=hp2;
                               end;
                           end;
@@ -651,11 +657,11 @@ implementation
                              hp^.nextpara:=hp^.nextpara^.next;
                              hp:=hp^.next;
                           end;
-                        { load next parameter }
+                        { load next parameter or quit loop if no procs left }
                         if assigned(procs) then
                           pt:=pt^.right
                         else
-                          pt:=nil;
+                          break;
                      end;
 
                  { All parameters are checked, check if there are any
@@ -667,7 +673,15 @@ implementation
                       if ((parsing_para_level=0) or (p^.left<>nil)) and
                          (nextprocsym=nil) then
                        begin
-                          CGMessage1(parser_e_wrong_parameter_type,tostr(l));
+{$ifdef STORENUMBER}
+                         if (not assigned(lastparatype)) and (not assigned(pt^.resulttype)) then
+                          internalerror(39393)
+                         else
+                          CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
+                             lastparatype^.typename,pt^.resulttype^.typename);
+{$else}
+                          CGMessage1(parser_e_wrong_parameter_type,tostr(lastpara));
+{$endif}
                           aktcallprocsym^.write_parameter_lists;
                           goto errorexit;
                        end
@@ -1125,7 +1139,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-04-14 09:11:22  peter
+  Revision 1.33  1999-04-21 09:44:00  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.32  1999/04/14 09:11:22  peter
     * fixed tp proc -> procvar
 
   Revision 1.31  1999/04/01 21:59:56  peter

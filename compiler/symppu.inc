@@ -179,15 +179,11 @@
            current_ppu^.do_interface_crc:=hp^.in_interface;
 {$endif Double_checksum}
            current_ppu^.putstring(hp^.name^);
-           current_ppu^.do_crc:=false;
-{$ifndef Double_checksum}
            { the checksum should not affect the crc of this unit ! (PFV) }
+           current_ppu^.do_crc:=false;
            current_ppu^.putlongint(hp^.checksum);
-{$else Double_checksum}
-           if hp^.in_interface then
-             current_ppu^.putlongint(hp^.checksum)
-           else
-             current_ppu^.putlongint(hp^.interface_checksum);
+{$ifdef Double_checksum}
+           current_ppu^.putlongint(hp^.interface_checksum);
 {$endif def Double_checksum}
            current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
@@ -265,7 +261,7 @@
          current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
 {$ifdef Double_checksum}
-        current_module^.interface_crc:=current_ppu^.interface_crc;
+         current_ppu^.header.interface_checksum:=current_ppu^.interface_crc;
 {$endif def Double_checksum}
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
@@ -275,7 +271,7 @@
        { save crc in current_module also }
          current_module^.crc:=current_ppu^.crc;
 {$ifdef Double_checksum}
-        current_module^.interface_crc:=current_ppu^.interface_crc;
+         current_module^.interface_crc:=current_ppu^.interface_crc;
         if only_crc then
           begin
 {$ifdef Test_Double_checksum}
@@ -476,6 +472,7 @@
     procedure readloadunit;
       var
         hs : string;
+        intfchecksum,
         checksum : longint;
         in_interface : boolean;
       begin
@@ -483,8 +480,13 @@
          begin
            hs:=current_ppu^.getstring;
            checksum:=current_ppu^.getlongint;
+{$ifdef DOUBLE_CHECKSUM}
+           intfchecksum:=current_ppu^.getlongint;
+{$else}
+           intfchecksum:=0;
+{$endif}
            in_interface:=(current_ppu^.getbyte<>0);
-           current_module^.used_units.concat(new(pused_unit,init_to_load(hs,checksum,in_interface)));
+           current_module^.used_units.concat(new(pused_unit,init_to_load(hs,checksum,intfchecksum,in_interface)));
          end;
       end;
 
@@ -516,7 +518,12 @@
 
 {
   $Log$
-  Revision 1.36  1999-04-14 09:15:01  peter
+  Revision 1.37  1999-04-21 09:43:53  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.36  1999/04/14 09:15:01  peter
     * first things to store the symbol/def number in the ppu
 
   Revision 1.35  1999/04/07 15:39:35  pierre

@@ -161,13 +161,15 @@
 
     destructor tsym.done;
       begin
+         if assigned(defref) then
+           dispose(defref,done);
+{$ifdef STORENUMBER}
+        inherited done;
+{$else}
 {$ifdef tp}
          if not(use_big) then
 {$endif tp}
            strdispose(_name);
-         if assigned(defref) then
-           dispose(defref,done);
-{$ifndef STORENUMBER}
          if assigned(left) then
            dispose(left,done);
          if assigned(right) then
@@ -192,6 +194,7 @@
       end;
 
 
+{$ifndef STORENUMBER}
     function tsym.name : string;
 {$ifdef tp}
       var
@@ -215,16 +218,20 @@
         else
          name:='';
       end;
+{$endif}
 
     function tsym.mangledname : string;
       begin
          mangledname:=name;
       end;
 
+{$ifndef STORENUMBER}
     procedure tsym.setname(const s : string);
       begin
          setstring(_name,s);
       end;
+{$endif}
+
 
     { for most symbol types there is nothing to do at all }
     procedure tsym.insert_in_data;
@@ -433,7 +440,7 @@
                    oldaktfilepos:=aktfilepos;
                    aktfilepos:=fileinfo;
                    if assigned(pd^._class) then
-                     Message1(sym_e_forward_not_resolved,pd^._class^.name^+'.'+name+demangledparas(pd^.demangled_paras))
+                     Message1(sym_e_forward_not_resolved,pd^._class^.objname^+'.'+name+demangledparas(pd^.demangled_paras))
                    else
                      Message1(sym_e_forward_not_resolved,name+pd^.demangled_paras);
                    aktfilepos:=oldaktfilepos;
@@ -1936,7 +1943,12 @@
 
 {
   $Log$
-  Revision 1.79  1999-04-17 13:16:21  peter
+  Revision 1.80  1999-04-21 09:43:54  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.79  1999/04/17 13:16:21  peter
     * fixes for storenumber
 
   Revision 1.78  1999/04/14 09:15:02  peter

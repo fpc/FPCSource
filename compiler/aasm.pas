@@ -83,7 +83,7 @@ unit aasm;
        TAsmsymtype=(AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
 
        pasmsymbol = ^tasmsymbol;
-       tasmsymbol = object(tdictionaryobject)
+       tasmsymbol = object(tnamedindexobject)
          idx     : longint;
          section : tsection;
          address,
@@ -806,7 +806,7 @@ uses
 
     constructor tasmsymbol.init(const s:string);
       begin;
-        inherited init(s);
+        inherited initname(s);
         reset;
       end;
 
@@ -880,7 +880,7 @@ uses
       end;
 
 
-    procedure ResetAsmSym(p:Pdictionaryobject);{$ifndef FPC}far;{$endif}
+    procedure ResetAsmSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
       begin
         pasmsymbol(p)^.reset;
       end;
@@ -1013,7 +1013,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.39  1999-04-16 11:49:36  peter
+  Revision 1.40  1999-04-21 09:43:28  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.39  1999/04/16 11:49:36  peter
     + tempalloc
     + -at to show temp alloc info in .s file
 

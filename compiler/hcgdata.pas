@@ -93,14 +93,14 @@ implementation
          dispose(p);
       end;
 
-    procedure insertmsgstr(p : psym);{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgstr(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
          pt : pprocdeftree;
 
       begin
-         if p^.typ=procsym then
+         if psym(p)^.typ=procsym then
            begin
               hp:=pprocsym(p)^.definition;
               while assigned(hp) do
@@ -141,14 +141,14 @@ implementation
            end;
       end;
 
-    procedure insertmsgint(p : psym);{$ifndef FPC}far;{$endif FPC}
+    procedure insertmsgint(p : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          hp : pprocdef;
          pt : pprocdeftree;
 
       begin
-         if p^.typ=procsym then
+         if psym(p)^.typ=procsym then
            begin
               hp:=pprocsym(p)^.definition;
               while assigned(hp) do
@@ -288,7 +288,7 @@ implementation
        _c : pobjectdef;
        has_constructor,has_virtual_method : boolean;
 
-    procedure eachsym(sym : psym);{$ifndef FPC}far;{$endif FPC}
+    procedure eachsym(sym : {$ifdef STORENUMBER}pnamedindexobject{$else}psym{$endif});{$ifndef FPC}far;{$endif FPC}
 
       var
          procdefcoll : pprocdefcoll;
@@ -332,7 +332,7 @@ implementation
 
                 { check, if a method should be overridden }
                 if (hp^.options and pooverridingmethod)<>0 then
-                  Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
+                  Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
                 { next overloaded method }
                 hp:=hp^.nextoverloaded;
              end;
@@ -340,7 +340,7 @@ implementation
 
       begin
          { put only sub routines into the VMT }
-         if sym^.typ=procsym then
+         if psym(sym)^.typ=procsym then
            begin
               _name:=sym^.name;
               symcoll:=wurzel;
@@ -377,7 +377,7 @@ implementation
                                                  { warn only if it is the first time,
                                                    we hide the method }
                                                  if _c=hp^._class then
-                                                   Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
+                                                   Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
                                                  newentry;
                                                  exit;
                                               end
@@ -385,10 +385,10 @@ implementation
                                               if _c=hp^._class then
                                                 begin
                                                    if (procdefcoll^.data^.options and povirtualmethod)<>0 then
-                                                     Message1(parser_w_overloaded_are_not_both_virtual,_c^.name^+'.'+_name)
+                                                     Message1(parser_w_overloaded_are_not_both_virtual,_c^.objname^+'.'+_name)
                                                    else
                                                      Message1(parser_w_overloaded_are_not_both_non_virtual,
-                                                       _c^.name^+'.'+_name);
+                                                       _c^.objname^+'.'+_name);
                                                    newentry;
                                                    exit;
                                                 end;
@@ -404,7 +404,7 @@ implementation
                                             { warn only if it is the first time,
                                               we hide the method }
                                             if _c=hp^._class then
-                                              Message1(parser_w_should_use_override,_c^.name^+'.'+_name);
+                                              Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
                                             newentry;
                                             exit;
                                          end;
@@ -416,14 +416,14 @@ implementation
                                            (pobjectdef(procdefcoll^.data^.retdef)^.isclass) and
                                            (pobjectdef(hp^.retdef)^.isclass) and
                                            (pobjectdef(hp^.retdef)^.isrelated(pobjectdef(procdefcoll^.data^.retdef)))) then
-                                         Message1(parser_e_overloaded_methodes_not_same_ret,_c^.name^+'.'+_name);
+                                         Message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
 
 
                                        { the flags have to match      }
                                        { except abstract and override }
                                        if (procdefcoll^.data^.options and not(poabstractmethod or pooverridingmethod))<>
                                          (hp^.options and not(poabstractmethod or pooverridingmethod)) then
-                                            Message1(parser_e_header_dont_match_forward,_c^.name^+'.'+_name);
+                                            Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
 
                                        { now set the number }
                                        hp^.extnumber:=procdefcoll^.data^.extnumber;
@@ -450,7 +450,7 @@ implementation
                                     end;
                                   { check, if a method should be overridden }
                                   if (hp^.options and pooverridingmethod)<>0 then
-                                   Message1(parser_e_nothing_to_be_overridden,_c^.name^+'.'+_name);
+                                   Message1(parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name);
                                end;
                              hp:=hp^.nextoverloaded;
                           end;
@@ -496,7 +496,7 @@ implementation
          do_genvmt(_class);
 
          if has_virtual_method and not(has_constructor) then
-            Message1(parser_w_virtual_without_constructor,_class^.name^);
+            Message1(parser_w_virtual_without_constructor,_class^.objname^);
 
 
          { generates the VMT }
@@ -566,7 +566,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1999-03-24 23:17:00  peter
+  Revision 1.2  1999-04-21 09:43:37  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.1  1999/03/24 23:17:00  peter
     * fixed bugs 212,222,225,227,229,231,233
 
 }

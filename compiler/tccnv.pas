@@ -839,7 +839,11 @@ implementation
                        CGMessage(cg_e_illegal_type_conversion);
                 end
               else
+{$ifdef STORENUMBER}
+                CGMessage2(type_e_incompatible_types,p^.resulttype^.typename,p^.left^.resulttype^.typename);
+{$else}
                 CGMessage(type_e_mismatch);
+{$endif}
            end
          end;
         { ordinal contants can be directly converted }
@@ -936,7 +940,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-04-15 08:56:24  peter
+  Revision 1.24  1999-04-21 09:44:01  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.23  1999/04/15 08:56:24  peter
     * fixed bool-bool conversion
 
   Revision 1.22  1999/04/08 09:47:31  pierre

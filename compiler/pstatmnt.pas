@@ -373,7 +373,11 @@ unit pstatmnt;
              objectdef : begin
                            obj:=pobjectdef(p^.resulttype);
                            withsymtable:=new(pwithsymtable,init);
+{$ifdef STORENUMBER}
+                           withsymtable^.symsearch:=obj^.publicsyms^.symsearch;
+{$else}
                            withsymtable^.searchroot:=obj^.publicsyms^.searchroot;
+{$endif}
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
 {$ifndef NODIRECTWITH}
@@ -389,7 +393,11 @@ unit pstatmnt;
                             begin
                               symtab^.next:=new(pwithsymtable,init);
                               symtab:=symtab^.next;
+{$ifdef STORENUMBER}
+                              symtab^.symsearch:=obj^.publicsyms^.symsearch;
+{$else}
                               symtab^.searchroot:=obj^.publicsyms^.searchroot;
+{$endif}
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
                                  (p^.symtable=aktprocsym^.definition^.localst) then
@@ -408,7 +416,11 @@ unit pstatmnt;
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
+{$ifdef STORENUMBER}
+                           withsymtable^.symsearch:=symtab^.symsearch;
+{$else}
                            withsymtable^.searchroot:=symtab^.searchroot;
+{$endif}
                            withsymtable^.next:=symtablestack;
 {$ifndef NODIRECTWITH}
                               if (p^.treetype=loadn) and
@@ -1271,7 +1283,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.79  1999-04-16 12:14:49  pierre
+  Revision 1.80  1999-04-21 09:43:48  peter
+    * storenumber works
+    * fixed some typos in double_checksum
+    + incompatible types type1 and type2 message (with storenumber)
+
+  Revision 1.79  1999/04/16 12:14:49  pierre
    * void pointer accepted with warning in tp and delphi mode
 
   Revision 1.78  1999/04/15 12:58:14  pierre
