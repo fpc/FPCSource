@@ -213,3 +213,7 @@ BEGIN
     CleanUp('');
 END.
 
+{
+  $Log
+}
+

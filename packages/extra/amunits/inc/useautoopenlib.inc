@@ -43,3 +43,9 @@
 {$ifndef use_auto_openlib}
    {$define use_auto_openlib}
 {$endif}
+
+{
+  $Log
+}
+
+  

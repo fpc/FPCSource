@@ -901,3 +901,8 @@ begin
 {$endif use_auto_openlib}
 
 END. (* UNIT PICASSO96API *)
+
+{
+  $Log
+}
+

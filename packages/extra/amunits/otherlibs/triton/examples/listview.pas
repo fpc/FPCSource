@@ -103,4 +103,8 @@ begin
    Cleanexit('',0);
 end.
 
+{
+  $Log
+}
+
 

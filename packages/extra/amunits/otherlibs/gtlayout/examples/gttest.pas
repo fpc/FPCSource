@@ -104,4 +104,9 @@ begin
      CleanUp('all ok',0);
 end.
 
+{
+  $Log
+}
+
+  
 

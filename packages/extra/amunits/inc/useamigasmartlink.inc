@@ -35,3 +35,9 @@
 {$ifndef use_amiga_smartlink}
    {$define use_amiga_smartlink}
 {$endif}
+
+{
+  $Log
+}
+
+  

@@ -167,3 +167,7 @@ if sc = nil then CleanUp('Can''t open screen');
 
   CleanUp(''); 
 End.
+
+{
+  $Log
+}

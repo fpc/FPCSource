@@ -42,3 +42,8 @@ begin
     freeSessionVal := QFreeSession(session);
     
 end.
+
+{
+  $Log
+}
+  

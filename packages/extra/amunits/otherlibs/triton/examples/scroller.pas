@@ -77,4 +77,10 @@ begin
    END ELSE writeln(' Cant creat Application' );
 end.
 
+{
+  $Log
+}
+
+
+
 

@@ -62,3 +62,8 @@ Begin
             Writeln('No Dimensioninfo.');
     End Else Writeln('DisplayID invalid.');
 End.
+
+{
+  $Log
+}
+
