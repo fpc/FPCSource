@@ -320,6 +320,7 @@ CONST
 
 
 Type
+ pUtilityBase = ^tUtilityBase;
  tUtilityBase = record
     ub_LibNode   : tLibrary;
     ub_Language  : Byte;
@@ -914,7 +915,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-19 18:47:47  nils
+  Revision 1.3  2002-11-20 22:09:14  nils
+
+    * added pUtilityBase
+
+  Revision 1.2  2002/11/19 18:47:47  nils
     * update check internal log
 
 }
