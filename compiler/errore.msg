@@ -1045,6 +1045,11 @@ type_e_array_required=04033_E_Array type required
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
+type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and cardinals results in a (slower) 64bit evaluation
+% If you divide/multiply a signed number by a cardinal (or vice versa),
+% or if you have overflow and/or range checking turned on and use an arithmetical
+% expression in which both signed numbers and cardinals appear, then everything has
+% to be evaluated in 64bit which is slower than normal 32bit arithmetics.
 % \end{description}
 #
 # Symtable
@@ -1279,8 +1284,6 @@ cg_e_stacklimit_in_local_routine=06028_E_Stack limit excedeed in local routine
 cg_d_stackframe_omited=06029_D_Stack frame is omitted
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_w_64bit_range_check_not_supported=06030_W_Range check for 64 bit integers is not supported on this target
-% 64 bit range check is not yet implemented for 32 bit processors.
 cg_e_unable_inline_object_methods=06031_E_Object or class methods can't be inline.
 % You cannot have inlined object methods.
 cg_e_unable_inline_procvar=06032_E_Procvar calls can't be inline.

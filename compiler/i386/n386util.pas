@@ -928,6 +928,7 @@ implementation
     { produces range check code, while one of the operands is a 64 bit
       integer }
     procedure emitrangecheck64(p : tnode;todef : pdef);
+
       var
         neglabel,
         poslabel,
@@ -936,20 +937,21 @@ implementation
         hreg   : tregister;
         hdef   :  porddef;
         fromdef : pdef;
+        opcode : tasmop;
+        opsize   : topsize;  
         oldregisterdef: boolean;
         from_signed,to_signed: boolean;
 
       begin
          fromdef:=p.resulttype;
-         if is_64bitint(todef) then
-           CGMessage(cg_w_64bit_range_check_not_supported)
-         else
+         from_signed := is_signed(fromdef);
+         to_signed := is_signed(todef);
+         
+         if not is_64bitint(todef) then
            begin
              oldregisterdef := registerdef;
              registerdef := false;
-
-             from_signed := is_signed(fromdef);
-             to_signed := is_signed(todef);
+             
              { get the high dword in a register }
              if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                hreg := p.location.registerhigh
@@ -994,7 +996,7 @@ implementation
                  getlabel(endlabel);
                  emitjmp(C_NO,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
-                 { considered as a longint) must be < 0 (JM)               }
+                 { considered as a longint) must be < 0                    }
                  emitlab(neglabel);
                  if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                    hreg := p.location.registerlow
@@ -1021,11 +1023,55 @@ implementation
                  emitrangecheck(p,todef);
                  dispose(hdef,done);
                  emitlab(endlabel);
-                 { restore p's resulttype }
                end;
              registerdef := oldregisterdef;
-           end;
-        p.resulttype := fromdef;
+             p.resulttype := fromdef;
+             { restore p's resulttype }
+           end
+         else
+           { todef = 64bit int }
+           { no 64bit subranges supported, so only a small check is necessary }
+
+           { if both are signed or both are unsigned, no problem! }
+           if (from_signed xor to_signed) and
+              { also not if the fromdef is unsigned and < 64bit, since that will }
+              { always fit in a 64bit int (todef is 64bit)                       }
+              (from_signed or
+               (porddef(fromdef)^.typ = u64bit)) then
+             begin
+               { in all cases, there is only a problem if the higest bit is set }
+               if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                 if is_64bitint(fromdef) then
+                   hreg := p.location.registerhigh
+                 else
+                   hreg := p.location.register
+               else
+                 begin
+                   hreg := getexplicitregister32(R_EDI);
+                   case p.resulttype^.size of
+                     1: opsize := S_BL;
+                     2: opsize := S_WL;
+                     4,8: opsize := S_L;
+                   end;
+                   if opsize in [S_BL,S_WL] then
+                     if from_signed then
+                       opcode := A_MOVSX
+                     else opcode := A_MOVZX
+                   else
+                     opcode := A_MOV;
+                   href := newreference(p.location.reference);
+                   if p.resulttype^.size = 8 then
+                     inc(href^.offset,4);
+                   emit_ref_reg(opcode,opsize,href,hreg);
+                 end;
+               getlabel(poslabel);
+               emit_reg_reg(A_TEST,regsize(hreg),hreg,hreg);
+               if hreg = R_EDI then
+                 ungetregister32(hreg);
+               emitjmp(C_GE,poslabel);
+               emitcall('FPC_RANGEERROR');
+               emitlab(poslabel);
+             end;
       end;
 
      { produces if necessary rangecheckcode }
@@ -1058,6 +1104,18 @@ implementation
         { only check when assigning to scalar, subranges are different,
           when todef=fromdef then the check is always generated }
         fromdef:=p.resulttype;
+        { no range check if from and to are equal and are both longint/dword or }
+        { int64/qword, since such operations can at most cause overflows (JM)   }
+        if (fromdef = todef) and
+          { then fromdef and todef can only be orddefs }
+           (((porddef(fromdef)^.typ = s32bit) and
+             (porddef(fromdef)^.low = longint($80000000)) and
+             (porddef(fromdef)^.high = $7fffffff)) or
+            ((porddef(fromdef)^.typ = u32bit) and
+             (porddef(fromdef)^.low = 0) and
+             (porddef(fromdef)^.high = longint($ffffffff))) or
+            is_64bitint(fromdef)) then
+          exit;
         if is_64bitint(fromdef) or is_64bitint(todef) then
           begin
              emitrangecheck64(p,todef);
@@ -1485,7 +1543,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-12-07 17:19:46  jonas
+  Revision 1.8  2000-12-11 19:10:19  jonas
+    * fixed web bug 1144
+    + implemented range checking for 64bit types
+
+  Revision 1.7  2000/12/07 17:19:46  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
