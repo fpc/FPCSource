@@ -274,7 +274,8 @@ implementation
       begin
         if not invalid then
           begin
-             checkpreprocstack;
+             if status.errorcount=0 then
+              checkpreprocstack;
            { close file, but only if we are the first compile }
            { probably not necessary anymore with invalid flag PM }
              if not current_module^.in_second_compile then
@@ -1518,7 +1519,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  1998-10-21 20:16:05  peter
+  Revision 1.65  1998-11-03 11:35:02  peter
+    * don't check for endif if error
+
+  Revision 1.64  1998/10/21 20:16:05  peter
     * beter line info for conditionals
 
   Revision 1.63  1998/10/16 14:20:57  daniel
