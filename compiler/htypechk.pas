@@ -119,17 +119,17 @@ implementation
             (tc_not_possible,tc_not_possible,tc_not_possible,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_only_rangechecks32bit,tc_bool_2_int,tc_bool_2_int),
+             tc_only_rangechecks32bit,tc_int_2_bool,tc_int_2_bool),
            {bool16bit}
             (tc_not_possible,tc_not_possible,tc_not_possible,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_bool_2_int,tc_only_rangechecks32bit,tc_bool_2_int),
+             tc_int_2_bool,tc_only_rangechecks32bit,tc_int_2_bool),
            {bool32bit}
             (tc_not_possible,tc_not_possible,tc_not_possible,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
              tc_bool_2_int,tc_bool_2_int,tc_bool_2_int,
-             tc_bool_2_int,tc_bool_2_int,tc_only_rangechecks32bit));
+             tc_int_2_bool,tc_int_2_bool,tc_only_rangechecks32bit));
 
       var
          b : boolean;
@@ -639,7 +639,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-24 23:49:05  peter
+  Revision 1.4  1998-09-30 16:42:52  peter
+    * fixed bool-bool cnv
+
+  Revision 1.3  1998/09/24 23:49:05  peter
     + aktmodeswitches
 
   Revision 1.2  1998/09/24 09:02:14  peter
