@@ -359,6 +359,7 @@ Fixed bugs:
   bug0300.pp   crash if method on non existing object is parsed (form bug 651) OK 0.99.13 (PFV)
   bug0301.pp   crash if destructor without object name is parsed    OK 0.99.13 (PFV)
   bug0302.pp   inherited property generates wrong assembler         OK 0.99.13 (PFV)
+  bug0303.pp   One more InternalError(10) out of register !         OK 0.99.13 (FK)
 
 
 Unproducable bugs:
@@ -392,4 +393,3 @@ Unfixed bugs:
 bug0262.pp   problems with virtual and overloaded methods
 bug0293.pp   no error with variable name = type name
 bug0299.pp   passing Array[0..1] of char by value to proc leads to problems
-bug0303.pp   One more InternalError(10) out of register !
