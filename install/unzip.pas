@@ -37,7 +37,11 @@ Unzips deflated, imploded, shrunk and stored files
 }
 
 INTERFACE
-{$F+}
+
+{$IFNDEF FPC}
+  {$F+}
+{$ENDIF}
+
 {$R-}         {No range checking}
 
 USES
@@ -377,8 +381,9 @@ VAR w : longint;                 {Current Position in slide}
     totalabort,             {User pressed abort button, set in showpercent!}
     zipeof : boolean;         {read over end of zip section for this file}
     inuse : boolean;          {is unit already in use -> don't call it again!!!}
+{$ifdef windows}
     lastusedtime : longint;   {Time of last usage in timer ticks for timeout!}
-
+{$endif}
 
 (***************************************************************************)
 {.$I z_tables.pas}  {Tables for bit masking, huffman codes and CRC checking}
@@ -3003,7 +3008,7 @@ BEGIN
        strcopy ( FileName, thename );
        Size := UnZipSize ( SourceZipFile, CompressSize );
        IF Size = 0 THEN ratio := 0 ELSE
-       Ratio := 100 -Round ( ( CompressSize /Size ) * 100 );
+       Ratio := 100 -Round ( ( CompressSize / Size ) * 100 );
        Status := unzip_starting;
        Report ( Status, @ZipRec );
   END; {start of ZIP file}

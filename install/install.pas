@@ -390,7 +390,6 @@ program install;
        i,line : integer;
        items : psitem;
        p,f : pview;
-       s : string;
 
     const
        width = 76;
@@ -467,7 +466,6 @@ program install;
     var
        p    : pinstalldialog;
        p2   : punzipdialog;
-       p3   : pstatictext;
        r    : trect;
        result,
        c    : word;
@@ -549,6 +547,12 @@ program install;
 
 
 begin
+{$ifndef fpc}
+asm
+mov ax,3
+int 10h
+end;
+{$endif}
    getdir(0,startpath);
    successfull:=false;
 
@@ -571,7 +575,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-10-23 16:57:40  pierre
+  Revision 1.10  1998-10-25 23:38:35  peter
+    * removed warnings
+
+  Revision 1.9  1998/10/23 16:57:40  pierre
    * compiles without -So option
    * the main dialog init was buggy !!
 
