@@ -14,11 +14,6 @@
 
  **********************************************************************}
 
-{
-   Supported conditionnals:
-   ------------------------
-   RTLLITE         Create a somewhat smaller RTL
-}
 
 {****************************************************************************
                              Needed switches
@@ -120,7 +115,7 @@ Type
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
-  PBoolean            = ^Boolean; 
+  PBoolean            = ^Boolean;
   PWordBool           = ^WordBool;
   PLongBool           = ^LongBool;
 
@@ -198,7 +193,7 @@ var
   ExitCode    : Word;
   StackBottom,
   LowestStack,
-  RandSeed    : Cardinal;  
+  RandSeed    : Cardinal;
 { Delphi compatible }
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
 {$ifdef MT}
@@ -216,7 +211,6 @@ Procedure Move(const source;var dest;count:Longint);
 Procedure FillChar(Var x;count:Longint;Value:Boolean);
 Procedure FillChar(Var x;count:Longint;Value:Char);
 Procedure FillChar(Var x;count:Longint;Value:Byte);
-{$ifndef RTLLITE}
 procedure FillByte(var x;count:longint;value:byte);
 Procedure FillWord(Var x;count:Longint;Value:Word);
 procedure FillDWord(var x;count:longint;value:DWord);
@@ -231,14 +225,12 @@ function  CompareDWord(var buf1,buf2;len:longint):longint;
 procedure MoveChar0(var buf1,buf2;len:longint);
 function  IndexChar0(var buf;len:longint;b:char):longint;
 function  CompareChar0(var buf1,buf2;len:longint):longint;
-{$endif}
 
 
 {****************************************************************************
                           Math Routines
 ****************************************************************************}
 
-{$ifndef RTLLITE}
 Function  lo(w:Word):byte;
 Function  lo(l:Longint):Word;
 Function  lo(l:DWord):Word;
@@ -259,7 +251,6 @@ Function  hi(q : QWord) : DWord;
 Function  hi(i : Int64) : DWord;
 Function  Swap (X:QWord):QWord;
 Function  Swap (X:Int64):Int64;
-{$endif RTLLITE}
 
 Function  Random(l:cardinal):cardinal;
 Function  Random(l:longint):longint;
@@ -277,12 +268,10 @@ Function odd(l:Longint):Boolean;
                          Addr/Pointer Handling
 ****************************************************************************}
 
-{$ifndef RTLLITE}
 Function  ptr(sel,off:Longint):farpointer;
 Function  Cseg:Word;
 Function  Dseg:Word;
 Function  Sseg:Word;
-{$endif RTLLITE}
 
 {****************************************************************************
                       PChar and String Handling
@@ -305,21 +294,15 @@ Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
 Function  upCase(const s:shortstring):shortstring;
-{$ifndef RTLLITE}
 Function  lowerCase(const s:shortstring):shortstring;
-{$endif}
 Function  Space(b:byte):shortstring;
-{$ifndef RTLLITE}
 Function  hexStr(Val:Longint;cnt:byte):shortstring;
 Function  binStr(Val:Longint;cnt:byte):shortstring;
-{$endif RTLLITE}
 
 { Char functions }
 Function  Chr(b:byte):Char;
 Function  upCase(c:Char):Char;
-{$ifndef RTLLITE}
 Function  lowerCase(c:Char):Char;
-{$endif RTLLITE}
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
 function  length(c:char):byte;
@@ -339,7 +322,9 @@ Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Function  Pos (c : Char; Const s : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-Function StringOfChar(c : char;l : longint) : AnsiString;
+Function  StringOfChar(c : char;l : longint) : AnsiString;
+function  upcase(const s : ansistring) : ansistring;
+function  lowercase(const s : ansistring) : ansistring;
 
 
 {****************************************************************************
@@ -459,15 +444,11 @@ Function Sptr:Longint;
 
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
-{$ifndef RTLLITE}
 Procedure Dump_Stack(var f : text;bp:Longint);
-{$endif RTLLITE}
 Procedure RunError(w:Word);
 Procedure RunError;
 Procedure halt(errnum:byte);
-{$ifndef RTLLITE}
 Procedure AddExitProc(Proc:TProcedure);
-{$endif RTLLITE}
 Procedure halt;
 
 
@@ -510,7 +491,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2001-03-22 23:26:05  florian
+  Revision 1.19  2001-04-13 18:06:07  peter
+    * upcase, lowercase for ansistring
+
+  Revision 1.18  2001/03/22 23:26:05  florian
     * some new types added like PBoolean
 
   Revision 1.17  2001/03/21 23:29:40  florian

@@ -702,9 +702,33 @@ begin
   Move (Buf[0],S[1],Len);
 end;
 
+
+function upcase(const s : ansistring) : ansistring;
+var
+  i : longint;
+begin
+  Setlength(result,length(s));
+  for i := 1 to length (s) do
+    result[i] := upcase(s[i]);
+end;
+
+
+function lowercase(const s : ansistring) : ansistring;
+var
+  i : longint;
+begin
+  Setlength(result,length(s));
+  for i := 1 to length (s) do
+    result[i] := lowercase(s[i]);
+end;
+
+
 {
   $Log$
-  Revision 1.9  2000-12-10 15:00:14  florian
+  Revision 1.10  2001-04-13 18:06:07  peter
+    * upcase, lowercase for ansistring
+
+  Revision 1.9  2000/12/10 15:00:14  florian
     * val for int64 hopefully works now correct
 
   Revision 1.8  2000/12/08 14:04:43  jonas
