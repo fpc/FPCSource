@@ -794,7 +794,7 @@ type
   end;
 
 function MMap(const m:tmmapargs):longint;
-
+function MUnMap (P : Pointer; Size : Longint) : Boolean;
 
 {**************************
      Port IO functions
@@ -2931,7 +2931,10 @@ End.
 
 {
   $Log$
-  Revision 1.70  2000-05-21 17:10:13  michael
+  Revision 1.71  2000-05-25 19:59:57  michael
+  + Added munmap call
+
+  Revision 1.70  2000/05/21 17:10:13  michael
   + AssignStream now always returns PID of spawned process
 
   Revision 1.69  2000/05/17 17:11:44  peter

@@ -894,6 +894,15 @@ begin
   LinuxError:=Errno;
 end;
 
+function MUnMap (P : Pointer; Size : Longint) : Boolean;
+Var
+  Sr : Syscallregs;
+begin
+  Sr.reg2:=longint(P);
+  sr.reg3:=Size;
+  MUnMap:=syscall(syscall_nr_munmap,sr)=0;
+  LinuxError:=Errno;
+end;
 
 {--------------------------------
       Port IO functions

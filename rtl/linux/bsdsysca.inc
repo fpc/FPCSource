@@ -628,9 +628,21 @@ begin
  LinuxError:=Errno;
 end;
 
+function MUnMap (P : Pointer; Size : Longint) : Boolean;
+Var
+  Sr : Syscallregs;
+begin
+  Sr.reg2:=longint(P);
+  sr.reg3:=Size;
+  MUnMap:=syscall(syscall_nr_munmap,P,Size,0)=0;
+  LinuxError:=Errno;
+end;
 {
   $Log$
-  Revision 1.2  2000-04-16 16:10:01  marco
+  Revision 1.3  2000-05-25 19:59:57  michael
+  + Added munmap call
+
+  Revision 1.2  2000/04/16 16:10:01  marco
    * Some procedure were forgotten. FIxed
 
 }
