@@ -1,6 +1,11 @@
 program                TestProgram;
 
-uses Test2;
+
+uses
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif}
+    Test2;
 
 const A =  1234;
       C =  #1#2#3#4;
@@ -129,8 +134,11 @@ BEGIN
   writeln('Hello world!');
   Writeln('ParamCount = ',ParamCount);
   For i:=0 to paramcount do
-   writeln('Paramstr(',i,') = ',Paramstr(i));
+   writeln('Paramstr(',i,') = '+Paramstr(i));
   writeln(IsOdd(3));
   writeln(Func1(5,5,Bool,T));
+  new(X);
+  X^.next:=X;
+  dispose(X);
   Halt;
 END.

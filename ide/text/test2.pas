@@ -12,6 +12,9 @@ type
 
 function IsOdd(X: integer): boolean;
 
+var 
+  TEST2_X : real;
+
 implementation
 
 function IsOdd(X: integer): boolean;
