@@ -19,6 +19,12 @@ unit OS2Def;
 
 interface
 
+// Common Error definitions
+
+type
+       ERRORID=Cardinal;  // errid
+       PERRORID=^ERRORID;
+
 const
        Severity_NoError = $0;
        Severity_Warning = $4;
@@ -2518,22 +2524,22 @@ const
 {$PACKRECORDS NORMAL}
 
 Type
-  ICONINFO=record
-    cb: Cardinal;         // size of ICONINFO structure
-    fFormat: Cardinal;
-    pszFileName: PChar;   //use when fFormat = ICON_FILE
-    hmod: Cardinal;       // use when fFormat = ICON_RESOURCE
-    resid: Cardinal;      // use when fFormat = ICON_RESOURCE
-    cbIconData: Cardinal; // use when fFormat = ICON_DATA
-    pIconData: Pointer;   // use when fFormat = ICON_DATA
-  end;
-  PIconInfo=^IconInfo;
+       ICONINFO=record
+          cb: Cardinal;         // size of ICONINFO structure
+          fFormat: Cardinal;
+          pszFileName: PChar;   //use when fFormat = ICON_FILE
+          hmod: Cardinal;       // use when fFormat = ICON_RESOURCE
+          resid: Cardinal;      // use when fFormat = ICON_RESOURCE
+          cbIconData: Cardinal; // use when fFormat = ICON_DATA
+          pIconData: Pointer;   // use when fFormat = ICON_DATA
+       end;
+       PIconInfo=^IconInfo;
 
 const
-     ICON_FILE     =1;         // flags for fFormat
-     ICON_RESOURCE =2;
-     ICON_DATA     =3;
-     ICON_CLEAR    =4;
+      ICON_FILE     =1;         // flags for fFormat
+      ICON_RESOURCE =2;
+      ICON_DATA     =3;
+      ICON_CLEAR    =4;
 
 { Error constants from bseerr.h header file }
 CONST
@@ -3392,10 +3398,18 @@ CONST
 
   implementation
 
+Function LOUSHORT(var l): Word;
+Begin
+  LOUSHORT:=Lo(Cardinal(l));
+End;
+
 end.
 {
   $Log$
-  Revision 1.7  2003-03-28 13:25:08  yuri
+  Revision 1.8  2003-04-04 20:46:51  yuri
+  * ErrorID type added
+
+  Revision 1.7  2003/03/28 13:25:08  yuri
     * Iconinfo type & constants added
 
   Revision 1.6  2002/11/02 11:15:38  hajny
