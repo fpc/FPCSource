@@ -293,6 +293,19 @@ Function StringOfChar(c : char;l : longint) : AnsiString;
 
 
 {****************************************************************************
+                             WideString Handling
+****************************************************************************}
+
+Procedure SetLength (Var S : WideString; l : Longint);
+Procedure UniqueString (Var S : WideString);
+Function  Length (Const S : WideString) : Longint;
+Function  Copy (Const S : WideString; Index,Size : Longint) : WideString;
+Function  Pos (Const Substr : WideString; Const Source : WideString) : Longint;
+Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
+Procedure Delete (Var S : WideString; Index,Size: Longint);
+
+
+{****************************************************************************
                           Untyped File Management
 ****************************************************************************}
 
@@ -443,7 +456,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-08-08 22:11:45  sg
+  * Added declarations for WideString utility functions
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:45  michael
