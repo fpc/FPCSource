@@ -185,9 +185,18 @@ implementation
               { proc/procvar 2 procvar ? }
               if p^.left^.treetype=calln then
                 begin
-                     { it could also be a procvar, not only pprocsym ! }
-                     if p^.left^.symtableprocentry^.typ=varsym then
-                        hp:=genloadnode(pvarsym(p^.left^.symtableentry),p^.left^.symtableproc)
+                     { is it a procvar, this is needed for @procvar in tp mode ! }
+                     if assigned(p^.left^.right) then
+                       begin
+                         { just return the load of the procvar, remove the
+                           addrn and calln nodes }
+                         hp:=p^.left^.right;
+                         putnode(p^.left);
+                         putnode(p);
+                         firstpass(hp);
+                         p:=hp;
+                         exit;
+                       end
                      else
                         begin
                           { generate a methodcallnode or proccallnode }
@@ -274,7 +283,7 @@ implementation
          if is_constnode(p^.left) then
           begin
             aktfilepos:=p^.left^.fileinfo;
-	    CGMessage(type_e_no_addr_of_constant);
+            CGMessage(type_e_no_addr_of_constant);
           end
          else
            begin
@@ -588,7 +597,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18.2.3  1999-07-05 20:06:47  peter
+  Revision 1.18.2.4  1999-07-16 09:54:59  peter
+    * @procvar support in tp7 mode works again
+
+  Revision 1.18.2.3  1999/07/05 20:06:47  peter
     * give error instead of warning for ln(0) and sqrt(0)
 
   Revision 1.18.2.2  1999/07/05 16:22:56  peter

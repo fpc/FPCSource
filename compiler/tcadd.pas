@@ -926,6 +926,21 @@ implementation
            end
          else
 
+         { support procvar=nil,procvar<>nil }
+           if ((ld^.deftype=procvardef) and (rt=niln)) or
+              ((rd^.deftype=procvardef) and (lt=niln)) then
+            begin
+              calcregisters(p,1,0,0);
+              p^.location.loc:=LOC_REGISTER;
+              case p^.treetype of
+                 equaln,unequaln : ;
+              else
+                CGMessage(type_e_mismatch);
+              end;
+              convdone:=true;
+            end
+         else
+
            if (rd^.deftype=pointerdef) or
              is_zero_based_array(rd) then
             begin
@@ -1102,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34.2.2  1999-06-17 15:25:07  pierre
+  Revision 1.34.2.3  1999-07-16 09:54:58  peter
+    * @procvar support in tp7 mode works again
+
+  Revision 1.34.2.2  1999/06/17 15:25:07  pierre
    * for arrays of char operators can not be overloaded
 
   Revision 1.34.2.1  1999/06/17 12:35:23  pierre

@@ -60,7 +60,9 @@ unit pexpr;
 {$endif}
        ;
 
-    const allow_type : boolean = true;
+    const
+      allow_type : boolean = true;
+      got_addrn  : boolean = false;
 
     function parse_paras(_colon,in_prop_paras : boolean) : ptree;
 
@@ -116,9 +118,9 @@ unit pexpr;
 
       begin
          if (m_tp_procvar in aktmodeswitches) and
-{            (not afterassignment) and }
+            (not got_addrn) and
             (not in_args) and
-            (p^.treetype in [loadn]) then
+            (p^.treetype=loadn) then
             begin
                { support if procvar then for tp7 and many other expression like this }
                Store_valid:=Must_be_valid;
@@ -1743,7 +1745,9 @@ unit pexpr;
                end;
  KLAMMERAFFE : begin
                  consume(KLAMMERAFFE);
+                 got_addrn:=true;
                  p1:=factor(true);
+                 got_addrn:=false;
                  p1:=gensinglenode(addrn,p1);
                end;
     LKLAMMER : begin
@@ -2044,7 +2048,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112.2.7  1999-07-07 07:53:10  michael
+  Revision 1.112.2.8  1999-07-16 09:54:57  peter
+    * @procvar support in tp7 mode works again
+
+  Revision 1.112.2.7  1999/07/07 07:53:10  michael
   + Merged patches from florian
 
   Revision 1.120  1999/07/06 22:38:11  florian
