@@ -266,9 +266,9 @@ End;
 {$INCLUDE graph16.inc}       // Include graphic functions for 16 colours modes
 
 var
-  LastColor: Integer;   {Cache the last set color to improve speed}
+  LastColor: smallint;   {Cache the last set color to improve speed}
 
-procedure SetEGAColor(color: Integer);
+procedure SetEGAColor(color: smallint);
 begin
   if color <> LastColor then begin
     LastColor := color;
@@ -300,7 +300,7 @@ const
 procedure InitColors(nrColors: longint);
 
 var
-  i: Integer;
+  i: smallint;
 begin
   for i:=0 to nrColors do
     vga_setpalette(I,DefaultColors[i].red shr 2,
@@ -321,7 +321,7 @@ begin
   SetRawMode(True);
 end;
 
-Function ClipCoords (Var X,Y : Integer) : Boolean;
+Function ClipCoords (Var X,Y : smallint) : Boolean;
 { Adapt to viewport, return TRUE if still in viewport,
   false if outside viewport}
 
@@ -339,7 +339,7 @@ begin
 end;
 
 
-procedure libvga_directpixelproc(X,Y: Integer);
+procedure libvga_directpixelproc(X,Y: smallint);
 
 Var Color : Word;
 
@@ -374,14 +374,14 @@ begin
   vga_drawpixel(x, y);
 end;
 
-procedure libvga_putpixelproc(X,Y: Integer; Color: Word);
+procedure libvga_putpixelproc(X,Y: smallint; Color: Word);
 begin
   If Not ClipCoords(X,Y) Then exit;
   SetEGAColor(Color);
   vga_drawpixel(x, y);
 end;
 
-function libvga_getpixelproc (X,Y: Integer): word;
+function libvga_getpixelproc (X,Y: smallint): word;
 begin
  ClipCoords(X,Y);
  libvga_getpixelproc:=vga_getpixel(x, y);
@@ -405,12 +405,12 @@ end;
 {type
   PBitmap = ^TBitmap;
   TBitmap = record
-            Width, Height: Integer;
+            Width, Height: smallint;
             Data: record end;
             end;
 }
 
-procedure libvga_putimageproc (X,Y: Integer; var Bitmap; BitBlt: Word);
+procedure libvga_putimageproc (X,Y: smallint; var Bitmap; BitBlt: Word);
 begin
 {
   With TBitMap(BitMap) do
@@ -418,7 +418,7 @@ begin
 }
 end;
 
-procedure libvga_getimageproc (X1,Y1,X2,Y2: Integer; Var Bitmap);
+procedure libvga_getimageproc (X1,Y1,X2,Y2: smallint; Var Bitmap);
 begin
 {  with TBitmap(Bitmap) do
     begin
@@ -430,34 +430,34 @@ begin
 end;
 
 {
-function  libvga_imagesizeproc (X1,Y1,X2,Y2: Integer): longint;
+function  libvga_imagesizeproc (X1,Y1,X2,Y2: smallint): longint;
 begin
  libvga_imagesizeproc := SizeOf(TBitmap) + (x2 - x1 + 1) * (y2 - y1 + 1) * PhysicalScreen^.BytesPerPixel;
 
 end;
 }
-procedure libvga_hlineproc (x, x2,y : integer);
+procedure libvga_hlineproc (x, x2,y : smallint);
 begin
 end;
 
-procedure libvga_vlineproc (x,y,y2: integer);
+procedure libvga_vlineproc (x,y,y2: smallint);
 begin
 end;
 
-procedure libvga_patternlineproc (x1,x2,y: integer);
+procedure libvga_patternlineproc (x1,x2,y: smallint);
 begin
 end;
 
-procedure libvga_ellipseproc  (X,Y: Integer;XRadius: word;
+procedure libvga_ellipseproc  (X,Y: smallint;XRadius: word;
   YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 begin
 end;
 
-procedure libvga_lineproc (X1, Y1, X2, Y2 : Integer);
+procedure libvga_lineproc (X1, Y1, X2, Y2 : smallint);
 begin
 end;
 
-procedure libvga_getscanlineproc (X1,X2,Y : integer; var data);
+procedure libvga_getscanlineproc (X1,X2,Y : smallint; var data);
 begin
 end;
 
@@ -478,13 +478,13 @@ procedure libvga_restorestateproc;
 begin
 end;
 
-procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+procedure libvga_setrgbpaletteproc(ColorNum, RedValue, GreenValue, BlueValue: smallint);
 begin
   vga_setpalette(ColorNum,RedValue shr 2,GreenValue shr 2,BlueValue shr 2);
 end;
 
-procedure libvga_getrgbpaletteproc (ColorNum: integer;
-                                    var RedValue, GreenValue, BlueValue: Integer);
+procedure libvga_getrgbpaletteproc (ColorNum: smallint;
+                                    var RedValue, GreenValue, BlueValue: smallint);
 
 Var R,G,B : longint;
 
@@ -601,7 +601,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:31  peter
+  Revision 1.11  2005-04-04 16:13:09  peter
+    * use smallint
+
+  Revision 1.10  2005/02/14 17:13:31  peter
     * truncate log
 
 }

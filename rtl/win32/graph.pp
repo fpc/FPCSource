@@ -168,7 +168,7 @@ function GetPaletteEntry(r,g,b : word) : word;
      GetPaletteEntry:=index;
   end;
 
-procedure PutPixel16Win32GUI(x,y : integer;pixel : word);
+procedure PutPixel16Win32GUI(x,y : smallint;pixel : word);
 
   var
      c : colorref;
@@ -195,7 +195,7 @@ procedure PutPixel16Win32GUI(x,y : integer;pixel : word);
       end;
   end;
 
-function GetPixel16Win32GUI(x,y : integer) : word;
+function GetPixel16Win32GUI(x,y : smallint) : word;
 
   var
      c : COLORREF;
@@ -224,7 +224,7 @@ function GetPixel16Win32GUI(x,y : integer) : word;
       end;
   end;
 
-procedure DirectPutPixel16Win32GUI(x,y : integer);
+procedure DirectPutPixel16Win32GUI(x,y : smallint);
 
   var
      col : longint;
@@ -715,7 +715,7 @@ procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
     CurrentWriteMode := WriteMode;
   end;
 
-procedure HLine16Win32GUI(x,x2,y: integer);
+procedure HLine16Win32GUI(x,x2,y: smallint);
 
    var
       c,c2 : COLORREF;
@@ -1117,7 +1117,7 @@ Begin
 end;
 }
 procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
-      bluevalue : integer);
+      bluevalue : smallint);
 
   begin
      if directcolor or (colornum<0) or (colornum>=maxcolor) then
@@ -1135,8 +1135,8 @@ procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
        end;
   end;
 
-procedure GetRGBPaletteWin32GUI(colorNum : integer;
-      var redValue,greenvalue,bluevalue : integer);
+procedure GetRGBPaletteWin32GUI(colorNum : smallint;
+      var redValue,greenvalue,bluevalue : smallint);
 
   begin
      if directcolor or (colornum<0) or (colornum>=maxcolor) then
@@ -2226,7 +2226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2005-03-31 12:47:20  marco
+  Revision 1.15  2005-04-04 16:13:09  peter
+    * use smallint
+
+  Revision 1.14  2005/03/31 12:47:20  marco
    * fix from Thomas Schatzl for 3208
 
   Revision 1.13  2005/02/14 17:13:32  peter
