@@ -17,42 +17,13 @@
 Unit Dos;
 
 Interface
+
 {$goto on}
 
 Const
-  {Max FileName Length for files}
   FileNameLen=255;
 
-  {Bitmasks for CPU Flags}
-  fcarry     = $0001;
-  fparity    = $0004;
-  fauxiliary = $0010;
-  fzero      = $0040;
-  fsign      = $0080;
-  foverflow  = $0800;
-
-  {Bitmasks for file attribute}
-  readonly  = $01;
-  hidden    = $02;
-  sysfile   = $04;
-  volumeid  = $08;
-  directory = $10;
-  archive   = $20;
-  anyfile   = $3F;
-
-  {File Status}
-  fmclosed = $D7B0;
-  fminput  = $D7B1;
-  fmoutput = $D7B2;
-  fminout  = $D7B3;
-
 Type
-  ComStr  = String[FileNameLen];
-  PathStr = String[FileNameLen];
-  DirStr  = String[FileNameLen];
-  NameStr = String[FileNameLen];
-  ExtStr  = String[FileNameLen];
-
   SearchRec = packed Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
     DirPtr     : pointer;        {directory pointer for reading directory}
@@ -68,15 +39,6 @@ Type
     SearchDir  : String[FileNameLen]; { path we are searching in }
   End;
 
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
   Registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
@@ -84,66 +46,9 @@ Type
      2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
     End;
 
-  DateTime = packed record
-    Year,
-    Month,
-    Day,
-    Hour,
-    Min,
-    Sec   : word;
-  End;
+{$i dosh.inc}
 
-Var
-  DosError : integer;
-
-
-{Info/Date/Time}
-Function  DosVersion: Word;
-Procedure GetDate(var year, month, mday, wday: word);
-Procedure GetTime(var hour, minute, second, sec100: word);
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
-Procedure UnpackTime(p: longint; var t: datetime);
-Procedure PackTime(var t: datetime; var p: longint);
-
-{Exec}
-Procedure Exec(const path: pathstr; const comline: comstr);
-Function  DosExitCode: word;
-
-{Disk}
 Procedure AddDisk(const path:string);
-Function  DiskFree(drive: byte) : int64;
-Function  DiskSize(drive: byte) : int64;
-Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
-Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
-
-{File}
-Procedure GetFAttr(var f; var attr: word);
-Procedure GetFTime(var f; var time: longint);
-Function  FSearch(const path: pathstr; dirlist: string): pathstr;
-Function  FExpand(const path: pathstr): pathstr;
-Procedure FSplit(const path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-
-{Environment}
-Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
-Function  GetEnv (envvar: string): string;
-
-{Do Nothing Functions, no POSIX version}
-Procedure Intr(intno: byte; var regs: registers);
-Procedure MSDos(var regs: registers);
-Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
-Procedure SetFAttr(var f; attr: word);
-Procedure SetFTime(var f; time: longint);
-Procedure GetCBreak(var breakvalue: boolean);
-Procedure SetCBreak(breakvalue: boolean);
-Procedure GetVerify(var verify: boolean);
-Procedure SetVerify(verify: boolean);
-
 
 Implementation
 
@@ -1060,7 +965,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2003-12-03 20:53:22  olle
+  Revision 1.6  2004-02-09 12:03:16  michael
+  + Switched to single interface in dosh.inc
+
+  Revision 1.5  2003/12/03 20:53:22  olle
     * files are not pretended to have attr ARCHIVE anymore
     * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
     * made code more conformant with unix/dos.pp

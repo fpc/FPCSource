@@ -30,70 +30,38 @@ interface
 
 uses    Strings, DosCalls;
 
-const   {Bit masks for CPU flags.}
-        fcarry      = $0001;
-        fparity     = $0004;
-        fauxiliary  = $0010;
-        fzero       = $0040;
-        fsign       = $0080;
-        foverflow   = $0800;
+Const 
+  FileNameLen = 255;
+  
+Type
+  {Search record which is used by findfirst and findnext:}
+  searchrec=record
+    case boolean of
+    false: (handle:longint;     {Used in os_OS2 mode}
+            FStat:PFileFindBuf3;
+            fill2:array[1..21-SizeOf(longint)-SizeOf(pointer)] of byte;
+            attr2:byte;
+            time2:longint;
+            size2:longint;
+            name2:string);      {Filenames can be long in OS/2!}
+    true:  (fill:array[1..21] of byte;
+            attr:byte;
+            time:longint;
+            size:longint;
+            name:string);       {Filenames can be long in OS/2!}
+  end;
 
-        {Bit masks for file attributes.}
-        readonly    = $01;
-        hidden      = $02;
-        sysfile     = $04;
-        volumeid    = $08;
-        directory   = $10;
-        archive     = $20;
-        anyfile     = $3F;
 
-        fmclosed    = $D7B0;
-        fminput     = $D7B1;
-        fmoutput    = $D7B2;
-        fminout     = $D7B3;
+   {Data structure for the registers needed by msdos and intr:}
+  registers=packed record
+    case i:integer of
+      0:(ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,
+         f8,flags,fs,gs:word);
+      1:(al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh:byte);
+      2:(eax,ebx,ecx,edx,ebp,esi,edi:longint);
+  end;
 
-type    {Some string types:}
-        comstr=string;              {Filenames can be long in OS/2.}
-        pathstr=string;             {String for pathnames.}
-        dirstr=string;              {String for a directory}
-        namestr=string;             {String for a filename.}
-        extstr=string[40];          {String for an extension. Can be 253
-                                     characters long, in theory, but let's
-                                     say fourty will be enough.}
-
-        {Search record which is used by findfirst and findnext:}
-        searchrec=record
-            case boolean of
-             false: (handle:longint;     {Used in os_OS2 mode}
-                     FStat:PFileFindBuf3;
-                     fill2:array[1..21-SizeOf(longint)-SizeOf(pointer)] of byte;
-                     attr2:byte;
-                     time2:longint;
-                     size2:longint;
-                     name2:string);      {Filenames can be long in OS/2!}
-             true:  (fill:array[1..21] of byte;
-                     attr:byte;
-                     time:longint;
-                     size:longint;
-                     name:string);       {Filenames can be long in OS/2!}
-        end;
-
-{$i filerec.inc}
-{$i textrec.inc}
-
-        {Data structure for the registers needed by msdos and intr:}
-       registers=packed record
-            case i:integer of
-                0:(ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,
-                   f8,flags,fs,gs:word);
-                1:(al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh:byte);
-                2:(eax,ebx,ecx,edx,ebp,esi,edi:longint);
-            end;
-
-        {Record for date and time:}
-        datetime=record
-            year,month,day,hour,min,sec:word;
-        end;
+{$i dosh.inc}
 
         {Flags for the exec procedure:
 
@@ -128,67 +96,23 @@ const
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
     ExecFlags: cardinal = ord (efwait);
 
-var doserror:integer;
-    dosexitcode:word;
-
-procedure getdate(var year,month,day,dayofweek:word);
-procedure gettime(var hour,minute,second,sec100:word);
-function dosversion:word;
-procedure setdate(year,month,day:word);
-procedure settime(hour,minute,second,sec100:word);
-procedure getcbreak(var breakvalue:boolean);
-procedure setcbreak(breakvalue:boolean);
-procedure getverify(var verify:boolean);
-procedure setverify(verify : boolean);
-
-function DiskFree (Drive: byte) : int64;
-function DiskSize (Drive: byte) : int64;
-
-procedure findfirst(const path:pathstr;attr:word;var f:searchRec);
-procedure findnext(var f:searchRec);
-procedure findclose(var f:searchRec);
-
-{Is a dummy:}
-procedure swapvectors;
-
-{Not supported:
-procedure getintvec(intno:byte;var vector:pointer);
-procedure setintvec(intno:byte;vector:pointer);
-procedure keep(exitcode:word);
-}
-procedure msdos(var regs:registers);
-procedure intr(intno : byte;var regs:registers);
-
-procedure getfattr(var f;var attr:word);
-procedure setfattr(var f;attr:word);
-
-function fsearch(path:pathstr;dirlist:string):pathstr;
-procedure getftime(var f;var time:longint);
-procedure setftime(var f;time:longint);
-procedure packtime (var d:datetime; var time:longint);
-procedure unpacktime (time:longint; var d:datetime);
-function fexpand(const path:pathstr):pathstr;
-procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
-                 var ext:extstr);
-procedure exec(const path:pathstr;const comline:comstr);
-function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
-              const comline:comstr):longint;
-function envcount:longint;
-function envstr(index:longint) : string;
-function GetEnvPChar (EnvVar: string): PChar;
-function getenv(const envvar:string): string;
+var
+  dosexitcode:word;
 
 implementation
 
-var     LastSR: SearchRec;
-        EnvC: longint; external name '_envc';
-        EnvP: ppchar; external name '_environ';
+var
+  LastSR: SearchRec;
+  EnvC: longint; external name '_envc';
+  EnvP: ppchar; external name '_environ';
 
-type    TBA = array [1..SizeOf (SearchRec)] of byte;
-        PBA = ^TBA;
+type
+  TBA = array [1..SizeOf (SearchRec)] of byte;
+  PBA = ^TBA;
 
-const   FindResvdMask = $00003737; {Allowed bits in attribute
-                                    specification for DosFindFirst call.}
+const
+  FindResvdMask = $00003737; {Allowed bits in attribute
+                              specification for DosFindFirst call.}
 
 
 {Import syscall to call it nicely from assembler procedures.}
@@ -1248,7 +1172,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-12-26 22:20:44  hajny
+  Revision 1.9  2004-02-09 12:03:16  michael
+  + Switched to single interface in dosh.inc
+
+  Revision 1.8  2003/12/26 22:20:44  hajny
     * regcall fixes
 
   Revision 1.7  2003/10/25 22:45:37  hajny

@@ -17,58 +17,10 @@ unit dos;
 interface
 
 Const
-  Max_Path = 260;
-
-  {Bitmasks for CPU Flags}
-  fcarry     = $0001;
-  fparity    = $0004;
-  fauxiliary = $0010;
-  fzero      = $0040;
-  fsign      = $0080;
-  foverflow  = $0800;
-
-  {Bitmasks for file attribute}
-  readonly  = $01;
-  hidden    = $02;
-  sysfile   = $04;
-  volumeid  = $08;
-  directory = $10;
-  archive   = $20;
-  anyfile   = $3F;
-
-  {File Status}
-  fmclosed = $D7B0;
-  fminput  = $D7B1;
-  fmoutput = $D7B2;
-  fminout  = $D7B3;
-
+  Max_Path    = 260;
+  FileNameLen = 255;
 
 Type
-{ Needed for Win95 LFN Support }
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
-
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
-  DateTime = packed record
-    Year,
-    Month,
-    Day,
-    Hour,
-    Min,
-    Sec   : word;
-  End;
-
   TWin32Handle = longint;
 
   PWin32FileTime = ^TWin32FileTime;
@@ -111,60 +63,9 @@ Type
      2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
     end;
 
-Var
-  DosError : integer;
+{$i dosh.inc}
 
-{Interrupt}
-Procedure Intr(intno: byte; var regs: registers);
-Procedure MSDos(var regs: registers);
 
-{Info/Date/Time}
-Function  DosVersion: Word;
-Procedure GetDate(var year, month, mday, wday: word);
-Procedure GetTime(var hour, minute, second, sec100: word);
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
-Procedure UnpackTime(p: longint; var t: datetime);
-Procedure PackTime(var t: datetime; var p: longint);
-
-{Exec}
-Procedure Exec(const path: pathstr; const comline: comstr);
-Function  DosExitCode: word;
-
-{Disk}
-Function  DiskFree(drive: byte) : int64;
-Function  DiskSize(drive: byte) : int64;
-Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
-Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
-
-{File}
-Procedure GetFAttr(var f; var attr: word);
-Procedure GetFTime(var f; var time: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
-Function  FExpand(const path: pathstr): pathstr;
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-function  GetShortName(var p : String) : boolean;
-function  GetLongName(var p : String) : boolean;
-
-{Environment}
-Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
-Function  GetEnv(envvar: string): string;
-
-{Misc}
-Procedure SetFAttr(var f; attr: word);
-Procedure SetFTime(var f; time: longint);
-Procedure GetCBreak(var breakvalue: boolean);
-Procedure SetCBreak(breakvalue: boolean);
-Procedure GetVerify(var verify: boolean);
-Procedure SetVerify(verify: boolean);
-
-{Do Nothing Functions}
-Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
 
 Const
   { allow EXEC to inherited handles from calling process,
@@ -1055,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-01-06 00:58:35  florian
+  Revision 1.23  2004-02-09 12:03:16  michael
+  + Switched to single interface in dosh.inc
+
+  Revision 1.22  2004/01/06 00:58:35  florian
     * fixed fsearch
 
   Revision 1.21  2003/10/27 15:27:47  peter

@@ -33,53 +33,10 @@ Interface
 
 {$I os.inc}
 
-
 Const
-  {Bitmasks for CPU Flags}
-  fcarry     = $0001;
-  fparity    = $0004;
-  fauxiliary = $0010;
-  fzero      = $0040;
-  fsign      = $0080;
-  foverflow  = $0800;
+  FileNameLen = 255;
 
-  {Bitmasks for file attribute}
-  readonly  = $01;
-  hidden    = $02;
-  sysfile   = $04;
-  volumeid  = $08;
-  directory = $10;
-  archive   = $20;
-  anyfile   = $3F;
-
-  {File Status}
-  fmclosed = $D7B0;
-  fminput  = $D7B1;
-  fmoutput = $D7B2;
-  fminout  = $D7B3;
-
-
-Type
-  ComStr  = String[255];  { size increased to be more compatible with Unix}
-  PathStr = String[255];  { size increased to be more compatible with Unix}
-  DirStr  = String[255];  { size increased to be more compatible with Unix}
-  NameStr = String[255];  { size increased to be more compatible with Unix}
-  ExtStr  = String[255];  { size increased to be more compatible with Unix}
-
-
-
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
-
-Type
-
+type
   SearchRec = Packed Record
     { watch out this is correctly aligned for all processors }
     { don't modify.                                          }
@@ -93,16 +50,6 @@ Type
     Name : String[255]; {name of found file}
   End;
 
-
-  DateTime = packed record
-    Year: Word;
-    Month: Word;
-    Day: Word;
-    Hour: Word;
-    Min: Word;
-    Sec: word;
-  End;
-
   registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
@@ -110,59 +57,7 @@ Type
      2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
     end;
 
-
-Var
-  DosError : integer;
-
-{Interrupt}
-Procedure Intr(intno: byte; var regs: registers);
-Procedure MSDos(var regs: registers);
-
-{Info/Date/Time}
-Function  DosVersion: Word;
-Procedure GetDate(var year, month, mday, wday: word);
-Procedure GetTime(var hour, minute, second, sec100: word);
-procedure SetDate(year,month,day: word);
-Procedure SetTime(hour,minute,second,sec100: word);
-Procedure UnpackTime(p: longint; var t: datetime);
-Procedure PackTime(var t: datetime; var p: longint);
-
-{Exec}
-Procedure Exec(const path: pathstr; const comline: comstr);
-Function  DosExitCode: word;
-
-{Disk}
-Function  DiskFree(drive: byte) : longint;
-Function  DiskSize(drive: byte) : longint;
-Procedure FindFirst(path: pathstr; attr: word; var f: searchRec);
-Procedure FindNext(var f: searchRec);
-Procedure FindClose(Var f: SearchRec);
-
-{File}
-Procedure GetFAttr(var f; var attr: word);
-Procedure GetFTime(var f; var time: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
-Function  FExpand(path: pathstr): pathstr;
-Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
-
-{Environment}
-Function  EnvCount: longint;
-Function  EnvStr(index: integer): string;
-Function  GetEnv(envvar: string): string;
-
-{Misc}
-Procedure SetFAttr(var f; attr: word);
-Procedure SetFTime(var f; time: longint);
-Procedure GetCBreak(var breakvalue: boolean);
-Procedure SetCBreak(breakvalue: boolean);
-Procedure GetVerify(var verify: boolean);
-Procedure SetVerify(verify: boolean);
-
-{Do Nothing Functions}
-Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: pointer);
-Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
+{$i dosh.inc}
 
 implementation
 
@@ -1713,7 +1608,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:16  peter
+  Revision 1.5  2004-02-09 12:03:16  michael
+  + Switched to single interface in dosh.inc
+
+  Revision 1.4  2002/09/07 16:01:16  peter
     * old logs removed and tabs fixed
 
 }

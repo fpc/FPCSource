@@ -25,59 +25,10 @@
 unit dos;
 interface
 
-Const
-  {Bitmasks for CPU Flags}
-  fcarry     = $0001;
-  fparity    = $0004;
-  fauxiliary = $0010;
-  fzero      = $0040;
-  fsign      = $0080;
-  foverflow  = $0800;
-
-  {Bitmasks for file attribute}
-  readonly  = $01;
-  hidden    = $02;
-  sysfile   = $04;
-  volumeid  = $08;
-  nwexeconly= $08;
-  directory = $10;
-  archive   = $20;
-  sharable  = $80;
-  anyfile   = $3F;
-
-  {File Status}
-  fmclosed = $D7B0;
-  fminput  = $D7B1;
-  fmoutput = $D7B2;
-  fminout  = $D7B3;
-
+Const 
+  FileNameLen = 255;
 
 Type
-{ Needed for LFN Support }
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
-
-{
-  filerec.inc contains the definition of the filerec.
-  textrec.inc contains the definition of the textrec.
-  It is in a separate file to make it available in other units without
-  having to use the DOS unit for it.
-}
-{$i filerec.inc}
-{$i textrec.inc}
-
-  DateTime = packed record
-    Year,
-    Month,
-    Day,
-    Hour,
-    Min,
-    Sec   : word;
-  End;
-
   searchrec = packed record
      DirP  : POINTER;              { used for opendir }
      EntryP: POINTER;              { and readdir }
@@ -97,70 +48,7 @@ Type
      2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
     end;
 
-
-Var
-  DosError : integer;
-
-
-
-{Info/Date/Time}
-Function  DosVersion: Word;                                  {ok}
-Procedure GetDate(var year, month, mday, wday: word);        {ok}
-Procedure GetTime(var hour, minute, second, sec100: word);   {ok}
-procedure SetDate(year,month,day: word);                     {ok}
-Procedure SetTime(hour,minute,second,sec100: word);          {ok}
-Procedure UnpackTime(p: longint; var t: datetime);           {ok}
-Procedure PackTime(var t: datetime; var p: longint);         {ok}
-
-{Exec}
-Procedure Exec(const path: pathstr; const comline: comstr);  {ni}
-Function  DosExitCode: word;                                 {ni}
-
-{Disk}
-{$ifdef Int64}
- Function  DiskFree(drive: byte) : int64;                    {ok}
- Function  DiskSize(drive: byte) : int64;                    {ok}
-{$else}
- Function  DiskFree(drive: byte) : longint;                  {ok}
- Function  DiskSize(drive: byte) : longint;                  {ok}
-{$endif}
-
-{FincClose has to be called to avoid memory leaks}
-Procedure FindFirst(const path: pathstr; attr: word;         {ok}
-                    var f: searchRec);
-Procedure FindNext(var f: searchRec);                        {ok}
-Procedure FindClose(Var f: SearchRec);                       {ok}
-
-{File}
-Procedure GetFAttr(var f; var attr: word);                   {ok}
-Procedure GetFTime(var f; var time: longint);                {ok}
-Function  FSearch(path: pathstr; dirlist: string): pathstr;  {ok}
-Function  FExpand(const path: pathstr): pathstr;             {ok}
-Procedure FSplit(path: pathstr; var dir: dirstr; var name:   {untested}
-                 namestr; var ext: extstr);
-
-{Environment}
-Function  EnvCount: longint;                                 {ni}
-Function  EnvStr(index: integer): string;                    {ni}
-Function  GetEnv(envvar: string): string;                    {ok}
-
-{Misc}
-Procedure SetFAttr(var f; attr: word);                       {ni}
-Procedure SetFTime(var f; time: longint);                    {ni}
-Procedure GetCBreak(var breakvalue: boolean);                {ni}
-Procedure SetCBreak(breakvalue: boolean);                    {ni}
-Procedure GetVerify(var verify: boolean);                    {ni}
-Procedure SetVerify(verify: boolean);                        {ni}
-
-{Do Nothing Functions}
-Procedure SwapVectors;                                       {ni}
-Procedure GetIntVec(intno: byte; var vector: pointer);       {ni}
-Procedure SetIntVec(intno: byte; vector: pointer);           {ni}
-Procedure Keep(exitcode: word);                              {ni}
-
-Procedure Intr(intno: byte; var regs: registers);            {ni}
-Procedure MSDos(var regs: registers);                        {ni}
-
+{$i dosh.inc}
 
 implementation
 
@@ -858,7 +746,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2003-03-25 18:17:54  armin
+  Revision 1.7  2004-02-09 12:03:16  michael
+  + Switched to single interface in dosh.inc
+
+  Revision 1.6  2003/03/25 18:17:54  armin
   * support for fcl, support for linking without debug info
   * renamed winsock2 to winsock for win32 compatinility
   * new sockets unit for netware
