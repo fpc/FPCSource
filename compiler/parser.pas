@@ -268,7 +268,7 @@ unit parser;
          if (compile_level=1) then
           begin
           { open assembler response }
-            AsmRes.Init('ppas');
+            AsmRes.Init(current_module^.outpath^+'ppas');
           end;
 
          { If the compile level > 1 we get a nice "unit expected" error
@@ -424,7 +424,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.61  1998-11-10 10:09:11  peter
+  Revision 1.62  1998-12-01 12:51:21  peter
+    * fixed placing of ppas.sh and link.res when using -FE
+
+  Revision 1.61  1998/11/10 10:09:11  peter
     * va_list -> array of const
 
   Revision 1.60  1998/10/28 18:26:14  pierre

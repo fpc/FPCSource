@@ -281,14 +281,13 @@ begin
   prtobj:='prt0';
   case target_info.target of
    target_m68k_Palmos,
-{* Changes made by Ozerski 27.10.1998}
-   target_i386_Win32 :begin
-                       if DLLsource then
-                        prtobj:='wdllprt0'
-                       else
-                        prtobj:='wprt0';
-                      end;
-{* End changes}
+   target_i386_Win32 :
+     begin
+       if DLLsource then
+         prtobj:='wdllprt0'
+       else
+         prtobj:='wprt0';
+     end;
    target_m68k_linux,
    target_i386_linux :
      begin
@@ -316,7 +315,7 @@ begin
    LinkOptions:=LinkOptions+target_link.stripopt;
 
 { Open linkresponse and write header }
-  assign(linkresponse,inputdir+LinkResName);
+  assign(linkresponse,current_module^.outpath^+LinkResName);
   {$I-}
    rewrite(linkresponse);
   {$I+}
@@ -391,9 +390,7 @@ var
   bindfound  : boolean;
   s          : string;
   success    : boolean;
-{* Changes made by Ozerski 27.10.1998}
-  ii:longint;
-{* end changes}
+  ii         : longint;
 begin
 {$ifdef linux}
   if LinkToC then
@@ -412,29 +409,25 @@ begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module^.exefilename^);
   s:=target_link.linkcmd;
-{* Changes made by Ozerski 27.10.1998}
   if DLLsource then
-   Replace(s,'$EXE',current_module^.sharedlibfilename^)
+    Replace(s,'$EXE',current_module^.sharedlibfilename^)
   else
-   Replace(s,'$EXE',current_module^.exefilename^);
-{* end changes}
+    Replace(s,'$EXE',current_module^.exefilename^);
   Replace(s,'$OPT',LinkOptions);
-  Replace(s,'$RES',inputdir+LinkResName);
+  Replace(s,'$RES',current_module^.outpath^+LinkResName);
   success:=DoExec(FindLinker,s,true,false);
 {Bind}
-{* Changes made by Ozerski 27.10.1998}
   if (target_link.bindbin[1]<>'') and
      ((target_info.target<>target_i386_win32) or bind_win32_dll) then
    for ii:=1 to target_link.binders do
    begin
      s:=target_link.bindcmd[ii];
      Replace(s,'$OPT',LinkOptions);
-     Replace(s,'$RES',inputdir+LinkResName);
+     Replace(s,'$RES',current_module^.outpath^+LinkResName);
      if DLLsource then
-      Replace(s,'$EXE',current_module^.sharedlibfilename^)
+       Replace(s,'$EXE',current_module^.sharedlibfilename^)
      else
-      Replace(s,'$EXE',current_module^.exefilename^);
-{* end changes}
+       Replace(s,'$EXE',current_module^.exefilename^);
      {Size of the heap when an EMX program runs in OS/2.}
      Replace(s,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
      {Size of the stack when an EMX program runs in OS/2.}
@@ -442,7 +435,6 @@ begin
      {When an EMX program runs in DOS, the heap and stack share the
       same memory pool. The heap grows upwards, the stack grows downwards.}
      Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
-{* Changes made by Ozerski 27.10.1998}
      if utilsdirectory<>'' then
        begin
           bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
@@ -450,7 +442,6 @@ begin
        end
      else
        bindbin:=FindExe(target_link.bindbin[ii],bindfound);
-{* end changes}
      if (not bindfound) and not (cs_link_extern in aktglobalswitches) then
       begin
         Message1(exec_w_binder_not_found,bindbin);
@@ -467,7 +458,7 @@ begin
 
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
-   RemoveFile(LinkResName);
+   RemoveFile(current_module^.outpath^+LinkResName);
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -501,9 +492,9 @@ begin
   s:=target_ar.arcmd;
   Replace(s,'$LIB',current_module^.staticlibfilename^);
   if filescnt=0 then
-   Replace(s,'$FILES',current_module^.objfilename^)
+    Replace(s,'$FILES',current_module^.objfilename^)
   else
-   Replace(s,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
+    Replace(s,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
   DoExec(arbin,s,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) and not(cs_link_extern in aktglobalswitches) then
@@ -536,7 +527,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1998-11-30 13:26:23  pierre
+  Revision 1.40  1998-12-01 12:51:20  peter
+    * fixed placing of ppas.sh and link.res when using -FE
+
+  Revision 1.39  1998/11/30 13:26:23  pierre
     * the code for ordering the exported procs/vars was buggy
     + added -WB to force binding (Ozerski way of creating DLL)
       this is off by default as direct writing of .edata section seems

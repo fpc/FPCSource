@@ -152,6 +152,7 @@ unit files;
 
 
           path,                     { path where the module is find/created }
+          outpath,
           modulename,               { name of the module in uppercase }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
@@ -599,6 +600,7 @@ unit files;
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
          stringdispose(exefilename);
+         stringdispose(outpath);
          stringdispose(path);
          { Create names }
          fsplit(fn,p,n,e);
@@ -615,6 +617,7 @@ unit files;
              if (OutputExeDir<>'') then
               p:=OutputExeDir;
           end;
+         outpath:=stringdup(p);
          objfilename:=stringdup(p+n+target_info.objext);
          asmfilename:=stringdup(p+n+target_info.asmext);
          ppufilename:=stringdup(p+n+target_info.unitext);
@@ -622,7 +625,6 @@ unit files;
          if AllowOutput and (OutputFile<>'') then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
-
          if target_info.target=target_i386_WIN32 then
            sharedlibfilename:=stringdup(p+n+target_os.sharedlibext)
          else
@@ -995,6 +997,7 @@ unit files;
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);
+        stringdispose(outpath);
         stringdispose(path);
         stringdispose(modulename);
         stringdispose(mainsource);
@@ -1050,7 +1053,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.75  1998-11-16 15:41:40  peter
+  Revision 1.76  1998-12-01 12:51:19  peter
+    * fixed placing of ppas.sh and link.res when using -FE
+
+  Revision 1.75  1998/11/16 15:41:40  peter
     * tp7 didn't like my ifopt H+ :(
 
   Revision 1.74  1998/11/16 12:18:01  peter
