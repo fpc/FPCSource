@@ -1,12 +1,12 @@
-Name: fpc-packages
+Name: fpc-extra
 Version: 0.99.12
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-packages-0.99.12-src.tar.gz
+Source: fpc-extra-0.99.12-src.tar.gz
 Requires: fpc = 0.99.12
-Summary: Free Pascal Compiler
+Summary: Free Pascal Compiler Extra Packages
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
 
@@ -15,9 +15,8 @@ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
 Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
 Some extensions are added to the language, like function overloading. Shared
 libraries can be linked and created. Basic Delphi support is already
-implemented (classes,exceptions,ansistrings). This package contains units
-for ncurses,inet,mysql,ibase,postgres,uncgi
-
+implemented (classes,exceptions,ansistrings). This package contains some
+extra units: ncurses,inet,mysql,ibase,postgres,uncgi
 
 %define unitdir /usr/lib/fpc/0.99.12/rtl
 
