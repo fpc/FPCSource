@@ -17,57 +17,108 @@
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
-Begin
-  //!! Needs implementing    
+const
+  AccessMode: array[0..2] of Integer = (
+    GENERIC_READ,
+    GENERIC_WRITE,
+    GENERIC_READ or GENERIC_WRITE);
+  ShareMode: array[0..4] of Integer = (
+               0,
+               0,
+               FILE_SHARE_READ,
+               FILE_SHARE_WRITE,
+               FILE_SHARE_READ or FILE_SHARE_WRITE);
+
+Var FN : string;
+
+begin
+  FN:=FileName+#0;
+  Result := CreateFile(@FN[1], AccessMode[Mode and 3],
+                         ShareMode[(Mode and $F0) shr 4], nil, OPEN_EXISTING,
+                       FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
 
 Function FileCreate (Const FileName : String) : Longint;
 
+Var FN : string;
+
 begin
-  //!! Needs implementing    
+  FN:=FileName+#0;
+ Result := CreateFile(@FN[1], GENERIC_READ or GENERIC_WRITE,
+     0, nil, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
+Var res : Longint;
+
 begin
-  //!! Needs implementing    
+  if not ReadFile(Handle, @Buffer, Count, @res, nil) then res := -1;
+  FileRead:=Res;
 end;
 
 
 Function FileWrite (Handle : Longint; Var Buffer; Count : Longint) : Longint;
 
+Var Res : longint;
+
 begin
-  //!! Needs implementing    
+  if not WriteFile(Handle, @Buffer, Count, @Res, nil) then Res:= -1;
+  FileWrite:=Res;
 end;
 
 
 Function FileSeek (Handle,Offset,Origin : Longint) : Longint;
 
 begin
-  //!! Needs implementing    
+  Result := SetFilePointer(Handle, Offset, nil, Origin);
 end;
 
 
 Procedure FileClose (Handle : Longint);
 
 begin
-  //!! Needs implementing    
+  CloseHandle(Handle);
+end;
+
+Function FileTruncate (Handle,Size: Longint) : boolean;
+
+begin
 end;
 
 
 Function FileAge (Const FileName : String): Longint;
 
+var
+  Handle: THandle;
+  FindData: TWin32FindData;
+  LocalFileTime: TFileTime;
+  Fn : String;
+  
 begin
-  //!! Needs implementing    
+  FN:=FN+#0;
+  Handle := FindFirstFile(@FN[1], @FindData);
+  if Handle <> INVALID_HANDLE_VALUE then
+    begin
+    Windows.FindClose(Handle);
+    if (FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = 0 then
+      begin
+{
+      FileTimeToLocalFileTime(FindData.ftLastWriteTime, @LocalFileTime);
+      if FileTimeToDosDateTime(LocalFileTime, LongRec(Result).Hi,
+                               LongRec(Result).Lo) then Exit;
+}      end;
+    end;
+  Result := -1;
 end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
 
 begin
-  //!! Needs implementing    
+  Result := FileAge(FileName) <> -1;
 end;
 
 
@@ -143,7 +194,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-10-11 12:21:01  michael
+  Revision 1.2  1999-02-03 11:41:30  michael
+  + Added filetruncate
+
+  Revision 1.1  1998/10/11 12:21:01  michael
   Added file calls. Implemented for linux only
 
 }

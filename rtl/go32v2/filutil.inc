@@ -122,6 +122,9 @@ Regs.Ebx := Handle;
 RealIntr($21, Regs);
 end;
 
+Function FileTruncate (Handle,Size: Longint) : boolean;
+begin
+end;
 
 Function FileAge (Const FileName : String): Longint;
 var Handle: longint;
@@ -321,7 +324,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-02-03 11:42:31  michael
+  + Added filetruncate
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.4  1998/10/29 13:16:19  michael
