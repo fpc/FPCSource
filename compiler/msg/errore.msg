@@ -150,9 +150,6 @@ scan_w_comment_level=02005_W_Comment level $1 found
 % When the \var{-vw} switch is used, then the compiler warns you if
 % it finds nested comments. Nested comments are not allowed in Turbo Pascal
 % and can be a possible source of errors.
-scan_n_far_directive_ignored=02006_N_$F directive (FAR) ignored
-% The \var{FAR} directive is a 16-bit construction which is recorgnised
-% but ignored by the compiler, since it produces 32 bit code.
 scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 % With \var{-vn} on, the compiler warns if it ignores a switch
 scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"
@@ -170,8 +167,6 @@ scan_f_cannot_open_input=02012_F_Can't open file "$1"
 scan_f_cannot_open_includefile=02013_F_Can't open include file "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-scan_e_too_much_endifs=02014_E_Too many $ENDIFs or $ELSEs
-% Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_w_only_pack_records=02015_W_Records fields can be aligned to 1,2,4,8,16 or 32 bytes only
 % You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
 % \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
@@ -311,25 +306,13 @@ scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 25
 parser_e_syntax_error=03000_E_Parser - Syntax Error
 % An error against the Turbo Pascal language was encountered. This happens
 % typically when an illegal character is found in the sources file.
-parser_w_proc_far_ignored=03001_W_Procedure type FAR ignored
-% This is a warning. \var{FAR} is a construct for 8 or 16 bit programs. Since
-% the compile generates 32 bit programs, it ignores this directive.
-parser_w_proc_near_ignored=03002_W_Procedure type NEAR ignored
-% This is a warning. \var{NEAR} is a construct for 8 or 16 bit programs. Since
-% the compile generates 32 bit programs, it ignores this directive.
-parser_w_proc_interrupt_ignored=03003_W_Procedure type INTERRUPT ignored for not i386
-% This is a warning. \var{INTERRUPT} is a i386 specific construct
-% and is ignored for other processors.
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
 % An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Procedure type "$1" ignored
-% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
-% This is introduced first for Delphi compatibility.
+% The specified is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_Not all declarations of "$1" are declared with OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
-parser_e_no_dll_file_specified=03007_E_No DLL File specified
-% No longer in use.
 parser_e_export_name_double=03008_E_Duplicate exported function name "$1"
 % Exported function names inside a specific DLL must all be different
 parser_e_export_ordinal_double=03009_E_Duplicate exported function index $1
@@ -346,16 +329,10 @@ parser_e_constructorname_must_be_init=03013_E_Constructor name must be INIT
 parser_e_destructorname_must_be_done=03014_E_Destructor name must be DONE
 % You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_illegal_open_parameter=03015_E_Illegal open parameter
-% You are trying to use the wrong type for an open parameter.
 parser_e_proc_inline_not_supported=03016_E_Procedure type INLINE not supported
 % You tried to compile a program with C++ style inlining, and forgot to
 % specify the \var{-Si} option (\seeo{Si}). The compiler doesn't support C++
 % styled inlining by default.
-parser_w_priv_meth_not_virtual=03017_W_Private methods shouldn't be VIRTUAL
-% You declared a method in the private part of a object (class) as
-% \var{virtual}. This is not allowed. Private methods cannot be overridden
-% anyway.
 parser_w_constructor_should_be_public=03018_W_Constructor should be public
 % Constructors must be in the 'public' part of an object (class) declaration.
 parser_w_destructor_should_be_public=03019_W_Destructor should be public
@@ -381,9 +358,6 @@ parser_n_object_has_no_vmt=03023_N_The object "$1" has no VMT
 parser_e_illegal_parameter_list=03024_E_Illegal parameter list
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_type=03025_E_Wrong parameter type specified for arg no. "$1"
-% There is an error in the parameter list of the function or procedure.
-% The compiler cannot determine the error more accurate than this.
 parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
@@ -409,10 +383,6 @@ parser_n_duplicate_enum=03031_N_Values in enumeration types have to be ascending
 % \end{verbatim}
 % The second declaration would produce an error. \var{A\_UAS} needs to have a
 % value higher than \var{A\_E}, i.e. at least 7.
-parser_n_interface_name_diff_implementation_name=03032_N_Interface and implementation names are different "$1" => "$2"
-% This note warns you if the implementation and interface names of a
-% functions are different, but they have the same mangled name. This
-% is important when using overloaded functions (but should produce no error).
 parser_e_no_with_for_variable_in_other_segments=03033_E_With can not be used for variables in a different segment
 % With stores a variable locally on the stack,
 % but this is not possible if the variable belongs to another segment.
@@ -533,12 +503,6 @@ parser_e_cant_access_private_member=03063_E_Cannot access a private field of an 
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_w_overloaded_are_not_both_virtual=03064_W_overloaded method of virtual method should be virtual: "$1"
-% If you declare overloaded methods in a class, then they should either all be
-% virtual, or none. You shouldn't mix them.
-parser_w_overloaded_are_not_both_non_virtual=03065_W_overloaded method of non-virtual method should be non-virtual: "$1"
-% If you declare overloaded methods in a class, then they should either all be
-% virtual, or none. You shouldn't mix them.
 parser_e_overridden_methods_not_same_ret=03066_E_overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
@@ -609,9 +573,6 @@ parser_e_no_new_or_dispose_for_classes=03086_E_The extended syntax of new or dis
 % \var{new}. The constructor must be used for that. For the same reason, you
 % cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
-parser_e_asm_incomp_with_function_return=03087_E_Assembler incompatible with function return type
-% You're trying to implement a \var{assembler} function, but the return type
-% of the function doesn't allow that.
 parser_e_procedure_overloading_is_off=03088_E_Procedure overloading is switched off
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
@@ -691,8 +652,6 @@ parser_u_parsing_implementation=03106_U_Parsing implementation of $1
 parser_d_compiling_second_time=03107_D_Compiling $1 for the second time
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
-parser_e_no_paras_allowed=03108_E_Array properties aren't allowed here
-% You cannot use array properties at that point in the source.
 parser_e_no_property_found_to_override=03109_E_No property found to override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
@@ -739,8 +698,6 @@ parser_e_function_already_declared_public_forward=03120_E_Function is already de
 % declaration in the \var{implmentation} section.
 parser_e_not_external_and_export=03121_E_Can't use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_e_name_keyword_expected=03122_E_NAME keyword expected
-% The definition of an external variable needs a \var{name} clause.
 parser_w_not_supported_for_inline=03123_W_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
 parser_w_inlining_disabled=03124_W_Inlining disabled
@@ -762,10 +719,6 @@ parser_e_call_convention_dont_match_forward=03129_E_Calling convention doesn't m
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_register_calling_not_supported=03130_E_Register calling (fastcall) not supported
-% The \var{register} calling convention, i.e., arguments are passed in
-% registers instead of on the stack is not supported. Arguments are always
-% passed on the stack.
 parser_e_property_cant_have_a_default_value=03131_E_Property can't have a default value
 % Set properties or indexed properties cannot have a default value.
 parser_e_property_default_value_must_const=03132_E_The default value of a property must be constant
@@ -779,20 +732,15 @@ parser_e_cant_publish_that_property=03134_E_That kind of property can't be publi
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_w_empty_import_name=03135_W_Empty import name specified
-% Both index and name for the import are 0 or empty
 parser_e_empty_import_name=03136_W_An import name is required
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
-parser_e_used_proc_name_changed=03137_E_Function internal name changed after use of function
-% This is an internal error; please report any occurrences of this error
-% to the \fpc team.
 parser_e_division_by_zero=03138_E_Division by zero
 % There is a divsion by zero encounted
 parser_e_invalid_float_operation=03139_E_Invalid floating point operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
 parser_e_array_lower_less_than_upper_bound=03140_E_Upper bound of range is less than lower bound
-% The upper bound of a \var{case} label is less than the lower bound and this
+% The upper bound of a an array declaration is less than the lower bound and this
 % is not possible
 parser_w_string_too_long=03141_W_string "$1" is longer than "$2"
 % The size of the constant string is larger than the size you specified in
@@ -877,8 +825,6 @@ parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
-parser_f_interface_cant_have_variables=03166_F_An interface can't have variables
-parser_f_interface_cant_have_constr_or_destr=03167_F_An interface can't have constructor or destructor
 parser_w_interface_mapping_notfound=03168_W_Procedure named "$1" not found that is suitable for implementing the $2.$3
 parser_e_interface_id_expected=03169_E_interface identifier expected
 % This happens when the compiler scans a \var{class} declaration that contains
@@ -1013,9 +959,6 @@ type_e_class_type_expected=04009_E_class type expected, but got "$1"
 % \item An exception handler (\var{On}) contains a type identifier that
 % isn't a class.
 % \end{enumerate}
-type_e_varid_or_typeid_expected=04010_E_Variable or type indentifier expected
-% The argument to the \var{High} or \var{Low} function is not a variable
-% nor a type identifier.
 type_e_cant_eval_constant_expr=04011_E_Can't evaluate constant expression
 % This error can occur when the bounds of an array you declared does
 % not evaluate to ordinal constants
@@ -1191,22 +1134,14 @@ sym_e_forward_not_resolved=05005_E_Forward declaration not solved "$1"
 % \item You reference a type which isn't declared in the current \var{type}
 % block.
 % \end{itemize}
-sym_f_id_already_typed=05006_F_Identifier type already defined as type
-% You are trying to redefine a type.
 sym_e_error_in_type_def=05007_E_Error in type definition
 % There is an error in your definition of a new array type:
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
-sym_e_type_id_not_defined=05008_E_Type identifier not defined
-% The type identifier has not been defined yet.
 sym_e_forward_type_not_resolved=05009_E_Forward type not resolved "$1"
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Only static variables can be used in static methods or outside methods
 % A static method of an object can only access static variables.
-sym_e_invalid_call_tvarsymmangledname=05011_E_Invalid call to tvarsym.mangledname()
-% An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
-% the circumstances in which the error occurs.
 sym_f_type_must_be_rec_or_class=05012_F_record or class type expected
 % The variable or expression isn't of the type \var{record} or \var{class}.
 sym_e_no_instance_of_abstract_object=05013_E_Instances of classes or objects with an abstract method are not allowed
@@ -1284,9 +1219,6 @@ sym_b_param_list=05039_B_Found declaration: $1
 sym_e_segment_too_large=05040_E_Data element too large
 % You get this when you declare a data element whose size exceeds the 
 % prescribed limit (2 Gb on 80386+/68020+ processors)
-sym_w_segment_too_large=05041_W_Data element might be too large
-% You get this when you declare a data element which might cause invalid opcodes
-% (which will be detected by the assembler) in 68000 mode.
 sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
@@ -1352,7 +1284,7 @@ cg_e_illegal_type_conversion=06010_E_Illegal type conversion
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
 cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers is not portable
-% If you typecast a pointer to a longint, this code will not compile
+% If you typecast a pointer to a longint (or vice-versa), this code will not compile
 % on a machine using 64-bit for pointer storage.
 cg_e_file_must_call_by_reference=06012_E_File types must be var parameters
 % You cannot specify files as value parameters, i.e. they must always be
@@ -1373,8 +1305,10 @@ cg_e_var_must_be_reference=06014_E_illegal call by reference parameters
 % parameter.
 cg_e_dont_call_exported_direct=06015_E_EXPORT declared functions can't be called
 % No longer in use.
-cg_w_member_cd_call_from_method=06016_W_Possible illegal call of constructor or destructor (doesn't match to this context)
-% No longer in use.
+cg_w_member_cd_call_from_method=06016_W_Possible illegal call of constructor or destructor
+% The compiler detected that a constructor or destructor is called within a
+% a method. This will probably lead to problems, since constructors / destructors
+% require parameters on entry.
 cg_n_inefficient_code=06017_N_Inefficient code
 % Your statement seems dubious to the compiler.
 cg_w_unreachable_code=06018_W_unreachable code
@@ -1385,38 +1319,12 @@ cg_w_unreachable_code=06018_W_unreachable code
 %   {.. code ...}
 %   end;
 % \end{verbatim}
-cg_e_stackframe_with_esp=06019_E_procedure call with stackframe ESP/SP
-% The compiler encountered a procedure  or function call inside a
-% procedure that uses a \var{ESP/SP} stackframe. Normally, when a call is
-% done the procedure needs a \var{EBP} stackframe.
 cg_e_cant_call_abstract_method=06020_E_Abstract methods can't be called directly
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_f_internal_error_in_getfloatreg=06021_F_Internal Error in getfloatreg(), allocation failure
-% An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
-% the circumstances in which the error occurs.
-cg_f_unknown_float_type=06022_F_Unknown float type
-% The compiler cannot determine the kind of float that occurs in an expression.
-cg_f_secondvecn_base_defined_twice=06023_F_SecondVecn() base defined twice
-% An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
-% the circumstances in which the error occurs.
-cg_f_extended_cg68k_not_supported=06024_F_Extended cg68k not supported
-% The \var{extended} type is not supported on the m68k platform.
-cg_f_32bit_not_supported_in_68000=06025_F_32-bit unsigned not supported in MC68000 mode
-% The cardinal is not supported on the m68k platform.
-cg_f_internal_error_in_secondinline=06026_F_Internal Error in secondinline()
-% An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
-% the circumstances in which the error occurs.
 cg_d_register_weight=06027_D_Register $1 weight $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_e_stacklimit_in_local_routine=06028_E_Stack limit excedeed in local routine
-% Your code requires a too big stack. Some operating systems pose limits
-% on the stack size. You should use less variables or try ro put large
-% variables on the heap.
 cg_d_stackframe_omited=06029_D_Stack frame is omitted
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
@@ -1426,15 +1334,9 @@ cg_e_unable_inline_procvar=06032_E_Procvar calls cannot be inline.
 % A procedure with a procedural variable call cannot be inlined.
 cg_e_no_code_for_inline_stored=06033_E_No code for inline procedure stored
 % The compiler couldn't store code for the inline procedure.
-cg_e_no_call_to_interrupt=06034_E_Direct call of interrupt procedure "$1" is not possible
-% You can not call an interrupt procedure directly from FPC code
 cg_e_can_access_element_zero=06035_E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such a string types
-cg_e_paralimit_in_local_routine=06036_E_Parameter limit excedeed in local routine
-% Your routine pushes too much parameters. Some processors pose limits
-% on the parameters passed to a routine. You should pass some of your parameters
-% by reference.
 cg_e_cannot_call_cons_dest_inside_with=06037_E_Constructors or destructors can not be called inside a 'with' clause
 % Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
@@ -1476,6 +1378,15 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
 % \end{description}
+cg_w_parasize_too_big=06041_E_Parameters size exceeds limit for certain cpu's
+% This indicates that you are declaring more than 64K of parameters, which
+% might not be supported on other processor targets.
+cg_w_localsize_too_big=06042_E_Local variable size exceed limit for certain cpu's
+% This indicates that you are declaring more than 32K of lcoal variables, which
+% might not be supported on other processor targets.
+cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
+% This indicates that you are declaring more than 32K of lcoal variables, which
+% is not supported by this processor.
 # EndOfTeX
 
 #
@@ -1489,8 +1400,6 @@ asmr_d_finish_reading=07001_D_Finished $1 styled assembler parsing
 % This informs you that an assembler block has finished.
 asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
 % A identifier which isn't a label can't contain a @.
-asmr_w_override_op_not_supported=07003_W_Override operator not supported
-% The Override operator is not supported
 asmr_e_building_record_offset=07004_E_Error building record offset
 % There has an error occured while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
@@ -1615,7 +1524,6 @@ asmr_e_invalid_register=07063_E_Invalid register name
 % There is an unknown register name used as operand. 
 asmr_e_invalid_fpu_register=07064_E_Invalid floating point register name
 % There is an unknown register name used as operand. 
-asmr_e_nor_not_supported=07065_E_NOR not supported
 asmr_w_modulo_not_supported=07066_W_Modulo not supported
 asmr_e_invalid_float_const=07067_E_Invalid floating point constant $1
 % The floating point constant declared in an assembler block is 
@@ -1667,7 +1575,6 @@ asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable t
 asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
 % Some functions which return complex types cannot use the \var{result}
 % keyword.
-asmr_h_RESULT_is_reg=07085_H_RESULT is register $1
 asmr_w_adding_explicit_args_fXX=07086_W_"$1" without operand translated into "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"
 asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"
@@ -1677,8 +1584,6 @@ asmr_e_invalid_char_smaller=07089_E_Char < not allowed here
 asmr_e_invalid_char_greater=07090_E_Char > not allowed here
 % The shift operator requires the >> characters. Only one
 % of those characters was found.
-asmr_w_xdef_not_supported=07091_W_XDEF not supported
-asmr_e_invalid_global_def=07092_E_Invalid XDEF syntax
 asmr_w_align_not_supported=07093_W_ALIGN not supported
 asmr_e_no_inc_and_dec_together=07094_E_Inc and Dec cannot be together
 % Trying to use an increment and a decrement within the same
