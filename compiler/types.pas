@@ -764,8 +764,10 @@ implementation
     procedure testrange(def : pdef;var l : tconstexprint);
       var
          lv,hv: longint;
+         error: boolean;
 
       begin
+         error := false;
          { for 64 bit types we need only to check if it is less than }
          { zero, if def is a qword node                              }
          if is_64bitint(def) then
@@ -777,6 +779,7 @@ implementation
                      Message(parser_e_range_check_error)
                    else
                      Message(parser_w_range_check_error);
+                   error := true;
                 end;
            end
          else
@@ -794,6 +797,7 @@ implementation
                              else
                                Message(parser_w_range_check_error);
                           end;
+                        error := true;
                      end
                    else
                      { this happens with the wrap around problem  }
@@ -808,6 +812,7 @@ implementation
                              else
                                Message(parser_w_range_check_error);
                           end;
+                        error := true;
                      end;
                 end
               else if (l<lv) or (l>hv) then
@@ -817,15 +822,17 @@ implementation
                      Message(parser_e_range_check_error)
                    else
                      Message(parser_w_range_check_error);
-                   { Fix the value to fit in the allocated space for this type of variable }
-                     case def^.size of
-                       1: l := l and $ff;
-                       2: l := l and $ffff;
-                       4: l := l and $ffffffff;
-                     end
-{                   l:=lv+(l mod (hv-lv+1));}
+                   error := true;
                 end;
            end;
+         if error then
+         { Fix the value to fit in the allocated space for this type of variable }
+           case def^.size of
+             1: l := l and $ff;
+             2: l := l and $ffff;
+             { work around sign extension bug (to be fixed) (JM) }
+             4: l := l and (int64($fffffff) shl 4 + $f);
+           end
       end;
 
 
@@ -1720,7 +1727,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-11-13 14:42:41  jonas
+  Revision 1.24  2000-11-20 15:52:47  jonas
+    * testrange now always cuts a constant to the size of the destination
+      if a rangeerror occurred
+    * changed an "and $ffffffff" to "and (int64($fffffff) shl 4 + $f" to
+      work around the constant evaluation problem we currently have
+
+  Revision 1.23  2000/11/13 14:42:41  jonas
     * fix in testrange so that 64bit constants are properly truncated when
       assigned to 32bit vars
 
