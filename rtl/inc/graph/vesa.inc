@@ -837,7 +837,7 @@ end;
                    end;
                  dec(VLength,l+1);
                  {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
              End;
@@ -865,7 +865,7 @@ end;
                    end;
                  dec(VLength,l+1);
                  {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
              End;
@@ -893,7 +893,7 @@ end;
                    end;
                  dec(VLength,l+1);
                  {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
              End;
@@ -921,7 +921,7 @@ end;
                    end;
                  dec(VLength,l+1);
                  {$ifdef logging}
-                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(hlength));
+                 LogLn('Offset is now '+hexstr(offs,8)+', length left: '+strf(vlength));
                  {$endif logging}
                Until VLength = 0;
              End;
@@ -1921,7 +1921,11 @@ end;
 
 {
 $Log$
-Revision 1.13  1999-09-20 09:34:30  florian
+Revision 1.14  1999-09-23 14:00:42  jonas
+  * -dlogging no longer required to fuction correctly
+  * some typo's fixed
+
+Revision 1.13  1999/09/20 09:34:30  florian
   * conflicts solved
 
 Revision 1.12  1999/09/18 22:21:11  jonas

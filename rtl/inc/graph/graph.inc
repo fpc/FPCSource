@@ -1732,10 +1732,12 @@ const CrtAddress: word = 0;
 {$endif logging}
      if VGADetected then
        begin
-{$ifdef logging}
          SaveVideoState := SaveStateVGA;
+{$ifdef logging}
          LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
+{$endif logging}
          RestoreVideoState := RestoreStateVGA;
+{$ifdef logging}
          LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
 
@@ -1925,12 +1927,13 @@ const CrtAddress: word = 0;
          { otherwise, if we use the VGA BIOS only function  }
          { there might be a crash under DPMI, such as in the}
          { ATI Mach64                                       }
-{$ifdef logging}
          SaveVideoState := SaveStateVESA;
+{$ifdef logging}
          LogLn('Setting SaveVideoState to '+strf(longint(SaveVideoState)));
-         RestoreVideoState := RestoreStateVESA;
-         LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
+         RestoreVideoState := RestoreStateVESA;
+{$ifdef logging}
+         LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
          { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
@@ -2622,7 +2625,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.15  1999-09-22 13:13:34  jonas
+Revision 1.16  1999-09-23 14:00:41  jonas
+  * -dlogging no longer required to fuction correctly
+  * some typo's fixed
+
+Revision 1.15  1999/09/22 13:13:34  jonas
   * renamed text.inc -> gtext.inc to avoid conflict with system unit
   * fixed textwidth
   * isgraphmode now gets properly updated, so mode restoring works
