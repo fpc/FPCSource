@@ -107,11 +107,13 @@ begin
   while (i<bufread) and (n<msgs) do
    begin
      j:=0;
-     while (not (p[j] in [#10,#13])) and (j<255) and (i<bufread) do
+     while (i<bufread) and (not (p[j] in [#10,#13])) and (j<255) do
       begin
         inc(i);
         inc(j);
       end;
+     if (i>=bufread) then
+      break;
      if not (p[0] in [';','#']) then
       begin
         hpl^:=p;
@@ -125,7 +127,7 @@ begin
      repeat
        inc(i);
        inc(j);
-     until not (p[j] in [#10,#13]);
+     until (i>=bufread) or not(p[j] in [#10,#13]);
      p:=pchar(@p[j]);
    end;
 end;
@@ -212,18 +214,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
-
-  Revision 1.3  1998/03/10 01:17:20  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.2  1998/03/05 02:44:12  peter
-    * options cleanup and use of .msg file
-
-  Revision 1.1  1998/03/02 01:55:19  peter
-    + Initial implementation
+  Revision 1.2  1998-08-18 09:05:00  peter
+    * fixed range errror
 
 }
