@@ -32,6 +32,29 @@ asm
 end;
 
 
+procedure do_create_element(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_CREATE_ELEMENT'];
+{
+  create a new set in p from an element b
+}
+asm
+        pushl   %eax
+        pushl   %ecx
+        movl    p,%edi
+        xorl    %eax,%eax
+        movl    $8,%ecx
+        rep
+        stosl
+        movb    b,%al
+        movl    p,%edi
+        movl    %eax,%ecx
+        shrl    $3,%eax
+        andl    $7,%ecx
+        addl    %eax,%edi
+        btsl    %ecx,(%edi)
+        popl    %ecx
+        popl    %eax
+end;
+
 procedure do_set_byte(p : pointer;b : byte);assembler;
    [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
 {
@@ -49,6 +72,7 @@ asm
        btsl %eax,(%edi)
        popl %eax
 end;
+
 
 procedure do_unset_byte(p : pointer;b : byte);assembler;
    [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_UNSET_BYTE'];
@@ -359,7 +383,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-10-22 14:50:08  pierre
+  Revision 1.7  1998-11-24 12:54:01  peter
+    + FPC_SET_CREATE_ELEMENT
+
+  Revision 1.6  1998/10/22 14:50:08  pierre
    + added FPC_SET_UNSET_BYTE for exclude of normsets
 
   Revision 1.5  1998/10/22 12:48:29  peter
