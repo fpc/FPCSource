@@ -14,8 +14,24 @@
 
  **********************************************************************}
 
+{ Memorymanager }
+type
+  PMemoryManager = ^TMemoryManager;
+  TMemoryManager = record
+    Getmem  : procedure(Var p:pointer;Size:Longint);
+    Freemem : procedure(Var p:pointer;Size:Longint);
+  end;
+procedure GetMemoryManager(var MemMgr: TMemoryManager);
+procedure SetMemoryManager(const MemMgr: TMemoryManager);
+function  IsMemoryManagerSet: Boolean;
+
+Procedure SysGetmem(Var p:pointer;Size:Longint);
+Procedure SysFreemem(Var p:pointer;Size:Longint);
+
+{ Variables }
 const
-  heapblocks : boolean=false;
+  heapblocks   : boolean=true;
+  growheapsize : longint=$100000;
 var
   heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
@@ -47,7 +63,10 @@ Procedure releaseheap(oldfreelist,oldheapptr : pointer);
 
 {
   $Log$
-  Revision 1.6  1998-09-08 15:03:27  peter
+  Revision 1.7  1998-10-01 14:55:18  peter
+    + memorymanager like delphi
+
+  Revision 1.6  1998/09/08 15:03:27  peter
     * moved getmem/freemem/memavail/maxavail to heaph.inc
 
   Revision 1.5  1998/07/02 14:11:30  michael

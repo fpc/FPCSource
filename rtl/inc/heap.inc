@@ -24,12 +24,21 @@
 
 }
 
+{ Memory manager }
+const
+  MemoryManager: TMemoryManager = (
+    GetMem: SysGetMem;
+    FreeMem: SysFreeMem
+  );
+
+{ Default Heap }
 const
   max_size = 256;
   maxblock = max_size div 8;
-  freerecord_list_length : longint = 0;
 
 type
+  ppointer = ^pointer;
+
   pfreerecord = ^tfreerecord;
   tfreerecord = record
     next : pfreerecord;
@@ -41,26 +50,23 @@ type
   tnblocks  = array[1..maxblock] of longint;
   pnblocks  = ^tnblocks;
 
-
-  ppointer = ^pointer;
-
-
 var
   internal_memavail  : longint;
   internal_heapsize  : longint;
   baseblocks         : tblocks;
   basenblocks        : tnblocks;
 
-
 const
   blocks  : pblocks  = @baseblocks;
   nblocks : pnblocks = @basenblocks;
 
 
+{ Check Heap }
 {$IfDef CHECKHEAP}
     { 4 levels of tracing }
     const
        tracesize = 4;
+       freerecord_list_length : longint = 0;
     type
        pheap_mem_info = ^heap_mem_info;
        heap_mem_info = record
@@ -85,6 +91,7 @@ const
 {$EndIf CHECKHEAP}
 
 
+{ Temp Heap }
 {$ifdef TEMPHEAP}
     const
        heap_split : boolean = false;
@@ -108,6 +115,40 @@ const
        tempheap  : theapinfo;
        otherheap : pheapinfo;
 {$endif TEMPHEAP}
+
+{*****************************************************************************
+                             Memory Manager
+*****************************************************************************}
+
+procedure GetMemoryManager(var MemMgr:TMemoryManager);
+begin
+  MemMgr:=MemoryManager;
+end;
+
+
+procedure SetMemoryManager(const MemMgr:TMemoryManager);
+begin
+  MemoryManager:=MemMgr;
+end;
+
+
+function IsMemoryManagerSet:Boolean;
+begin
+  IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
+                      (MemoryManager.FreeMem<>@SysFreeMem);
+end;
+
+
+procedure GetMem(Var p:pointer;Size:Longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'GETMEM'];
+begin
+  MemoryManager.GetMem(p,Size);
+end;
+
+
+procedure FreeMem(Var p:pointer;Size:Longint);[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'FREEMEM'];
+begin
+  MemoryManager.FreeMem(p,Size);
+end;
 
 
 {*****************************************************************************
@@ -149,12 +190,10 @@ var
 begin
   ma:=heapend-heapptr;
 { count blocks }
-
   if heapblocks then
    for i:=1 to maxblock do
     inc(ma,i*8*nblocks^[i]);
 { walk freelist }
-
   hp:=freelist;
   while assigned(hp) do
    begin
@@ -485,10 +524,10 @@ end;
 
 
 {*****************************************************************************
-                                GetMem
+                                 SysGetMem
 *****************************************************************************}
 
-procedure getmem(var p : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'GETMEM'];
+procedure SysGetMem(var p : pointer;size : longint);
 type
   heaperrorproc=function(size:longint):integer;
 var
@@ -660,10 +699,10 @@ end;
 
 
 {*****************************************************************************
-                                FreeMem
+                               SysFreeMem
 *****************************************************************************}
 
-procedure freemem(var p : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'FREEMEM'];
+procedure SysFreeMem(var p : pointer;size : longint);
 var
   hp : pfreerecord;
 {$ifdef TEMPHEAP}
@@ -929,11 +968,11 @@ begin
    { Allocate by 64K size }
    size:=(size+$fffff) and $ffff0000;
    { first try 1Meg }
-   if size<$100000 then
+   if size<GrowHeapSize then
     begin
-      NewPos:=Sbrk($100000);
+      NewPos:=Sbrk(GrowHeapSize);
       if NewPos>0 then
-       size:=$100000;
+       size:=GrowHeapSize;
     end
    else
     NewPos:=SBrk(size);
@@ -1041,7 +1080,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-09-14 10:48:17  peter
+  Revision 1.2  1998-10-01 14:55:17  peter
+    + memorymanager like delphi
+
+  Revision 1.1  1998/09/14 10:48:17  peter
     * FPC_ names
     * Heap manager is now system independent
 
