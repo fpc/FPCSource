@@ -139,9 +139,11 @@ begin
   if (status.verbosity and Level)=Level then
 {$endif}
    begin
-     ProgramInfoWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,status.currentline);
+     ProgramInfoWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
+       status.currentline,status.currentcolumn);
      if SD<>nil then
-     SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),status.currentline)));
+     SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),
+       status.currentline,status.currentcolumn)));
    end;
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
@@ -223,10 +225,13 @@ begin
   do_stop:=CompilerStop;
   do_comment:=CompilerComment;
 
-{$ifdef go32v2}
+{$ifndef debug}
+  { this avoids all flickers
+    and allows to get assembler and linker messages
+    but also forbids to use GDB inside !! }
   ChangeRedir('fp$$$.out',false);
   ChangeErrorRedir('fp$$$.err',false);
-{$endif def go32v2}
+{$endif ndef debug}
 {$ifdef TEMPHEAP}
   split_heap;
   switch_to_temp_heap;
@@ -235,10 +240,8 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
-{$ifdef go32v2}
   RestoreRedir;
   RestoreErrorRedir;
-{$endif def go32v2}
 
   if status.errorCount=0
      then CompilationPhase:=cpDone
@@ -269,7 +272,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1999-02-08 09:31:00  florian
+  Revision 1.12  1999-02-22 11:29:36  pierre
+    + added col info in MessageItem
+    + grep uses HighLightExts and should work for linux
+
+  Revision 1.11  1999/02/08 09:31:00  florian
     + some split heap stuff, in $ifdef TEMPHEAP
 
   Revision 1.10  1999/02/05 13:51:39  peter

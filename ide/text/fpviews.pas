@@ -199,8 +199,8 @@ type
       TClass    : longint;
       Text      : PString;
       Module    : PString;
-      ID        : longint;
-      constructor Init(AClass: longint; AText, AModule: string; AID: longint);
+      ID,Col    : longint;
+      constructor Init(AClass: longint; AText, AModule: string; AID,ACol: longint);
       function    GetText(MaxLen: integer): string; virtual;
       procedure   Selected; virtual;
       function    GetModuleName: string; virtual;
@@ -234,7 +234,7 @@ type
       InfoST: PColorStaticText;
       LogLB : PMessageListBox;
       constructor Init;
-      procedure   AddMessage(AClass: longint; Msg, Module: string; Line: longint);
+      procedure   AddMessage(AClass: longint; Msg, Module: string; Line,Column: longint);
       procedure   SizeLimits(var Min, Max: TPoint); virtual;
       procedure   Close; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -401,7 +401,11 @@ function EditorWindowFile(const Name : String): PSourceWindow;
 function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
 begin
   EditorWindow:=(TypeOf(P^)=TypeOf(TSourceWindow)) and
+{$ifdef linux}
                  (PSourceWindow(P)^.Editor^.FileName=Name);
+{$else linux}
+                 (UpCaseStr(PSourceWindow(P)^.Editor^.FileName)=UpCaseStr(Name));
+{$endif def linux}
 end;
 begin
   EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
@@ -2367,7 +2371,17 @@ begin
   GetNextEditorBounds(R);
   if Assigned(Owner) and (Owner=pointer(ProgramInfoWindow)) then
     R.B.Y:=Owner^.Origin.Y;
-  W:=TryToOpenFile(@R,P^.GetModuleName,0,P^.ID-1);
+  W:=EditorWindowFile(P^.GetModuleName);
+  if assigned(W) then
+    begin
+      W^.GetExtent(R);
+      if Assigned(Owner) and (Owner=pointer(ProgramInfoWindow)) then
+        R.B.Y:=Owner^.Origin.Y;
+      W^.ChangeBounds(R);
+      W^.Editor^.SetCurPtr(P^.Col-1,P^.ID-1);
+    end
+  else
+    W:=TryToOpenFile(@R,P^.GetModuleName,P^.Col-1,P^.ID-1);
   if W<>nil then
     begin
       W^.Select;
@@ -2386,7 +2400,7 @@ begin
   P:=List^.At(Focused);
   if P^.ID=0 then Exit;
   Desktop^.Lock;
-  W:=TryToOpenFile(nil,P^.GetModuleName,0,P^.ID-1);
+  W:=TryToOpenFile(nil,P^.GetModuleName,P^.Col-1,P^.ID-1);
   Message(Owner,evCommand,cmClose,nil);
   Desktop^.UnLock;
 end;
@@ -2467,13 +2481,14 @@ begin
   if List<>nil then Dispose(List, Done);
 end;
 
-constructor TMessageItem.Init(AClass: longint; AText, AModule: string; AID: longint);
+constructor TMessageItem.Init(AClass: longint; AText, AModule: string; AID,ACol: longint);
 begin
   inherited Init;
   TClass:=AClass;
   Text:=NewStr(AText);
   Module:=NewStr(AModule);
   ID:=AID;
+  Col:=ACol;
 end;
 
 function TMessageItem.GetText(MaxLen: integer): string;
@@ -2507,10 +2522,10 @@ begin
   if TClass=
     V_Fatal       then ClassS:='Fatal'       else if TClass =
     V_Error       then ClassS:='Error'       else if TClass =
-    V_Normal      then ClassS:=''           else if TClass =
+    V_Normal      then ClassS:=''            else if TClass =
     V_Warning     then ClassS:='Warning'     else if TClass =
-    V_Note      then ClassS:='Note'     else if TClass =
-    V_Hint      then ClassS:='Hint'     else if TClass =
+    V_Note        then ClassS:='Note'        else if TClass =
+    V_Hint        then ClassS:='Hint'        else if TClass =
     V_Macro       then ClassS:='Macro'       else if TClass =
     V_Procedure   then ClassS:='Procedure'   else if TClass =
     V_Conditional then ClassS:='Conditional' else if TClass =
@@ -2562,10 +2577,10 @@ begin
   Update;
 end;
 
-procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Line: longint);
+procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Line,Column: longint);
 begin
   if AClass>=V_Info then Line:=0;
-  LogLB^.AddItem(New(PCompilerMessage, Init(AClass, Msg, Module, Line)));
+  LogLB^.AddItem(New(PCompilerMessage, Init(AClass, Msg, Module, Line,Column)));
 end;
 
 procedure TProgramInfoWindow.SizeLimits(var Min, Max: TPoint);
@@ -3269,7 +3284,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-02-22 02:15:22  peter
+  Revision 1.18  1999-02-22 11:29:38  pierre
+    + added col info in MessageItem
+    + grep uses HighLightExts and should work for linux
+
+  Revision 1.17  1999/02/22 02:15:22  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

@@ -83,7 +83,9 @@ begin
     Searchword:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
   else
     Searchword:='';
-  GrepArgs:='-n -i $TEXT *.pas *.pp *.inc';
+  { add "" for args with spaces }
+  { WARNING : text must still be entered in usual grep syntax }
+  GrepArgs:='-n -i "$TEXT" '+HighlightExts;
 { Dialog }
   R.Assign(0,0,45,8);
   new(PGrepDialog,Init(R,'Grep arguments'));
@@ -144,7 +146,7 @@ begin
                  val(copy(Line,1,p-1),lineNb,error);
                  if error=0 then
                    ProgramInfoWindow^.AddMessage(V_Normal,Copy(Line,p+1,255),
-                     ModuleName,LineNb);
+                     ModuleName,LineNb,1);
                end;
              ProgramInfoWindow^.Show;
              ProgramInfoWindow^.MakeFirst;
@@ -159,7 +161,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.8  1999-02-22 02:15:17  peter
+  Revision 1.9  1999-02-22 11:29:37  pierre
+    + added col info in MessageItem
+    + grep uses HighLightExts and should work for linux
+
+  Revision 1.8  1999/02/22 02:15:17  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

@@ -1,3 +1,4 @@
+{$L+}
 unit Test2;
 
 interface
@@ -19,6 +20,10 @@ begin
   Z:=0;
   X:=Z*X*Test8087;
   IsOdd:=(X mod 2)=1;
+end;
+
+procedure static;
+begin
 end;
 
 END.
