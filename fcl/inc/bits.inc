@@ -30,7 +30,7 @@ begin
 {$endif VER1_0}
 end;
 
-Procedure BitsErrorFmt (Msg : string; Args : array of const);
+Procedure BitsErrorFmt (Msg : string; const Args : array of const);
 
 begin
 {$ifdef VER1_0}
@@ -380,7 +380,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-09-07 15:15:24  peter
+  Revision 1.9  2003-05-25 16:05:18  jonas
+    * made Args parameter of BitsErrorFmt a const one
+
+  Revision 1.8  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/07/16 14:00:55  florian
