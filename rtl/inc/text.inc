@@ -711,7 +711,7 @@ Begin
    FileFunc(f.FlushFunc)(f);
 End;
 
-
+{$ifndef MAXLENREADSTRING}
 Procedure Read_String(var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
 var
   Temp,sPos : Word;
@@ -753,7 +753,53 @@ Begin
    End;
   s[0]:=chr(sPos-1);
 End;
-
+{$ELSE}
+Procedure Read_String(Maxlen : Longint;var f : TextRec;var s : String);[Public,Alias: 'READ_TEXT_STRING'];
+var
+  Temp,sPos,nrread : Word;
+Begin
+  { Delete the string }
+  s:='';
+  If InOutRes <> 0 then exit;
+  if not OpenInput(f) then
+   exit;
+  Temp:=f.BufPos;
+  sPos:=1;
+  NrRead:=0;
+  while (f.BufPos<f.BufEnd) and ((f.Bufptr^[Temp]<>#10) and (NrRead<Maxlen)) Do
+   Begin
+   { search linefeed or length of string }
+     while ((f.Bufptr^[Temp]<>#10) and (NrRead<Maxlen)) and (Temp<f.BufEnd) Do
+      begin
+      Temp:=Temp+1;
+      NrRead:=NrRead+1;
+      end;
+   { copy String. Take 255 char limit in account.}
+     If sPos+Temp-f.BufPos<=255 Then
+      Begin
+        Move (f.Bufptr^[f.BufPos],s[sPos],Temp-f.BufPos);
+        sPos:=sPos+Temp-f.BufPos;
+      { Remove #13 from a #13#10 break }
+        If s[sPos-1]=#13 Then
+         dec(sPos);
+      End
+     else
+      Begin
+        If (sPos<=255) Then
+         Move(f.Bufptr^[f.BufPos],s[sPos],256-sPos);
+        sPos:=256
+      End;
+   { update f.BufPos }
+     f.BufPos:=Temp;
+     If Temp>=f.BufEnd Then
+      Begin
+        FileFunc(f.InOutFunc)(f);
+        Temp:=f.BufPos;
+      End
+   End;
+  s[0]:=chr(sPos-1);
+End;
+{$ENDIF MAXLENREADSTRING}
 
 Procedure Read_Char(var f : TextRec;var c : Char);[Public,Alias: 'READ_TEXT_CHAR'];
 Begin
@@ -1087,7 +1133,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1998-07-02 12:14:56  carl
+  Revision 1.15  1998-07-06 15:56:43  michael
+  Added length checking for string reading
+
+  Revision 1.14  1998/07/02 12:14:56  carl
     + Each IOCheck routine now check InOutRes before, just like TP
 
   Revision 1.13  1998/07/01 15:30:00  peter
