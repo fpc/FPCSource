@@ -51,7 +51,6 @@ interface
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
           procedure pass_2;override;
-          procedure second_call_helper(c : tconverttype); override;
        end;
 
 implementation
@@ -175,57 +174,6 @@ procedure TSparctypeconvnode.second_int_to_bool;
   end;
 
 
-procedure TSparctypeconvnode.second_call_helper(c : tconverttype);
-  const
-    secondconvert : array[tconverttype] of pointer = (
-      @second_nothing, {equal}
-      @second_nothing, {not_possible}
-      @second_nothing, {second_string_to_string, handled in resulttype pass }
-      @second_char_to_string,
-      @second_nothing, {char_to_charray}
-      @second_nothing, { pchar_to_string, handled in resulttype pass }
-      @second_nothing, {cchar_to_pchar}
-      @second_cstring_to_pchar,
-      @second_ansistring_to_pchar,
-      @second_string_to_chararray,
-      @second_nothing, { chararray_to_string, handled in resulttype pass }
-      @second_array_to_pointer,
-      @second_pointer_to_array,
-      @second_int_to_int,
-      @second_int_to_bool,
-      @second_bool_to_int, { bool_to_bool }
-      @second_bool_to_int,
-      @second_real_to_real,
-      @second_int_to_real,
-      @second_nothing, { currency_to_real, handled in resulttype pass }
-      @second_proc_to_procvar,
-      @second_nothing, { arrayconstructor_to_set }
-      @second_nothing, { second_load_smallset, handled in first pass }
-      @second_cord_to_pointer,
-      @second_nothing, { interface 2 string }
-      @second_nothing, { interface 2 guid   }
-      @second_class_to_intf,
-      @second_char_to_char,
-      @second_nothing,  { normal_2_smallset }
-      @second_nothing,   { dynarray_2_openarray }
-      @second_nothing,
-      {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
-      {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
-    );
-    type
-      tprocedureofobject = procedure of object;
-      var
-        r:packed record
-            proc : pointer;
-            obj : pointer;
-          end;
-      begin
-        { this is a little bit dirty but it works }
-        { and should be quite portable too        }
-        r.proc:=secondconvert[c];
-        r.obj:=self;
-        tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
-      end;
 procedure TSparctypeconvnode.pass_2;
 {$ifdef TESTOBJEXT2}
   var
@@ -251,7 +199,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-10-24 11:31:43  mazen
+  Revision 1.21  2003-11-04 22:30:15  florian
+    + type cast variant<->enum
+    * cnv. node second pass uses now as well helper wrappers
+
+  Revision 1.20  2003/10/24 11:31:43  mazen
   *fixes related to removal of rg
 
   Revision 1.19  2003/10/01 20:34:50  peter

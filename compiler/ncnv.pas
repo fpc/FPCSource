@@ -51,6 +51,7 @@ interface
           function det_resulttype:tnode;override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
+          procedure second_call_helper(c : tconverttype);
        private
           function resulttype_int_to_int : tnode;
           function resulttype_cord_to_pointer : tnode;
@@ -73,6 +74,8 @@ interface
           function resulttype_variant_to_dynarray : tnode;
           function resulttype_dynarray_to_variant : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
+          function resulttype_variant_to_enum : tnode;
+          function resulttype_enum_to_variant : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -119,6 +122,27 @@ interface
           function _first_arrayconstructor_to_set : tnode;
           function _first_class_to_intf : tnode;
           function _first_char_to_char : tnode;
+
+          procedure _second_int_to_int;virtual;
+          procedure _second_string_to_string;virtual;
+          procedure _second_cstring_to_pchar;virtual;
+          procedure _second_string_to_chararray;virtual;
+          procedure _second_array_to_pointer;virtual;
+          procedure _second_pointer_to_array;virtual;
+          procedure _second_chararray_to_string;virtual;
+          procedure _second_char_to_string;virtual;
+          procedure _second_int_to_real;virtual;
+          procedure _second_real_to_real;virtual;
+          procedure _second_cord_to_pointer;virtual;
+          procedure _second_proc_to_procvar;virtual;
+          procedure _second_bool_to_int;virtual;
+          procedure _second_int_to_bool;virtual;
+          procedure _second_bool_to_bool;virtual;
+          procedure _second_load_smallset;virtual;
+          procedure _second_ansistring_to_pchar;virtual;
+          procedure _second_class_to_intf;virtual;
+          procedure _second_char_to_char;virtual;
+          procedure _second_nothing; virtual;
 
           procedure second_int_to_int;virtual;abstract;
           procedure second_string_to_string;virtual;abstract;
@@ -984,6 +1008,28 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_variant_to_enum : tnode;
+
+      begin
+        result := ctypeconvnode.create_explicit(left,defaultordconsttype);
+        result := ctypeconvnode.create_explicit(result,resulttype);
+        resulttypepass(result);
+        { left is reused }
+        left := nil;
+      end;
+
+
+    function ttypeconvnode.resulttype_enum_to_variant : tnode;
+
+      begin
+        result := ctypeconvnode.create_explicit(left,defaultordconsttype);
+        result := ctypeconvnode.create_explicit(result,cvarianttype);
+        resulttypepass(result);
+        { left is reused }
+        left := nil;
+      end;
+
+
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
 {$ifdef fpc}
       const
@@ -1020,7 +1066,9 @@ implementation
           { dynarray_2_openarray} @resulttype_dynarray_to_openarray,
           { pwchar_2_string} @resulttype_pwchar_to_string,
           { variant_2_dynarray} @resulttype_variant_to_dynarray,
-          { dynarray_2_variant} @resulttype_dynarray_to_variant
+          { dynarray_2_variant} @resulttype_dynarray_to_variant,
+          { variant_2_enum} @resulttype_variant_to_enum,
+          { enum_2_variant} @resulttype_enum_to_variant
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1801,6 +1849,8 @@ implementation
            @ttypeconvnode._first_nothing,
            nil,
            nil,
+           nil,
+           nil,
            nil
          );
       type
@@ -1856,6 +1906,222 @@ implementation
           (convtype = ttypeconvnode(p).convtype);
       end;
 
+
+    procedure ttypeconvnode._second_int_to_int;
+      begin
+        second_int_to_int;
+      end;
+
+
+    procedure ttypeconvnode._second_string_to_string;
+      begin
+        second_string_to_string;
+      end;
+
+
+    procedure ttypeconvnode._second_cstring_to_pchar;
+      begin
+        second_cstring_to_pchar;
+      end;
+
+
+    procedure ttypeconvnode._second_string_to_chararray;
+      begin
+        second_string_to_chararray;
+      end;
+
+
+    procedure ttypeconvnode._second_array_to_pointer;
+      begin
+        second_array_to_pointer;
+      end;
+
+
+    procedure ttypeconvnode._second_pointer_to_array;
+      begin
+        second_pointer_to_array;
+      end;
+
+
+    procedure ttypeconvnode._second_chararray_to_string;
+      begin
+        second_chararray_to_string;
+      end;
+
+
+    procedure ttypeconvnode._second_char_to_string;
+      begin
+        second_char_to_string;
+      end;
+
+
+    procedure ttypeconvnode._second_int_to_real;
+      begin
+        second_int_to_real;
+      end;
+
+
+    procedure ttypeconvnode._second_real_to_real;
+      begin
+        second_real_to_real;
+      end;
+
+
+    procedure ttypeconvnode._second_cord_to_pointer;
+      begin
+        second_cord_to_pointer;
+      end;
+
+
+    procedure ttypeconvnode._second_proc_to_procvar;
+      begin
+        second_proc_to_procvar;
+      end;
+
+
+    procedure ttypeconvnode._second_bool_to_int;
+      begin
+        second_bool_to_int;
+      end;
+
+
+    procedure ttypeconvnode._second_int_to_bool;
+      begin
+        second_int_to_bool;
+      end;
+
+
+    procedure ttypeconvnode._second_bool_to_bool;
+      begin
+        second_bool_to_bool;
+      end;
+
+    procedure ttypeconvnode._second_load_smallset;
+      begin
+        second_load_smallset;
+      end;
+
+
+    procedure ttypeconvnode._second_ansistring_to_pchar;
+      begin
+        second_ansistring_to_pchar;
+      end;
+
+
+    procedure ttypeconvnode._second_class_to_intf;
+      begin
+        second_class_to_intf;
+      end;
+
+
+    procedure ttypeconvnode._second_char_to_char;
+      begin
+        second_char_to_char;
+      end;
+
+
+    procedure ttypeconvnode._second_nothing;
+      begin
+        second_nothing;
+      end;
+
+
+    procedure ttypeconvnode.second_call_helper(c : tconverttype);
+{$ifdef fpc}
+      const
+         secondconvert : array[tconverttype] of pointer = (
+           @_second_nothing, {equal}
+           @_second_nothing, {not_possible}
+           @_second_nothing, {second_string_to_string, handled in resulttype pass }
+           @_second_char_to_string,
+           @_second_nothing, {char_to_charray}
+           @_second_nothing, { pchar_to_string, handled in resulttype pass }
+           @_second_nothing, {cchar_to_pchar}
+           @_second_cstring_to_pchar,
+           @_second_ansistring_to_pchar,
+           @_second_string_to_chararray,
+           @_second_nothing, { chararray_to_string, handled in resulttype pass }
+           @_second_array_to_pointer,
+           @_second_pointer_to_array,
+           @_second_int_to_int,
+           @_second_int_to_bool,
+           @_second_bool_to_bool,
+           @_second_bool_to_int,
+           @_second_real_to_real,
+           @_second_int_to_real,
+           @_second_nothing, { real_to_currency, handled in resulttype pass }
+           @_second_proc_to_procvar,
+           @_second_nothing, { arrayconstructor_to_set }
+           @_second_nothing, { second_load_smallset, handled in first pass }
+           @_second_cord_to_pointer,
+           @_second_nothing, { interface 2 string }
+           @_second_nothing, { interface 2 guid   }
+           @_second_class_to_intf,
+           @_second_char_to_char,
+           @_second_nothing,  { normal_2_smallset }
+           @_second_nothing,  { dynarray_2_openarray }
+           @_second_nothing,  { pwchar_2_string }
+           @_second_nothing,  { variant_2_dynarray }
+           @_second_nothing,  { dynarray_2_variant}
+           @_second_nothing,  { variant_2_enum }
+           @_second_nothing   { enum_2_variant }
+         );
+      type
+         tprocedureofobject = procedure of object;
+
+      var
+         r : packed record
+                proc : pointer;
+                obj : pointer;
+             end;
+
+      begin
+         { this is a little bit dirty but it works }
+         { and should be quite portable too        }
+         r.proc:=secondconvert[c];
+         r.obj:=self;
+         tprocedureofobject(r)();
+      end;
+{$else fpc}
+     begin
+        case c of
+          tc_equal,
+          tc_not_possible,
+          tc_string_2_string : second_nothing;
+          tc_char_2_string : second_char_to_string;
+          tc_char_2_chararray : second_nothing;
+          tc_pchar_2_string : second_nothing;
+          tc_cchar_2_pchar : second_nothing;
+          tc_cstring_2_pchar : second_cstring_to_pchar;
+          tc_ansistring_2_pchar : second_ansistring_to_pchar;
+          tc_string_2_chararray : second_string_to_chararray;
+          tc_chararray_2_string : second_nothing;
+          tc_array_2_pointer : second_array_to_pointer;
+          tc_pointer_2_array : second_pointer_to_array;
+          tc_int_2_int : second_int_to_int;
+          tc_int_2_bool : second_int_to_bool;
+          tc_bool_2_bool : second_bool_to_bool;
+          tc_bool_2_int : second_bool_to_int;
+          tc_real_2_real : second_real_to_real;
+          tc_int_2_real : second_int_to_real;
+          tc_real_2_currency : second_nothing;
+          tc_proc_2_procvar : second_proc_to_procvar;
+          tc_arrayconstructor_2_set : second_nothing;
+          tc_load_smallset : second_nothing;
+          tc_cord_2_pointer : second_cord_to_pointer;
+          tc_intf_2_string : second_nothing;
+          tc_intf_2_guid : second_nothing;
+          tc_class_2_intf : second_class_to_intf;
+          tc_char_2_char : second_char_to_char;
+          tc_normal_2_smallset : second_nothing;
+          tc_dynarray_2_openarray : second_nothing;
+          tc_pwchar_2_string : second_nothing;
+          tc_variant_2_dynarray : second_nothing;
+          tc_dynarray_2_variant : second_nothing;
+          else internalerror(2002101101);
+        end;
+     end;
+{$endif fpc}
 
 {*****************************************************************************
                                 TISNODE
@@ -2122,7 +2388,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2003-10-31 18:42:03  peter
+  Revision 1.130  2003-11-04 22:30:15  florian
+    + type cast variant<->enum
+    * cnv. node second pass uses now as well helper wrappers
+
+  Revision 1.129  2003/10/31 18:42:03  peter
     * don't call proc_to_procvar for explicit typecasts
 
   Revision 1.128  2003/10/29 22:01:20  florian

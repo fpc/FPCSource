@@ -50,7 +50,6 @@ interface
 {$ifdef TESTOBJEXT2}
          procedure checkobject;virtual;
 {$endif TESTOBJEXT2}
-         procedure second_call_helper(c : tconverttype);virtual;abstract;
          procedure pass_2;override;
        end;
 
@@ -515,7 +514,11 @@ end.
 
 {
   $Log$
-  Revision 1.49  2003-10-10 17:48:13  peter
+  Revision 1.50  2003-11-04 22:30:15  florian
+    + type cast variant<->enum
+    * cnv. node second pass uses now as well helper wrappers
+
+  Revision 1.49  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -55,7 +55,6 @@ interface
 {$ifdef TESTOBJEXT2}
           procedure checkobject;override;
 {$endif TESTOBJEXT2}
-          procedure second_call_helper(c : tconverttype);override;
        end;
 
 
@@ -232,107 +231,16 @@ implementation
 {$endif TESTOBJEXT2}
 
 
-    procedure ti386typeconvnode.second_call_helper(c : tconverttype);
-{$ifdef fpc}
-      const
-         secondconvert : array[tconverttype] of pointer = (
-           @second_nothing, {equal}
-           @second_nothing, {not_possible}
-           @second_nothing, {second_string_to_string, handled in resulttype pass }
-           @second_char_to_string,
-           @second_nothing, {char_to_charray}
-           @second_nothing, { pchar_to_string, handled in resulttype pass }
-           @second_nothing, {cchar_to_pchar}
-           @second_cstring_to_pchar,
-           @second_ansistring_to_pchar,
-           @second_string_to_chararray,
-           @second_nothing, { chararray_to_string, handled in resulttype pass }
-           @second_array_to_pointer,
-           @second_pointer_to_array,
-           @second_int_to_int,
-           @second_int_to_bool,
-           @second_bool_to_bool,
-           @second_bool_to_int,
-           @second_real_to_real,
-           @second_int_to_real,
-           @second_nothing, { real_to_currency, handled in resulttype pass }
-           @second_proc_to_procvar,
-           @second_nothing, { arrayconstructor_to_set }
-           @second_nothing, { second_load_smallset, handled in first pass }
-           @second_cord_to_pointer,
-           @second_nothing, { interface 2 string }
-           @second_nothing, { interface 2 guid   }
-           @second_class_to_intf,
-           @second_char_to_char,
-           @second_nothing,  { normal_2_smallset }
-           @second_nothing,  { dynarray_2_openarray }
-           @second_nothing,  { pwchar_2_string }
-           @second_nothing,  { variant_2_dynarray }
-           @second_nothing   { dynarray_2_variant}
-         );
-      type
-         tprocedureofobject = procedure of object;
-
-      var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
-
-      begin
-         { this is a little bit dirty but it works }
-         { and should be quite portable too        }
-         r.proc:=secondconvert[c];
-         r.obj:=self;
-         tprocedureofobject(r)();
-      end;
-{$else fpc}
-     begin
-        case c of
-          tc_equal,
-          tc_not_possible,
-          tc_string_2_string : second_nothing;
-          tc_char_2_string : second_char_to_string;
-          tc_char_2_chararray : second_nothing;
-          tc_pchar_2_string : second_nothing;
-          tc_cchar_2_pchar : second_nothing;
-          tc_cstring_2_pchar : second_cstring_to_pchar;
-          tc_ansistring_2_pchar : second_ansistring_to_pchar;
-          tc_string_2_chararray : second_string_to_chararray;
-          tc_chararray_2_string : second_nothing;
-          tc_array_2_pointer : second_array_to_pointer;
-          tc_pointer_2_array : second_pointer_to_array;
-          tc_int_2_int : second_int_to_int;
-          tc_int_2_bool : second_int_to_bool;
-          tc_bool_2_bool : second_bool_to_bool;
-          tc_bool_2_int : second_bool_to_int;
-          tc_real_2_real : second_real_to_real;
-          tc_int_2_real : second_int_to_real;
-          tc_real_2_currency : second_nothing;
-          tc_proc_2_procvar : second_proc_to_procvar;
-          tc_arrayconstructor_2_set : second_nothing;
-          tc_load_smallset : second_nothing;
-          tc_cord_2_pointer : second_cord_to_pointer;
-          tc_intf_2_string : second_nothing;
-          tc_intf_2_guid : second_nothing;
-          tc_class_2_intf : second_class_to_intf;
-          tc_char_2_char : second_char_to_char;
-          tc_normal_2_smallset : second_nothing;
-          tc_dynarray_2_openarray : second_nothing;
-          tc_pwchar_2_string : second_nothing;
-          tc_variant_2_dynarray : second_nothing;
-          tc_dynarray_2_variant : second_nothing;
-          else internalerror(2002101101);
-        end;
-     end;
-{$endif fpc}
-
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.67  2003-10-10 17:48:14  peter
+  Revision 1.68  2003-11-04 22:30:15  florian
+    + type cast variant<->enum
+    * cnv. node second pass uses now as well helper wrappers
+
+  Revision 1.67  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

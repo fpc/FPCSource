@@ -72,7 +72,9 @@ interface
           tc_dynarray_2_openarray,
           tc_pwchar_2_string,
           tc_variant_2_dynarray,
-          tc_dynarray_2_variant
+          tc_dynarray_2_variant,
+          tc_variant_2_enum,
+          tc_enum_2_variant
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -442,6 +444,11 @@ implementation
                         doconv:=tc_int_2_int;
                       end;
                    end;
+                 variantdef :
+                   begin
+                     eq:=te_convert_l1;
+                     doconv:=tc_variant_2_enum;
+                   end;
                end;
              end;
 
@@ -605,6 +612,24 @@ implementation
                       end;
                   end;
                 end;
+             end;
+           variantdef :
+             begin
+               case def_from.deftype of
+                 enumdef :
+                   begin
+                     doconv:=tc_enum_2_variant;
+                     eq:=te_convert_l1;
+                   end;
+                 arraydef :
+                   begin
+                      if is_dynamic_array(def_from) then
+                        begin
+                           doconv:=tc_dynarray_2_variant;
+                           eq:=te_convert_l1;
+                        end;
+                   end;
+               end;
              end;
 
            pointerdef :
@@ -983,8 +1008,8 @@ implementation
              end;
         end;
 
-        { if we didn't find an appropriate type conversion yet and
-          there is a variant involved then we search also the := operator }
+        { if we didn't find an appropriate type conversion yet
+          then we search also the := operator }
         if (eq=te_incompatible) and
            check_operator and
            ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
@@ -1223,7 +1248,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-10-30 16:23:13  peter
+  Revision 1.36  2003-11-04 22:30:15  florian
+    + type cast variant<->enum
+    * cnv. node second pass uses now as well helper wrappers
+
+  Revision 1.35  2003/10/30 16:23:13  peter
     * don't search for overloads in parents for constructors
 
   Revision 1.34  2003/10/26 14:11:35  florian
