@@ -101,8 +101,8 @@ all: rtls
 clean:
 	make -C template clean
 	make -C dos clean
-	make -C dos/go32v1 clean
-	make -C dos/go32v2 clean
+	make -C go32v1 clean
+	make -C go32v2 clean
 	make -C linux clean
 	make -C win32 clean
 	make -C os2 clean
@@ -119,10 +119,10 @@ native: rtl$(OS_SOURCE)
 rtls: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
 
 rtlgo32v1:
-	make -C dos/go32v1
+	make -C go32v1
 
 rtlgo32v2:
-	make -C dos/go32v2
+	make -C go32v2
 
 rtllinux:
 	make -C linux
@@ -145,10 +145,10 @@ nativelibs : $(OS_SOURCE)libs
 libs: go32v1libs go32v2libs linuxlibs os2libs win32libs
 
 go32v1libs:
-	make -C dos/go32v1 libs
+	make -C go32v1 libs
 
 go32v2libs:
-	make -C dos/go32v2 libs
+	make -C go32v2 libs
 
 linuxlibs:
 	make -C linux libs
@@ -169,9 +169,9 @@ install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
 native_install: install_$(OS_SRC)
 
 install_go32v1:
-	make -C dos/go32v1 install
+	make -C go32v1 install
 install_go32v2:
-	make -C dos/go32v2 install
+	make -C go32v2 install
 install_linux:
 	make -C linux install
 install_os2:
@@ -190,9 +190,9 @@ libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
 native_libinstall: libinstall_$(OS_SOURCE)
 
 libinstall_go32v1:
-	make -C dos/go32v1 libinstall
+	make -C go32v1 libinstall
 libinstall_go32v2:
-	make -C dos/go32v2 libinstall
+	make -C go32v2 libinstall
 libinstall_linux:
 	make -C linux libinstall
 libinstall_os2:
@@ -235,9 +235,9 @@ diffs_cfg:
 diffs_template:
 	make -C template diffs
 diffs_go32v1:
-	make -C dos/go32v1 diffs
+	make -C go32v1 diffs
 diffs_go32v2:
-	make -C dos/go32v2 diffs
+	make -C go32v2 diffs
 diffs_linux:
 	make -C linux diffs
 diffs_os2:
@@ -248,8 +248,8 @@ diffs_win32:
 diffclean:
 	make -C template diffclean
 	make -C dos diffclean
-	make -C dos/go32v1 diffclean
-	make -C dos/go32v2 diffclean
+	make -C go32v1 diffclean
+	make -C go32v2 diffclean
 	make -C linux diffclean
 	make -C os2 diffclean
 	make -C win32 diffclean
@@ -257,7 +257,10 @@ diffclean:
 
 #
 # $Log$
-# Revision 1.3  1998-10-22 16:45:23  pierre
+# Revision 1.4  1998-12-21 14:26:52  pierre
+#  * go32v? directory change reflected
+#
+# Revision 1.3  1998/10/22 16:45:23  pierre
 #  + added rtlamiga target
 #
 # Revision 1.2  1998/09/16 16:47:20  peter
