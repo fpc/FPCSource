@@ -170,7 +170,7 @@ Var I : longint;
 
 begin
   Clear;
-  For i:=1 to FieldDefs.Count-1 do
+  For i:=0 to FieldDefs.Count-1 do
     With FieldDefs[i] do
       Add(Name,DataType,Size,Required);
 end;
@@ -1865,7 +1865,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2004-08-21 21:10:00  michael
+  Revision 1.16  2004-11-30 21:18:34  michael
+  + Fix from Jesus Reyes to fix TfieldDefs.Assign
+
+  Revision 1.15  2004/08/21 21:10:00  michael
   * Patch from Joost van der Sluis
     - Empty recordsets don't show any bogus data anymore
     - Floatfiels.gettext fix
