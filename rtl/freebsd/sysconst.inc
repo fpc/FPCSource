@@ -37,7 +37,7 @@ Const
   Open_Creat    = $200;       {Linux convention}
   Open_Trunc    = $400;
   Open_Excl     = $800;
-
+  Open_NoCTTY   = $8000;
 
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
@@ -87,7 +87,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:42:35  marco
+  Revision 1.3  2001-01-23 20:37:14  marco
+   * Serial.pp in makefile, Open_Noccty added to sysconst.inc
+
+  Revision 1.2  2000/09/18 13:42:35  marco
    * FreeBSD support into 1.1
 
   Revision 1.4  2000/09/11 14:38:10  marco
