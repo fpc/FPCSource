@@ -6,6 +6,8 @@
 %%% Contains all comments from errord.msg
 %%% Reordering of errord.msg respective to errore.msg
 %%% Contains all comments from errord.msg
+%%% Reordering of errord.msg respective to errore.msg
+%%% Contains all comments from errord.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -1319,6 +1321,8 @@ asmr_e_no_local_or_para_allowed=E_Lokale Variable oder Parameter kînnen hier nic
 % address can't be get directly.
 asmr_e_need_offset=E_Hier muss OFFSET verwendet werden
 % You need to use OFFSET <id> here to get the address of the identifier.
+asmr_e_need_dollar=E_Hier muss "$" verwendet werden
+% You need to use $<id> here to get the address of the identifier.
 asmr_e_cant_have_multiple_relocatable_symbols=E_Verwendung von mehreren verschiebbaren Symbolen nicht mîglich
 % You can't have more than one relocatable symbol (variable/typed constant)
 % in one argument.
@@ -1339,7 +1343,7 @@ asmr_e_local_label_not_allowed_as_ref=E_Lokale Symbole/Labels sind nicht als Ref
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=E_UngÅltige Verwendung von Basis- und Index-Registern
 % There is an error with the base and index register
-asmr_w_possible_object_field_bug=W_Possible error in object field handling
+asmr_w_possible_object_field_bug=W_Mîglicher Fehler bei Objektfeld-Behandlung
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
 asmr_e_wrong_scale_factor=E_Falscher Skalierungsfaktor angegeben
