@@ -239,7 +239,7 @@ unit cgobj;
           procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);virtual;abstract;
           procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);virtual;abstract;
 
-          procedure g_maybe_loadself(list : taasmoutput);virtual; abstract;
+          procedure g_maybe_loadself(list : taasmoutput);virtual;
           {# This should emit the opcode to copy len bytes from the source
              to destination, if loadref is true, it assumes that it first must load
              the source address from the memory location where
@@ -1053,6 +1053,39 @@ unit cgobj;
          a_param_const(list,OS_32,stackframesize,1);
          a_call_name(list,'FPC_STACKCHECK');
       end;
+      
+      
+    procedure tcg.g_maybe_loadself(list : taasmoutput);
+      var
+         hp : treference;
+         p : pprocinfo;
+         i : longint;
+      begin
+         if assigned(procinfo^._class) then
+           begin
+              list.concat(Tairegalloc.Alloc(SELF_POINTER_REG));
+              if lexlevel>normal_function_level then
+                begin
+                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.framepointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                   p:=procinfo^.parent;
+                   for i:=3 to lexlevel-1 do
+                     begin
+                        reference_reset_base(hp,SELF_POINTER_REG,p^.framepointer_offset);
+                        a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                        p:=p^.parent;
+                     end;
+                   reference_reset_base(hp,SELF_POINTER_REG,p^.selfpointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                end
+              else
+                begin
+                   reference_reset_base(hp,procinfo^.framepointer,procinfo^.selfpointer_offset);
+                   a_load_ref_reg(list,OS_ADDR,hp,SELF_POINTER_REG);
+                end;
+           end;
+      end;
+      
 
 
 {*****************************************************************************
@@ -1079,7 +1112,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2002-05-12 16:53:04  peter
+  Revision 1.21  2002-05-12 19:57:16  carl
+  * maybe_loadself portable
+
+  Revision 1.20  2002/05/12 16:53:04  peter
     * moved entry and exitcode to ncgutil and cgobj
     * foreach gets extra argument for passing local data to the
       iterator function
