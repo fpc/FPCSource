@@ -25,7 +25,7 @@ interface
 
 uses
   sysutils,
-  rtlconst,
+  rtlconsts,
   types,
   typinfo;
 
@@ -48,7 +48,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  Revision 1.3  2005-03-07 17:57:24  peter
+    * renamed rtlconst to rtlconsts
+
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
 }

@@ -27,7 +27,7 @@ uses
   sysutils,
   types,
   typinfo,
-  rtlconst;
+  rtlconsts;
 
 {$i classesh.inc}
 
@@ -53,7 +53,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:31  peter
+  Revision 1.3  2005-03-07 17:57:25  peter
+    * renamed rtlconst to rtlconsts
+
+  Revision 1.2  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.1  2005/02/06 12:16:52  peter

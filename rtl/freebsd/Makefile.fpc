@@ -11,7 +11,7 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseunix unixutil \
-      unix rtlconst initc cmem matrix \
+      unix rtlconsts initc cmem matrix \
        dl termio  printer \
       sysutils typinfo types classes math varutils dynlibs \
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
@@ -193,11 +193,11 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-	$(COMPILER): $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)

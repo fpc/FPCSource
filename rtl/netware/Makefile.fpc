@@ -14,10 +14,10 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
-      rtlconst math varutils freebidi utf8bidi \
+      rtlconsts math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets \
       aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
-rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst
+rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts
 
 [require]
 nortl=y
@@ -163,7 +163,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
                    sysconst$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
@@ -190,8 +190,8 @@ variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp

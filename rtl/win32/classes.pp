@@ -24,7 +24,7 @@ unit Classes;
 interface
 
 uses
-  rtlconst,
+  rtlconsts,
   sysutils,
   types,
   typinfo,
@@ -56,7 +56,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.8  2005-02-14 17:13:32  peter
+  Revision 1.9  2005-03-07 17:57:26  peter
+    * renamed rtlconst to rtlconsts
+
+  Revision 1.8  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.7  2005/02/06 13:06:20  peter

@@ -1983,7 +1983,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 		    objpas$(PPUEXT) dos$(PPUEXT) libc.pp sysconst$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) \
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
 		   sysconst$(PPUEXT) types$(PPUEXT) \
 		   tthread.inc
 	$(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
@@ -2002,8 +2002,8 @@ utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT)
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp $(OBJPASDIR)/dateutil.inc

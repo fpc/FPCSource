@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
       windows winsock initc cmem dynlibs signals \
       dos crt objects graph messages \
-      rtlconst sysconst sysutils typinfo math types \
+      rtlconsts sysconst sysutils typinfo math types \
       strutils convutils dateutils varutils variants classes \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer \
@@ -174,7 +174,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) sysconst$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
@@ -196,8 +196,8 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/comobjh.inc $(OBJPASDIR)/comobj.inc
         $(COMPILER) -I$(OBJPASDIR) comobj.pp
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
-        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
