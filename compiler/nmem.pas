@@ -734,7 +734,9 @@ implementation
                    st_shortstring :
                      resulttype:=cchartype;
                 end;
-             end
+             end;
+           variantdef :
+             resulttype:=cvarianttype;
            else
              CGMessage(type_e_array_required);
         end;
@@ -975,7 +977,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2004-03-18 16:19:03  peter
+  Revision 1.82  2004-03-29 14:42:52  peter
+    * variant array support
+
+  Revision 1.81  2004/03/18 16:19:03  peter
     * fixed operator overload allowing for pointer-string
     * replaced some type_e_mismatch with more informational messages
 

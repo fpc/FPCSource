@@ -1550,6 +1550,7 @@ implementation
                                  p2:=comp_expr(true);
                                  p1:=cvecnode.create(p1,p2);
                               end;
+                            variantdef,
                             stringdef :
                               begin
                                 p2:=comp_expr(true);
@@ -2398,7 +2399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2004-03-23 22:34:49  peter
+  Revision 1.152  2004-03-29 14:42:52  peter
+    * variant array support
+
+  Revision 1.151  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
