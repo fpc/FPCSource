@@ -574,7 +574,6 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
-        l : longint;
         original_size : longint;
       begin
         result:=nil;
@@ -1025,7 +1024,12 @@ implementation
                  case hp.left.resulttype.def.deftype of
                    enumdef :
                      begin
-                       hp.left:=ctypeconvnode.create(hp.left,s32bittype);
+                       hp.left:=ctypeconvnode.create_explicit(hp.left,s32bittype);
+                       firstpass(hp.left);
+                     end;
+                   arraydef :
+                     begin
+                       hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                        firstpass(hp.left);
                      end;
                    orddef :
@@ -1269,7 +1273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2002-12-20 18:14:53  peter
+  Revision 1.74  2002-12-24 16:53:19  peter
+    * fix for tb0438
+
+  Revision 1.73  2002/12/20 18:14:53  peter
     * fix result of high_tree when high was not available
 
   Revision 1.72  2002/12/17 22:19:33  peter
