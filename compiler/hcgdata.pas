@@ -444,8 +444,8 @@ implementation
                                        { only if both are virtual !!  }
                                        if (procdefcoll^.data^.proccalloptions<>hp^.proccalloptions) or
                                           (procdefcoll^.data^.proctypeoption<>hp^.proctypeoption) or
-                                          ((procdefcoll^.data^.procoptions-[po_abstractmethod,po_overridingmethod])<>
-                                           (hp^.procoptions-[po_abstractmethod,po_overridingmethod])) then
+                                          ((procdefcoll^.data^.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])<>
+                                           (hp^.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])) then
                                          Message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
 
                                        { check, if the overridden directive is set }
@@ -614,7 +614,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-10-26 12:30:41  peter
+  Revision 1.19  1999-11-29 23:42:49  pierre
+   * fix for form bug 555
+
+  Revision 1.18  1999/10/26 12:30:41  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
