@@ -379,26 +379,13 @@ implementation
                CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
            end;
 
-         { optimize constant expressions }
-         if (left.nodetype=ordconstn) then
-           begin
-             { while false do }
-             if (lnf_testatbegin in loopflags) and
-                (tordconstnode(left).value=0) then
-               begin
-                 if assigned(right) then
-                   CGMessagePos(right.fileinfo,cg_w_unreachable_code);
-                 result:=cnothingnode.create;
-               end
-             else
-             { repeat until true }
-               if not(lnf_testatbegin in loopflags) and
-                  (tordconstnode(left).value=1) then
-                 begin
-                   result:=right;
-                   right:=nil;
-                 end;
-           end;
+         { Give warnings for code that will never be executed for
+           while false do }
+         if (lnf_testatbegin in loopflags) and
+            (left.nodetype=ordconstn) and
+            (tordconstnode(left).value=0) and
+            assigned(right) then
+           CGMessagePos(right.fileinfo,cg_w_unreachable_code);
       end;
 
 
@@ -1404,7 +1391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2005-02-23 20:38:09  florian
+  Revision 1.111  2005-03-24 23:06:43  peter
+    * don't remove repeat until node in repeat until true;
+
+  Revision 1.110  2005/02/23 20:38:09  florian
     + variants can be used as cond. expr. in if, while, repeat ... until statements
 
   Revision 1.109  2005/02/14 17:13:06  peter
