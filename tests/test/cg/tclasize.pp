@@ -2,7 +2,7 @@
 
 type
    tbaseclass = class
-     x : longint;
+     x : byte;
      class procedure virtual_class_method; virtual;
      class procedure call_virtual_class_method;
      class function getsize : longint;
@@ -10,7 +10,7 @@ type
    end;
 
    tderivedclass = class(tbaseclass)
-     y : longint;
+     y : byte;
      class procedure virtual_class_method; override;
    end;
 
@@ -18,8 +18,8 @@ const
   tbasecalled : boolean = false;
   tderivedcalled : boolean = false;
   has_error : boolean = false;
-  expected_size_for_tbaseclass = sizeof(pointer) + sizeof(longint);
-  expected_size_for_tderivedclass = sizeof(pointer) + 2*sizeof(longint);
+  expected_size_for_tbaseclass = sizeof(pointer) + sizeof(byte);
+  expected_size_for_tderivedclass = sizeof(pointer) + 2*sizeof(byte);
 
 var
   basesize : longint;
