@@ -15,12 +15,12 @@ open conditional at the end of the file
 ;
 ; Logo
 ;
-Free Pascal Compiler version 0.99.5 for $1
+Free Pascal Compiler version 0.99.6 for $1
 Copyright (c) 1993-98 by Florian Klaempfl
 ;
 ; Info
 ;
-Free Pascal Compiler version 0.99.5
+Free Pascal Compiler version 0.99.6
 <lf>
 This program comes under the GNU General Public Licence
 For more information read COPYING
