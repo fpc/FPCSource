@@ -490,7 +490,12 @@ interface
              end;
 
            ait_align :
-             AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+             begin
+               { nasm gives warnings when it finds align in bss as it
+                 wants to store data }
+               if lastsec<>sec_bss then
+                 AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+             end;
 
            ait_datablock :
              begin
@@ -921,7 +926,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2003-04-22 10:09:35  daniel
+  Revision 1.34  2003-05-26 19:37:57  peter
+    * don't generate align in .bss
+
+  Revision 1.33  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used
