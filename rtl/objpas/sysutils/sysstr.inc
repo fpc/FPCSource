@@ -581,6 +581,10 @@ begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
   end ;
+ while value <> 0 do begin
+   result := HexDigits[value and 15] + result;
+   value := value shr 4;
+ end;
 end ;
 
 {$IFNDEF VIRTUALPASCAL} // overloading
@@ -593,6 +597,10 @@ begin
    result[digits - i] := HexDigits[value and 15];
    value := value shr 4;
   end ;
+ while value <> 0 do begin
+   result := HexDigits[value and 15] + result;
+   value := value shr 4;
+ end;
 end ;
 {$ENDIF}
 
@@ -2009,7 +2017,10 @@ const
 
 {
   $Log$
-  Revision 1.6  2003-11-22 16:17:26  michael
+  Revision 1.7  2003-11-22 17:18:53  marco
+   * johill patch applied
+
+  Revision 1.6  2003/11/22 16:17:26  michael
   + Small optimization in comparemem
 
   Revision 1.5  2003/11/22 15:46:48  michael
