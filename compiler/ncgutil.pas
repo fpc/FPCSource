@@ -684,6 +684,10 @@ implementation
         size : longint;
         cgsize : tcgsize;
       begin
+        { we've nothing to push when the size of the parameter is 0 }
+        if p.resulttype.def.size=0 then
+         exit;
+
         { Move flags and jump in register to make it less complex }
         if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
          location_force_reg(exprasmlist,p.location,def_cgsize(p.resulttype.def),false);
@@ -929,6 +933,7 @@ implementation
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
+           not(vo_is_local_copy in tvarsym(p).varoptions) and
            assigned(tvarsym(p).vartype.def) and
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
@@ -952,6 +957,7 @@ implementation
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
+           not(vo_is_local_copy in tvarsym(p).varoptions) and
            assigned(tvarsym(p).vartype.def) and
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
@@ -1750,34 +1756,34 @@ implementation
 
     procedure genimplicitunitinit(list : TAAsmoutput);
       begin
+{$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) and
+            target_info.use_function_relative_addresses then
+           list.concat(Tai_stab_function_name.Create(strpnew('INIT$$'+current_module.modulename^)));
+{$endif GDB}
+         list.concat(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
+         list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
          tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         list.insert(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
-         list.insert(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_init',0));
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            target_info.use_function_relative_addresses then
-           list.insert(Tai_stab_function_name.Create(strpnew('INIT$$'+current_module.modulename^)));
-{$endif GDB}
          cg.g_return_from_proc(list,0);
       end;
 
 
     procedure genimplicitunitfinal(list : TAAsmoutput);
       begin
+{$ifdef GDB}
+         if (cs_debuginfo in aktmoduleswitches) and
+            target_info.use_function_relative_addresses then
+           list.concat(Tai_stab_function_name.Create(strpnew('FINALIZE$$'+current_module.modulename^)));
+{$endif GDB}
+         list.concat(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
+         list.concat(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
          { using current_module.globalsymtable is hopefully      }
          { more robust than symtablestack and symtablestack.next }
          tsymtable(current_module.globalsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
          tsymtable(current_module.localsymtable).foreach_static({$ifdef FPCPROCVAR}@{$endif}finalize_data,list);
-         list.insert(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
-         list.insert(Tai_symbol.Createname_global(target_info.cprefix+current_module.modulename^+'_finalize',0));
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            target_info.use_function_relative_addresses then
-           list.insert(Tai_stab_function_name.Create(strpnew('FINALIZE$$'+current_module.modulename^)));
-{$endif GDB}
          cg.g_return_from_proc(list,0);
       end;
 
@@ -1786,7 +1792,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-09-01 19:27:34  peter
+  Revision 1.47  2002-09-02 18:44:48  peter
+    * fixed (not) pushing of empty parameters
+    * fixed implicit initialization/finalization generation
+    * fixed/optimized local copy of value arguments init/final
+
+  Revision 1.46  2002/09/01 19:27:34  peter
     * use index register when available for generating a reference with
       only a signle register. Using the base register could possibly
       destroy the framepointer
