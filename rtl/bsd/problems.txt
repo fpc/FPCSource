@@ -1,3 +1,6 @@
+
+$Id$
+
 FreeBSD status and notes. (kept on CVS because I work on several places)
 
 At the moment that you are reading this, FPC for FreeBSD is still a dream.
@@ -31,3 +34,8 @@ pause 	 NI  noreq?	 Also possible I think. Uses process information
 			 in linux-emu, that is why I didn't port directly.
 
 IOPERM   NI  noreq?      Concept doesn't exist.
+
+
+$Log$
+Revision 1.3  2000-02-04 16:55:01  marco
+ * added comments
