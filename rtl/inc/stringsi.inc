@@ -21,7 +21,7 @@
         strcat:=dest;
       end;
 
-    function strlcat(dest,source : pchar;l : longint) : pchar;
+    function strlcat(dest,source : pchar;l : strlenint) : pchar;
 
       var
          destend : pchar;
@@ -34,7 +34,7 @@
          strlcat:=dest;
       end;
 
-    function strmove(dest,source : pchar;l : longint) : pchar;
+    function strmove(dest,source : pchar;l : strlenint) : pchar;
 
       begin
          move(source^,dest^,l);
@@ -66,7 +66,10 @@
 
 {
   $Log$
-  Revision 1.4  2003-12-29 19:24:12  florian
+  Revision 1.5  2004-02-18 22:00:59  peter
+    * use strlenint instead of longint
+
+  Revision 1.4  2003/12/29 19:24:12  florian
     + introduced PtrInt and PtrUInt
     * made strscan 64 bit safe
 

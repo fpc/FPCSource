@@ -17,7 +17,7 @@
  **********************************************************************}
 
 {$define FPC_UNIT_HAS_STRLEN}
-function strlen(p : pchar) : longint;assembler;
+function strlen(p : pchar) : strlenint;assembler;
 {$i strlen.inc}
 
 
@@ -29,30 +29,30 @@ asm
         andl $7, %ecx                  { mask alignment bits }
         movq %rdi, %rdx                { Duplicate destination pointer.  }
 
-        jz LFPC_STRCOPY_5              { aligned => start loop }
+        jz .LFPC_STRCOPY_5              { aligned => start loop }
 
         neg %ecx                       { We need to align to 8 bytes.  }
         addl $8,%ecx
 
         { Search the first bytes directly.  }
-LFPC_STRCOPY_0:
+.LFPC_STRCOPY_0:
         movb        (%rsi), %al        { Fetch a byte }
         testb       %al, %al           { Is it NUL? }
         movb        %al, (%rdx)        { Store it }
-        jz          LFPC_STRCOPY_4     { If it was NUL, done! }
+        jz          .LFPC_STRCOPY_4     { If it was NUL, done! }
         incq        %rsi
         incq        %rdx
         decl        %ecx
-        jnz         LFPC_STRCOPY_0
+        jnz         .LFPC_STRCOPY_0
 
-LFPC_STRCOPY_5:
+.LFPC_STRCOPY_5:
         movq        $0xfefefefefefefeff,%r8
 
         { Now the sources is aligned.  Unfortunatly we cannot force
            to have both source and destination aligned, so ignore the
            alignment of the destination.  }
         .p2align 4
-LFPC_STRCOPY_1:
+.LFPC_STRCOPY_1:
         { 1st unroll.  }
         movq        (%rsi), %rax       { Read double word (8 bytes).  }
         addq        $8, %rsi           { Adjust pointer for next word.  }
@@ -60,13 +60,13 @@ LFPC_STRCOPY_1:
         addq        %r8, %r9           { add the magic value to the word.  We get
                                          carry bits reported for each byte which
                                          is *not* 0 }
-        jnc         LFPC_STRCOPY_3     { highest byte is NUL => return pointer }
+        jnc         .LFPC_STRCOPY_3     { highest byte is NUL => return pointer }
         xorq        %rax, %r9          { (word+magic)^word }
         orq         %r8, %r9           { set all non-carry bits }
         incq        %r9                { add 1: if one carry bit was *not* set
                                          the addition will not result in 0.  }
 
-        jnz         LFPC_STRCOPY_3                { found NUL => return pointer }
+        jnz         .LFPC_STRCOPY_3                { found NUL => return pointer }
 
         movq        %rax, (%rdx)        { Write value to destination.  }
         addq        $8, %rdx        { Adjust pointer.  }
@@ -78,13 +78,13 @@ LFPC_STRCOPY_1:
         addq        %r8, %r9        { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc         LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
+        jnc         .LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
         xorq        %rax, %r9        { (word+magic)^word }
         orq         %r8, %r9        { set all non-carry bits }
         incq        %r9                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
 
-        jnz         LFPC_STRCOPY_3                { found NUL => return pointer }
+        jnz         .LFPC_STRCOPY_3                { found NUL => return pointer }
 
         movq        %rax, (%rdx)        { Write value to destination.  }
         addq        $8, %rdx        { Adjust pointer.  }
@@ -96,13 +96,13 @@ LFPC_STRCOPY_1:
         addq        %r8, %r9        { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc        LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
+        jnc        .LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
         xorq        %rax, %r9        { (word+magic)^word }
         orq        %r8, %r9        { set all non-carry bits }
         incq        %r9                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
 
-        jnz         LFPC_STRCOPY_3                { found NUL => return pointer }
+        jnz         .LFPC_STRCOPY_3                { found NUL => return pointer }
 
         movq        %rax, (%rdx)        { Write value to destination.  }
         addq        $8, %rdx        { Adjust pointer.  }
@@ -114,36 +114,36 @@ LFPC_STRCOPY_1:
         addq        %r8, %r9        { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc         LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
+        jnc         .LFPC_STRCOPY_3                { highest byte is NUL => return pointer }
         xorq        %rax, %r9        { (word+magic)^word }
         orq         %r8, %r9        { set all non-carry bits }
         incq        %r9                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
 
-        jnz         LFPC_STRCOPY_3                { found NUL => return pointer }
+        jnz         .LFPC_STRCOPY_3                { found NUL => return pointer }
 
         movq        %rax, (%rdx)        { Write value to destination.  }
         addq        $8, %rdx        { Adjust pointer.  }
-        jmp         LFPC_STRCOPY_1                { Next iteration.  }
+        jmp         .LFPC_STRCOPY_1                { Next iteration.  }
 
         { Do the last few bytes. %rax contains the value to write.
            The loop is unrolled twice.  }
         .p2align 4
-LFPC_STRCOPY_3:
+.LFPC_STRCOPY_3:
         { Note that stpcpy needs to return with the value of the NUL
            byte.  }
         movb        %al, (%rdx)        { 1st byte.  }
         testb       %al, %al        { Is it NUL.  }
-        jz          LFPC_STRCOPY_4                { yes, finish.  }
+        jz          .LFPC_STRCOPY_4                { yes, finish.  }
         incq        %rdx                { Increment destination.  }
         movb        %ah, (%rdx)        { 2nd byte.  }
         testb       %ah, %ah        { Is it NUL?.  }
-        jz          LFPC_STRCOPY_4                { yes, finish.  }
+        jz          .LFPC_STRCOPY_4                { yes, finish.  }
         incq        %rdx                { Increment destination.  }
         shrq        $16, %rax        { Shift...  }
-        jmp         LFPC_STRCOPY_3                { and look at next two bytes in %rax.  }
+        jmp         .LFPC_STRCOPY_3                { and look at next two bytes in %rax.  }
 
-LFPC_STRCOPY_4:
+.LFPC_STRCOPY_4:
         movq        %rdi, %rax        { Source is return value.  }
         retq
 end;
@@ -151,21 +151,21 @@ end;
 
 {$define FPC_UNIT_HAS_STRCOMP}
 { Created from glibc: libc/sysdeps/x86_64/strcmp.S Version 1.2 }
-function StrComp(Str1, Str2: PChar): StrLenInt;
+function StrComp(Str1, Str2: PChar): StrLenInt;assembler;
 asm
-FPC_STRCMP_LOOP:
+.LFPC_STRCMP_LOOP:
         movb        (%rdi), %al
         cmpb        (%rsi), %al
-        jne         FPC_STRCMP_NEG
+        jne         .LFPC_STRCMP_NEG
         incq        %rdi
         incq        %rsi
         testb       %al, %al
-        jnz         FPC_STRCMP_LOOP
+        jnz         .LFPC_STRCMP_LOOP
 
         xorq        %rax, %rax
         ret
 
-FPC_STRCMP_NEG:
+.LFPC_STRCMP_NEG:
         movl        $1, %eax
         movl        $-1, %ecx
         cmovbl      %ecx, %eax
@@ -174,7 +174,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-04-30 22:11:06  florian
+  Revision 1.3  2004-02-18 22:00:59  peter
+    * use strlenint instead of longint
+
+  Revision 1.2  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 
   Revision 1.1  2003/04/30 16:36:39  florian

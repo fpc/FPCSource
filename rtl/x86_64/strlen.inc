@@ -20,23 +20,23 @@ asm
         movq %rdi, %rcx                { Duplicate source pointer. }
         andl $7, %ecx                  { mask alignment bits }
         movq %rdi, %rax                { duplicate destination.  }
-        jz LFPC_STRLEN_1               { aligned => start loop }
+        jz .LFPC_STRLEN_1               { aligned => start loop }
 
         neg %ecx                       { We need to align to 8 bytes.  }
         addl $8,%ecx
         { Search the first bytes directly.  }
-LFPC_STRLEN_0:
+.LFPC_STRLEN_0:
         cmpb $0x0,(%rax)                { is byte NUL? }
-        je LFPC_STRLEN_2                { yes => return }
+        je .LFPC_STRLEN_2                { yes => return }
         incq %rax                       { increment pointer }
         decl %ecx
-        jnz LFPC_STRLEN_0
+        jnz .LFPC_STRLEN_0
 
-LFPC_STRLEN_1:
+.LFPC_STRLEN_1:
          movq $0xfefefefefefefeff,%r8  { Save magic.  }
 
         .p2align 4                     { Align loop.  }
-LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
+.LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
         { First unroll.  }
         movq (%rax), %rcx              { get double word (= 8 bytes) in question }
         addq $8,%rax                   { adjust pointer for next word }
@@ -44,12 +44,12 @@ LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
         addq %rcx, %rdx                { add the magic value to the word.  We get
                                          carry bits reported for each byte which
                                          is *not* 0 }
-        jnc LFPC_STRLEN_3               { highest byte is NUL => return pointer }
+        jnc .LFPC_STRLEN_3               { highest byte is NUL => return pointer }
         xorq %rcx, %rdx                { (word+magic)^word }
         orq %r8, %rdx                  { set all non-carry bits }
         incq %rdx                      { add 1: if one carry bit was *not* set
                                          the addition will not result in 0.  }
-        jnz LFPC_STRLEN_3               { found NUL => return pointer }
+        jnz .LFPC_STRLEN_3               { found NUL => return pointer }
 
         { Second unroll.  }
         movq (%rax), %rcx        { get double word (= 8 bytes) in question }
@@ -58,12 +58,12 @@ LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
         addq %rcx, %rdx                { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
+        jnc .LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
         xorq %rcx, %rdx                { (word+magic)^word }
         orq %r8, %rdx                { set all non-carry bits }
         incq %rdx                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
-        jnz LFPC_STRLEN_3                        { found NUL => return pointer }
+        jnz .LFPC_STRLEN_3                        { found NUL => return pointer }
 
         { Third unroll.  }
         movq (%rax), %rcx        { get double word (= 8 bytes) in question }
@@ -72,12 +72,12 @@ LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
         addq %rcx, %rdx                { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
+        jnc .LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
         xorq %rcx, %rdx                { (word+magic)^word }
         orq %r8, %rdx                { set all non-carry bits }
         incq %rdx                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
-        jnz LFPC_STRLEN_3                        { found NUL => return pointer }
+        jnz .LFPC_STRLEN_3                        { found NUL => return pointer }
 
         { Fourth unroll.  }
         movq (%rax), %rcx        { get double word (= 8 bytes) in question }
@@ -86,47 +86,47 @@ LFPC_STRLEN_4:                          { Main Loop is unrolled 4 times.  }
         addq %rcx, %rdx                { add the magic value to the word.  We get
                                    carry bits reported for each byte which
                                    is *not* 0 }
-        jnc LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
+        jnc .LFPC_STRLEN_3                        { highest byte is NUL => return pointer }
         xorq %rcx, %rdx                { (word+magic)^word }
         orq %r8, %rdx                { set all non-carry bits }
         incq %rdx                { add 1: if one carry bit was *not* set
                                    the addition will not result in 0.  }
-        jz LFPC_STRLEN_4                        { no NUL found => continue loop }
+        jz .LFPC_STRLEN_4                        { no NUL found => continue loop }
 
         .p2align 4                { Align, it's a jump target.  }
-LFPC_STRLEN_3:
+.LFPC_STRLEN_3:
         subq $8,%rax                { correct pointer increment.  }
 
         testb %cl, %cl                { is first byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return }
+        jz .LFPC_STRLEN_2                        { yes => return }
         incq %rax                { increment pointer }
 
         testb %ch, %ch                { is second byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return }
+        jz .LFPC_STRLEN_2                        { yes => return }
         incq %rax                { increment pointer }
 
         testl $0x00ff0000, %ecx { is third byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return pointer }
+        jz .LFPC_STRLEN_2                        { yes => return pointer }
         incq %rax                { increment pointer }
 
         testl $0xff000000, %ecx { is fourth byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return pointer }
+        jz .LFPC_STRLEN_2                        { yes => return pointer }
         incq %rax                { increment pointer }
 
         shrq $32, %rcx                { look at other half.  }
 
         testb %cl, %cl                { is first byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return }
+        jz .LFPC_STRLEN_2                        { yes => return }
         incq %rax                { increment pointer }
 
         testb %ch, %ch                { is second byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return }
+        jz .LFPC_STRLEN_2                        { yes => return }
         incq %rax                { increment pointer }
 
         testl $0xff0000, %ecx        { is third byte NUL? }
-        jz LFPC_STRLEN_2                        { yes => return pointer }
+        jz .LFPC_STRLEN_2                        { yes => return pointer }
         incq %rax                { increment pointer }
-LFPC_STRLEN_2:
+.LFPC_STRLEN_2:
         subq %rdi, %rax                { compute difference to string start }
         ret
 end;
@@ -134,7 +134,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-04-30 16:36:39  florian
+  Revision 1.2  2004-02-18 22:00:59  peter
+    * use strlenint instead of longint
+
+  Revision 1.1  2003/04/30 16:36:39  florian
     + support for generic pchar routines added
     + some basic rtl stuff for x86-64 added
 }
