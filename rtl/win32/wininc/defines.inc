@@ -3936,72 +3936,233 @@ Const
      MDM_TONE_DIAL = 256;
      MDM_V23_OVERRIDE = 1024;
   { Languages  }
-     LANG_BULGARIAN = 2;
-     LANG_CHINESE = 4;
-     LANG_CROATIAN = 26;
-     LANG_CZECH = 5;
-     LANG_DANISH = 6;
-     LANG_DUTCH = 19;
-     LANG_ENGLISH = 9;
-     LANG_FINNISH = 11;
-     LANG_FRENCH = 12;
-     LANG_GERMAN = 7;
-     LANG_GREEK = 8;
-     LANG_HUNGARIAN = 14;
-     LANG_ICELANDIC = 15;
-     LANG_ITALIAN = 16;
-     LANG_JAPANESE = 17;
-     LANG_KOREAN = 18;
-     LANG_NEUTRAL = 0;
-     LANG_NORWEGIAN = 20;
-     LANG_POLISH = 21;
-     LANG_PORTUGUESE = 22;
-     LANG_ROMANIAN = 24;
-     LANG_RUSSIAN = 25;
-     LANG_SLOVAK = 27;
-     LANG_SLOVENIAN = 36;
-     LANG_SPANISH = 10;
-     LANG_SWEDISH = 29;
-     LANG_TURKISH = 31;
-     SUBLANG_CHINESE_SIMPLIFIED = 2;
-     SUBLANG_CHINESE_TRADITIONAL = 1;
-     SUBLANG_CHINESE_HONGKONG = 3;
-     SUBLANG_CHINESE_SINGAPORE = 4;
-     SUBLANG_DEFAULT = 1;
-     SUBLANG_DUTCH = 1;
-     SUBLANG_DUTCH_BELGIAN = 2;
-     SUBLANG_ENGLISH_AUS = 3;
-     SUBLANG_ENGLISH_CAN = 4;
-     SUBLANG_ENGLISH_EIRE = 6;
-     SUBLANG_ENGLISH_NZ = 5;
-     SUBLANG_ENGLISH_UK = 2;
-     SUBLANG_ENGLISH_US = 1;
-     SUBLANG_FRENCH = 1;
-     SUBLANG_FRENCH_BELGIAN = 2;
-     SUBLANG_FRENCH_CANADIAN = 3;
-     SUBLANG_FRENCH_SWISS = 4;
-     SUBLANG_GERMAN = 1;
-     SUBLANG_GERMAN_AUSTRIAN = 3;
-     SUBLANG_GERMAN_SWISS = 2;
-     SUBLANG_ITALIAN = 1;
-     SUBLANG_ITALIAN_SWISS = 2;
-     SUBLANG_NEUTRAL = 0;
-     SUBLANG_NORWEGIAN_BOKMAL = 1;
-     SUBLANG_NORWEGIAN_NYNORSK = 2;
-     SUBLANG_PORTUGUESE = 2;
-     SUBLANG_PORTUGUESE_BRAZILIAN = 1;
-     SUBLANG_SPANISH = 1;
-     SUBLANG_SPANISH_MEXICAN = 2;
-     SUBLANG_SPANISH_MODERN = 3;
-     SUBLANG_SYS_DEFAULT = 2;
-     NLS_VALID_LOCALE_MASK = 1048575;
-     SORT_DEFAULT = 0;
-     SORT_JAPANESE_XJIS = 0;
-     SORT_JAPANESE_UNICODE = 1;
-     SORT_CHINESE_BIG5 = 0;
-     SORT_CHINESE_UNICODE = 1;
-     SORT_KOREAN_KSC = 0;
-     SORT_KOREAN_UNICODE = 1;
+   //
+   //  Language IDs.
+   //
+   //  The following two combinations of primary language ID and
+   //  sublanguage ID have special semantics:
+   //
+   //    Primary Language ID   Sublanguage ID      Result
+   //    -------------------   ---------------     ------------------------
+   //    LANG_NEUTRAL          SUBLANG_NEUTRAL     Language neutral
+   //    LANG_NEUTRAL          SUBLANG_DEFAULT     User default language
+   //    LANG_NEUTRAL          SUBLANG_SYS_DEFAULT System default language
+   //    LANG_INVARIANT        SUBLANG_NEUTRAL     Invariant locale
+   //
+
+   //
+   //  Primary language IDs.
+   //
+
+     LANG_NEUTRAL    = $00;
+     LANG_INVARIANT  = $7f;
+
+     LANG_AFRIKAANS  = $36;
+     LANG_ALBANIAN   = $1c;
+     LANG_ARABIC     = $01;
+     LANG_ARMENIAN   = $2b;
+     LANG_ASSAMESE   = $4d;
+     LANG_AZERI      = $2c;
+     LANG_BASQUE     = $2d;
+     LANG_BELARUSIAN = $23;
+     LANG_BENGALI    = $45;
+     LANG_BULGARIAN  = $02;
+     LANG_CATALAN    = $03;
+     LANG_CHINESE    = $04;
+     LANG_CROATIAN   = $1a;
+     LANG_CZECH      = $05;
+     LANG_DANISH     = $06;
+     LANG_DIVEHI     = $65;
+     LANG_DUTCH      = $13;
+     LANG_ENGLISH    = $09;
+     LANG_ESTONIAN   = $25;
+     LANG_FAEROESE   = $38;
+     LANG_FARSI      = $29;
+     LANG_FINNISH    = $0b;
+     LANG_FRENCH     = $0c;
+     LANG_GALICIAN   = $56;
+     LANG_GEORGIAN   = $37;
+     LANG_GERMAN     = $07;
+     LANG_GREEK      = $08;
+     LANG_GUJARATI   = $47;
+     LANG_HEBREW     = $0d;
+     LANG_HINDI      = $39;
+     LANG_HUNGARIAN  = $0e;
+     LANG_ICELANDIC  = $0f;
+     LANG_INDONESIAN = $21;
+     LANG_ITALIAN    = $10;
+     LANG_JAPANESE   = $11;
+     LANG_KANNADA    = $4b;
+     LANG_KASHMIRI   = $60;
+     LANG_KAZAK      = $3f;
+     LANG_KONKANI    = $57;
+     LANG_KOREAN     = $12;
+     LANG_KYRGYZ     = $40;
+     LANG_LATVIAN    = $26;
+     LANG_LITHUANIAN = $27;
+     LANG_MACEDONIAN = $2f;            // the Former Yugoslav Republic of Macedonia
+     LANG_MALAY      = $3e;
+     LANG_MALAYALAM  = $4c;
+     LANG_MANIPURI   = $58;
+     LANG_MARATHI    = $4e;
+     LANG_MONGOLIAN  = $50;
+     LANG_NEPALI     = $61;
+     LANG_NORWEGIAN  = $14;
+     LANG_ORIYA      = $48;
+     LANG_POLISH     = $15;
+     LANG_PORTUGUESE = $16;
+     LANG_PUNJABI    = $46;
+     LANG_ROMANIAN   = $18;
+     LANG_RUSSIAN    = $19;
+     LANG_SANSKRIT   = $4f;
+     LANG_SERBIAN    = $1a;
+     LANG_SINDHI     = $59;
+     LANG_SLOVAK     = $1b;
+     LANG_SLOVENIAN  = $24;
+     LANG_SPANISH    = $0a;
+     LANG_SWAHILI    = $41;
+     LANG_SWEDISH    = $1d;
+     LANG_SYRIAC     = $5a;
+     LANG_TAMIL      = $49;
+     LANG_TATAR      = $44;
+     LANG_TELUGU     = $4a;
+     LANG_THAI       = $1e;
+     LANG_TURKISH    = $1f;
+     LANG_UKRAINIAN  = $22;
+     LANG_URDU       = $20;
+     LANG_UZBEK      = $43;
+     LANG_VIETNAMESE = $2a;
+
+   //
+   //  Sublanguage IDs.
+   //
+   //  The name immediately following SUBLANG_ dictates which primary
+   //  language ID that sublanguage ID can be combined with to form a
+   //  valid language ID.
+   //
+
+     SUBLANG_NEUTRAL     = $00; // language neutral
+     SUBLANG_DEFAULT     = $01; // user default
+     SUBLANG_SYS_DEFAULT = $02; // system default
+
+     SUBLANG_ARABIC_SAUDI_ARABIA        = $01; // Arabic (Saudi Arabia)
+     SUBLANG_ARABIC_IRAQ                = $02; // Arabic (Iraq)
+     SUBLANG_ARABIC_EGYPT               = $03; // Arabic (Egypt)
+     SUBLANG_ARABIC_LIBYA               = $04; // Arabic (Libya)
+     SUBLANG_ARABIC_ALGERIA             = $05; // Arabic (Algeria)
+     SUBLANG_ARABIC_MOROCCO             = $06; // Arabic (Morocco)
+     SUBLANG_ARABIC_TUNISIA             = $07; // Arabic (Tunisia)
+     SUBLANG_ARABIC_OMAN                = $08; // Arabic (Oman)
+     SUBLANG_ARABIC_YEMEN               = $09; // Arabic (Yemen)
+     SUBLANG_ARABIC_SYRIA               = $0a; // Arabic (Syria)
+     SUBLANG_ARABIC_JORDAN              = $0b; // Arabic (Jordan)
+     SUBLANG_ARABIC_LEBANON             = $0c; // Arabic (Lebanon)
+     SUBLANG_ARABIC_KUWAIT              = $0d; // Arabic (Kuwait)
+     SUBLANG_ARABIC_UAE                 = $0e; // Arabic (U.A.E)
+     SUBLANG_ARABIC_BAHRAIN             = $0f; // Arabic (Bahrain)
+     SUBLANG_ARABIC_QATAR               = $10; // Arabic (Qatar)
+     SUBLANG_AZERI_LATIN                = $01; // Azeri (Latin)
+     SUBLANG_AZERI_CYRILLIC             = $02; // Azeri (Cyrillic)
+     SUBLANG_CHINESE_TRADITIONAL        = $01; // Chinese (Taiwan)
+     SUBLANG_CHINESE_SIMPLIFIED         = $02; // Chinese (PR China)
+     SUBLANG_CHINESE_HONGKONG           = $03; // Chinese (Hong Kong S.A.R., P.R.C.)
+     SUBLANG_CHINESE_SINGAPORE          = $04; // Chinese (Singapore)
+     SUBLANG_CHINESE_MACAU              = $05; // Chinese (Macau S.A.R.)
+     SUBLANG_DUTCH                      = $01; // Dutch
+     SUBLANG_DUTCH_BELGIAN              = $02; // Dutch (Belgian)
+     SUBLANG_ENGLISH_US                 = $01; // English (USA)
+     SUBLANG_ENGLISH_UK                 = $02; // English (UK)
+     SUBLANG_ENGLISH_AUS                = $03; // English (Australian)
+     SUBLANG_ENGLISH_CAN                = $04; // English (Canadian)
+     SUBLANG_ENGLISH_NZ                 = $05; // English (New Zealand)
+     SUBLANG_ENGLISH_EIRE               = $06; // English (Irish)
+     SUBLANG_ENGLISH_SOUTH_AFRICA       = $07; // English (South Africa)
+     SUBLANG_ENGLISH_JAMAICA            = $08; // English (Jamaica)
+     SUBLANG_ENGLISH_CARIBBEAN          = $09; // English (Caribbean)
+     SUBLANG_ENGLISH_BELIZE             = $0a; // English (Belize)
+     SUBLANG_ENGLISH_TRINIDAD           = $0b; // English (Trinidad)
+     SUBLANG_ENGLISH_ZIMBABWE           = $0c; // English (Zimbabwe)
+     SUBLANG_ENGLISH_PHILIPPINES        = $0d; // English (Philippines)
+     SUBLANG_FRENCH                     = $01; // French
+     SUBLANG_FRENCH_BELGIAN             = $02; // French (Belgian)
+     SUBLANG_FRENCH_CANADIAN            = $03; // French (Canadian)
+     SUBLANG_FRENCH_SWISS               = $04; // French (Swiss)
+     SUBLANG_FRENCH_LUXEMBOURG          = $05; // French (Luxembourg)
+     SUBLANG_FRENCH_MONACO              = $06; // French (Monaco)
+     SUBLANG_GERMAN                     = $01; // German
+     SUBLANG_GERMAN_SWISS               = $02; // German (Swiss)
+     SUBLANG_GERMAN_AUSTRIAN            = $03; // German (Austrian)
+     SUBLANG_GERMAN_LUXEMBOURG          = $04; // German (Luxembourg)
+     SUBLANG_GERMAN_LIECHTENSTEIN       = $05; // German (Liechtenstein)
+     SUBLANG_ITALIAN                    = $01; // Italian
+     SUBLANG_ITALIAN_SWISS              = $02; // Italian (Swiss)
+     SUBLANG_KASHMIRI_SASIA             = $02; // Kashmiri (South Asia)
+     SUBLANG_KASHMIRI_INDIA             = $02; // For app compatibility only
+     SUBLANG_KOREAN                     = $01; // Korean (Extended Wansung)
+     SUBLANG_LITHUANIAN                 = $01; // Lithuanian
+     SUBLANG_MALAY_MALAYSIA             = $01; // Malay (Malaysia)
+     SUBLANG_MALAY_BRUNEI_DARUSSALAM    = $02; // Malay (Brunei Darussalam)
+     SUBLANG_NEPALI_INDIA               = $02; // Nepali (India)
+     SUBLANG_NORWEGIAN_BOKMAL           = $01; // Norwegian (Bokmal)
+     SUBLANG_NORWEGIAN_NYNORSK          = $02; // Norwegian (Nynorsk)
+     SUBLANG_PORTUGUESE                 = $02; // Portuguese
+     SUBLANG_PORTUGUESE_BRAZILIAN       = $01; // Portuguese (Brazilian)
+     SUBLANG_SERBIAN_LATIN              = $02; // Serbian (Latin)
+     SUBLANG_SERBIAN_CYRILLIC           = $03; // Serbian (Cyrillic)
+     SUBLANG_SPANISH                    = $01; // Spanish (Castilian)
+     SUBLANG_SPANISH_MEXICAN            = $02; // Spanish (Mexican)
+     SUBLANG_SPANISH_MODERN             = $03; // Spanish (Spain)
+     SUBLANG_SPANISH_GUATEMALA          = $04; // Spanish (Guatemala)
+     SUBLANG_SPANISH_COSTA_RICA         = $05; // Spanish (Costa Rica)
+     SUBLANG_SPANISH_PANAMA             = $06; // Spanish (Panama)
+     SUBLANG_SPANISH_DOMINICAN_REPUBLIC = $07; // Spanish (Dominican Republic)
+     SUBLANG_SPANISH_VENEZUELA          = $08; // Spanish (Venezuela)
+     SUBLANG_SPANISH_COLOMBIA           = $09; // Spanish (Colombia)
+     SUBLANG_SPANISH_PERU               = $0a; // Spanish (Peru)
+     SUBLANG_SPANISH_ARGENTINA          = $0b; // Spanish (Argentina)
+     SUBLANG_SPANISH_ECUADOR            = $0c; // Spanish (Ecuador)
+     SUBLANG_SPANISH_CHILE              = $0d; // Spanish (Chile)
+     SUBLANG_SPANISH_URUGUAY            = $0e; // Spanish (Uruguay)
+     SUBLANG_SPANISH_PARAGUAY           = $0f; // Spanish (Paraguay)
+     SUBLANG_SPANISH_BOLIVIA            = $10; // Spanish (Bolivia)
+     SUBLANG_SPANISH_EL_SALVADOR        = $11; // Spanish (El Salvador)
+     SUBLANG_SPANISH_HONDURAS           = $12; // Spanish (Honduras)
+     SUBLANG_SPANISH_NICARAGUA          = $13; // Spanish (Nicaragua)
+     SUBLANG_SPANISH_PUERTO_RICO        = $14; // Spanish (Puerto Rico)
+     SUBLANG_SWEDISH                    = $01; // Swedish
+     SUBLANG_SWEDISH_FINLAND            = $02; // Swedish (Finland)
+     SUBLANG_URDU_PAKISTAN              = $01; // Urdu (Pakistan)
+     SUBLANG_URDU_INDIA                 = $02; // Urdu (India)
+     SUBLANG_UZBEK_LATIN                = $01; // Uzbek (Latin)
+     SUBLANG_UZBEK_CYRILLIC             = $02; // Uzbek (Cyrillic)
+
+   //
+   //  Sorting IDs.
+   //
+
+     SORT_DEFAULT = $0; // sorting default
+
+     SORT_JAPANESE_XJIS    = $0; // Japanese XJIS order
+     SORT_JAPANESE_UNICODE = $1; // Japanese Unicode order
+
+     SORT_CHINESE_BIG5     = $0; // Chinese BIG5 order
+     SORT_CHINESE_PRCP     = $0; // PRC Chinese Phonetic order
+     SORT_CHINESE_UNICODE  = $1; // Chinese Unicode order
+     SORT_CHINESE_PRC      = $2; // PRC Chinese Stroke Count order
+     SORT_CHINESE_BOPOMOFO = $3; // Traditional Chinese Bopomofo order
+
+     SORT_KOREAN_KSC     = $0; // Korean KSC order
+     SORT_KOREAN_UNICODE = $1; // Korean Unicode order
+
+     SORT_GERMAN_PHONE_BOOK = $1; // German Phone Book order
+
+     SORT_HUNGARIAN_DEFAULT   = $0; // Hungarian Default order
+     SORT_HUNGARIAN_TECHNICAL = $1; // Hungarian Technical order
+
+     SORT_GEORGIAN_TRADITIONAL = $0; // Georgian Traditional order
+     SORT_GEORGIAN_MODERN      = $1; // Georgian Modern order
+
+
   { SYSTEM_INFO structure  }
      PROCESSOR_INTEL_386 = 386;
      PROCESSOR_INTEL_486 = 486;
@@ -5748,7 +5909,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2003-06-15 14:34:35  michael
+  Revision 1.12  2003-10-03 20:55:12  florian
+    + added some language related stuff
+
+  Revision 1.11  2003/06/15 14:34:35  michael
   + forgot to comment INVALID_HANDLE_VALUE function
 
   Revision 1.10  2003/06/15 14:33:22  michael

@@ -98,6 +98,68 @@ const
   { Severity values }
   FACILITY_NT_BIT = $10000000;
 
+//
+//  A language ID is a 16 bit value which is the combination of a
+//  primary language ID and a secondary language ID.  The bits are
+//  allocated as follows:
+//
+//       +-----------------------+-------------------------+
+//       |     Sublanguage ID    |   Primary Language ID   |
+//       +-----------------------+-------------------------+
+//        15                   10 9                       0   bit
+//
+//
+//  Language ID creation/extraction macros:
+//
+//    MAKELANGID    - construct language id from a primary language id and
+//                    a sublanguage id.
+//    PRIMARYLANGID - extract primary language id from a language id.
+//    SUBLANGID     - extract sublanguage id from a language id.
+//
+
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+function PRIMARYLANGID(LangId: WORD): WORD;
+function SUBLANGID(LangId: WORD): WORD;
+
+//
+//  A locale ID is a 32 bit value which is the combination of a
+//  language ID, a sort ID, and a reserved area.  The bits are
+//  allocated as follows:
+//
+//       +-------------+---------+-------------------------+
+//       |   Reserved  | Sort ID |      Language ID        |
+//       +-------------+---------+-------------------------+
+//        31         20 19     16 15                      0   bit
+//
+//
+//  Locale ID creation/extraction macros:
+//
+//    MAKELCID            - construct the locale id from a language id and a sort id.
+//    MAKESORTLCID        - construct the locale id from a language id, sort id, and sort version.
+//    LANGIDFROMLCID      - extract the language id from a locale id.
+//    SORTIDFROMLCID      - extract the sort id from a locale id.
+//    SORTVERSIONFROMLCID - extract the sort version from a locale id.
+//
+
+const
+  NLS_VALID_LOCALE_MASK = $000fffff;
+
+function MAKELCID(LangId, SortId: WORD): DWORD;
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
+function LANGIDFROMLCID(LocaleId: LCID): WORD;
+function SORTIDFROMLCID(LocaleId: LCID): WORD;
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
+
+//
+//  Default System and User IDs for language and locale.
+//
+
+function LANG_SYSTEM_DEFAULT: WORD;
+function LANG_USER_DEFAULT: WORD;
+function LOCALE_NEUTRAL: DWORD;
+function LOCALE_INVARIANT: DWORD;
+
+
 function Succeeded(Status : HRESULT) : BOOL;
 function Failed(Status : HRESULT) : BOOL;
 function IsError(Status : HRESULT) : BOOL;
@@ -923,11 +985,74 @@ function HResultFromNT(x : Longint) : HRESULT;
      HResultFromNT:=x or FACILITY_NT_BIT;
   end;
 
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+begin
+  MAKELANGID := (SubLang shl 10) or PrimaryLang;
+end;
+
+function PRIMARYLANGID(LangId: WORD): WORD;
+begin
+  PRIMARYLANGID := LangId and $3FF;
+end;
+
+function SUBLANGID(LangId: WORD): WORD;
+begin
+  SUBLANGID := LangId shr 10;
+end;
+
+function MAKELCID(LangId, SortId: WORD): DWORD;
+begin
+  MAKELCID := (DWORD(SortId) shl 16) or DWORD(LangId);
+end;
+
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
+begin
+  MAKESORTLCID := MAKELCID(LangId, SortId) or (SortVersion shl 20);
+end;
+
+function LANGIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  LANGIDFROMLCID := WORD(LocaleId);
+end;
+
+function SORTIDFROMLCID(LocaleId: LCID): WORD;
+begin
+  SORTIDFROMLCID := WORD((DWORD(LocaleId) shr 16) and $F);
+end;
+
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
+begin
+  SORTVERSIONFROMLCID := WORD((DWORD(LocaleId) shr 20) and $F);
+end;
+
+function LANG_SYSTEM_DEFAULT: WORD;
+begin
+  LANG_SYSTEM_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
+end;
+
+function LANG_USER_DEFAULT: WORD;
+begin
+  LANG_USER_DEFAULT := MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+end;
+
+function LOCALE_NEUTRAL: DWORD;
+begin
+  LOCALE_NEUTRAL := MAKELCID(MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL), SORT_DEFAULT);
+end;
+
+function LOCALE_INVARIANT: DWORD;
+begin
+  LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
+end;
+
 {$endif read_implementation}
 
 {
   $Log$
-  Revision 1.14  2003-04-07 18:28:53  armin
+  Revision 1.15  2003-10-03 20:55:12  florian
+    + added some language related stuff
+
+  Revision 1.14  2003/04/07 18:28:53  armin
   * corrected BuildCommDCBAndTimeouts, the external is BuildCommDCBAndTimeoutsA not BuildCommDCBAndTimeouts
 
   Revision 1.13  2003/03/20 14:25:39  armin
