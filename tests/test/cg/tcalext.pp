@@ -15,14 +15,13 @@
 {          verifies the usage of external cdecl                  }
 {          modules compiled with C compilers.                    }
 {****************************************************************}
-program tcalext;
+
+
+{$ifndef USE_PASCAL_OBJECT}
 {$MODE OBJFPC}
 {$STATIC ON}
 {$R+}
 uses strings;
-
-
-{$ifndef USE_PASCAL_OBJECT}
 {$L ctest.o}
 {$endif USE_PASCAL_OBJECT}
 { Use C alignment of records }
@@ -746,7 +745,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-11-04 15:17:45  pierre
+  Revision 1.7  2002-11-17 21:46:17  peter
+    * fixed
+
+  Revision 1.6  2002/11/04 15:17:45  pierre
    * compatibility with C checks improved
 
   Revision 1.5  2002/09/07 15:40:51  peter

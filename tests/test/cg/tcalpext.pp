@@ -16,8 +16,16 @@
 { functions declared with cdecl modifier are correct             }
 {****************************************************************}
 
-
 {$define USE_PASCAL_OBJECT}
+
+{$MODE OBJFPC}
+{$STATIC ON}
+{$R+}
+{ Compile ptest.o }
+uses
+  strings,
+  ptest
+  ;
 
 
 {$ifdef USE_PASCAL_OBJECT}
