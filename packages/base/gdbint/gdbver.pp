@@ -8,7 +8,10 @@ program find_gdb_version;
 
 {$R-}
 
-{$Linklib c}
+{$ifdef unix}
+  {$Linklib c}
+{$endif}
+  
 {$Linklib gdb}
 
 uses
@@ -96,7 +99,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-02-11 20:50:48  peter
+  Revision 1.8  2004-02-12 15:59:27  peter
+    * linklib c only for unix
+
+  Revision 1.7  2004/02/11 20:50:48  peter
     * linklib c added
 
   Revision 1.6  2003/02/09 19:14:48  marco
