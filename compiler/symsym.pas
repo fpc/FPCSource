@@ -111,7 +111,8 @@ interface
 
        tprocsym = class(tstoredsym)
        protected
-          defs : pprocdeflist; { linked list of overloaded procdefs }
+          pdlistfirst,
+          pdlistlast   : pprocdeflist; { linked list of overloaded procdefs }
           function getprocdef(nr:cardinal):Tprocdef;
        public
           procdef_count : byte;
@@ -800,7 +801,8 @@ implementation
       begin
          inherited create(n);
          typ:=procsym;
-         defs:=nil;
+         pdlistfirst:=nil;
+         pdlistlast:=nil;
          owner:=nil;
          is_global:=false;
          overloadchecked:=false;
@@ -815,7 +817,8 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=procsym;
-         defs:=nil;
+         pdlistfirst:=nil;
+         pdlistlast:=nil;
          procdef_count:=0;
          repeat
            pd:=tprocdef(ppufile.getderef);
@@ -833,7 +836,7 @@ implementation
       var
          hp,p : pprocdeflist;
       begin
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
               hp:=p^.next;
@@ -848,7 +851,7 @@ implementation
       var
          p : pprocdeflist;
       begin
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
               if p^.def<>skipdef then
@@ -862,7 +865,7 @@ implementation
       var
          p : pprocdeflist;
       begin
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
               if (p^.def.procsym=self) and
@@ -881,7 +884,7 @@ implementation
       var
          p : pprocdeflist;
       begin
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
              resolvedef(pointer(p^.def));
@@ -896,8 +899,19 @@ implementation
       begin
         new(pd);
         pd^.def:=p;
-        pd^.next:=defs;
-        defs:=pd;
+        pd^.next:=nil;
+        { Add at end of list to keep always
+          a correct order, also after loading from ppu }
+        if assigned(pdlistlast) then
+         begin
+           pdlistlast^.next:=pd;
+           pdlistlast:=pd;
+         end
+        else
+         begin
+           pdlistfirst:=pd;
+           pdlistlast:=pd;
+         end;
         inc(procdef_count);
       end;
 
@@ -907,7 +921,7 @@ implementation
         i : cardinal;
         pd : Pprocdeflist;
       begin
-        pd:=defs;
+        pd:=pdlistfirst;
         for i:=2 to nr do
           begin
             if not assigned(pd) then
@@ -922,7 +936,7 @@ implementation
       var
         pd:Pprocdeflist;
       begin
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
           begin
             if Aprocsym.search_procdef_bypara(pd^.def.para,false,true)=nil then
@@ -933,95 +947,94 @@ implementation
 
 
     procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
-
-    var pd:Pprocdeflist;
-
-    begin
-        pd:=defs;
+      var
+        pd : Pprocdeflist;
+      begin
+        pd:=pdlistfirst;
         while assigned(pd) do
-            begin
-                s.addprocdef(pd^.def);
-                pd:=pd^.next;
-            end;
-    end;
+         begin
+           s.addprocdef(pd^.def);
+           pd:=pd^.next;
+         end;
+      end;
+
 
     function Tprocsym.first_procdef:Tprocdef;
+      begin
+        if assigned(pdlistfirst) then
+          first_procdef:=pdlistfirst^.def
+        else
+          first_procdef:=nil;
+      end;
 
-    begin
-        first_procdef:=defs^.def;
-    end;
 
     function Tprocsym.last_procdef:Tprocdef;
+      begin
+        if assigned(pdlistlast) then
+          last_procdef:=pdlistlast^.def
+        else
+          last_procdef:=nil;
+      end;
 
-    var pd:Pprocdeflist;
-
-    begin
-        pd:=defs;
-        while assigned(pd) do
-            begin
-                last_procdef:=pd^.def;
-                pd:=pd^.next;
-            end;
-    end;
 
     procedure Tprocsym.foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
-
-    var p:Pprocdeflist;
-
-    begin
-        p:=defs;
+      var
+        p : Pprocdeflist;
+      begin
+        p:=pdlistfirst;
         while assigned(p) do
-            begin
-                proc2call(p^.def,arg);
-                p:=p^.next;
-            end;
-    end;
+         begin
+           proc2call(p^.def,arg);
+           p:=p^.next;
+         end;
+      end;
+
 
     function Tprocsym.search_procdef_nopara_boolret:Tprocdef;
-
-    var p:Pprocdeflist;
-
-    begin
-      search_procdef_nopara_boolret:=nil;
-      p:=defs;
-      while p<>nil do
-        begin
-          if p^.def.para.empty and is_boolean(p^.def.rettype.def) then
+      var
+        p : Pprocdeflist;
+      begin
+        search_procdef_nopara_boolret:=nil;
+        p:=pdlistfirst;
+        while p<>nil do
+         begin
+           if p^.def.para.empty and is_boolean(p^.def.rettype.def) then
             begin
               search_procdef_nopara_boolret:=p^.def;
               break;
             end;
-          p:=p^.next;
-        end;
-    end;
+           p:=p^.next;
+         end;
+      end;
+
 
     function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-
-    var p:Pprocdeflist;
-
-    begin
+      var
+        p : Pprocdeflist;
+      begin
         search_procdef_bytype:=nil;
-        p:=defs;
+        p:=pdlistfirst;
         while p<>nil do
+         begin
+           if p^.def.proctypeoption=pt then
             begin
-                if p^.def.proctypeoption=pt then
-                    begin
-                        search_procdef_bytype:=p^.def;
-                        break;
-                    end;
-                p:=p^.next;
+              search_procdef_bytype:=p^.def;
+              break;
             end;
-    end;
+           p:=p^.next;
+         end;
+      end;
+
 
     function Tprocsym.search_procdef_bypara(params:Tparalinkedlist;
                                             allowconvert,
                                             allowdefault:boolean):Tprocdef;
       var
-        pd:Pprocdeflist;
+        pd : Pprocdeflist;
         eq : tequaltype;
       begin
         search_procdef_bypara:=nil;
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
          begin
            eq:=compare_paras(pd^.def.para,params,cp_value_equal_const,allowdefault);
@@ -1047,7 +1060,7 @@ implementation
         search_procdef_byprocvardef:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
          begin
            eq:=proc_to_procvar_equal(pd^.def,d);
@@ -1074,7 +1087,7 @@ implementation
         pd:Pprocdeflist;
       begin
         search_procdef_by1paradef:=nil;
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
           begin
             if equal_defs(Tparaitem(pd^.def.para.first).paratype.def,firstpara) and
@@ -1100,7 +1113,7 @@ implementation
         search_procdef_assignment_operator:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
           begin
             if equal_defs(todef,pd^.def.rettype.def) then
@@ -1137,7 +1150,7 @@ implementation
         search_procdef_binary_operator:=nil;
         bestpd:=nil;
         bestlev:=0;
-        pd:=defs;
+        pd:=pdlistfirst;
         while assigned(pd) do
           begin
             eq1:=compare_defs_ext(def1,Tparaitem(pd^.def.para.first).paratype.def,
@@ -1172,7 +1185,7 @@ implementation
          p : pprocdeflist;
       begin
          inherited writesym(ppufile);
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
              { only write the proc definitions that belong
@@ -1194,7 +1207,7 @@ implementation
          if not inherited write_references(ppufile,locals) then
            exit;
          write_references:=true;
-         p:=defs;
+         p:=pdlistfirst;
          while assigned(p) do
            begin
               if (p^.def.procsym=self) then
@@ -1206,29 +1219,30 @@ implementation
 
     procedure tprocsym.unchain_overload;
       var
-         p,hp,
-         first,
-         last : pprocdeflist;
+         p,hp : pprocdeflist;
       begin
          { remove all overloaded procdefs from the
            procdeflist that are not in the current symtable }
-         first:=nil;
-         last:=nil;
-         p:=defs;
+         p:=pdlistfirst;
+         { reset new lists }
+         pdlistfirst:=nil;
+         pdlistlast:=nil;
          while assigned(p) do
            begin
               hp:=p^.next;
               if (p^.def.procsym=self) then
                 begin
-                  { keep in list }
-                  if not assigned(first) then
+                  { keep, add to list }
+                  if assigned(pdlistlast) then
                    begin
-                     first:=p;
-                     last:=p;
+                     pdlistlast^.next:=p;
+                     pdlistlast:=p;
                    end
                   else
-                   last^.next:=p;
-                  last:=p;
+                   begin
+                     pdlistfirst:=p;
+                     pdlistlast:=p;
+                   end;
                   p^.next:=nil;
                 end
               else
@@ -1239,7 +1253,6 @@ implementation
                 end;
               p:=hp;
            end;
-         defs:=first;
       end;
 
 
@@ -2504,7 +2517,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-12-11 22:39:23  peter
+  Revision 1.83  2002-12-16 22:08:31  peter
+    * fix order of procdefs in procsym, procdefs are now always appended
+      so that loading from a ppu will keep the same order. This is
+      important for the generation of VMTs
+
+  Revision 1.82  2002/12/11 22:39:23  peter
     * better error message when no operator is found for equal
 
   Revision 1.81  2002/12/07 14:27:10  carl
