@@ -266,18 +266,49 @@ CONST
     General functions, not part of the object.
   ---------------------------------------------------------------------}
 
+  function upperStr(const s : string) : string;
+  var
+    i  : longint;
+  begin
+     for i:=1 to length(s) do
+      if s[i] in ['a'..'z'] then
+       upperStr[i]:=char(byte(s[i])-32)
+      else
+       upperStr[i]:=s[i];
+     upperStr[0]:=s[0];
+  end;
+
+  function LowerStr(const s : string) : string;
+  var
+    i  : longint;
+  begin
+     for i:=1 to length(s) do
+      if s[i] in ['A'..'Z'] then
+       LowerStr[i]:=char(byte(s[i])+32)
+      else
+       LowerStr[i]:=s[i];
+     LowerStr[0]:=s[0];
+  end;
+
+
+
 Function IntToStr(I : LongInt) : String;
 
+var
+ s : string;
 begin
-  str(I,IntToStr);
+  str(I,s);
+  IntToStr := s;
 end;
 
 Function StrToInt(Const S : String) : Integer;
 
 Var Code : integer;
+    Res : Integer;
 
 begin
-  Val(S,StrToInt,Code);
+  Val(S, Res, Code);
+  StrToInt := Res;
   If Code<>0 then StrToInt:=0;
 end;
 
@@ -310,7 +341,9 @@ Function hash(Symbol: String): Byte;
     overflow checking must be turned off for this function even if they
     are enabled for the rest of the program.  }
   BEGIN
+{$R-}
     hash := (ORD(Symbol[1]) * 5 + ORD(Symbol[length(Symbol)])) * 5 + length(Symbol)
+{$R+}
   END; { of hash }
 
 Procedure CreateHash;
@@ -346,7 +379,7 @@ Procedure ClassID(Value: Token;
       IsKeyWord := FALSE
     END
     ELSE BEGIN
-      KeyValue:=upCase(Value);
+      KeyValue:= UpperStr(Value);
       tabent := hash(Keyvalue);
       IF Keyvalue = hashtable[tabent].Keyword THEN BEGIN
         idtype := hashtable[tabent].symtype;
@@ -501,7 +534,7 @@ end;
 
 Function ReadString (S: PStream): String;
 
-Var Buffer : ShortString;
+Var Buffer : String;
     I : Byte;
 
 begin
@@ -514,11 +547,11 @@ begin
   If S^.Status=stReadError then Dec(I);
   If Buffer[i]=#10 Then Dec(I);
   If Buffer[I]=#13 then Dec(I);
-  SetLength(Buffer,I);
+  Buffer[0] := chr(I);
   ReadString:=Buffer;
 end;
 
-Procedure WriteString (S : PStream; Const ST : String);
+Procedure WriteString (S : PStream; ST : String);
 
 begin
   S^.Write(St[1],length(St));
@@ -598,7 +631,7 @@ Procedure TPrettyPrinter.StoreNextChar(VAR lngth: INTEGER;
     IF lngth < maxsymbolsize THEN BEGIN
       Inc(lngth);
       Value[lngth] := currchar.Value;
-      Setlength(Value,lngth);
+      Value[0] := chr(Lngth);
     END;
   END; { of StoreNextChar }
 
@@ -874,13 +907,13 @@ Procedure TPrettyPrinter.PrintSymbol;
     IF (currsym^.IsKeyWord) then
       begin
       If upper in sets^.selected Then
-        WriteString (OutS,Upcase(currsym^.value))
+        WriteString (OutS,UpperStr(currsym^.value))
       else if lower in sets^.selected then
-        WriteString (OutS,Lowercase(currsym^.value))
+        WriteString (OutS,LowerStr(currsym^.value))
       else if capital in sets^.selected then
         begin
         WriteString(OutS,UpCase(CurrSym^.Value[1]));
-        WriteString(OutS,LowerCase(Copy(CurrSym^.Value,2,255)));
+        WriteString(OutS,LowerStr(Copy(CurrSym^.Value,2,255)));
         end
       else
         WriteString(OutS,Currsym^.Value);
@@ -1034,7 +1067,7 @@ begin
       J:=Pos('=',Line);
       If J>0 then
         begin
-        Line:=LowerCase(Line);
+        Line:=LowerStr(Line);
         Name:=Copy(Line,1,j-1);
         Delete(Line,1,J);
         { indents or options ? }
@@ -1190,7 +1223,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:46:04  daniel
+  Revision 1.5  2000-02-06 19:57:45  carl
+  + More TP syntax compatible
+
+  Revision 1.4  2000/01/07 16:46:04  daniel
     * copyright 2000
 
   Revision 1.3  1999/07/08 21:17:11  michael
