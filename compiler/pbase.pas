@@ -35,7 +35,7 @@ interface
     const
        { tokens that end a block or statement. And don't require
          a ; on the statement before }
-       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT];
+       endtokens = [_SEMICOLON,_END,_ELSE,_UNTIL,_EXCEPT,_FINALLY];
 
        { true, if we are after an assignement }
        afterassignment : boolean = false;
@@ -271,7 +271,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2004-06-20 08:55:30  florian
+  Revision 1.29  2004-08-08 12:06:38  florian
+    * finally is an "endtoken" as well
+
+  Revision 1.28  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.27  2004/02/21 20:10:27  daniel
