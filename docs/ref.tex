@@ -2553,6 +2553,7 @@ an object. To get the size of the class instance data, use the
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Methods
 \section{Methods}
+
 \subsection{invocation}
 Method invocation for classes is no different than for objects. The
 following is a valid method invocation:
@@ -2562,6 +2563,7 @@ begin
   AnObject := TAnObject.Create;
   ANobject.AMethod;
 \end{verbatim}
+
 \subsection{Virtual methods}
 Classes have virtual methods, just as objects do. There is however a
 difference between the two. For objects, it is sufficient to redeclare the
@@ -2599,6 +2601,42 @@ Type ObjParent = Class
      end;
 \end{verbatim}
 This will compile and run without warnings or errors.
+
+\subsection{Class methods}
+Class methods are methods that do not have an instance, but which follow
+the scoping and inheritance rules of a class. They can be called from inside
+a regular method, but can also be called using a class identifier:
+\begin{verbatim}
+Var
+  AClass : TClass;
+
+begin
+  ..
+  if CompareText(AClass.ClassName,'TCOMPONENT')=0 then
+  ...
+
+\end{verbatim}
+But calling them from an instance is also possible:
+\begin{verbatim}
+Var
+  MyClass : TObject;
+
+begin
+  ..
+  if MyClass.ClassNameis('TCOMPONENT') then
+  ...
+
+\end{verbatim}
+Inside a class method, the <var>self</var> identifier points to the VMT
+table of the class. No fields, properties or regular methods are available
+inside a class method. Accessing a regular property or method will result in
+a compiler error. The reverse is possible: a class method can be called from
+a regular method.
+
+Note that class methods can be virtual, and can be overridden.
+
+Class methods cannot be used as read or write specifiers for a property.
+
 
 \subsection{Message methods}
 New in classes are \var{message} methods. Pointers to message methods are
@@ -2714,7 +2752,8 @@ A \var{read specifier} is either the name of a field that contains the
 property, or the name of a method function that has the same return type as
 the property type. In the case of a simple type, this
 function must not accept an argument. A \var{read specifier} is optional,
-making the property write-only.
+making the property write-only. Note that class methods cannot be used as
+read specifiers.
 A \var{write specifier} is optional: If there is no \var{write specifier}, the
 property is read-only. A write specifier is either the name of a field, or
 the name of a method procedure that accepts as a sole argument a variable of
