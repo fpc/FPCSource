@@ -1,5 +1,5 @@
 %!PS-Adobe-2.0
-%BoundingBox: 0 0 2000 3200
+%BoundingBox: 0 0 4000 6400
 %%DocumentPaperSizes: a3
 %
 %    $Id$
@@ -51,7 +51,7 @@ setfont
 % Starting point of the class graph 
 % (0,0) is the lower left corner of the paper
 /startx { 0 mm } def
-/starty { 290 mm } def
+/starty { 390 mm } def
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  End of Configurable section
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -431,21 +431,29 @@ setfont
 %%%%%%%%%%%%%%%%%%%%%%%
 % Exception classes
 %%%%%%%%%%%%%%%%%%%%%%%
-  (Exception) Missing newchildclass
+(Exception) Ready newchildclass
   (EAbort) Incomplete newchildclass
-  (EAbstractError) Ready newclass Linuxonly
+  (EAbstractError) Ready newclass
   (EAccessViolation) Ready newclass
   (EBitsError) Ready newclass
   (EConvertError) Ready newclass
-  (EDatabaseError) Missing newclass Linuxonly
+  (EDatabaseError) Missing newclass 
     (EDBCLient) Missing newchildclass
-      (EReconcileError) Missing newchildclass Linuxonly
+      (EReconcileError) Missing newchildclass 
       onelevelback
-    (EDBEngineError) Missing newclass Win32only
+    (EDBEngineError) Missing newclass 
     (ENoResultSet) Missing newclass
     (EUpdateError) Missing newclass
     onelevelback
   (EDBEditError) Missing newclass
+  (EDOMError) Ready newclass
+    (EDomHierarchyRequest) Ready newchildclass
+    (EDOMIndexSize) Ready newclass 
+    (EDOMInUseAttribute) Ready newclass
+    (EDOMNotFound) Ready newclass
+    (EDOmNotSupported) Ready newclass
+    (EDOMWrongDocument) Ready newclass
+    onelevelback
   (EIntError) Ready newclass
     (EDivByZero) Ready newchildclass
     (EIntOverflow) Ready newclass
@@ -477,6 +485,16 @@ setfont
       (EWriteError) Ready newclass
       onelevelback
     (EFOpenError) Ready newclass
+    (EPipeError) Ready newclass
+      (ENoReadPipe) Ready newchildclass
+      (ENoWritePipe) Ready newclass
+      (EPipeCreation) Ready newclass
+      (EPipeSeek) Ready newclass
+      onelevelback
+    (EZLibError) Ready newclass
+      (ECompressionError) Ready newchildclass
+      (EDecompressionError) Ready newclass
+      onelevelback
     onelevelback
    (EStringListError) Ready newclass
    (EThread) Ready newclass
@@ -490,38 +508,76 @@ newcolumn
 (TBits) Untested newclass
 (TCollection) Untested newclass
 (TCollectionItem) Untested newclass
+(TEZcgi) Ready newclass
+(TDOMimplementation) Ready newclass
+(TDOMNode) Ready newclass
+  (TDOMCharacterdata) Ready newchildclass
+    (TDOMComment) Ready newchildclass
+    (TDOMText) Ready newclass
+      (TDOMCDATASection) Ready newchildclass
+      onelevelback
+    onelevelback
+  (TDOMDocumentType) Ready newclass
+  (TDOMElement) Ready newclass
+  (TDOMNode_withChildren) Ready newclass
+    (TDomAttr) Ready newchildclass
+    (TDOMDocument) Ready newclass
+      (TXMLDocument) Ready newchildclass
+      onelevelback
+    (TDOMDocumentFragment) Ready newclass
+    (TDOMEntity) Ready newclass
+    (TDOMEntityReference) Ready newclass
+    onelevelback
+  (TDOMNotation) Ready newclass
+  (TDOMProcessinginstruction) Ready newclass
+  onelevelback
 (TFiler) Untested newclass
   (TReader) Untested newchildclass
   (TWriter) Untested newclass
   onelevelback
+(TInifile) Ready newclass
 (TInterface) Missing newclass % 40 mm newclassxmoved
   (TIAddInNotifier) Missing newchildclass
   onelevelback
 (TInterfacedObject) Missing newclass
 (TList) Ready newclass
+  (TDOMNamedNodeMap) Ready newchildclass
+  onelevelback
 (TLookupList) Missing newclass
-
+(TParser) Ready newclass
 (TPropertyEditor) Missing newclass %40 mm newclassxmoved
   (TClassProperty) Missing newchildclass
     (TFontProperty) Missing newchildclass
     onelevelback
   (TComponentProperty) Missing newclass
   onelevelback
+(TRefClass) Ready newclass
+  (TDOMNodeList) Ready newchildclass
+  onelevelback
 (TRegistry) Missing newclass
   (TRegIniFile) Missing newchildclass
   onelevelback
+(TRTFParser) Ready newclass
 (TRTLCriticalSection) Untested newclass
 (TSessionList) Missing newclass
 (TStream) Ready newclass
-  (TCustomMemoryStream) Ready newchildclass
+  (TCustomZlibStream) Ready newchildclass
+    (TCompressionStream) Ready newchildclass
+    (TDecompressionStream) Ready newclass
+    onelevelback
+  (TCustomMemoryStream) Ready newclass
     (TMemorySTream) Ready newchildclass
     onelevelback
   (THandleStream) Ready newclass
     (TFileStream) Ready newchildclass
+    (TPipeStream) Untested newclass
     onelevelback
+  (TIDEAEncryptStream) Ready newclass
+  (TIDEADecryptStream) Ready newclass
   (TResourceStream) Incomplete newclass
   (TStringStream) Untested newclass
   onelevelback 
+
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Syncronization classes
 (TSyncroObject) Untested newclass
@@ -535,8 +591,8 @@ newcolumn
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Thread classes
 
-(TThread) Missing newclass
-
+(TThread) Incomplete newclass
+(TXMLConfig) Ready newclass
 %%%%%%%%%%%%%%%%%%%%%%%
 % TPersistent classes
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -547,8 +603,8 @@ newcolumn
   (TMetafileCanvas) Missing newclass
   onelevelback
 (TClipboard) Missing newclass
-(TStrings) Untested newclass
-  (TStringList) Untested newchildclass
+(TStrings) Ready newclass
+  (TStringList) Ready newchildclass
   onelevelback
 (TTextAttributes) Missing newclass
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -563,7 +619,10 @@ showpage
 
 %
 %   $Log$
-%   Revision 1.11  1998-10-04 13:37:50  michael
+%   Revision 1.12  1999-08-29 22:08:57  michael
+%   + Added many additional classes from FCL
+%
+%   Revision 1.11  1998/10/04 13:37:50  michael
 %   + A few adaptations, all implemented classes should be there
 %
 %   Revision 1.10  1998/10/03 15:06:26  florian
