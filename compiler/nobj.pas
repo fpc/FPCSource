@@ -130,13 +130,10 @@ implementation
     uses
        strings,
        globals,verbose,systems,
-       symtable,symconst,symtype,defcmp,paramgr,
+       symtable,symconst,symtype,defcmp
 {$ifdef GDB}
-       gdb,
+       ,gdb
 {$endif GDB}
-       aasmcpu,
-       cgbase,parabase,
-       cgutils,cgobj
        ;
 
 
@@ -267,7 +264,7 @@ implementation
          objectlibrary.getdatalabel(p^.nl);
          if assigned(p^.l) then
            writenames(p^.l);
-         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
+         datasegment.concat(cai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(p^.nl));
          len:=strlen(p^.data.messageinf.str);
          datasegment.concat(tai_const.create_8bit(len));
@@ -309,7 +306,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
-         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
+         datasegment.concat(cai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(r));
          genstrmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -347,7 +344,7 @@ implementation
 
          { now start writing of the message string table }
          objectlibrary.getdatalabel(r);
-         datasegment.concat(tai_align.create(const_align(sizeof(aint))));
+         datasegment.concat(cai_align.create(const_align(sizeof(aint))));
          dataSegment.concat(Tai_label.Create(r));
          genintmsgtab:=r;
          dataSegment.concat(Tai_const.Create_32bit(count));
@@ -425,7 +422,7 @@ implementation
            begin
               objectlibrary.getdatalabel(r);
               gendmt:=r;
-              datasegment.concat(tai_align.create(const_align(sizeof(aint))));
+              datasegment.concat(cai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(r));
               { entries for caching }
               dataSegment.concat(Tai_const.Create_ptr(0));
@@ -481,7 +478,7 @@ implementation
                    begin
                      objectlibrary.getdatalabel(l);
 
-                     consts.concat(tai_align.create(const_align(sizeof(aint))));
+                     consts.concat(cai_align.create(const_align(sizeof(aint))));
                      Consts.concat(Tai_label.Create(l));
                      Consts.concat(Tai_const.Create_8bit(length(tsym(p).realname)));
                      Consts.concat(Tai_string.Create(tsym(p).realname));
@@ -506,7 +503,7 @@ implementation
          if count>0 then
            begin
               objectlibrary.getdatalabel(l);
-              datasegment.concat(tai_align.create(const_align(sizeof(aint))));
+              datasegment.concat(cai_align.create(const_align(sizeof(aint))));
               dataSegment.concat(Tai_label.Create(l));
               dataSegment.concat(Tai_const.Create_32bit(count));
               _class.symtable.foreach(@do_gen_published_methods,nil);
@@ -865,7 +862,7 @@ implementation
       begin
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
-        rawdata.concat(tai_align.create(const_align(sizeof(aint))));
+        rawdata.concat(cai_align.create(const_align(sizeof(aint))));
         if maybe_smartlink_symbol then
          rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_DATA ,0))
         else
@@ -896,7 +893,7 @@ implementation
           begin
             { label for GUID }
             objectlibrary.getdatalabel(tmplabel);
-            rawdata.concat(tai_align.create(const_align(sizeof(aint))));
+            rawdata.concat(cai_align.create(const_align(sizeof(aint))));
             rawdata.concat(Tai_label.Create(tmplabel));
             rawdata.concat(Tai_const.Create_32bit(longint(curintf.iidguid^.D1)));
             rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D2));
@@ -916,7 +913,7 @@ implementation
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
-        rawdata.concat(tai_align.create(const_align(sizeof(aint))));
+        rawdata.concat(cai_align.create(const_align(sizeof(aint))));
         rawdata.concat(Tai_label.Create(tmplabel));
         rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
         if curintf.objecttype=odt_interfacecom then
@@ -1106,7 +1103,6 @@ implementation
     procedure tclassheader.gintfdoonintf(intf: tobjectdef; intfindex: longint);
       var
         def: tdef;
-        procname: string; { for error }
         mappedname: string;
         nextexist: pointer;
         implprocdef: tprocdef;
@@ -1116,21 +1112,15 @@ implementation
           begin
             if def.deftype=procdef then
               begin
-                procname:='';
                 implprocdef:=nil;
                 nextexist:=nil;
                 repeat
                   mappedname:=_class.implementedinterfaces.getmappings(intfindex,tprocdef(def).procsym.name,nextexist);
-                  if procname='' then
-                    procname:=tprocdef(def).procsym.name;
-                    //mappedname; { for error messages }
                   if mappedname<>'' then
                     implprocdef:=gintfgetcprocdef(tprocdef(def),mappedname);
                 until assigned(implprocdef) or not assigned(nextexist);
                 if not assigned(implprocdef) then
                   implprocdef:=gintfgetcprocdef(tprocdef(def),tprocdef(def).procsym.name);
-                if procname='' then
-                  procname:=tprocdef(def).procsym.name;
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
@@ -1164,7 +1154,7 @@ implementation
         { 2. step calc required fieldcount and their offsets in the object memory map
              and write data }
         objectlibrary.getdatalabel(intftable);
-        dataSegment.concat(tai_align.create(const_align(sizeof(aint))));
+        dataSegment.concat(cai_align.create(const_align(sizeof(aint))));
         dataSegment.concat(Tai_label.Create(intftable));
         { Optimize interface tables to reuse wrappers }
         gintfoptimizevtbls;
@@ -1368,7 +1358,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2005-02-02 02:19:42  karoly
+  Revision 1.90  2005-02-10 22:08:03  peter
+    * remove obsolete code
+
+  Revision 1.89  2005/02/02 02:19:42  karoly
     * removed debug writelns from florian's previous commit
 
   Revision 1.88  2005/02/01 23:18:54  florian
