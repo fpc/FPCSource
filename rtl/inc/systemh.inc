@@ -267,22 +267,22 @@ Procedure Val(const s:string;Var v:cardinal);
 
 Procedure SetLength (Var S : AnsiString; l : Longint);
 Procedure UniqueAnsiString (Var S : AnsiString);
-Function  Length (Const S : AnsiString) : Longint;
-Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
-Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
+Function  Length (Var S : AnsiString) : Longint;
+Function  Copy (Var S : AnsiString; Index,Size : Longint) : AnsiString;
+Function  Pos (Var Substr : AnsiString; Var Source : AnsiString) : Longint;
+Procedure Insert (Var Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
+Procedure Val (Var S : AnsiString; var R : real; Var Code : Integer);
 {
 Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
 }
-Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
-Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
-Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
+Procedure Val (Var S : AnsiString; var E : Extended; Code : Integer);
+Procedure Val (Var S : AnsiString; var C : Cardinal; Code : Integer);
+Procedure Val (Var S : AnsiString; var L : Longint; Var Code : Integer);
+Procedure Val (Var S : AnsiString; var W : Word; Var Code : Integer);
+Procedure Val (Var S : AnsiString; var I : Integer; Var Code : Integer);
+Procedure Val (Var S : AnsiString; var B : Byte; Var Code : Integer);
+Procedure Val (Var S : AnsiString; var SI : ShortInt; Var  Code : Integer);
 {
 Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
 Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
@@ -400,7 +400,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.18  1998-07-18 17:14:24  florian
+  Revision 1.19  1998-07-20 23:36:57  michael
+  changes for ansistrings
+
+  Revision 1.18  1998/07/18 17:14:24  florian
     * strlenint type implemented
 
   Revision 1.17  1998/07/10 11:02:39  peter
