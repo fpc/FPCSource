@@ -1,8 +1,32 @@
+{
+   $Id$
+
+   Tabbed group for TV/FV dialogs
+
+   Copyright 2000-4 by Free Pascal core team
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************}
 unit tabs;
 interface
 
 uses
-  objects,drivers,views;
+  objects, drivers, views, fvconsts;
+
+{$I platform.inc}    (* Multi-platform support defines *)
 
 type
     PTabItem = ^TTabItem;
@@ -27,8 +51,10 @@ type
       ActiveDef : integer;
       DefCount  : word;
       constructor Init(var Bounds: TRect; ATabDef: PTabDef);
+      constructor Load (var S: TStream);
       function    AtTab(Index: integer): PTabDef; virtual;
       procedure   SelectTab(Index: integer); virtual;
+      procedure   Store (var S: TStream);
       function    TabCount: integer;
       function    Valid(Command: Word): Boolean; virtual;
       procedure   ChangeBounds(var Bounds: TRect); virtual;
@@ -51,6 +77,20 @@ procedure DisposeTabItem(P: PTabItem);
 function  NewTabDef(AName: string; ADefItem: PView; AItems: PTabItem; ANext: PTabDef): PTabDef;
 procedure DisposeTabDef(P: PTabDef);
 
+procedure RegisterTab;
+
+const
+  RTab: TStreamRec = (
+    ObjType: idTab;
+{$IFDEF BP_VMTLink}                              { BP style VMT link }
+    VmtLink: Ofs (TypeOf (TTab)^);
+{$ELSE BP_VMTLink}                               { Alt style VMT link }
+    VmtLink: TypeOf (TTab);
+{$ENDIF BP_VMTLink}
+    Load: @TTab.Load;
+    Store: @TTab.Store
+  );
+
 
 implementation
 
@@ -66,6 +106,117 @@ begin
   ActiveDef:=-1;
   SelectTab(0);
   ReDraw;
+end;
+
+constructor TTab.Load (var S: TStream);
+
+    function DoLoadTabItems (var XDefItem: PView; ActItem: longint): PTabItem;
+    var
+      Count: longint;
+      Cur, First: PTabItem;
+      Last: ^PTabItem;
+    begin
+      Cur := nil;                                      { Preset nil }
+      Last := @First;                                  { Start on first item }
+      S.Read (Count, SizeOf(Count));                   { Read item count }
+      while (Count > 0) do
+       begin
+        New (Cur);                                     { New status item }
+        Last^ := Cur;                                  { First chain part }
+        if (Cur <> nil) then                           { Check pointer valid }
+         begin
+          Last := @Cur^.Next;                          { Chain complete }
+          S.Read (Cur^.Dis, SizeOf (Cur^.Dis));
+          Cur^.View := PView (S.Get);
+          if ActItem = 0 then
+           XDefItem := Cur^.View;                      { Find default view }
+         end;
+        Dec (Count);                                   { One item loaded }
+        Dec (ActItem);
+      end;
+      Last^ := nil;                                    { Now chain end }
+      DoLoadTabItems := First;                         { Return the list }
+    end;
+
+   function DoLoadTabDefs: PTabDef;
+   var
+     Count: longint;
+     Cur, First: PTabDef;
+     Last: ^PTabDef;
+     ActItem: longint;
+   begin
+     Last := @First;                                  { Start on first }
+     Count := DefCount;
+     while (Count > 0) do
+      begin
+       New (Cur);                                     { New status def }
+       Last^ := Cur;                                  { First part of chain }
+       if (Cur <> nil) then                           { Check pointer valid }
+        begin
+         Last := @Cur^.Next;                          { Chain complete }
+         Cur^.Name := S.ReadStr;                      { Read name }
+         S.Read (Cur^.ShortCut, SizeOf (Cur^.ShortCut));
+         S.Read (ActItem, SizeOf (ActItem));
+         Cur^.Items := DoLoadTabItems (Cur^.DefItem, ActItem); { Set pointer }
+        end;
+       Dec (Count);                                   { One item loaded }
+      end;
+     Last^ := nil;                                    { Now chain ends }
+     DoLoadTabDefs := First;                          { Return item list }
+   end;
+
+begin
+  inherited Load (S);
+  S.Read (DefCount, SizeOf (DefCount));
+  S.Read (ActiveDef, SizeOf (ActiveDef));
+  TabDefs := DoLoadTabDefs;
+end;
+
+procedure TTab.Store (var S: TStream);
+
+  procedure DoStoreTabItems (Cur: PTabItem; XDefItem: PView);
+  var
+    Count: longint;
+    T: PTabItem;
+    ActItem: longint;
+  begin
+    Count := 0;                                       { Clear count }
+    T := Cur;                                         { Start on current }
+    while (T <> nil) do
+     begin
+      if T^.View = XDefItem then                      { Current = active? }
+       ActItem := Count;                              { => set order }
+      Inc (Count);                                    { Count items }
+      T := T^.Next;                                   { Next item }
+     end;
+    S.Write (ActItem, SizeOf (ActItem));
+    S.Write (Count, SizeOf (Count));                  { Write item count }
+    while (Cur <> nil) do
+     begin
+      S.Write (Cur^.Dis, SizeOf (Cur^.Dis));
+      S.Put (Cur^.View);
+     end;
+  end;
+
+  procedure DoStoreTabDefs (Cur: PTabDef);
+  begin
+    while (Cur <> nil) do
+     begin
+      with Cur^ do
+       begin
+        S.WriteStr (Cur^.Name);                       { Write name }
+        S.Write (Cur^.ShortCut, SizeOf (Cur^.ShortCut));
+        DoStoreTabItems (Items, DefItem);             { Store the items }
+       end;
+      Cur := Cur^.Next;                               { Next status item }
+     end;
+  end;
+
+begin
+  inherited Store (S);
+  S.Write (DefCount, SizeOf (DefCount));
+  S.Write (ActiveDef, SizeOf (ActiveDef));
+  DoStoreTabDefs (TabDefs);
 end;
 
 function TTab.TabCount: integer;
@@ -569,4 +720,19 @@ begin
   Dispose(P);
 end;
 
+procedure RegisterTab;
+begin
+  RegisterType (RTab);
+end;
+
+
+begin
+  RegisterTab;
 end.
+{
+ $Log$
+ Revision 1.5  2004-12-19 20:22:44  hajny
+   * TTab.Load/Store implemented
+
+
+}
