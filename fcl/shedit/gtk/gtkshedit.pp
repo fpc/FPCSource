@@ -81,11 +81,10 @@ type
 
     // ISHWidget Implemenation:
 
-    procedure InvalidateRect(x1, y1, x2, y2: Integer); override;
-    procedure InvalidateLines(y1, y2: Integer); override;
+    procedure InvalidateRect(x, y, w, h: Integer); override;
 
     // Drawing
-    procedure ClearRect(x1, y1, x2, y2: Integer); override;
+    procedure ClearRect(x, y, w, h: Integer); override;
     procedure DrawTextLine(x1, x2, y: Integer; s: PChar); override;
 
     // Cursor
@@ -131,17 +130,13 @@ implementation
 procedure TGtkSHWidget_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose;
   widget: TGtkSHWidget); cdecl;
 var
-  x1, y1, x2, y2: Integer;
+  x, y, w, h: Integer;
 begin
-  x1 := event^.area.x;
-  if x1 > 0 then
-    Dec(x1, widget.LeftIndent);
-  x2 := x1 + event^.area.width - 1;
-  x1 := x1 div widget.CharW;
-  x2 := (x2 + widget.CharW - 1) div widget.CharW;
-  y1 := event^.area.y div widget.CharH;
-  y2 := (event^.area.y + event^.area.height - 1) div widget.CharH;
-//  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, FEdit.ClassName]));
+  x := (event^.area.x - widget.LeftIndent) div widget.CharW;
+  y := event^.area.y div widget.CharH;
+  w := (event^.area.x + event^.area.width + widget.CharW - 1) div widget.CharW - x;
+  h := (event^.area.y + event^.area.height + widget.CharH - 1) div widget.CharH - y;
+//  WriteLn(Format('Expose(%d/%d, %dx%d) for %s', [x, y, w, h, FEdit.ClassName]));
 
   widget.GdkWnd := widget.PaintBox^.window;
   widget.GC := gdk_gc_new(widget.GdkWnd);
@@ -150,7 +145,7 @@ begin
     fg_gc[widget.PaintBox^.state]);
 
   widget.FEdit.AdjustCursorToRange;
-  widget.FEdit.DrawContent(x1, y1, x2, y2);
+  widget.FEdit.DrawContent(x, y, w, h);
 end;
 
 
@@ -357,37 +352,22 @@ begin
 end;
 
 
-procedure TGtkSHWidget.ClearRect(x1, y1, x2, y2: Integer);
+procedure TGtkSHWidget.ClearRect(x, y, w, h: Integer);
 begin
   SetGCColor(SHStyles^[shWhitespace].Background);
   gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-    x1 * CharW + LeftIndent, y1 * CharH,
-    (x2 - x1 + 1) * CharW, (y2 - y1 + 1) * CharH);
+    x * CharW + LeftIndent, y * CharH, w * CharW, h * CharH);
 end;
 
 
-procedure TGtkSHWidget.InvalidateRect(x1, y1, x2, y2: Integer);
+procedure TGtkSHWidget.InvalidateRect(x, y, w, h: Integer);
 var
   r : TGdkRectangle;
 begin
-  r.x := x1 * CharW + LeftIndent;
-  r.y := y1 * CharH;
-  r.Width := (x2 - x1 + 1) * CharW;
-  r.Height := (y2 - y1 + 1) * CharH;
-  gtk_widget_draw(PGtkWidget(PaintBox), @r);
-end;
-
-
-procedure TGtkSHWidget.InvalidateLines(y1, y2: Integer);
-var
-  r : TGdkRectangle;
-  w,h : integer;
-begin
-  gdk_window_get_size(PGdkDrawable(GdkWnd), @w, @h);
-  r.x := 0;
-  r.y := y1 * CharH;
-  r.Width := w;
-  r.Height := (y2 - y1 + 1) * CharH;
+  r.x := x * CharW + LeftIndent;
+  r.y := y * CharH;
+  r.Width := w * CharW;
+  r.Height := h * CharH;
   gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
@@ -585,7 +565,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-01-07 01:24:34  peter
+  Revision 1.3  2000-01-31 19:26:13  sg
+  * Changed to the new interface
+
+  Revision 1.2  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.1  2000/01/06 16:03:26  peter
