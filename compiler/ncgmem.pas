@@ -385,7 +385,7 @@ implementation
 *****************************************************************************}
 
     procedure tcgwithnode.pass_2;
-{$ifdef GDB}
+{$ifdef WITHNODEDEBUG}
       const
         withlevel : longint = 0;
       var
@@ -393,11 +393,11 @@ implementation
         pp : pchar;
         mangled_length  : longint;
         refnode : tnode;
-{$endif GDB}
+{$endif WITHNODEDEBUG}
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-{$ifdef GDB}
+{$ifdef WITHNODEDEBUG}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
             { load reference }
@@ -430,12 +430,12 @@ implementation
               end;
             withdebugList.concat(Tai_stabn.Create(strnew(pp)));
           end;
-{$endif GDB}
+{$endif WITHNODEDEBUG}
 
         if assigned(left) then
           secondpass(left);
 
-{$ifdef GDB}
+{$ifdef WITHNODEDEBUG}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
             cg.a_label(exprasmlist,withendlabel);
@@ -449,7 +449,7 @@ implementation
             freemem(pp,mangled_length+50);
             dec(withlevel);
           end;
-{$endif GDB}
+{$endif WITHNODEDEBUG}
        end;
 
 
@@ -882,7 +882,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-03-02 00:36:33  olle
+  Revision 1.90  2004-04-21 17:39:40  jonas
+    - disabled with-symtable debugging code since it was broken and
+      at the same time confused the register allocator and therefore also
+      the optimizer. May be fixed in the future using dwarf support
+
+  Revision 1.89  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.88  2004/02/27 10:21:05  florian
