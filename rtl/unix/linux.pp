@@ -1090,7 +1090,7 @@ Function Fcntl(Fd:longint;Cmd:longint):longint;
 begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
    begin
-     Linuxerror:=fdfcntl(fd,cmd,0);
+     Linuxerror:=fpfcntl(fd,cmd,0);
      if linuxerror=-1 then
       begin
         linuxerror:=errno;
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.26  2002-12-18 17:52:07  peter
+  Revision 1.27  2003-01-05 19:11:32  marco
+   * small changes originating from introduction of Baseunix to FreeBSD
+
+  Revision 1.26  2002/12/18 17:52:07  peter
     * replaced some Fp with Sys_ to get cycle working
 
   Revision 1.25  2002/12/18 16:50:39  marco

@@ -117,7 +117,7 @@ var
 { Include syscall itself }
 {$i syscallo.inc}
 
-Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint;
+Function Fpmmap(adr,len,prot,flags,fdes,off:longint):longint;
 type
   tmmapargs=packed record
     address : longint;
@@ -138,16 +138,16 @@ begin
   mmapargs.fd:=fdes;
   mmapargs.offset:=off;
   t.reg2:=longint(@mmapargs);
-  Sys_mmap:=syscall(syscall_nr_mmap,t);
+  Fpmmap:=syscall(syscall_nr_mmap,t);
 end;
 
-Function Sys_munmap(adr,len:longint):longint;
+Function Fpmunmap(adr,len:longint):longint;
 var
   t : syscallregs;
 begin
   t.reg2:=adr;
   t.reg3:=len;
-  Sys_munmap:=syscall(syscall_nr_munmap,t);
+  Fpmunmap:=syscall(syscall_nr_munmap,t);
 end;
 
 {$else}
@@ -157,9 +157,9 @@ CONST
   MAP_ANONYMOUS =$1000;
 
   // include some non posix internal types.
-  {$i bsdtypes.inc}
+  {$i ostypes.inc}
   // *BSD POSIX. Include headers to syscalls.
-  {$I bsdsysch.inc}
+  {$I ossysch.inc}
 
 {$endif}
 
@@ -195,7 +195,7 @@ CONST
         { exceptions which use threadvars but       }
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
-        DataIndex:=Pointer(Sys_mmap(0,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
+        DataIndex:=Pointer(Fpmmap(0,threadvarblocksize,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0));
         FillChar(DataIndex^,threadvarblocksize,0);
         pthread_setspecific(tlskey,dataindex);
       end;
@@ -203,7 +203,7 @@ CONST
 
     procedure SysReleaseThreadVars;
       begin
-        Sys_munmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
+        Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
       end;
 
 { Include OS independent Threadvar initialization }
@@ -382,7 +382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-11-11 21:41:06  marco
+  Revision 1.7  2003-01-05 19:11:32  marco
+   * small changes originating from introduction of Baseunix to FreeBSD
+
+  Revision 1.6  2002/11/11 21:41:06  marco
    * syscall.inc -> syscallo.inc
 
   Revision 1.5  2002/10/31 13:45:21  carl

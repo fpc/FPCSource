@@ -24,10 +24,8 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
     Function  FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigDelSet  (var nset : TSigSet; signo : cInt): cInt;
     Function  FpSigIsMember(Const nset : TSigSet; signo : cInt): cInt;
-    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt;
-   {$ifndef ver1_0}
-    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt;external name 'FPC_SYSC_SIGPROGMASK';
-   {$endif}
+    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; 
+    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; 
     Function  FpSigPending (var nset : TSigSet): cInt;
     Function  FpSigSuspend (Const sigmask : TSigSet): cInt;
 
@@ -108,7 +106,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.1  2002-12-18 16:49:02  marco
+  Revision 1.2  2003-01-05 19:11:32  marco
+   * small changes originating from introduction of Baseunix to FreeBSD
+
+  Revision 1.1  2002/12/18 16:49:02  marco
    * New RTL. Linux system unit and baseunix operational.
 
 
