@@ -114,7 +114,7 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$fatal !!!! Fix endian directive} 
+  {$fatal ENDIAN_BIG}
   {$i powerpc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif powerpc}
@@ -132,7 +132,7 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$define ENDIAN_BIG}
+  {$define ENDIAN_LITTLE}
   {$i ia64.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
 {$endif iA64}
@@ -755,7 +755,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2002-07-04 20:40:09  florian
+  Revision 1.30  2002-07-26 16:42:00  florian
+    * endian directive for PowerPC fixed
+
+  Revision 1.29  2002/07/04 20:40:09  florian
     + some x86-64 support added
 
   Revision 1.28  2002/04/21 15:51:50  carl
