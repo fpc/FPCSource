@@ -473,18 +473,15 @@ TYPE
 
 { ****** MemEntry **************************************************** }
 
-  pMemUnit = ^tMemUnit;
-  tMemUnit = Packed Record
-      meu_Reqs  : ULONG;        { * the AllocMem requirements * }
-      meu_Addr  : Pointer;      { * the address of this memory region * }
-  End;
-
   pMemEntry = ^tMemEntry;
-  tMemEntry = Packed Record
-    me_Un       : tMemUnit;
-    me_Length   : ULONG;        { * the length of this memory region * }
-  End;
-
+  tMemEntry = packed record
+           me_Un : record
+                case longint of
+                   0 : ( meu_Reqs : ULONG );
+                   1 : ( meu_Addr : APTR );
+                end;
+            me_Length : ULONG;
+         end;
 
 { ****** MemList ***************************************************** }
 
@@ -995,7 +992,6 @@ tExecBase = packed Record
          }
         ex_MemHandlers    : tMinList; { The handler list }
         ex_MemHandler     : Pointer;          { Private! handler pointer }
-        ex_Reserved       : Array[0..1] of Shortint;
 end;
 
 
