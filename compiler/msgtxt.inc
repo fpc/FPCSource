@@ -261,7 +261,7 @@ const msgtxt : array[0..000140,1..240] of char=(
   '03149_W_Don'#039't load OBJPAS unit manual, use {$mode obj','fpc} or {$m'+
   'ode delphi} instead'#000+
   '03150_E_OVERRIDE can'#039't be used in objects'#000+
-  '03151_E_Data types which requires initialization/finalization can'#039't'+
+  '03151_E_Data types which require initialization/finalization can'#039't'+
   ' be used in variant records'#000+
   '03152_E_Resourcestrings can be only static or global'#000+
   '03153_E_Exit with a','rgument can'#039't be used here'#000+
