@@ -1249,6 +1249,7 @@ implementation
       var
         hp      : tparaitem;
         paraloc : pcgparalocation;
+        tempref,
         href    : treference;
       begin
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1287,11 +1288,8 @@ implementation
                       paraloc:=paraloc^.next;
                     end;
                 end;
-              LOC_CREGISTER,
-              LOC_CMMREGISTER,
-              LOC_CFPUREGISTER :
+              LOC_CREGISTER :
                 begin
-                  href:=tvarsym(hp.parasym).localloc.reference;
 {$ifndef cpu64bit}
                   if tvarsym(hp.parasym).localloc.size in [OS_64,OS_S64] then
                     begin
@@ -1318,6 +1316,36 @@ implementation
                       if assigned(paraloc^.next) then
                         internalerror(200410105);
                     end;
+                end;
+              LOC_CFPUREGISTER :
+                begin
+{$ifdef sparc}
+                  { Sparc passes floats in int registers, when loading to fpu register
+                    we need a temp }
+                  tg.GetTemp(list,TCGSize2Size[tvarsym(hp.parasym).localloc.size],tt_normal,tempref);
+                  href:=tempref;
+                  while assigned(paraloc) do
+                    begin
+                      unget_para(paraloc^);
+                      gen_load_ref(paraloc^,href);
+                      inc(href.offset,TCGSize2Size[paraloc^.size]);
+                      paraloc:=paraloc^.next;
+                    end;
+                  cg.a_loadfpu_ref_reg(list,tvarsym(hp.parasym).localloc.size,tempref,tvarsym(hp.parasym).localloc.register);
+                  tg.UnGetTemp(list,tempref);
+{$else sparc}
+                  unget_para(paraloc^);
+                  gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register);
+                  if assigned(paraloc^.next) then
+                    internalerror(200410109);
+{$endif sparc}
+                end;
+              LOC_CMMREGISTER :
+                begin
+                  unget_para(paraloc^);
+                  gen_load_reg(paraloc^,tvarsym(hp.parasym).localloc.register);
+                  if assigned(paraloc^.next) then
+                    internalerror(200410108);
                 end;
             end;
             hp:=tparaitem(hp.next);
@@ -1811,19 +1839,6 @@ implementation
 
 
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
-
-        function getregvar(v:tvarregable;size:tcgsize):tregister;
-          begin
-            case v of
-              vr_intreg :
-                result:=cg.getintregister(list,size);
-              vr_fpureg :
-                result:=cg.getfpuregister(list,size);
-              vr_mmreg :
-                result:=cg.getmmregister(list,size);
-            end;
-          end;
-
       var
         sym     : tsym;
         isaddr  : boolean;
@@ -1858,17 +1873,34 @@ implementation
                            not(pi_uses_exceptions in current_procinfo.flags) and
                            (varregable<>vr_none) then
                           begin
-                            localloc.loc:=LOC_CREGISTER;
                             localloc.size:=cgsize;
+                            case varregable of
+                              vr_intreg :
+                                begin
+                                  localloc.loc:=LOC_CREGISTER;
 {$ifndef cpu64bit}
-                            if cgsize in [OS_64,OS_S64] then
-                              begin
-                                localloc.registerlow:=getregvar(varregable,OS_32);
-                                localloc.registerhigh:=getregvar(varregable,OS_32);
-                              end
-                            else
+                                  if cgsize in [OS_64,OS_S64] then
+                                    begin
+                                      localloc.registerlow:=cg.getintregister(list,OS_32);
+                                      localloc.registerhigh:=cg.getintregister(list,OS_32);
+                                    end
+                                  else
 {$endif cpu64bit}
-                              localloc.register:=getregvar(varregable,cgsize);
+                                    localloc.register:=cg.getintregister(list,cgsize);
+                                end;
+                              vr_fpureg :
+                                begin
+                                  localloc.loc:=LOC_CFPUREGISTER;
+                                  localloc.register:=cg.getfpuregister(list,cgsize);
+                                end;
+                              vr_mmreg :
+                                begin
+                                  localloc.loc:=LOC_CMMREGISTER;
+                                  localloc.register:=cg.getmmregister(list,cgsize);
+                                end;
+                              else
+                                internalerror(2004101010);
+                            end;
                           end
                         else
 {$endif NOT OLDREGVARS}
@@ -2175,7 +2207,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.223  2004-10-10 20:22:53  peter
+  Revision 1.224  2004-10-10 20:51:46  peter
+    * fixed sparc compile
+    * fixed float regvar loading
+
+  Revision 1.223  2004/10/10 20:22:53  peter
     * symtable allocation rewritten
     * loading of parameters to local temps/regs cleanup
     * regvar support for parameters

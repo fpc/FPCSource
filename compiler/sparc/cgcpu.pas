@@ -526,12 +526,15 @@ implementation
           end
         else
           begin
-            { same size, only a register mov required }
-            instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-            list.Concat(instr);
-            { Notify the register allocator that we have written a move instruction so
-              it can try to eliminate it. }
-            add_move_instruction(instr);
+            if reg1<>reg2 then
+              begin
+                { same size, only a register mov required }
+                instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                list.Concat(instr);
+                { Notify the register allocator that we have written a move instruction so
+                  it can try to eliminate it. }
+                add_move_instruction(instr);
+              end;
           end;
       end;
 
@@ -1271,7 +1274,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2004-10-10 20:31:48  peter
+  Revision 1.95  2004-10-10 20:51:46  peter
+    * fixed sparc compile
+    * fixed float regvar loading
+
+  Revision 1.94  2004/10/10 20:31:48  peter
     * concatcopy_unaligned maps by default to concatcopy, sparc will
       override it with call to fpc_move
 
