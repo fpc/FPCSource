@@ -3,8 +3,7 @@
 PROCEDURE a;
 VAR v,v2,v3:integer;
 
-  PROCEDURE b;
-  BEGIN
+  PROCEDURE b;assembler;
     ASM
       MOV AX,v
       mov v2,AX
@@ -13,7 +12,6 @@ VAR v,v2,v3:integer;
       MOV AX,[EBP+OFFSET v]
       MOV v3,AX
     END;
-  END;
 
 BEGIN
   v:=5;
