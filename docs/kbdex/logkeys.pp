@@ -54,8 +54,8 @@ begin
   K:=OldkeyboardDriver.GetKeyEvent();
   If Logging then
     begin
-    Write(KeyLog,TimeStamp);
-    Writeln(KeyLog,': Key event: ',KeyEventToString(TranslateKeyEvent(K)));
+    Write(KeyLog,TimeStamp,': Key event: ');
+    Writeln(KeyLog,KeyEventToString(TranslateKeyEvent(K)));
     end;
   LogGetKeyEvent:=K;  
 end;
