@@ -629,8 +629,8 @@ implementation
                         else
                           getexplicitregister32(R_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
-                        ungetregister32(hregister2);
                      end;
+                   ungetregister32(hregister2);
                    { right operand is in ECX }
                    emit_reg_reg(op,S_L,R_CL,hregister1);
                    { maybe ECX back }
@@ -991,8 +991,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-10-17 15:39:34  jonas
-    * fixed allocation of ecx for shl
+  Revision 1.3  2000-10-17 15:41:48  jonas
+    * fixed stupid error in previous commit :/
 
   Revision 1.1  2000/10/15 09:33:32  peter
     * moved n386*.pas to i386/ cpu_target dir
