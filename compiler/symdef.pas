@@ -1696,8 +1696,8 @@ implementation
           inc(stl,length(s));
           p:=p.nextenum;
         end;
-      st[stl]:=';';
-      st[stl+1]:=#0;
+      st[stl-1]:=';';
+      st[stl]:=#0;
       reallocmem(st,stl+1);
       stabstring:=st;
     end;
@@ -6118,7 +6118,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.220  2004-02-19 17:07:42  florian
+  Revision 1.221  2004-02-22 18:49:03  daniel
+    * Fixed minor bug in Tenumdef.stabstring
+
+  Revision 1.220  2004/02/19 17:07:42  florian
     * fixed arg. area calculation
 
   Revision 1.219  2004/02/17 15:57:49  peter
