@@ -264,9 +264,11 @@ implementation
                    Consts.concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
                    Consts.concat(Tai_const.Create_32bit(0));
-                   Consts.concat(Tai_const.Create_32bit(1138753536));
+                   Consts.concat(Tai_const.Create_32bit($80000000));
+                   Consts.concat(Tai_const.Create_32bit($0000403f));
                    reference_reset_symbol(href,l1,0);
-                   exprasmList.concat(Taicpu.Op_ref(A_FADD,S_FL,href));
+                   exprasmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
+                   exprasmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
                    cg.a_label(exprasmlist,l2);
                 end
               else
@@ -290,7 +292,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-09-25 14:23:55  peter
+  Revision 1.15  2004-09-26 09:12:50  florian
+    * fixed qword -> float conversion for x86
+
+  Revision 1.14  2004/09/25 14:23:55  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
