@@ -30,7 +30,7 @@ interface
        { version string }
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '12';
+       patch_nr   = '13';
        minorpatch = 'a';
        
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
@@ -69,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-06-18 11:03:11  peter
+  Revision 1.8  1999-06-27 15:49:19  michael
+  Updated patchnumber
+
+  Revision 1.7  1999/06/18 11:03:11  peter
     * merged
 
   Revision 1.6.2.2  1999/06/18 10:55:34  peter
