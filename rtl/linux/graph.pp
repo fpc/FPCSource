@@ -181,7 +181,6 @@ Type
 
   PaletteType = record
      Size   : integer;
-
      Colors : array[0..767]of Byte;
   end;
 
@@ -281,12 +280,24 @@ procedure Sector(X, Y: Integer; StAngle, EndAngle, XRadius, YRadius: Word);
 { Color routines }
 procedure SetBkColor(ColorNum: Word);
 procedure SetColor(Color: Word);
+Function  GetBkColor : Word;
+Function  GetColor : Word;
 function  GetMaxColor : Word;
+Procedure GetDefaultPalette (Var Palette : PaletteType);
+Procedure GetPalette (Var Palette : PaletteType);
+Function  GetPaletteSize : Word;
+Procedure SetAllPalette (Var Palette);
+Procedure SetPalette (ColorNr : Word; NewColor  : ShortInt);
+
+{ Filling/linestyle utilities }
+Procedure  GetFillSettings (Var FillSettings : FillSettingsType);
+Procedure  GetFillPattern (Var FillPattern : FillPatternType);
+Procedure  GetLineSettings (Var LineInfo : LineSettingsType);
 
 { Bitmap utilities }
 procedure GetImage(x1, y1, x2, y2: Integer; var BitMap);
 procedure PutImage(X, Y: Integer; var BitMap; BitBlt: Word);
-function ImageSize(x1, y1, x2, y2: Integer): LongInt;
+function  ImageSize(x1, y1, x2, y2: Integer): LongInt;
 
 { Text routines}
 procedure OutText(TextString: string);
@@ -294,29 +305,47 @@ procedure OutTextXY(X, Y: Integer; TextString: string);
 procedure SetTextJustify(Horiz, Vert: Word);
 procedure SetTextStyle(Font, Direction: Word; CharSize: Word);
 procedure SetUserCharSize(MultX, DivX, MultY, DivY: Word);
+procedure GetTextSettings (Var TextInfo : TextSettingsType);
 
 { Graph clipping method }
-procedure SetViewPort(x1, y1, x2, y2: Integer; Clip: Boolean);
+Procedure SetViewPort(x1, y1, x2, y2: Integer; Clip: Boolean);
 Procedure ClearViewPort;
+Procedure GetViewSettings (Var ViewPort : ViewPortType);
 
 { Init/Done }
 procedure InitVideo;
 procedure DoneVideo;
 
 { Other }
-function GetResX: Integer;
-function GetResY: Integer;
-function GetAspect: Real;
-function GetMaxX : Integer;
-function GetMAxY : Integer;
+function  GetResX: Integer;
+function  GetResY: Integer;
+function  GetAspect: Real;
+Procedure GetAspectRatio (Var x,y : Word);
+function  GetMaxX : Integer;
+function  GetMAxY : Integer;
 
 { For compatibility }
 Procedure DetectGraph (Var Driver,Mode : Integer);
 Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
 Procedure CloseGraph;
-Function GraphResult : Integer;
+Function  GraphResult : Integer;
 Procedure GraphDefaults ;
-Function GraphErrorMsg (Errcode : Integer) : String;
+Function  GraphErrorMsg (Errcode : Integer) : String;
+Procedure ClearDevice;
+Function  GetDriverName : String;
+Function  GetGraphMode : Integer;
+Function  GetMaxMode : Word;
+Function  GetModeName (Var Modus : INteger) : String;
+Procedure GetModeRange (Driver : Integer; Var loModus,HiModus : Integer);
+Function  InstallUserDriver (DriverPat :String; AutodetectPtr : Pointer) : Integer;
+Function  InstallUserFont (FontPath : String) : Integer;
+Function  RegisterBGIDriver (Driver : Pointer) : Integer;
+Function  RegisterBGIFont (Font : Pointer) : Integer;
+Procedure RestoreCRTmode;
+Procedure SetActivePage (Page : Word);
+Procedure SetGraphBufSize (BufSize : Word);
+Procedure SetGraphMode (Mode :Integer);
+Procedure SetVisualPage (Page : Word);
 
 const
   NoGraphics: Boolean = false;
@@ -511,7 +540,12 @@ var
   IsVirtual: Boolean;
   PhysicalScreen, BackScreen: PGraphicsContext;
   ColorTable: array[0..15] of LongInt;
-
+  TheFillPattern : FillPatternType;
+  TheLineSettings : LineSettingsType;
+  ThePalette : PaletteType;
+  TheTextSettings : TextSettingsType;
+  TheFillSettings : FillSettingsType;
+      
 const
   BgiColors: array[0..15] of LongInt
     = ($000000, $000080, $008000, $008080,
@@ -914,6 +948,12 @@ begin
   GetAspect := 1.0
 end; { GetAspect }
 
+Procedure GetAspectRatio (Var x,y : Word);
+begin
+  X:=GetMaxX;
+  Y:=GetMaxY
+end; { GetAspect }
+
 Var LastViewPort : ViewPortType;
 
 procedure SetViewPort(x1, y1, x2, y2: Integer; Clip: Boolean);
@@ -934,6 +974,12 @@ Procedure ClearViewPort;
 begin
   With LastViewPort do
   gl_fillbox(X1,Y1,X2-X1,Y2-Y1,BackColor);
+end;
+
+Procedure GetViewSettings (Var ViewPort : ViewPortType);
+
+begin
+  ViewPort:=LastViewPort;
 end;
 
 { VGAMEM }
@@ -1295,7 +1341,9 @@ begin
 end;
 
 procedure FillPoly(NumPoints: Word; var PolyPoints);
+
 begin
+ DrawPoly (NumPoints,PolyPoints);
 end;
 
 procedure SetFillStyle(Pattern: Word; Color: Word);
@@ -1387,6 +1435,7 @@ end;
 
 procedure SetAspectRatio(Xasp, Yasp: Word);
 begin
+  //!! Needs implementing.
 end;
 
 procedure PieSlice(X, Y: Integer; StAngle, EndAngle, Radius: Word);
@@ -1427,12 +1476,24 @@ begin
   BackColor := ColorTable[ColorNum];
 end;
 
+Function GetBkColor : Word;
+
+begin
+  GetBkColor:=BackColor;
+end;
+
 procedure SetColor(Color: Word);
 begin
   TheColor := ColorTable[Color];
 end;
 
-function getmaxcolor : Word;
+Function GetColor : Word;
+
+begin
+  GetColor:=TheColor;
+end;
+
+function GetMaxColor : Word;
 
 begin
   getmaxcolor:=16;
@@ -1512,10 +1573,11 @@ begin
   If Mode=-1 then mode:=0;
 end;
 
+Var VgaMode : Integer;
+
 Procedure InitGraph (Var Driver,Mode : Integer;DriverPath : String);
 
 var
-  VgaMode: Integer;
   ModeInfo: pvga_modeinfo;
 
 begin
@@ -1573,16 +1635,163 @@ begin
   GraphErrorMsg:='';
 end;
 
+Procedure ClearDevice;
 
 begin
+ SetViewPort (0,0,GetMaxX,GetMaxY,False);
+ ClearViewPort;
+ MoveTo(0,0);
+end;
 
+Procedure GetDefaultPalette (Var Palette : Palettetype);
+
+begin
+  //!! Not yet implemented.
+end;
+
+Function GetDriverName : String;
+
+begin
+  GetDriverName:='libvga';
+end;
+
+Function  GetGraphMode : Integer;
+
+begin
+  GetGraphMode:=VgaMode;
+end;
+
+Procedure GetFillPattern (Var FillPattern : FillPatternType);
+
+begin
+  FillPattern:=TheFillPattern;
+end;
+
+Procedure GetFillSettings (Var FillSettings : FillSettingsType);
+
+begin
+  FillSettings:=TheFillSettings;
+end;
+
+Procedure GetLineSettings (Var LineInfo : LineSettingsType);
+
+begin
+  LineInfo:=TheLineSettings;
+end;
+
+Function GetMaxMode : Word;
+
+begin
+  GetMaxMode:=GLastMode;
+end;
+
+Function  GetModeName (Var Modus : INteger) : String;
+
+begin
+  GetModeName:='VGA'
+end;
+
+Procedure GetModeRange (Driver : Integer; Var loModus,HiModus : Integer);
+
+begin
+  LoModus:=1;
+  HiModus:=GLASTMODE;
+end;
+
+Procedure GetPalette (Var Palette : PaletteType);
+
+begin
+  Palette:=ThePalette;
+end;
+
+Procedure SetAllPalette (Var Palette);
+
+begin
+  ThePalette:=PaletteType(Palette);
+end;
+
+Procedure SetPalette (ColorNr : Word; NewColor  : ShortInt);
+
+begin
+ //!! not implemented.
+end;
+
+Function GetPaletteSize : Word;
+
+begin
+  GetPaletteSize:=16;
+end;
+
+Procedure GetTextSettings (Var TextInfo : TextSettingsType);
+
+begin
+  TextInfo:=TheTextSettings;
+end;
+
+Function  InstallUserDriver (DriverPat :String; AutodetectPtr : Pointer) : Integer;
+
+begin
+ InstallUserDriver:=grError;
+end;
+
+Function  InstallUserFont (FontPath : String) : Integer;
+
+begin
+  InstallUserFont:=0;
+end;
+
+Function  RegisterBGIDriver (Driver : Pointer) : Integer;
+
+begin
+  RegisterBGIDriver:=grError;
+end;
+
+Function  RegisterBGIFont (Font : Pointer) : Integer;
+begin
+  RegisterBGIFont:=grError;
+end;
+
+Procedure RestoreCRTmode;
+
+begin
+  vga_setmode(GTEXT);  
+end;
+
+Procedure SetActivePage (Page : Word);
+
+begin
+  //!! Not implemented
+end;
+
+Procedure SetVisualPage (Page : Word);
+
+begin
+  //!! Not implemented
+end;
+
+Procedure SetGraphBufSize (BufSize : Word);
+
+begin
+end;
+
+Procedure SetGraphMode (Mode :Integer);
+
+begin
+    vga_setmode(Mode);
+    VgaMode:=Mode;
+end;
+
+begin
   { Give up root permissions if we are root.  }
   if geteuid = 0 then vga_init;
 end.
 
 {
   $Log$
-  Revision 1.8  1998-09-11 09:24:55  michael
+  Revision 1.9  1998-09-13 19:22:06  michael
+  + Implemented dummies for all missing functions
+
+  Revision 1.8  1998/09/11 09:24:55  michael
   Added missing functions so mandel compiles and runs
 
   Revision 1.7  1998/08/24 08:23:47  michael
