@@ -749,8 +749,10 @@ uses
         begin
           {Remove quotes, exchange '' against ' }
           destPos := 0;
-          for sourcePos := 2 to len do
+          sourcepos:=1;
+          while (sourcepos<len) do
             begin
+              inc(sourcePos);
               ch := s[sourcePos];
               if ch = '''' then
                 begin
@@ -1232,7 +1234,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2004-08-31 21:44:18  olle
+  Revision 1.43  2004-09-13 20:26:45  peter
+    * for-loop variable access removed
+
+  Revision 1.42  2004/08/31 21:44:18  olle
     + added proc DePascalQuote
 
   Revision 1.41  2004/06/20 08:55:29  florian
