@@ -43,7 +43,7 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,cpuinfo,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasm,types,verbose,
+       symconst,symbase,symdef,aasm,cpuasm,types,verbose,
        { pass 1 }
        node,pass_1,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -63,6 +63,7 @@ implementation
          len,base  : longint;
          p,hp,hpstart : tnode;
          i,j,l,offset,
+         varalign,
          strlength : longint;
          curconstsegment : TAAsmoutput;
          ll        : tasmlabel;
@@ -177,9 +178,22 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              {!!!!! hmmm, we can write yet only consts til 2^32-1 :( (FK) }
-                              curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
-                              curconstSegment.concat(Tai_const.Create_32bit(0));
+                              if target_info.endian = endian_little then
+                                begin
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                                  if (tordconstnode(p).value<0) and (torddef(t.def).typ = s64bit) then
+                                    curconstSegment.concat(Tai_const.Create_32bit(-1))
+                                  else
+                                    curconstSegment.concat(Tai_const.Create_32bit(0));
+                                end
+                              else
+                                begin
+                                  if (tordconstnode(p).value<0) and (torddef(t.def).typ = s64bit) then
+                                    curconstSegment.concat(Tai_const.Create_32bit(-1))
+                                  else
+                                    curconstSegment.concat(Tai_const.Create_32bit(0));
+                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                                end;
                            end
                          else
                            Message(cg_e_illegal_expression);
@@ -266,6 +280,12 @@ implementation
                   begin
                     getdatalabel(ll);
                     curconstSegment.concat(Tai_const_symbol.Create(ll));
+                    if p.nodetype=stringconstn then
+                     varalign:=size_2_align(tstringconstnode(p).len)
+                    else
+                     varalign:=0;
+                    varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+                    Consts.concat(Tai_align.Create(varalign));
                     Consts.concat(Tai_label.Create(ll));
                     if p.nodetype=stringconstn then
                       begin
@@ -925,7 +945,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2001-09-02 21:18:28  peter
+  Revision 1.33  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.32  2001/09/02 21:18:28  peter
     * split constsym.value in valueord,valueordptr,valueptr. The valueordptr
       is used for holding target platform pointer values. As those can be
       bigger than the source platform.

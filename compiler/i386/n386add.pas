@@ -267,7 +267,8 @@ interface
          usablecount : byte;
          hregister,hregister2 : tregister;
          noswap,popeax,popedx,
-         pushed,mboverflow,cmpop : boolean;
+         pushed,pushedfpu,
+         mboverflow,cmpop : boolean;
          op,op2 : tasmop;
          resflags : tresflags;
          otl,ofl : tasmlabel;
@@ -405,7 +406,7 @@ interface
                 (nodetype in
                   [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
                begin
-                 if left.nodetype=ordconstn then
+                 if left.nodetype in [ordconstn,realconstn] then
                   swapleftright;
                  if left.location.loc=LOC_JUMP then
                    begin
@@ -505,6 +506,10 @@ interface
 
               { are too few registers free? }
               pushed:=maybe_push(right.registers32,self,is_64bitint(left.resulttype.def));
+              if location.loc=LOC_FPU then
+                pushedfpu:=maybe_pushfpu(right.registersfpu,self)
+              else
+                pushedfpu:=false;
               secondpass(right);
               if pushed then
                 begin
@@ -1498,10 +1503,10 @@ interface
                if (left.resulttype.def.deftype=floatdef) then
                  begin
                     { real constants to the right, but only if it
-                      isn't on the FPU stack, i.e. 1.0 or 0.0! }
+                      isn't on the FPU stack, i.e. 1.0 or 0.0!
                     if (left.nodetype=realconstn) and
                       (left.location.loc<>LOC_FPU) then
-                      swapleftright;
+                      swapleftright; obsolete, already swaped above PM }
                     cmpop:=false;
                     case nodetype of
                        addn : op:=A_FADDP;
@@ -1525,7 +1530,11 @@ interface
                               inc(fpuvaroffset);
                             end
                          else
-                           floatload(tfloatdef(right.resulttype.def).typ,right.location.reference);
+                            begin
+                              floatload(tfloatdef(right.resulttype.def).typ,right.location.reference);
+                              if pushedfpu then
+                                ungetiftemp(right.location.reference);
+                            end;
                          if (left.location.loc<>LOC_FPU) then
                            begin
                               if left.location.loc=LOC_CFPUREGISTER then
@@ -1535,7 +1544,11 @@ interface
                                    inc(fpuvaroffset);
                                 end
                               else
-                                floatload(tfloatdef(left.resulttype.def).typ,left.location.reference)
+                                begin
+                                  floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
+                                  if pushedfpu then
+                                     ungetiftemp(left.location.reference);
+                                end;
                            end
                          { left was on the stack => swap }
                          else
@@ -1554,7 +1567,11 @@ interface
                               inc(fpuvaroffset);
                            end
                          else
-                           floatload(tfloatdef(left.resulttype.def).typ,left.location.reference)
+                           begin
+                             floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
+                             if pushedfpu then
+                              ungetiftemp(left.location.reference);
+                           end;
                       end
                     { fpu operands are always in the wrong order on the stack }
                     else
@@ -1844,7 +1861,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-09-05 15:22:09  jonas
+  Revision 1.24  2001-09-17 21:29:13  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.23  2001/09/05 15:22:09  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)

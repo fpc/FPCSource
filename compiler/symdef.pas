@@ -2995,7 +2995,11 @@ implementation
       begin
          if assigned(rettype.def) and
             (rettype.def.deftype=floatdef) then
-           fpu_used:=2;
+{$ifdef FAST_FPU}
+           fpu_used:=3;
+{$else : not FAST_FPU, i.e. SAFE_FPU}
+           fpu_used:={2}maxfpuregs;
+{$endif FAST_FPU}
       end;
 
 
@@ -3835,7 +3839,11 @@ implementation
          { a more secure way would be
            to allways store in a temp }
          if is_fpu(rettype.def) then
-           fpu_used:=2
+{$ifdef FAST_FPU}
+           fpu_used:=3
+{$else : not FAST_FPU, i.e. SAFE_FPU}
+           fpu_used:={2}maxfpuregs
+{$endif FAST_FPU}
          else
            fpu_used:=0;
          inherited write(ppufile);
@@ -3969,7 +3977,7 @@ implementation
            s:='<procedure variable type of function'+demangled_paras+
              ':'+rettype.def.gettypename
          else
-           s:='<procedure variable type of procedure';
+           s:='<procedure variable type of procedure'+demangled_paras;
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+proccalloption2str+'>';
@@ -5408,7 +5416,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2001-09-10 10:26:27  jonas
+  Revision 1.50  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.49  2001/09/10 10:26:27  jonas
     * fixed web bug 1593
     * writing of procvar headers is more complete (mention var/const/out for
       paras, add "of object" if applicable)

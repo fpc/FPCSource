@@ -29,7 +29,8 @@ interface
     uses
       symtype,node;
 
-    function  maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
+    function maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
+    function maybe_pushfpu(needed : byte;p : tnode) : boolean;
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : tnode;isint64 : boolean) : boolean;
 {$endif TEMPS_NOT_PUSH}
@@ -141,6 +142,24 @@ implementation
          else pushed:=false;
          maybe_push:=pushed;
       end;
+
+
+     function maybe_pushfpu(needed : byte;p : tnode) : boolean;
+       begin
+         if needed>=maxfpuregs then
+           begin
+             if p.location.loc = LOC_FPU then
+               begin
+                 emit_to_mem(p.location,p.resulttype.def);
+                 maybe_pushfpu:=true;
+               end
+             else
+               maybe_pushfpu:=false;
+           end
+         else
+           maybe_pushfpu:=false;
+       end;
+
 
 {$ifdef TEMPS_NOT_PUSH}
     function maybe_savetotemp(needed : byte;p : tnode;isint64 : boolean) : boolean;
@@ -1218,12 +1237,15 @@ implementation
                internalerror(234234);
            end
          else
-           if (p.left.registers32<p.right.registers32) and
+           if ((p.location.loc=LOC_FPU) and
+               (p.right.registersfpu > p.left.registersfpu)) or
+              ((p.location.loc<>LOC_FPU) and
+               (p.left.registers32<p.right.registers32) and
            { the following check is appropriate, because all }
            { 4 registers are rarely used and it is thereby   }
            { achieved that the extra code is being dropped   }
            { by exchanging not commutative operators     }
-              (p.right.registers32<=4) then
+               (p.right.registers32<=4)) then
             begin
               hp:=p.left;
               p.left:=p.right;
@@ -1510,7 +1532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-08-26 13:37:01  florian
+  Revision 1.21  2001-09-17 21:29:14  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.20  2001/08/26 13:37:01  florian
     * some cg reorganisation
     * some PPC updates
 

@@ -1814,7 +1814,7 @@ Begin
           if asmsym<>'' then
            begin
              if maxvalue<>longint($ffffffff) then
-               Message(asmr_w_const32bit_for_address);
+               Message1(asmr_w_const32bit_for_address,asmsym);
              ConcatConstSymbol(curlist,asmsym,value)
            end
           else
@@ -1964,7 +1964,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2001-08-26 13:37:03  florian
+  Revision 1.18  2001-09-17 21:29:14  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.17  2001/08/26 13:37:03  florian
     * some cg reorganisation
     * some PPC updates
 

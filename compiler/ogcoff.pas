@@ -264,7 +264,7 @@ implementation
                Flags:=$60000020
               else
                Flags:=$20;
-              Aalign:=4;
+              Aalign:=16;
             end;
           sec_data :
             begin
@@ -272,7 +272,7 @@ implementation
                Flags:=$c0300040
               else
                Flags:=$40;
-              Aalign:=4;
+              Aalign:=16;
             end;
           sec_bss :
             begin
@@ -280,7 +280,7 @@ implementation
                Flags:=$c0300080
               else
                Flags:=$80;
-              Aalign:=4;
+              Aalign:=16;
             end;
           sec_idata2,
           sec_idata4,
@@ -1167,7 +1167,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2001-05-06 17:13:23  jonas
+  Revision 1.16  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.15  2001/05/06 17:13:23  jonas
     * completed incomplete typed constant records
 
   Revision 1.14  2001/05/04 19:50:58  peter

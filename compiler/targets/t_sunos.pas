@@ -506,6 +506,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_i386_as;
             assemextern  : as_i386_as;
             link         : ld_i386_sunos;
@@ -549,7 +551,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-08-12 17:57:07  peter
+  Revision 1.11  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.10  2001/08/12 17:57:07  peter
     * under development flag for targets
 
   Revision 1.9  2001/08/07 18:47:15  peter

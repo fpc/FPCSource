@@ -483,6 +483,8 @@ end;
             sharedlibprefix : '';
             Cprefix      : '';
             newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : false;
             assem        : as_i386_elf32;
             assemextern  : as_i386_as;
             link         : ld_i386_netware;
@@ -526,7 +528,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-08-07 18:47:15  peter
+  Revision 1.10  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.9  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

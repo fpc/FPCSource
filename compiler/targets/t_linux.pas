@@ -503,6 +503,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_i386_elf32;
             assemextern  : as_i386_as;
             link         : ld_i386_linux;
@@ -567,6 +569,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_m68k_as;
             assemextern  : as_m68k_as;
             link         : ld_m68k_linux;
@@ -617,6 +621,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_powerpc_as;
             assemsrc     : as_powerpc_as;
             ar           : ar_powerpc_ar;
@@ -665,6 +671,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_alpha_as;
             assemextern  : as_alpha_as;
             link         : ld_alpha_linux;
@@ -715,7 +723,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-08-07 18:47:15  peter
+  Revision 1.12  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.11  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

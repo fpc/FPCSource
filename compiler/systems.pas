@@ -52,6 +52,10 @@ interface
             ,asmmode_powerpc_direct
        );
 
+       { IMPORTANT NOTE:
+         the integer value of this enum is stored in PPU
+         files to recognize the target, so if you add new targets
+         allways add them at end PM }
        ttarget = (target_none,
             target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
               target_i386_OS2,target_i386_Win32,target_i386_freebsd,
@@ -64,7 +68,7 @@ interface
        );
 
        tasm = (as_none
-            ,as_i386_as,as_i386_asbsd,as_i386_as_aout,as_i386_asw,
+            ,as_i386_as,as_i386_as_aout,as_i386_asw,
               as_i386_nasmcoff,as_i386_nasmwin32,
               as_i386_nasmelf,as_i386_nasmobj,
               as_i386_tasm,as_i386_masm,
@@ -93,7 +97,7 @@ interface
             ,res_gnu_windres,res_emxbind
        );
 
-       tscript = (script_none
+       tscripttype = (script_none
             ,script_dos,script_unix,script_amiga
        );
 
@@ -185,13 +189,15 @@ interface
           sharedlibprefix : string[4];
           Cprefix      : string[2];
           newline      : string[2];
+          dirsep       : char;
+          files_case_relevent : boolean;
           assem        : tasm;
           assemextern  : tasm; { external assembler, used by -a }
           link         : tld;
           linkextern   : tld;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
-          script       : tscript;
+          script       : tscripttype;
           endian       : tendian;
           alignment    : talignmentinfo;
           size_of_pointer : byte;
@@ -641,7 +647,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2001-08-30 20:57:10  peter
+  Revision 1.26  2001-09-17 21:29:13  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.25  2001/08/30 20:57:10  peter
     * asbsd merged
 
   Revision 1.24  2001/08/19 11:22:24  peter

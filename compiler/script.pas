@@ -86,6 +86,7 @@ type
 var
   AsmRes : TAsmScript;
 
+Function ScriptFixFileName(const s:string):string;
 Procedure GenerateAsmRes(const st : string);
 
 
@@ -99,8 +100,20 @@ uses
     Unix,
   {$endif}
 {$endif}
-  globals,systems;
+  globtype,globals,systems;
 
+
+{****************************************************************************
+                                   Helpers
+****************************************************************************}
+
+    Function ScriptFixFileName(const s:string):string;
+     begin
+       if cs_link_on_target in aktglobalswitches then
+         ScriptFixFileName:=TargetFixFileName(s)
+       else
+         ScriptFixFileName:=FixFileName(s);
+     end;
 
 {****************************************************************************
                                   TScript
@@ -116,7 +129,10 @@ end;
 
 constructor TScript.CreateExec(const s:string);
 begin
-  fn:=FixFileName(s)+target_info.scriptext;
+  if cs_link_on_target in aktglobalswitches then
+    fn:=FixFileName(s)+target_info.scriptext
+  else
+    fn:=FixFileName(s)+source_info.scriptext;
   executable:=true;
   data:=TStringList.Create;
 end;
@@ -249,7 +265,10 @@ begin
      Add('echo Assembling $THEFILE');
    end;
   Add(command+' '+Options);
+  { There is a problem here,
+    as allways return with a non zero error value PM  }
   Add('if error');
+  Add('why');
   Add('skip asmend');
   Add('endif');
 end;
@@ -285,9 +304,11 @@ Procedure TAsmScriptAmiga.WriteToDisk;
 Begin
   Add('skip end');
   Add('lab asmend');
+  Add('why');
   Add('echo An error occured while assembling $THEFILE');
   Add('skip end');
   Add('lab linkend');
+  Add('why');
   Add('echo An error occured while linking $THEFILE');
   Add('lab end');
   inherited WriteToDisk;
@@ -346,8 +367,14 @@ end;
 
 
 Procedure GenerateAsmRes(const st : string);
+var
+  scripttyp : tscripttype;
 begin
-  case target_info.script of
+  if cs_link_on_target in aktglobalswitches then
+    scripttyp := target_info.script
+  else
+    scripttyp := source_info.script;
+  case scripttyp of
     script_unix :
       AsmRes:=TAsmScriptUnix.Create(st);
     script_dos :
@@ -373,7 +400,12 @@ begin
   if s<>'' then
    begin
      if not(s[1] in ['a'..'z','A'..'Z','/','\','.']) then
-      inherited Add('.'+DirSep+s)
+      begin
+        if cs_link_on_target in aktglobalswitches then
+          inherited Add('.'+target_info.DirSep+s)
+        else
+          inherited Add('.'+source_info.DirSep+s);
+      end
      else
       inherited Add(s);
    end;
@@ -382,7 +414,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-08-07 18:44:09  peter
+  Revision 1.13  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.12  2001/08/07 18:44:09  peter
     * made script target indepedent
 
   Revision 1.11  2001/07/30 20:59:27  peter

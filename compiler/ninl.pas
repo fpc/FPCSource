@@ -1046,7 +1046,7 @@ implementation
          p1,hpp    : tnode;
          frac_para,
          length_para : tnode;
-         isreal,
+         isreal,oneisreal,
          iswrite,
          file_is_typed : boolean;
       label
@@ -2131,7 +2131,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2141,7 +2141,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2151,7 +2151,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2160,13 +2160,14 @@ implementation
          in_pi:
            begin
              location.loc:=LOC_FPU;
+             registersfpu:=1;
            end;
 
          in_abs_extended:
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2176,7 +2177,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2186,7 +2187,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2196,7 +2197,7 @@ implementation
            begin
              location.loc:=LOC_FPU;
              registers32:=left.registers32;
-             registersfpu:=left.registersfpu;
+             registersfpu:=max(left.registersfpu,2);
 {$ifdef SUPPORT_MMX}
              registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
@@ -2250,7 +2251,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2001-09-05 15:19:43  jonas
+  Revision 1.59  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.58  2001/09/05 15:19:43  jonas
     * the result of high/low nodes wasn't always resulttypepassed
 
   Revision 1.57  2001/09/04 14:32:45  jonas
@@ -2276,7 +2280,7 @@ end.
   Revision 1.54  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using $ifdef hascompilerproc is not
       necessary in the compiler)
 
   Revision 1.53  2001/08/27 11:04:41  jonas

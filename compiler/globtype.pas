@@ -119,7 +119,7 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_staticflag
+         cs_link_strip,cs_link_staticflag,cs_link_on_target
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -208,7 +208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-07-30 20:59:27  peter
+  Revision 1.15  2001-09-17 21:29:11  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.14  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.13  2001/07/01 20:16:15  peter

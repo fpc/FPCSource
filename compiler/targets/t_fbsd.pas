@@ -56,7 +56,8 @@ implementation
     tlinkerfreebsd=class(tlinker)
     private
       Glibc2,
-      Glibc21 : boolean;
+      Glibc21,
+      LdSupportsNoResponseFile : boolean;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -197,9 +198,25 @@ procedure TLinkerFreeBSD.SetDefaultInfo;
 begin
   Glibc2:=false;
   Glibc21:=false;
+{$ifdef NETBSD}
+{$ifdef M68K}
+  LdSupportsNoResponseFile:=true;
+{$else : not M68K}
+  LdSupportsNoResponseFile:=false;
+{$endif M68K}
+{$else : not NETBSD}
+  LdSupportsNoResponseFile:=false;
+{$endif NETBSD}
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
+     if LdSupportsNoResponseFile then
+       begin
+         ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE `cat $RES`';
+         { We need external linking to interpret the `cat $RES` PM }
+         include(aktglobalswitches,cs_link_extern);
+       end
+     else
+       ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
@@ -269,17 +286,24 @@ begin
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     if LdSupportsNoResponseFile then
+       LinkRes.Add('-L'+HPath.Str)
+     else
+       LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
      HPath:=TStringListItem(HPath.Next);
    end;
   HPath:=TStringListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
-     LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
+     if LdSupportsNoResponseFile then
+       LinkRes.Add('-L'+HPath.Str)
+     else
+       LinkRes.Add('SEARCH_DIR('+HPath.Str+')');
      HPath:=TStringListItem(HPath.Next);
    end;
 
-  LinkRes.Add('INPUT(');
+  if not LdSupportsNoResponseFile then
+    LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    LinkRes.AddFileName(FindObjectFile(prtobj,''));
@@ -298,25 +322,29 @@ begin
      if s<>'' then
       LinkRes.AddFileName(s);
    end;
-  LinkRes.Add(')');
+  if not LdSupportsNoResponseFile then
+   LinkRes.Add(')');
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
-     LinkRes.Add('GROUP(');
+     if not LdSupportsNoResponseFile then
+       LinkRes.Add('GROUP(');
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(s)
       end;
-     LinkRes.Add(')');
+     if not LdSupportsNoResponseFile then
+       LinkRes.Add(')');
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
   if not SharedLibFiles.Empty then
    begin
-     LinkRes.Add('INPUT(');
+     if not LdSupportsNoResponseFile then
+       LinkRes.Add('INPUT(');
      While not SharedLibFiles.Empty do
       begin
         S:=SharedLibFiles.GetFirst;
@@ -341,7 +369,8 @@ begin
       LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') then
       LinkRes.AddFileName(Info.DynamicLinker);
-     LinkRes.Add(')');
+     if not LdSupportsNoResponseFile then
+       LinkRes.Add(')');
    end;
   { objects which must be at the end }
   if linklibc then
@@ -380,7 +409,14 @@ begin
   StripStr:='';
   DynLinkStr:='';
   if (cs_link_staticflag in aktglobalswitches) then
-   StaticStr:='-static';
+    begin
+      if (target_info.target=target_m68k_netbsd) and
+         ((cs_link_on_target in aktglobalswitches) or
+          (target_info.target=source_info.target)) then
+        StaticStr:='-Bstatic'
+      else
+        StaticStr:='-static';
+    end;
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
   If (cs_profile in aktmoduleswitches) or
@@ -477,6 +513,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_i386_elf32;
             assemextern  : as_i386_as;
             link         : ld_i386_freebsd;
@@ -536,9 +574,11 @@ end;
             resobjext    : '.or';
             staticlibprefix : 'libp';
             sharedlibprefix : 'lib';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #10;
-            assem        : as_i386_elf32;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_i386_as;
             assemextern  : as_i386_as;
             link         : ld_i386_freebsd;
             linkextern   : ld_i386_freebsd;
@@ -602,7 +642,9 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
-            assem        : as_m68k_as;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_m68k_asbsd;
             assemextern  : as_m68k_as;
             link         : ld_m68k_freebsd;
             linkextern   : ld_m68k_freebsd;
@@ -656,7 +698,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-08-12 17:57:07  peter
+  Revision 1.11  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.10  2001/08/12 17:57:07  peter
     * under development flag for targets
 
   Revision 1.9  2001/08/07 18:47:15  peter

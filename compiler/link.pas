@@ -221,6 +221,12 @@ var
   FoundBin : string;
   UtilExe  : string;
 begin
+  if cs_link_on_target in aktglobalswitches then
+    begin
+      { If linking on target, don't add any path PM }
+      FindUtil:=AddExtension(s,target_info.exeext);
+      exit;
+    end;
   UtilExe:=AddExtension(s,source_info.exeext);
   FoundBin:='';
   Found:=false;
@@ -244,16 +250,17 @@ function TLinker.FindObjectFile(s:string;const unitpath:string) : string;
 var
   found : boolean;
   foundfile : string;
+  s1 : string;
 begin
   findobjectfile:='';
   if s='' then
    exit;
   if pos('.',s)=0 then
    s:=s+target_info.objext;
-  s:=FixFileName(s);
-  if FileExists(s) then
+  s1:=FixFileName(s);
+  if FileExists(s1) then
    begin
-     Findobjectfile:=s;
+     Findobjectfile:=ScriptFixFileName(s);
      exit;
    end;
   { find object file
@@ -278,7 +285,7 @@ begin
    found:=FindFile(s,exepath,foundfile);
   if not(cs_link_extern in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
-  findobjectfile:=foundfile;
+  findobjectfile:=ScriptFixFileName(foundfile);
 end;
 
 
@@ -296,7 +303,7 @@ begin
   if FileExists(s) then
    begin
      found:=true;
-     FindLibraryFile:=s;
+     FindLibraryFile:=ScriptFixFileName(s);
      exit;
    end;
   { find libary
@@ -311,7 +318,7 @@ begin
    found:=librarysearchpath.FindFile(s,foundfile);
   if (not found) then
    found:=FindFile(s,exepath,foundfile);
-  findlibraryfile:=foundfile;
+  findlibraryfile:=ScriptFixFileName(foundfile);
 end;
 
 
@@ -423,7 +430,7 @@ begin
   smartpath:=current_module.outputpath^+FixPath(FixFileName(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',current_module.staticlibfilename^);
-  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
+  Replace(cmdstr,'$FILES',ScriptFixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
@@ -485,7 +492,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2001-08-30 20:13:53  peter
+  Revision 1.23  2001-09-17 21:29:11  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.22  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces

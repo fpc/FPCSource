@@ -127,22 +127,6 @@ interface
          extended2str:='0d'+hs
       end;
 
-    type
-      pdouble = ^double;
-    function comp2str(d : bestreal) : string;
-      var
-        c  : comp;
-        dd : pdouble;
-      begin
-{$ifdef FPC}
-         c:=comp(d);
-{$else}
-         c:=d;
-{$endif}
-         dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
-         comp2str:=double2str(dd^);
-      end;
-
 
     function getreferencestring(var ref : treference) : string;
     var
@@ -585,7 +569,7 @@ interface
            ait_comp_64bit :
              begin
                if do_line then
-                AsmWriteLn(target_asm.comment+comp2str(tai_comp_64bit(hp).value));
+                AsmWriteLn(target_asm.comment+extended2str(tai_comp_64bit(hp).value));
                AsmWrite(#9'.byte'#9);
 {$ifdef FPC}
                co:=comp(tai_comp_64bit(hp).value);
@@ -666,7 +650,7 @@ interface
                   AsmWrite('.globl'#9);
                   AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               if target_info.target=target_i386_linux then
+               if target_info.target in [target_i386_linux,target_i386_beos] then
                 begin
                    AsmWrite(#9'.type'#9);
                    AsmWrite(tai_symbol(hp).sym.name);
@@ -691,7 +675,7 @@ interface
 
            ait_symbol_end :
              begin
-               if target_info.target=target_i386_linux then
+               if target_info.target in [target_i386_linux,target_i386_beos] then
                 begin
                   s:=target_asm.labelprefix+'e'+tostr(symendcount);
                   inc(symendcount);
@@ -916,26 +900,6 @@ interface
               '.stab','.stabstr')
           );
 
-       as_i386_asbsd_info : tasminfo =
-          (
-            id           : as_i386_asbsd;
-            idtxt  : 'ASBSD';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
-            outputbinary: false;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
-            labelprefix : 'L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
-              '.stab','.stabstr')
-          );
-
        as_i386_as_aout_info : tasminfo =
           (
             id           : as_i386_as_aout;
@@ -985,7 +949,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2001-08-30 20:57:10  peter
+  Revision 1.11  2001-09-17 21:29:13  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.10  2001/08/30 20:57:10  peter
     * asbsd merged
 
   Revision 1.9  2001/05/06 17:13:23  jonas

@@ -69,6 +69,8 @@ implementation
             sharedlibprefix : '';
             Cprefix      : '_';
             newline      : #13;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_m68k_mpw;
             assemextern  : as_m68k_mpw;
             link         : ld_m68k_mac;
@@ -152,7 +154,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-08-07 18:47:15  peter
+  Revision 1.5  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.4  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

@@ -1533,7 +1533,7 @@ asmr_e_68020_mode_required=07097_E_68020 mode required
 #
 # Assembler/binary writers
 #
-# 08013 is the last used one
+# 08015 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 asmw_f_assembler_output_not_supported=08001_F_Selected assembler output not supported
@@ -1549,7 +1549,9 @@ asmw_e_immediate_or_reference_expected=08010_E_Asm: Immediate or reference expec
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 value exceeds bounds $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump is out of range $1
 asmw_e_undefined_label=08013_E_Asm: Undefined label $1
-asmw_e_duplicate_label=08014_E_Asm: Duplicate label $1
+asmw_e_comp_not_supported=08014_E_Asm: Comp type not supported for this target
+asmw_e_extended_not_supported=08015_E_Asm: Extended type not supported for this target
+asmw_e_duplicate_label=08016_E_Asm: Duplicate label $1
 
 #
 # Executing linker/assembler

@@ -681,10 +681,25 @@ begin
                     else
                       include(initglobalswitches,cs_asm_pipe);
 {$endif Unix}
-              's' : if UnsetBool(More, 0) then
-                      initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern]
-                    else
-                      initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
+              's' :
+                    begin
+                      if UnsetBool(More, 0) then
+                        begin
+                          initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern];
+                          if more<>'' then
+                            IllegalPara(opt);
+                        end
+                      else
+                        begin
+                          initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
+                          if more='h' then
+                            initglobalswitches:=initglobalswitches-[cs_link_on_target]
+                          else if more='t' then
+                            initglobalswitches:=initglobalswitches+[cs_link_on_target]
+                          else if more<>'' then
+                            IllegalPara(opt);
+                        end;
+                    end;
               'S' : begin
                       if more[1]='I' then
                         begin
@@ -1475,7 +1490,9 @@ begin
   { FIXME: this overrides possible explicit command line emulation setting,
     but this isn't supported yet anyhow PM }
   if (target_info.target in [target_m68k_netbsd,target_m68k_linux]) then
-   exclude(initmoduleswitches,cs_fp_emulation);
+   exclude(initmoduleswitches,cs_fp_emulation)
+  else
+   def_symbol('M68K_FPU_EMULATED');
 {$endif m68k}
 
 { write logo if set }
@@ -1603,7 +1620,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.59  2001-09-12 12:46:54  marco
+  Revision 1.60  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.59  2001/09/12 12:46:54  marco
    * fix from peter
 
   Revision 1.58  2001/08/30 20:57:09  peter

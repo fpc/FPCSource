@@ -216,8 +216,7 @@ Implementation
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
                 not(cs_asm_leave in aktglobalswitches)
 {$ifdef i386}
-                and ((aktoutputformat=as_i386_as) or
-                     (aktoutputformat=as_i386_asbsd));
+                and ((aktoutputformat=as_i386_as));
 {$endif i386}
 {$ifdef m68k}
                 and ((aktoutputformat=as_m68k_as) or
@@ -286,7 +285,14 @@ Implementation
         UtilExe  : string;
       begin
         asfound:=false;
-        UtilExe:=AddExtension(target_asm.asmbin,source_info.exeext);
+        if cs_link_on_target in aktglobalswitches then
+         begin
+           { If linking on target, don't add any path PM }
+           FindAssembler:=AddExtension(target_asm.asmbin,target_info.exeext);
+           exit;
+         end
+        else
+         UtilExe:=AddExtension(target_asm.asmbin,source_info.exeext);
         if lastas<>ord(target_asm.id) then
          begin
            lastas:=ord(target_asm.id);
@@ -370,8 +376,16 @@ Implementation
            Message1(exec_i_assembling,name);
          end;
         s:=target_asm.asmcmd;
-        Replace(s,'$ASM',AsmFile);
-        Replace(s,'$OBJ',ObjFile);
+        if (cs_link_on_target in aktglobalswitches) then
+         begin
+           Replace(s,'$ASM',ScriptFixFileName(AsmFile));
+           Replace(s,'$OBJ',ScriptFixFileName(ObjFile));
+         end
+        else
+         begin
+           Replace(s,'$ASM',AsmFile);
+           Replace(s,'$OBJ',ObjFile);
+         end;
         if CallAssembler(FindAssembler,s) then
          RemoveAsm
         else
@@ -1536,7 +1550,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-08-30 20:57:09  peter
+  Revision 1.27  2001-09-17 21:29:10  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.26  2001/08/30 20:57:09  peter
     * asbsd merged
 
   Revision 1.25  2001/08/30 19:43:50  peter

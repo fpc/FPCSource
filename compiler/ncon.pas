@@ -332,6 +332,8 @@ implementation
       begin
          result:=nil;
          location.loc:=LOC_MEM;
+         { needs to be loaded into an FPU register }
+         registersfpu:=1;
       end;
 
     function trealconstnode.docompare(p: tnode): boolean;
@@ -662,7 +664,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-09-02 21:12:06  peter
+  Revision 1.23  2001-09-17 21:29:12  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.22  2001/09/02 21:12:06  peter
     * move class of definitions into type section for delphi
 
   Revision 1.21  2001/08/26 13:36:40  florian

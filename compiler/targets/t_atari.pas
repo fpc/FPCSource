@@ -68,6 +68,8 @@ implementation
             sharedlibprefix : '';
             Cprefix      : '_';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_m68k_as;
             assemextern  : as_m68k_as;
             link         : ld_m68k_atari;
@@ -94,7 +96,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-08-07 18:47:15  peter
+  Revision 1.5  2001-09-17 21:29:15  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.4  2001/08/07 18:47:15  peter
     * merged netbsd start
     * profile for win32
 

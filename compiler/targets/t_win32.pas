@@ -1477,6 +1477,8 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             sharedlibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : false;
             assem        : as_i386_pecoff;
             assemextern  : as_i386_asw;
             link         : ld_i386_win32;
@@ -1523,7 +1525,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2001-09-13 14:47:19  michael
+  Revision 1.17  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.16  2001/09/13 14:47:19  michael
   + Committed patch from peter
 
   Revision 1.15  2001/08/07 18:47:15  peter

@@ -263,6 +263,8 @@ interface
     Function  ForceExtension(Const HStr,ext:String):String;
     Function  FixPath(s:string;allowdot:boolean):string;
     function  FixFileName(const s:string):string;
+    function  TargetFixPath(s:string;allowdot:boolean):string;
+    function  TargetFixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr,cstr:string);
     function  FindFile(const f : string;path : string;var foundfile:string):boolean;
     function  FindExe(const bin:string;var foundfile:string):boolean;
@@ -573,20 +575,19 @@ implementation
         { Fix separator }
         for i:=1 to length(s) do
          if s[i] in ['/','\'] then
-          s[i]:=DirSep;
+          s[i]:=source_info.DirSep;
         { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>DirSep) and
+        if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
            (s[length(s)]<>':') then
-         s:=s+DirSep;
+         s:=s+source_info.DirSep;
         { Remove ./ }
-        if (not allowdot) and (s='.'+DirSep) then
+        if (not allowdot) and (s='.'+source_info.DirSep) then
          s:='';
         { return }
-{$ifdef unix}
-        FixPath:=s;
-{$else}
-        FixPath:=Lower(s);
-{$endif}
+        if source_info.files_case_relevent then
+         FixPath:=s
+        else
+         FixPath:=Lower(s);
       end;
 
 
@@ -594,23 +595,90 @@ implementation
      var
        i      : longint;
      begin
-       for i:=length(s) downto 1 do
+       if source_info.files_case_relevent then
         begin
-          case s[i] of
-{$ifdef Unix}
-            '/','\' :
-              FixFileName[i]:='/';
-{$else Unix}
-           '/' :
-              FixFileName[i]:='\';
-           'A'..'Z' :
-              FixFileName[i]:=char(byte(s[i])+32);
-{$endif Unix}
-          else
-           FixFileName[i]:=s[i];
-          end;
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                 FixFileName[i]:=source_info.dirsep;
+               else
+                 FixFileName[i]:=s[i];
+             end;
+           end;
+        end
+       else
+        begin
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                  FixFileName[i]:=source_info.dirsep;
+               'A'..'Z' :
+                  FixFileName[i]:=char(byte(s[i])+32);
+                else
+                  FixFileName[i]:=s[i];
+             end;
+           end;
         end;
        FixFileName[0]:=s[0];
+     end;
+
+
+    Function TargetFixPath(s:string;allowdot:boolean):string;
+      var
+        i : longint;
+      begin
+        { Fix separator }
+        for i:=1 to length(s) do
+         if s[i] in ['/','\'] then
+          s[i]:=target_info.DirSep;
+        { Fix ending / }
+        if (length(s)>0) and (s[length(s)]<>target_info.DirSep) and
+           (s[length(s)]<>':') then
+         s:=s+target_info.DirSep;
+        { Remove ./ }
+        if (not allowdot) and (s='.'+target_info.DirSep) then
+         s:='';
+        { return }
+        if target_info.files_case_relevent then
+         TargetFixPath:=s
+        else
+         TargetFixPath:=Lower(s);
+      end;
+
+
+   function TargetFixFileName(const s:string):string;
+     var
+       i      : longint;
+     begin
+       if target_info.files_case_relevent then
+        begin
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                 TargetFixFileName[i]:=target_info.dirsep;
+               else
+                 TargetFixFileName[i]:=s[i];
+             end;
+           end;
+        end
+       else
+        begin
+          for i:=1 to length(s) do
+           begin
+             case s[i] of
+               '/','\' :
+                  TargetFixFileName[i]:=target_info.dirsep;
+               'A'..'Z' :
+                  TargetFixFileName[i]:=char(byte(s[i])+32);
+                else
+                  TargetFixFileName[i]:=s[i];
+             end;
+           end;
+        end;
+       TargetFixFileName[0]:=s[0];
      end;
 
 
@@ -626,7 +694,7 @@ implementation
         end
        else
         begin
-          bstr:='';
+          bstr:=s;
           cstr:='';
         end;
      end;
@@ -1284,7 +1352,7 @@ implementation
         initlocalswitches:=[cs_check_io];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
-        initoutputformat:=as_none;
+        initoutputformat:=target_asm.id;
         fillchar(initalignment,sizeof(talignmentinfo),0);
 {$ifdef i386}
         initoptprocessor:=Class386;
@@ -1302,7 +1370,6 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initoutputformat:=as_m68k_as;
         initasmmode:=asmmode_m68k_mot;
   {$endif m68k}
 {$endif i386}
@@ -1333,7 +1400,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2001-08-19 11:22:22  peter
+  Revision 1.42  2001-09-17 21:29:11  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.41  2001/08/19 11:22:22  peter
     * palmos support from v10 merged
 
   Revision 1.40  2001/08/04 10:23:54  peter

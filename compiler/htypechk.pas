@@ -452,8 +452,8 @@ implementation
 
          { error CGMessage, if more than 8 floating point }
          { registers are needed                         }
-         if p.registersfpu>maxfpuregs then
-          CGMessage(cg_e_too_complex_expr);
+         { if p.registersfpu>maxfpuregs then
+          CGMessage(cg_e_too_complex_expr); now pushed if needed PM }
       end;
 
 {****************************************************************************
@@ -958,7 +958,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-09-07 07:46:17  jonas
+  Revision 1.35  2001-09-17 21:29:11  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.34  2001/09/07 07:46:17  jonas
     * allow typecasting from child object types to parent object types (with
       different sizes)
 

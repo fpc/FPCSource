@@ -235,6 +235,8 @@ end;
             sharedlibprefix : 'lib';
             Cprefix      : '_';
             newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
             assem        : as_m68k_as;
             assemextern  : as_m68k_as;
             link         : ld_m68k_palmos;
@@ -263,7 +265,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-08-19 11:22:24  peter
+  Revision 1.6  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.5  2001/08/19 11:22:24  peter
     * palmos support from v10 merged
 
   Revision 1.4  2001/08/07 18:47:15  peter

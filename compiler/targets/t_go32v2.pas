@@ -383,6 +383,8 @@ end;
             sharedlibprefix : '';
             Cprefix      : '_';
             newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : false;
             assem        : as_i386_coff;
             assemextern  : as_i386_as;
             link         : ld_i386_go32v2;
@@ -424,7 +426,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2001-08-30 20:08:23  peter
+  Revision 1.13  2001-09-17 21:29:16  peter
+    * merged netbsd, fpu-overflow from fixes branch
+
+  Revision 1.12  2001/08/30 20:08:23  peter
     * create script.res and use link.res for commandline
 
   Revision 1.11  2001/08/19 11:22:24  peter
