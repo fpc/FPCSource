@@ -5,5 +5,6 @@ VAR
   x,y:Cardinal; 
 BEGIN
   y:=0;
-  z:=0;
+  y:=0;
+  y:=x+1;
 END.
