@@ -524,7 +524,7 @@ begin
       {$ifdef OS2}
         default_target(target_i386_OS2);
       {$else}
-        {$ifdef LINUX}
+        {$ifdef unix}
          {$ifdef BSD}
           default_target(target_i386_FreeBSD);
          {$else}
@@ -575,7 +575,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.19  2001-06-03 20:21:08  peter
+  Revision 1.20  2001-06-19 14:43:31  marco
+   * Fixed ifdef linux bug
+
+  Revision 1.19  2001/06/03 20:21:08  peter
     * Kylix fixes, mostly case names of units
 
   Revision 1.18  2001/06/03 15:15:31  peter
