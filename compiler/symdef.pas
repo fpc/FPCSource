@@ -1224,19 +1224,12 @@ implementation
      begin
         is_intregable:=false;
         case deftype of
+          orddef,
           pointerdef,
           enumdef:
             is_intregable:=true;
           procvardef :
             is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);
-          orddef :
-            case torddef(self).typ of
-              bool8bit,bool16bit,bool32bit,
-              u8bit,u16bit,u32bit,
-              s8bit,s16bit,s32bit,
-              uchar, uwidechar:
-                is_intregable:=true;
-            end;
           objectdef:
             is_intregable:=is_class(self) or is_interface(self);
           setdef:
@@ -6136,7 +6129,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.280  2004-11-30 18:13:39  jonas
+  Revision 1.281  2004-12-03 15:57:39  peter
+    * int64 can also be put in a register
+
+  Revision 1.280  2004/11/30 18:13:39  jonas
     * patch from Peter to fix inlining of case statements
 
   Revision 1.279  2004/11/22 22:01:19  peter
