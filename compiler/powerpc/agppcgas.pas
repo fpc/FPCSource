@@ -93,8 +93,8 @@ unit agppcgas;
           );
 
 
-       refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l');
-       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16');
+       refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
+       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
 
 
     function getreferencestring(var ref : treference) : string;
@@ -365,7 +365,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2004-10-31 21:45:03  peter
+  Revision 1.46  2004-12-28 02:25:44  olle
+    * fixed compilation for PowerPC
+
+  Revision 1.45  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

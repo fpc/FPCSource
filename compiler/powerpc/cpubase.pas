@@ -243,7 +243,7 @@ uses
 *****************************************************************************}
 
     const
-      symaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l');
+      symaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
 
     const
       { MacOS only. Whether the direct data area (TOC) directly contain
@@ -558,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2004-10-31 21:45:03  peter
+  Revision 1.93  2004-12-28 02:25:43  olle
+    * fixed compilation for PowerPC
+
+  Revision 1.92  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
