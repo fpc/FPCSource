@@ -125,7 +125,8 @@ interface
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }
          m_autoderef,           { does auto dereferencing of struct. vars }
-         m_initfinal            { initialization/finalization for units }
+         m_initfinal,           { initialization/finalization for units }
+         m_add_pointer          { allow pointer add/sub operations }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -178,7 +179,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1999-08-13 15:44:58  peter
+  Revision 1.18  1999-09-08 16:05:32  peter
+    * pointer add/sub is now as expected and the same results as inc/dec
+
+  Revision 1.17  1999/08/13 15:44:58  peter
     * first things to include lineinfo in the executable
 
   Revision 1.16  1999/08/11 17:26:33  peter

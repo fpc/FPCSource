@@ -64,10 +64,10 @@ unit globals;
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
-          m_cvar_support,m_initfinal];
+          m_cvar_support,m_initfinal,m_add_pointer];
        objfpcmodeswitches : tmodeswitches=
          [m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support,m_initfinal];
+          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer];
        tpmodeswitches     : tmodeswitches=
          [m_tp,m_all,m_tp_procvar];
        gpcmodeswitches    : tmodeswitches=
@@ -249,7 +249,7 @@ unit globals;
 
     uses
       comphook;
-      
+
     procedure strdispose(var p : pchar);
 
       begin
@@ -1253,7 +1253,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-09-07 15:11:00  pierre
+  Revision 1.24  1999-09-08 16:05:31  peter
+    * pointer add/sub is now as expected and the same results as inc/dec
+
+  Revision 1.23  1999/09/07 15:11:00  pierre
    * use do_internalerror insetead of runerror
 
   Revision 1.22  1999/08/30 10:17:56  peter

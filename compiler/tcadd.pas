@@ -958,8 +958,16 @@ implementation
               if p^.treetype=addn then
                 begin
                   if not(cs_extsyntax in aktmoduleswitches) or
-                    (not(is_pchar(ld)) and (m_tp in aktmodeswitches)) then
+                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
                     CGMessage(type_e_mismatch);
+                  { Dirty hack, to support multiple firstpasses (PFV) }
+                  if (p^.resulttype=nil) and
+                     (rd^.deftype=pointerdef) and
+                     (ppointerdef(rd)^.definition^.size>1) then
+                   begin
+                     p^.left:=gennode(muln,p^.left,genordinalconstnode(ppointerdef(rd)^.definition^.size,s32bitdef));
+                     firstpass(p^.left);
+                   end;
                 end
               else
                 CGMessage(type_e_mismatch);
@@ -983,8 +991,17 @@ implementation
               case p^.treetype of
                 addn,subn : begin
                               if not(cs_extsyntax in aktmoduleswitches) or
-                                 (not(is_pchar(ld)) and (m_tp in aktmodeswitches)) then
+                                 (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
                                CGMessage(type_e_mismatch);
+                              { Dirty hack, to support multiple firstpasses (PFV) }
+                              if (p^.resulttype=nil) and
+                                 (ld^.deftype=pointerdef) and
+                                 (ppointerdef(ld)^.definition^.size>1) then
+                               begin
+                                 p^.right:=gennode(muln,p^.right,
+                                   genordinalconstnode(ppointerdef(ld)^.definition^.size,s32bitdef));
+                                 firstpass(p^.right);
+                               end;
                             end;
               else
                 CGMessage(type_e_mismatch);
@@ -1118,7 +1135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-09-07 07:52:19  peter
+  Revision 1.45  1999-09-08 16:05:29  peter
+    * pointer add/sub is now as expected and the same results as inc/dec
+
+  Revision 1.44  1999/09/07 07:52:19  peter
     * > < >= <= support for boolean
     * boolean constants are now calculated like integer constants
 
