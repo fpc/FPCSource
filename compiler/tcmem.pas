@@ -291,6 +291,7 @@ implementation
                 end
               else
                 begin
+                  firstpass(p^.left);
                   { what are we getting the address from an absolute sym? }
                   hp:=p^.left;
                   while assigned(hp) and (hp^.treetype in [vecn,derefn,subscriptn]) do
@@ -302,14 +303,14 @@ implementation
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidfarpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,initfardef(hp^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initfardef(p^.left^.resulttype));
                    end
                   else
                    begin
                      if not(cs_typed_addresses in aktlocalswitches) then
                        p^.resulttype:=voidpointerdef
                      else
-                       p^.resulttype:=new(ppointerdef,initdef(hp^.resulttype));
+                       p^.resulttype:=new(ppointerdef,initdef(p^.left^.resulttype));
                    end;
                 end;
            end;
@@ -646,7 +647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2000-03-22 15:41:10  jonas
+  Revision 1.44  2000-03-23 16:29:32  jonas
+    * real fix for web bug882
+
+  Revision 1.43  2000/03/22 15:41:10  jonas
     * fixed webbug 882
 
   Revision 1.42  2000/02/17 14:53:43  florian
