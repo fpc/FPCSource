@@ -148,17 +148,15 @@ if Count1 > Count2 then Count := Count2
 else Count := Count1;
 i := 0;
 while (result = 0) and (i < count) do begin
-   i := i + 1;
+   inc (i);
    Chr1 := byte(s1[i]);
    Chr2 := byte(s2[i]);
-   if Chr1 in [97..122] then Chr1 := Chr1 - 32;
-   if Chr2 in [97..122] then Chr2 := Chr2 - 32;
+   if Chr1 in [97..122] then dec(Chr1,32);
+   if Chr2 in [97..122] then dec(Chr2,32);
    result := Chr1 - Chr2;
    end ;
-if (result = 0) and (Count1 <> Count2) then begin
-   if Count1 > Count2 then result := byte(UpCase(s1[Count1 + 1]))
-   else result := -byte(UpCase(s2[Count2 + 1]));
-   end ;
+if (result = 0) then
+  result:=(count1-count2);
 end ;
 
 {==============================================================================}
@@ -1139,7 +1137,10 @@ const
 
 {
   $Log$
-  Revision 1.26  1999-09-04 20:48:34  florian
+  Revision 1.27  1999-10-03 19:42:40  peter
+    * fixed comparetext
+
+  Revision 1.26  1999/09/04 20:48:34  florian
     * format('%g',[0.0]) returned long format string, fixed
 
   Revision 1.25  1999/08/25 13:13:58  michael
