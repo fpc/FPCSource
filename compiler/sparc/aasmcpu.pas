@@ -1,7 +1,7 @@
 {******************************************************************************
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
-
+    
     * This code was inspired by the NASM sources
       The Netwide Assembler is copyright (C) 1996 Simon Tatham and
       Julian Hall. All rights reserved.
@@ -10,7 +10,7 @@
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
-
+    
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -34,46 +34,45 @@ type
   TOperandOrder=(op_intel,op_att);
   { alignment for operator }
   tai_align=class(tai_align_abstract)
-     reg:tregister;
-     constructor create(b:byte);
-     constructor create_op(b:byte; _op:byte);
-     function getfillbuf:pchar;override;
+ reg:tregister;
+ constructor create(b:byte);
+ constructor create_op(b:byte; _op:byte);
+ function getfillbuf:pchar;override;
   end;
   taicpu = class(taicpu_abstract)
-     opsize:topsize;
-     constructor op_none(op:tasmop;_size:topsize);
-     constructor op_reg(op:tasmop;_size:topsize;_op1:tregister);
-     constructor op_const(op:tasmop;_size:topsize;_op1:aword);
-     constructor op_ref(op:tasmop;_size:topsize;const _op1:treference);
-     constructor op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
-     constructor op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
-     constructor op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
-     constructor op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
-     constructor op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
-     constructor op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
-     constructor op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
-     { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
-     constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
-     constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
-     constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
-     constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
-     constructor op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister; const _op3:treference);
-     constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
+ opsize:topsize;
+ constructor op_none(op:tasmop;_size:topsize);
+ constructor op_reg(op:tasmop;_size:topsize;_op1:tregister);
+ constructor op_const(op:tasmop;_size:topsize;_op1:aword);
+ constructor op_ref(op:tasmop;_size:topsize;const _op1:treference);
+ constructor op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
+ constructor op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
+ constructor op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
+ constructor op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
+ constructor op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
+ constructor op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
+ constructor op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
+ { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
+ constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
+ constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
+ constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
+ constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
+ constructor op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister; const _op3:treference);
+ constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
-     { this is for Jmp instructions }
-     constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
-     constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
-     constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
-     constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
-     procedure changeopsize(siz:topsize);
-     function  GetString:string;
-     procedure CheckNonCommutativeOpcodes;
+ { this is for Jmp instructions }
+ constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
+ constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
+ constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
+ constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
+ constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
+ procedure changeopsize(siz:topsize);
+ function  GetString:string;
+ procedure CheckNonCommutativeOpcodes;
   private
-     FOperandOrder:TOperandOrder;
-     procedure init(_size:topsize);{this need to be called by all constructor}
-{$ifndef NOAG386BIN}
-  public
+ FOperandOrder:TOperandOrder;
+ procedure init(_size:topsize);{this need to be called by all constructor}
+ public
      { the next will reset all instructions that can change in pass 2 }
      procedure ResetPass1;
      procedure ResetPass2;
@@ -82,17 +81,16 @@ type
      procedure SetOperandOrder(order:TOperandOrder);
   private
      { next fields are filled in pass1, so pass2 is faster }
-     insentry:PInsEntry;
+     insentry  : PInsEntry;
      insoffset,
-     inssize:longint;
-     LastInsOffset:longint; { need to be public to be reset }
+     inssize   : longint;
+     LastInsOffset : longint; { need to be public to be reset }
      function  InsEnd:longint;
      procedure create_ot;
      function  Matches(p:PInsEntry):longint;
      function  calcsize(p:PInsEntry):longint;
      function  NeedAddrPrefix(opidx:byte):boolean;
      procedure Swatoperands;
-{$endif NOAG386BIN}
   end;
 PROCEDURE DoneAsm;
 PROCEDURE InitAsm;
@@ -101,165 +99,135 @@ uses
   cutils,
   CpuGas;
 {****************************************************************************
-                              TAI_ALIGN
+                          TAI_ALIGN
  ****************************************************************************}
-    constructor tai_align.create(b:byte);
-      begin
-        inherited create(b);
-        reg:= R_NONE;
-      end;
-    constructor tai_align.create_op(b:byte; _op:byte);
-      begin
-        inherited create_op(b,_op);
-        reg:= R_NONE;
-      end;
-    function tai_align.getfillbuf:pchar;
-      const
-        alignarray:array[0..5] of string[8]=(
-          #$8D#$B4#$26#$00#$00#$00#$00,
-          #$8D#$B6#$00#$00#$00#$00,
-          #$8D#$74#$26#$00,
-          #$8D#$76#$00,
-          #$89#$F6,
-          #$90
-        );
-      var
-        bufptr:pchar;
-        j:longint;
-      begin
-        if not use_op then
-         begin
-           bufptr:=@buf;
-           while (fillsize>0) do
-            begin
-              for j:=0 to 5 do
-               if (fillsize>=length(alignarray[j])) then
-                break;
-              move(alignarray[j][1],bufptr^,length(alignarray[j]));
-              inc(bufptr,length(alignarray[j]));
-              dec(fillsize,length(alignarray[j]));
-            end;
-         end;
-        getfillbuf:=pchar(@buf);
-      end;
+constructor tai_align.create(b:byte);
+  begin
+    inherited create(b);
+    reg:= R_NONE;
+  end;
+constructor tai_align.create_op(b:byte; _op:byte);
+  begin
+    inherited create_op(b,_op);
+    reg:= R_NONE;
+  end;
+function tai_align.getfillbuf:pchar;
+  const
+    alignarray:array[0..5] of string[8]=(
+      #$8D#$B4#$26#$00#$00#$00#$00,
+      #$8D#$B6#$00#$00#$00#$00,
+      #$8D#$74#$26#$00,
+      #$8D#$76#$00,
+      #$89#$F6,
+      #$90
+    );
+  var
+    bufptr:pchar;
+    j:longint;
+  begin
+    if not use_op then
+     begin
+       bufptr:=@buf;
+       while (fillsize>0) do
+        begin
+          for j:=0 to 5 do
+           if (fillsize>=length(alignarray[j])) then
+            break;
+          move(alignarray[j][1],bufptr^,length(alignarray[j]));
+          inc(bufptr,length(alignarray[j]));
+          dec(fillsize,length(alignarray[j]));
+        end;
+     end;
+    getfillbuf:=pchar(@buf);
+  end;
 {*****************************************************************************
-                                 Taicpu Constructors
+                             Taicpu Constructors
 *****************************************************************************}
-    procedure taicpu.changeopsize(siz:topsize);
-      begin
-        opsize:=siz;
-      end;
-
-
-    procedure taicpu.init(_size:topsize);
-      begin
-         { default order is att }
-         FOperandOrder:=op_att;
-         {segprefix:=R_NONE;}{This may be only for I386 architecture!}
-         opsize:=_size;
-{$ifndef NOAG386BIN}
-         insentry:=nil;
-         LastInsOffset:=-1;
-         InsOffset:=0;
-         InsSize:=0;
-{$endif}
-      end;
-
-
-    constructor taicpu.op_none(op:tasmop;_size:topsize);
-      begin
-         inherited create(op);
-         init(_size);
-      end;
-
-
-    constructor taicpu.op_reg(op:tasmop;_size:topsize;_op1:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=1;
-         loadreg(0,_op1);
-      end;
-
-
-    constructor taicpu.op_const(op:tasmop;_size:topsize;_op1:aword);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=1;
-         loadconst(0,_op1);
-      end;
-
-
-    constructor taicpu.op_ref(op:tasmop;_size:topsize;const _op1:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=1;
-         loadref(0,_op1);
-      end;
-
-
-    constructor taicpu.op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadreg(0,_op1);
-         loadreg(1,_op2);
-      end;
-
-
-    constructor taicpu.op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadreg(0,_op1);
-         loadconst(1,_op2);
-      end;
-
-
-    constructor taicpu.op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadreg(0,_op1);
-         loadref(1,_op2);
-      end;
-
-
-    constructor taicpu.op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadconst(0,_op1);
-         loadreg(1,_op2);
-      end;
-
-
-    constructor taicpu.op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadconst(0,_op1);
-         loadconst(1,_op2);
-      end;
-
-
-    constructor taicpu.op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadconst(0,_op1);
-         loadref(1,_op2);
-      end;
-
-
+procedure taicpu.changeopsize(siz:topsize);
+  begin
+    opsize:=siz;
+  end;
+procedure taicpu.init(_size:topsize);
+  begin
+     { default order is att }
+     FOperandOrder:=op_att;
+     {segprefix:=R_NONE;}{This may be only for I386 architecture!}
+     opsize:=_size;
+  end;
+constructor taicpu.op_none(op:tasmop;_size:topsize);
+  begin
+     inherited create(op);
+     init(_size);
+  end;
+constructor taicpu.op_reg(op:tasmop;_size:topsize;_op1:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=1;
+     loadreg(0,_op1);
+  end;
+constructor taicpu.op_const(op:tasmop;_size:topsize;_op1:aword);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=1;
+     loadconst(0,_op1);
+  end;
+constructor taicpu.op_ref(op:tasmop;_size:topsize;const _op1:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=1;
+     loadref(0,_op1);
+  end;
+constructor taicpu.op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadreg(0,_op1);
+     loadreg(1,_op2);
+  end;
+constructor taicpu.op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadreg(0,_op1);
+     loadconst(1,_op2);
+  end;
+constructor taicpu.op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadreg(0,_op1);
+     loadref(1,_op2);
+  end;
+constructor taicpu.op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadconst(0,_op1);
+     loadreg(1,_op2);
+  end;
+constructor taicpu.op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadconst(0,_op1);
+     loadconst(1,_op2);
+  end;
+constructor taicpu.op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadconst(0,_op1);
+     loadref(1,_op2);
+  end;
 constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
 	begin
 		inherited create(op);
@@ -268,212 +236,195 @@ constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2
 		loadref(0,_op1);
 		loadreg(1,_op2);
 	end;
-
-
-    constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadref(0,_op1);
-         loadref(1,_op2);
-      end;
-
-
-    constructor taicpu.op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadreg(0,_op1);
-         loadreg(1,_op2);
-         loadreg(2,_op3);
-      end;
+constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadref(0,_op1);
+     loadref(1,_op2);
+  end;
+constructor taicpu.op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=3;
+     loadreg(0,_op1);
+     loadreg(1,_op2);
+     loadreg(2,_op3);
+  end;
 CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:TRegister);
   BEGIN
-    INHERITED create(op);
-    init(_size);
-    ops:=3;
-    LoadReg(0,_op1);
-    LoadConst(1,_op2);
-    LoadReg(2,_op3);
+INHERITED create(op);
+init(_size);
+ops:=3;
+LoadReg(0,_op1);
+LoadConst(1,_op2);
+LoadReg(2,_op3);
   END;
-
-    constructor taicpu.op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister;const _op3:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadreg(0,_op1);
-         loadreg(1,_op2);
-         loadref(2,_op3);
-      end;
-
-
-    constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadconst(0,_op1);
-         loadref(1,_op2);
-         loadreg(2,_op3);
-      end;
-
-
-    constructor taicpu.op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=3;
-         loadconst(0,_op1);
-         loadreg(1,_op2);
-         loadref(2,_op3);
-      end;
-
-
-    constructor taicpu.op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
-      begin
-         inherited create(op);
-         init(_size);
-         condition:=cond;
-         ops:=1;
-         loadsymbol(0,_op1,0);
-      end;
-
-
-    constructor taicpu.op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=1;
-         loadsymbol(0,_op1,0);
-      end;
-
-
-    constructor taicpu.op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=1;
-         loadsymbol(0,_op1,_op1ofs);
-      end;
+constructor taicpu.op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister;const _op3:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=3;
+     loadreg(0,_op1);
+     loadreg(1,_op2);
+     loadref(2,_op3);
+  end;
+constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=3;
+     loadconst(0,_op1);
+     loadref(1,_op2);
+     loadreg(2,_op3);
+  end;
+constructor taicpu.op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=3;
+     loadconst(0,_op1);
+     loadreg(1,_op2);
+     loadref(2,_op3);
+  end;
+constructor taicpu.op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
+  begin
+     inherited create(op);
+     init(_size);
+     condition:=cond;
+     ops:=1;
+     loadsymbol(0,_op1,0);
+  end;
+constructor taicpu.op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=1;
+     loadsymbol(0,_op1,0);
+  end;
+constructor taicpu.op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=1;
+     loadsymbol(0,_op1,_op1ofs);
+  end;
+constructor taicpu.op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadsymbol(0,_op1,_op1ofs);
+     loadreg(1,_op2);
+  end;
 
 
-    constructor taicpu.op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadsymbol(0,_op1,_op1ofs);
-         loadreg(1,_op2);
-      end;
+constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
+  begin
+     inherited create(op);
+     init(_size);
+     ops:=2;
+     loadsymbol(0,_op1,_op1ofs);
+     loadref(1,_op2);
+  end;
 
-
-    constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
-      begin
-         inherited create(op);
-         init(_size);
-         ops:=2;
-         loadsymbol(0,_op1,_op1ofs);
-         loadref(1,_op2);
-      end;
-
-    function taicpu.GetString:string;
-      var
-        i:longint;
-        s:string;
-        addsize:boolean;
-      begin
-        s:='['+std_op2str[opcode];
-        for i:=1to ops do
+function taicpu.GetString:string;
+  var
+    i:longint;
+    s:string;
+    addsize:boolean;
+  begin
+    s:='['+std_op2str[opcode];
+    for i:=1to ops do
+     begin
+       if i=1 then
+        s:=s+' '
+       else
+        s:=s+',';
+       { type }
+       addsize:=false;
+       if (oper[i-1].ot and OT_XMMREG)=OT_XMMREG then
+        s:=s+'xmmreg'
+       else
+         if (oper[i-1].ot and OT_MMXREG)=OT_MMXREG then
+          s:=s+'mmxreg'
+       else
+         if (oper[i-1].ot and OT_FPUREG)=OT_FPUREG then
+          s:=s+'fpureg'
+       else
+        if (oper[i-1].ot and OT_REGISTER)=OT_REGISTER then
          begin
-           if i=1 then
-            s:=s+' '
-           else
-            s:=s+',';
-           { type }
-           addsize:=false;
-           if (oper[i-1].ot and OT_XMMREG)=OT_XMMREG then
-            s:=s+'xmmreg'
-           else
-             if (oper[i-1].ot and OT_MMXREG)=OT_MMXREG then
-              s:=s+'mmxreg'
-           else
-             if (oper[i-1].ot and OT_FPUREG)=OT_FPUREG then
-              s:=s+'fpureg'
-           else
-            if (oper[i-1].ot and OT_REGISTER)=OT_REGISTER then
-             begin
-               s:=s+'reg';
-               addsize:=true;
-             end
-           else
-            if (oper[i-1].ot and OT_IMMEDIATE)=OT_IMMEDIATE then
-             begin
-               s:=s+'imm';
-               addsize:=true;
-             end
-           else
-            if (oper[i-1].ot and OT_MEMORY)=OT_MEMORY then
-             begin
-               s:=s+'mem';
-               addsize:=true;
-             end
-           else
-             s:=s+'???';
-           { size }
-           if addsize then
-            begin
-              if (oper[i-1].ot and OT_BITS8)<>0 then
-                s:=s+'8'
-              else
-               if (oper[i-1].ot and OT_BITS16)<>0 then
-                s:=s+'16'
-              else
-               if (oper[i-1].ot and OT_BITS32)<>0 then
-                s:=s+'32'
-              else
-                s:=s+'??';
-              { signed }
-              if (oper[i-1].ot and OT_SIGNED)<>0 then
-               s:=s+'s';
-            end;
-         end;
-        GetString:=s+']';
-      end;
-
-
-    procedure taicpu.Swatoperands;
-      var
-        p:TOper;
-      begin
-        { Fix the operands which are in AT&T style and we need them in Intel style }
-        case ops of
-          2:begin
-                { 0,1 -> 1,0 }
-                p:=oper[0];
-                oper[0]:=oper[1];
-                oper[1]:=p;
-              end;
-          3:begin
-                { 0,1,2 -> 2,1,0 }
-                p:=oper[0];
-                oper[0]:=oper[2];
-                oper[2]:=p;
-              end;
+           s:=s+'reg';
+           addsize:=true;
+         end
+       else
+        if (oper[i-1].ot and OT_IMMEDIATE)=OT_IMMEDIATE then
+         begin
+           s:=s+'imm';
+           addsize:=true;
+         end
+       else
+        if (oper[i-1].ot and OT_MEMORY)=OT_MEMORY then
+         begin
+           s:=s+'mem';
+           addsize:=true;
+         end
+       else
+         s:=s+'???';
+       { size }
+       if addsize then
+        begin
+          if (oper[i-1].ot and OT_BITS8)<>0 then
+            s:=s+'8'
+          else
+           if (oper[i-1].ot and OT_BITS16)<>0 then
+            s:=s+'16'
+          else
+           if (oper[i-1].ot and OT_BITS32)<>0 then
+            s:=s+'32'
+          else
+            s:=s+'??';
+          { signed }
+          if (oper[i-1].ot and OT_SIGNED)<>0 then
+           s:=s+'s';
         end;
-      end;
+     end;
+    GetString:=s+']';
+  end;
 
 
-    procedure taicpu.SetOperandOrder(order:TOperandOrder);
-      begin
-        if FOperandOrder<>order then
-         begin
-           Swatoperands;
-           FOperandOrder:=order;
-         end;
-      end;
+procedure taicpu.Swatoperands;
+  var
+    p:TOper;
+  begin
+    { Fix the operands which are in AT&T style and we need them in Intel style }
+    case ops of
+      2:begin
+            { 0,1 -> 1,0 }
+            p:=oper[0];
+            oper[0]:=oper[1];
+            oper[1]:=p;
+          end;
+      3:begin
+            { 0,1,2 -> 2,1,0 }
+            p:=oper[0];
+            oper[0]:=oper[2];
+            oper[2]:=p;
+          end;
+    end;
+  end;
+
+
+procedure taicpu.SetOperandOrder(order:TOperandOrder);
+  begin
+    if FOperandOrder<>order then
+     begin
+       Swatoperands;
+       FOperandOrder:=order;
+     end;
+  end;
 
 
 { This check must be done with the operand in ATT order
@@ -482,53 +433,50 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
 procedure taicpu.CheckNonCommutativeOpcodes;
 begin
 {  if ((ops=2) and
-     (oper[0].typ=top_reg) and
-     (oper[1].typ=top_reg) and
-     (oper[0].reg IN [R_F0..RF31])) or
-     (ops=0) then
-      if opcode=A_FSUBR then
-        opcode:=A_FSUB
-      else if opcode=A_FSUB then
-        opcode:=A_FSUBR
-      else if opcode=A_FDIVR then
-        opcode:=A_FDIV
-      else if opcode=A_FDIV then
-        opcode:=A_FDIVR
-      else if opcode=A_FSUBRP then
-        opcode:=A_FSUBP
-      else if opcode=A_FSUBP then
-        opcode:=A_FSUBRP
-      else if opcode=A_FDIVRP then
-        opcode:=A_FDIVP
-      else if opcode=A_FDIVP then
-        opcode:=A_FDIVRP;
+ (oper[0].typ=top_reg) and
+ (oper[1].typ=top_reg) and
+ (oper[0].reg IN [R_F0..RF31])) or
+ (ops=0) then
+  if opcode=A_FSUBR then
+    opcode:=A_FSUB
+  else if opcode=A_FSUB then
+    opcode:=A_FSUBR
+  else if opcode=A_FDIVR then
+    opcode:=A_FDIV
+  else if opcode=A_FDIV then
+    opcode:=A_FDIVR
+  else if opcode=A_FSUBRP then
+    opcode:=A_FSUBP
+  else if opcode=A_FSUBP then
+    opcode:=A_FSUBRP
+  else if opcode=A_FDIVRP then
+    opcode:=A_FDIVP
+  else if opcode=A_FDIVP then
+    opcode:=A_FDIVRP;
    if  ((ops=1) and
-      (oper[0].typ=top_reg) and
-      (oper[0].reg in [R_ST1..R_ST7])) then
-      if opcode=A_FSUBRP then
-        opcode:=A_FSUBP
-      else if opcode=A_FSUBP then
-        opcode:=A_FSUBRP
-      else if opcode=A_FDIVRP then
-        opcode:=A_FDIVP
-      else if opcode=A_FDIVP then
-        opcode:=A_FDIVRP;}
+  (oper[0].typ=top_reg) and
+  (oper[0].reg in [R_ST1..R_ST7])) then
+  if opcode=A_FSUBRP then
+    opcode:=A_FSUBP
+  else if opcode=A_FSUBP then
+    opcode:=A_FSUBRP
+  else if opcode=A_FDIVRP then
+    opcode:=A_FDIVP
+  else if opcode=A_FDIVP then
+    opcode:=A_FDIVRP;}
 end;
 
 
 {*****************************************************************************
-                                Assembler
+                            Assembler
 *****************************************************************************}
-
-{$ifndef NOAG386BIN}
-
 type
   ea=packed record
-    sib_present:boolean;
-    bytes:byte;
-    size:byte;
-    modrm:byte;
-    sib:byte;
+sib_present:boolean;
+bytes:byte;
+size:byte;
+modrm:byte;
+sib:byte;
   end;
 
 procedure taicpu.create_ot;
@@ -543,53 +491,53 @@ begin
   { update oper[].ot field }
   for i:=0 to ops-1 do
    with oper[i] do
-    begin
-      case typ of
-        top_reg:
-          {ot:=reg2type[reg]};
-        top_ref:
-          begin
-          { create ot field }
-            if (ot and OT_SIZE_MASK)=0 then
-              ot:=OT_MEMORY or opsize_2_type[i,opsize]
-            else
-              ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-            if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
-              ot:=ot or OT_MEM_OFFS;
-          { fix scalefactor }
-            if (ref^.index=R_NONE) then
-             ref^.scalefactor:=0
-            else
-             if (ref^.scalefactor=0) then
-              ref^.scalefactor:=1;
-          end;
-        top_const:
-          begin
-            if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
-              ot:=OT_IMM8 or OT_SIGNED
-            else
-              ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
-          end;
-        top_symbol:
-          begin
-            if LastInsOffset=-1 then
-             l:=0
-            else
-             l:=InsOffset-LastInsOffset;
-            inc(l,symofs);
-            if assigned(sym) then
-             inc(l,sym.address);
-            { instruction size will then always become 2 (PFV) }
-            relsize:=(InsOffset+2)-l;
-            if (not assigned(sym) or
-                ((sym.currbind<>AB_EXTERNAL) and (sym.address<>0))) and
-               (relsize>=-128) and (relsize<=127) then
-             ot:=OT_IMM32 or OT_SHORT
-            else
-             ot:=OT_IMM32 or OT_NEAR;
-          end;
+begin
+  case typ of
+    top_reg:
+      {ot:=reg2type[reg]};
+    top_ref:
+      begin
+      { create ot field }
+        if (ot and OT_SIZE_MASK)=0 then
+          ot:=OT_MEMORY or opsize_2_type[i,opsize]
+        else
+          ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
+        if (ref^.base=R_NONE) and (ref^.index=R_NONE) then
+          ot:=ot or OT_MEM_OFFS;
+      { fix scalefactor }
+        if (ref^.index=R_NONE) then
+         ref^.scalefactor:=0
+        else
+         if (ref^.scalefactor=0) then
+          ref^.scalefactor:=1;
       end;
-    end;
+    top_const:
+      begin
+        if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
+          ot:=OT_IMM8 or OT_SIGNED
+        else
+          ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+      end;
+    top_symbol:
+      begin
+        if LastInsOffset=-1 then
+         l:=0
+        else
+         l:=InsOffset-LastInsOffset;
+        inc(l,symofs);
+        if assigned(sym) then
+         inc(l,sym.address);
+        { instruction size will then always become 2 (PFV) }
+        relsize:=(InsOffset+2)-l;
+        if (not assigned(sym) or
+            ((sym.currbind<>AB_EXTERNAL) and (sym.address<>0))) and
+           (relsize>=-128) and (relsize<=127) then
+         ot:=OT_IMM32 or OT_SHORT
+        else
+         ot:=OT_IMM32 or OT_NEAR;
+      end;
+  end;
+end;
 end;
 
 
@@ -629,97 +577,97 @@ begin
   { Check the opcode and operands }
   if (p^.opcode<>opcode) or (p^.ops<>ops) then
    begin
-     Matches:=0;
-     exit;
+ Matches:=0;
+ exit;
    end;
 
   { Check that no spurious colons or TOs are present }
   for i:=0 to p^.ops-1 do
    if (oper[i].ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
-    begin
-      Matches:=0;
-      exit;
-    end;
+begin
+  Matches:=0;
+  exit;
+end;
 
   { Check that the operand flags all match up }
   for i:=0 to p^.ops-1 do
    begin
-     if ((p^.optypes[i] and (not oper[i].ot)) or
-         ((p^.optypes[i] and OT_SIZE_MASK) and
-          ((p^.optypes[i] xor oper[i].ot) and OT_SIZE_MASK)))<>0 then
-      begin
-        if ((p^.optypes[i] and (not oper[i].ot) and OT_NON_SIZE) or
-            (oper[i].ot and OT_SIZE_MASK))<>0 then
-         begin
-           Matches:=0;
-           exit;
-         end
-        else
-         Matches:=1;
-      end;
+ if ((p^.optypes[i] and (not oper[i].ot)) or
+     ((p^.optypes[i] and OT_SIZE_MASK) and
+      ((p^.optypes[i] xor oper[i].ot) and OT_SIZE_MASK)))<>0 then
+  begin
+    if ((p^.optypes[i] and (not oper[i].ot) and OT_NON_SIZE) or
+        (oper[i].ot and OT_SIZE_MASK))<>0 then
+     begin
+       Matches:=0;
+       exit;
+     end
+    else
+     Matches:=1;
+  end;
    end;
 
 { Check operand sizes }
   { as default an untyped size can get all the sizes, this is different
-    from nasm, but else we need to do a lot checking which opcodes want
-    size or not with the automatic size generation }
+from nasm, but else we need to do a lot checking which opcodes want
+size or not with the automatic size generation }
   asize:=longint($ffffffff);
   if (p^.flags and IF_SB)<>0 then
-    asize:=OT_BITS8
+asize:=OT_BITS8
   else if (p^.flags and IF_SW)<>0 then
-    asize:=OT_BITS16
+asize:=OT_BITS16
   else if (p^.flags and IF_SD)<>0 then
-    asize:=OT_BITS32;
+asize:=OT_BITS32;
   if (p^.flags and IF_ARMASK)<>0 then
    begin
-     siz[0]:=0;
-     siz[1]:=0;
-     siz[2]:=0;
-     if (p^.flags and IF_AR0)<>0 then
-      siz[0]:=asize
-     else if (p^.flags and IF_AR1)<>0 then
-      siz[1]:=asize
-     else if (p^.flags and IF_AR2)<>0 then
-      siz[2]:=asize;
+ siz[0]:=0;
+ siz[1]:=0;
+ siz[2]:=0;
+ if (p^.flags and IF_AR0)<>0 then
+  siz[0]:=asize
+ else if (p^.flags and IF_AR1)<>0 then
+  siz[1]:=asize
+ else if (p^.flags and IF_AR2)<>0 then
+  siz[2]:=asize;
    end
   else
    begin
    { we can leave because the size for all operands is forced to be
-     the same
-     but not if IF_SB IF_SW or IF_SD is set PM }
-     if asize=-1 then
-       exit;
-     siz[0]:=asize;
-     siz[1]:=asize;
-     siz[2]:=asize;
+ the same
+ but not if IF_SB IF_SW or IF_SD is set PM }
+ if asize=-1 then
+   exit;
+ siz[0]:=asize;
+ siz[1]:=asize;
+ siz[2]:=asize;
    end;
 
   if (p^.flags and (IF_SM or IF_SM2))<>0 then
    begin
-     if (p^.flags and IF_SM2)<>0 then
-      oprs:=2
-     else
-      oprs:=p^.ops;
-     for i:=0 to oprs-1 do
-      if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
-       begin
-         for j:=0 to oprs-1 do
-          siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
-         break;
-       end;
-    end
+ if (p^.flags and IF_SM2)<>0 then
+  oprs:=2
+ else
+  oprs:=p^.ops;
+ for i:=0 to oprs-1 do
+  if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
+   begin
+     for j:=0 to oprs-1 do
+      siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
+     break;
+   end;
+end
    else
-    oprs:=2;
+oprs:=2;
 
   { Check operand sizes }
   for i:=0 to p^.ops-1 do
    begin
-     if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
-        ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
-        { Immediates can always include smaller size }
-        ((oper[i].ot and OT_IMMEDIATE)=0) and
-         (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i].ot and OT_SIZE_MASK)) then
-      Matches:=2;
+ if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
+    ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
+    { Immediates can always include smaller size }
+    ((oper[i].ot and OT_IMMEDIATE)=0) and
+     (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i].ot and OT_SIZE_MASK)) then
+  Matches:=2;
    end;
 end;
 
@@ -727,8 +675,8 @@ end;
 procedure taicpu.ResetPass1;
 begin
   { we need to reset everything here, because the choosen insentry
-    can be invalid for a new situation where the previously optimized
-    insentry is not correct }
+can be invalid for a new situation where the previously optimized
+insentry is not correct }
   InsEntry:=nil;
   InsSize:=0;
   LastInsOffset:=-1;
@@ -739,10 +687,10 @@ procedure taicpu.ResetPass2;
 begin
   { we are here in a second pass, check if the instruction can be optimized }
   if assigned(InsEntry) and
-     ((InsEntry^.flags and IF_PASS2)<>0) then
+ ((InsEntry^.flags and IF_PASS2)<>0) then
    begin
-     InsEntry:=nil;
-     InsSize:=0;
+ InsEntry:=nil;
+ InsSize:=0;
    end;
   LastInsOffset:=-1;
 end;
@@ -757,18 +705,18 @@ begin
   optimize }
   if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
    begin
-     { We need intel style operands }
-     SetOperandOrder(op_intel);
-     { create the .ot fields }
-     create_ot;
-     { set the file postion }
-     aktfilepos:=fileinfo;
+ { We need intel style operands }
+ SetOperandOrder(op_intel);
+ { create the .ot fields }
+ create_ot;
+ { set the file postion }
+ aktfilepos:=fileinfo;
    end
   else
    begin
-     { we've already an insentry so it's valid }
-     CheckIfValid:=true;
-     exit;
+ { we've already an insentry so it's valid }
+ CheckIfValid:=true;
+ exit;
    end;
 { Lookup opcode in the table }
   InsSize:=-1;
@@ -776,47 +724,47 @@ begin
   if i=-1 then
    begin
 {$ifdef TP}
-     Message1(asmw_e_opcode_not_in_table,'');
+ Message1(asmw_e_opcode_not_in_table,'');
 {$else}
-     Message1(asmw_e_opcode_not_in_table,std_op2str[opcode]);
+ Message1(asmw_e_opcode_not_in_table,std_op2str[opcode]);
 {$endif}
-     exit;
+ exit;
    end;
 //  insentry:=@instab[i];
   while (insentry^.opcode=opcode) do
    begin
-     m:=matches(insentry);
-     if m=100 then
-      begin
-        InsSize:=calcsize(insentry);
-        {if (segprefix<>R_NONE) then
-         inc(InsSize);}{No segprefix!}
-        { For opsize if size if forced }
-        if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
+ m:=matches(insentry);
+ if m=100 then
+  begin
+    InsSize:=calcsize(insentry);
+    {if (segprefix<>R_NONE) then
+     inc(InsSize);}{No segprefix!}
+    { For opsize if size if forced }
+    if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
+       begin
+         if (insentry^.flags and IF_ARMASK)=0 then
            begin
-             if (insentry^.flags and IF_ARMASK)=0 then
+             if (insentry^.flags and IF_SB)<>0 then
                begin
-                 if (insentry^.flags and IF_SB)<>0 then
-                   begin
-                     if opsize=S_NO then
-                       opsize:=S_B;
-                   end
-                 else if (insentry^.flags and IF_SW)<>0 then
-                   begin
-                     if opsize=S_NO then
-                       opsize:=S_W;
-                   end
-                 else if (insentry^.flags and IF_SD)<>0 then
-                   begin
-                     if opsize=S_NO then
-                       opsize:=S_L;
-                   end;
+                 if opsize=S_NO then
+                   opsize:=S_B;
+               end
+             else if (insentry^.flags and IF_SW)<>0 then
+               begin
+                 if opsize=S_NO then
+                   opsize:=S_W;
+               end
+             else if (insentry^.flags and IF_SD)<>0 then
+               begin
+                 if opsize=S_NO then
+                   opsize:=S_L;
                end;
            end;
-        CheckIfValid:=true;
-        exit;
-      end;
-     inc(i);
+       end;
+    CheckIfValid:=true;
+    exit;
+  end;
+ inc(i);
 //     insentry:=@instab[i];
    end;
   if insentry^.opcode<>opcode then
@@ -837,31 +785,31 @@ begin
   optimize }
   if Insentry=nil then
    begin
-     { Check if error last time then InsSize=-1 }
-     if InsSize=-1 then
-      exit;
-     { set the file postion }
-     aktfilepos:=fileinfo;
+ { Check if error last time then InsSize=-1 }
+ if InsSize=-1 then
+  exit;
+ { set the file postion }
+ aktfilepos:=fileinfo;
    end
   else
    begin
 {$ifdef PASS2FLAG}
-     { we are here in a second pass, check if the instruction can be optimized }
-     if (InsEntry^.flags and IF_PASS2)=0 then
-      begin
-        Pass1:=InsSize;
-        exit;
-      end;
-     { update the .ot fields, some top_const can be updated }
-     create_ot;
+ { we are here in a second pass, check if the instruction can be optimized }
+ if (InsEntry^.flags and IF_PASS2)=0 then
+  begin
+    Pass1:=InsSize;
+    exit;
+  end;
+ { update the .ot fields, some top_const can be updated }
+ create_ot;
 {$endif}
    end;
 { Check if it's a valid instruction }
   if CheckIfValid then
    begin
-     LastInsOffset:=InsOffset;
-     Pass1:=InsSize;
-     exit;
+ LastInsOffset:=InsOffset;
+ Pass1:=InsSize;
+ exit;
    end;
   LastInsOffset:=-1;
 end;
@@ -871,14 +819,14 @@ var
 begin
 {  if (OT_MEMORY and (not oper[opidx].ot))=0 then
    begin
-     i:=oper[opidx].ref^.index;
-     b:=oper[opidx].ref^.base;
-     if not(i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
-        not(b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
-      begin
-        NeedAddrPrefix:=true;
-        exit;
-      end;
+ i:=oper[opidx].ref^.index;
+ b:=oper[opidx].ref^.base;
+ if not(i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
+    not(b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
+  begin
+    NeedAddrPrefix:=true;
+    exit;
+  end;
    end;}
   NeedAddrPrefix:=false;
 end;
@@ -887,27 +835,27 @@ end;
 function regval(r:tregister):byte;
 begin
   {case r of
-    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0:
-      regval:=0;
-    R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1:
-      regval:=1;
-    R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2:
-      regval:=2;
-    R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3:
-      regval:=3;
-    R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4:
-      regval:=4;
-    R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5:
-      regval:=5;
-    R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6:
-      regval:=6;
-    R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7:
-      regval:=7;
-    else}
-      begin
-        internalerror(777001);
-        regval:=0;
-      end;
+R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0:
+  regval:=0;
+R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1:
+  regval:=1;
+R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2:
+  regval:=2;
+R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3:
+  regval:=3;
+R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4:
+  regval:=4;
+R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5:
+  regval:=5;
+R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6:
+  regval:=6;
+R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7:
+  regval:=7;
+else}
+  begin
+    internalerror(777001);
+    regval:=0;
+  end;
 {  end;}
 end;
 
@@ -915,14 +863,14 @@ end;
 function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
 {const
   regs:array[0..63] of tregister=(
-    R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NONE, R_NONE, R_NONE,
-    R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NONE, R_NONE, R_NONE,
-    R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NONE, R_NONE, R_NONE,
-    R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NONE, R_NONE, R_NONE,
-    R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NONE, R_NONE, R_NONE,
-    R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NONE, R_NONE, R_NONE,
-    R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NONE, R_NONE, R_NONE,
-    R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NONE, R_NONE, R_NONE
+R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NONE, R_NONE, R_NONE,
+R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NONE, R_NONE, R_NONE,
+R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NONE, R_NONE, R_NONE,
+R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NONE, R_NONE, R_NONE,
+R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NONE, R_NONE, R_NONE,
+R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NONE, R_NONE, R_NONE,
+R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NONE, R_NONE, R_NONE,
+R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NONE, R_NONE, R_NONE
   );}
 var
   j:longint;
@@ -936,22 +884,22 @@ begin
 { register ? }
 {  if (input.typ=top_reg) then
    begin
-     j:=0;
-     while (j<=high(regs)) do
-      begin
-        if input.reg=regs[j] then
-         break;
-        inc(j);
-      end;
-     if j<=high(regs) then
-      begin
-        output.sib_present:=false;
-        output.bytes:=0;
-        output.modrm:=$c0 or (rfield shl 3) or (j shr 3);
-        output.size:=1;
-        process_ea:=true;
-      end;
-     exit;
+ j:=0;
+ while (j<=high(regs)) do
+  begin
+    if input.reg=regs[j] then
+     break;
+    inc(j);
+  end;
+ if j<=high(regs) then
+  begin
+    output.sib_present:=false;
+    output.bytes:=0;
+    output.modrm:=$c0 or (rfield shl 3) or (j shr 3);
+    output.size:=1;
+    process_ea:=true;
+  end;
+ exit;
    end;}
 { memory reference }
   i:=input.ref^.index;
@@ -962,103 +910,103 @@ begin
 { it's direct address }
   if (b=R_NONE) and (i=R_NONE) then
    begin
-     { it's a pure offset }
-     output.sib_present:=false;
-     output.bytes:=4;
-     output.modrm:=5 or (rfield shl 3);
+ { it's a pure offset }
+ output.sib_present:=false;
+ output.bytes:=4;
+ output.modrm:=5 or (rfield shl 3);
    end
   else
   { it's an indirection }
    begin
-     { 16 bit address? }
+ { 16 bit address? }
 {     if not((i in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) and
-            (b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
-      Message(asmw_e_16bit_not_supported);}
+        (b in [R_NONE,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI])) then
+  Message(asmw_e_16bit_not_supported);}
 {$ifdef OPTEA}
-     { make single reg base }
-     if (b=R_NONE) and (s=1) then
-      begin
-        b:=i;
-        i:=R_NONE;
-      end;
-     { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
+ { make single reg base }
+ if (b=R_NONE) and (s=1) then
+  begin
+    b:=i;
+    i:=R_NONE;
+  end;
+ { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
 {     if (b=R_NONE) and
-        (((s=2) and (i<>R_ESP)) or
-          (s=3) or (s=5) or (s=9)) then
-      begin
-        b:=i;
-        dec(s);
-      end;}
-     { swap ESP into base if scalefactor is 1 }
+    (((s=2) and (i<>R_ESP)) or
+      (s=3) or (s=5) or (s=9)) then
+  begin
+    b:=i;
+    dec(s);
+  end;}
+ { swap ESP into base if scalefactor is 1 }
 {     if (s=1) and (i=R_ESP) then
-      begin
-        i:=b;
-        b:=R_ESP;
-      end;}
+  begin
+    i:=b;
+    b:=R_ESP;
+  end;}
 {$endif}
-     { wrong, for various reasons }
+ { wrong, for various reasons }
 {     if (i=R_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (i<>R_NONE)) then
-      exit;}
-     { base }
+  exit;}
+ { base }
 {     case b of
-       R_EAX:base:=0;
-       R_ECX:base:=1;
-       R_EDX:base:=2;
-       R_EBX:base:=3;
-       R_ESP:base:=4;
-       R_NONE,
-       R_EBP:base:=5;
-       R_ESI:base:=6;
-       R_EDI:base:=7;
-     else
-       exit;
-     end;}
-     { index }
+   R_EAX:base:=0;
+   R_ECX:base:=1;
+   R_EDX:base:=2;
+   R_EBX:base:=3;
+   R_ESP:base:=4;
+   R_NONE,
+   R_EBP:base:=5;
+   R_ESI:base:=6;
+   R_EDI:base:=7;
+ else
+   exit;
+ end;}
+ { index }
 {     case i of
-       R_EAX:index:=0;
-       R_ECX:index:=1;
-       R_EDX:index:=2;
-       R_EBX:index:=3;
-       R_NONE:index:=4;
-       R_EBP:index:=5;
-       R_ESI:index:=6;
-       R_EDI:index:=7;
-     else
-       exit;
-     end;
-     case s of
-      0,
-      1:scalefactor:=0;
-      2:scalefactor:=1;
-      4:scalefactor:=2;
-      8:scalefactor:=3;
-     else
-      exit;
-     end;
-     if (b=R_NONE) or
-        ((b<>R_EBP) and (o=0) and (sym=nil)) then
-      md:=0
-     else
-      if ((o>=-128) and (o<=127) and (sym=nil)) then
-       md:=1
-      else
-       md:=2;
-     if (b=R_NONE) or (md=2) then
-      output.bytes:=4
-     else
-      output.bytes:=md;}
-     { SIB needed ? }
+   R_EAX:index:=0;
+   R_ECX:index:=1;
+   R_EDX:index:=2;
+   R_EBX:index:=3;
+   R_NONE:index:=4;
+   R_EBP:index:=5;
+   R_ESI:index:=6;
+   R_EDI:index:=7;
+ else
+   exit;
+ end;
+ case s of
+  0,
+  1:scalefactor:=0;
+  2:scalefactor:=1;
+  4:scalefactor:=2;
+  8:scalefactor:=3;
+ else
+  exit;
+ end;
+ if (b=R_NONE) or
+    ((b<>R_EBP) and (o=0) and (sym=nil)) then
+  md:=0
+ else
+  if ((o>=-128) and (o<=127) and (sym=nil)) then
+   md:=1
+  else
+   md:=2;
+ if (b=R_NONE) or (md=2) then
+  output.bytes:=4
+ else
+  output.bytes:=md;}
+ { SIB needed ? }
 {     if (i=R_NONE) and (b<>R_ESP) then
-      begin
-        output.sib_present:=false;
-        output.modrm:=(md shl 6) or (rfield shl 3) or base;
-      end
-     else
-      begin
-        output.sib_present:=true;
-        output.modrm:=(md shl 6) or (rfield shl 3) or 4;
-        output.sib:=(scalefactor shl 6) or (index shl 3) or base;
-      end;}
+  begin
+    output.sib_present:=false;
+    output.modrm:=(md shl 6) or (rfield shl 3) or base;
+  end
+ else
+  begin
+    output.sib_present:=true;
+    output.modrm:=(md shl 6) or (rfield shl 3) or 4;
+    output.sib:=(scalefactor shl 6) or (index shl 3) or base;
+  end;}
    end;
   if output.sib_present then
    output.size:=2+output.bytes
@@ -1078,90 +1026,91 @@ begin
   len:=0;
   codes:=@p^.code;
   repeat
-    c:=ord(codes^);
-    inc(codes);
-    case c of
-      0:
-        break;
-      1,2,3:
-        begin
-          inc(codes,c);
-          inc(len,c);
-        end;
-      8,9,10:
-        begin
-          inc(codes);
-          inc(len);
-        end;
-      4,5,6,7:
-        begin
-          if opsize=S_W then
-            inc(len,2)
-          else
-            inc(len);
-        end;
-      15,
-      12,13,14,
-      16,17,18,
-      20,21,22,
-      40,41,42:
-        inc(len);
-      24,25,26,
-      31,
-      48,49,50:
-        inc(len,2);
-      28,29,30, { we don't have 16 bit immediates code }
-      32,33,34,
-      52,53,54,
-      56,57,58:
-        inc(len,4);
-      192,193,194:
-        if NeedAddrPrefix(c-192) then
-         inc(len);
-      208:
-        inc(len);
-      200,
-      201,
-      202,
-      209,
-      210,
-      217,218,219:;
-      216:
-        begin
-          inc(codes);
-          inc(len);
-        end;
-      224,225,226:
-        begin
-          InternalError(777002);
-        end;
-      else
-        begin
-          if (c>=64) and (c<=191) then
-           begin
-             if not process_ea(oper[(c shr 3) and 7], ea_data, 0) then
-              Message(asmw_e_invalid_effective_address)
-             else
-              inc(len,ea_data.size);
-           end
-          else
-           InternalError(777003);
-        end;
+c:=ord(codes^);
+inc(codes);
+case c of
+  0:
+    break;
+  1,2,3:
+    begin
+      inc(codes,c);
+      inc(len,c);
     end;
+  8,9,10:
+    begin
+      inc(codes);
+      inc(len);
+    end;
+  4,5,6,7:
+    begin
+      if opsize=S_W then
+        inc(len,2)
+      else
+        inc(len);
+    end;
+  15,
+  12,13,14,
+  16,17,18,
+  20,21,22,
+  40,41,42:
+    inc(len);
+  24,25,26,
+  31,
+  48,49,50:
+    inc(len,2);
+  28,29,30, { we don't have 16 bit immediates code }
+  32,33,34,
+  52,53,54,
+  56,57,58:
+    inc(len,4);
+  192,193,194:
+    if NeedAddrPrefix(c-192) then
+     inc(len);
+  208:
+    inc(len);
+  200,
+  201,
+  202,
+  209,
+  210,
+  217,218,219:;
+  216:
+    begin
+      inc(codes);
+      inc(len);
+    end;
+  224,225,226:
+    begin
+      InternalError(777002);
+    end;
+  else
+    begin
+      if (c>=64) and (c<=191) then
+       begin
+         if not process_ea(oper[(c shr 3) and 7], ea_data, 0) then
+          Message(asmw_e_invalid_effective_address)
+         else
+          inc(len,ea_data.size);
+       end
+      else
+       InternalError(777003);
+    end;
+end;
   until false;
   calcsize:=len;
 end;
-{$endif NOAG386BIN}
-PROCEDURE DoneAsm;
-  BEGIN
-  END;
-PROCEDURE InitAsm;
-  BEGIN
-  END;
+procedure DoneAsm;
+  begin
+  end;
+procedure InitAsm;
+  begin
+  end;
 end.
 {
     $Log$
-    Revision 1.4  2002-10-13 21:46:07  mazen
-    * assembler output format fixed
+    Revision 1.5  2002-10-15 09:00:28  mazen
+    * sone coding style modified
 
+    Revision 1.4  2002/10/13 21:46:07  mazen
+    * assembler output format fixed
 }

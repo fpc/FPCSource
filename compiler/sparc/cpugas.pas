@@ -50,56 +50,6 @@ var
       infile,
       lastinfile:tinputfile;
       symendcount:longint;
-function fixline(s:string):string;
-{return s with all leading and ending spaces and tabs removed}
-  var
-    i,j,k:longint;
-  begin
-    i:=length(s);
-    while (i>0) and (s[i] in [#9,' ']) do
-    dec(i);
-    j:=1;
-    while (j<i) and (s[j] in [#9,' ']) do
-      inc(j);
-    for k:=j to i do
-      if s[k] in [#0..#31,#127..#255]
-      then
-        s[k]:='.';
-      fixline:=Copy(s,j,i-j+1);
-     end;
-function single2str(d:single):string;
-  var
-    hs:string;
-  begin
-    str(d,hs);
-    {replace space with +}
-    if hs[1]=' '
-    then
-      hs[1]:='+';
-    single2str:='0d'+hs
-  end;
-function double2str(d:double):string;
-  var
-    hs:string;
-  begin
-    str(d,hs);
-    { replace space with + }
-    if hs[1]=' '
-    then
-      hs[1]:='+';
-    double2str:='0d'+hs
-  end;
-function extended2str(e:extended):string;
-   var
-     hs:string;
-   begin
-     str(e,hs);
-    { replace space with + }
-     if hs[1]=' '
-     then
-       hs[1]:='+';
-     extended2str:='0d'+hs
-   end;
 function GetReferenceString(var ref:TReference):string;
   var
     s:string;
@@ -191,7 +141,7 @@ function getopstr(const Oper:TOper):string;
           internalerror(10001);
       end;
     end;
-
+(*
 function getopstr_jmp(const Oper:TOper):string;
   var
     hs:string;
@@ -217,9 +167,9 @@ function getopstr_jmp(const Oper:TOper):string;
         else
           internalerror(10001);
       end;
-    end;
+    end;*)
 {****************************************************************************
-                            TISPARCATTASMOUTPUT
+                            TSPARCATTASMOUTPUT
  ****************************************************************************}
 procedure TGasSPARC.WriteInstruction(hp:Tai);
 	var
@@ -275,6 +225,12 @@ const
               {sec_stabstr} '.stabstr',
               {sec_common}'.note')    {note info}
   );
-INITIALIZATION
+initialization
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
-END.
+end.
+{
+    $Log$
+    Revision 1.6  2002-10-15 09:00:28  mazen
+    * sone coding style modified
+
+}
