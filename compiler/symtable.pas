@@ -116,10 +116,7 @@ interface
 
        tabstractlocalsymtable = class(tstoredsymtable)
        public
-          procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
        end;
 
        tlocalsymtable = class(tabstractlocalsymtable)
@@ -1185,26 +1182,10 @@ implementation
                           TAbstractLocalSymtable
 ****************************************************************************}
 
-    procedure tabstractlocalsymtable.ppuload(ppufile:tcompilerppufile);
-      var
-        storesymtable : tsymtable;
-      begin
-        storesymtable:=aktlocalsymtable;
-        aktlocalsymtable:=self;
-
-        inherited ppuload(ppufile);
-
-        aktlocalsymtable:=storesymtable;
-      end;
-
-
    procedure tabstractlocalsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
-        storesymtable : tsymtable;
       begin
-         storesymtable:=aktlocalsymtable;
-         aktlocalsymtable:=self;
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
 
@@ -1214,33 +1195,6 @@ implementation
          writesyms(ppufile);
 
          ppufile.entrytyp:=oldtyp;
-         aktlocalsymtable:=storesymtable;
-      end;
-
-
-    procedure tabstractlocalsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        storesymtable : tsymtable;
-      begin
-        storesymtable:=aktlocalsymtable;
-        aktlocalsymtable:=self;
-
-        inherited load_references(ppufile,locals);
-
-        aktlocalsymtable:=storesymtable;
-      end;
-
-
-    procedure tabstractlocalsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        storesymtable : tsymtable;
-      begin
-        storesymtable:=aktlocalsymtable;
-        aktlocalsymtable:=self;
-
-        inherited write_references(ppufile,locals);
-
-        aktlocalsymtable:=storesymtable;
       end;
 
 
@@ -2474,7 +2428,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-06-13 21:19:31  peter
+  Revision 1.108  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.107  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.106  2003/06/09 18:26:27  peter

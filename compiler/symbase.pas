@@ -140,10 +140,12 @@ interface
 
        defaultsymtablestack : tsymtable;  { symtablestack after default units have been loaded }
        symtablestack     : tsymtable;     { linked list of symtables }
-       aktrecordsymtable : tsymtable;     { current record read from ppu symtable }
-       aktstaticsymtable : tsymtable;     { current static for local ppu symtable }
-       aktglobalsymtable : tsymtable;     { current global for local ppu symtable }
-       aktlocalsymtable  : tsymtable;     { current proc local for local ppu symtable }
+
+       aktrecordsymtable : tsymtable;     { current record symtable }
+       aktstaticsymtable : tsymtable;     { current static symtable }
+       aktglobalsymtable : tsymtable;     { current global symtable }
+       aktparasymtable   : tsymtable;     { current proc para symtable }
+       aktlocalsymtable  : tsymtable;     { current proc local symtable }
 
 
 implementation
@@ -319,7 +321,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2003-06-07 20:26:32  peter
+  Revision 1.14  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.13  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

@@ -91,16 +91,19 @@ const
 
 type
   { Deref entry options }
-  tdereftype = (derefnil,
-    derefaktrecordindex,
-    derefaktstaticindex,
-    derefaktglobalindex,
-    derefaktlocalindex,
-    derefunit,
-    derefrecord,
-    derefindex,
-    dereflocal,
-    derefpara
+  tdereftype = (deref_nil,
+    deref_sym,
+    deref_def,
+    deref_aktrecord,
+    deref_aktstatic,
+    deref_aktglobal,
+    deref_aktlocal,
+    deref_aktpara,
+    deref_unit,
+    deref_record,
+    deref_local,
+    deref_para,
+    deref_parent_object
   );
 
   { symbol options }
@@ -353,7 +356,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-06-07 20:26:32  peter
+  Revision 1.58  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.57  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

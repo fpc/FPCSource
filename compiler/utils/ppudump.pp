@@ -436,16 +436,19 @@ end;
 
 procedure readderef;
 type
-  tdereftype = (derefnil,
-    derefaktrecordindex,
-    derefaktstaticindex,
-    derefaktglobalindex,
-    derefaktlocalindex,
-    derefunit,
-    derefrecord,
-    derefindex,
-    dereflocal,
-    derefpara
+  tdereftype = (deref_nil,
+    deref_sym,
+    deref_def,
+    deref_aktrecord,
+    deref_aktstatic,
+    deref_aktglobal,
+    deref_aktlocal,
+    deref_aktpara,
+    deref_unit,
+    deref_record,
+    deref_local,
+    deref_para,
+    deref_parent_object
   );
 var
   b : tdereftype;
@@ -463,14 +466,6 @@ begin
      writeln('!! Error, deref len < 1');
      exit;
    end;
-  typ:=ppufile.getbyte;
-  case typ of
-    0 : write('Nil');
-    1 : s:='Symbol';
-    2 : s:='Definition';
-    else write('!! Error, unknown deref destination type');
-  end;
-  inc(i);
   while (i<n) do
    begin
      if not first then
@@ -478,30 +473,49 @@ begin
      else
       first:=false;
      b:=tdereftype(ppufile.getbyte);
-     idx:=ppufile.getbyte shl 8;
-     idx:=idx or ppufile.getbyte;
-     inc(i,3);
+     inc(i);
      case b of
-       derefnil :
-         write('!! Error (nil)');
-       derefaktrecordindex :
-         write('AktRecord ',s,' ',idx);
-       derefaktstaticindex :
-         write('AktStatic ',s,' ',idx);
-       derefaktglobalindex :
-         write('AktGlobal ',s,' ',idx);
-       derefaktlocalindex :
-         write('AktLocal ',s,' ',idx);
-       derefunit :
-         write('Unit ',idx);
-       derefrecord :
-         write('RecordDef ',idx);
-       derefpara :
-         write('Parameter of procdef ',idx);
-       dereflocal :
-         write('Local of procdef ',idx);
-       derefindex :
-         write(s,' ',idx);
+       deref_nil :
+         write('Nil');
+       deref_def :
+         begin
+           idx:=ppufile.getbyte shl 8;
+           idx:=idx or ppufile.getbyte;
+           inc(i,2);
+           write('Definition ',idx);
+         end;
+       deref_sym :
+         begin
+           idx:=ppufile.getbyte shl 8;
+           idx:=idx or ppufile.getbyte;
+           inc(i,2);
+           write('Symbol ',idx);
+         end;
+       deref_aktrecord :
+         write('AktRecord');
+       deref_aktstatic :
+         write('AktStatic');
+       deref_aktglobal :
+         write('AktGlobal');
+       deref_aktlocal :
+         write('AktLocal');
+       deref_aktpara :
+         write('AktPara');
+       deref_unit :
+         begin
+           idx:=ppufile.getbyte shl 8;
+           idx:=idx or ppufile.getbyte;
+           inc(i,2);
+           write('Unit ',idx);
+         end;
+       deref_record :
+         write('RecordDef');
+       deref_para :
+         write('Parameter of procdef');
+       deref_local :
+         write('Local of procdef');
+       deref_parent_object :
+         write('Parent object');
        else
          begin
            writeln('!! unsupported dereftyp: ',ord(b));
@@ -1937,7 +1951,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-06-09 12:59:00  peter
+  Revision 1.45  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.44  2003/06/09 12:59:00  peter
     * updated for new deref info
 
   Revision 1.43  2003/06/05 20:06:11  peter

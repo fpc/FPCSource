@@ -276,6 +276,7 @@ interface
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
+          function  getparentdef:tdef;override;
           function  size : longint;override;
           function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
@@ -451,6 +452,7 @@ interface
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure deref;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  size : longint;override;
           function  gettypename:string;override;
@@ -3178,15 +3180,11 @@ implementation
     procedure tabstractprocdef.deref;
       var
          hp : TParaItem;
-         oldlocalsymtable : tsymtable;
       begin
          inherited deref;
          rettype.resolve;
          { parast }
-         oldlocalsymtable:=aktlocalsymtable;
-         aktlocalsymtable:=parast;
          tparasymtable(parast).deref;
-         aktlocalsymtable:=oldlocalsymtable;
          { paraitems }
          hp:=TParaItem(Para.first);
          while assigned(hp) do
@@ -3551,7 +3549,14 @@ implementation
     procedure tprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
         oldintfcrc : boolean;
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
       begin
+         oldparasymtable:=aktparasymtable;
+         oldlocalsymtable:=aktlocalsymtable;
+         aktparasymtable:=parast;
+         aktlocalsymtable:=localst;
+
          inherited ppuwrite(ppufile);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
@@ -3608,6 +3613,9 @@ implementation
             tlocalsymtable(localst).ppuwrite(ppufile);
             ppufile.do_crc:=oldintfcrc;
           end;
+
+         aktparasymtable:=oldparasymtable;
+         aktlocalsymtable:=oldlocalsymtable;
       end;
 
 
@@ -3736,7 +3744,14 @@ implementation
       var
         pos : tfileposinfo;
         move_last : boolean;
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
       begin
+        oldparasymtable:=aktparasymtable;
+        oldlocalsymtable:=aktlocalsymtable;
+        aktparasymtable:=parast;
+        aktlocalsymtable:=localst;
+
         move_last:=lastwritten=lastref;
         while (not ppufile.endofentry) do
          begin
@@ -3755,6 +3770,9 @@ implementation
              tparasymtable(parast).load_references(ppufile,locals);
              tlocalsymtable(localst).load_references(ppufile,locals);
           end;
+
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
       end;
 
 
@@ -3767,6 +3785,8 @@ implementation
         pdo : tobjectdef;
         move_last : boolean;
         d : tderef;
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
       begin
         d.reset;
         move_last:=lastwritten=lastref;
@@ -3774,6 +3794,10 @@ implementation
            (((current_module.flags and uf_local_browser)=0) or
             not locals) then
           exit;
+        oldparasymtable:=aktparasymtable;
+        oldlocalsymtable:=aktlocalsymtable;
+        aktparasymtable:=parast;
+        aktlocalsymtable:=localst;
       { write address of this symbol }
         ppufile.putderef(self,d);
       { write refs }
@@ -3829,6 +3853,8 @@ implementation
                     pdo:=pdo.childof;
                  end;
           end;
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
       end;
 
 {$ifdef GDB}
@@ -3937,29 +3963,43 @@ implementation
 
 
     procedure tprocdef.deref;
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
       begin
+         oldparasymtable:=aktparasymtable;
+         oldlocalsymtable:=aktlocalsymtable;
+         aktparasymtable:=parast;
+         aktlocalsymtable:=localst;
+
          inherited deref;
          _class:=tobjectdef(_classderef.resolve);
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
+
+         aktparasymtable:=oldparasymtable;
+         aktlocalsymtable:=oldlocalsymtable;
       end;
 
 
     procedure tprocdef.derefimpl;
       var
+        oldparasymtable,
         oldlocalsymtable : tsymtable;
       begin
+         oldparasymtable:=aktparasymtable;
+         oldlocalsymtable:=aktlocalsymtable;
+         aktparasymtable:=parast;
+         aktlocalsymtable:=localst;
+
          { locals }
          if assigned(localst) then
           begin
             { localst }
-            oldlocalsymtable:=aktlocalsymtable;
-            aktlocalsymtable:=localst;
             { we can deref both interface and implementation parts }
             tlocalsymtable(localst).deref;
             tlocalsymtable(localst).derefimpl;
-            aktlocalsymtable:=oldlocalsymtable;
             { funcretsym, this is always located in the localst }
             funcretsym:=tsym(funcretsymderef.resolve);
           end
@@ -3972,6 +4012,9 @@ implementation
         { inline tree }
         if (proccalloption=pocall_inline) then
           code.derefimpl;
+
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
       end;
 
 
@@ -4110,22 +4153,50 @@ implementation
 
 
     procedure tprocvardef.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
       begin
-         { here we cannot get a real good value so just give something }
-         { plausible (PM) }
-         { a more secure way would be
-           to allways store in a temp }
-         if is_fpu(rettype.def) then
-           fpu_used:={2}maxfpuregs
-         else
-           fpu_used:=0;
-         inherited ppuwrite(ppufile);
+        oldparasymtable:=aktparasymtable;
+        oldlocalsymtable:=aktlocalsymtable;
+        aktparasymtable:=parast;
+        aktlocalsymtable:=nil;
 
-         { Write this entry }
-         ppufile.writeentry(ibprocvardef);
+        { here we cannot get a real good value so just give something }
+        { plausible (PM) }
+        { a more secure way would be
+          to allways store in a temp }
+        if is_fpu(rettype.def) then
+          fpu_used:={2}maxfpuregs
+        else
+          fpu_used:=0;
+        inherited ppuwrite(ppufile);
 
-         { Save the para symtable, this is taken from the interface }
-         tparasymtable(parast).ppuwrite(ppufile);
+        { Write this entry }
+        ppufile.writeentry(ibprocvardef);
+
+        { Save the para symtable, this is taken from the interface }
+        tparasymtable(parast).ppuwrite(ppufile);
+
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
+      end;
+
+
+    procedure tprocvardef.deref;
+      var
+        oldparasymtable,
+        oldlocalsymtable : tsymtable;
+      begin
+        oldparasymtable:=aktparasymtable;
+        oldlocalsymtable:=aktlocalsymtable;
+        aktparasymtable:=parast;
+        aktlocalsymtable:=nil;
+
+        inherited deref;
+
+        aktparasymtable:=oldparasymtable;
+        aktlocalsymtable:=oldlocalsymtable;
       end;
 
 
@@ -4467,6 +4538,12 @@ implementation
          aktrecordsymtable:=oldrecsyms;
          if objecttype in [odt_class,odt_interfacecorba] then
            implementedinterfaces.deref;
+      end;
+
+
+    function tobjectdef.getparentdef:tdef;
+      begin
+        result:=childof;
       end;
 
 
@@ -5767,7 +5844,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2003-06-17 16:34:44  jonas
+  Revision 1.153  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.152  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent

@@ -2068,7 +2068,17 @@ type
                  (paralength<procdefinition.maxparacount) then
                begin
                  currpara:=tparaitem(procdefinition.Para.first);
-                 for i:=1 to paralength do
+                 i:=0;
+                 while (i<paralength) do
+                  begin
+                    if not assigned(currpara) then
+                      internalerror(200306181);
+                    if not currpara.is_hidden then
+                      inc(i);
+                    currpara:=tparaitem(currpara.next);
+                  end;
+                 while assigned(currpara) and
+                       currpara.is_hidden do
                    currpara:=tparaitem(currpara.next);
                  while assigned(currpara) do
                   begin
@@ -2635,7 +2645,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.172  2003-06-17 16:34:44  jonas
+  Revision 1.173  2003-06-25 18:31:23  peter
+    * sym,def resolving partly rewritten to support also parent objects
+      not directly available through the uses clause
+
+  Revision 1.172  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
