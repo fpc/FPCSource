@@ -352,7 +352,14 @@ implementation
                 not (p^.concat_string) then
                 begin
                   if is_ansistring(p^.right^.resulttype) then
-                    loadansi2short(p^.right,p^.left)
+                    begin
+                      if (p^.right^.treetype=stringconstn) and
+                         (p^.length=0) then
+                        exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                          0,newreference(p^.left^.location.reference))))
+                      else
+                        loadansi2short(p^.right,p^.left);
+                    end
                   else
                     begin
                        { we do not need destination anymore }
@@ -679,7 +686,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1998-11-16 15:35:39  peter
+  Revision 1.28  1998-11-17 11:32:44  peter
+    * optimize str:='' in H+ mode
+    + -! to test ansistrings
+
+  Revision 1.27  1998/11/16 15:35:39  peter
     * rename laod/copystring -> load/copyshortstring
     * fixed int-bool cnv bug
     + char-ansistring conversion
