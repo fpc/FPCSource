@@ -770,6 +770,7 @@
          if read_member then
            writelong(address);
          writedefref(definition);
+         writebyte(var_options and (not vo_regable));
          writebyte(byte(abstyp));
          case abstyp of
            tovar : writestring(ref^.name);
@@ -857,12 +858,32 @@
          reg:=R_NO;
       end;
 
-    constructor tvarsym.load;
 
+    constructor tvarsym.init_dll(const n : string;p : pdef);
+      begin
+      { The tvarsym is necessary for 0.99.5 (PFV) }
+         tvarsym.init(n,p);
+         var_options:=var_options or vo_is_dll_var;
+      end;
+
+
+    constructor tvarsym.init_C(const n,mangled : string;p : pdef);
+      begin
+      { The tvarsym is necessary for 0.99.5 (PFV) }
+         tvarsym.init(n,p);
+         var_options:=var_options or vo_is_C_var;
+         setmangledname(mangled);
+      end;
+
+
+    constructor tvarsym.load;
       begin
          tsym.load;
          typ:=varsym;
          _mangledname:=nil;
+         reg:=R_NO;
+         refs := 0;
+         is_valid := 1;
          varspez:=tvarspez(readbyte);
          if read_member then
            address:=readlong
@@ -873,60 +894,37 @@
          islocalcopy:=false;
 {$endif}
          definition:=readdefref;
-         refs := 0;
-         is_valid := 1;
-         { symbols which are load are never candidates for a register }
-         var_options:=0;
-         { was regable:=false; }
-         reg:=R_NO;
-      end;
-
-    constructor tvarsym.init_C(const n,mangled : string;p : pdef);
-
-      begin
-      { The tvarsym is necessary for 0.99.5 (PFV) }
-         tvarsym.init(n,p);
-         var_options:=var_options or vo_is_C_var;
-         { C prefix not allways added moved to
-           pdecl PM }
-         _mangledname:=strpnew(mangled);
-      end;
-
-    constructor tvarsym.load_C;
-
-      begin
-      { Adding tvarsym removes the warning }
-         tvarsym.load;
-         typ:=varsym;
          var_options:=readbyte;
-         _mangledname:=strpnew(readstring);
+         if (var_options and vo_is_C_var)<>0 then
+           setmangledname(readstring);
       end;
+
 
     procedure tvarsym.deref;
-
       begin
          resolvedef(definition);
       end;
 
-    procedure tvarsym.write;
 
+    procedure tvarsym.write;
       begin
          tsym.write;
          writebyte(byte(varspez));
-
          if read_member then
           writelong(address);
-
          writedefref(definition);
+         { symbols which are load are never candidates for a register,
+           turn of the regable }
+         writebyte(var_options and (not vo_regable));
          if (var_options and vo_is_C_var)<>0 then
-           begin
-              writebyte(var_options);
-              writestring(mangledname);
-           end;
-         if (var_options and vo_is_C_var)<>0 then
-           current_ppu^.writeentry(ibvarsym_C)
-         else
-           current_ppu^.writeentry(ibvarsym);
+            writestring(mangledname);
+         current_ppu^.writeentry(ibvarsym);
+      end;
+
+
+    procedure tvarsym.setmangledname(const s : string);
+      begin
+        _mangledname:=strpnew(s);
       end;
 
 
@@ -951,6 +949,7 @@
            end;
          mangledname:=prefix+name;
       end;
+
 
 {$ifndef VALUEPARA}
     function tvarsym.getsize : longint;
@@ -1804,7 +1803,10 @@
 
 {
   $Log$
-  Revision 1.62  1998-11-27 14:50:48  peter
+  Revision 1.63  1998-11-28 16:20:56  peter
+    + support for dll variables
+
+  Revision 1.62  1998/11/27 14:50:48  peter
     + open strings, $P switch support
 
   Revision 1.61  1998/11/18 15:44:18  peter

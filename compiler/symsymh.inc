@@ -185,18 +185,19 @@
           varspez      : tvarspez;  { sets the type of access }
           is_valid     : byte;
           constructor init(const n : string;p : pdef);
-          constructor load;
+          constructor init_dll(const n : string;p : pdef);
           constructor init_C(const n,mangled : string;p : pdef);
-          constructor load_C;
+          constructor load;
           destructor done;virtual;
-          function mangledname : string;virtual;
-          procedure insert_in_data;virtual;
-          function getsize : longint;
-{$ifdef VALUEPARA}
-          function getpushsize : longint;
-{$endif}
           procedure write;virtual;
           procedure deref;virtual;
+          procedure setmangledname(const s : string);
+          function  mangledname : string;virtual;
+          procedure insert_in_data;virtual;
+          function  getsize : longint;
+{$ifdef VALUEPARA}
+          function  getpushsize : longint;
+{$endif}
 {$ifdef GDB}
           function stabstring : pchar;virtual;
           procedure concatstabto(asmlist : paasmoutput);virtual;
@@ -326,7 +327,10 @@
 
 {
   $Log$
-  Revision 1.8  1998-11-18 15:44:19  peter
+  Revision 1.9  1998-11-28 16:20:57  peter
+    + support for dll variables
+
+  Revision 1.8  1998/11/18 15:44:19  peter
     * VALUEPARA for tp7 compatible value parameters
 
   Revision 1.7  1998/11/16 10:13:50  peter

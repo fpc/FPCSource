@@ -56,7 +56,7 @@ unit pdecl;
 
     uses
        cobjects,scanner,aasm,tree,pass_1,
-       files,types,hcodegen,verbose,systems
+       files,types,hcodegen,verbose,systems,import
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -76,7 +76,7 @@ unit pdecl;
     { search in symtablestack used, but not defined type }
     procedure testforward_type(p : psym);{$ifndef FPC}far;{$endif}
       var
-        recsymtable : psymtable;
+        reaktvarsymtable : psymtable;
         oldaktfilepos : tfileposinfo;
       begin
          if not(p^.typ=typesym) then
@@ -95,13 +95,13 @@ unit pdecl;
           if (ptypesym(p)^.definition^.deftype in [recorddef,objectdef]) then
            begin
              if (ptypesym(p)^.definition^.deftype=recorddef) then
-               recsymtable:=precdef(ptypesym(p)^.definition)^.symtable
+               reaktvarsymtable:=precdef(ptypesym(p)^.definition)^.symtable
              else
-               recsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
+               reaktvarsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
            {$ifdef tp}
-             recsymtable^.foreach(testforward_type);
+             reaktvarsymtable^.foreach(testforward_type);
            {$else}
-             recsymtable^.foreach(@testforward_type);
+             reaktvarsymtable^.foreach(@testforward_type);
            {$endif}
            end;
       end;
@@ -258,9 +258,10 @@ unit pdecl;
          l    : longint;
          code : word;
          { c var }
-         Csym : pvarsym;
          newtype : ptypesym;
-         is_gpc_name,is_cdecl,extern_Csym,export_Csym : boolean;
+         is_dll,
+         is_gpc_name,is_cdecl,extern_aktvarsym,export_aktvarsym : boolean;
+         dll_name,
          C_name : string;
          { case }
          p,casedef : pdef;
@@ -303,11 +304,11 @@ unit pdecl;
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
-                  Csym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
+                  aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
                   tokenpos:=storetokenpos;
-                  Csym^.var_options:=Csym^.var_options or vo_is_external;
-                  externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
-                  symtablestack^.insert(Csym);
+                  aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+                  externals^.concat(new(pai_external,init(aktvarsym^.mangledname,EXT_NEAR)));
+                  symtablestack^.insert(aktvarsym);
                   symdone:=true;
                end;
            { check for absolute }
@@ -412,9 +413,10 @@ unit pdecl;
                     Message(parser_e_absolute_only_one_var);
                    dispose(sc,done);
                    { defaults }
+                   is_dll:=false;
                    is_cdecl:=false;
-                   extern_csym:=false;
-                   export_Csym:=false;
+                   extern_aktvarsym:=false;
+                   export_aktvarsym:=false;
                    { cdecl }
                    if idtoken=_CVAR then
                     begin
@@ -427,20 +429,27 @@ unit pdecl;
                    if idtoken=_EXTERNAL then
                     begin
                       consume(_EXTERNAL);
-                      extern_csym:=true;
+                      extern_aktvarsym:=true;
                     end;
                    { export }
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
                       consume(ID);
-                      if extern_csym then
+                      if extern_aktvarsym then
                        Message(parser_e_not_external_and_export)
                       else
-                       export_Csym:=true;
+                       export_aktvarsym:=true;
                     end;
                  { external and export need a name after when no cdecl is used }
                    if not is_cdecl then
                     begin
+                      { dll name ? }
+                      if (extern_aktvarsym) and (token=CSTRING) then
+                       begin
+                         is_dll:=true;
+                         dll_name:=pattern;
+                         consume(CSTRING);
+                       end;
                       consume(_NAME);
                       C_name:=pattern;
                     { allow also char }
@@ -450,22 +459,39 @@ unit pdecl;
                        consume(CSTRING);
                     end;
                  { consume the ; when export or external is used }
-                   if extern_csym or export_csym then
+                   if extern_aktvarsym or export_aktvarsym then
                     consume(SEMICOLON);
                    { insert in the symtable }
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
-                   Csym:=new(pvarsym,init_C(s,C_name,p));
+                   if is_dll then
+                    aktvarsym:=new(pvarsym,init_dll(s,p))
+                   else
+                    aktvarsym:=new(pvarsym,init_C(s,C_name,p));
                    tokenpos:=storetokenpos;
-                   if export_Csym then
-                    inc(Csym^.refs);
-                   if extern_Csym then
+                   { set some vars options }
+                   if export_aktvarsym then
+                    inc(aktvarsym^.refs);
+                   if extern_aktvarsym then
+                      aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+                   { insert in the stack/datasegment }
+                   symtablestack^.insert(aktvarsym);
+                   { now we can insert it in the import lib if its a dll, or
+                     add it to the externals }
+                   if extern_aktvarsym then
                     begin
-                      Csym^.var_options:=Csym^.var_options or vo_is_external;
-                      { correct type ?? }
-                      externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
+                      if is_dll then
+                       begin
+                         if not(current_module^.uses_imports) then
+                          begin
+                            current_module^.uses_imports:=true;
+                            importlib^.preparelib(current_module^.modulename^);
+                          end;
+                         importlib^.importvariable(aktvarsym^.mangledname,dll_name,C_name)
+                       end
+                      else
+                      externals^.concat(new(pai_external,init(aktvarsym^.mangledname,EXT_NEAR)));
                     end;
-                   symtablestack^.insert(Csym);
                    symdone:=true;
                  end
                 else
@@ -1037,7 +1063,7 @@ unit pdecl;
          hs         : string;
          pcrd       : pclassrefdef;
          hp1        : pdef;
-         oldprocsym : Pprocsym;
+         oldprocsym : pprocsym;
          oldparse_only : boolean;
          classnamelabel : plabel;
          storetypeforwardsallowed : boolean;
@@ -2097,7 +2123,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.85  1998-11-27 14:34:43  peter
+  Revision 1.86  1998-11-28 16:20:52  peter
+    + support for dll variables
+
+  Revision 1.85  1998/11/27 14:34:43  peter
     * give error when string[0] decl is found
 
   Revision 1.84  1998/11/17 10:40:15  peter

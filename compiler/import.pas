@@ -26,19 +26,22 @@ uses
   cobjects;
 
 type
-   pimported_procedure = ^timported_procedure;
-   timported_procedure = object(tlinkedlist_item)
-      ordnr : word;
-      name,func : pstring;
-      lab : pointer; { should be plabel, but this gaves problems with circular units }
+   pimported_item = ^timported_item;
+   timported_item = object(tlinkedlist_item)
+      ordnr  : word;
+      name,
+      func   : pstring;
+      lab    : pointer; { should be plabel, but this gaves problems with circular units }
+      is_var : boolean;
       constructor init(const n,s : string;o : word);
+      constructor init_var(const n,s : string);
       destructor done;virtual;
    end;
 
    pimportlist = ^timportlist;
    timportlist = object(tlinkedlist_item)
       dllname : pstring;
-      imported_procedures : plinkedlist;
+      imported_items : plinkedlist;
       constructor init(const n : string);
       destructor done;virtual;
    end;
@@ -49,6 +52,7 @@ type
       destructor Done;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
+      procedure importvariable(const varname,module:string;const name:string);virtual;
       procedure generatelib;virtual;
    end;
 
@@ -70,20 +74,32 @@ uses
   ;
 
 {****************************************************************************
-                           TImported_procedure
+                           Timported_item
 ****************************************************************************}
 
-constructor timported_procedure.init(const n,s : string;o : word);
+constructor timported_item.init(const n,s : string;o : word);
 begin
   inherited init;
   func:=stringdup(n);
   name:=stringdup(s);
   ordnr:=o;
   lab:=nil;
+  is_var:=false;
 end;
 
 
-destructor timported_procedure.done;
+constructor timported_item.init_var(const n,s : string);
+begin
+  inherited init;
+  func:=stringdup(n);
+  name:=stringdup(s);
+  ordnr:=0;
+  lab:=nil;
+  is_var:=true;
+end;
+
+
+destructor timported_item.done;
 begin
   stringdispose(name);
   inherited done;
@@ -98,13 +114,13 @@ constructor timportlist.init(const n : string);
 begin
   inherited init;
   dllname:=stringdup(n);
-  imported_procedures:=new(plinkedlist,init);
+  imported_items:=new(plinkedlist,init);
 end;
 
 
 destructor timportlist.done;
 begin
-  dispose(imported_procedures,done);
+  dispose(imported_items,done);
   stringdispose(dllname);
 end;
 
@@ -130,6 +146,12 @@ end;
 
 
 procedure timportlib.importprocedure(const func,module:string;index:longint;const name:string);
+begin
+  Message(exec_e_dll_not_supported);
+end;
+
+
+procedure timportlib.importvariable(const varname,module:string;const name:string);
 begin
   Message(exec_e_dll_not_supported);
 end;
@@ -172,7 +194,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-10-19 18:07:12  peter
+  Revision 1.9  1998-11-28 16:20:50  peter
+    + support for dll variables
+
+  Revision 1.8  1998/10/19 18:07:12  peter
     + external dll_name name func support for linux
 
   Revision 1.7  1998/10/19 15:41:02  peter

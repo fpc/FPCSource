@@ -32,6 +32,7 @@ unit win_targ;
     timportlibwin32=object(timportlib)
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
+      procedure importvariable(const varname,module:string;const name:string);virtual;
       procedure generatelib;virtual;
       procedure generatesmartlib;
     end;
@@ -130,10 +131,9 @@ unit win_targ;
       end;
 
     procedure timportlibwin32.importprocedure(const func,module : string;index : longint;const name : string);
-
       var
          hp1 : pimportlist;
-         hp2 : pimported_procedure;
+         hp2 : pimported_item;
          hs  : string;
       begin
          hs:=SplitName(module);
@@ -151,15 +151,41 @@ unit win_targ;
               hp1:=new(pimportlist,init(hs));
               current_module^.imports^.concat(hp1);
            end;
-         hp2:=new(pimported_procedure,init(func,name,index));
-         hp1^.imported_procedures^.concat(hp2);
+         hp2:=new(pimported_item,init(func,name,index));
+         hp1^.imported_items^.concat(hp2);
+      end;
+
+
+    procedure timportlibwin32.importvariable(const varname,module:string;const name:string);
+      var
+         hp1 : pimportlist;
+         hp2 : pimported_item;
+         hs  : string;
+      begin
+         hs:=SplitName(module);
+         { search for the module }
+         hp1:=pimportlist(current_module^.imports^.first);
+         while assigned(hp1) do
+           begin
+              if hs=hp1^.dllname^ then
+                break;
+              hp1:=pimportlist(hp1^.next);
+           end;
+         { generate a new item ? }
+         if not(assigned(hp1)) then
+           begin
+              hp1:=new(pimportlist,init(hs));
+              current_module^.imports^.concat(hp1);
+           end;
+         hp2:=new(pimported_item,init_var(varname,name));
+         hp1^.imported_items^.concat(hp2);
       end;
 
 
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : pimportlist;
-         hp2 : pimported_procedure;
+         hp2 : pimported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : plabel;
          r : preference;
@@ -209,26 +235,29 @@ unit win_targ;
               importssection^.concat(new(pai_string,init(hp1^.dllname^+target_os.sharedlibext+#0)));
 
               { create procedures }
-              hp2:=pimported_procedure(hp1^.imported_procedures^.first);
+              hp2:=pimported_item(hp1^.imported_items^.first);
               while assigned(hp2) do
                 begin
                   { insert cuts }
                   importssection^.concat(new(pai_cut,init));
                   { create indirect jump }
-                  getlabel(lcode);
-                  new(r);
-                  reset_reference(r^);
-                  r^.symbol:=stringdup(lab2str(lcode));
-                  { place jump in codesegment, insert a code section in the
-                    importsection to reduce the amount of .s files (PFV) }
-                  importssection^.concat(new(pai_section,init(sec_code)));
+                  if not hp2^.is_var then
+                   begin
+                     getlabel(lcode);
+                     new(r);
+                     reset_reference(r^);
+                     r^.symbol:=stringdup(lab2str(lcode));
+                     { place jump in codesegment, insert a code section in the
+                       importsection to reduce the amount of .s files (PFV) }
+                     importssection^.concat(new(pai_section,init(sec_code)));
 {$IfDef GDB}
-                  if (cs_debuginfo in aktmoduleswitches) then
-                   importssection^.concat(new(pai_stab_function_name,init(nil)));
+                     if (cs_debuginfo in aktmoduleswitches) then
+                      importssection^.concat(new(pai_stab_function_name,init(nil)));
 {$EndIf GDB}
-                  importssection^.concat(new(pai_align,init_op(4,$90)));
-                  importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
-                  importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                     importssection^.concat(new(pai_align,init_op(4,$90)));
+                     importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                     importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                   end;
                   { create head link }
                   importssection^.concat(new(pai_section,init_idata(7)));
                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(lhead)))));
@@ -238,7 +267,10 @@ unit win_targ;
                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
                   { add jump field to importsection }
                   importssection^.concat(new(pai_section,init_idata(5)));
-                  importssection^.concat(new(pai_label,init(lcode)));
+                  if hp2^.is_var then
+                   importssection^.concat(new(pai_symbol,init_global(hp2^.func^)))
+                  else
+                   importssection^.concat(new(pai_label,init(lcode)));
                   importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
                   { finally the import information }
                   importssection^.concat(new(pai_section,init_idata(6)));
@@ -246,7 +278,7 @@ unit win_targ;
                   importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
                   importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
 
-                  hp2:=pimported_procedure(hp2^.next);
+                  hp2:=pimported_item(hp2^.next);
                 end;
               hp1:=pimportlist(hp1^.next);
            end;
@@ -256,7 +288,7 @@ unit win_targ;
     procedure timportlibwin32.generatelib;
       var
          hp1 : pimportlist;
-         hp2 : pimported_procedure;
+         hp2 : pimported_item;
          l1,l2,l3,l4 : plabel;
          r : preference;
       begin
@@ -302,12 +334,12 @@ unit win_targ;
               importssection^.concat(new(pai_section,init_idata(4)));
               importssection^.concat(new(pai_label,init(l2)));
 
-              hp2:=pimported_procedure(hp1^.imported_procedures^.first);
+              hp2:=pimported_item(hp1^.imported_items^.first);
               while assigned(hp2) do
                 begin
                    getlabel(plabel(hp2^.lab));
                    importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
-                   hp2:=pimported_procedure(hp2^.next);
+                   hp2:=pimported_item(hp2^.next);
                 end;
               { finalize the names ... }
               importssection^.concat(new(pai_const,init_32bit(0)));
@@ -315,36 +347,43 @@ unit win_targ;
               { then the addresses and create also the indirect jump }
               importssection^.concat(new(pai_section,init_idata(5)));
               importssection^.concat(new(pai_label,init(l3)));
-              hp2:=pimported_procedure(hp1^.imported_procedures^.first);
+              hp2:=pimported_item(hp1^.imported_items^.first);
               while assigned(hp2) do
                 begin
-                   getdatalabel(l4);
-                   { create indirect jump }
-                   new(r);
-                   reset_reference(r^);
-                   r^.symbol:=stringdup(lab2str(l4));
-                   { place jump in codesegment }
-                   codesegment^.concat(new(pai_align,init_op(4,$90)));
-                   codesegment^.concat(new(pai_symbol,init_global(hp2^.func^)));
-                   codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
-                   { add jump field to importsection }
-                   importssection^.concat(new(pai_label,init(l4)));
+                   if not hp2^.is_var then
+                    begin
+                      getdatalabel(l4);
+                      { create indirect jump }
+                      new(r);
+                      reset_reference(r^);
+                      r^.symbol:=stringdup(lab2str(l4));
+                      { place jump in codesegment }
+                      codesegment^.concat(new(pai_align,init_op(4,$90)));
+                      codesegment^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                      codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                      { add jump field to importsection }
+                      importssection^.concat(new(pai_label,init(l4)));
+                    end
+                   else
+                    begin
+                      importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                    end;
                    importssection^.concat(new(pai_const,init_rva(strpnew(lab2str(hp2^.lab)))));
-                   hp2:=pimported_procedure(hp2^.next);
+                   hp2:=pimported_item(hp2^.next);
                 end;
               { finalize the addresses }
               importssection^.concat(new(pai_const,init_32bit(0)));
 
               { finally the import information }
               importssection^.concat(new(pai_section,init_idata(6)));
-              hp2:=pimported_procedure(hp1^.imported_procedures^.first);
+              hp2:=pimported_item(hp1^.imported_items^.first);
               while assigned(hp2) do
                 begin
                    importssection^.concat(new(pai_label,init(hp2^.lab)));
                    { the ordinal number }
                    importssection^.concat(new(pai_const,init_16bit(hp2^.ordnr)));
                    importssection^.concat(new(pai_string,init(hp2^.name^+#0)));
-                   hp2:=pimported_procedure(hp2^.next);
+                   hp2:=pimported_item(hp2^.next);
                 end;
               { create import dll name }
               importssection^.concat(new(pai_section,init_idata(7)));
@@ -411,25 +450,27 @@ unit win_targ;
          peheaderpos : longint;
 
       begin
+         { when -s is used quit, because there is no .exe }
+         if cs_link_extern in aktglobalswitches then
+          exit;
+         { open file }
          assign(f,n);
-         {$i-}
-         reset(f,1);
+         {$I-}
+          reset(f,1);
          if ioresult<>0 then
            Message1(execinfo_f_cant_open_executable,n);
+         { read headers }
          blockread(f,dosheader,sizeof(tdosheader));
          peheaderpos:=dosheader.e_lfanew;
          seek(f,peheaderpos);
          blockread(f,peheader,sizeof(tpeheader));
-
          { write info }
          Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
          Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
          Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
          Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
          Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
-
          { change the header }
-
          { sub system }
          { gui=2 }
          { cui=3 }
@@ -442,12 +483,16 @@ unit win_targ;
          close(f);
          if ioresult<>0 then
            Message1(execinfo_f_cant_process_executable,n);
+         {$I+}
       end;
 
 end.
 {
   $Log$
-  Revision 1.13  1998-10-29 11:35:54  florian
+  Revision 1.14  1998-11-28 16:21:00  peter
+    + support for dll variables
+
+  Revision 1.13  1998/10/29 11:35:54  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 

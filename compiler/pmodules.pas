@@ -163,7 +163,7 @@ unit pmodules;
               { Generate an external entry to be sure that _mainCRTStarup will be
                 linked, can't use concat_external because those aren't written for
                 asw (PFV) }
-              datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
+              datasegment^.concat(new(pai_const,init_symbol(strpnew('_mainCRTStartup'))));
             end;
 {$endif i386}
 {$ifdef m68k}
@@ -1099,7 +1099,7 @@ unit pmodules;
 
          if islibrary then
            exportlib^.generatelib;
-           
+
          { insert heap }
          insertheap;
 
@@ -1132,7 +1132,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.84  1998-11-18 09:18:03  pierre
+  Revision 1.85  1998-11-28 16:20:54  peter
+    + support for dll variables
+
+  Revision 1.84  1998/11/18 09:18:03  pierre
     + automatic loading of profile unit with -pg option
       in go32v2 mode (also defines FPC_PROFILE)
     * some memory leaks removed

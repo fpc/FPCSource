@@ -71,10 +71,23 @@ implementation
               varsym :
                  begin
                     hregister:=R_NO;
+                    { C variable }
                     if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
                          stringdispose(p^.location.reference.symbol);
                          p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                         if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
+                           maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
+                      end
+                    { DLL variable }
+                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
+                      begin
+                         hregister:=getregister32;
+                         stringdispose(p^.location.reference.symbol);
+                         p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
+                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hregister)));
+                         stringdispose(p^.location.reference.symbol);
+                         p^.location.reference.base:=hregister;
                          if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                            maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
                       end
@@ -679,7 +692,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1998-11-27 14:50:33  peter
+  Revision 1.34  1998-11-28 16:20:48  peter
+    + support for dll variables
+
+  Revision 1.33  1998/11/27 14:50:33  peter
     + open strings, $P switch support
 
   Revision 1.32  1998/11/26 09:53:36  florian

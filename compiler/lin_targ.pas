@@ -31,6 +31,7 @@ interface
     timportliblinux=object(timportlib)
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
+      procedure importvariable(const varname,module:string;const name:string);virtual;
       procedure generatelib;virtual;
     end;
 
@@ -56,6 +57,16 @@ implementation
       end;
 
 
+    procedure timportliblinux.importvariable(const varname,module:string;const name:string);
+      begin
+        { insert sharedlibrary }
+        current_module^.linksharedlibs.insert(SplitName(module));
+        { reset the mangledname and turn off the dll_var option }
+        aktvarsym^.setmangledname(name);
+        aktvarsym^.var_options:=aktvarsym^.var_options and (not vo_is_dll_var);
+      end;
+
+
     procedure timportliblinux.generatelib;
       begin
       end;
@@ -64,7 +75,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-10-19 18:07:13  peter
+  Revision 1.2  1998-11-28 16:20:51  peter
+    + support for dll variables
+
+  Revision 1.1  1998/10/19 18:07:13  peter
     + external dll_name name func support for linux
 
 }
