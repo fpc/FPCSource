@@ -43,9 +43,12 @@ type
       constructor Init(var Bounds: TRect; AMin, AMax: longint);
     end;
 
+    TFPWindow = object(TWindow)
+      procedure HandleEvent(var Event: TEvent); virtual;
+    end;
+
     PIDEHelpWindow = ^TIDEHelpWindow;
     TIDEHelpWindow = object(THelpWindow)
-      procedure HandleEvent(var Event: TEvent); virtual;
       function  GetPalette: PPalette; virtual;
     end;
 
@@ -65,10 +68,10 @@ type
     end;
 
     PSourceWindow = ^TSourceWindow;
-    TSourceWindow = object(TWindow)
+    TSourceWindow = object(TFPWindow)
       Editor    : PSourceEditor;
       Indicator : PIndicator;
-      constructor Init(var Bounds: TRect; AFileName: PathStr);
+      constructor Init(var Bounds: TRect; AFileName: string);
       procedure   SetTitle(ATitle: string); virtual;
       procedure   UpdateTitle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -259,10 +262,10 @@ type
     end;
 
     PScreenWindow = ^TScreenWindow;
-    TScreenWindow = object(TWindow)
+    TScreenWindow = object(TFPWindow)
       ScreenView : PScreenView;
-      constructor Init(AScreen: PScreen);
-      procedure   Close; virtual;
+      constructor Init(AScreen: PScreen; ANumber: integer);
+      destructor  Done; virtual;
     end;
 
 function  SearchFreeWindowNo: integer;
@@ -277,6 +280,7 @@ function  ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
 
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
+function FirstEditorWindow: PSourceWindow;
 
 function  SearchMenuItem(Menu: PMenu; Cmd: word): PMenuItem;
 procedure SetMenuItemParam(Menu: PMenuItem; Param: string);
@@ -298,8 +302,9 @@ procedure InitReservedWords;
 
 procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
-function OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
-function TryToOpenFile(FileName: string; CurX,CurY: integer): PSourceWindow;
+function GetNextEditorBounds(var Bounds: TRect): boolean;
+function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: integer): PSourceWindow;
+function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: integer): PSourceWindow;
 
 const
       SourceCmds  : TCommandSet =
@@ -312,6 +317,7 @@ const
       CalcClipboard  : extended = 0;
 
       OpenFileName   : string = '';
+      NewEditorOpened: boolean = false;
 
 var  MsgParms : array[1..10] of
          record
@@ -351,6 +357,15 @@ begin
   _Is:=Message(Desktop,evBroadcast,cmSearchWindow,nil)<>nil;
   _Is:=_Is or ( (ClipboardWindow<>nil) and ClipboardWindow^.GetState(sfVisible));
   IsThereAnyWindow:=_Is;
+end;
+
+function FirstEditorWindow: PSourceWindow;
+function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
+begin
+  EditorWindow:=(P^.HelpCtx=hcSourceWindow);
+end;
+begin
+  FirstEditorWindow:=pointer(Desktop^.FirstThat(@EditorWindow));
 end;
 
 procedure InsertButtons(ADialog: PDialog);
@@ -741,12 +756,16 @@ begin
   inherited HandleEvent(Event);
 end;
 
-procedure TIDEHelpWindow.HandleEvent(var Event: TEvent);
+procedure TFPWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
     evBroadcast :
       case Event.Command of
-        cmUpdate : ReDraw;
+        cmUpdate :
+          ReDraw;
+        cmSearchWindow+1..cmSearchWindow+99 :
+          if (Event.Command-cmSearchWindow=Number) then
+              ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -758,7 +777,7 @@ begin
   GetPalette:=@P;
 end;
 
-constructor TSourceWindow.Init(var Bounds: TRect; AFileName: PathStr);
+constructor TSourceWindow.Init(var Bounds: TRect; AFileName: string);
 var HSB,VSB: PScrollBar;
     R: TRect;
     LoadFile: boolean;
@@ -813,13 +832,6 @@ begin
         cmSearchWindow :
           if @Self<>ClipboardWindow then
             ClearEvent(Event);
-        else
-          begin
-            if (Event.Command>cmSearchWindow) and (Event.Command<=cmSearchWindow+100) and
-               (Event.Command-cmSearchWindow=Number) then
-{            if Editor^.IsClipboard=false then}
-              ClearEvent(Event);
-          end;
       end;
     evCommand :
       begin
@@ -874,7 +886,7 @@ end;
 
 destructor TSourceWindow.Done;
 begin
-  Message(Application,evBroadcast,cmSourceWindowClosing,@Self);
+  Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
   Message(Application,evBroadcast,cmUpdate,@Self);
 end;
@@ -916,6 +928,7 @@ destructor TClipboardWindow.Done;
 begin
   inherited Done;
   Clipboard:=nil;
+  ClipboardWindow:=nil;
 end;
 
 function TAdvancedMenuBox.NewSubView(var Bounds: TRect; AMenu: PMenu;
@@ -2078,6 +2091,12 @@ begin
         end;
         if DontClear=false then ClearEvent(Event);
       end;
+    evBroadcast :
+      case Event.Command of
+        cmListItemSelected :
+          if Event.InfoPtr=@Self then
+            Message(@Self,evCommand,cmMsgTrackSource,nil);
+      end;
     evCommand :
       begin
         DontClear:=false;
@@ -2140,30 +2159,28 @@ begin
   P:=List^.At(Focused);
   if P^.ID=0 then Exit;
   Desktop^.Lock;
-  W:=TryToOpenFile(P^.GetModuleName,0,P^.ID-1);
+  GetNextEditorBounds(R);
+  if Assigned(Owner) and (Owner=pointer(ProgramInfoWindow)) then
+    R.B.Y:=Owner^.Origin.Y;
+  W:=TryToOpenFile(@R,P^.GetModuleName,0,P^.ID-1);
   if W<>nil then
     begin
-      Desktop^.GetExtent(R);
-      W^.Locate(R);
+      W^.Editor^.SetHighlightRow(P^.ID-1);
     end;
+  if Assigned(Owner) then
+    Owner^.Select;
   Desktop^.UnLock;
 end;
 
 procedure TMessageListBox.GotoSource;
 var W: PSourceWindow;
     P: PMessageItem;
-    R: TRect;
 begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
   if P^.ID=0 then Exit;
   Desktop^.Lock;
-  W:=TryToOpenFile(P^.GetModuleName,0,P^.ID-1);
-  if W<>nil then
-    begin
-      Desktop^.GetExtent(R);
-      W^.Locate(R);
-    end;
+  W:=TryToOpenFile(nil,P^.GetModuleName,0,P^.ID-1);
   Message(Owner,evCommand,cmClose,nil);
   Desktop^.UnLock;
 end;
@@ -2834,12 +2851,12 @@ begin
   SetCursor(P.X-Delta.X,P.Y-Delta.Y);
 end;
 
-constructor TScreenWindow.Init(AScreen: PScreen);
+constructor TScreenWindow.Init(AScreen: PScreen; ANumber: integer);
 var R: TRect;
     VSB,HSB: PScrollBar;
 begin
   Desktop^.GetExtent(R);
-  inherited Init(R, 'User screen', wnNoNumber);
+  inherited Init(R, 'User screen', ANumber);
   Options:=Options or ofTileAble;
   GetExtent(R); R.Grow(-1,-1); R.Move(1,0); R.A.X:=R.B.X-1;
   New(VSB, Init(R)); VSB^.Options:=VSB^.Options or ofPostProcess;
@@ -2851,11 +2868,14 @@ begin
   New(ScreenView, Init(R, HSB, VSB, AScreen));
   ScreenView^.GrowMode:=gfGrowHiX+gfGrowHiY;
   Insert(ScreenView);
+
+  UserScreenWindow:=@Self;
 end;
 
-procedure TScreenWindow.Close;
+destructor TScreenWindow.Done;
 begin
-  Hide;
+  inherited Done;
+  UserScreenWindow:=nil;
 end;
 
 const InTranslate : boolean = false;
@@ -2886,23 +2906,29 @@ begin
   InTranslate:=false;
 end;
 
-function OpenEditorWindow(FileName: string; CurX,CurY: integer): PSourceWindow;
+function GetNextEditorBounds(var Bounds: TRect): boolean;
 var P: PView;
-    R: TRect;
-    W: PSourceWindow;
 begin
-{  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);}
   P:=Desktop^.First;
   while P<>nil do
   begin
     if P^.HelpCtx=hcSourceWindow then Break;
     P:=P^.NextView;
   end;
-  if P=nil then Desktop^.GetExtent(R) else
+  if P=nil then Desktop^.GetExtent(Bounds) else
      begin
-       P^.GetBounds(R);
-       Inc(R.A.X); Inc(R.A.Y);
+       P^.GetBounds(Bounds);
+       Inc(Bounds.A.X); Inc(Bounds.A.Y);
      end;
+  GetNextEditorBounds:=P<>nil;
+end;
+
+function OpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: integer): PSourceWindow;
+var R: TRect;
+    W: PSourceWindow;
+begin
+  if Assigned(Bounds) then R.Copy(Bounds^) else
+    GetNextEditorBounds(R);
   PushStatus('Opening source file... ('+SmartPath(FileName)+')');
   New(W, Init(R, FileName));
   if W<>nil then
@@ -2921,7 +2947,7 @@ begin
   OpenEditorWindow:=W;
 end;
 
-function TryToOpenFile(FileName: string; CurX,CurY: integer): PSourceWindow;
+function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: integer): PSourceWindow;
 var D : DirStr;
     N : NameStr;
     E : ExtStr;
@@ -2938,7 +2964,7 @@ var OK: boolean;
 begin
   OK:=false;
   if D<>'' then OK:=CheckDir(D,N,NewExt) else
-    if CheckDir('.\',N,NewExt) then OK:=true;
+    if CheckDir('.'+DirSep,N,NewExt) then OK:=true;
   CheckExt:=OK;
 end;
 function TryToOpen: PSourceWindow;
@@ -2946,7 +2972,7 @@ var Found: boolean;
     W : PSourceWindow;
 begin
   Found:=true;
-  if E='' then
+  if E<>'' then Found:=CheckExt(E) else
     if CheckExt('.pp') then Found:=true else
       if CheckExt('.pas') then Found:=true else
         if CheckExt('.inc')=false then
@@ -2954,7 +2980,7 @@ begin
   if Found=false then W:=nil else
     begin
       FileName:=FExpand(D+N+E);
-      W:=OpenEditorWindow(FileName,CurX,CurY);
+      W:=OpenEditorWindow(Bounds,FileName,CurX,CurY);
     end;
   TryToOpen:=W;
 end;
@@ -2975,7 +3001,14 @@ begin
           SName:=PSourceWindow(W)^.Editor^.FileName;
         SName:=UpcaseStr(SName);
 
-        if E<>'' then Found:=SName=UpcaseStr(N+E) else
+        if E<>'' then
+          begin
+            if D<>'' then
+              Found:=SName=UpcaseStr(D+N+E)
+            else
+              Found:=SName=UpcaseStr(N+E);
+          end
+        else
           begin
             Found:=SName=UpcaseStr(N+'.pp');
             if Found=false then
@@ -2993,10 +3026,14 @@ begin
   W:=SearchOnDesktop;
   if W<>nil then
     begin
+      NewEditorOpened:=false;
       W^.Editor^.SetCurPtr(CurX,CurY);
     end
   else
-    W:=TryToOpen;
+    begin
+      W:=TryToOpen;
+      NewEditorOpened:=W<>nil;
+    end;
   TryToOpenFile:=W;
 end;
 
@@ -3004,7 +3041,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-01-14 21:42:25  peter
+  Revision 1.6  1999-01-21 11:54:27  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.5  1999/01/14 21:42:25  peter
     * source tracking from Gabor
 
   Revision 1.4  1999/01/12 14:29:42  peter

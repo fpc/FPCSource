@@ -23,6 +23,7 @@ const
      VersionStr           = '0.9';
 
      MaxRecentFileCount   = 5;
+     MaxToolCount         = 16;
 
      ININame              = 'fp.ini';
      SwitchesName         = 'fp.cfg';
@@ -34,6 +35,7 @@ const
 
      { Main menu submenu indexes }
      menuFile             = 0;
+     menuTools            = 6;
 
      { MouseAction constants }
      acNone               = 0;
@@ -77,13 +79,15 @@ const
 
      cmSearchWindow      = 1500;
      cmUpdate            = 1600;
-     cmSourceWindowClosing = 1601;
-     cmDeleteWnd         = 1602;
-     cmLocalMenu         = 1603;
-     cmCalculatorPaste   = 1604;
-     cmAddTPH            = 1605;
-     cmDeleteTPH         = 1606;
-     cmMsgClear          = 1607;
+     cmSourceWndClosing  = 1601;
+     cmLocalMenu         = 1602;
+     cmCalculatorPaste   = 1603;
+     cmMsgClear          = 1604;
+     cmUpdateTools       = 1605;
+
+     cmAddItem           = 1620;
+     cmEditItem          = 1621;
+     cmDeleteItem        = 1622;
 
      cmUserScreen        = 1650;
      cmUserScreenWindow  = 1651;
@@ -108,7 +112,7 @@ const
      cmOpenINI           = 2011;
      cmSaveINI           = 2012;
      cmSaveAsINI         = 2013;
-     cmSetSwitchesMode   = 2014;
+     cmSwitchesMode      = 2014;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
@@ -162,7 +166,7 @@ const
      hcSaveINI           = hcShift+cmSaveINI;
      hcSaveAsINI         = hcShift+cmSaveAsINI;
      hcCalculator        = hcShift+cmCalculator;
-     hcSetSwitchesMode   = hcShift+cmSetSwitchesMode;
+     hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcAbout             = hcShift+cmAbout;
 
      hcSystemMenu        = 9000;
@@ -248,7 +252,7 @@ const
          { CSourceWindow }
 {167-182}#$17#$1F#$1A#$31#$31#$1E#$71#$1F#$00#$00#$00#$00#$00#$00#$00#$00 + { 1-16}
 {183-198}#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00 + {17-32}
-{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$1F#$1C#$13#$1F#$4E + {33-48}
+{199-214}#$1E#$1F#$17#$1F#$1E#$1B#$13#$1A#$1E#$71#$3F#$30#$1C#$13#$1F#$4E + {33-48}
          { CBrowserWindow }
 {215-   }#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F ;
 
@@ -257,7 +261,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.5  1999-01-12 14:29:33  peter
+  Revision 1.6  1999-01-21 11:54:12  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.5  1999/01/12 14:29:33  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

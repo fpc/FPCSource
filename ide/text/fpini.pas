@@ -36,7 +36,7 @@ implementation
 uses
   Dos,Objects,Drivers,
   WINI,{$ifndef EDITORS}WEditor{$else}Editors{$endif},
-  FPConst,FPVars,FPIntf;
+  FPConst,FPVars,FPIntf,FPTools;
 
 const
   { INI file sections }
@@ -49,6 +49,7 @@ const
   secHighlight       = 'Highlight';
   secMouse           = 'Mouse';
   secSearch          = 'Search';
+  secTools           = 'Tools';
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
@@ -64,6 +65,10 @@ const
   ieAltClickAction   = 'AltClickAction';
   ieCtrlClickAction  = 'CtrlClickAction';
   ieFindFlags        = 'FindFlags';
+  ieToolName         = 'Title';
+  ieToolProgram      = 'Program';
+  ieToolParams       = 'Params';
+  ieToolHotKey       = 'HotKey';
 
 procedure InitINIFile;
 var S: string;
@@ -117,9 +122,10 @@ end;
 
 function ReadINIFile: boolean;
 var INIFile: PINIFile;
-    S,PS: string;
+    S,PS,S1,S2,S3: string;
     I,P: integer;
     OK: boolean;
+    W: word;
 begin
   OK:=ExistsFile(INIPath);
   if OK then
@@ -158,6 +164,16 @@ begin
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+  for I:=1 to MaxToolCount do
+    begin
+      S:=IntToStr(I);
+      S1:=INIFile^.GetEntry(secTools,ieToolName+S,'');
+      if S1='' then Break; { !!! }
+      S2:=INIFile^.GetEntry(secTools,ieToolProgram+S,'');
+      S3:=INIFile^.GetEntry(secTools,ieToolParams+S,'');
+      W:=Max(0,Min(65535,INIFile^.GetIntEntry(secTools,ieToolHotKey+S,0)));
+      AddTool(S1,S2,S3,W);
+    end;
   S:=AppPalette;
   PS:=StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_1_40',PaletteToStr(copy(S,1,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_41_80',PaletteToStr(copy(S,41,40))));
@@ -174,6 +190,8 @@ end;
 function WriteINIFile: boolean;
 var INIFile: PINIFile;
     S: string;
+    S1,S2,S3: string;
+    W: word;
     I: integer;
     OK: boolean;
 procedure ConcatName(P: PString); {$ifndef FPC}far;{$endif}
@@ -206,6 +224,19 @@ begin
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
+  INIFile^.DeleteSection(secTools);
+  for I:=1 to GetToolCount do
+    begin
+      S:=IntToStr(I);
+      GetToolParams(I-1,S1,S2,S3,W);
+      if S1<>'' then S1:='"'+S1+'"';
+      if S2<>'' then S2:='"'+S2+'"';
+      if S3<>'' then S3:='"'+S3+'"';
+      INIFile^.SetEntry(secTools,ieToolName+S,S1);
+      INIFile^.SetEntry(secTools,ieToolProgram+S,S2);
+      INIFile^.SetEntry(secTools,ieToolParams+S,S3);
+      INIFile^.SetIntEntry(secTools,ieToolHotKey+S,W);
+    end;
   if AppPalette<>CIDEAppColor then
   begin
     { this has a bug. if a different palette has been read on startup, and
@@ -227,7 +258,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-01-04 11:49:45  peter
+  Revision 1.5  1999-01-21 11:54:15  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.4  1999/01/04 11:49:45  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

@@ -48,7 +48,6 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
-      SymbolInfoLoaded : boolean = false;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -63,7 +62,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.4  1999-01-12 14:29:41  peter
+  Revision 1.5  1999-01-21 11:54:26  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.4  1999/01/12 14:29:41  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

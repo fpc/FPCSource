@@ -16,7 +16,7 @@
 
 procedure TIDEApp.NewEditor;
 begin
-  OpenEditorWindow('',0,0);
+  OpenEditorWindow(nil,'',0,0);
 end;
 
 
@@ -58,7 +58,7 @@ begin
   if Desktop^.ExecView(D)=cmOK then
   begin
     Desktop^.Lock;
-    TE:=OpenEditorWindow('',0,0);
+    TE:=OpenEditorWindow(nil,'',0,0);
     if TE<>nil then
     begin
       StartTemplate(LB^.Focused,TE^.Editor);
@@ -87,7 +87,7 @@ begin
   if OpenIt then
   begin
     FileName := FExpand(FileName);
-    OpenEditorWindow(FileName,0,0);
+    OpenEditorWindow(nil,FileName,0,0);
   end;
   Dispose(D, Done);
 end;
@@ -96,7 +96,7 @@ end;
 procedure TIDEApp.OpenRecentFile(RecentIndex: integer);
 begin
   with RecentFiles[RecentIndex] do
-  if OpenEditorWindow(FileName,LastPos.X,LastPos.Y)<>nil then
+  if OpenEditorWindow(nil,FileName,LastPos.X,LastPos.Y)<>nil then
      RemoveRecentFile(RecentIndex);
 end;
 
@@ -120,7 +120,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-01-14 21:42:21  peter
+  Revision 1.5  1999-01-21 11:54:17  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.4  1999/01/14 21:42:21  peter
     * source tracking from Gabor
 
   Revision 1.3  1999/01/04 11:49:46  peter

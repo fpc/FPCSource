@@ -66,6 +66,7 @@ type
       procedure   SetEntry(Section, Tag, Value: string); virtual;
       function    GetIntEntry(Section, Tag: string; Default: longint): longint; virtual;
       procedure   SetIntEntry(Section, Tag: string; Value: longint); virtual;
+      procedure   DeleteSection(Section: string); virtual;
       destructor  Done; virtual;
     private
       ReadOnly: boolean;
@@ -488,6 +489,13 @@ begin
   SetEntry(Section,Tag,IntToStr(Value));
 end;
 
+procedure TINIFile.DeleteSection(Section: string);
+var P: PINISection;
+begin
+  P:=SearchSection(Section);
+  if P<>nil then
+    Sections^.Free(P);
+end;
 
 destructor TINIFile.Done;
 begin
@@ -503,7 +511,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:58  peter
+  Revision 1.3  1999-01-21 11:54:33  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.2  1998/12/28 15:47:58  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -36,6 +36,7 @@ type
 procedure Help(FileID, Context: word; Modal: boolean);
 procedure HelpIndex(Keyword: string);
 procedure HelpTopicSearch(Editor: PEditor);
+procedure HelpTopic(S: string);
 
 procedure InitHelpSystem;
 procedure DoneHelpSystem;
@@ -139,8 +140,12 @@ begin
 
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
+    hcToolsBase..
+    hcToolsBase+MaxToolCount
+                    : S:='User installed tool';
 
     hcOptionsMenu   : S:='Setting for compiler, editor, mouse, etc.';
+    hcSwitchesMode  : S:='Select settings for normal, debug or release version';
     hcCompiler      : S:='Set default compiler directives and conditional defines';
     hcMemorySizes   : S:='Set default stack and heap sizes for generated programs';
     hcLinker        : S:='Set linker options';
@@ -248,12 +253,18 @@ begin
 end;
 
 procedure HelpTopicSearch(Editor: PEditor);
+var S: string;
+begin
+  if Editor=nil then S:='' else
+  S:=GetEditorCurWord(Editor);
+  HelpTopic(S);
+end;
+
+procedure HelpTopic(S: string);
 var FileID, Ctx: word;
-    S: string;
 var Found: boolean;
 begin
   CheckHelpSystem;
-  S:=GetEditorCurWord(Editor);
   PushStatus(strLocatingTopic);
   Found:=HelpFacility^.TopicSearch(S,FileID,Ctx);
   PopStatus;
@@ -317,7 +328,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-04 11:49:44  peter
+  Revision 1.4  1999-01-21 11:54:13  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.3  1999/01/04 11:49:44  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

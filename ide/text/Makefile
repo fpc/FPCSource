@@ -62,12 +62,19 @@ endif
 # Dependencies
 #####################################################################
 
+fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
+
 full:
 	make all FULL=1
 
 #
 # $Log$
-# Revision 1.2  1999-01-19 18:21:49  peter
+# Revision 1.3  1999-01-21 11:54:09  peter
+#   + tools menu
+#   + speedsearch in symbolbrowser
+#   * working run command
+#
+# Revision 1.2  1999/01/19 18:21:49  peter
 #   * Use FPCDIR and FPCMAKE environment to find makefile.fpc
 #   * better install dir setting
 #

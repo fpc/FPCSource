@@ -727,6 +727,7 @@ begin
   RenderTopic;
   BuildTopicWordList;
   Lookup('');
+  SetSelection(CurPos,CurPos);
   DrawView;
   if Owner<>nil then Owner^.UnLock;
 end;
@@ -1032,7 +1033,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:57  peter
+  Revision 1.3  1999-01-21 11:54:32  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.2  1998/12/28 15:47:57  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

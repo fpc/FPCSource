@@ -46,15 +46,18 @@ type
       procedure Target;
       procedure PrimaryFile_;
       procedure ClearPrimary;
+      procedure ShowScreenWindow;
       procedure ShowUserScreen;
       procedure Information;
       procedure Calculator;
+      procedure ExecuteTool(Idx: integer);
       procedure SetSwitchesMode;
       procedure Compiler;
       procedure MemorySizes;
       procedure Linker;
       procedure Debugger;
       procedure Directories;
+      procedure Tools;
       procedure EditorOptions(Editor: PEditor);
       procedure Mouse;
       procedure Colors;
@@ -62,7 +65,6 @@ type
       procedure SaveINI;
       procedure SaveAsINI;
       procedure CloseAll;
-      procedure ShowScreenWindow;
       procedure WindowList;
       procedure HelpContents;
       procedure HelpHelpIndex;
@@ -71,6 +73,8 @@ type
       procedure HelpUsingHelp;
       procedure HelpFiles;
       procedure About;
+    private
+      procedure DoExecute(ProgramPath, Params: string; IsDOSShell: boolean);
     private
       procedure AddRecentFile(AFileName: string; CurX, CurY: integer);
       function  SearchRecentFile(AFileName: string): integer;
@@ -81,6 +85,7 @@ type
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
       procedure UpdateRecentFileList;
+      procedure UpdateTools;
     end;
 
 
@@ -95,7 +100,7 @@ uses
   Systems,BrowCol,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitches,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPSymbol;
+  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -112,7 +117,6 @@ begin
   New(CalcWindow, Init); CalcWindow^.Hide;
   Desktop^.Insert(CalcWindow);
   New(ProgramInfoWindow, Init); ProgramInfoWindow^.Hide; Desktop^.Insert(ProgramInfoWindow);
-  New(UserScreenWindow, Init(UserScreen)); UserScreenWindow^.Hide; Desktop^.Insert(UserScreenWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   InitTemplates;
   CurDirChanged;
@@ -161,9 +165,7 @@ begin
     NewSubMenu('~R~un',hcRunMenu, NewMenu(
       NewItem('~R~un','Ctrl+F9', kbCtrlF9, cmRun, hcRun,
       NewItem('P~a~rameters...','', kbNoKey, cmParameters, hcParameters,
-      NewLine(
-      NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
-      nil))))),
+      nil))),
     NewSubMenu('~C~ompile',hcCompileMenu, NewMenu(
       NewItem('~C~ompile','Alt+F9', kbAltF9, cmCompile, hcCompile,
       NewItem('~M~ake','F9', kbF9, cmMake, hcMake,
@@ -176,15 +178,15 @@ begin
       NewItem('~I~nformation...','', kbNoKey, cmInformation, hcInformation,
       nil)))))))))),
     NewSubMenu('~D~ebug', hcDebugMenu, NewMenu(
+      NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
-      nil)),
+      nil))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
-      NewLine(
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
-      nil)))),
+      nil))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
-      NewItem('Mode~.~..','', kbNoKey, cmSetSwitchesMode, hcSetSwitchesMode,
+      NewItem('Mode~.~..','', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
       NewItem('~M~emory sizes...','', kbNoKey, cmMemorySizes, hcMemorySizes,
       NewItem('~L~inker...','', kbNoKey, cmLinker, hcLinker,
@@ -216,9 +218,8 @@ begin
       NewItem('~C~lose','Alt+F3', kbAltF3, cmClose, hcClose,
       NewLine(
       NewItem('~L~ist...','Alt+0', kbAlt0, cmWindowList, hcWindowList,
-      NewItem('~U~ser screen window','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~R~efresh display','', kbNoKey, cmUpdate, hcUpdate,
-      nil)))))))))))))),
+      nil))))))))))))),
     NewSubMenu('~H~elp', hcHelpMenu, NewMenu(
       NewItem('~C~ontents','', kbNoKey, cmHelpContents, hcHelpContents,
       NewItem('~I~ndex','Shift+F1', kbShiftF1, cmHelpIndex, hcHelpIndex,
@@ -321,12 +322,13 @@ begin
            { -- Debug menu -- }
              cmUserScreen    : ShowUserScreen;
            { -- Options menu -- }
-             cmSetSwitchesMode : SetSwitchesMode;
+             cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : Compiler;
              cmMemorySizes   : MemorySizes;
              cmLinker        : Linker;
              cmDebugger      : Debugger;
              cmDirectories   : Directories;
+             cmTools         : Tools;
              cmEditor        : EditorOptions(nil);
              cmEditorOptions : EditorOptions(Event.InfoPtr);
              cmMouse         : Mouse;
@@ -336,6 +338,9 @@ begin
              cmSaveAsINI     : SaveAsINI;
            { -- Tools menu -- }
              cmCalculator    : Calculator;
+             cmToolsBase+1..
+             cmToolsBase+MaxToolCount
+                             : ExecuteTool(Event.Command-cmToolsBase);
            { -- Window menu -- }
              cmCloseAll      : CloseAll;
              cmWindowList    : WindowList;
@@ -354,9 +359,11 @@ begin
          end;
        evBroadcast :
          case Event.Command of
+           cmUpdateTools :
+             UpdateTools;
            cmUpdate              :
              Update;
-           cmSourceWindowClosing :
+           cmSourceWndClosing :
              with PSourceWindow(Event.InfoPtr)^ do
                if Editor^.FileName<>'' then
                   AddRecentFile(Editor^.FileName,Editor^.CurPos.X,Editor^.CurPos.Y);
@@ -365,15 +372,54 @@ begin
   inherited HandleEvent(Event);
 end;
 
+procedure TIDEApp.DoExecute(ProgramPath, Params: string; IsDosShell: boolean);
+begin
+  if UserScreen=nil then
+   begin
+     ErrorBox('Sorry, user screen not available.',nil);
+     Exit;
+   end;
+
+  DoneSysError;
+  DoneEvents;
+  DoneMouse;
+  DoneScreen;
+  DoneDosMem;
+
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchTo;
+
+  if IsDOSShell then
+    WriteShellMsg;
+
+  SwapVectors;
+  Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
+  SwapVectors;
+
+  if Assigned(UserScreen) then
+    UserScreen^.SwitchBack;
+
+  InitDosMem;
+  InitScreen;
+  InitMouse;
+  InitEvents;
+  InitSysError;
+  Redraw;
+  CurDirChanged;
+  Message(Application,evBroadcast,cmUpdate,nil);
+  UpdateScreen(true);
+end;
+
 procedure TIDEApp.Update;
 begin
   SetCmdState([cmSaveAll],IsThereAnyEditor);
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
-  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],{SymbolInfoLoaded}true);
+  SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsSymbolInfoAvailable);
   UpdatePrimaryFile;
   UpdateINIFile;
   Message(MenuBar,evBroadcast,cmUpdate,nil);
   UpdateRecentFileList;
+  UpdateTools;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -440,25 +486,46 @@ begin
   end;
 end;
 
+procedure TIDEApp.UpdateTools;
+var P: PMenuItem;
+    ID,I: word;
+    ToolsMenu: PMenuItem;
+    S1,S2,S3: string;
+    W: word;
+begin
+  ID:=cmToolsBase;
+  ToolsMenu:=SearchSubMenu(MenuBar^.Menu,menuTools);
+  repeat
+    P:=GetMenuItemBefore(ToolsMenu^.SubMenu,nil);
+    if (P<>nil) then
+    begin
+      if (cmToolsBase<P^.Command) and (P^.Command<=cmToolsBase+MaxToolCount) then
+        begin
+          RemoveMenuItem(ToolsMenu^.SubMenu,P);
+          if ToolsMenu^.SubMenu^.Default=P then
+            ToolsMenu^.SubMenu^.Default:=ToolsMenu^.SubMenu^.Items;
+        end
+      else
+        P:=nil;
+    end;
+  until P=nil;
+  P:=GetMenuItemBefore(ToolsMenu^.SubMenu,nil);
+  if (P<>nil) and IsSeparator(P) then
+     RemoveMenuItem(ToolsMenu^.SubMenu,P);
+
+  if GetToolCount>0 then
+     AppendMenuItem(ToolsMenu^.SubMenu,NewLine(nil));
+  for I:=1 to GetToolCount do
+  begin
+    GetToolParams(I-1,S1,S2,S3,W);
+    P:=NewItem(S1,KillTilde(GetHotKeyName(W)),W,cmToolsBase+I,hcToolsBase+I,nil);
+    AppendMenuItem(ToolsMenu^.SubMenu,P);
+  end;
+end;
+
 procedure TIDEApp.DosShell;
 begin
-  DoneSysError;
-  DoneEvents;
-  DoneVideo;
-  DoneDosMem;
-  if UserScreen<>nil then UserScreen^.SwitchTo;
-  WriteShellMsg;
-  SwapVectors;
-  Exec(GetEnv('COMSPEC'), '');
-  SwapVectors;
-  if UserScreen<>nil then UserScreen^.SwitchBack;
-  InitDosMem;
-  InitVideo;
-  InitEvents;
-  InitSysError;
-  Redraw;
-  CurDirChanged;
-  Message(Application,evBroadcast,cmUpdate,nil);
+  DoExecute(GetEnv('COMSPEC'), '', true);
 end;
 
 {$I FPMFILE.INC}
@@ -529,7 +596,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-01-14 21:42:20  peter
+  Revision 1.3  1999-01-21 11:54:14  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.2  1999/01/14 21:42:20  peter
     * source tracking from Gabor
 
   Revision 1.1  1999/01/12 14:29:34  peter

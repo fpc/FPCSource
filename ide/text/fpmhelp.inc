@@ -16,7 +16,7 @@
 
 procedure TIDEApp.HelpContents;
 begin
-  Help(0,hcContents,false);
+  HelpTopic('Help_Contents'{0,hcContents,false});
 end;
 
 procedure TIDEApp.HelpHelpIndex;
@@ -80,9 +80,9 @@ begin
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~N~ew', cmAddTPH, bfNormal)));
+  Insert(New(PButton, Init(R, '~N~ew', cmAddItem, bfNormal)));
   R.Move(0,2);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteTPH, bfNormal)));
+  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
   R.Move(0,2);
   Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
 
@@ -99,18 +99,18 @@ begin
       case Event.KeyCode of
         kbIns :
           begin
-            Message(@Self,evCommand,cmAddTPH,nil);
+            Message(@Self,evCommand,cmAddItem,nil);
             ClearEvent(Event);
           end;
         kbDel :
           begin
-            Message(@Self,evCommand,cmDeleteTPH,nil);
+            Message(@Self,evCommand,cmDeleteItem,nil);
             ClearEvent(Event);
           end;
       end;
     evCommand :
       case Event.Command of
-        cmAddTPH :
+        cmAddItem :
           begin
             New(D, Init('*.tph','Install a help file','*.tph',fdOpenButton,0));
             if Desktop^.ExecView(D)<>cmCancel then
@@ -123,7 +123,7 @@ begin
             Dispose(D, Done);
             ClearEvent(Event);
           end;
-        cmDeleteTPH :
+        cmDeleteItem :
           if LB^.Range>0 then
           begin
             LB^.List^.AtFree(LB^.Focused);
@@ -186,7 +186,12 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-01-12 14:29:34  peter
+  Revision 1.4  1999-01-21 11:54:18  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.3  1999/01/12 14:29:34  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

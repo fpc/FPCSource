@@ -17,7 +17,9 @@ program FP;
 
 uses
   Dos,
-  FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitches,FPUsrScr;
+  BrowCol,
+  FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitches,FPUsrScr,
+  FPTools;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -61,7 +63,7 @@ end;
 
 
 BEGIN
-  {$ifdef TP}HeapLimit:=256;{$endif}
+  {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
   StartupDir:=CompleteDir(FExpand('.'));
 
@@ -72,6 +74,7 @@ BEGIN
   InitSwitches;
   InitINIFile;
   InitUserScreen;
+  InitTools;
 
 { load old options }
   ReadINIFile;
@@ -87,13 +90,20 @@ BEGIN
   WriteSwitches(SwitchesPath);
   WriteINIFile;
 
+  DoneBrowserCol;
+  DoneTools;
   DoneUserScreen;
   DoneSwitches;
   DoneHelpFiles;
 END.
 {
   $Log$
-  Revision 1.5  1999-01-12 14:29:31  peter
+  Revision 1.6  1999-01-21 11:54:10  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.5  1999/01/12 14:29:31  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

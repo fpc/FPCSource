@@ -14,8 +14,10 @@ function IsOdd(X: integer): boolean;
 implementation
 
 function IsOdd(X: integer): boolean;
+var Z: byte;
 begin
-  X:=X*Test8087;
+  Z:=0;
+  X:=Z*X*Test8087;
   IsOdd:=(X mod 2)=1;
 end;
 

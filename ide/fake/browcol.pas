@@ -9,6 +9,9 @@ interface
 uses
   objects;
 
+const
+    SymbolTypLen : integer=6;
+
 type
     TStoreCollection = object(TStringCollection)
       function Add(const S: string): PString;
@@ -54,11 +57,13 @@ type
     TSymbolCollection = object(TSortedCollection)
        function  At(Index: Sw_Integer): PSymbol;
        procedure Insert(Item: Pointer); virtual;
+       function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
     TSortedSymbolCollection = object(TSymbolCollection)
       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       procedure Insert(Item: Pointer); virtual;
+      function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
     TReferenceCollection = object(TCollection)
@@ -69,6 +74,9 @@ const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
   TypeNames   : PTypeNameCollection = nil;
+
+procedure InitBrowserCol;
+procedure DoneBrowserCol;
 
 
 implementation
@@ -96,6 +104,12 @@ procedure TSymbolCollection.Insert(Item: Pointer);
 begin
 end;
 
+function TSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+begin
+  Idx:=-1;
+  LookUp:='';
+end;
+
 
 {****************************************************************************
                                TReferenceCollection
@@ -118,6 +132,12 @@ end;
 
 procedure TSortedSymbolCollection.Insert(Item: Pointer);
 begin
+end;
+
+function TSortedSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+begin
+  Idx:=-1;
+  LookUp:='';
 end;
 
 
@@ -227,7 +247,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-12 15:00:46  peter
+  Revision 1.2  1999-01-21 11:54:08  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.1  1999/01/12 15:00:46  peter
     * fake unit
 
 }

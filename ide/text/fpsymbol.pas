@@ -40,13 +40,18 @@ type
     TSymbolScopeView = object(TSymbolView)
       constructor Init(var Bounds: TRect; ASymbols: PSymbolCollection; AHScrollBar, AVScrollBar: PScrollBar);
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   Draw; virtual;
+      procedure   LookUp(S: string); virtual;
     private
       Symbols: PSymbolCollection;
+      LookupStr: string;
     end;
 
     PSymbolReferenceView = ^TSymbolReferenceView;
     TSymbolReferenceView = object(TSymbolView)
       constructor Init(var Bounds: TRect; AReferences: PReferenceCollection; AHScrollBar, AVScrollBar: PScrollBar);
+      procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   SelectItem(Item: Sw_Integer); virtual;
       procedure   GotoItem(Item: sw_integer); virtual;
@@ -68,10 +73,12 @@ type
     end;
 
     PBrowserWindow = ^TBrowserWindow;
-    TBrowserWindow = object(TWindow)
+    TBrowserWindow = object(TFPWindow)
       constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;
                     const AName: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection);
       procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   Close; virtual;
       procedure   SelectTab(BrowserTab: Sw_integer); virtual;
       function    GetPalette: PPalette; virtual;
     private
@@ -83,10 +90,18 @@ type
 procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;
             Symbols: PSymbolCollection; References: PReferenceCollection);
 
+function IsSymbolInfoAvailable: boolean;
+
 implementation
 
 uses Commands,App,
+     WEditor,
      FPConst,FPUtils,FPVars;
+
+function IsSymbolInfoAvailable: boolean;
+begin
+  IsSymbolInfoAvailable:=BrowCol.Modules<>nil;
+end;
 
 (*procedure ReadBrowseLog(FileName: string);
 var f: text;
@@ -259,6 +274,56 @@ begin
   SetRange(Symbols^.Count);
 end;
 
+procedure TSymbolScopeView.HandleEvent(var Event: TEvent);
+var OldFocus: sw_integer;
+begin
+  case Event.What of
+    evKeyDown :
+      case Event.KeyCode of
+        kbBack :
+          begin
+            LookUp(copy(LookUpStr,1,length(LookUpStr)-1));
+            ClearEvent(Event);
+          end;
+      else
+        if Event.CharCode in[#32..#255] then
+          begin
+            LookUp(LookUpStr+Event.CharCode);
+            ClearEvent(Event);
+          end;
+      end;
+  end;
+  OldFocus:=Focused;
+  inherited HandleEvent(Event);
+  if OldFocus<>Focused then
+    Lookup('');
+end;
+
+procedure TSymbolScopeView.Draw;
+begin
+  inherited Draw;
+  SetCursor(2+SymbolTypLen+length(LookUpStr),Focused-TopItem);
+end;
+
+procedure TSymbolScopeView.LookUp(S: string);
+var Idx: Sw_integer;
+    NS: string;
+begin
+  NS:=LookUpStr;
+  if (Symbols=nil) or (S='') then NS:='' else
+    begin
+      S:=Symbols^.LookUp(S,Idx);
+      if Idx<>-1 then
+        begin
+          NS:=S;
+          FocusItem(Idx);
+        end;
+    end;
+  LookUpStr:=NS;
+  SetState(sfCursorVis,LookUpStr<>'');
+  DrawView;
+end;
+
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
 var S: string;
 begin
@@ -280,6 +345,15 @@ begin
   SetRange(References^.Count);
 end;
 
+procedure TSymbolReferenceView.HandleEvent(var Event: TEvent);
+var OldFocus: sw_integer;
+begin
+  OldFocus:=Focused;
+  inherited HandleEvent(Event);
+  if OldFocus<>Focused then
+    Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+end;
+
 function TSymbolReferenceView.GetText(Item,MaxLen: Sw_Integer): String;
 var S: string;
     P: PReference;
@@ -296,13 +370,49 @@ begin
   if Range=0 then Exit;
   R:=References^.At(Focused);
   Desktop^.Lock;
-  W:=TryToOpenFile(R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
+  W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
   if W<>nil then W^.Select;
   Desktop^.UnLock;
 end;
 
-procedure TSymbolReferenceView.TrackSource;
+function LastBrowserWindow: PBrowserWindow;
+var BW: PBrowserWindow;
+procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
 begin
+  if (P^.HelpCtx=hcBrowserWindow) then
+    BW:=pointer(P);
+end;
+begin
+  BW:=nil;
+  Desktop^.ForEach(@IsBW);
+  LastBrowserWindow:=BW;
+end;
+
+procedure TSymbolReferenceView.TrackSource;
+var R: PReference;
+    W: PSourceWindow;
+    BW: PBrowserWindow;
+    P: TPoint;
+begin
+  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+  if Range=0 then Exit;
+  R:=References^.At(Focused);
+  Desktop^.Lock;
+  P.X:=R^.Position.X-1; P.Y:=R^.Position.Y-1;
+  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
+  if W<>nil then
+  begin
+    BW:=LastBrowserWindow;
+    if BW=nil then
+      W^.Select
+    else
+      begin
+        Desktop^.Delete(W);
+        Desktop^.InsertBefore(W,BW^.NextView);
+      end;
+    W^.Editor^.SetHighlightRow(P.Y);
+  end;
+  Desktop^.UnLock;
 end;
 
 procedure TSymbolReferenceView.GotoItem(Item: sw_integer);
@@ -432,9 +542,6 @@ begin
       case Event.Command of
         cmSearchWindow :
           ClearEvent(Event);
-        cmSearchWindow+1..cmSearchWindow+100 :
-          if (Event.Command-cmSearchWindow=Number) then
-              ClearEvent(Event);
         cmListItemSelected :
           if Event.InfoPtr=ScopeView then
             begin
@@ -465,6 +572,22 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+procedure TBrowserWindow.SetState(AState: Word; Enable: Boolean);
+var OldState: word;
+begin
+  OldState:=State;
+  inherited SetState(AState,Enable);
+  if ((State xor OldState) and sfActive)<>0 then
+    if GetState(sfActive)=false then
+      Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+end;
+
+procedure TBrowserWindow.Close;
+begin
+  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+  inherited Close;
 end;
 
 procedure TBrowserWindow.SelectTab(BrowserTab: Sw_integer);
@@ -512,7 +635,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-01-14 21:42:24  peter
+  Revision 1.3  1999-01-21 11:54:23  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.2  1999/01/14 21:42:24  peter
     * source tracking from Gabor
 
   Revision 1.1  1999/01/12 14:29:40  peter

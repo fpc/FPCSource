@@ -89,7 +89,7 @@ begin
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.A.X:=38; R.B.Y:=R.A.Y+2;
   Insert(New(PButton, Init(R, 'O~K~', cmOK, bfDefault)));
   R.Move(0,3);
-  Insert(New(PButton, Init(R, '~D~elete', cmDeleteWnd, bfNormal)));
+  Insert(New(PButton, Init(R, '~D~elete', cmDeleteItem, bfNormal)));
   R.Move(0,3);
   Insert(New(PButton, Init(R, 'Cancel', cmCancel, bfNormal)));
 
@@ -116,13 +116,13 @@ begin
       case Event.KeyCode of
         kbDel :
           begin
-            Message(@Self,evCommand,cmDeleteWnd,nil);
+            Message(@Self,evCommand,cmDeleteItem,nil);
             ClearEvent(Event);
           end;
       end;
     evCommand :
       case Event.Command of
-        cmDeleteWnd :
+        cmDeleteItem :
           if C^.Count>0 then
           begin
             Message(C^.At(LB^.Focused),evCommand,cmClose,nil);
@@ -150,20 +150,14 @@ begin
   Dispose(W,Done);
 end;
 
-procedure TIDEApp.ShowScreenWindow;
-begin
-  if UserScreenWindow=nil then Exit;
-  with UserScreenWindow^ do
-   begin
-     if not GetState(sfVisible) then
-       Show;
-     MakeFirst;
-   end;
-end;
-
 {
   $Log$
-  Revision 1.5  1999-01-12 14:29:37  peter
+  Revision 1.6  1999-01-21 11:54:22  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.5  1999/01/12 14:29:37  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

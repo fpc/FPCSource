@@ -59,7 +59,6 @@ begin
   Insert(KeyST);
   GetExtent(R); R.Grow(-1,-1); R.A.Y:=10;
   New(MsgLB, Init(R, nil, nil));
-{  MsgLB^.NewList(New(PUnsortedStringCollection, Init(100,100))); }
   Insert(MsgLB);
 end;
 
@@ -111,7 +110,7 @@ end;
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
 begin
-  SD^.Update;
+  if SD<>nil then SD^.Update;
   CompilerStatus:=false;
 end;
 
@@ -128,7 +127,8 @@ begin
   if (status.verbosity and Level)=Level then
 {$endif}
    begin
-     ProgramInfoWindow^.AddMessage(Level,S,SmartPath(status.currentmodule),status.currentline);
+     ProgramInfoWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,status.currentline);
+     if SD<>nil then
      SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),status.currentline)));
    end;
 end;
@@ -137,7 +137,7 @@ function GetExePath: string;
 var Path: string;
     I: integer;
 begin
-  Path:='.\';
+  Path:='.'+DirSep;
   if DirectorySwitches<>nil then
     with DirectorySwitches^ do
     for I:=0 to ItemCount-1 do
@@ -186,8 +186,8 @@ begin
       FileName:=P^.Editor^.FileName;
     end;
   WriteSwitches(SwitchesPath);
-  MainFile:=FExpand(FileName);
-  EXEFile:=GetEXEPath+NameAndExtOf(MainFile);
+  MainFile:=FixFileName(FExpand(FileName));
+  EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt);
 { Reset }
   CtrlBreakHit:=false;
 { Show Program Info }
@@ -227,12 +227,18 @@ begin
 
 {  if (WasVisible=false) and (status.errorcount=0) then
    ProgramInfoWindow^.Hide;}
+  Message(Application,evCommand,cmUpdate,nil);
 end;
 
 end.
 {
   $Log$
-  Revision 1.6  1999-01-15 16:12:43  peter
+  Revision 1.7  1999-01-21 11:54:11  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.6  1999/01/15 16:12:43  peter
     * fixed crash after compile
 
   Revision 1.5  1999/01/14 21:42:19  peter

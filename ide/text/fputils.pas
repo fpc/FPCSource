@@ -37,9 +37,12 @@ function IntToHexL(L: longint; MinLen: byte): string;
 function HexToInt(S: string): longint;
 function CharStr(C: char; Count: byte): string;
 function SmartPath(Path: string): string;
+Function FixPath(s:string;allowdot:boolean):string;
+function FixFileName(const s:string):string;
 function MakeExeName(const fn:string):string;
 function LExpand(S: string; MinLen: byte): string;
 function RExpand(S: string; MinLen: byte): string;
+function FitStr(S: string; Len: byte): string;
 function LTrim(S: string): string;
 function RTrim(S: string): string;
 function Trim(S: string): string;
@@ -123,6 +126,52 @@ begin
 end;
 
 
+Function FixPath(s:string;allowdot:boolean):string;
+var
+  i : longint;
+begin
+  for i:=1 to length(s) do
+   if s[i] in ['/','\'] then
+    s[i]:=DirSep;
+  if (length(s)>0) and (s[length(s)]<>DirSep) and
+     (s[length(s)]<>':') then
+   s:=s+DirSep;
+  if (not allowdot) and (s='.'+DirSep) then
+   s:='';
+  FixPath:=s;
+end;
+
+
+function FixFileName(const s:string):string;
+var
+  i      : longint;
+  NoPath : boolean;
+begin
+  NoPath:=true;
+  for i:=length(s) downto 1 do
+   begin
+     case s[i] of
+ {$ifdef Linux}
+  '/','\' : begin
+              FixFileName[i]:='/';
+              NoPath:=false; {Skip lowercasing path: 'X11'<>'x11' }
+            end;
+ 'A'..'Z' : if NoPath then
+             FixFileName[i]:=char(byte(s[i])+32)
+            else
+             FixFileName[i]:=s[i];
+ {$else}
+      '/' : FixFileName[i]:='\';
+ 'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
+ {$endif}
+     else
+      FixFileName[i]:=s[i];
+     end;
+   end;
+  FixFileName[0]:=s[0];
+end;
+
+
 function MakeExeName(const fn:string):string;
 var
   d : DirStr;
@@ -140,11 +189,19 @@ begin
   LExpand:=S;
 end;
 
+
 function RExpand(S: string; MinLen: byte): string;
 begin
   if length(S)<MinLen then S:=S+CharStr(' ',MinLen-length(S));
   RExpand:=S;
 end;
+
+
+function FitStr(S: string; Len: byte): string;
+begin
+  FitStr:=RExpand(copy(S,1,Len),Len);
+end;
+
 
 function KillTilde(S: string): string;
 var P: byte;
@@ -412,7 +469,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-12 14:29:40  peter
+  Revision 1.4  1999-01-21 11:54:25  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.3  1999/01/12 14:29:40  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

@@ -409,6 +409,10 @@ begin
   Dispose(D, Done);
 end;
 
+procedure TIDEApp.Tools;
+begin
+  ExecuteDialog(New(PToolsDialog, Init),nil);
+end;
 
 procedure TIDEApp.EditorOptions(Editor: PEditor);
 var D: PCenterDialog;
@@ -669,7 +673,12 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-01-12 14:29:35  peter
+  Revision 1.6  1999-01-21 11:54:19  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.5  1999/01/12 14:29:35  peter
     + Implemented still missing 'switch' entries in Options menu
     + Pressing Ctrl-B sets ASCII mode in editor, after which keypresses (even
       ones with ASCII < 32 ; entered with Alt+<###>) are interpreted always as

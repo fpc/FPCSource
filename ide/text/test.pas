@@ -20,5 +20,6 @@ BEGIN
   X:=nil;
   writeln('Hello world!');
   writeln(IsOdd(3));
+  writeln(Func1);
   Halt;
 END.

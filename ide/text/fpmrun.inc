@@ -32,27 +32,9 @@ begin
       Exit;
     end;
 
-  if UserScreen=nil then
-   begin
-     ErrorBox('Sorry, user screen not available.',nil);
-     Exit;
-   end;
-  DoneMouse;
-  DoneVideo;
+  DoExecute(ExeFile,GetRunParameters,false);
 
-  if Assigned(UserScreen) then
-    UserScreen^.SwitchTo;
-
-  Exec(ExeFile,GetRunParameters);
   LastExitCode:=DosExitCode;
-
-  if Assigned(UserScreen) then
-    UserScreen^.SwitchBack;
-
-  InitVideo;
-  InitMouse;
-  ReDraw;
-  UpdateScreen(true);
 end;
 
 procedure TIDEApp.Parameters;
@@ -83,7 +65,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-01-14 21:42:22  peter
+  Revision 1.5  1999-01-21 11:54:20  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.4  1999/01/14 21:42:22  peter
     * source tracking from Gabor
 
   Revision 1.3  1999/01/12 14:29:36  peter

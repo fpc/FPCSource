@@ -14,6 +14,16 @@
 
  **********************************************************************}
 
+procedure TIDEApp.ShowScreenWindow;
+begin
+  if UserScreenWindow=nil then
+    begin
+     New(UserScreenWindow, Init(UserScreen, SearchFreeWindowNo));
+     Desktop^.Insert(UserScreenWindow);
+    end;
+  UserScreenWindow^.MakeFirst;
+end;
+
 procedure TIDEApp.ShowUserScreen;
 begin
   if UserScreen=nil then
@@ -38,7 +48,12 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:47  peter
+  Revision 1.2  1999-01-21 11:54:16  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.1  1998/12/28 15:47:47  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -96,7 +96,7 @@ procedure ScanDir(Dir: PathStr);
 var SR: SearchRec;
     S: string;
 begin
-  if copy(Dir,length(Dir),1)<>'\' then Dir:=Dir+'\';
+  if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
   FindFirst(Dir+'*.pt',AnyFile,SR);
   while (DosError=0) do
   begin
@@ -157,7 +157,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:52  peter
+  Revision 1.3  1999-01-21 11:54:24  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.2  1998/12/28 15:47:52  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

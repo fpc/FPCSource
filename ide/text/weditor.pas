@@ -28,6 +28,7 @@ uses
 const
       cmFileNameChanged      = 51234;
       cmASCIIChar            = 51235;
+      cmClearLineHighlights  = 51236;
 
 {$ifdef FPC}
       EditorTextBufSize = 32768;
@@ -162,6 +163,7 @@ type
       NoSelect   : Boolean;
       Flags      : longint;
       TabSize    : integer;
+      HighlightRow: integer;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
                     PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -180,6 +182,7 @@ type
       procedure   SetCurPtr(X, Y: Integer); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
+      procedure   SetHighlightRow(Row: integer); virtual;
       procedure   SelectAll(Enable: boolean); virtual;
       function    InsertFrom(Editor: PCodeEditor): Boolean; virtual;
       function    InsertText(const S: string): Boolean; virtual;
@@ -265,6 +268,7 @@ type
                     PScrollBar; AIndicator: PIndicator;const AFileName: string);
       function    Save: Boolean; virtual;
       function    SaveAs: Boolean; virtual;
+      function    SaveAsk: Boolean; virtual;
       function    LoadFile: boolean; virtual;
       function    SaveFile: boolean; virtual;
       function    Valid(Command: Word): Boolean; virtual;
@@ -279,7 +283,7 @@ function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
 const
      DefaultCodeEditorFlags : longint =
        efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
-       efUseTabCharacters+efBackSpaceUnindents+efSyntaxHighlight;
+       {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight;
      DefaultTabSize     : integer = 8;
 
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmClear]);
@@ -1030,6 +1034,7 @@ begin
   New(Lines, Init(500,1000));
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
+  SetHighlightRow(-1);
   Indicator:=AIndicator;
   UpdateIndicator; LimitsChanged;
 end;
@@ -1244,6 +1249,8 @@ begin
       end;
     evBroadcast :
       case Event.Command of
+        cmClearLineHighlights :
+          SetHighlightRow(-1);
         cmScrollBarChanged:
           if (Event.InfoPtr = HScrollBar) or
             (Event.InfoPtr = VScrollBar) then
@@ -1355,10 +1362,13 @@ begin
          if X<=length(Format) then
             Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
 
-      if ( ((Flags and efHighlightRow)   <>0) and (PX.Y=CurPos.Y) ) then
+      if ( ((Flags and efHighlightRow)   <>0) and (PX.Y=CurPos.Y) ) and (HighlightRow=-1) then
          begin Color:=CombineColors(Color,HighlightRowColor); FreeFormat[X]:=false; end;
       if ( ((Flags and efHighlightColumn)<>0) and (PX.X=CurPos.X) ) then
          begin Color:=CombineColors(Color,HighlightColColor); FreeFormat[X]:=false; end;
+
+      if HighlightRow=AY then
+         begin Color:=CombineColors(Color,HighlightRowColor); FreeFormat[X]:=false; end;
 
       if (0<=X-1-Delta.X) and (X-1-Delta.X<MaxViewWidth) then
       MoveChar(B[X-1-Delta.X],C,Color,1);
@@ -2379,6 +2389,8 @@ begin
      SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y)));
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (GetErrorMessage<>'') then
     SetErrorMessage('');
+  if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (HighlightRow<>-1) then
+    SetHighlightRow(-1);
 end;
 
 procedure TCodeEditor.CheckSels;
@@ -2509,7 +2521,7 @@ var
             C:=coIdentifierColor;
         end;
     end;
-    if EndX>=StartX then
+    if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
     if IsAsmPrefix(WordS) and
        (InAsm=false) and (InComment=false) and (InDirective=false) then
@@ -2729,6 +2741,12 @@ begin
   HighlightChanged;
 end;
 
+procedure TCodeEditor.SetHighlightRow(Row: integer);
+begin
+  HighlightRow:=Row;
+  DrawView;
+end;
+
 procedure TCodeEditor.SelectAll(Enable: boolean);
 var A,B: TPoint;
 begin
@@ -2914,6 +2932,23 @@ begin
   end;
 end;
 
+function TFileEditor.SaveAsk: boolean;
+var OK: boolean;
+    D: Sw_integer;
+begin
+  OK:=Modified=false;
+  if OK=false then
+  begin
+    if FileName = '' then D := edSaveUntitled else D := edSaveModify;
+    case EditorDialog(D, @FileName) of
+      cmYes    : OK := Save;
+      cmNo     : begin Modified := False; OK:=true; end;
+      cmCancel : OK := False;
+    end;
+  end;
+  SaveAsk:=OK;
+end;
+
 procedure TFileEditor.HandleEvent(var Event: TEvent);
 var SH,B: boolean;
 begin
@@ -2938,23 +2973,11 @@ end;
 
 function TFileEditor.Valid(Command: Word): Boolean;
 var OK: boolean;
-    D: Sw_integer;
 begin
   OK:=inherited Valid(Command);
   if OK and ((Command=cmClose) or (Command=cmQuit)) then
      if IsClipboard=false then
-       begin
-         OK:=true;
-         if Modified then
-         begin
-           if FileName = '' then D := edSaveUntitled else D := edSaveModify;
-           case EditorDialog(D, @FileName) of
-             cmYes    : OK := Save;
-             cmNo     : Modified := False;
-             cmCancel : OK := False;
-           end;
-         end;
-    end;
+         OK:=SaveAsk;
   Valid:=OK;
 end;
 
@@ -3201,7 +3224,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-01-14 21:41:17  peter
+  Revision 1.8  1999-01-21 11:54:31  peter
+    + tools menu
+    + speedsearch in symbolbrowser
+    * working run command
+
+  Revision 1.7  1999/01/14 21:41:17  peter
     * use * as modified indicator
     * fixed syntax highlighting
 
