@@ -11,6 +11,7 @@ datadir=$(BASEINSTALLDIR)/ide
 
 [dirs]
 fpcdir=../..
+targetdir=.
 
 [require]
 options=-Sg

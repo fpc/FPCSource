@@ -193,6 +193,9 @@ override NEEDOPT=-Sg
 
 # Directories
 
+ifndef TARGETDIR
+TARGETDIR=.
+endif
 
 # Packages
 
