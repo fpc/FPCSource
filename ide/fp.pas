@@ -302,8 +302,19 @@ BEGIN
   ReadINIFile;
   InitDesktopFile;
   LoadDesktop;
+
+  { Handle Standard Units }
+  if UseAllUnitsInCodeComplete then
+    AddAvailableUnitsToCodeComplete(false);
+
+  if UseStandardUnitsInCodeComplete and not assigned(UnitsCodeCompleteWords) then
+    AddStandardUnitsToCodeComplete;
+
+  { why are the screen contents parsed at startup? Gabor
+    to be able to find location of error in last compilation
+    from command line PM }
   ParseUserScreen;
-  { why are the screen contents parsed at startup? Gabor }
+
   EnableCatchSignals;
   { Update IDE }
   IDEApp.Update;
@@ -426,7 +437,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2002-05-29 22:29:42  pierre
+  Revision 1.10  2002-09-04 14:07:12  pierre
+   + Enhance code complete by inserting unit symbols
+
+  Revision 1.9  2002/05/29 22:29:42  pierre
    Asciitab now in fvision
 
   Revision 1.8  2002/04/12 11:28:55  pierre

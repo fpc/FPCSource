@@ -125,7 +125,8 @@ procedure ParseUserScreen;
 
 procedure RegisterFPCompile;
 
-
+const
+  CompilingHiddenFile : PSourceWindow = nil;
 
 implementation
 
@@ -158,7 +159,8 @@ uses
   FPString,FPRedir,FPDesk,
   FPUsrScr,FPHelp,
 {$ifndef NODEBUG}FPDebug,{$endif}
-  FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
+  FPConst,FPVars,FPUtils,
+  FPCodCmp,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
 const
@@ -778,7 +780,10 @@ function GetMainFile(Mode: TCompileMode): string;
 var FileName: string;
     P : PSourceWindow;
 begin
-  P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
+  if assigned(CompilingHiddenFile) then
+    P:=CompilingHiddenFile
+  else
+    P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
   if (PrimaryFileMain='') and (P=nil) then
     FileName:='' { nothing to compile }
   else
@@ -874,12 +879,15 @@ begin
   CtrlBreakHit:=false;
 { Create Compiler Status Dialog }
   CompilationPhase:=cpCompiling;
-  New(CompilerStatusDialog, Init);
-  CompilerStatusDialog^.SetState(sfModal,true);
-  { disable window closing }
-  CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags and not wfclose;
-  Application^.Insert(CompilerStatusDialog);
-  CompilerStatusDialog^.Update;
+  if not assigned(CompilingHiddenFile) then
+    begin
+      New(CompilerStatusDialog, Init);
+      CompilerStatusDialog^.SetState(sfModal,true);
+      { disable window closing }
+      CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags and not wfclose;
+      Application^.Insert(CompilerStatusDialog);
+      CompilerStatusDialog^.Update;
+    end;
 { hook compiler output }
 {$ifdef TP}
   do_status:=CompilerStatus;
@@ -975,7 +983,8 @@ begin
      (status.errorCount=0) then
     begin
        CompilationPhase:=cpLinking;
-       CompilerStatusDialog^.Update;
+       if assigned(CompilerStatusDialog) then
+         CompilerStatusDialog^.Update;
        SetStatus('Assembling and/or linking...');
 {$ifndef redircompiler}
        { At least here we want to catch output
@@ -1045,20 +1054,23 @@ begin
       CompilationPhase:=cpFailed;
 { Show end status }
   { reenable window closing }
-  CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags or wfclose;
-  CompilerStatusDialog^.Update;
-  CompilerStatusDialog^.ReDraw;
-  CompilerStatusDialog^.SetState(sfModal,false);
-  if ((CompilationPhase in[cpAborted,cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
-   repeat
-     CompilerStatusDialog^.GetEvent(E);
-     if IsExitEvent(E)=false then
-      CompilerStatusDialog^.HandleEvent(E);
-   until IsExitEvent(E) or not assigned(CompilerStatusDialog);
   if assigned(CompilerStatusDialog) then
     begin
-      Application^.Delete(CompilerStatusDialog);
-      Dispose(CompilerStatusDialog, Done);
+      CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags or wfclose;
+      CompilerStatusDialog^.Update;
+      CompilerStatusDialog^.ReDraw;
+      CompilerStatusDialog^.SetState(sfModal,false);
+      if ((CompilationPhase in[cpAborted,cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
+       repeat
+         CompilerStatusDialog^.GetEvent(E);
+         if IsExitEvent(E)=false then
+          CompilerStatusDialog^.HandleEvent(E);
+       until IsExitEvent(E) or not assigned(CompilerStatusDialog);
+      if assigned(CompilerStatusDialog) then
+        begin
+          Application^.Delete(CompilerStatusDialog);
+          Dispose(CompilerStatusDialog, Done);
+        end;
     end;
   CompilerStatusDialog:=nil;
 { end compilation returns true if the messagewindow should be removed }
@@ -1109,6 +1121,8 @@ begin
   if Not Assigned(Modules) and (CompilationPhase<>cpDone) and
      ((DesktopFileFlags and dfSymbolInformation)<>0) then
     ReadSymbolsFile(BrowserName);
+  if UseAllUnitsInCodeComplete and not assigned(CompilingHiddenFile) then
+    AddAvailableUnitsToCodeComplete(false);
 end;
 
 function NeedRecompile(Mode :TCompileMode; verbose : boolean): boolean;
@@ -1265,7 +1279,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2002-08-26 13:03:14  pierre
+  Revision 1.10  2002-09-04 14:07:12  pierre
+   + Enhance code complete by inserting unit symbols
+
+  Revision 1.9  2002/08/26 13:03:14  pierre
    + add a lock to speed up parsing of userscreen
 
   Revision 1.8  2002/04/10 22:37:37  pierre
