@@ -61,30 +61,6 @@ uses
 
 {$ifdef TP}
 
-function GetCommandLine:pchar;
-begin
-  GetCommandLine:=ptr(prefixseg,$81);
-end;
-
-
-function GetCommandFile:pchar;
-var
-  p : pchar;
-begin
-  p:=ptr(memw[prefixseg:$2c],0);
-  repeat
-    while p^<>#0 do
-     inc(longint(p));
-  { next char also #0 ? }
-    inc(longint(p));
-    if p^=#0 then
-     begin
-       inc(longint(p),3);
-       GetCommandFile:=p;
-       exit;
-     end;
-  until false;
-end;
 
 
 type
@@ -102,14 +78,22 @@ var
   cmdline : pchar;
   quote   : set of char;
   argsbuf : array[0..127] of pchar;
+  s       : string;
+  i       : integer;
 begin
 { create argv[0] which is the started filename }
-  argstart:=GetCommandFile;
-  arglen:=strlen(argstart)+1;
+  s:=paramstr(0);
+  arglen:=length(s);
   getmem(argsbuf[0],arglen);
-  move(argstart^,argsbuf[0]^,arglen);
+  strpcopy(argsbuf[0],s);
 { create commandline }
-  cmdline:=GetCommandLine;
+  s:='';
+  for i:=1 to paramcount do
+    begin
+     s:=s+paramstr(i)+' ';
+    end;
+  s:=s+#0;
+  cmdline:=@s[1];
   count:=1;
   repeat
   { skip leading spaces }
@@ -522,10 +506,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-01-11 18:38:24  peter
-    * patch from bug repository
+  Revision 1.4  2002-03-28 20:54:25  carl
+  * merged fixes from version 1.0.x branch
 
-  Revision 1.2  2000/07/13 11:33:43  michael
-  + removed logs
 
 }
