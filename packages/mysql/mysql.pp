@@ -1,3 +1,5 @@
+{ $Id$ }
+
 unit mysql;
 
 {
@@ -283,12 +285,8 @@ begin
   mysql_field_tell:=res^.current_field
 end;
 
-Function mysql_affected_rows(mysql : PMYSQL): Cardinal;
-
-<<<<<<< mysql.pp
-=======
 Function mysql_affected_rows(mysql : PMYSQL): my_ulonglong; 
->>>>>>> 1.1.2.1
+
 begin
   mysql_affected_rows:=mysql^.affected_rows
 end;
@@ -327,7 +325,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-12-02 15:24:37  michael
+  Revision 1.4  2000-12-03 13:41:39  sg
+  * Fixed small merging bug by Michael
+
+  Revision 1.3  2000/12/02 15:24:37  michael
   + Merged changes from fixbranch
 
 }
