@@ -1709,7 +1709,13 @@ const
         if (idtoken=_STATIC) and not (cs_static_keyword in aktmoduleswitches) then
           exit;
 
-      { Conflicts between directives ? }
+        { check if method and directive not for object, like public.
+          This needs to be checked also for procvars }
+        if (pd_notobject in proc_direcdata[p].pd_flags) and
+           (symtablestack.symtabletype=objectsymtable) then
+           exit;
+
+        { Conflicts between directives ? }
         if (pd.proctypeoption in proc_direcdata[p].mutexclpotype) or
            (pd.proccalloption in proc_direcdata[p].mutexclpocall) or
            ((pd.procoptions*proc_direcdata[p].mutexclpo)<>[]) then
@@ -1718,7 +1724,7 @@ const
            exit;
          end;
 
-      { set calling convention }
+        { set calling convention }
         if proc_direcdata[p].pocall<>pocall_none then
          begin
            if (po_hascallingconvention in pd.procoptions) then
@@ -1738,12 +1744,6 @@ const
            include(pd.procoptions,po_hascallingconvention);
          end;
 
-        { check if method and directive not for object, like public.
-          This needs to be checked also for procvars }
-        if (pd_notobject in proc_direcdata[p].pd_flags) and
-           (pd.owner.symtabletype=objectsymtable) then
-           exit;
-
         if pd.deftype=procdef then
          begin
            { Check if the directive is only for objects }
@@ -1755,11 +1755,7 @@ const
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
-         end
-        { don't eat public in object/class declarions }
-        else if (pd.deftype=procvardef) and (proc_direcdata[p].idtok=_PUBLIC) and
-          (symtablestack.symtabletype=objectsymtable) then
-          exit;
+         end;
 
         { consume directive, and turn flag on }
         consume(token);
@@ -2348,7 +2344,11 @@ const
 end.
 {
   $Log$
-  Revision 1.221  2004-12-26 20:12:23  peter
+  Revision 1.222  2004-12-27 17:32:06  peter
+    * don't parse public,private,protected as procdirectives, leave
+      procdirective parsing before any other check is done
+
+  Revision 1.221  2004/12/26 20:12:23  peter
     * don't allow class methods in interfaces
 
   Revision 1.220  2004/12/15 19:30:32  peter
