@@ -654,8 +654,8 @@ unit rgobj;
     procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
 
       begin
-         ungetregister(list,ref.base);
-         ungetregister(list,ref.index);
+         ungetregisterint(list,ref.base);
+         ungetregisterint(list,ref.index);
       end;
 
 
@@ -1208,7 +1208,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2003-02-19 22:39:56  daniel
+  Revision 1.25  2003-02-26 20:50:45  daniel
+    * Fixed ungetreference
+
+  Revision 1.24  2003/02/19 22:39:56  daniel
     * Fixed a few issues
 
   Revision 1.23  2003/02/19 22:00:14  daniel
