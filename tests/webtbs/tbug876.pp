@@ -2,8 +2,9 @@
 
 program test1;
 var
- i,j:longint;
- a,b:double;
+  i,j:longint;
+  l : longint;
+  a,b:double;
 
 procedure test;
 begin
@@ -16,10 +17,14 @@ end;
 procedure test2;
 begin
   test;
+  Writeln('i=',i,' l=',l);
 end;
 
 begin
-  test;
-  test2;
-  test;
+  for l:=1 to 10000 do
+    begin
+      test;
+      test2;
+      test;
+    end;
 end.
