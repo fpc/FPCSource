@@ -87,6 +87,16 @@ package=gdb.i386-win32.zip,GNU ~D~ebugger for Win32
 package=units-fcl.i386-win32.zip,~F~ree Component Libary (FCL)
 # Win32 8
 package=units-fpgtk.i386-win32.zip,fpGTK units
+# Win32 9
+package=units-sqlite.i386-win32.zip,SQLite interface units
+# Win32 10
+package=units-cdrom.i386-win32.zip,CD-ROM interface units
+# Win32 11
+package=units-odbc.i386-win32.zip,ODBC interface units
+# Win32 12
+package=units-winver.i386-win32.zip,Windows version detection unit
+# Win32 13
+package=units-tcl.i386-win32.zip,TCL interface units
 
 
 #
@@ -371,6 +381,8 @@ pack=Sources 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
 package=units-winver.source.zip[uwversrc.zip],Windows version detection unit
+# Source-3 2
+package=units-tcl.source.zip[utclsrc.zip],TCL interface units
 
 
 defaultcfg=
