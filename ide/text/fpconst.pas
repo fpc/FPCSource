@@ -184,6 +184,8 @@ const
      hcInfoWindow        = 8004;
      hcBrowserWindow     = 8005;
      hcMessagesWindow    = 8006;
+     hcGDBWindow         = 8007;
+     hcBreakpointListWindow = 8008;
 
      hcShift             = 10000;
 
@@ -331,7 +333,16 @@ implementation
 END.
 {
   $Log$
-  Revision 1.19  1999-06-28 19:32:18  peter
+  Revision 1.20  1999-06-30 23:58:11  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.19  1999/06/28 19:32:18  peter
     * fixes from gabor
 
   Revision 1.18  1999/06/25 00:38:59  pierre

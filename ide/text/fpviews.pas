@@ -1102,6 +1102,7 @@ begin
   inherited Init(Bounds,'GDB window',0);
   Options:=Options or ofTileAble;
   AutoNumber:=true;
+  HelpCtx:=hcGDBWindow;
   GetExtent(R); R.A.Y:=R.B.Y-1; R.Grow(-1,0); R.A.X:=14;
   New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
   GetExtent(R); R.A.X:=R.B.X-1; R.Grow(0,-1);
@@ -1420,6 +1421,7 @@ begin
   if P^.Col>0 then Col:=P^.Col-1 else Col:=0;
   W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
   Message(Owner,evCommand,cmClose,nil);
+  W^.Select;
   Desktop^.UnLock;
 end;
 
@@ -1590,6 +1592,7 @@ begin
 end;
 
 {$endif}
+
 
 constructor TProgramInfoWindow.Init;
 var R,R2: TRect;
@@ -2608,7 +2611,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  1999-06-28 19:32:28  peter
+  Revision 1.34  1999-06-30 23:58:20  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.33  1999/06/28 19:32:28  peter
     * fixes from gabor
 
   Revision 1.32  1999/06/21 23:37:08  pierre

@@ -19,7 +19,7 @@ interface
 
 uses Objects,Views,App,
      WUtils,
-     FPConst,FPUtils,FPViews,FPCalc;
+     FPConst,FPDebug,FPUtils,FPViews,FPCalc;
 
 type
     TRecentFileEntry = record
@@ -49,6 +49,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
+      BreakpointsWindow : PBreakpointsWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
       HeapView         : PFPHeapView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
@@ -81,7 +82,16 @@ implementation
 END.
 {
   $Log$
-  Revision 1.17  1999-06-28 19:32:27  peter
+  Revision 1.18  1999-06-30 23:58:19  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.17  1999/06/28 19:32:27  peter
     * fixes from gabor
 
   Revision 1.16  1999/06/21 23:37:58  pierre

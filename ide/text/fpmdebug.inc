@@ -48,7 +48,17 @@ end;
 
 procedure TIDEApp.DoShowBreakpointList;
 begin
-  NotImplemented;
+  If assigned(BreakpointsWindow) then
+    begin
+      BreakpointsWindow^.Update;
+      BreakpointsWindow^.Show;
+      BreakpointsWindow^.MakeFirst;
+    end
+  else
+    begin
+      New(BreakpointsWindow,Init);
+      Desktop^.Insert(BreakpointsWindow);
+    end;
 end;
 
 procedure TIDEApp.DoAddWatch;
@@ -58,7 +68,16 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-06-25 00:36:51  pierre
+  Revision 1.5  1999-06-30 23:58:17  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.4  1999/06/25 00:36:51  pierre
    + missing Debug menu added (not implemented yet)
 
   Revision 1.3  1999/02/02 16:41:40  peter

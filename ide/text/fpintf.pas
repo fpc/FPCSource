@@ -29,7 +29,7 @@ implementation
 
 uses
   Compiler,
-  FPVars,FPUtils,FPSwitch;
+  FPDebug,FPVars,FPUtils,FPSwitch;
 
 {****************************************************************************
                                    Run
@@ -46,6 +46,8 @@ end;
 procedure SetRunParameters(const Params: string);
 begin
   RunParameters:=Params;
+  If assigned(Debugger) then
+    Debugger^.SetArgs(RunParameters);
 end;
 
 
@@ -106,7 +108,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-06-21 23:38:37  pierre
+  Revision 1.6  1999-06-30 23:58:15  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.5  1999/06/21 23:38:37  pierre
    + support for LinkAfter var
 
   Revision 1.4  1999/03/12 01:12:22  peter

@@ -17,8 +17,8 @@ unit FPDebug;
 interface
 
 uses
-  Objects,Views,
-  GDBCon,GDBInt,
+  Objects,Dialogs,Drivers,Views,
+  GDBCon,GDBInt,Menus,
   WViews,
   FPViews;
 
@@ -68,6 +68,7 @@ type
      GDBIndex : longint;
      GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
+     constructor Init_Empty;
      constructor Init_file_line(AFile : String; ALine : longint);
      constructor Init_type(atyp : BreakpointType;Const AnExpr : String);
      procedure  Insert;
@@ -84,8 +85,67 @@ type
       function  GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
       function  ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
       procedure Update;
-      procedure FreeItem(Item: Pointer); virtual;
       procedure ShowBreakpoints(W : PSourceWindow);
+    end;
+
+    PBreakpointItem = ^TBreakpointItem;
+    TBreakpointItem = object(TObject)
+      Breakpoint : PBreakpoint;
+      constructor Init(ABreakpoint : PBreakpoint);
+      function    GetText(MaxLen: Sw_integer): string; virtual;
+      procedure   Selected; virtual;
+      function    GetModuleName: string; virtual;
+    end;
+
+    PBreakpointListBox = ^TBreakpointListBox;
+    TBreakpointListBox = object(THSListBox)
+      Transparent : boolean;
+      NoSelection : boolean;
+      MaxWidth    : Sw_integer;
+      (* ModuleNames : PStoreCollection; *)
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+      procedure   AddBreakpoint(P: PBreakpointItem); virtual;
+      function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
+      function    GetLocalMenu: PMenu;virtual;
+      procedure   Clear; virtual;
+      procedure   TrackSource; virtual;
+      procedure   EditNew; virtual;
+      procedure   EditCurrent; virtual;
+      procedure   DeleteCurrent; virtual;
+      procedure   ToggleCurrent;
+      procedure   Draw; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      (* constructor Load(var S: TStream);
+      procedure   Store(var S: TStream); *)
+      destructor  Done; virtual;
+    end;
+
+    PBreakpointsWindow = ^TBreakpointsWindow;
+    TBreakpointsWindow = object(TDlgWindow)
+      BreakLB : PBreakpointListBox;
+      constructor Init;
+      procedure   AddBreakpoint(ABreakpoint : PBreakpoint);
+      procedure   ClearBreakpoints;
+      procedure   ReloadBreakpoints;
+      procedure   Close; virtual;
+      procedure   SizeLimits(var Min, Max: TPoint);virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   Update; virtual;
+      destructor  Done; virtual;
+    end;                                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                                               
+    PBreakpointItemDialog = ^TBreakpointItemDialog;
+
+    TBreakpointItemDialog = object(TCenterDialog)
+      constructor Init(ABreakpoint: PBreakpoint);
+      function    Execute: Word; virtual;
+    private
+      Breakpoint : PBreakpoint;
+      TypeRB   : PRadioButtons;
+      NameIL  : PInputLine;
+      ConditionsIL: PInputLine;
+      LineIL    : PInputLine;
+      IgnoreIL  : PInputLine;
     end;
 
 const
@@ -109,9 +169,10 @@ implementation
 
 uses
   Dos,Mouse,Video,
-  App,Strings,
+  App,Commands,Strings,
   FPVars,FPUtils,FPConst,
-  FPIntf,FPCompile,FPIde;
+  FPIntf,FPCompile,FPIde,
+  Validate,WEditor,WUtils;
 
 
 {****************************************************************************
@@ -176,8 +237,9 @@ end;
 procedure TDebugController.Continue;
 begin
   if not debugger_started then
-    Run;
-  inherited Continue;
+    Run
+  else
+    inherited Continue;
 end;
 
 procedure TDebugController.CommandBegin(const s:string);
@@ -298,7 +360,7 @@ begin
       PB:=BreakpointCollection^.GetGDB(stop_breakpoint_number);
       { For watch we should get old and new value !! }
       if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
-         (PB^.typ<>bt_file_line) then
+         (PB^.typ<>bt_file_line) and (PB^.typ<>bt_function) then
         begin
            Command('p '+GetStr(PB^.Name));
            S:=StrPas(GetOutput);
@@ -378,6 +440,21 @@ begin
   CurrentValue:=nil;
 end;
 
+constructor TBreakpoint.Init_Empty;
+begin
+  typ:=bt_function;
+  state:=bs_enabled;
+  GDBState:=bs_deleted;
+  Name:=Nil;
+  FileName:=nil;
+  Line:=0;
+  IgnoreCount:=0;
+  Commands:=nil;
+  Conditions:=nil;
+  OldValue:=nil;
+  CurrentValue:=nil;
+end;
+
 constructor TBreakpoint.Init_type(atyp : BreakpointType;Const AnExpr : String);
 begin
   typ:=atyp;
@@ -418,15 +495,15 @@ begin
   Debugger^.last_breakpoint_number:=0;
   if (GDBState=bs_deleted) and (state=bs_enabled) then
     begin
-      if (typ=bt_file_line) then
+      if (typ=bt_file_line) and assigned(FileName) then
         Debugger^.Command('break '+NameAndExtOf(FileName^)+':'+IntToStr(Line))
-      else if typ=bt_function then
+      else if (typ=bt_function) and assigned(name) then
         Debugger^.Command('break '+name^)
-      else if typ=bt_watch then
+      else if (typ=bt_watch) and assigned(name) then
         Debugger^.Command('watch '+name^)
-      else if typ=bt_awatch then
+      else if (typ=bt_awatch) and assigned(name) then
         Debugger^.Command('awatch '+name^)
-      else if typ=bt_rwatch then
+      else if (typ=bt_rwatch) and assigned(name) then
         Debugger^.Command('rwatch '+name^);
       if Debugger^.last_breakpoint_number<>0 then
         begin
@@ -515,12 +592,6 @@ begin
   At:=inherited At(Index);
 end;
 
-procedure TBreakpointCollection.FreeItem(Item: Pointer);
-begin
-  if Item<>nil then
-    Dispose(PBreakpoint(Item),Done);
-end;
-
 procedure TBreakpointCollection.Update;
 begin
   if assigned(Debugger) then
@@ -528,6 +599,8 @@ begin
       Debugger^.RemoveBreakpoints;
       Debugger^.InsertBreakpoints;
     end;
+  if assigned(BreakpointsWindow) then
+    BreakpointsWindow^.Update;
 end;
 
 function  TBreakpointCollection.GetGDB(index : longint) : PBreakpoint;
@@ -599,8 +672,630 @@ begin
 end;
 
 
+
 {****************************************************************************
-                                 Initialize
+                         TBreakpointItem
+****************************************************************************}
+
+constructor TBreakpointItem.Init(ABreakpoint : PBreakpoint);
+begin
+  inherited Init;
+  Breakpoint:=ABreakpoint;
+end;
+
+function TBreakpointItem.GetText(MaxLen: Sw_integer): string;
+var S: string;
+begin
+ with Breakpoint^ do
+   begin
+     S:=BreakpointTypeStr[typ];
+     While Length(S)<10 do
+       S:=S+' ';
+     S:=S+'|';
+     S:=S+BreakpointStateStr[state]+' ';
+     While Length(S)<20 do
+       S:=S+' ';
+     S:=S+'|';
+     if (typ=bt_file_line) then
+       S:=S+NameAndExtOf(GetStr(FileName))+':'+IntToStr(Line)
+         else
+       S:=S+GetStr(name);
+     While Length(S)<40 do
+       S:=S+' ';
+     S:=S+'|';
+     if IgnoreCount>0 then
+       S:=S+IntToStr(IgnoreCount);
+     While Length(S)<49 do
+       S:=S+' ';
+     S:=S+'|';
+     if assigned(Conditions) then
+       S:=S+' '+GetStr(Conditions);
+     if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
+     GetText:=S;
+   end;
+end;
+
+procedure TBreakpointItem.Selected;
+begin
+end;
+
+function TBreakpointItem.GetModuleName: string;
+begin
+  if breakpoint^.typ=bt_file_line then
+    GetModuleName:=GetStr(breakpoint^.FileName)
+  else
+    GetModuleName:='';
+end;
+
+{****************************************************************************
+                         TBreakpointListBox
+****************************************************************************}
+
+constructor TBreakpointListBox.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
+begin
+  inherited Init(Bounds,1,AHScrollBar, AVScrollBar);                                                                                                                                                                                                           
+  GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;                                                                                                                                                                                                                     
+  (* New(ModuleNames, Init(50,100)); *)
+  NoSelection:=true;                                                                                                                                                                                                                                           
+end;                                                                                                                                                                                                                                                           
+
+function TBreakpointListBox.GetLocalMenu: PMenu;
+var M: PMenu;
+begin
+  if (Owner<>nil) and (Owner^.GetState(sfModal)) then M:=nil else
+  M:=NewMenu(
+    NewItem('~G~oto source','',kbNoKey,cmMsgGotoSource,hcMsgGotoSource,
+    NewItem('~E~dit breakpoint','',kbNoKey,cmEdit,hcNoContext,
+    NewItem('~N~ew breakpoint','',kbNoKey,cmNew,hcNoContext,
+    NewItem('~D~elete breakpoint','',kbNoKey,cmDelete,hcNoContext,
+    NewItem('~T~oggle state','',kbNoKey,cmToggleBreakpoint,hcNoContext,
+    nil))))));
+  GetLocalMenu:=M;
+end;
+
+procedure TBreakpointListBox.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+begin
+  case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEnter :
+            Message(@Self,evCommand,cmMsgGotoSource,nil);
+        else
+          DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmListItemSelected :
+          if Event.InfoPtr=@Self then
+            Message(@Self,evCommand,cmEdit,nil);
+      end;
+    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+          cmMsgTrackSource :
+            if Range>0 then
+              TrackSource;
+          cmEdit :
+              EditCurrent;
+          cmToggleBreakpoint :
+              ToggleCurrent;
+          cmDelete :
+              DeleteCurrent;
+          cmNew :
+              EditNew;
+          cmMsgClear :
+            Clear;
+          else
+            DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
+      end;
+  end;                                                                                                                                                                                                                                                         
+  inherited HandleEvent(Event);
+end;
+
+procedure TBreakpointListBox.AddBreakpoint(P: PBreakpointItem);
+var W : integer;
+begin
+  if List=nil then New(List, Init(20,20));
+  W:=length(P^.GetText(255));
+  if W>MaxWidth then
+  begin                                                                                                                                                                                                                                                        
+    MaxWidth:=W;                                                                                                                                                                                                                                               
+    if HScrollBar<>nil then
+       HScrollBar^.SetRange(0,MaxWidth);                                                                                                                                                                                                                       
+  end;
+  List^.Insert(P);
+  SetRange(List^.Count);
+  if Focused=List^.Count-1-1 then
+     FocusItem(List^.Count-1);
+  DrawView;
+end;                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                               
+(* function TBreakpointListBox.AddModuleName(const Name: string): PString;
+var P: PString;                                                                                                                                                                                                                                                
+begin
+  if ModuleNames<>nil then
+    P:=ModuleNames^.Add(Name)
+  else
+    P:=nil;                                                                                                                                                                                                                                                    
+  AddModuleName:=P;
+end;  *)
+                                                                                                                                                                                                                                                               
+function TBreakpointListBox.GetText(Item,MaxLen: Sw_Integer): String;
+var P: PBreakpointItem;
+    S: string;                                                                                                                                                                                                                                                 
+begin
+  P:=List^.At(Item);                                                                                                                                                                                                                                           
+  S:=P^.GetText(MaxLen);
+  GetText:=copy(S,1,MaxLen);
+end;
+                                                                                                                                                                                                                                                               
+procedure TBreakpointListBox.Clear;
+begin                                                                                                                                                                                                                                                          
+  if assigned(List) then                                                                                                                                                                                                                                       
+    Dispose(List, Done);
+  List:=nil;
+  MaxWidth:=0;
+  (* if assigned(ModuleNames) then
+    ModuleNames^.FreeAll; *)
+  SetRange(0); DrawView;
+  Message(Application,evBroadcast,cmClearLineHighlights,@Self);
+end;
+                                                                                                                                                                                                                                                               
+procedure TBreakpointListBox.TrackSource;
+var W: PSourceWindow;
+    P: PBreakpointItem;
+    R: TRect;
+    Row,Col: sw_integer;
+begin
+  (*Message(Application,evBroadcast,cmClearLineHighlights,@Self);
+  if Range=0 then Exit;*)
+  P:=List^.At(Focused);
+  if P^.GetModuleName='' then Exit;
+  Desktop^.Lock;
+  GetNextEditorBounds(R);
+  R.B.Y:=Owner^.Origin.Y;
+  W:=EditorWindowFile(P^.GetModuleName);
+  if assigned(W) then
+    begin
+      W^.GetExtent(R);
+      R.B.Y:=Owner^.Origin.Y;
+      W^.ChangeBounds(R);
+      W^.Editor^.SetCurPtr(1,P^.Breakpoint^.Line);
+    end
+  else
+    W:=TryToOpenFile(@R,P^.GetModuleName,1,P^.Breakpoint^.Line,true);
+  if W<>nil then
+    begin
+      W^.Select;
+      W^.Editor^.TrackCursor(true);
+      W^.Editor^.SetHighlightRow(P^.Breakpoint^.Line);
+    end;
+  if Assigned(Owner) then
+    Owner^.Select;
+  Desktop^.UnLock;
+end;
+
+procedure TBreakpointListBox.ToggleCurrent;
+var W: PSourceWindow;
+    P: PBreakpointItem;
+    b : boolean;
+    Row,Col: sw_integer;
+begin
+  if Range=0 then Exit;
+  P:=List^.At(Focused);
+  if P=nil then Exit;
+  if P^.Breakpoint^.state=bs_enabled then
+    P^.Breakpoint^.state:=bs_disabled
+  else if P^.Breakpoint^.state=bs_disabled then
+    P^.Breakpoint^.state:=bs_enabled;
+  BreakpointCollection^.Update;
+  if P^.Breakpoint^.typ=bt_file_line then
+    begin
+      W:=TryToOpenFile(nil,GetStr(P^.Breakpoint^.FileName),1,P^.Breakpoint^.Line,false);
+      If assigned(W) then
+        begin
+          if P^.Breakpoint^.state=bs_enabled then
+            b:=true
+          else
+            b:=false;
+          W^.Editor^.SetLineBreakState(P^.Breakpoint^.Line,b);
+        end;
+    end;
+end;
+
+procedure TBreakpointListBox.EditCurrent;
+var W: PSourceWindow;
+    P: PBreakpointItem;
+    Row,Col: sw_integer;
+begin
+  if Range=0 then Exit;
+  P:=List^.At(Focused);
+  if P=nil then Exit;
+  Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P^.Breakpoint)),nil);
+  BreakpointCollection^.Update;
+end;
+
+procedure TBreakpointListBox.DeleteCurrent;
+var W: PSourceWindow;
+    P: PBreakpointItem;
+    Row,Col: sw_integer;
+begin
+  if Range=0 then Exit;
+  P:=List^.At(Focused);
+  if P=nil then Exit;
+  BreakpointCollection^.free(P^.Breakpoint);
+  List^.free(P);
+  BreakpointCollection^.Update;
+end;
+
+procedure TBreakpointListBox.EditNew;
+var W: PSourceWindow;
+    P: PBreakpoint;
+    Row,Col: sw_integer;
+begin
+  P:=New(PBreakpoint,Init_Empty);
+  if Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P)),nil)<>cmCancel then
+    begin
+      BreakpointCollection^.Insert(P);
+      BreakpointCollection^.Update;
+    end
+  else
+    dispose(P,Done);
+end;
+                                                                                                                                                                                                                                                               
+procedure TBreakpointListBox.Draw;
+var
+  I, J, Item: Sw_Integer;
+  NormalColor, SelectedColor, FocusedColor, Color: Word;
+  ColWidth, CurCol, Indent: Integer;
+  B: TDrawBuffer;
+  Text: String;
+  SCOff: Byte;
+  TC: byte;                                                                                                                                                                                                                                                    
+procedure MT(var C: word); begin if TC<>0 then C:=(C and $ff0f) or (TC and $f0); end;                                                                                                                                                                          
+begin
+  if (Owner<>nil) then TC:=ord(Owner^.GetColor(6)) else TC:=0;
+  if State and (sfSelected + sfActive) = (sfSelected + sfActive) then
+  begin                                                                                                                                                                                                                                                        
+    NormalColor := GetColor(1);                                                                                                                                                                                                                                
+    FocusedColor := GetColor(3);
+    SelectedColor := GetColor(4);
+  end else
+  begin
+    NormalColor := GetColor(2);
+    SelectedColor := GetColor(4);                                                                                                                                                                                                                              
+  end;
+  if Transparent then                                                                                                                                                                                                                                          
+    begin MT(NormalColor); MT(SelectedColor); end;                                                                                                                                                                                                             
+  if NoSelection then                                                                                                                                                                                                                                          
+     SelectedColor:=NormalColor;
+  if HScrollBar <> nil then Indent := HScrollBar^.Value
+  else Indent := 0;
+  ColWidth := Size.X div NumCols + 1;                                                                                                                                                                                                                          
+  for I := 0 to Size.Y - 1 do                                                                                                                                                                                                                                  
+  begin
+    for J := 0 to NumCols-1 do                                                                                                                                                                                                                                 
+    begin
+      Item := J*Size.Y + I + TopItem;
+      CurCol := J*ColWidth;                                                                                                                                                                                                                                    
+      if (State and (sfSelected + sfActive) = (sfSelected + sfActive)) and                                                                                                                                                                                     
+        (Focused = Item) and (Range > 0) then
+      begin
+        Color := FocusedColor;
+        SetCursor(CurCol+1,I);
+        SCOff := 0;
+      end                                                                                                                                                                                                                                                      
+      else if (Item < Range) and IsSelected(Item) then
+      begin                                                                                                                                                                                                                                                    
+        Color := SelectedColor;                                                                                                                                                                                                                                
+        SCOff := 2;                                                                                                                                                                                                                                            
+      end
+      else
+      begin                                                                                                                                                                                                                                                    
+        Color := NormalColor;                                                                                                                                                                                                                                  
+        SCOff := 4;
+      end;                                                                                                                                                                                                                                                     
+      MoveChar(B[CurCol], ' ', Color, ColWidth);                                                                                                                                                                                                               
+      if Item < Range then
+      begin
+        Text := GetText(Item, ColWidth + Indent);
+        Text := Copy(Text,Indent,ColWidth);
+        MoveStr(B[CurCol+1], Text, Color);
+        if ShowMarkers then
+        begin
+          WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
+          WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
+        end;
+      end;
+      MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);
+    end;
+    WriteLine(0, I, Size.X, 1, B);
+  end;
+end;
+
+(* constructor TBreakpointListBox.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
+procedure TBreakpointListBox.Store(var S: TStream);
+var OL: PCollection;
+begin
+  OL:=List;
+  New(List, Init(1,1));
+
+  inherited Store(S);
+
+  Dispose(List, Done);
+  List:=OL;
+  { ^^^ nasty trick - has anyone a better idea how to avoid storing the
+    collection? Pasting here a modified version of TListBox.Store+
+    TAdvancedListBox.Store isn't a better solution, since by eventually
+    changing the obj-hierarchy you'll always have to modify this, too - BG }
+end;  *)
+
+destructor TBreakpointListBox.Done;
+begin
+  inherited Done;
+  if List<>nil then Dispose(List, Done);
+  (* if ModuleNames<>nil then Dispose(ModuleNames, Done);*)
+end;
+
+{****************************************************************************
+                         TBreakpointsWindow
+****************************************************************************}
+
+constructor TBreakpointsWindow.Init;
+var R,R2: TRect;
+    HSB,VSB: PScrollBar;
+    ST: PStaticText;
+    S: String;
+    W,H : Sw_integer;
+    X   : Sw_integer;
+    X1,X2,X3: Sw_integer;
+const White = 15;
+begin
+  Desktop^.GetExtent(R); R.A.Y:=R.B.Y-18;
+  inherited Init(R, 'Breakpoint list', wnNoNumber);
+
+  HelpCtx:=hcBreakpointListWindow;
+
+  GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
+  S:=' Type      | State   | Position          | Ignore | Conditions ';
+  New(ST, Init(R,S));
+  ST^.GrowMode:=gfGrowHiX;
+  Insert(ST);
+  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,1); R.B.Y:=R.A.Y+1;
+  New(ST, Init(R, CharStr('Ä', MaxViewWidth)));
+  ST^.GrowMode:=gfGrowHiX;
+  Insert(ST);
+  GetExtent(R); R.Grow(-1,-1); Inc(R.A.Y,2);Dec(R.B.Y,5);
+  R2.Copy(R); Inc(R2.B.Y); R2.A.Y:=R2.B.Y-1;
+  New(HSB, Init(R2)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiY+gfGrowHiX; Insert(HSB);
+  R2.Copy(R); Inc(R2.B.X); R2.A.X:=R2.B.X-1;
+  New(VSB, Init(R2)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
+  New(BreakLB, Init(R,HSB,VSB));
+  BreakLB^.GrowMode:=gfGrowHiX+gfGrowHiY;
+  BreakLB^.Transparent:=true;
+  Insert(BreakLB);
+  GetExtent(R);R.Grow(-1,-1);
+  Dec(R.B.Y);
+  R.A.Y:=R.B.Y-2;
+  X:=(R.B.X-R.A.X) div 4;
+  X1:=R.A.X+(X div 2);
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  Insert(New(PButton, Init(R, '~C~lose', cmClose, bfDefault)));
+  X1:=X1+X;
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  Insert(New(PButton, Init(R, '~N~ew', cmNew, bfNormal)));
+  X1:=X1+X;
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  Insert(New(PButton, Init(R, '~E~dit', cmEdit, bfNormal)));
+  X1:=X1+X;
+  R.A.X:=X1-3;R.B.X:=X1+7;
+  Insert(New(PButton, Init(R, '~D~elete', cmDelete, bfNormal)));
+  BreakLB^.Select;                                                                                                                                                                                                                                  
+  Update;
+  BreakpointsWindow:=@self;
+end;
+
+procedure TBreakpointsWindow.AddBreakpoint(ABreakpoint : PBreakpoint);
+begin
+  BreakLB^.AddBreakpoint(New(PBreakpointItem, Init(ABreakpoint)));
+end;
+
+procedure TBreakpointsWindow.ClearBreakpoints;
+begin
+  BreakLB^.Clear;
+  ReDraw;                                                                                                                                                                                                                                                      
+end;                                                                                                                                                                                                                                                           
+
+procedure TBreakpointsWindow.ReloadBreakpoints;
+  procedure InsertInBreakLB(P : PBreakpoint);
+  begin
+    BreakLB^.AddBreakpoint(New(PBreakpointItem, Init(P)));
+  end;
+begin
+  If not assigned(BreakpointCollection) then
+    exit;
+  BreakpointCollection^.ForEach(@InsertInBreakLB);
+  ReDraw;
+end;
+
+procedure TBreakpointsWindow.SizeLimits(var Min, Max: TPoint);
+begin
+  inherited SizeLimits(Min,Max);
+  Min.X:=40; Min.Y:=18;
+end;                                                                                                                                                                                                                                                           
+
+procedure TBreakpointsWindow.Close;
+begin                                                                                                                                                                                                                                                          
+  Hide;
+end;
+
+procedure TBreakpointsWindow.HandleEvent(var Event: TEvent);
+var DontClear : boolean;
+begin
+  case Event.What of
+    evCommand :
+      begin
+       DontClear:=False;
+       case Event.Command of
+         cmNew :
+           BreakLB^.EditNew;
+         cmEdit :
+           BreakLB^.EditCurrent;
+         cmDelete :
+           BreakLB^.DeleteCurrent;
+         cmClose :
+           Hide;
+          else
+            DontClear:=true;
+        end;
+        if not DontClear then
+          ClearEvent(Event);
+      end;
+    evBroadcast :
+      case Event.Command of
+        cmUpdate :
+          Update;
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+procedure TBreakpointsWindow.Update;
+begin
+  ClearBreakpoints;
+  ReloadBreakpoints;
+end;                                                                                                                                                                                                                                                           
+
+destructor TBreakpointsWindow.Done;
+begin
+  inherited Done;
+  BreakpointsWindow:=nil;
+end;
+
+{****************************************************************************
+                         TBreakpointItemDialog
+****************************************************************************}
+
+constructor TBreakpointItemDialog.Init(ABreakpoint: PBreakpoint);
+var R,R2,R3: TRect;
+    Items: PSItem;
+    I : BreakpointType;
+    KeyCount: sw_integer;
+begin
+  KeyCount:=longint(high(BreakpointType));
+
+  R.Assign(0,0,60,Max(3+KeyCount,18));
+  inherited Init(R,'Modify/New Breakpoint');
+  Breakpoint:=ABreakpoint;
+
+  GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
+  Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+36;
+  New(NameIL, Init(R, 128)); Insert(NameIL);
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~N~ame', NameIL)));
+  R.Move(0,3);
+  New(LineIL, Init(R, 128)); Insert(LineIL);
+  LineIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~L~ine', LineIL)));
+  R.Move(0,3);
+  New(ConditionsIL, Init(R, 128)); Insert(ConditionsIL);
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, 'Conditions', ConditionsIL)));
+  R.Move(0,3);
+  New(IgnoreIL, Init(R, 128)); Insert(IgnoreIL);
+  IgnoreIL^.SetValidator(New(PRangeValidator, Init(0,MaxInt)));
+  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~I~gnore count', IgnoreIL)));
+
+  R.Copy(R3); Inc(R.A.X,38); R.B.Y:=R.A.Y+KeyCount;
+  Items:=nil;
+  for I:=high(BreakpointType) downto low(BreakpointType) do
+    Items:=NewSItem(BreakpointTypeStr[I], Items);
+  New(TypeRB, Init(R, Items));
+  Insert(TypeRB);
+
+  InsertButtons(@Self);
+
+  NameIL^.Select;
+end;
+
+function TBreakpointItemDialog.Execute: Word;
+var R: word;
+    S1: string;
+    err: word;
+    L: longint;
+begin
+  R:=longint(Breakpoint^.typ);
+  TypeRB^.SetData(R);
+
+  If Breakpoint^.typ=bt_file_line then
+    S1:=GetStr(Breakpoint^.FileName)
+  else
+    S1:=GetStr(Breakpoint^.name);
+  NameIL^.SetData(S1);
+
+  If Breakpoint^.typ=bt_file_line then
+    S1:=IntToStr(Breakpoint^.Line)
+  else
+    S1:='0';
+  LineIL^.SetData(S1);
+
+  S1:=IntToStr(Breakpoint^.IgnoreCount);
+  IgnoreIL^.SetData(S1);
+  S1:=GetStr(Breakpoint^.Conditions);
+  ConditionsIL^.SetData(S1);
+
+  R:=inherited Execute;
+  if R=cmOK then
+  begin
+    TypeRB^.GetData(R);
+    L:=R;
+    Breakpoint^.typ:=BreakpointType(L);
+
+    NameIL^.GetData(S1);
+    If Breakpoint^.typ=bt_file_line then
+      begin
+        If assigned(Breakpoint^.FileName) then
+          DisposeStr(Breakpoint^.FileName);
+        Breakpoint^.FileName:=NewStr(S1);
+      end
+    else
+      begin
+        If assigned(Breakpoint^.Name) then
+          DisposeStr(Breakpoint^.Name);
+        Breakpoint^.name:=NewStr(S1);
+      end;
+    If Breakpoint^.typ=bt_file_line then
+      begin
+        LineIL^.GetData(S1);
+        Val(S1,L,err);
+        Breakpoint^.Line:=L;
+      end;
+    IgnoreIL^.GetData(S1);
+    Val(S1,L,err);
+    Breakpoint^.IgnoreCount:=L;
+
+    ConditionsIL^.GetData(S1);
+    If assigned(Breakpoint^.Conditions) then
+      DisposeStr(Breakpoint^.Conditions);
+    Breakpoint^.Conditions:=NewStr(S1);
+  end;
+  Execute:=R;
+end;
+
+{****************************************************************************
+                         Init/Final
 ****************************************************************************}
 
 procedure InitDebugger;
@@ -678,7 +1373,16 @@ end.
 
 {
   $Log$
-  Revision 1.18  1999-03-16 00:44:42  peter
+  Revision 1.19  1999-06-30 23:58:12  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.18  1999/03/16 00:44:42  peter
     * forgotten in last commit :(
 
   Revision 1.17  1999/03/02 13:48:28  peter

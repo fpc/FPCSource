@@ -18,6 +18,7 @@ unit FPDesk;
 interface
 
 const
+     ResDesktopFlags    = 'FLAGS';
      ResHistory         = 'HISTORY';
      ResClipboard       = 'CLIPBOARD';
      ResWatches         = 'WATCHES';
@@ -83,14 +84,30 @@ begin
   Dispose(S, Done);
 end;
 
+function WriteFlags(F: PResourceFile): boolean;
+begin
+  WriteFlags:=true;
+  {$ifndef DEV}Exit;{$endif}
+
+  F^.CreateResource(resDesktopFlags,rcBinary,0);
+  F^.AddResourceEntry(resDesktopFlags,langDefault,0,@DesktopFileFlags,
+    SizeOf(DesktopFileFlags));
+end;
+
 function WriteSymbols(F: PResourceFile): boolean;
 begin
   WriteSymbols:=true;
 end;
 
 function LoadDesktop: boolean;
+var OK: boolean;
+    F: PResourceFile;
 begin
   LoadDesktop:=true;
+  {$ifndef DEV}Exit;{$endif}
+  New(F, LoadFile(DesktopPath));
+  OK:=true;
+  
 end;
 
 function SaveDesktop: boolean;
@@ -99,6 +116,8 @@ var OK: boolean;
 begin
   New(F, CreateFile(DesktopPath));
   OK:=true;
+  if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
+    OK:=WriteHistory(F);
   if OK and ((DesktopFileFlags and dfHistoryLists)<>0) then
     OK:=WriteHistory(F);
   if OK and ((DesktopFileFlags and dfClipboardContent)<>0) then
@@ -118,7 +137,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-04-15 08:58:05  peter
+  Revision 1.5  1999-06-30 23:58:13  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.4  1999/04/15 08:58:05  peter
     * syntax highlight fixes
     * browser updates
 

@@ -61,6 +61,9 @@ begin
     hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
     hcBrowserWindow: S:=PBrowserWindow(P)^.GetTitle(MaxLen);
     hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
+    hcGDBWindow,
+    hcBreakpointListWindow :
+      S:=PWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
   end;
   if PWindow(P)^.Number<>0 then
@@ -156,7 +159,16 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-06-29 22:50:15  peter
+  Revision 1.10  1999-06-30 23:58:18  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.9  1999/06/29 22:50:15  peter
     * more fixes from gabor
 
   Revision 1.8  1999/06/28 19:32:23  peter

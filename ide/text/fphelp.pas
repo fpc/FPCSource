@@ -92,6 +92,8 @@ begin
     hcClipboardWindow:S:='';
     hcBrowserWindow : S:='';
     hcMessagesWindow: S:='';
+    hcGDBWindow     : S:='Raw GDB communication window';
+    hcBreakpointListWindow : S:='All current breakpoints';
 
     hcSystemMenu    : S:='System menu';
     hcUpdate        : S:='Refresh and redraw display';
@@ -383,7 +385,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-06-28 19:32:19  peter
+  Revision 1.17  1999-06-30 23:58:14  pierre
+    + BreakpointsList Window implemented
+      with Edit/New/Delete functions
+    + Individual breakpoint dialog with support for all types
+      ignorecount and conditions
+      (commands are not yet implemented, don't know if this wolud be useful)
+      awatch and rwatch have problems because GDB does not annotate them
+      I fixed v4.16 for this
+
+  Revision 1.16  1999/06/28 19:32:19  peter
     * fixes from gabor
 
   Revision 1.15  1999/06/25 00:39:58  pierre
