@@ -264,9 +264,8 @@ implementation
                         if try_to_consume(_EQUAL) then
                          begin
                            vs:=tvarsym(sc.first);
-                           if assigned(vs) and
-                              assigned(vs.listnext) then
-                             Comment(V_Error,'default value only allowed for one parameter');
+                           if assigned(vs.listnext) then
+                             Message(parser_e_default_value_only_one_para);
                            { prefix 'def' to the parameter name }
                            tdefaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
                            if assigned(tdefaultvalue) then
@@ -276,7 +275,7 @@ implementation
                         else
                          begin
                            if defaultrequired then
-                            Comment(V_Error,'default parameter required');
+                             Message1(parser_e_default_value_expected_for_para,vs.name);
                          end;
                       end;
                    end;
@@ -1797,13 +1796,13 @@ const
                    if (hd.proctypeoption<>aprocdef.proctypeoption) or
                       (
                        (m_repeat_forward in aktmodeswitches) and
-                       (
-                        not(is_equal(hd.rettype.def,aprocdef.rettype.def) and
-                            ((aprocdef.maxparacount=0) or
-                             equal_paras(aprocdef.para,hd.para,cp_all))
-                           )
-                       )
-                      ) then
+                       (not((aprocdef.maxparacount=0) or
+                            equal_paras(aprocdef.para,hd.para,cp_all)))
+                      ) or
+                      (
+                       ((m_repeat_forward in aktmodeswitches) or
+                        not(is_void(aprocdef.rettype.def))) and
+                       (not is_equal(hd.rettype.def,aprocdef.rettype.def))) then
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
                                    aprocdef.fullprocname);
@@ -1999,7 +1998,11 @@ const
 end.
 {
   $Log$
-  Revision 1.72  2002-09-09 17:34:15  peter
+  Revision 1.73  2002-09-09 19:39:07  peter
+    * check return type for forwarddefs also not delphi mode when
+      the type is not void
+
+  Revision 1.72  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
