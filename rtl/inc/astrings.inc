@@ -802,15 +802,10 @@ begin
 end;
 
 Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
-var
-  BufLen: longint;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
     begin
-      BufLen := StrLen(Buf);
-      If (BufLen < Len) then
-        Len := BufLen;
       Move (Buf[0],S[1],Len);
     end;
 end;
@@ -838,7 +833,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2002-12-09 08:33:31  michael
+  Revision 1.36  2003-02-26 19:16:55  jonas
+    * fixed setstring (+- like suggested by Dimitry Sibiryakov)
+
+  Revision 1.35  2002/12/09 08:33:31  michael
   + Fixed range check error and others in Delete
 
   Revision 1.34  2002/12/07 14:34:30  carl
