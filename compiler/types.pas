@@ -588,7 +588,7 @@ implementation
          if (cs_mmx_saturation in aktlocalswitches) then
            begin
               is_mmx_able_array:=(p^.deftype=arraydef) and
-                not(is_special_array(p) and
+                not(is_special_array(p)) and
                 (
                  (
                   (parraydef(p)^.definition^.deftype=orddef) and
@@ -802,7 +802,8 @@ implementation
              end
          else
            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) and
-             (is_open_array(def1) or is_open_array(def2)) then
+             (is_open_array(def1) or is_open_array(def2) or
+               is_array_of_const(def1) or is_array_of_const(def2)) then
              begin
                if parraydef(def1)^.IsArrayOfConst or parraydef(def2)^.IsArrayOfConst then
                 b:=true
@@ -883,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-05-19 20:40:15  florian
+  Revision 1.64  1999-05-19 20:55:08  florian
+    * fix of my previous commit
+
+  Revision 1.63  1999/05/19 20:40:15  florian
     * fixed a couple of array related bugs:
       - var a : array[0..1] of char;   p : pchar;  p:=a+123; works now
       - open arrays with an odd size doesn't work: movsb wasn't generated
