@@ -62,10 +62,9 @@ begin
 end;
 
 
-
+{ checked against glibc 2.3.3 (FK) }
 Procedure CFMakeRaw(var tios:TermIOS);
 begin
- {$ifndef BSD}
   with tios do
    begin
      c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
@@ -73,31 +72,15 @@ begin
      c_oflag:=c_oflag and (not OPOST);
      c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
-   end;
- {$else}
-  with tios do
-   begin
-     c_iflag:=c_iflag and (not (IMAXBEL or IXOFF or INPCK or BRKINT or
-                PARMRK or ISTRIP or INLCR or IGNCR or ICRNL or IXON or
-                IGNPAR));
-     c_iflag:=c_iflag OR IGNBRK;
-     c_oflag:=c_oflag and (not OPOST);
-     c_lflag:=c_lflag and (not (ECHO or ECHOE or ECHOK or ECHONL or ICANON or
-                                ISIG or IEXTEN or NOFLSH or TOSTOP or PENDIN));
-     c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or (CS8 OR cread);
      c_cc[VMIN]:=1;
      c_cc[VTIME]:=0;
    end;
- {$endif}
 end;
+
 
 Function TCSendBreak(fd,duration:cint):cint;
 begin
-  {$ifndef BSD}
   TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(ptrint(duration)));
-  {$else}
-  TCSendBreak:=fpIOCtl(fd,TIOCSBRK,0);
-  {$endif}
 end;
 
 
@@ -168,7 +151,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-11-03 10:03:39  peter
+  Revision 1.6  2004-12-28 12:45:54  florian
+    * fixed CFMakeRaw
+
+  Revision 1.5  2004/11/03 10:03:39  peter
     * fix isatty, ioctl returns 0 on success, but isatty needs to return 1
 
   Revision 1.4  2004/07/09 19:03:35  peter
