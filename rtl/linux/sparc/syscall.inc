@@ -18,18 +18,6 @@
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
 
-
-Type
-
-  TSysResult = Longint; // all platforms, cint=32-bit.
-			// On platforms with off_t =64-bit, people should
-			// use int64, and typecast all other calls to cint.
-
-// I don't think this is going to work on several platforms 64-bit machines
-// don't have only 64-bit params.
-
-  TSysParam  = Longint; 
-
 {*****************************************************************************
                      --- Main:The System Call Self ---
 *****************************************************************************}
@@ -227,7 +215,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-12-24 21:30:20  mazen
+  Revision 1.3  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.2  2002/12/24 21:30:20  mazen
   - some writeln(s) removed in compiler
   + many files added to RTL
   * some errors fixed in RTL

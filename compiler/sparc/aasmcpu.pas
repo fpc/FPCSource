@@ -282,9 +282,7 @@ constructor taicpu.op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegist
     inherited create(op);
     init(S_SW);
     ops:=2;
-        WriteLn(1,std_reg2str[rgb]);
     loadcaddr(0,rgb,cnst);
-        WriteLn(2,std_reg2str[rgb]);
     loadreg(1,reg);
   end;
 constructor taicpu.op_raddr_reg(op:TAsmOp;rg1,rg2,reg:TRegister);
@@ -1083,7 +1081,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.14  2002-12-14 15:02:03  carl
+    Revision 1.15  2003-01-05 21:32:35  mazen
+    * fixing several bugs compiling the RTL
+
+    Revision 1.14  2002/12/14 15:02:03  carl
       * maxoperands -> max_operands (for portability in rautils.pas)
       * fix some range-check errors with loadconst
       + add ncgadd unit to m68k

@@ -60,10 +60,9 @@ constructor TSparcprocinfo.create;
 procedure TSparcprocinfo.after_header;
 	begin
   	{First 16 words are in the frame are used to save registers in case of a
-    register overflow/underflow}
-    {The 17th word is used to save the address of the variable which will
-    receive the return value of the called function}
-    Return_Offset:=64;{16*4}
+    register overflow/underflow.The 17th word is used to save the address of
+    the variable which will receive the return value of the called function}
+    Return_Offset:=16*4;
     procdef.parast.address_fixup:=(16+1)*4;
 	end;
 procedure TSparcProcInfo.after_pass1;
@@ -81,8 +80,8 @@ procedure TSparcProcInfo.after_pass1;
 		    firsttemp_offset:=localst.address_fixup+localst.datasize;
         with tg do
           begin
-        		FirstTemp:=firsttemp_offset;
-		        LastTemp:=firsttemp_offset;
+        		SetFirstTemp(firsttemp_offset);
+		        //LastTemp:=firsttemp_offset;
           end;
       end;
 	end;
@@ -91,7 +90,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-12-24 21:30:20  mazen
+  Revision 1.11  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.10  2002/12/24 21:30:20  mazen
   - some writeln(s) removed in compiler
   + many files added to RTL
   * some errors fixed in RTL

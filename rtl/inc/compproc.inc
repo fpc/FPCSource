@@ -215,7 +215,7 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_help_constructor; compilerproc;
 procedure fpc_help_fail; compilerproc;
-procedure fpc_help_destructor; compilerproc;
+procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;compilerproc;
 procedure fpc_new_class; compilerproc;
 procedure fpc_dispose_class; compilerproc;
 procedure fpc_help_fail_class; compilerproc;
@@ -283,7 +283,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.30  2002-12-29 16:59:17  peter
+  Revision 1.31  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.30  2002/12/29 16:59:17  peter
     * implemented some more conversions
 
   Revision 1.29  2002/11/26 23:02:07  peter

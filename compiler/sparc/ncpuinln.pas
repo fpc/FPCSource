@@ -61,7 +61,7 @@ function tSparcInlineNode.first_sqr_real : tnode;
     location.loc:=LOC_FPUREGISTER;
     registers32:=left.registers32;
     registersfpu:=max(left.registersfpu,1);
-    first_sqr_real := nil;
+    first_sqr_real:=nil;
   end;
 function tSparcInlineNode.first_sqrt_real : tnode;
   begin
@@ -120,7 +120,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-12-30 21:17:22  mazen
+  Revision 1.3  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.2  2002/12/30 21:17:22  mazen
   - unit cga no more used in sparc compiler.
 
   Revision 1.1  2002/11/30 20:03:49  mazen

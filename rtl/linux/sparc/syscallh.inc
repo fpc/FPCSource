@@ -34,19 +34,22 @@ Type
 
   TSysParam  = Longint;
 
-function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_SYSCALL0';
+{function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_SYSCALL0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_SYSCALL1';
 function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_SYSCALL2';
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_SYSCALL3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';}
 {$ifdef notsupported}
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
 {$endif notsupported}
 
 {
   $Log$
-  Revision 1.1  2002-12-24 21:30:20  mazen
+  Revision 1.2  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.1  2002/12/24 21:30:20  mazen
   - some writeln(s) removed in compiler
   + many files added to RTL
   * some errors fixed in RTL

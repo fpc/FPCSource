@@ -17,7 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ****************************************************************************}
+ *****************************************************************************}
 unit cpupara;
 {SPARC specific calling conventions are handled by this unit}
 {$INCLUDE fpcdefs.inc}
@@ -119,7 +119,7 @@ push_addr_param for the def is true}
         internalerror(2002071001);
     end;
   end;
-procedure TSparcParaManager.create_param_loc_info(p:tabstractprocdef);
+procedure TSparcParaManager.create_param_loc_info(p:TAbstractProcDef);
   var
     nextintreg,nextfloatreg:tregister;
     stack_offset:aword;
@@ -184,7 +184,6 @@ procedure TSparcParaManager.create_param_loc_info(p:tabstractprocdef);
                   else
                     begin
                       {!!!!!!!}
-                      WriteLn('NextIntReg=',std_reg2str[NextIntReg]);
                       hp.paraloc.size:=def_cgsize(hp.paratype.def);
                       internalerror(2002071006);
                     end;
@@ -282,7 +281,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-11-25 19:21:49  mazen
+  Revision 1.13  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.12  2002/11/25 19:21:49  mazen
   * fixed support of nSparcInline
 
   Revision 1.11  2002/11/25 17:43:28  peter

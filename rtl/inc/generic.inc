@@ -27,7 +27,7 @@ procedure Move(const source;var dest;count:longint);
 type
   bytearray    = array [0..maxlongint-1] of byte;
 var
-  i,size : longint;
+  i:longint;
 begin
   if count <= 0 then exit;
   Dec(count);
@@ -170,7 +170,7 @@ function CompareByte(Const buf1,buf2;len:longint):longint;
 type
   bytearray    = array [0..maxlongint-1] of byte;
 var
-  I,J : longint;
+  I : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
@@ -199,7 +199,7 @@ function CompareWord(Const buf1,buf2;len:longint):longint;
 type
   wordarray    = array [0..maxlongint div 2] of word;
 var
-  I,J : longint;
+  I : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
@@ -228,7 +228,7 @@ function CompareDWord(Const buf1,buf2;len:longint):longint;
 type
   longintarray    = array [0..maxlongint div 4] of longint;
 var
-  I,J : longint;
+  I : longint;
 begin
   I:=0;
   if (Len<>0) and (@Buf1<>@Buf2) then
@@ -328,36 +328,38 @@ end;
   FPC_HELP_CONSTRUCTOR : generic allways means aa little less efficient (PM) }
 { I don't think we really need to save any registers here      }
 { since this is called at the start of the constructor (CEC)   }
-function fpc_help_constructor(var _self : pointer; var vmt : pointer; vmt_pos : cardinal) : pointer; [public,alias:'FPC_HELP_CONSTRUCTOR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
-   type
-     ppointer = ^pointer;
-     pvmt = ^tvmt;
-     tvmt = packed record
-        size,msize : longint;
-        parent : pointer;
-        end;
-   var
-      objectsize : longint;
-      vmtcopy : pointer;
+procedure fpc_help_constructor;[public,alias:'FPC_HELP_CONSTRUCTOR'];{$ifdef hascompilerproc}compilerproc;{$endif}
+  type
+    ppointer = ^pointer;
+    pvmt = ^tvmt;
+    tvmt=packed record
+      size,msize:longint;
+      parent:pointer;
+    end;
+  var
+    objectsize:longint;
+    vmtcopy:pointer;
+    _self:pointer;
+    vmt:pointer;
+    vmt_pos:cardinal;
 begin
-   if vmt=nil then
-     begin
-       fpc_help_constructor:=_self;
-       exit;
-     end;
-   vmtcopy:=vmt;
-   objectsize:=pvmt(vmtcopy)^.size;
-   if _self=nil then
-     begin
-       getmem(_self,objectsize);
-       longint(vmt):=-1; { needed for fail }
-     end;
-   if _self<>nil then
-     begin
-       fillchar(_self^,objectsize,#0);
-       ppointer(_self+vmt_pos)^:=vmtcopy;
-     end;
-   fpc_help_constructor:=_self;
+  if vmt=nil
+  then
+    exit;
+  vmtcopy:=vmt;
+  objectsize:=pvmt(vmtcopy)^.size;
+  if _self=nil
+  then
+    begin
+      getmem(_self,objectsize);
+      longint(vmt):=-1; { needed for fail }
+    end;
+  if _self<>nil
+  then
+    begin
+      fillchar(_self^,objectsize,#0);
+      ppointer(_self+vmt_pos)^:=vmtcopy;
+    end;
 end;
 
 {$endif FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
@@ -948,7 +950,10 @@ end;
 
 {
   $Log$
-  Revision 1.44  2002-12-23 21:27:13  peter
+  Revision 1.45  2003-01-05 21:32:35  mazen
+  * fixing several bugs compiling the RTL
+
+  Revision 1.44  2002/12/23 21:27:13  peter
     * fix wrong var names for shortstr_compare
 
   Revision 1.43  2002/10/20 11:51:54  carl
