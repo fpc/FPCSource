@@ -696,8 +696,8 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  Move (Pchar(FDataString)[FPosition],Buffer,Count);
-  FPosition:=FPosition+Count;
+  Move (Pchar(FDataString)[FPosition],Buffer,Result);
+  FPosition:=FPosition+Result;
 end;
 
 
@@ -710,7 +710,6 @@ begin
   If NewLen>Count then NewLen:=Count;
   SetLength(Result,NewLen);
   Read (Pointer(Result)^,NewLen);
-  ReadString:='';
 end;
 
 
@@ -784,7 +783,13 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-12-18 16:45:33  peter
+  Revision 1.13  2003-07-26 16:20:50  michael
+  + Fixed readstring from TStringStream (
+
+  Revision 1.12  2002/04/25 19:14:13  sg
+  * Fixed TStringStream.ReadString
+
+  Revision 1.11  2002/12/18 16:45:33  peter
     * set function result in TStream.Seek(int64) found by Mattias Gaertner
 
   Revision 1.10  2002/12/18 16:35:59  peter
