@@ -365,7 +365,7 @@ end;
 procedure TAiCpu.SetCondition(const c:TAsmCond);
   const
     AsmCond2OpCode:array[TAsmCond]of TAsmOp=
-      (A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BI,A_BGU,A_BLEU,A_BCC,
+      (A_BN,A_BNE,A_BE,A_BG,A_BLE,A_BGE,A_BL,A_BGU,A_BLEU,A_BCC,
 A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_BNE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE);
   begin
     inherited SetCondition(c);
@@ -698,7 +698,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.22  2003-05-06 15:00:36  mazen
+    Revision 1.23  2003-05-06 20:27:43  mazen
+    * A_BI changed to A_BL
+
+    Revision 1.22  2003/05/06 15:00:36  mazen
     - non used code removed to bring up with powerpc changes
 
     Revision 1.21  2003/04/29 11:06:15  mazen
