@@ -1102,18 +1102,41 @@ type
         PFileStatus3=^TFileStatus3;
 
         TFileStatus4=object(TFileStatus3)
-            cbList:longint;
+            cbList:longint;             {Size of the file's extended attributes.}
         end;
         PFileStatus4=^TFileStatus4;
 
-        TFileFindBuf3=object(TFileStatus3)
+        TFileFindBuf3=object(TFileStatus)
+            NextEntryOffset : Longint;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:longint;          {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:longint;           {Attributes of file.}
             Name:string;                {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
         PFileFindBuf3=^TFileFindBuf3;
 
-        TFileFindBuf4=object(TFileStatus4)
+        TFileFindBuf4=object(TFileStatus)
+            NextEntryOffset : Longint;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:longint;          {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:longint;           {Attributes of file.}
+            cbList:longint;             {Size of the file's extended attributes.}
             Name:string;                {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
@@ -4686,7 +4709,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.22  2003-11-01 20:41:47  hajny
+  Revision 1.23  2003-11-02 00:25:09  hajny
+    * TFileFindBuf3 corrected
+
+  Revision 1.22  2003/11/01 20:41:47  hajny
     * TFileStatus3 corrected
 
   Revision 1.21  2003/02/22 22:58:26  hajny
