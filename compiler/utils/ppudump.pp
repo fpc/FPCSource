@@ -24,10 +24,7 @@
 {$endif}
 program pppdump;
 uses
-{$ifdef go32v2}
-  dpmiexcp,
-{$endif go32v2}
-  ppu, cpubase;
+  ppu;
 
 const
   Version   = 'Version 1.10';
@@ -43,6 +40,19 @@ const
   v_implementation = $10;
   v_browser        = $20;
   v_all            = $ff;
+
+type
+  { Copied from systems.pas }
+  ttargetcpu=
+  (
+        no_cpu,                   { 0 }
+        i386,                     { 1 }
+        m68k,                     { 2 }
+        alpha,                    { 3 }
+        powerpc,                  { 4 }
+        sparc,                    { 5 }
+        vm                        { 6 }
+  );
 
 var
   ppufile     : tppufile;
@@ -128,18 +138,6 @@ end;
 
 
 Function Cpu2Str(w:longint):string;
-type
-       { Copied from systems.pas }
-       ttargetcpu=
-       (
-             no_cpu,                   { 0 }
-             i386,                     { 1 }
-             m68k,                     { 2 }
-             alpha,                    { 3 }
-             powerpc,                  { 4 }
-             sparc,                    { 5 }
-             vm                        { 6 }
-       );
 const
   CpuTxt : array[ttargetcpu] of string[7]=
     ('none','i386','m68k','alpha','powerpc','sparc','vis');
@@ -301,8 +299,39 @@ end;
 
 
 Procedure ReadPosInfo;
+var
+  info : byte;
+  fileindex,line,column : longint;
 begin
-  Writeln(ppufile.getword,' (',ppufile.getlongint,',',ppufile.getword,')');
+  with ppufile do
+   begin
+     {
+       info byte layout in bits:
+       0-1 - amount of bytes for fileindex
+       2-3 - amount of bytes for line
+       4-5 - amount of bytes for column
+     }
+     info:=getbyte;
+     case (info and $03) of
+      0 : fileindex:=getbyte;
+      1 : fileindex:=getword;
+      2 : fileindex:=(getbyte shl 16) or getword;
+      3 : fileindex:=getlongint;
+     end;
+     case ((info shr 2) and $03) of
+      0 : line:=getbyte;
+      1 : line:=getword;
+      2 : line:=(getbyte shl 16) or getword;
+      3 : line:=getlongint;
+     end;
+     case ((info shr 4) and $03) of
+      0 : column:=getbyte;
+      1 : column:=getword;
+      2 : column:=(getbyte shl 16) or getword;
+      3 : column:=getlongint;
+     end;
+     Writeln(fileindex,' (',line,',',column,')');
+   end;
 end;
 
 
@@ -944,7 +973,41 @@ end;
                          Read defintions Part
 ****************************************************************************}
 
-procedure getusedregisters;
+procedure getusedregisters_i386;
+type
+  tregister = (R_NO,
+    R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+    R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+    R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
+    R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
+    R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
+    R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
+    R_CR0,R_CR2,R_CR3,R_CR4,
+    R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
+    R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
+    R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+  );
+  tregisterset = set of tregister;
+  reg2strtable = array[tregister] of string[6];
+const
+  std_reg2str : reg2strtable = ('',
+    'eax','ecx','edx','ebx','esp','ebp','esi','edi',
+    'ax','cx','dx','bx','sp','bp','si','di',
+    'al','cl','dl','bl','ah','ch','bh','dh',
+    'cs','ds','es','ss','fs','gs',
+    'st','st(0)','st(1)','st(2)','st(3)','st(4)','st(5)','st(6)','st(7)',
+    'dr0','dr1','dr2','dr3','dr6','dr7',
+    'cr0','cr2','cr3','cr4',
+    'tr3','tr4','tr5','tr6','tr7',
+    'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
+    'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
+  );
+  firstsaveintreg = R_EAX;
+  lastsaveintreg = R_EBX;
+  firstsavefpureg = R_NO;
+  lastsavefpureg = R_NO;
+  firstsavemmreg = R_MM0;
+  lastsavemmreg = R_MM7;
 var
   regs: tregisterset;
   r: tregister;
@@ -1007,6 +1070,7 @@ var
   totaldefs,l,j,
   defcnt : longint;
   calloption : tproccalloption;
+  regs : set of char;
 begin
   defcnt:=0;
   with ppufile do
@@ -1086,9 +1150,19 @@ begin
              readcommondef('Procedure definition');
              calloption:=read_abstract_proc_def;
              write  (space,'   Used Registers : ');
-             getusedregisters;
-             writeln(space,'     Mangled name : ',getstring);
-             writeln(space,'           Number : ',getlongint);
+             case ttargetcpu(header.cpu) of
+               i386 :
+                 getusedregisters_i386
+               else
+                 begin
+                   getnormalset(regs);
+                   writeln('<not yet implemented>');
+                 end;
+             end;
+             if (getbyte<>0) then
+               writeln(space,'     Mangled name : ',getstring);
+             writeln(space,'  Overload Number : ',getword);
+             writeln(space,'           Number : ',getword);
              write  (space,'            Class : ');
              readdefref;
              write  (space,'          Procsym : ');
@@ -1700,7 +1774,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-04-15 19:15:09  carl
+  Revision 1.21  2002-04-23 13:12:58  peter
+    * updated for posinfo change
+    * updated for mangledname change
+    * include i386 registers, removed reference to cpubase unit that would
+      make ppudump dependent on the source processor
+
+  Revision 1.20  2002/04/15 19:15:09  carl
   + write std_reg2str instead of gas registers
 
   Revision 1.19  2002/04/14 17:02:19  carl
