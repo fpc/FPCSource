@@ -313,7 +313,7 @@ end ;
 function StrToDate(const S: string): TDateTime;
 var
    df:string;
-   d,m,y:word;
+   d,m,y,ly:word;
    n,i:longint;
 {$IFDEF VIRTUALPASCAL}
    c:longint;
@@ -379,6 +379,8 @@ begin
       end ;
    end ;
   // Fill in values.
+  getLocalTime(LocalTime);
+  ly := LocalTime.Year;
   If N=3 then
    begin
      y:=values[yp];
@@ -387,8 +389,7 @@ begin
    end
   Else
   begin
-    getLocalTime(LocalTime);
-    y := LocalTime.Year;
+    Y:=ly;
     If n<2 then
      begin
        d:=values[1];
@@ -407,7 +408,12 @@ begin
       end;
   end;
   if (y >= 0) and (y < 100) then
-   inc(y,1900);
+    begin
+    ly := ly - TwoDigitYearCenturyWindow;
+    Inc(Y, ly div 100 * 100);
+    if (TwoDigitYearCenturyWindow > 0) and (Y < ly) then
+      Inc(Y, 100);
+    end;
   Result := DoEncodeDate(y, m, d);
 end ;
 
@@ -728,7 +734,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-24 23:00:56  michael
+  + Fix for bug 2476
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.10  2003/09/06 21:52:24  marco
