@@ -49,7 +49,12 @@ unit cgcpu;
   implementation
 
     uses
+<<<<<<< cgcpu.pas
+       globtype,globals,cpuasm,symconst,symtable,cgbase,
+       verbose;
+=======
        globtype,globals,cpuasm,symconst,symtable,cgbase,verbose;
+>>>>>>> 1.6
 
     constructor tcg386.init;
 
@@ -140,7 +145,14 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.6  1999-09-10 18:48:11  florian
+  Revision 1.7  1999-09-15 20:35:47  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.6  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
@@ -171,5 +183,4 @@ end.
 
   Revision 1.1  1998/12/15 22:17:02  florian
     * first version
-
 }

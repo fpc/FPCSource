@@ -44,7 +44,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      cobjects,verbose,globtype,globals,systems,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
@@ -279,6 +279,10 @@ implementation
 
          if not(omitfirstcomp) or temptovalue then
            emitjmp(hcond,aktbreaklabel);
+
+         { align loop target }
+         if not(cs_littlesize in aktglobalswitches) then
+           exprasmlist^.concat(new(pai_align,init_op(16,$90)));
 
          emitlab(l3);
 
@@ -804,7 +808,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.48  1999-09-07 07:56:37  peter
+  Revision 1.49  1999-09-15 20:35:37  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.48  1999/09/07 07:56:37  peter
     * reload esi in except block to allow virtual methods
 
   Revision 1.47  1999/08/25 11:59:42  jonas

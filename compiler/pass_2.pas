@@ -474,6 +474,7 @@ implementation
                        end;
                      end;
                    *)
+{ $ifdef dummy}
                    if (p^.registers32<4) then
                      begin
                         for i:=1 to maxvarregs do
@@ -590,7 +591,8 @@ implementation
                                end;
                           end;
                      end;
-                   if (p^.registersfpu<maxfpuvarregs-2) then
+{ $endif dummy}
+                   if ((p^.registersfpu+1)<maxfpuvarregs) then
                      begin
                         for i:=1 to maxfpuvarregs do
                           regvars[i]:=nil;
@@ -602,14 +604,31 @@ implementation
                         symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
 {$endif dummy}
                         { hold needed registers free }
-                        for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu+1 do
-                          regvars[i]:=nil;
+
+                        { in non leaf procedures we must be very careful }
+                        { with assigning registers                       }
+                        if (procinfo.flags and pi_do_call)<>0 then
+                          begin
+                             for i:=maxfpuvarregs downto 2 do
+                               regvars[i]:=nil;
+                          end
+                        else
+                          begin
+                             for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu do
+                               regvars[i]:=nil;
+                          end;
                         { now assign register }
-                        for i:=1 to maxfpuvarregs-p^.registersfpu do
+                        for i:=1 to maxfpuvarregs do
                           begin
                              if assigned(regvars[i]) then
                                begin
                                   regvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
+                                  { reserve place on the FPU stack }
+{$ifdef i386}
+                                  procinfo.aktentrycode^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
+                                  { ... and clean it up }
+                                  procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
+{$endif i386}
 {$ifdef dummy}
                                   { parameter must be load }
                                   if regvars_para[i] then
@@ -672,7 +691,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1999-09-07 14:12:35  jonas
+  Revision 1.37  1999-09-15 20:35:41  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.36  1999/09/07 14:12:35  jonas
     * framepointer cannot be changed to esp for methods
 
   Revision 1.35  1999/08/27 10:46:26  pierre

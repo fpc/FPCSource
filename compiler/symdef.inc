@@ -3008,64 +3008,68 @@ Const local_symtable_index : longint = $8001;
          pdc, pdc2, pdcbefore : pdefcoll;
          methodkind, paracount, paraspec : byte;
       begin
-        { write method id and name }
-        rttilist^.concat(new(pai_const,init_8bit(tkmethod)));
-        write_rtti_name;
-
-        { write kind of method (can only be function or procedure)}
-        if retdef = pdef(voiddef) then    { ### typecast shoudln't be necessary! (sg) }
-          methodkind := mkProcedure
-        else
-          methodkind := mkFunction;
-        rttilist^.concat(new(pai_const,init_8bit(methodkind)));
-
-        { get # of parameters }
-        paracount:=0;
-        pdc:=para1;
-        while assigned(pdc) do
+        if po_methodpointer in procoptions then
           begin
-            inc(paracount);
-            pdc:=pdc^.next;
+             { write method id and name }
+             rttilist^.concat(new(pai_const,init_8bit(tkmethod)));
+             write_rtti_name;
+
+             { write kind of method (can only be function or procedure)}
+             if retdef = pdef(voiddef) then    { ### typecast shoudln't be necessary! (sg) }
+               methodkind := mkProcedure
+             else
+               methodkind := mkFunction;
+             rttilist^.concat(new(pai_const,init_8bit(methodkind)));
+
+             { get # of parameters }
+             paracount:=0;
+             pdc:=para1;
+             while assigned(pdc) do
+               begin
+                 inc(paracount);
+                 pdc:=pdc^.next;
+               end;
+             rttilist^.concat(new(pai_const,init_8bit(paracount)));
+
+             { write parameter info. The parameters must be written in reverse order
+               if this method uses right to left parameter pushing! }
+             pdc:=para1;
+             if assigned(pdc) and not (pocall_leftright in proccalloptions) then
+               while assigned(pdc^.next) do pdc := pdc^.next;
+
+             while assigned(pdc) do
+               begin
+                 case pdc^.paratyp of
+                   vs_value: paraspec := 0;
+                   vs_const: paraspec := pfConst;
+                   vs_var  : paraspec := pfVar;
+                 end;
+                 { write flags for current parameter }
+                 rttilist^.concat(new(pai_const,init_8bit(paraspec)));
+                 { write name of current parameter ### how can I get this??? (sg)}
+                 rttilist^.concat(new(pai_const,init_8bit(0)));
+
+                 { write name of type of current parameter }
+                 pdc^.data^.write_rtti_name;
+                 if pocall_leftright in proccalloptions then
+                   pdc:=pdc^.next
+                 else
+                   begin
+                     { find previous argument }
+                     pdcbefore := nil;
+                     pdc2 := para1;
+                     while pdc2 <> pdc do
+                       begin
+                         pdcbefore := pdc2;
+                         pdc2 := pdc2^.next;
+                       end;
+                     pdc := pdcbefore;
+                   end;
+               end;
+
+             { write name of result type }
+             retdef^.write_rtti_name;
           end;
-        rttilist^.concat(new(pai_const,init_8bit(paracount)));
-
-        { write parameter info. The parameters must be written in reverse order
-          if this method uses right to left parameter pushing! }
-        pdc:=para1;
-        if assigned(pdc) and not (pocall_leftright in proccalloptions) then
-          while assigned(pdc^.next) do pdc := pdc^.next;
-
-        while assigned(pdc) do
-          begin
-            case pdc^.paratyp of
-              vs_value: paraspec := 0;
-              vs_const: paraspec := pfConst;
-              vs_var  : paraspec := pfVar;
-            end;
-            { write flags for current parameter }
-            rttilist^.concat(new(pai_const,init_8bit(paraspec)));
-            { write name of current parameter ### how can I get this??? (sg)}
-            rttilist^.concat(new(pai_const,init_8bit(0)));
-            { write name of type of current parameter }
-            pdc^.data^.write_rtti_name;
-            if pocall_leftright in proccalloptions then
-              pdc:=pdc^.next
-            else
-              begin
-                { find previous argument }
-                pdcbefore := nil;
-                pdc2 := para1;
-                while pdc2 <> pdc do
-                  begin
-                    pdcbefore := pdc2;
-                    pdc2 := pdc2^.next;
-                  end;
-                pdc := pdcbefore;
-              end;
-          end;
-
-         { write name of result type }
-         retdef^.write_rtti_name;
       end;
 
 
@@ -3746,7 +3750,14 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.162  1999-09-12 08:48:09  florian
+  Revision 1.163  1999-09-15 20:35:44  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.162  1999/09/12 08:48:09  florian
     * bugs 593 and 607 fixed
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method

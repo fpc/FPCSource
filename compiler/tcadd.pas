@@ -104,6 +104,8 @@ implementation
          if (p^.treetype=starstarn) or
             (ld^.deftype=recorddef) or
             ((ld^.deftype=arraydef) and
+              not((cs_mmx in aktlocalswitches) and
+              is_mmx_able_array(ld)) and
              (not (rd^.deftype in [setdef,orddef])) and
              (not is_chararray(ld))
             ) or
@@ -115,6 +117,8 @@ implementation
             ) or
             (rd^.deftype=recorddef) or
             ((rd^.deftype=arraydef) and
+              not((cs_mmx in aktlocalswitches) and
+              is_mmx_able_array(rd)) and
              (not (ld^.deftype in [setdef,orddef])) and
              (not is_chararray(rd))
             ) or
@@ -1135,7 +1139,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-09-13 16:28:05  peter
+  Revision 1.48  1999-09-15 20:35:45  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.47  1999/09/13 16:28:05  peter
     * typo in previous commit open_array -> chararray :(
 
   Revision 1.46  1999/09/10 15:40:46  peter

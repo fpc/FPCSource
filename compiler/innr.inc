@@ -73,6 +73,14 @@ const
    in_const_sin        = 116;
    in_lo_qword         = 117;
    in_hi_qword         = 118;
+   in_cos_extended     = 119;
+   in_pi               = 121;
+   in_abs_extended     = 122;
+   in_sqr_extended     = 123;
+   in_sqrt_extended    = 124; 
+   in_arctan_extended  = 125;
+   in_ln_extended      = 126;
+   in_sin_extended     = 127;
 
 { MMX functions }
 { these contants are used by the mmx unit }
@@ -91,7 +99,14 @@ const
 
 {
   $Log$
-  Revision 1.13  1999-08-28 15:34:19  florian
+  Revision 1.14  1999-09-15 20:35:40  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.13  1999/08/28 15:34:19  florian
     * bug 519 fixed
 
   Revision 1.12  1999/07/01 15:49:14  florian

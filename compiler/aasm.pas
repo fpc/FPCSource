@@ -694,7 +694,7 @@ uses
        begin
           inherited init;
           typ:=ait_align;
-          if b in [1,2,4,8,16] then
+          if b in [1,2,4,8,16,32] then
             aligntype := b
           else
             aligntype := 1;
@@ -709,7 +709,7 @@ uses
        begin
           inherited init;
           typ:=ait_align;
-          if b in [1,2,4,8,16] then
+          if b in [1,2,4,8,16,32] then
             aligntype := b
           else
             aligntype := 1;
@@ -985,7 +985,14 @@ uses
 end.
 {
   $Log$
-  Revision 1.61  1999-09-08 15:01:29  jonas
+  Revision 1.62  1999-09-15 20:35:37  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.61  1999/09/08 15:01:29  jonas
     * some small changes so the noew optimizer is again compilable
 
   Revision 1.60  1999/08/06 15:30:17  florian

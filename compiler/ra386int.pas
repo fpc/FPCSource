@@ -337,7 +337,7 @@ begin
             Begin
               actasmpattern:=actasmpattern+c;
               c:=current_scanner^.asmgetchar;
-              if c in ['0'..'9'] then
+              if c in ['0'..'7'] then
                actasmpattern:=actasmpattern + c
               else
                Message(asmr_e_invalid_fpu_register);
@@ -1752,7 +1752,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  1999-09-08 16:04:03  peter
+  Revision 1.47  1999-09-15 20:35:43  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.46  1999/09/08 16:04:03  peter
     * better support for object fields and more error checks for
       field accesses which create buggy code
 

@@ -94,6 +94,49 @@ implementation
            end;
         end;
 
+      function getconstrealvalue : bestreal;
+
+        begin
+           case p^.left^.treetype of
+              ordconstn:
+                getconstrealvalue:=p^.left^.value;
+              realconstn:
+                getconstrealvalue:=p^.left^.value_real;
+              else
+                internalerror(309992);
+           end;
+        end;
+
+      procedure setconstrealvalue(r : bestreal);
+
+        var
+           hp : ptree;
+
+        begin
+           hp:=genrealconstnode(r,bestrealdef^);
+           disposetree(p);
+           p:=hp;
+           firstpass(p);
+        end;
+
+      procedure handleextendedfunction;
+
+        begin
+           p^.location.loc:=LOC_FPU;
+           p^.resulttype:=s80floatdef;
+           if (p^.left^.resulttype^.deftype<>floatdef) or
+             (pfloatdef(p^.left^.resulttype)^.typ<>s80real) then
+             begin
+                p^.left:=gentypeconvnode(p^.left,s80floatdef);
+                firstpass(p^.left);
+             end;
+           p^.registers32:=p^.left^.registers32;
+           p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+           p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+        end;
+
       begin
          store_valid:=must_be_valid;
          store_count_ref:=count_ref;
@@ -1079,6 +1122,89 @@ implementation
                     CGMessage(type_e_varid_or_typeid_expected);
                end;
 
+             in_cos_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    setconstrealvalue(cos(getconstrealvalue))
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_sin_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    setconstrealvalue(sin(getconstrealvalue))
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_arctan_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    setconstrealvalue(arctan(getconstrealvalue))
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_pi:
+               if block_type=bt_const then
+                 setconstrealvalue(pi)
+               else
+                 begin
+                    p^.location.loc:=LOC_FPU;
+                    p^.resulttype:=s80floatdef;
+                 end;
+
+             in_abs_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    setconstrealvalue(abs(getconstrealvalue))
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_sqr_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    setconstrealvalue(sqr(getconstrealvalue))
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_sqrt_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    begin
+                       vr:=getconstrealvalue;
+                       if vr<0.0 then
+                         begin
+                            CGMessage(type_e_wrong_math_argument);
+                            setconstrealvalue(0);
+                         end
+                       else
+                         setconstrealvalue(sqrt(vr));
+                    end
+                  else
+                    handleextendedfunction;
+               end;
+
+             in_ln_extended:
+               begin
+                  if p^.left^.treetype in [ordconstn,realconstn] then
+                    begin
+                       vr:=getconstrealvalue;
+                       if vr<=0.0 then
+                         begin
+                            CGMessage(type_e_wrong_math_argument);
+                            setconstrealvalue(0);
+                         end
+                       else
+                         setconstrealvalue(ln(vr));
+                    end
+                  else
+                    handleextendedfunction;
+               end;
+
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
@@ -1124,7 +1250,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-09-07 14:05:11  pierre
+  Revision 1.51  1999-09-15 20:35:46  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.50  1999/09/07 14:05:11  pierre
    * halt removed in do_lowhigh
 
   Revision 1.49  1999/08/28 15:34:21  florian

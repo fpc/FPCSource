@@ -1787,9 +1787,17 @@ _KLAMMERAFFE : begin
                     consume(_LKLAMMER);
                     p1:=factor(true);
                     consume(_RKLAMMER);
+                    if token in [_CARET,_POINT,_LECKKLAMMER] then
+                     begin
+                       { we need the resulttype  }
+                       { of the expression in pd }
+                       do_firstpass(p1);
+                       pd:=p1^.resulttype;
+                       again:=true;
+                       postfixoperators;
+                     end;
                   end
                  else
-
                   p1:=factor(true);
                  got_addrn:=false;
                  p1:=gensinglenode(addrn,p1);
@@ -2092,7 +2100,14 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.142  1999-09-13 16:26:32  peter
+  Revision 1.143  1999-09-15 20:35:41  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.142  1999/09/13 16:26:32  peter
     * fix crash with empty object as childs
 
   Revision 1.141  1999/09/11 19:47:26  florian

@@ -569,13 +569,20 @@ const
     var p: paicpu;
     begin
       p := new(paicpu,op_sym(op,newasmsymbol(l^.name)));
-      p^.condition := create_cond_norm(c,0);
+      create_cond_norm(c,0,p^.condition);
       list^.concat(p)
     end;
 end.
 {
   $Log$
-  Revision 1.5  1999-09-03 13:14:11  jonas
+  Revision 1.6  1999-09-15 20:35:47  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.5  1999/09/03 13:14:11  jonas
     + implemented some parameter passing methods, but they require\n    some more helper routines\n  * fix for loading symbol addresses (still needs to be done in a_loadaddress)\n  * several changes to the way conditional branches are handled
 
   Revision 1.4  1999/08/26 14:53:41  jonas

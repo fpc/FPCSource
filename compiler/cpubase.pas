@@ -769,8 +769,8 @@ const
   frame_pointer = R_EBP;
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
-
   { the register where the vmt offset is passed to the destructor }
+  { helper routine                                                }
   vmt_offset_reg = R_EDI;
 
   scratch_regs : array[1..1] of tregister = (R_EDI);
@@ -1091,7 +1091,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-09-10 18:48:01  florian
+  Revision 1.13  1999-09-15 20:35:39  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.12  1999/09/10 18:48:01  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

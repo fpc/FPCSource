@@ -843,7 +843,7 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
-         otlabel,oflabel   : pasmlabel;
+         otlabel,oflabel,l1   : pasmlabel;
          oldpushedparasize : longint;
 
       begin
@@ -1310,6 +1310,71 @@ implementation
                         end;
                    end;
               end;
+            in_pi:
+              emit_none(A_FLDPI,S_NO);
+            in_sin_extended,
+            in_arctan_extended,
+            in_abs_extended,
+            in_sqr_extended,
+            in_sqrt_extended,
+            in_ln_extended,
+            in_cos_extended:
+              begin
+                 secondpass(p^.left);
+                 case p^.left^.location.loc of
+                    LOC_FPU:
+                      ;
+                    LOC_CFPUREGISTER:
+                      begin
+                         emit_reg(A_FLD,S_NO,
+                           correct_fpuregister(p^.left^.location.register,fpuvaroffset));
+                         inc(fpuvaroffset);
+                      end;
+                    LOC_REFERENCE,LOC_MEM:
+                      floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference);
+                    else
+                      internalerror(309991);
+                 end;
+                 case p^.inlinenumber of
+                    in_sin_extended,
+                    in_cos_extended:
+                      begin
+                         getlabel(l1);
+                         if p^.inlinenumber=in_sin_extended then
+                           emit_none(A_FSIN,S_NO)
+                         else
+                           emit_none(A_FCOS,S_NO);
+                         {
+                         emit_reg(A_FNSTSW,S_NO,R_AX);
+                         emit_none(A_SAHF,S_NO);
+                         emitjmp(C_NP,l1);
+                         emit_reg(A_FSTP,S_NO,R_ST0);
+                         emit_none(A_FLDZ,S_NO);
+                         emitlab(l1);
+                         }
+                      end;
+                    in_arctan_extended:
+                      begin
+                         emit_none(A_FLD1,S_NO);
+                         emit_none(A_FPATAN,S_NO);
+                      end;
+                    in_abs_extended:
+                      emit_none(A_FABS,S_NO);
+                    in_sqr_extended:
+                      begin
+                         emit_reg(A_FLD,S_NO,R_ST0);
+                         emit_none(A_FMULP,S_NO);
+                      end;
+                    in_sqrt_extended:
+                      emit_none(A_FSQRT,S_NO);
+                    in_ln_extended:
+                      begin
+                         emit_none(A_FLDLN2,S_NO);
+                         emit_none(A_FXCH,S_NO);
+                         emit_none(A_FYL2X,S_NO);
+                      end;
+                 end;
+              end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
@@ -1336,7 +1401,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-08-28 15:34:16  florian
+  Revision 1.70  1999-09-15 20:35:38  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.69  1999/08/28 15:34:16  florian
     * bug 519 fixed
 
   Revision 1.68  1999/08/19 13:08:47  pierre

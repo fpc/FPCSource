@@ -428,9 +428,9 @@ const
 
     function is_calljmp(o:tasmop):boolean;
 
-    function inverse_cond(c: TAsmCond): TAsmCond;
-    function create_cond_imm(BO,BI:byte): TAsmCond;
-    function create_cond_norm(cond: TAsmCondFlags; cr: byte): TasmCond;
+    procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
+    procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
+    procedure create_cond_norm(cond: TAsmCondFlags; cr: byte;var r : TasmCond);
 
 {*****************************************************************************
                                   Init/Done
@@ -499,26 +499,26 @@ implementation
     end;
 
 
-    function inverse_cond(c: TAsmCond): TAsmCond;
+    procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
     const
       inv_condflags:array[TAsmCondFlags] of TAsmCondFlags=(CF_None,
         CF_GE,CF_GT,CF_NE,CF_LT,CF_LE,CF_LT,CF_EQ,CF_GT,CF_NS,CF_SO,CF_NU,CF_UN,
         CF_F,CF_T,CF_DNZ,CF_DNZF,CF_DNZT,CF_DZ,CF_DZF,CF_DZT);
     begin
       c.cond := inv_condflags[c.cond];
-      inverse_cond := c;
+      r := c;
     end;
 
-    function create_cond_imm(BO,BI:byte): TAsmCond;
+    procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     var c: tasmcond;
     begin
       c.simple := false;
       c.bo := bo;
       c.bi := bi;
-      create_cond_imm := c
+      r := c
     end;
 
-    function create_cond_norm(cond: TAsmCondFlags; cr: byte): TasmCond;
+    procedure create_cond_norm(cond: TAsmCondFlags; cr: byte;var r : TasmCond);
     const cr2reg: array[0..7] of tregister =
             (R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7);
     var c: tasmcond;
@@ -530,7 +530,7 @@ implementation
         CF_T..CF_DZF: c.crbit := cr
         else c.cr := cr2reg[cr];
       end;
-      create_cond_norm := c;
+      r := c;
     end;
 
 {*****************************************************************************
@@ -548,7 +548,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-09-03 13:11:59  jonas
+  Revision 1.7  1999-09-15 20:35:47  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.6  1999/09/03 13:11:59  jonas
     * several changes to the way conditional branches are handled\n  * some typos fixed
 
   Revision 1.5  1999/08/23 23:27:54  pierre

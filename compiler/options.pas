@@ -1037,7 +1037,7 @@ begin
   def_symbol('HASRESOURCESTRINGS');
   def_symbol('HASSAVEREGISTERS');
   def_symbol('NEWVMTOFFSET');
-
+  def_symbol('HASINTERNMATH');
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1217,7 +1217,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-09-03 09:31:22  peter
+  Revision 1.21  1999-09-15 20:35:40  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.20  1999/09/03 09:31:22  peter
     * reading of search paths fixed to work as expected
 
   Revision 1.19  1999/09/01 22:07:20  peter

@@ -146,7 +146,7 @@ unit nmem;
 {$ifdef dummy}
                     { DLL variable, DLL variables are only available on the win32 target }
                     { maybe we've to add this later for the alpha WinNT                  }
-                    else if (pvarsym(symtableentry)^.var_options and vo_is_dll_var)<>0 then
+                    else if vo_is_dll_var in pvarsym(symtableentry)^.varoptions then
                       begin
                          hregister:=tg.getregisterint;
                          location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
@@ -162,7 +162,7 @@ unit nmem;
                          { in case it is a register variable: }
                          if pvarsym(symtableentry)^.reg<>R_NO then
                            begin
-                              if pvarsym(p^.symtableentry)^.reg in fpureg then
+                              if pvarsym(symtableentry)^.reg in fpuregs then
                                 begin
                                    location.loc:=LOC_CFPUREGISTER;
                                    tg.unusedregsfpu:=tg.unusedregsfpu-[pvarsym(symtableentry)^.reg];
@@ -221,7 +221,7 @@ unit nmem;
                                      end;
                                    objectsymtable:
                                      begin
-                                        if (pvarsym(symtableentry)^.properties and sp_static)<>0 then
+                                        if sp_static in pvarsym(symtableentry)^.symoptions then
                                           begin
                                              location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
                                           end
@@ -711,7 +711,14 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.12  1999-09-14 11:16:09  florian
+  Revision 1.13  1999-09-15 20:35:46  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.12  1999/09/14 11:16:09  florian
     * only small updates to work with the current compiler
 
   Revision 1.11  1999/08/25 12:00:12  jonas

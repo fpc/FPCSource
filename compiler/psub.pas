@@ -1045,7 +1045,7 @@ const
       handler  : {$ifndef TP}@{$endif}pd_intern;
       pocall   : [pocall_internconst];
       pooption : [];
-      mutexclpocall : [pocall_internproc];
+      mutexclpocall : [];
       mutexclpotype : [potype_operator];
       mutexclpo     : []
     ),(
@@ -1054,7 +1054,7 @@ const
       handler  : {$ifndef TP}@{$endif}pd_intern;
       pocall   : [pocall_internproc];
       pooption : [];
-      mutexclpocall : [pocall_internconst,pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl];
+      mutexclpocall : [pocall_inline,pocall_clearstack,pocall_leftright,pocall_cdecl];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck]
     ),(
@@ -2053,7 +2053,14 @@ end.
 
 {
   $Log$
-  Revision 1.20  1999-09-10 18:48:09  florian
+  Revision 1.21  1999-09-15 20:35:42  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.20  1999/09/10 18:48:09  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

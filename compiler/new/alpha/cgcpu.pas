@@ -200,7 +200,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-08-25 12:00:17  jonas
+  Revision 1.8  1999-09-15 20:35:47  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.7  1999/08/25 12:00:17  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.6  1999/08/06 18:05:57  florian
@@ -229,15 +236,4 @@ end.
 
   Revision 1.1  1999/08/01 22:08:26  florian
     * reorganisation of directory structure
-
-  Revision 1.3  1999/08/01 18:22:31  florian
-   * made it again compilable
-
-  Revision 1.2  1999/01/23 23:29:43  florian
-    * first running version of the new code generator
-    * when compiling exceptions under Linux fixed
-
-  Revision 1.1  1998/12/15 22:17:02  florian
-    * first version
-
 }

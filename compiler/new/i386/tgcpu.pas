@@ -68,7 +68,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-09-10 18:48:11  florian
+  Revision 1.5  1999-09-15 20:35:47  florian
+    * small fix to operator overloading when in MMX mode
+    + the compiler uses now fldz and fld1 if possible
+    + some fixes to floating point registers
+    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
+    * .... ???
+
+  Revision 1.4  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 
