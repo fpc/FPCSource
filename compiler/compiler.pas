@@ -104,9 +104,6 @@ uses
     emu387,
 {    dpmiexcp, }
   {$endif GO32V2}
-  {$ifdef LINUX}
-    catch,
-  {$endif LINUX}
 {$endif}
 {$ifdef USEEXCEPT}
   tpexcept,
@@ -358,7 +355,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-04 22:00:50  peter
+  Revision 1.4  2000-08-21 09:14:40  jonas
+    - removed catch unit from uses clause for Linux (clashed with fpcatch
+     from IDE and is already in pp.pas for command line compiler) (merged
+     from fixes branch)
+
+  Revision 1.3  2000/08/04 22:00:50  peter
     * merges from fixes
 
   Revision 1.2  2000/07/13 11:32:38  michael
