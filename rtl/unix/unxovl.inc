@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-Function StatFS(Path:Pathstr;Var Info:Tstatfs):cint;
+Function StatFS(Path:ansistring;Var Info:Tstatfs):cint;
 
 {
   Get all information on a fileSystem, and return it in Info.
@@ -23,32 +23,34 @@ Function StatFS(Path:Pathstr;Var Info:Tstatfs):cint;
 }
  
 begin
-  path:=path+#0;
-  statfs:=statfs(pchar(@path[1]),info);
+  statfs:=statfs(pchar(path),info);
 end;
 
-Function fpReadLink(Name:pathstr):pathstr;
+Function fpReadLink(Name:ansistring):ansistring;
 {
   Read a link (where it points to)
 }
 var
-  LinkName : pathstr;
+  LinkName : ansistring;
   i : cint;
 begin
-  Name:=Name+#0;
-  i:=fpReadLink(@Name[1],@LinkName[1],high(linkname));
+  SetLength(linkname,PATH_MAX);
+  i:=fpReadLink(pchar(name),pchar(linkname),PATH_MAX);
   if i>0 then
    begin
-     linkname[0]:=chr(i);
+     SetLength(linkname,i);
      fpReadLink:=LinkName;
    end
   else
-   fpReadLink:='';
+    fpReadLink:='';
 end;
 
 {
  $Log$
- Revision 1.2  2004-01-01 16:10:23  marco
+ Revision 1.3  2004-11-03 15:00:43  marco
+  * Pathstr eliminated
+
+ Revision 1.2  2004/01/01 16:10:23  marco
   * fpreadlink(pathstr) moved to unxovl (since not platform specific),
  	small fixes for "make all OPT='-dFPC_USE_LIBC'
 

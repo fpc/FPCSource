@@ -22,13 +22,16 @@ function fpNice(N:cint):cint;
 Function fpGetPriority(Which,Who:cint):cint;
 Function fpSetPriority(Which,Who,What:cint):cint;
 Function fpLstat(path:pchar;Info:pstat):cint;
-Function fpLstat(Filename: PathStr;Info:pstat):cint;
+Function fpLstat(Filename: ansistring;Info:pstat):cint;
 Function fpSymlink(oldname,newname:pchar):cint;
 Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
 
 {
   $Log$
-  Revision 1.5  2004-01-01 16:10:23  marco
+  Revision 1.6  2004-11-03 15:00:43  marco
+   * Pathstr eliminated
+
+  Revision 1.5  2004/01/01 16:10:23  marco
    * fpreadlink(pathstr) moved to unxovl (since not platform specific),
   	small fixes for "make all OPT='-dFPC_USE_LIBC'
 

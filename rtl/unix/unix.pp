@@ -20,8 +20,8 @@ Uses BaseUnix,UnixType;
 
 {$i aliasptp.inc}
 
-type
-   pathstr = string[255];
+//type
+//   pathstr = string[255];
 
 {$define POSIXWORKAROUND}
 { Get Types and Constants }
@@ -40,8 +40,11 @@ type
 {$I signal.inc}
 {$i ostypes.inc}
 
+// We init to zero to be able to put timezone stuff under IFDEF, and still
+// keep the code working.
+
 var
-  Tzseconds : Longint;
+  Tzseconds : Longint {$ifndef ver1_0} = 0 {$endif};
 
 
 {********************
@@ -73,11 +76,15 @@ var
   tzdaylight : boolean;
   tzname     : array[boolean] of pchar;
 
+{$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
+ 		       // it doesn't (yet) work for.
+
 { timezone support }
 procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
 procedure GetLocalTimezone(timer:cint);
 procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
+{$ENDIF}
 
 {**************************
      Process Handling
@@ -193,9 +200,6 @@ Type
 	TFSearchOption  = (NoCurrentDirectory,
 		           CurrentDirectoryFirst,
 	                   CurrentDirectoryLast);
-
-//Function  FExpand  (Const Path: PathStr):PathStr;
-//Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
 
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
@@ -564,9 +568,10 @@ begin
 end;
 
 
+{$IFNDEF DONT_READ_TIMEZONE}
 { Include timezone handling routines which use /usr/share/timezone info }
 {$i timezone.inc}
-
+{$endif}
 {******************************************************************************
                            FileSystem calls
 ******************************************************************************}
@@ -1169,60 +1174,6 @@ end;
                              Utility calls
 ******************************************************************************}
 
-{
-{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_GETENVPCHAR}
-{$UNDEF FPC_FEXPAND_TILDE}
-
-{}
-Function FSearch(const path:pathstr;dirlist:string):pathstr;
-{
-  Searches for a file 'path' in the list of direcories in 'dirlist'.
-  returns an empty string if not found. Wildcards are NOT allowed.
-  If dirlist is empty, it is set to '.'
-}
-Var
-  NewDir : PathStr;
-  p1     : cint;
-  Info   : Stat;
-Begin
-{Replace ':' with ';'}
-  for p1:=1 to length(dirlist) do
-   if dirlist[p1]=':' then
-    dirlist[p1]:=';';
-{Check for WildCards}
-  If (Pos('?',Path) <> 0) or (Pos('*',Path) <> 0) Then
-   FSearch:='' {No wildcards allowed in these things.}
-  Else
-   Begin
-     Dirlist:='.;'+dirlist;{Make sure current dir is first to be searched.}
-     Repeat
-       p1:=Pos(';',DirList);
-       If p1=0 Then
-        p1:=255;
-       NewDir:=Copy(DirList,1,P1 - 1);
-       if NewDir[Length(NewDir)]<>'/' then
-        NewDir:=NewDir+'/';
-       NewDir:=NewDir+Path;
-       Delete(DirList,1,p1);
-       if (FpStat(NewDir,Info)>=0) and
-          (not fpS_ISDIR(Info.st_Mode)) then
-        Begin
-          If Pos('./',NewDir)=1 Then
-           Delete(NewDir,1,2);
-        {DOS strips off an initial .\}
-        End
-       Else
-        NewDir:='';
-     Until (DirList='') or (Length(NewDir) > 0);
-     FSearch:=NewDir;
-   End;
-End;
-}
 Function FSearch(const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
@@ -1234,7 +1185,7 @@ stringhandling overhead at the same time.
 
 }
 Var
-  NewDir : PathStr;
+  NewDir : ansistring;
   p1     : cint;
   Info   : Stat;
   i,j      : cint; 
@@ -1289,15 +1240,21 @@ End;
 --------------------------------}
 
 Initialization
+{$IFNDEF DONT_READ_TIMEZONE}
   InitLocalTime;
-
+{$endif}
 finalization
+{$IFNDEF DONT_READ_TIMEZONE}
   DoneLocalTime;
+{$endif}
 End.
 
 {
   $Log$
-  Revision 1.75  2004-10-30 20:55:54  marco
+  Revision 1.76  2004-11-03 15:00:43  marco
+   * Pathstr eliminated
+
+  Revision 1.75  2004/10/30 20:55:54  marco
    * unix interface cleanup
 
   Revision 1.74  2004/07/18 14:54:42  jonas

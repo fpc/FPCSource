@@ -91,14 +91,13 @@ begin
  fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
 end;
 
-Function fpLstat(Filename: PathStr;Info:pstat):cint;
+Function fpLstat(Filename: ansistring;Info:pstat):cint;
 {
   Get all information on a link (the link itself), and return it in info.
 }
 
 begin
- FileName:=FileName+#0;
- fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(@filename[1]),TSysParam(info));
+ fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(pchar(filename)),TSysParam(info));
 end;
 
 Function fpSymlink(oldname,newname:pchar):cint;
@@ -118,7 +117,10 @@ end;
 
 {
    $Log$
-   Revision 1.6  2004-07-03 22:48:49  marco
+   Revision 1.7  2004-11-03 15:00:43  marco
+    * Pathstr eliminated
+
+   Revision 1.6  2004/07/03 22:48:49  marco
     * small fix for 1.0.x cycling
 
    Revision 1.5  2004/04/22 16:22:10  marco
