@@ -1,6 +1,4 @@
-
-
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$else}{$J+}{$endif}
 
 type
    tbaseclass = class
@@ -27,7 +25,7 @@ var
   basesize : longint;
   derivedsize : longint;
 
-procedure tbaseclass.virtual_class_method;
+class procedure tbaseclass.virtual_class_method;
 
 begin
   Writeln('Calling tbase class class method');
@@ -39,7 +37,7 @@ begin
     end;
 end;
 
-function tbaseclass.getsize : longint;
+class function tbaseclass.getsize : longint;
 begin
   getsize:=sizeof(self);
 end;
@@ -63,7 +61,7 @@ begin
     end;
 end;
 
-procedure tderivedclass.virtual_class_method;
+class procedure tderivedclass.virtual_class_method;
 
 begin
   Writeln('Calling tderived class class method');
@@ -81,10 +79,13 @@ begin
   tderivedcalled:=false;
 end;
 
+type
+  tcl = class of tbaseclass;
+
 var
   c1,cb : tbaseclass;
   cd : tderivedclass;
-  cc : class of tbaseclass;
+  cc : tcl;
 
 begin
  cb:=tbaseclass.create;
@@ -93,8 +94,8 @@ begin
 
  basesize:=sizeof(cb);
  Writeln('Sizeof(cb)=',basesize);
- if basesize<>expected_size_for_tbaseclass then
-   Writeln('not the expected size : ',expected_size_for_tbaseclass);
+ if basesize<>sizeof(pointer) then
+   Writeln('not the expected size : ',sizeof(pointer));
  Writeln('cb.InstanceSize=',Cb.InstanceSize);
  if cb.InstanceSize<>expected_size_for_tbaseclass then
    Writeln('not the expected size : ',expected_size_for_tbaseclass);
@@ -104,8 +105,8 @@ begin
 
  derivedsize:=sizeof(cd);
  Writeln('Sizeof(ct)=',derivedsize);
- if derivedsize<>expected_size_for_tderivedclass then
-   Writeln('not the expected size : ',expected_size_for_tderivedclass);
+ if derivedsize<>sizeof(pointer) then
+   Writeln('not the expected size : ',sizeof(pointer));
 
  cb.check_size;
  cd.check_size;
@@ -180,7 +181,7 @@ begin
    has_error:=true;
  reset_booleans;
 
- Writeln('Szeof(cc)=',sizeof(cc));
+ Writeln('Sizeof(cc)=',sizeof(cc));
 
  if has_error then
    begin
