@@ -299,13 +299,15 @@ begin
 
  if BytesInBuffer > 0 then
     if buffer[BytesInBuffer - 1] in [#13, #10] then begin
-      buffer[BytesInBuffer - 1] := #0;
-      SetLength(line, BytesInBuffer);
-      Move(buffer, line[1], BytesInBuffer);
+      SetLength(line, BytesInBuffer - 1);
+      Move(buffer^, line[1], BytesInBuffer - 1);
       ProcessLine(line);
       ProcessLine('');
-    end else
-      ProcessLine(buffer);
+    end else begin
+      SetLength(line, BytesInBuffer);
+      Move(buffer^, line[1], BytesInBuffer);
+      ProcessLine(line);
+    end;
 
   if Assigned(buffer) then
     FreeMem(buffer);
@@ -404,7 +406,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-02-22 14:26:52  sg
+  Revision 1.12  2000-02-24 13:32:10  sg
+  * The last line in a document is now read correctly
+
+  Revision 1.11  2000/02/22 14:26:52  sg
   * New, much faster stream reader
   * Added more notifiers for the attached view objects
 
