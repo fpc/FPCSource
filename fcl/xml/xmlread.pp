@@ -1046,7 +1046,7 @@ begin
       begin
         Inc(buf);
       end;
-      AOwner.AppendChild(doc.CreateCDATASection(GetString(OldBuf,buf-OldBuf)));
+      AOwner.AppendChild(doc.CreateCDATASection(GetString(OldBuf,buf-OldBuf-3))); { Copy CDATA, discarding terminator }
       Result := True;
     end
   else
@@ -1563,7 +1563,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-11-05 22:32:28  peter
+  Revision 1.13  2005-01-22 20:54:51  michael
+  * Patch from Colin Western to correctly read CDATA
+
+  Revision 1.12  2004/11/05 22:32:28  peter
     * merged xml updates from lazarus
 
 }
