@@ -684,8 +684,9 @@ implementation
         tempinfo^.may_be_in_reg:=
           allowreg and
           { temp must fit a single register }
-          ((_restype.def.deftype = floatdef) or
-           (_size<=TCGSize2Size[OS_INT])) and
+          (tstoreddef(_restype.def).is_fpuregable or
+           (tstoreddef(_restype.def).is_intregable and
+            (_size<=TCGSize2Size[OS_INT]))) and
           { size of register operations must be known }
           (def_cgsize(_restype.def)<>OS_NO) and
           { no init/final needed }
@@ -1023,7 +1024,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-11-21 17:54:59  peter
+  Revision 1.91  2004-11-28 19:16:53  jonas
+    * fixed check for regvar-ability of tempnodes
+
+  Revision 1.90  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
