@@ -159,7 +159,8 @@ begin
       LThread.FFatalException :=  TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
-      if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
+      if e is EThreadDestroyCalled then 
+        LThread.FFreeOnTerminate := true;
     end;
   end;
   WRITE_DEBUG('thread done running');
@@ -195,9 +196,9 @@ end;
 
 destructor TThread.Destroy;
 begin
-  if FThreadID = GetCurrentThreadID then begin
+  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) then
     raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
-  end;
+
   // if someone calls .Free on a thread with
   // FreeOnTerminate, then don't crash!
   FFreeOnTerminate := false;
@@ -321,7 +322,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2005-03-01 20:38:49  jonas
+  Revision 1.15  2005-03-06 15:24:03  florian
+    * FreeOnTerminate handling fixed
+
+  Revision 1.14  2005/03/01 20:38:49  jonas
     * fixed web bug 3387: if one called resume right after creating a
       suspended thread, it was possible that resume was executed before
       that thread had completed its initialisation in BeginThread ->
