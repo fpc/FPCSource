@@ -14,10 +14,8 @@
 
  **********************************************************************}
 
-{$ifndef win32}
 Type 
-  THandle = Longint;  // Needed for TSearchRec
-{$endif}
+  THandle = Longint; 
 
 Type 
   TSearchRec = Record
@@ -38,6 +36,11 @@ Const
   faDirectory = $00000010;
   faArchive   = $00000020;
   faAnyFile   = $0000003f;
+
+  fmOpenRead       = $0000;
+  fmOpenWrite      = $0001;
+  fmOpenReadWrite  = $0002;
+      
   
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 Function FileCreate (Const FileName : String) : Longint;
@@ -62,7 +65,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.3  1999-02-02 21:21:37  michael
+  Revision 1.4  1999-02-09 12:38:43  michael
+  * Fixed INt() proble. Defined THandle, included Filemode constants
+
+  Revision 1.3  1999/02/02 21:21:37  michael
   + Added filetruncate
 
   Revision 1.2  1998/10/11 13:47:45  michael

@@ -83,9 +83,13 @@ end ;
 {   DateTimeToTimeStamp converts DateTime to a TTimeStamp   }
 
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
+
+
 begin
 result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
-result.Date := 1 + DateDelta + Trunc(Int(DateTime));
+result.Date := 1 
+               + DateDelta 
+               + Trunc(System.Int(DateTime));
 end ;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
@@ -140,7 +144,7 @@ var
    l:longint;
    ly:boolean;
 begin
-l := Trunc(Int(Date)) + DateDelta;
+l := Trunc(System.Int(Date)) + DateDelta;
 year := 1 + 400 * (l div D400); l := (l mod D400);
 year := year + 100 * (l div D100);l := (l mod D100);
 year := year + 4 * (l div D4);l := (l mod D4);
@@ -621,7 +625,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-10-15 09:39:12  michael
+  Revision 1.6  1999-02-09 12:38:42  michael
+  * Fixed INt() proble. Defined THandle, included Filemode constants
+
+  Revision 1.5  1998/10/15 09:39:12  michael
   Changes from Gretjan Schouten
 
   Revision 1.4  1998/10/11 13:40:52  michael
