@@ -227,7 +227,19 @@ begin  //TODO
 end;
 
 procedure TFPPixelCanvas.DoEllipse (const Bounds:TRect);
+var
+  Cx,Cy,Rx,Ry,phi:Integer;
 begin  //TODO: how to find center points and radius from bounds ?
+  with Bounds do
+    begin
+      Cx:=(Right+Left) shr 2;
+      Cy:=(Bottom+Top) shr 2;
+      Rx:=Abs(Right-Left) shr 2;
+      Ry:=Abs(Bottom-Top) shr 2;
+    end;
+  MoveTo(Cx+Rx,Cy);
+  for phi:=1 to 360 do
+    LineTo(Cx+Round(Rx*Cos(phi*Pi/180)),Cy+Round(Ry*Sin(phi*Pi/180)));
 end;
 
 procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
