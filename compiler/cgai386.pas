@@ -488,7 +488,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                emit_ref_reg(A_MOV,S_L,
                                  newreference(t.reference),reg);
                              end;
-                           ungetiftemp(t.reference);
                          end;
         else
          internalerror(330);
@@ -3350,7 +3349,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.41  1999-09-12 08:48:04  florian
+  Revision 1.42  1999-09-14 07:59:47  florian
+    * finally!? fixed
+         with <function with result in temp> do
+      My last and also Peter's fix before were wrong :(
+
+  Revision 1.41  1999/09/12 08:48:04  florian
     * bugs 593 and 607 fixed
     * some other potential bugs with array constructors fixed
     * for classes compiled in $M+ and it's childs, the default access method

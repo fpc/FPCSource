@@ -1122,6 +1122,8 @@ implementation
                         p^.location.loc:=LOC_FPU;
                         p^.registersfpu:=1;
                      end
+                   else
+                     p^.location.loc:=LOC_MEM;
                 end;
            end;
          must_be_valid:=store_valid;
@@ -1217,7 +1219,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  1999-09-10 18:48:11  florian
+  Revision 1.64  1999-09-14 07:59:48  florian
+    * finally!? fixed
+         with <function with result in temp> do
+      My last and also Peter's fix before were wrong :(
+
+  Revision 1.63  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

@@ -781,7 +781,7 @@ implementation
 
     procedure secondwith(var p : ptree);
       var
-        usetemp : boolean;
+        usetemp,with_expr_in_temp : boolean;
       begin
          if assigned(p^.left) then
             begin
@@ -811,9 +811,23 @@ implementation
                  end
                else
                  begin
-                   emit_lea_loc_reg(p^.left^.location,R_EDI,true);
+                   emit_lea_loc_reg(p^.left^.location,R_EDI,false);
                    usetemp:=true;
                  end;
+
+               release_loc(p^.left^.location);
+
+               { if the with expression is stored in a temp    }
+               { area we must make it persistent and shouldn't }
+               { release it (FK)                               }
+               if (p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+                 istemp(p^.left^.location.reference) then
+                 begin
+                    normaltemptopersistant(p^.left^.location.reference.offset);
+                    with_expr_in_temp:=true;
+                 end
+               else
+                 with_expr_in_temp:=false;
 
                { if usetemp is set the value must be in %edi }
                if usetemp then
@@ -833,6 +847,9 @@ implementation
                if usetemp then
                  ungetpersistanttemp(p^.withreference^.offset);
 
+               if with_expr_in_temp then
+                 ungetpersistanttemp(p^.left^.location.reference.offset);
+
                dispose(p^.withreference);
                p^.withreference:=nil;
             end;
@@ -842,7 +859,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-09-13 20:49:41  florian
+  Revision 1.57  1999-09-14 07:59:46  florian
+    * finally!? fixed
+         with <function with result in temp> do
+      My last and also Peter's fix before were wrong :(
+
+  Revision 1.56  1999/09/13 20:49:41  florian
     * hopefully an error in Peter's previous commit fixed
 
   Revision 1.55  1999/09/10 15:42:50  peter
