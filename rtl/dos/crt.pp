@@ -135,22 +135,14 @@ var
 
     function screenrows : byte;
       begin
-{$ifdef GO32V2}
-         screenrows:=mem[$40:$84]+1;
-{$else}
          dosmemget($40,$84,screenrows,1);
          inc(screenrows);
-{$endif}
       end;
 
 
     function screencols : byte;
       begin
-{$ifdef GO32V2}
-         screencols:=mem[$40:$4a];
-{$else}
          dosmemget($40,$4a,screencols,1);
-{$endif}
       end;
 
 
@@ -187,17 +179,12 @@ var
 
     procedure screengetcursor(var row,col : longint);
       begin
-{$ifdef Go32V2}
-         col:=mem[$40:$50]+1;
-         row:=mem[$40:$51]+1;
-{$else}
          col:=0;
          row:=0;
          dosmemget($40,$50,col,1);
          dosmemget($40,$51,row,1);
          inc(col);
          inc(row);
-{$endif}
       end;
 
 
@@ -525,17 +512,11 @@ var
 
    var
       calibration : longint;
-{$ifdef GO32V2}
-      get_ticks   : longint absolute $40:$6c;
-{$endif}
 
-
-{$ifndef GO32V2}
       function get_ticks:longint;
        begin
          dosmemget($40,$6c,get_ticks,4);
        end;
-{$endif}
 
 
    procedure Delay(MS: Word);
@@ -652,11 +633,8 @@ var
 
    Procedure WriteChar(c:char);
      var
-{$ifdef GO32V2}
        regs : trealregs;
-{$else}
        chattr : word;
-{$endif}
      begin
        case c of
         #10 : inc(row);
@@ -674,12 +652,8 @@ var
               end;
        else
         begin
-{$ifdef GO32V2}
-          memw[$b800:get_addr(row,col)]:=(textattr shl 8) or byte(c);
-{$else}
           chattr:=(textattr shl 8) or byte(c);
           dosmemput($b800,get_addr(row,col),chattr,2);
-{$endif}
           inc(col);
         end;
        end;
@@ -846,13 +820,8 @@ begin
 
    { save the current settings to restore the old state after the exit }
    screengetcursor(row,col);
-{$ifdef GO32V2}
-   startattrib:=mem[$b800:get_addr(row,col)+1];
-   lastmode:=mem[$40:$49];
-{$else}
    dosmemget($b800,get_addr(row,col)+1,startattrib,1);
    dosmemget($40,$49,lastmode,1);
-{$endif}
    textattr:=startattrib;
 
    { redirect the standard output }
@@ -869,7 +838,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-05-31 14:18:12  peter
+  Revision 1.6  1998-07-07 12:26:42  carl
+    * now compiles under fpc v0.99.5, so don't modify!!!!
+
+  Revision 1.5  1998/05/31 14:18:12  peter
     * force att or direct assembling
     * cleanup of some files
 
