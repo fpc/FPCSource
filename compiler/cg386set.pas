@@ -90,6 +90,9 @@ implementation
          i,numparts : byte;
          {href,href2 : Treference;}
          l,l2       : pasmlabel;
+{$ifdef CORRECT_SET_IN_FPC}
+         AM         : tasmop;
+{$endif CORRECT_SET_IN_FPC}
 
          function analizeset(Aset:pconstset;is_small:boolean):boolean;
            type
@@ -296,7 +299,7 @@ implementation
                     end;
                  end;
                 { Emit the jump over label }
-                exprasmlist^.concat(new(pai_label,init(l2)));
+                emitlab(l2);
               end
              else
               begin
@@ -320,7 +323,7 @@ implementation
              { To compensate for not doing a second pass }
              p^.right^.location.reference.symbol:=nil;
              { Now place the end label }
-             exprasmlist^.concat(new(pai_label,init(l)));
+             emitlab(l);
              case p^.left^.location.loc of
             LOC_REGISTER,
            LOC_CREGISTER : ungetregister32(pleftreg);
@@ -403,9 +406,100 @@ implementation
              end
             else
              begin
+               if p^.right^.location.reference.is_immediate then
+                begin
+                  p^.location.resflags:=F_C;
+                  getlabel(l);
+                  getlabel(l2);
+                  
+                  { Is this treated in firstpass ?? }
+                  if p^.left^.treetype=ordconstn then
+                    begin
+                      hr:=getregister32;
+                      p^.left^.location.loc:=LOC_REGISTER;
+                      p^.left^.location.register:=hr;
+                      exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
+                            p^.left^.value,hr)));
+                    end;
+                  case p^.left^.location.loc of
+                     LOC_REGISTER,
+                     LOC_CREGISTER:
+                       begin
+                          hr:=regtoreg32(p^.left^.location.register);
+{$ifdef CORRECT_SET_IN_FPC}
+                          if m_tp in aktmodeswitches then
+                            begin
+                               if is_signed(p^.left^.resulttype) then
+                                 AM:=A_MOVSX
+                               else
+                                 AM:=A_MOVZX;
+                               if p^.left^.location.register in [R_AX,R_DI] then
+                                 exprasmlist^.concat(new(pai386,op_reg_reg(AM,S_WL,
+                                   p^.left^.location.register,hr)))
+                               else if p^.left^.location.register in [R_AL,R_DH] then
+                               exprasmlist^.concat(new(pai386,op_reg_reg(AM,S_BL,
+                                 p^.left^.location.register,hr)));
+                            end
+                          else
+{$endif CORRECT_SET_IN_FPC}
+                            begin
+                               exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,
+                                 255,hr)));
+                            end;
+                          exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,
+                            31,hr)));
+                          emitjmp(C_NA,l);
+                        { reset carry flag }
+                          exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
+                          emitjmp(C_NONE,l2);
+                          emitlab(l);
+                        { We have to load the value into a register because
+                          btl does not accept values only refs or regs (PFV) }
+                          hr2:=getregister32;
+                          exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
+                            p^.right^.location.reference.offset,hr2)));
+                          exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,hr2)));
+                          ungetregister32(hr2);
+                       end;
+                  else
+                    begin
+{$ifdef CORRECT_SET_IN_FPC}
+                          if m_tp in aktmodeswitches then
+                            begin
+                            {***WARNING only correct if
+                              reference is 32 bits (PM) *****}
+                               exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_L,
+                                 31,newreference(p^.left^.location.reference))));
+                            end
+                          else
+{$endif CORRECT_SET_IN_FPC}
+                            begin
+                               exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
+                                 31,newreference(p^.left^.location.reference))));
+                            end;
+                       emitjmp(C_NA,l);
+                     { reset carry flag }
+                       exprasmlist^.concat(new(pai386,op_none(A_CLC,S_NO)));
+                       emitjmp(C_NONE,l2);
+                       emitlab(l);
+                       hr:=getregister32;
+                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                         newreference(p^.left^.location.reference),hr)));
+                     { We have to load the value into a register because
+                       btl does not accept values only refs or regs (PFV) }
+                       hr2:=getregister32;
+                       exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
+                         p^.right^.location.reference.offset,hr2)));
+                       exprasmlist^.concat(new(pai386,op_reg_reg(A_BT,S_L,hr,hr2)));
+                       ungetregister32(hr2);
+                      del_reference(p^.left^.location.reference);
+                    end;
+                    emitlab(l2);
+                  end;
+                end { of p^.right^.location.reference.is_immediate }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
-               if p^.left^.treetype=ordconstn then
+               else if p^.left^.treetype=ordconstn then
                 begin
                   p^.location.resflags:=F_NE;
                   inc(p^.right^.location.reference.offset,p^.left^.value shr 3);
@@ -816,7 +910,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-06-02 10:11:48  florian
+  Revision 1.34  1999-06-08 15:27:24  pierre
+   * fix for bug0258
+
+  Revision 1.33  1999/06/02 10:11:48  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions
