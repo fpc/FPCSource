@@ -279,25 +279,7 @@ begin
    end;
   if Force then
    begin
-{     dosmemput(videoseg,0,videobuf^,VideoBufSize);}
-      asm
-        pushw %es
-        pushl %edi
-        pushl %esi
-
-        xor  %edi, %edi
-        movw videoseg, %di
-        shll $0x4, %edi
-        movl videobuf, %esi
-        movl videobufsize, %ecx
-        movw %fs, %ax
-        movw %ax, %es
-        rep movsb
-
-        popl  %esi
-        popl  %edi
-        popw  %es
-      end ['EAX','ECX'];
+     dosmemput(videoseg,0,videobuf^,VideoBufSize);
      move(videobuf^,oldvideobuf^,VideoBufSize);
    end;
 end;
@@ -321,7 +303,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:58  peter
+  Revision 1.2  2001-05-09 19:53:28  peter
+    * removed asm for copy, use dosmemput (merged)
+
+  Revision 1.1  2001/01/13 11:03:58  peter
     * API 2 RTL commit
 
 }
