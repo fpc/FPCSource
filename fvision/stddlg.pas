@@ -134,7 +134,8 @@ type
   PSortedListBox = ^TSortedListBox;
   TSortedListBox = object(TListBox)
     SearchPos: Byte;
-    ShiftState: Byte;
+    {ShiftState: Byte;}
+    HandleDir : boolean;
     constructor Init(var Bounds: TRect; ANumCols: Sw_Word;
       AScrollBar: PScrollBar);
     procedure HandleEvent(var Event: TEvent); virtual;
@@ -676,13 +677,16 @@ begin
      (PSearchRec(Key2)^.Attr and Directory = 0) then Compare := 1
   else if (PSearchRec(Key2)^.Attr and Directory <> 0) and
      (PSearchRec(Key1)^.Attr and Directory = 0) then Compare := -1
-{$ifdef Unix}
-  else if PSearchRec(Key1)^.Name > PSearchRec(Key2)^.Name then
-{$else Unix}
   else if UpperName(PSearchRec(Key1)^.Name) > UpperName(PSearchRec(Key2)^.Name) then
-{$endif def unix}
     Compare := 1
-  else Compare := -1;
+{$ifdef unix}
+  else if UpperName(PSearchRec(Key1)^.Name) < UpperName(PSearchRec(Key2)^.Name) then
+    Compare := -1
+  else if PSearchRec(Key1)^.Name > PSearchRec(Key2)^.Name then
+    Compare := 1
+{$endif def unix}
+  else
+    Compare := -1;
 end;
 
 {****************************************************************************}
@@ -848,7 +852,7 @@ begin
 end;
 
 begin
-  if (ShiftState and $03 <> 0) or ((S <> '') and (S[1]='.')) then
+  if (HandleDir{ShiftState and $03 <> 0}) or ((S <> '') and (S[1]='.')) then
     SR.Attr := Directory
   else SR.Attr := 0;
   SR.Name := S;
@@ -2103,21 +2107,26 @@ begin
        (List <> nil) and (List^.Count > 0) then
     begin
       Value := Focused;
-      if Value < Range then CurString := GetText(Value, 255)
-      else CurString := '';
+      if Value < Range then
+        CurString := GetText(Value, 255)
+      else
+        CurString := '';
       OldPos := SearchPos;
       if Event.KeyCode = kbBack then
       begin
    if SearchPos = 0 then Exit;
    Dec(SearchPos);
-   if SearchPos = 0 then ShiftState := GetShiftState;
+          if SearchPos = 0 then
+            HandleDir:= ((GetShiftState and $3) <> 0) or (Event.CharCode in ['A'..'Z']);
    CurString[0] := Char(SearchPos);
       end
-      else if (Event.CharCode = '.') then SearchPos := Pos('.',CurString)
+      else if (Event.CharCode = '.') then
+        SearchPos := Pos('.',CurString)
       else
       begin
    Inc(SearchPos);
-   if SearchPos = 1 then ShiftState := GetShiftState;
+          if SearchPos = 1 then
+            HandleDir := ((GetShiftState and 3) <> 0) or (Event.CharCode in ['A'..'Z']);
    CurString[0] := Char(SearchPos);
    CurString[SearchPos] := Event.CharCode;
       end;
@@ -2125,8 +2134,10 @@ begin
       T := PSortedCollection(List)^.Search(K, Value);
       if Value < Range then
       begin
-   if Value < Range then NewString := GetText(Value, 255)
-   else NewString := '';
+          if Value < Range then
+            NewString := GetText(Value, 255)
+          else
+            NewString := '';
    if Equal(NewString, CurString, SearchPos) then
    begin
      if Value <> OldValue then
@@ -2136,14 +2147,16 @@ begin
        { of the sfFocused item }
        SetCursor(Cursor.X+SearchPos, Cursor.Y);
      end
-     else SetCursor(Cursor.X+(SearchPos-OldPos), Cursor.Y);
+              else
+                SetCursor(Cursor.X+(SearchPos-OldPos), Cursor.Y);
    end
-   else SearchPos := OldPos;
+          else
+            SearchPos := OldPos;
       end
       else SearchPos := OldPos;
       if (SearchPos <> OldPos) or (Event.CharCode in ['A'..'Z','a'..'z']) then
    ClearEvent(Event);
-    end
+    end;
   end;
 end;
 
