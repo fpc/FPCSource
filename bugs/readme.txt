@@ -166,3 +166,4 @@ bug0117.pp   internalerror 17 (and why is there an automatic float
 bug0118.pp   Procedural vars cannot be assigned nil ?
 bug0119.pp   problem with methods
 bug0120.pp   inc/dec(enumeration) doesn't work
+bug0121.pp   cardinal -> byte conversion not work (and crashes)
