@@ -1293,7 +1293,7 @@ const
       pocall   : pocall_pascal;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_POPSTACK;
@@ -2120,7 +2120,10 @@ const
 end.
 {
   $Log$
-  Revision 1.100  2003-01-02 19:49:00  peter
+  Revision 1.101  2003-01-05 18:09:36  peter
+    * pascal directive also conflicts with constructor
+
+  Revision 1.100  2003/01/02 19:49:00  peter
     * update self parameter only for methodpointer and methods
 
   Revision 1.99  2003/01/01 22:51:03  peter
