@@ -24,12 +24,24 @@ unit ncon;
 
   interface
 
+    uses
+       cpuinfo,tree;
+
+    type
+       pstringconstnode = ^tstringconstnode;
+
+       tstringconstnode = object(tnode)
+          length : aword;
+       end;
+
   implementation
 
 end.
 {
   $Log$
-  Revision 1.1  1999-08-06 16:15:38  florian
-    + initial revision
+  Revision 1.2  1999-08-06 18:05:53  florian
+    * implemented some stuff for assignments
 
+  Revision 1.1  1999/08/06 16:15:38  florian
+    + initial revision
 }

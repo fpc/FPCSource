@@ -37,7 +37,7 @@ tcgalpha = object(tcg)
   procedure a_load_reg_ref(list : paasmoutput;size : tcgsize;register : tregister;const ref : treference);virtual;
   procedure a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref : treference;register : tregister);virtual;
   procedure a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);virtual;
-  procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;
+  procedure a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;
     reg : tregister;  l : pasmlabel);virtual;
   procedure a_cmp_reg_reg_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : pasmlabel);
   procedure a_cmp_reg_ref_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : pasmlabel);
@@ -135,7 +135,7 @@ begin
 end;
 
 
-procedure tcgalpha.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;
+procedure tcgalpha.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
   l : pasmlabel);
 
 begin
@@ -200,7 +200,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-08-06 14:15:53  florian
+  Revision 1.6  1999-08-06 18:05:57  florian
+    * implemented some stuff for assignments
+
+  Revision 1.5  1999/08/06 14:15:53  florian
     * made the alpha version compilable
 
   Revision 1.4  1999/08/06 13:53:54  michael

@@ -51,6 +51,9 @@ unit nmem;
           procedure det_temp;virtual;
           procedure det_resulttype;virtual;
           procedure secondpass;virtual;
+          procedure loadansistring;
+          procedure loadshortstring;
+          procedure loadansi2short(l,r : pnode);
        end;
 
     var
@@ -60,8 +63,8 @@ unit nmem;
   implementation
 
     uses
-       cobjects,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu,symconst,
-       cpubase,cpuasm;
+       cobjects,globals,aasm,cgbase,cgobj,types,verbose,tgobj,tgcpu,symconst,
+       cpubase,cpuasm,ncon;
 
 {****************************************************************************
                                  TLOADNODE
@@ -319,6 +322,24 @@ unit nmem;
          inherited done;
       end;
 
+    procedure tassignmentnode.loadansistring;
+
+      begin
+         abstract;
+      end;
+
+    procedure tassignmentnode.loadshortstring;
+
+      begin
+         abstract;
+      end;
+
+    procedure tassignmentnode.loadansi2short(l,r : pnode);
+
+      begin
+         abstract;
+      end;
+
     procedure tassignmentnode.det_temp;
 
       begin
@@ -389,126 +410,59 @@ unit nmem;
 
     procedure tassignmentnode.secondpass;
 
+      var
+         r : treference;
+
       begin
-{$ifdef dummy}
-         { calculate left sides }
-         if not(concat_string) then
-           secondpass(p^.left);
-
-         if codegenerror then
-           exit;
-
-         case p^.left^.location.loc of
-            LOC_REFERENCE : begin
-                              { in case left operator uses to register }
-                              { but to few are free then LEA }
-                              if (p^.left^.location.reference.base<>R_NO) and
-                                 (p^.left^.location.reference.index<>R_NO) and
-                                 (usablereg32<p^.right^.registers32) then
-                                begin
-                                   del_reference(p^.left^.location.reference);
-                                   hregister:=getregister32;
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(
-                                     p^.left^.location.reference),
-                                     hregister)));
-                                   reset_reference(p^.left^.location.reference);
-                                   p^.left^.location.reference.base:=hregister;
-                                   p^.left^.location.reference.index:=R_NO;
-                                end;
-                              loc:=LOC_REFERENCE;
-                           end;
-            LOC_CFPUREGISTER:
-              loc:=LOC_CFPUREGISTER;
-            LOC_CREGISTER:
-              loc:=LOC_CREGISTER;
-            LOC_MMXREGISTER:
-              loc:=LOC_MMXREGISTER;
-            LOC_CMMXREGISTER:
-              loc:=LOC_CMMXREGISTER;
-            else
-               begin
-                  CGMessage(cg_e_illegal_expression);
-                  exit;
-               end;
-         end;
-         { lets try to optimize this (PM)            }
-         { define a dest_loc that is the location      }
-         { and a ptree to verify that it is the right }
-         { place to insert it                    }
-{$ifdef test_dest_loc}
-         if (aktexprlevel<4) then
+         if left^.resulttype^.deftype=stringdef then
            begin
-              dest_loc_known:=true;
-              dest_loc:=p^.left^.location;
-              dest_loc_tree:=p^.right;
-           end;
-{$endif test_dest_loc}
-
-         secondpass(p^.right);
-         if codegenerror then
-           exit;
-
-{$ifdef test_dest_loc}
-         dest_loc_known:=false;
-         if in_dest_loc then
-           begin
-              truelabel:=otlabel;
-              falselabel:=oflabel;
-              in_dest_loc:=false;
-              exit;
-           end;
-{$endif test_dest_loc}
-         if p^.left^.resulttype^.deftype=stringdef then
-           begin
-              if is_ansistring(p^.left^.resulttype) then
+              if is_ansistring(left^.resulttype) then
                 begin
                   { the source and destinations are released
                     in loadansistring, because an ansi string can
                     also be in a register
                   }
-                  loadansistring(p);
+                  loadansistring;
                 end
               else
-              if is_shortstring(p^.left^.resulttype) and
-                not (p^.concat_string) then
+              if is_shortstring(left^.resulttype) then
                 begin
-                  if is_ansistring(p^.right^.resulttype) then
+                  if is_ansistring(right^.resulttype) then
                     begin
-                      if (p^.right^.treetype=stringconstn) and
-                         (p^.right^.length=0) then
+                      if (right^.treetype=stringconstn) and
+                         (pstringconstnode(right)^.length=0) then
                         begin
-                          exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
-                            0,newreference(p^.left^.location.reference))));
-{$IfDef regallocfix}
-                          del_reference(p^.left^.location.reference);
-{$EndIf regallocfix}
+                           cg^.a_load_const_ref(list,OS_8,0,left^.location.reference);
+                           tg.del_reference(left^.location.reference);
                         end
                       else
-                        loadansi2short(p^.right,p^.left);
+                        loadansi2short(right,left);
                     end
                   else
                     begin
                        { we do not need destination anymore }
-                       del_reference(p^.left^.location.reference);
-                       del_reference(p^.right^.location.reference);
-                       loadshortstring(p);
-                       ungetiftemp(p^.right^.location.reference);
+                       tg.del_reference(left^.location.reference);
+                       tg.del_reference(right^.location.reference);
+                       loadshortstring;
+                       tg.ungetiftemp(right^.location.reference);
                     end;
                 end
-              else if is_longstring(p^.left^.resulttype) then
+              else if is_longstring(left^.resulttype) then
                 begin
+                   abstract;
                 end
               else
                 begin
                   { its the only thing we have to do }
-                  del_reference(p^.right^.location.reference);
+                  tg.del_reference(right^.location.reference);
                 end
            end
-        else case p^.right^.location.loc of
+        else case right^.location.loc of
             LOC_REFERENCE,
             LOC_MEM : begin
+{$ifdef dummy}
                          { extra handling for ordinal constants }
-                         if (p^.right^.treetype in [ordconstn,fixconstn]) or
+                         if (right^.treetype in [ordconstn,fixconstn]) or
                             (loc=LOC_CREGISTER) then
                            begin
                               case p^.left^.resulttype^.size of
@@ -565,45 +519,35 @@ unit nmem;
                                 correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
                            end
                          else
+{$endif dummy}
                            begin
-                              if (p^.right^.resulttype^.needs_inittable) and
-                                ( (p^.right^.resulttype^.deftype<>objectdef) or
-                                  not(pobjectdef(p^.right^.resulttype)^.is_class)) then
+                              if (right^.resulttype^.needs_inittable) and
+                                ( (right^.resulttype^.deftype<>objectdef) or
+                                  not(pobjectdef(right^.resulttype)^.is_class)) then
                                 begin
                                    { this would be a problem }
-                                   if not(p^.left^.resulttype^.needs_inittable) then
+                                   if not(left^.resulttype^.needs_inittable) then
                                      internalerror(3457);
 
                                    { increment source reference counter }
-                                   new(r);
-                                   reset_reference(r^);
-                                   r^.symbol:=p^.right^.resulttype^.get_inittable_label;
-                                   emitpushreferenceaddr(r^);
-
-                                   emitpushreferenceaddr(p^.right^.location.reference);
-                                   exprasmlist^.concat(new(pai386,
-                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
+                                   r.symbol:=right^.resulttype^.get_inittable_label;
+                                   cg^.a_param_ref_addr(list,r,2);
+                                   cg^.a_param_ref_addr(list,right^.location.reference,1);
+                                   cg^.a_call_name(list,'FPC_ADDREF',0);
                                    { decrement destination reference counter }
-                                   new(r);
-                                   reset_reference(r^);
-                                   r^.symbol:=p^.left^.resulttype^.get_inittable_label;
-                                   emitpushreferenceaddr(r^);
-                                   emitpushreferenceaddr(p^.left^.location.reference);
-                                   exprasmlist^.concat(new(pai386,
-                                     op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
+                                   r.symbol:=left^.resulttype^.get_inittable_label;
+                                   cg^.a_param_ref_addr(list,r,2);
+                                   cg^.a_param_ref_addr(list,left^.location.reference,1);
+                                   cg^.a_call_name(list,'FPC_DECREF',0)
                                 end;
-
-{$ifdef regallocfix}
-                              concatcopy(p^.right^.location.reference,
-                                p^.left^.location.reference,p^.left^.resulttype^.size,true,false);
-                              ungetiftemp(p^.right^.location.reference);
-{$Else regallocfix}
-                              concatcopy(p^.right^.location.reference,
-                                p^.left^.location.reference,p^.left^.resulttype^.size,false,false);
-                              ungetiftemp(p^.right^.location.reference);
-{$endif regallocfix}
+                              cg^.g_concatcopy(right^.location.reference,
+                                left^.location.reference,left^.resulttype^.size,false);
+                              tg.ungetiftemp(right^.location.reference);
                            end;
+
                       end;
+                 end;   { needs to be removed together with the dummy }
+{$ifdef dummy}
 {$ifdef SUPPORT_MMX}
             LOC_CMMXREGISTER,
             LOC_MMXREGISTER:
@@ -757,6 +701,7 @@ unit nmem;
                               del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
                            end;
+            else internalerror(68997);
          end;
 {$endif dummy}
       end;
@@ -764,7 +709,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-06 15:53:51  florian
+  Revision 1.9  1999-08-06 18:05:54  florian
+    * implemented some stuff for assignments
+
+  Revision 1.8  1999/08/06 15:53:51  florian
     * made the alpha version compilable
 
   Revision 1.7  1999/08/05 17:10:57  florian

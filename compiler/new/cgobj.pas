@@ -322,6 +322,14 @@ unit cgobj;
          free_scratch_reg(list,hr);
       end;
 
+
+    procedure tcg.g_concatcopy(const source,dest : treference;len : aword;loadref : boolean);
+
+      begin
+         abstract;
+      end;
+
+
 {*****************************************************************************
                          String helper routines
 *****************************************************************************}
@@ -392,12 +400,15 @@ unit cgobj;
               a_call_name(list,'FPC_FINALIZE',0);
            end;
       end;
+
+
     { generates the code for initialisation of local data }
     procedure tcg.g_initialize_data(list : paasmoutput;p : psym);
 
       begin
          runerror(255);
       end;
+
 
     { generates the code for incrementing the reference count of parameters }
     procedure tcg.g_incr_data(list : paasmoutput;p : psym);
@@ -424,6 +435,7 @@ unit cgobj;
               a_call_name(list,'FPC_ADDREF',0);
            end;
       end;
+
 
     { generates the code for finalisation of local data }
     procedure tcg.g_finalize_data(list : paasmoutput;p : pnamedindexobject);
@@ -982,7 +994,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.19  1999-08-06 17:00:54  florian
+  Revision 1.20  1999-08-06 18:05:52  florian
+    * implemented some stuff for assignments
+
+  Revision 1.19  1999/08/06 17:00:54  florian
     + definition of concatcopy
 
   Revision 1.18  1999/08/06 16:37:45  jonas

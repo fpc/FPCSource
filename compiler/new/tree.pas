@@ -196,6 +196,7 @@ unit tree;
           firstpasscount : longint;
 {$endif extdebug}
           error : boolean;
+          list : paasmoutput;
           constructor init;
           destructor done;virtual;
           { runs det_resulttype and det_temp }
@@ -1999,7 +2000,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-05 14:58:16  florian
+  Revision 1.13  1999-08-06 18:05:55  florian
+    * implemented some stuff for assignments
+
+  Revision 1.12  1999/08/05 14:58:16  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 
