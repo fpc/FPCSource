@@ -53,7 +53,7 @@ interface
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_ansistrings
        );
-       tlocalswitches=set of tlocalswitch;
+       tlocalswitches = set of tlocalswitch;
 
        { Switches which can be changed only at the beginning of a new module }
        tmoduleswitch = (cs_modulenone,
@@ -68,7 +68,7 @@ interface
          { linking }
          cs_smartlink,cs_create_sharedlib,cs_create_staticlib
        );
-       tmoduleswitches=set of tmoduleswitch;
+       tmoduleswitches = set of tmoduleswitch;
 
        { Switches which can be changed only for a whole program/compilation,
          mostly set with commandline }
@@ -84,14 +84,14 @@ interface
          { browser }
          cs_browser_log,
          { debugger }
-         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,
+         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_checkpointer,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
          cs_link_extern,cs_link_shared,cs_link_static,cs_link_deffile
        );
-       tglobalswitches=set of tglobalswitch;
+       tglobalswitches = set of tglobalswitch;
 
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
@@ -104,7 +104,7 @@ interface
                                   procedure variables                     }
          m_autoderef            { does auto dereferencing of struct. vars }
        );
-       tmodeswitches=set of tmodeswitch;
+       tmodeswitches = set of tmodeswitch;
 
        { win32 sub system }
        tapptype = (at_gui,at_cui);
@@ -129,7 +129,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-05-12 00:19:49  peter
+  Revision 1.10  1999-05-17 14:30:39  pierre
+   + cs_checkpointer
+
+  Revision 1.9  1999/05/12 00:19:49  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 
