@@ -1671,20 +1671,17 @@ implementation
                     orddef,
                     enumdef:
                       begin
-                        hp:=do_lowhigh(left.resulttype);
-                        result:=hp;
+                        result:=do_lowhigh(left.resulttype);
                       end;
                     setdef:
                       begin
-                        hp:=do_lowhigh(tsetdef(left.resulttype.def).elementtype);
-                        result:=hp;
+                        result:=do_lowhigh(tsetdef(left.resulttype.def).elementtype);
                       end;
                     arraydef:
                       begin
                         if inlinenumber=in_low_x then
                          begin
-                           hp:=cordconstnode.create(tarraydef(left.resulttype.def).lowrange,tarraydef(left.resulttype.def).rangetype);
-                           result:=hp;
+                           result:=cordconstnode.create(tarraydef(left.resulttype.def).lowrange,tarraydef(left.resulttype.def).rangetype);
                          end
                         else
                          begin
@@ -1692,8 +1689,7 @@ implementation
                              is_array_of_const(left.resulttype.def) then
                             begin
                               srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
-                              hp:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
-                              result:=hp;
+                              result:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
@@ -1703,19 +1699,17 @@ implementation
                                 hp := ctypeconvnode.create(left,voidpointertype);
                                 hp.toggleflag(nf_explizit);
                                 hp := ccallparanode.create(hp,nil);
-                                hp := ccallnode.createintern('fpc_dynarray_high',hp);
+                                result := ccallnode.createintern('fpc_dynarray_high',hp);
                                 { make sure the left node doesn't get disposed, since it's }
                                 { reused in the new node (JM)                              }
                                 left:=nil;
-                                result:=hp;
                               end
                            else
                             begin
-                              hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype);
-                              resulttypepass(hp);
-                              result:=hp;
+                              result:=cordconstnode.create(tarraydef(left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype);
                             end;
                          end;
+                         resulttypepass(result);
                       end;
                     stringdef:
                       begin
@@ -2256,7 +2250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2001-09-04 14:32:45  jonas
+  Revision 1.58  2001-09-05 15:19:43  jonas
+    * the result of high/low nodes wasn't always resulttypepassed
+
+  Revision 1.57  2001/09/04 14:32:45  jonas
     * simplified det_resulttype code for include/exclude
     * include/exclude doesn't use any helpers anymore in the i386 secondpass
 
