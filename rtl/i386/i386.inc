@@ -230,9 +230,11 @@ asm
      { load esi and insert self                         }
      movl %eax,8(%ebp)
      movl %eax,%esi
+     addl $0,%eax
      ret
 .LNEW_CLASS1:
      movl %esi,8(%ebp)
+     addl $0,%eax
 end;
 
 
@@ -688,7 +690,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1998-09-22 15:32:00  peter
+  Revision 1.23  1998-09-28 08:40:47  michael
+  + Bugreport from Gertjan Schouten
+
+  Revision 1.22  1998/09/22 15:32:00  peter
     + fpc_pchar_to_str alias for strpas
 
   Revision 1.21  1998/09/14 10:48:08  peter
