@@ -1000,6 +1000,15 @@ implementation
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
+             pointerconstn :
+               begin
+                 { to support e.g. @tmypointer(0)^.data; see tests/tbs/tb0481 }
+                 if gotderef then
+                  result:=true
+                 else
+                  CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 exit;
+               end;
              addrn :
                begin
                  if gotderef then
@@ -1977,7 +1986,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2005-01-10 22:10:26  peter
+  Revision 1.109  2005-01-19 20:53:27  florian
+    * tmypointer(12435)^ is an l-value
+
+  Revision 1.108  2005/01/10 22:10:26  peter
     * widestring patches from Alexey Barkovoy
 
   Revision 1.107  2005/01/07 16:22:47  peter
