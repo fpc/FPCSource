@@ -779,6 +779,7 @@ implementation
                   CGMessagePos(hp^.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
+             selfn,
              funcretn :
                begin
                  valid_for_assign:=true;
@@ -842,7 +843,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-11-30 10:40:43  peter
+  Revision 1.51  1999-12-09 09:35:54  peter
+    * allow assigning to self
+
+  Revision 1.50  1999/11/30 10:40:43  peter
     + ttype, tsymlist
 
   Revision 1.49  1999/11/18 15:34:45  pierre
