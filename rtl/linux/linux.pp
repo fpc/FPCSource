@@ -2265,7 +2265,7 @@ var
   pipi,
   pipo : text;
   pid  : longint;
-
+  pl   : ^Longint;
 
 begin
   LinuxError:=0;
@@ -2304,18 +2304,16 @@ begin
   else
    begin
    { we're in the parent}
-   {
-     Let's redraw the schedule :
-          Parent      Child
-          pipo[1] --> pipi[1]
-          pipi[0] <-- pipo[0]
-      }
-     close(pipo);
-     // dup(pipi[0],streamin);
-     // close (pipi[0]);
-     close(pipi);
-     // dup(pipo[1],streamout);
-     // close (pipo[1]);
+   close(pipo);
+   close(pipi);
+   {Save the process ID - needed when closing }
+   pl:=@(textrec(StreamIn).userdata[2]);
+   pl^:=pid;
+   textrec(StreamIn).closefunc:=@PCloseText;
+   {Save the process ID - needed when closing }
+   pl:=@(textrec(StreamOut).userdata[2]);
+   pl^:=pid;
+   textrec(StreamOut).closefunc:=@PCloseText;
    end;
 end;
 
@@ -3519,7 +3517,10 @@ End.
 
 {
   $Log$
-  Revision 1.25  1998-11-16 10:21:28  peter
+  Revision 1.26  1998-11-24 15:30:12  michael
+  * Bugfix in assignstream. . Now wait is performed upon close
+
+  Revision 1.25  1998/11/16 10:21:28  peter
     * fixes for H+
 
   Revision 1.24  1998/11/10 14:57:53  peter
