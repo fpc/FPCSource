@@ -145,6 +145,7 @@ USELIBGGI=NO
 endif
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings unix initc dos crt objects printer sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc terminfo video mouse keyboard console serial
 override TARGET_LOADERS+=prt0 cprt0
+override TARGET_RSTS+=math varutils
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(UNIXINC)
 override COMPILER_TARGETDIR+=.
@@ -563,6 +564,10 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 endif
 fpc_units: $(UNITPPUFILES)
+ifdef TARGET_RSTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)

@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard
-rst=math varutils
+rsts=math varutils
 
 [require]
 nortl=y

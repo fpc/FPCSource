@@ -139,6 +139,7 @@ override FPCOPT+=-dNO_EXCEPTIONS_IN_SYSTEM
 endif
 override TARGET_UNITS+=system objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard vesamode
 override TARGET_LOADERS+=prt0 exceptn fpu
+override TARGET_RSTS+=math varutils
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
 override COMPILER_TARGETDIR+=.
@@ -557,6 +558,10 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 endif
 fpc_units: $(UNITPPUFILES)
+ifdef TARGET_RSTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)

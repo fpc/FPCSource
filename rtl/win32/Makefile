@@ -143,6 +143,7 @@ include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings windows ole2 opengl32 os_types winsock initc dos crt objects graph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo wincrt winmouse winevent sockets printer dynlibs video mouse keyboard
 override TARGET_LOADERS+=wprt0 wdllprt0
+override TARGET_RSTS+=math varutils
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
 override COMPILER_TARGETDIR+=.
@@ -561,6 +562,10 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 endif
 fpc_units: $(UNITPPUFILES)
+ifdef TARGET_RSTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
