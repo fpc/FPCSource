@@ -732,7 +732,7 @@ implementation
                  reference_reset(ref);
                  ref.base:=locpara.reference.index;
                  ref.offset:=locpara.reference.offset;
-                 a_load_reg_ref(list,size,size,r,ref);
+                 a_load_reg_ref(list,size,locpara.size,r,ref);
               end
             else
               internalerror(2002071004);
@@ -742,22 +742,41 @@ implementation
 
     procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
       var
-         hr : tregister;
+         ref : treference;
       begin
-         hr:=getintregister(list,size);
-         a_load_const_reg(list,size,a,hr);
-         ungetregister(list,hr);
-         a_param_reg(list,size,hr,locpara);
+         case locpara.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              a_load_const_reg(list,locpara.size,a,locpara.register);
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                 reference_reset(ref);
+                 ref.base:=locpara.reference.index;
+                 ref.offset:=locpara.reference.offset;
+                 a_load_const_ref(list,locpara.size,a,ref);
+              end
+            else
+              internalerror(2002071004);
+         end;
       end;
+
 
     procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
       var
-         hr : tregister;
+         ref : treference;
       begin
-         hr:=getintregister(list,size);
-         a_load_ref_reg(list,size,size,r,hr);
-         ungetregister(list,hr);
-         a_param_reg(list,size,hr,locpara);
+         case locpara.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              a_load_ref_reg(list,size,locpara.size,r,locpara.register);
+            LOC_REFERENCE,LOC_CREFERENCE:
+              begin
+                 reference_reset(ref);
+                 ref.base:=locpara.reference.index;
+                 ref.offset:=locpara.reference.offset;
+                 a_load_ref_ref(list,size,locpara.size,r,ref);
+              end
+            else
+              internalerror(2002071004);
+         end;
       end;
 
 
@@ -1954,7 +1973,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.139  2003-12-15 21:25:48  peter
+  Revision 1.140  2003-12-15 21:39:39  florian
+    * improved register allocation of generic a_param_const and a_param_ref
+
+  Revision 1.139  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check
