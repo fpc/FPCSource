@@ -81,6 +81,7 @@ Type
     Procedure SaveEditorAs(E : TEditorPage);
     Procedure SaveEditor(E : TEditorPage);
     Function  CloseEditor(E : TEditorPage) : Boolean;
+    Procedure LoadCommandLine;
     Procedure LoadRecent;
     Procedure SaveRecent;
     Procedure CreateForm;
@@ -322,6 +323,7 @@ begin
   FRecent:=TStringList.Create;
   Inherited Create(gtk_window_dialog);
   CreateForm;
+  LoadCommandLine;
   LoadOptions;
   LoadRecent;
 end;
@@ -332,6 +334,21 @@ begin
   SaveRecent;
   FRecent.Free;
   Inherited;
+end;
+
+Procedure TMainForm.LoadCommandLine;
+
+Var
+  I : Integer;
+
+begin
+  I:=1;
+  While I<=ParamCount do
+    begin
+    If FileExists(ParamStr(i)) then 
+      OpenFile(Paramstr(I));
+    Inc(I);  
+    end;
 end;
 
 
