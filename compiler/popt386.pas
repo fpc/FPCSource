@@ -1202,7 +1202,7 @@ Begin
                           Begin
                             Pai386(p)^.LoadConst(0,Pai386(p)^.oper[0].val-Pai386(hp1)^.oper[0].val);
                             Pai386(hp1)^.opcode := A_AND;
-                            l := 1 shl (Pai386(hp1)^.oper[0].val-1);
+                            l := (1 shl (Pai386(hp1)^.oper[0].val)) - 1;
                             Case Pai386(p)^.opsize Of
                               S_L: Pai386(hp1)^.LoadConst(0,l Xor longint(-1));
                               S_B: Pai386(hp1)^.LoadConst(0,l Xor $ff);
@@ -1219,7 +1219,7 @@ Begin
                               Begin
                                 Pai386(hp1)^.LoadConst(0,Pai386(hp1)^.oper[0].val-Pai386(p)^.oper[0].val);
                                 Pai386(p)^.opcode := A_AND;
-                                l := 1 shl (Pai386(p)^.oper[0].val-1);
+                                l := (1 shl (Pai386(p)^.oper[0].val))-1;
                                 Case Pai386(p)^.opsize Of
                                   S_L: Pai386(p)^.LoadConst(0,l Xor $ffffffff);
                                   S_B: Pai386(p)^.LoadConst(0,l Xor $ff);
@@ -1232,7 +1232,7 @@ Begin
                       with const1 = const2 }
                               Begin
                                 Pai386(p)^.opcode := A_AND;
-                                l := 1 shl (Pai386(p)^.oper[0].val-1);
+                                l := (1 shl (Pai386(p)^.oper[0].val))-1;
                                 Case Pai386(p)^.opsize Of
                                   S_B: Pai386(p)^.LoadConst(0,l Xor $ff);
                                   S_W: Pai386(p)^.LoadConst(0,l Xor $ffff);
@@ -1525,7 +1525,10 @@ End.
 
 {
  $Log$
- Revision 1.58  1999-07-30 18:17:55  jonas
+ Revision 1.59  1999-08-03 17:13:28  jonas
+   * fix for sar/shr-shl optimization
+
+ Revision 1.58  1999/07/30 18:17:55  jonas
    * fix so (,reg) gets optimized to (reg)
 
  Revision 1.57  1999/07/01 18:12:16  jonas
