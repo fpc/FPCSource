@@ -45,9 +45,7 @@ Function  SysFreemem(var p:pointer):Longint;
 Function  SysFreememSize(var p:pointer;Size:Longint):Longint;
 Function  SysMemSize(p:pointer):Longint;
 Function  SysAllocMem(size:longint):Pointer;
-{ the next one is for internal use by heap managers only, don't call directly }
-{ from programs! (JM)                                                         }       
-Function  InternSysReAllocMem(var p:pointer;size : longint; var doMove: boolean):pointer;
+function  SysTryResizeMem(var p:pointer;size : longint):boolean;
 Function  SysReAllocMem(var p:pointer;size:longint):Pointer;
 Function  Sysmemavail:Longint;
 Function  Sysmaxavail:Longint;
@@ -79,7 +77,10 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.15  2000-01-20 12:35:35  jonas
+  Revision 1.16  2000-01-31 23:41:30  peter
+    * reallocmem fixed for freemem() call when size=0
+
+  Revision 1.15  2000/01/20 12:35:35  jonas
     * fixed problem with reallocmem and heaptrc
 
   Revision 1.14  2000/01/07 16:41:34  daniel

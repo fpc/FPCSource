@@ -531,38 +531,21 @@ end;
 
 
 {*****************************************************************************
-                                 SysReAllocMem
+                                 SysResizeMem
 *****************************************************************************}
-function internSysReAllocMem(var p:pointer;size : longint; var doMove: boolean):pointer;
-{ On entry, doMove determines if a new block has to be allocated, whether this is   }
-{ done and the data is moved from the old to the new block                          }
-{ If doMove was false on entry, it is set to true on exit if a move has to be done  }
-{ which then has to be carried out by the caller, otherwise it remains false        }
-{ This functionality is required if you install you own heap manager (e.g. heaptrc) }
+
+function SysTryResizeMem(var p:pointer;size : longint):boolean;
 var
-  orgsize,
   currsize,
   foundsize,
   sizeleft,
   s     : longint;
-  wasbeforeheapend, canDoMove : boolean;
-  p2    : pointer;
+  wasbeforeheapend : boolean;
   hp,
   pnew,
   pcurr : pfreerecord;
 begin
-  canDoMove := doMove;
-  { assume no move is necessary }
-  doMove := false;
-{ Allocate a new block? }
-  if p=nil then
-   begin
-     p:=MemoryManager.GetMem(size);
-     internSysReallocmem:=P;
-     exit;
-   end;
 { fix needed size }
-  orgsize:=size;
   size:=(size+sizeof(theaprecord)+(blocksize-1)) and (not (blocksize-1));
 { fix p to point to the heaprecord }
   pcurr:=pfreerecord(pointer(p)-sizeof(theaprecord));
@@ -571,7 +554,7 @@ begin
 { is the allocated block still correct? }
   if currsize=size then
    begin
-     internSysReAllocMem:=p;
+     SysTryResizeMem:=true;
      exit;
    end;
 { do we need to allocate more memory ? }
@@ -639,17 +622,7 @@ begin
      else
       begin
         { we need to call getmem/move/freemem }
-        If canDoMove then
-          begin
-            p2:= MemoryManager.GetMem(orgsize);
-            if p2<>nil then
-              Move(p^,p2^,orgsize);
-            MemoryManager.FreeMem(p);
-            p:=p2;
-          end
-        else
-          doMove := true;
-        internSysReAllocMem:=p;
+        SysTryResizeMem:=false;
         exit;
       end;
      currsize:=pcurr^.size and sizemask;
@@ -682,15 +655,43 @@ begin
         pcurr^.size:=size or usedmask or (pcurr^.size and beforeheapendmask);
       end;
    end;
-  internSysReAllocMem:=p;
+  SysTryResizeMem:=true;
 end;
+
+
+{*****************************************************************************
+                                 SysResizeMem
+*****************************************************************************}
 
 function SysReAllocMem(var p:pointer;size : longint):pointer;
 var
-  doMove: boolean;
+  p2 : pointer;
 begin
-  doMove:=true;
-  SysReAllocMem := internSysReallocMem(p,size,doMove);
+{ Free block? }
+  if size=0 then
+   begin
+     if p<>nil then
+      MemoryManager.FreeMem(p);
+     SysReallocmem:=P;
+     exit;
+   end;
+{ Allocate a new block? }
+  if p=nil then
+   begin
+     p:=MemoryManager.GetMem(size);
+     SysReallocmem:=P;
+     exit;
+   end;
+{ Resize block }
+  if not SysTryResizeMem(p,size) then
+   begin
+     p2:= MemoryManager.GetMem(size);
+     if p2<>nil then
+      Move(p^,p2^,size);
+     MemoryManager.FreeMem(p);
+     p:=p2;
+   end;
+  SysReAllocMem := p;
 end;
 
 
@@ -803,7 +804,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2000-01-24 23:56:10  peter
+  Revision 1.32  2000-01-31 23:41:30  peter
+    * reallocmem fixed for freemem() call when size=0
+
+  Revision 1.31  2000/01/24 23:56:10  peter
     * fixed reallocmem which didn't work anymore and thus broke a lot
       of objfpc/delphi code
 

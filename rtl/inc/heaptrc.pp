@@ -763,15 +763,24 @@ var
   i,bp : longint;
   pl : plongint;
   pp : pheap_mem_info;
-  mustMove: boolean;
 begin
-  if not assigned(p) then
+{ Free block? }
+  if size=0 then
+   begin
+     if p<>nil then
+      TraceFreeMem(p);
+     TraceReallocMem:=P;
+     exit;
+   end;
+{ Allocate a new block? }
+  if p=nil then
    begin
      p:=TraceGetMem(size);
      TraceReallocMem:=P;
      exit;
    end;
-   dec(p,sizeof(theap_mem_info)+extra_info_size);
+{ Resize block }
+  dec(p,sizeof(theap_mem_info)+extra_info_size);
   { remove heap_mem_info from linked list }
   pp:=pheap_mem_info(p);
   if pp^.next<>nil then
@@ -780,33 +789,31 @@ begin
    pp^.previous^.next:=pp^.next;
   if pp=heap_mem_root then
    heap_mem_root:=heap_mem_root^.previous;
-{ Do the real ReAllocMem, but alloc also for the info block }
+  { Do the real ReAllocMem, but alloc also for the info block }
    bp:=size+sizeof(theap_mem_info)+extra_info_size;
    if add_tail then
      inc(bp,sizeof(longint));
   { the internal ReAllocMem is not allowed to move any data }
-  mustMove := false;
-  p:=internSysReAllocMem(p,bp,mustMove);
-  { a new block is needed? }
-  if mustMove then
-    begin
-      { restore p }
-      inc(p,sizeof(theap_mem_info)+extra_info_size);
-      { get a new block }
-      newP := TraceGetMem(size);
-      { move the data }
-      if newP <> nil then
-        move(p^,newP^,pp^.size);
-      { release p }
-      traceFreeMem(p);
-      p := newP;
-      traceReAllocMem := p;
-      exit;
-    end;
+  if not SysTryResizeMem(p,size) then
+   begin
+     { restore p }
+     inc(p,sizeof(theap_mem_info)+extra_info_size);
+     { get a new block }
+     newP := TraceGetMem(size);
+     { move the data }
+     if newP <> nil then
+       move(p^,newP^,pp^.size);
+     { release p }
+     traceFreeMem(p);
+     p := newP;
+     traceReAllocMem := p;
+     exit;
+   end;
   { adjust getmem/freemem sizes }
   if pp^.size > size then
     inc(freemem_size,pp^.size-size)
-  else inc(getmem_size,size-pp^.size);
+  else
+    inc(getmem_size,size-pp^.size);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -968,7 +975,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2000-01-20 14:25:51  jonas
+  Revision 1.37  2000-01-31 23:41:30  peter
+    * reallocmem fixed for freemem() call when size=0
+
+  Revision 1.36  2000/01/20 14:25:51  jonas
     * finally fixed tracereallocmem completely
 
   Revision 1.35  2000/01/20 13:17:11  jonas
