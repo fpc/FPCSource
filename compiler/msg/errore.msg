@@ -989,8 +989,8 @@ type_e_not_equal_types=04002_E_Type mismatch between "$1" and "$2"
 type_e_type_id_expected=04003_E_Type identifier expected
 % The identifier is not a type, or you forgot to supply a type identifier.
 type_e_variable_id_expected=04004_E_Variable identifier expected
-% This happens when you pass a constant to a \var{Inc} var or \var{Dec}
-% procedure. You can only pass variables as arguments to these functions.
+% This happens when you pass a constant to a routine (such as \var{Inc} var or \var{Dec})
+% when it expects a variable. You can only pass variables as arguments to these functions.
 type_e_integer_expr_expected=04005_E_Integer expression expected, but got "$1"
 % The compiler expects an expression of type integer, but gets a different
 % type.
@@ -1017,7 +1017,8 @@ type_e_varid_or_typeid_expected=04010_E_Variable or type indentifier expected
 % The argument to the \var{High} or \var{Low} function is not a variable
 % nor a type identifier.
 type_e_cant_eval_constant_expr=04011_E_Can't evaluate constant expression
-% No longer in use.
+% This error can occur when the bounds of an array you declared does
+% not evaluate to ordinal constants
 type_e_set_element_are_not_comp=04012_E_Set elements are not compatible
 % You are trying to make an operation on two sets, when the set element types
 % are not the same. The base type of a set must be the same when taking the
@@ -1027,7 +1028,7 @@ type_e_set_operation_unknown=04013_E_Operation not implemented for sets
 % like div mod ** (also >= <= for now)
 type_w_convert_real_2_comp=04014_W_Automatic type conversion from floating type to COMP which is an integer type
 % An implicit type conversion from a real type to a \var{comp} is
-% encountered. Since \var{Comp} is a 64 bit integer type, this may indicate
+% encountered. Since \var{comp} is a 64 bit integer type, this may indicate
 % an error.
 type_h_use_div_for_int=04015_H_use DIV instead to get an integer result
 % When hints are on, then an integer division with the '/' operator will
@@ -1074,25 +1075,25 @@ type_e_wrong_math_argument=04027_E_Illegal constant passed to internal math func
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
 type_e_no_addr_of_constant=04028_E_Can't get the address of constants
-% It's not possible to get the address of a constant, because they
+% It is not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
 type_e_argument_cant_be_assigned=04029_E_Argument can't be assigned to
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
-% used on the left side of an assignment, but they can't be used as arguments
+% used on the left side of an assignment, but they cannot be used as arguments
 type_e_cannot_local_proc_to_procvar=04030_E_Can't assign local procedure/function to procedure variable
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
 type_e_no_assign_to_addr=04031_E_Can't assign values to an address
-% It's not allowed to assign a value to an address of a variable,constant,
+% It is not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
 type_e_no_assign_to_const=04032_E_Can't assign values to const variable
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
-% changing make the parameter value or var.
+% changing the value make the parameter as a value parameter or a var.
 type_e_array_required=04033_E_Array type required
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
@@ -1121,10 +1122,14 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
-type_e_classes_not_related=04039_E_Class types "$1" and "$2" are not related
+type_e_classes_not_related=04039_E_Class or Object types "$1" and "$2" are not related
+%  There is a typecast from one class or object to another while the class/object 
+%  are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
+%  There is a typecast from one class or object to another while the class/object 
+%  are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
-type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completly defined
+type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completley defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1169,8 +1174,8 @@ sym_e_duplicate_id=05002_E_Duplicate identifier "$1"
 sym_h_duplicate_id_where=05003_H_Identifier already defined in $1 at line $2
 % The identifier was already declared in a previous scope.
 sym_e_unknown_id=05004_E_Unknown identifier "$1"
-% The identifier encountered hasn't been declared, or is used outside the
-% scope where it's defined.
+% The identifier encountered has not been declared, or is used outside the
+% scope where it is defined.
 sym_e_forward_not_resolved=05005_E_Forward declaration not solved "$1"
 % This can happen in two cases:
 % \begin{itemize}
@@ -1220,17 +1225,17 @@ sym_e_label_already_defined=05020_E_label already defined
 sym_e_ill_type_decl_set=05021_E_illegal type declaration of set elements
 % The declaration of a set contains an invalid type definition.
 sym_e_class_forward_not_resolved=05022_E_Forward class definition not resolved "$1"
-% You declared a class, but you didn't implement it.
+% You declared a class, but you did not implement it.
 sym_n_unit_not_used=05023_H_Unit "$1" not used in $2
 % The unit referenced in the \var{uses} clause is not used.
 sym_h_para_identifier_not_used=05024_H_Parameter "$1" not used
-% This is a warning. The identifier was declared (locally or globally) but
-% wasn't used (locally or globally).
+% The identifier was declared (locally or globally) but
+% was not used (locally or globally).
 sym_n_local_identifier_not_used=05025_N_Local variable "$1" not used
 % You have declared, but not used a variable in a procedure or function
 % implementation.
 sym_h_para_identifier_only_set=05026_H_Value parameter "$1" is assigned but never used
-% This is a warning. The identifier was declared (locally or globally)
+% The identifier was declared (locally or globally)
 % set but not used (locally or globally).
 sym_n_local_identifier_only_set=05027_N_Local variable "$1" is assigned but never used
 % The variable in a procedure or function
@@ -1241,7 +1246,7 @@ sym_n_private_identifier_not_used=05029_N_Private field "$1.$2" is never used
 sym_n_private_identifier_only_set=05030_N_Private field "$1.$2" is assigned but never used
 sym_n_private_method_not_used=05031_N_Private method "$1.$2" never used
 sym_e_set_expected=05032_E_Set type expected
-% The variable or expression isn't of type \var{set}. This happens in an
+% The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
 sym_w_function_result_not_set=05033_W_Function result does not seem to be set
 % You can get this warning if the compiler thinks that a function return
@@ -1253,22 +1258,25 @@ sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record 
 sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
 % The field doesn't exist in the record/object definition.
 sym_n_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
-sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
-% These messages are displayed if the compiler thinks that a variable will
+% This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
-% wasn't initialized first (i.e. appeared in the left-hand side of an
+% was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
+% This message is displayed if the compiler thinks that a variable will
+% be used (i.e. appears in the right-hand-side of an expression) when it
+% was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
 sym_e_id_no_member=05038_E_identifier idents no member "$1"
-% When using the extended syntax of \var{new}, you must specify the constructor
-% method of the class you are trying to create. The procedure you specified
-% does not exist.
+% This error is generated when an identifier of a record,
+% field, or method is accessed while it is not defined.
 sym_b_param_list=05039_B_Found declaration: $1
 % You get this when you use the \var{-vb} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data element too large
-% You get this when you declare a data element whose size exceeds the prescribed limit.
-% (2 Gb on 80386+/68020+ processors)
+% You get this when you declare a data element whose size exceeds the 
+% prescribed limit (2 Gb on 80386+/68020+ processors)
 sym_w_segment_too_large=05041_W_Data element might be too large
 % You get this when you declare a data element which might cause invalid opcodes
 % (which will be detected by the assembler) in 68000 mode.
@@ -1322,9 +1330,9 @@ cg_e_parasize_too_big=06009_E_Parameter list size exceeds 65535 bytes
 cg_e_illegal_type_conversion=06010_E_Illegal type conversion
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-cg_d_pointer_to_longint_conv_not_portable=06011_D_Conversion between ordinals and pointers is not portable across platforms
+cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers is not portable
 % If you typecast a pointer to a longint, this code will not compile
-% on a machine using 64bit for pointer storage.
+% on a machine using 64-bit for pointer storage.
 cg_e_file_must_call_by_reference=06012_E_File types must be var parameters
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
@@ -1347,9 +1355,9 @@ cg_e_dont_call_exported_direct=06015_E_EXPORT declared functions can't be called
 cg_w_member_cd_call_from_method=06016_W_Possible illegal call of constructor or destructor (doesn't match to this context)
 % No longer in use.
 cg_n_inefficient_code=06017_N_Inefficient code
-% You construction seems dubious to the compiler.
+% Your statement seems dubious to the compiler.
 cg_w_unreachable_code=06018_W_unreachable code
-% You specified a loop which will never be executed. Example:
+% You specified a construct which will never be executed. Example:
 % \begin{verbatim}
 % while false do
 %   begin
@@ -1393,7 +1401,7 @@ cg_d_stackframe_omited=06029_D_Stack frame is omitted
 % This message will be displayed when the {-vd} switch is used.
 cg_e_unable_inline_object_methods=06031_E_Object or class methods can't be inline.
 % You cannot have inlined object methods.
-cg_e_unable_inline_procvar=06032_E_Procvar calls can't be inline.
+cg_e_unable_inline_procvar=06032_E_Procvar calls cannot be inline.
 % A procedure with a procedural variable call cannot be inlined.
 cg_e_no_code_for_inline_stored=06033_E_No code for inline procedure stored
 % The compiler couldn't store code for the inline procedure.
@@ -1401,19 +1409,19 @@ cg_e_no_call_to_interrupt=06034_E_Direct call of interrupt procedure "$1" is not
 % You can not call an interrupt procedure directly from FPC code
 cg_e_can_access_element_zero=06035_E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
-% and \var{length} to get the length of such kinf of string
+% and \var{length} to get the length of such a string types
 cg_e_paralimit_in_local_routine=06036_E_Parameter limit excedeed in local routine
 % Your routine pushes too much parameters. Some processors pose limits
 % on the parameters passed to a routine. You should pass some of your parameters
 % by reference.
 cg_e_cannot_call_cons_dest_inside_with=06037_E_Constructors or destructors can not be called inside a 'with' clause
-% Inside a \var{With} clause you cannot call a constructor or destructor for the
+% Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
-cg_e_cannot_call_message_direct=06038_E_Cannot call message handler method directly
-% A message method handler method can't be called directly if it contains an
+cg_e_cannot_call_message_direct=06038_E_Cannot call message handler methods directly
+% A message method handler method cannot be called directly if it contains an
 % explicit self argument
 cg_e_goto_inout_of_exception_block=06039_E_Jump in or outside of an exception block
-% It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
+% It is not allowed to jump in or outside of an exception block like \var{try..finally..end;}:
 % \begin{verbatim}
 % label 1;
 %
@@ -1474,8 +1482,8 @@ asmr_e_type_without_identifier=07006_E_TYPE used without identifier
 % supported
 asmr_e_no_local_or_para_allowed=07007_E_Cannot use local variable or parameters here
 % You can't use a local variable or parameter here, mostly because the
-% addressing of locals and parameters is done using the %ebp register so the
-% address can't be get directly.
+% addressing of locals and parameters is done using the frame pointer register so the
+% address can't be obtained directly.
 asmr_e_need_offset=07008_E_need to use OFFSET here
 % You need to use OFFSET <id> here to get the address of the identifier.
 asmr_e_need_dollar=07009_E_need to use $ here
@@ -1499,7 +1507,8 @@ asmr_e_local_para_unreachable=07015_E_You can not reach $1 from that code
 asmr_e_local_label_not_allowed_as_ref=07016_E_Local symbols/labels aren't allowed as references
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=07017_E_Invalid base and index register usage
-% There is an error with the base and index register
+% There is an error with the base and index register, they are
+% probably incorrect
 asmr_w_possible_object_field_bug=07018_W_Possible error in object field handling
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
@@ -1515,8 +1524,12 @@ asmr_w_CODE_and_DATA_not_supported=07023_W_@CODE and @DATA not supported
 % @CODE and @DATA are unsupported and are ignored.
 asmr_e_null_label_ref_not_allowed=07024_E_Null label references are not allowed
 asmr_e_expr_zero_divide=07025_E_Divide by zero in asm evaluator
+% There is a division by zero in a constant expression
 asmr_e_expr_illegal=07026_E_Illegal expression
+% There is an illegal expression in a constant expression
 asmr_e_escape_seq_ignored=07027_E_escape sequence ignored: $1
+% There is a C-styled string, but the escape sequence in the string
+% is unknown, and is therefore ignored
 asmr_e_invalid_symbol_ref=07028_E_Invalid symbol reference
 asmr_w_fwait_emu_prob=07029_W_Fwait can cause emulation problems with emu387
 asmr_w_fadd_to_faddp=07030_W_$1 without operand translated into $1P
@@ -1524,37 +1537,62 @@ asmr_w_enter_not_supported_by_linux=07031_W_ENTER instruction is not supported b
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
 asmr_w_calling_overload_func=07032_W_Calling an overload function in assembler
+% There is a call to an overloaded method in the assembler block,
+% this might be the sign there is a problem
 asmr_e_unsupported_symbol_type=07033_E_Unsupported symbol type for operand
 asmr_e_constant_out_of_bounds=07034_E_Constant value out of bounds
 asmr_e_error_converting_decimal=07035_E_Error converting decimal $1
+% A constant decimal value does not have the correct syntax
 asmr_e_error_converting_octal=07036_E_Error converting octal $1
+% A constant octal value does not have the correct syntax
 asmr_e_error_converting_binary=07037_E_Error converting binary $1
+% A constant binary value does not have the correct syntax
 asmr_e_error_converting_hexadecimal=07038_E_Error converting hexadecimal $1
+% A constant hexadecimal value does not have the correct syntax
 asmr_h_direct_global_to_mangled=07039_H_$1 translated to $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 is associated to an overloaded function
 asmr_e_cannot_use_SELF_outside_a_method=07041_E_Cannot use SELF outside a method
+% There is a reference to the \var{self} symbol while it is not 
+% allowed. \var{self} can only be referenced inside methods
 asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Cannot use OLDEBP outside a nested procedure
+% There is a reference to the \var{oldebp} symbol while it is not 
+% allowed. \var{oldebp} can only be referenced inside nested routines
 asmr_e_void_function=07043_W_Procedures can't return any value in asm code
+% Trying to return a value while in a procedure. A procedure 
+% does not have any return value
 asmr_e_SEG_not_supported=07044_E_SEG not supported
 asmr_e_size_suffix_and_dest_dont_match=07045_E_Size suffix and destination or source size do not match
+% The register size and the opcode size suffix don't match. This is
+% probably an error in the assembler statement
 asmr_w_size_suffix_and_dest_dont_match=07046_W_Size suffix and destination or source size do not match
+% The register size and the opcode size suffix don't match. This is
+% probably an error in the assembler statement
 asmr_e_syntax_error=07047_E_Assembler syntax error
+% There is an assembler syntax error
 asmr_e_invalid_opcode_and_operand=07048_E_Invalid combination of opcode and operands
+% The opcode cannot be used with this type of operand
 asmr_e_syn_operand=07049_E_Assembler syntax error in operand
 asmr_e_syn_constant=07050_E_Assembler syntax error in constant
 asmr_e_invalid_string_expression=07051_E_Invalid String expression
-asmr_w_const32bit_for_address=07052_W_constant with symbol $1 for not 32bit address
+asmr_w_const32bit_for_address=07052_W_constant with symbol $1 for address which is not on a pointer
+% A constant expression represents an address which does not fit 
+% into a pointer. The address is probably incorrect
 asmr_e_unknown_opcode=07053_E_Unrecognized opcode $1
+% This opcode is not known
 asmr_e_invalid_or_missing_opcode=07054_E_Invalid or missing opcode
 asmr_e_invalid_prefix_and_opcode=07055_E_Invalid combination of prefix and opcode: $1
 asmr_e_invalid_override_and_opcode=07056_E_Invalid combination of override and opcode: $1
 asmr_e_too_many_operands=07057_E_Too many operands on line
+% There are too many operands for this opcode. Check your 
+% assembler syntax
 asmr_w_near_ignored=07058_W_NEAR ignored
 asmr_w_far_ignored=07059_W_FAR ignored
 asmr_e_dup_local_sym=07060_E_Duplicate local symbol $1
 asmr_e_unknown_local_sym=07061_E_Undefined local symbol $1
 asmr_e_unknown_label_identifier=07062_E_Unknown label identifier $1
 asmr_e_invalid_register=07063_E_Invalid register name
+% There is 
+%
 asmr_e_invalid_fpu_register=07064_E_Invalid floating point register name
 asmr_e_nor_not_supported=07065_E_NOR not supported
 asmr_w_modulo_not_supported=07066_W_Modulo not supported
