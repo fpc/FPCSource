@@ -87,6 +87,8 @@ procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
                                    rtv:TSysReleaseThreadVars;
 				   stdata:TSysSetThreadDataAreaPtr);
 
+function NWGetCodeStart : pointer;  // needed for lineinfo
+
 implementation
 { Indicate that stack checking is taken care by OS}
 {$DEFINE NO_GENERIC_STACK_CHECK}
@@ -140,6 +142,11 @@ BEGIN
   fpc_threadvar_relocate_proc := nil;
   PASCALMAIN;
 END;
+
+function NWGetCodeStart : pointer;  // needed for lineinfo
+begin
+  NWGetCodeStart := pointer(NetwareCodeStartAddress);
+end;
 
 
 {*****************************************************************************
@@ -889,7 +896,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.25  2004-09-03 19:26:27  olle
+  Revision 1.26  2004-09-17 18:29:07  armin
+  * added NWGetCodeStart, needed for lineinfo
+
+  Revision 1.25  2004/09/03 19:26:27  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
