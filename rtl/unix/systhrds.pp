@@ -16,7 +16,6 @@
  **********************************************************************}
 unit systhrds;
 interface
-
 {$S-}
 
 {$ifndef BSD}
@@ -197,7 +196,20 @@ CONST
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
+{$ifdef DEBUG_MT}
+        // in here, don't use write/writeln before having called
+        // InitThread! I wonder if anyone ever debugged these routines,
+        // because they will have crashed if DEBUG_MT was enabled!
+        // this took me the good part of an hour to figure out
+        // why it was crashing all the time!
+        // this is kind of a workaround, we simply write(2) to fd 0
+        s: string[100]; // not an ansistring
+{$endif DEBUG_MT}
       begin
+{$ifdef DEBUG_MT}
+        s := 'New thread started, initing threadvars'#10;
+        fpwrite(0,s[1],length(s));
+{$endif DEBUG_MT}
 {$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
@@ -205,7 +217,8 @@ CONST
 {$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
-        writeln('New thread started, initialising ...');
+        s := 'New thread started, initialising ...'#10;
+        fpwrite(0,s[1],length(s));
 {$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
         dispose(pthreadinfo(param));
@@ -216,6 +229,8 @@ CONST
         writeln('Jumping to thread function');
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
+        DoneThread;
+        pthread_detach(pthread_self);
       end;
 
 
@@ -251,16 +266,27 @@ CONST
 {$endif DEBUG_MT}
         pthread_attr_init(@thread_attr);
         pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
+        
+        // will fail under linux -- apparently unimplemented
         pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);
-        pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
-        pthread_create(@threadid, @thread_attr, @ThreadMain,ti);
+
+        // don't create detached, we need to be able to join (waitfor) on
+        // the newly created thread!
+        //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
+        if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
+          threadid := 0;
+        end;
         BeginThread:=threadid;
+{$ifdef DEBUG_MT}
+        writeln('BeginThread returning ',BeginThread);
+{$endif DEBUG_MT}
       end;
 
 
     procedure EndThread(ExitCode : DWord);
       begin
         DoneThread;
+        pthread_detach(pthread_self);
         pthread_exit(pointer(ExitCode));
       end;
 
@@ -283,12 +309,19 @@ CONST
 
     function  KillThread (threadHandle : dword) : dword;
     begin
-      {$Warning KillThread needs to be implemented}
+      pthread_detach(pointer(threadHandle));
+      KillThread := pthread_cancel(Pointer(threadHandle));
     end;
 
     function  WaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;  {0=no timeout}
+    var
+      LResultP: Pointer;
+      LResult: DWord;
     begin
-      {$Warning WaitForThreadTerminate needs to be implemented}
+      LResult := 0;
+      LResultP := @LResult;
+      pthread_join(Pointer(threadHandle), @LResultP);
+      WaitForThreadTerminate := LResult;
     end;
 
     function  ThreadSetPriority (threadHandle : dword; Prio: longint): boolean; {-15..+15, 0=normal}
@@ -385,7 +418,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2003-10-01 21:00:09  peter
+  Revision 1.16  2003-11-17 08:27:50  marco
+   * pthreads based ttread from Johannes Berg
+
+  Revision 1.15  2003/10/01 21:00:09  peter
     * GetCurrentThreadHandle renamed to GetCurrentThreadId
 
   Revision 1.14  2003/10/01 20:53:08  peter
