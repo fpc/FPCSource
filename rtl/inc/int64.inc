@@ -50,14 +50,14 @@
          count_leading_zeros:=r;
       end;
 
-    function divqword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD'];
+    function fpc_div_qword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          shift,lzz,lzn : longint;
          { one : qword; }
 
       begin
-         divqword:=0;
+         fpc_div_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
          lzz:=count_leading_zeros(z);
@@ -73,20 +73,20 @@
            if z>=n then
              begin
                 z:=z-n;
-                divqword:=divqword+(qword(1) shl shift);
+                fpc_div_qword:=fpc_div_qword+(qword(1) shl shift);
              end;
            dec(shift);
            n:=n shr 1;
          until shift<0;
       end;
 
-    function modqword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD'];
+    function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          shift,lzz,lzn : longint;
 
       begin
-         modqword:=0;
+         fpc_mod_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
          lzz:=count_leading_zeros(z);
@@ -96,7 +96,7 @@
          { the d is greater than the n            }
          if lzn<lzz then
            begin
-              modqword:=z;
+              fpc_mod_qword:=z;
               exit;
            end;
          shift:=lzn-lzz;
@@ -107,10 +107,10 @@
            dec(shift);
            n:=n shr 1;
          until shift<0;
-         modqword:=z;
+         fpc_mod_qword:=z;
       end;
 
-    function divint64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64'];
+    function fpc_div_int64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          sign : boolean;
@@ -128,7 +128,7 @@
            begin
               // the c:=comp(...) is necessary to shut up the compiler
               c:=comp(comp(z)/comp(n));
-              divint64:=qword(c);
+              fpc_div_int64:=qword(c);
            end
          else
 {$endif}
@@ -151,13 +151,13 @@
 
               { the div is coded by the compiler as call to divqword }
               if sign then
-                divint64:=-(q1 div q2)
+                fpc_div_int64:=-(q1 div q2)
               else
-                divint64:=q1 div q2;
+                fpc_div_int64:=q1 div q2;
            end;
       end;
 
-    function modint64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64'];
+    function fpc_mod_int64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          signed : boolean;
@@ -185,15 +185,15 @@
            zq:=z;
          r:=zq mod nq;
          if signed then
-           modint64:=-int64(r)
+           fpc_mod_int64:=-int64(r)
          else
-           modint64:=r;
+           fpc_mod_int64:=r;
       end;
 
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
-    function mulqword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD'];
+    function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          _f1,bitpos : qword;
@@ -226,12 +226,12 @@
                  movl %eax,r
                  movl %edx,r+4
               end;
-              mulqword:=r;
+              fpc_mul_qword:=r;
            end
          else
 {$endif i386}
            begin
-              mulqword:=0;
+              fpc_mul_qword:=0;
               bitpos:=1;
 
               // store f1 for overflow checking
@@ -240,7 +240,7 @@
               for l:=0 to 63 do
                 begin
                    if (f2 and bitpos)<>0 then
-                     mulqword:=mulqword+f1;
+                     fpc_mul_qword:=fpc_mul_qword+f1;
 
                    f1:=f1 shl 1;
                    bitpos:=bitpos shl 1;
@@ -249,7 +249,7 @@
               { if one of the operands is greater than the result an }
               { overflow occurs                                      }
               if checkoverflow and (_f1 <> 0) and (f2 <>0) and
-                 ((_f1>mulqword) or (f2>mulqword)) then
+                 ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
                 HandleErrorFrame(215,get_frame);
            end;
       end;
@@ -261,7 +261,7 @@
          ... using the comp multiplication
        the longbool for checkoverflow avoids a misaligned stack
      }
-    function mulint64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64'];
+    function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          sign : boolean;
@@ -277,7 +277,7 @@
            begin
               // the c:=comp(...) is necessary to shut up the compiler
               c:=comp(comp(f1)*comp(f2));
-              mulint64:=int64(c);
+              fpc_mul_int64:=int64(c);
            end
          else
 {$endif}
@@ -310,9 +310,9 @@
                 HandleErrorFrame(215,get_frame);
 
               if sign then
-                mulint64:=-q3
+                fpc_mul_int64:=-q3
               else
-                mulint64:=q3;
+                fpc_mul_int64:=q3;
            end;
       end;
 
@@ -508,7 +508,12 @@
 
 {
   $Log$
-  Revision 1.11  2001-08-13 12:40:16  jonas
+  Revision 1.12  2001-09-05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.11  2001/08/13 12:40:16  jonas
     * renamed some str(x,y) and val(x,y) helpers so the naming scheme is the
       same for all string types
     + added the str(x,y) and val(x,y,z) helpers for int64/qword to

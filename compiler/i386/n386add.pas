@@ -1235,54 +1235,8 @@ interface
 
                    if nodetype=muln then
                      begin
-                        regstopush := $ff;
-                        remove_non_regvars_from_loc(location,regstopush);
-                        remove_non_regvars_from_loc(right.location,regstopush);
-                        
-                        { ugly hack because in *this* case, the pushed register }
-                        { must not be allocated later on (JM)                   }
-                        unusedregisters:=unused;
-                        usablecount:=usablereg32;
-                        pushusedregisters(pushedreg,regstopush);
-                        unused:=unusedregisters;
-                        usablereg32:=usablecount;
-                        
-                        if cs_check_overflow in aktlocalswitches then
-                          push_int(1)
-                        else
-                          push_int(0);
-                        { the left operand is in hloc, because the
-                          location of left is location but location
-                          is already destroyed
-                          
-                          not anymore... I had to change this because the
-                          regalloc info was completely wrong otherwise (JM)
-                        }
-                        emit_pushq_loc(location);
-                        release_qword_loc(location);
-                        clear_location(location);
-                        emit_pushq_loc(right.location);
-                        release_qword_loc(right.location);
-                        saveregvars($ff);
-                        if torddef(resulttype.def).typ=u64bit then
-                          emitcall('FPC_MUL_QWORD')
-                        else
-                          emitcall('FPC_MUL_INT64');
-                        { make sure we don't overwrite any results (JM) }
-                        if R_EDX in unused then
-                          begin
-                             location.registerhigh:=getexplicitregister32(R_EDX);
-                             location.registerlow:=getexplicitregister32(R_EAX);
-                          end
-                        else
-                          begin
-                             location.registerlow:=getexplicitregister32(R_EAX);
-                             location.registerhigh:=getexplicitregister32(R_EDX);
-                          end;
-                        location.loc := LOC_REGISTER;
-                        emit_reg_reg(A_MOV,S_L,R_EAX,location.registerlow);
-                        emit_reg_reg(A_MOV,S_L,R_EDX,location.registerhigh);
-                        popusedregisters(pushedreg);
+                       { should be handled in pass_1 (JM) }
+                       internalerror(200109051);
                      end
                    else
                      begin
@@ -1890,7 +1844,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-09-04 11:38:55  jonas
+  Revision 1.23  2001-09-05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.22  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead

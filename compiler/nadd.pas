@@ -39,6 +39,9 @@ interface
           { parts explicitely in the code generator (JM)    }
           function first_addstring: tnode; virtual;
           function first_addset: tnode; virtual;
+          { only implements "muln" nodes, the rest always has to be done in }
+          { the code generator for performance reasons (JM)                 }
+          function first_add64bitint: tnode; virtual;
        end;
        taddnodeclass = class of taddnode;
 
@@ -1265,6 +1268,53 @@ implementation
       end;
 
 
+    function taddnode.first_add64bitint: tnode;
+      var
+        procname: string[31];
+        temp: tnode;
+        power: longint;
+      begin
+        result := nil;
+        { create helper calls mul }
+        if nodetype <> muln then
+          exit;
+        
+        { make sure that if there is a constant, that it's on the right }
+        if left.nodetype = ordconstn then
+          begin
+            temp := right;
+            right := left;
+            left := temp;
+          end;
+
+        { can we use a shift instead of a mul? }
+        if (right.nodetype = ordconstn) and
+           ispowerof2(tordconstnode(right).value,power) then
+          begin
+            tordconstnode(right).value := power;
+            result := cshlshrnode.create(shln,left,right);
+            { left and right are reused }
+            left := nil;
+            right := nil;
+            { return firstpassed new node }
+            firstpass(result);
+            exit;
+          end;
+
+        { otherwise, create the parameters for the helper }
+        right := ccallparanode.create(
+          cordconstnode.create(ord(cs_check_overflow in aktlocalswitches),booltype),
+          ccallparanode.create(right,ccallparanode.create(left,nil)));
+        left := nil;
+        if torddef(resulttype.def).typ = s64bit then
+          procname := 'fpc_mul_int64'
+        else
+          procname := 'fpc_mul_qword';
+        result := ccallnode.createintern(procname,right);
+        right := nil;
+        firstpass(result);
+      end;
+
     function taddnode.pass_1 : tnode;
       var
          hp      : tnode;
@@ -1329,7 +1379,12 @@ implementation
                end
               { is there a 64 bit type ? }
              else if (torddef(ld).typ in [s64bit,u64bit]) then
-               calcregisters(self,2,0,0)
+               begin
+                 result := first_add64bitint;
+                 if assigned(result) then
+                   exit;
+                 calcregisters(self,2,0,0)
+               end
              { is there a cardinal? }
              else if (torddef(ld).typ=u32bit) then
                begin
@@ -1527,7 +1582,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-09-04 11:38:54  jonas
+  Revision 1.39  2001-09-05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.38  2001/09/04 11:38:54  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead

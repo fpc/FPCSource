@@ -157,6 +157,13 @@ Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord;
 procedure fpc_widestr_qword(v : qword;len : longint;var s : widestring); compilerproc;
 procedure fpc_widestr_int64(v : int64;len : longint;var s : widestring); compilerproc;
 
+function fpc_div_qword(n,z : qword) : qword; compilerproc;
+function fpc_mod_qword(n,z : qword) : qword; compilerproc;
+function fpc_div_int64(n,z : int64) : int64; compilerproc;
+function fpc_mod_int64(n,z : int64) : int64; compilerproc;
+function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compilerproc;
+function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compilerproc;
+
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 procedure fpc_do_as(aclass : tclass;aobject : tobject); compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
@@ -240,7 +247,12 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.9  2001-09-04 11:38:55  jonas
+  Revision 1.10  2001-09-05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.9  2001/09/04 11:38:55  jonas
     + searchsystype() and searchsystype() functions in symtable
     * changed ninl and nadd to use these functions
     * i386 set comparison functions now return their results in al instead

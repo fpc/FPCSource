@@ -88,50 +88,8 @@ implementation
 
          if is_64bitint(resulttype.def) then
            begin
-              regstopush := $ff;
-              remove_non_regvars_from_loc(location,regstopush);
-              remove_non_regvars_from_loc(right.location,regstopush);
-              
-              { ugly hack because in *this* case, the pushed register }
-              { must not be allocated later on (JM)                   }
-              unusedregisters:=unused;
-              usablecount:=usablereg32;
-              pushusedregisters(pushedreg,regstopush);
-              unused:=unusedregisters;
-              usablereg32:=usablecount;
-              
-              emit_pushq_loc(location);
-              release_qword_loc(location);
-              clear_location(location);
-              emit_pushq_loc(right.location);
-              release_qword_loc(right.location);
-              if torddef(resulttype.def).typ=u64bit then
-                typename:='QWORD'
-              else
-                typename:='INT64';
-              if nodetype=divn then
-                opname:='DIV_'
-              else
-                opname:='MOD_';
-              saveregvars($ff);
-              emitcall('FPC_'+opname+typename);
-
-              { make sure we don't overwrite any results (JM) }
-              if R_EDX in unused then
-                begin
-                   location.registerhigh:=getexplicitregister32(R_EDX);
-                   location.registerlow:=getexplicitregister32(R_EAX);
-                end
-              else
-                begin
-                   location.registerlow:=getexplicitregister32(R_EAX);
-                   location.registerhigh:=getexplicitregister32(R_EDX);
-                end;
-              location.loc:=LOC_REGISTER;
-              emit_reg_reg(A_MOV,S_L,R_EAX,location.registerlow);
-              emit_reg_reg(A_MOV,S_L,R_EDX,location.registerhigh);
-
-              popusedregisters(pushedreg);
+             { should be handled in pass_1 (JM) }
+             internalerror(200109052);
            end
          else
            begin
@@ -1058,7 +1016,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-08-29 12:03:23  jonas
+  Revision 1.16  2001-09-05 15:22:10  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.15  2001/08/29 12:03:23  jonas
     * fixed wrong regalloc info around FPC_MUL/DIV/MOD_INT64/QWORD calls
     * fixed partial result overwriting with the above calls too
 

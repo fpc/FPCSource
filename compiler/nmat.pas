@@ -33,6 +33,10 @@ interface
        tmoddivnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+         protected
+          { override the following if you want to implement }
+          { parts explicitely in the code generator (JM)    }
+          function first_moddiv64bitint: tnode; virtual;
        end;
        tmoddivnodeclass = class of tmoddivnode;
 
@@ -67,14 +71,14 @@ implementation
 
     uses
       systems,tokens,
-      verbose,globals,
+      verbose,globals,cutils,
 {$ifdef support_mmx}
       globtype,
 {$endif}
       symconst,symtype,symtable,symdef,types,
       htypechk,pass_1,cpubase,cpuinfo,
       cgbase,
-      ncon,ncnv,ncal;
+      ncon,ncnv,ncal,nadd;
 
 {****************************************************************************
                               TMODDIVNODE
@@ -188,6 +192,52 @@ implementation
       end;
 
 
+    function tmoddivnode.first_moddiv64bitint: tnode;
+      var
+        procname: string[31];
+        power: longint;
+      begin
+        result := nil;
+        
+        { divide/mod an unsigned number by a constant which is a power of 2? }
+        if (right.nodetype = ordconstn) and
+           not is_signed(resulttype.def) and
+           ispowerof2(tordconstnode(right).value,power) then
+          begin
+            if nodetype = divn then
+              begin
+                tordconstnode(right).value := power;
+                result := cshlshrnode.create(shrn,left,right)
+              end
+            else
+              begin
+                dec(tordconstnode(right).value);
+                result := caddnode.create(andn,left,right);
+              end;
+            { left and right are reused }
+            left := nil;
+            right := nil;
+            firstpass(result);
+            exit;
+          end;
+          
+        { otherwise create a call to a helper }
+        if nodetype = divn then
+          procname := 'fpc_div_'
+        else
+          procname := 'fpc_mod_';
+        if is_signed(resulttype.def) then
+          procname := procname + 'int64'
+        else
+          procname := procname + 'qword';
+
+        result := ccallnode.createintern(procname,ccallparanode.create(left,
+          ccallparanode.create(right,nil)));
+        left := nil;
+        right := nil;
+        firstpass(result);
+      end;
+
     function tmoddivnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -200,6 +250,9 @@ implementation
          if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
             (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
            begin
+             result := first_moddiv64bitint;
+             if assigned(result) then
+               exit;
              calcregisters(self,2,0,0);
            end
          else
@@ -587,7 +640,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-09-02 21:12:07  peter
+  Revision 1.23  2001-09-05 15:22:09  jonas
+    * made multiplying, dividing and mod'ing of int64 and qword processor
+      independent with compilerprocs (+ small optimizations by using shift/and
+      where possible)
+
+  Revision 1.22  2001/09/02 21:12:07  peter
     * move class of definitions into type section for delphi
 
   Revision 1.21  2001/08/26 13:36:41  florian
