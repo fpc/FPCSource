@@ -805,7 +805,6 @@ implementation
          initfinalcode : taasmoutput;
          pd : tprocdef;
       begin
-         initfinalcode:=taasmoutput.create;
          consume(_UNIT);
          if compile_level=1 then
           Status.IsExe:=false;
@@ -1017,8 +1016,10 @@ implementation
          { this is a hack, but how can it be done better ? }
          if force_init_final and ((current_module.flags and uf_init)=0) then
            begin
+              initfinalcode:=taasmoutput.create;
               gen_implicit_initfinal(initfinalcode,uf_init,st);
               codesegment.concatlist(initfinalcode);
+              initfinalcode.free;
            end;
          { finalize? }
          if token=_FINALIZATION then
@@ -1036,8 +1037,10 @@ implementation
            end
          else if force_init_final then
            begin
+              initfinalcode:=taasmoutput.create;
               gen_implicit_initfinal(initfinalcode,uf_finalize,st);
               codesegment.concatlist(initfinalcode);
+              initfinalcode.free;
            end;
 
          { the last char should always be a point }
@@ -1176,8 +1179,6 @@ implementation
             exit;
           end;
 
-        initfinalcode.free;
-
         Message1(unit_u_finished_compiling,current_module.modulename^);
       end;
 
@@ -1190,7 +1191,6 @@ implementation
          initfinalcode : taasmoutput;
          pd : tprocdef;
       begin
-        initfinalcode:=taasmoutput.create;
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
          Status.IsExe:=true;
@@ -1317,12 +1317,14 @@ implementation
          { should we force unit initialization? }
          if tstaticsymtable(current_module.localsymtable).needs_init_final then
            begin
+              initfinalcode:=taasmoutput.create;
               { initialize section }
               gen_implicit_initfinal(initfinalcode,uf_init,st);
               codesegment.concatlist(initfinalcode);
               { finalize section }
               gen_implicit_initfinal(initfinalcode,uf_finalize,st);
               codesegment.concatlist(initfinalcode);
+              initfinalcode.free;
            end;
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -1437,13 +1439,16 @@ implementation
                 linker.MakeExecutable;
              end;
           end;
-         initfinalcode.free;
       end;
 
 end.
 {
   $Log$
-  Revision 1.128  2003-10-01 20:34:49  peter
+  Revision 1.129  2003-10-21 15:14:33  peter
+    * fixed memleak for initfinalcode
+    * exit from generatecode when there are already errors
+
+  Revision 1.128  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

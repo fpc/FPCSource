@@ -602,6 +602,10 @@ implementation
         if not assigned(code) then
           exit;
 
+        { We need valid code }
+        if Errorcount<>0 then
+          exit;
+
         { The RA and Tempgen shall not be available yet }
         if assigned(tg) then
           internalerror(200309201);
@@ -920,11 +924,10 @@ implementation
              { the procedure is now defined }
              procdef.forwarddef:=false;
 
-             { add implicit entry and exit code }
-             add_entry_exit_code(code,entrypos,exitpos);
-
              if (Errorcount=0) then
                begin
+                 { add implicit entry and exit code }
+                 add_entry_exit_code(code,entrypos,exitpos);
                  { check if forwards are resolved }
                  tstoredsymtable(procdef.localst).check_forwards;
                  { check if all labels are used }
@@ -1145,8 +1148,7 @@ implementation
                      Message(parser_w_inlining_disabled);
                      current_procinfo.procdef.proccalloption:=pocall_default;
                    end;
-                 if status.errorcount=0 then
-                   do_generate_code(tcgprocinfo(current_procinfo));
+                 do_generate_code(tcgprocinfo(current_procinfo));
                end;
 
              { reset _FAIL as _SELF normal }
@@ -1277,7 +1279,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.165  2003-10-20 19:28:51  peter
+  Revision 1.166  2003-10-21 15:14:33  peter
+    * fixed memleak for initfinalcode
+    * exit from generatecode when there are already errors
+
+  Revision 1.165  2003/10/20 19:28:51  peter
     * disable inlining when nested procedures are found
 
   Revision 1.164  2003/10/19 01:34:30  florian
