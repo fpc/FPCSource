@@ -48,11 +48,11 @@ begin
     Free;
     end;
   if Assigned(FBuffers) then
-  begin
+    begin
     for i := 0 to FBufferCount do
       FreeRecordBuffer(FBuffers[i]);
     FreeMem(FBuffers);
-  end;
+    end;
   Inherited Destroy;
 end;
 
@@ -316,23 +316,27 @@ begin
   FDefaultFields:=FieldCount=0;
   DoBeforeOpen;
   Try
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('Calling internal open');
-    {$endif}
+{$endif}
     InternalOpen;
     FBOF:=True;
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('Setting state to browse');
-    {$endif}
+{$endif}
     SetState(dsBrowse);
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('Setting buffer size');
-    {$endif}
+{$endif}
+    (*
     SetBufListSize(DefaultBufferCount);
     {$ifdef dsdebug}
     Writeln ('Getting next records');
     {$endif}
     GetNextRecords;
+    *)
+    RecalcBufListSize;
+    //SetBufferCount(DefaultBufferCount);
     DoAfterOpen;
     DoAfterScroll;
   except
@@ -357,6 +361,7 @@ Procedure TDataset.DoInternalClose;
 begin
   FreeFieldBuffers;
   ClearBuffers;
+  SetBufListSize(-1);
   SetState(dsInactive);
   InternalClose;
 end;
@@ -517,6 +522,7 @@ begin
 {$ifdef dsdebug}
   Writeln ('Getting data into buffer : ',FRecordCount);
 {$endif}
+  If FRecordCount>0 Then SetCurrentRecord(FRecordCount-1);
   Result:=GetRecord(FBuffers[FRecordCount],gmNext,True)=grOK;
   If Result then
     begin
@@ -525,7 +531,7 @@ begin
     else
       If FRecordCount<FBufferCount then
         Inc(FRecordCount);
-    FCurrentRecord:=FRecordCount;
+    FCurrentRecord:=FRecordCount - 1;
     end
   else
     begin
@@ -680,6 +686,44 @@ begin
   FActive:=Value;
 end;
 
+procedure TDataSet.SetBufferCount(const AValue: Longint);
+Var
+  ShiftCount: Integer;
+begin
+  If (FBufferCount=AValue) Then 
+    exit;
+  If AValue<FRecordCount Then 
+    Begin
+    If (AValue>0)And(ActiveRecord>AValue-1) Then 
+      begin
+      // ActiveRecord Will be pointing to a deleted record
+      // Move Buffers to a safe place and then adjust buffer count
+      ShiftCount:=FActiveRecord - Avalue + 1;
+      ShiftBuffers(0, ShiftCount);
+      FActiveRecord:=AValue-1;
+      End;
+    FRecordCount:=AValue;
+    // Current record Will be pointing to a invalid record
+    // if we are not in BOF or EOF state then make current record point
+    // to the last record in buffer
+    If FCurrentRecord<>-1 Then 
+      Begin
+      FCurrentRecord:=FRecordCount - 1;
+      if FCurrentRecord=-1 Then 
+        InternalFirst;
+      End;
+    End;
+  SetBufListSize(Avalue);
+  GetNextRecords;
+{$Ifdef dsDebug}
+  WriteLn(
+    'SetBufferCount: FActiveRecord=',FActiveRecord,
+    ' FCurrentRecord=',FCurrentRecord,
+    ' FBufferCount= ',FBufferCount,
+    ' FRecordCount=',FRecordCount);
+{$Endif}
+end;
+
 Procedure TDataset.SetBookmarkStr(const Value: TBookmarkStr);
 
 begin
@@ -691,32 +735,33 @@ Procedure TDataset.SetBufListSize(Value: Longint);
 Var I : longint;
 
 begin
-  If Value=FBufferCount Then exit;
-  I:=RequiredBuffers; // Save 1 call.
-  If Value<I Then
-    Value:=I;
+{$ifdef dsdebug}
+  Writeln ('SetBufListSize: ',Value);
+{$endif}
+  If Value=FBufferCount Then 
+    exit;
   If Value>FBufferCount then
     begin
-   {$ifdef dsdebug}
-    Writeln ('Reallocating memory :',(Value+1)*SizeOf(PChar));
-   {$endif}
+{$ifdef dsdebug}
+    Writeln ('   Reallocating memory :',(Value+1)*SizeOf(PChar));
+{$endif}
     ReAllocMem(FBuffers,(Value+1)*SizeOf(PChar));
-   {$ifdef dsdebug}
-    Writeln ('Filling memory :',(Value-FBufferCount)*SizeOf(PChar));
-   {$endif}
+{$ifdef dsdebug}
+    Writeln ('   Filling memory :',(Value-FBufferCount)*SizeOf(PChar));
+{$endif}
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
-   {$ifdef dsdebug}
-    Writeln ('Filled memory :');
-   {$endif}
+{$ifdef dsdebug}
+    Writeln ('   Filled memory :');
+{$endif}
     Try
-     {$ifdef dsdebug}
-      Writeln ('Assigning buffers :',(Value+1)*SizeOf(PChar));
-     {$endif}
+{$ifdef dsdebug}
+      Writeln ('   Assigning buffers :',(Value+1)*SizeOf(PChar));
+{$endif}
       For I:=FBufferCount to Value do
         FBuffers[i]:=AllocRecordBuffer;
-     {$ifdef dsdebug}
-      Writeln ('Assigned buffers :',(Value+1)*SizeOf(PChar));
-     {$endif}
+{$ifdef dsdebug}
+      Writeln ('   Assigned buffers ',FBufferCount,' :',(Value+1)*SizeOf(PChar));
+{$endif}
     except
       I:=FBufferCount;
       While (I<=Value) and (FBuffers[i]<>Nil) do
@@ -729,11 +774,17 @@ begin
     end
   else
     begin
+{$ifdef dsdebug}
+    Writeln ('   Freeing buffers :',FBufferCount-Value);
+{$endif}
     For I:=Value+1 to FBufferCount do
       FreeRecordBuffer(FBuffers[i]);
-    ReAllocMem(FBuffers,Value*SizeOf(Pchar));
+    ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
     end;
   FBufferCount:=Value;
+{$ifdef dsdebug}
+  Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
+{$endif}
 end;
 
 Procedure TDataset.SetChildOrder(Component: TComponent; Order: Longint);
@@ -747,9 +798,9 @@ Procedure TDataset.SetCurrentRecord(Index: Longint);
 begin
   If FCurrentRecord<>Index then
     begin
-    {$ifdef DSdebug}
+{$ifdef DSdebug}
     Writeln ('Setting current record to',index);
-    {$endif}
+{$endif}
     Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
       bfBOF : InternalFirst;
@@ -980,9 +1031,9 @@ begin
   DoBeforeScroll;
   If Not DoAppend then
     begin
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('going to insert mode');
-    {$endif}
+{$endif}
     // need to scroll up al buffers after current one,
     // but copy current bookmark to insert buffer.
     BookBeforeInsert:=Bookmark;
@@ -1001,18 +1052,18 @@ begin
   else
     // Tricky, need to get last record and scroll down.
     begin
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('going to append mode');
-    {$endif}
+{$endif}
     Buffer:=FBuffers[0];
     InitRecord(Buffer);
     // just mark buffer as last. GetPreviousrecords will do an internallast
     // Because of this...
     SetBookMarkFlag(Buffer,bfEOF);
     FRecordCount:=1;
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('getting prior records');
-    {$endif}
+{$endif}
     GetPriorRecords;
     // update active record.
     FactiveRecord:=FRecordCount-1;
@@ -1031,9 +1082,9 @@ begin
   DataEvent(deDatasetChange,0);
   DoAfterInsert;
   DoAfterScroll;
-  {$ifdef dsdebug}
+{$ifdef dsdebug}
   Writeln ('Done with append');
-  {$endif}
+{$endif}
 end;
 
 Procedure TDataset.Edit;
@@ -1233,6 +1284,8 @@ begin
 end;
 
 Function TDataset.MoveBy(Distance: Longint): Longint;
+Var
+  TheResult: Integer;
 
   Function Scrollforward : Integer;
 
@@ -1241,32 +1294,34 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
 {$ifdef dsdebug}
     Writeln('Scrolling forward :',Distance);
     Writeln('Active buffer : ',FActiveRecord);
-    Writeln('RecordCunt    : ',FRecordCount);
+    Writeln('RecordCount   : ',FRecordCount);
+    WriteLn('BufferCount   : ',FBufferCount);
 {$endif}
+    FBOF:=False;
     While (Distance>0) and not FEOF do
       begin
       If FActiveRecord<FRecordCount-1 then
         begin
         Inc(FActiveRecord);
         Dec(Distance);
-        Inc(Result);
+        Inc(TheResult); //Inc(Result);
         end
       else
         begin
-       {$ifdef dsdebug}
+{$ifdef dsdebug}
        Writeln('Moveby : need next record');
-       {$endif}
+{$endif}
         If GetNextRecord then
           begin
           Dec(Distance);
-          Inc(result);
+          Dec(Result);
+          Inc(TheResult); //Inc(Result);
           end
         else
           FEOF:=true;
         end;
       end
   end;
-
   Function ScrollBackward : Integer;
 
   begin
@@ -1275,14 +1330,16 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
     Writeln('Scrolling backward:',Abs(Distance));
     Writeln('Active buffer : ',FActiveRecord);
     Writeln('RecordCunt    : ',FRecordCount);
+    WriteLn('BufferCount   : ',FBufferCount);
 {$endif}
+    FEOF:=False;
     While (Distance<0) and not FBOF do
       begin
       If FActiveRecord>0 then
         begin
         Dec(FActiveRecord);
         Inc(Distance);
-        Dec(Result);
+        Dec(TheResult); //Dec(Result);
         end
       else
         begin
@@ -1292,7 +1349,8 @@ Function TDataset.MoveBy(Distance: Longint): Longint;
         If GetPriorRecord then
           begin
           Inc(Distance);
-          Dec(Result);
+          Inc(Result);
+          Dec(TheResult); //Dec(Result);
           end
         else
           FBOF:=true;
@@ -1306,8 +1364,8 @@ Var
 
 begin
   CheckBrowseMode;
-  Result:=0;
-  PrevRecordCount:=0;
+  Result:=0; TheResult:=0;
+  PrevRecordCount:=FRecordCount;
   DoBeforeScroll;
   If ((Distance>0) and FEOF) or
      ((Distance<0) and FBOF) then
@@ -1318,12 +1376,16 @@ begin
     else
       Scrolled:=ScrollBackward;
   finally
+{$ifdef dsdebug}
+    WriteLn('ActiveRecord=', FActiveRecord,' FEOF=',FEOF,' FBOF=',FBOF);
+{$Endif}
      If FRecordCount<>PrevRecordCount then
        DataEvent(deDatasetChange,0)
      else
        DataEvent(deDatasetScroll,Scrolled);
      DoAfterScroll;
   end;
+  Result:=TheResult;
 end;
 
 Procedure TDataset.Next;
@@ -1399,15 +1461,17 @@ var
   i, j, MaxValue: Integer;
   DataLink: TDataLink;
 begin
+  If Not IsCursorOpen Then 
+    Exit;
   MaxValue := 0;
   for i := 0 to FDataSources.Count - 1 do
     for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
-    begin
-      DataLink := TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
-      if DataLink.BufferCount > MaxValue then
-        MaxValue := DataLink.BufferCount;
-    end;
-  SetBufListSize(MaxValue);
+      begin
+      DataLink:=TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
+      if DataLink.BufferCount>MaxValue then
+        MaxValue:=DataLink.BufferCount;
+      end;
+  SetBufferCount(MaxValue); //SetBufListSize(MaxValue);
 end;
 
 Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
@@ -1453,10 +1517,11 @@ begin
   ActivateBuffers;
   try
     Count:=0;
-    {$ifdef dsdebug}
+{$ifdef dsdebug}
     Writeln ('Getting previous',ShiftCount,' records');
-    {$endif}
-    While (Count<ShiftCount) and GetPriorRecord do Inc(Count);
+{$endif}
+    While (Count<ShiftCount) and GetPriorRecord do 
+      Inc(Count);
     FActiveRecord:=Count;
     // fill rest of buffers, adjust ActiveBuffer.
     SetCurrentRecord(FRecordCount-1);
@@ -1491,21 +1556,21 @@ Function Tdataset.TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boole
 Var Retry : TDataAction;
 
 begin
-  {$ifdef dsdebug}
+{$ifdef dsdebug}
   Writeln ('Trying to do');
   If P=Nil then writeln ('Procedure to call is nil !!!');
-  {$endif dsdebug}
+{$endif dsdebug}
   Result:=True;
   Retry:=daRetry;
   while Retry=daRetry do
     Try
-  {$ifdef dsdebug}
-  Writeln ('Trying : updatecursorpos');
-  {$endif dsdebug}
+{$ifdef dsdebug}
+      Writeln ('Trying : updatecursorpos');
+{$endif dsdebug}
       UpdateCursorPos;
-  {$ifdef dsdebug}
-  Writeln ('Trying to do it');
-  {$endif dsdebug}
+{$ifdef dsdebug}
+      Writeln ('Trying to do it');
+{$endif dsdebug}
       P;
       exit;
     except
@@ -1522,9 +1587,9 @@ begin
     else
       Raise;
     end;
-  {$ifdef dsdebug}
+{$ifdef dsdebug}
   Writeln ('Exit Trying to do');
-  {$endif dsdebug}
+{$endif dsdebug}
 end;
 
 Procedure TDataset.UpdateCursorPos;
@@ -1537,7 +1602,8 @@ end;
 Procedure TDataset.UpdateRecord;
 
 begin
-  if not (State in dsEditModes) then DatabaseError(SNotInEditState, Self);
+  if not (State in dsEditModes) then 
+    DatabaseError(SNotInEditState, Self);
   DataEvent(deUpdateRecord, 0);
 end;
 
@@ -1560,10 +1626,10 @@ Var Temp : Pointer;
 
   Procedure ShiftBuffersUp;
   begin
-    {$ifdef DSDEBUG}
+{$ifdef DSDEBUG}
     writeln ('Shifting buffers up from ',OffSet,' with distance :',Distance);
     writeln ('Moving ',(FBufferCount-Distance), ' Buffers at ',Distance);
-    {$endif}
+{$endif}
     Move(FBuffers[Offset],Temp^,MoveSize);
     Move(FBuffers[Offset+Distance],FBuffers[Offset],(FBufferCount-Distance-Offset)*SizeOf(Pchar));
     Move(Temp^,FBuffers[FBufferCount-Distance-Offset],MoveSize);
@@ -1573,17 +1639,18 @@ Var Temp : Pointer;
 
   begin
     // Distance is NEGATIVE
-    {$ifdef DSDEBUG}
+{$ifdef DSDEBUG}
     writeln ('Shifting buffers down with distance :',Abs(Distance));
     writeln ('Moving ',Movesize div 4,' Buffers at ',FBufferCount+Distance);
-    {$endif}
+{$endif}
     Move(FBuffers[FbufferCount+Distance],Temp^ ,MoveSize);
     Move(FBuffers[0],FBuffers[Abs(Distance)],(FBufferCount+Distance)*SizeOf(Pchar));
     Move(Temp^ ,FBuffers[0],MoveSize);
   end;
 
 begin
-  If Abs(Distance)>=BufferCount then Exit;
+  If Abs(Distance)>=BufferCount then 
+    Exit;
   try
     MoveSize:=SizeOf(Pchar)*Abs(Distance);
     GetMem(Temp,MoveSize);
@@ -1605,7 +1672,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:22  peter
+  Revision 1.7  2003-02-20 19:25:19  michael
+  + Fixes from Jesus Reyes
+
+  Revision 1.6  2002/09/07 15:15:22  peter
     * old logs removed and tabs fixed
 
 }

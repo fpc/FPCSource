@@ -64,6 +64,7 @@ Var
    L : Integer;    // index of Last (for us) record in buffer;
 
 begin
+  Result:=0;
   A:=DataSource.DataSet.FActiveRecord;
   F:=FFirstRecord+Index;
   L:=F+FBufferCount-1;
@@ -72,6 +73,9 @@ begin
   else If A<F Then
     Result:=A-F;
   FFirstRecord:=F+Result;
+{$IfDef dsDebug}
+  WriteLn('CalcFirstRecord: FFirstRecord=',FFirstRecord,' Scrolled=',Result);
+{$Endif}
 end;
 
 
@@ -138,7 +142,7 @@ end;
 Function TDataLink.GetActiveRecord: Integer;
 
 begin
-  Result:=Dataset.FActiveRecord;
+  Result:=Dataset.FActiveRecord - FFirstRecord;
 end;
 
 Function TDatalink.GetDataSet : TDataset;
@@ -174,7 +178,7 @@ Function TDataLink.GetRecordCount: Integer;
 Var D : TDataSet;
 
 begin
-  Result:=Dataset.RecordCount;
+  Result:=Dataset.FRecordCount;
   If Result>BufferCount then
     Result:=BufferCount;
 end;
@@ -190,7 +194,7 @@ end;
 Function TDataLink.MoveBy(Distance: Integer): Integer;
 
 begin
-  DataSet.MoveBy(Distance);
+  Result:=DataSet.MoveBy(Distance);
 end;
 
 
@@ -203,17 +207,18 @@ end;
 Procedure TDataLink.SetActiveRecord(Value: Integer);
 
 begin
-  Dataset.FActiveRecord:=Value;
+  Dataset.FActiveRecord:=Value + FFirstRecord;
 end;
 
 
 Procedure TDataLink.SetBufferCount(Value: Integer);
 
 begin
-  If FBUfferCount<>Value then
+  If FBufferCount<>Value then
     begin
-    FBufferCount:=Value;
-    Dataset.SetBufListSize(Value);
+      FBufferCount:=Value;
+      If Active Then 
+        DataSet.SetBufferCount(Value); //Dataset.SetBufListSize(Value);
     end;
 end;
 
@@ -231,13 +236,20 @@ Procedure TDataLink.SetDataSource(Value : TDatasource);
 
 begin
   if not FDataSourceFixed then
-  begin
-    if Assigned(DataSource) then
+    begin
+    if Assigned(DataSource) then 
+      Begin
       DataSource.UnregisterDatalink(Self);
+      FDataSource := nil;
+      CheckActiveAndEditing;
+      End;
     FDataSource := Value;
-    if Assigned(DataSource) then
+    if Assigned(DataSource) then 
+      begin
       DataSource.RegisterDatalink(Self);
-  end;
+      CheckActiveAndEditing;
+      End;
+    end;
 end;
 
 Procedure TDatalink.SetReadOnly(Value : Boolean);
@@ -274,7 +286,7 @@ begin
   Try
     UpdateData;
   finally
-   FUpdatingRecord:=False;
+    FUpdatingRecord:=False;
   end;
 end;
 
@@ -414,14 +426,19 @@ end;
 
 
 procedure TDatasource.SetDataSet(ADataSet: TDataSet);
-
 begin
-  If FDataset<>Nil Then
+  If FDataset<>Nil Then 
+    Begin
     FDataset.UnRegisterDataSource(Self);
-  If ADataset<>Nil Then
+    FDataSet:=nil;
+    ProcessEvent(deUpdateState,0);
+    End;
+  If ADataset<>Nil Then 
+    begin
     ADataset.RegisterDatasource(Self);
-  FDataSet:=ADataset;
-  ProcessEvent(deUpdateState,0);
+    FDataSet:=ADataset;
+    ProcessEvent(deUpdateState,0);
+    End;
 end;
 
 
@@ -460,7 +477,8 @@ procedure TDatasource.UnregisterDataLink(DataLink: TDataLink);
 begin
   FDatalinks.Remove(Datalink);
   If Dataset<>Nil then
-    Dataset.SetBufListSize(DataLink.BufferCount);
+    DataSet.RecalcBufListSize;
+    //Dataset.SetBufListSize(DataLink.BufferCount);
 end;
 
 
