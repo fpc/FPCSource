@@ -1695,28 +1695,9 @@ implementation
                           if assigned(tcallparanode(left).right) then
                            begin
                              set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,true);
-                             if (aktlocalswitches *
-                                   [cs_check_overflow,cs_check_range] = []) then
-                               begin
-                                 { insert a type conversion       }
-                                 { the second param is always longint }
-                                 if is_currency(left.resulttype.def) then
-                                   inserttypeconv(tcallparanode(tcallparanode(left).right).left,s64currencytype)
-                                 else
-                                  if is_64bitint(left.resulttype.def) then
-                                   if is_signed(left.resulttype.def) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s64inttype)
-                                   else
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u64inttype)
-                                 else
-                                   if is_signed(left.resulttype.def) then
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,s32inttype)
-                                   else
-                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,u32inttype);
-                               end;
-
+                             inserttypeconv_explicit(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
-                              CGMessage(cg_e_illegal_expression);
+                               CGMessage(cg_e_illegal_expression);
                            end;
                         end
                        else
@@ -2124,14 +2105,18 @@ implementation
                expectloc:=LOC_VOID;
 
                { check type }
-               if is_64bit(left.resulttype.def) or
+               if
+{$ifndef cpu64bit}
+                  is_64bit(left.resulttype.def) or
+{$endif cpu64bit}
                   { range/overflow checking doesn't work properly }
                   { with the inc/dec code that's generated (JM)   }
-                  ((left.resulttype.def.deftype = orddef) and
+                  (
+                   (left.resulttype.def.deftype = orddef) and
                    not(is_char(left.resulttype.def)) and
                    not(is_boolean(left.resulttype.def)) and
-                   (aktlocalswitches *
-                    [cs_check_overflow,cs_check_range] <> [])) then
+                   (aktlocalswitches * [cs_check_overflow,cs_check_range] <> [])
+                  ) then
                  { convert to simple add (JM) }
                  begin
                    { extra parameter? }
@@ -2145,7 +2130,7 @@ implementation
                      end
                    else
                      { no, create constant 1 }
-                     hpp := cordconstnode.create(1,s32inttype,false);
+                     hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
                    { addition/substraction depending on inc/dec }
                    if inlinenumber = in_inc_x then
                      hp := caddnode.create(addn,tcallparanode(left).left.getcopy,hpp)
@@ -2374,7 +2359,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2004-05-23 18:28:41  peter
+  Revision 1.135  2004-05-28 21:15:20  peter
+    * inc(x,y) makes y always of type x to prevent 64bit operations
+      when x is a u32bit and y is signed
+
+  Revision 1.134  2004/05/23 18:28:41  peter
     * methodpointer is loaded into a temp when it was a calln
 
   Revision 1.133  2004/03/18 16:19:03  peter
