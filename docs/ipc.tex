@@ -569,24 +569,78 @@ On error, -1 is returned, and \var{IPCError} is set.
 \Declaration
 Function shmat (shmid:longint; shmaddr:pchar; shmflg:longint):pchar;
 \Description
+\var{shmat} attaches a shared memory block with identified \var{shmid} 
+to the current process. The function returns a pointer to the shared memory
+block.
+
+If \var{shmaddr} is \var{Nil}, then the system chooses a free unmapped
+memory region, as high up in memory space as possible.
+
+If \var{shmaddr} is non-nil, and \var{SHM\_RND} is in \var{shmflg}, then 
+the returned address is \var{shmaddr}, rounded down to \var{SHMLBA}.
+If \var{SHM\_RND} is not specified, then \var{shmaddr} must be a
+page-aligned address.
+
+The parameter \var{shmflg} can be used to control the behaviour of the
+\var{shmat} call. It consists of a ORed combination of the following
+costants:
+\begin{description}
+\item[SHM\_RND] The suggested address in \var{shmaddr} is rounded down to
+\var{SHMLBA}.
+\item[SHM\_RDONLY] the shared memory is attached for read access only.
+Otherwise the memory is attached for read-write. The process then needs
+read-write permissions to access the shared memory.
+\end{description}
 \Errors
+If an error occurs, -1 is returned, and \var{IPCerror} is set.
 \SeeAlso
+\seef{shmget}, \seef{shmdt}, \seef{shmctl}
 \end{function}
+
+For an example, see \seef{shmctl}.
 
 \begin{function}{shmdt}
 \Declaration
 Function shmdt (shmaddr:pchar):boolean;
 \Description
+\var{shmdt} detaches the shared memory at address \var{shmaddr}. This shared
+memory block is unavailable to the current process, until it is attached
+again by a call to \seef{shmat}.
+
+The function returns \var{True} if the memory block was detached
+successfully, \var{False} otherwise.
 \Errors
+On error, False is returned, and IPCerror is set.
 \SeeAlso
+\seef{shmget}, \seef{shmat}, \seef{shmctl}
 \end{function}
 
 \begin{function}{shmctl}
 \Declaration
 Function shmctl(shmid:longint; cmd:longint; buf: pshmid\_ds): Boolean;
 \Description
+\var{shmctl} performs various operations on the shared memory block
+identified by identifier \var{shmid}.
+
+The \var{buf} parameter points to a \var{TSHMid\_ds} record. The 
+\var{cmd} parameter is used to pass which operation is to be performed.
+It can have one of the following values :
+\begin{description}
+\item[IPC\_STAT] \var{shmctl} fills the \var{TSHMid\_ds} record that 
+\var{buf} points to with the available information about the shared memory
+block.
+\item[IPC\_SET] applies the values in the \var{ipc\_perm} record that
+\var{buf} points to, to the shared memory block.
+\item[IPC\_RMID] the shared memory block is destroyed (after all processes
+to which the block is attached, have detached from it).
+\end{description}
+
+If successful, the function returns \var{True}, \var{False} otherwise.
 \Errors
+If an error occurs, the function returns \var{False}, and \var{IPCerror}
+is set.
 \SeeAlso
+\seef{shmget}, \seef{shmat}, \seef{shmdt}
 \end{function}
 
 \latex{\inputlisting{ipcex/shmtool.pp}}
