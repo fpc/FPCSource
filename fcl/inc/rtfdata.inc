@@ -638,7 +638,7 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: rtfStyleAttr; rtfKMinor:   rtfBasedOn; rtfKstr : 'sbasedon'; rtfkHash : 0),
 ( rtfKMajor: rtfStyleAttr; rtfKMinor:   rtfNext; rtfKstr : 'snext'; rtfkHash : 0),
 
-( rtfKMajor: rtfPictAttr; rtfKstr : 'macpict'; rtfkHash : 0),
+( rtfKMajor: rtfPictAttr; rtfKMinor:    rtfMacQD; rtfKstr : 'macpict'; rtfkHash : 0),
 ( rtfKMajor: rtfPictAttr; rtfKMinor:    rtfWinMetafile; rtfKstr : 'wmetafile'; rtfkHash : 0),
 ( rtfKMajor: rtfPictAttr; rtfKMinor:    rtfWinBitmap; rtfKstr : 'wbitmap'; rtfkHash : 0),
 ( rtfKMajor: rtfPictAttr; rtfKMinor:    rtfPicWid; rtfKstr : 'picw'; rtfkHash : 0),
@@ -769,7 +769,10 @@ Const rtfKey : Array [0..281] of TRTFKey =
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
+  Revision 1.3  2001-05-07 11:23:01  jonas
+    * fix for stricter typed constant records (from Peter)
+
+  Revision 1.2  2000/07/13 11:33:00  michael
   + removed logs
  
 }
