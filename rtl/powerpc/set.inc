@@ -117,7 +117,7 @@ asm
        li       r5,1
        // generate bit which has to be cleared
        slw      r4,r5,r4
-       // insert it
+       // remove it
        lwz      r5,saveR5
        nor      r4,r6,r4
        lwz      r6,saveR6
@@ -190,7 +190,6 @@ var
   saveR5: longint;
 asm
        stw      r5,saveR5
-       stw      r6,saveR6
        // get the index of the correct *dword* in the set
        // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r5,r4,29,0,31-2
@@ -544,7 +543,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-09-26 14:19:04  jonas
+  Revision 1.5  2000-09-26 14:22:13  jonas
+    * one more bug corrected
+
+  Revision 1.4  2000/09/26 14:19:04  jonas
     * fixed several small bugs
     * fixed several typo's in the comments
 
