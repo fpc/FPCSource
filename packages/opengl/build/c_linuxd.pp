@@ -2,14 +2,17 @@
   $Id$
 
   GL unit creation tool for Linux dynamic version
-  (c) 1999 Sebastian Guenther, sg@freepascal.org
+  (c) 1999-2000 Sebastian Guenther, sg@freepascal.org
 }
+
+
+program c_linuxd;
 
 {$MODE objfpc}
 {$H+}
 
-program c_linuxd;
 uses SysUtils, Classes, buildgl;
+
 var
   f: Text;
 
@@ -26,7 +29,8 @@ var
   i, j: Integer;
   s: String;
 begin
-  for i := 0 to procs.Count - 1 do begin
+  for i := 0 to procs.Count - 1 do
+  begin
     s := procs.Strings[i];
     j := Pos('//', s);
     if (Length(s) = 0) or ((j > 0) and (Trim(s)[1] = '/')) then
@@ -43,7 +47,8 @@ var
   i, j: Integer;
   s: String;
 begin
-  for i := 0 to procs.Count - 1 do begin
+  for i := 0 to procs.Count - 1 do
+  begin
     s := Trim(procs.Strings[i]);
     j := Pos(':', s);
     s := Trim(Copy(s, 1, j - 1));
@@ -57,7 +62,7 @@ begin
   WriteLn(f);
   WriteLn(f);
   WriteLn(f, '{');
-  WriteLn(f, '  $', 'Log:$');  // needed because _this_ file might be in CVS, too
+  WriteLn(f, '  $', 'Log:$');  // this source file (c_linuxd.pp) is in CVS, too!
   WriteLn(f, '}');
 end;
 
@@ -65,9 +70,8 @@ var
   DefGL, DefGLExt, DefGLU, DefGLX, DefGLUT: TDefReader;
   tpl: Text;
   s: String;
-  j: Integer;
 begin
-  WriteLn('File Generator for OpenGL related Units');
+  WriteLn('Template processor for OpenGL related Units');
 
   // Load definition files
 
@@ -88,9 +92,11 @@ begin
   Rewrite(f);
   Assign(tpl, 'gl_linux.tpl');
   Reset(tpl);
-  while not EOF(tpl) do begin
+  while not EOF(tpl) do
+  begin
     ReadLn(tpl, s);
-    if Copy(s, 1, 1) = '%' then begin
+    if Copy(s, 1, 1) = '%' then
+    begin
       if s = '%GLDecls' then
         PrintInterface(DefGL.InterfaceBlock, f)
       else if s = '%GLProcs1' then
@@ -126,15 +132,17 @@ begin
 
   // Build GLUT unit
 
-  WriteLn('Generating GLut unit for Linux...');
+  WriteLn('Generating GLUT unit for Linux...');
 
   Assign(f, '../linux/glut.pp');
   Rewrite(f);
   Assign(tpl, 'glut_linux.tpl');
   Reset(tpl);
-  while not EOF(tpl) do begin
+  while not EOF(tpl) do
+  begin
     ReadLn(tpl, s);
-    if Copy(s, 1, 1) = '%' then begin
+    if Copy(s, 1, 1) = '%' then
+    begin
       if s = '%GLUTDecls' then
         PrintInterface(DefGLUT.InterfaceBlock, f)
       else if s = '%GLUTProcs1' then
@@ -143,13 +151,8 @@ begin
         PrintProcLoaders(DefGLUT.Procs, 'libglut')
       else
         WriteLn(f, '// ### c_linuxd: Don''t know what to insert here!: ', s);
-    end else if Copy(s, 1, 1) <> '#' then begin
-      j := Pos('#extdecl', s);
-      if j = 0 then
-        WriteLn(f, s)
-      else
-        WriteLn(f, Copy(s, 1, j - 1), 'cdecl', Copy(s, j + 8, Length(s)));
-    end;
+    end else if Copy(s, 1, 1) <> '#' then
+      WriteLn(f, s);
   end;
   PrintCVSLogSection;
   Close(f);
@@ -160,7 +163,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-12-23 13:51:50  peter
+  Revision 1.2  2000-05-25 18:59:50  sg
+  * Completed GLU and GLUT support
+  * Some minor fixes (missing "const"s, changed some untyped "var" arguments
+    to "const" arguments etc.)
+
+  Revision 1.1  1999/12/23 13:51:50  peter
     * reorganized, it now doesn't depend on fcl anymore by default
 
   Revision 1.2  1999/12/01 00:55:44  alex

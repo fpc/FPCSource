@@ -1,39 +1,27 @@
 {
   $Id$
 
-  Translation of the Mesa GLUT headers for FreePascal
-  Linux Version, Copyright (C) 1999-2000 Sebastian Guenther
+  Translation of the GLUT 3.7 headers for Free Pascal, Linux version
+  Copyright (C) 1999-2000 Sebastian Guenther, sg@freepascal.org
 
 
-  Mesa 3-D graphics library
-  Version:  3.0
-  Copyright (C) 1995-1998  Brian Paul
+  Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Library General Public
-  License as published by the Free Software Foundation; either
-  version 2 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Library General Public License for more details.
-
-  You should have received a copy of the GNU Library General Public
-  License along with this library; if not, write to the Free
-  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  This program is freely distributable without licensing fees  and is
+  provided without guarantee or warrantee expressed or  implied. This
+  program is -not- in the public domain.
 }
 
 
-{$MODE delphi}
-
 unit GLUT;
+
+{$MODE delphi}
 
 interface
 
 uses GL;
 
-function InitGLUTFromLibrary(libname: PChar): Boolean;
+function InitGLUTFromLibrary(const libname: PChar): Boolean;
 
 // determines automatically which library to use:
 function InitGLUT: Boolean;
@@ -47,9 +35,29 @@ var
   GLUTDumpUnresolvedFunctions: Boolean;
 
 
+{ GLUT API revision history:
+ 
+  GLUT_API_VERSION is updated to reflect incompatible GLUT
+  API changes (interface changes, semantic changes, deletions,
+  or additions).
+ 
+  GLUT_API_VERSION=1  First public release of GLUT.  11/29/94
 
+  GLUT_API_VERSION=2  Added support for OpenGL/GLX multisampling,
+  extension.  Supports new input devices like tablet, dial and button
+  box, and Spaceball.  Easy to query OpenGL extensions.
+
+  GLUT_API_VERSION=3  glutMenuStatus added.
+
+  GLUT_API_VERSION=4  glutInitDisplayString, glutWarpPointer,
+  glutBitmapLength, glutStrokeLength, glutWindowStatusFunc, dynamic
+  video resize subAPI, glutPostWindowRedisplay, glutKeyboardUpFunc,
+  glutSpecialUpFunc, glutIgnoreKeyRepeat, glutSetKeyRepeat,
+  glutJoystickFunc, glutForceJoystickFunc (NOT FINALIZED!). }
 
 const
+  GLUT_API_VERSION		= 4;
+
   // Display mode bit masks
   GLUT_RGB                      = 0;
   GLUT_RGBA                     = GLUT_RGB;
@@ -73,7 +81,29 @@ const
   GLUT_DOWN                     = 0;
   GLUT_UP                       = 1;
 
-  // Keys ###
+  // function keys
+  GLUT_KEY_F1			= 1;
+  GLUT_KEY_F2			= 2;
+  GLUT_KEY_F3			= 3;
+  GLUT_KEY_F4			= 4;
+  GLUT_KEY_F5			= 5;
+  GLUT_KEY_F6			= 6;
+  GLUT_KEY_F7			= 7;
+  GLUT_KEY_F8			= 8;
+  GLUT_KEY_F9			= 9;
+  GLUT_KEY_F10			= 10;
+  GLUT_KEY_F11			= 11;
+  GLUT_KEY_F12			= 12;
+  // directional keys
+  GLUT_KEY_LEFT			= 100;
+  GLUT_KEY_UP			= 101;
+  GLUT_KEY_RIGHT		= 102;
+  GLUT_KEY_DOWN			= 103;
+  GLUT_KEY_PAGE_UP		= 104;
+  GLUT_KEY_PAGE_DOWN		= 105;
+  GLUT_KEY_HOME			= 106;
+  GLUT_KEY_END			= 107;
+  GLUT_KEY_INSERT		= 108;
 
   // Enter / exit state
   GLUT_LEFT                     = 0;
@@ -101,9 +131,6 @@ const
   // Layers for use
   GLUT_NORMAL                   = 0;
   GLUT_OVERLAY                  = 1;
-
-  // Bitmap stuff###
-
 
   // glutGet parameters
   GLUT_WINDOW_X                 = 100;
@@ -187,18 +214,85 @@ const
   GLUT_ACTIVE_CTRL              = 2;
   GLUT_ACTIVE_ALT               = 4;
 
-  // Cursor stuff ###
+  // glutSetCursor parameters
+  // Basic arrows
+  GLUT_CURSOR_RIGHT_ARROW	= 0;
+  GLUT_CURSOR_LEFT_ARROW	= 1;
+  // Symbolic cursor shapes
+  GLUT_CURSOR_INFO		= 2;
+  GLUT_CURSOR_DESTROY		= 3;
+  GLUT_CURSOR_HELP		= 4;
+  GLUT_CURSOR_CYCLE		= 5;
+  GLUT_CURSOR_SPRAY		= 6;
+  GLUT_CURSOR_WAIT		= 7;
+  GLUT_CURSOR_TEXT		= 8;
+  GLUT_CURSOR_CROSSHAIR		= 9;
+  // Directional cursors
+  GLUT_CURSOR_UP_DOWN		= 10;
+  GLUT_CURSOR_LEFT_RIGHT	= 11;
+  // Sizing cursors
+  GLUT_CURSOR_TOP_SIDE		= 12;
+  GLUT_CURSOR_BOTTOM_SIDE	= 13;
+  GLUT_CURSOR_LEFT_SIDE		= 14;
+  GLUT_CURSOR_RIGHT_SIDE	= 15;
+  GLUT_CURSOR_TOP_LEFT_CORNER	= 16;
+  GLUT_CURSOR_TOP_RIGHT_CORNER	= 17;
+  GLUT_CURSOR_BOTTOM_RIGHT_CORNER = 18;
+  GLUT_CURSOR_BOTTOM_LEFT_CORNER = 19;
+  // Inherit from parent window
+  GLUT_CURSOR_INHERIT		= 100;
+  // Blank cursor
+  GLUT_CURSOR_NONE		= 101;
+  // Fullscreen crosshair (if available)
+  GLUT_CURSOR_FULL_CROSSHAIR	= 102;
 
-// GLUT window callback sub-API
 type
-  TGlutDisplayFunc = procedure; cdecl;
-  TGlutReshapeFunc = procedure(width, height: Integer); cdecl;
 
-  TGlutTimerFunc = procedure(value: Integer); cdecl;
+  // GLUT menu sub-API
+  TGlutCreateMenuFunc = procedure(arg: Int); cdecl;
+
+  // GLUT window callback sub-API
+  TGlutDisplayFunc = procedure; cdecl;
+  TGlutReshapeFunc = procedure(width, height: Int); cdecl;
+  TGlutKeyboardFunc = procedure(key: Char; x, y: Int); cdecl;
+  TGlutMouseFunc = procedure(button, state, x, y: Int); cdecl;
+  TGlutMotionFunc = procedure(x, y: Int); cdecl;
+  TGlutPassiveMotionFunc = procedure(x, y: Int); cdecl;
+  TGlutEntryFunc = procedure(x, y: Int); cdecl;
+  TGlutVisibilityFunc = procedure(state: Int); cdecl;
+  TGlutIdleFunc = procedure; cdecl;
+  TGlutTimerFunc = procedure(value: Int); cdecl;
+  TGlutMenuStateFunc = procedure(state: Int); cdecl;
+  TGlutSpecialFunc = procedure(key, x, y: Int); cdecl;
+  TGlutSpaceballMotionFunc = procedure(x, y, z: Int); cdecl;
+  TGlutSpaceballRotateFunc = procedure(x, y, z: Int); cdecl;
+  TGlutSpaceballButtonFunc = procedure(button, state: Int); cdecl;
+  TGlutButtonBoxFunc = procedure(button, state: Int); cdecl;
+  TGlutDialsFunc = procedure(dial, value: Int); cdecl;
+  TGlutTabletMotionFunc = procedure(x, y: Int); cdecl;
+  TGlutTabletButtonFunc = procedure(button, state, x, y: Int); cdecl;
+  TGlutMenuStatusFunc = procedure(status, x, y: Int); cdecl;
+  TGlutOverlayDisplayFunc = procedure; cdecl;
+  TGlutWindowStatusFunc = procedure(state: Int); cdecl;
+  TGlutKeyboardUpFunc = procedure(key: Char; x, y: Int); cdecl;
+  TGlutSpecialUpFunc = procedure(key, x, y: Int); cdecl;
+  TGlutJoystickFunc = procedure(buttonMask: UnsignedInt; x, y, z: Int); cdecl;
+
+const
+// GLUT device control sub-API
+  // glutSetKeyRepeat modes.
+  GLUT_KEY_REPEAT_OFF		= 0;
+  GLUT_KEY_REPEAT_ON		= 1;
+  GLUT_KEY_REPEAT_DEFAULT	= 2;
+
+  // Joystick button masks
+  GLUT_JOYSTICK_BUTTON_A	= 1;
+  GLUT_JOYSTICK_BUTTON_B	= 2;
+  GLUT_JOYSTICK_BUTTON_C	= 4;
+  GLUT_JOYSTICK_BUTTON_D	= 8;
 
 // GLUT game mode sub-API
-// glutGameModeGet
-const
+  // glutGameModeGet
   GLUT_GAME_MODE_ACTIVE         = 0;
   GLUT_GAME_MODE_POSSIBLE       = 1;
   GLUT_GAME_MODE_WIDTH          = 2;
@@ -209,112 +303,184 @@ const
 
 
 var
+
+{ The following stuff does not exist in the Win32 version: }
+(* commented out because cvars don't work in Delphi mode...
+// Stroke font opaque addresses (use constants instead in source code).
+var
+  glutStrokeRoman, glutStrokeMonoRoman: Pointer; cvar; external;
+
+// Stroke font constants (use these in GLUT program).
+const
+  GLUT_STROKE_ROMAN = @glutStrokeRoman;
+  GLUT_STROKE_MONO_ROMAN = @glutStrokeMonoRoman;
+
+// Bitmap font opaque addresses (use constants instead in source code).
+var
+  glutBitmap9By15, glutBitmap8By13, glutBitmapTimesRoman10,
+    glutBitmapTimesRoman24, glutBitmapHelvetica10, glutBitmapHelvetica12,
+    glutBitmapHelvetica18: Pointer; cdecl; external;
+
+// Bitmap font constants (use these in GLUT program).
+const
+  GLUT_BITMAP_9_BY_15 = @glutBitmap9By15;
+  GLUT_BITMAP_8_BY_13 = @glutBitmap8By13;
+  GLUT_BITMAP_TIMES_ROMAN_10 = @glutBitmapTimesRoman10;
+  GLUT_BITMAP_TIMES_ROMAN_24 = @glutBitmapTimesRoman24;
+  GLUT_BITMAP_HELVETICA_10 = @glutBitmapHelvetica10;
+  GLUT_BITMAP_HELVETICA_12 = @glutBitmapHelvetica12;
+  GLUT_BITMAP_HELVETICA_18 = @glutBitmapHelvetica18;*)
+
 // GLUT initialization sub-API
-  glutInit: procedure(var argcp: Integer; var argv: PChar); cdecl;
-  glutInitDisplayMode: procedure(mode: LongWord); cdecl;
-  glutInitDisplayString: procedure(AString: PChar); cdecl;
-  glutInitWindowPosition: procedure(x, y: Integer); cdecl;
-  glutInitWindowSize: procedure(width, height: Integer); cdecl;
+  glutInit: procedure(argcp: PInt; argv: PPChar); cdecl;
+  glutInitDisplayMode: procedure(mode: UnsignedInt); cdecl;
+  glutInitDisplayString: procedure(const AString: PChar); cdecl;
+  glutInitWindowPosition: procedure(x, y: Int); cdecl;
+  glutInitWindowSize: procedure(width, height: Int); cdecl;
   glutMainLoop: procedure; cdecl;
 
 // GLUT window sub-API
-  glutCreateWindow: function(title: PChar): Integer; cdecl;
-  glutCreateSubWindow: function(win, x, y, width, height: Integer): Integer; cdecl;
-  glutDestroyWindow: procedure(win: Integer); cdecl;
+  glutCreateWindow: function(const title: PChar): Int; cdecl;
+  glutCreateSubWindow: function(win, x, y, width, height: Int): Int; cdecl;
+  glutDestroyWindow: procedure(win: Int); cdecl;
   glutPostRedisplay: procedure; cdecl;
-  glutPostWindowRedisplay: procedure(win: Integer); cdecl;
+  glutPostWindowRedisplay: procedure(win: Int); cdecl;
   glutSwapBuffers: procedure; cdecl;
-  glutGetWindow: function: Integer; cdecl;
-  glutSetWindow: procedure(win: Integer); cdecl;
-  glutSetWindowTitle: procedure(title: PChar); cdecl;
+  glutGetWindow: function: Int; cdecl;
+  glutSetWindow: procedure(win: Int); cdecl;
+  glutSetWindowTitle: procedure(const title: PChar); cdecl;
   glutSetIconTitle: procedure(title: PChar); cdecl;
-  glutPositionWindow: procedure(x, y: Integer); cdecl;
-  glutReshapeWindow: procedure(width, height: Integer); cdecl;
+  glutPositionWindow: procedure(x, y: Int); cdecl;
+  glutReshapeWindow: procedure(width, height: Int); cdecl;
   glutPopWindow: procedure; cdecl;
   glutPushWindow: procedure; cdecl;
   glutIconifyWindow: procedure; cdecl;
   glutShowWindow: procedure; cdecl;
   glutHideWindow: procedure; cdecl;
   glutFullScreen: procedure; cdecl;
-  glutSetCursor: procedure(cursor: Integer); cdecl;
-  glutWarpPointer: procedure(x, y: Integer); cdecl;
+  glutSetCursor: procedure(cursor: Int); cdecl;
+  glutWarpPointer: procedure(x, y: Int); cdecl;
 
-//overlays ###
+// GLUT overlay sub-API
+  glutEstablishOverlay: procedure; cdecl;
+  glutRemoveOverlay: procedure; cdecl;
+  glutUseLayer: procedure(layer: GLenum); cdecl;
+  glutPostOverlayRedisplay: procedure; cdecl;
+  glutPostWindowOverlayRedisplay: procedure(win: Int); cdecl;
+  glutShowOverlay: procedure; cdecl;
+  glutHideOverlay: procedure; cdecl;
 
-//menus ###
+// GLUT menu sub-API
+  glutCreateMenu: function(func: TGlutCreateMenuFunc): Int; cdecl;
+  glutDestroyMenu: procedure(menu: Int); cdecl;
+  glutGetMenu: function: Int; cdecl;
+  glutSetMenu: procedure(menu: Int); cdecl;
+  glutAddMenuEntry: procedure(const ALabel: PChar; value: Int); cdecl;
+  glutAddSubMenu: procedure(const ALabel: PChar; submenu: Int); cdecl;
+  glutChangeToMenuEntry: procedure(item: Int; const ALabel: PChar; value: Int); cdecl;
+  glutChangeToSubMenu: procedure(item: Int; const ALabel: PChar; submenu: Int); cdecl;
+  glutRemoveMenuItem: procedure(item: Int); cdecl;
+  glutAttachMenu: procedure(button: Int); cdecl;
+  glutDetachMenu: procedure(button: Int); cdecl;
 
 // GLUT window callback sub-API
   glutDisplayFunc: procedure(func: TGlutDisplayFunc); cdecl;
   glutReshapeFunc: procedure(func: TGlutReshapeFunc); cdecl;
-
-  glutTimerFunc: procedure(millis: LongWord; func: TGlutTimerFunc; value: Integer); cdecl;
-
-
-// GLUTAPI void APIENTRY glutDisplayFunc(void (GLUTCALLBACK * func)(void));
-// GLUTAPI void APIENTRY glutReshapeFunc(void (GLUTCALLBACK * func)(int width, int height));
-// GLUTAPI void APIENTRY glutKeyboardFunc(void (GLUTCALLBACK * func)(unsigned char key, int x, int y));
-// GLUTAPI void APIENTRY glutMouseFunc(void (GLUTCALLBACK * func)(int button, int state, int x, int y));
-// GLUTAPI void APIENTRY glutMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
-// GLUTAPI void APIENTRY glutPassiveMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
-// GLUTAPI void APIENTRY glutEntryFunc(void (GLUTCALLBACK * func)(int state));
-// GLUTAPI void APIENTRY glutVisibilityFunc(void (GLUTCALLBACK * func)(int state));
-// GLUTAPI void APIENTRY glutIdleFunc(void (GLUTCALLBACK * func)(void));
-// GLUTAPI void APIENTRY glutTimerFunc(unsigned int millis, void (GLUTCALLBACK * func)(int value), int value);
-// GLUTAPI void APIENTRY glutMenuStateFunc(void (GLUTCALLBACK * func)(int state));
-// GLUTAPI void APIENTRY glutSpecialFunc(void (GLUTCALLBACK * func)(int key, int x, int y));
-// GLUTAPI void APIENTRY glutSpaceballMotionFunc(void (GLUTCALLBACK * func)(int x, int y, int z));
-// GLUTAPI void APIENTRY glutSpaceballRotateFunc(void (GLUTCALLBACK * func)(int x, int y, int z));
-// GLUTAPI void APIENTRY glutSpaceballButtonFunc(void (GLUTCALLBACK * func)(int button, int state));
-// GLUTAPI void APIENTRY glutButtonBoxFunc(void (GLUTCALLBACK * func)(int button, int state));
-// GLUTAPI void APIENTRY glutDialsFunc(void (GLUTCALLBACK * func)(int dial, int value));
-// GLUTAPI void APIENTRY glutTabletMotionFunc(void (GLUTCALLBACK * func)(int x, int y));
-// GLUTAPI void APIENTRY glutTabletButtonFunc(void (GLUTCALLBACK * func)(int button, int state, int x, int y));
-// GLUTAPI void APIENTRY glutMenuStatusFunc(void (GLUTCALLBACK * func)(int status, int x, int y));
-// GLUTAPI void APIENTRY glutOverlayDisplayFunc(void (GLUTCALLBACK * func)(void));
-// GLUTAPI void APIENTRY glutWindowStatusFunc(void (GLUTCALLBACK * func)(int state));
-// GLUTAPI void APIENTRY glutKeyboardUpFunc(void (GLUTCALLBACK * func)(unsigned char key, int x, int y));
-// GLUTAPI void APIENTRY glutSpecialUpFunc(void (GLUTCALLBACK * func)(int key, int x, int y));
-// GLUTAPI void APIENTRY glutJoystickFunc(void (GLUTCALLBACK * func)(unsigned int buttonMask, int x, int y, int z), int pollInterval)
+  glutKeyboardFunc: procedure(func: TGlutKeyboardFunc); cdecl;
+  glutMouseFunc: procedure(func: TGlutMouseFunc); cdecl;
+  glutMotionFunc: procedure(func: TGlutMotionFunc); cdecl;
+  glutPassiveMotionFunc: procedure(func: TGlutPassiveMotionFunc); cdecl;
+  glutEntryFunc: procedure(func: TGlutEntryFunc); cdecl;
+  glutIdleFunc: procedure(func: TGlutIdleFunc); cdecl;
+  glutTimerFunc: procedure(millis: UnsignedInt; func: TGlutTimerFunc; value: Int); cdecl;
+  glutMenuStateFunc: procedure(func: TGlutMenuStateFunc); cdecl;
+  glutSpecialFunc: procedure(func: TGlutSpecialFunc); cdecl;
+  glutSpaceballMotionFunc: procedure(func: TGlutSpaceballMotionFunc); cdecl;
+  glutSpaceballRotateFunc: procedure(func: TGlutSpaceballRotateFunc); cdecl;
+  glutSpaceballButtonFunc: procedure(func: TGlutSpaceballButtonFunc); cdecl;
+  glutButtonBoxFunc: procedure(func: TGlutButtonBoxFunc); cdecl;
+  glutDialsFunc: procedure(func: TGlutDialsFunc); cdecl;
+  glutTabletMotionFunc: procedure(func: TGlutTabletMotionFunc); cdecl;
+  glutTabletButtonFunc: procedure(func: TGlutTabletButtonFunc); cdecl;
+  glutMenuStatusFunc: procedure(func: TGlutMenuStatusFunc); cdecl;
+  glutOverlayDisplayFunc: procedure(func: TGlutOverlayDisplayFunc); cdecl;
+  glutWindowStatusFunc: procedure(func: TGlutWindowStatusFunc); cdecl;
+  glutKeyboardUpFunc: procedure(func: TGlutKeyboardUpFunc); cdecl;
+  glutSpecialUpFunc: procedure(func: TGlutSpecialUpFunc); cdecl;
+  glutJoystickFunc: procedure(func: TGlutJoystickFunc; pollinterval: Int); cdecl;
 
 // GLUT color index sub-API
-  glutSetColor: procedure(index: Integer; red, green, blue: Single); cdecl;
-  glutGetColor: function(ndx, component: Integer): Single; cdecl;
-  glutCopyColormap: procedure(win: Integer); cdecl;
+  glutSetColor: procedure(index: Int; red, green, blue: GLfloat); cdecl;
+  glutGetColor: function(ndx, component: Int): GLfloat; cdecl;
+  glutCopyColormap: procedure(win: Int); cdecl;
 
 // GLUT state retrieval sub-API
-  glutGet: function(AType: GLEnum): Integer; cdecl;
-  glutDeviceGet: function(AType: GLEnum): Integer; cdecl;
-  glutExtensionSupported: function(name: PChar): Integer; cdecl;
-  glutGetModifiers: function: Integer; cdecl;
-  glutLayerGet: function(AType: GLEnum): Integer; cdecl;
+  glutGet: function(AType: GLEnum): Int; cdecl;
+  glutDeviceGet: function(AType: GLEnum): Int; cdecl;
+  glutExtensionSupported: function(const name: PChar): Int; cdecl;
+  glutGetModifiers: function: Int; cdecl;
+  glutLayerGet: function(AType: GLEnum): Int; cdecl;
 
-// fonts ###
+// GLUT font sub-API
+  glutBitmapCharacter: procedure(font: Pointer; character: Int); cdecl;
+  glutBitmapWidth: function(font: Pointer; character: Int): Int; cdecl;
+  glutStrokeCharacter: procedure(font: Pointer; character: Int); cdecl;
+  glutStrokeWidth: function(font: Pointer; character: Int): Int; cdecl;
+  glutBitmapLength: function(font: Pointer; const AString: PChar): Int; cdecl;
+  glutStrokeLength: function(font: Pointer; const AString: PChar): Int; cdecl;
 
-// pre-built models ###
+// GLUT pre-built models sub-API
+  glutWireSphere: procedure(radius: GLdouble; slices, stacks: GLint); cdecl;
+  glutSolidSphere: procedure(radius: GLdouble; slices, stacks: GLint); cdecl;
+  glutWireCone: procedure(base: GLdouble; height: GLdouble; slices, stacks: GLint); cdecl;
+  glutSolidCone: procedure(base: GLdouble; height: GLdouble; slices, stacks: GLint); cdecl;
+  glutWireCube: procedure(size: GLdouble); cdecl;
+  glutSolidCube: procedure(size: GLdouble); cdecl;
+  glutWireTorus: procedure(innerRadius, outerRadius: GLdouble; sides, rings: GLint); cdecl;
+  glutSolidTorus: procedure(innerRadius, outerRadius: GLdouble; sides, rings: GLint); cdecl;
+  glutWireDodecahedron: procedure; cdecl;
+  glutSolidDodecahedron: procedure; cdecl;
+  glutWireTeapot: procedure(size: GLdouble); cdecl;
+  glutSolidTeapot: procedure(size: GLdouble); cdecl;
+  glutWireOctahedron: procedure; cdecl;
+  glutSolidOctahedron: procedure; cdecl;
+  glutWireTetrahedron: procedure; cdecl;
+  glutSolidTetrahedron: procedure; cdecl;
+  glutWireIcosahedron: procedure; cdecl;
+  glutSolidIcosahedron: procedure; cdecl;
 
-// video resize ###
+// GLUT video resize sub-API
+  glutVideoResizeGet: function(param: GLenum): Int; cdecl;
+  glutSetupVideoResizing: procedure; cdecl;
+  glutStopVideoResizing: procedure; cdecl;
+  glutVideoResize: procedure(x, y, width, height: Int); cdecl;
+  glutVideoPan: procedure(x, y, width, height: Int); cdecl;
 
-// debugging ###
+// GLUT debugging sub-API
+  glutReportErrors: procedure; cdecl;
 
-// device control ###
-
+// GLUT device control sub-API
+  glutIgnoreKeyRepeat: procedure(ignore: Int); cdecl;
+  glutSetKeyRepeat: procedure(repeatMode: Int); cdecl;
+  glutForceJoystickFunc: procedure; cdecl;
 
 // GLUT game mode sub-API
-  glutGameModeString: procedure(AString: PChar); cdecl;
+  glutGameModeString: procedure(const AString: PChar); cdecl;
   glutEnterGameMode: function: Integer; cdecl;
   glutLeaveGameMode: procedure; cdecl;
-  glutGameModeGet: function(mode: GLEnum): Integer; cdecl;
+  glutGameModeGet: function(mode: GLEnum): Int; cdecl;
+
 
 
 implementation
 
 {$LINKLIB Xmu}
 
-function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
+function dlopen(const AFile: PChar; mode: LongInt): Pointer; external 'dl';
 function dlclose(handle: Pointer): LongInt; external 'dl';
-function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
+function dlsym(handle: Pointer; const name: PChar): Pointer; external 'dl';
 
-function LoadLibrary(name: PChar): Pointer;
+function LoadLibrary(const name: PChar): Pointer;
 begin
   Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
 end;
@@ -324,7 +490,7 @@ begin
   dlclose(handle);
 end;
 
-function GetProc(handle: Pointer; name: PChar): Pointer;
+function GetProc(handle: Pointer; const name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
   if not Assigned(Result) and GLUTDumpUnresolvedFunctions then
@@ -334,11 +500,12 @@ end;
 var
   libGLUT: Pointer;
 
-function InitGLUTFromLibrary(libname: PChar): Boolean;
+function InitGLUTFromLibrary(const libname: PChar): Boolean;
 begin
   Result := False;
   libGLUT := LoadLibrary(libname);
-  if not Assigned(libGLUT) then exit;
+  if not Assigned(libGLUT) then
+    exit;
 
   glutInit := GetProc(libglut, 'glutInit');
   glutInitDisplayMode := GetProc(libglut, 'glutInitDisplayMode');
@@ -366,9 +533,48 @@ begin
   glutFullScreen := GetProc(libglut, 'glutFullScreen');
   glutSetCursor := GetProc(libglut, 'glutSetCursor');
   glutWarpPointer := GetProc(libglut, 'glutWarpPointer');
+  glutEstablishOverlay := GetProc(libglut, 'glutEstablishOverlay');
+  glutRemoveOverlay := GetProc(libglut, 'glutRemoveOverlay');
+  glutUseLayer := GetProc(libglut, 'glutUseLayer');
+  glutPostOverlayRedisplay := GetProc(libglut, 'glutPostOverlayRedisplay');
+  glutPostWindowOverlayRedisplay := GetProc(libglut, 'glutPostWindowOverlayRedisplay');
+  glutShowOverlay := GetProc(libglut, 'glutShowOverlay');
+  glutHideOverlay := GetProc(libglut, 'glutHideOverlay');
+  glutCreateMenu := GetProc(libglut, 'glutCreateMenu');
+  glutDestroyMenu := GetProc(libglut, 'glutDestroyMenu');
+  glutGetMenu := GetProc(libglut, 'glutGetMenu');
+  glutSetMenu := GetProc(libglut, 'glutSetMenu');
+  glutAddMenuEntry := GetProc(libglut, 'glutAddMenuEntry');
+  glutAddSubMenu := GetProc(libglut, 'glutAddSubMenu');
+  glutChangeToMenuEntry := GetProc(libglut, 'glutChangeToMenuEntry');
+  glutChangeToSubMenu := GetProc(libglut, 'glutChangeToSubMenu');
+  glutRemoveMenuItem := GetProc(libglut, 'glutRemoveMenuItem');
+  glutAttachMenu := GetProc(libglut, 'glutAttachMenu');
+  glutDetachMenu := GetProc(libglut, 'glutDetachMenu');
   glutDisplayFunc := GetProc(libglut, 'glutDisplayFunc');
   glutReshapeFunc := GetProc(libglut, 'glutReshapeFunc');
+  glutKeyboardFunc := GetProc(libglut, 'glutKeyboardFunc');
+  glutMouseFunc := GetProc(libglut, 'glutMouseFunc');
+  glutMotionFunc := GetProc(libglut, 'glutMotionFunc');
+  glutPassiveMotionFunc := GetProc(libglut, 'glutPassiveMotionFunc');
+  glutEntryFunc := GetProc(libglut, 'glutEntryFunc');
+  glutIdleFunc := GetProc(libglut, 'glutIdleFunc');
   glutTimerFunc := GetProc(libglut, 'glutTimerFunc');
+  glutMenuStateFunc := GetProc(libglut, 'glutMenuStateFunc');
+  glutSpecialFunc := GetProc(libglut, 'glutSpecialFunc');
+  glutSpaceballMotionFunc := GetProc(libglut, 'glutSpaceballMotionFunc');
+  glutSpaceballRotateFunc := GetProc(libglut, 'glutSpaceballRotateFunc');
+  glutSpaceballButtonFunc := GetProc(libglut, 'glutSpaceballButtonFunc');
+  glutButtonBoxFunc := GetProc(libglut, 'glutButtonBoxFunc');
+  glutDialsFunc := GetProc(libglut, 'glutDialsFunc');
+  glutTabletMotionFunc := GetProc(libglut, 'glutTabletMotionFunc');
+  glutTabletButtonFunc := GetProc(libglut, 'glutTabletButtonFunc');
+  glutMenuStatusFunc := GetProc(libglut, 'glutMenuStatusFunc');
+  glutOverlayDisplayFunc := GetProc(libglut, 'glutOverlayDisplayFunc');
+  glutWindowStatusFunc := GetProc(libglut, 'glutWindowStatusFunc');
+  glutKeyboardUpFunc := GetProc(libglut, 'glutKeyboardUpFunc');
+  glutSpecialUpFunc := GetProc(libglut, 'glutSpecialUpFunc');
+  glutJoystickFunc := GetProc(libglut, 'glutJoystickFunc');
   glutSetColor := GetProc(libglut, 'glutSetColor');
   glutGetColor := GetProc(libglut, 'glutGetColor');
   glutCopyColormap := GetProc(libglut, 'glutCopyColormap');
@@ -377,6 +583,39 @@ begin
   glutExtensionSupported := GetProc(libglut, 'glutExtensionSupported');
   glutGetModifiers := GetProc(libglut, 'glutGetModifiers');
   glutLayerGet := GetProc(libglut, 'glutLayerGet');
+  glutBitmapCharacter := GetProc(libglut, 'glutBitmapCharacter');
+  glutBitmapWidth := GetProc(libglut, 'glutBitmapWidth');
+  glutStrokeCharacter := GetProc(libglut, 'glutStrokeCharacter');
+  glutStrokeWidth := GetProc(libglut, 'glutStrokeWidth');
+  glutBitmapLength := GetProc(libglut, 'glutBitmapLength');
+  glutStrokeLength := GetProc(libglut, 'glutStrokeLength');
+  glutWireSphere := GetProc(libglut, 'glutWireSphere');
+  glutSolidSphere := GetProc(libglut, 'glutSolidSphere');
+  glutWireCone := GetProc(libglut, 'glutWireCone');
+  glutSolidCone := GetProc(libglut, 'glutSolidCone');
+  glutWireCube := GetProc(libglut, 'glutWireCube');
+  glutSolidCube := GetProc(libglut, 'glutSolidCube');
+  glutWireTorus := GetProc(libglut, 'glutWireTorus');
+  glutSolidTorus := GetProc(libglut, 'glutSolidTorus');
+  glutWireDodecahedron := GetProc(libglut, 'glutWireDodecahedron');
+  glutSolidDodecahedron := GetProc(libglut, 'glutSolidDodecahedron');
+  glutWireTeapot := GetProc(libglut, 'glutWireTeapot');
+  glutSolidTeapot := GetProc(libglut, 'glutSolidTeapot');
+  glutWireOctahedron := GetProc(libglut, 'glutWireOctahedron');
+  glutSolidOctahedron := GetProc(libglut, 'glutSolidOctahedron');
+  glutWireTetrahedron := GetProc(libglut, 'glutWireTetrahedron');
+  glutSolidTetrahedron := GetProc(libglut, 'glutSolidTetrahedron');
+  glutWireIcosahedron := GetProc(libglut, 'glutWireIcosahedron');
+  glutSolidIcosahedron := GetProc(libglut, 'glutSolidIcosahedron');
+  glutVideoResizeGet := GetProc(libglut, 'glutVideoResizeGet');
+  glutSetupVideoResizing := GetProc(libglut, 'glutSetupVideoResizing');
+  glutStopVideoResizing := GetProc(libglut, 'glutStopVideoResizing');
+  glutVideoResize := GetProc(libglut, 'glutVideoResize');
+  glutVideoPan := GetProc(libglut, 'glutVideoPan');
+  glutReportErrors := GetProc(libglut, 'glutReportErrors');
+  glutIgnoreKeyRepeat := GetProc(libglut, 'glutIgnoreKeyRepeat');
+  glutSetKeyRepeat := GetProc(libglut, 'glutSetKeyRepeat');
+  glutForceJoystickFunc := GetProc(libglut, 'glutForceJoystickFunc');
   glutGameModeString := GetProc(libglut, 'glutGameModeString');
   glutEnterGameMode := GetProc(libglut, 'glutEnterGameMode');
   glutLeaveGameMode := GetProc(libglut, 'glutLeaveGameMode');
@@ -402,7 +641,9 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-03-16 17:40:39  sg
-  * Fixed GL* library loading functions
+  Revision 1.5  2000-05-25 18:59:50  sg
+  * Completed GLU and GLUT support
+  * Some minor fixes (missing "const"s, changed some untyped "var" arguments
+    to "const" arguments etc.)
 
 }

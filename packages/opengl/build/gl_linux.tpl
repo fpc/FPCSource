@@ -1,41 +1,47 @@
 {
   $Id$
-  Translation of the Mesa GL, GLU and GLX headers for Free Pascal
-  Linux Version, Copyright (C) 1999-2000 Sebastian Guenther
+  Translation of the Mesa GL, GLU and GLX headers for Free Pascal, Linux version
+  Copyright (C) 1999-2000 Sebastian Guenther, sg@freepascal.org
 
 
   Mesa 3-D graphics library
-  Version:  3.0
-  Copyright (C) 1995-1998  Brian Paul
+  Version:  3.1
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Library General Public
-  License as published by the Free Software Foundation; either
-  version 2 of the License, or (at your option) any later version.
+  Copyright (C) 1999  Brian Paul   All Rights Reserved.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Library General Public License for more details.
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
 
-  You should have received a copy of the GNU Library General Public
-  License along with this library; if not, write to the Free
-  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+  BRIAN PAUL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+  AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }
 
-{$MODE delphi}  // objfpc would not work because of direct proc var assignments
 
 unit GL;
 
+{$MODE delphi}  // objfpc would not work because of direct proc var assignments
+
 interface
-uses X,XLib,XUtil;
+
+uses X, XLib, XUtil;
 
 // ===================================================================
 //   Unit specific extensions
 // ===================================================================
 
-function InitGLFromLibrary(libname: PChar): Boolean;
-function InitGLUFromLibrary(libname: PChar): Boolean;
+function InitGLFromLibrary(const libname: PChar): Boolean;
+function InitGLUFromLibrary(const libname: PChar): Boolean;
 // Requires that the GL library has already been initialized:
 function InitGLX: Boolean;
 
@@ -81,12 +87,12 @@ function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
 function dlclose(handle: Pointer): LongInt; external 'dl';
 function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
 
-function LoadLibrary(name: PChar): Pointer;
+function LoadLibrary(const name: PChar): Pointer;
 begin
   Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
 end;
 
-function GetProc(handle: Pointer; name: PChar): Pointer;
+function GetProc(handle: Pointer; const name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
   if not Assigned(Result) and GLDumpUnresolvedFunctions then
@@ -96,11 +102,12 @@ end;
 var
   libGL, libGLU, libGLX: Pointer;
 
-function InitGLFromLibrary(libname: PChar): Boolean;
+function InitGLFromLibrary(const libname: PChar): Boolean;
 begin
   Result := False;
   libGL := LoadLibrary(libname);
-  if not Assigned(libGL) then exit;
+  if not Assigned(libGL) then
+    exit;
 
 %GLProcs2
 #  // Extensions:
@@ -110,11 +117,12 @@ begin
   Result := True;
 end;
 
-function InitGLUFromLibrary(libname: PChar): Boolean;
+function InitGLUFromLibrary(const libname: PChar): Boolean;
 begin
   Result := False;
   libGLU := LoadLibrary(libname);
-  if not Assigned(libGLU) then exit;
+  if not Assigned(libGLU) then
+    exit;
 
 %GLUProcs2
 
@@ -125,7 +133,8 @@ end;
 function InitGLX: Boolean;
 begin
   Result := False;
-  if not Assigned(libGL) then exit;
+  if not Assigned(libGL) then
+    exit;
 
 %GLXProcs2
 
@@ -146,9 +155,12 @@ begin
 end;
 
 
-
 finalization
-  if Assigned(libGL)  then dlclose(libGL);
-  if Assigned(libGLU) then dlclose(libGLU);
-  if Assigned(libGLX) then dlclose(libGLX);
+  // Free all loaded libraries
+  if Assigned(libGLX) then
+    dlclose(libGLX);
+  if Assigned(libGLU) then
+    dlclose(libGLU);
+  if Assigned(libGL) then
+    dlclose(libGL);
 end.

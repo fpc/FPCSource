@@ -1,41 +1,47 @@
 {
   $Id$
-  Translation of the Mesa GL, GLU and GLX headers for Free Pascal
-  Linux Version, Copyright (C) 1999-2000 Sebastian Guenther
+  Translation of the Mesa GL, GLU and GLX headers for Free Pascal, Linux version
+  Copyright (C) 1999-2000 Sebastian Guenther, sg@freepascal.org
 
 
   Mesa 3-D graphics library
-  Version:  3.0
-  Copyright (C) 1995-1998  Brian Paul
+  Version:  3.1
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Library General Public
-  License as published by the Free Software Foundation; either
-  version 2 of the License, or (at your option) any later version.
+  Copyright (C) 1999  Brian Paul   All Rights Reserved.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Library General Public License for more details.
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
 
-  You should have received a copy of the GNU Library General Public
-  License along with this library; if not, write to the Free
-  Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+  BRIAN PAUL BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+  AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 }
 
-{$MODE delphi}  // objfpc would not work because of direct proc var assignments
 
 unit GL;
 
+{$MODE delphi}  // objfpc would not work because of direct proc var assignments
+
 interface
-uses X,XLib,XUtil;
+
+uses X, XLib, XUtil;
 
 // ===================================================================
 //   Unit specific extensions
 // ===================================================================
 
-function InitGLFromLibrary(libname: PChar): Boolean;
-function InitGLUFromLibrary(libname: PChar): Boolean;
+function InitGLFromLibrary(const libname: PChar): Boolean;
+function InitGLUFromLibrary(const libname: PChar): Boolean;
 // Requires that the GL library has already been initialized:
 function InitGLX: Boolean;
 
@@ -52,6 +58,22 @@ var
   GLDumpUnresolvedFunctions: Boolean;
 
 
+
+// C types
+type
+  SignedChar = ShortInt;
+  UnsignedChar = Byte;
+  Short = SmallInt;
+  SignedShort = Short;
+  UnsignedShort = Word;
+  Int = LongInt;
+  SignedInt = Int;
+  UnsignedInt = LongWord;
+  Float = Single;
+
+  PInt = ^Int;
+
+
 // ===================================================================
 //   GL consts, types and functions
 // ===================================================================
@@ -63,15 +85,24 @@ var
 
 type
 
-  PSingle = ^Single;
-  PDouble = ^Double;
+  PGLvoid = Pointer;
+  GLboolean = Boolean;
+  GLbyte = SignedChar;		// 1-byte signed
+  GLshort = Short;		// 2-byte signed
+  GLint = Int;			// 4-byte signed
+  GLubyte = UnsignedChar;	// 1-byte unsigned
+  GLushort = UnsignedShort;	// 2-byte unsigned
+  GLuint = UnsignedInt;		// 4-byte unsigned
+  GLsizei = Int;		// 4-byte signed
+  GLfloat = Float;		// single precision float
+  GLclampf = Float;		// single precision float in [0,1]
+  GLdouble = Double;		// double precision float
+  GLclampd = Double;		// double precision float in [0,1]
 
-  GLclampf = Single;    // single precision float in [0,1]
-  GLclampd = Double;    // double precision float in [0,1]
+  PGLfloat = ^GLfloat;
 
   GLenum = Integer;
 
-type
   GLbitfield = set of (GL_CURRENT_BIT, GL_POINT_BIT, GL_LINE_BIT,
     GL_POLYGON_BIT, GL_POLYGON_STIPPLE_BIT, GL_PIXEL_MODE_BIT,
     GL_LIGHTING_BIT, GL_FOG_BIT, GL_DEPTH_BUFFER_BIT, GL_ACCUM_BUFFER_BIT,
@@ -714,7 +745,7 @@ const
 var
 
   // Miscellaneous
-  glClearIndex: procedure(c: Single); cdecl;
+  glClearIndex: procedure(c: GLfloat); cdecl;
   glClearColor: procedure(red, green, blue, alpha: GLclampf); cdecl;
   glClear: procedure(mask: GLbitfield); cdecl;
   glIndexMask: procedure(mask: LongWord); cdecl;
@@ -724,18 +755,18 @@ var
   glLogicOp: procedure(opcode: GLenum); cdecl;
   glCullFace: procedure(mode: GLenum); cdecl;
   glFrontFace: procedure(mode: GLenum); cdecl;
-  glPointSize: procedure(size: Single); cdecl;
-  glLineWidth: procedure(width: Single); cdecl;
+  glPointSize: procedure(size: GLfloat); cdecl;
+  glLineWidth: procedure(width: GLfloat); cdecl;
   glLineStipple: procedure(factor: LongInt; pattern: Word); cdecl;
   glPolygonMode: procedure(face, mode: GLenum); cdecl;
-  glPolygonOffset: procedure(factor, units: Single); cdecl;
+  glPolygonOffset: procedure(factor, units: GLfloat); cdecl;
   glPolygonStipple: procedure(var mask: Byte); cdecl;
   glGetPolygonStipple: procedure(var mask: Byte); cdecl;
   glEdgeFlag: procedure(flag: Boolean); cdecl;
   glEdgeFlagv: procedure(var flag: Boolean); cdecl;
   glScissor: procedure(x, y, width, height: LongInt); cdecl;
-  glClipPlane: procedure(plane: GLenum; var equation: Double); cdecl;
-  glGetClipPlane: procedure(plane: GLenum; var equation: Double); cdecl;
+  glClipPlane: procedure(plane: GLenum; var equation: GLdouble); cdecl;
+  glGetClipPlane: procedure(plane: GLenum; var equation: GLdouble); cdecl;
   glDrawBuffer: procedure(mode: GLenum); cdecl;
   glReadBuffer: procedure(mode: GLenum); cdecl;
   glEnable: procedure(cap: LongInt); cdecl;
@@ -744,8 +775,8 @@ var
   glEnableClientState: procedure(cap: GLenum); cdecl; // 1.1
   glDisableClientState: procedure(cap: GLenum); cdecl; // 1.1
   glGetBooleanv: procedure(pname: GLenum; var params: Boolean); cdecl;
-  glGetDoublev: procedure(pname: GLenum; var params: Double); cdecl;
-  glGetFloatv: procedure(pname: GLenum; var params: Single); cdecl;
+  glGetDoublev: procedure(pname: GLenum; var params: GLdouble); cdecl;
+  glGetFloatv: procedure(pname: GLenum; var params: GLfloat); cdecl;
   glGetIntegerv: procedure(pname: GLenum; var params: LongInt); cdecl;
   glPushAttrib: procedure(mask: GLbitfield); cdecl;
   glPopAttrib: procedure; cdecl;
@@ -766,27 +797,27 @@ var
   glDepthRange: procedure(near_val, far_val: GLclampd); cdecl;
 
   // Accumulation Buffer
-  glClearAccum: procedure(red, green, blue, alpha: Single); cdecl;
-  glAccum: procedure(op: GLenum; value: Single); cdecl;
+  glClearAccum: procedure(red, green, blue, alpha: GLfloat); cdecl;
+  glAccum: procedure(op: GLenum; value: GLfloat); cdecl;
 
   // Tranformation
   glMatrixMode: procedure(mode: GLenum); cdecl;
-  glOrtho: procedure(left, right, bottom, top, near_val, far_val: Double); cdecl;
-  glFrustum: procedure(left, right, bottom, top, near_val, far_val: Double); cdecl;
+  glOrtho: procedure(left, right, bottom, top, near_val, far_val: GLdouble); cdecl;
+  glFrustum: procedure(left, right, bottom, top, near_val, far_val: GLdouble); cdecl;
   glViewport: procedure(x, y, width, height: LongInt); cdecl;
   glPushMatrix: procedure; cdecl;
   glPopMatrix: procedure; cdecl;
   glLoadIdentity: procedure; cdecl;
-  glLoadMatrixd: procedure(var m: Double); cdecl;
-  glLoadMatrixf: procedure(var m: PSingle); cdecl;
-  glMultMatrixd: procedure(var m: Double); cdecl;
-  glMultMatrixf: procedure(var m: Single); cdecl;
-  glRotated: procedure(angle, x, y, z: Double); cdecl;
-  glRotatef: procedure(angle, x, y, z: Single); cdecl;
-  glScaled: procedure(x, y, z: Double); cdecl;
-  glScalef: procedure(x, y, z: Single); cdecl;
-  glTranslated: procedure(x, y, z: Double); cdecl;
-  glTranslatef: procedure(x, y, z: Single); cdecl;
+  glLoadMatrixd: procedure(var m: GLdouble); cdecl;
+  glLoadMatrixf: procedure(var m: PGLfloat); cdecl;
+  glMultMatrixd: procedure(var m: GLdouble); cdecl;
+  glMultMatrixf: procedure(var m: GLfloat); cdecl;
+  glRotated: procedure(angle, x, y, z: GLdouble); cdecl;
+  glRotatef: procedure(angle, x, y, z: GLfloat); cdecl;
+  glScaled: procedure(x, y, z: GLdouble); cdecl;
+  glScalef: procedure(x, y, z: GLfloat); cdecl;
+  glTranslated: procedure(x, y, z: GLdouble); cdecl;
+  glTranslatef: procedure(x, y, z: GLfloat); cdecl;
 
   // Display Lists
   glIsList: function(list: LongWord): Boolean; cdecl;
@@ -801,144 +832,144 @@ var
   // Drawing Functions
   glBegin: procedure(mode: GLenum); cdecl;
   glEnd: procedure; cdecl;
-  glVertex2d: procedure(x, y: Double); cdecl;
-  glVertex2f: procedure(x, y: Single); cdecl;
+  glVertex2d: procedure(x, y: GLdouble); cdecl;
+  glVertex2f: procedure(x, y: GLfloat); cdecl;
   glVertex2i: procedure(x, y: LongInt); cdecl;
   glVertex2s: procedure(x, y: SmallInt); cdecl;
-  glVertex3d: procedure(x, y, z: Double); cdecl;
-  glVertex3f: procedure(x, y, z: Single); cdecl;
+  glVertex3d: procedure(x, y, z: GLdouble); cdecl;
+  glVertex3f: procedure(x, y, z: GLfloat); cdecl;
   glVertex3i: procedure(x, y, z: LongInt); cdecl;
   glVertex3s: procedure(x, y, z: SmallInt); cdecl;
-  glVertex4d: procedure(x, y, z, w: Double); cdecl;
-  glVertex4f: procedure(x, y, z, w: Single); cdecl;
+  glVertex4d: procedure(x, y, z, w: GLdouble); cdecl;
+  glVertex4f: procedure(x, y, z, w: GLfloat); cdecl;
   glVertex4i: procedure(x, y, z, w: LongInt); cdecl;
   glVertex4s: procedure(x, y, z, w: SmallInt); cdecl;
-  glVertex2dv: procedure(var v: Double); cdecl;
-  glVertex2fv: procedure(var v: Single); cdecl;
+  glVertex2dv: procedure(var v: GLdouble); cdecl;
+  glVertex2fv: procedure(var v: GLfloat); cdecl;
   glVertex2iv: procedure(var v: LongInt); cdecl;
   glVertex2sv: procedure(var v: SmallInt); cdecl;
-  glVertex3dv: procedure(var v: Double); cdecl;
-  glVertex3fv: procedure(var v: Single); cdecl;
+  glVertex3dv: procedure(var v: GLdouble); cdecl;
+  glVertex3fv: procedure(var v: GLfloat); cdecl;
   glVertex3iv: procedure(var v: LongInt); cdecl;
   glVertex3sv: procedure(var v: SmallInt); cdecl;
-  glVertex4dv: procedure(var v: Double); cdecl;
-  glVertex4fv: procedure(var v: Single); cdecl;
+  glVertex4dv: procedure(var v: GLdouble); cdecl;
+  glVertex4fv: procedure(var v: GLfloat); cdecl;
   glVertex4iv: procedure(var v: LongInt); cdecl;
   glVertex4sv: procedure(var v: SmallInt); cdecl;
   glNormal3b: procedure(nx, ny, nz: Byte); cdecl;
-  glNormal3d: procedure(nx, ny, nz: Double); cdecl;
-  glNormal3f: procedure(nx, ny, nz: Single); cdecl;
+  glNormal3d: procedure(nx, ny, nz: GLdouble); cdecl;
+  glNormal3f: procedure(nx, ny, nz: GLfloat); cdecl;
   glNormal3i: procedure(nx, ny, nz: LongInt); cdecl;
   glNormal3s: procedure(nx, ny, nz: SmallInt); cdecl;
   glNormal3bv: procedure(var v: ShortInt); cdecl;
-  glNormal3dv: procedure(var v: Double); cdecl;
-  glNormal3fv: procedure(var v: Single); cdecl;
+  glNormal3dv: procedure(var v: GLdouble); cdecl;
+  glNormal3fv: procedure(var v: GLfloat); cdecl;
   glNormal3iv: procedure(var v: LongInt); cdecl;
   glNormal3sv: procedure(var v: SmallInt); cdecl;
-  glIndexd: procedure(c: Double); cdecl;
-  glIndexf: procedure(c: Single); cdecl;
+  glIndexd: procedure(c: GLdouble); cdecl;
+  glIndexf: procedure(c: GLfloat); cdecl;
   glIndexi: procedure(c: LongInt); cdecl;
   glIndexs: procedure(c: SmallInt); cdecl;
   glIndexub: procedure(c: Byte); cdecl; // 1.1
-  glIndexdv: procedure(var c: Double); cdecl;
-  glIndexfv: procedure(var c: Single); cdecl;
+  glIndexdv: procedure(var c: GLdouble); cdecl;
+  glIndexfv: procedure(var c: GLfloat); cdecl;
   glIndexiv: procedure(var c: LongInt); cdecl;
   glIndexsv: procedure(var c: SmallInt); cdecl;
   glIndexubv: procedure(var c: Byte); cdecl; // 1.1
   glColor3b : procedure(red, green, blue: ShortInt); cdecl;
-  glColor3d : procedure(red, green, blue: Double); cdecl;
-  glColor3f : procedure(red, green, blue: Single); cdecl;
+  glColor3d : procedure(red, green, blue: GLdouble); cdecl;
+  glColor3f : procedure(red, green, blue: GLfloat); cdecl;
   glColor3i : procedure(red, green, blue: LongInt); cdecl;
   glColor3s : procedure(red, green, blue: SmallInt); cdecl;
   glColor3ub: procedure(red, green, blue: Byte); cdecl;
   glColor3ui: procedure(red, green, blue: LongWord); cdecl;
   glColor3us: procedure(red, green, blue: Word); cdecl;
   glColor4b : procedure(red, green, blue, alpha: ShortInt); cdecl;
-  glColor4d : procedure(red, green, blue, alpha: Double); cdecl;
-  glColor4f : procedure(red, green, blue, alpha: Single); cdecl;
+  glColor4d : procedure(red, green, blue, alpha: GLdouble); cdecl;
+  glColor4f : procedure(red, green, blue, alpha: GLfloat); cdecl;
   glColor4i : procedure(red, green, blue, alpha: LongInt); cdecl;
   glColor4s : procedure(red, green, blue, alpha: SmallInt); cdecl;
   glColor4ub: procedure(red, green, blue, alpha: Byte); cdecl;
   glColor4ui: procedure(red, green, blue, alpha: LongWord); cdecl;
   glColor4us: procedure(red, green, blue, alpha: Word); cdecl;
   glColor3bv : procedure(var v: ShortInt); cdecl;
-  glColor3dv : procedure(var v: Double); cdecl;
-  glColor3fv : procedure(var v: Single); cdecl;
+  glColor3dv : procedure(var v: GLdouble); cdecl;
+  glColor3fv : procedure(var v: GLfloat); cdecl;
   glColor3iv : procedure(var v: LongInt); cdecl;
   glColor3sv : procedure(var v: SmallInt); cdecl;
   glColor3ubv: procedure(var v: Byte); cdecl;
   glColor3uiv: procedure(var v: LongWord); cdecl;
   glColor3usv: procedure(var v: Word); cdecl;
   glColor4bv : procedure(var v: ShortInt); cdecl;
-  glColor4dv : procedure(var v: Double); cdecl;
-  glColor4fv : procedure(var v: Single); cdecl;
+  glColor4dv : procedure(var v: GLdouble); cdecl;
+  glColor4fv : procedure(var v: GLfloat); cdecl;
   glColor4iv : procedure(var v: LongInt); cdecl;
   glColor4sv : procedure(var v: SmallInt); cdecl;
   glColor4ubv: procedure(var v: Byte); cdecl;
   glColor4uiv: procedure(var v: LongWord); cdecl;
   glColor4usv: procedure(var v: Word); cdecl;
-  glTexCoord1d: procedure(s: Double); cdecl;
-  glTexCoord1f: procedure(s: Single); cdecl;
+  glTexCoord1d: procedure(s: GLdouble); cdecl;
+  glTexCoord1f: procedure(s: GLfloat); cdecl;
   glTexCoord1i: procedure(s: LongInt); cdecl;
   glTexCoord1s: procedure(s: SmallInt); cdecl;
-  glTexCoord2d: procedure(s, t: Double); cdecl;
-  glTexCoord2f: procedure(s, t: Single); cdecl;
+  glTexCoord2d: procedure(s, t: GLdouble); cdecl;
+  glTexCoord2f: procedure(s, t: GLfloat); cdecl;
   glTexCoord2i: procedure(s, t: LongInt); cdecl;
   glTexCoord2s: procedure(s, t: SmallInt); cdecl;
-  glTexCoord3d: procedure(s, t, r: Double); cdecl;
-  glTexCoord3f: procedure(s, t, r: Single); cdecl;
+  glTexCoord3d: procedure(s, t, r: GLdouble); cdecl;
+  glTexCoord3f: procedure(s, t, r: GLfloat); cdecl;
   glTexCoord3i: procedure(s, t, r: LongInt); cdecl;
   glTexCoord3s: procedure(s, t, r: SmallInt); cdecl;
-  glTexCoord4d: procedure(s, t, r, q: Double); cdecl;
-  glTexCoord4f: procedure(s, t, r, q: Single); cdecl;
+  glTexCoord4d: procedure(s, t, r, q: GLdouble); cdecl;
+  glTexCoord4f: procedure(s, t, r, q: GLfloat); cdecl;
   glTexCoord4i: procedure(s, t, r, q: LongInt); cdecl;
   glTexCoord4s: procedure(s, t, r, q: SmallInt); cdecl;
-  glTexCoord1dv: procedure(var v: Double); cdecl;
-  glTexCoord1fv: procedure(var v: Single); cdecl;
+  glTexCoord1dv: procedure(var v: GLdouble); cdecl;
+  glTexCoord1fv: procedure(var v: GLfloat); cdecl;
   glTexCoord1iv: procedure(var v: LongInt); cdecl;
   glTexCoord1sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord2dv: procedure(var v: Double); cdecl;
-  glTexCoord2fv: procedure(var v: Single); cdecl;
+  glTexCoord2dv: procedure(var v: GLdouble); cdecl;
+  glTexCoord2fv: procedure(var v: GLfloat); cdecl;
   glTexCoord2iv: procedure(var v: LongInt); cdecl;
   glTexCoord2sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord3dv: procedure(var v: Double); cdecl;
-  glTexCoord3fv: procedure(var v: Single); cdecl;
+  glTexCoord3dv: procedure(var v: GLdouble); cdecl;
+  glTexCoord3fv: procedure(var v: GLfloat); cdecl;
   glTexCoord3iv: procedure(var v: LongInt); cdecl;
   glTexCoord3sv: procedure(var v: SmallInt); cdecl;
-  glTexCoord4dv: procedure(var v: Double); cdecl;
-  glTexCoord4fv: procedure(var v: Single); cdecl;
+  glTexCoord4dv: procedure(var v: GLdouble); cdecl;
+  glTexCoord4fv: procedure(var v: GLfloat); cdecl;
   glTexCoord4iv: procedure(var v: LongInt); cdecl;
   glTexCoord4sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos2d: procedure(x, y: Double); cdecl;
-  glRasterPos2f: procedure(x, y: Single); cdecl;
+  glRasterPos2d: procedure(x, y: GLdouble); cdecl;
+  glRasterPos2f: procedure(x, y: GLfloat); cdecl;
   glRasterPos2i: procedure(x, y: LongInt); cdecl;
   glRasterPos2s: procedure(x, y: SmallInt); cdecl;
-  glRasterPos3d: procedure(x, y, z: Double); cdecl;
-  glRasterPos3f: procedure(x, y, z: Single); cdecl;
+  glRasterPos3d: procedure(x, y, z: GLdouble); cdecl;
+  glRasterPos3f: procedure(x, y, z: GLfloat); cdecl;
   glRasterPos3i: procedure(x, y, z: LongInt); cdecl;
   glRasterPos3s: procedure(x, y, z: SmallInt); cdecl;
-  glRasterPos4d: procedure(x, y, z, w: Double); cdecl;
-  glRasterPos4f: procedure(x, y, z, w: Single); cdecl;
+  glRasterPos4d: procedure(x, y, z, w: GLdouble); cdecl;
+  glRasterPos4f: procedure(x, y, z, w: GLfloat); cdecl;
   glRasterPos4i: procedure(x, y, z, w: LongInt); cdecl;
   glRasterPos4s: procedure(x, y, z, w: SmallInt); cdecl;
-  glRasterPos2dv: procedure(var v: Double); cdecl;
-  glRasterPos2fv: procedure(var v: Single); cdecl;
+  glRasterPos2dv: procedure(var v: GLdouble); cdecl;
+  glRasterPos2fv: procedure(var v: GLfloat); cdecl;
   glRasterPos2iv: procedure(var v: LongInt); cdecl;
   glRasterPos2sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos3dv: procedure(var v: Double); cdecl;
-  glRasterPos3fv: procedure(var v: Single); cdecl;
+  glRasterPos3dv: procedure(var v: GLdouble); cdecl;
+  glRasterPos3fv: procedure(var v: GLfloat); cdecl;
   glRasterPos3iv: procedure(var v: LongInt); cdecl;
   glRasterPos3sv: procedure(var v: SmallInt); cdecl;
-  glRasterPos4dv: procedure(var v: Double); cdecl;
-  glRasterPos4fv: procedure(var v: Single); cdecl;
+  glRasterPos4dv: procedure(var v: GLdouble); cdecl;
+  glRasterPos4fv: procedure(var v: GLfloat); cdecl;
   glRasterPos4iv: procedure(var v: LongInt); cdecl;
   glRasterPos4sv: procedure(var v: SmallInt); cdecl;
-  glRectd: procedure(x1, y1, x2, y2: Double); cdecl;
-  glRectf: procedure(x1, y1, x2, y2: Single); cdecl;
+  glRectd: procedure(x1, y1, x2, y2: GLdouble); cdecl;
+  glRectf: procedure(x1, y1, x2, y2: GLfloat); cdecl;
   glRecti: procedure(x1, y1, x2, y2: LongInt); cdecl;
   glRects: procedure(x1, y1, x2, y2: SmallInt); cdecl;
-  glRectdv: procedure(var v1, v2: Double); cdecl;
-  glRectfv: procedure(var v1, v2: Single); cdecl;
+  glRectdv: procedure(var v1, v2: GLdouble); cdecl;
+  glRectfv: procedure(var v1, v2: GLfloat); cdecl;
   glRectiv: procedure(var v1, v2: LongInt); cdecl;
   glRectsv: procedure(var v1, v2: SmallInt); cdecl;
 
@@ -957,37 +988,37 @@ var
 
   // Lighting
   glShadeModel: procedure(mode: GLenum); cdecl;
-  glLightf: procedure(light, pname: GLenum; param: Single); cdecl;
+  glLightf: procedure(light, pname: GLenum; param: GLfloat); cdecl;
   glLighti: procedure(light, pname: GLenum; param: LongInt); cdecl;
-  glLightfv: procedure(light, pname: GLenum; var params: Single); cdecl;
+  glLightfv: procedure(light, pname: GLenum; var params: GLfloat); cdecl;
   glLightiv: procedure(light, pname: GLenum; var params: LongInt); cdecl;
-  glGetLightfv: procedure(light, pname: GLenum; var params: Single); cdecl;
+  glGetLightfv: procedure(light, pname: GLenum; var params: GLfloat); cdecl;
   glGetLightiv: procedure(light, pname: GLenum; var params: LongInt); cdecl;
-  glLightModelf: procedure(pname: GLenum; param: Single); cdecl;
+  glLightModelf: procedure(pname: GLenum; param: GLfloat); cdecl;
   glLightModeli: procedure(pname: GLenum; param: LongInt); cdecl;
-  glLightModelfv: procedure(pname: GLenum; var params: Single); cdecl;
+  glLightModelfv: procedure(pname: GLenum; var params: GLfloat); cdecl;
   glLightModeliv: procedure(pname: GLenum; var param: LongInt); cdecl;
-  glMaterialf: procedure(face, pname: GLenum; param: Single); cdecl;
+  glMaterialf: procedure(face, pname: GLenum; param: GLfloat); cdecl;
   glMateriali: procedure(face, pname: GLenum; param: LongInt); cdecl;
-  glMaterialfv: procedure(face, pname: GLenum; var params: Single); cdecl;
+  glMaterialfv: procedure(face, pname: GLenum; var params: GLfloat); cdecl;
   glMaterialiv: procedure(face, pname: GLenum; var params: LongInt); cdecl;
-  glGetMaterialfv: procedure(face, pname: GLenum; var params: Single); cdecl;
+  glGetMaterialfv: procedure(face, pname: GLenum; var params: GLfloat); cdecl;
   glGetMaterialiv: procedure(face, pname: GLenum; var params: LongInt); cdecl;
   glColorMaterial: procedure(face, mode: GLenum); cdecl;
 
   // Raster Functions
-  glPixelZoom: procedure(xfactor, yfactor: Single); cdecl;
-  glPixelStoref: procedure(pname: GLenum; param: Single); cdecl;
+  glPixelZoom: procedure(xfactor, yfactor: GLfloat); cdecl;
+  glPixelStoref: procedure(pname: GLenum; param: GLfloat); cdecl;
   glPixelStorei: procedure(pname: GLenum; param: LongInt); cdecl;
-  glPixelTransferf: procedure(pname: GLenum; param: Single); cdecl;
+  glPixelTransferf: procedure(pname: GLenum; param: GLfloat); cdecl;
   glPixelTransferi: procedure(pname: GLenum; param: LongInt); cdecl;
-  glPixelMapfv: procedure(map: GLenum; mapsize: LongInt; var values: Single); cdecl;
+  glPixelMapfv: procedure(map: GLenum; mapsize: LongInt; var values: GLfloat); cdecl;
   glPixelMapuiv: procedure(map: GLenum; mapsize: LongInt; var values: LongWord); cdecl;
   glPixelMapusv: procedure(map: GLenum; mapsize: LongInt; var values: Word); cdecl;
-  glGetPixelMapfv: procedure(map: GLenum; var values: Single); cdecl;
+  glGetPixelMapfv: procedure(map: GLenum; var values: GLfloat); cdecl;
   glGetPixelMapuiv: procedure(map: GLenum; var values: LongWord); cdecl;
   glGetPixelMapusv: procedure(map: GLenum; var values: Word); cdecl;
-  glBitmap: procedure(width, height: LongInt; xorig, yorig, xmove, ymove: Single; var bitmap); cdecl;
+  glBitmap: procedure(width, height: LongInt; xorig, yorig, xmove, ymove: GLfloat; var bitmap); cdecl;
   glReadPixels: procedure(x, y, width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
   glDrawPixels: procedure(width, height: LongInt; format, AType: GLenum; var pixels); cdecl;
   glCopyPixels: procedure(x, y, width, height: LongInt; AType: GLenum); cdecl;
@@ -999,28 +1030,28 @@ var
   glClearStencil: procedure(s: LongInt); cdecl;
 
   // Texture Mapping
-  glTexGend: procedure(cord, pname: GLenum; param: Double); cdecl;
-  glTexGenf: procedure(cord, pname: GLenum; param: Single); cdecl;
+  glTexGend: procedure(cord, pname: GLenum; param: GLdouble); cdecl;
+  glTexGenf: procedure(cord, pname: GLenum; param: GLfloat); cdecl;
   glTexGeni: procedure(cord, pname: GLenum; param: LongInt); cdecl;
-  glTexGendv: procedure(cord, pname: GLenum; var params: Double); cdecl;
-  glTexGenfv: procedure(cord, pname: GLenum; var params: Single); cdecl;
+  glTexGendv: procedure(cord, pname: GLenum; var params: GLdouble); cdecl;
+  glTexGenfv: procedure(cord, pname: GLenum; var params: GLfloat); cdecl;
   glTexGeniv: procedure(cord, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexGendv: procedure(cord, pname: GLenum; var params: Double); cdecl;
-  glGetTexGenfv: procedure(cord, pname: GLenum; var params: Single); cdecl;
+  glGetTexGendv: procedure(cord, pname: GLenum; var params: GLdouble); cdecl;
+  glGetTexGenfv: procedure(cord, pname: GLenum; var params: GLfloat); cdecl;
   glGetTexGeniv: procedure(cord, pname: GLenum; var params: LongInt); cdecl;
-  glTexEnvf: procedure(target, pname: GLenum; param: Single); cdecl;
+  glTexEnvf: procedure(target, pname: GLenum; param: GLfloat); cdecl;
   glTexEnvi: procedure(target, pname: GLenum; param: LongInt); cdecl;
-  glTexEnvfv: procedure(target, pname: GLenum; var params: Single); cdecl;
+  glTexEnvfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
   glTexEnviv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexEnvfv: procedure(target, pname: GLenum; var params: Single); cdecl;
+  glGetTexEnvfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
   glGetTexEnviv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glTexParameterf: procedure(target, pname: GLenum; param: Single); cdecl;
+  glTexParameterf: procedure(target, pname: GLenum; param: GLfloat); cdecl;
   glTexParameteri: procedure(target, pname: GLenum; param: LongInt); cdecl;
-  glTexParameterfv: procedure(target, pname: GLenum; var params: Single); cdecl;
+  glTexParameterfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
   glTexParameteriv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexParameterfv: procedure(target, pname: GLenum; var params: Single); cdecl;
+  glGetTexParameterfv: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
   glGetTexParameteriv: procedure(target, pname: GLenum; var params: LongInt); cdecl;
-  glGetTexLevelParameterfv: procedure(target: GLenum; level: LongInt; pname: GLenum; var params: Single); cdecl;
+  glGetTexLevelParameterfv: procedure(target: GLenum; level: LongInt; pname: GLenum; var params: GLfloat); cdecl;
   glGetTexLevelParameteriv: procedure(target: GLenum; level: LongInt; pname: GLenum; var params: LongInt); cdecl;
   glTexImage1D: procedure(target: GLenum; level, internalFormat, width, border: LongInt; format, AType: GLenum; var pixels); cdecl;
   glTexImage2D: procedure(target: GLenum; level, internalFormat, width, height, border: LongInt; format, AType: GLenum; var pixels); cdecl;
@@ -1040,39 +1071,39 @@ var
   glCopyTexSubImage2D: procedure(target: GLenum; level, xoffset, yoffset, x, y, width, height: LongInt); cdecl;
 
   // Evaluators
-  glMap1d: procedure(target: GLenum; u1, u2: Double; stride, order: LongInt; var points: Double); cdecl;
-  glMap1f: procedure(target: GLenum; u1, u2: Single; stride, order: LongInt; var points: Single); cdecl;
-  glMap2d: procedure(target: GLenum; u1, u2: Double; ustride, uorder: LongInt; v1, v2: Double; vstride, vorder: LongInt; var points: Double); cdecl;
-  glMap2f: procedure(target: GLenum; u1, u2: Single; ustride, uorder: LongInt; v1, v2: Single; vstride, vorder: LongInt; var points: Single); cdecl;
-  glGetMapdv: procedure(target, query: GLenum; var v: Double); cdecl;
-  glGetMapfv: procedure(target, query: GLenum; var v: Single); cdecl;
+  glMap1d: procedure(target: GLenum; u1, u2: GLdouble; stride, order: LongInt; var points: GLdouble); cdecl;
+  glMap1f: procedure(target: GLenum; u1, u2: GLfloat; stride, order: LongInt; var points: GLfloat); cdecl;
+  glMap2d: procedure(target: GLenum; u1, u2: GLdouble; ustride, uorder: LongInt; v1, v2: GLdouble; vstride, vorder: LongInt; var points: GLdouble); cdecl;
+  glMap2f: procedure(target: GLenum; u1, u2: GLfloat; ustride, uorder: LongInt; v1, v2: GLfloat; vstride, vorder: LongInt; var points: GLfloat); cdecl;
+  glGetMapdv: procedure(target, query: GLenum; var v: GLdouble); cdecl;
+  glGetMapfv: procedure(target, query: GLenum; var v: GLfloat); cdecl;
   glGetMapiv: procedure(target, query: GLenum; var v: LongInt); cdecl;
-  glEvalCoord1d: procedure(u: Double); cdecl;
-  glEvalCoord1f: procedure(u: Single); cdecl;
-  glEvalCoord1dv: procedure(var u: Double); cdecl;
-  glEvalCoord1fv: procedure(var u: Single); cdecl;
-  glEvalCoord2d: procedure(u, v: Double); cdecl;
-  glEvalCoord2f: procedure(u, v: Single); cdecl;
-  glEvalCoord2dv: procedure(var u, v: Double); cdecl;
-  glEvalCoord2fv: procedure(var u, v: Single); cdecl;
-  glMapGrid1d: procedure(un: LongInt; u1, u2: Double); cdecl;
-  glMapGrid1f: procedure(un: LongInt; u1, u2: Single); cdecl;
-  glMapGrid2d: procedure(un: LongInt; u1, u2: Double; vn: LongInt; v1, v2: Double); cdecl;
-  glMapGrid2f: procedure(un: LongInt; u1, u2: Single; vn: LongInt; v1, v2: Single); cdecl;
+  glEvalCoord1d: procedure(u: GLdouble); cdecl;
+  glEvalCoord1f: procedure(u: GLfloat); cdecl;
+  glEvalCoord1dv: procedure(var u: GLdouble); cdecl;
+  glEvalCoord1fv: procedure(var u: GLfloat); cdecl;
+  glEvalCoord2d: procedure(u, v: GLdouble); cdecl;
+  glEvalCoord2f: procedure(u, v: GLfloat); cdecl;
+  glEvalCoord2dv: procedure(var u, v: GLdouble); cdecl;
+  glEvalCoord2fv: procedure(var u, v: GLfloat); cdecl;
+  glMapGrid1d: procedure(un: LongInt; u1, u2: GLdouble); cdecl;
+  glMapGrid1f: procedure(un: LongInt; u1, u2: GLfloat); cdecl;
+  glMapGrid2d: procedure(un: LongInt; u1, u2: GLdouble; vn: LongInt; v1, v2: GLdouble); cdecl;
+  glMapGrid2f: procedure(un: LongInt; u1, u2: GLfloat; vn: LongInt; v1, v2: GLfloat); cdecl;
   glEvalPoint1: procedure(i: LongInt); cdecl;
   glEvalPoint2: procedure(i, j: LongInt); cdecl;
   glEvalMesh1: procedure(mode: GLenum; i1, i2: LongInt); cdecl;
   glEvalMesh2: procedure(mode: GLenum; i1, i2, j1, j2: LongInt); cdecl;
 
   // Fog
-  glFogf: procedure(pname: GLenum; param: Single); cdecl;
+  glFogf: procedure(pname: GLenum; param: GLfloat); cdecl;
   glFogi: procedure(pname: GLenum; param: LongInt); cdecl;
-  glFogfv: procedure(pname: GLenum; var params: Single); cdecl;
+  glFogfv: procedure(pname: GLenum; var params: GLfloat); cdecl;
   glFogiv: procedure(pname: GLenum; var params: LongInt); cdecl;
 
   // Selection and Feedback
-  glFeedbackBuffer: procedure(size: LongInt; AType: GLenum; var buffer: Single); cdecl;
-  glPassThrough: procedure(token: Single); cdecl;
+  glFeedbackBuffer: procedure(size: LongInt; AType: GLenum; var buffer: GLfloat); cdecl;
+  glPassThrough: procedure(token: GLfloat); cdecl;
   glSelectBuffer: procedure(size: LongInt; var buffer: LongWord); cdecl;
   glInitNames: procedure; cdecl;
   glLoadName: procedure(name: LongWord); cdecl;
@@ -1228,7 +1259,7 @@ var
   glBlendColorEXT: procedure(red, green, blue, alpha: GLclampf); cdecl;
 
   // GL_EXT_polygon_offset
-  glPolygonOffsetEXT: procedure(factor, bias: Single); cdecl;
+  glPolygonOffsetEXT: procedure(factor, bias: GLfloat); cdecl;
 
   // GL_EXT_vertex_array
   glVertexPointerEXT: procedure(size: LongInt; AType: GLenum; stride, count: LongInt; var ptr); cdecl;
@@ -1258,38 +1289,38 @@ var
   glColorTableEXT: procedure(target, internalformat: GLenum; width: LongInt; format, AType: GLenum; var table); cdecl;
   glColorSubTableEXT: procedure(target: GLenum; start, count: LongInt; format, AType: GLEnum; var data); cdecl;
   glGetColorTableEXT: procedure(target, format, AType: GLenum; var table); cdecl;
-  glGetColorTableParameterfvEXT: procedure(target, pname: GLenum; var params: Single); cdecl;
+  glGetColorTableParameterfvEXT: procedure(target, pname: GLenum; var params: GLfloat); cdecl;
   glGetColorTableParameterivEXT: procedure(target, pname: GLenum; var params: LongInt); cdecl;
 
   // GL_SGIS_multitexture
-  glMultiTexCoord1dSGIS: procedure(target: GLenum; s: Double); cdecl;
-  glMultiTexCoord1dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord1fSGIS: procedure(target: GLenum; s: Single); cdecl;
-  glMultiTexCoord1fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord1dSGIS: procedure(target: GLenum; s: GLdouble); cdecl;
+  glMultiTexCoord1dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord1fSGIS: procedure(target: GLenum; s: GLfloat); cdecl;
+  glMultiTexCoord1fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord1iSGIS: procedure(target: GLenum; s: LongInt); cdecl;
   glMultiTexCoord1ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord1sSGIS: procedure(target: GLenum; s: ShortInt); cdecl;
   glMultiTexCoord1svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord2dSGIS: procedure(target: GLenum; s, t: Double); cdecl;
-  glMultiTexCoord2dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord2fSGIS: procedure(target: GLenum; s, t: Single); cdecl;
-  glMultiTexCoord2fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord2dSGIS: procedure(target: GLenum; s, t: GLdouble); cdecl;
+  glMultiTexCoord2dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord2fSGIS: procedure(target: GLenum; s, t: GLfloat); cdecl;
+  glMultiTexCoord2fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord2iSGIS: procedure(target: GLenum; s, t: LongInt); cdecl;
   glMultiTexCoord2ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord2sSGIS: procedure(target: GLenum; s, t: ShortInt); cdecl;
   glMultiTexCoord2svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord3dSGIS: procedure(target: GLenum; s, t, r: Double); cdecl;
-  glMultiTexCoord3dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord3fSGIS: procedure(target: GLenum; s, t, r: Single); cdecl;
-  glMultiTexCoord3fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord3dSGIS: procedure(target: GLenum; s, t, r: GLdouble); cdecl;
+  glMultiTexCoord3dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord3fSGIS: procedure(target: GLenum; s, t, r: GLfloat); cdecl;
+  glMultiTexCoord3fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord3iSGIS: procedure(target: GLenum; s, t, r: LongInt); cdecl;
   glMultiTexCoord3ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord3sSGIS: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
   glMultiTexCoord3svSGIS: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord4dSGIS: procedure(target: GLenum; s, t, r, q: Double); cdecl;
-  glMultiTexCoord4dvSGIS: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord4fSGIS: procedure(target: GLenum; s, t, r, q: Single); cdecl;
-  glMultiTexCoord4fvSGIS: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord4dSGIS: procedure(target: GLenum; s, t, r, q: GLdouble); cdecl;
+  glMultiTexCoord4dvSGIS: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord4fSGIS: procedure(target: GLenum; s, t, r, q: GLfloat); cdecl;
+  glMultiTexCoord4fvSGIS: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord4iSGIS: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
   glMultiTexCoord4ivSGIS: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord4sSGIS: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
@@ -1299,34 +1330,34 @@ var
   glSelectTextureCoordSetSGIS: procedure(target: GLenum); cdecl;
 
   // GL_EXT_multitexture
-  glMultiTexCoord1dEXT: procedure(target: GLenum; s: Double); cdecl;
-  glMultiTexCoord1dvEXT: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord1fEXT: procedure(target: GLenum; s: Single); cdecl;
-  glMultiTexCoord1fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord1dEXT: procedure(target: GLenum; s: GLdouble); cdecl;
+  glMultiTexCoord1dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord1fEXT: procedure(target: GLenum; s: GLfloat); cdecl;
+  glMultiTexCoord1fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord1iEXT: procedure(target: GLenum; s: LongInt); cdecl;
   glMultiTexCoord1ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord1sEXT: procedure(target: GLenum; s: ShortInt); cdecl;
   glMultiTexCoord1svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord2dEXT: procedure(target: GLenum; s, t: Double); cdecl;
-  glMultiTexCoord2dvEXT: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord2fEXT: procedure(target: GLenum; s, t: Single); cdecl;
-  glMultiTexCoord2fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord2dEXT: procedure(target: GLenum; s, t: GLdouble); cdecl;
+  glMultiTexCoord2dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord2fEXT: procedure(target: GLenum; s, t: GLfloat); cdecl;
+  glMultiTexCoord2fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord2iEXT: procedure(target: GLenum; s, t: LongInt); cdecl;
   glMultiTexCoord2ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord2sEXT: procedure(target: GLenum; s, t: ShortInt); cdecl;
   glMultiTexCoord2svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord3dEXT: procedure(target: GLenum; s, t, r: Double); cdecl;
-  glMultiTexCoord3dvEXT: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord3fEXT: procedure(target: GLenum; s, t, r: Single); cdecl;
-  glMultiTexCoord3fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord3dEXT: procedure(target: GLenum; s, t, r: GLdouble); cdecl;
+  glMultiTexCoord3dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord3fEXT: procedure(target: GLenum; s, t, r: GLfloat); cdecl;
+  glMultiTexCoord3fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord3iEXT: procedure(target: GLenum; s, t, r: LongInt); cdecl;
   glMultiTexCoord3ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord3sEXT: procedure(target: GLenum; s, t, r: ShortInt); cdecl;
   glMultiTexCoord3svEXT: procedure(target: GLenum; var v: ShortInt); cdecl;
-  glMultiTexCoord4dEXT: procedure(target: GLenum; s, t, r, q: Double); cdecl;
-  glMultiTexCoord4dvEXT: procedure(target: GLenum; var v: Double); cdecl;
-  glMultiTexCoord4fEXT: procedure(target: GLenum; s, t, r, q: Single); cdecl;
-  glMultiTexCoord4fvEXT: procedure(target: GLenum; var v: Single); cdecl;
+  glMultiTexCoord4dEXT: procedure(target: GLenum; s, t, r, q: GLdouble); cdecl;
+  glMultiTexCoord4dvEXT: procedure(target: GLenum; var v: GLdouble); cdecl;
+  glMultiTexCoord4fEXT: procedure(target: GLenum; s, t, r, q: GLfloat); cdecl;
+  glMultiTexCoord4fvEXT: procedure(target: GLenum; var v: GLfloat); cdecl;
   glMultiTexCoord4iEXT: procedure(target: GLenum; s, t, r, q: LongInt); cdecl;
   glMultiTexCoord4ivEXT: procedure(target: GLenum; var v: LongInt); cdecl;
   glMultiTexCoord4sEXT: procedure(target: GLenum; s, t, r, q: ShortInt); cdecl;
@@ -1337,34 +1368,34 @@ var
   glSelectTextureTransformEXT: procedure(target: GLenum); cdecl;
 
   // GL_EXT_point_parameters
-  glPointParameterfEXT: procedure(pname: GLenum; param: Single); cdecl;
-  glPointParameterfvEXT: procedure(pname: GLenum; var params: Single); cdecl;
+  glPointParameterfEXT: procedure(pname: GLenum; param: GLfloat); cdecl;
+  glPointParameterfvEXT: procedure(pname: GLenum; var params: GLfloat); cdecl;
 
   // GL_MESA_window_pos
   glWindowPos2iMESA: procedure(x, y: LongInt); cdecl;
   glWindowPos2sMESA: procedure(x, y: ShortInt); cdecl;
-  glWindowPos2fMESA: procedure(x, y: Single); cdecl;
-  glWindowPos2dMESA: procedure(x, y: Double); cdecl;
+  glWindowPos2fMESA: procedure(x, y: GLfloat); cdecl;
+  glWindowPos2dMESA: procedure(x, y: GLdouble); cdecl;
   glWindowPos2ivMESA: procedure(var p: LongInt); cdecl;
   glWindowPos2svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos2fvMESA: procedure(var p: Single); cdecl;
-  glWindowPos2dvMESA: procedure(var p: Double); cdecl;
+  glWindowPos2fvMESA: procedure(var p: GLfloat); cdecl;
+  glWindowPos2dvMESA: procedure(var p: GLdouble); cdecl;
   glWindowPos3iMESA: procedure(x, y, z: LongInt); cdecl;
   glWindowPos3sMESA: procedure(x, y, z: ShortInt); cdecl;
-  glWindowPos3fMESA: procedure(x, y, z: Single); cdecl;
-  glWindowPos3dMESA: procedure(x, y, z: Double); cdecl;
+  glWindowPos3fMESA: procedure(x, y, z: GLfloat); cdecl;
+  glWindowPos3dMESA: procedure(x, y, z: GLdouble); cdecl;
   glWindowPos3ivMESA: procedure(var p: LongInt); cdecl;
   glWindowPos3svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos3fvMESA: procedure(var p: Single); cdecl;
-  glWindowPos3dvMESA: procedure(var p: Double); cdecl;
+  glWindowPos3fvMESA: procedure(var p: GLfloat); cdecl;
+  glWindowPos3dvMESA: procedure(var p: GLdouble); cdecl;
   glWindowPos4iMESA: procedure(x, y, z, w: LongInt); cdecl;
   glWindowPos4sMESA: procedure(x, y, z, w: ShortInt); cdecl;
-  glWindowPos4fMESA: procedure(x, y, z, w: Single); cdecl;
-  glWindowPos4dMESA: procedure(x, y, z, w: Double); cdecl;
+  glWindowPos4fMESA: procedure(x, y, z, w: GLfloat); cdecl;
+  glWindowPos4dMESA: procedure(x, y, z, w: GLdouble); cdecl;
   glWindowPos4ivMESA: procedure(var p: LongInt); cdecl;
   glWindowPos4svMESA: procedure(var p: ShortInt); cdecl;
-  glWindowPos4fvMESA: procedure(var p: Single); cdecl;
-  glWindowPos4dvMESA: procedure(var p: Double); cdecl;
+  glWindowPos4fvMESA: procedure(var p: GLfloat); cdecl;
+  glWindowPos4dvMESA: procedure(var p: GLdouble); cdecl;
 
   // GL_MESA_resize_buffers
   glResizeBuffersMESA: procedure; cdecl;
@@ -1394,29 +1425,40 @@ const
   GLU_INSIDE                            = 100021;
 
   // Tesselator
-  GLU_BEGIN                             = 100100;
-  GLU_VERTEX                            = 100101;
-  GLU_END                               = 100102;
-  GLU_ERROR                             = 100103;
-  GLU_EDGE_FLAG                         = 100104;
+  GLU_TESS_BEGIN                        = 100100;
+  GLU_TESS_VERTEX                       = 100101;
+  GLU_TESS_END                          = 100102;
+  GLU_TESS_ERROR                        = 100103;
+  GLU_TESS_EDGE_FLAG                    = 100104;
+  GLU_TESS_COMBINE			= 100105;
+  GLU_TESS_BEGIN_DATA			= 100106;
+  GLU_TESS_VERTEX_DATA			= 100107;
+  GLU_TESS_END_DATA			= 100108;
+  GLU_TESS_ERROR_DATA			= 100109;
+  GLU_TESS_EDGE_FLAG_DATA		= 100110;
+  GLU_TESS_COMBINE_DATA			= 100111;
 
-  // Contour types
-  GLU_CW                                = 100120;
-  GLU_CCW                               = 100121;
-  GLU_INTERIOR                          = 100122;
-  GLU_EXTERIOR                          = 100123;
-  GLU_UNKNOWN                           = 100124;
+  // Winding rules
+  GLU_TESS_WINDING_ODD			= 100130;
+  GLU_TESS_WINDING_NONZERO		= 100131;
+  GLU_TESS_WINDING_POSITIVE		= 100132;
+  GLU_TESS_WINDING_NEGATIVE		= 100133;
+  GLU_TESS_WINDING_ABS_GEQ_TWO		= 100134;
 
-  // Tesselation errors
-  GLU_TESS_ERROR1                       = 100151;  // missing gluEndPolygon
-  GLU_TESS_ERROR2                       = 100152;  // missing gluBeginPolygon
-  GLU_TESS_ERROR3                       = 100153;  // misoriented contour
-  GLU_TESS_ERROR4                       = 100154;  // vertex/edge intersection
-  GLU_TESS_ERROR5                       = 100155;  // misoriented or self-intersecting loops
-  GLU_TESS_ERROR6                       = 100156;  // coincident vertices
-  GLU_TESS_ERROR7                       = 100157;  // all vertices collinear
-  GLU_TESS_ERROR8                       = 100158;  // intersecting edges
-  GLU_TESS_ERROR9                       = 100159;  // not coplanar contours
+  // Tessellation properties
+  GLU_TESS_WINDING_RULE			= 100140;
+  GLU_TESS_BOUNDARY_ONLY		= 100141;
+  GLU_TESS_TOLERANCE			= 100142;
+
+  // Tessellation errors
+  GLU_TESS_ERROR1			= 100151;   // Missing gluBeginPolygon
+  GLU_TESS_ERROR2			= 100152;   // Missing gluBeginContour
+  GLU_TESS_ERROR3			= 100153;   // Missing gluEndPolygon
+  GLU_TESS_ERROR4			= 100154;   // Missing gluEndContour
+  GLU_TESS_ERROR5			= 100155;
+  GLU_TESS_ERROR6			= 100156;
+  GLU_TESS_ERROR7			= 100157;
+  GLU_TESS_ERROR8			= 100158;
 
   // NURBS
   GLU_AUTO_LOAD_MATRIX                  = 100200;
@@ -1486,36 +1528,58 @@ const
   GLU_VERSION                           = 100800;
   GLU_EXTENSIONS                        = 100801;
 
+
+  // === GLU 1.0 tessellation - obsolete! ===
+
+  // Contour types
+  GLU_CW                                = 100120;
+  GLU_CCW                               = 100121;
+  GLU_INTERIOR                          = 100122;
+  GLU_EXTERIOR                          = 100123;
+  GLU_UNKNOWN                           = 100124;
+
+  // Tessellator
+  GLU_BEGIN				= GLU_TESS_BEGIN;
+  GLU_VERTEX				= GLU_TESS_VERTEX;
+  GLU_END				= GLU_TESS_END;
+  GLU_ERROR				= GLU_TESS_ERROR;
+  GLU_EDGE_FLAG				= GLU_TESS_EDGE_FLAG;
+
+
 type
   PGLUquadricObj = ^TGLUquadricObj;
   TGLUquadricObj = record end;
-  PGLUtriangulatorObj = ^TGLUtriangulatorObj;
-  TGLUtriangulatorObj = record end;
   PGLUnurbsObj = ^TGLUnurbsObj;
   TGLUnurbsObj = record end;
+  PGLUtesselator = ^TGLUtesselator;
+  TGLUtesselator = record end;
+  PGLUtriangulatorObj = PGLUtesselator;
 
+  // Callback function declarations
   TGLUQuadricCallback = procedure; cdecl;
   TGLUNurbsCallback = procedure; cdecl;
   TGLUTessCallback = procedure; cdecl;
 
+  // We need some private array types
   TGLUViewport = array[0..3] of LongInt;
-  TGLUMatrixd = array[0..15] of Double;
-  TGLUMatrixf = array[0..15] of Single;
-  TGLUVectord = array[0..2] of Double;
+  TGLUMatrixd = array[0..15] of GLdouble;
+  TGLUMatrixf = array[0..15] of GLfloat;
+  TGLUVectord = array[0..2] of GLdouble;
+
 var
   // Miscellaneous functions
-  gluLookAt: procedure(eye, eyey, eyez, centerx, centery, centerz, upx, upy, upz: Double); cdecl;
-  gluOrtho2D: procedure(left, right, bottom, top: Double); cdecl;
-  gluPerspective: procedure(fovy, aspect, zNear, zFar: Double); cdecl;
-  gluPickMatrix: procedure(x, y, width, height: Double; const viewport: TGLUViewport); cdecl;
-  gluProject: procedure(objx, objy, objz: Double; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; winx, winy, winz: Double); cdecl;
-  gluUnProject: procedure(winx, winy, winz: Double; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; objx, objy, objz: Double); cdecl;
-  gluErrorString: procedure(errorCode: GLenum); cdecl;
+  gluLookAt: procedure(eye, eyey, eyez, centerx, centery, centerz, upx, upy, upz: GLdouble); cdecl;
+  gluOrtho2D: procedure(left, right, bottom, top: GLdouble); cdecl;
+  gluPerspective: procedure(fovy, aspect, zNear, zFar: GLdouble); cdecl;
+  gluPickMatrix: procedure(x, y, width, height: GLdouble; const viewport: TGLUViewport); cdecl;
+  gluProject: function(objx, objy, objz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; winx, winy, winz: GLdouble): LongInt; cdecl;
+  gluUnProject: function(winx, winy, winz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; objx, objy, objz: GLdouble): LongInt; cdecl;
+  gluErrorString: function(errorCode: GLenum): PChar; cdecl;
 
   // Mipmapping and image scaling
-  gluScaleImage: procedure(format: GLenum; within, heightin: LongInt; typein: GLenum; var datain; widthout, heightout: LongInt; typeout: GLenum; var dataout); cdecl;
-  gluBuild1DMipmaps: procedure(target: GLenum; components, width: LongInt; format, AType: GLEnum; var data); cdecl;
-  gluBuild2DMipmaps: procedure(target: GLenum; components, width, height: LongInt; format, AType: GLEnum; var data); cdecl;
+  gluScaleImage: procedure(format: GLenum; within, heightin: LongInt; typein: GLenum; const datain; widthout, heightout: LongInt; typeout: GLenum; var dataout); cdecl;
+  gluBuild1DMipmaps: procedure(target: GLenum; components, width: LongInt; format, AType: GLEnum; const data); cdecl;
+  gluBuild2DMipmaps: procedure(target: GLenum; components, width, height: LongInt; format, AType: GLEnum; const data); cdecl;
 
   // Quadrics
   gluNewQuadric: function: PGLUquadricObj; cdecl;
@@ -1525,37 +1589,45 @@ var
   gluQuadricNormals: procedure(quadObject: PGLUquadricObj; normals: GLenum); cdecl;
   gluQuadricTexture: procedure(quadObject: PGLUquadricObj; textureCoords: Boolean); cdecl;
   gluQuadricCallback: procedure(quadObject: PGLUquadricObj; which: GLenum; fn: TGLUQuadricCallback); cdecl;
-  gluCylinder: procedure(qobj: PGLUquadricObj; baseRadius, topRadius, height: Double; slices, stacks: LongInt); cdecl;
-  gluSphere: procedure(qobj: PGLUquadricObj; radius: Double; slices, stacks: LongInt); cdecl;
-  gluDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: Double; slices, loops: LongInt); cdecl;
-  gluPartialDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: Double; slices, loops: LongInt; startAngle, sweepAngle: Double); cdecl;
+  gluCylinder: procedure(qobj: PGLUquadricObj; baseRadius, topRadius, height: GLdouble; slices, stacks: LongInt); cdecl;
+  gluSphere: procedure(qobj: PGLUquadricObj; radius: GLdouble; slices, stacks: LongInt); cdecl;
+  gluDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt); cdecl;
+  gluPartialDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt; startAngle, sweepAngle: GLdouble); cdecl;
 
   // Nurbs
   gluNewNurbsRenderer: function: PGLUnurbsObj; cdecl;
   gluDeleteNurbsRenderer: procedure(nobj: PGLUnurbsObj); cdecl;
   gluLoadSamplingMatrices: procedure(nobj: PGLUnurbsObj; const modelMatrix, projMatrix: TGLUMatrixf; const viewport: TGLUViewport); cdecl;
-  gluNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLenum; value: Single); cdecl;
-  gluGetNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLEnum; var value: Single); cdecl;
+  gluNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLenum; value: GLfloat); cdecl;
+  gluGetNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLEnum; var value: GLfloat); cdecl;
   gluBeginCurve: procedure(nobj: PGLUnurbsObj); cdecl;
   gluEndCurve: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluNurbsCurve: procedure(nobj: PGLUnurbsObj; nknots: LongInt; var know: Single; stride: LongInt; var ctlarray: Single; order: LongInt; AType: GLenum); cdecl;
+  gluNurbsCurve: procedure(nobj: PGLUnurbsObj; nknots: LongInt; var know: GLfloat; stride: LongInt; var ctlarray: GLfloat; order: LongInt; AType: GLenum); cdecl;
   gluBeginSurface: procedure(nobj: PGLUnurbsObj); cdecl;
   gluEndSurface: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluNurbsSurface: procedure(nobj: PGLUnurbsObj; sknot_count: LongInt; var sknot: Single; tknot_count: LongInt; var tknot: Single; s_stride, t_stride: LongInt; var ctlarray: Single; sorder, torder: LongInt; AType: GLenum); cdecl;
+  gluNurbsSurface: procedure(nobj: PGLUnurbsObj; sknot_count: LongInt; var sknot: GLfloat; tknot_count: LongInt; var tknot: GLfloat; s_stride, t_stride: LongInt; var ctlarray: GLfloat; sorder, torder: LongInt; AType: GLenum); cdecl;
   gluBeginTrim: procedure(nobj: PGLUnurbsObj); cdecl;
   gluEndTrim: procedure(nobj: PGLUnurbsObj); cdecl;
-  gluPwlCurve: procedure(nobj: PGLUnurbsObj; count: LongInt; var AArray: Single; stride: LongInt; AType: GLenum); cdecl;
+  gluPwlCurve: procedure(nobj: PGLUnurbsObj; count: LongInt; var AArray: GLfloat; stride: LongInt; AType: GLenum); cdecl;
   gluNurbsCallback: procedure(nobj: PGLUnurbsObj; which: GLenum; fn: TGLUNurbsCallback); cdecl;
 
   // Polygon tesselation
-  gluNewTess: function: PGLUtriangulatorObj; cdecl;
-  gluTessCallback: procedure(tobj: PGLUtriangulatorObj; which: GLenum; fn: TGLUTessCallback); cdecl;
+  gluNewTess: function: PGLUtesselator; cdecl;
+  gluDeleteTess: procedure(tobj: PGLUtesselator); cdecl;
+  gluTessBeginPolygon: procedure(tobj: PGLUtesselator; var polygon_data); cdecl;
+  gluTessBeginContour: procedure(tobj: PGLUtesselator); cdecl;
+  gluTessVertex: procedure(tobj: PGLUtesselator; v: TGLUVectord; var data); cdecl;
+  gluTessEndContour: procedure(tobj: PGLUtesselator); cdecl;
+  gluTessEndPolygon: procedure(tobj: PGLUtesselator); cdecl;
+  gluTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; value: GLdouble); cdecl;
+  gluTessNormal: procedure(tobj: PGLUtesselator; x, y, z: GLdouble); cdecl;
+  gluTessCallback: procedure(tobj: PGLUtesselator; which: GLenum; fn: TGLUTessCallback); cdecl;
+  gluGetTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; var value: GLdouble); cdecl;
 
-  gluDeleteTess: procedure(tobj: PGLUtriangulatorObj); cdecl;
-  gluBeginPolygon: procedure(tobj: PGLUtriangulatorObj); cdecl;
-  gluEndPolygon: procedure(tobj: PGLUtriangulatorObj); cdecl;
-  gluNextContour: procedure(tobj: PGLUtriangulatorObj; AType: GLenum); cdecl;
-  gluTessVertex: procedure(tobj: PGLUtriangulatorObj; v: TGLUVectord; var data); cdecl;
+  // Obsolete 1.0 tessellation functions
+  gluBeginPolygon: procedure(tobj: PGLUtesselator); cdecl;
+  gluNextContour: procedure(tobj: PGLUtesselator; AType: GLenum); cdecl;
+  gluEndPolygon: procedure(tobj: PGLUtesselator); cdecl;
 
   // New functions in GLU 1.1
   gluGetString: function(name: GLenum): PChar; cdecl;
@@ -1674,12 +1746,12 @@ function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
 function dlclose(handle: Pointer): LongInt; external 'dl';
 function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
 
-function LoadLibrary(name: PChar): Pointer;
+function LoadLibrary(const name: PChar): Pointer;
 begin
   Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
 end;
 
-function GetProc(handle: Pointer; name: PChar): Pointer;
+function GetProc(handle: Pointer; const name: PChar): Pointer;
 begin
   Result := dlsym(handle, name);
   if not Assigned(Result) and GLDumpUnresolvedFunctions then
@@ -1689,11 +1761,12 @@ end;
 var
   libGL, libGLU, libGLX: Pointer;
 
-function InitGLFromLibrary(libname: PChar): Boolean;
+function InitGLFromLibrary(const libname: PChar): Boolean;
 begin
   Result := False;
   libGL := LoadLibrary(libname);
-  if not Assigned(libGL) then exit;
+  if not Assigned(libGL) then
+    exit;
 
   glClearIndex := GetProc(libgl, 'glClearIndex');
   glClearColor := GetProc(libgl, 'glClearColor');
@@ -2036,11 +2109,12 @@ begin
   Result := True;
 end;
 
-function InitGLUFromLibrary(libname: PChar): Boolean;
+function InitGLUFromLibrary(const libname: PChar): Boolean;
 begin
   Result := False;
   libGLU := LoadLibrary(libname);
-  if not Assigned(libGLU) then exit;
+  if not Assigned(libGLU) then
+    exit;
 
   gluLookAt := GetProc(libglu, 'gluLookAt');
   gluOrtho2D := GetProc(libglu, 'gluOrtho2D');
@@ -2079,12 +2153,19 @@ begin
   gluPwlCurve := GetProc(libglu, 'gluPwlCurve');
   gluNurbsCallback := GetProc(libglu, 'gluNurbsCallback');
   gluNewTess := GetProc(libglu, 'gluNewTess');
-  gluTessCallback := GetProc(libglu, 'gluTessCallback');
   gluDeleteTess := GetProc(libglu, 'gluDeleteTess');
-  gluBeginPolygon := GetProc(libglu, 'gluBeginPolygon');
-  gluEndPolygon := GetProc(libglu, 'gluEndPolygon');
-  gluNextContour := GetProc(libglu, 'gluNextContour');
+  gluTessBeginPolygon := GetProc(libglu, 'gluTessBeginPolygon');
+  gluTessBeginContour := GetProc(libglu, 'gluTessBeginContour');
   gluTessVertex := GetProc(libglu, 'gluTessVertex');
+  gluTessEndContour := GetProc(libglu, 'gluTessEndContour');
+  gluTessEndPolygon := GetProc(libglu, 'gluTessEndPolygon');
+  gluTessProperty := GetProc(libglu, 'gluTessProperty');
+  gluTessNormal := GetProc(libglu, 'gluTessNormal');
+  gluTessCallback := GetProc(libglu, 'gluTessCallback');
+  gluGetTessProperty := GetProc(libglu, 'gluGetTessProperty');
+  gluBeginPolygon := GetProc(libglu, 'gluBeginPolygon');
+  gluNextContour := GetProc(libglu, 'gluNextContour');
+  gluEndPolygon := GetProc(libglu, 'gluEndPolygon');
   gluGetString := GetProc(libglu, 'gluGetString');
 
   GLUInitialized := True;
@@ -2094,7 +2175,8 @@ end;
 function InitGLX: Boolean;
 begin
   Result := False;
-  if not Assigned(libGL) then exit;
+  if not Assigned(libGL) then
+    exit;
 
   glXChooseVisual := GetProc(libglx, 'glXChooseVisual');
   glXCreateContext := GetProc(libglx, 'glXCreateContext');
@@ -2139,17 +2221,22 @@ begin
 end;
 
 
-
 finalization
-  if Assigned(libGL)  then dlclose(libGL);
-  if Assigned(libGLU) then dlclose(libGLU);
-  if Assigned(libGLX) then dlclose(libGLX);
+  // Free all loaded libraries
+  if Assigned(libGLX) then
+    dlclose(libGLX);
+  if Assigned(libGLU) then
+    dlclose(libGLU);
+  if Assigned(libGL) then
+    dlclose(libGL);
 end.
 
 
 {
   $Log$
-  Revision 1.4  2000-03-16 17:40:39  sg
-  * Fixed GL* library loading functions
+  Revision 1.5  2000-05-25 18:59:50  sg
+  * Completed GLU and GLUT support
+  * Some minor fixes (missing "const"s, changed some untyped "var" arguments
+    to "const" arguments etc.)
 
 }

@@ -10,7 +10,10 @@ holds the informations in the read .def file.
 
 c_linuxd.pp
 -----------
-This program creates the Linux units "linux/gl.pp" and "linux/glut.pp".
+This program creates the Linux units "linux/gl.pp" and "linux/glut.pp". It is
+a kind of template processor which reads in the Linux specific .tpl template
+files; at specially marked places within the template file it inserts
+converted data read in from .def files.
 
 
 *.def

@@ -25,29 +25,40 @@ const
   GLU_INSIDE                            = 100021;
 
   // Tesselator
-  GLU_BEGIN                             = 100100;
-  GLU_VERTEX                            = 100101;
-  GLU_END                               = 100102;
-  GLU_ERROR                             = 100103;
-  GLU_EDGE_FLAG                         = 100104;
+  GLU_TESS_BEGIN                        = 100100;
+  GLU_TESS_VERTEX                       = 100101;
+  GLU_TESS_END                          = 100102;
+  GLU_TESS_ERROR                        = 100103;
+  GLU_TESS_EDGE_FLAG                    = 100104;
+  GLU_TESS_COMBINE			= 100105;
+  GLU_TESS_BEGIN_DATA			= 100106;
+  GLU_TESS_VERTEX_DATA			= 100107;
+  GLU_TESS_END_DATA			= 100108;
+  GLU_TESS_ERROR_DATA			= 100109;
+  GLU_TESS_EDGE_FLAG_DATA		= 100110;
+  GLU_TESS_COMBINE_DATA			= 100111;
 
-  // Contour types
-  GLU_CW                                = 100120;
-  GLU_CCW                               = 100121;
-  GLU_INTERIOR                          = 100122;
-  GLU_EXTERIOR                          = 100123;
-  GLU_UNKNOWN                           = 100124;
+  // Winding rules
+  GLU_TESS_WINDING_ODD			= 100130;
+  GLU_TESS_WINDING_NONZERO		= 100131;
+  GLU_TESS_WINDING_POSITIVE		= 100132;
+  GLU_TESS_WINDING_NEGATIVE		= 100133;
+  GLU_TESS_WINDING_ABS_GEQ_TWO		= 100134;
 
-  // Tesselation errors
-  GLU_TESS_ERROR1                       = 100151;  // missing gluEndPolygon
-  GLU_TESS_ERROR2                       = 100152;  // missing gluBeginPolygon
-  GLU_TESS_ERROR3                       = 100153;  // misoriented contour
-  GLU_TESS_ERROR4                       = 100154;  // vertex/edge intersection
-  GLU_TESS_ERROR5                       = 100155;  // misoriented or self-intersecting loops
-  GLU_TESS_ERROR6                       = 100156;  // coincident vertices
-  GLU_TESS_ERROR7                       = 100157;  // all vertices collinear
-  GLU_TESS_ERROR8                       = 100158;  // intersecting edges
-  GLU_TESS_ERROR9                       = 100159;  // not coplanar contours
+  // Tessellation properties
+  GLU_TESS_WINDING_RULE			= 100140;
+  GLU_TESS_BOUNDARY_ONLY		= 100141;
+  GLU_TESS_TOLERANCE			= 100142;
+
+  // Tessellation errors
+  GLU_TESS_ERROR1			= 100151;   // Missing gluBeginPolygon
+  GLU_TESS_ERROR2			= 100152;   // Missing gluBeginContour
+  GLU_TESS_ERROR3			= 100153;   // Missing gluEndPolygon
+  GLU_TESS_ERROR4			= 100154;   // Missing gluEndContour
+  GLU_TESS_ERROR5			= 100155;
+  GLU_TESS_ERROR6			= 100156;
+  GLU_TESS_ERROR7			= 100157;
+  GLU_TESS_ERROR8			= 100158;
 
   // NURBS
   GLU_AUTO_LOAD_MATRIX                  = 100200;
@@ -117,22 +128,44 @@ const
   GLU_VERSION                           = 100800;
   GLU_EXTENSIONS                        = 100801;
 
+
+  // === GLU 1.0 tessellation - obsolete! ===
+
+  // Contour types
+  GLU_CW                                = 100120;
+  GLU_CCW                               = 100121;
+  GLU_INTERIOR                          = 100122;
+  GLU_EXTERIOR                          = 100123;
+  GLU_UNKNOWN                           = 100124;
+
+  // Tessellator
+  GLU_BEGIN				= GLU_TESS_BEGIN;
+  GLU_VERTEX				= GLU_TESS_VERTEX;
+  GLU_END				= GLU_TESS_END;
+  GLU_ERROR				= GLU_TESS_ERROR;
+  GLU_EDGE_FLAG				= GLU_TESS_EDGE_FLAG;
+
+
 type
   PGLUquadricObj = ^TGLUquadricObj;
   TGLUquadricObj = record end;
-  PGLUtriangulatorObj = ^TGLUtriangulatorObj;
-  TGLUtriangulatorObj = record end;
   PGLUnurbsObj = ^TGLUnurbsObj;
   TGLUnurbsObj = record end;
+  PGLUtesselator = ^TGLUtesselator;
+  TGLUtesselator = record end;
+  PGLUtriangulatorObj = PGLUtesselator;
 
+  // Callback function declarations
   TGLUQuadricCallback = procedure; cdecl;
   TGLUNurbsCallback = procedure; cdecl;
   TGLUTessCallback = procedure; cdecl;
 
+  // We need some private array types
   TGLUViewport = array[0..3] of LongInt;
-  TGLUMatrixd = array[0..15] of Double;
-  TGLUMatrixf = array[0..15] of Single;
-  TGLUVectord = array[0..2] of Double;
+  TGLUMatrixd = array[0..15] of GLdouble;
+  TGLUMatrixf = array[0..15] of GLfloat;
+  TGLUVectord = array[0..2] of GLdouble;
+
 var
 %END
 
@@ -143,18 +176,18 @@ var
 
 %PROCS
   // Miscellaneous functions
-  gluLookAt: procedure(eye, eyey, eyez, centerx, centery, centerz, upx, upy, upz: Double);
-  gluOrtho2D: procedure(left, right, bottom, top: Double);
-  gluPerspective: procedure(fovy, aspect, zNear, zFar: Double);
-  gluPickMatrix: procedure(x, y, width, height: Double; const viewport: TGLUViewport);
-  gluProject: procedure(objx, objy, objz: Double; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; winx, winy, winz: Double);
-  gluUnProject: procedure(winx, winy, winz: Double; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; objx, objy, objz: Double);
-  gluErrorString: procedure(errorCode: GLenum);
+  gluLookAt: procedure(eye, eyey, eyez, centerx, centery, centerz, upx, upy, upz: GLdouble);
+  gluOrtho2D: procedure(left, right, bottom, top: GLdouble);
+  gluPerspective: procedure(fovy, aspect, zNear, zFar: GLdouble);
+  gluPickMatrix: procedure(x, y, width, height: GLdouble; const viewport: TGLUViewport);
+  gluProject: function(objx, objy, objz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; var winx, winy, winz: GLdouble): LongInt;
+  gluUnProject: function(winx, winy, winz: GLdouble; const modelMatrix, projMatrix: TGLUMatrixd; const viewport: TGLUViewport; var objx, objy, objz: GLdouble): LongInt;
+  gluErrorString: function(errorCode: GLenum): PChar;
 
   // Mipmapping and image scaling
-  gluScaleImage: procedure(format: GLenum; within, heightin: LongInt; typein: GLenum; var datain; widthout, heightout: LongInt; typeout: GLenum; var dataout);
-  gluBuild1DMipmaps: procedure(target: GLenum; components, width: LongInt; format, AType: GLEnum; var data);
-  gluBuild2DMipmaps: procedure(target: GLenum; components, width, height: LongInt; format, AType: GLEnum; var data);
+  gluScaleImage: procedure(format: GLenum; within, heightin: LongInt; typein: GLenum; const datain; widthout, heightout: LongInt; typeout: GLenum; var dataout);
+  gluBuild1DMipmaps: procedure(target: GLenum; components, width: LongInt; format, AType: GLEnum; const data);
+  gluBuild2DMipmaps: procedure(target: GLenum; components, width, height: LongInt; format, AType: GLEnum; const data);
 
   // Quadrics
   gluNewQuadric: function: PGLUquadricObj;
@@ -164,37 +197,45 @@ var
   gluQuadricNormals: procedure(quadObject: PGLUquadricObj; normals: GLenum);
   gluQuadricTexture: procedure(quadObject: PGLUquadricObj; textureCoords: Boolean);
   gluQuadricCallback: procedure(quadObject: PGLUquadricObj; which: GLenum; fn: TGLUQuadricCallback);
-  gluCylinder: procedure(qobj: PGLUquadricObj; baseRadius, topRadius, height: Double; slices, stacks: LongInt);
-  gluSphere: procedure(qobj: PGLUquadricObj; radius: Double; slices, stacks: LongInt);
-  gluDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: Double; slices, loops: LongInt);
-  gluPartialDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: Double; slices, loops: LongInt; startAngle, sweepAngle: Double);
+  gluCylinder: procedure(qobj: PGLUquadricObj; baseRadius, topRadius, height: GLdouble; slices, stacks: LongInt);
+  gluSphere: procedure(qobj: PGLUquadricObj; radius: GLdouble; slices, stacks: LongInt);
+  gluDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt);
+  gluPartialDisk: procedure(qobj: PGLUquadricObj; innerRadius, outerRadius: GLdouble; slices, loops: LongInt; startAngle, sweepAngle: GLdouble);
 
   // Nurbs
   gluNewNurbsRenderer: function: PGLUnurbsObj;
   gluDeleteNurbsRenderer: procedure(nobj: PGLUnurbsObj);
   gluLoadSamplingMatrices: procedure(nobj: PGLUnurbsObj; const modelMatrix, projMatrix: TGLUMatrixf; const viewport: TGLUViewport);
-  gluNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLenum; value: Single);
-  gluGetNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLEnum; var value: Single);
+  gluNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLenum; value: GLfloat);
+  gluGetNurbsProperty: procedure(nobj: PGLUnurbsObj; AProperty: GLEnum; var value: GLfloat);
   gluBeginCurve: procedure(nobj: PGLUnurbsObj);
   gluEndCurve: procedure(nobj: PGLUnurbsObj);
-  gluNurbsCurve: procedure(nobj: PGLUnurbsObj; nknots: LongInt; var know: Single; stride: LongInt; var ctlarray: Single; order: LongInt; AType: GLenum);
+  gluNurbsCurve: procedure(nobj: PGLUnurbsObj; nknots: LongInt; var know: GLfloat; stride: LongInt; var ctlarray: GLfloat; order: LongInt; AType: GLenum);
   gluBeginSurface: procedure(nobj: PGLUnurbsObj);
   gluEndSurface: procedure(nobj: PGLUnurbsObj);
-  gluNurbsSurface: procedure(nobj: PGLUnurbsObj; sknot_count: LongInt; var sknot: Single; tknot_count: LongInt; var tknot: Single; s_stride, t_stride: LongInt; var ctlarray: Single; sorder, torder: LongInt; AType: GLenum);
+  gluNurbsSurface: procedure(nobj: PGLUnurbsObj; sknot_count: LongInt; var sknot: GLfloat; tknot_count: LongInt; var tknot: GLfloat; s_stride, t_stride: LongInt; var ctlarray: GLfloat; sorder, torder: LongInt; AType: GLenum);
   gluBeginTrim: procedure(nobj: PGLUnurbsObj);
   gluEndTrim: procedure(nobj: PGLUnurbsObj);
-  gluPwlCurve: procedure(nobj: PGLUnurbsObj; count: LongInt; var AArray: Single; stride: LongInt; AType: GLenum);
+  gluPwlCurve: procedure(nobj: PGLUnurbsObj; count: LongInt; var AArray: GLfloat; stride: LongInt; AType: GLenum);
   gluNurbsCallback: procedure(nobj: PGLUnurbsObj; which: GLenum; fn: TGLUNurbsCallback);
 
   // Polygon tesselation
-  gluNewTess: function: PGLUtriangulatorObj;
-  gluTessCallback: procedure(tobj: PGLUtriangulatorObj; which: GLenum; fn: TGLUTessCallback);
+  gluNewTess: function: PGLUtesselator;
+  gluDeleteTess: procedure(tobj: PGLUtesselator);
+  gluTessBeginPolygon: procedure(tobj: PGLUtesselator; var polygon_data);
+  gluTessBeginContour: procedure(tobj: PGLUtesselator);
+  gluTessVertex: procedure(tobj: PGLUtesselator; v: TGLUVectord; var data);
+  gluTessEndContour: procedure(tobj: PGLUtesselator);
+  gluTessEndPolygon: procedure(tobj: PGLUtesselator);
+  gluTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; value: GLdouble);
+  gluTessNormal: procedure(tobj: PGLUtesselator; x, y, z: GLdouble);
+  gluTessCallback: procedure(tobj: PGLUtesselator; which: GLenum; fn: TGLUTessCallback);
+  gluGetTessProperty: procedure(tobj: PGLUtesselator; which: GLenum; var value: GLdouble);
 
-  gluDeleteTess: procedure(tobj: PGLUtriangulatorObj);
-  gluBeginPolygon: procedure(tobj: PGLUtriangulatorObj);
-  gluEndPolygon: procedure(tobj: PGLUtriangulatorObj);
-  gluNextContour: procedure(tobj: PGLUtriangulatorObj; AType: GLenum);
-  gluTessVertex: procedure(tobj: PGLUtriangulatorObj; v: TGLUVectord; var data);
+  // Obsolete 1.0 tessellation functions
+  gluBeginPolygon: procedure(tobj: PGLUtesselator);
+  gluNextContour: procedure(tobj: PGLUtesselator; AType: GLenum);
+  gluEndPolygon: procedure(tobj: PGLUtesselator);
 
   // New functions in GLU 1.1
   gluGetString: function(name: GLenum): PChar;
