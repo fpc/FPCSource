@@ -10,23 +10,11 @@ units=lexlib yacclib
 units=lexbase lexopt lexdfa lexpos lexlist lexrules lexmsgs lextable \
       yaccbase yaccmsgs yaccclos yaccpars yacclook yaccsem yacclr0 yacctabl
 
-[install]
-files=yylex.cod yyparse.cod
-datadir=$(CODPATH)
-
 [dirs]
 fpcdir=../..
 
 [require]
 options=-Sg
-
-
-[presettings]
-ifdef inlinux
-CODPATH=$(PREFIXINSTALLDIR)/lib/fpc/lexyacc
-else
-CODPATH=$(BININSTALLDIR)
-endif
 
 
 [rules]
@@ -39,3 +27,13 @@ plex$(EXEEXT): plex$(PASEXT) $(wildcard lex*$(PASEXT))
 lexlib$(PPUEXT): lexlib$(PASEXT)
 
 yacclib$(PPUEXT): yacclib$(PASEXT)
+
+ifdef UNIXINSTALLDIR
+CODPATH=$(PREFIXINSTALLDIR)/lib/fpc/lexyacc
+else
+CODPATH=$(BININSTALLDIR)
+endif
+
+install: fpc_install
+	$(MKDIR) $(CODPATH)
+	$(COPY) yylex.cod yyparse.cod $(CODPATH)

@@ -80,10 +80,6 @@ override LOCALDEF+=-dGDB -dBROWSERLOG
 ifeq ($(CPU_TARGET),i386)
 # also insert MMX support
 override LOCALDEF+=-dSUPPORT_MMX
-# We don't need the intel writer on linux...
-ifdef inlinux
-override LOCALDEF+=-dNOAG386INT
-endif
 endif
 
 override LOCALOPT+=$(LOCALDEF)
@@ -288,7 +284,7 @@ MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
 
 # This will only install the ppc386.exe, not the message files etc.
 quickinstall:
-ifdef inlinux
+ifdef UNIXINSTALLDIR
         $(MKDIR) $(BASEINSTALLDIR)
         $(INSTALLEXE) $(EXENAME) $(BASEINSTALLDIR)
 else
@@ -300,7 +296,7 @@ endif
 endif
 
 install: quickinstall
-ifdef inlinux
+ifdef UNIXINSTALLDIR
         $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(BASEINSTALLDIR)/samplecfg
 endif
         $(MKDIR) $(MSGINSTALLDIR)
@@ -308,7 +304,7 @@ endif
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
 installsymlink: install
-ifdef inlinux
+ifdef UNIXINSTALLDIR
         $(MKDIR) $(BININSTALLDIR)
         ln -sf $(BASEINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
 endif
