@@ -931,6 +931,12 @@ begin
   DoInsertAppend(True);
 end;
 
+Procedure TDataset.InternalInsert;
+
+begin
+  //!! To be implemented
+end;
+
 Procedure TDataset.AppendRecord(const Values: array of const);
 
 begin
@@ -1087,6 +1093,8 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
     FBuffers[FActiveRecord]:=TempBuf;
     end
+  else if FRecordcount=FBuffercount then
+    shiftbuffersbackward
   else
     inc(FActiveRecord);
 
@@ -1103,8 +1111,13 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   else
     begin
     fBOF := false;
+    // 29:01:05, JvdS: Why is this here?!? It can result in records with the same bookmark-data?
+    // I would say that the 'internalinsert' should do this. But I don't know how Tdbf handles it
     if FRecordcount > 0 then SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
     end;
+
+  InternalInsert;
+      
   // update buffer count.
   If FRecordCount<FBufferCount then
     Inc(FRecordCount);
@@ -1465,6 +1478,7 @@ begin
     exit;
   DoBeforeScroll;
   Try
+    Scrolled := 0;
     If Distance>0 then
       Scrolled:=ScrollForward
     else
@@ -1473,7 +1487,8 @@ begin
 {$ifdef dsdebug}
     WriteLn('ActiveRecord=', FActiveRecord,' FEOF=',FEOF,' FBOF=',FBOF);
 {$Endif}
-    If FRecordCount<>PrevRecordCount then
+//    If FRecordCount<>PrevRecordCount then
+    if Scrolled = 0 then
       DataEvent(deDatasetChange,0)
     else
       DataEvent(deDatasetScroll,Scrolled);
@@ -1525,9 +1540,10 @@ begin
     writeln ('Post: Internalpost succeeded');
 {$endif}
     FreeFieldBuffers;
-//    SetCurrentRecord(FActiverecord);
-    Resync([]);
+// First set the state to dsBrowse, then the Resync, to prevent the calling of
+// the deDatasetChange event, while the state is still 'editable', while the db isn't
     SetState(dsBrowse);
+    Resync([]);
 {$ifdef dsdebug}
     writeln ('Post: Browse mode set');
 {$endif}
@@ -1742,7 +1758,13 @@ end;
 
 {
   $Log$
-  Revision 1.30  2005-01-12 10:27:57  michael
+  Revision 1.31  2005-02-07 11:19:27  joost
+    - Fixed insertion at buffer-limit
+    - Added TDataset.InternalInsert
+    - The deDatasetScrollEvent was not always raised
+    - Changed resync-order in AppendRecord
+
+  Revision 1.30  2005/01/12 10:27:57  michael
     * Patch from Joost Van der Sluis:
     - implemented ControlsDisabled
 
