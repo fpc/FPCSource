@@ -11,6 +11,4 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/gtk.o
 /usr/lib/fpc/%{fpcversion}/units/linux/libgtk.a
 
-/usr/lib/libfpgtk.so*
-
 /usr/share/doc/fp-units-gtk/
