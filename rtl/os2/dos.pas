@@ -30,9 +30,6 @@ interface
 
 uses    Strings, DosCalls;
 
-const
-   FileNameLen = 255;
-
 Type
    {Search record which is used by findfirst and findnext:}
    SearchRec = record
@@ -52,17 +49,7 @@ Type
                      Name2: string);       {Filenames can be long in OS/2!}
         end;
 
-        {Data structure for the registers needed by msdos and intr:}
-       registers=packed record
-            case i:integer of
-                0:(ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,
-                   f8,flags,fs,gs:word);
-                1:(al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh:byte);
-                2:(eax,ebx,ecx,edx,ebp,esi,edi:longint);
-            end;
-
         {Flags for the exec procedure:
-
         }
 
 {$ifdef HASTHREADVAR}
@@ -87,19 +74,33 @@ function DosErrorModuleName: string;
 
 implementation
 
+{$DEFINE HAS_GETMSCOUNT}
+
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+{$DEFINE FPC_FEXPAND_GETENV_PCHAR}
+
+{$I dos.inc}
 
 {$ifdef HASTHREADVAR}
 threadvar
 {$else HASTHREADVAR}
 var
 {$endif HASTHREADVAR}
-  LastDosExitCode: longint;
   LastDosErrorModuleName: string;
 
 
 const   FindResvdMask = $00003737; {Allowed bits in attribute
                                     specification for DosFindFirst call.}
 
+
+function GetMsCount: int64;
+var
+  L: cardinal;
+begin
+  DosQuerySysInfo (svMsCount, svMsCount, L, 4);
+  GetMsCount := L;
+end;
 
 
 function fsearch(path:pathstr;dirlist:string):pathstr;
@@ -186,12 +187,6 @@ begin
 end;
 
 
-function DosExitCode: word;
-begin
-  DosExitCode := LastDosExitCode and $FFFF;
-end;
-
-
 function DosErrorModuleName: string;
 begin
   DosErrorModuleName := LastDosErrorModuleName;
@@ -257,29 +252,6 @@ begin
   DosSetDateTime (DT);
 end;
 
-
-procedure getcbreak(var breakvalue:boolean);
-begin
-  breakvalue := True;
-end;
-
-
-procedure setcbreak(breakvalue:boolean);
-begin
-end;
-
-
-procedure getverify(var verify:boolean);
-begin
-  verify := true;
-end;
-
-
-procedure setverify(verify:boolean);
-begin
-end;
-
-
 function DiskFree (Drive: byte): int64;
 var FI: TFSinfo;
     RC: cardinal;
@@ -304,11 +276,6 @@ begin
          int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
   else
       DiskSize := -1;
-end;
-
-
-procedure SearchRec2DosSearchRec (var F: SearchRec);
-begin
 end;
 
 
@@ -347,13 +314,13 @@ begin
   DosSearchRec2SearchRec (F);
 end;
 
+
 procedure FindNext (var F: SearchRec);
 var
   Count: cardinal;
 begin
     {No error}
     DosError := 0;
-    SearchRec2DosSearchRec (F);
     Count := 1;
     DosError := integer (DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^),
                                                                        Count));
@@ -361,21 +328,19 @@ begin
     DosSearchRec2SearchRec (F);
 end;
 
+
 procedure FindClose (var F: SearchRec);
 begin
   if F.Handle <> THandle ($FFFFFFFF) then DosError := DosFindClose (F.Handle);
   Dispose (F.FStat);
 end;
 
-procedure swapvectors;
-{For TP compatibility, this exists.}
-begin
-end;
 
 function envcount:longint;
 begin
   envcount:=envc;
 end;
+
 
 function envstr (index : longint) : string;
 
@@ -390,6 +355,7 @@ begin
     hp:=EnvP[index-1];
     envstr:=strpas(hp);
 end;
+
 
 function GetEnvPChar (EnvVar: string): PChar;
 (* The assembler version is more than three times as fast as Pascal. *)
@@ -450,106 +416,13 @@ begin
 end;
 {$ASMMODE ATT}
 
+
 Function GetEnv(envvar: string): string;
 (* The assembler version is more than three times as fast as Pascal. *)
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
 
-procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
-                 var ext:extstr);
-
-var p1,i : longint;
-    dotpos : integer;
-
-begin
-    { allow slash as backslash }
-    for i:=1 to length(path) do
-      if path[i]='/' then path[i]:='\';
-    {Get drive name}
-    p1:=pos(':',path);
-    if p1>0 then
-        begin
-            dir:=path[1]+':';
-            delete(path,1,p1);
-        end
-    else
-        dir:='';
-    { split the path and the name, there are no more path informtions }
-    { if path contains no backslashes                                 }
-    while true do
-        begin
-            p1:=pos('\',path);
-            if p1=0 then
-                break;
-            dir:=dir+copy(path,1,p1);
-              delete(path,1,p1);
-        end;
-   { try to find out a extension }
-   Ext:='';
-   i:=Length(Path);
-   DotPos:=256;
-   While (i>0) Do
-     Begin
-       If (Path[i]='.') Then
-         begin
-           DotPos:=i;
-           break;
-         end;
-       Dec(i);
-     end;
-   Ext:=Copy(Path,DotPos,255);
-   Name:=Copy(Path,1,DotPos - 1);
-end;
-
-(*
-function FExpand (const Path: PathStr): PathStr;
-- declared in fexpand.inc
-*)
-
-{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_DRIVES}
-{$UNDEF FPC_FEXPAND_UNC}
-
-procedure packtime(var t:datetime;var p:longint);
-
-var zs:longint;
-
-begin
-    p:=-1980;
-    p:=p+t.year and 127;
-    p:=p shl 4;
-    p:=p+t.month;
-    p:=p shl 5;
-    p:=p+t.day;
-    p:=p shl 16;
-    zs:=t.hour;
-    zs:=zs shl 6;
-    zs:=zs+t.min;
-    zs:=zs shl 5;
-    zs:=zs+t.sec div 2;
-    p:=p+(zs and $ffff);
-end;
-
-procedure unpacktime (p:longint;var t:datetime);
-
-begin
-    t.sec:=(p and 31) * 2;
-    p:=p shr 5;
-    t.min:=p and 63;
-    p:=p shr 6;
-    t.hour:=p and 31;
-    p:=p shr 5;
-    t.day:=p and 31;
-    p:=p shr 5;
-    t.month:=p and 15;
-    p:=p shr 4;
-    t.year:=p+1980;
-end;
 
 procedure GetFAttr (var F; var Attr: word);
 var
@@ -557,67 +430,42 @@ var
   RC: cardinal;
 begin
   Attr := 0;
-  RC := DosQueryPathInfo (FileRec (F).Name, ilStandard,
+  RC := DosQueryPathInfo (@FileRec (F).Name, ilStandard,
                                                  @PathInfo, SizeOf (PathInfo));
   DosError := integer (RC);
   if RC = 0 then
     Attr := PathInfo.AttrFile;
 end;
 
+
 procedure SetFAttr (var F; Attr: word);
 var
   PathInfo: TFileStatus3;
   RC: cardinal;
 begin
-  RC := DosQueryPathInfo (FileRec (F).Name, ilStandard,
+  RC := DosQueryPathInfo (@FileRec (F).Name, ilStandard,
                                                  @PathInfo, SizeOf (PathInfo));
   if RC = 0 then
   begin
     PathInfo.AttrFile := Attr;
-    RC := DosSetPathInfo (FileRec (F).Name, ilStandard, @PathInfo,
+    RC := DosSetPathInfo (@FileRec (F).Name, ilStandard, @PathInfo,
                                                SizeOf (PathInfo), doWriteThru);
   end;
   DosError := integer (RC);
 end;
 
 
-
-{******************************************************************************
-                             --- Not Supported ---
-******************************************************************************}
-
-procedure Keep (ExitCode: word);
+{function  GetShortName(var p : String) : boolean;
 begin
-end;
-
-procedure GetIntVec (IntNo: byte; var Vector: pointer);
-begin
-end;
-
-procedure SetIntVec (IntNo: byte; Vector: pointer);
-begin
-end;
-
-procedure Intr (IntNo: byte; var Regs: Registers);
-begin
-end;
-
-procedure MsDos (var Regs: Registers);
-begin
-end;
-
-
-function  GetShortName(var p : String) : boolean;
-begin
-  GetShortName:=true;
+  GetShortName:=true;}
 {$WARNING EA .shortname support (see FAT32 driver) should be probably added here!}
-end;
+{end;
 
 function  GetLongName(var p : String) : boolean;
 begin
-  GetLongName:=true;
+  GetLongName:=true;}
 {$WARNING EA .longname support should be probably added here!}
-end;
+{end;}
 
 
 
@@ -629,7 +477,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2004-05-23 21:47:34  hajny
+  Revision 1.42  2004-12-05 19:16:54  hajny
+    * GetMsCount added, platform independent routines moved to single include file
+
+  Revision 1.41  2004/05/23 21:47:34  hajny
     * final part of longint2cardinal fixes for doscalls
 
   Revision 1.40  2004/03/21 20:22:20  hajny
