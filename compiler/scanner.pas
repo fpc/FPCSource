@@ -94,7 +94,7 @@ unit scanner;
           procedure nextfile;
           procedure addfile(hp:pinputfile);
           procedure reload;
-          procedure insertmacro(p:pchar;len:longint);
+          procedure insertmacro(const macname:string;p:pchar;len:longint);
         { Scanner things }
           procedure gettokenpos;
           procedure inc_comment_level;
@@ -143,7 +143,6 @@ implementation
 
     const
       { use any special name that is an invalid file name to avoid problems }
-      macro_special_name = '____Macro____';
       preprocstring : array [preproctyp] of string[7]
         = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE');
 
@@ -341,8 +340,11 @@ implementation
          begin
            repeat
            { still more to read?, then change the #0 to a space so its seen
-             as a seperator }
-             if (c=#0) and (bufsize>0) and (inputpointer-inputbuffer<bufsize) then
+             as a seperator, this can't be used for macro's which can change
+             the place of the #0 in the buffer with tempopen }
+             if (c=#0) and (bufsize>0) and
+                not(inputfile^.is_macro) and
+                (inputpointer-inputbuffer<bufsize) then
               begin
                 c:=' ';
                 inc(longint(inputpointer));
@@ -389,7 +391,7 @@ implementation
       end;
 
 
-    procedure tscannerfile.insertmacro(p:pchar;len:longint);
+    procedure tscannerfile.insertmacro(const macname:string;p:pchar;len:longint);
       var
         hp : pinputfile;
       begin
@@ -400,7 +402,7 @@ implementation
         tempcloseinputfile;
       { create macro 'file' }
         { use special name to dispose after !! }
-        hp:=new(pinputfile,init(macro_special_name));
+        hp:=new(pinputfile,init('_Macro_.'+macname));
         addfile(hp);
         with inputfile^ do
          begin
@@ -1102,7 +1104,7 @@ implementation
                  mac:=pmacrosym(macros^.search(pattern));
                  if assigned(mac) and (assigned(mac^.buftext)) then
                   begin
-                    insertmacro(mac^.buftext,mac^.buflen);
+                    insertmacro(pattern,mac^.buftext,mac^.buflen);
                   { handle empty macros }
                     if c=#0 then
                      reload;
@@ -1669,7 +1671,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.95  1999-09-03 10:02:48  peter
+  Revision 1.96  1999-09-27 23:40:10  peter
+    * fixed macro within macro endless-loop
+
+  Revision 1.95  1999/09/03 10:02:48  peter
     * $IFNDEF is 7 chars and not 6 chars
 
   Revision 1.94  1999/09/02 18:47:47  daniel

@@ -444,6 +444,12 @@ uses
         tempopen:=false;
         if is_macro then
          begin
+           { seek buffer postion to bufstart }
+           if bufstart>0 then
+            begin
+              move(buf[bufstart],buf[0],bufsize-bufstart+1);
+              bufstart:=0;
+            end;
            tempopen:=true;
            exit;
          end;
@@ -593,6 +599,9 @@ uses
 
     procedure tfilemanager.register_file(f : pinputfile);
       begin
+         { don't register macro's }
+         if f^.is_macro then
+          exit;
          inc(last_ref_index);
          f^.ref_next:=files;
          f^.ref_index:=last_ref_index;
@@ -1331,7 +1340,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.103  1999-09-16 08:00:50  pierre
+  Revision 1.104  1999-09-27 23:40:12  peter
+    * fixed macro within macro endless-loop
+
+  Revision 1.103  1999/09/16 08:00:50  pierre
    + compiled_module to avoid wrong file info when load PPU files
 
   Revision 1.102  1999/08/31 15:51:10  pierre
