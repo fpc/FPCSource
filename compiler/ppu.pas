@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=36;
+  CurrentPPUVersion=37;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -985,7 +985,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2003-07-05 20:06:28  jonas
+  Revision 1.42  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.41  2003/07/05 20:06:28  jonas
     * fixed some range check errors that occurred on big endian systems
     * slightly optimized the swap*() functions
 

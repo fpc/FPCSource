@@ -162,6 +162,16 @@ interface
       { Set type definition for registers }
       tsuperregisterset = set of tsuperregister;
 
+      { Temp types }
+      ttemptype = (tt_none,
+                   tt_free,tt_normal,tt_persistent,
+                   tt_noreuse,tt_freenoreuse,
+                   tt_ansistring,tt_freeansistring,
+                   tt_widestring,tt_freewidestring,
+                   tt_interfacecom,tt_freeinterfacecom);
+      ttemptypeset = set of ttemptype;
+
+
     const
        { Invalid register number }
        RS_INVALID    = $ff;
@@ -306,7 +316,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-09-14 19:30:58  daniel
+  Revision 1.27  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.26  2003/09/14 19:30:58  daniel
     * Fixed endian problem in Tregisterrec record
 
   Revision 1.25  2003/09/04 21:07:03  florian

@@ -33,7 +33,7 @@ interface
     uses
       cclasses,globals,verbose,
       cginfo,cpuinfo,cpubase,
-      symppu,
+      symppu,symtype,symsym,
       aasmbase,aasmtai;
 
     const
@@ -223,6 +223,7 @@ interface
          procedure gencode(sec:TAsmObjectData);
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
+         function  FindInsentry:boolean;
     {$endif NOAG386BIN}
       end;
 
@@ -755,8 +756,6 @@ implementation
               o.ref^.scalefactor:=ppufile.getbyte;
               o.ref^.offset:=ppufile.getlongint;
               o.ref^.symbol:=ppufile.getasmsymbol;
-              o.ref^.offsetfixup:=ppufile.getlongint;
-              o.ref^.options:=trefoptions(ppufile.getbyte);
             end;
           top_const :
             o.val:=aword(ppufile.getlongint);
@@ -764,6 +763,11 @@ implementation
             begin
               o.sym:=ppufile.getasmsymbol;
               o.symofs:=ppufile.getlongint;
+            end;
+          top_local :
+            begin
+              ppufile.getderef(o.localsymderef);
+              o.localsymofs:=ppufile.getlongint;
             end;
         end;
       end;
@@ -784,8 +788,6 @@ implementation
               ppufile.putbyte(o.ref^.scalefactor);
               ppufile.putlongint(o.ref^.offset);
               ppufile.putasmsymbol(o.ref^.symbol);
-              ppufile.putlongint(o.ref^.offsetfixup);
-              ppufile.putbyte(byte(o.ref^.options));
             end;
           top_const :
             ppufile.putlongint(longint(o.val));
@@ -793,6 +795,11 @@ implementation
             begin
               ppufile.putasmsymbol(o.sym);
               ppufile.putlongint(longint(o.symofs));
+            end;
+          top_local :
+            begin
+              ppufile.putderef(tvarsym(o.localsym),o.localsymderef);
+              ppufile.putlongint(longint(o.localsymofs));
             end;
         end;
       end;
@@ -808,6 +815,8 @@ implementation
             end;
           top_symbol :
             objectlibrary.derefasmsymbol(o.sym);
+          top_local :
+            o.localsym:=tvarsym(o.localsymderef.resolve);
         end;
       end;
 
@@ -888,7 +897,6 @@ implementation
       }
       var
         i,l,relsize : longint;
-        nb,ni:boolean;
       begin
         if ops=0 then
          exit;
@@ -903,21 +911,26 @@ implementation
                 end;
               top_ref :
                 begin
-                  nb:=(ref^.base=NR_NO);
-                  ni:=(ref^.index=NR_NO);
                   { create ot field }
                   if (ot and OT_SIZE_MASK)=0 then
                     ot:=OT_MEMORY or opsize_2_type[i,opsize]
                   else
                     ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-                  if nb and ni then
+                  if (ref^.base=NR_NO) and (ref^.index=NR_NO) then
                     ot:=ot or OT_MEM_OFFS;
-                { fix scalefactor }
-                  if ni then
+                  { fix scalefactor }
+                  if (ref^.index=NR_NO) then
                    ref^.scalefactor:=0
                   else
                    if (ref^.scalefactor=0) then
                     ref^.scalefactor:=1;
+                end;
+              top_local :
+                begin
+                  if (ot and OT_SIZE_MASK)=0 then
+                    ot:=OT_MEMORY or opsize_2_type[i,opsize]
+                  else
+                    ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
                 end;
               top_const :
                 begin
@@ -1105,10 +1118,16 @@ implementation
 
 
     function taicpu.CheckIfValid:boolean;
-      var
-        m,i : longint;
       begin
-        CheckIfValid:=false;
+        result:=FindInsEntry;
+      end;
+
+
+    function taicpu.FindInsentry:boolean;
+      var
+        i : longint;
+      begin
+        result:=false;
       { Things which may only be done once, not when a second pass is done to
         optimize }
         if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
@@ -1123,10 +1142,10 @@ implementation
         else
          begin
            { we've already an insentry so it's valid }
-           CheckIfValid:=true;
+           result:=true;
            exit;
          end;
-      { Lookup opcode in the table }
+        { Lookup opcode in the table }
         InsSize:=-1;
         i:=instabcache^[opcode];
         if i=-1 then
@@ -1137,56 +1156,28 @@ implementation
         insentry:=@instab[i];
         while (insentry^.opcode=opcode) do
          begin
-           m:=matches(insentry);
-           if m=100 then
-            begin
-              InsSize:=calcsize(insentry);
-              if segprefix<>NR_NO then
-               inc(InsSize);
-              { For opsize if size if forced }
-              if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
-                 begin
-                   if (insentry^.flags and IF_ARMASK)=0 then
-                     begin
-                       if (insentry^.flags and IF_SB)<>0 then
-                         begin
-                           if opsize=S_NO then
-                             opsize:=S_B;
-                         end
-                       else if (insentry^.flags and IF_SW)<>0 then
-                         begin
-                           if opsize=S_NO then
-                             opsize:=S_W;
-                         end
-                       else if (insentry^.flags and IF_SD)<>0 then
-                         begin
-                           if opsize=S_NO then
-                             opsize:=S_L;
-                         end;
-                     end;
-                 end;
-              CheckIfValid:=true;
-              exit;
-            end;
+           if matches(insentry)=100 then
+             begin
+               result:=true;
+               exit;
+             end;
            inc(i);
            insentry:=@instab[i];
          end;
-        if insentry^.opcode<>opcode then
-         Message1(asmw_e_invalid_opcode_and_operands,GetString);
-      { No instruction found, set insentry to nil and inssize to -1 }
+        Message1(asmw_e_invalid_opcode_and_operands,GetString);
+        { No instruction found, set insentry to nil and inssize to -1 }
         insentry:=nil;
         inssize:=-1;
       end;
 
 
-
     function taicpu.Pass1(offset:longint):longint;
       begin
         Pass1:=0;
-      { Save the old offset and set the new offset }
+        { Save the old offset and set the new offset }
         InsOffset:=Offset;
-      { Things which may only be done once, not when a second pass is done to
-        optimize }
+        { Things which may only be done once, not when a second pass is done to
+          optimize }
         if Insentry=nil then
          begin
            { Check if error last time then InsSize=-1 }
@@ -1208,9 +1199,35 @@ implementation
            create_ot;
 {$endif PASS2FLAG}
          end;
-      { Check if it's a valid instruction }
-        if CheckIfValid then
+        { Get InsEntry }
+        if FindInsEntry then
          begin
+           { Calculate instruction size }
+           InsSize:=calcsize(insentry);
+           if segprefix<>NR_NO then
+            inc(InsSize);
+           { Fix opsize if size if forced }
+           if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
+             begin
+               if (insentry^.flags and IF_ARMASK)=0 then
+                 begin
+                   if (insentry^.flags and IF_SB)<>0 then
+                     begin
+                       if opsize=S_NO then
+                         opsize:=S_B;
+                     end
+                   else if (insentry^.flags and IF_SW)<>0 then
+                     begin
+                       if opsize=S_NO then
+                         opsize:=S_W;
+                     end
+                   else if (insentry^.flags and IF_SD)<>0 then
+                     begin
+                       if opsize=S_NO then
+                         opsize:=S_L;
+                     end;
+                 end;
+             end;
            LastInsOffset:=InsOffset;
            Pass1:=InsSize;
            exit;
@@ -1302,10 +1319,10 @@ implementation
           internalerror(200301081);
         ir:=input.ref^.index;
         br:=input.ref^.base;
-        isub:=getsubreg(input.ref^.index);
-        bsub:=getsubreg(input.ref^.base);
+        isub:=getsubreg(ir);
+        bsub:=getsubreg(br);
         s:=input.ref^.scalefactor;
-        o:=input.ref^.offset+input.ref^.offsetfixup;
+        o:=input.ref^.offset;
         sym:=input.ref^.symbol;
       { it's direct address }
         if (br=NR_NO) and (ir=NR_NO) then
@@ -1556,7 +1573,7 @@ implementation
           case oper[opidx].typ of
             top_ref :
               begin
-                currval:=oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup;
+                currval:=oper[opidx].ref^.offset;
                 currsym:=oper[opidx].ref^.symbol;
               end;
             top_const :
@@ -1812,17 +1829,17 @@ implementation
                      1 :
                        begin
                          if (oper[opidx].ot and OT_MEMORY)=OT_MEMORY then
-                          sec.writereloc(oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup,1,oper[opidx].ref^.symbol,RELOC_ABSOLUTE)
+                          sec.writereloc(oper[opidx].ref^.offset,1,oper[opidx].ref^.symbol,RELOC_ABSOLUTE)
                          else
                           begin
-                            bytes[0]:=oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup;
+                            bytes[0]:=oper[opidx].ref^.offset;
                             sec.writebytes(bytes,1);
                           end;
                          inc(s);
                        end;
                      2,4 :
                        begin
-                         sec.writereloc(oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup,ea_data.bytes,
+                         sec.writereloc(oper[opidx].ref^.offset,ea_data.bytes,
                            oper[opidx].ref^.symbol,RELOC_ABSOLUTE);
                          inc(s,ea_data.bytes);
                        end;
@@ -2126,6 +2143,7 @@ implementation
                             {Because 'movzx memory,register' does not exist...}
                             spill_registers:=true;
                             op:=opcode;
+                            hopsize:=opsize;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1].reg);
                             pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),RS_INVALID,RS_INVALID,unusedregsint);
@@ -2143,38 +2161,41 @@ implementation
                         new(oper[1].ref);
                         oper[1].ref^:=spilltemplist[supreg];
                       end;
-                    {The i386 instruction set never gets boring... IMUL does
-                     not support a memory location as destination. Check if
-                     the opcode is IMUL and fix it. (DM)}
-                    if (opcode=A_IMUL) or (opcode=A_BTS) or (opcode=A_BTR) then
-                      begin
-                        {Yikes! We just changed the destination register into
-                         a memory location above here.
+                    { The i386 instruction set never gets boring...
+                      some opcodes do not support a memory location as destination }
+                    case opcode of
+                      A_IMUL,
+                      A_BT,A_BTS,
+                      A_BTC,A_BTR :
+                        begin
+                          {Yikes! We just changed the destination register into
+                           a memory location above here.
 
-                         Situation example:
+                           Situation example:
 
-                         imul [ebp-12],r21d   ; We need a help register
+                           imul [ebp-12],r21d   ; We need a help register
 
-                         Change into:
+                           Change into:
 
-                         mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
-                         imul r22d,r21d       ; Replace reference by helpregister
-                         mov [ebp-12],r22d    ; Use another help instruction}
-                        rgget(list,Tai(previous),subreg,helpreg);
-                        spill_registers:=true;
-                        {First help instruction.}
-                        helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
-                        if previous=nil then
-                          list.insert(helpins)
-                        else
-                          list.insertafter(helpins,previous);
-                        {Second help instruction.}
-                        helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
-                        dispose(oper[1].ref);
-                        oper[1].typ:=top_reg;
-                        oper[1].reg:=helpreg;
-                        list.insertafter(helpins,self);
-                      end;
+                           mov r22d,[ebp-12]    ; Use a help instruction (only for IMUL)
+                           imul r22d,r21d       ; Replace reference by helpregister
+                           mov [ebp-12],r22d    ; Use another help instruction}
+                          rgget(list,Tai(previous),subreg,helpreg);
+                          spill_registers:=true;
+                          {First help instruction.}
+                          helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
+                          if previous=nil then
+                            list.insert(helpins)
+                          else
+                            list.insertafter(helpins,previous);
+                          {Second help instruction.}
+                          helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
+                          dispose(oper[1].ref);
+                          oper[1].typ:=top_reg;
+                          oper[1].reg:=helpreg;
+                          list.insertafter(helpins,self);
+                        end;
+                    end;
                   end;
               end;
           end;
@@ -2235,7 +2256,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-09-14 14:22:51  daniel
+  Revision 1.24  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.23  2003/09/14 14:22:51  daniel
     * Fixed incorrect movzx spilling
 
   Revision 1.22  2003/09/12 20:25:17  daniel

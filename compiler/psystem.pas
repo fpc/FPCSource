@@ -198,12 +198,12 @@ implementation
         hrecst:=trecordsymtable.create;
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype));
-        hrecst.insertfield(tvarsym.create('$length',vs_value,s32bittype));
-        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32bittype));
+        hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype),true);
+        hrecst.insertfield(tvarsym.create('$length',vs_value,s32bittype),true);
+        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32bittype),true);
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        hrecst.insertfield(tvarsym.create('$__pfn',vs_value,vmtarraytype));
+        hrecst.insertfield(tvarsym.create('$__pfn',vs_value,vmtarraytype),true);
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
@@ -211,8 +211,8 @@ implementation
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create;
-        hrecst.insertfield(tvarsym.create('$proc',vs_value,voidpointertype));
-        hrecst.insertfield(tvarsym.create('$self',vs_value,voidpointertype));
+        hrecst.insertfield(tvarsym.create('$proc',vs_value,voidpointertype),true);
+        hrecst.insertfield(tvarsym.create('$self',vs_value,voidpointertype),true);
         methodpointertype.setdef(trecorddef.create(hrecst));
         addtype('$methodpointer',methodpointertype);
       { Add functions that require compiler magic }
@@ -504,7 +504,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-09-03 11:18:37  florian
+  Revision 1.55  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.54  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around

@@ -988,7 +988,7 @@ implementation
             if impintfindexes[i]=i then { if implement itself }
               begin
                 { allocate a pointer in the object memory }
-                with tstoredsymtable(_class.symtable) do
+                with tobjectsymtable(_class.symtable) do
                   begin
                     if (dataalignment>=pointer_size) then
                       datasize:=align(datasize,dataalignment)
@@ -1235,8 +1235,8 @@ implementation
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         dataSegment.concat(Tai_const.Create_32bit(_class.symtable.datasize));
-         dataSegment.concat(Tai_const.Create_32bit(-_class.symtable.datasize));
+         dataSegment.concat(Tai_const.Create_32bit(tobjectsymtable(_class.symtable).datasize));
+         dataSegment.concat(Tai_const.Create_32bit(-tobjectsymtable(_class.symtable).datasize));
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin
@@ -1304,20 +1304,32 @@ implementation
 
   procedure tclassheader.adjustselfvalue(procdef: tprocdef;ioffset: aword);
     var
+      hsym : tsym;
       href : treference;
-      l : tparalocation;
+      locpara : tparalocation;
     begin
-      l:=paramanager.getselflocation(procdef);
-      case l.loc of
+      { calculate the parameter info for the procdef }
+      if not procdef.has_paraloc_info then
+        begin
+          paramanager.create_paraloc_info(procdef,callerside);
+          procdef.has_paraloc_info:=true;
+        end;
+      hsym:=tsym(procdef.parast.search('self'));
+      if not(assigned(hsym) and
+             (hsym.typ=varsym) and
+             assigned(tvarsym(hsym).paraitem)) then
+        internalerror(200305251);
+      locpara:=tvarsym(hsym).paraitem.paraloc[callerside];
+      case locpara.loc of
         LOC_REGISTER:
-          cg.a_op_const_reg(exprasmlist,OP_SUB,l.size,ioffset,l.register);
+          cg.a_op_const_reg(exprasmlist,OP_SUB,locpara.size,ioffset,locpara.register);
         LOC_REFERENCE:
           begin
-             reference_reset_base(href,l.reference.index,l.reference.offset);
-             cg.a_op_const_ref(exprasmlist,OP_SUB,OS_ADDR,ioffset,href);
+             reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
+             cg.a_op_const_ref(exprasmlist,OP_SUB,locpara.size,ioffset,href);
           end
         else
-          internalerror(2002080801);
+          internalerror(200309189);
       end;
     end;
 
@@ -1327,7 +1339,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.47  2003-08-21 14:47:41  peter
+  Revision 1.48  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.47  2003/08/21 14:47:41  peter
     * remove convert_registers
 
   Revision 1.46  2003/08/20 09:07:00  daniel

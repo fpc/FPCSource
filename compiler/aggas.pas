@@ -681,16 +681,22 @@ var
 {$ifdef GDB}
            ait_stabs :
              begin
-               AsmWrite(#9'.stabs ');
-               AsmWritePChar(tai_stabs(hp).str);
-               AsmLn;
+               if assigned(tai_stabs(hp).str) then
+                 begin
+                   AsmWrite(#9'.stabs ');
+                   AsmWritePChar(tai_stabs(hp).str);
+                   AsmLn;
+                 end;
              end;
 
            ait_stabn :
              begin
-               AsmWrite(#9'.stabn ');
-               AsmWritePChar(tai_stabn(hp).str);
-               AsmLn;
+               if assigned(tai_stabn(hp).str) then
+                 begin
+                   AsmWrite(#9'.stabn ');
+                   AsmWritePChar(tai_stabn(hp).str);
+                   AsmLn;
+                 end;
              end;
 
            ait_force_line :
@@ -826,7 +832,12 @@ var
 end.
 {
   $Log$
-  Revision 1.34  2003-09-06 16:47:24  florian
+  Revision 1.35  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.34  2003/09/06 16:47:24  florian
     + support of NaN and Inf in the compiler as values of real constants
 
   Revision 1.33  2003/09/04 00:15:29  florian

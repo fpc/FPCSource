@@ -30,7 +30,6 @@ interface
        cpubase,cginfo,
        aasmbase,aasmtai,aasmcpu,
        node,
-       tgobj,
        symtype,symppu;
 
     type
@@ -132,11 +131,6 @@ interface
           function det_resulttype : tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
-          { Changes the location of this temp to ref. Useful when assigning }
-          { another temp to this one. The current location will be freed.   }
-          { Can only be called in pass 2 (since earlier, the temp location  }
-          { isn't known yet)                                                }
-          procedure changelocation(const ref: treference);
          protected
           tempinfo: ptempinfo;
           offset : longint;
@@ -751,22 +745,6 @@ implementation
     end;
 
 
-    procedure ttemprefnode.changelocation(const ref: treference);
-      begin
-        { check if the temp is valid }
-        if not tempinfo^.valid then
-          internalerror(200306081);
-        if (tempinfo^.temptype = tt_persistent) then
-          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal);
-        tg.ungettemp(exprasmlist,tempinfo^.ref);
-        tempinfo^.ref := ref;
-        tg.ChangeTempType(exprasmlist,tempinfo^.ref,tempinfo^.temptype);
-        { adapt location }
-        location.reference := ref;
-        inc(location.reference.offset,offset);
-      end;
-
-
 {*****************************************************************************
                              TEMPDELETENODE
 *****************************************************************************}
@@ -854,7 +832,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-09-07 22:09:35  peter
+  Revision 1.62  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.61  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

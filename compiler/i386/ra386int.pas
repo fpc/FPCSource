@@ -1360,23 +1360,23 @@ var
      end;
     if actasmtoken in [AS_PLUS,AS_MINUS] then
      inc(l,BuildConstExpression);
-    if (opr.typ=OPR_REFERENCE) then
-     begin
-       { don't allow direct access to fields of parameters, becuase that
-         will generate buggy code. Allow it only for explicit typecasting }
-       if (not hastype) then
+    case opr.typ of
+      OPR_LOCAL :
         begin
-          case opr.ref.options of
-            ref_parafixup :
-              Message(asmr_e_cannot_access_field_directly_for_parameters);
-            ref_selffixup :
-              Message(asmr_e_cannot_access_object_field_directly);
-          end;
+          { don't allow direct access to fields of parameters, becuase that
+            will generate buggy code. Allow it only for explicit typecasting }
+          if (not hastype) and
+             (tvarsym(pointer(opr.ref.symbol)).owner.symtabletype=parasymtable) then
+            Message(asmr_e_cannot_access_field_directly_for_parameters);
+          inc(opr.localsymofs,l)
         end;
-       inc(opr.ref.offset,l)
-     end
-    else
-     inc(opr.val,l);
+      OPR_CONSTANT :
+        inc(opr.val,l);
+      OPR_REFERENCE :
+        inc(opr.ref.offset);
+      else
+        internalerror(200309222);
+    end;
   end;
 
 Begin
@@ -1492,10 +1492,16 @@ Begin
                      if (actasmtoken=AS_PLUS) then
                       begin
                         l:=BuildConstExpression;
-                        if opr.typ=OPR_CONSTANT then
-                         inc(opr.val,l)
-                        else
-                         inc(opr.ref.offset,l);
+                        case opr.typ of
+                          OPR_CONSTANT :
+                            inc(opr.val,l);
+                          OPR_LOCAL :
+                            inc(opr.localsymofs,l);
+                          OPR_REFERENCE :
+                            inc(opr.ref.offset,l);
+                          else
+                            internalerror(200309203);
+                        end;
                       end
                    end
                   else
@@ -1923,7 +1929,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2003-09-03 15:55:01  peter
+  Revision 1.51  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.50  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.49.2.2  2003/08/31 15:46:26  peter

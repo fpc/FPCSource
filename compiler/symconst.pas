@@ -249,7 +249,7 @@ type
     vo_is_dll_var,
     vo_is_thread_var,
     vo_fpuregable,
-    vo_is_local_copy,
+    vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
     vo_is_high_value,
@@ -374,7 +374,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-09-09 21:03:17  peter
+  Revision 1.64  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.63  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.62  2003/09/09 15:54:10  peter

@@ -421,6 +421,7 @@ interface
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           rettype         : ttype;
+          paraalign       : byte;
           parast          : tsymtable;
           para            : tlinkedlist;
           proctypeoption  : tproctypeoption;
@@ -2842,7 +2843,7 @@ implementation
            if varsize>$fffffff then
              varsize:=$fffffff;
            newrec := strpnew(p.name+':'+spec+tstoreddef(tvarsym(p).vartype.def).numberstring
-                         +','+tostr(tvarsym(p).address*8)+','
+                         +','+tostr(tvarsym(p).fieldoffset*8)+','
                          +tostr(varsize*8)+';');
            if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
              begin
@@ -2886,7 +2887,7 @@ implementation
              tvarsym(sym).vartype.def.needs_inittable) then
           begin
             rttiList.concat(Tai_const_symbol.Create(tstoreddef(tvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
-            rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+            rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).fieldoffset));
           end;
       end;
 
@@ -2905,9 +2906,9 @@ implementation
          { recordalign -1 means C record packing, that starts
            with an alignment of 1 }
          if aktalignment.recordalignmax=-1 then
-          symtable.dataalignment:=1
+           trecordsymtable(symtable).dataalignment:=1
          else
-          symtable.dataalignment:=aktalignment.recordalignmax;
+           trecordsymtable(symtable).dataalignment:=aktalignment.recordalignmax;
          isunion:=false;
       end;
 
@@ -2918,6 +2919,8 @@ implementation
          deftype:=recorddef;
          savesize:=ppufile.getlongint;
          symtable:=trecordsymtable.create;
+         trecordsymtable(symtable).datasize:=ppufile.getlongint;
+         trecordsymtable(symtable).dataalignment:=ppufile.getbyte;
          trecordsymtable(symtable).ppuload(ppufile);
          symtable.defowner:=self;
          isunion:=false;
@@ -2962,17 +2965,16 @@ implementation
       begin
          inherited ppuwritedef(ppufile);
          ppufile.putlongint(savesize);
+         ppufile.putlongint(trecordsymtable(symtable).datasize);
+         ppufile.putbyte(trecordsymtable(symtable).dataalignment);
          ppufile.writeentry(ibrecorddef);
          trecordsymtable(symtable).ppuwrite(ppufile);
       end;
 
 
     function trecorddef.size:longint;
-      var
-        _resultsize : longint;
       begin
-        _resultsize:=symtable.datasize;
-        size:=_resultsize;
+        result:=trecordsymtable(symtable).datasize;
       end;
 
 
@@ -2992,7 +2994,7 @@ implementation
             l:=hp.vartype.def.alignment
            else
             l:=hp.vartype.def.size;
-           if l>symtable.dataalignment then
+           if l>trecordsymtable(symtable).dataalignment then
             begin
               if l>=4 then
                alignment:=4
@@ -3003,10 +3005,10 @@ implementation
                alignment:=1;
             end
            else
-            alignment:=symtable.dataalignment;
+            alignment:=trecordsymtable(symtable).dataalignment;
          end
         else
-         alignment:=symtable.dataalignment;
+         alignment:=trecordsymtable(symtable).dataalignment;
       end;
 
 
@@ -3070,6 +3072,7 @@ implementation
          parast.defowner:=self;
          parast.next:=owner;
          para:=TLinkedList.Create;
+         paraalign:=aktalignment.paraalign;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3216,6 +3219,7 @@ implementation
          maxparacount:=0;
          ppufile.gettype(rettype);
          fpu_used:=ppufile.getbyte;
+         paraalign:=ppufile.getbyte;
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
@@ -3258,6 +3262,7 @@ implementation
          if simplify_ppu then
           fpu_used:=0;
          ppufile.putbyte(fpu_used);
+         ppufile.putbyte(paraalign);
          ppufile.putbyte(ord(proctypeoption));
          ppufile.putbyte(ord(proccalloption));
          ppufile.putsmallset(procoptions);
@@ -4384,14 +4389,13 @@ implementation
         symtable:=tobjectsymtable.create(n);
         { create space for vmt !! }
         vmt_offset:=0;
-        symtable.datasize:=0;
         symtable.defowner:=self;
         { recordalign -1 means C record packing, that starts
           with an alignment of 1 }
         if aktalignment.recordalignmax=-1 then
-         symtable.dataalignment:=1
+         tobjectsymtable(symtable).dataalignment:=1
         else
-         symtable.dataalignment:=aktalignment.recordalignmax;
+         tobjectsymtable(symtable).dataalignment:=aktalignment.recordalignmax;
         lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
@@ -4451,6 +4455,8 @@ implementation
            implementedinterfaces:=nil;
 
          symtable:=tobjectsymtable.create(objrealname^);
+         tobjectsymtable(symtable).datasize:=ppufile.getlongint;
+         tobjectsymtable(symtable).dataalignment:=ppufile.getbyte;
          tobjectsymtable(symtable).ppuload(ppufile);
 
          symtable.defowner:=self;
@@ -4518,6 +4524,8 @@ implementation
                 end;
            end;
 
+         ppufile.putlongint(tobjectsymtable(symtable).datasize);
+         ppufile.putbyte(tobjectsymtable(symtable).dataalignment);
          ppufile.writeentry(ibobjectdef);
 
          tobjectsymtable(symtable).ppuwrite(ppufile);
@@ -4582,10 +4590,10 @@ implementation
              if not (objecttype in [odt_interfacecom,odt_interfacecorba]) then
                begin
                   { add the data of the anchestor class }
-                  inc(symtable.datasize,c.symtable.datasize);
+                  inc(tobjectsymtable(symtable).datasize,tobjectsymtable(c.symtable).datasize);
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(symtable.datasize,POINTER_SIZE);
+                    dec(tobjectsymtable(symtable).datasize,POINTER_SIZE);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -4595,7 +4603,7 @@ implementation
                     end;
                end;
           end;
-        savesize := symtable.datasize;
+        savesize := tobjectsymtable(symtable).datasize;
       end;
 
 
@@ -4607,9 +4615,10 @@ implementation
           internalerror(12345)
         else
           begin
-             symtable.datasize:=align(symtable.datasize,symtable.dataalignment);
-             vmt_offset:=symtable.datasize;
-             inc(symtable.datasize,POINTER_SIZE);
+             tobjectsymtable(symtable).datasize:=align(tobjectsymtable(symtable).datasize,
+                 tobjectsymtable(symtable).dataalignment);
+             vmt_offset:=tobjectsymtable(symtable).datasize;
+             inc(tobjectsymtable(symtable).datasize,POINTER_SIZE);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4704,20 +4713,17 @@ implementation
 
 
     function tobjectdef.size : longint;
-      var
-        _resultsize : longint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
-          _resultsize:=POINTER_SIZE
+          result:=POINTER_SIZE
         else
-          _resultsize:=symtable.datasize;
-        size := _resultsize;
+          result:=tobjectsymtable(symtable).datasize;
       end;
 
 
     function tobjectdef.alignment:longint;
       begin
-        alignment:=symtable.dataalignment;
+        alignment:=tobjectsymtable(symtable).dataalignment;
       end;
 
 
@@ -4856,7 +4862,7 @@ implementation
             oldrecsize:=stabrecsize;
             stabrecsize:=memsizeinc;
             GetMem(stabrecstring,stabrecsize);
-            strpcopy(stabRecString,'s'+tostr(symtable.datasize));
+            strpcopy(stabRecString,'s'+tostr(tobjectsymtable(symtable).datasize));
             if assigned(childof) then
               begin
                 {only one ancestor not virtual, public, at base offset 0 }
@@ -5045,7 +5051,7 @@ implementation
                 hp:=proc.firstsym;
                 while assigned(hp) do
                   begin
-                     inc(address,tvarsym(hp^.sym).address);
+                     inc(address,tvarsym(hp^.sym).fieldoffset);
                      hp:=hp^.next;
                   end;
                 rttiList.concat(Tai_const.Create_32bit(address));
@@ -5215,7 +5221,7 @@ implementation
          if needs_prop_entry(tsym(sym)) and
           (tsym(sym).typ=varsym) then
           begin
-             rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+             rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).fieldoffset));
              hp:=searchclasstablelist(tobjectdef(tvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
@@ -5848,7 +5854,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2003-09-07 22:09:35  peter
+  Revision 1.163  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.162  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

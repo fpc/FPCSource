@@ -1135,8 +1135,8 @@ implementation
          doobjectdestroyandreraise,
          doobjectdestroy,
          oldaktbreaklabel : tasmlabel;
-         ref : treference;
          oldflowcontrol : tflowcontrol;
+         exceptref,
          tempbuf,tempaddr : treference;
          href : treference;
          href2: treference;
@@ -1160,13 +1160,22 @@ implementation
 
          { is it this catch? No. go to next onlabel }
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
-         ref.symbol:=nil;
-         tg.GetTemp(exprasmlist,pointer_size,tt_normal,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
-           tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
-         cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,ref);
+           begin
+             tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
+             tg.GetLocal(exprasmlist,POINTER_SIZE,tvarsym(exceptsymtable.symindex.first).localloc.reference);
+             reference_reset_base(href,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
+                tvarsym(exceptsymtable.symindex.first).localloc.reference.offset);
+             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,href);
+           end
+         else
+           begin
+             tg.GetTemp(exprasmlist,POINTER_SIZE,tt_normal,exceptref);
+             cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
+           end;
+
 
          { in the case that another exception is risen }
          { we've to destroy the old one                }
@@ -1214,7 +1223,13 @@ implementation
          cg.a_label(exprasmlist,doobjectdestroy);
          cleanupobjectstack;
          { clear some stuff }
-         tg.ungetiftemp(exprasmlist,ref);
+         if assigned(exceptsymtable) then
+           begin
+             tg.UngetLocal(exprasmlist,tvarsym(exceptsymtable.symindex.first).localloc.reference);
+             tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_INVALID;
+           end
+         else
+           tg.Ungettemp(exprasmlist,exceptref);
          cg.a_jmp_always(exprasmlist,endexceptlabel);
 
          if assigned(right) then
@@ -1429,7 +1444,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-09-10 08:31:47  marco
+  Revision 1.81  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.80  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.79  2003/09/07 22:09:35  peter

@@ -49,7 +49,8 @@ unit cpupi;
          { we push Flags and CS as long
            to cope with the IRETD
            and we save 6 register + 4 selectors }
-         inc(procdef.parast.address_fixup,8+6*4+4*2);
+         {$warning TODO interrupt allocation}
+//         inc(procdef.parast.address_fixup,8+6*4+4*2);
       end;
 
 
@@ -76,7 +77,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-09-09 21:03:17  peter
+  Revision 1.12  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.11  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.10  2003/09/03 15:55:01  peter

@@ -57,6 +57,8 @@ implementation
        symconst,symbase,symtype,symdef,symtable,paramgr,
        { pass 1 }
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
+       { codegen }
+       ncgutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -195,7 +197,7 @@ implementation
                    sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
-                   symtablestack.insertconstdata(sym);
+                   insertconstdata(ttypedconstsym(sym));
                    { procvar can have proc directives }
                    if (tt.def.deftype=procvardef) then
                     begin
@@ -631,7 +633,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-07-02 22:18:04  peter
+  Revision 1.69  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.68  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 

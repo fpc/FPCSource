@@ -79,9 +79,12 @@ interface
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
+{$warning TODO Fix setting of funcret vs_assigned}
+(*
            if assigned(current_procinfo.procdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
              tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
+*)
            s:='';
          end;
 
@@ -91,11 +94,15 @@ interface
        if assigned(current_procinfo.procdef.funcretsym) and
           is_fpu(current_procinfo.procdef.rettype.def) then
          tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
-       framereg:=current_procinfo.framepointer;
+(*
+       if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc<>LOC_REFERENCE then
+         internalerror(2003091813);
+       framereg:=tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.index;
        if (not is_void(current_procinfo.procdef.rettype.def)) then
-         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).adjusted_address)+'('+gas_regname(framereg)+')')
+         retstr:=upper(tostr(tvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset)+'('+gas_regname(framereg)+')')
        else
          retstr:='';
+*)
        c:=current_scanner.asmgetchar;
        code:=TAAsmoutput.Create;
        while not(ende) do
@@ -164,18 +171,17 @@ interface
                                            end
                                          else if sym.typ=varsym then
                                            begin
-                                           {variables set are after a comma }
-                                           {like in movl %eax,I }
-                                           if pos(',',s) > 0 then
-                                             tvarsym(sym).varstate:=vs_used
-                                           else
-                                           if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
-                                            Message1(sym_n_uninitialized_local_variable,hs);
-                                           if (vo_is_external in tvarsym(sym).varoptions) then
-                                             hs:=tvarsym(sym).mangledname
-                                           else
-                                             hs:='-'+tostr(tvarsym(sym).address)+
-                                                 '('+gas_regname(framereg)+')';
+                                             {variables set are after a comma }
+                                             {like in movl %eax,I }
+                                             if pos(',',s) > 0 then
+                                               tvarsym(sym).varstate:=vs_used
+                                             else
+                                               if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
+                                                 Message1(sym_n_uninitialized_local_variable,hs);
+                                             if (vo_is_external in tvarsym(sym).varoptions) then
+                                               hs:=tvarsym(sym).mangledname
+                                             else
+                                               hs:='%%'+tvarsym(sym).name;
                                            end
                                          else
                                          { call to local function }
@@ -195,12 +201,9 @@ interface
                                            begin
                                               if sym.typ=varsym then
                                                 begin
-                                                   l:=tvarsym(sym).address;
-                                                   { set offset }
-                                                   inc(l,current_procinfo.procdef.parast.address_fixup);
-                                                   hs:=tostr(l)+'('+gas_regname(framereg)+')';
-                                                   if pos(',',s) > 0 then
-                                                     tvarsym(sym).varstate:=vs_used;
+                                                  hs:='%%'+tvarsym(sym).name;
+                                                  if pos(',',s) > 0 then
+                                                    tvarsym(sym).varstate:=vs_used;
                                                 end;
                                            end
                                     { I added that but it creates a problem in line.ppi
@@ -287,8 +290,7 @@ interface
                                                   case sym.typ of
                                                     varsym :
                                                       begin
-                                                        hs:=tostr(tvarsym(sym).adjusted_address)+
-                                                            '('+gas_regname(framereg)+')';
+                                                        hs:='%%'+tvarsym(sym).name;
                                                         inc(tvarsym(sym).refs);
                                                       end;
                                                     typedconstsym :
@@ -311,8 +313,11 @@ interface
                 end;
               '{',';',#10,#13 :
                 begin
+{$warning TODO Fix setting of funcret vs_assigned}
+(*
                   if pos(retstr,s) > 0 then
                     tvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
+*)
                   writeasmline;
                   c:=current_scanner.asmgetchar;
                 end;
@@ -360,7 +365,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-09-03 15:55:02  peter
+  Revision 1.9  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.8  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.7.2.1  2003/08/27 21:06:34  peter

@@ -50,9 +50,6 @@ interface
        getprocvardef : tprocvardef = nil;
 
     var
-       { size of data segment, set by proc_unit or proc_program }
-       datasize : longint;
-
        { for operators }
        optoken : ttoken;
 
@@ -273,7 +270,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-05-15 18:58:53  peter
+  Revision 1.25  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.24  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

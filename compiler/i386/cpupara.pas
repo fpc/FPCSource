@@ -48,17 +48,17 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
-          function getselflocation(p : tabstractprocdef) : tparalocation;override;
        private
           procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
-          procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee);
-          procedure create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+          function create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+          function create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
        end;
 
   implementation
 
     uses
-       systems,verbose,
+       cutils,
+       systems,globals,verbose,
        symsym,
        cpuinfo,
        cgbase;
@@ -237,11 +237,19 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    function ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         hp : tparaitem;
         paraloc : tparalocation;
+        l,
+        varalign,
+        parasize : longint;
       begin
+        parasize:=0;
+{$warning HACK: framepointer reg shall be a normal parameter}
+        if p.parast.symtablelevel>normal_function_level then
+          inc(parasize,POINTER_SIZE);
+{$warning callerparaloc shall not be the same as calleeparaloc}
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -254,22 +262,36 @@ unit cpupara;
               paraloc.reference.index:=current_procinfo.framepointer
             else
               paraloc.reference.index:=NR_FRAME_POINTER_REG;
-            paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+            l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+            varalign:=size_2_align(l);
+            paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+            varalign:=used_align(varalign,p.paraalign,p.paraalign);
+            parasize:=align(parasize+l,varalign);
             hp.paraloc[side]:=paraloc;
-{$warning callerparaloc shall not be the same as calleeparaloc}
             hp:=tparaitem(hp.next);
           end;
+        { We need to return the size allocated }
+        result:=parasize;
       end;
 
 
-    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+    function ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         hp : tparaitem;
         paraloc : tparalocation;
         sr : tsuperregister;
         subreg : tsubregister;
+        is_64bit : boolean;
+        l,
+        varalign,
+        parasize : longint;
       begin
         sr:=RS_EAX;
+        parasize:=0;
+{$warning HACK: framepointer reg shall be a normal parameter}
+        if p.parast.symtablelevel>normal_function_level then
+          inc(parasize,POINTER_SIZE);
+{$warning callerparaloc shall not be the same as calleeparaloc}
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -277,22 +299,35 @@ unit cpupara;
               paraloc.size:=OS_ADDR
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
+            is_64bit:=(paraloc.size in [OS_64,OS_S64,OS_F64]);
             {
               EAX
               EDX
               ECX
               Stack
               Stack
+
+              64bit values are in EAX:EDX or on the stack.
             }
-            if sr<=NR_ECX then
+            if (sr<=NR_ECX) and not(is_64bit) then
               begin
                 paraloc.loc:=LOC_REGISTER;
-                if paraloc.size=OS_NO then
-                  subreg:=R_SUBWHOLE
+                if is_64bit then
+                  begin
+                    paraloc.registerlow:=newreg(R_INTREGISTER,sr,R_SUBD);
+                    inc(sr);
+                    paraloc.registerhigh:=newreg(R_INTREGISTER,sr,R_SUBD);
+                    inc(sr);
+                  end
                 else
-                  subreg:=cgsize2subreg(paraloc.size);
-                paraloc.register:=newreg(R_INTREGISTER,sr,subreg);
-                inc(sr);
+                  begin
+                    if (paraloc.size=OS_NO) or is_64bit then
+                      subreg:=R_SUBWHOLE
+                    else
+                      subreg:=cgsize2subreg(paraloc.size);
+                    paraloc.register:=newreg(R_INTREGISTER,sr,subreg);
+                    inc(sr);
+                  end;
               end
             else
               begin
@@ -301,38 +336,34 @@ unit cpupara;
                   paraloc.reference.index:=current_procinfo.framepointer
                 else
                   paraloc.reference.index:=NR_FRAME_POINTER_REG;
-                paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
+                l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
+                varalign:=size_2_align(l);
+                paraloc.reference.offset:=parasize+target_info.first_parm_offset;
+                varalign:=used_align(varalign,p.paraalign,p.paraalign);
+                parasize:=align(parasize+l,varalign);
               end;
             hp.paraloc[side]:=paraloc;
-{$warning callerparaloc shall not be the same as calleeparaloc}
             hp:=tparaitem(hp.next);
           end;
+        { We need to return the size allocated }
+        result:=parasize;
       end;
 
 
     procedure ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+      var
+        l : longint;
       begin
         if (p.proccalloption=pocall_register) or
            ((pocall_default=pocall_register) and
             (p.proccalloption in [pocall_compilerproc,pocall_internproc])) then
-          create_register_paraloc_info(p,side)
+          l:=create_register_paraloc_info(p,side)
         else
-          create_stdcall_paraloc_info(p,side);
+          l:=create_stdcall_paraloc_info(p,side);
         create_funcret_paraloc_info(p,side);
-      end;
-
-
-    function ti386paramanager.getselflocation(p : tabstractprocdef) : tparalocation;
-      var
-        hsym : tvarsym;
-      begin
-         hsym:=tvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
-         if not assigned(hsym) then
-           internalerror(200305251);
-         getselflocation.loc:=LOC_REFERENCE;
-         getselflocation.sp_fixup:=POINTER_SIZE;
-         getselflocation.reference.index:=NR_STACK_POINTER_REG;
-         getselflocation.reference.offset:=hsym.adjusted_address;
+        { Store the size of the parameters on the stack }
+        if (side=calleeside) then
+          current_procinfo.para_stack_size:=l;
       end;
 
 
@@ -341,7 +372,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-09-16 16:17:01  peter
+  Revision 1.30  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.29  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.28  2003/09/10 08:31:47  marco

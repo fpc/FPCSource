@@ -84,7 +84,7 @@ implementation
       begin
         pop_size:=0;
         { This parasize aligned on 4 ? }
-        i:=procdefinition.parast.datasize and 3;
+        i:=pushedparasize and 3;
         if i>0 then
          inc(pop_size,4-i);
         { insert the opcode and update pushedparasize }
@@ -104,7 +104,7 @@ implementation
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
-              push_size:=procdefinition.parast.datasize;
+              push_size:=pushedparasize;
               { !!!! here we have to take care of return type, self
                 and nested procedures
               }
@@ -170,7 +170,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-09-03 15:55:01  peter
+  Revision 1.95  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.94  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.93.2.1  2003/08/29 17:29:00  peter

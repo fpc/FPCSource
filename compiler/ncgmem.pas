@@ -315,7 +315,7 @@ implementation
          else
            location_copy(location,left.location);
 
-         inc(location.reference.offset,vs.address);
+         inc(location.reference.offset,vs.fieldoffset);
          { also update the size of the location }
          location.size:=def_cgsize(resulttype.def);
       end;
@@ -811,7 +811,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2003-09-10 08:31:47  marco
+  Revision 1.73  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.72  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.71  2003/09/07 22:09:35  peter

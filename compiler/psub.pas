@@ -29,7 +29,7 @@ unit psub;
 interface
 
     uses
-      cclasses,
+      cclasses,globals,
       node,
       symdef,cgbase;
 
@@ -60,6 +60,8 @@ interface
     { reads declarations in the interface part of a unit }
     procedure read_interface_declarations;
 
+    procedure add_entry_exit_code(var code:tnode;const entrypos,exitpos:tfileposinfo);
+
 
 implementation
 
@@ -67,7 +69,7 @@ implementation
        { common }
        cutils,
        { global }
-       globtype,globals,tokens,verbose,comphook,
+       globtype,tokens,verbose,comphook,
        systems,
        { aasm }
        cpubase,cpuinfo,aasmbase,aasmtai,
@@ -574,7 +576,6 @@ implementation
 
     procedure tcgprocinfo.generate_code;
       var
-        oldrg : trgobj;
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
@@ -592,8 +593,11 @@ implementation
         if not assigned(code) then
           exit;
 
+        { The RA and Tempgen shall not be available yet }
+        if assigned(rg) or assigned(tg) then
+          internalerror(200309201);
+
         oldprocinfo:=current_procinfo;
-        oldrg:=rg;
         oldfilepos:=aktfilepos;
         oldaktmaxfpuregisters:=aktmaxfpuregisters;
 
@@ -608,10 +612,19 @@ implementation
         add_to_symtablestack;
 
         { set the start offset to the start of the temp area in the stack }
-        tg.setfirsttemp(firsttemp_offset);
+        tg:=ttgobj.create;
+//        tg.setfirsttemp(firsttemp_offset);
 
         { Create register allocator }
         cg.init_register_allocators;
+
+        { generate callee paraloc register info }
+        paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
+
+        { Allocate space in temp/registers for parast and localst }
+        gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
+        if current_procinfo.procdef.localst.symtabletype=localsymtable then
+          gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
 
 {$warning FIXME!!}
         { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
@@ -678,6 +691,12 @@ implementation
         gen_entry_code(templist,false);
         { insert symbol and entry code }
         aktproccode.insertlist(templist);
+
+        { Free space in temp/registers for parast and localst, must be
+          done after gen_entry_code }
+        if current_procinfo.procdef.localst.symtabletype=localsymtable then
+          gen_free_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
+        gen_free_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
 
         { The procedure body is finished, we can now
           allocate the registers }
@@ -748,13 +767,17 @@ implementation
         { only now we can remove the temps }
         tg.resettempgen;
 
+        { stop tempgen and ra }
+        tg.free;
+        cg.done_register_allocators;
+        tg:=nil;
+        rg:=nil;
+
         { restore symtablestack }
         remove_from_symtablestack;
 
         { restore }
-        cg.done_register_allocators;
         templist.free;
-        rg:=oldrg;
         aktmaxfpuregisters:=oldaktmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
@@ -950,38 +973,6 @@ implementation
                         PROCEDURE/FUNCTION PARSING
 ****************************************************************************}
 
-    procedure insert_local_value_para(p:tnamedindexitem;arg:pointer);
-      var
-        vs : tvarsym;
-        pd : tprocdef;
-      begin
-        if tsym(p).typ<>varsym then
-         exit;
-        with tvarsym(p) do
-         begin
-           if copy(name,1,3)='val' then
-            begin
-              pd:=tprocdef(owner.defowner);
-              vs:=tvarsym.create(Copy(name,4,255),varspez,vartype);
-              vs.fileinfo:=fileinfo;
-              if not assigned(pd.localst) then
-                pd.insert_localst;
-              pd.localst.insert(vs);
-              pd.localst.insertvardata(vs);
-              include(vs.varoptions,vo_is_local_copy);
-              vs.varstate:=vs_assigned;
-              localvarsym:=vs;
-              inc(refs); { the para was used to set the local copy ! }
-              { warnings only on local copy ! }
-              varstate:=vs_used;
-            end;
-           if is_shortstring(vartype.def) and
-              (varspez = vs_value) then
-             include(current_procinfo.flags,pi_do_call);
-         end;
-      end;
-
-
     procedure check_init_paras(p:tnamedindexitem;arg:pointer);
       begin
         if tsym(p).typ<>varsym then
@@ -1117,8 +1108,10 @@ implementation
              { Insert result variables in the localst }
              insert_funcret_local(pd);
 
+(*
              { Insert local copies for value para }
              pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}insert_local_value_para,nil);
+*)
 
              { check if there are para's which require initing -> set }
              { pi_do_call (if not yet set)                            }
@@ -1302,7 +1295,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.148  2003-09-14 19:18:10  peter
+  Revision 1.149  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.148  2003/09/14 19:18:10  peter
     * remove obsolete code already in comments
 
   Revision 1.147  2003/09/14 12:58:00  peter

@@ -62,9 +62,6 @@ interface
       begin
         with ref do
          begin
-           inc(offset,offsetfixup);
-           offsetfixup:=0;
-
            { have we a segment prefix ? }
            { These are probably not correctly handled under GAS }
            { should be replaced by coding the segment override  }
@@ -311,7 +308,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-09-03 15:55:02  peter
+  Revision 1.6  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.5  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.4.2.1  2003/08/31 15:46:26  peter

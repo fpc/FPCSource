@@ -40,10 +40,12 @@ implementation
        systems,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,
-       fmodule,paramgr,
+       fmodule,
        { pass 1 }
        node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       { codegen }
+       ncgutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
@@ -89,12 +91,19 @@ implementation
                   begin
                      vs2:=tvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt);
                      symtablestack.defowner.owner.insert(vs2);
-                     symtablestack.defowner.owner.insertvardata(vs2);
+                     insertbssdata(vs2);
                   end
                 else
                   begin
                     { external data is not possible here }
-                    symtablestack.insertvardata(vs);
+                    case symtablestack.symtabletype of
+                      globalsymtable,
+                      staticsymtable :
+                        insertbssdata(vs);
+                      recordsymtable,
+                      objectsymtable :
+                        tabstractrecordsymtable(symtablestack).insertfield(vs,false);
+                    end;
                   end;
                 vs:=tvarsym(vs.listnext);
              end;
@@ -126,7 +135,7 @@ implementation
          vs,vs2    : tvarsym;
          srsym : tsym;
          srsymtable : tsymtable;
-         unionsymtable : tsymtable;
+         unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
          unionsym : tvarsym;
@@ -265,7 +274,7 @@ implementation
                    abssym.fileinfo:=vs.fileinfo;
                    abssym.abstyp:=toaddr;
                    abssym.absseg:=false;
-                   abssym.address:=tordconstnode(pt).value;
+                   abssym.fieldoffset:=tordconstnode(pt).value;
                    if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                       try_to_consume(_COLON) then
                     begin
@@ -273,7 +282,7 @@ implementation
                       pt:=expr;
                       if is_constintnode(pt) then
                         begin
-                          abssym.address:=abssym.address shl 4+tordconstnode(pt).value;
+                          abssym.fieldoffset:=abssym.fieldoffset shl 4+tordconstnode(pt).value;
                           abssym.absseg:=true;
                         end
                       else
@@ -316,7 +325,7 @@ implementation
                      tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
                      vs.defaultconstsym:=tconstsym;
                      symtablestack.insert(tconstsym);
-                     symtablestack.insertconstdata(tconstsym);
+                     insertconstdata(tconstsym);
                      readtypedconst(tt,tconstsym,false);
                    end
                   else
@@ -325,7 +334,7 @@ implementation
                      tconstsym.fileinfo:=vs.fileinfo;
                      symtablestack.replace(vs,tconstsym);
                      vs.free;
-                     symtablestack.insertconstdata(tconstsym);
+                     insertconstdata(tconstsym);
                      consume(_EQUAL);
                      readtypedconst(tt,tconstsym,true);
                      symdone:=true;
@@ -424,8 +433,8 @@ implementation
                    if extern_var then
                     include(vs.varoptions,vo_is_external);
                    { insert in the datasegment when it is not external }
-                   if not extern_var then
-                     symtablestack.insertvardata(vs);
+                   if (not extern_var) then
+                     insertbssdata(vs);
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
                    if extern_var then
@@ -515,8 +524,7 @@ implementation
                   read_type(casetype,'');
                   symtablestack:=oldsymtablestack;
                   vs:=tvarsym.create(sorg,vs_value,casetype);
-                  symtablestack.insert(vs);
-                  symtablestack.insertvardata(vs);
+                  tabstractrecordsymtable(symtablestack).insertfield(vs,true);
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
@@ -529,9 +537,9 @@ implementation
               if assigned(symtablestack.defowner) then
                 Uniondef.owner:=symtablestack.defowner.owner;
               registerdef:=true;
+              startvarrecsize:=UnionSymtable.datasize;
+              startvarrecalign:=UnionSymtable.dataalignment;
               symtablestack:=UnionSymtable;
-              startvarrecsize:=symtablestack.datasize;
-              startvarrecalign:=symtablestack.dataalignment;
               repeat
                 repeat
                   pt:=comp_expr(true);
@@ -552,19 +560,19 @@ implementation
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
-                maxsize:=max(maxsize,symtablestack.datasize);
-                maxalignment:=max(maxalignment,symtablestack.dataalignment);
+                maxsize:=max(maxsize,unionsymtable.datasize);
+                maxalignment:=max(maxalignment,unionsymtable.dataalignment);
                 { the items of the next variant are overlayed }
-                symtablestack.datasize:=startvarrecsize;
-                symtablestack.dataalignment:=startvarrecalign;
+                unionsymtable.datasize:=startvarrecsize;
+                unionsymtable.dataalignment:=startvarrecalign;
                 if (token<>_END) and (token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
                   break;
               until (token=_END) or (token=_RKLAMMER);
               { at last set the record size to that of the biggest variant }
-              symtablestack.datasize:=maxsize;
-              symtablestack.dataalignment:=maxalignment;
+              unionsymtable.datasize:=maxsize;
+              unionsymtable.dataalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
               UnionSym:=tvarsym.create('$case',vs_value,uniontype);
@@ -590,11 +598,11 @@ implementation
               else
                minalignment:=maxalignment;
               usedalign:=used_align(maxalignment,minalignment,maxalignment);
-              offset:=align(symtablestack.datasize,usedalign);
-              symtablestack.datasize:=offset+unionsymtable.datasize;
-              if maxalignment>symtablestack.dataalignment then
-                symtablestack.dataalignment:=maxalignment;
-              trecordsymtable(Unionsymtable).Insert_in(symtablestack,offset);
+              offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
+              trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
+              if maxalignment>trecordsymtable(symtablestack).dataalignment then
+                trecordsymtable(symtablestack).dataalignment:=maxalignment;
+              Unionsymtable.Insert_in(trecordsymtable(symtablestack),offset);
               Unionsym.owner:=nil;
               unionsym.free;
               uniondef.owner:=nil;
@@ -609,7 +617,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-09-07 14:14:51  florian
+  Revision 1.51  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.50  2003/09/07 14:14:51  florian
     * proper error recovering from invalid published fields
 
   Revision 1.49  2003/09/05 17:41:12  florian

@@ -242,7 +242,7 @@ implementation
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
          { may be scale record size to a size of n*4 ? }
-         symtablestack.datasize:=align(symtablestack.datasize,symtablestack.dataalignment);
+         trecordsymtable(symtablestack).datasize:=align(trecordsymtable(symtablestack).datasize,trecordsymtable(symtablestack).dataalignment);
          { restore symtable stack }
          symtablestack:=symtable.next;
       end;
@@ -627,7 +627,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-05-15 18:58:53  peter
+  Revision 1.56  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.55  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

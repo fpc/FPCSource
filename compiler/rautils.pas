@@ -29,7 +29,7 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,cpubase,cpuinfo,cginfo,
-  symconst,symbase,symtype,symdef;
+  symconst,symbase,symtype,symdef,symsym;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -67,7 +67,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 ---------------------------------------------------------------------}
 
 type
-  TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,
+  TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
             OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST);
 
   TOprRec = record
@@ -76,6 +76,7 @@ type
       OPR_CONSTANT  : (val:longint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:longint);
       OPR_REFERENCE : (ref:treference);
+      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (reglist:Tsupregset);
@@ -215,7 +216,7 @@ uses
   strings,
 {$endif}
   defutil,systems,verbose,globals,
-  symsym,symtable,paramgr,
+  symtable,paramgr,
   aasmcpu,
   cgbase,tgobj;
 
@@ -800,7 +801,7 @@ Begin
             begin
               { We return the address of the field, just like Delphi/TP }
               opr.typ:=OPR_CONSTANT;
-              opr.val:=tvarsym(sym).address;
+              opr.val:=tvarsym(sym).fieldoffset;
               hasvar:=true;
               SetupVar:=true;
               Exit;
@@ -808,71 +809,23 @@ Begin
           globalsymtable,
           staticsymtable :
             opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname);
-          parasymtable :
-            begin
-              { if we only want the offset we don't have to care
-                the base will be zeroed after ! }
-              if (tvarsym(sym).owner=current_procinfo.procdef.parast) or
-                GetOffset then
-                begin
-                  opr.ref.base:=current_procinfo.framepointer;
-                end
-              else
-                begin
-                  if (current_procinfo.procdef.localst.datasize=0) and
-                     assigned(current_procinfo.parent) and
-                     (tvarsym(sym).owner=current_procinfo.procdef.parast) and
-                     (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-                    opr.ref.base:=current_procinfo.parent.framepointer
-                  else
-                    message1(asmr_e_local_para_unreachable,s);
-                end;
-              opr.ref.offset:=tvarsym(sym).address;
-              if (current_procinfo.procdef.parast.symtablelevel=tvarsym(sym).owner.symtablelevel) then
-                begin
-                  opr.ref.offsetfixup:=current_procinfo.procdef.parast.address_fixup;
-                  opr.ref.options:=ref_parafixup;
-                end
-              else
-                begin
-                  opr.ref.offsetfixup:=0;
-                  opr.ref.options:=ref_none;
-                end;
-              if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
-                SetSize(pointer_size,false);
-            end;
+          parasymtable,
           localsymtable :
             begin
               if (vo_is_external in tvarsym(sym).varoptions) then
                 opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
               else
                 begin
-                  { if we only want the offset we don't have to care
-                    the base will be zeroed after ! }
-                  if (tvarsym(sym).owner=current_procinfo.procdef.localst) or
-                     GetOffset then
-                    opr.ref.base:=current_procinfo.framepointer
-                  else
-                    begin
-                      if (current_procinfo.procdef.localst.datasize=0) and
-                         assigned(current_procinfo.parent) and
-                         (tvarsym(sym).owner=current_procinfo.parent.procdef.localst) and
-                         (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-                        opr.ref.base:=current_procinfo.parent.framepointer
-                      else
-                        message1(asmr_e_local_para_unreachable,s);
-                    end;
-                  opr.ref.offset:=tvarsym(sym).address;
-                  if (current_procinfo.procdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
-                    begin
-                      opr.ref.offsetfixup:=current_procinfo.procdef.localst.address_fixup;
-                      opr.ref.options:=ref_localfixup;
-                    end
-                  else
-                    begin
-                      opr.ref.offsetfixup:=0;
-                      opr.ref.options:=ref_none;
-                    end;
+                  opr.typ:=OPR_LOCAL;
+                  if assigned(current_procinfo.parent) and
+                     (
+                      (tvarsym(sym).owner<>current_procinfo.procdef.localst) or
+                      (tvarsym(sym).owner<>current_procinfo.procdef.parast)
+                     ) and
+                     (current_procinfo.procdef.localst.symtablelevel>normal_function_level) then
+                    message1(asmr_e_local_para_unreachable,s);
+                  opr.localsym:=tvarsym(sym);
+                  opr.localsymofs:=0;
                 end;
               if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
                 SetSize(pointer_size,false);
@@ -1333,7 +1286,7 @@ Begin
      case sym.typ of
        varsym :
          begin
-           inc(Offset,tvarsym(sym).address);
+           inc(Offset,tvarsym(sym).fieldoffset);
            Size:=tvarsym(sym).getsize;
            case tvarsym(sym).vartype.def.deftype of
              arraydef :
@@ -1551,7 +1504,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.66  2003-09-16 16:17:01  peter
+  Revision 1.67  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.66  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.65  2003/09/03 15:55:01  peter

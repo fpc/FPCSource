@@ -44,15 +44,14 @@ implementation
     uses
       globtype,systems,cclasses,
       cutils,globals,
-      cgbase,symdef,
+      cgbase,symdef
 {$ifdef extdebug}
-      cginfo,verbose,
-      htypechk,
+      ,cginfo,verbose,
+      htypechk
 {$endif extdebug}
 {$ifdef state_tracking}
-      nstate,
+      ,nstate
 {$endif}
-      tgobj
       ;
 
 {*****************************************************************************
@@ -216,7 +215,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2003-04-22 23:50:23  peter
+  Revision 1.31  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.30  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

@@ -1120,9 +1120,15 @@ Implementation
                end;
 {$ifdef GDB}
              ait_stabn :
-               convertstabs(Tai_stabn(hp).str);
+               begin
+                 if assigned(Tai_stabn(hp).str) then
+                   convertstabs(Tai_stabn(hp).str);
+               end;
              ait_stabs :
-               convertstabs(Tai_stabs(hp).str);
+               begin
+                 if assigned(Tai_stabs(hp).str) then
+                   convertstabs(Tai_stabs(hp).str);
+               end;
              ait_stab_function_name :
                begin
                  if assigned(Tai_stab_function_name(hp).str) then
@@ -1640,7 +1646,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-09-03 15:55:00  peter
+  Revision 1.55  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.54  2003/09/03 15:55:00  peter
     * NEWRA branch merged
 
   Revision 1.53.2.1  2003/09/01 21:02:55  peter

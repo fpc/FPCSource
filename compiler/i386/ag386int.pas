@@ -158,8 +158,6 @@ implementation
         with ref do
          begin
            first:=true;
-           inc(offset,offsetfixup);
-           offsetfixup:=0;
            if segment<>NR_NO then
             AsmWrite(masm_regname(segment)+':[')
            else
@@ -892,7 +890,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2003-09-05 17:41:13  florian
+  Revision 1.39  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.38  2003/09/05 17:41:13  florian
     * merged Wiktor's Watcom patches in 1.1
 
   Revision 1.37  2003/09/03 15:55:01  peter

@@ -93,12 +93,6 @@ unit paramgr;
           }
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);virtual;abstract;
 
-          { Returns the self pointer location for the given tabstractprocdef,
-            when the stack frame is already created. This is used by the code
-            generating the wrappers for implemented interfaces.
-          }
-          function getselflocation(p : tabstractprocdef) : tparalocation;virtual;abstract;
-
           { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
 
@@ -355,6 +349,7 @@ implementation
       end;
 
 
+
 initialization
   ;
 finalization
@@ -363,7 +358,12 @@ end.
 
 {
    $Log$
-   Revision 1.55  2003-09-16 16:17:01  peter
+   Revision 1.56  2003-09-23 17:56:05  peter
+     * locals and paras are allocated in the code generation
+     * tvarsym.localloc contains the location of para/local when
+       generating code for the current procedure
+
+   Revision 1.55  2003/09/16 16:17:01  peter
      * varspez in calls to push_addr_param
 
    Revision 1.54  2003/09/10 08:31:47  marco

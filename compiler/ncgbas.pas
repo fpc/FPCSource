@@ -27,6 +27,7 @@ unit ncgbas;
 interface
 
     uses
+       cpubase,
        node,nbas;
 
     type
@@ -52,6 +53,11 @@ interface
 
        tcgtemprefnode = class(ttemprefnode)
           procedure pass_2;override;
+          { Changes the location of this temp to ref. Useful when assigning }
+          { another temp to this one. The current location will be freed.   }
+          { Can only be called in pass 2 (since earlier, the temp location  }
+          { isn't known yet)                                                }
+          procedure changelocation(const ref: treference);
        end;
 
        tcgtempdeletenode = class(ttempdeletenode)
@@ -64,7 +70,6 @@ interface
       globtype,systems,
       cutils,verbose,globals,
       aasmbase,aasmtai,aasmcpu,symsym,
-      cpubase,
       nflw,pass_2,
       cgbase,cginfo,cgobj,tgobj,rgobj
       ;
@@ -124,9 +129,36 @@ interface
            end;
         end;
 
+      procedure ResolveRef(var op:toper);
+        var
+          sym : tvarsym;
+          sofs : longint;
+        begin
+          if (op.typ=top_local) then
+            begin
+              sofs:=op.localsymofs;
+              sym:=tvarsym(pointer(op.localsym));
+              case sym.localloc.loc of
+                LOC_REFERENCE :
+                  begin
+                    op.typ:=top_ref;
+                    new(op.ref);
+                    reference_reset_base(op.ref^,sym.localloc.reference.index,
+                        sym.localloc.reference.offset+sofs);
+                  end;
+                LOC_REGISTER :
+                  begin
+                    op.typ:=top_reg;
+                    op.reg:=sym.localloc.register;
+                    if sofs<>0 then
+                      internalerror(200309231);
+                  end;
+              end;
+            end;
+        end;
+
       var
         hp,hp2 : tai;
-        localfixup,parafixup,
         i : longint;
         skipnode : boolean;
       begin
@@ -141,11 +173,9 @@ interface
          { Allocate registers used in the assembler block }
          rg.allocexplicitregistersint(exprasmlist,used_regs_int);
 
-         if inlining_procedure then
+         if (current_procinfo.procdef.proccalloption=pocall_inline) then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
-             localfixup:=current_procinfo.procdef.localst.address_fixup;
-             parafixup:=current_procinfo.procdef.parast.address_fixup;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -153,15 +183,10 @@ interface
                 skipnode:=false;
                 case hp2.typ of
                   ait_label :
-                     begin
-                       { regenerate the labels by setting altsymbol }
-                       ReLabel(tasmsymbol(tai_label(hp2).l));
-                     end;
+                     ReLabel(tasmsymbol(tai_label(hp2).l));
                   ait_const_rva,
                   ait_const_symbol :
-                     begin
-                       ReLabel(tai_const_symbol(hp2).sym);
-                     end;
+                     ReLabel(tai_const_symbol(hp2).sym);
                   ait_instruction :
                      begin
                        { remove cached insentry, because the new code can
@@ -174,25 +199,16 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
+                          ResolveRef(taicpu(hp2).oper[i-1]);
                           with taicpu(hp2).oper[i-1] do
                            begin
                              case typ of
                                top_ref :
-                                 begin
-                                   case ref^.options of
-                                     ref_parafixup :
-                                       ref^.offsetfixup:=parafixup;
-                                     ref_localfixup :
-                                       ref^.offsetfixup:=localfixup;
-                                   end;
-                                   if assigned(ref^.symbol) then
-                                    ReLabel(ref^.symbol);
-                                 end;
+                                 if assigned(ref^.symbol) then
+                                   ReLabel(ref^.symbol);
                                top_symbol :
-                                 begin
-                                   ReLabel(sym);
-                                 end;
-                              end;
+                                 ReLabel(sym);
+                             end;
                            end;
                         end;
                      end;
@@ -202,12 +218,11 @@ interface
                        if (tai_marker(hp2).kind in [AsmBlockStart, AsmBlockEnd]) then
                         skipnode:=true;
                      end;
-                   else
                 end;
                 if not skipnode then
-                 exprasmList.concat(hp2)
+                  exprasmList.concat(hp2)
                 else
-                 hp2.free;
+                  hp2.free;
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
@@ -216,12 +231,28 @@ interface
            end
          else
            begin
-             { if the routine is an inline routine, then we must hold a copy
-               because it can be necessary for inlining later }
-             if (current_procinfo.procdef.proccalloption=pocall_inline) then
-               exprasmList.concatlistcopy(p_asm)
-             else
-               exprasmList.concatlist(p_asm);
+             hp:=tai(p_asm.first);
+             while assigned(hp) do
+              begin
+                case hp.typ of
+                  ait_instruction :
+                     begin
+                       { remove cached insentry, because the new code can
+                         require an other less optimized instruction }
+{$ifdef i386}
+{$ifndef NOAG386BIN}
+                       taicpu(hp).ResetPass1;
+{$endif}
+{$endif}
+                       { fixup the references }
+                       for i:=1 to taicpu(hp).ops do
+                         ResolveRef(taicpu(hp).oper[i-1]);
+                     end;
+                end;
+                hp:=tai(hp.next);
+              end;
+             { insert the list }
+             exprasmList.concatlist(p_asm);
            end;
 
          { Release register used in the assembler block }
@@ -289,6 +320,23 @@ interface
         inc(location.reference.offset,offset);
       end;
 
+
+    procedure tcgtemprefnode.changelocation(const ref: treference);
+      begin
+        { check if the temp is valid }
+        if not tempinfo^.valid then
+          internalerror(200306081);
+        if (tempinfo^.temptype = tt_persistent) then
+          tg.ChangeTempType(exprasmlist,tempinfo^.ref,tt_normal);
+        tg.ungettemp(exprasmlist,tempinfo^.ref);
+        tempinfo^.ref := ref;
+        tg.ChangeTempType(exprasmlist,tempinfo^.ref,tempinfo^.temptype);
+        { adapt location }
+        location.reference := ref;
+        inc(location.reference.offset,offset);
+      end;
+
+
 {*****************************************************************************
                            TTEMPDELETENODE
 *****************************************************************************}
@@ -315,7 +363,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-09-07 22:09:35  peter
+  Revision 1.40  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.39  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

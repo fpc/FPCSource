@@ -1311,14 +1311,24 @@ var
      end;
     if actasmtoken in [AS_PLUS,AS_MINUS] then
      inc(l,BuildConstExpression(true,false));
-    if opr.typ=OPR_REFERENCE then
-     begin
-       if hasdot and (not hastype) and (opr.ref.options=ref_parafixup) then
-        Message(asmr_e_cannot_access_field_directly_for_parameters);
-       inc(opr.ref.offset,l)
-     end
-    else
-     inc(opr.val,l);
+    case opr.typ of
+      OPR_LOCAL :
+        begin
+          { don't allow direct access to fields of parameters, becuase that
+            will generate buggy code. Allow it only for explicit typecasting }
+          if hasdot and
+             (not hastype) and
+             (tvarsym(pointer(opr.ref.symbol)).owner.symtabletype=parasymtable) then
+            Message(asmr_e_cannot_access_field_directly_for_parameters);
+          inc(opr.localsymofs,l)
+        end;
+      OPR_CONSTANT :
+        inc(opr.val,l);
+      OPR_REFERENCE :
+        inc(opr.ref.offset);
+      else
+        internalerror(200309221);
+    end;
   end;
 
   function MaybeBuildReference:boolean;
@@ -1502,10 +1512,16 @@ Begin
                     if (actasmtoken=AS_PLUS) then
                      begin
                        l:=BuildConstExpression(true,false);
-                       if opr.typ=OPR_CONSTANT then
-                        inc(opr.val,l)
-                       else
-                        inc(opr.ref.offset,l);
+                       case opr.typ of
+                         OPR_CONSTANT :
+                           inc(opr.val,l);
+                         OPR_LOCAL :
+                           inc(opr.localsymofs,l);
+                         OPR_REFERENCE :
+                           inc(opr.ref.offset,l);
+                         else
+                           internalerror(200309202);
+                       end;
                      end
                   end
                  else
@@ -2113,7 +2129,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.46  2003-09-03 15:55:01  peter
+  Revision 1.47  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.46  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.45.2.2  2003/08/31 15:46:26  peter

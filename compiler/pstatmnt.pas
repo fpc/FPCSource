@@ -25,6 +25,7 @@ unit pstatmnt;
 {$i fpcdefs.inc}
 
 interface
+
     uses
       tokens,node;
 
@@ -39,7 +40,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        globtype,globals,verbose,
        systems,cpuinfo,
@@ -1048,77 +1049,19 @@ implementation
       end;
 
 
+    procedure count_locals(p:tnamedindexitem;arg:pointer);
+      begin
+        { Count only varsyms, but ignore the funcretsym }
+        if (tsym(p).typ=varsym) and
+           (tsym(p)<>current_procinfo.procdef.funcretsym) then
+          inc(plongint(arg)^);
+      end;
+
+
     function assembler_block : tnode;
-
-      {# Optimize the assembler block by removing all references
-         which are via the frame pointer by replacing them with
-         references via the stack pointer.
-
-         This is only available to certain cpu targets where
-         the frame pointer saving must be done explicitly.
-      }
-      procedure OptimizeFramePointer(p:tasmnode);
-      var
-        hp : tai;
-        parafixup,
-        i : longint;
-      begin
-        { replace framepointer with stackpointer }
-        current_procinfo.framepointer:=NR_STACK_POINTER_REG;
-        { set the right value for parameters }
-        dec(current_procinfo.procdef.parast.address_fixup,pointer_size);
-        { replace all references to parameters in the instructions,
-          the parameters can be identified by the parafixup option
-          that is set. For normal user coded [ebp+4] this field is not
-          set }
-        parafixup:=current_procinfo.procdef.parast.address_fixup;
-        hp:=tai(p.p_asm.first);
-        while assigned(hp) do
-         begin
-           if hp.typ=ait_instruction then
-            begin
-              { fixup the references }
-              for i:=1 to taicpu(hp).ops do
-               begin
-                 with taicpu(hp).oper[i-1] do
-                  if typ=top_ref then
-                   begin
-                     case ref^.options of
-                       ref_parafixup :
-                         begin
-                           ref^.offsetfixup:=parafixup;
-                           ref^.base:=NR_STACK_POINTER_REG;
-                         end;
-                     end;
-                   end;
-               end;
-            end;
-           hp:=tai(hp.next);
-         end;
-      end;
-
-{$ifdef CHECKFORPUSH}
-      function UsesPush(p:tasmnode):boolean;
-      var
-        hp : tai;
-      begin
-        hp:=tai(p.p_asm.first);
-        while assigned(hp) do
-         begin
-           if (hp.typ=ait_instruction) and
-              (taicpu(hp).opcode=A_PUSH) then
-            begin
-              UsesPush:=true;
-              exit;
-            end;
-           hp:=tai(hp.next);
-         end;
-        UsesPush:=false;
-      end;
-{$endif CHECKFORPUSH}
-
       var
         p : tnode;
+        locals : longint;
       begin
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.rettype.def) then
@@ -1136,37 +1079,30 @@ implementation
            current_procinfo.procdef.proccalloption:=pocall_stdcall;
 
 {$ifndef sparc}
-         { set the framepointer to esp for assembler functions when the
-           following conditions are met:
-           - if the are no local variables (except the allocated result)
-           - if the are no parameters
-           - no reference to the result variable (refcount<=1)
-           - result is not stored as parameter
-           - target processor has optional frame pointer save
-             (vm, i386, vm only currently)
-         }
-         if (po_assembler in current_procinfo.procdef.procoptions) and
-{$ifndef powerpc}
-            { is this really necessary??? }
-            (current_procinfo.procdef.parast.datasize=0) and
-{$endif powerpc}
-            (current_procinfo.procdef.localst.datasize=current_procinfo.procdef.rettype.def.size) and
-            (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
-            (not assigned(current_procinfo.procdef.funcretsym) or
-             (tvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
-            begin
-               { we don't need to allocate space for the locals }
-               current_procinfo.procdef.localst.datasize:=0;
-               current_procinfo.firsttemp_offset:=0;
-               { only for cpus with different frame- and stack pointer the code must be changed }
-               if (NR_STACK_POINTER_REG<>NR_FRAME_POINTER_REG)
-{$ifdef CHECKFORPUSH}
-                 and not(UsesPush(tasmnode(p)))
-{$endif CHECKFORPUSH}
-                 then
-                 OptimizeFramePointer(tasmnode(p));
-            end;
+         if (po_assembler in current_procinfo.procdef.procoptions) then
+           begin
+             { set the framepointer to esp for assembler functions when the
+               following conditions are met:
+               - if the are no local variables and parameters (except the allocated result)
+               - no reference to the result variable (refcount<=1)
+               - result is not stored as parameter
+               - target processor has optional frame pointer save
+                 (vm, i386, vm only currently)
+             }
+             locals:=0;
+             current_procinfo.procdef.localst.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
+             current_procinfo.procdef.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}count_locals,@locals);
+             if (locals=0) and
+                (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
+                (not assigned(current_procinfo.procdef.funcretsym) or
+                 (tvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
+                not(paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
+               begin
+                 { Only need to set the framepointer, the locals will
+                   be inserted with the correct reference in tcgasmnode.pass_2 }
+                 current_procinfo.framepointer:=NR_STACK_POINTER_REG;
+               end;
+           end;
 {$endif sparc}
 
         { Flag the result as assigned when it is returned in a
@@ -1186,7 +1122,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-09-16 16:17:01  peter
+  Revision 1.110  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.109  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.108  2003/09/07 22:09:35  peter

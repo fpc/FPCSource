@@ -217,7 +217,6 @@ implementation
               if tstoreddef(pd.rettype.def).is_fpuregable then
                 include(vs.varoptions,vo_fpuregable);
               pd.localst.insert(vs);
-              pd.localst.insertvardata(vs);
               pd.funcretsym:=vs;
             end;
 
@@ -286,6 +285,7 @@ implementation
       end;
 
 
+      (*
     procedure rename_value_para(p:tnamedindexitem;arg:pointer);
       var
         pd : tprocdef;
@@ -302,13 +302,11 @@ implementation
              array of const and open array do not need this, the local copy routine
              will patch the pushed value to point to the local copy }
            if (varspez=vs_value) and
-              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) and
-              not(is_array_of_const(vartype.def) or
-                  is_open_array(vartype.def)) then
-            pd.parast.symsearch.rename(name,'val'+name);
+              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) then
+             include(varoptions,vo_has_local_copy);
          end;
       end;
-
+*)
 
     procedure check_c_para(p:tnamedindexitem;arg:pointer);
       begin
@@ -1667,7 +1665,7 @@ const
                  { check C cdecl para types }
                  pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
                  { Adjust alignment to match cdecl or stdcall }
-                 pd.parast.dataalignment:=std_param_align;
+                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_cppdecl :
@@ -1680,7 +1678,7 @@ const
                  { check C cdecl para types }
                  pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
                  { Adjust alignment to match cdecl or stdcall }
-                 pd.parast.dataalignment:=std_param_align;
+                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_stdcall :
@@ -1688,7 +1686,7 @@ const
               if (pd.deftype=procdef) then
                begin
                  { Adjust alignment to match cdecl or stdcall }
-                 pd.parast.dataalignment:=std_param_align;
+                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_compilerproc :
@@ -1700,7 +1698,7 @@ const
           pocall_register :
             begin
               { Adjust alignment to match cdecl or stdcall }
-              pd.parast.dataalignment:=std_param_align;
+              pd.paraalign:=std_param_align;
             end;
           pocall_far16 :
             begin
@@ -1712,7 +1710,7 @@ const
               if (pd.deftype=procdef) then
                begin
                  { Adjust positions of args for cdecl or stdcall }
-                 pd.parast.dataalignment:=std_param_align;
+                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_inline :
@@ -1772,6 +1770,21 @@ const
         { insert funcret parameter if required }
         insert_funcret_para(pd);
 
+        currpara:=tparaitem(pd.para.first);
+        while assigned(currpara) do
+         begin
+           if not(assigned(currpara.parasym) and (currpara.parasym.typ=varsym)) then
+             internalerror(200304232);
+           { connect parasym to paraitem }
+           tvarsym(currpara.parasym).paraitem:=currpara;
+           { Need a local copy? }
+           if (currpara.paratyp=vs_value) and
+              paramanager.push_addr_param(currpara.paratyp,currpara.paratype.def,pd.proccalloption) then
+             include(tvarsym(currpara.parasym).varoptions,vo_has_local_copy);
+           currpara:=tparaitem(currpara.next);
+         end;
+
+(*
 {$ifdef i386}
         { Move first 3 register parameters in localst }
         if (pd.deftype=procdef) and
@@ -1800,7 +1813,6 @@ const
                vs.varoptions:=tvarsym(currpara.parasym).varoptions;
                include(vs.varoptions,vo_is_reg_para);
                tprocdef(pd).localst.insert(vs);
-               tprocdef(pd).localst.insertvardata(vs);
                { update currpara }
                currpara.parasym:=vs;
                { next }
@@ -1808,7 +1820,6 @@ const
                inc(n);
              end;
           end;
-
 {$endif i386}
 
         if (pd.deftype=procdef) then
@@ -1847,6 +1858,7 @@ const
                end;
             end;
          end;
+*)
       end;
 
 
@@ -2106,7 +2118,7 @@ const
                      with the new data from the implementation }
                    hd.forwarddef:=pd.forwarddef;
                    hd.hasforward:=true;
-                   hd.parast.address_fixup:=pd.parast.address_fixup;
+                   hd.paraalign:=pd.paraalign;
                    hd.procoptions:=hd.procoptions+pd.procoptions;
                    if hd.extnumber=65535 then
                      hd.extnumber:=pd.extnumber;
@@ -2205,7 +2217,12 @@ const
 end.
 {
   $Log$
-  Revision 1.134  2003-09-16 16:17:01  peter
+  Revision 1.135  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.134  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.133  2003/09/09 21:03:17  peter

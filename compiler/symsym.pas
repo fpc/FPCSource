@@ -174,14 +174,13 @@ interface
        end;
 
        tvarsym = class(tstoredsym)
-          address       : longint;
-          localvarsym   : tvarsym;
           highvarsym    : tvarsym;
           defaultconstsym : tsym;
           varoptions    : tvaroptions;
-          reg           : tregister; { if reg<>R_NO, then the variable is an register variable }
           varspez       : tvarspez;  { sets the type of access }
           varstate      : tvarstate;
+          localloc      : tparalocation; { register/reference for local var }
+          fieldoffset   : longint; { offset in record/object }
           paraitem      : tparaitem;
           notifications : Tlinkedlist;
           constructor create(const n : string;vsp:tvarspez;const tt : ttype);
@@ -195,7 +194,6 @@ interface
           procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  getvaluesize : longint;
-          function  adjusted_address : longint;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -563,8 +561,8 @@ implementation
          if not isstabwritten then
            begin
               stab_str := stabstring;
-              { count_dbx(stab_str); moved to GDB.PAS }
-              asmList.concat(Tai_stabs.Create(stab_str));
+              if assigned(stab_str) then
+                asmList.concat(Tai_stabs.Create(stab_str));
               isstabwritten:=true;
           end;
     end;
@@ -1494,7 +1492,7 @@ implementation
     function tpropertysym.stabstring : pchar;
       begin
          { !!!! don't know how to handle }
-         stabstring:=strpnew('');
+         stabstring:=nil;
       end;
 
     procedure tpropertysym.concatstabto(asmlist : taasmoutput);
@@ -1530,7 +1528,7 @@ implementation
          { load absolute }
          typ:=absolutesym;
          ref:=nil;
-         address:=0;
+         fieldoffset:=0;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
          absseg:=false;
@@ -1541,7 +1539,7 @@ implementation
              asmname:=stringdup(ppufile.getstring);
            toaddr :
              begin
-               address:=ppufile.getlongint;
+               fieldoffset:=ppufile.getlongint;
                absseg:=boolean(ppufile.getbyte);
              end;
          end;
@@ -1555,7 +1553,7 @@ implementation
          { Note: This needs to write everything of tvarsym.write }
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         ppufile.putlongint(address);
+         ppufile.putlongint(fieldoffset);
          { write only definition or definitionsym }
          ppufile.puttype(vartype);
          hvo:=varoptions-[vo_regable,vo_fpuregable];
@@ -1568,7 +1566,7 @@ implementation
              ppufile.putstring(asmname^);
            toaddr :
              begin
-               ppufile.putlongint(address);
+               ppufile.putlongint(fieldoffset);
                ppufile.putbyte(byte(absseg));
              end;
          end;
@@ -1613,7 +1611,7 @@ implementation
            toasm :
              mangledname:=asmname^;
            toaddr :
-             mangledname:='$'+tostr(address);
+             mangledname:='$'+tostr(fieldoffset);
          else
            internalerror(10002);
          end;
@@ -1639,8 +1637,8 @@ implementation
          vartype:=tt;
          _mangledname:=nil;
          varspez:=vsp;
-         address:=0;
-         localvarsym:=nil;
+         fieldoffset:=0;
+         fillchar(localloc,sizeof(localloc),0);
          highvarsym:=nil;
          defaultconstsym:=nil;
          refs:=0;
@@ -1668,12 +1666,11 @@ implementation
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
-         reg:=NR_NO;
+         fillchar(localloc,sizeof(localloc),0);
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
-         address:=ppufile.getlongint;
-         localvarsym:=nil;
+         fieldoffset:=ppufile.getlongint;
          highvarsym:=nil;
          defaultconstsym:=nil;
          ppufile.gettype(_vartype);
@@ -1703,7 +1700,7 @@ implementation
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
-         ppufile.putlongint(address);
+         ppufile.putlongint(fieldoffset);
          ppufile.puttype(vartype);
          { symbols which are load are never candidates for a register,
            turn off the regable }
@@ -1747,12 +1744,6 @@ implementation
           getvaluesize:=vartype.def.size
         else
           getvaluesize:=0;
-      end;
-
-
-    function  tvarsym.adjusted_address : longint;
-      begin
-        result:=address+owner.address_fixup;
       end;
 
 
@@ -1817,71 +1808,97 @@ implementation
        threadvaroffset : string;
        regidx : tregisterindex;
      begin
-       st:=tstoreddef(vartype.def).numberstring;
-      if (vo_is_thread_var in varoptions) then
-        threadvaroffset:='+'+tostr(pointer_size)
-      else
-        threadvaroffset:='';
+       { There is no space allocated for not referenced locals }
+       if refs=0 then
+         begin
+           stabstring:=nil;
+           exit;
+         end;
 
-       if (owner.symtabletype = objectsymtable) and
-          (sp_static in symoptions) then
-         begin
-            if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-            stabstring := strpnew('"'+owner.name^+'__'+name+':'+st+
-                     '",'+
-                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)
-                     +','+mangledname+threadvaroffset);
-         end
-       else if (owner.symtabletype = globalsymtable) then
-         begin
-            { Here we used S instead of
-              because with G GDB doesn't look at the address field
-              but searches the same name or with a leading underscore
-              but these names don't exist in pascal !}
-            if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-            stabstring := strpnew('"'+name+':'+st+'",'+
-                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
-                     ','+mangledname+threadvaroffset);
-         end
-       else if owner.symtabletype = staticsymtable then
-         begin
-            stabstring := strpnew('"'+name+':S'+st+'",'+
-                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
-                  ','+mangledname+threadvaroffset);
-         end
-       else if (owner.symtabletype in [parasymtable,inlineparasymtable]) then
-         begin
-            if paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) then
-              st := 'v'+st { should be 'i' but 'i' doesn't work }
-            else
-              st := 'p'+st;
-            stabstring := strpnew('"'+name+':'+st+'",'+
-                  tostr(N_tsym)+',0,'+tostr(fileinfo.line)+','+
-                  tostr(adjusted_address));
-                  {offset to ebp => will not work if the framepointer is esp
-                  so some optimizing will make things harder to debug }
-         end
-       else if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) then
-         if reg<>NR_NO then
-           begin
-              regidx:=findreg_by_number(reg);
-              { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-              { this is the register order for GDB}
-              stabstring:=strpnew('"'+name+':r'+st+'",'+
-                        tostr(N_RSYM)+',0,'+
-                        tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
-           end
-         else
-           { I don't know if this will work (PM) }
-           if (vo_is_C_var in varoptions) then
-            stabstring := strpnew('"'+name+':S'+st+'",'+
-                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
-           else
-           stabstring := strpnew('"'+name+':'+st+'",'+
-                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+','+tostr(adjusted_address))
+       st:=tstoreddef(vartype.def).numberstring;
+       if (vo_is_thread_var in varoptions) then
+         threadvaroffset:='+'+tostr(pointer_size)
        else
-         stabstring := inherited stabstring;
-  end;
+         threadvaroffset:='';
+
+       case owner.symtabletype of
+         objectsymtable :
+           begin
+             if (sp_static in symoptions) then
+               begin
+                 if (cs_gdb_gsym in aktglobalswitches) then
+                   st := 'G'+st
+                 else
+                   st := 'S'+st;
+                 stabstring := strpnew('"'+owner.name^+'__'+name+':'+st+
+                      '",'+
+                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)
+                      +','+mangledname+threadvaroffset);
+               end;
+           end;
+         globalsymtable :
+           begin
+             { Here we used S instead of
+               because with G GDB doesn't look at the address field
+               but searches the same name or with a leading underscore
+               but these names don't exist in pascal !}
+             if (cs_gdb_gsym in aktglobalswitches) then
+               st := 'G'+st
+             else
+               st := 'S'+st;
+             stabstring := strpnew('"'+name+':'+st+'",'+
+                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
+                      ','+mangledname+threadvaroffset);
+           end;
+         staticsymtable :
+           begin
+             stabstring := strpnew('"'+name+':S'+st+'",'+
+                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+
+                   ','+mangledname+threadvaroffset);
+           end;
+         parasymtable,
+         localsymtable,
+         inlineparasymtable,
+         inlinelocalsymtable :
+           begin
+             if (vo_is_C_var in varoptions) then
+               begin
+                 stabstring := strpnew('"'+name+':S'+st+'",'+
+                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
+                 exit;
+               end;
+             if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
+                paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) then
+               st := 'v'+st { should be 'i' but 'i' doesn't work }
+             else
+               st := 'p'+st;
+             case localloc.loc of
+               LOC_REGISTER :
+                 begin
+                   regidx:=findreg_by_number(localloc.register);
+                   { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                   { this is the register order for GDB}
+                   stabstring:=strpnew('"'+name+':r'+st+'",'+
+                             tostr(N_RSYM)+',0,'+
+                             tostr(fileinfo.line)+','+tostr(regstabs_table[regidx]));
+                 end;
+               LOC_REFERENCE :
+                 begin
+                   { offset to ebp => will not work if the framepointer is esp
+                     so some optimizing will make things harder to debug }
+                   stabstring := strpnew('"'+name+':'+st+'",'+
+                         tostr(N_tsym)+',0,'+tostr(fileinfo.line)+','+
+                         tostr(localloc.reference.offset));
+                 end;
+               else
+                 internalerror(2003091814);
+             end;
+           end;
+         else
+           stabstring := inherited stabstring;
+       end;
+     end;
+
 
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
       var
@@ -1894,12 +1911,14 @@ implementation
            exit;
          if (vo_is_self in varoptions) then
            begin
+             if localloc.loc<>LOC_REFERENCE then
+               internalerror(2003091815);
              if (po_classmethod in current_procinfo.procdef.procoptions) or
                 (po_staticmethod in current_procinfo.procdef.procoptions) then
                begin
                  asmlist.concat(Tai_stabs.Create(strpnew(
                     '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
-                    tostr(N_tsym)+',0,0,'+tostr(adjusted_address))));
+                    tostr(N_tsym)+',0,0,'+tostr(localloc.reference.offset))));
                end
              else
                begin
@@ -1909,13 +1928,13 @@ implementation
                    c:='p';
                  asmlist.concat(Tai_stabs.Create(strpnew(
                     '"$t:'+c+current_procinfo.procdef._class.numberstring+'",'+
-                    tostr(N_tsym)+',0,0,'+tostr(adjusted_address))));
+                    tostr(N_tsym)+',0,0,'+tostr(localloc.reference.offset))));
                end;
            end
          else
-           if (reg<>NR_NO) then
+           if (localloc.loc=LOC_REGISTER) then
              begin
-                regidx:=findreg_by_number(reg);
+                regidx:=findreg_by_number(localloc.register);
                 { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                 { this is the register order for GDB}
                 stab_str:=strpnew('"'+name+':r'
@@ -1945,7 +1964,6 @@ implementation
               include(varoptions,vo_fpuregable)
             else
               exclude(varoptions,vo_fpuregable);
-            reg:=NR_NO;
           end;
       end;
 
@@ -2657,7 +2675,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-09-16 16:17:01  peter
+  Revision 1.119  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.118  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.117  2003/09/14 13:20:12  peter

@@ -35,18 +35,10 @@ unit tgobj;
     uses
       globals,
       cpubase,
-      cpuinfo,
+      cpuinfo,cginfo,
       cclasses,globtype,cgbase,aasmbase,aasmtai,aasmcpu;
 
     type
-      ttemptype = (tt_none,
-                   tt_free,tt_normal,tt_persistent,
-                   tt_noreuse,tt_freenoreuse,
-                   tt_ansistring,tt_freeansistring,
-                   tt_widestring,tt_freewidestring,
-                   tt_interfacecom,tt_freeinterfacecom);
-      ttemptypeset = set of ttemptype;
-
       ptemprecord = ^ttemprecord;
       ttemprecord = record
          temptype   : ttemptype;
@@ -104,6 +96,10 @@ unit tgobj;
              is not in the temporary memory, it is simply not freed.
           }
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
+
+          { Allocate space for a local }
+          procedure getlocal(list: taasmoutput; size : longint;var ref : tparareference);
+          procedure UnGetLocal(list: taasmoutput; const ref : tparareference);
        end;
 
      var
@@ -114,8 +110,8 @@ unit tgobj;
 
     uses
        systems,
-       verbose,cutils,
-       cginfo,rgobj;
+       verbose,cutils
+       ;
 
 
     const
@@ -423,10 +419,13 @@ unit tgobj;
 
 
     procedure ttgobj.gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
-
-    begin
-      reference_reset_base(ref,current_procinfo.framepointer,alloctemp(list,size,temptype));
-    end;
+      begin
+        { can't use reference_reset_base, because that will let tgobj depend
+          on rgobj (PFV) }
+        fillchar(ref,sizeof(ref),0);
+        ref.base:=current_procinfo.framepointer;
+        ref.offset:=alloctemp(list,size,temptype);
+      end;
 
 
     function ttgobj.istemp(const ref : treference) : boolean;
@@ -525,14 +524,28 @@ unit tgobj;
       end;
 
 
-initialization
-  tg := ttgobj.create;
-finalization
-  tg.free;
+    procedure ttgobj.getlocal(list: taasmoutput; size : longint;var ref : tparareference);
+      begin
+        ref.index:=current_procinfo.framepointer;
+        ref.offset:=alloctemp(list,size,tt_persistent);
+      end;
+
+
+    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : tparareference);
+      begin
+        FreeTemp(list,ref.offset,[tt_persistent]);
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.38  2003-09-03 15:55:01  peter
+  Revision 1.39  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.38  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.37.2.2  2003/08/31 15:46:26  peter

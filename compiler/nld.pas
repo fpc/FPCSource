@@ -192,13 +192,6 @@ implementation
       begin
         result:=nil;
         srsymtable:=vs.owner;
-        if vo_is_local_copy in vs.varoptions then
-         begin
-           { next symtable is always the para symtable }
-           srsymtable:=srsymtable.next;
-           if not(srsymtable.symtabletype in [parasymtable,inlineparasymtable]) then
-             internalerror(200212171);
-         end;
         srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
         if assigned(srsym) then
           begin
@@ -1282,7 +1275,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2003-09-16 16:17:01  peter
+  Revision 1.106  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.105  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.104  2003/09/07 22:09:35  peter

@@ -75,7 +75,7 @@ implementation
       symbase,symconst,symtype,symdef,symsym,symtable,paramgr,defutil,defcmp,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
-      cpubase,tgobj,cginfo,cgbase
+      cpubase,cginfo,cgbase
       ;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
@@ -2363,7 +2363,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-09-16 16:17:01  peter
+  Revision 1.117  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.116  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.115  2003/09/06 16:47:24  florian

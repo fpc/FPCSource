@@ -386,7 +386,7 @@ implementation
                                      Message(cg_e_illegal_expression);
                                  end;
                                subscriptn :
-                                 inc(offset,tsubscriptnode(hp).vs.address)
+                                 inc(offset,tsubscriptnode(hp).vs.fieldoffset)
                                else
                                  Message(cg_e_illegal_expression);
                              end;
@@ -805,7 +805,7 @@ implementation
                             { Also allow jumping from one variant part to another, }
                             { as long as the offsets match                         }
                             if (assigned(srsym) and
-                                (tvarsym(recsym).address = tvarsym(srsym).address)) or
+                                (tvarsym(recsym).fieldoffset = tvarsym(srsym).fieldoffset)) or
                                { srsym is not assigned after parsing w2 in the      }
                                { typed const in the next example:                   }
                                {   type tr = record case byte of                    }
@@ -813,10 +813,10 @@ implementation
                                {          2: (w1,w2: word);                         }
                                {        end;                                        }
                                {   const r: tr = (w1:1;w2:1;l2:5);                  }
-                               (tvarsym(recsym).address = aktpos) then
+                               (tvarsym(recsym).fieldoffset = aktpos) then
                               srsym := recsym
                             { going backwards isn't allowed in any mode }
-                            else if (tvarsym(recsym).address<aktpos) then
+                            else if (tvarsym(recsym).fieldoffset<aktpos) then
                               begin
                                 Message(parser_e_invalid_record_const);
                                 error := true;
@@ -840,12 +840,12 @@ implementation
                           begin
 
                             { if needed fill (alignment) }
-                            if tvarsym(srsym).address>aktpos then
-                               for i:=1 to tvarsym(srsym).address-aktpos do
+                            if tvarsym(srsym).fieldoffset>aktpos then
+                               for i:=1 to tvarsym(srsym).fieldoffset-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
+                             aktpos:=tvarsym(srsym).fieldoffset+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
                              readtypedconst(tvarsym(srsym).vartype,nil,writable);
@@ -867,7 +867,7 @@ implementation
                     { don't complain if there only come other variant parts }
                     { after the last initialized field                      }
                     ((recsym=nil) or
-                     (tvarsym(srsym).address > tvarsym(recsym).address)) then
+                     (tvarsym(srsym).fieldoffset > tvarsym(recsym).fieldoffset)) then
                    Message1(parser_w_skipped_fields_after,sorg);
 
                  for i:=1 to t.def.size-aktpos do
@@ -929,13 +929,13 @@ implementation
                         else
                           begin
                              { check position }
-                             if tvarsym(srsym).address<aktpos then
+                             if tvarsym(srsym).fieldoffset<aktpos then
                                Message(parser_e_invalid_record_const);
 
                              { check in VMT needs to be added for TP mode }
                              if not(m_fpc in aktmodeswitches) and
                                 (oo_has_vmt in tobjectdef(t.def).objectoptions) and
-                                (tobjectdef(t.def).vmt_offset<tvarsym(srsym).address) then
+                                (tobjectdef(t.def).vmt_offset<tvarsym(srsym).fieldoffset) then
                                begin
                                  for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                                    curconstsegment.concat(tai_const.create_8bit(0));
@@ -945,12 +945,12 @@ implementation
                                end;
 
                              { if needed fill }
-                             if tvarsym(srsym).address>aktpos then
-                               for i:=1 to tvarsym(srsym).address-aktpos do
+                             if tvarsym(srsym).fieldoffset>aktpos then
+                               for i:=1 to tvarsym(srsym).fieldoffset-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
+                             aktpos:=tvarsym(srsym).fieldoffset+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
                              readtypedconst(tvarsym(srsym).vartype,nil,writable);
@@ -993,7 +993,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-09-03 15:55:01  peter
+  Revision 1.71  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.70  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.69  2003/05/09 17:47:03  peter

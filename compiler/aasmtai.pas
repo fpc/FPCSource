@@ -36,7 +36,7 @@ interface
        cutils,cclasses,
        globtype,globals,systems,
        cginfo,cpuinfo,cpubase,
-       symppu,
+       symppu,symtype,
        aasmbase;
 
     type
@@ -140,6 +140,23 @@ interface
           'tempalloc',
           'marker'
           );
+
+    type
+      { Types of operand }
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_local);
+
+      toper=record
+        ot : longint;
+        case typ : toptype of
+         top_none   : ();
+         top_reg    : (reg:tregister);
+         top_ref    : (ref:preference);
+         top_const  : (val:aword);
+         top_symbol : (sym:tasmsymbol;symofs:longint);
+         { local varsym that will be inserted in pass_2 }
+         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint);
+      end;
+
 
 { ait_* types which don't result in executable code or which don't influence   }
 { the way the program runs/behaves, but which may be encountered by the        }
@@ -439,6 +456,7 @@ interface
           procedure SetCondition(const c:TAsmCond);
           procedure loadconst(opidx:longint;l:aword);
           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+          procedure loadlocal(opidx:longint;s:pointer;sofs:longint);
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
@@ -1538,6 +1556,23 @@ implementation
       end;
 
 
+    procedure taicpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint);
+      begin
+        if not assigned(s) then
+         internalerror(200204251);
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx] do
+         begin
+           if typ<>top_local then
+             clearop(opidx);
+           localsym:=s;
+           localsymofs:=sofs;
+           typ:=top_local;
+         end;
+      end;
+
+
     procedure taicpu_abstract.loadref(opidx:longint;const r:treference);
       begin
         if opidx>=ops then
@@ -2106,7 +2141,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-09-07 22:09:34  peter
+  Revision 1.40  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.39  2003/09/07 22:09:34  peter
     * preparations for different default calling conventions
     * various RA fixes
 

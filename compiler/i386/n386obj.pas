@@ -89,13 +89,11 @@ virtual(2):      OK     OK    OK(3)  OK       OK          OK(4)
 
 function getselfoffsetfromsp(procdef: tprocdef): longint;
 begin
-  if not assigned(procdef.parast.symindex.first) then
-    getselfoffsetfromsp:=4
+  { framepointer is pushed for nested procs }
+  if procdef.parast.symtablelevel>normal_function_level then
+    getselfoffsetfromsp:=8
   else
-    if tsym(procdef.parast.symindex.first).typ=varsym then
-      getselfoffsetfromsp:=tvarsym(procdef.parast.symindex.first).address+4
-    else
-      Internalerror(2000061310);
+    getselfoffsetfromsp:=4;
 end;
 
 
@@ -228,7 +226,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2003-09-07 22:09:35  peter
+  Revision 1.23  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.22  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

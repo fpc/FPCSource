@@ -734,9 +734,6 @@ implementation
                    if not currpara.is_hidden then
                     begin
                       vs:=tvarsym(currpara.parasym);
-                      { if there is a localcopy then use that }
-                      if assigned(vs.localvarsym) then
-                        vs:=vs.localvarsym;
                       para:=ccallparanode.create(cloadnode.create(vs,vs.owner),para);
                     end;
                    currpara:=tparaitem(currpara.next);
@@ -2419,7 +2416,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2003-09-06 22:27:09  florian
+  Revision 1.129  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.128  2003/09/06 22:27:09  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented

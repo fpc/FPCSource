@@ -60,7 +60,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       tgobj,cgbase
+       cginfo,cgbase
        ;
 
 
@@ -685,7 +685,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-08-21 15:10:51  peter
+  Revision 1.18  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.17  2003/08/21 15:10:51  peter
     * fixed copy support for array of char,pchar in $H+ mode
     * fixed copy support for pwidechar,array of widechar
 

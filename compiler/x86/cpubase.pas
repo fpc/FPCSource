@@ -225,8 +225,6 @@ uses
 *****************************************************************************}
 
     type
-      trefoptions=(ref_none,ref_parafixup,ref_localfixup,ref_selffixup);
-
       { reference record }
       preference = ^treference;
       treference = packed record
@@ -236,8 +234,6 @@ uses
          scalefactor : byte;
          offset      : longint;
          symbol      : tasmsymbol;
-         offsetfixup : longint;
-         options     : trefoptions;
       end;
 
       { reference record }
@@ -245,23 +241,6 @@ uses
       tparareference = packed record
          index       : tregister;
          offset      : longint;
-      end;
-
-{*****************************************************************************
-                                Operands
-*****************************************************************************}
-
-      { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
-
-      toper=record
-        ot  : longint;
-        case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister);
-         top_ref    : (ref:preference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
       end;
 
 {*****************************************************************************
@@ -559,7 +538,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-09-07 22:09:35  peter
+  Revision 1.18  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.17  2003/09/07 22:09:35  peter
     * preparations for different default calling conventions
     * various RA fixes
 

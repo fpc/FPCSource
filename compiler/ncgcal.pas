@@ -1004,6 +1004,11 @@ implementation
          mangled_length  : longint;
 {$endif GDB}
       begin
+
+{$warning TODO Fix inlining}
+         internalerror(200309211);
+
+(*
          if not(assigned(procdefinition) and (procdefinition.deftype=procdef)) then
            internalerror(200305262);
 
@@ -1026,7 +1031,7 @@ implementation
              with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
                for i := 1 to maxvarregs do
                  if assigned(regvars[i]) then
-                   store_regvar(exprasmlist,regvars[i].reg);
+                   store_regvar(exprasmlist,regvars[i].localloc.register);
              rg.saveStateForInline(oldregstate);
              { make sure the register allocator knows what the regvars in the }
              { inlined code block are (JM)                                    }
@@ -1296,6 +1301,7 @@ implementation
          { procedure (JM)                                                     }
          if assigned(current_procinfo.procdef.regvarinfo) then
            rg.restoreStateAfterInline(oldregstate);
+*)
       end;
 
 
@@ -1314,7 +1320,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-09-16 16:17:01  peter
+  Revision 1.116  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.115  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.114  2003/09/14 19:17:39  peter

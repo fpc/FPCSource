@@ -41,7 +41,7 @@ implementation
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmbase,aasmtai,aasmcpu,
        cgbase,cpuinfo,cgobj,
-       ncgutil,
+       nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,
 {$ifdef GDB}
@@ -726,8 +726,6 @@ implementation
         current_procinfo:=cprocinfo.create(nil);
         current_module.procinfo:=current_procinfo;
         current_procinfo.procdef:=pd;
-        { start register allocator }
-        cg.init_register_allocators;
         { return procdef }
         create_main_proc:=pd;
       end;
@@ -740,8 +738,6 @@ implementation
            assigned(current_procinfo.parent) or
            not(current_procinfo.procdef=pd) then
          internalerror(200304276);
-        { remove register allocator }
-        cg.done_register_allocators;
         { remove procinfo }
         current_module.procinfo:=nil;
         current_procinfo.free;
@@ -778,6 +774,13 @@ implementation
           else
             internalerror(200304253);
         end;
+        tcgprocinfo(current_procinfo).code:=cnothingnode.create;
+        add_entry_exit_code(tcgprocinfo(current_procinfo).code,aktfilepos,aktfilepos);
+        tcgprocinfo(current_procinfo).generate_code;
+(*
+        { start register allocator and temp gen }
+        cg.init_register_allocators;
+        tg:=ttgobj.create;
         include(current_procinfo.flags,pi_do_call);
         { generate symbol and save end of header position }
         gen_proc_symbol(templist);
@@ -800,8 +803,14 @@ implementation
         list.insertlistafter(headertai,templist);
         { Add exit code at the end }
         gen_exit_code(list,false,usesacc,usesacchi);
+        { release }
+        cg.done_register_allocators;
+        tg.free;
+        rg:=nil;
+        tg:=nil;
         release_main_proc(pd);
         templist.free;
+*)
       end;
 
 
@@ -1093,7 +1102,7 @@ implementation
            end;
 
          { size of the static data }
-         datasize:=st.datasize;
+//         datasize:=st.datasize;
 
 {$ifdef GDB}
          { add all used definitions even for implementation}
@@ -1424,7 +1433,7 @@ implementation
          insertheap;
          insertstacklength;
 
-         datasize:=symtablestack.datasize;
+//         datasize:=symtablestack.datasize;
 
          { finish asmlist by adding segment starts }
          insertsegment;
@@ -1471,7 +1480,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2003-09-09 20:59:27  daniel
+  Revision 1.125  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.124  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.123  2003/09/09 15:55:44  peter

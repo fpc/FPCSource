@@ -266,6 +266,7 @@ begin
    if t386operand(operands[i]).opsize=S_NO then
     begin
       case operands[i].Opr.Typ of
+        OPR_LOCAL,
         OPR_REFERENCE :
           begin
             if i=2 then
@@ -669,6 +670,8 @@ begin
          ai.loadreg(i-1,operands[i].opr.reg);
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
+       OPR_LOCAL :
+         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs);
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
@@ -729,7 +732,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2003-09-03 15:55:02  peter
+  Revision 1.9  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.8  2003/09/03 15:55:02  peter
     * NEWRA branch merged
 
   Revision 1.7.2.4  2003/08/31 16:18:05  peter

@@ -227,8 +227,6 @@ interface
          begin
            AsmWrite('[');
            first:=true;
-           inc(offset,offsetfixup);
-           offsetfixup:=0;
            if (segment<>NR_NO) then
              AsmWrite(nasm_regname(segment)+':');
            if assigned(symbol) then
@@ -902,7 +900,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2003-09-03 15:55:01  peter
+  Revision 1.39  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.38  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.37.2.1  2003/08/31 15:46:26  peter

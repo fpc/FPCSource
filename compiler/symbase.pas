@@ -97,21 +97,16 @@ interface
        public
           name      : pstring;
           realname  : pstring;
-          datasize  : longint;
           symindex,
           defindex  : TIndexArray;
           symsearch : Tdictionary;
           next      : tsymtable;
           defowner  : tdefentry; { for records and objects }
-          { only used for parameter symtable to determine the offset relative }
-          { to the frame pointer and for local inline }
-          address_fixup : longint;
           symtabletype  : tsymtabletype;
           { each symtable gets a number }
           unitid        : word;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
-          dataalignment : byte;
           constructor Create(const s:string);
           destructor  destroy;override;
           procedure clear;virtual;
@@ -120,8 +115,6 @@ interface
           procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
           procedure insert(sym : tsymentry);virtual;
           procedure replace(oldsym,newsym:tsymentry);
-          procedure insertvardata(sym : tsymentry);virtual;abstract;
-          procedure insertconstdata(sym : tsymentry);virtual;abstract;
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
           procedure registerdef(p : tdefentry);
@@ -178,9 +171,6 @@ implementation
          symsearch:=tdictionary.create;
          symsearch.noclear:=true;
          unitid:=0;
-         address_fixup:=0;
-         datasize:=0;
-         dataalignment:=1;
       end;
 
 
@@ -321,7 +311,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-06-25 18:31:23  peter
+  Revision 1.15  2003-09-23 17:56:06  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.14  2003/06/25 18:31:23  peter
     * sym,def resolving partly rewritten to support also parent objects
       not directly available through the uses clause
 

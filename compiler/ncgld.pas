@@ -54,7 +54,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
       cpubase,cpuinfo,
-      tgobj,ncgutil,cgobj,rgobj;
+      tgobj,ncgutil,cgobj,rgobj,ncgbas;
 
 {*****************************************************************************
                              SecondLoad
@@ -84,7 +84,7 @@ implementation
                      if tabsolutesym(symtableentry).absseg then
                       location.reference.segment:=NR_FS;
 {$endif i386}
-                     location.reference.offset:=tabsolutesym(symtableentry).address;
+                     location.reference.offset:=tabsolutesym(symtableentry).fieldoffset;
                    end
                   else
                    location.reference.symbol:=objectlibrary.newasmsymboldata(tabsolutesym(symtableentry).mangledname);
@@ -132,7 +132,7 @@ implementation
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1:=paramanager.getintparaloc(pocall_default,1);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
-                       { we've to allocate the register before we save the used registers }
+                       { we've to allocate an ABT register because it contains the procvar }
                        hregister:=rg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
@@ -149,11 +149,16 @@ implementation
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
+                       rg.ungetregisterint(exprasmlist,hregister);
+                       r:=rg.getabtregisterint(exprasmlist,OS_ADDR);
+                       rg.ungetregisterint(exprasmlist,r);
+                       cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister,r);
                        rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.a_call_reg(exprasmlist,hregister);
+                       cg.a_call_reg(exprasmlist,r);
                        rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
                        r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
                        rg.ungetregisterint(exprasmlist,r);
+                       hregister:=rg.getaddressregister(exprasmlist);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
                        cg.a_label(exprasmlist,norelocatelab);
                        location.reference.base:=hregister;
@@ -162,22 +167,22 @@ implementation
                   else
                     begin
                        { in case it is a register variable: }
-                       if tvarsym(symtableentry).reg<>NR_NO then
+                       if tvarsym(symtableentry).localloc.loc=LOC_REGISTER then
                          begin
-                            case getregtype(tvarsym(symtableentry).reg) of
+                            case getregtype(tvarsym(symtableentry).localloc.register) of
                               R_FPUREGISTER :
                                 begin
                                    location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
-                                   location.register:=tvarsym(symtableentry).reg;
+                                   location.register:=tvarsym(symtableentry).localloc.register;
                                 end;
                               R_INTREGISTER :
                                 begin
-                                  supreg:=getsupreg(Tvarsym(symtableentry).reg);
+                                  supreg:=getsupreg(Tvarsym(symtableentry).localloc.register);
                                   if (supreg in general_superregisters) and
                                      not (supreg in rg.regvar_loaded_int) then
                                     load_regvar(exprasmlist,tvarsym(symtableentry));
                                   location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
-                                  location.register:=tvarsym(symtableentry).reg;
+                                  location.register:=tvarsym(symtableentry).localloc.register;
                                   exclude(rg.unusedregsint,supreg);
                                   hregister := location.register;
                                 end;
@@ -193,8 +198,10 @@ implementation
                               inlinelocalsymtable,
                               inlineparasymtable :
                                 begin
-                                  location.reference.base:=current_procinfo.framepointer;
-                                  location.reference.offset:=tvarsym(symtableentry).adjusted_address;
+                                  if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
+                                    internalerror(2003091816);
+                                  location.reference.base:=tvarsym(symtableentry).localloc.reference.index;
+                                  location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
 
                                   if (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
@@ -210,8 +217,10 @@ implementation
                                 end;
                               stt_exceptsymtable:
                                 begin
-                                   location.reference.base:=current_procinfo.framepointer;
-                                   location.reference.offset:=tvarsym(symtableentry).address;
+                                  if tvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
+                                    internalerror(2003091817);
+                                  location.reference.base:=tvarsym(symtableentry).localloc.reference.index;
+                                  location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
                                 end;
                               else
                                 internalerror(200305102);
@@ -219,9 +228,11 @@ implementation
                          end;
                     end;
 
-                  { handle call by reference variables, ignore the reference
+                  { handle call by reference variables when they are not
+                    alreayd copied to local copies. Also ignore the reference
                     when we need to load the self pointer for objects }
                   if (symtabletype in [parasymtable,inlineparasymtable]) and
+                     not(vo_has_local_copy in tvarsym(symtableentry).varoptions) and
                      not(nf_load_self_pointer in flags) and
                      paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                     begin
@@ -443,7 +454,7 @@ implementation
             { already more or less of the same kind (ie. we must not      }
             { assign an ansistring to a normaltemp). In practice, the     }
             { assignment node will have already taken care of this for us }
-            ttemprefnode(left).changelocation(right.location.reference);
+            tcgtemprefnode(left).changelocation(right.location.reference);
           end
         { shortstring assignments are handled separately }
         else if is_shortstring(left.resulttype.def) then
@@ -885,7 +896,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-09-16 16:17:01  peter
+  Revision 1.83  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.82  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.81  2003/09/14 12:57:10  peter

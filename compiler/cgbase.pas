@@ -81,6 +81,9 @@ unit cgbase;
           {# firsttemp position }
           firsttemp_offset : longint;
 
+          { Size of the parameters on the stack }
+          para_stack_size : longint;
+
           {# some collected informations about the procedure
              see pi_xxxx constants above
           }
@@ -308,6 +311,8 @@ implementation
       begin
         parent:=aparent;
         procdef:=nil;
+        para_stack_size:=0;
+{$warning TODO maybe remove parent_framepointer_offset for i386}
         parent_framepointer_offset:=0;
         firsttemp_offset:=0;
         flags:=[];
@@ -330,8 +335,7 @@ implementation
 
     procedure tprocinfo.allocate_parent_framepointer_parameter;
       begin
-        parent_framepointer_offset:=procdef.parast.address_fixup;
-        inc(procdef.parast.address_fixup,POINTER_SIZE);
+        parent_framepointer_offset:=target_info.first_parm_offset;
       end;
 
 
@@ -364,18 +368,14 @@ implementation
 
 
     procedure tprocinfo.handle_body_start;
-      var
-        paramloc : tparalocation;
-        regidx : tregisterindex;
       begin
-         { generate callee paraloc register info }
-         paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
-
+(*
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack.symtabletype=localsymtable) then
            current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            current_procinfo.firsttemp_offset := 0;
+*)
       end;
 
 
@@ -546,7 +546,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2003-09-14 19:18:10  peter
+  Revision 1.64  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.63  2003/09/14 19:18:10  peter
     * remove obsolete code already in comments
 
   Revision 1.62  2003/09/07 22:09:34  peter

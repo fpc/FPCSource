@@ -187,7 +187,7 @@ implementation
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon,nmem,
       nutils,
-      tgobj,rgobj,cginfo,cgbase
+      rgobj,cginfo,cgbase
       ;
 
 type
@@ -1864,7 +1864,7 @@ type
               pt.used_by_callnode:=used_by_callnode;
               oldppt^:=pt;
             end;
-           { Bind paraitem to this node }
+           { Bind paraitem to this node and varsym }
            pt.paraitem:=currpara;
            { Next node and paraitem }
            oldppt:=@pt.right;
@@ -2514,7 +2514,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.180  2003-09-16 16:17:01  peter
+  Revision 1.181  2003-09-23 17:56:05  peter
+    * locals and paras are allocated in the code generation
+    * tvarsym.localloc contains the location of para/local when
+      generating code for the current procedure
+
+  Revision 1.180  2003/09/16 16:17:01  peter
     * varspez in calls to push_addr_param
 
   Revision 1.179  2003/09/07 22:09:35  peter
