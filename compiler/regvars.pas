@@ -52,8 +52,9 @@ implementation
     uses
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
+      psub,
       symconst,symbase,symtype,symdef,paramgr,defutil,
-      cgbase,cgobj,rgcpu;
+      cpuinfo,cgbase,cgobj,rgcpu;
 
 
     procedure searchregvars(p : tnamedindexitem;arg:pointer);
@@ -140,6 +141,9 @@ implementation
     procedure assign_regvars(p: tnode);
           { register variables }
     var
+{$ifndef i386}
+      hp: tparaitem;
+{$endif i386}
       regvarinfo: pregvarinfo;
       i: longint;
       parasym : boolean;
@@ -150,6 +154,10 @@ implementation
       { only if no asm is used }
       { and no try statement   }
       if (cs_regalloc in aktglobalswitches) and
+{$ifndef i386}
+         { we have to store regvars back to memory in this case! }
+         (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
+{$endif i386}
          not(pi_uses_asm in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -162,7 +170,33 @@ implementation
               symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
               { copy parameter into a register ? }
               parasym:=true;
-              symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
+{$ifndef i386}
+              if (pi_do_call in current_procinfo.flags) then
+{$endif i386}
+                begin
+                  symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
+                end
+{$ifndef i386}
+              else
+                begin
+                  hp:=tparaitem(current_procdef.para.first);
+                  while assigned(hp) do
+                    begin
+                      if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
+                            LOC_MMREGISTER,LOC_CREGISTER,LOC_CFPUREGISTER,
+                            LOC_CMMREGISTER]) and
+                         (TCGSize2Size[hp.paraloc.size] <= sizeof(aword)) then
+                        tvarsym(hp.parasym).reg := hp.paraloc.register
+                      else
+                        begin
+                          searchregvars(hp.parasym,@parasym);
+                          searchfpuregvars(hp.parasym,@parasym);
+                        end;
+                    hp := tparaitem(hp.next);
+                  end;
+                end
+{$endif not i386}
+              ;
               { hold needed registers free }
               for i:=maxvarregs downto maxvarregs-p.registers32+1 do
                 begin
@@ -572,7 +606,14 @@ end.
 
 {
   $Log$
-  Revision 1.52  2003-05-30 18:55:21  jonas
+  Revision 1.53  2003-05-31 20:33:57  jonas
+    * temp fix/hack for nested procedures (disable regvars in all procedures
+      that have nested procedures)
+    * leave register parameters in their own register (instead of storing
+      them to memory or assigning them to another register) if the current
+      procedure doesn't call any other procedures
+
+  Revision 1.52  2003/05/30 18:55:21  jonas
     * fixed several regvar related bugs for non-i386. make cycle with -Or now
       works for ppc
 
