@@ -37,6 +37,8 @@ procedure WriteXML(Element: TDOMElement; var AStream: TStream);
 
 implementation
 
+uses SysUtils;
+
 // -------------------------------------------------------------------
 //   Writers for the different node types
 // -------------------------------------------------------------------
@@ -270,8 +272,15 @@ begin
 end;
 
 procedure WritePI(node: TDOMNode);
+var
+  s: String;
 begin
-  WriteLn('WritePI');
+  s := '<!' + TDOMProcessingInstruction(node).Target + ' ' +
+    TDOMProcessingInstruction(node).Data + '>';
+  if InsideTextNode then
+    wrt(s)
+  else
+    wrtln(Indent + s);
 end;
 
 procedure WriteComment(node: TDOMNode);
@@ -314,14 +323,19 @@ var
 begin
   InitWriter;
   wrt('<?xml version="');
-  if doc.XMLVersion <> '' then
+  if Length(doc.XMLVersion) > 0 then
     wrt(doc.XMLVersion)
   else
     wrt('1.0');
   wrt('"');
-  if doc.Encoding <> '' then
+  if Length(doc.Encoding) > 0 then
     wrt(' encoding="' + doc.Encoding + '"');
   wrtln('?>');
+
+  if Length(doc.StylesheetType) > 0 then
+    // !!!: Can't handle with HRefs which contain special chars (" and so on)
+    wrtln(Format('<?xml-stylesheet type="%s" href="%s"?>',
+      [doc.StylesheetType, doc.StylesheetHRef]));
 
   indent := '';
 
@@ -398,7 +412,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-07-29 14:52:25  sg
+  Revision 1.5  2000-10-03 20:16:31  sg
+  * Now writes Processing Instructions and a stylesheet link, if set
+
+  Revision 1.4  2000/07/29 14:52:25  sg
   * Modified the copyright notice to remove ambiguities
 
   Revision 1.3  2000/07/25 09:20:08  sg
