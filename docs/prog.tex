@@ -2120,9 +2120,11 @@ Program SaturationDemo;
   example for saturation, scales data (for example audio)
   with 1.5 with rounding to negative infinity
 }
+uses mmx;
 
 var
    audio1 : tmmxword;
+   i: smallint;
 
 const
    helpdata1 : tmmxword = ($c000,$c000,$c000,$c000);
@@ -2132,13 +2134,15 @@ begin
    { audio1 contains four 16 bit audio samples }
 {$mmx+}
    { convert it to $8000 is defined as zero, multiply data with 0.75 }
-   audio1:=tmmxfixed16(audio1+helpdata2)*tmmxfixed(helpdata1);
+   audio1:=(audio1+helpdata2)*(helpdata1);
 {$saturation+}
    { avoid overflows (all values>$7fff becomes $ffff) }
    audio1:=(audio1+helpdata2)-helpdata2;
 {$saturation-}
    { now mupltily with 2 and change to integer }
-   audio1:=(audio1 shl 1)-helpdata2;
+   for i:=0 to 3 do
+     audio1[i] := audio1[i] shl 1;
+   audio1:=audio1-helpdata2;
 {$mmx-}
 end.
 \end{verbatim}
@@ -2179,7 +2183,18 @@ check this, so you are responsible for this!
 \section{Supported MMX operations}
 \label{se:SupportedMMX}
 
-{\em Still to be written \dots}
+The following operations are supported in the compiler when MMX
+extensions are enabled:
+
+\begin{itemize}
+\item addition (\var{+})
+\item subtraction (\var{-})
+\item multiplication(\var{*})
+\item logical exclusive or (\var{xor})
+\item logical and (\var{and})
+\item logical or (\var{or})
+\item sign change (\var{-})
+\end{itemize}
 
 \section{Optimizing MMX support}
 \label{se:OptimizingMMX}
@@ -5237,6 +5252,7 @@ Not all the flags are described, for more information, read the source code of
 \begin{FPCltable}{|ll|}{PPU Header Flag values}{PPUHeaderFlags}
 \hline
 Symbolic bit flag name & Description\\
+\hline
 uf\_init & Module has an initialization (either Delphi or TP style) section. \\
 uf\_finalize & Module has a finalization section. \\
 uf\_big\_endian & All the data stored in the chunks is in big-endian format.\\
@@ -5298,6 +5314,7 @@ description of the most common ones are shown in \seet{PPUEntryTypes}.
 \begin{FPCltable}{|lll|}{Possible PPU Entry types}{PPUEntryTypes}
 \hline
 Symbolic name & Location & Description\\
+\hline
 ibmodulename  & General & Name of this unit.\\
 ibsourcefiles & General & Name of source files.\\
 ibusedmacros & General & Name and state of macros used.\\
