@@ -1100,7 +1100,10 @@ implementation
                                          false,true,convtype,hpd);
                     if (eq>te_incompatible) and
                        (eq<te_equal) and
-                       not(convtype in [tc_equal,tc_int_2_int]) then
+                       not(
+                           (convtype in [tc_equal,tc_int_2_int]) and
+                           (def1.paratype.def.size=def2.paratype.def.size)
+                          ) then
                      begin
                        eq:=te_incompatible;
                      end;
@@ -1193,7 +1196,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-12-23 22:22:16  peter
+  Revision 1.11  2002-12-27 15:26:12  peter
+    * procvar compare with 2 ints did not check the integer size
+
+  Revision 1.10  2002/12/23 22:22:16  peter
     * don't allow implicit bool->int conversion
 
   Revision 1.9  2002/12/18 21:37:36  peter
