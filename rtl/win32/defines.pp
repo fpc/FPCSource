@@ -644,9 +644,9 @@ unit defines;
      SERVICE_START = 16;
      SERVICE_STOP = 32;
      SERVICE_USER_DEFINED_CONTROL = 256;
-     DELETE = $10000;
-     READ_CONTROL = $20000;
-     GENERIC_EXECUTE = $20000000;
+     SERVICE_DELETE = $10000;
+     SERVICE_READ_CONTROL = $20000;
+     SERVICE_GENERIC_EXECUTE = $20000000;
   { already defined above !!
   #define SERVICE_WIN32_OWN_PROCESS     (16)
   #define SERVICE_WIN32_SHARE_PROCESS   (32)
@@ -5718,7 +5718,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.9  1999-04-20 11:36:11  peter
+  Revision 1.10  1999-06-01 19:23:11  peter
+    * renamed delete -> service_delete
+
+  Revision 1.9  1999/04/20 11:36:11  peter
     * compatibility fixes
 
   Revision 1.8  1999/01/28 18:24:29  pierre
