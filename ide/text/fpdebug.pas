@@ -244,11 +244,32 @@ type
       destructor  Done; virtual;
     end;
 
+    PRegistersView = ^TRegistersView;
+    TRegistersView = object(TView)
+      constructor Init(var Bounds: TRect);
+      procedure   Draw;virtual;
+      destructor  Done; virtual;
+    end;
+
+    PRegistersWindow = ^TRegistersWindow;
+    TRegistersWindow = Object(TWindow)
+      RV : PRegistersView;
+      Constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      procedure   Update; virtual;
+      destructor  Done; virtual;
+    end;
+
 const
   StackWindow : PStackWindow = nil;
+  RegistersWindow : PRegistersWindow = nil;
 
   procedure InitStackWindow;
   procedure DoneStackWindow;
+
+  procedure InitRegistersWindow;
+  procedure DoneRegistersWindow;
 
 
 const
@@ -273,6 +294,8 @@ procedure InitWatches;
 procedure DoneWatches;
 
 procedure RegisterFPDebugViews;
+
+procedure UpdateDebugViews;
 
 implementation
 
@@ -354,9 +377,33 @@ const
      Store:   @TWatchesCollection.Store
   );
 
+  RRegistersWindow: TStreamRec = (
+     ObjType: 1711;
+     VmtLink: Ofs(TypeOf(TRegistersWindow)^);
+     Load:    @TRegistersWindow.Load;
+     Store:   @TRegistersWindow.Store
+  );
+
+  RRegistersView: TStreamRec = (
+     ObjType: 1712;
+     VmtLink: Ofs(TypeOf(TRegistersView)^);
+     Load:    @TRegistersView.Load;
+     Store:   @TRegistersView.Store
+  );
+
+
 {****************************************************************************
                             TDebugController
 ****************************************************************************}
+
+procedure UpdateDebugViews;
+
+  begin
+     If assigned(StackWindow) then
+       StackWindow^.Update;
+     If assigned(RegistersWindow) then
+       RegistersWindow^.Update;
+  end;
 
 constructor TDebugController.Init(const exefn:string);
   var f: string;
@@ -444,8 +491,7 @@ begin
   inherited Run;
   DebuggerScreen;
   IDEApp.SetCmdState([cmResetDebugger,cmUntilReturn],true);
-  If assigned(StackWindow) then
-    StackWindow^.Update;
+  UpdateDebugViews;
 end;
 
 procedure TDebugController.Continue;
@@ -457,16 +503,14 @@ begin
     Run
   else
     inherited Continue;
-  If assigned(StackWindow) then
-    StackWindow^.Update;
+  UpdateDebugViews;
 {$endif NODEBUG}
 end;
 
 procedure TDebugController.UntilReturn;
 begin
   Command('finish');
-  If assigned(StackWindow) then
-    StackWindow^.Update;
+  UpdateDebugViews;
   { We could try to get the return value !
     Not done yet }
 end;
@@ -534,8 +578,7 @@ begin
     begin
        errornb:=error_num;
        ReadWatches;
-       If assigned(StackWindow) then
-         StackWindow^.Update;
+       UpdateDebugViews;
        ErrorBox(#3'Error within GDB'#13#3'Error code = %d',@errornb);
     end;
 end;
@@ -563,8 +606,7 @@ begin
           W^.Editor^.TrackCursor(true);
           W^.Editor^.SetDebuggerRow(Line);
           ReadWatches;
-          If assigned(StackWindow) then
-            StackWindow^.Update;
+          UpdateDebugViews;
 
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
@@ -580,8 +622,7 @@ begin
         begin
           W^.Editor^.SetDebuggerRow(Line);
           W^.Editor^.TrackCursor(true);
-          If assigned(StackWindow) then
-            StackWindow^.Update;
+          UpdateDebugViews;
           ReadWatches;
           if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
             W^.Select;
@@ -606,8 +647,7 @@ begin
               W^.Editor^.SetDebuggerRow(Line);
               W^.Editor^.TrackCursor(true);
               ReadWatches;
-              If assigned(StackWindow) then
-                StackWindow^.Update;
+              UpdateDebugViews;
               if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
                 W^.Select;
               LastSource:=W;
@@ -2073,6 +2113,9 @@ end;
     begin
       inherited Load(S);
       GetSubViewPtr(S,WLB);
+      If assigned(WatchesWindow) then
+        dispose(WatchesWindow,done);
+      WatchesWindow:=@Self;
     end;
 
   procedure TWatchesWindow.Store(var S: TStream);
@@ -2155,6 +2198,97 @@ begin
   Execute:=R;
 end;
 
+{****************************************************************************
+                         TRegistersWindow
+****************************************************************************}
+
+  constructor TRegistersView.Init(var Bounds: TRect);
+
+    begin
+       inherited init(Bounds);
+    end;
+
+  procedure TRegistersView.Draw;
+
+    var
+       p : pchar;
+       s : string;
+
+    begin
+       inherited draw;
+       If not assigned(Debugger) then
+         exit;
+{$ifndef NODEBUG}
+       Debugger^.Command('info registers');
+       if Debugger^.Error then
+         p:=StrNew(Debugger^.GetError)
+       else
+         begin
+            p:=StrNew(Debugger^.GetOutput);
+         end;
+       { do not open a messagebox for such errors }
+       Debugger^.got_error:=false;
+{$endif}
+    end;
+
+  destructor TRegistersView.Done;
+
+    begin
+       inherited done;
+    end;
+
+  constructor TRegistersWindow.Init;
+
+    var
+       R : TRect;
+
+    begin
+       Desktop^.GetExtent(R);
+       R.A.X:=R.B.X-24;
+       R.B.Y:=8;
+       inherited Init(R,' Register View', wnNoNumber);
+       Flags:=wfClose or wfMove;
+       Palette:=wpCyanWindow;
+       HelpCtx:=hcRegisters;
+       R.Grow(-2,-2);
+       R.Move(1,1);
+       RV:=new(PRegistersView,init(R));
+       Insert(RV);
+       If assigned(RegistersWindow) then
+         dispose(RegistersWindow,done);
+       RegistersWindow:=@Self;
+       Update;
+    end;
+
+  constructor TRegistersWindow.Load(var S: TStream);
+
+    begin
+       inherited load(S);
+       GetSubViewPtr(S,RV);
+       If assigned(RegistersWindow) then
+         dispose(RegistersWindow,done);
+       RegistersWindow:=@Self;
+    end;
+
+  procedure TRegistersWindow.Store(var S: TStream);
+
+    begin
+       inherited Store(s);
+       PutSubViewPtr(S,RV);
+    end;
+
+  procedure TRegistersWindow.Update;
+
+    begin
+       DrawView;
+    end;
+
+  destructor TRegistersWindow.Done;
+
+    begin
+       RegistersWindow:=nil;
+       inherited done;
+    end;
 
 {****************************************************************************
                          TStackWindow
@@ -2271,6 +2405,9 @@ end;
     begin
       inherited Load(S);
       GetSubViewPtr(S,FLB);
+      If assigned(StackWindow) then
+        dispose(StackWindow,done);
+      StackWindow:=@Self;
     end;
 
   procedure TStackWindow.Store(var S: TStream);
@@ -2368,6 +2505,24 @@ begin
     end;
 end;
 
+procedure InitRegistersWindow;
+begin
+  if RegistersWindow=nil then
+    begin
+      new(RegistersWindow,init);
+      DeskTop^.Insert(RegistersWindow);
+    end;
+end;
+
+procedure DoneRegistersWindow;
+begin
+  if assigned(RegistersWindow) then
+    begin
+      DeskTop^.Delete(RegistersWindow);
+      RegistersWindow:=nil;
+    end;
+end;
+
 procedure InitBreakpoints;
 begin
   New(BreakpointsCollection,init(10,10));
@@ -2402,13 +2557,18 @@ begin
   RegisterType(RWatch);
   RegisterType(RBreakpointCollection);
   RegisterType(RWatchesCollection);
+  RegisterType(RRegistersWindow);
+  RegisterType(RRegistersView);
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.36  1999-12-20 14:23:16  pierre
+  Revision 1.37  2000-01-08 18:26:20  florian
+    + added a register window, doesn't work yet
+
+  Revision 1.36  1999/12/20 14:23:16  pierre
     * MyApp renamed IDEApp
     * TDebugController.ResetDebuggerRows added to
       get resetting of debugger rows

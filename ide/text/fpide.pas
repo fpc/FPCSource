@@ -79,6 +79,7 @@ type
       procedure DoShowBreakpointList;
       procedure DoShowWatches;
       procedure DoAddWatch;
+      procedure DoShowRegisters;
 
       procedure DoInformation;
       procedure Messages;
@@ -295,12 +296,13 @@ begin
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
       NewItem('~B~reakpoint','Ctrl+F8', kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
       NewItem('~C~all stack','Ctrl+F3', kbCtrlF3, cmStack, hcStack,
+      NewItem('~R~egisters','', kbNoKey, cmRegisters, hcRegisters,
       NewItem('~A~dd Watch','Ctrl+F7', kbCtrlF7, cmAddWatch, hcAddWatch,
       NewItem('~W~atches','', kbNoKey, cmWatches, hcWatches,
       NewItem('Breakpoint ~L~ist','', kbNoKey, cmBreakpointList, hcBreakpointList,
       NewLine(
       NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
-      nil)))))))))),
+      nil))))))))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', 'F11', kbF11, cmToolsMessages, hcToolsMessages,
       NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -493,6 +495,7 @@ begin
              cmWatches       :  DoShowWatches;
              cmAddWatch      :  DoAddWatch;
              cmOpenGDBWindow : DoOpenGDBWindow;
+             cmRegisters     : DoShowRegisters;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;
@@ -869,7 +872,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.49  2000-01-05 00:31:50  pierre
+  Revision 1.50  2000-01-08 18:26:20  florian
+    + added a register window, doesn't work yet
+
+  Revision 1.49  2000/01/05 00:31:50  pierre
    * avoid new files to use TABS
 
   Revision 1.48  2000/01/03 11:38:33  michael

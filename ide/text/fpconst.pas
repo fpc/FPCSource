@@ -131,6 +131,7 @@ const
      { and why aren't these defines then removed? Gabor }
      cmCopyWin           = 240;
      cmPasteWin          = 241;
+     cmRegisters         = 242;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -314,6 +315,7 @@ const
      hcGrep              = hcShift+cmGrep;
      hcStack             = hcShift+cmStack;
      hcBreakPointList    = hcShift+cmBreakpointList;
+     hcRegisters         = hcShift+cmRegisters;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
@@ -372,7 +374,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.31  2000-01-03 11:38:33  michael
+  Revision 1.32  2000-01-08 18:26:20  florian
+    + added a register window, doesn't work yet
+
+  Revision 1.31  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.30  1999/11/03 09:39:23  peter

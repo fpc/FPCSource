@@ -59,6 +59,17 @@ begin
 {$endif NODEBUG}
 end;
 
+procedure TIDEApp.DoShowRegisters;
+begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
+  If not assigned(RegistersWindow) then
+    InitRegistersWindow
+  else
+    RegistersWindow^.MakeFirst;
+{$endif NODEBUG}
+end;
 procedure TIDEApp.DoShowBreakpointList;
 begin
 {$ifdef NODEBUG}
@@ -125,7 +136,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-09-22 16:18:19  pierre
+  Revision 1.10  2000-01-08 18:26:20  florian
+    + added a register window, doesn't work yet
+
+  Revision 1.9  1999/09/22 16:18:19  pierre
    + TIDEApp.DoCloseUserScreenWindow
 
   Revision 1.8  1999/09/09 14:20:05  pierre

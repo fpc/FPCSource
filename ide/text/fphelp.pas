@@ -166,6 +166,7 @@ begin
     hcCalculator    : S:='Show calculator';
     hcGrep          : S:='Run grep';
     hcMsgGotoSource : S:='Edit source';
+    hcRegisters     : S:='Open the Registers Window';
 
     hcToolsMessages : S:='Open the message window';
     hcToolsBase..
@@ -410,7 +411,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2000-01-05 17:25:26  pierre
+  Revision 1.26  2000-01-08 18:26:20  florian
+    + added a register window, doesn't work yet
+
+  Revision 1.25  2000/01/05 17:25:26  pierre
    * typo error corrected
 
   Revision 1.24  2000/01/03 11:38:33  michael
