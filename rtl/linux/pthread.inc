@@ -29,8 +29,26 @@
      THREAD_PRIORITY_HIGHEST            = 80;
      THREAD_PRIORITY_TIME_CRITICAL      = 99;
      PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP : array [0..5]of Integer = (0, 0, 0, 1, 0, 0);
+     PTHREAD_MUTEX_RECURSIVE  	        = 1;
 
-  type
+Type
+  __sem_lock_t = record
+    status: Longint;
+    spinlock: Integer;
+  end;
+  TSemLock = __sem_lock_t;
+  PSemLock = ^TSemLock;
+
+   sem_t = record
+     __sem_lock: __sem_lock_t;
+     __sem_value: Integer;
+     __sem_waiting: pointer;
+    end;
+   psem_t = ^sem_t;
+   TSemaphore = sem_t;
+   PSemaphore = ^TSemaphore;
+
+
      TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest, tpTimeCritical);
 
   const
@@ -110,7 +128,7 @@
        pthread_mutexattr_t = record
             mutexkind : longint;
          end;
-
+       pthread_mutex_attr_t = pthread_mutexattr_t;
 
        ppthread_condattr_t = ^pthread_condattr_t;
        pthread_condattr_t = record
@@ -252,6 +270,18 @@ Var
     pthread_atfork : Function(__prepare:tprocedure ; __parent:tprocedure ; __child:tprocedure ):longint;cdecl;
     pthread_kill_other_threads_np : procedure;cdecl;
 
+    sem_init     :   function (__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;
+    sem_destroy  :   function (__sem:Psem_t):longint;cdecl;
+    sem_close    :   function (__sem:Psem_t):longint;cdecl;
+    sem_unlink   :   function (__name:Pchar):longint;cdecl;
+    sem_wait     :   function (__sem:Psem_t):longint;cdecl;
+    sem_trywait  :   function (__sem:Psem_t):longint;cdecl;
+    sem_post     :   function (__sem:Psem_t):longint;cdecl;
+    sem_getvalue :   function (__sem:Psem_t; __sval:Plongint):longint;cdecl;
+
+    pthread_mutexattr_settype : function(__attr: Ppthread_mutexattr_t; Kind:Integer): Integer; cdecl;
+
+
 Var
   PthreadDLL : Pointer;
 
@@ -311,9 +341,18 @@ begin
   Pointer(_pthread_cleanup_push) := dlsym(PthreadDLL,'_pthread_cleanup_push');
   Pointer(_pthread_cleanup_push_defer) := dlsym(PthreadDLL,'_pthread_cleanup_push_defer');
   Pointer(pthread_sigmask) := dlsym(PthreadDLL,'pthread_sigmask');
-  Pointer(pthread_kill) := dlsym(PthreadDLL,'pthread_kill');
-  Pointer(pthread_atfork) := dlsym(PthreadDLL,'pthread_atfork');
+  Pointer(pthread_kill)  := dlsym(PthreadDLL,'pthread_kill');
+  Pointer(pthread_atfork):= dlsym(PthreadDLL,'pthread_atfork');
   Pointer(pthread_kill_other_threads_np) := dlsym(PthreadDLL,'pthread_kill_other_threads_np');
+  Pointer(sem_init     ) := dlsym(PthreadDLL,'sem_init');
+  Pointer(sem_destroy  ) := dlsym(PthreadDLL,'sem_destroy');
+  Pointer(sem_close    ) := dlsym(PthreadDLL,'sem_close');
+  Pointer(sem_unlink   ) := dlsym(PthreadDLL,'sem_unlink');
+  Pointer(sem_wait     ) := dlsym(PthreadDLL,'sem_wait');
+  Pointer(sem_trywait  ) := dlsym(PthreadDLL,'sem_trywait');
+  Pointer(sem_post     ) := dlsym(PthreadDLL,'sem_post');
+  Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
+  Pointer(pthread_mutexattr_settype) := dlsym(PthreadDLL,'pthread_mutexattr_settype');
 end;
 
 Function UnLoadPthreads : Boolean;
@@ -326,7 +365,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-11-26 20:10:59  michael
+  Revision 1.4  2004-05-23 18:49:18  marco
+   * syncobj stuff
+
+  Revision 1.3  2003/11/26 20:10:59  michael
   + New threadmanager implementation
 
   Revision 1.2  2003/09/14 20:15:01  marco
