@@ -827,9 +827,11 @@ unit pdecobj;
                 consume(_LKLAMMER);
                 id_type(tt,pattern,false);
                 childof:=pobjectdef(tt.def);
-                if (childof^.deftype<>objectdef) then
+                if (not assigned(childof)) or
+                   (childof^.deftype<>objectdef) then
                  begin
-                   Message1(type_e_class_type_expected,childof^.typename);
+                   if assigned(childof) then
+                    Message1(type_e_class_type_expected,childof^.typename);
                    childof:=nil;
                    aktclass:=new(pobjectdef,init(n,nil));
                  end
@@ -1077,7 +1079,10 @@ unit pdecobj;
 end.
 {
   $Log$
-  Revision 1.2  2000-10-21 18:16:11  florian
+  Revision 1.3  2000-10-26 21:54:03  peter
+    * fixed crash with error in child definition (merged)
+
+  Revision 1.2  2000/10/21 18:16:11  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support

@@ -147,6 +147,7 @@ implementation
          if (ptypesym(srsym)^.restype.def=generrordef) then
           begin
             Message(sym_e_error_in_type_def);
+            tt.setdef(generrordef);
             exit;
           end;
          { Only use the definitions for system/current unit, becuase
@@ -582,7 +583,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-10-21 18:16:12  florian
+  Revision 1.12  2000-10-26 21:54:03  peter
+    * fixed crash with error in child definition (merged)
+
+  Revision 1.11  2000/10/21 18:16:12  florian
     * a lot of changes:
        - basic dyn. array support
        - basic C++ support
