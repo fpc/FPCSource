@@ -44,15 +44,15 @@ type
 const
 {$ifdef newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=101;
+  CurrentPPUVersion=103;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=100;
+  CurrentPPUVersion=102;
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=19;
+  CurrentPPUVersion=21;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=18;
+  CurrentPPUVersion=20;
 {$endif ORDERSOURCES}
 {$endif newcg}
 
@@ -1006,7 +1006,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2000-02-29 21:58:31  pierre
+  Revision 1.57  2000-05-11 06:54:29  florian
+    * fixed some vmt problems, especially related to overloaded methods
+      in objects/classes
+
+  Revision 1.56  2000/02/29 21:58:31  pierre
    * ORDERSOURCES released
 
   Revision 1.55  2000/02/09 13:22:59  peter

@@ -467,6 +467,35 @@ implementation
              end;
         end;
 
+      procedure newdefentry;
+
+        begin
+           new(procdefcoll);
+           procdefcoll^.data:=hp;
+           procdefcoll^.next:=symcoll^.data;
+           symcoll^.data:=procdefcoll;
+
+           { if it's a virtual method }
+           if (po_virtualmethod in hp^.procoptions) then
+             begin
+                { then it gets a number ... }
+                hp^.extnumber:=nextvirtnumber;
+                { and we inc the number }
+                inc(nextvirtnumber);
+                has_virtual_method:=true;
+             end;
+
+           if (hp^.proctypeoption=potype_constructor) then
+             has_constructor:=true;
+
+           { check, if a method should be overridden }
+           if (po_overridingmethod in hp^.procoptions) then
+             MessagePos1(hp^.fileinfo,parser_e_nothing_to_be_overridden,_c^.objname^+'.'+_name+hp^.demangled_paras);
+        end;
+
+      label
+         handlenextdef;
+
       begin
          { put only sub routines into the VMT }
          if psym(sym)^.typ=procsym then
@@ -507,8 +536,6 @@ implementation
                                                    we hide the method }
                                                  if _c=hp^._class then
                                                    Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
-                                                 newentry;
-                                                 exit;
                                               end
                                             else
                                               if _c=hp^._class then
@@ -518,9 +545,10 @@ implementation
                                                    else
                                                      Message1(parser_w_overloaded_are_not_both_non_virtual,
                                                        _c^.objname^+'.'+_name);
-                                                   newentry;
-                                                   exit;
                                                 end;
+                                            { was newentry; exit; (FK) }
+                                            newdefentry;
+                                            goto handlenextdef;
                                          end
                                        else
                                        { the flags have to match      }
@@ -544,7 +572,8 @@ implementation
                                               we hide the method }
                                             if _c=hp^._class then
                                               Message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
-                                            newentry;
+                                            { was newentry; (FK) }
+                                            newdefentry;
                                             exit;
                                          end;
 
@@ -564,6 +593,7 @@ implementation
                                        { and exchange }
                                        procdefcoll^.data:=hp;
                                        stored:=true;
+                                       goto handlenextdef;
                                     end;  { same parameters }
                                   procdefcoll:=procdefcoll^.next;
                                end;
@@ -587,6 +617,7 @@ implementation
                                    MessagePos1(hp^.fileinfo,parser_e_nothing_to_be_overridden,
                                      _c^.objname^+'.'+_name+hp^.demangled_paras);
                                end;
+                          handlenextdef:
                              hp:=hp^.nextoverloaded;
                           end;
                         exit;
@@ -608,9 +639,12 @@ implementation
 
            { walk through all public syms }
            { I had to change that to solve bug0260 (PM)}
-           {_c:=_class;}
-           _c:=p;
-           { Florian, please check if you agree (PM) }
+           { _c:=p; }
+           _c:=_class;
+           { Florian, please check if you agree (PM)  }
+           { no it wasn't correct, but I fixed it at  }
+           { another place: your fix hides only a bug }
+           { _c is only used to give correct warnings }
            p^.symtable^.foreach({$ifndef TP}@{$endif}eachsym);
         end;
 
@@ -697,7 +731,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2000-04-29 12:49:30  peter
+  Revision 1.28  2000-05-11 06:55:28  florian
+    * fixed some vmt problems, especially related to overloaded methods
+      in objects/classes
+
+  Revision 1.27  2000/04/29 12:49:30  peter
     * fixed long line for tp7
 
   Revision 1.26  2000/03/06 15:57:42  peter
