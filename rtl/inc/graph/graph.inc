@@ -338,7 +338,7 @@ CONST
  procedure SetVisual200(page: word);
   { two page support... }
   begin
-    if page > 2 then exit;
+    if page > HardwarePages then exit;
     asm
       mov ax,[page]    { only lower byte is supported. }
       mov ah,05h
@@ -373,7 +373,7 @@ CONST
  procedure SetVisual350(page: word);
   { one page support... }
   begin
-    if page > 1 then exit;
+    if page > HardwarePages then exit;
     asm
       mov ax,[page]    { only lower byte is supported. }
       mov ah,05h
@@ -1028,6 +1028,7 @@ const CrtAddress: word = 0;
          InitMode(mode);
          { now add all standard VGA modes...       }
          mode.DriverNumber:= LowRes;
+         mode.HardwarePages:= 0;
          mode.ModeNumber:=0;
          mode.ModeName:='320 x 200 VGA';
          mode.MaxColor := 256;
@@ -1051,6 +1052,7 @@ const CrtAddress: word = 0;
          InitMode(mode);
          mode.DriverNumber:= LowRes;
          mode.ModeNumber:=1;
+         mode.HardwarePages := 3; { 0..3 }
          mode.ModeName:='320 x 200 ModeX';
          mode.MaxColor := 256;
          mode.DirectColor := FALSE;
@@ -1074,6 +1076,7 @@ const CrtAddress: word = 0;
          mode.DriverNumber := VGA;
          mode.ModeName:='640 x 200 VGA';
          mode.MaxColor := 16;
+         mode.HardwarePages := 2;
          mode.DirectColor := FALSE;
          mode.PaletteSize := mode.MaxColor;
          mode.MaxX := 639;
@@ -1094,6 +1097,7 @@ const CrtAddress: word = 0;
          mode.ModeNumber:=VGAMed;
          mode.DriverNumber := VGA;
          mode.ModeName:='640 x 350 VGA';
+         mode.HardwarePages := 1;
          mode.MaxColor := 16;
          mode.DirectColor := FALSE;
          mode.PaletteSize := mode.MaxColor;
@@ -1114,6 +1118,7 @@ const CrtAddress: word = 0;
          InitMode(mode);
          mode.ModeNumber:=VGAHi;
          mode.DriverNumber := VGA;
+         mode.HardwarePages := 0;
          mode.ModeName:='640 x 480 VGA';
          mode.MaxColor := 16;
          mode.DirectColor := FALSE;
@@ -1150,6 +1155,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='320 x 200 VESA';
              mode.MaxColor := 32768;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
@@ -1160,9 +1168,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init320x200x32k;
-
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1174,6 +1181,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='320 x 200 VESA';
              mode.MaxColor := 65536;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 319;
@@ -1184,8 +1194,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init320x200x64k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1197,6 +1207,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 400 VESA';
              mode.MaxColor := 256;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 639;
@@ -1207,8 +1220,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init640x400x256;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1220,6 +1233,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 480 VESA';
              mode.MaxColor := 256;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 639;
              mode.MaxY := 479;
@@ -1229,8 +1245,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init640x480x256;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1242,6 +1258,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 400 VESA';
              mode.MaxColor := 32768;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
@@ -1252,8 +1271,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init640x480x32k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1265,6 +1284,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='640 x 480 VESA';
              mode.MaxColor := 65536;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 639;
@@ -1275,8 +1297,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init640x480x64k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1288,6 +1310,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 16;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 799;
@@ -1298,8 +1323,8 @@ const CrtAddress: word = 0;
              mode.PutPixel:=PutPixVESA16;
 {             mode.GetPixel:=GetPixVESA16;}
              mode.InitMode := Init800x600x16;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1311,6 +1336,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 256;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 799;
@@ -1321,8 +1349,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init800x600x256;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1334,6 +1362,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 32768;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
@@ -1344,8 +1375,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init800x600x32k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1357,6 +1388,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='800 x 600 VESA';
              mode.MaxColor := 65536;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 799;
@@ -1367,8 +1401,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init800x600x64k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1380,6 +1414,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 16;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
@@ -1390,8 +1427,8 @@ const CrtAddress: word = 0;
              mode.GetRGBPalette := GetVESARGBPalette;
 {             mode.GetPixel:=GetPixVESA16;}
              mode.InitMode := Init1024x768x16;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1403,6 +1440,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 256;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := FALSE;
              mode.MaxX := 1023;
@@ -1413,8 +1453,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init1024x768x256;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1426,6 +1466,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 32768;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.DirectColor := TRUE;
              mode.MaxX := 1023;
@@ -1436,8 +1479,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init640x480x32k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1450,6 +1493,9 @@ const CrtAddress: word = 0;
              mode.ModeName:='1024 x 768 VESA';
              mode.MaxColor := 65536;
              mode.DirectColor := TRUE;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1023;
              mode.MaxY := 767;
@@ -1459,8 +1505,8 @@ const CrtAddress: word = 0;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
              mode.InitMode := Init1024x768x64k;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1472,6 +1518,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 16;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -1482,8 +1531,8 @@ const CrtAddress: word = 0;
              mode.PutPixel:=PutPixVESA16;
 {             mode.GetPixel:=GetPixVESA16;}
              mode.InitMode := Init1280x1024x16;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1495,6 +1544,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 256;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.DirectColor := FALSE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -1505,8 +1557,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init1280x1024x256;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1518,6 +1570,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 32768;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -1528,8 +1583,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init1280x1024x32k;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -1541,6 +1596,9 @@ const CrtAddress: word = 0;
              mode.DriverNumber := VESA;
              mode.ModeName:='1280 x 1024 VESA';
              mode.MaxColor := 65536;
+             { the ModeInfo is automatically set if the mode is supported }
+             { by the call to SearchVESAMode.                             }
+             mode.HardwarePages := ModeInfo.NumberOfPages;
              mode.DirectColor := TRUE;
              mode.PaletteSize := mode.MaxColor;
              mode.MaxX := 1279;
@@ -1551,8 +1609,8 @@ const CrtAddress: word = 0;
              mode.InitMode := Init1280x1024x64k;
              mode.SetRGBPalette := SetVESARGBPalette;
              mode.GetRGBPalette := GetVESARGBPalette;
-{             mode.SetVisualPage := SetVisual480;
-             mode.SetActivePage := SetActive480;}
+             mode.SetVisualPage := SetVisualVESA;
+             mode.SetActivePage := SetActiveVESA;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
