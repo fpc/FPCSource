@@ -310,6 +310,11 @@ var
 // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
 Begin
   LastDosExitCode:=0;
+  if Path='' then
+    begin
+      doserror:=2;
+      exit;
+    end;  
   pid:=fpFork;
   if pid=0 then
    begin
@@ -887,7 +892,10 @@ End.
 
 {
   $Log$
-  Revision 1.45  2005-02-14 17:13:31  peter
+  Revision 1.46  2005-03-15 16:53:52  peter
+    * return doserror=2 if path is empty in exec()
+
+  Revision 1.45  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.44  2005/02/13 20:01:38  peter
