@@ -1152,7 +1152,7 @@ implementation
                          the procvar, is compatible with the procvar's type }
                        if proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
                                                 tprocvardef(resulttype.def),true)=te_incompatible then
-                         CGMessage2(type_e_incompatible_types,tprocsym(tloadnode(left).symtableentry).first_procdef.typename,resulttype.def.typename);
+                         IncompatibleTypes(tprocsym(tloadnode(left).symtableentry).first_procdef,resulttype.def);
                        exit;
                      end;
                   end
@@ -1195,7 +1195,7 @@ implementation
                        the procvar, is compatible with the procvar's type }
                      if proc_to_procvar_equal(currprocdef,
                                               tprocvardef(resulttype.def),true)=te_incompatible then
-                       CGMessage2(type_e_incompatible_types,tprocdef(left.resulttype.def).typename,resulttype.def.typename);
+                       IncompatibleTypes(left.resulttype.def,resulttype.def);
                      exit;
                    end;
                end;
@@ -1256,7 +1256,7 @@ implementation
                    end;
                end
               else
-               CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+               IncompatibleTypes(left.resulttype.def,resulttype.def);
             end;
 
           else
@@ -2103,7 +2103,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2003-10-09 14:39:03  peter
+  Revision 1.124  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.123  2003/10/09 14:39:03  peter
     * allow explicit typecasts from classrefdef, fixes 2728
 
   Revision 1.122  2003/10/08 19:19:45  peter

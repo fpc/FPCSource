@@ -426,7 +426,7 @@ implementation
                 operpd:=overloaded_operators[optoken].search_procdef_binary_operator(ld,rd);
                 if not assigned(operpd) then
                  begin
-                   CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                   IncompatibleTypes(ld,rd);
                    isbinaryoverloaded:=false;
                    exit;
                  end;
@@ -941,7 +941,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-20 19:29:12  peter
+  Revision 1.71  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.70  2003/10/20 19:29:12  peter
     * fix check for typecasting wrong sizes in assignment left
 
   Revision 1.69  2003/10/08 19:19:45  peter

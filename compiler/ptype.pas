@@ -498,7 +498,7 @@ implementation
                              equal_defs(p.resulttype.def,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
-                           Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
+                           IncompatibleTypes(p.resulttype.def,s32bittype.def);
                         end
                        else
                         Message(cg_e_illegal_expression);
@@ -643,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-10-03 14:45:09  peter
+  Revision 1.60  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.59  2003/10/03 14:45:09  peter
     * more proc directive for procvar fixes
 
   Revision 1.58  2003/10/02 21:13:09  peter

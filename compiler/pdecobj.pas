@@ -406,7 +406,7 @@ implementation
                            Message(parser_e_ill_property_access_sym);
                         end
                        else
-                        CGMessage2(type_e_incompatible_types,def.typename,p.proptype.def.typename);
+                        IncompatibleTypes(def,p.proptype.def);
                      end;
                    else
                      Message(parser_e_ill_property_access_sym);
@@ -450,7 +450,7 @@ implementation
                            Message(parser_e_ill_property_access_sym);
                         end
                        else
-                        CGMessage2(type_e_incompatible_types,def.typename,p.proptype.def.typename);
+                        IncompatibleTypes(def,p.proptype.def);
                      end;
                    else
                      Message(parser_e_ill_property_access_sym);
@@ -1158,7 +1158,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-10-07 16:06:30  peter
+  Revision 1.70  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.69  2003/10/07 16:06:30  peter
     * tsymlist.def renamed to tsymlist.procdef
     * tsymlist.procdef is now only used to store the procdef
 

@@ -272,7 +272,7 @@ implementation
                            is_voidpointer(ld) then
                      inserttypeconv(left,right.resulttype)
                    else if not(equal_defs(ld,rd)) then
-                     CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                     IncompatibleTypes(ld,rd);
                 end
               else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
                begin
@@ -911,7 +911,7 @@ implementation
                     else if is_voidpointer(left.resulttype.def) then
                       inserttypeconv(left,right.resulttype)
                     else if not(equal_defs(ld,rd)) then
-                      CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                      IncompatibleTypes(ld,rd);
                  end;
                ltn,lten,gtn,gten:
                  begin
@@ -922,7 +922,7 @@ implementation
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
                        else if not(equal_defs(ld,rd)) then
-                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                        IncompatibleTypes(ld,rd);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -936,7 +936,7 @@ implementation
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
                        else if not(equal_defs(ld,rd)) then
-                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                        IncompatibleTypes(ld,rd);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -952,7 +952,7 @@ implementation
                        else if is_voidpointer(left.resulttype.def) then
                         inserttypeconv(left,right.resulttype)
                        else if not(equal_defs(ld,rd)) then
-                        CGMessage2(type_e_incompatible_types,ld.typename,rd.typename);
+                        IncompatibleTypes(ld,rd);
                      end
                     else
                      CGMessage(type_e_mismatch);
@@ -1875,7 +1875,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-10-08 19:19:45  peter
+  Revision 1.98  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.97  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.96  2003/10/01 20:34:48  peter

@@ -43,7 +43,8 @@ implementation
 {$endif Delphi}
        globtype,systems,tokens,verbose,
        cutils,globals,widestr,scanner,
-       symconst,symbase,symdef,aasmbase,aasmtai,aasmcpu,defutil,defcmp,
+       symconst,symbase,symdef,symtable,
+       aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
        node,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -487,7 +488,7 @@ implementation
                      end;
                    end
                   else
-                   Message2(type_e_incompatible_types,t.def.typename,p.resulttype.def.typename);
+                   IncompatibleTypes(t.def,p.resulttype.def);
                 end
               else
                 Message(cg_e_illegal_expression);
@@ -993,7 +994,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-09-23 17:56:06  peter
+  Revision 1.72  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.71  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

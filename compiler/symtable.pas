@@ -196,6 +196,7 @@ interface
     procedure globaldef(const s : string;var t:ttype);
     function  findunitsymtable(st:tsymtable):tsymtable;
     procedure duplicatesym(sym:tsym);
+    procedure incompatibletypes(def1,def2:tdef);
 
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
@@ -1765,6 +1766,24 @@ implementation
        end;
 
 
+    procedure incompatibletypes(def1,def2:tdef);
+      var
+        s1,s2 : string;
+      begin
+        s1:=def1.typename;
+        s2:=def2.typename;
+        { When the names are the same try to include the unit name }
+        if upper(s1)=upper(s2) then
+          begin
+            if (def1.owner.symtabletype in [globalsymtable,staticsymtable]) then
+              s1:=def1.owner.realname^+'.'+s1;
+            if (def2.owner.symtabletype in [globalsymtable,staticsymtable]) then
+              s2:=def2.owner.realname^+'.'+s2;
+          end;
+        CGMessage2(type_e_incompatible_types,s1,s2);
+      end;
+
+
 {*****************************************************************************
                                   Search
 *****************************************************************************}
@@ -2293,7 +2312,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-10-17 14:38:32  peter
+  Revision 1.117  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.116  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

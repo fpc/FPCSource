@@ -339,7 +339,7 @@ implementation
                     hp3:=tprocsym(tloadnode(left).symtableentry).search_procdef_byprocvardef(getprocvardef);
                     if not assigned(hp3)  then
                      begin
-                       CGMessage2(type_e_incompatible_types,tprocsym(tloadnode(left).symtableentry).first_procdef.typename,getprocvardef.typename);
+                       IncompatibleTypes(tprocsym(tloadnode(left).symtableentry).first_procdef,getprocvardef);
                        exit;
                      end;
                   end
@@ -904,7 +904,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-10-08 19:19:45  peter
+  Revision 1.66  2003-10-21 18:16:13  peter
+    * IncompatibleTypes() added that will include unit names when
+      the typenames are the same
+
+  Revision 1.65  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.64  2003/10/01 20:34:49  peter
