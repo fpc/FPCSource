@@ -379,10 +379,12 @@ begin
   GetScreenCursor(x,y);
 
   CharInfo := #32;
+  
   Coord.X := X - 1;
   Coord.Y := Y - 1;
 
-  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, @Temp);
+  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - X + 1, Coord, @Temp);
+  FillConsoleOutputAttribute(OutHandle, TextAttr, WinMaxX - X + 1, Coord, @Temp);
 end;
 
 
@@ -978,7 +980,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.9  2001-06-27 20:21:47  peter
+  Revision 1.10  2001-06-29 19:43:40  peter
+    * fixed clreol
+
+  Revision 1.9  2001/06/27 20:21:47  peter
     * support large screens
 
   Revision 1.8  2001/04/14 14:05:42  peter
