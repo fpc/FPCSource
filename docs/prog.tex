@@ -3661,7 +3661,9 @@ implementation of a function/procedure. In particular, you can not omit the
 parameters when implementing the function or procedure.
 \item Overloading of functions is not allowed.
 \item Nested comments are not  allowed.
-\item The Objpas unit is loaded right after the system unit.
+\item The Objpas unit is loaded right after the system unit. One of the
+consequences of this is that the type \var{Integer} is redefined as
+\var{Longint}.
 \end{enumerate}
 \section{GPC mode}
 This mode is selected by the \var{{\$MODE GPC}} switch. On the command-line,
@@ -3685,7 +3687,9 @@ implementation of a function/procedure. In particular, you can not omit the
 parameters when implementing the function or procedure.
 \item Overloading of functions is allowed.
 \item Nested comments are allowed.
-\item The Objpas unit is loaded right after the system unit.
+\item The Objpas unit is loaded right after the system unit. One of the
+consequences of this is that the type \var{Integer} is redefined as
+\var{Longint}.
 \item You can use the cvar type.
 \item PChars are converted to strings automatically.
 \end{enumerate}
