@@ -2,15 +2,18 @@
 { Submitted by "Johannes Berg" on  2003-11-17 }
 { e-mail: bugs@johannes.sipsolutions.de }
 program test;
-{$THREADING ON}
-{$MODE OBJFPC}
+{$ifdef fpc}
+  {$THREADING ON}
+  {$MODE OBJFPC}
+{$endif}  
 
 uses
-  CThreads,Classes;
+  {$ifdef fpc}CThreads,{$endif}
+  Classes;
 
 type
   TMyThread = class(TThread)
-    procedure Execute;
+    procedure Execute;override;
   end;
 
 threadvar
