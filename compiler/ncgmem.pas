@@ -317,6 +317,15 @@ implementation
            begin
               tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
               cg.a_load_loc_ref(exprasmlist,left.location,location.reference);
+             { implicit deferencing also for interfaces }
+             if (cs_gdb_heaptrc in aktglobalswitches) and
+                (cs_checkpointer in aktglobalswitches) and
+                not(cs_compilesystem in aktmoduleswitches) then
+              begin
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+              end;
+
            end
          else
            location_copy(location,left.location);
@@ -906,7 +915,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-11-23 22:50:06  carl
+  Revision 1.34  2002-11-24 18:19:20  carl
+    + checkpointer for interfaces also
+
+  Revision 1.33  2002/11/23 22:50:06  carl
     * some small speed optimizations
     + added several new warnings/hints
 
