@@ -1,41 +1,41 @@
 
 const
-   O_ACCMODE = 0003;
-   O_RDONLY = 00;
-   O_WRONLY = 01;
-   O_RDWR = 02;
-   O_CREAT = 0100;
-   O_EXCL = 0200;
-   O_NOCTTY = 0400;
-   O_TRUNC = 01000;
-   O_APPEND = 02000;
-   O_NONBLOCK = 04000;
-   O_NDELAY = O_NONBLOCK;
-   O_SYNC = 010000;
-   O_FSYNC = O_SYNC;
-   O_ASYNC = 020000;
+   O_ACCMODE  = &00003;
+   O_RDONLY   = &00000;
+   O_WRONLY   = &00001;
+   O_RDWR     = &00002;
+   O_CREAT    = &00100;
+   O_EXCL     = &00200;
+   O_NOCTTY   = &00400;
+   O_TRUNC    = &01000;
+   O_APPEND   = &02000;
+   O_NONBLOCK = &04000;
+   O_NDELAY   = O_NONBLOCK;
+   O_SYNC     = &010000;
+   O_FSYNC    = O_SYNC;
+   O_ASYNC    = &020000;
 
-   O_DIRECT = 040000;
-   O_DIRECTORY = 0200000;
-   O_NOFOLLOW = 0400000;
+   O_DIRECT    = &0040000;
+   O_DIRECTORY = &0200000;
+   O_NOFOLLOW  = &0400000;
 
    O_DSYNC = O_SYNC;
    O_RSYNC = O_SYNC;
 
-   O_LARGEFILE = 0100000;
+   O_LARGEFILE = &0100000;
 
-   F_DUPFD = 0;
-   F_GETFD = 1;
-   F_SETFD = 2;
-   F_GETFL = 3;
-   F_SETFL = 4;
+   F_DUPFD   = 0;
+   F_GETFD   = 1;
+   F_SETFD   = 2;
+   F_GETFL   = 3;
+   F_SETFL   = 4;
 
-   F_GETLK = 5;
-   F_SETLK = 6;
-   F_SETLKW = 7;
+   F_GETLK   = 5;
+   F_SETLK   = 6;
+   F_SETLKW  = 7;
 
-   F_GETLK64 = 12;
-   F_SETLK64 = 13;
+   F_GETLK64  = 12;
+   F_SETLK64  = 13;
    F_SETLKW64 = 14;
 
    F_SETOWN = 8;
