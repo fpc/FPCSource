@@ -1208,7 +1208,9 @@ var
   SysEvent : TsystemEvent;
 begin
   if PollSystemEvent(SysEvent) then
-    case SysEvent.typ of
+    begin
+      SysMsg.GetSystemEvent(SysEvent);
+      case SysEvent.typ of
       SysNothing :
         Event.What:=evNothing;
       SysSetFocus :
@@ -1227,8 +1229,9 @@ begin
           Event.Id:=SysEvent.x;
           Event.InfoWord:=SysEvent.y;
         end;
-    else
-      Event.What:=evNothing;
+      else
+        Event.What:=evNothing;
+      end;
     end;
 end;
 {$endif HasSysMsgUnit}
@@ -1649,7 +1652,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.26  2002-06-06 13:57:50  pierre
+ Revision 1.27  2002-06-06 20:33:35  pierre
+  * remove system event by calling sysmsg.getsystemevent
+
+ Revision 1.26  2002/06/06 13:57:50  pierre
   + activate/desactivate system messages
 
  Revision 1.25  2002/06/06 06:43:29  pierre
