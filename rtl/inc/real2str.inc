@@ -129,6 +129,11 @@ var
           dec(currPrec);
           inc(spos);
           temp[spos] := chr(intPart+ord('0'));
+          if temp[spos] > '9' then
+            begin
+              temp[spos] := chr(ord(temp[spos])-10);
+              roundStr(temp,spos-1);
+            end;
         end;
       corrVal := int(intPartStack[stackPtr]) * 10.0;
       dec(stackPtr);
@@ -284,19 +289,17 @@ begin
       if (spos = 2) and (d <> 0.0) then
         begin
          { take rounding errors into account }
-          while d < 1.0-roundCorr do
+          while d < 0.1-roundCorr do
             begin
               d := d * 10.0;
-                dec(correct);
+              dec(correct);
               { adjust the precision depending on how many digits we  }
               { already "processed" by multiplying by 10, but only if }
               { the amount of precision is specified                  }
               if f >= 0 then
                 dec(currPrec);
             end;
-          { we decreased currPrec once too much }
-          if f >= 0 then
-            inc(currPrec);
+          dec(correct);
         end;
       { current length of the output string in endPos }
       endPos := spos;
@@ -304,30 +307,32 @@ begin
       if (currPrec >= 0) then
         begin
           if (currPrec > 0) then
-            { do some preliminary rounding (necessary, just like the }
-            { rounding afterwards)                                   }
+            { round }
             begin
               corrVal := 0.5;
               for fracCount := 1 to currPrec do
                 corrVal := corrVal / 10.0;
               if d > corrVal then
                 d := d + corrVal;
+              if int(d) = 1 then
+                begin
+                  roundStr(temp,spos);
+                  d := frac(d);
+                end;
             end;
-          { 0.0 < d < 1.0 if we didn't round of earlier, otherwise 1 < d < 10 }
-          if d < 1.0-roundCorr then
-            corrVal := frac(d) * 10
-          else corrVal := d;
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
             begin
+              d := frac(d) * 10.0;
               inc(spos);
-              temp[spos] := chr(trunc(corrVal)+ord('0'));
-              corrVal := frac(corrVal)*10.0;
+              temp[spos] := chr(trunc(d)+ord('0'));
+              if temp[spos] > '9' then
+                { possible because trunc and the "*10.0" aren't exact :( }
+                begin
+                  temp[spos] := chr(ord(temp[spos]) - 10);
+                  roundStr(temp,spos-1);
+                end;
             end;
-          { round off. We left a zero at the start, so we can't underflow  }
-          { to the length byte                                             }
-          if (corrVal-5.0 > roundCorr) then
-            roundStr(temp,spos);
           { new length of string }
           endPos := spos;
         end;
@@ -388,7 +393,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2000-03-17 20:20:33  jonas
+  Revision 1.29  2000-03-21 12:00:30  jonas
+    * fixed more bugs due to inexact nature of FPU
+
+  Revision 1.28  2000/03/17 20:20:33  jonas
     * fixed rounding bugs with certain formatting parameters in str_real
     * fixed tbs0218 so it compares both results only until max precision
 
