@@ -1,0 +1,14 @@
+UNIT tbug809a;
+
+INTERFACE
+
+  PROCEDURE Schreib(st : STRING);
+
+IMPLEMENTATION
+
+PROCEDURE Schreib(st : STRING);
+BEGIN
+  WriteLn(st);
+END;
+
+END.
