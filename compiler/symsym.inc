@@ -1110,9 +1110,27 @@
       end;
 
 
+    function  data_align(length : longint) : longint;
+      begin
+         (* this is useless under go32v2 at least
+         because the section are only align to dword
+         if length>8 then
+           data_align:=16
+         else if length>4 then
+           data_align:=8
+         else *)
+         if length>2 then
+           data_align:=4
+         else if length>1 then
+           data_align:=2
+         else
+           data_align:=1;
+      end;
+      
+    
     procedure tvarsym.insert_in_data;
       var
-         l,modulo : longint;
+         l,ali,modulo : longint;
       begin
         if (var_options and vo_is_external)<>0 then
           exit;
@@ -1163,14 +1181,26 @@
                  end;
                staticsymtable :
                  begin
-                   { enable unitilized warning for local symbols }
+                   { enable unitialized warning for local symbols }
                    is_valid := 0;
                    if (cs_smartlink in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
+                   ali:=data_align(l);
+                   if ali>1 then
+                     begin
+                        (* this is done
+                           either by the assembler or in ag386bin
+                           
+                        bsssegment^.concat(new(pai_align,init(ali))); *)
+                        modulo:=owner^.datasize mod ali;
+                        if modulo>0 then
+                          inc(owner^.datasize,ali-modulo);
+                     end;
 {$ifdef GDB}
                    if cs_debuginfo in aktmoduleswitches then
                       concatstabto(bsssegment);
 {$endif GDB}
+
                    if (cs_smartlink in aktmoduleswitches) or
                       ((var_options and vo_is_c_var)<>0) then
                      bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
@@ -1185,6 +1215,16 @@
                  begin
                    if (cs_smartlink in aktmoduleswitches) then
                      bsssegment^.concat(new(pai_cut,init));
+                   ali:=data_align(l);
+                   if ali>1 then
+                     begin
+                        (* this is done
+                           either by the assembler or in ag386bin
+                        bsssegment^.concat(new(pai_align,init(ali))); *)
+                        modulo:=owner^.datasize mod ali;
+                        if modulo>0 then
+                          inc(owner^.datasize,ali-modulo);
+                     end;
 {$ifdef GDB}
                    if cs_debuginfo in aktmoduleswitches then
                      concatstabto(bsssegment);
@@ -1447,30 +1487,36 @@
 
       procedure ttypedconstsym.really_insert_in_data;
         var curconstsegment : paasmoutput;
+            l,ali,modulo : longint;
         begin
            if is_really_const then
              curconstsegment:=consts
            else
              curconstsegment:=datasegment;
+           if (cs_smartlink in aktmoduleswitches) then
+             curconstsegment^.concat(new(pai_cut,init));
+           l:=getsize;
+           ali:=data_align(l);
+           if ali>1 then
+             begin
+                curconstsegment^.concat(new(pai_align,init(ali)));
+                modulo:=owner^.datasize mod ali;
+                if modulo>0 then
+                  inc(owner^.datasize,ali-modulo);
+             end;
+           {  Why was there no owner size update here ??? }
+           inc(owner^.datasize,l);
+{$ifdef GDB}
+                 if cs_debuginfo in aktmoduleswitches then
+                   concatstabto(curconstsegment);
+{$endif GDB}
            if owner^.symtabletype=globalsymtable then
              begin
-                if (cs_smartlink in aktmoduleswitches) then
-                  curconstsegment^.concat(new(pai_cut,init));
-{$ifdef GDB}
-                if cs_debuginfo in aktmoduleswitches then
-                  concatstabto(curconstsegment);
-{$endif GDB}
                 curconstsegment^.concat(new(pai_symbol,init_global(mangledname)));
              end
            else
              if owner^.symtabletype<>unitsymtable then
                begin
-                 if (cs_smartlink in aktmoduleswitches) then
-                   curconstsegment^.concat(new(pai_cut,init));
-{$ifdef GDB}
-                 if cs_debuginfo in aktmoduleswitches then
-                   concatstabto(curconstsegment);
-{$endif GDB}
                  if (cs_smartlink in aktmoduleswitches) then
                    curconstsegment^.concat(new(pai_symbol,init_global(mangledname)))
                  else
@@ -1974,7 +2020,11 @@
 
 {
   $Log$
-  Revision 1.85  1999-05-04 21:45:07  florian
+  Revision 1.86  1999-05-07 00:06:22  pierre
+    + added aligmnent of data for typed consts
+      for var it is done by AS or LD or in ag386bin for direct object output
+
+  Revision 1.85  1999/05/04 21:45:07  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.84  1999/05/04 16:05:13  pierre
