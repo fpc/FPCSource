@@ -855,7 +855,7 @@ end;
                 if dirlist[i]='/' then dirlist[i]:='\';
               repeat
                 p1:=pos(';',dirlist);
-                if p1=0 then
+                if p1<>0 then
                  begin
                    newdir:=copy(dirlist,1,p1-1);
                    delete(dirlist,1,p1);
@@ -1011,7 +1011,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  1998-05-31 14:18:13  peter
+  Revision 1.6  1998-08-05 21:01:50  michael
+  applied bugfix from maillist to fsearch
+
+  Revision 1.5  1998/05/31 14:18:13  peter
     * force att or direct assembling
     * cleanup of some files
 
