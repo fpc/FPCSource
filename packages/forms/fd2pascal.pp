@@ -21,7 +21,7 @@ Program fd2pascal;
 
 { $Id$ }
 
-Uses linux;
+Uses Unix;
 
 Const RevString = '$Revision$';
   NrOptions = 4;
@@ -1118,7 +1118,10 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:11  michael
+end.  Revision 1.3  2001-01-21 21:38:52  marco
+end.   * renamefest in packages
+end.
+end.  Revision 1.2  2000/07/13 11:33:11  michael
 end.  + removed logs
 end. 
 }

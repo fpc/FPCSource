@@ -344,7 +344,7 @@ uses
   initc,
 {$endif win32}
 {$ifdef linux}
-  linux,
+  Unix,
 {$endif}
 {$ifdef go32v2}
   go32,
@@ -2391,7 +2391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-10-08 10:07:22  peter
+  Revision 1.4  2001-01-21 21:38:52  marco
+   * renamefest in packages
+
+  Revision 1.3  2000/10/08 10:07:22  peter
     * merged fixes from Pierre
 
   Revision 1.2  2000/07/13 11:33:15  michael

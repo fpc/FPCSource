@@ -24,7 +24,7 @@ Unit nCrt;
 }
 Interface
 
-Uses linux,ncurses;
+Uses Unix,ncurses;
 
 {$i ncrt.inc}
 
@@ -38,7 +38,10 @@ Begin
 End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.3  2000-08-29 05:51:09  michael
+  Revision 1.4  2001-01-21 21:38:52  marco
+   * renamefest in packages
+
+  Revision 1.3  2000/08/29 05:51:09  michael
   + Merged changes and additions from fixbranch
 
   Revision 1.2  2000/07/13 11:33:27  michael

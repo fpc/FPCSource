@@ -9,8 +9,8 @@ unit uncgi;
 interface
 uses
   strings
-{$ifdef linux}
- ,linux
+{$ifdef Unix}
+ ,Unix
 {$endif}
 {$IFDEF OS2}
  , DosCalls
@@ -430,7 +430,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.3  2000-12-19 00:47:11  hajny
+  Revision 1.4  2001-01-21 21:38:52  marco
+   * renamefest in packages
+
+  Revision 1.3  2000/12/19 00:47:11  hajny
     + OS/2 support added
 
   Revision 1.2  2000/07/13 11:33:32  michael

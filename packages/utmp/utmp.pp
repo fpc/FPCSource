@@ -3,7 +3,7 @@ unit Utmp;
 interface
 
 uses
-  Linux;
+  Unix;
 
 const
   Device_name_length = 12;
@@ -241,7 +241,7 @@ var
     S : Stat;
 
   begin
-    Linux.FStat(Utmp_file, S);
+    Unix.FStat(Utmp_file, S);
     Number_of_utmp_entries := S.Size div System.SizeOf(tLL_Utmp);
   end;
 
@@ -319,7 +319,10 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.2  2000-07-13 11:33:33  michael
+  Revision 1.3  2001-01-21 21:38:52  marco
+   * renamefest in packages
+
+  Revision 1.2  2000/07/13 11:33:33  michael
   + removed logs
  
 }

@@ -148,7 +148,7 @@ Unit oCrt;
 }
 Interface
 
-Uses linux,ncurses,panel,menu;
+Uses Unix,ncurses,panel,menu;
 
 Const
 
@@ -3258,7 +3258,10 @@ End. { of Unit oCrt }
 
 {
   $Log$
-  Revision 1.4  2000-08-29 05:51:09  michael
+  Revision 1.5  2001-01-21 21:38:52  marco
+   * renamefest in packages
+
+  Revision 1.4  2000/08/29 05:51:09  michael
   + Merged changes and additions from fixbranch
   Revision 1.3  2000/08/20 10:11:41  jonas
     * added missing open comment at start of log section
