@@ -33,7 +33,7 @@ const
  LFNSupport = true;
  DirectorySeparator = ':';
  DriveSeparator = ':';
- PathSeparator = ',';  // Is used in MPW
+ PathSeparator = ',';  // Is used in MPW and OzTeX
  FileNameCaseSensitive = false;
 
 { include heap support headers }
@@ -54,8 +54,86 @@ var
   argv : ppchar;
   envp : ppchar;
 
+{
+ MacOS paths
+ ===========
+ MacOS directory separator is a colon ":" which is the only character not
+ allowed in filenames. 
+ A path containing no colon or which begins with a colon is a partial path.
+ E g ":kalle:petter" ":kalle" "kalle"
+ All other paths are full (absolute) paths. E g "HD:kalle:" "HD:"
+ When generating paths, one is safe is one ensures that all partial paths
+ begins with a colon, and all full paths ends with a colon.
+ In full paths the first name (e g HD above) is the name of a mounted volume.
+ These names are not unique, because, for instance, two diskettes with the
+ same names could be inserted. This means that paths on MacOS is not
+ waterproof. In case of equal names the first volume found will do.
+ Two colons "::" are the relative path to the parent. Three is to the
+ grandparent etc.
+}
+
 implementation
 
+{
+About the implementation
+========================
+A MacOS application is assembled and linked by MPW (Macintosh
+Programmers Workshop), which nowadays is free to use. For info
+and download of MPW and MacOS api, see www.apple.com
+
+It can be linked to either a standalone application (using SIOW) or
+to an MPW tool, this is entirely controlled by the linking step.
+
+It requires system 7 and CFM, which is always the case for PowerPC.
+
+If a m68k version would be implemented, it would save a lot
+of efforts if it also uses CFM. This System.pp should, with
+minor modifications, probably work with m68k.
+
+Initial working directory is the directory of the application,
+or for an MPWTool, the MPW directory.
+
+Note about working directory. There is a facility in MacOS which
+manages a working directory for an application, initially set to
+the applictaions directory, or for an MPWTool, the tool's directory.
+However, this requires the application to have a unique application
+signature (creator code), to distinguish its working directory
+from working directories of other applications. Due to the fact
+that casual applications are anonymous in this sense (without an
+application signature), this facility will not work. Hence we
+will manage a working directory by our self.
+
+
+Deviations
+==========
+
+In current implementation, working directory is stored as
+directory id. This means there is a possibility the user moves the
+working directory or a parent to it, while the application uses it.
+Then the path to the wd suddenly changes. This is AFAIK not in
+accordance with other OS's. Although this is a minor caveat,
+it is mentioned here. To overcome this the wd could be stored
+as a path instead, but this imposes translations from fullpath
+to directory id each time the filesystem is accessed.
+
+The initial working directory for an MPWTool, as considered by
+FPC, is different from the MacOS working directory facility,
+see above.
+
+
+Possible improvements:
+=====================
+TODO: Add check so that working directory cannot be removed. Alt ensure
+the nothing crashes if wd is removed.
+
+TODO: rmdir and erase does not differentiate between files and directories
+thus removing both of them.
+
+TODO: Check of the MacOS version (and prescence of CFM) to
+ensure it is a supported version. only needed for m68k.
+}
+
+{This implementation uses StdCLib, which is included in the MPW.}
 {$define MACOS_USE_STDCLIB}
 
 
@@ -70,9 +148,6 @@ depend on any other units, and thus the macos api must be accessed
 as an include file and not a unit.}
 
 {$I macostp.inc}
-
-{TODO: Perhaps the System unit should check the MacOS version to
-ensure it is a supported version. }
 
 {$ifdef MACOS_USE_STDCLIB}
 
@@ -126,35 +201,34 @@ const
 
   TIOFLUSH = $00007408;       // discard unread input.  arg is ignored
 
-function C_open(path: PChar; oflag: C_int): C_int;
+function c_open(path: PChar; oflag: C_int): C_int; cdecl;
   external 'StdCLib' name 'open';
 
-function C_close(filedes: C_int): C_int;
+function c_close(filedes: C_int): C_int; cdecl;
   external 'StdCLib' name 'close';
 
-function C_write(filedes: C_int; buf: pointer; nbyte: size_t): size_t;
+function c_write(filedes: C_int; buf: pointer; nbyte: size_t): size_t; cdecl;
   external 'StdCLib' name 'write';
 
-{??? fread returns only when n items has been read. Does not specifically
-return after newlines, so cannot be used for reading input from the console.}
-
-function C_read(filedes: C_int; buf: pointer; nbyte: size_t): size_t;
+function c_read(filedes: C_int; buf: pointer; nbyte: size_t): size_t; cdecl;
   external 'StdCLib' name 'read';
 
-function lseek(filedes: C_int; offset: off_t; whence: C_int): off_t;
+function lseek(filedes: C_int; offset: off_t; whence: C_int): off_t; cdecl;
   external 'StdCLib' name 'lseek';
 
-function ioctl(filedes: C_int; cmd: C_unsigned_int; arg: pointer): C_int;
+function ioctl(filedes: C_int; cmd: C_unsigned_int; arg: pointer): C_int; cdecl;
   external 'StdCLib' name 'ioctl';
 
-function remove(filename: PChar): C_int;
+function remove(filename: PChar): C_int; cdecl;
   external 'StdCLib';
 
-function c_rename(old, c_new: PChar): C_int;
+function c_rename(old, c_new: PChar): C_int; cdecl;
   external 'StdCLib' name 'rename';
 
-procedure c_exit(status: C_int);
+procedure c_exit(status: C_int); cdecl;
   external 'StdCLib' name 'exit';
+
+  {cdecl is actually only needed for m68k}
 
 var
   {Is set to nonzero for MPWTool, zero otherwise.}
@@ -205,16 +279,8 @@ Sys_ERANGE      = 34;   { Math result not representable }
 {******************************************************}
 
 var
+  {working directory}
   curDirectorySpec: FSSpec;
-
-{Note about working directory. There is a facility in MacOS to
- set a working directory. However, this requires the application
- to have a unique application signature (creator code), to distinguish
- its working directory from working directory of other applications.
- Due to the fact that applications might be anonymous (without an
- application signature), this facility will not work. Hence we
- will manage working directory by our self.}
-
 
 function GetAppFileLocation (var spec: FSSpec): Boolean;
 //Requires >= System 7
@@ -487,6 +553,27 @@ begin
     end;
 end;
 
+function FSpLocationFromFullPath(fullPathLength: Integer;
+  fullPath: Mac_Ptr; var spec: FSSpec ):OSErr;
+
+var
+  alias: AliasHandle;
+  res: OSErr;
+  wasChanged: Boolean;
+  nullString: Str32;
+
+begin
+  nullString:= '';
+  res:= NewAliasMinimalFromFullPath(fullPathLength,
+             fullPath, nullString, nullString, alias);
+  if res = noErr then
+    begin
+      res:= ResolveAlias(nil, alias, spec, wasChanged);
+      DisposeHandle(Mac_Handle(alias));
+    end;
+  FSpLocationFromFullPath:= res;
+end;
+
 {*****************************************************************************
                               ParamStr/Randomize
 *****************************************************************************}
@@ -494,16 +581,16 @@ end;
 { number of args }
 function paramcount : longint;
 begin
-  {paramcount := argc - 1;}
-  paramcount:=0;
+  paramcount := argc - 1;
+  //paramcount:=0;
 end;
 
 { argument number l }
 function paramstr(l : longint) : string;
 begin
-  {if (l>=0) and (l+1<=argc) then
+  if (l>=0) and (l+1<=argc) then
     paramstr:=strpas(argv[l])
-  else}
+  else
     paramstr:='';
 end;
 
@@ -555,18 +642,22 @@ end;
 
 { close a file from the handle value }
 procedure do_close(h : longint);
+var
+  err: OSErr;
+{No error handling, according to the other targets, which seems reasonable,
+because close might be used to clean up after an error.}
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  C_close(h);
-  Errno2InOutRes;
+  c_close(h);
+  // Errno2InOutRes;
   {$else}
-  InOutRes:=1;
-  if FSClose(h) = noErr then
-    InOutRes:=0;
+  err:= FSClose(h);
+  // OSErr2InOutRes(err);
   {$endif}
 end;
 
 procedure do_erase(p : pchar);
+{this implementation cannot distinguish between directories and files}
 var
   s: AnsiString;
 begin
@@ -599,7 +690,7 @@ end;
 function do_write(h,addr,len : longint) : longint;
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  do_write:= C_write(h, pointer(addr), len);
+  do_write:= c_write(h, pointer(addr), len);
   Errno2InoutRes;
   {$else}
   InOutRes:=1;
@@ -616,7 +707,7 @@ var
 
 begin
   {$ifdef MACOS_USE_STDCLIB}
-  len:= C_read(h, pointer(addr), len);
+  len:= c_read(h, pointer(addr), len);
   Errno2InoutRes;
 
   // TEMP BUGFIX Exchange CR to LF.
@@ -715,27 +806,6 @@ begin
   {$endif}
 end;
 
-function FSpLocationFromFullPath(fullPathLength: Integer;
-  fullPath: Mac_Ptr; var spec: FSSpec ):OSErr;
-
-var
-  alias: AliasHandle;
-  res: OSErr;
-  wasChanged: Boolean;
-  nullString: Str32;
-
-begin
-  nullString:= '';
-  res:= NewAliasMinimalFromFullPath(fullPathLength,
-             fullPath, nullString, nullString, alias);
-  if res = noErr then
-    begin
-      res:= ResolveAlias(nil, alias, spec, wasChanged);
-      DisposeHandle(Mac_Handle(alias));
-    end;
-  FSpLocationFromFullPath:= res;
-end;
-
 procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
@@ -824,10 +894,11 @@ begin
       p:= PChar(s);
     end;
 
-  fh:= C_open(p, oflags);
-
   //TODO Perhaps handle readonly filesystems, as in sysunix.inc
+
+  fh:= c_open(p, oflags);
   Errno2InOutRes;
+
   if fh <> -1 then
     filerec(f).handle:= fh
   else
@@ -846,7 +917,7 @@ begin
 
   res:= FSpLocationFromFullPath(StrLen(p), p, spec);
   if (res = noErr) or (res = fnfErr) then
-   begin
+    begin
       if FSpCreate(spec, creator, fileType, smSystemScript) = noErr then
         ;
 
@@ -854,7 +925,7 @@ begin
         begin
           filerec(f).handle:= refNum;
           InOutRes:=0;
-   end;
+        end;
     end;
 
   if (filerec(f).handle=UnusedHandle) then
@@ -864,8 +935,6 @@ begin
     end;
   {$endif}
 end;
-
-
 
 {*****************************************************************************
                            UnTyped File Handling
@@ -883,8 +952,7 @@ end;
                            Text File Handling
 *****************************************************************************}
 
-{ should we consider #26 as the  end of a file ? }
-{?? $DEFINE EOF_CTRLZ}
+{ #26 is not end of a file in MacOS ! }
 
 {$i text.inc}
 
@@ -896,19 +964,20 @@ procedure mkdir(const s:string);[IOCheck];
 var
   spec: FSSpec;
   createdDirID: Longint;
+  err: OSErr;
 begin
   If (s='') or (InOutRes <> 0) then
     exit;
  
   if PathArgToFSSpec(s, spec) then
-    if FSpDirCreate(spec, smSystemScript, createdDirID) = noErr then
-      InOutRes:= 0
-    else
-      InOutRes:= 1;
+    begin
+      err:= FSpDirCreate(spec, smSystemScript, createdDirID);
+      OSErr2InOutRes(err);
+    end;
 end;
 
 procedure rmdir(const s:string);[IOCheck];
-//Kolla så att endast directories tas bort, kolla med dok.
+{this implementation cannot distinguish between directories and files}
 var
   spec: FSSpec;
   err: OSErr;
@@ -925,42 +994,72 @@ end;
 
 procedure chdir(const s:string);[IOCheck];
 var
-  newDirSpec: FSSpec;
+  spec, newDirSpec: FSSpec;
+  err: OSErr;
 begin
-  If (s='') or (InOutRes <> 0) then
+  if (s='') or (InOutRes <> 0) then
     exit;
 
-  InOutRes:=1;
-  if FSMakeFSSpec (curDirectorySpec.vRefNum, curDirectorySpec.parID, 
-    s+':x', newDirSpec) in [ noErr, fnfErr] then
-      { the fictive file x is appended to the path to make FSMakeFSSpec return a FSSpec 
-        to a file in the directory. Then by clearing the name, the FSSpec then
+  if PathArgToFSSpec(s, spec) then
+    begin
+      { The fictive file x is appended to the directory name to make 
+        FSMakeFSSpec return a FSSpec to a file in the directory.
+        Then by clearing the name, the FSSpec then
         points to the directory. It doesn't matter whether x exists or not.}
-      begin
-        curDirectorySpec:= newDirSpec;
-        curDirectorySpec.name:='';
-        InOutRes:= 0;
-      end;
-
+      err:= FSMakeFSSpec (spec.vRefNum, spec.parID, ':'+spec.name+':x', newDirSpec);
+      if err in [ noErr, fnfErr] then
+        begin
+          curDirectorySpec:= newDirSpec;
+          curDirectorySpec.name:='';
+          InOutRes:= 0;
+        end
+      else
+        begin
+          //E g if the directory doesn't exist.
+          OSErr2InOutRes(err);
+        end;
+    end;
 end;
 
 procedure getDir (DriveNr: byte; var Dir: ShortString);
 var
   pathHandle: Mac_Handle;
+  pathHandleSize: Longint;
 begin
   if FSpGetFullPath(curDirectorySpec, pathHandle, false) <> noErr then
     Halt(3);  //exit code 3 according to MPW
-  SetString(dir, pathHandle^, GetHandleSize(pathHandle));
+
+  pathHandleSize:= GetHandleSize(pathHandle);
+  SetString(dir, pathHandle^, pathHandleSize);
   DisposeHandle(pathHandle);
-  InOutRes := 0;
+
+  if pathHandleSize <= 255 then //because dir is ShortString
+    InOutRes := 0
+  else
+    InOutRes := 1; //TODO Exchange to something better 
 end;
 
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
+procedure pascalmain; external name 'PASCALMAIN';
+
+{Main entry point in C style, needed to capture program parameters.
+ For this to work, the system unit must be before the main program
+ in the linking order.}
+procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl;
+
+begin
+  argc:= argcparam;
+  argv:= argvparam;
+  envp:= envpparam;
+  pascalmain;  {run the pascal main program}
+end;
+
 procedure setup_arguments;
          begin
+           //Nothing needs to be done here.	
          end;
 
 procedure setup_environment;
@@ -1039,7 +1138,14 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-10-17 23:44:30  olle
+  Revision 1.10  2003-10-29 22:34:52  olle
+    + handles program parameters for MPW
+    + program start stub
+    * improved working directory handling
+    * minor changes
+    + some documentation
+
+  Revision 1.9  2003/10/17 23:44:30  olle
     + working direcory emulated
     + implemented directory handling procs
     + all proc which take a path param, now resolve it relative wd
