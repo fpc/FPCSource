@@ -430,23 +430,35 @@ Var
 
 begin
 {$ifdef cpui386}
+  {$define bunxfunc_fpselect_implemented}
   SelectArray[1]:=n;
   SelectArray[2]:=TSysParam(Readfds);
   Selectarray[3]:=TSysParam(Writefds);
   selectarray[4]:=TSysParam(exceptfds);
   Selectarray[5]:=TSysParam(TimeOut);
   fpSelect:=do_syscall(syscall_nr_select,TSysParam(@selectarray));
-{$endif}
+{$endif cpui386}
 {$ifdef cpupowerpc}
- fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif}
+  {$define bunxfunc_fpselect_implemented}
+  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$endif cpupowerpc}
+{$ifdef cpusparc}
+  {$define bunxfunc_fpselect_implemented}
+  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$endif cpusparc}
+{$ifndef bunxfunc_fpselect_implemented}
+  {$error Implement fpselect}
+{$endif bunxfunc_fpselect_implemented}
 end;
 
 {$endif}
 
 {
  $Log$
- Revision 1.10  2004-04-28 20:48:20  peter
+ Revision 1.11  2004-10-13 20:47:12  florian
+   + implemented fpselect for sparc
+
+ Revision 1.10  2004/04/28 20:48:20  peter
    * ordinal-pointer conversions fixed
 
  Revision 1.9  2004/04/22 17:17:23  peter
