@@ -34,6 +34,7 @@ interface
        widestr,cpuinfo;
 
     const
+       max_include_nesting=32;
        max_macro_nesting=16;
        maxmacrolen=16*1024;
        preprocbufsize=32*1024;
@@ -83,6 +84,7 @@ interface
        tscannerfile = class
        public
           inputfile    : tinputfile;  { current inputfile list }
+          inputfilecount : longint;
 
           inputbuffer,                { input buffer }
           inputpointer : pchar;
@@ -759,26 +761,32 @@ implementation
               if (not found) then
                found:=findincludefile(path,name,target_info.pasext,foundfile);
             end;
-         { save old postion and decrease linebreak }
-           if c=newline then
-            dec(current_scanner.line_no);
-           dec(longint(current_scanner.inputpointer));
-         { shutdown current file }
-           current_scanner.tempcloseinputfile;
-         { load new file }
-           hp:=do_openinputfile(foundfile);
-           current_scanner.addfile(hp);
-           current_module.sourcefiles.register_file(hp);
-           if not current_scanner.openinputfile then
-            Message1(scan_f_cannot_open_includefile,hs);
-           Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
-           current_scanner.reload;
-         { process first read char }
-           case c of
-            #26 : current_scanner.reload;
-            #10,
-            #13 : current_scanner.linebreak;
-           end;
+           if current_scanner.inputfilecount<max_include_nesting then
+             begin
+               inc(current_scanner.inputfilecount);
+               { save old postion and decrease linebreak }
+               if c=newline then
+                dec(current_scanner.line_no);
+               dec(longint(current_scanner.inputpointer));
+               { shutdown current file }
+               current_scanner.tempcloseinputfile;
+               { load new file }
+               hp:=do_openinputfile(foundfile);
+               current_scanner.addfile(hp);
+               current_module.sourcefiles.register_file(hp);
+               if not current_scanner.openinputfile then
+                Message1(scan_f_cannot_open_includefile,hs);
+               Message1(scan_t_start_include_file,current_scanner.inputfile.path^+current_scanner.inputfile.name^);
+               current_scanner.reload;
+               { process first read char }
+               case c of
+                #26 : current_scanner.reload;
+                #10,
+                #13 : current_scanner.linebreak;
+               end;
+             end
+           else
+             Message(scan_f_include_deep_ten);
          end;
       end;
 
@@ -1072,7 +1080,10 @@ implementation
            if inputfile.is_macro then
              to_dispose:=inputfile
            else
-             to_dispose:=nil;
+             begin
+               to_dispose:=nil;
+               dec(inputfilecount);
+             end;
            { we can allways close the file, no ? }
            inputfile.close;
            inputfile:=inputfile.next;
@@ -1086,10 +1097,10 @@ implementation
     procedure tscannerfile.addfile(hp:tinputfile);
       begin
         saveinputfile;
-      { add to list }
+        { add to list }
         hp.next:=inputfile;
         inputfile:=hp;
-      { load new inputfile }
+        { load new inputfile }
         restoreinputfile;
       end;
 
@@ -2803,7 +2814,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.58  2003-04-26 00:30:27  peter
+  Revision 1.59  2003-05-25 10:26:43  peter
+    * recursive include depth check
+
+  Revision 1.58  2003/04/26 00:30:27  peter
     * don't close inputfile when still closed
 
   Revision 1.57  2003/01/09 21:52:37  peter
