@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 Program toperator5;
 
 uses ucomplex;
@@ -9,8 +11,8 @@ const
    IM_ONE = 7.5;
    IM_TWO = 15.2;
    IM_THREE = 11.1;
-   
-   
+
+
    procedure fail;
     begin
       WriteLn('Failed!');
@@ -29,7 +31,7 @@ const
         fail;
       WriteLn('Success!');
      end;
-     
+
      procedure TestComplexAdd;
       var
        i,j: complex;
@@ -46,7 +48,7 @@ const
           fail;
         WriteLn('Success!');
       end;
-      
+
     procedure TestComplexSubtract;
       var
        i,j: complex;
@@ -63,7 +65,7 @@ const
           fail;
         WriteLn('Success!');
      end;
-     
+
 
     procedure TestComplexMultiply;
       var
@@ -82,7 +84,7 @@ const
         WriteLn('Success!');
      end;
 
-    
+
 
     procedure TestComplexEqual;
       var
@@ -125,7 +127,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-08 11:54:23  carl
+  Revision 1.2  2002-12-22 15:14:02  peter
+    * ucomplex will be delivered with 1.1
+
+  Revision 1.1  2002/09/08 11:54:23  carl
     * operator overloading interactive tests
 
 }  
