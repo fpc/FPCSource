@@ -1725,35 +1725,26 @@ begin
 end;
 
 procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean);
-
-var c : system.currency;
-
+var
+  c : system.currency;
+  fmt: String;
 begin
-  If GetData(@C) then
-    begin
-    if ADisplayText then
-      begin
-      if Displayformat='' then
-        begin
-        if Fcurrency then TheText := FloatToStrF(C,ffcurrency,FPrecision,0)
-          else TheText := FloatToStrF(C,ffgeneral,FPrecision,0);
-        end
-      else
-        TheText := CurrToStr(C); // ToDo: Displayformat is ignored
-      end
+  if GetData(@C) then begin
+    if aDisplayText or (FEditFormat='') then
+      fmt := FDisplayFormat
     else
-      begin
-      if (Displayformat='') and (Editformat='') then
-        begin
-        if Fcurrency then TheText := FloatToStrF(C,ffcurrency,FPrecision,0)
-          else TheText := FloatToStrF(C,ffFixed,FPrecision,0);
-        end
+      fmt := FEditFormat;
+    if fmt<>'' then
+      TheText := FormatFloat(fmt,C)
+    else if fCurrency then begin
+      if aDisplayText then
+        TheText := FloatToStrF(C, ffCurrency, FPrecision, 2{digits?})
       else
-        TheText := CurrToStr(C); // ToDo: Displayformat is ignored
-      end;
-    end
-  else
-    TheText:='';
+        TheText := FloatToStrF(C, ffFixed, FPrecision, 2{digits?});
+    end else
+      TheText := FloatToStrF(C, ffGeneral, FPrecision, 0{digits?});
+  end else
+    TheText := '';
 end;
 
 procedure TBCDField.SetAsCurrency(AValue: Currency);
@@ -1801,6 +1792,7 @@ begin
   FMaxvalue := 0;
   FMinvalue := 0;
   SetDataType(ftBCD);
+  FPrecision := 15;
   Size:=4;
 end;
 
@@ -2198,7 +2190,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  2005-02-28 16:19:07  joost
+  Revision 1.26  2005-03-01 14:00:53  joost
+  - Fix to avoid scientific format in TDBCFields from Jesus Reyes
+
+  Revision 1.25  2005/02/28 16:19:07  joost
   - Boolean fields are wordbool's now
 
   Revision 1.24  2005/02/16 09:31:58  michael
