@@ -767,6 +767,14 @@ end ['EAX'];
     move.l (a6),d0
 end ['D0'];
 {$endif}
+{$ifdef powerpc}
+{$define FPC_PreviousFramePointer_Implemented}
+    {$warning FIX ME !!!! }
+    { getting the previous stack frame is quite hard for the standard powerpc calling conventions
+      because we don't know the size of the locals, it seems that we need some compiler magic for this
+    }
+end;
+{$endif}
 {$ifndef FPC_PreviousFramePointer_Implemented}
 {$error PreviousFramePointer function not implemented}
 {$endif not FPC_PreviousFramePointer_Implemented}
@@ -787,6 +795,11 @@ begin
   end;
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
 end;
+{$ifdef powerpc}
+{$define FPC_CallPointerConstructor_Implemented}
+{ for the powerpc, we don't need to load self, because we use standard calling conventions
+  so self should be in a register anyways }
+{$endif}
 {$ifndef FPC_CallPointerConstructor_Implemented}
 {$error CallPointerConstructor function not implemented}
 {$endif not FPC_CallPointerConstructor_Implemented}
@@ -803,6 +816,11 @@ begin
 {$ifdef m68k}
 {$define FPC_CallPointerMethod_Implemented}
         move.l Obj, a5
+{$endif}
+{$ifdef powerpc}
+{$define FPC_CallPointerMethod_Implemented}
+{ for the powerpc, we don't need to load self, because we use standard calling conventions
+  so self should be in a register anyways }
 {$endif}
   end;
   CallPointerMethod := PointerMethod(Method)(Obj, Param1)
@@ -2833,7 +2851,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.9  2002-03-28 20:56:00  carl
+  Revision 1.10  2002-09-01 19:03:19  florian
+    + powerpc support added
+
+  Revision 1.9  2002/03/28 20:56:00  carl
   - remove go32v1 support
 
   Revision 1.8  2001/07/31 19:36:09  peter
