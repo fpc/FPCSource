@@ -1173,31 +1173,31 @@ implementation
                    begin
                      if isreal then
                        begin
-                          if (vr>=2147483648.0) or (vr<=-2147483649.0) then
+                          if (vr>=9223372036854775808.0) or (vr<=-9223372036854775809.0) then
                             begin
                                CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,s32bittype,false)
+                               hp:=cordconstnode.create(1,cs64bittype,false)
                             end
                           else
-                            hp:=cordconstnode.create(trunc(vr),s32bittype,true)
+                            hp:=cordconstnode.create(trunc(vr),cs64bittype,true)
                        end
                      else
-                      hp:=cordconstnode.create(trunc(vl),s32bittype,true);
+                      hp:=cordconstnode.create(trunc(vl),cs64bittype,true);
                    end;
                  in_const_round :
                    begin
                      if isreal then
                        begin
-                          if (vr>=2147483647.5) or (vr<=-2147483648.5) then
+                          if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
                             begin
                                CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,s32bittype,false)
+                               hp:=cordconstnode.create(1,cs64bittype,false)
                             end
                           else
-                            hp:=cordconstnode.create(round(vr),s32bittype,true)
+                            hp:=cordconstnode.create(round(vr),cs64bittype,true)
                        end
                      else
-                      hp:=cordconstnode.create(round(vl),s32bittype,true);
+                      hp:=cordconstnode.create(round(vl),cs64bittype,true);
                    end;
                  in_const_frac :
                    begin
@@ -2351,7 +2351,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2003-05-17 13:30:08  jonas
+  Revision 1.113  2003-05-31 21:29:04  jonas
+    * constant evaluation of trunc() and round() now also gives 64 bit
+      results
+
+  Revision 1.112  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc
