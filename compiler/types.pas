@@ -821,6 +821,7 @@ implementation
                      case def^.size of
                        1: l := l and $ff;
                        2: l := l and $ffff;
+                       4: l := l and $ffffffff;
                      end
 {                   l:=lv+(l mod (hv-lv+1));}
                 end;
@@ -1719,7 +1720,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2000-11-13 11:30:55  florian
+  Revision 1.23  2000-11-13 14:42:41  jonas
+    * fix in testrange so that 64bit constants are properly truncated when
+      assigned to 32bit vars
+
+  Revision 1.22  2000/11/13 11:30:55  florian
     * some bugs with interfaces and NIL fixed
 
   Revision 1.21  2000/11/12 23:24:12  florian
