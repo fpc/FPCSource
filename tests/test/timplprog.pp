@@ -1,3 +1,4 @@
+{ %RECOMPILE}
 uses uimpluni1;
 
     Type
