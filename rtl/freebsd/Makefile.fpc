@@ -22,6 +22,7 @@ cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC)
 targetdir=.
 
 [lib]

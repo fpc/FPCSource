@@ -56,6 +56,8 @@ BASEDIR:=$(shell $(PWD))
 else
 BASEDIR=.
 endif
+override OS_TARGET=os2
+override CPU_TARGET=i386
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -126,6 +128,12 @@ SYSTEMUNIT=syslinux
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi dive dos crt objects printer sysutils math typinfo varutils ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard callspec
+override TARGET_LOADERS+=prt0 prt1 code2 code3
+override TARGET_RSTS+=math varutils
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
+override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
@@ -518,6 +526,33 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_loaders
+ifdef TARGET_LOADERS
+override ALLTARGET+=fpc_loaders
+override CLEANTARGET+=fpc_loaders_clean
+override INSTALLTARGET+=fpc_loaders_install
+override LOADEROFILES:=$(addsuffix $(OEXT),$(TARGET_LOADERS))
+endif
+%$(OEXT): %$(LOADEREXT)
+	$(AS) -o $*$(OEXT) $<
+fpc_loaders: $(LOADEROFILES)
+fpc_loaders_clean:
+	-$(DEL) $(LOADEROFILES)
+fpc_loaders_install:
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(LOADEROFILES) $(INSTALL_UNITDIR)
+.PHONY: fpc_units
+ifdef TARGET_UNITS
+override ALLTARGET+=fpc_units
+override UNITPPUFILES=$(addsuffix $(PPUEXT),$(TARGET_UNITS))
+override INSTALLPPUFILES+=$(UNITPPUFILES)
+override CLEANPPUFILES+=$(UNITPPUFILES)
+endif
+fpc_units: $(UNITPPUFILES)
+ifdef TARGET_RSTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 .PHONY: fpc_packages fpc_all fpc_smart fpc_debug
 $(FPCMADE): $(ALLTARGET)
 	@$(ECHO) Compiled > $(FPCMADE)
@@ -540,8 +575,8 @@ fpc_debug:
 %$(EXEEXT): %.pas
 	$(COMPILER) $<
 	$(EXECPPAS)
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS

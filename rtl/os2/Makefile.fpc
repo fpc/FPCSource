@@ -2,7 +2,7 @@
 #   Makefile.fpc for Free Pascal OS/2 RTL
 #
 
-[targets]
+[target]
 loaders=prt0 prt1 code2 code3
 units=$(SYSTEMUNIT) objpas strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
@@ -11,21 +11,18 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils math typinfo varutils \
       ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard callspec
-rst=math
+rsts=math varutils
 
 [require]
-rtl=0
+nortl=y
 
-[defaults]
-defaulttarget=os2
-defaultcpu=i386
+[default]
+target=os2
+cpu=i386
 
-[install]
-unitsubdir=rtl
-
-[dirs]
-fpcdir=.
-incdir=$(INC) $(PROCINC)
+[compiler]
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC)
 targetdir=.
 
 

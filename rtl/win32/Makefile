@@ -136,6 +136,7 @@ WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings windows ole2 opengl32 os_types winsock initc dos crt objects graph sysutils typinfo math varutils cpu mmx getopts heaptrc lineinfo wincrt winmouse winevent sockets printer dynlibs video mouse keyboard callspec
 override TARGET_LOADERS+=wprt0 wdllprt0
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
 override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
@@ -574,8 +575,8 @@ fpc_debug:
 %$(EXEEXT): %.pas
 	$(COMPILER) $<
 	$(EXECPPAS)
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS

@@ -579,8 +579,8 @@ fpc_debug:
 %$(EXEEXT): %.pas
 	$(COMPILER) $<
 	$(EXECPPAS)
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS

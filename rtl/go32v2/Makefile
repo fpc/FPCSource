@@ -132,6 +132,7 @@ endif
 override TARGET_UNITS+=system objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc lineinfo msmouse charset varutils video mouse keyboard vesamode
 override TARGET_LOADERS+=prt0 exceptn fpu
 override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC)
+override COMPILER_SOURCEDIR+=$(INC) $(PROCINC)
 override COMPILER_TARGETDIR+=.
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
@@ -570,8 +571,8 @@ fpc_debug:
 %$(EXEEXT): %.pas
 	$(COMPILER) $<
 	$(EXECPPAS)
-vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
-vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCDIR)
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
 vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
 .PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
 ifdef INSTALL_UNITS
