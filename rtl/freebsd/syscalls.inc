@@ -455,10 +455,30 @@ begin
 end;
 
 (*=================== MOVED from syslinux.inc ========================*)
+{
 Function Sys_FTruncate(Handle,Pos:longint):longint;  //moved from sysunix.inc Do_Truncate
 begin
   Sys_FTruncate:=do_syscall(syscall_nr_ftruncate,handle,pos,0);
 end;
+}
+
+Function Sys_ftruncate(handle,pos:longint):longint; assembler;
+
+{this one is special for the return value being 64-bit..}
+
+ asm
+  pushl $0
+  pushl pos
+  pushl $0      // Your guess is as good as mine.
+  pushl handle
+  pushl $0
+  pushl $0xc9   // Actual lseek syscall number.
+  movl  $0xc6,%eax
+  call  actualsyscall
+  addl  $24,%esp
+  mov   %ebx,Errno
+ end;
+
 
 Function Sys_fstat(fd : longint;var Info:stat):Longint; // This was missing here, instead an fstat call was included in Do_FileSize
 begin
@@ -490,7 +510,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-06-19 08:34:16  marco
+  Revision 1.7  2001-08-27 09:35:07  marco
+   * Ftruncate intermediate fix.
+
+  Revision 1.6  2001/06/19 08:34:16  marco
    * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
 
   Revision 1.5  2001/04/23 11:38:30  marco
