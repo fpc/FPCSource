@@ -542,7 +542,6 @@ unit pexpr;
       var
          paras : ptree;
          p2 : ptree;
-         forceread : boolean;
 
       begin
          paras:=nil;
@@ -604,13 +603,8 @@ unit pexpr;
                 end
               else
                 begin
-                   if ppropertysym(sym)^.proptype^.deftype=objectdef then
-                    pd:=ppropertysym(sym)^.proptype
-                   else
-                    begin
-                      p1:=genzeronode(errorn);
-                      Message(parser_e_no_procedure_to_access_property);
-                    end;
+                   p1:=genzeronode(errorn);
+                   Message(parser_e_no_procedure_to_access_property);
                 end;
            end
          else
@@ -638,14 +632,6 @@ unit pexpr;
                         p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
                         { insert paras }
                         p1^.left:=paras;
-                        { if we should be delphi compatible  }
-                        { then force type conversion         }
-                        {                                    }
-                        { isn't neccessary, the result types }
-                        { have to match excatly              }
-                        {if cs_delphi2_compatible in aktswitches then
-                          p1:=gentypeconvnode(p1,pd);
-                        }
                      end
                    else
                      begin
@@ -1986,7 +1972,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.96  1999-04-19 09:13:47  peter
+  Revision 1.97  1999-04-19 09:27:48  peter
+    * removed my property fix
+
+  Revision 1.96  1999/04/19 09:13:47  peter
     * class property without write support
 
   Revision 1.95  1999/04/19 06:10:08  florian
