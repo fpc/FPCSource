@@ -971,7 +971,7 @@ const
    { Handles MOVZX, MOVSX ... }
    var
      instruc: tasmop;
-     opsize: topsize;
+     opsize : topsize;
    Begin
       instruc:=instr.getinstruction;
       { if we have A_MOVZX/A_MOVSX here, there is a big problem }
@@ -1097,6 +1097,7 @@ const
     opsize: topsize;
     optyp1, optyp2, optyp3: longint;
     instruc: tasmop;
+    href   : treference;
   Begin
     fits := FALSE;
      for i:=1 to instr.numops do
@@ -1713,8 +1714,11 @@ const
               end;
            OPR_REGISTER:
              Begin
-                p^.concat(new(pai386,op_reg(instruc,
-                  instr.stropsize, instr.operands[1].reg)));
+                if (instr.stropsize<>S_NO) then
+                 opsize:=instr.stropsize
+                else
+                 opsize:=instr.operands[1].size;
+                p^.concat(new(pai386,op_reg(instruc,opsize,instr.operands[1].reg)));
              End;
            OPR_SYMBOL:
              Begin
@@ -1967,6 +1971,31 @@ const
                            Message(assem_f_internal_error_in_concatopcode);
                          end;
                       end; { end case }
+                   { sym,reg     }
+                   OPR_SYMBOL:
+                      case instr.operands[2].operandtype of
+                         OPR_REGISTER:
+                            Begin
+                              if instruc in [A_LDS,A_LES,A_LFS,A_LGS,A_LSS] then
+                               opsize:=S_NO
+                              else
+                               if stropsize<>S_NO then
+                                opsize:=stropsize
+                              else
+                               if (opsize<>operands[2].size) then
+                                Message(assem_e_invalid_opcode_and_operand);
+                              { create an temporary reference }
+                              reset_reference(href);
+                              href.symbol:=stringdup(instr.operands[1].symbol^);
+                              p^.concat(new(pai386,op_ref_reg(instruc,opsize,
+                                 newreference(href),operands[2].reg)));
+                              clear_reference(href);
+                            end;
+                      else
+                         Begin
+                           Message(assem_f_internal_error_in_concatopcode);
+                         end;
+                      end; { end inner case }
                    { ref,reg     }
                    { ref,ref     }
                    OPR_REFERENCE:
@@ -1975,27 +2004,16 @@ const
                             if assigned(operands[1].ref.symbol) then
                             { global variable }
                             Begin
-                              if instruc in [A_LEA,A_LDS,A_LES,A_LFS,A_LGS,A_LSS]
-                               then
-                                 p^.concat(new(pai386,op_ref_reg(instruc,
-                                 S_NO,newreference(operands[1].ref),
-                                 operands[2].reg)))
+                              if instruc in [A_LDS,A_LES,A_LFS,A_LGS,A_LSS] then
+                               opsize:=S_NO
                               else
-                              if (stropsize <> S_NO) then
-                              Begin
-                                 p^.concat(new(pai386,op_ref_reg(instruc,
-                                 stropsize,newreference(operands[1].ref),
-                                 operands[2].reg)))
-                              end
+                               if stropsize<>S_NO then
+                                opsize:=stropsize
                               else
-                              if (opsize = operands[2].size) then
-                                 p^.concat(new(pai386,op_ref_reg(instruc,
-                                 opsize,newreference(operands[1].ref),
-                                 operands[2].reg)))
-                              else
-                                Begin
-                                   Message(assem_e_invalid_opcode_and_operand);
-                                end;
+                               if (opsize<>operands[2].size) then
+                                Message(assem_e_invalid_opcode_and_operand);
+                              p^.concat(new(pai386,op_ref_reg(instruc,
+                                 opsize,newreference(operands[1].ref),operands[2].reg)));
                             end
                             else
                             Begin
@@ -3857,7 +3875,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1998-10-28 00:08:48  peter
+  Revision 1.17  1998-10-28 21:34:39  peter
+    * fixed some opsize
+
+  Revision 1.16  1998/10/28 00:08:48  peter
     + leal procsym,eax is now allowed
     + constants are now handled also when starting an expression
     + call *pointer is now allowed
