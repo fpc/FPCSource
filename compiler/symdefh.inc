@@ -56,6 +56,9 @@
           constructor init;
           constructor load;
           destructor  done;virtual;
+          { registers enumdef inside objects or
+            record directly in the owner symtable !! }
+          procedure correct_owner_symtable;
           procedure write;virtual;
           procedure writename;
           function  size:longint;virtual;
@@ -480,7 +483,11 @@
 
 {
   $Log$
-  Revision 1.5  1998-10-16 13:12:55  pierre
+  Revision 1.6  1998-10-22 17:11:23  pierre
+    + terminated the include exclude implementation for i386
+    * enums inside records fixed
+
+  Revision 1.5  1998/10/16 13:12:55  pierre
     * added vmt_offsets in destructors code also !!!
     * vmt_offset code for m68k
 

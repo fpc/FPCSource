@@ -935,15 +935,23 @@ implementation
                                   newreference(p^.left^.right^.left^.location.reference),R_EDI)));
                              end;
                           if (p^.left^.left^.location.loc=LOC_REFERENCE) then
-                            exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,R_EDI,
+                            exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,hregister,
                               newreference(p^.left^.right^.left^.location.reference))))
                           else
-                            exprasmlist^.concat(new(pai386,op_reg_reg(asmop,S_L,R_EDI,
+                            exprasmlist^.concat(new(pai386,op_reg_reg(asmop,S_L,hregister,
                               p^.left^.right^.left^.location.register)));
                         end
                       else
                         begin
-                           internalerror(10083);
+                           pushsetelement(p^.left^.right^.left);
+                           { normset is allways a ref }
+                           emitpushreferenceaddr(exprasmlist,
+                             p^.left^.left^.location.reference);
+                           if p^.inlinenumber=in_include_x_y then
+                             emitcall('FPC_SET_SET_BYTE',true)
+                           else
+                             emitcall('FPC_SET_UNSET_BYTE',true);
+                           {CGMessage(cg_e_include_not_implemented);}
                         end;
                    end;
               end;
@@ -956,7 +964,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-10-21 15:12:50  pierre
+  Revision 1.16  1998-10-22 17:11:13  pierre
+    + terminated the include exclude implementation for i386
+    * enums inside records fixed
+
+  Revision 1.15  1998/10/21 15:12:50  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)

@@ -149,6 +149,25 @@
          nextglobal:=nil;
       end;
 
+    { used for enumdef because the symbols are
+      inserted in the owner symtable }
+    procedure tdef.correct_owner_symtable;
+      var
+         st : psymtable;
+      begin
+         if assigned(owner) and
+            (owner^.symtabletype in [recordsymtable,objectsymtable]) then
+           begin
+              { no other definition
+                 has been inserted !! (PM) }
+              owner^.rootdef:=next;
+              st:=owner;
+              while (st^.symtabletype in [recordsymtable,objectsymtable]) do
+                st:=st^.next;
+              st^.registerdef(@self);
+           end;
+      end;
+      
 
     procedure tdef.write;
       begin
@@ -606,8 +625,8 @@
          basedef:=nil;
          rangenr:=0;
          first:=nil;
+         correct_owner_symtable;
       end;
-
 
     constructor tenumdef.init_subrange(_basedef:penumdef;_min,_max:longint);
       begin
@@ -620,6 +639,7 @@
          has_jumps:=false;
          rangenr:=0;
          first:=nil;
+         correct_owner_symtable;
       end;
 
 
@@ -3179,7 +3199,11 @@
 
 {
   $Log$
-  Revision 1.63  1998-10-20 09:32:56  peter
+  Revision 1.64  1998-10-22 17:11:21  pierre
+    + terminated the include exclude implementation for i386
+    * enums inside records fixed
+
+  Revision 1.63  1998/10/20 09:32:56  peter
     * removed some unused vars
 
   Revision 1.62  1998/10/20 08:06:58  pierre

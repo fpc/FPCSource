@@ -826,6 +826,7 @@ implementation
             in_include_x_y,
             in_exclude_x_y:
               begin
+                 CGMessage(cg_e_include_not_implemented);
 { !!!!!!!  }
 (*               secondpass(p^.left^.left);
                  if p^.left^.right^.left^.treetype=ordconstn then
@@ -884,6 +885,7 @@ implementation
                         end
                       else
                         begin
+                           internalerror(10083);
                         end;
                    end;
                    *)
@@ -898,7 +900,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-10-21 15:12:53  pierre
+  Revision 1.13  1998-10-22 17:11:14  pierre
+    + terminated the include exclude implementation for i386
+    * enums inside records fixed
+
+  Revision 1.12  1998/10/21 15:12:53  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)
