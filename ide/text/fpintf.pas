@@ -58,6 +58,8 @@ var
   cmd : string;
 begin
   cmd:='[fp.cfg] -d'+SwitchesModeStr[SwitchesMode];
+  if LinkAfter then
+    cmd:=cmd+' -s';
 { Add the switches from the primary file }
   if PrimaryFileSwitches<>'' then
    cmd:=cmd+' '+PrimaryFileSwitches;
@@ -104,7 +106,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-03-12 01:12:22  peter
+  Revision 1.5  1999-06-21 23:38:37  pierre
+   + support for LinkAfter var
+
+  Revision 1.4  1999/03/12 01:12:22  peter
     * extended primaryfile to load a .pri file
 
   Revision 1.3  1999/02/05 13:51:41  peter
