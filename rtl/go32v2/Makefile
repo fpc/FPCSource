@@ -64,6 +64,35 @@ UNITOBJECTS=$(SYSTEMUNIT) strings go32 initc \
 
 
 #####################################################################
+# Common targets
+#####################################################################
+
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
+        
+all: testfpcmake fpc_all
+
+clean: testfpcmake fpc_clean
+
+install: testfpcmake fpc_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
+
+#####################################################################
 # Include default makefile
 #####################################################################
 
@@ -91,12 +120,13 @@ endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
 ifeq ($(FPCMAKE),)
-nofpcmake:
+testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
 	@exit
 else
 include $(FPCMAKE)
+testfpcmake:
 endif
 
 
@@ -202,16 +232,13 @@ graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
 		 $(wildcard $(PPI)/*.ppi)
 	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
 
-#######################################################################
-# Clean targets
-#######################################################################
-
-clean: fpc_clean
-
-libsclean: fpc_libsclean
-
+#
 # $Log$
-# Revision 1.10  1999-03-12 21:04:45  michael
+# Revision 1.11  1999-03-16 00:47:08  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.10  1999/03/12 21:04:45  michael
 # +  clean and libsclean added
 #
 # Revision 1.9  1999/03/09 01:35:54  peter

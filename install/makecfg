@@ -38,7 +38,7 @@ fi
 echo Writing sample configuration file to /etc/ppc386.cfg
 cat <<EOFCFG > /etc/ppc386.cfg
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 0.99.10
+# Example ppc386.cfg for Free Pascal Compiler Version 0.99.11
 #
 
 # ----------------------
@@ -143,8 +143,8 @@ cat <<EOFCFG > /etc/ppc386.cfg
 
 # path to the messagefile, not necessary anymore but can be used to override
 # the default language
-#-Fr\$2/msg/errore.msg
-#-Fr\$2/msg/errorn.msg
+#-Fr\$1/msg/errore.msg
+#-Fr\$1/msg/errorn.msg
 
 # path to the gcclib
 -Fg\$2
@@ -155,14 +155,17 @@ cat <<EOFCFG > /etc/ppc386.cfg
 # searchpath for units (does the same as -Up)
 # For statically, smartlinked units
 #IFDEF FPC_LINK_STATIC
--Fu\$1/staticunits
+-Fu\$1/rtl/static
+-Fu\$1/units/static
 #ENDIF
 # For Dynamically linked units
 #IFDEF FPC_LINK_DYNAMIC
--Fu\$1/sharedunits
+-Fu\$1/rtl/shared
+-Fu\$1/units/shared
 #ENDIF
 # For normal units
--Fu\$1/linuxunits
+-Fu\$1/rtl
+-Fu\$1/units
 #-Fu/pp/units;/pp/rtl/dos/go32v2
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 
@@ -183,7 +186,7 @@ cat <<EOFCFG > /etc/ppc386.cfg
 #-k-s
 
 # Always strip debuginfo from the executable
-#-Xs
+-Xs
 
 
 # -------------

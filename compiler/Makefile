@@ -57,16 +57,24 @@ override LOCALOPT+=$(LOCALDEF)
 
 
 #####################################################################
-# Override default makefile settings
+# Common targets
 #####################################################################
 
-NODEFAULTALL=1
-NODEFAULTCLEAN=1
+.PHONY: all clean install info \
+        staticlib sharedlib \
+        staticinstall sharedinstall libinstall \
 
-# Change the default target to our local all target
-first: all
+info: testfpcmake fpc_info
 
-EXTRAINSTALL=myinstall
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
 
 
 #####################################################################
@@ -74,11 +82,6 @@ EXTRAINSTALL=myinstall
 #####################################################################
 
 # test if FPCMAKE is still valid
-ifndef FPCMAKE
-ifdef FPCDIR
-FPCMAKE=$(FPCDIR)/makefile.fpc
-endif
-endif
 ifdef FPCMAKE
 ifeq ($(strip $(wildcard $(FPCMAKE))),)
 FPCDIR=
@@ -101,16 +104,11 @@ endif
 endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
-ifndef FPCMAKE
+ifeq ($(FPCMAKE),)
 testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
-	@stopnow
-ifndef NODEFAULTALL
-all: testfpcmake
-endif
-install: testfpcmake
-clean: testfpcmake
+	@exit
 else
 include $(FPCMAKE)
 testfpcmake:
@@ -217,9 +215,7 @@ next :
 	$(MAKE) all
 endif
 
-clean : testfpcmake fpc_clean
-	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) $(EXENAME)
-	-$(DELTREE) $(SMARTEXT)
+clean : testfpcmake execlean fpc_cleanall
 
 execlean :
 	-$(DEL) $(EXENAME)
@@ -297,10 +293,10 @@ cycle: testfpcmake
 	$(MAKE) remake3
 	$(MAKE) echotime
 
-cycledep:
+cycledep: testfpcmake 
 	$(MAKE) cycle USEDEPEND=1
 
-cvstest:
+cvstest: testfpcmake 
 	$(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPTS=-n -Se'
 
 
@@ -309,7 +305,7 @@ cvstest:
 #####################################################################
 
 # This will only install the ppc386.exe, not the message files etc.
-quickinstall:
+quickinstall: testfpcmake 
 ifdef inlinux
 	$(MKDIR) $(LIBINSTALLDIR)
 	$(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
@@ -330,7 +326,7 @@ endif
 	$(INSTALL) errore.msg errorn.msg $(MSGINSTALLDIR)
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
-myinstall: installlib
+install: testfpcmake installlib
 ifdef inlinux
 	$(MKDIR) $(BININSTALLDIR)
 	ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
@@ -374,7 +370,11 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.21  1999-03-12 17:24:43  michael
+# Revision 1.22  1999-03-16 00:46:56  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.21  1999/03/12 17:24:43  michael
 # + Fixed clean target
 #
 # Revision 1.20  1999/03/11 17:54:01  peter

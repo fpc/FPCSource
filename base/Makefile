@@ -43,36 +43,10 @@ endif
 #####################################################################
 
 RELEASE=1
-NODEFAULTRULES=1
 
 
 #####################################################################
-# Include default makefile
-#####################################################################
-
-ifndef FPCMAKE
-ifdef FPCDIR
-FPCMAKE=$(FPCDIR)/makefile.fpc
-else
-FPCMAKE=makefile.fpc
-endif
-endif
-
-override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
-ifeq ($(FPCMAKE),)
-nofpcmake:
-	@echo
-	@echo makefile.fpc not found!
-	@echo Check the FPCMAKE and FPCDIR environment variables.
-	@echo
-	@exit
-else
-include $(FPCMAKE)
-endif
-
-
-#####################################################################
-# Dependencies
+# Main targets
 #####################################################################
 
 .PHONY: all clean install staticinstall sharedinstall \
@@ -94,6 +68,69 @@ info:
 	@echo example: make api_staticinstall
 	@exit
 
+all: $(addsuffix _all,$(MODULES))
+
+clean: $(addsuffix _clean,$(MODULES))
+
+install: $(addsuffix _install,$(MODULES))
+
+staticinstall: $(addsuffix _staticinstall,$(MODULES))
+
+sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+endif
+endif
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifndef FPCMAKE
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@stopnow
+ifndef NODEFAULTALL
+all: testfpcmake
+endif
+install: testfpcmake
+clean: testfpcmake
+else
+include $(FPCMAKE)
+testfpcmake:
+endif
+
+
+#####################################################################
+# Dependencies
+#####################################################################
+
 #######################################
 # Compiler
 #######################################
@@ -106,6 +143,9 @@ compiler_clean:
 
 compiler_install:
 	$(MAKE) -C compiler install
+
+compiler_installlib:
+	$(MAKE) -C compiler installlib
 
 compiler_staticinstall:
 
@@ -244,21 +284,6 @@ ide_sharedinstall:
 
 
 #######################################
-# Common targets all,install,clean
-#######################################
-
-all: $(addsuffix _all,$(MODULES))
-
-clean: $(addsuffix _clean,$(MODULES))
-
-install: $(addsuffix _install,$(MODULES))
-
-staticinstall: $(addsuffix _staticinstall,$(MODULES))
-
-sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
-
-
-#######################################
 # Packaging targets
 #######################################
 
@@ -295,7 +320,11 @@ compilerzip: #compiler_clean rtl_clean
 
 #
 # $Log$
-# Revision 1.7  1999-03-09 01:35:46  peter
+# Revision 1.8  1999-03-16 00:46:54  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.7  1999/03/09 01:35:46  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

@@ -9,8 +9,9 @@ build-stamp:
 	dh_testdir
 
 #       Add here commands to compile the package.
-	$(MAKE)
-	
+	$(MAKE) compiler_all
+	$(MAKE) rtl_all
+
 	touch build-stamp
 
 clean:
@@ -19,7 +20,8 @@ clean:
 	rm -f build-stamp
 
 #       Add here commands to clean up after the build process.
-	-$(MAKE) clean
+	$(MAKE) compiler_clean
+	$(MAKE) rtl_clean
 
 	dh_clean
 
@@ -36,7 +38,8 @@ binary-arch: build
 	dh_installdirs
 
         # Add here commands to install the files into debian/tmp
-	$(MAKE) PREFIXINSTALLDIR=`pwd`/debian/tmp/usr install
+	$(MAKE) compiler_installlib PREFIXINSTALLDIR=`pwd`/debian/tmp/usr
+	$(MAKE) rtl_install PREFIXINSTALLDIR=`pwd`/debian/tmp/usr
 
 #	dh_installdocs TODO NEWS AUTHORS KNOWNBUGS README README.guile
 	dh_installexamples

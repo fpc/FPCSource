@@ -43,8 +43,6 @@ else
 override NEEDUNITDIR+=../fake/gdb
 endif
 
-EXTRAINSTALL=myinstall
-
 
 #####################################################################
 # Real targets
@@ -52,6 +50,31 @@ EXTRAINSTALL=myinstall
 
 UNITOBJECTS=
 EXEOBJECTS=fp
+
+
+#####################################################################
+# Common targets
+#####################################################################
+
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
+        
+all: testfpcmake fpc_all
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
 
 
 #####################################################################
@@ -82,12 +105,13 @@ endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
 ifeq ($(FPCMAKE),)
-nofpcmake:
+testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
 	@exit
 else
 include $(FPCMAKE)
+testfpcmake:
 endif
 
 
@@ -110,10 +134,14 @@ full:
 fullgdb:
 	make all FULL=1 GDB=1
 
+# This is necessary because we don't have all units separate in the
+# units targets
+clean : testfpcmake fpc_cleanall
+
 #
 # Installation
 #
-myinstall:
+install: fpc_install
 	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) $(BININSTALLDIR)
 
 #
@@ -124,7 +152,11 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.13  1999-03-09 01:35:52  peter
+# Revision 1.14  1999-03-16 00:47:00  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.13  1999/03/09 01:35:52  peter
 #   * makefile.fpc updates and defaultfpcdir var
 #
 #

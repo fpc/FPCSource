@@ -140,14 +140,17 @@ defaultcfg=
 # searchpath for units (does the same as -Up)
 # For statically, smartlinked units
 #IFDEF FPC_LINK_STATIC
-  -Fu$1/linuxunits/static
+-Fu\$1/rtl/static
+-Fu\$1/units/static
 #ENDIF
 # For Dynamically linked units
 #IFDEF FPC_LINK_DYNAMIC
-  -Fu$1/linuxunits/shared
+-Fu\$1/rtl/shared
+-Fu\$1/units/shared
 #ENDIF
 # For normal units
--Fu$1/linuxunits
+-Fu\$1/rtl
+-Fu\$1/units
 #-Fu~/pp/units;~/pp/rtl/linux
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 
@@ -167,7 +170,7 @@ defaultcfg=
 #-k-s
 
 # Always strip debuginfo from the executable
-#-Xs
+-Xs
 
 
 # -------------

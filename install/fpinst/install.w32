@@ -177,7 +177,7 @@ defaultcfg=
 #-k-s
 
 # Always strip debuginfo from the executable
-#-Xs
+-Xs
 
 
 # -------------

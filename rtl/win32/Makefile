@@ -68,6 +68,35 @@ WINDOWS_SOURCE_FILES=$(addsuffix .pp,$(WINDOWS_FILES))
 
 
 #####################################################################
+# Common targets
+#####################################################################
+
+.PHONY: all clean install info \
+        staticlib sharedlib libsclean \
+        staticinstall sharedinstall libinstall \
+        
+all: testfpcmake fpc_all
+
+clean: testfpcmake fpc_clean
+
+install: testfpcmake fpc_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
+
+#####################################################################
 # Include default makefile
 #####################################################################
 
@@ -95,12 +124,13 @@ endif
 
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
 ifeq ($(FPCMAKE),)
-nofpcmake:
+testfpcmake:
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
 	@exit
 else
 include $(FPCMAKE)
+testfpcmake:
 endif
 
 
@@ -326,18 +356,13 @@ unidef.pp : unifun.pp unidef.sed
 	sed -f unidef.sed unifun.pp > unidef.pp
 endif
 
-#######################################################################
-# CLEAN targets
-#######################################################################
-
-clean: fpc_clean
-
-libsclean: fpc_libsclean
-
-
 #
 # $Log$
-# Revision 1.22  1999-03-12 21:02:19  michael
+# Revision 1.23  1999-03-16 00:47:10  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.22  1999/03/12 21:02:19  michael
 # +  clean and libsclean added
 #
 # Revision 1.21  1999/03/10 23:45:21  peter

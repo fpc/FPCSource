@@ -661,8 +661,6 @@ export BASEINSTALLDIR PACKAGESUFFIX
 # General compile rules
 #####################################################################
 
-ifndef NODEFAULTRULES
-
 # Create Filenames
 LOADEROFILES=$(addsuffix $(OEXT),$(LOADEROBJECTS))
 EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
@@ -670,9 +668,11 @@ EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
-.PHONY : all fpc_clean install \
-	 fpc_libsclean staticlibinstall sharedlibinstall libinstall \
-	 info cfginfo objectinfo installinfo filesinfo
+.PHONY : fpc_all fpc_units fpc_loaders fpc_exes \
+         fpc_staticlib fpc_sharedlib \
+         fpc_clean fpc_libsclean fpc_cleanall \
+         fpc_install fpc_staticlibinstall fpc_sharedlibinstall fpc_libinstall \
+         fpc_info fpc_cfginfo fpc_objectinfo fpc_installinfo fpc_filesinfo
 
 .SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT) $(OEXT)
 
@@ -681,19 +681,17 @@ UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 # Default
 #####################################################################
 
-ifndef NODEFAULTALL
 ifdef DEFAULTUNITS
-all: loaders units
+fpc_all: fpc_loaders fpc_units
 else
-all: loaders units exes
+fpc_all: fpc_loaders fpc_units fpc_exes
 endif
-endif
 
-loaders: $(LOADEROFILES)
+fpc_loaders: $(LOADEROFILES)
 
-units: $(UNITFILES)
+fpc_units: $(UNITFILES)
 
-exes: $(EXEFILES)
+fpc_exes: $(EXEFILES)
 
 # General compile rules
 %$(PPUEXT): %$(PASEXT)
@@ -712,12 +710,12 @@ exes: $(EXEFILES)
 # Library
 #####################################################################
 
-staticlib:
+fpc_staticlib:
 	$(MAKE) libsclean
 	$(MAKE) all SMARTLINK=YES LIBTYPE=static
 
 
-sharedlib:
+fpc_sharedlib:
 ifdef inlinux
 	$(MAKE) libsclean
 	$(MAKE) all LIBTYPE=shared
@@ -730,7 +728,7 @@ endif
 # Install rules
 #####################################################################
 
-standardinstall : all
+fpc_install : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
 	$(MKDIR) $(BININSTALLDIR)
@@ -755,10 +753,6 @@ else
 endif
 endif
 
-ifndef NODEFAULTINSTALL
-install: standardinstall $(EXTRAINSTALL)
-endif
-
 # Target for the sharedlib install which is not avail for all targets
 SHAREDINSTALL=sharedlibinstall
 ifeq ($(OS_TARGET),go32v1)
@@ -768,21 +762,20 @@ ifeq ($(OS_TARGET),go32v2)
 SHAREDINSTALL=
 endif
 
-staticlibinstall: staticlib
+fpc_staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
 	$(INSTALL) $(UNITFILES) $(STATIC_UNITINSTALLDIR)
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
 
-
-sharedlibinstall: sharedlib
+fpc_sharedlibinstall: sharedlib
 	$(MKDIR) $(SHARED_UNITINSTALLDIR)
 	$(INSTALL) $(UNITFILES) $(SHARED_UNITINSTALLDIR)
 	$(MKDIR) $(SHARED_LIBINSTALLDIR)
 	$(INSTALLEXE) *$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
 
 
-libinstall: staticlibinstall $(SHAREDINSTALL)
+fpc_libinstall: staticlibinstall $(SHAREDINSTALL)
 
 
 #####################################################################
@@ -810,7 +803,7 @@ ZIPTARGET=install
 endif
 
 # Note: This will not remove the zipfile first
-zipinstalladd:
+fpc_zipinstalladd:
 ifndef ZIPNAME
 	@$(ECHO) Please specify ZIPNAME!
 	@exit
@@ -823,13 +816,13 @@ else
 endif
 
 # This will remove the zipfile
-zipinstalldel:
+fpc_zipinstalldel:
 ifdef ZIPNAME
 	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
 endif
 
 # First remove the zip and then install
-zipinstall: zipinstalldel zipinstalladd
+fpc_zipinstall: fpc_zipinstalldel fpc_zipinstalladd
 
 
 #####################################################################
@@ -847,19 +840,23 @@ endif
 ifdef LOADEROBJECTS
 	-$(DEL) $(LOADEROFILES)
 endif
-ifdef EXTRACLEAN
-	-$(DEL) $(EXTRACLEAN)
-endif
 
-fpc_libsclean : clean
+fpc_libsclean: clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+
+fpc_cleanall:
+ifdef EXEOBJECTS
+	-$(DEL) $(EXEFILES)
+endif
+	-$(DEL) *$(OEXT) *$(PPUEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DELTREE) *$(SMARTEXT)
 
 
 #####################################################################
 # Depend rules
 #####################################################################
 
-depend:
+fpc_depend:
 	makedep $(UNITOBJECTS)
 
 
@@ -867,9 +864,9 @@ depend:
 # Info rules
 #####################################################################
 
-info: cfginfo objectinfo toolsinfo installinfo
+fpc_info: fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installinfo
 
-cfginfo:
+fpc_cfginfo:
 	@$(ECHO)
 	@$(ECHO)  == Configuration info ==
 	@$(ECHO)
@@ -881,7 +878,7 @@ cfginfo:
 	@$(ECHO)  Basedir... $(BASEDIR)
 	@$(ECHO)
 
-toolsinfo:
+fpc_toolsinfo:
 	@$(ECHO)
 	@$(ECHO)  == Tools info ==
 	@$(ECHO)
@@ -907,7 +904,7 @@ ifdef UPX
 endif
 	@$(ECHO)
 
-objectinfo:
+fpc_objectinfo:
 	@$(ECHO)
 	@$(ECHO)  == Object info ==
 	@$(ECHO)
@@ -916,7 +913,7 @@ objectinfo:
 	@$(ECHO)  ExeObjects.... $(EXEOBJECTS)
 	@$(ECHO)
 
-installinfo:
+fpc_installinfo:
 	@$(ECHO)
 	@$(ECHO)  == Install info ==
 	@$(ECHO)
@@ -942,7 +939,7 @@ INCFILES:=$(wildcard *.inc)
 MSGFILES:=$(wildcard *.msg)
 ASFILES:=$(wildcard *.as)
 
-filesinfo:
+fpc_filesinfo:
 	@$(ECHO)
 	@$(ECHO)  == Files info ==
 	@$(ECHO)
@@ -962,11 +959,13 @@ ifdef ASFILES
 	@$(ECHO)  As  files are $(ASFILES)
 endif
 
-endif #NODEFAULTRULES
-
 #
 # $Log$
-# Revision 1.10  1999-03-12 21:01:30  michael
+# Revision 1.11  1999-03-16 00:46:55  peter
+#   * makefile.fpc targets start with fpc_
+#   * small updates for install scripts
+#
+# Revision 1.10  1999/03/12 21:01:30  michael
 # + Changed clean and libsclean to fpc_target
 #
 # Revision 1.9  1999/03/11 17:54:00  peter
