@@ -58,8 +58,8 @@ type
     DoDestroy: Boolean;
 
     destructor Destroy; override;
-//    procedure Receive;
-//    procedure Send;
+    procedure Receive;
+    procedure Send;
   end;
 
   THttpClient = class(TCustomHttpClient)
@@ -129,7 +129,7 @@ begin
     FOnHeaderSent(Self);
   if Assigned(StreamToSend) then
   begin
-    SendBuffer := TAsyncWriteStream.Create(EventLoop, FSocket);
+    SendBuffer := TAsyncWriteStream.Create(EventLoop, Stream);
     SendBuffer.CopyFrom(StreamToSend, StreamToSend.Size);
     SendBuffer.OnBufferSent := @StreamToSendCompleted;
   end else
@@ -186,7 +186,7 @@ begin
 
   if NeedMoreData then
     DataAvailableNotifyHandle :=
-      EventLoop.SetDataAvailableNotify(FSocket.Handle, @DataAvailable, FSocket)
+      EventLoop.SetDataAvailableNotify(Stream.Handle, @DataAvailable, Stream)
   else
     ReceivedStreamCompleted(nil);
 
@@ -215,7 +215,7 @@ begin
         ReadNow := 1024;
     end else
       ReadNow := 1024;
-    BytesRead := FSocket.Read(buf, ReadNow);
+    BytesRead := Stream.Read(buf, ReadNow);
     // WriteLn('TCustomHttpClient.DataAvailable: Read ', BytesRead, ' bytes; RecvSize=', RecvSize);
     if BytesRead <= 0 then
     begin
@@ -253,12 +253,12 @@ begin
     Send;
 end;
 
-constructor TCustomHttpClient.Create(AManager: TEventLoop; ASocket: TInetSocket);
+{constructor TCustomHttpClient.Create(AManager: TEventLoop; ASocket: TInetSocket);
 begin
   inherited Create;
   EventLoop := AManager;
-  FSocket := ASocket;
-end;
+  Stream := ASocket;
+end;}
 
 destructor TCustomHttpClient.Destroy;
 begin
@@ -280,7 +280,7 @@ begin
   begin
     ReceivedHeader.OnCompleted := @ReceivedHeaderCompleted;
     ReceivedHeader.OnEOF := @ReceivedHeaderEOF;
-    ReceivedHeader.AsyncReceive(EventLoop, FSocket);
+    ReceivedHeader.AsyncReceive(EventLoop, Stream);
   end;
 end;
 
@@ -297,7 +297,7 @@ begin
       ReceivedHttpVersion := '';
     end;
     HeaderToSend.OnCompleted := @HeaderToSendCompleted;
-    HeaderToSend.AsyncSend(EventLoop, FSocket);
+    HeaderToSend.AsyncSend(EventLoop, Stream);
   end;
 end;
 
@@ -307,7 +307,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-01-31 19:13:14  sg
+  Revision 1.2  2004-02-02 17:12:01  sg
+  * Some small fixes to get the code at least compiling again; the HTTP
+    client class is not expected to work at the moment, and the XML-RPC
+    client has been fully disabled for now.
+
+  Revision 1.1  2004/01/31 19:13:14  sg
   * Splittet old HTTP unit into httpbase and httpclient
   * Many improvements in fpSock (e.g. better disconnection detection)
 

@@ -17,7 +17,7 @@ unit XMLRPC;
 
 interface
 
-uses SysUtils, Classes, fpAsync, ssockets, DOM, HTTP, HTTPSvlt;
+uses SysUtils, Classes, fpAsync, ssockets, DOM, HTTPClient, HTTPSvlt;
 
 type
   EXMLRPCParser = class(Exception);
@@ -106,7 +106,7 @@ type
   end;
 
 
-  TOnXMLRPCCallCompleted = procedure(AParser: TXMLRPCParser) of object;
+{  TOnXMLRPCCallCompleted = procedure(AParser: TXMLRPCParser) of object;
 
   TXMLRPCClient = class
   private
@@ -116,7 +116,7 @@ type
     RequestStream, ResponseStream: TMemoryStream;
     CurCallback: TOnXMLRPCCallCompleted;
     LocalEventLoop: TEventLoop;
-    Connection: THttpConnection;
+    Connection: TCustomHttpClient;
 
     procedure MakeRequest(const AProcName: String; AArgs: array of const);
     procedure ProcessAnswer;
@@ -134,7 +134,7 @@ type
 
     property OnBeginRPC: TNotifyEvent read FOnBeginRPC write FOnBeginRPC;
     property OnEndRPC: TNotifyEvent read FOnEndRPC write FOnEndRPC;
-  end;
+  end;}
 
   TExceptionEvent = procedure(e: Exception) of object;
 
@@ -703,7 +703,7 @@ end;
 
 
 // XML-RPC Client
-
+{
 constructor TXMLRPCClient.Create(AEventLoop: TEventLoop);
 begin
   inherited Create;
@@ -733,7 +733,7 @@ begin
 //    Socket.Write(RequestStream.Memory^, RequestStream.Size);
       LocalEventLoop := TEventLoop.Create;
       try
-        Connection := THttpConnection.Create(LocalEventLoop, Socket);
+        Connection := TCustomHttpClient.Create(LocalEventLoop, Socket);
         try
           Connection.HeaderToSend := THttpRequestHeader.Create;
 	  with THttpRequestHeader(Connection.HeaderToSend) do
@@ -804,17 +804,17 @@ begin
             vtExtended: Writer.AddParam(Params, Writer.CreateDoubleValue(VExtended^));
             vtString: Writer.AddParam(Params, Writer.CreateStringValue(VString^));
             vtPChar: Writer.AddParam(Params, Writer.CreateStringValue(VPChar));
-	    {$IFDEF HasWideStrings}
-            vtWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VWideChar));
+}	    {$IFDEF HasWideStrings}
+{            vtWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VWideChar));
             vtPWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VPWideChar));
-	    {$ENDIF}
-            vtAnsiString: Writer.AddParam(Params, Writer.CreateStringValue(String(VAnsiString)));
+}	    {$ENDIF}
+{            vtAnsiString: Writer.AddParam(Params, Writer.CreateStringValue(String(VAnsiString)));
             // vtCurrency: ?
             // vtVariant: ?
-	    {$IFDEF HasWideStrings}
-            vtWideString: Writer.AddParam(Params, Writer.CreateStringValue(WideString(VWideString)));
-	    {$ENDIF}
-            vtInt64: Writer.AddParam(Params, Writer.CreateIntValue(VInt64^));
+}	    {$IFDEF HasWideStrings}
+{            vtWideString: Writer.AddParam(Params, Writer.CreateStringValue(WideString(VWideString)));
+}	    {$ENDIF}
+{            vtInt64: Writer.AddParam(Params, Writer.CreateIntValue(VInt64^));
           else
             raise Exception.Create('Unsupported data type in RPC argument list');
           end;
@@ -838,9 +838,9 @@ begin
   try
     case Parser.GetPostType of
       xmlrpcFaultResponse:
-        {raise Exception.Create(Format('%d - %s', [Parser.GetNextInt,
+}        {raise Exception.Create(Format('%d - %s', [Parser.GetNextInt,
           Parser.GetNextString]));}
-        raise Exception.Create('Fehler bei XML-RPC-Befehlsausführung');
+{        raise Exception.Create('Fehler bei XML-RPC-Befehlsausführung');
       xmlrpcResponse:
         if Assigned(CurCallback) then
           CurCallback(Parser);
@@ -864,7 +864,7 @@ procedure TXMLRPCClient.DataAvailable(Sender: TObject);
 begin
   LocalEventLoop.Break;
 end;
-
+}
 
 // XML-RPC Server
 
@@ -934,7 +934,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-11-27 11:28:44  sg
+  Revision 1.5  2004-02-02 17:12:01  sg
+  * Some small fixes to get the code at least compiling again; the HTTP
+    client class is not expected to work at the moment, and the XML-RPC
+    client has been fully disabled for now.
+
+  Revision 1.4  2003/11/27 11:28:44  sg
   * Debugging output is now enabled when the symbol "XMLRPCDebug" exists,
     and not generally when compiled in debug mode
 

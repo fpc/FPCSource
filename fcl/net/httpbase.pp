@@ -61,7 +61,6 @@ type
     FOnCompleted: TNotifyEvent;
     FOnEOF: TNotifyEvent;
     FFields: TList;
-    DataReceived, CmdReceived: Boolean;
 
     procedure ParseFirstHeaderLine(const line: String); virtual; abstract;
     procedure LineReceived(const ALine: String);
@@ -127,6 +126,8 @@ type
     procedure SetWWWAuthenticate(const AValue: String);
 
   public
+    DataReceived, CmdReceived: Boolean;		// !!!: Only temporarily here
+
     HttpVersion: String;
 
     constructor Create;
@@ -487,7 +488,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-01-31 19:13:14  sg
+  Revision 1.2  2004-02-02 17:12:01  sg
+  * Some small fixes to get the code at least compiling again; the HTTP
+    client class is not expected to work at the moment, and the XML-RPC
+    client has been fully disabled for now.
+
+  Revision 1.1  2004/01/31 19:13:14  sg
   * Splittet old HTTP unit into httpbase and httpclient
   * Many improvements in fpSock (e.g. better disconnection detection)
 
