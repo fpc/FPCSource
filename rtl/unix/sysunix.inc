@@ -408,7 +408,7 @@ var
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
 {$ifdef BSD}
-  Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5401,longint(@data))=0);
+  Do_IsDevice:=(do_SysCall(syscall_nr_ioctl,handle,$5413,longint(@data))=0);
 {$else}
   sr.reg2:=Handle;
   sr.reg3:=$5401; {=TCGETS}
@@ -738,7 +738,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:51  marco
+  Revision 1.3  2000-10-09 16:35:51  marco
+   * Fixed the first (of many) ioctls that make building the IDE hard.
+
+  Revision 1.2  2000/09/18 13:14:51  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.6  2000/09/11 13:48:08  marco
