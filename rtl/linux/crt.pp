@@ -1397,11 +1397,11 @@ begin
    begin
      readed:=fdRead(1,buf,sizeof(buf));
      i:=0;
-     while (i+4<readed) and (buf[i]<>#27) and (buf[i+1]<>'[') do
+     while (i+5<readed) and (buf[i]<>#27) and (buf[i+1]<>'[') do
       inc(i);
-     if i+4<readed then
+     if i+5<readed then
       begin
-        s[1]:=#16;
+        s:=space(16);
         move(buf[i+2],s[1],16);
         i:=Pos(';',s);
         if i>0 then
@@ -1409,8 +1409,8 @@ begin
            Val(Copy(s,1,i-1),y);
            j:=Pos('R',s);
            if j=0 then
-            j:=length(s)+1;
-           Val(Copy(s,i+1,j-i),x);
+            j:=length(s);
+           Val(Copy(s,i+1,j-(i+1)),x);
          end;
       end;
    end;
@@ -1492,7 +1492,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.11  1998-10-30 12:11:51  peter
+  Revision 1.12  1998-11-10 15:01:01  peter
+    * fixed GetXY at startup
+
+  Revision 1.11  1998/10/30 12:11:51  peter
     * fixed fullwi, which did not check for 1,1
 
   Revision 1.10  1998/10/27 11:13:27  peter
