@@ -2377,7 +2377,7 @@ implementation
           begin
             if target_info.use_function_relative_addresses then
              exprasmList.insert(stab_function_name);
-            exprasmList.insert(Tai_stabs.Create(aktprocsym.stabstring));
+            exprasmList.insert(Tai_stabs.Create(aktprocdef.stabstring));
             aktprocsym.isstabwritten:=true;
           end;
 {$endif GDB}
@@ -2518,7 +2518,7 @@ implementation
   begin
       oldexprasmlist:=exprasmlist;
       exprasmlist:=alist;
-      
+
       if aktexit2label.is_used and
          ((procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
         begin
@@ -2819,7 +2819,7 @@ implementation
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-              aktprocsym.concatstabto(exprasmlist);
+              aktprocdef.concatstabto(exprasmlist);
               if assigned(procinfo^._class) then
                 if (not assigned(procinfo^.parent) or
                    not assigned(procinfo^.parent^._class)) then
@@ -2976,7 +2976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-11-06 16:39:02  jonas
+  Revision 1.11  2001-11-18 18:59:59  peter
+    * changed aktprocsym to aktprocdef for stabs generation
+
+  Revision 1.10  2001/11/06 16:39:02  jonas
     * moved call to "cleanup_regvars" to cga.pas for i386 because it has
       to insert "fstp %st0" instructions after the exit label
 
