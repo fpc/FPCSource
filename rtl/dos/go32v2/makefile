@@ -74,6 +74,9 @@ PPI=../ppi
 # also checks for config file.
 # it expects INC PROCINC to be set !!
 include $(CFG)/makefile.cfg
+override COPY=cp
+override DEL=rm
+
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -264,12 +267,15 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-05-22 00:39:36  peter
+# Revision 1.10  1998-07-22 21:37:03  michael
+# make cycle now works
+#
+# Revision 1.9  1998/05/22 00:39:36  peter
 #   * go32v1, go32v2 recompiles with the new objects
 #   * remake3 works again with go32v2
 #   - removed some "optimizes" from daniel which were wrong
 #
-# Revision 1.8	1998/05/06 11:53:40  peter
+# Revision 1.8  1998/05/06 11:53:40  peter
 #   * update
 #
 #
