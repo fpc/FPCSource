@@ -118,7 +118,7 @@ end ;
     P1 = P2    = 0    }
 
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
-var i: integer;
+var i: cardinal;
 begin
 i := 0;
 result := 0;
@@ -132,7 +132,7 @@ end ;
 
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
 var
-  i: Integer;
+  i: cardinal;
 begin
   for i := 0 to Length - 1 do
   begin
@@ -280,7 +280,7 @@ end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
 
-Var I : longint;
+Var I : cardinal;
 
 begin
   Result:=0;
@@ -306,7 +306,7 @@ end ;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
 
-Var I : longint;
+Var I : cardinal;
 
 begin
   Result:=0;
@@ -846,7 +846,7 @@ begin
                 ToAdd:=StringOfChar('0',Index)+ToAdd
               else
                 // + 1 to accomodate for - sign in length !!
-                Insert(StringOfChar('0',Index+1),toadd,2);  
+                Insert(StringOfChar('0',Index+1),toadd,2);
               end;
         'E' : begin
               CheckArg(vtExtended,true);
@@ -931,7 +931,7 @@ begin
   Setlength(F,fmtlen);
   Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
-  If Length(S)>Buflen then
+  If cardinal(Length(S))>Buflen then
     Result:=Length(S)
   else
     Result:=Buflen;
@@ -1165,7 +1165,7 @@ Function LastDelimiter(const Delimiters, S: string): Integer;
 
 begin
   Result:=Length(S);
-  While (Result>0) and (Pos(S[Result],Delimiters)=0) do 
+  While (Result>0) and (Pos(S[Result],Delimiters)=0) do
     Dec(Result);
 end;
 
@@ -1227,7 +1227,10 @@ const
 
 {
   $Log$
-  Revision 1.1.2.4  2000-12-07 21:48:57  michael
+  Revision 1.1.2.5  2000-12-16 15:58:18  jonas
+    * removed warnings about possible range check errors
+
+  Revision 1.1.2.4  2000/12/07 21:48:57  michael
   + Added LastDelimiter function
 
   Revision 1.1.2.3  2000/12/06 22:51:58  michael
