@@ -353,8 +353,10 @@ unit typinfo;
       var
          hp : PTypeData;
          i : longint;
-
+         p : string;
+         
       begin
+         P:=UpCase(PropName);
          while Assigned(TypeInfo) do
            begin
               // skip the name
@@ -366,7 +368,7 @@ unit typinfo;
               for i:=1 to hp^.PropCount do
                 begin
                    // found a property of that name ?
-                   if Result^.Name=PropName then
+                   if Upcase(Result^.Name)=P then
                      exit;
 
                    // skip to next property
@@ -818,7 +820,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2000-02-15 14:39:56  florian
+  Revision 1.39  2000-05-18 09:42:17  michael
+  + GetPropInfo now case insensitive
+
+  Revision 1.38  2000/02/15 14:39:56  florian
     * disabled FIXED data type per default
 
   Revision 1.37  2000/02/09 16:59:33  peter
