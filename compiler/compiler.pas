@@ -128,6 +128,12 @@ begin
   if not CompilerInited then
    exit;
 { Free compiler if args are read }
+{$ifdef BrowserLog}
+  DoneBrowserLog;
+{$endif BrowserLog}
+{$ifdef BrowserCol}
+  DoneBrowserCol;
+{$endif BrowserCol}
   if CompilerInitedAfterArgs then
    begin
      CompilerInitedAfterArgs:=false;
@@ -140,12 +146,6 @@ begin
   DoneSymtable;
   DoneGlobals;
   linker.done;
-{$ifdef BrowserLog}
-  DoneBrowserLog;
-{$endif BrowserLog}
-{$ifdef BrowserCol}
-  DoneBrowserCol;
-{$endif BrowserCol}
 {$ifdef USEEXCEPT}
   recoverpospointer:=nil;
   longjump_used:=false;
@@ -239,12 +239,8 @@ begin
         Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(starttime))+
           '.'+tostr(trunc(frac(starttime)*10)));
       end;
-   { Stop the compiler, frees also memory }
-     DoneCompiler;
 {$ifdef USEEXCEPT}
-   end
-  else
-    DoneCompiler;
+    end;
 { Stop is always called, so we come here when a program is compiled or not }
   do_stop:=olddo_stop;
 {$endif USEEXCEPT}
@@ -255,13 +251,15 @@ begin
   Comment(V_Info,'Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif EXTDEBUG}
 
+{ Stop the compiler, frees also memory }
+{ no message possible after this !!    }
+  DoneCompiler;
 { Set the return value if an error has occurred }
   if status.errorcount=0 then
    Compile:=0
   else
    Compile:=1;
 
-{ no message possible after this !! }
   DoneVerbose;
 end;
 
@@ -269,7 +267,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-05-04 21:44:39  florian
+  Revision 1.22  1999-05-17 14:24:32  pierre
+   * DoneCompiler called later to prevent accessing invalid data
+
+  Revision 1.21  1999/05/04 21:44:39  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.20  1999/04/21 09:43:33  peter
