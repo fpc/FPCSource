@@ -1,32 +1,56 @@
 The different directories are organized as follows:
 
-webtbs...........Tests which should succeed compilation
-  Digits in filename refer to bug database entry
-webtbf...........Tests which should fail compilation
-  Digits in filename refer to bug database entry
-test.............Some manual tests / testsuites
-tbs..............Manual database tests (success in compilation)
-tbf..............Manual database tests (fail compile)
+webtbs...........Tests for web-bug-database bugs (success in compilation)
+                   Digits in filename refer to bug database entry
+webtbf...........Tests for web-bug-database bugs (fail compile)
+                   Digits in filename refer to bug database entry
+test.............Testsuites for different aspects of the compiler/rtl etc
+tbs..............Tests for other bugs, added by the fpc core team
+                   (success in compilation) Digits in filename is a serial no
+tbf..............Tests for other bugs, added by the fpc core team
+                   (fail compile) Digits in filename is a serial no
 units............Unit helper for doing the tests
 utils............Utilities for processing tests
 
 
+
 At the top of the test source code, some options
 can be used to determine how the tests will be
-processed (if processed automatically via make):
+processed (if processed automatically via make),
+e. g. {%CPU=i386} :
 
-OPT...............Compiler option required to compile
-CPU...............CPU Test target (i386,m68k,etc)
-VERSION...........Compiler required to execute/compiler test
-RESULT............Exit code of execution of test expected
-GRAPH.............Requires graph unit
-FAIL..............Compilation must fail
-RECOMPILE.........????
-NORUN.............Do not execute test, only compile it
-KNOWN.............Known bug, will not be logged as bug
-INTERACTIVE.......Do not execute test, as it requires user
-			intervention
-NOTE..............Output note when compiling/executing test
+OPT................Compiler option required to compile
+CPU................Only for these CPU's (i386,m68k,etc). Might be a list.
+SKIPCPU............Not for these CPU's (i386,m68k,etc). Might be a list.
+TARGET.............Only for these OS targets (win32,macos,etc).
+                   Might be a list.
+SKIPTARGET.........Not for these OS targets (win32,macos,etc).
+                   Might be a list.
+VERSION............Compiler with at lest this version number required. 
+MAXVERSION.........Compiler with at most this version number required.
+RESULT.............Exit code of execution of test expected
+GRAPH..............Requires graph unit
+FAIL...............Compilation must fail
+RECOMPILE..........After compiling a test, recompile the test for a second
+                   time. This is needed to test ppu loading issues.
+NORUN..............Do not execute test, only compile it
+INTERACTIVE........Do not execute test, as it requires user intervention
+NOTE...............Output note when compiling/executing test
+NEEDLIBRARY........Adds -rpath to the linker for unix. This is needed to
+                   test runtime library tests. The library needs the -FE.
+                   option to place the .so in the correct directory.
+KNOWNRUNERROR......Known bug, which manifest itself at runtime. To the
+                   right of the equal sign is the expected exit code,
+                   followed by an optional note. Will not be logged
+                   as a bug.
+KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
+                   the right of the equal sign is the expected exit code
+                   from compiler, followed by an optional note. Will not
+                   be logged as a bug.
+
+  NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,linux
+        No space between the elements and the comma.
+
 
 To actually start the testsuite:
 do a simple
@@ -34,6 +58,11 @@ make full This should create a log of all failed tests.
 
 make rundigest scans the created log file and outputs some statistics
 make rundigest USESQL=YES sends the results to an SQL database
+
+When the tests are performed, first the units (e g rtl) needed by the tests
+are compiled in a clean determined way and put in the units directory. Then
+webtbs/webtbf/test/tbs/tbf are searched for t*.pp to be compiled
+and executed as tests.
 
 
 Also remote execution of the testsuite is possible
