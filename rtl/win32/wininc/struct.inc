@@ -68,9 +68,9 @@
      PABC = ^ABC;
 
      ABCFLOAT = record
-          abcfA : FLOAT;
-          abcfB : FLOAT;
-          abcfC : FLOAT;
+          abcfA : Single;
+          abcfB : Single;
+          abcfC : Single;
        end;
      LPABCFLOAT = ^ABCFLOAT;
      _ABCFLOAT = ABCFLOAT;
@@ -1989,8 +1989,8 @@
           emr : EMR;
           ptlCenter : POINTL;
           nRadius : DWORD;
-          eStartAngle : FLOAT;
-          eSweepAngle : FLOAT;
+          eStartAngle : Single;
+          eSweepAngle : Single;
        end;
      tagEMRANGLEARC = EMRANGLEARC;
      TEMRANGLEARC = EMRANGLEARC;
@@ -2019,12 +2019,12 @@
      PEMRPIE = ^EMRARC;
 
      XFORM = record
-          eM11 : FLOAT;
-          eM12 : FLOAT;
-          eM21 : FLOAT;
-          eM22 : FLOAT;
-          eDx : FLOAT;
-          eDy : FLOAT;
+          eM11 : Single;
+          eM12 : Single;
+          eM21 : Single;
+          eM22 : Single;
+          eDx : Single;
+          eDy : Single;
        end;
      LPXFORM = ^XFORM;
      _XFORM = XFORM;
@@ -2313,8 +2313,8 @@
           emr : EMR;
           rclBounds : RECTL;
           iGraphicsMode : DWORD;
-          exScale : FLOAT;
-          eyScale : FLOAT;
+          exScale : Single;
+          eyScale : Single;
           emrtext : EMRTEXT;
        end;
      tagEMREXTTEXTOUTA = EMREXTTEXTOUTA;
@@ -2606,8 +2606,8 @@
           emr : EMR;
           rclBounds : RECTL;
           iGraphicsMode : DWORD;
-          exScale : FLOAT;
-          eyScale : FLOAT;
+          exScale : Single;
+          eyScale : Single;
           cStrings : LONG;
           aemrtext : array[0..0] of EMRTEXT;
        end;
@@ -2751,7 +2751,7 @@
 
      EMRSETMITERLIMIT = record
           emr : EMR;
-          eMiterLimit : FLOAT;
+          eMiterLimit : Single;
        end;
      tagEMRSETMITERLIMIT = EMRSETMITERLIMIT;
      TEMRSETMITERLIMIT = EMRSETMITERLIMIT;
@@ -6234,19 +6234,19 @@
      { Structures for the extensions to OpenGL }
 
      POINTFLOAT = record
-          x : FLOAT;
-          y : FLOAT;
+          x : Single;
+          y : Single;
        end;
      _POINTFLOAT = POINTFLOAT;
      TPOINTFLOAT = POINTFLOAT;
      PPOINTFLOAT = ^POINTFLOAT;
 
      GLYPHMETRICSFLOAT = record
-          gmfBlackBoxX : FLOAT;
-          gmfBlackBoxY : FLOAT;
+          gmfBlackBoxX : Single;
+          gmfBlackBoxY : Single;
           gmfptGlyphOrigin : POINTFLOAT;
-          gmfCellIncX : FLOAT;
-          gmfCellIncY : FLOAT;
+          gmfCellIncX : Single;
+          gmfCellIncY : Single;
        end;
      LPGLYPHMETRICSFLOAT = ^GLYPHMETRICSFLOAT;
      _GLYPHMETRICSFLOAT = GLYPHMETRICSFLOAT;
@@ -7013,7 +7013,10 @@ type
 
 {
   $Log$
-  Revision 1.14  2002-09-07 16:01:32  peter
+  Revision 1.15  2002-09-15 17:53:45  peter
+    * Remove Float type, use Single instead
+
+  Revision 1.14  2002/09/07 16:01:32  peter
     * old logs removed and tabs fixed
 
   Revision 1.13  2002/07/16 13:52:14  florian

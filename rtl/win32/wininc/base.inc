@@ -79,8 +79,6 @@
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
 
-     FLOAT = real;
-
      HANDLE = longint;    { or should it be cardinal ?? PM }
 
      HACCEL = HANDLE;
@@ -188,8 +186,6 @@
      PCWSTR = ^word;
 
      PDWORD = ^DWORD;
-
-     PFLOAT = ^real;
 
      PHANDLE = ^HANDLE;
      PHKEY = ^HKEY;
@@ -944,7 +940,10 @@ type
 
 {
   $Log$
-  Revision 1.10  2002-09-07 16:01:30  peter
+  Revision 1.11  2002-09-15 17:53:45  peter
+    * Remove Float type, use Single instead
+
+  Revision 1.10  2002/09/07 16:01:30  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/07/16 13:52:14  florian

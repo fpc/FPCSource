@@ -809,7 +809,7 @@ function PlayEnhMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; var _para3:ENHM
 function SetEnhMetaFileBits(_para1:UINT; var _para2:BYTE):HENHMETAFILE; external 'gdi32' name 'SetEnhMetaFileBits';
 function SetWinMetaFileBits(_para1:UINT; var _para2:BYTE; _para3:HDC; var _para4:METAFILEPICT):HENHMETAFILE; external 'gdi32' name 'SetWinMetaFileBits';
 function GdiComment(_para1:HDC; _para2:UINT; var _para3:BYTE):WINBOOL; external 'gdi32' name 'GdiComment';
-function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT;_para6:FLOAT):WINBOOL; external 'gdi32' name 'AngleArc';
+function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:Single;_para6:Single):WINBOOL; external 'gdi32' name 'AngleArc';
 function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external 'gdi32' name 'PolyPolyline';
 function GetWorldTransform(_para1:HDC; _para2:LPXFORM):WINBOOL; external 'gdi32' name 'GetWorldTransform';
 function SetWorldTransform(_para1:HDC; var _para2:XFORM):WINBOOL; external 'gdi32' name 'SetWorldTransform';
@@ -838,12 +838,12 @@ function PathToRegion(_para1:HDC):HRGN; external 'gdi32' name 'PathToRegion';
 function PolyDraw(_para1:HDC; var _para2:POINT; var _para3:BYTE; _para4:longint):WINBOOL; external 'gdi32' name 'PolyDraw';
 function SelectClipPath(_para1:HDC; _para2:longint):WINBOOL; external 'gdi32' name 'SelectClipPath';
 function SetArcDirection(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetArcDirection';
-function SetMiterLimit(_para1:HDC; _para2:FLOAT; _para3:PFLOAT):WINBOOL; external 'gdi32' name 'SetMiterLimit';
+function SetMiterLimit(_para1:HDC; _para2:Single; _para3:PSingle):WINBOOL; external 'gdi32' name 'SetMiterLimit';
 function StrokeAndFillPath(_para1:HDC):WINBOOL; external 'gdi32' name 'StrokeAndFillPath';
 function StrokePath(_para1:HDC):WINBOOL; external 'gdi32' name 'StrokePath';
 function WidenPath(_para1:HDC):WINBOOL; external 'gdi32' name 'WidenPath';
 function ExtCreatePen(_para1:DWORD; _para2:DWORD; var _para3:LOGBRUSH; _para4:DWORD; var _para5:DWORD):HPEN; external 'gdi32' name 'ExtCreatePen';
-function GetMiterLimit(_para1:HDC; _para2:PFLOAT):WINBOOL; external 'gdi32' name 'GetMiterLimit';
+function GetMiterLimit(_para1:HDC; _para2:PSingle):WINBOOL; external 'gdi32' name 'GetMiterLimit';
 function GetArcDirection(_para1:HDC):longint; external 'gdi32' name 'GetArcDirection';
 function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32' name 'MoveToEx';
 function CreatePolygonRgn(var _para1:POINT; _para2:longint; _para3:longint):HRGN; external 'gdi32' name 'CreatePolygonRgn';
@@ -2299,7 +2299,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:31  peter
+  Revision 1.10  2002-09-15 17:53:45  peter
+    * Remove Float type, use Single instead
+
+  Revision 1.9  2002/09/07 16:01:31  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/09/03 10:26:11  pierre
