@@ -1,0 +1,30 @@
+frame_pointer              contains the register used as frame pointer
+stack_pointer              contains the register used as stack pointer
+self_pointer               contains the register used as self pointer
+
+
+unusedregsint
+unusedregsfpu
+unusedregsmm
+
+availabletempregsint
+availabletempregsfpu
+availabletempregsmm
+
+countusableregsint         count of currently available integer registers
+countusableregsfpu         count of currently available fpu registers
+countusableregsmm          count of currently available mm registers
+
+c_countusableregsint       count of max. available int registers (in the current procedure)
+c_countusableregsfpu       count of max. available fpu registers (in the current procedure)
+c_countusableregsmm        count of max. available mm registers (in the current procedure)
+
+intregs                    all!! available integer register
+fpuregs                    all!! available fpu register
+mmregs                     all!! available multimedia register
+
+Intel specific
+--------------
+unusedregssse
+availabletempregssse
+countusableregssse
