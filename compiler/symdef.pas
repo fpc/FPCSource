@@ -3983,6 +3983,8 @@ implementation
         showhidden:=true;
 {$endif EXTDEBUG}
         s:='';
+        if owner.symtabletype=localsymtable then
+         s:=s+'local ';
         if assigned(_class) then
          begin
            if po_classmethod in procoptions then
@@ -4846,6 +4848,8 @@ implementation
              s := s+'address of'
            else
              s := s+'procedure variable type of';
+         if po_local in procoptions then
+           s := s+' local';
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
            s:=s+' function'+typename_paras(showhidden)+':'+rettype.def.gettypename
@@ -6367,7 +6371,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.291  2005-01-24 22:08:32  peter
+  Revision 1.292  2005-01-30 11:26:40  peter
+    * add info that a procedure is local in error messages
+
+  Revision 1.291  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 

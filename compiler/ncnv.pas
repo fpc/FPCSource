@@ -1195,6 +1195,10 @@ implementation
         if (pd.owner.symtabletype=objectsymtable) then
           include(tprocvardef(resulttype.def).procoptions,po_methodpointer);
 
+        { was it a local procedure? }
+        if (pd.owner.symtabletype=localsymtable) then
+          include(tprocvardef(resulttype.def).procoptions,po_local);
+
         { only need the address of the method? this is needed
           for @tobject.create. In this case there will be a loadn without
           a methodpointer. }
@@ -2579,7 +2583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.174  2005-01-09 15:04:36  peter
+  Revision 1.175  2005-01-30 11:26:40  peter
+    * add info that a procedure is local in error messages
+
+  Revision 1.174  2005/01/09 15:04:36  peter
     * fix crash with -CR
 
   Revision 1.173  2005/01/07 21:14:21  florian

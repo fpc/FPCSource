@@ -259,7 +259,8 @@ type
     po_syscall_sysv,
     po_syscall_basesysv,
     po_syscall_sysvbase,
-    po_syscall_r12base
+    po_syscall_r12base,
+    po_local
   );
   tprocoptions=set of tprocoption;
 
@@ -440,7 +441,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.100  2005-01-09 20:24:43  olle
+  Revision 1.101  2005-01-30 11:26:40  peter
+    * add info that a procedure is local in error messages
+
+  Revision 1.100  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 
