@@ -744,17 +744,17 @@ var
   regs : trealregs;
 begin
   regs.realebx:=handle;
-{$ifdef SYSTEMDEBUG}
   if handle<max_files then
     begin
        openfiles[handle]:=false;
+{$ifdef SYSTEMDEBUG}
        if assigned(opennames[handle]) and free_closed_names then
          begin
             sysfreememsize(opennames[handle],strlen(opennames[handle])+1);
             opennames[handle]:=nil;
          end;
-    end;
 {$endif SYSTEMDEBUG}
+    end;
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
@@ -1076,20 +1076,22 @@ begin
         FileHandleCount:=regs.realeax;
 {$endif RTLLITE}
     end;
-{$ifdef SYSTEMDEBUG}
   if regs.realeax<max_files then
     begin
+{$ifdef SYSTEMDEBUG}
        if openfiles[regs.realeax] and
           assigned(opennames[regs.realeax]) then
          begin
             Writeln(stderr,'file ',opennames[regs.realeax],'(',regs.realeax,') not closed but handle reused!');
             sysfreememsize(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
          end;
+{$endif SYSTEMDEBUG}
        openfiles[regs.realeax]:=true;
+{$ifdef SYSTEMDEBUG}
        opennames[regs.realeax] := sysgetmem(strlen(p)+1);
        move(p^,opennames[regs.realeax]^,strlen(p)+1);
-    end;
 {$endif SYSTEMDEBUG}
+    end;
 { append mode }
   if (flags and $100)<>0 then
    begin
@@ -1335,7 +1337,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.25  1999-12-17 23:11:48  pierre
+  Revision 1.26  1999-12-20 22:22:41  pierre
+   * better closing of left open files
+
+  Revision 1.25  1999/12/17 23:11:48  pierre
    * fix for bug754 : increase now dynamically max open handles
 
   Revision 1.24  1999/12/01 22:57:30  peter
