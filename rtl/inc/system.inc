@@ -37,9 +37,6 @@ const
   STACK_MARGIN = 16384;    { Stack size margin for stack checking }
 { Random / Randomize constants }
   OldRandSeed : Cardinal = 0;
-  InitialSeed : Boolean = TRUE;
-  Seed2 : Cardinal = 0;
-  Seed3 : Cardinal = 0;
 
 { For Error Handling.}
   ErrorBase : Pointer = nil;
@@ -282,87 +279,167 @@ end;
 
 {$i rtti.inc}
 
-{****************************************************************************
-                          Random function routines
-
-        This implements a very long cycle random number generator by combining
-   three independant generators.  The technique was described in the March
-   1987 issue of Byte.
-   Taken and modified with permission from the PCQ Pascal rtl code.
-****************************************************************************}
-
-{$R-}
-{$Q-}
-
-Procedure NewSeed;Forward;
 
 
-Function Random : Extended;
+{----------------------------------------------------------------------
+   Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
+   Pseudo-Random Number Generator.
+
+   What is Mersenne Twister?
+   Mersenne Twister(MT) is a pseudorandom number generator developped by
+   Makoto Matsumoto and Takuji Nishimura (alphabetical order) during
+   1996-1997. MT has the following merits:
+   It is designed with consideration on the flaws of various existing
+   generators.
+   Far longer period and far higher order of equidistribution than any
+   other implemented generators. (It is proved that the period is 2^19937-1,
+   and 623-dimensional equidistribution property is assured.)
+   Fast generation. (Although it depends on the system, it is reported that
+   MT is sometimes faster than the standard ANSI-C library in a system
+   with pipeline and cache memory.)
+   Efficient use of the memory. (The implemented C-code mt19937.c
+   consumes only 624 words of working area.)
+
+   home page
+     http://www.math.keio.ac.jp/~matumoto/emt.html
+   original c source
+     http://www.math.keio.ac.jp/~nisimura/random/int/mt19937int.c
+
+   Coded by Takuji Nishimura, considering the suggestions by
+   Topher Cooper and Marc Rieffel in July-Aug. 1997.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later
+   version.
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   See the GNU Library General Public License for more details.
+   You should have received a copy of the GNU Library General
+   Public License along with this library; if not, write to the
+   Free Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307  USA
+
+   Copyright (C) 1997, 1999 Makoto Matsumoto and Takuji Nishimura.
+   When you use this, send an email to: matumoto@math.keio.ac.jp
+   with an appropriate reference to your work.
+
+   REFERENCE
+   M. Matsumoto and T. Nishimura,
+   "Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
+   Pseudo-Random Number Generator",
+   ACM Transactions on Modeling and Computer Simulation,
+   Vol. 8, No. 1, January 1998, pp 3--30.
+
+
+  Translated to OP and Delphi interface added by Roman Krejci (6.12.1999)
+
+  http://www.rksolution.cz/delphi/tips.htm
+
+  Revised 21.6.2000: Bug in the function RandInt_MT19937 fixed
+
+  2003/10/26: adapted to use the improved intialisation mentioned at
+  <http://www.math.keio.ac.jp/~matumoto/MT2002/emt19937ar.html> and
+  removed the assembler code
+
+ ----------------------------------------------------------------------}
+
+{$R-} {range checking off}
+{$Q-} {overflow checking off}
+
+{ Period parameter }
+Const
+  MT19937N=624;
+
+Type
+  tMT19937StateArray = array [0..MT19937N-1] of longint; // the array for the state vector
+
+{ Period parameters }
+const
+  MT19937M=397;
+  MT19937MATRIX_A  =$9908b0df;  // constant vector a
+  MT19937UPPER_MASK=$80000000;  // most significant w-r bits
+  MT19937LOWER_MASK=$7fffffff;  // least significant r bits
+
+{ Tempering parameters }
+  TEMPERING_MASK_B=$9d2c5680;
+  TEMPERING_MASK_C=$efc60000;
+
+
+VAR
+  mt : tMT19937StateArray;
+  mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
+
+{ Initializing the array with a seed }
+procedure sgenrand_MT19937(seed: longint);
+var
+  i: longint;
 begin
-    if (InitialSeed) OR (RandSeed <> OldRandSeed) then
-    Begin
-    { This is a pretty complicated affair                             }
-    {  Initially we must call NewSeed when RandSeed is initalized     }
-    {  We must also call NewSeed each time RandSeed is reinitialized  }
-    {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
-    {  UNLESS YOU WANT RANDON TO CRASH OF COURSE (CEC)                }
-      InitialSeed:=FALSE;
-      OldRandSeed:=RandSeed;
-      NewSeed;
+  mt[0] := seed;
+  for i := 1 to MT19937N-1 do
+    begin
+      mt[i] := 1812433253 * (mt[i-1] xor (mt[i-1] shr 30)) + i;
+      { See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. }
+      { In the previous versions, MSBs of the seed affect   }
+      { only MSBs of the array mt[].                        }
+      { 2002/01/09 modified by Makoto Matsumoto             }
     end;
-    Inc(RandSeed);
-    RandSeed := (RandSeed * 706) mod 500009;
-    OldRandSeed:=RandSeed;
-    INC(Seed2);
-    Seed2 := (Seed2 * 774) MOD 600011;
-    INC(Seed3);
-    Seed3 := (Seed3 * 871) MOD 765241;
-    Random :=
-      frac(RandSeed/500009.0 +
-           Seed2/600011.0 +
-           Seed3/765241.0);
+  mti := MT19937N;
 end;
 
-Function internRandom(l : Cardinal) : Cardinal;
+
+function genrand_MT19937: longint;
+const
+  mag01 : array [0..1] of longint =(0, MT19937MATRIX_A);
+var
+  y: longint;
+  kk: longint;
 begin
-    if (InitialSeed) OR (RandSeed <> OldRandSeed) then
-      Begin
-      { This is a pretty complicated affair                             }
-      {  Initially we must call NewSeed when RandSeed is initalized     }
-      {  We must also call NewSeed each time RandSeed is reinitialized  }
-      {  DO NOT CHANGE THE ORDER OF DECLARATIONS IN THIS BLOCK          }
-      {  UNLESS YOU WANT RANDOM TO CRASH OF COURSE (CEC)                }
-        InitialSeed:=FALSE;
-        OldRandSeed:=RandSeed;
-        NewSeed;
-      end;
-    Inc(RandSeed);
-    RandSeed := (RandSeed * 998) mod 1000003;
-    OldRandSeed:=RandSeed;
-    if l<>0 then
-      begin
-        internRandom := RandSeed mod l;
-      end
-    else internRandom:=0;
+  if (mti >= MT19937N) or
+     (randseed <> oldrandseed) { generate MT19937N longints at one time }
+  then begin
+     if mti = (MT19937N+1) then  // if sgenrand_MT19937() has not been called,
+       begin
+         sgenrand_MT19937(randseed);   // default initial seed is used
+         oldrandseed := randseed;
+       end;
+     for kk:=0 to MT19937N-MT19937M-1 do begin
+        y := (mt[kk] and MT19937UPPER_MASK) or (mt[kk+1] and MT19937LOWER_MASK);
+        mt[kk] := mt[kk+MT19937M] xor (y shr 1) xor mag01[y and $00000001];
+     end;
+     for kk:= MT19937N-MT19937M to MT19937N-2 do begin
+       y := (mt[kk] and MT19937UPPER_MASK) or (mt[kk+1] and MT19937LOWER_MASK);
+       mt[kk] := mt[kk+(MT19937M-MT19937N)] xor (y shr 1) xor mag01[y and $00000001];
+     end;
+     y := (mt[MT19937N-1] and MT19937UPPER_MASK) or (mt[0] and MT19937LOWER_MASK);
+     mt[MT19937N-1] := mt[MT19937M-1] xor (y shr 1) xor mag01[y and $00000001];
+     mti := 0;
+  end;
+  y := mt[mti]; inc(mti);
+  y := y xor (y shr 11);
+  y := y xor (y shl 7)  and TEMPERING_MASK_B;
+  y := y xor (y shl 15) and TEMPERING_MASK_C;
+  y := y xor (y shr 18);
+  Result := y;
 end;
+
 
 function random(l:cardinal): cardinal;
 begin
-  random := trunc(random()*l);
+  random := cardinal((int64(cardinal(genrand_MT19937))*l) shr 32);
 end;
 
 function random(l:longint): longint;
 begin
-  random := trunc(random()*l);
+  random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
 end;
 
-Procedure NewSeed;
+function random: extended;
 begin
-    randseed := randseed mod 1000003;
-    Seed2 := (internRandom(65000) * internRandom(65000)) mod 600011;
-    Seed3 := (internRandom(65000) * internRandom(65000)) mod 765241;
+  random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
 end;
-
 
 {****************************************************************************
                             Memory Management
@@ -768,7 +845,11 @@ end;
 
 {
   $Log$
-  Revision 1.43  2003-09-14 11:34:13  peter
+  Revision 1.44  2003-10-26 18:46:02  jonas
+    * replaced random generator with the Mersenne twister, which is about
+      3.5 times faster
+
+  Revision 1.43  2003/09/14 11:34:13  peter
     * moved int64 asm code to int64p.inc
     * save ebx,esi
 
