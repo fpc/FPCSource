@@ -451,6 +451,7 @@ begin
   end;
 end;
 
+
 Function TExprParse.Evaluate(Expr : String):longint;
 Var
   I     : Integer;
@@ -462,78 +463,78 @@ begin
   Token  := '';
 
   For I := 1 to Length(Expr) DO
-
+   begin
      if Expr[I] in ['0'..'9'] then
       begin       { Build multi-digit numbers }
-   Token := Token + Expr[I];
-   if I = Length(Expr) then          { Send last one to calculator }
-      RPNCalc(Token,false);
+        Token := Token + Expr[I];
+        if I = Length(Expr) then          { Send last one to calculator }
+         RPNCalc(Token,false);
       end
      else
-     if Expr[I] in ['+', '-', '*', '/', '(', ')','^','&','|','%','~','<','>'] then
-      begin
-       if Token <> '' then
-   begin        { Send last built number to calc. }
-    RPNCalc(Token,false);
-    Token := '';
+      if Expr[I] in ['+', '-', '*', '/', '(', ')','^','&','|','%','~','<','>'] then
+       begin
+         if Token <> '' then
+          begin        { Send last built number to calc. }
+            RPNCalc(Token,false);
+            Token := '';
+          end;
+
+         Case Expr[I] OF
+          '(' : OpPush('(',false);
+          ')' : begin
+                  While OpStack[OpTop].ch <> '(' DO
+                   Begin
+                     OpPop(opr);
+                     RPNCalc(opr.ch,opr.is_prefix);
+                   end;
+                  OpPop(opr);                          { Pop off and ignore the '(' }
+                end;
+  '+','-','~' : Begin
+                  { workaround for -2147483648 }
+                  if (expr[I]='-') and (expr[i+1] in ['0'..'9']) then
+                   begin
+                     token:='-';
+                     expr[i]:='+';
+                   end;
+                  { if start of expression then surely a prefix }
+                  { or if previous char was also an operator    }
+                  if (I = 1) or (not (Expr[I-1] in ['0'..'9','(',')'])) then
+                    OpPush(Expr[I],true)
+                  else
+                    Begin
+                    { Evaluate all higher priority operators }
+                      While (OpTop > 0) AND (Priority(Expr[I]) <= Priority(OpStack[OpTop].ch)) DO
+                       Begin
+                         OpPop(opr);
+                         RPNCalc(opr.ch,opr.is_prefix);
+                       end;
+                      OpPush(Expr[I],false);
+                    End;
+                end;
+     '*', '/',
+  '^','|','&',
+  '%','<','>' : begin
+                  While (OpTop > 0) and (Priority(Expr[I]) <= Priority(OpStack[OpTop].ch)) DO
+                   Begin
+                     OpPop(opr);
+                     RPNCalc(opr.ch,opr.is_prefix);
+                   end;
+                  OpPush(Expr[I],false);
+                end;
+         end; { Case }
+       end
+     else
+      Error(invalid_op);  { Handle bad input error }
    end;
 
-     Case Expr[I] OF
-       '(' : OpPush('(',false);
-       ')' :
-     begin
-        While OpStack[OpTop].ch <> '(' DO
-        Begin
-          OpPop(opr);
-          RPNCalc(opr.ch,opr.is_prefix);
-        end;
-        OpPop(opr);                          { Pop off and ignore the '(' }
-     end;
+{ Pop off the remaining operators }
+  While OpTop > 0 do
+   Begin
+     OpPop(opr);
+     RPNCalc(opr.ch,opr.is_prefix);
+   end;
 
-   '+','-','~':  Begin
-      While (OpTop > 0) AND
-          (Priority(Expr[I]) <= Priority(OpStack[OpTop].ch)) DO
-        Begin
-             OpPop(opr);
-             RPNCalc(opr.ch,opr.is_prefix);
-        end;
-       { if start of expression then surely a prefix }
-       { or if previous char was also an operator    }
-       { push it and don't evaluate normally         }
-       { workaround for -2147483648 }
-       if (expr[I]='-') and (expr[i+1] in ['0'..'9']) then
-         begin
-            token:='-';
-            expr[i]:='+';
-         end;
-       if (I = 1) or (not (Expr[I-1] in ['0'..'9','(',')'])) then
-         OpPush(Expr[I],true)
-       else
-         OpPush(Expr[I],false);
-      end;
-
-      '*', '/','^','|','&','%','<','>' :
-    begin
-      While (OpTop > 0) AND
-          (Priority(Expr[I]) <= Priority(OpStack[OpTop].ch)) DO
-        Begin
-             OpPop(opr);
-             RPNCalc(opr.ch,opr.is_prefix);
-        end;
-        OpPush(Expr[I],false);
-    end;
-     end; { Case }
-  end
-    else Error(invalid_op);
-      { Handle bad input error }
-
-  While OpTop > 0 do                     { Pop off the remaining operators }
-  Begin
-    OpPop(opr);
-    RPNCalc(opr.ch,opr.is_prefix);
-  end;
-
-  { The result is stored on the top of the stack }
+{ The result is stored on the top of the stack }
   Evaluate := RPNPop;
 end;
 
@@ -1628,7 +1629,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-08-10 14:49:40  peter
+  Revision 1.7  1998-08-18 20:51:32  peter
+    * fixed bug 42
+
+  Revision 1.6  1998/08/10 14:49:40  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.5  1998/07/14 21:46:38  peter
