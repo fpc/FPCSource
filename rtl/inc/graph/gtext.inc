@@ -65,7 +65,8 @@
         pheader : TFHeader;      { prefix header }
         offsets : TOffsetTable;
         widths : TWidthTable;
-        instr : pchar;
+        instrlength: longint;    { length of instr, because instr can }
+        instr : pchar;           { contain null characters            }
       end;
 
 
@@ -116,6 +117,7 @@
          inc(installedfonts);
          fonts[installedfonts].name:=FontFileName;
          fonts[installedfonts].instr := nil;
+         fonts[installedfonts].instrlength := 0;
          InstallUserFont:=installedfonts;
       end;
 
@@ -298,6 +300,7 @@
                             exit;
                           end;
                         fonts[b].instr:=FontData;
+                        fonts[b].instrlength:=Counter+1;
                         RegisterBGIfont:=b;
                      end;
                 end;
@@ -707,6 +710,7 @@
                 exit;
              end;
              fonts[font].instr:=FontData;
+             fonts[font].instrLength:=Length+1;
 
 
               if not testfont(Prefix) then
@@ -727,7 +731,10 @@
 
 {
 $Log$
-Revision 1.6  1999-09-28 13:56:29  jonas
+Revision 1.7  1999-09-28 15:07:47  jonas
+  * fix for disposing font data because it can contain #0 chars
+
+Revision 1.6  1999/09/28 13:56:29  jonas
   * reordered some local variables (first 4 byte vars, then 2 byte vars
     etc)
   * font data is now disposed in exitproc, exitproc is now called

@@ -2818,8 +2818,9 @@ end;
 {$endif testsave}
    { release memory allocated for fonts }
    for c := 1 to installedfonts do
-     If assigned(fonts[c].instr) Then
-       Freemem(fonts[c].instr,strlen(fonts[c].instr));
+     with fonts[c] Do
+     If assigned(instr) Then
+       Freemem(instr,instrlength);
    { release memory allocated for modelist }
    list := ModeList;
    while assigned(list) do
@@ -2876,7 +2877,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.31  1999-09-28 13:56:25  jonas
+  Revision 1.32  1999-09-28 15:07:46  jonas
+    * fix for disposing font data because it can contain #0 chars
+
+  Revision 1.31  1999/09/28 13:56:25  jonas
     * reordered some local variables (first 4 byte vars, then 2 byte vars
       etc)
     * font data is now disposed in exitproc, exitproc is now called
