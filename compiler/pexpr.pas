@@ -1032,7 +1032,8 @@ unit pexpr;
                                         not(pobjectdef(pd)^.is_class) then
                                        begin
                                          consume(_POINT);
-                                         if assigned(procinfo._class) then
+                                         if assigned(procinfo._class) and
+                                           not(getaddr) then
                                           begin
                                             if procinfo._class^.is_related(pobjectdef(pd)) then
                                              begin
@@ -2092,7 +2093,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.140  1999-09-11 09:08:33  florian
+  Revision 1.141  1999-09-11 19:47:26  florian
+    * bug fix for @tobject.method, fixes bug 557, 605 and 606
+
+  Revision 1.140  1999/09/11 09:08:33  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,

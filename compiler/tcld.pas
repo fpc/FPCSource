@@ -37,7 +37,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      cobjects,verbose,globtype,globals,systems,
       symconst,symtable,aasm,types,
       hcodegen,htypechk,pass_1,
       tccnv,cpubase
@@ -192,7 +192,8 @@ implementation
                    { left must be set, if left isn't set       }
                    { it can be only self                       }
                    { this code is only used in TP procvar mode }
-                   if not(assigned(p^.left)) and
+                   if (m_tp_procvar in aktmodeswitches) and
+                      not(assigned(p^.left)) and
                      (pprocsym(p^.symtableentry)^.owner^.symtabletype=objectsymtable) then
                       p^.left:=genselfnode(procinfo._class);
                    { method pointer ? }
@@ -503,7 +504,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-09-11 09:08:34  florian
+  Revision 1.44  1999-09-11 19:47:26  florian
+    * bug fix for @tobject.method, fixes bug 557, 605 and 606
+
+  Revision 1.43  1999/09/11 09:08:34  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,
