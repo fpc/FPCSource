@@ -90,14 +90,13 @@ implementation
            begin
               pushusedregisters(pushed,$ff);
 
-              { code copied from simplenewdispose PM }
+              gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
+
               { determines the size of the mem block }
               push_int(ppointerdef(p^.resulttype)^.definition^.size);
-
-              gettempofsizereference(target_os.size_of_pointer,p^.location.reference);
-              emitpushreferenceaddr(p^.location.reference);
-
+              emit_push_lea_loc(p^.location,false);
               emitcall('FPC_GETMEM');
+
               if ppointerdef(p^.resulttype)^.definition^.needs_inittable then
                 begin
                    new(r);
@@ -166,16 +165,6 @@ implementation
            exit;
 
          pushusedregisters(pushed,$ff);
-         { determines the size of the mem block }
-         push_int(ppointerdef(p^.left^.resulttype)^.definition^.size);
-
-         { push pointer adress }
-         case p^.left^.location.loc of
-            LOC_CREGISTER : emit_reg(A_PUSH,S_L,
-              p^.left^.location.register);
-            LOC_REFERENCE:
-              emitpushreferenceaddr(p^.left^.location.reference);
-         end;
 
          { call the mem handling procedures }
          case p^.treetype of
@@ -192,10 +181,14 @@ implementation
                      emit_push_loc(p^.left^.location);
                      emitcall('FPC_FINALIZE');
                   end;
+                emit_push_lea_loc(p^.left^.location,true);
                 emitcall('FPC_FREEMEM');
              end;
            simplenewn:
              begin
+                { determines the size of the mem block }
+                push_int(ppointerdef(p^.left^.resulttype)^.definition^.size);
+                emit_push_lea_loc(p^.left^.location,true);
                 emitcall('FPC_GETMEM');
                 if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
@@ -868,7 +861,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-09-17 17:14:02  peter
+  Revision 1.59  1999-10-30 17:35:26  peter
+    * fpc_freemem fpc_getmem new callings updated
+
+  Revision 1.58  1999/09/17 17:14:02  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 

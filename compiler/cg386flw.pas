@@ -761,64 +761,18 @@ do_jmp:
 *****************************************************************************}
 
     procedure secondfail(var p : ptree);
-      {var
-        hp : preference;
-        nofreememcall, afterfreememcall : pasmlabel; }
       begin
-         (* { check if getmem was called :
-           VMT at 8(%ebp) is set to -1 after call to getmem PM }
-         { also reset to zero in the stack }
-         getlabel(nofreememcall);
-         getlabel(afterfreememcall);
-         new(hp);
-         reset_reference(hp^);
-         hp^.offset:=8;
-         hp^.base:=procinfo^.framepointer;
-         emit_const_ref(A_CMP,S_L,-1,hp);
-         emitjmp(C_NE,nofreememcall);
-         new(hp);
-         reset_reference(hp^);
-         hp^.offset:=procinfo^._class^.vmt_offset;
-         hp^.base:=R_ESI;
-         emit_ref_reg(A_MOV,S_L,hp,R_EDI);
-         new(hp);
-         reset_reference(hp^);
-         hp^.base:=R_EDI;
-         {hp^.offset:=0; done in reset_reference }
-         emit_ref(A_PUSH,S_L,hp);
-         new(hp);
-         reset_reference(hp^);
-         hp^.offset:=procinfo^.ESI_offset;
-         hp^.base:=procinfo^.framepointer;
-         emit_ref_reg(A_LEA,S_L,hp,R_EDI);
-         emit_reg(A_PUSH,S_L,R_EDI);
-         emitcall('FPC_FREEMEM');
-         emitjmp(C_None,afterfreememcall);
-
-
-         emitlab(nofreememcall);
-         { reset VMT field for static object }
-         new(hp);
-         reset_reference(hp^);
-         hp^.offset:=procinfo^._class^.vmt_offset;
-         hp^.base:=R_ESI;
-         emit_const_ref(A_MOV,S_L,0,hp);
-         emitlab(afterfreememcall);
-         emit_reg_reg(A_XOR,S_L,R_ESI,R_ESI);
-         { also reset to zero in the stack }
-         new(hp);
-         reset_reference(hp^);
-         hp^.offset:=procinfo^.ESI_offset;
-         hp^.base:=procinfo^.framepointer;
-         emit_reg_ref(A_MOV,S_L,R_ESI,hp); *)
-         emitjmp(C_None,faillabel);
+        emitjmp(C_None,faillabel);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.54  1999-10-21 16:41:37  florian
+  Revision 1.55  1999-10-30 17:35:26  peter
+    * fpc_freemem fpc_getmem new callings updated
+
+  Revision 1.54  1999/10/21 16:41:37  florian
     * problems with readln fixed: esi wasn't restored correctly when
       reading ordinal fields of objects futher the register allocation
       didn't take care of the extra register when reading ordinal values

@@ -1052,6 +1052,7 @@ begin
   def_symbol('HASINTERNMATH');
   def_symbol('SYSTEMTVARREC');
   def_symbol('INCLUDEOK');
+  def_symbol('NEWMM');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1237,7 +1238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-10-28 11:13:36  pierre
+  Revision 1.29  1999-10-30 17:35:26  peter
+    * fpc_freemem fpc_getmem new callings updated
+
+  Revision 1.28  1999/10/28 11:13:36  pierre
    * fix for cygwin make problem with -iTP
 
   Revision 1.27  1999/10/26 13:13:47  peter
