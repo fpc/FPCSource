@@ -52,3 +52,4 @@ teststr.pp        test string functions and speed
 testaoc.pp        test Array of construct.
 testansi.pp       test ansistrings
 testrtti.pp       test RTTI generation and typinfo unit.
+testexc.pp        test exceptions.
