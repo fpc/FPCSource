@@ -39,7 +39,7 @@ implementation
    uses
      cobjects,verbose,globals,
      symtable,aasm,i386,
-     cgi386,cgai386,tgeni386,hcodegen;
+     cgi386,cgai386,temp_gen,tgeni386,hcodegen;
 
 {*****************************************************************************
                              SecondTypeConv
@@ -1062,7 +1062,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-06-05 17:44:10  peter
+  Revision 1.5  1998-06-08 13:13:30  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.4  1998/06/05 17:44:10  peter
     * splitted cgi386
 
   Revision 1.3  1998/06/03 22:48:50  peter

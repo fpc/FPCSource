@@ -38,7 +38,7 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       aasm,i386,types,
-      cgi386,cgai386,tgeni386,hcodegen,
+      cgi386,cgai386,temp_gen,tgeni386,hcodegen,
       cg386ld;
 
 
@@ -2190,7 +2190,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-06-05 17:44:10  peter
+  Revision 1.2  1998-06-08 13:13:29  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.1  1998/06/05 17:44:10  peter
     * splitted cgi386
 
 }

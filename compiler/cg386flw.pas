@@ -45,7 +45,7 @@ implementation
     uses
       cobjects,verbose,globals,systems,
       symtable,aasm,i386,types,
-      cgi386,cgai386,tgeni386,hcodegen;
+      cgi386,cgai386,temp_gen,tgeni386,hcodegen;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -589,7 +589,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.1  1998-06-05 17:44:12  peter
+  Revision 1.2  1998-06-08 13:13:33  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.1  1998/06/05 17:44:12  peter
     * splitted cgi386
 
 }

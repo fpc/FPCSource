@@ -39,7 +39,7 @@ interface
 {***************************************************************************}
 
 uses    objects,verbose,cobjects,systems,globals,tree,
-        symtable,types,strings,pass_1,hcodegen,
+        symtable,types,strings,pass_1,hcodegen,temp_gen,
         aasm,m68k,tgen68k,files,cga68k,cg68k2,link
 {$ifdef GDB}
         ,gdb
@@ -5137,7 +5137,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-06-04 23:51:34  peter
+  Revision 1.6  1998-06-08 13:13:36  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.5  1998/06/04 23:51:34  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

@@ -75,7 +75,7 @@ unit cga68k;
 
     uses
        systems,globals,verbose,files,types,pbase,
-       tgen68k,hcodegen
+       tgen68k,hcodegen,temp_gen
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -1216,7 +1216,13 @@ end;
   end.
 {
   $Log$
-  Revision 1.5  1998-06-04 23:51:36  peter
+  Revision 1.6  1998-06-08 13:13:39  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.5  1998/06/04 23:51:36  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

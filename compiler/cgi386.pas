@@ -59,7 +59,7 @@ implementation
    uses
      verbose,cobjects,systems,globals,files,
      symtable,types,aasm,
-     pass_1,hcodegen
+     pass_1,hcodegen,temp_gen
 {$ifdef GDB}
      ,gdb
 {$endif}
@@ -516,7 +516,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  1998-06-05 17:49:54  peter
+  Revision 1.37  1998-06-08 13:13:41  pierre
+    + temporary variables now in temp_gen.pas unit
+      because it is processor independent
+    * mppc68k.bat modified to undefine i386 and support_mmx
+      (which are defaults for i386)
+
+  Revision 1.36  1998/06/05 17:49:54  peter
     * cleanup of cgai386
 
   Revision 1.35  1998/06/05 16:13:32  pierre
