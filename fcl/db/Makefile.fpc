@@ -1,0 +1,37 @@
+#
+#   Makefile.fpc for shedit
+#
+
+[targets]
+units=db ddg_ds ddg_rec mysqldb
+programs=testds createds mtest
+
+[dirs]
+fpcdir=../..
+unitdir=../$(OS_TARGET)
+targetdir=.
+
+[libs]
+libgcc=1
+
+[defaults]
+defaultunits=1
+defaultcpu=i386
+defaultoptions=-S2
+
+[rules]
+vpath %$(PASEXT) $(INC) $(XML)
+
+INCFILES=
+
+db$(PPUEXT): db.pp fields.inc dataset.inc dbs.inc
+
+ddg_ds$(PPUEXT): db$(PPUEXT) ddg_rec$(PPUEXT) ddg_ds$(PASEXT)
+
+testds$(EXEEXT): ddg_ds$(PPUEXT) testds$(PASEXT)
+
+createds$(EXEEXT): createds$(PASEXT) ddg_rec$(PPUEXT)
+
+mysqldb$(PPUEXT): db$(PPUEXT) mysqldb$(PASEXT)
+
+mtest$(EXEEXT): mysqldb$(PPUEXT) mtest$(PASEXT)
