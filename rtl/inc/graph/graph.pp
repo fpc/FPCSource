@@ -2198,6 +2198,12 @@ end;
    begin
      origlinesettings:=lineinfo;
      origcolor:=CurrentColor;
+     if y1>y2 then
+       begin
+          y:=y1;
+          y1:=y2;
+          y2:=y;
+       end;
 
      { Always copy mode for Bars }
      origwritemode := CurrentWriteMode;
@@ -2674,7 +2680,11 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.17  1999-07-18 15:07:20  jonas
+  Revision 1.18  1999-07-26 09:38:41  florian
+    * bar: y2 can be less y1, fixed
+    * settextstyle: charsize can be 0, must be changed into 1
+
+  Revision 1.17  1999/07/18 15:07:20  jonas
     + xor-, and and- orput support for VESA256 modes
     * compile with -dlogging if you wnt some info to be logged to grlog.txt
 

@@ -607,6 +607,8 @@
          { maximum charsize for bitmapped font is 10            }
          if (CurrentTextInfo.Font = DefaultFont) and (Charsize > 10) then
             Currenttextinfo.charsize:=10
+         else if charsize<1 then
+            Currenttextinfo.charsize:=1
          else
             Currenttextinfo.charsize:=charsize;
 
@@ -687,7 +689,11 @@
 
 {
 $Log$
-Revision 1.4  1999-07-12 13:27:16  jonas
+Revision 1.5  1999-07-26 09:38:43  florian
+  * bar: y2 can be less y1, fixed
+  * settextstyle: charsize can be 0, must be changed into 1
+
+Revision 1.4  1999/07/12 13:27:16  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal
