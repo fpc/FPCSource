@@ -1902,13 +1902,19 @@ unit rgobj;
         result := true;
         oldlive_registers.copyfrom(live_registers);
 
-        { Process all tai_regallocs belonging to this instruction. All
-          released registers are also added to the live_registers because
+        { Process all tai_regallocs belonging to this instruction, ignore explicit
+          inserted regallocs. These can happend for example in i386:
+             mov ref,ireg26
+             <regdealloc ireg26, instr=taicpu of lea>
+             <regalloc edi, insrt=nil>
+             lea [ireg26+ireg17],edi
+          All released registers are also added to the live_registers because
           they can't be used during the spilling }
         loadpos:=tai(instr.previous);
         while assigned(loadpos) and
               (loadpos.typ=ait_regalloc) and
-              (tai_regalloc(loadpos).instr=instr) do
+              ((tai_regalloc(loadpos).instr=nil) or
+               (tai_regalloc(loadpos).instr=instr)) do
           begin
             if tai_regalloc(loadpos).ratype=ra_dealloc then
               live_registers.add(getsupreg(tai_regalloc(loadpos).reg));
@@ -2006,7 +2012,11 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.154  2005-02-18 23:37:51  jonas
+  Revision 1.155  2005-03-20 19:47:46  peter
+    * fix spilling code when explicit cpu registers are used in an
+      instruction
+
+  Revision 1.154  2005/02/18 23:37:51  jonas
     * fixed spilling for several ppc instructions which only read registers
     + added support for registers in references that get changed (load/store
       with update)
