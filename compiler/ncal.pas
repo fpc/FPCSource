@@ -990,7 +990,7 @@ type
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
-               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vartype);
+               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vartype,[]);
                n.varargsparas.add(hpn);
              end;
          end
@@ -1410,7 +1410,7 @@ type
               begin
                 if cpf_varargs_para in pt.callparaflags then
                   begin
-                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resulttype);
+                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resulttype,[]);
                     dec(i);
                     { varargspara is left-right, use insert
                       instead of concat }
@@ -2432,7 +2432,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.268  2004-12-05 12:28:11  peter
+  Revision 1.269  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.268  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

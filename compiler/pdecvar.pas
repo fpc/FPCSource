@@ -278,7 +278,7 @@ implementation
                 sc.reset;
                 repeat
                   inc(paranr);
-                  hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrortype);
+                  hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrortype,[]);
                   readprocdef.parast.insert(hreadparavs);
                   sc.insert(hreadparavs);
                   consume(_ID);
@@ -309,7 +309,7 @@ implementation
                   begin
                     hreadparavs.vartype:=tt;
                     { also update the writeprocdef }
-                    hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,tt);
+                    hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,tt,[]);
                     writeprocdef.parast.insert(hparavs);
                     hreadparavs:=tparavarsym(hreadparavs.listnext);
                   end;
@@ -357,9 +357,9 @@ implementation
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
                    inc(paranr);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype);
+                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype,[]);
                    readprocdef.parast.insert(hparavs);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype);
+                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype,[]);
                    writeprocdef.parast.insert(hparavs);
                    pt.free;
                 end;
@@ -438,7 +438,7 @@ implementation
                        of the of the property }
                      writeprocdef.rettype:=voidtype;
                      inc(paranr);
-                     hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.proptype);
+                     hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.proptype,[]);
                      writeprocdef.parast.insert(hparavs);
                      { Insert hidden parameters }
                      handle_calling_convention(writeprocdef);
@@ -611,7 +611,7 @@ implementation
                 if (symtablestack.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt);
+                     hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt,[]);
                      symtablestack.defowner.owner.insert(hstaticvs);
                      insertbssdata(hstaticvs);
                   end
@@ -725,13 +725,13 @@ implementation
              repeat
                case symtablestack.symtabletype of
                  localsymtable :
-                   vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype);
+                   vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype,[]);
                  staticsymtable,
                  globalsymtable :
-                   vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype);
+                   vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype,[]);
                  recordsymtable,
                  objectsymtable :
-                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype);
+                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
                  else
                    internalerror(200411064);
                end;
@@ -1206,7 +1206,7 @@ implementation
                   symtablestack:=symtablestack.next;
                   read_type(casetype,'',true);
                   symtablestack:=oldsymtablestack;
-                  fieldvs:=tfieldvarsym.create(sorg,vs_value,casetype);
+                  fieldvs:=tfieldvarsym.create(sorg,vs_value,casetype,[]);
                   tabstractrecordsymtable(symtablestack).insertfield(fieldvs,true);
                 end;
               if not(is_ordinal(casetype.def))
@@ -1265,7 +1265,7 @@ implementation
               unionsymtable.fieldalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
-              UnionSym:=tfieldvarsym.create('$case',vs_value,uniontype);
+              UnionSym:=tfieldvarsym.create('$case',vs_value,uniontype,[]);
               symtablestack:=symtablestack.next;
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}
@@ -1306,7 +1306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2004-11-29 18:50:15  peter
+  Revision 1.87  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.86  2004/11/29 18:50:15  peter
     * os2 fixes for import
     * asmsymtype support for intel reader
 

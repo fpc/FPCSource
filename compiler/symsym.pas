@@ -148,7 +148,7 @@ interface
           varregable    : tvarregable;
           varstate      : tvarstate;
           notifications : Tlinkedlist;
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -167,11 +167,9 @@ interface
           property vartype: ttype read _vartype write setvartype;
       end;
 
-      tvarsymclass = class of tabstractvarsym;
-
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : aint;   { offset in record/object }
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
@@ -183,7 +181,7 @@ interface
           defaultconstsym : tsym;
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -191,7 +189,7 @@ interface
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
@@ -205,7 +203,7 @@ interface
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
-          constructor create(const n : string;nr:word;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;nr:word;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -218,7 +216,7 @@ interface
       private
           _mangledname : pstring;
       public
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
           constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1255,13 +1253,13 @@ implementation
                             TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabstractvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tabstractvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
          inherited create(n);
          vartype:=tt;
          varspez:=vsp;
          varstate:=vs_declared;
-         varoptions:=[];
+         varoptions:=vopts;
       end;
 
 
@@ -1416,9 +1414,9 @@ implementation
                                TFIELDVARSYM
 ****************************************************************************}
 
-    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt);
+         inherited create(n,vsp,tt,vopts);
          typ:=fieldvarsym;
          fieldoffset:=0;
       end;
@@ -1467,9 +1465,9 @@ implementation
                         TABSTRACTNORMALVARSYM
 ****************************************************************************}
 
-    constructor tabstractnormalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tabstractnormalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt);
+         inherited create(n,vsp,tt,vopts);
          fillchar(localloc,sizeof(localloc),0);
          defaultconstsym:=nil;
       end;
@@ -1508,9 +1506,9 @@ implementation
                              TGLOBALVARSYM
 ****************************************************************************}
 
-    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt);
+         inherited create(n,vsp,tt,vopts);
          typ:=globalvarsym;
          _mangledname:=nil;
       end;
@@ -1518,14 +1516,13 @@ implementation
 
     constructor tglobalvarsym.create_dll(const n : string;vsp:tvarspez;const tt : ttype);
       begin
-         tglobalvarsym(self).create(n,vsp,tt);
-         include(varoptions,vo_is_dll_var);
+         tglobalvarsym(self).create(n,vsp,tt,[vo_is_dll_var]);
       end;
 
 
     constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
       begin
-         tglobalvarsym(self).create(n,vsp,tt);
+         tglobalvarsym(self).create(n,vsp,tt,[]);
          set_mangledname(mangled);
       end;
 
@@ -1640,9 +1637,9 @@ implementation
                                TLOCALVARSYM
 ****************************************************************************}
 
-    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt);
+         inherited create(n,vsp,tt,vopts);
          typ:=localvarsym;
       end;
 
@@ -1701,9 +1698,9 @@ implementation
                               TPARAVARSYM
 ****************************************************************************}
 
-    constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;const tt : ttype);
+    constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt);
+         inherited create(n,vsp,tt,vopts);
          typ:=paravarsym;
          paranr:=nr;
          paraloc[calleeside].init;
@@ -1838,7 +1835,7 @@ implementation
 
     constructor tabsolutevarsym.create(const n : string;const tt : ttype);
       begin
-        inherited create(n,vs_value,tt);
+        inherited create(n,vs_value,tt,[]);
         typ:=absolutevarsym;
         ref:=nil;
       end;
@@ -1846,7 +1843,7 @@ implementation
 
     constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
       begin
-        inherited create(n,vs_value,tt);
+        inherited create(n,vs_value,tt,[]);
         typ:=absolutevarsym;
         ref:=_ref;
       end;
@@ -2557,7 +2554,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.195  2004-11-29 20:50:37  peter
+  Revision 1.196  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.195  2004/11/29 20:50:37  peter
     * uninited results
 
   Revision 1.194  2004/11/17 22:21:35  peter

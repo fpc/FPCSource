@@ -1090,8 +1090,7 @@ implementation
           exit;
         with tparavarsym(p) do
           begin
-            vs:=tparavarsym.create(realname,paranr,varspez,vartype);
-            vs.varoptions:=varoptions;
+            vs:=tparavarsym.create(realname,paranr,varspez,vartype,varoptions);
             vs.defaultconstsym:=defaultconstsym;
             newparast.insert(vs);
           end;
@@ -2498,7 +2497,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.166  2004-12-05 12:28:11  peter
+  Revision 1.167  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.166  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

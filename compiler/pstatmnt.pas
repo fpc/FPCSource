@@ -696,11 +696,11 @@ implementation
                                   is_class(ttypesym(srsym).restype.def) then
                                  begin
                                     ot:=ttypesym(srsym).restype;
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot);
+                                    sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
                                  end
                                else
                                  begin
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrortype);
+                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrortype,[]);
                                     if (srsym.typ=typesym) then
                                       Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename)
                                     else
@@ -1147,7 +1147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.147  2004-12-05 12:28:11  peter
+  Revision 1.148  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.147  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

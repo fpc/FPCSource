@@ -105,9 +105,7 @@ implementation
            else
              paranr:=paranr_result;
            { Generate result variable accessing function result }
-           vs:=tparavarsym.create('$result',paranr,vs_var,pd.rettype);
-           include(vs.varoptions,vo_is_funcret);
-           include(vs.varoptions,vo_is_hidden_para);
+           vs:=tparavarsym.create('$result',paranr,vs_var,pd.rettype,[vo_is_funcret,vo_is_hidden_para]);
            pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
@@ -132,9 +130,7 @@ implementation
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_var,voidpointertype);
-            include(vs.varoptions,vo_is_parentfp);
-            include(vs.varoptions,vo_is_hidden_para);
+            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_var,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
 
@@ -155,9 +151,7 @@ implementation
           begin
             { Generate self variable }
             tt:=voidpointertype;
-            vs:=tparavarsym.create('$self',paranr_self,vs_value,tt);
-            include(vs.varoptions,vo_is_self);
-            include(vs.varoptions,vo_is_hidden_para);
+            vs:=tparavarsym.create('$self',paranr_self,vs_value,tt,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
         else
@@ -175,9 +169,7 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    tt:=voidpointertype;
-                   vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,tt);
-                   include(vs.varoptions,vo_is_vmt);
-                   include(vs.varoptions,vo_is_hidden_para);
+                   vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,tt,[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insert(vs);
                  end;
 
@@ -197,9 +189,7 @@ implementation
                       vsp:=vs_var;
                     tt.setdef(tprocdef(pd)._class);
                   end;
-                vs:=tparavarsym.create('$self',paranr_self,vsp,tt);
-                include(vs.varoptions,vo_is_self);
-                include(vs.varoptions,vo_is_hidden_para);
+                vs:=tparavarsym.create('$self',paranr_self,vsp,tt,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
 
                 akttokenpos:=storepos;
@@ -230,8 +220,7 @@ implementation
              when it is returning in a register }
            if not paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
             begin
-              vs:=tlocalvarsym.create('$result',vs_value,pd.rettype);
-              include(vs.varoptions,vo_is_funcret);
+              vs:=tlocalvarsym.create('$result',vs_value,pd.rettype,[vo_is_funcret]);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -285,9 +274,7 @@ implementation
            { needs high parameter ? }
            if paramanager.push_high_param(varspez,vartype.def,pd.proccalloption) then
              begin
-               hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype);
-               include(hvs.varoptions,vo_is_high_para);
-               include(hvs.varoptions,vo_is_hidden_para);
+               hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
                owner.insert(hvs);
              end
            else
@@ -451,7 +438,7 @@ implementation
           sc.reset;
           repeat
             inc(paranr);
-            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrortype);
+            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrortype,[]);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.insert(vs)
@@ -586,6 +573,7 @@ implementation
                      if (paranr>1) and not(explicit_paraloc) then
                        Message(parser_e_paraloc_all_paras);
                      explicit_paraloc:=true;
+                     include(vs.varoptions,vo_has_explicit_paraloc);
                      if not(paramanager.parseparaloc(vs,upper(locationstr))) then
                        message(parser_e_illegal_explicit_paraloc);
                    end
@@ -1228,9 +1216,7 @@ begin
              ) then
             begin
               tprocdef(pd).libsym:=sym;
-              vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype);
-              include(vs.varoptions,vo_is_syscall_lib);
-              include(vs.varoptions,vo_is_hidden_para);
+              vs:=tparavarsym.create('$syscalllib',paranr_syscall,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
               paramanager.parseparaloc(vs,'A6');
               pd.parast.insert(vs);
             end
@@ -2358,7 +2344,10 @@ const
 end.
 {
   $Log$
-  Revision 1.217  2004-12-05 12:28:11  peter
+  Revision 1.218  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.217  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

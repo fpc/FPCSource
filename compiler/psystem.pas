@@ -216,12 +216,12 @@ implementation
         hrecst:=trecordsymtable.create(aktpackrecords);
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype),true);
-        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype),true);
-        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype),true);
+        hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype,[]),true);
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype),true);
+        hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]),true);
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
@@ -229,8 +229,8 @@ implementation
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create(1);
-        hrecst.insertfield(tfieldvarsym.create('$proc',vs_value,voidpointertype),true);
-        hrecst.insertfield(tfieldvarsym.create('$self',vs_value,voidpointertype),true);
+        hrecst.insertfield(tfieldvarsym.create('$proc',vs_value,voidpointertype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$self',vs_value,voidpointertype,[]),true);
         methodpointertype.setdef(trecorddef.create(hrecst));
         addtype('$methodpointer',methodpointertype);
       { Add functions that require compiler magic }
@@ -537,7 +537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2004-12-07 13:52:54  michael
+  Revision 1.75  2004-12-07 16:11:52  peter
+    * set vo_explicit_paraloc flag
+
+  Revision 1.74  2004/12/07 13:52:54  michael
     * Convert array of widechar to pwidechar instead of pchar
 
   Revision 1.73  2004/11/08 22:09:59  peter
