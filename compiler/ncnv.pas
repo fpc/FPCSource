@@ -1181,12 +1181,6 @@ implementation
                            ) or
                         (left.resulttype.def.deftype=classrefdef) then
                        CGMessage(cg_e_illegal_type_conversion);
-
-                     if ((left.resulttype.def.deftype=orddef) and
-                         (resulttype.def.deftype=pointerdef)) or
-                         ((resulttype.def.deftype=orddef) and
-                          (left.resulttype.def.deftype=pointerdef)) then
-                       CGMessage(cg_h_pointer_to_longint_conv_not_portable);
                    end;
                end
               else
@@ -1196,6 +1190,13 @@ implementation
           else
             internalerror(200211231);
         end;
+
+        { Give hint for unportable code }
+        if ((left.resulttype.def.deftype=orddef) and
+            (resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) or
+           ((resulttype.def.deftype=orddef) and
+            (left.resulttype.def.deftype in [pointerdef,procvardef,classrefdef])) then
+          CGMessage(cg_h_pointer_to_longint_conv_not_portable);
 
         { Constant folding and other node transitions to
           remove the typeconv node }
@@ -2017,7 +2018,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-01-03 12:15:56  daniel
+  Revision 1.98  2003-01-05 22:41:40  peter
+    * move code that checks for longint-pointer conversion hint
+
+  Revision 1.97  2003/01/03 12:15:56  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
