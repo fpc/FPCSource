@@ -111,18 +111,26 @@ begin
   StringCount := header.nstrings;
 
   // Read strings
-  for i := 0 to StringCount - 1 do begin
+  for i := 0 to StringCount - 1 do
+  begin
     AStream.Position := OrigTable^[i].offset;
-    SetLength(s, OrigTable^[i].length);
+{    SetLength(s, OrigTable^[i].length);
     AStream.Read(s[1], OrigTable^[i].length);
-    OrigStrings^[i] := StrNew(PChar(s));
+    OrigStrings^[i] := StrNew(PChar(s));}
+    GetMem(OrigStrings^[i], OrigTable^[i].length + 1);
+    AStream.Read(OrigStrings^[i]^, OrigTable^[i].length);
+    OrigStrings^[i][OrigTable^[i].length] := #0;
   end;
 
-  for i := 0 to StringCount - 1 do begin
+  for i := 0 to StringCount - 1 do
+  begin
     AStream.Position := TranslTable^[i].offset;
-    SetLength(s, TranslTable^[i].length);
+{    SetLength(s, TranslTable^[i].length);
     AStream.Read(s[1], TranslTable^[i].length);
-    TranslStrings^[i] := StrNew(PChar(s));
+    TranslStrings^[i] := StrNew(PChar(s));}
+    GetMem(TranslStrings^[i], TranslTable^[i].length);
+    AStream.Read(TranslStrings^[i]^, TranslTable^[i].length);
+    TranslStrings^[i][TranslTable^[i].length] := #0;
   end;
 
   // Read hashing table
@@ -148,9 +156,10 @@ destructor TMOFile.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to StringCount - 1 do begin
-    StrDispose(OrigStrings^[i]);
-    StrDispose(TranslStrings^[i]);
+  for i := 0 to StringCount - 1 do
+  begin
+    FreeMem(OrigStrings^[i]);
+    FreeMem(TranslStrings^[i]);
   end;
   FreeMem(OrigTable);
   FreeMem(TranslTable);
@@ -166,14 +175,17 @@ var
 begin
   idx := AHash mod HashTableSize;
   incr := 1 + (AHash mod (HashTableSize - 2));
-  while True do begin
+  while True do
+  begin
     nstr := HashTable^[idx];
-    if nstr = 0 then begin
+    if nstr = 0 then
+    begin
       Result := '';
       exit;
     end;
     if (OrigTable^[nstr - 1].length = ALen) and
-       (StrComp(OrigStrings^[nstr - 1], AOrig) = 0) then begin
+       (StrComp(OrigStrings^[nstr - 1], AOrig) = 0) then
+    begin
       Result := TranslStrings^[nstr - 1];
       exit;
     end;
@@ -231,12 +243,15 @@ var
   i, j, count: Integer;
   s: String;
 begin
-  for i:=0 to ResourceStringTableCount - 1 do begin
+  for i:=0 to ResourceStringTableCount - 1 do
+  begin
     count := ResourceStringCount(I);
-    for j := 0 to count - 1 do begin
+    for j := 0 to count - 1 do
+    begin
       s := AFile.Translate(GetResourceStringDefaultValue(i, j),
         GetResourceStringHash(i, j));
-      if Length(s) > 0 then begin
+      if Length(s) > 0 then
+      begin
         SetResourceStringValue(i, j, s);
 	GettextUsed := True;
       end;
@@ -271,7 +286,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
+  Revision 1.3  2000-11-23 10:19:31  sg
+  * optimized the string translation process a little bit
+
+  Revision 1.2  2000/07/13 11:32:59  michael
   + removed logs
  
 }
