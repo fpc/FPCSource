@@ -259,14 +259,14 @@ begin
   int64res := 24;
   int64res := int64res div 4;
   Write('Value should be 6...');
-  test(int64res and $FFFFFFFF, 6);
+  test(longint(int64res), 6);
 
   { RIGHT : power of 2 ordconstn   }
   { LEFT : LOC_REFERENCE           }
   int64res := 24;
   int64res := int64res mod 4;
   Write('Value should be 0...');
-  test(int64res and $FFFFFFFF, 0);
+  test(longint(int64res), 0);
 
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
@@ -276,7 +276,7 @@ begin
   int64cnt := -13;
   int64res := int64res div int64cnt;
   Write('Value should be -10...');
-  test(int64res and $FFFFFFFF, -10);
+  test(longint(int64res), -10);
 
   
   { RIGHT : LOC_REFERENCE      }
@@ -286,7 +286,7 @@ begin
   int64cnt := 100;
   int64res := int64res div int64cnt;
   Write('Value should be 85899345...');
-  test(int64res and $FFFFFFFF, 85899345);
+  test(longint(int64res), 85899345);
   
 
   { RIGHT : LOC_REFERENCE      }
@@ -295,7 +295,7 @@ begin
   int64cnt := -13;
   int64res := int64res mod int64cnt;
   Write('Value should be -10...');
-  test(int64res and $FFFFFFFF, -10);
+  test(longint(int64res), -10);
 
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
   { RIGHT : LOC_REGISTER       }
@@ -303,35 +303,35 @@ begin
   int64res := -11111111;
   int64res := int64res div getint64cnt;
   Write('Value should be 1111111...');
-  test(int64res and $FFFFFFFF, 1111111);
+  test(longint(int64res), 1111111);
 
   { RIGHT : LOC_REGISTER       }
   { LEFT : LOC_REFERENCE       }
   int64res := -1111111;
   int64res := int64res mod getint64cnt;
   Write('Value should be 1...');
-  test(int64res and $FFFFFFFF, 1);
+  test(longint(int64res), 1);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64cnt := 2;
   int64res := getint64cnt div int64cnt;
   Write('Value should be -5...');
-  test(int64res and $FFFFFFFF, -5);
+  test(longint(int64res), -5);
 
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64cnt := 3;
   int64res := getint64cnt mod int64cnt;
   Write('Value should be -1...');
-  test(int64res and $FFFFFFFF, -1);
+  test(longint(int64res), -1);
   
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REGISTER        }
   int64cnt := 100;
   int64res := getint64cnt_2 div int64cnt;
   Write('Value should be 85899345...');
-  test(int64res and $FFFFFFFF, 85899345);
+  test(longint(int64res), 85899345);
   
   { SPECIAL-------------------------------------------------}
   { special tests for results }
@@ -340,27 +340,27 @@ begin
   int64cnt := $80000000 shl 32;
   int64res := int64res div int64cnt;
   Write('Value should be 0...');
-  test(int64res and $FFFFFFFF, 0);
+  test(longint(int64res), 0);
 
   Writeln('special numeric values tests...');
   int64res := int64($7FFFFFFF) shl 32;
   int64cnt := int64($80000000) shl 32;
   int64res := int64cnt div int64res;
   Write('Value should be -1...');
-  test(int64res and $FFFFFFFF, -1);
+  test(longint(int64res), -1);
 
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
   int64res := int64res div int64cnt;
   Write('Value should be 0...');
-  test(int64res and $FFFFFFFF, 0);
+  test(longint(int64res), 0);
 
   Writeln('special numeric values tests...');
   int64res := $7FFFFFFF;
   int64cnt := $80000000;
   int64res := int64cnt div int64res;
   Write('Value should be 1...');
-  test(int64res and $FFFFFFFF, 1);
+  test(longint(int64res), 1);
 
 {$ENDIF}
 end.
