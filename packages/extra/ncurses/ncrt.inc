@@ -228,7 +228,7 @@ type
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
     Handle    : THandle;
-    Mode,
+    Mode      : longint;
     bufsize,
     _private,
     bufpos,
@@ -964,7 +964,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.4  2004-05-03 20:52:48  peter
+  Revision 1.5  2004-05-25 15:52:15  peter
+    * adapt for 64bit textrec
+
+  Revision 1.4  2004/05/03 20:52:48  peter
     * 64 bit fixes
 
   Revision 1.3  2003/09/27 12:19:20  peter
