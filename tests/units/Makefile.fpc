@@ -21,11 +21,11 @@ INSTALLOPT=INSTALL_UNITDIR=$(BASEDIR)
 ifndef USEUNITDIR
 
 rtl:
-        $(MAKE) -C ../../rtl all
+        $(MAKE) -C ../../rtl all "OPT=$(OPT) -n"
         $(MAKE) -C ../../rtl install $(INSTALLOPT)
 
 fcl:
-        $(MAKE) -C ../../fcl all
+        $(MAKE) -C ../../fcl all "OPT=$(OPT) -n"
         $(MAKE) -C ../../fcl install $(INSTALLOPT)
 
 clean : cleanall

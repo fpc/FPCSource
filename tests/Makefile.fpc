@@ -53,11 +53,11 @@ units/$(FPCMADE):
 
 DOTEST=./dotest$(EXEEXT)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
-        $(FPC) -Fuunits -FE. utils/dotest.pp
+        $(FPC) -n -Fuunits -FE. utils/dotest.pp
 
 DIGEST=./digest$(EXEEXT)
 $(DIGEST) : units utils/digest.pp utils/teststr.pp
-	$(FPC) -Fuunits -FE. utils/digest.pp
+	$(FPC) -n -Fuunits -FE. utils/digest.pp
 	
 testcheck: units allpreps $(DOTEST)
 
@@ -170,7 +170,7 @@ distclean: clean
 
 .PHONY: all full rundigest dailytest
 
-rundigest :
+rundigest : $(DIGEST)
 	-$(DIGEST)
 
 all : allexectests
@@ -187,14 +187,14 @@ info :
 	@echo               in files having the date as extension
         @echo
 
-override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d) 
+override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
 ifneq ($(wildcard log.$(DATESUFFIX)),)
-override DATESUFFIX=$(shell $(DATE) +%Y.%m.%d.%H.%M) 
+override DATESUFFIX=$(shell $(DATE) +%Y.%m.%d.%H.%M)
 endif
 
 ifneq ($(wildcard lastdate.txt),)
-LASTDATESUFFIX:=$(shell cat lastdate.txt) 
+LASTDATESUFFIX:=$(shell cat lastdate.txt)
 endif
 
 dailytest : full
