@@ -225,9 +225,13 @@ implementation
          if ((lt=ordconstn) and (rt=ordconstn)) and
             ((is_constintnode(p^.left) and is_constintnode(p^.right)) or
              (is_constboolnode(p^.left) and is_constboolnode(p^.right) and
-              (p^.treetype in [ltn,lten,gtn,gten,equaln,unequaln]))) then
+              (p^.treetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
            begin
-              resdef:=s32bitdef;
+              { return a boolean for boolean operations (and,xor,or) }
+              if is_constboolnode(p^.left) then
+               resdef:=booldef
+              else
+               resdef:=s32bitdef;
               lv:=p^.left^.value;
               rv:=p^.right^.value;
               case p^.treetype of
@@ -1154,7 +1158,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-11-15 17:53:00  pierre
+  Revision 1.53  1999-11-15 21:53:42  peter
+    * fixed constant eval for bool xor/or/and bool
+
+  Revision 1.52  1999/11/15 17:53:00  pierre
     + one field added for ttoken record for operator
       linking the id to the corresponding operator token that
       can now now all be overloaded
