@@ -1500,7 +1500,9 @@ implementation
 
     function tsymtable.search(const s : stringid) : psym;
       begin
-        search:=psym(symsearch^.search(s));
+        {search:=psym(symsearch^.search(s));
+         this bypasses the ref generation (PM) }
+        search:=speedsearch(s,getspeedvalue(s));
       end;
 
 
@@ -2306,7 +2308,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-06-22 16:24:49  pierre
+  Revision 1.23  1999-06-28 17:02:44  pierre
+   merged from v0-99-12 branch
+
+  Revision 1.21.2.2  1999/06/28 16:59:55  pierre
+   * fix to get method reference info
+
+  Revision 1.21.2.1  1999/06/22 16:26:46  pierre
    * local browser stuff corrected
 
   Revision 1.21  1999/06/08 22:23:50  pierre
