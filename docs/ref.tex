@@ -374,6 +374,16 @@ specified in binary notation as \var{\%11111111}.
 The following diagrams show the syntax for numbers.
 \input{syntax/numbers.syn}
 
+%%%  !!!!!!!!!!!!
+%%%  For 2.0, the range has changed, and constants within
+%%%  a 64bit range are parsed as int64. and no longer
+%%%  as reals (except if they don't fit in int64!) !!!! - carl
+\begin{remark}
+It is to note that all decimal constants which do no fit within
+the -2147483648..2147483647 range, are silently and automatically
+parsed as real-type constants.
+\end{remark}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Labels
 \section{Labels}
@@ -4965,6 +4975,7 @@ All things connected to string handling.
 \funcref{OctStr}{Construct octal representation of integer}
 \funcref{Pos}{Calculate position of one string in another}
 \procref{SetLength}{Set length of a string}
+\procref{SetString}{Set contents and length of a string}
 \procref{Str}{Convert number to string representation}
 \funcref{StringOfChar}{Create string consisting of a number of characters}
 \funcref{Upcase}{Convert string to all-uppercase}
@@ -5173,8 +5184,9 @@ read. If \var{Result} isn't specified, and less than \var{Count} records were
 read, a run-time error is generated. This behavior can be controlled by the
 \var{\{\$i\}} switch.
 \Errors
-If \var{Result} isn't specified, then a run-time error is generated if less
-than \var{count} records were read.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Blockwrite}, \seep{Close}, \seep{Reset}, \seep{Assign}
 \end{procedure}
@@ -5194,8 +5206,9 @@ If the records couldn't be written to disk, a run-time error is generated.
 This behavior can be controlled by the \var{\{\$i\}} switch.
 
 \Errors
-A run-time error is generated if, for some reason, the records couldn't be
-written to disk.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Blockread},\seep{Close}, \seep{Rewrite}, \seep{Assign}
 \end{procedure}
@@ -5229,7 +5242,10 @@ Procedure Chdir (const S : string);
 \Description
 \var{Chdir} changes the working directory of the process to \var{S}.
 \Errors
-If the directory \var{S} doesn't exist, a run-time error is generated.
+\Errors
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Mkdir}, \seep{Rmdir}
 \end{procedure}
@@ -5260,7 +5276,9 @@ After a call to \var{Close}, data can no longer be read from or written to
 To reopen a file closed with \var{Close}, it isn't necessary to assign the
 file again. A call to \seep{Reset} or \seep{Rewrite} is sufficient.
 \Errors
-None.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Flush}
 \end{procedure}
@@ -5544,7 +5562,9 @@ file, or if the file is empty. In all other cases \var{Eof} returns
 \var{False}.
 If no file \var{F} is specified, standard input is assumed.
 \Errors
-None.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seef{Eoln}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}
 \end{function}
@@ -5578,8 +5598,9 @@ Procedure Erase (Var F : Any file type);
 \var{Erase} removes an unopened file from disk. The file should be
 assigned with \var{Assign}, but not opened with \var{Reset} or \var{Rewrite}
 \Errors
-A run-time error will be generated if the specified file doesn't exist, or
-is opened by the program.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Assign}
 \end{procedure}
@@ -5650,7 +5671,9 @@ Function Filepos (Var F : Any file type) : Longint;
 \var{F}. It cannot be invoked with a file of type \var{Text}. A compiler error
 will be generated if this is attempted.
 \Errors
-None.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seef{Filesize}
 \end{function}
@@ -5666,7 +5689,9 @@ It cannot be invoked with a file of type \var{Text}. (under \linux and \unix, th
 also means that it cannot be invoked on pipes).
 If \var{F} is empty, 0 is returned.
 \Errors
-None.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seef{Filepos}
 \end{function}
@@ -5746,7 +5771,9 @@ Procedure Flush (Var F : Text);
 \var{Flush} empties the internal buffer of an opened file \var{F} and writes the
 contents to disk. The file is \textit{not} closed as a result of this call.
 \Errors
-If the disk is full, a run-time error will be generated.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Close}
 \end{procedure}
@@ -6284,7 +6311,9 @@ Procedure Mkdir (const S : string);
 \Description
 \var{Mkdir} creates a new  directory \var{S}.
 \Errors
-If a parent-directory of directory \var{S} doesn't exist, a run-time error is generated.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Chdir}, \seep{Rmdir}
 \end{procedure}
@@ -6633,8 +6662,9 @@ Procedure Rename (Var F : Any Filetype; Const S : String);
 \var{F}
 must be assigned, but not opened.
 \Errors
-A run-time error will be generated if \var{F} isn't assigned,
-or doesn't exist.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Erase}
 \end{procedure}
@@ -6655,8 +6685,9 @@ the optional parameter \var{L}. A default value of 128 is used.
 
 File sharing is not taken into account when calling \var{Reset}.
 \Errors
-If the file cannot be opened for reading, then a run-time error is
-generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Rewrite}, \seep{Assign}, \seep{Close}, \seep{Append}
 \end{procedure}
@@ -6681,8 +6712,9 @@ be opened in \var{fminout} mode, an extra call to \seep{Reset} is needed.
 File sharing is not taken into account when calling \var{Rewrite}.
 
 \Errors
-If the file cannot be opened for writing, then a run-time error is
-generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Reset}, \seep{Assign}, \seep{Close}, \seep{Flush}, \seep{Append}
 \end{procedure}
@@ -6696,8 +6728,10 @@ Procedure Rmdir (const S : string);
 \Description
 \var{Rmdir} removes the directory \var{S}.
 \Errors
-If \var{S} doesn't exist, or isn't empty, a run-time error is generated.
-
+\Errors
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Chdir}, \seep{Mkdir}
 \end{procedure}
@@ -6744,8 +6778,9 @@ The first record in a file has \var{Count=0}. F can be any file type, except
 \var{Text}. If \var{F} is an untyped file, with no record size specified in
 \seep{Reset} or \seep{Rewrite}, 128 is assumed.
 \Errors
-A run-time error is generated if \var{Count} points to a position outside
-the file, or the file isn't opened.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seef{Eof}, \seef{SeekEof}, \seef{SeekEoln}
 \end{procedure}
@@ -6852,7 +6887,7 @@ None.
 Procedure SetLength(var S : String; Len : Longint);
 \Description
 \var{SetLength} sets the length of the string \var{S} to \var{Len}. \var{S}
-can be an ansistring or a short string.
+can be an ansistring, a short string or a widestring.
 For \var{ShortStrings}, \var{Len} can maximally be 255. For \var{AnsiStrings}
 it can have any value. For \var{AnsiString} strings, \var{SetLength} {\em
 must} be used to set the length of the string.
@@ -6864,6 +6899,21 @@ None.
 
 
 \FPCexample{ex85}
+
+\begin{procedure}{SetString}
+\Declaration
+Procedure SetString(var S : String; Buf : PChar; Len : Longint);
+\Description
+\var{SetString} sets the length of the string \var{S} to \var{Len} and
+if \var{Buf} is non-nil, copies \var{Len} characters from \var{Buf} 
+into \var{S}.  \var{S} can be an ansistring, a short string or a widestring.
+For \var{ShortStrings}, \var{Len} can maximally be 255. 
+\Errors
+None.
+\SeeAlso
+\seep{SetLength}
+\end{procedure}
+
 
 
 \begin{procedure}{SetTextBuf}
@@ -7091,7 +7141,9 @@ Procedure Truncate (Var F : file);
 position.
 
 \Errors
-Errors are reported by IOresult.
+Depending on the state of the \var{\{\$I\}} switch, a runtime error can be 
+generated if there is an error. In the \var{\{\$I-\}} state, use \var{IOResult}
+to check for errors.
 \SeeAlso
 \seep{Append}, \seef{Filepos},
 \seep{Seek}
