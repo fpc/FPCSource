@@ -1343,6 +1343,7 @@ Begin
          begin
            instr.operands[operandnum].operandtype:=OPR_REGISTER;
            instr.operands[operandnum].reg:=actasmregister;
+           instr.operands[operandnum].size:=reg_2_opsize[actasmregister];
            Consume(AS_REGISTER);
          end
         else
@@ -1351,6 +1352,14 @@ Begin
            if not MaybeBuildReference then
             Message(assem_e_syn_opcode_operand);
          end;
+        { this is only allowed for call's and jmp's }
+        case instr.opcode of
+          A_CALL,
+          A_JMP,
+          A_Jcc : ;
+        else
+          Message(assem_e_syn_opcode_operand);
+        end;
       end;
 
     AS_ID: { A constant expression, or a Variable ref.  }
@@ -1513,7 +1522,7 @@ Begin
              Message(assem_e_invalid_operand_type);
            instr.operands[operandnum].operandtype:=OPR_REGISTER;
            instr.operands[operandnum].reg:=tempreg;
-           instr.operands[operandnum].size:=reg_2_opsize[instr.operands[operandnum].reg];
+           instr.operands[operandnum].size:=reg_2_opsize[tempreg];
          end
         else
          Message1(assem_e_syn_register,att_reg2str[tempreg]);
@@ -2047,7 +2056,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  1999-05-01 13:48:39  peter
+  Revision 1.42  1999-05-02 14:25:07  peter
+    * only allow *<reg/ref> when call/jmp is used
+
+  Revision 1.41  1999/05/01 13:48:39  peter
     * merged nasm compiler
 
   Revision 1.7  1999/04/29 09:37:47  peter
