@@ -623,8 +623,39 @@ begin
 end;
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
-begin
-end;
+var
+  s: AnsiString;
+  wdpath: AnsiString;
+  laststatuscode : longint;
+Begin
+  {Make ToolServers working directory in sync with our working directory}
+  PathArgToFullPath(':', wdpath);
+  wdpath:= 'Directory ' + wdpath;
+  Result := ExecuteToolserverScript(PChar(wdpath), laststatuscode);
+    {TODO Only change path when actually needed. But this requires some
+     change counter to be incremented each time wd is changed. }
+
+  s:= path + ' ' + comline;
+
+  Result := ExecuteToolserverScript(PChar(s), laststatuscode);
+  if Result = afpItemNotFound then
+    Result := 900
+  else
+    Result := MacOSErr2RTEerr(Result);
+  if Result <> 0
+  then
+    raise EOSErr;
+  //TODO Better dos error codes
+  if laststatuscode <> 0 then
+    begin
+      {MPW status might be 24 bits}
+      Result := laststatuscode and $ffff;
+      if Result = 0 then
+        Result := 1;
+    end
+  else
+    Result := 0;
+End;
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString):integer;
 begin
@@ -654,8 +685,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-09-30 10:42:05  mazen
-  * implement Find{First,Next,Close} according to Dos unit code
+  Revision 1.3  2004-10-14 16:27:11  mazen
+  * First implementation of ExecuteProcess
+
+  Revision 1.2  2004/09/30 10:42:05  mazen
+  * implement Find[First,Next,Close] according to Dos unit code
 
   Revision 1.1  2004/09/28 15:39:29  olle
     + added skeleton version
