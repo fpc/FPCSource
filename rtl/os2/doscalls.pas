@@ -190,6 +190,9 @@ function DosExitCritSec:longint; cdecl;
 
 const   deThread=0;         {Terminate thread only.}
         deProcess=1;        {Terminate the whole process.}
+(* The following for compatibility only *)
+        Exit_Thread = deThread;
+        Exit_Process = deProcess;
 
 {Terminate the thread or the program. Never returns, so it's defined as
  procedure.}
@@ -1401,6 +1404,13 @@ const   smShared        = $0001;    {Semaphore is shared.}
                                      is cleared.}
         smMWWaitAll     = $0004;    {MuxWait only: Wait until all semaphores
                                      are cleared.}
+        Sem_Indefinite_Wait = -1;   {DosRequestMutExSem blocks the calling
+                                     thread indefinitely.}
+        Sem_Immediate_Return = 0;   {DosRequestMutExSem returns immediately
+                                     without blocking the calling thread.}
+(* The following just for compatibility. *)
+        dcMW_Wait_Any = smMWWaitAny;
+        dcMW_Wait_All = smMWWaitAll;
 
 type   PSemRecord=^TSemRecord;
        TSemRecord=record
@@ -1413,12 +1423,16 @@ type   PSemRecord=^TSemRecord;
 
 {Create an event semaphore.
  Name       = Optional: Name of semaphore to create. Must start with '\SEM32\.
-              Use nil for PChar or '' for string variant for noname. A
+              Use nil for PChar or '' for string variant for noname. An
               unnamed semaphore is not shared unless the sm_Shared flag is
               set.
  Handle     = Receives handle of semaphore.
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: 0 = Reset (false), 1 = Posted (true).}
+function DosCreateEventSem(Name:PChar;var Handle:longint;
+                           Attr:longint;State:boolean):longint; cdecl;
+function DosCreateEventSem(const Name:string;var Handle:longint;
+                           Attr:longint;State:boolean):longint;
 function DosCreateEventSem(Name:PChar;var Handle:longint;
                            Attr,State:longint):longint; cdecl;
 function DosCreateEventSem(const Name:string;var Handle:longint;
@@ -1468,7 +1482,11 @@ function DosQueryEventSem(Handle:longint;var Posted:longint):longint; cdecl;
               If a name if used the semaphore is shared.
  Handle     = Receives handle of semaphore.
  Attr       = One or more of the smXXXX constants.
- State      = Initial state: (0=Unowned, 1=Owned.)}
+ State      = Initial state: (0/false=Not owned, 1/true=Owned.)}
+function DosCreateMutExSem(Name:PChar;var Handle:longint;
+                           Attr:longint;State:boolean):longint; cdecl;
+function DosCreateMutExSem(const Name:string;var Handle:longint;
+                           Attr:longint;State:boolean):longint;
 function DosCreateMutExSem(Name:PChar;var Handle:longint;
                            Attr,State:longint):longint; cdecl;
 function DosCreateMutExSem(const Name:string;var Handle:longint;
@@ -1488,7 +1506,8 @@ function DosCloseMutExSem(Handle:longint):longint; cdecl;
  process is halted until the semaphore is released.
  Handle     = Handle of semaphore.
  Timeout    = Return with errorcode if the semaphore is still owned after
-              timeout milliseconds.}
+              timeout milliseconds; special values are Sem_Indefinite_Wait
+              and Sem_Immediate_Return.}
 function DosRequestMutExSem(Handle,Timeout:longint):longint; cdecl;
 
 {Release the ownership of a mutex semaphore.
@@ -3181,8 +3200,13 @@ function DosCreateEventSem(Name:PChar;var Handle:longint;
 
 external 'DOSCALLS' index 324;
 
+function DosCreateEventSem(Name:PChar;var Handle:longint;
+                           Attr:longint;State:boolean):longint; cdecl;
+
+external 'DOSCALLS' index 324;
+
 function DosCreateEventSem(const Name:string;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr:longint;State:boolean):longint;
 
 var T:array[0..255] of char;
 
@@ -3194,6 +3218,13 @@ begin
         end
     else
         DosCreateEventSem:=DosCreateEventSem(nil,Handle,Attr,State);
+end;
+
+function DosCreateEventSem(const Name:string;var Handle:longint;
+                           Attr,State:longint):longint;
+
+begin
+    DosCreateEventSem:=DosCreateEventSem(Name,Handle,Attr,boolean(State));
 end;
 
 function DosOpenEventSem(Name:PChar;var Handle:longint):longint; cdecl;
@@ -3230,12 +3261,17 @@ function DosQueryEventSem(Handle:longint;var Posted:longint):longint; cdecl;
 external 'DOSCALLS' index 330;
 
 function DosCreateMutExSem(Name:PChar;var Handle:longint;
+                           Attr:longint;State:boolean):longint; cdecl;
+
+external 'DOSCALLS' index 331;
+
+function DosCreateMutExSem(Name:PChar;var Handle:longint;
                            Attr,State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 331;
 
 function DosCreateMutExSem(const Name:string;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr:longint;State:boolean):longint;
 
 var T:array[0..255] of char;
 
@@ -3247,6 +3283,13 @@ begin
         end
     else
         DosCreateMutExSem:=DosCreateMutExSem(nil,Handle,Attr,State);
+end;
+
+function DosCreateMutExSem(const Name:string;var Handle:longint;
+                           Attr,State:longint):longint;
+
+begin
+    DosCreateMutExSem:=DosCreateMutExSem(Name,Handle,Attr,boolean(State));
 end;
 
 function DosOpenMutExSem(Name:PChar;var Handle:longint):longint; cdecl;
@@ -3949,7 +3992,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.6  2000-12-21 21:12:43  hajny
+  Revision 1.7  2001-01-14 18:59:13  hajny
+    * more compatibility changes (semaphores)
+
+  Revision 1.6  2000/12/21 21:12:43  hajny
     * TThreadEntry corrected (needed for FCL)
 
   Revision 1.5  2000/10/26 20:07:19  hajny
