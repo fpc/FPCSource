@@ -41,7 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=33;
+  CurrentPPUVersion=34;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -985,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2003-04-23 14:42:07  daniel
+  Revision 1.33  2003-04-24 13:03:01  florian
+    * comp is now written with its bit pattern to the ppu instead as an extended
+
+  Revision 1.32  2003/04/23 14:42:07  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number

@@ -115,9 +115,9 @@ implementation
               { insert in local symtable }
 {$ifdef powerpc}
               { this requires us to setup a stack frame, which gives problem in the linux syscall helpers (JM) }
-              if not(po_assembler in aktprocdef.procoptions) or
-                 not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
+              if not(po_assembler in aktprocdef.procoptions) then
 {$endif powerpc}
+//                 not(paramanager.ret_in_reg(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
                 begin
                   symtablestack.insert(aktprocdef.funcretsym);
                   symtablestack.insertvardata(aktprocdef.funcretsym);
@@ -884,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-04-23 12:35:34  florian
+  Revision 1.103  2003-04-24 13:03:01  florian
+    * comp is now written with its bit pattern to the ppu instead as an extended
+
+  Revision 1.102  2003/04/23 12:35:34  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

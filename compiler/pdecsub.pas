@@ -98,7 +98,7 @@ implementation
         currpara:=tparaitem(pd.para.last);
         while assigned(currpara) do
          begin
-           { need high parameter ? }
+           { needs high parameter ? }
            if paramanager.push_high_param(currpara.paratype.def,pd.proccalloption) then
             begin
               if assigned(currpara.parasym) then
@@ -2129,7 +2129,10 @@ const
 end.
 {
   $Log$
-  Revision 1.114  2003-04-23 13:12:26  peter
+  Revision 1.115  2003-04-24 13:03:01  florian
+    * comp is now written with its bit pattern to the ppu instead as an extended
+
+  Revision 1.114  2003/04/23 13:12:26  peter
     * fix po_comp setting for fpc mode
 
   Revision 1.113  2003/04/23 10:12:51  peter

@@ -1050,14 +1050,14 @@ uses
     constructor tai_comp_64bit.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        value:=ppufile.getreal;
+        ppufile.putdata(value,sizeof(value));
       end;
 
 
     procedure tai_comp_64bit.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putreal(value);
+        ppufile.getdata(value,sizeof(value));
       end;
 
 
@@ -1814,7 +1814,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2003-04-22 14:33:38  peter
+  Revision 1.24  2003-04-24 13:03:01  florian
+    * comp is now written with its bit pattern to the ppu instead as an extended
+
+  Revision 1.23  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.22  2003/04/22 10:09:34  daniel
