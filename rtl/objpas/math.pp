@@ -617,7 +617,6 @@ function norm(const data : array of float) : float;
      norm:=sqrt(sumofsquares(data));
   end;
 
-end.
 
 function MinIntValue(const Data: array of Integer): Integer;
 var
@@ -662,9 +661,13 @@ begin
 end;
 
 
+end.
 {
     $Log$
-    Revision 1.7  1998-12-21 13:07:06  peter
+    Revision 1.8  1999-01-15 11:44:56  peter
+      * fixed unresolved forwards
+
+    Revision 1.7  1998/12/21 13:07:06  peter
       * use -FE
 
     Revision 1.6  1998/11/02 12:52:46  michael
