@@ -169,6 +169,30 @@ begin
   InputFiles.Free;
 end;
 
+Procedure Usage;
+
+begin
+  Writeln('Usage : ',ExtractFileName(Paramstr(0)),' [options]');
+  Writeln('Where [options] is one or more of :');
+  Writeln(' --descr=filename    Filename for update.');
+  Writeln(' --disable-arguments Do not create nodes for function arguments.');
+  Writeln(' --disable-errors    Do not create errors node.');
+  Writeln(' --disable-function-results');
+  Writeln('                     Do not create nodes for function arguments.');
+  Writeln(' --disable-private   Do not create nodes for class private fields.');
+  Writeln(' --disable-protected Do not create nodes for class protected fields.');
+  Writeln(' --disable-seealso   Do not create seealso node.');
+  Writeln(' --emit-class-separator');
+  Writeln('                     Emit descriptive comment between classes.');
+  Writeln(' --help              Emit help.');
+  Writeln(' --input=cmdline     Input file to create skeleton for.');
+  Writeln('                     Use options are as for compiler.');
+  Writeln(' --lang=language     Use selected language.');
+  Writeln(' --output=filename   Send output to file.');
+  Writeln(' --package=name      Specify package name (mandatory).');
+  Writeln(' --update            Update mode. Output only missing nodes.');
+end;
+
 procedure ParseOption(const s: String);
 
   procedure AddToFileList(List: TStringList; const FileName: String);
@@ -286,9 +310,9 @@ begin
   WriteLn(SCopyright);
   WriteLn;
   if CmdLineAction = actionHelp then
-    WriteLn(SCmdLineHelp)
+    Usage
   else
-  begin
+    begin
     // Action is to create the XML skeleton
 
     if Length(PackageName) = 0 then
@@ -318,8 +342,8 @@ begin
        try
          Engine.SetPackageName(PackageName);
          if UpdateMode then
-           For j:=0 to DescrFiles.Count-1 do
-             Engine.AddDocFile(DescrFiles[j]);
+           For J:=0 to DescrFiles.Count-1 do
+             Engine.AddDocFile(DescrFiles[J]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
    	 WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
        except
@@ -339,17 +363,20 @@ begin
     WriteLn(f, '</fpdoc-descriptions>');
 
     Close(f);
-  end;
+    WriteLn(SDone);
+    end;
 
   FreeOptions;
 
-  WriteLn(SDone);
 end.
 
 
 {
   $Log$
-  Revision 1.13  2004-09-13 16:04:52  peter
+  Revision 1.14  2004-11-15 18:00:18  michael
+  + Added help screen
+
+  Revision 1.13  2004/09/13 16:04:52  peter
     * fix nested for-loop with same index
 
   Revision 1.12  2004/08/29 15:32:41  michael
