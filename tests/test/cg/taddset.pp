@@ -1,11 +1,11 @@
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
-{ NODE TESTED : secondunaryminus()                               }
+{ NODE TESTED : secondadd()                                      }
 {****************************************************************}
 { PRE-REQUISITES: secondload()                                   }
 {                 secondassign()                                 }
-{                 secondtypeconv()                               }
+{                 secondsetelement()                             }
 {****************************************************************}
 { DEFINES:                                                       }
 {            FPC     = Target is FreePascal compiler             }
@@ -82,10 +82,9 @@ const
    constset1 : array[1..3] of topset =
    (
        { 66 }    { 210 }  { 225 }
-       { BYTE 8 }
-     ([A_MOVE,    { 66  : BYTE 8 - BIT 2  }
-       A_FTST,    { 210 : BYTE 26 - BIT 2 }
-       A_CPSAVE]),{ 225 : BYTE 28 - BIT 1 }
+     ([A_MOVE,    { 66  : LONG 2 - BIT 2  }
+       A_FTST,    { 210 : LONG 6 - BIT 18 }
+       A_CPSAVE]),{ 225 : LONG 7 - BIT 1 }
        { 1..8 }
      ([A_ADD..A_ASL]),
        { 134 }
@@ -102,11 +101,11 @@ const
    { SMALL SETS }
    constset3 : array[1..3] of tsmallset =
    (
-     ([DA,             { 0 :  BYTE 0 : bit 0 }
-       DD,             { 3 :  BYTE 0 : bit 3 }
-       DM]),           { 12 :  BYTE 1 : bit 4  }
-     ([DB..DI]),       { 1..8 : BYTE 0-1 :  }
-     ([DR])            { 17 :  BYTE 2 : bit 1 }
+     ([DA,             { 0 :  LONG 0 : bit 0 }
+       DD,             { 3 :  LONG 0 : bit 3 }
+       DM]),           { 12 :  LONG 0 : bit 12  }
+     ([DB..DI]),       { 1..8 : LONG 0 : bits 1-8  }
+     ([DR])            { 17 :  LONG 0 : bit 17 }
    );
 
    constset4 : array[1..3] of tsmallset =
@@ -430,22 +429,21 @@ end;
      WriteLn('Failure.');
   end;
 
-(*
-  procedure SetTestLt;
+  procedure SmallSetTestLt;
   var
-    op2list :set of tasmop;
-    oplist: set of tasmop;
+    op2list :set of tsmallenum;
+    oplist: set of tsmallenum;
     passed : boolean;
    begin
-    Write('Normal Set <= Normal Set test...');
+    Write('Small Set <= Small Set test...');
     passed := true;
-    if constset1[1] <= constset2[2] then
+    if constset3[1] <= constset4[2] then
       passed := false;
     oplist := [];
-    op2list := [A_MOVE];
+    op2list := [DC];
     if op2list <= oplist then
      passed := false;
-    oplist := [A_MOVE,A_CPRESTORE..A_CPSAVE];
+    oplist := [DC,DF..DM];
     if oplist <= op2list then
      passed := false;
     if passed then
@@ -454,18 +452,16 @@ end;
        WriteLn('Failure.');
    end;
 
-  Procedure SetTestAddOne;
- { FPC_SET_SET_BYTE }
- { FPC_SET_ADD_SETS }
+  Procedure SmallSetTestAddOne;
     var
-     op : tasmop;
-     oplist: set of tasmop;
+     op : tsmallenum;
+     oplist: set of tsmallenum;
   Begin
-    Write('Set + Set element testing...');
-    op:=A_LABEL;
+    Write('Small Set + Small Set element testing...');
+    op:=DG;
     oplist:=[];
     oplist:=oplist+[op];
-    if oplist = [A_LABEL] then
+    if oplist = [DG] then
       Begin
         WriteLn('Success.');
       end
@@ -475,19 +471,18 @@ end;
       end;
   end;
 
-Procedure SetTestAddTwo;
-{ SET_ADD_SETS }
+Procedure SmallSetTestAddTwo;
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
+ op2list :set of tsmallenum;
+ oplist: set of tsmallenum;
 Begin
- Write('Complex Set + Set element testing...');
+ Write('Small Complex Set + Small Set element testing...');
  op2list:=[];
  oplist:=[];
- oplist:=[A_MOVE]+[A_JSR];
- op2list:=[A_LABEL];
+ oplist:=[DG]+[DI];
+ op2list:=[DM];
  oplist:=op2list+oplist;
- if oplist = [A_MOVE,A_JSR,A_LABEL] then
+ if oplist = [DG,DI,DM] then
    Begin
       WriteLn('Success.');
    end
@@ -498,30 +493,26 @@ Begin
 end;
 
 
-
-
-
-Procedure SetTestSubOne;
-{ SET_SUB_SETS }
+Procedure SmallSetTestSubOne;
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
- op :tasmop;
+ op2list :set of tsmallenum;
+ oplist: set of tsmallenum;
+ op :tsmallenum;
  passed : boolean;
 Begin
- Write('Set - Set element testing...');
+ Write('Small Set - Small Set element testing...');
  passed := true;
  op2list:=[];
  oplist:=[];
- op := A_TRACS;
- oplist:=[A_MOVE]+[A_JSR]+[op];
- op2list:=[A_MOVE]+[A_JSR];
+ op := DL;
+ oplist:=[DG]+[DI]+[op];
+ op2list:=[DG]+[DI];
  oplist:=oplist-op2list;
- if oplist <> [A_TRACS] then
+ if oplist <> [DL] then
    passed := false;
 
- oplist:=[A_MOVE]+[A_JSR]+[op];
- op2list:=[A_MOVE]+[A_JSR];
+ oplist:=[DG]+[DI]+[op];
+ op2list:=[DG]+[DI];
  oplist:=op2list-oplist;
  if oplist <> [] then
    passed := false;
@@ -531,25 +522,24 @@ Begin
    WriteLn('Failure.');
 end;
 
-Procedure SetTestSubTwo;
-{ FPC_SET_SUB_SETS }
+Procedure SmallSetTestSubTwo;
 const
- b: tasmop = (A_BSR);
+ b: tsmallenum = (DH);
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
- op : tasmop;
+ op2list :set of tsmallenum;
+ oplist: set of tsmallenum;
+ op : tsmallenum;
  passed : boolean;
 Begin
- Write('Complex Set - Set element testing...');
- op := A_BKPT;
+ Write('Small Complex Set - Small Set element testing...');
+ op := DL;
  passed := true;
- oplist:=[A_MOVE]+[A_JSR]-[op];
- op2list:=[A_MOVE]+[A_JSR];
+ oplist:=[DG]+[DI]-[op];
+ op2list:=[DG]+[DI];
  if oplist <> op2list then
    passed := false;
- oplist := [A_MOVE];
- oplist := oplist - [A_MOVE];
+ oplist := [DG];
+ oplist := oplist - [DG];
  if oplist <> [] then
    passed := false;
  oplist := oplist + [b];
@@ -565,26 +555,25 @@ Begin
 end;
 
 
-Procedure SetTestMulSets;
-{ FPC_SET_MUL_SETS }
+Procedure SmallSetTestMulSets;
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
+ op2list : set of tsmallenum;
+ oplist: set of tsmallenum;
  passed : boolean;
 Begin
  passed := true;
- Write('Set * Set element testing...');
+ Write('Small Set * Small Set element testing...');
  op2list:=[];
  oplist:=[];
- oplist:=[A_MOVE]+[A_JSR];
- op2list:=[A_MOVE];
+ oplist:=[DG]+[DI];
+ op2list:=[DG];
  oplist:=oplist*op2list;
- if oplist <> [A_JSR] then
+ if oplist <> [DI] then
    passed := false;
- oplist := [A_MOVE,A_FTST];
- op2list := [A_MOVE,A_FTST];
+ oplist := [DG,DK];
+ op2list := [DG,DK];
  oplist := oplist * op2list;
- if oplist <> [A_MOVE,A_FTST] then
+ if oplist <> [DG,DK] then
    passed := false;
  if passed then
    WriteLn('Success.')
@@ -592,21 +581,21 @@ Begin
    WriteLn('Failure.');
 end;
 
-procedure SetTestRange;
+procedure SmallSetTestRange;
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
+ op2list :set of tsmallenum;
+ oplist: set of tsmallenum;
  passed : boolean;
- op1 : tasmop;
- op2 : tasmop;
+ op1 : tsmallenum;
+ op2 : tsmallenum;
 begin
  passed := true;
- Write('Range Set + element testing...');
- op1 := A_ADD;
- op2 := A_ASL;
+ Write('Small Range Set + element testing...');
+ op1 := DB;
+ op2 := DI;
  oplist := [];
  oplist := [op1..op2];
- if oplist <> constset1[2] then
+ if oplist <> constset3[2] then
    passed := false;
  if not passed then
   WriteLn('Failure,')
@@ -614,20 +603,20 @@ begin
   WriteLn('Success.');
 end;
 
-procedure SetTestByte;
+procedure SmallSetTestByte;
 var
- op2list :set of tasmop;
- oplist: set of tasmop;
+ op2list : set of tsmallenum;
+ oplist: set of tsmallenum;
  passed : boolean;
- op1 : tasmop;
- op2 : tasmop;
- op : tasmop;
+ op1 : tsmallenum;
+ op2 : tsmallenum;
+ op : tsmallenum;
 begin
- Write('Simple Set + element testing...');
+ Write('Small Simple Set + element testing...');
  passed := true;
- op := A_LABEL;
- oplist := [A_MOVE,op,A_JSR];
- if oplist <> [A_MOVE,A_LABEL,A_JSR] then
+ op := DD;
+ oplist := [DG,op,DI];
+ if oplist <> [DG,DD,DI] then
    passed := false;
   if not passed then
     WriteLn('Failure,')
@@ -635,109 +624,7 @@ begin
     WriteLn('Success.');
 end;
 
-
-Procedure SmallSetByte;
-{ SET_SET_BYTE }
-var
- op : myenum;
- oplist: set of myenum;
-Begin
- Write('TESTING SET_BYTE(1):');
- op:=DA;
- oplist:=[];
- oplist:=oplist+[op];
- if op in oplist then
- Begin
-  WriteLn(' PASSED.');
- end
- else
- Begin
-  WriteLn(' FAILED.');
- end;
-end;
-
-
-Procedure SmallAddSets;
-{ SET_ADD_SETS }
-var
- op2list :set of myenum;
- oplist: set of myenum;
-Begin
- op2list:=[];
- oplist:=[];
- oplist:=[DA]+[DC];
- op2list:=[DB];
- oplist:=op2list+oplist;
- if DA in oplist then
-  if DC in oplist then
-   if DB in oplist then
-    WriteLn('TESTING SET_ADD_SETS: PASSED.')
-   else
-    WriteLn('TESTING ADD_SETS: FAILED.')
-  else
-    WriteLn('TESTING ADD_SETS: FAILED.')
- else
-    WriteLn('TESTING ADD_SETS: FAILED.')
-end;
-
-Procedure SmallSubsets;
-{ SET_SUB_SETS }
-var
- op2list :set of myenum;
- oplist: set of myenum;
-Begin
- op2list:=[];
- oplist:=[];
- oplist:=[DA]+[DC];
- op2list:=[DA]+[DC];
- oplist:=op2list-oplist;
- if (DA in oplist) or (DB in oplist) or (DC in oplist) then
-  WriteLn('TESTING SUB_SETS: FAILED.')
- else
-  WriteLn('TESTING SUB_SETS: PASSED.')
-end;
-
-Procedure SmallCompSets;
-{ SET_COMP_SETS }
-var
- op2list :set of myenum;
- oplist: set of myenum;
-Begin
- op2list:=[];
- oplist:=[];
- oplist:=[DA]+[DC];
- op2list:=[DA]+[DC];
- if oplist=op2list then
-  WriteLn('TESTING COMP_SETS(1): PASSED.')
- else
-  WriteLn('TESTING COMP_SETS(1): FAILED.');
- oplist:=[DA];
- if oplist=op2list then
-  WriteLn('TESTING COMP_SETS(2): FAILED.')
- else
-  WriteLn('TESTING COMP_SETS(2): PASSED.');
-end;
-
-Procedure SmallMulSets;
-{ SET_COMP_SETS }
-var
- op2list :set of myenum;
- oplist: set of myenum;
-Begin
- op2list:=[];
- oplist:=[];
- oplist:=[DA]+[DC];
- op2list:=[DA];
- oplist:=oplist*op2list;
- if DC in oplist then
-  WriteLn('TESTING MUL_SETS(1): FAILED.')
- else
-  WriteLn('TESTING MUL_SETS(1): PASSED.');
- if DA in oplist  then
-  WriteLn('TESTING MUL_SETS(2): PASSED.')
- else
-  WriteLn('TESTING MUL_SETS(2): FAILED.')
-end;
+(*
 
 const
  b: myenum = (dA);
@@ -801,11 +688,21 @@ Begin
   WriteLn('----------------------- Small sets -----------------------');
   SmallSetTestEqual;
   SmallSetTestNotEqual;
+  SmallSetTestAddOne;
+  SmallSetTestAddTwo;
+  SmallSetTestSubOne;
+  SmallSetTestSubTwo;
+  SmallSetTestRange;
+  SmallSetTestLt;
+  SmallSetTestByte;
 end.
 
 {
   $Log$
-  Revision 1.2  2001-06-22 02:24:40  carl
+  Revision 1.3  2001-06-24 22:30:19  carl
+  + completed small set tests
+
+  Revision 1.2  2001/06/22 02:24:40  carl
   + complete normal set tests
 
   Revision 1.1  2001/06/21 02:50:44  carl
