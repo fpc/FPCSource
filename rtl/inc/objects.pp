@@ -141,7 +141,7 @@ TYPE
 {                             POINTER TO STRING                             }
 {---------------------------------------------------------------------------}
 TYPE
-   PString = ^String;                                 { String pointer }
+   PString = PShortString;                            { String pointer }
 
 {---------------------------------------------------------------------------}
 {                    OS dependent File type / consts                        }
@@ -2901,7 +2901,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.17  2002-12-07 14:37:15  carl
+  Revision 1.18  2003-01-05 16:27:05  hajny
+    * PString inherited from System
+
+  Revision 1.17  2002/12/07 14:37:15  carl
     - avoid warnings (add typecast)
 
   Revision 1.16  2002/10/31 13:08:04  carl
