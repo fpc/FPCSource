@@ -1458,7 +1458,7 @@ implementation
                 stabstring:=stabstr_evaluate('n$1;$2',[charst,tostr(len)]);
              {$else}
                bytest := typeglobalnumber('byte');
-               stabstring:=stabstr_evaluate('s$1;length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
+               stabstring:=stabstr_evaluate('s$1length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
                            [tostr(len+1),bytest,tostr(len),charst,tostr(len*8)]);
              {$EndIf}
              end;
@@ -1472,7 +1472,7 @@ implementation
              {$else}
                bytest := typeglobalnumber('byte');
                longst := typeglobalnumber('longint');
-               stabstring:=stabstr_evaluate('s$1;length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
+               stabstring:=stabstr_evaluate('s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                             [tostr(len+5),longst,tostr(len),charst,tostr(len*8),bytest]);
               {$EndIf}
              end;
@@ -6185,7 +6185,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.209  2004-01-26 19:54:42  daniel
+  Revision 1.210  2004-01-27 10:29:32  daniel
+    * Fix string type stab generation. String constant still unsupported.
+
+  Revision 1.209  2004/01/26 19:54:42  daniel
     * Typo
 
   Revision 1.208  2004/01/26 19:43:49  daniel
