@@ -46,8 +46,10 @@ end;
 Procedure FlushSock(var F:Text);
 begin
   if (textrec(f).mode=fmoutput) and (textrec(f).bufpos<>0) then
-   IOSock(f);
-  textrec(f).bufpos:=0;
+   begin
+     IOSock(f);
+     textrec(f).bufpos:=0;
+   end;
 end;
 
 
@@ -165,7 +167,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  2000-05-22 12:38:51  jonas
+  Revision 1.7  2000-06-21 22:27:50  pierre
+   * no bufpos reset on flush for fminput
+
+  Revision 1.6  2000/05/22 12:38:51  jonas
     * CloseSock is now a dummy (it called system.close, but this doesn't
       make any sense since itself can only be called by system.close) This
       caused an endless loop with my last changes where the mode of a
