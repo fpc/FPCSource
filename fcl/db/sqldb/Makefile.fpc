@@ -1,0 +1,31 @@
+#
+# Makefile.fpc for SQL FCL db units
+#
+
+[package]
+main=fcl
+
+[target]
+dirs_linux=interbase
+dirs_freebsd=interbase
+dirs_darwin=interbase
+dirs_netbsd=interbase
+dirs_openbsd=interbase
+dirs_win32=interbase
+units=sqldb
+
+[clean]
+units=ibas40 ibase60
+
+[require]
+packages=ibase
+
+[compiler]
+options=-S2 
+targetdir=../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
