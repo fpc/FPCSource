@@ -76,7 +76,7 @@ type
       OPR_CONSTANT  : (val:longint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:longint);
       OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint);
+      OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint;localindexreg:tregister;localgetoffset:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (reglist:Tsupregset);
@@ -794,6 +794,7 @@ var
   sym : tsym;
   srsymtable : tsymtable;
   harrdef : tarraydef;
+  indexreg : tregister;
   l : longint;
   plist : psymlistitem;
 Begin
@@ -839,12 +840,21 @@ Begin
           parasymtable,
           localsymtable :
             begin
+              indexreg:=opr.ref.base;
+              if opr.ref.index<>NR_NO then
+                begin
+                  if indexreg=NR_NO then
+                    indexreg:=opr.ref.index
+                  else
+                    Message(asmr_e_multiple_index);
+                end;
               if (vo_is_external in tvarsym(sym).varoptions) then
                 opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
               else
                 begin
                   opr.typ:=OPR_LOCAL;
                   if assigned(current_procinfo.parent) and
+                     (current_procinfo.procdef.proccalloption<>pocall_inline) and
                      (tvarsym(sym).owner<>current_procinfo.procdef.localst) and
                      (tvarsym(sym).owner<>current_procinfo.procdef.parast) and
                      (current_procinfo.procdef.localst.symtablelevel>normal_function_level) and
@@ -852,6 +862,8 @@ Begin
                     message1(asmr_e_local_para_unreachable,s);
                   opr.localsym:=tvarsym(sym);
                   opr.localsymofs:=0;
+                  opr.localindexreg:=indexreg;
+                  opr.localgetoffset:=GetOffset;
                 end;
               if paramanager.push_addr_param(tvarsym(sym).varspez,tvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
                 SetSize(pointer_size,false);
@@ -1552,7 +1564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.73  2003-10-28 15:36:01  peter
+  Revision 1.74  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.73  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.72  2003/10/24 17:39:03  peter

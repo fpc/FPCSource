@@ -1054,7 +1054,9 @@ implementation
       begin
         { Count only varsyms, but ignore the funcretsym }
         if (tsym(p).typ=varsym) and
-           (tsym(p)<>current_procinfo.procdef.funcretsym) then
+           (tsym(p)<>current_procinfo.procdef.funcretsym) and
+           (not(vo_is_parentfp in tvarsym(p).varoptions) or
+            (tvarsym(p).refs>0)) then
           inc(plongint(arg)^);
       end;
 
@@ -1130,7 +1132,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2003-10-17 14:38:32  peter
+  Revision 1.117  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.116  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

@@ -68,7 +68,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,verbose,
+      cutils,verbose,cpuinfo,
       aasmbase,aasmtai,aasmcpu,symsym,
       defutil,
       nflw,pass_2,
@@ -133,22 +133,47 @@ interface
       procedure ResolveRef(var op:toper);
         var
           sym : tvarsym;
+          getoffset : boolean;
+          indexreg : tregister;
           sofs : longint;
         begin
           if (op.typ=top_local) then
             begin
               sofs:=op.localsymofs;
+              indexreg:=op.localindexreg;
+              getoffset:=op.localgetoffset;
               sym:=tvarsym(pointer(op.localsym));
               case sym.localloc.loc of
                 LOC_REFERENCE :
                   begin
-                    op.typ:=top_ref;
-                    new(op.ref);
-                    reference_reset_base(op.ref^,sym.localloc.reference.index,
-                        sym.localloc.reference.offset+sofs);
+                    if getoffset then
+                      begin
+                        if indexreg=NR_NO then
+                          begin
+                            op.typ:=top_const;
+                            op.val:=aword(sym.localloc.reference.offset+sofs);
+                          end
+                        else
+                          begin
+                            op.typ:=top_ref;
+                            new(op.ref);
+                            reference_reset_base(op.ref^,indexreg,
+                                sym.localloc.reference.offset+sofs);
+                          end;
+                      end
+                    else
+                      begin
+                        op.typ:=top_ref;
+                        new(op.ref);
+                        reference_reset_base(op.ref^,sym.localloc.reference.index,
+                            sym.localloc.reference.offset+sofs);
+                        op.ref^.index:=indexreg;
+                      end;
                   end;
                 LOC_REGISTER :
                   begin
+                    if getoffset then
+                      Message(asmr_e_invalid_reference_syntax);
                     { Subscribed access }
                     if sofs<>0 then
                       begin
@@ -374,7 +399,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-10-24 17:39:41  peter
+  Revision 1.47  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.46  2003/10/24 17:39:41  peter
     * asmnode.get_position now inserts a marker
 
   Revision 1.45  2003/10/21 15:15:36  peter

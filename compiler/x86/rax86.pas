@@ -567,6 +567,8 @@ begin
       (opcode=A_FDIVRP) or
       (opcode=A_FSUB) or
       (opcode=A_FSUBR) or
+      (opcode=A_FADD) or
+      (opcode=A_FADDP) or
       (opcode=A_FDIV) or
       (opcode=A_FDIVR)) then
      begin
@@ -672,7 +674,7 @@ begin
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_LOCAL :
-         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs);
+         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,operands[i].opr.localgetoffset);
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
@@ -733,7 +735,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2003-10-21 15:15:36  peter
+  Revision 1.12  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.11  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.10  2003/10/01 20:34:51  peter

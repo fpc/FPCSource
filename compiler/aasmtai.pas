@@ -156,7 +156,7 @@ interface
          top_symbol : (sym:tasmsymbol;symofs:longint);
          top_bool   : (b:boolean);
          { local varsym that will be inserted in pass_2 }
-         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint);
+         top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint;localindexreg:tregister;localgetoffset:boolean);
       end;
       poper=^toper;
 
@@ -465,7 +465,7 @@ interface
           procedure allocate_oper(opers:longint);
           procedure loadconst(opidx:longint;l:aword);
           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-          procedure loadlocal(opidx:longint;s:pointer;sofs:longint);
+          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;getoffset:boolean);
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
@@ -1590,7 +1590,7 @@ implementation
       end;
 
 
-    procedure taicpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint);
+    procedure taicpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;getoffset:boolean);
       begin
         if not assigned(s) then
          internalerror(200204251);
@@ -1601,6 +1601,8 @@ implementation
              clearop(opidx);
            localsym:=s;
            localsymofs:=sofs;
+           localindexreg:=indexreg;
+           localgetoffset:=getoffset;
            typ:=top_local;
          end;
       end;
@@ -2138,7 +2140,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-10-29 14:42:14  mazen
+  Revision 1.51  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.50  2003/10/29 14:42:14  mazen
   * code reformatted
 
   Revision 1.49  2003/10/29 14:05:45  mazen

@@ -770,6 +770,8 @@ implementation
             begin
               ppufile.getderef(o.localsymderef);
               o.localsymofs:=ppufile.getlongint;
+              o.localindexreg:=tregister(ppufile.getlongint);
+              o.localgetoffset:=(ppufile.getbyte<>0);
             end;
         end;
       end;
@@ -802,6 +804,8 @@ implementation
             begin
               ppufile.putderef(o.localsymderef);
               ppufile.putlongint(longint(o.localsymofs));
+              ppufile.putlongint(longint(o.localindexreg));
+              ppufile.putbyte(byte(o.localgetoffset));
             end;
         end;
       end;
@@ -2328,7 +2332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-10-23 14:44:07  peter
+  Revision 1.36  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.35  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

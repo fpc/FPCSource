@@ -1070,8 +1070,6 @@ Begin
              HadVar:=hasvar and GotOffset;
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
-             oldbase:=opr.ref.base;
-             opr.ref.base:=NR_NO;
              tempstr:=actasmpattern;
              Consume(AS_ID);
              { typecasting? }
@@ -1092,13 +1090,19 @@ Begin
              if actasmtoken=AS_DOT then
               begin
                 BuildRecordOffsetSize(tempstr,l,k);
-                inc(opr.ref.offset,l);
+                case opr.typ of
+                  OPR_LOCAL :
+                    inc(opr.localsymofs,l);
+                  OPR_REFERENCE :
+                    inc(opr.ref.offset,l);
+                end;
               end;
              if GotOffset then
               begin
                 if hasvar and (opr.ref.base=current_procinfo.framepointer) then
                  begin
-                   opr.ref.base:=NR_NO;
+                   if (opr.typ=OPR_REFERENCE) then
+                     opr.ref.base:=NR_NO;
                    hasvar:=hadvar;
                  end
                 else
@@ -1108,24 +1112,29 @@ Begin
                    { should we allow ?? }
                  end;
               end;
-             { is the base register loaded by the var ? }
-             if (opr.ref.base<>NR_NO) then
-              begin
-                { check if we can move the old base to the index register }
-                if (opr.ref.index<>NR_NO) then
-                 Message(asmr_e_wrong_base_index)
-                else
-                 opr.ref.index:=oldbase;
-              end
-             else
-              opr.ref.base:=oldbase;
-             { we can't have a Constant here so add the constant value to the
-               offset }
-             if opr.typ=OPR_CONSTANT then
-              begin
-                opr.typ:=OPR_REFERENCE;
-                inc(opr.ref.offset,opr.val);
-              end;
+(*
+             if (opr.typ=OPR_REFERENCE) then
+               begin
+                 { is the base register loaded by the var ? }
+                 if (opr.ref.base<>NR_NO) then
+                  begin
+                    { check if we can move the old base to the index register }
+                    if (opr.ref.index<>NR_NO) then
+                     Message(asmr_e_wrong_base_index)
+                    else
+                     opr.ref.index:=oldbase;
+                  end
+                 else
+                  opr.ref.base:=oldbase;
+                 { we can't have a Constant here so add the constant value to the
+                   offset }
+                 if opr.typ=OPR_CONSTANT then
+                  begin
+                    opr.typ:=OPR_REFERENCE;
+                    inc(opr.ref.offset,opr.val);
+                  end;
+               end;
+*)
            end;
           GotOffset:=false;
         end;
@@ -1194,25 +1203,34 @@ Begin
             Message(asmr_e_invalid_reference_syntax);
           hreg:=actasmregister;
           Consume(AS_REGISTER);
-          { this register will be the index:
-             1. just read a *
-             2. next token is a *
-             3. base register is already used }
-          if (GotStar) or
-             (actasmtoken=AS_STAR) or
-             (opr.ref.base<>NR_NO) then
-           begin
-             if (opr.ref.index<>NR_NO) then
-              Message(asmr_e_multiple_index);
-             opr.ref.index:=hreg;
-             if scale<>0 then
-               begin
-                 opr.ref.scalefactor:=scale;
-                 scale:=0;
-               end;
-           end
+          if opr.typ=OPR_LOCAL then
+            begin
+              if (opr.localindexreg<>NR_NO) then
+                Message(asmr_e_multiple_index);
+              opr.localindexreg:=hreg;
+            end
           else
-           opr.ref.base:=hreg;
+            begin
+              { this register will be the index:
+                 1. just read a *
+                 2. next token is a *
+                 3. base register is already used }
+              if (GotStar) or
+                 (actasmtoken=AS_STAR) or
+                 (opr.ref.base<>NR_NO) then
+               begin
+                 if (opr.ref.index<>NR_NO) then
+                  Message(asmr_e_multiple_index);
+                 opr.ref.index:=hreg;
+                 if scale<>0 then
+                   begin
+                     opr.ref.scalefactor:=scale;
+                     scale:=0;
+                   end;
+               end
+              else
+               opr.ref.base:=hreg;
+            end;
           GotPlus:=false;
           GotStar:=false;
         end;
@@ -1906,7 +1924,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.60  2003-10-27 15:29:43  peter
+  Revision 1.61  2003-10-29 15:40:20  peter
+    * support indexing and offset retrieval for locals
+
+  Revision 1.60  2003/10/27 15:29:43  peter
     * fixed trec.field to return constant
 
   Revision 1.59  2003/10/24 17:39:03  peter
