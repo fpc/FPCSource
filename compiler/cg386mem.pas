@@ -573,22 +573,22 @@ implementation
                           begin
                              extraoffset:=p^.right^.right^.value;
                              t:=p^.right^.left;
+                             { First pass processed this with the assumption   }
+                             { that there was an add node which may require an }
+                             { extra register. Fake it or die with IE10 (JM)   }
+                             t^.registers32 :=  p^.right^.registers32;
                              putnode(p^.right^.right);
                              putnode(p^.right);
                              p^.right:=t;
-                             { First pass processed this with the assumption }
-                             { that there was an add node which requires an  }
-                             { extra register. Fake it or die with IE10 (JM) }
-                             inc(p^.right^.registers32);
                           end
                         else if p^.right^.left^.treetype=ordconstn then
                           begin
                              extraoffset:=p^.right^.left^.value;
                              t:=p^.right^.right;
+                             t^.registers32 :=  p^.right^.registers32;
                              putnode(p^.right^.left);
                              putnode(p^.right);
                              p^.right:=t;
-                             inc(p^.right^.registers32);
                           end;
                      end
                    else if (p^.right^.treetype=subn) then
@@ -599,10 +599,10 @@ implementation
   copy-paste bug :) (JM) }
                              extraoffset:=-p^.right^.right^.value;
                              t:=p^.right^.left;
+                             t^.registers32 :=  p^.right^.registers32;
                              putnode(p^.right^.right);
                              putnode(p^.right);
                              p^.right:=t;
-                             inc(p^.right^.registers32);
                           end
 { You also have to negate p^.right^.right in this case! I can't add an
   unaryminusn without causing a crash, so I've disabled it (JM)
@@ -610,6 +610,7 @@ implementation
                           begin
                              extraoffset:=p^.right^.left^.value;
                              t:=p^.right^.right;
+                             t^.registers32 :=  p^.right^.registers32;
                              putnode(p^.right);
                              putnode(p^.right^.left);
                              p^.right:=t;
@@ -957,7 +958,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-27 12:41:54  jonas
+  Revision 1.5  2000-07-28 07:38:13  jonas
+    * refined previous fix (sometimes the number of necessary registers was
+      overestimated) (merged from fixes branch)
+
+  Revision 1.4  2000/07/27 12:41:54  jonas
     * fixed internalerror(10) when using -Or and complex arrays (merged
       from fixes branch)
 
