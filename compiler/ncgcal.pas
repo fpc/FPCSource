@@ -576,6 +576,7 @@ implementation
           begin
             location_release(exprasmlist,selfloc);
             location_copy(selfloc,vmtloc);
+            selfrefaddr:=vmtrefaddr;
           end;
 
         { when we need the vmt in a register then we already
@@ -1414,7 +1415,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-04-21 13:53:16  jonas
+  Revision 1.46  2003-04-21 20:03:32  peter
+    * forgot to copy vmtrefaddr to selfrefaddr when self=vmt
+
+  Revision 1.45  2003/04/21 13:53:16  jonas
     - removed copying of all paras when secondpassing a callnode (this used
       to be necessary for inlinign support, but currently the whole inlined
       procedure is already copied in advance). Note that the compiler crashes
