@@ -310,9 +310,11 @@ unit cgx86;
 
     begin
       { Int }
+      rgint.check_unreleasedregs;
       rgint.do_register_allocation(list,headertai);
       rgint.translate_registers(list);
       { SSE }
+      rgmm.check_unreleasedregs;
       rgmm.do_register_allocation(list,headertai);
       rgmm.translate_registers(list);
     end;
@@ -1735,7 +1737,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.84  2003-10-29 21:24:14  jonas
+  Revision 1.85  2003-10-30 16:22:40  peter
+    * call firstpass before allocation and codegeneration is started
+    * move leftover code from pass_2.generatecode() to psub
+
+  Revision 1.84  2003/10/29 21:24:14  jonas
     + support for fpu temp parameters
     + saving/restoring of fpu register before/after a procedure call
 

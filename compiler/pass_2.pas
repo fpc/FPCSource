@@ -37,10 +37,6 @@ uses
        allow_multi_pass2 : boolean;
        flowcontrol : tflowcontrol;
 
-{ produces assembler for the expression in variable p }
-{ and produces an assembler node at the end        }
-procedure generatecode(var p : tnode);
-
 { produces the actual code }
 function do_secondpass(var p : tnode) : boolean;
 procedure secondpass(var p : tnode);
@@ -210,78 +206,15 @@ implementation
          do_secondpass:=codegenerror;
       end;
 
-    procedure clearrefs(p : tnamedindexitem;arg:pointer);
-
-      begin
-         if (tsym(p).typ=varsym) then
-           if tvarsym(p).refs>1 then
-             tvarsym(p).refs:=1;
-      end;
-
-    procedure generatecode(var p : tnode);
-      begin
-         flowcontrol:=[];
-         { when size optimization only count occurrence }
-         if cs_littlesize in aktglobalswitches then
-           cg.t_times:=1
-         else
-           { reference for repetition is 100 }
-           cg.t_times:=100;
-         { clear register count }
-         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
-         symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
-         { firstpass everything }
-         do_firstpass(p);
-
-         { after pass 1, we should have all necessary information to set the temp. start location }
-         current_procinfo.set_first_temp_offset;
-         { only do secondpass if there are no errors }
-         if ErrorCount=0 then
-           begin
-              { caller paraloc info is also necessary in the stackframe_entry }
-              { code of the ppc (and possibly other processors)               }
-              if not current_procinfo.procdef.has_paraloc_info then
-                begin
-                  paramanager.create_paraloc_info(current_procinfo.procdef,callerside);
-                  current_procinfo.procdef.has_paraloc_info:=true;
-                end;
-
-              { process register variable stuff (JM) }
-{              assign_regvars(p);}
-{              load_regvars(current_procinfo.aktentrycode,p);}
-
-              { for the i386 it must be done in genexitcode because it has  }
-              { to add 'fstp' instructions when using fpu regvars and those }
-              { must come after the "exitlabel" (JM)                        }
-{$ifndef i386}
-{              cleanup_regvars(current_procinfo.aktexitcode);}
-{$endif i386}
-
-{              current_procinfo.allocate_framepointer_reg;}
-
-              do_secondpass(p);
-
-{$ifdef EXTDEBUG}
-{
-              for sr:=first_int_imreg to last_int_imreg do
-                if not(sr in rg.unusedregsint) then
-                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBNONE))+' not released');
-}
-{$endif EXTDEBUG}
-
-{$ifdef i386}
-              if assigned(current_procinfo.procdef) then
-                current_procinfo.procdef.fpu_used:=p.registersfpu;
-{$endif i386}
-
-           end;
-         current_procinfo.aktproccode.concatlist(exprasmlist);
-      end;
 
 end.
 {
   $Log$
-  Revision 1.72  2003-10-19 01:34:30  florian
+  Revision 1.73  2003-10-30 16:22:40  peter
+    * call firstpass before allocation and codegeneration is started
+    * move leftover code from pass_2.generatecode() to psub
+
+  Revision 1.72  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 

@@ -235,6 +235,7 @@ unit rgobj;
         procedure translate_registers(list:Taasmoutput);
         {# Adds an interference edge.}
         procedure add_edge(u,v:Tsuperregister);
+        procedure check_unreleasedregs;
 
         unusedregs        : Tsuperregisterset;
 
@@ -1801,10 +1802,29 @@ implementation
         end;
     end;
 
+
+    procedure Trgobj.check_unreleasedregs;
+{$ifdef EXTDEBUG}
+      var
+        sr : tsuperregister;
+{$endif EXTDEBUG}
+      begin
+{$ifdef EXTDEBUG}
+        for sr:=first_imaginary to maxreg-1 do
+          if not(supregset_in(unusedregs,sr)) then
+            Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBNONE))+' not released');
+{$endif EXTDEBUG}
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.92  2003-10-29 21:29:14  jonas
+  Revision 1.93  2003-10-30 16:22:40  peter
+    * call firstpass before allocation and codegeneration is started
+    * move leftover code from pass_2.generatecode() to psub
+
+  Revision 1.92  2003/10/29 21:29:14  jonas
     * some ALLOWDUPREG improvements
 
   Revision 1.91  2003/10/21 15:15:36  peter

@@ -566,6 +566,14 @@ implementation
       end;
 
 
+    procedure clearrefs(p : tnamedindexitem;arg:pointer);
+      begin
+         if (tsym(p).typ=varsym) then
+           if tvarsym(p).refs>1 then
+             tvarsym(p).refs:=1;
+      end;
+
+
     procedure tcgprocinfo.generate_code;
       var
         oldprocinfo : tprocinfo;
@@ -605,168 +613,197 @@ implementation
         { add parast/localst to symtablestack }
         add_to_symtablestack;
 
-        { set the start offset to the start of the temp area in the stack }
-        tg:=ttgobj.create;
-
-        { Create register allocator }
-        cg.init_register_allocators;
-
-        current_procinfo.set_first_temp_offset;
-        current_procinfo.generate_parameter_info;
-
-        { Allocate space in temp/registers for parast and localst }
-        aktfilepos:=entrypos;
-        gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
-        if current_procinfo.procdef.localst.symtabletype=localsymtable then
-          gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
-        if (cs_asm_source in aktglobalswitches) then
-          aktproccode.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
-              tostr_with_plus(tg.lasttemp))));
-
-        { Generate code to load register parameters in temps and insert local
-          copies for values parameters. This must be done before the code for the
-          body is generated because the localloc is updated.
-          Note: The generated code will be inserted after the code generation of
-          the body is finished, because only then the position is known }
-        aktfilepos:=entrypos;
-        gen_load_para_value(templist);
-
-        { generate code for the body }
-        generatecode(code);
-
-        { The position of the loadpara_asmnode is now known }
-        aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);
-
-        { first generate entry and initialize code with the correct
-          position and switches }
-        aktfilepos:=entrypos;
-        aktlocalswitches:=entryswitches;
-        gen_entry_code(templist);
-        aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
-        gen_initialize_code(templist,false);
-        aktproccode.insertlistafter(init_asmnode.currenttai,templist);
-
-        { now generate finalize and exit code with the correct position
-          and switches }
-        aktfilepos:=exitpos;
-        aktlocalswitches:=exitswitches;
-        gen_finalize_code(templist,false);
-        { the finalcode must be concated if there was no position available,
-          using insertlistafter will result in an insert at the start
-          when currentai=nil }
-        if assigned(final_asmnode.currenttai) then
-          aktproccode.insertlistafter(final_asmnode.currenttai,templist)
+        { when size optimization only count occurrence }
+        if cs_littlesize in aktglobalswitches then
+          cg.t_times:=1
         else
-          aktproccode.concatlist(templist);
-        { insert exit label at the correct position }
-        cg.a_label(templist,current_procinfo.aktexitlabel);
-        if assigned(exitlabel_asmnode.currenttai) then
-          aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
-        else
-          aktproccode.concatlist(templist);
-        { exit code }
-        gen_exit_code(templist);
-        aktproccode.concatlist(templist);
+          { reference for repetition is 100 }
+          cg.t_times:=100;
+
+        { clear register count }
+        symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
+        symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
+
+        { firstpass everything }
+        flowcontrol:=[];
+        do_firstpass(code);
+
+        { only do secondpass if there are no errors }
+        if ErrorCount=0 then
+          begin
+            { set the start offset to the start of the temp area in the stack }
+            tg:=ttgobj.create;
+
+            { Create register allocator }
+            cg.init_register_allocators;
+
+            current_procinfo.set_first_temp_offset;
+            current_procinfo.generate_parameter_info;
+
+            { Allocate space in temp/registers for parast and localst }
+            aktfilepos:=entrypos;
+            gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
+            if current_procinfo.procdef.localst.symtabletype=localsymtable then
+              gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
+            if (cs_asm_source in aktglobalswitches) then
+              aktproccode.concat(Tai_comment.Create(strpnew('Temps start at '+std_regname(current_procinfo.framepointer)+
+                  tostr_with_plus(tg.lasttemp))));
+
+            { Generate code to load register parameters in temps and insert local
+              copies for values parameters. This must be done before the code for the
+              body is generated because the localloc is updated.
+              Note: The generated code will be inserted after the code generation of
+              the body is finished, because only then the position is known }
+            aktfilepos:=entrypos;
+            gen_load_para_value(templist);
+
+            { caller paraloc info is also necessary in the stackframe_entry
+              code of the ppc (and possibly other processors)               }
+            if not procdef.has_paraloc_info then
+              begin
+                paramanager.create_paraloc_info(procdef,callerside);
+                procdef.has_paraloc_info:=true;
+              end;
+
+            { generate code for the node tree }
+            do_secondpass(code);
+            current_procinfo.aktproccode.concatlist(exprasmlist);
+{$ifdef i386}
+            procdef.fpu_used:=code.registersfpu;
+{$endif i386}
+
+            { The position of the loadpara_asmnode is now known }
+            aktproccode.insertlistafter(loadpara_asmnode.currenttai,templist);
+
+            { first generate entry and initialize code with the correct
+              position and switches }
+            aktfilepos:=entrypos;
+            aktlocalswitches:=entryswitches;
+            gen_entry_code(templist);
+            aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
+            gen_initialize_code(templist,false);
+            aktproccode.insertlistafter(init_asmnode.currenttai,templist);
+
+            { now generate finalize and exit code with the correct position
+              and switches }
+            aktfilepos:=exitpos;
+            aktlocalswitches:=exitswitches;
+            gen_finalize_code(templist,false);
+            { the finalcode must be concated if there was no position available,
+              using insertlistafter will result in an insert at the start
+              when currentai=nil }
+            if assigned(final_asmnode.currenttai) then
+              aktproccode.insertlistafter(final_asmnode.currenttai,templist)
+            else
+              aktproccode.concatlist(templist);
+            { insert exit label at the correct position }
+            cg.a_label(templist,current_procinfo.aktexitlabel);
+            if assigned(exitlabel_asmnode.currenttai) then
+              aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
+            else
+              aktproccode.concatlist(templist);
+            { exit code }
+            gen_exit_code(templist);
+            aktproccode.concatlist(templist);
 
 {$ifdef OLDREGVARS}
-        { note: this must be done only after as much code as possible has  }
-        {   been generated. The result is that when you ungetregister() a  }
-        {   regvar, it will actually free the regvar (and alse free the    }
-        {   the regvars at the same time). Doing this too early will       }
-        {   confuse the register allocator, as the regvars will still be   }
-        {   used. It should be done before loading the result regs (so     }
-        {   they don't conflict with the regvars) and before               }
-        {   gen_entry_code (that one has to be able to allocate the        }
-        {   regvars again) (JM)                                            }
-        free_regvars(aktproccode);
+            { note: this must be done only after as much code as possible has  }
+            {   been generated. The result is that when you ungetregister() a  }
+            {   regvar, it will actually free the regvar (and alse free the    }
+            {   the regvars at the same time). Doing this too early will       }
+            {   confuse the register allocator, as the regvars will still be   }
+            {   used. It should be done before loading the result regs (so     }
+            {   they don't conflict with the regvars) and before               }
+            {   gen_entry_code (that one has to be able to allocate the        }
+            {   regvars again) (JM)                                            }
+            free_regvars(aktproccode);
 {$endif OLDREGVARS}
 
-        { add code that will load the return value, this is not done
-          for assembler routines when they didn't reference the result
-          variable }
-        usesacc:=false;
-        usesfpu:=false;
-        usesacchi:=false;
-        gen_load_return_value(templist,usesacc,usesacchi,usesfpu);
-        aktproccode.concatlist(templist);
+            { add code that will load the return value, this is not done
+              for assembler routines when they didn't reference the result
+              variable }
+            usesacc:=false;
+            usesfpu:=false;
+            usesacchi:=false;
+            gen_load_return_value(templist,usesacc,usesacchi,usesfpu);
+            aktproccode.concatlist(templist);
 
-        { generate symbol and save end of header position }
-        aktfilepos:=entrypos;
-        gen_proc_symbol(templist);
-        headertai:=tai(templist.last);
-        { insert symbol }
-        aktproccode.insertlist(templist);
+            { generate symbol and save end of header position }
+            aktfilepos:=entrypos;
+            gen_proc_symbol(templist);
+            headertai:=tai(templist.last);
+            { insert symbol }
+            aktproccode.insertlist(templist);
 
-        { Free space in temp/registers for parast and localst, must be
-          done after gen_entry_code }
-        aktfilepos:=exitpos;
-        if current_procinfo.procdef.localst.symtabletype=localsymtable then
-          gen_free_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
-        gen_free_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
+            { Free space in temp/registers for parast and localst, must be
+              done after gen_entry_code }
+            aktfilepos:=exitpos;
+            if current_procinfo.procdef.localst.symtabletype=localsymtable then
+              gen_free_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
+            gen_free_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
 
-        { The procedure body is finished, we can now
-          allocate the registers }
-        if not(cs_no_regalloc in aktglobalswitches) then
-          begin
-            cg.do_register_allocation(aktproccode,headertai);
+            { The procedure body is finished, we can now
+              allocate the registers }
+            if not(cs_no_regalloc in aktglobalswitches) then
+              begin
+                cg.do_register_allocation(aktproccode,headertai);
 (*
 {$ifndef NoOpt}
-            if (cs_optimize in aktglobalswitches) and
-            { do not optimize pure assembler procedures }
-               not(pi_is_assembler in current_procinfo.flags)  then
-              optimize(aktproccode);
+                if (cs_optimize in aktglobalswitches) and
+                { do not optimize pure assembler procedures }
+                   not(pi_is_assembler in current_procinfo.flags)  then
+                  optimize(aktproccode);
 {$endif NoOpt}
 *)
-          end;
+              end;
 
-        {$warning fixme translate_regvars}
-{        translate_regvars(aktproccode,rg.colour);}
-        { Add save and restore of used registers }
-        aktfilepos:=entrypos;
-        gen_save_used_regs(templist);
-        aktproccode.insertlistafter(headertai,templist);
-        aktfilepos:=exitpos;
-        gen_restore_used_regs(aktproccode,usesacc,usesacchi,usesfpu);
-        { Add stack allocation code after header }
-        aktfilepos:=entrypos;
-        gen_stackalloc_code(templist);
-        aktproccode.insertlistafter(headertai,templist);
-        { Add exit code at the end }
-        aktfilepos:=exitpos;
-        gen_stackfree_code(templist,usesacc,usesacchi);
-        aktproccode.concatlist(templist);
-        { Add end symbol and debug info }
-        aktfilepos:=exitpos;
-        gen_proc_symbol_end(templist);
-        aktproccode.concatlist(templist);
+            { Add save and restore of used registers }
+            aktfilepos:=entrypos;
+            gen_save_used_regs(templist);
+            aktproccode.insertlistafter(headertai,templist);
+            aktfilepos:=exitpos;
+            gen_restore_used_regs(aktproccode,usesacc,usesacchi,usesfpu);
+            { Add stack allocation code after header }
+            aktfilepos:=entrypos;
+            gen_stackalloc_code(templist);
+            aktproccode.insertlistafter(headertai,templist);
+            { Add exit code at the end }
+            aktfilepos:=exitpos;
+            gen_stackfree_code(templist,usesacc,usesacchi);
+            aktproccode.concatlist(templist);
+            { Add end symbol and debug info }
+            aktfilepos:=exitpos;
+            gen_proc_symbol_end(templist);
+            aktproccode.concatlist(templist);
 
-        { save local data (casetable) also in the same file }
-        if assigned(aktlocaldata) and
-           (not aktlocaldata.empty) then
-         begin
-           { because of the limited constant size of the arm, all data access is done pc relative }
-           if target_info.cpu=cpu_arm then
-             aktproccode.concatlist(aktlocaldata)
-           else
+            { save local data (casetable) also in the same file }
+            if assigned(aktlocaldata) and
+               (not aktlocaldata.empty) then
              begin
-               aktproccode.concat(Tai_section.Create(sec_data));
-               aktproccode.concatlist(aktlocaldata);
-               aktproccode.concat(Tai_section.Create(sec_code));
-             end;
-        end;
+               { because of the limited constant size of the arm, all data access is done pc relative }
+               if target_info.cpu=cpu_arm then
+                 aktproccode.concatlist(aktlocaldata)
+               else
+                 begin
+                   aktproccode.concat(Tai_section.Create(sec_data));
+                   aktproccode.concatlist(aktlocaldata);
+                   aktproccode.concat(Tai_section.Create(sec_code));
+                 end;
+            end;
 
-        { add the procedure to the codesegment }
-        if (cs_create_smart in aktmoduleswitches) then
-          codesegment.concat(Tai_cut.Create);
-        codesegment.concatlist(aktproccode);
+            { add the procedure to the codesegment }
+            if (cs_create_smart in aktmoduleswitches) then
+              codesegment.concat(Tai_cut.Create);
+            codesegment.concatlist(aktproccode);
 
-        { only now we can remove the temps }
-        tg.resettempgen;
+            { only now we can remove the temps }
+            tg.resettempgen;
 
-        { stop tempgen and ra }
-        tg.free;
-        cg.done_register_allocators;
-        tg:=nil;
+            { stop tempgen and ra }
+            tg.free;
+            cg.done_register_allocators;
+            tg:=nil;
+          end;
 
         { restore symtablestack }
         remove_from_symtablestack;
@@ -1266,7 +1303,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.167  2003-10-24 17:40:23  peter
+  Revision 1.168  2003-10-30 16:22:40  peter
+    * call firstpass before allocation and codegeneration is started
+    * move leftover code from pass_2.generatecode() to psub
+
+  Revision 1.167  2003/10/24 17:40:23  peter
     * cleanup of the entry and exit code insertion
 
   Revision 1.166  2003/10/21 15:14:33  peter
