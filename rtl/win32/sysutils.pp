@@ -847,7 +847,12 @@ Const
 Type
   PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT; stdcall;
   
-Var
+
+{$ifdef VER1_0}
+Const
+{$else}
+var
+{$endif}
   SHGetFolderPath : PFNSHGetFolderPath = Nil;
   CFGDLLHandle : THandle = 0;  
 
@@ -961,7 +966,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.36  2004-08-05 12:55:29  michael
+  Revision 1.37  2004-08-06 13:23:21  michael
+  + Ver 1.0 does not handle initialized variables well
+
+  Revision 1.36  2004/08/05 12:55:29  michael
   + initialized SysConfigDir
 
   Revision 1.35  2004/08/05 07:28:37  michael
