@@ -30,9 +30,9 @@ Const 			// OS specific parameters for general sigset behaviour
 
 {$I gensigset.inc}     // general sigset funcs implementation. 
 
-{$ifndef ver1_0}
+{  $ ifndef ver1_0}
 Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
-{$endif}
+{   $ endif}
 
 Function FPKill(Pid:pid_t;Sig:cint):cint;
 {
@@ -463,7 +463,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2003-01-05 19:01:28  marco
+ Revision 1.2  2003-01-05 19:10:05  marco
+  * Small sigprocmask fix
+
+ Revision 1.1  2003/01/05 19:01:28  marco
   * FreeBSD compiles now with baseunix mods.
 
  Revision 1.11  2002/11/14 13:25:27  marco
