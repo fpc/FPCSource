@@ -116,7 +116,7 @@ general_e_path_does_not_exist=01017_E_Path "$1" does not exist
 #
 # Scanner
 #
-# 02061 is the last used one
+# 02063 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -301,6 +301,8 @@ scan_e_too_many_pop=02064_E_A POP without a preceding PUSH
 % This error occur only in mode MacPas.
 scan_e_error_macro_lacks_value=02065_E_Macro "$1" does not have any value
 % Thus the conditional compiling expression cannot be evaluated.
+scan_e_wrong_switch_toggle_default=02066_E_Wrong switch toggle, use ON/OFF/DEFAULT or +/-/*
+% You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 % \end{description}
 #
 # Parser
@@ -2112,15 +2114,38 @@ option_help_pages=11025_[
 **0*_put + after a boolean switch option to enable it, - to disable it
 **1a_the compiler doesn't delete the generated assembler file
 **2al_list sourcecode lines in assembler file
+**2an_list node info in assembler file
+*L2ap_use pipes instead of creating temporary assembler files
 **2ar_list register allocation/release info in assembler file
 **2at_list temp allocation/release info in assembler file
+**1A<x>_output format:
+**2Adefault_use default assembler
+3*2Aas_assemble using GNU AS
+3*2Anasmcoff_coff (Go32v2) file using Nasm
+3*2Anasmelf_elf32 (Linux) file using Nasm
+3*2Awasm_obj file using Wasm (Watcom)
+3*2Anasmobj_obj file using Nasm
+3*2Amasm_obj file using Masm (Microsoft)
+3*2Atasm_obj file using Tasm (Borland)
+3*2Aelf_elf32 (Linux) using internal writer
+3*2Acoff_coff (Go32v2) using internal writer
+3*2Apecoff_pecoff (Win32) using internal writer
+4*2Aas_assemble using GNU AS
+6*2Aas_Unix o-file using GNU AS
+6*2Agas_GNU Motorola assembler
+6*2Amit_MIT Syntax (old GAS)
+6*2Amot_Standard Motorola assembler
+A*2Aas_assemble using GNU AS
+P*2Aas_assemble using GNU AS
+S*2Aas_assemble using GNU AS
 **1b_generate browser info
 **2bl_generate local symbol info
 **1B_build all modules
 **1C<x>_code generation options:
+**2Cc<x>_set default calling convention to <x>
 **2CD_create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf_Select fpu instruction set to use
+**2Cf<x>_Select fpu instruction set to use to <x>
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
@@ -2132,28 +2157,30 @@ option_help_pages=11025_[
 **2Ct_stack checking
 **2CX_create also smartlinked library
 **1d<x>_defines the symbol <x>
-*O1D_generate a DEF file
-*O2Dd<x>_set description to <x>
+**1D_generate a DEF file
+**2Dd<x>_set description to <x>
+**2Dv<x>_set DLL version to <x>
 *O2Dw_PM application
 **1e<x>_set path to executable
 **1E_same as -Cn
 **1F<x>_set file names and paths:
+**2Fc<x>_sets input codepage to <x>
 **2FD<x>_sets the directory where to search for compiler utilities
 **2Fe<x>_redirect error output to <x>
 **2FE<x>_set exe/unit output path to <x>
 **2Fi<x>_adds <x> to include path
 **2Fl<x>_adds <x> to library path
-*L2FL<x>_uses <x> as dynamic linker
+**2FL<x>_uses <x> as dynamic linker
 **2Fo<x>_adds <x> to object path
 **2Fr<x>_load error message file <x>
 **2Fu<x>_adds <x> to unit path
 **2FU<x>_set unit output path to <x>, overrides -FE
 *g1g_generate debugger information:
-*g2gg_use gsym
+*g2gc_generate checks for pointers
 *g2gd_use dbx
+*g2gg_use gsym
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
-*g2gc_generate checks for pointers
 *g2gv_generates programs tracable with valgrind
 *g2gw_generate dwarf debugging info
 **1i_information
@@ -2175,8 +2202,29 @@ option_help_pages=11025_[
 **2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
 **1o<x>_change the name of the executable produced to <x>
+**1O<x>_optimizations:
+3*2Og_generate smaller code
+3*2OG_generate faster code (default)
+**2Or_keep certain variables in registers
+3*2Ou_enable uncertain optimizations (see docs)
+3*2O1_level 1 optimizations (quick optimizations)
+3*2O2_level 2 optimizations (-O1 + slower optimizations)
+3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)
+3*2Op<x>_target processor:
+3*3Op1_set target processor to 386/486
+3*3Op2_set target processor to Pentium/PentiumMMX (tm)
+3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
+6*2Og_generate smaller code
+6*2OG_generate faster code (default)
+6*2Ox_optimize maximum (still BUGGY!!!)
+6*2O0_set target processor to a MC68000
+6*2O2_set target processor to a MC68020+ (default)
 **1pg_generate profile code for gprof (defines FPC_PROFILE)
-*L1P_use pipes instead of creating temporary assembler files
+**1R<x>_assembler reading style:
+**2Rdefault_use default assembler
+3*2Ratt_read AT&T style assembler
+3*2Rintel_read Intel style assembler
+6*2RMOT_read motorola style assembler
 **1S<x>_syntax options:
 **2S2_same as -Mobjfpc
 **2Sc_supports operators like C (*=,+=,/= and -=)
@@ -2186,6 +2234,9 @@ option_help_pages=11025_[
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
+**2SI<x>_set interface style to <x>
+**3SIcom COM compatible interface (default)
+**3SIcorba CORBA compatible interface
 **2Sm_support macros like C (global)
 **2So_same as -Mtp
 **2Sp_same as -Mgpc
@@ -2194,7 +2245,33 @@ option_help_pages=11025_[
 **1s_don't call assembler and linker
 **2sh_Generate script to link on host
 **2st_Generate script to link on target
-**2sr_Skip register allocation phase (optimizations will be disabled)
+**2sr_Skip register allocation phase (use with -alr)
+**1T<x>_Target operating system:
+3*2Temx_OS/2 via EMX (including EMX/RSX extender)
+3*2Tfreebsd_FreeBSD
+3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Tlinux_Linux
+3*2Tnetbsd_NetBSD
+3*2Tnetware_Novell Netware Module (clib)
+3*2Tnetwlibc_Novell Netware Module (libc)
+3*2Topenbsd_OpenBSD
+3*2Tos2_OS/2 / eComStation
+3*2Tsunos_SunOS/Solaris
+3*2Twatcom_Watcom compatible DOS extender
+3*2Twdosx_WDOSX DOS extender
+3*2Twin32_Windows 32 Bit
+4*2Tlinux_Linux
+6*2Tamiga_Commodore Amiga
+6*2Tatari_Atari ST/STe/TT
+6*2Tlinux_Linux-68k
+6*2Tmacos_Macintosh m68k (not supported)
+6*2Tpalmos_PalmOS
+A*2Tlinux_Linux
+P*2Tdarwin_Darwin and MacOS X on PowerPC
+P*2Tlinux_Linux on PowerPC
+P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tmorphos_MorphOS
+S*2Tlinux_Linux
 **1u<x>_undefines the symbol <x>
 **1U_unit options:
 **2Un_don't check the unit name
@@ -2212,51 +2289,6 @@ option_help_pages=11025_[
 **2*_    declarations if an error    x : Executable info (Win32 only)
 **2*_    occurs
 **1V_write fpcdebug.txt file with lots of debugging info
-**1X_executable options:
-*L2Xc_link with the c library
-**2Xs_strip all symbols from executable
-**2XD_try to link dynamic          (defines FPC_LINK_DYNAMIC)
-**2XP<x>_prepend the binutils names with the prefix <x>
-**2XS_try to link static (default) (defines FPC_LINK_STATIC)
-**2XX_try to link smart            (defines FPC_LINK_SMART)
-**0*_Processor specific options:
-3*1A<x>_output format:
-3*2Aas_assemble using GNU AS
-3*2Anasmcoff_coff (Go32v2) file using Nasm
-3*2Anasmelf_elf32 (Linux) file using Nasm
-3*2Awasm_obj file using Wasm (Watcom)
-3*2Anasmobj_obj file using Nasm
-3*2Amasm_obj file using Masm (Microsoft)
-3*2Atasm_obj file using Tasm (Borland)
-3*2Acoff_coff (Go32v2) using internal writer
-3*2Apecoff_pecoff (Win32) using internal writer
-3*1R<x>_assembler reading style:
-3*2Ratt_read AT&T style assembler
-3*2Rintel_read Intel style assembler
-3*2Rdirect_copy assembler text directly to assembler file
-3*1O<x>_optimizations:
-3*2Og_generate smaller code
-3*2OG_generate faster code (default)
-3*2Or_keep certain variables in registers
-3*2Ou_enable uncertain optimizations (see docs)
-3*2O1_level 1 optimizations (quick optimizations)
-3*2O2_level 2 optimizations (-O1 + slower optimizations)
-3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)
-3*2Op<x>_target processor:
-3*3Op1_set target processor to 386/486
-3*3Op2_set target processor to Pentium/PentiumMMX (tm)
-3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
-3*1T<x>_Target operating system:
-3*2Temx_OS/2 via EMX (including EMX/RSX extender)
-3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
-3*2Tlinux_Linux
-3*2Tnetware_Novell Netware Module (clib)
-3*2Tnetwlibc_Novell Netware Module (libc)
-3*2Tos2_OS/2 / eComStation
-3*2Tsunos_SunOS/Solaris
-3*2Twatcom_Watcom compatible DOS extender
-3*2Twdosx_WDOSX DOS extender
-3*2Twin32_Windows 32 Bit
 3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
@@ -2265,34 +2297,19 @@ option_help_pages=11025_[
 3*2WG_Specify graphic type application
 3*2WN_Do not generate relocation code (necessary for debugging)
 3*2WR_Generate relocation code
-6*1A<x>_output format
-6*2Aas_Unix o-file using GNU AS
-6*2Agas_GNU Motorola assembler
-6*2Amit_MIT Syntax (old GAS)
-6*2Amot_Standard Motorola assembler
-6*1O_optimizations:
-6*2Oa_turn on the optimizer
-6*2Og_generate smaller code
-6*2OG_generate faster code (default)
-6*2Ox_optimize maximum (still BUGGY!!!)
-6*2O0_set target processor to a MC68000
-6*2O2_set target processor to a MC68020+ (default)
-6*1R<x>_assembler reading style:
-6*2RMOT_read motorola style assembler
-6*1T<x>_Target operating system:
-6*2Tamiga_Commodore Amiga
-6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux-68k
-6*2Tmacos_Macintosh m68k (not supported)
-6*2Tpalmos_PalmOS
-P*1T<x>_Target operating system:
-P*2Tdarwin_Darwin and MacOS X on PowerPC
-P*2Tlinux_Linux on PowerPC
-P*2Tmacos_MacOS (classic) on PowerPC
-P*2Tmorphos_MorphOS
 P*2WC_Specify console type application (MacOS only)
 P*2WG_Specify graphic type application (MacOS only)
 P*2WT_Specify tool type application (MPW tool, MacOS only)
+**1X_executable options:
+**2Xc_link with the c library
+**2Xd_don't use standard library search path (needed for cross compile)
+**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
+**2XP<x>_prepend the binutils names with the prefix <x>
+**2Xr<x>_set library search path to <x> (needed for cross compile)
+**2Xs_strip all symbols from executable
+**2XS_try to link units static (default) (defines FPC_LINK_STATIC)
+**2Xt_link with static libraries (-static is passed to linker)
+**2XX_try to link units smart            (defines FPC_LINK_SMART)
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting

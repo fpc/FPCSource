@@ -80,6 +80,7 @@ const
   scan_e_too_many_push=02063;
   scan_e_too_many_pop=02064;
   scan_e_error_macro_lacks_value=02065;
+  scan_e_wrong_switch_toggle_default=02066;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -645,9 +646,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36977;
+  MsgTxtSize = 37594;
 
   MsgIdxMax : array[1..20] of longint=(
-    18,66,209,59,57,46,99,20,35,60,
+    18,67,209,59,57,46,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );
