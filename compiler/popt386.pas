@@ -1606,13 +1606,23 @@ Begin
 end;
 
 {$ifdef foldArithOps}
-Function IsArithOp(opcode: TAsmOp): Boolean;
-Begin
-  IsArithOp := False;
-  Case opcode Of
-    A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR: IsArithOp := True
-  End;
-End;
+function isFoldableArithOp(hp1: paicpu; reg: tregister): boolean;
+begin
+  IsFoldableArithOp := False;
+  case hp1^.opcode of
+    A_ADD,A_SUB,A_OR,A_XOR,A_AND,A_SHL,A_SHR,A_SAR,A_IMUL:
+      isFoldableArithOp :=
+        ((paicpu(hp1)^.oper[0].typ = top_reg) or
+         ((paicpu(hp1)^.oper[0].typ = top_const) and
+          (hp1^.opcode <> A_IMUL))) and
+        (paicpu(hp1)^.oper[1].typ = top_reg) and
+        (paicpu(hp1)^.oper[1].reg = reg);
+    A_INC,A_DEC:
+      isFoldableArithOp := 
+        (paicpu(hp1)^.oper[0].typ = top_reg) and
+        (paicpu(hp1)^.oper[0].reg = reg);
+  end;
+end;
 {$endif foldArithOps}
 
 
@@ -1823,10 +1833,7 @@ Begin
                   Else If (Paicpu(p)^.oper[0].typ = top_ref) And
                     GetNextInstruction(p,hp1) And
                     (hp1^.typ = ait_instruction) And
-                    IsArithOp(Paicpu(hp1)^.opcode) And
-                    (Paicpu(hp1)^.oper[0].typ in [top_reg,top_const]) And
-                    (Paicpu(hp1)^.oper[1].typ = top_reg) And
-                    (Paicpu(hp1)^.oper[1].reg = Paicpu(p)^.oper[1].reg) And
+                    IsFoldableArithOp(paicpu(hp1),Paicpu(p)^.oper[1].reg) And
                     GetNextInstruction(hp1,hp2) And
                     (hp2^.typ = ait_instruction) And
                     (Paicpu(hp2)^.opcode = A_MOV) And
@@ -1842,11 +1849,16 @@ Begin
                        Then
   { change   mov            (ref), reg            }
   {          add/sub/or/... reg2/$const, reg      }
-  {          mov            (reg), ref            }
+  {          mov            reg, (ref)            }
   {          # release reg                        }
   { to       add/sub/or/... reg2/$const, (ref)    }
                      Begin
-                       Paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[0].ref^));
+                       case paicpu(hp1)^.opcode of
+                         A_INC,A_DEC: 
+                           paicpu(hp1)^.LoadRef(0,newreference(Paicpu(p)^.oper[0].ref^))
+                         else
+                           paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[0].ref^));
+                       end;
                        AsmL^.Remove(p);
                        AsmL^.Remove(hp2);
                        Dispose(p,done);
@@ -1920,7 +1932,10 @@ End.
 
 {
  $Log$
- Revision 1.93  2000-05-23 10:58:46  jonas
+ Revision 1.94  2000-06-14 06:05:06  jonas
+   + support for inc/dec/imul in foldarithops
+
+ Revision 1.93  2000/05/23 10:58:46  jonas
    * fixed bug in "subl $2,%esp; .. ; pushw mem" optimization when the
      sub comes from setting up the stack frame instead of from aligning
      esp (I hope)
