@@ -32,8 +32,8 @@ uses ncurses;
           wendy : longint;
           wstartx : longint;
           wendx : longint;
-          below : ^_panel;
-          above : ^_panel;
+          below : ppanel;
+          above : ppanel;
           user : longint; { NCURSES_CONST void  user; }
           obscure : pointer;
        end;
@@ -81,7 +81,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:01  peter
+  Revision 1.3  2002-09-09 19:43:48  peter
+    * fix for new complete type check
+
+  Revision 1.2  2002/09/07 15:43:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:17  peter
