@@ -24,8 +24,20 @@
       {$ifndef USEOPT}
         {$define NOOPT}
       {$endif}
+      
+      { 1.0.x generates broken code for sysutils }
+      {$ifndef FORCE_SYSUTILS}
+        {$undef USE_SYSUTILS}
+      {$endif}	
   {$endif VER1_0}
 
+  {$ifdef VER1_9_4}
+     { 1.9.4 generates broken code for sysutils }
+     {$ifndef FORCE_SYSUTILS}
+       {$undef USE_SYSUTILS}
+     {$endif}	
+  {$endif}
+   
   {$define FPCPROCVAR}
   {$define USEEXCEPT}
 
@@ -84,7 +96,10 @@
 
 {
   $Log$
-  Revision 1.43  2004-10-10 14:57:29  jonas
+  Revision 1.44  2004-10-14 18:29:22  peter
+    * disable USE_SYSUTILS when compiled with 1.9.4 or 1.0.x
+
+  Revision 1.43  2004/10/10 14:57:29  jonas
     - disabled oldregvars because it no longer compiles
 
   Revision 1.42  2004/10/04 21:23:15  florian
