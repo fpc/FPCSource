@@ -414,7 +414,7 @@ uses
            { implementation units should not change
              the CRC PM }
            ppufile.do_crc:=hp.in_interface;
-           ppufile.putstring(hp.name^);
+           ppufile.putstring(hp.realname^);
            { the checksum should not affect the crc of this unit ! (PFV) }
            ppufile.do_crc:=false;
            ppufile.putlongint(longint(hp.checksum));
@@ -876,7 +876,7 @@ uses
          begin
            if (not pu.loaded) and (pu.in_interface) then
             begin
-              loaded_unit:=loadunit(pu.name^,'');
+              loaded_unit:=loadunit(pu.realname^,'');
               if compiled then
                exit;
               { register unit in used units }
@@ -887,7 +887,7 @@ uses
               { need to recompile the current unit ? }
               if loaded_unit.crc<>pu.checksum then
                begin
-                 Message2(unit_u_recompile_crc_change,modulename^,pu.name^);
+                 Message2(unit_u_recompile_crc_change,realmodulename^,pu.realname^);
                  recompile_reason:=rr_crcchanged;
                  do_compile:=true;
                  dispose(map);
@@ -918,7 +918,7 @@ uses
          begin
            if (not pu.loaded) and (not pu.in_interface) then
             begin
-              loaded_unit:=loadunit(pu.name^,'');
+              loaded_unit:=loadunit(pu.realname^,'');
               if compiled then
                exit;
             { register unit in used units }
@@ -928,7 +928,7 @@ uses
               if (loaded_unit.interface_crc<>pu.interface_checksum) {and
                  not(current_module.in_second_compile) } then
                 begin
-                  Message2(unit_u_recompile_crc_change,modulename^,pu.name^+' {impl}');
+                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.realname^+' {impl}');
                   recompile_reason:=rr_crcchanged;
                   do_compile:=true;
                   dispose(map);
@@ -1172,7 +1172,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  2001-05-19 23:05:19  peter
+  Revision 1.8  2001-06-04 11:49:08  peter
+    * store used units in original type in ppu
+
+  Revision 1.7  2001/05/19 23:05:19  peter
     * support uses <unit> in <file> construction
 
   Revision 1.6  2001/05/19 21:08:59  peter

@@ -137,6 +137,7 @@ interface
        tused_unit = class(tlinkedlistitem)
           unitid          : longint;
           name            : pstring;
+          realname        : pstring;
           checksum,
           interface_checksum : cardinal;
           loaded          : boolean;
@@ -312,6 +313,7 @@ uses
         is_stab_written:=false;
         loaded:=true;
         name:=stringdup(_u.modulename^);
+        realname:=stringdup(_u.realmodulename^);
         checksum:=_u.crc;
         interface_checksum:=_u.interface_crc;
         unitid:=0;
@@ -325,7 +327,8 @@ uses
         in_uses:=false;
         is_stab_written:=false;
         loaded:=false;
-        name:=stringdup(n);
+        name:=stringdup(upper(n));
+        realname:=stringdup(n);
         checksum:=c;
         interface_checksum:=intfc;
         unitid:=0;
@@ -334,6 +337,7 @@ uses
 
     destructor tused_unit.destroy;
       begin
+        stringdispose(realname);
         stringdispose(name);
         inherited destroy;
       end;
@@ -585,7 +589,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.16  2001-06-03 15:15:31  peter
+  Revision 1.17  2001-06-04 11:49:08  peter
+    * store used units in original type in ppu
+
+  Revision 1.16  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix
