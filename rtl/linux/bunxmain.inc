@@ -20,7 +20,6 @@
 }
 
 { $I ostypes.inc}
-{ $I posmacro.inc}
 
 {$ifdef uselibc}
  {$I oscdecl.inc}
@@ -61,7 +60,11 @@ procedure seterrno 	(i:cint); external name  'FPC_SYS_SETERRNO';
 
 {
  $Log$
- Revision 1.1  2002-12-18 16:43:26  marco
+ Revision 1.2  2003-01-02 22:39:19  marco
+  * posmacro.inc was still include while it was already moved to bunxmacr.inc
+    fixed, will remove posmacro.inc shortly
+
+ Revision 1.1  2002/12/18 16:43:26  marco
   * new unix rtl, linux part.....
 
  Revision 1.1  2002/11/12 14:37:59  marco
