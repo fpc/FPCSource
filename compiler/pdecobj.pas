@@ -38,8 +38,8 @@ implementation
       cutils,cclasses,
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
-      hcodegen,hcgdata,
-      node,nld,ncon,ncnv,pass_1,
+      hcodegen,
+      node,nld,ncon,ncnv,nobj,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype;
 
@@ -1007,7 +1007,7 @@ implementation
          if (cs_create_smart in aktmoduleswitches) then
            dataSegment.concat(Tai_cut.Create);
 
-         ch:=tclassheader.create(aktclass);
+         ch:=cclassheader.create(aktclass);
          if is_interface(aktclass) then
            ch.writeinterfaceids;
          if (oo_has_vmt in aktclass.objectoptions) then
@@ -1032,7 +1032,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-04-18 22:01:54  peter
+  Revision 1.23  2001-04-21 13:37:16  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.22  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.21  2001/04/13 01:22:11  peter

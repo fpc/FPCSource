@@ -20,26 +20,31 @@
 
  ****************************************************************************
 }
-unit n386ic;
+unit n386obj;
+
+{$i defines.inc }
 
 interface
 
-uses
-  aasm,
-  symbase,symtype,symtable,symdef,symsym;
-
-procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
 
 implementation
 
 uses
   systems,
-  verbose, globals,
-  symconst,
+  verbose,globals,
+  aasm,
+  symconst,symbase,symtype,symtable,symdef,symsym,
+  nobj,
   temp_gen,
   cpubase,
   cgai386, tgcpu;
 
+   type
+     ti386classheader=class(tclassheader)
+     protected
+       procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+     end;
+     
 {
 possible calling conventions:
               default stdcall cdecl pascal popstack register saveregisters
@@ -94,7 +99,8 @@ begin
 end;
 
 
-procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+
   procedure checkvirtual;
   begin
     if (procdef.extnumber=-1) then
@@ -199,10 +205,16 @@ begin
   exprasmlist:=oldexprasmlist;
 end;
 
+
+initialization
+  cclassheader:=ti386classheader;
 end.
 {
   $Log$
-  Revision 1.5  2001-04-13 01:22:19  peter
+  Revision 1.1  2001-04-21 13:37:17  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.5  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

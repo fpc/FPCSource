@@ -21,7 +21,7 @@
 
  ****************************************************************************
 }
-unit hcgdata;
+unit nobj;
 
 {$i defines.inc}
 
@@ -96,6 +96,8 @@ interface
         function  gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
         procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
         procedure gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
+      protected
+        procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
       public
         constructor create(c:tobjectdef);
         { generates the message tables for a class }
@@ -115,7 +117,12 @@ interface
         procedure writeinterfaceids;
       end;
 
+      tclassheaderclass=class of tclassheader;
 
+    var     
+      cclassheader : tclassheaderclass;
+
+      
 implementation
 
     uses
@@ -130,9 +137,6 @@ implementation
        gdb,
 {$endif GDB}
        systems
-{$ifdef i386}
-       ,n386ic
-{$endif}
        ;
 
 
@@ -1263,10 +1267,15 @@ implementation
       end;
 
 
+initialization
+  cclassheader:=tclassheader;
 end.
 {
   $Log$
-  Revision 1.20  2001-04-18 22:01:54  peter
+  Revision 1.1  2001-04-21 13:37:16  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.20  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.19  2001/04/13 01:22:07  peter

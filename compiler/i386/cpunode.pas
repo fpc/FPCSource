@@ -30,12 +30,17 @@ unit cpunode;
 
     uses
        n386bas,n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
-       n386set,n386inl,n386opt;
+       n386set,n386inl,n386opt,
+       { this not really a node }
+       n386obj;
 
 end.
 {
   $Log$
-  Revision 1.2  2000-12-31 11:14:11  jonas
+  Revision 1.3  2001-04-21 13:37:17  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.2  2000/12/31 11:14:11  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

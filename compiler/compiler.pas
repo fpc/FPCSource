@@ -100,12 +100,12 @@ uses
   assemble,link,import,export,tokens,pass_1
   { cpu overrides }
   ,cpuswtch
-  { cpu targets }
-  ,cputarg
   { cpu codegenerator }
 {$ifndef NOPASS2}
   ,cpunode
 {$endif}
+  { cpu targets }
+  ,cputarg
   ;
 
 function Compile(const cmd:string):longint;
@@ -328,7 +328,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2001-04-18 22:01:53  peter
+  Revision 1.20  2001-04-21 13:37:16  peter
+    * made tclassheader using class of to implement cpu dependent code
+
+  Revision 1.19  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.18  2001/04/13 18:08:36  peter
