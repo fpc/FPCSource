@@ -1095,7 +1095,7 @@ unit cgobj;
       begin
 {$ifdef FPC}
         {$warning FIX ME!}
-{$endif}        
+{$endif}
         a_paramaddr_ref(list,dest,paramanager.getintparaloc(3));
         if loadref then
           a_param_ref(list,OS_ADDR,source,paramanager.getintparaloc(2))
@@ -1408,7 +1408,8 @@ unit cgobj;
      begin
         if is_class(procinfo._class) then
           begin
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+            if (cs_implicit_exceptions in aktmoduleswitches) then
+              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             { parameter 2 : self pointer / flag }
             {!! this is a terrible hack, normally the helper should get three params : }
             {    one with self register, one with flag and one with VMT pointer        }
@@ -1603,7 +1604,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.61  2002-10-05 12:43:23  carl
+  Revision 1.62  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.61  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -1418,7 +1418,7 @@ implementation
       { Init values }
         initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[cs_check_io,cs_typed_const_writable];
-        initmoduleswitches:=[cs_extsyntax,cs_browser];
+        initmoduleswitches:=[cs_extsyntax,cs_browser,cs_implicit_exceptions];
         initsourcecodepage:='8859-1';
         initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
         initoutputformat:=target_asm.id;
@@ -1477,7 +1477,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-09-05 19:28:29  peter
+  Revision 1.67  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.66  2002/09/05 19:28:29  peter
     * removed repetitive pass counting
     * display heapsize also for extdebug
 

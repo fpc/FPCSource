@@ -935,7 +935,8 @@ implementation
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
-           if assigned(procinfo) then
+           if assigned(procinfo) and
+              (cs_implicit_exceptions in aktmoduleswitches) then
             procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
             reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
@@ -997,7 +998,8 @@ implementation
            case tvarsym(p).varspez of
              vs_value :
                begin
-                 procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                 if (cs_implicit_exceptions in aktmoduleswitches) then
+                   procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
                  if assigned(tvarsym(p).localvarsym) then
                   reference_reset_base(href,procinfo.framepointer,
                       -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
@@ -1055,7 +1057,8 @@ implementation
                                tt_widestring,tt_freewidestring,
                                tt_interfacecom,tt_freeinterfacecom] then
             begin
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              if (cs_implicit_exceptions in aktmoduleswitches) then
+                procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
               reference_reset_base(href,procinfo.framepointer,hp^.pos);
               cg.a_load_const_ref(list,OS_ADDR,0,href);
             end;
@@ -1273,7 +1276,8 @@ implementation
              { initialize return value }
              if (aktprocdef.rettype.def.needs_inittable) then
                begin
-                  procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                  if (cs_implicit_exceptions in aktmoduleswitches) then
+                    procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
                   reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
                   cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def));
                end;
@@ -1842,7 +1846,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-10-14 19:42:33  peter
+  Revision 1.56  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.55  2002/10/14 19:42:33  peter
     * only use init tables for threadvars
 
   Revision 1.54  2002/10/06 19:41:30  peter

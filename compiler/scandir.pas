@@ -295,6 +295,11 @@ implementation
         do_setverbose('H');
       end;
 
+    procedure dir_implicitexceptions;
+      begin
+        do_moduleswitch(cs_implicit_exceptions);
+      end;
+
     procedure dir_includepath;
       begin
         if not current_module.in_global then
@@ -901,6 +906,7 @@ implementation
         AddDirective('HINT',{$ifdef FPCPROCVAR}@{$endif}dir_hint);
         AddDirective('HINTS',{$ifdef FPCPROCVAR}@{$endif}dir_hints);
         AddDirective('IOCHECKS',{$ifdef FPCPROCVAR}@{$endif}dir_iochecks);
+        AddDirective('IMPLICITEXCEPTIONS',{$ifdef FPCPROCVAR}@{$endif}dir_implicitexceptions);
         AddDirective('INCLUDEPATH',{$ifdef FPCPROCVAR}@{$endif}dir_includepath);
         AddDirective('INFO',{$ifdef FPCPROCVAR}@{$endif}dir_info);
         AddDirective('INLINE',{$ifdef FPCPROCVAR}@{$endif}dir_inline);
@@ -960,7 +966,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-10-14 19:43:41  peter
+  Revision 1.21  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.20  2002/10/14 19:43:41  peter
     * threading switch, defines the symbol FPC_THREADING
 
   Revision 1.19  2002/08/13 18:01:52  carl

@@ -1532,7 +1532,8 @@ unit cgx86;
       begin
         if is_class(procinfo._class) then
           begin
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+            if (cs_implicit_exceptions in aktmoduleswitches) then
+              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             a_call_name(list,'FPC_NEW_CLASS');
             list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
           end
@@ -1681,7 +1682,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.18  2002-10-05 12:43:30  carl
+  Revision 1.19  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.18  2002/10/05 12:43:30  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

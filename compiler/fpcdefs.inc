@@ -10,6 +10,12 @@
     { This reduces the memory requirements a lot }
     {$PACKENUM 1}
 
+    { We don't use exceptions, so turn off the implicit
+      exceptions in the constructors }
+    {$ifndef VER1_0}
+      {$IMPLICITEXCEPTIONS OFF}
+    {$endif VER1_0}
+
     {$define FPCPROCVAR}
     {$ifdef I386}
       {$define USEEXCEPT}
@@ -48,7 +54,12 @@
 {$endif alpha}
 {
   $Log$
-  Revision 1.12  2002-10-05 12:43:24  carl
+  Revision 1.13  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.12  2002/10/05 12:43:24  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

@@ -53,7 +53,7 @@ interface
          cs_support_c_operators,cs_static_keyword,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
-         cs_lineinfo,cs_threading,
+         cs_lineinfo,cs_threading,cs_implicit_exceptions,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic
        );
@@ -211,7 +211,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-10-14 19:43:41  peter
+  Revision 1.34  2002-10-16 19:01:43  peter
+    + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
+      implicit exception frames for procedures with initialized variables
+      and for constructors. The default is on for compatibility
+
+  Revision 1.33  2002/10/14 19:43:41  peter
     * threading switch, defines the symbol FPC_THREADING
 
   Revision 1.32  2002/10/05 12:43:24  carl
