@@ -1,5 +1,5 @@
+{ %TARGET=win32 }
 { %NORUN }
-{$ifdef win32}
 library test;
 
   procedure exporttest;export;
@@ -8,7 +8,6 @@ library test;
     end;
 
   exports exporttest;
-{$endif}
 
 begin
 end.

@@ -3,13 +3,8 @@
 
 {$mode objfpc}
 uses
-(* sysutils does not work correctly with DPMIEXCP unit
-  anyway, its not needed anymore
-  since the exception handler is now in system unit
-{$ifdef go32v2}
-dpmiexcp,
-{$endif} *)
-sysutils;
+  sysutils;
+
 var i,j,k:real;
 const except_called : boolean = false;
 begin

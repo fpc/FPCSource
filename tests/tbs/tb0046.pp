@@ -1,19 +1,9 @@
 { %GRAPH }
+{ %TARGET=go32v2,win32,linux}
 
 { Old file: tbs0052.pp }
 {  Graph, collects missing graph unit routines          OK 0.99.9 (PM) }
 
-{$ifdef go32v2}
-{$define OK}
-{$endif}
-{$ifdef Unix}
-{$define OK}
-{$endif}
-{$ifdef win32}
-{$define OK}
-{$endif}
-
-{$ifdef OK}
 uses
   crt,graph;
 
@@ -26,9 +16,7 @@ const
     (X: 275; Y: 150), (X: 280; Y : 50), (X:295; Y : 80) );
 
 var Gd, Gm: Integer;
-{$endif OK}
 begin
-{$ifdef OK}
   Gd := Detect;
   InitGraph(Gd, Gm, 'c:\bp\bgi');
   if GraphResult <> grOk then
@@ -50,5 +38,4 @@ begin
   graphdefaults;
   {readln;}delay(1000);
   CloseGraph;
-{$endif OK}
 end.

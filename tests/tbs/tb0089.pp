@@ -1,16 +1,9 @@
+{ %TARGET=go32v2,linux }
+
 { Old file: tbs0105.pp }
 { typecasts are now ignored problem (NOT A bugs)         OK 0.99.1 }
 
-{$ifdef go32v2}
-{$define OK}
-{$endif}
-{$ifdef Unix}
-{$define OK}
-{$endif}
-
 { Win32 signal support is still missing ! }
-
-{$ifdef OK}
 
 {$ifdef go32v2}
  uses dpmiexcp;
@@ -34,9 +27,7 @@
 Var
  Sel: Word;
  v: pointer;
-{$endif OK}
 Begin
-{$ifdef OK}
  Signal(SIGSEGV,signalhandler(@our_sig));
  { generate a sigsegv by writing to null-address }
  sel:=0;
@@ -49,5 +40,4 @@ Begin
  { we should not go to here }
  Writeln('Error : signal not called');
  Halt(1);
-{$endif OK}
 end.

@@ -8,10 +8,6 @@
 
 Program X;
 
-{$ifdef go32v2}
-  uses dpmiexcp;
-{$endif go32v2}
-
 Type
    PY=^Y;
    Y=Object

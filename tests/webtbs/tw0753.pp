@@ -4,10 +4,8 @@
 {$H+}
 program stackcrash;
 uses
-{$ifdef go32v2}
-  dpmiexcp,
-{$endif go32v2}
   sysutils;
+
 type
   TMyClass = class
   public

@@ -1,15 +1,8 @@
 { %INTERACTIVE }
+{ %TARGET=win32,linux }
 
 { Source provided for Free Pascal Bug Report 966 }
 {$i-}
-{$ifdef Unix}
-{$define has_sockets}
-{$endif Unix}
-{$ifdef win32}
-{$define has_sockets}
-{$endif win32}
-
-{$ifdef has_sockets}
 uses
 {$ifdef Unix}
   linux,
@@ -77,8 +70,4 @@ begin
   Write(Sout,'QUIT'#10);
   read_to_eof;
   shutdown(s,2); close(sin); close(sout);
-{$else : not has_sockets}
-begin
-  Writeln('No sockets unit for this target');
-{$endif has_sockets}
 end.

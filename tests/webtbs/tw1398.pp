@@ -1,4 +1,5 @@
-{$ifdef win32}
+{ %target=win32 }
+
 uses Windows;
 
 function Enum_FindTaskWindow (hWindow:HWND; lpar:LPARAM) : boolean; export; stdcall;
@@ -10,8 +11,4 @@ var dwThread:DWORD;
 begin
   dwThread := GetCurrentThreadId;
   EnumTaskWindows (dwThread, @Enum_FindTaskWindow, LPARAM(NULL));
-
-{$else}
-begin
-{$endif}
 end.

@@ -1,12 +1,6 @@
 { Old file: tbs0017.pp }
 {  }
 
-
-{$ifdef go32v2}
-   uses dpmiexcp;
-
-{$endif go32v2}
-
 const
       nextoptpass : longint = 0;
   procedure init;

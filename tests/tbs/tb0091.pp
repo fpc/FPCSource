@@ -6,11 +6,6 @@
 
 Program Test1;
 
-{$ifdef go32v2}
-uses
-   dpmiexcp;
-{$endif}
-
 type
  myObject = object
    constructor init;

@@ -1,10 +1,5 @@
 program test;
 
-{$ifdef win32}
-uses
-  windows;
-{$endif }
-
 procedure write1(  var charbuf:string);
 begin
   Writeln(Charbuf);

@@ -1,29 +1,17 @@
 { %GRAPH }
+{ %TARGET=go32v2,win32,linux }
 
 { Old file: tbs0037.pp }
 {  tests missing graph.setgraphmode                    OK RTL (FK) }
 
-{$ifdef go32v2}
-{$define OK}
-{$endif}
-{$ifdef Unix}
-{$define OK}
-{$endif}
-{$ifdef win32}
-{$define OK}
-{$endif}
-
-{$ifdef OK}
 uses
    graph,
    crt;
 
 var
    gd,gm,res : integer;
-{$endif OK}
 
 begin
-{$ifdef OK}
    gd:=detect;
    initgraph(gd,gm,'');
    res := graphresult;
@@ -49,6 +37,4 @@ begin
    {readkey;}
    delay(1000);
    closegraph;
-{$endif OK}
 end.
-

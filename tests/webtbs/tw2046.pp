@@ -1,3 +1,5 @@
+{ %skiptarget=go32v2 }
+
 { Source provided for Free Pascal Bug Report 2046 }
 { Submitted by "Mattias Gaertner" on  2002-07-17 }
 { e-mail: nc-gaertnma@netcologne.de }

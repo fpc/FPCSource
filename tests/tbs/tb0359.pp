@@ -1,6 +1,5 @@
 { %version=1.1 }
-
-{$ifdef unix}
+{ %TARGET=linux }
 
 {$linklib c}
 
@@ -16,9 +15,4 @@ begin
 
   t:=@printf;
   t('Procvar test %d %s %f'#10,2,'test',1234.5678);
-
-{$else}
-begin
-  writeln('Unix only test');
-{$endif}
 end.

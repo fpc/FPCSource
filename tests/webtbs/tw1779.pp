@@ -1,16 +1,14 @@
+{ %target=win32 }
 { Source provided for Free Pascal Bug Report 1779 }
 { Submitted by "Pierre" on  2002-01-25 }
 { e-mail: pierre@freepascal.org }
 
-{$ifdef win32}
 uses
   windows;
 
 function GetLargestConsoleWindowSizeAlternate(h : longint) : dword;
   external 'kernel32' name 'GetLargestConsoleWindowSize';
-{$endif win32}
 
-{$ifdef win32}
 var
   c1,c : coord;
   y : dword;
@@ -27,9 +25,4 @@ begin
       Writeln('RTL bug');
       Halt(1);
     end;
-end.    
-{$else not win32}
-begin
-  Writeln('Bug 1779 is win32 specific');
 end.
-{$endif win32}

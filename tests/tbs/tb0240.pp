@@ -6,11 +6,6 @@
 
 program memhole;
 
-{$ifdef go32v2}
-uses
-   dpmiexcp;
-{$endif go32v2}
-
 type
   TMyClass = class
     s: String;

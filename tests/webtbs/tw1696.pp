@@ -1,6 +1,6 @@
 { %version=1.1 }
+{ %target=win32 }
 
-{$ifdef Win32}
 Uses Windows;
 Var Font:HFONT;
 Begin
@@ -19,10 +19,6 @@ Begin
                     PROOF_QUALITY,
                     FF_DONTCARE Or DEFAULT_PITCH,
                     'Verdana');
-{$else}
-begin
-  Writeln('Win32 only');
-{$endif}
 End.
 
 

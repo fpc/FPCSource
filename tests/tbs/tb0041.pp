@@ -5,13 +5,6 @@ program test;
 
 {$R-}
 
-{$ifdef fpc}
-{$ifdef go32v2}
-uses
-   dpmiexcp;
-{$endif}
-{$endif}
-
 type byteset = set of byte;
      bl = record i,j : longint;
           end;

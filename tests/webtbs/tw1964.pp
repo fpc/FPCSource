@@ -1,3 +1,5 @@
+{ %target=win32 }
+
   uses  DOS;
   var
     error : boolean;
@@ -14,7 +16,6 @@
        error:=true;
     end;
   begin
-{$ifdef Win32}
     Expand('C:\Windows1\System');
     Expand('\\.\C\Windows1\System');
     Expand('C:\Windows1\System');
@@ -23,8 +24,5 @@
        Writeln('ERROR!');
        Halt(1);
      end;
-{$else}
-   Writeln('Win32 only test');
-{$endif}
   end.
 

@@ -1,5 +1,7 @@
 { %CPU=i386 }
+{ %TARGET=go32v2,win32,linux }
 { %NOTE=This test requires an installed Nasm }
+
 { Old file: tbs0043.pp }
 {  shows assembler nasm output fpu opcodes problem     OK 0.99.6 (PFV) }
 

@@ -1,11 +1,10 @@
 { %version=1.1 }
+{ %TARGET=win32 }
 unit tw1820;
-
 interface
 
-{$ifdef win32}
-
 {$mode Delphi}
+
 Uses Windows;
 
 type
@@ -17,8 +16,6 @@ type
 const
   IEnumTasks = IEnumWorkItems;
 
-{$endif}
-
-  implementation
+implementation
 
 end.

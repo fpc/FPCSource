@@ -1,30 +1,15 @@
 { %GRAPH }
+{ %TARGET=go32v2,win32,linux }
 
 { Old file: tbs0195.pp }
 { Problem with Getimage, crash of DOS box, even with dpmiexcp!! (PFV) Not a bugs, you must use p^. }
 
-{$ifdef go32v2}
-{$define OK}
-{$endif}
-{$ifdef Unix}
-{$define OK}
-{$endif}
-{$ifdef win32}
-{$define OK}
-{$endif}
-
-{$ifdef OK}
-uses graph
-{$ifdef go32v2}
-,dpmiexcp
-{$endif go32v2};
+uses graph;
 var
    GDriver, GMode: Integer;
    w:word;
    p:pointer;
-{$endif OK}
 begin
-{$ifdef OK}
    GDriver := $FF;
    GMode := $101;
    InitGraph(GDriver, GMode, '');
@@ -45,5 +30,4 @@ begin
    freemem(p, w);
    closegraph;
    readln;
-{$endif OK}
 end.

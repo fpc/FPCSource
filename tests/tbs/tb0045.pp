@@ -1,4 +1,5 @@
 { %GRAPH }
+{ %TARGET=go32v2,win32,linux }
 
 { Old file: tbs0051.pp }
 {  Graph, shows a problem with putpixel                 OK 0.99.9 (PM) }
@@ -7,14 +8,6 @@
   {define has_colors_equal}
 {$endif go32v2}
 
-{$ifdef go32v2}
-{$define OK}
-{$endif}
-{$ifdef Unix}
-{$define OK}
-{$endif}
-
-{$ifdef OK}
 uses  crt,graph;
 
 {$ifndef has_colors_equal}
@@ -32,9 +25,7 @@ var   gd,gm,gError,yi,i : integer;
       col: longint;
       error : word;
 
-{$endif OK}
 BEGIN
-{$ifdef OK}
   if paramcount=0 then
     gm:=$111   {640x480/64K  HiColor}
   else
@@ -70,15 +61,4 @@ BEGIN
   {readkey;}delay(1000);
 
   closegraph;
-{$endif OK}
 END.
-
-{
-  $Log$
-  Revision 1.3  2002-09-07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/06/01 19:08:52  marco
-   * Renamefest
-
-}

@@ -1,7 +1,5 @@
 program TestVm2;
 
-{$IFDEF WIN32}{$APPTYPE CONSOLE}{$ENDIF}
-
 procedure Test;
 var
   P: Pointer;
