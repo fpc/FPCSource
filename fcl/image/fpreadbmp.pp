@@ -36,8 +36,9 @@ type
       
       // SetupRead will allocate the needed buffers, and read the colormap if needed.
       procedure SetupRead(nPalette, nRowBits: Integer; Stream : TStream); virtual;
-      procedure ReadScanLine(Row : Integer; Stream : TStream);
-      procedure WriteScanLine(Row : Integer; Img : TFPCustomImage);
+      procedure ReadScanLine(Row : Integer; Stream : TStream); virtual;
+      procedure WriteScanLine(Row : Integer; Img : TFPCustomImage); virtual;
+      // required by TFPCustomImageReader
       procedure InternalRead  (Stream:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Stream:TStream) : boolean; override;
     public
@@ -219,7 +220,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.9  2004-02-20 23:07:44  michael
+Revision 1.10  2004-02-20 23:12:57  michael
++ Read/WriteScanline virtual, as intended
+
+Revision 1.9  2004/02/20 23:07:44  michael
 + Small improvements. More cosmetic in nature
 
 Revision 1.8  2004/02/20 23:00:35  michael
