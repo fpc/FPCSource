@@ -142,7 +142,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const DirName : String) : Boolean;
+Function DirectoryExists (Const Directory : String) : Boolean;
 
 Var Info : Stat;
 
@@ -491,7 +491,10 @@ end.
 {
 
   $Log$
-  Revision 1.15  2003-03-28 19:06:59  peter
+  Revision 1.16  2003-03-29 18:21:42  hajny
+    * DirectoryExists declaration changed to that one from fixes branch
+
+  Revision 1.15  2003/03/28 19:06:59  peter
     * directoryexists added
 
   Revision 1.14  2003/01/03 20:41:04  peter

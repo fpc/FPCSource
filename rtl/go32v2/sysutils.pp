@@ -267,7 +267,7 @@ begin
 end;
 
 
-Function DirectoryExists (Const DirName : String) : Boolean;
+Function DirectoryExists (Const Directory : String) : Boolean;
 Var
   Sr : Searchrec;
 begin
@@ -751,7 +751,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.12  2003-03-28 19:06:59  peter
+  Revision 1.13  2003-03-29 18:21:42  hajny
+    * DirectoryExists declaration changed to that one from fixes branch
+
+  Revision 1.12  2003/03/28 19:06:59  peter
     * directoryexists added
 
   Revision 1.11  2003/01/03 20:41:04  peter

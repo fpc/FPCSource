@@ -70,7 +70,7 @@ Procedure FileClose (Handle : Longint);
 Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
-Function DirectoryExists (Const DirName : String) : Boolean;
+Function DirectoryExists (Const Directory : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
@@ -85,7 +85,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.8  2003-03-28 19:06:59  peter
+  Revision 1.9  2003-03-29 18:21:41  hajny
+    * DirectoryExists declaration changed to that one from fixes branch
+
+  Revision 1.8  2003/03/28 19:06:59  peter
     * directoryexists added
 
   Revision 1.7  2003/01/03 20:41:04  peter
