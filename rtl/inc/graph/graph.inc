@@ -1587,6 +1587,9 @@ const CrtAddress: word = 0;
        mov [EGADetected],TRUE
      @noega:
      end;
+{$ifdef logging}
+     LogLn('EGA detected: '+strf(Longint(EGADetected)));
+{$endif logging}
      { check if VGA adapter supported...       }
      if EGADetected then
        begin
@@ -1618,6 +1621,9 @@ const CrtAddress: word = 0;
         @novga:
         end;
        end;
+{$ifdef logging}
+       LogLn('VGA detected: '+strf(Longint(VGADetected)));
+{$endif logging}
      if VGADetected then
        begin
 
@@ -2490,7 +2496,11 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.7  1999-07-14 18:18:02  florian
+Revision 1.8  1999-07-18 15:07:19  jonas
+  + xor-, and and- orput support for VESA256 modes
+  * compile with -dlogging if you wnt some info to be logged to grlog.txt
+
+Revision 1.7  1999/07/14 18:18:02  florian
   * cosmetic changes
 
 Revision 1.6  1999/07/14 18:16:23  florian

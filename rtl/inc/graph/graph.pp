@@ -669,6 +669,29 @@ Implementation
 uses WinAPI;
 {$ENDIF}
 {$endif fpc}
+
+{$ifdef logging}
+var debuglog: text;
+
+function strf(l: longint): string;
+begin
+  str(l, strf)
+end;
+
+Procedure Log(Const s: String);
+Begin
+  Append(debuglog);
+  Write(debuglog, s);
+  Close(debuglog);
+End;
+
+Procedure LogLn(Const s: string);
+Begin
+  Append(debuglog);
+  Writeln(debuglog,s);
+  Close(debuglog);
+End;
+{$endif logging}
 const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
 
@@ -779,7 +802,6 @@ var
   procedure HLineDefault(x,x2,y: integer); far;
 
    var
-    Col: word;
     xtmp: integer;
    Begin
 
@@ -2613,12 +2635,20 @@ var
  ExitSave: pointer;
 
 begin
+{$ifdef logging}
+ assign(debuglog,'grlog.txt');
+ rewrite(debuglog);
+ close(debuglog);
+{$endif logging}
  ModeList := nil;
  SaveVideoState := nil;
  RestoreVideoState := nil;
  SavePtr := Nil;
  { This must be called at startup... because GetGraphMode may }
  { be called even when not in graph mode.                     }
+{$ifdef logging}
+ LogLn('Calling QueryAdapterInfo...');
+{$endif logging}
  QueryAdapterInfo;
  { Install standard fonts }
  { This is done BEFORE startup... }
@@ -2642,9 +2672,13 @@ DetectGraph
 {   DetectGraph()                                       }
 {   SetBkColor()                                        }
 
-{ 
+{
   $Log$
-  Revision 1.16  1999-07-14 18:18:04  florian
+  Revision 1.17  1999-07-18 15:07:20  jonas
+    + xor-, and and- orput support for VESA256 modes
+    * compile with -dlogging if you wnt some info to be logged to grlog.txt
+
+  Revision 1.16  1999/07/14 18:18:04  florian
     * cosmetic changes
 
 }

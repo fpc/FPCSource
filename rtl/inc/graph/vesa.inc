@@ -174,6 +174,9 @@ end;
 {$endif fpc}
     if VESAPtr^.Signature <> 'VESA' then
      begin
+{$ifdef logging}
+         LogLn('No VESA detected.');
+{$endif logging}
          getVesaInfo := FALSE;
 {$ifndef fpc}
          GlobalDosFree(word(PtrLong and $ffff));
@@ -240,6 +243,9 @@ end;
      end;
     VESAInfo.ModeList^[i]:=$ffff;
     { Free the temporary selector used to get mode information }
+{$ifdef logging}
+    LogLn(strf(i) + ' modes found.');
+{$endif logging}
 {$ifndef fpc}
     FreeSelector(ModeSel);
 {$else fpc}
@@ -393,6 +399,9 @@ end;
    begin
      { check if this is the current bank... if so do nothing. }
      if BankNr = CurrentReadBank then exit;
+{$ifdef logging}
+     LogLn('Setting read bank to '+strf(BankNr));
+{$endif logging}
      CurrentReadBank := BankNr;          { save current bank number     }
      BankNr := BankNr shl BankShift;     { adjust to window granularity }
      { we set both banks, since one may read only }
@@ -408,6 +417,9 @@ end;
    begin
      { check if this is the current bank... if so do nothing. }
      if BankNr = CurrentWriteBank then exit;
+{$ifdef logging}
+     LogLn('Setting write bank to '+strf(BankNr));
+{$endif logging}
      CurrentWriteBank := BankNr;          { save current bank number     }
      BankNr := BankNr shl BankShift;     { adjust to window granularity }
      { we set both banks, since one may read only }
@@ -440,7 +452,26 @@ end;
      end;
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
-     mem[WinWriteSeg : word(offs)] := byte(color);
+     Case CurrentWriteMode of
+       XorPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(color);
+         End;
+       AndPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(color);
+         End;
+       OrPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(color);
+         End;
+       NormalPut:
+         mem[WinWriteSeg : word(offs)] := byte(color)
+     Else mem[WinWriteSeg : word(offs)] := byte(color);
+   End;
   end;
 
   procedure DirectPutPixVESA256(x, y : integer); far;
@@ -450,7 +481,26 @@ end;
   begin
      offs := longint(y) * BytesPerLine + x;
      SetWriteBank(integer(offs shr 16));
-     mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
+     Case CurrentWriteMode of
+       XorPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
+         End;
+       AndPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
+         End;
+       OrPut:
+         Begin
+           SetReadBank(integer(offs shr 16));
+           mem[WinWriteSeg : word(offs)] := mem[WinReadSeg : word(offs)] or byte(CurrentColor);
+         End;
+       NormalPut:
+         mem[WinWriteSeg : word(offs)] := byte(CurrentColor)
+     Else mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
+   End;
   end;
 
   function GetPixVESA256(x, y : integer): word; far;
@@ -1411,7 +1461,11 @@ end;
 
 {
 $Log$
-Revision 1.7  1999-07-14 15:21:49  jonas
+Revision 1.8  1999-07-18 15:07:21  jonas
+  + xor-, and and- orput support for VESA256 modes
+  * compile with -dlogging if you wnt some info to be logged to grlog.txt
+
+Revision 1.7  1999/07/14 15:21:49  jonas
   * fixed initialization of bankshift var ('64 shr banshift' instead of shl)
 
 Revision 1.6  1999/07/14 13:17:29  jonas
