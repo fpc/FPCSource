@@ -191,7 +191,7 @@ begin
   if e <> 0 then
     begin
     Font := nil;
-    FTError (format (sErrLoadFont,[afilename,anindex]), e);
+    FTError (format (sErrLoadFont,[anindex,afilename]), e);
     end;
 end;
 
