@@ -527,7 +527,7 @@ end ['r0','r3','r4','r9','r10','cr0','ctr'];
 ****************************************************************************}
 
 { use generic implementation for now }
-{ that's a problem currently, the generic has a another prototy than this defined in compproc.inc (FK) }
+{ that's a problem currently, the generic has a another prototyp than this defined in compproc.inc (FK) }
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 procedure fpc_help_constructor; assembler;compilerproc;
@@ -544,10 +544,12 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
-(*
-use generic implementation for now
-procedure fpc_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR']; {$ifdef hascompilerproc} compilerproc; {$endif}
-*)
+{ use generic implementation for now }
+{ that's a problem currently, the generic has a another prototyp than this defined in compproc.inc (FK) }
+
+procedure fpc_help_destructor;assembler; compilerproc;
+asm
+end;
 
 {$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 procedure fpc_new_class;assembler;[public,alias:'FPC_NEW_CLASS']; compilerproc;
@@ -856,7 +858,11 @@ end ['r3','r10'];
 
 {
   $Log$
-  Revision 1.10  2002-07-28 21:39:29  florian
+  Revision 1.11  2002-07-30 17:29:53  florian
+    + dummy setjmp and longjmp added
+    + dummy implemtation of the destructor helper
+
+  Revision 1.10  2002/07/28 21:39:29  florian
     * made abs a compiler proc if it is generic
 
   Revision 1.9  2002/07/28 20:43:49  florian

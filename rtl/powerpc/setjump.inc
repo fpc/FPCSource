@@ -15,9 +15,22 @@
 
  **********************************************************************}
 
+{ the necessary code can be copied from the linux kernel sources }
+function setjmp(var S : jmp_buf) : longint;assembler;
+  asm
+  end;
+
+procedure longjmp(var S : jmp_buf;value : longint);assembler;
+  asm
+  end;
+
 {
   $Log$
-  Revision 1.1  2002-07-28 20:43:49  florian
+  Revision 1.2  2002-07-30 17:29:53  florian
+    + dummy setjmp and longjmp added
+    + dummy implemtation of the destructor helper
+
+  Revision 1.1  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 }
