@@ -109,7 +109,8 @@ implementation
                   if (tvarsym(symtableentry).varspez=vs_const) then
                     location_reset(location,LOC_CREFERENCE,newsize);
                   symtabletype:=symtable.symtabletype;
-                  hregister.enum:=R_NO;
+                  hregister.enum:=R_INTREGISTER;
+                  hregister.number:=NR_NO;
                   { C variable }
                   if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                     begin
@@ -937,7 +938,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-07-20 16:26:43  jonas
+  Revision 1.76  2003-08-20 20:11:24  daniel
+    * Fixed some R_NO trouble
+
+  Revision 1.75  2003/07/20 16:26:43  jonas
     * fix for threadvars with -dnewra
 
   Revision 1.74  2003/07/06 17:58:22  peter
