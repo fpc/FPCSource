@@ -1920,8 +1920,10 @@ Function Dup2(var oldfile,newfile:text):Boolean;
 var
   tmphandle : word;
 begin
-  flush(oldfile);{ We cannot share buffers, so we flush them. }
-  flush(newfile);
+  if TextRec(oldfile).mode in [fmOutput, fmInOut, fmAppend] then
+    flush(oldfile);{ We cannot share buffers, so we flush them. }
+  if TextRec(newfile).mode in [fmOutput, fmInOut, fmAppend] then
+    flush(newfile);
   tmphandle:=textrec(newfile).handle;
   textrec(newfile):=textrec(oldfile);
   textrec(newfile).handle:=tmphandle;
@@ -3790,7 +3792,11 @@ End.
 
 {
   $Log$
-  Revision 1.50  1999-11-06 14:39:12  peter
+  Revision 1.51  1999-11-11 19:43:49  sg
+  * fixed severe bug: change by ? in dup2 (flushing) resulted in broken
+    AssignStream functions
+
+  Revision 1.50  1999/11/06 14:39:12  peter
     * truncated log
 
   Revision 1.49  1999/10/28 09:48:31  peter
