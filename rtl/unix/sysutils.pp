@@ -38,7 +38,6 @@ Uses Baseunix;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-
 {****************************************************************************
                               File Functions
 ****************************************************************************}
@@ -50,9 +49,9 @@ Var LinuxFlags : longint;
 BEGIN
   LinuxFlags:=0;
   Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
+    0 : LinuxFlags:=LinuxFlags or O_RdOnly;
+    1 : LinuxFlags:=LinuxFlags or O_WrOnly;
+    2 : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
   FileOpen:=fpOpen (FileName,LinuxFlags);
   //!! We need to set locking based on Mode !!
@@ -62,7 +61,7 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fpOpen(FileName,Open_RdWr or Open_Creat or Open_Trunc);
+  FileCreate:=fpOpen(FileName,O_RdWr or O_Creat or O_Trunc);
 end;
 
 
@@ -73,11 +72,11 @@ Var LinuxFlags : longint;
 BEGIN
   LinuxFlags:=0;
   Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
+    0 : LinuxFlags:=LinuxFlags or O_RdOnly;
+    1 : LinuxFlags:=LinuxFlags or O_WrOnly;
+    2 : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
-  FileCreate:=fpOpen(FileName,LinuxFlags or Open_Creat or Open_Trunc);
+  FileCreate:=fpOpen(FileName,LinuxFlags or O_Creat or O_Trunc);
 end;
 
 
@@ -152,8 +151,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=(fpstat(Directory,Info)>=0) and
-                   ((info.st_mode and STAT_IFMT)=STAT_IFDIR);
+  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpISDIR(Info.st_mode);
 end;
 
 
@@ -161,14 +159,13 @@ Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
-  If (Info.st_Mode and STAT_IFDIR)=STAT_IFDIR then
+  If fpISDIR(Info.st_mode) then
     Result:=Result or faDirectory;
   If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
     Result:=Result or faHidden;
-  If (Info.st_Mode and STAT_IWUSR)=0 Then
+  If (Info.st_Mode and S_IWUSR)=0 Then
      Result:=Result or faReadOnly;
-  If (Info.st_Mode and
-      (STAT_IFSOCK or STAT_IFBLK or STAT_IFCHR or STAT_IFIFO))<>0 then
+  If fpISSOCK(Info.st_mode) or fpISBLK(Info.st_mode) or fpISCHR(Info.st_mode) or fpISFIFO(Info.st_mode) Then
      Result:=Result or faSysFile;
 end;
 
@@ -496,7 +493,10 @@ end.
 {
 
   $Log$
-  Revision 1.19  2003-09-14 20:15:01  marco
+  Revision 1.20  2003-09-17 12:41:31  marco
+   * Uses more baseunix, less unix now
+
+  Revision 1.19  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.18  2003/04/01 15:57:41  peter
