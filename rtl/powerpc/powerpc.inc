@@ -379,6 +379,7 @@ LFillCharNoZero:
         { with update (it's already -4 now)                                 }
         subi      r3,r3,4
         { load r10 with 8, so that dcbz uses the correct address }
+        li        r10, 8
 LFillChar32ByteLoop:
         dcbz      r3,r10
         stfdu     f0,8(r3)
@@ -893,7 +894,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.41  2003-05-10 20:33:39  jonas
+  Revision 1.42  2003-05-12 19:00:50  jonas
+    * fixed bug in fillchar
+
+  Revision 1.41  2003/05/10 20:33:39  jonas
     * fixed get_caller_frame and get_caller_addr
 
   Revision 1.40  2003/05/10 17:33:06  jonas
