@@ -26,6 +26,10 @@ type
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
      InvalidSourceLine : boolean;
+
+     { if true the current debugger raw will stay in middle of
+       editor window when debugging PM }
+     CenterDebuggerRow : boolean;
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
      HiddenStepsCount : longint;
@@ -83,6 +87,7 @@ type
      procedure  Remove;
      procedure  Enable;
      procedure  Disable;
+     procedure  UpdateSource;
      procedure  ResetValues;
      destructor Done;virtual;
   end;
@@ -91,9 +96,10 @@ type
       function  At(Index: Integer): PBreakpoint;
       function  GetGDB(index : longint) : PBreakpoint;
       function  GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
-      function  ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
+      function  ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
       procedure Update;
       procedure ShowBreakpoints(W : PSourceWindow);
+      procedure ShowAllBreakpoints;
     end;
 
     PBreakpointItem = ^TBreakpointItem;
@@ -300,6 +306,7 @@ const
   procedure InitRegistersWindow;
   procedure DoneRegistersWindow;
   function  ActiveBreakpoints : boolean;
+  function  GDBFileName(st : string) : string;
 
 
 const
@@ -437,6 +444,27 @@ const
   );
 
 
+function  GDBFileName(st : string) : string;
+{$ifndef Linux}
+var i : longint;
+{$endif Linux}
+begin
+{$ifdef Linux}
+  GDBFileName:=st;
+{$else}
+{ should we also use / chars ? }
+  for i:=1 to Length(st) do
+    if st[i]='\' then
+      st[i]:='/';
+{$ifdef win32}
+{ for win32 we should conver e:\ into //e/ PM }
+  if (length(st)>2) and (st[2]=':') and (st[3]='/') then
+    st:='//'+st[1]+copy(st,3,length(st));
+{$endif win32}
+  GDBFileName:=LowerCaseStr(st);
+{$endif}
+end;
+
 {****************************************************************************
                             TDebugController
 ****************************************************************************}
@@ -458,7 +486,8 @@ constructor TDebugController.Init(const exefn:string);
   var f: string;
 begin
   inherited Init;
-  f := GetShortName(exefn);
+  CenterDebuggerRow:=IniCenterDebuggerRow;
+  f := GetShortName(GDBFileName(exefn));
   NoSwitch:=False;
   LoadFile(f);
   SetArgs(GetRunParameters);
@@ -669,12 +698,13 @@ begin
       if assigned(W) then
         begin
           W^.Editor^.SetCurPtr(0,Line);
-          W^.Editor^.TrackCursor(true);
+          W^.Editor^.TrackCursor(CenterDebuggerRow);
           W^.Editor^.SetDebuggerRow(Line);
           UpdateDebugViews;
 
-          if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
-            W^.Select;
+          {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
+            handled by SelectInDebugSession}
+          W^.SelectInDebugSession;
           InvalidSourceLine:=false;
         end
       else
@@ -686,10 +716,11 @@ begin
       if assigned(W) then
         begin
           W^.Editor^.SetDebuggerRow(Line);
-          W^.Editor^.TrackCursor(true);
+          W^.Editor^.TrackCursor(CenterDebuggerRow);
           UpdateDebugViews;
-          if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
-            W^.Select;
+          {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
+            handled by SelectInDebugSession}
+          W^.SelectInDebugSession;
           LastSource:=W;
           InvalidSourceLine:=false;
         end
@@ -709,10 +740,11 @@ begin
              { should now be open }
               W:=TryToOpenFile(nil,fn,0,Line,true);
               W^.Editor^.SetDebuggerRow(Line);
-              W^.Editor^.TrackCursor(true);
+              W^.Editor^.TrackCursor(CenterDebuggerRow);
               UpdateDebugViews;
-              if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
-                W^.Select;
+              {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
+                handled by SelectInDebugSession}
+              W^.SelectInDebugSession;
               LastSource:=W;
               InvalidSourceLine:=false;
            end;
@@ -756,7 +788,6 @@ end;
 
 procedure TDebugController.DoEndSession(code:longint);
 var P :Array[1..2] of longint;
-    W : PSourceWindow;
 begin
    IDEApp.SetCmdState([cmResetDebugger],false);
    ResetDebuggerRows;
@@ -848,7 +879,7 @@ begin
   if (Length(AFile)>1) and (AFile[2]=':') then
     AFile:=Copy(AFile,3,255);
     Only use base name for now !! PM }
-  FileName:=NewStr(AFile);
+  FileName:=NewStr(GDBFileName(NameAndExtOf(AFile)));
   Name:=nil;
   Line:=ALine;
   IgnoreCount:=0;
@@ -937,8 +968,12 @@ begin
       { Here there was a problem !! }
         begin
           GDBIndex:=0;
-          ErrorBox(#3'Could not set Breakpoint'#13+
-            #3+BreakpointTypeStr[typ]+' '+GetStr(Name),nil);
+          if (typ=bt_file_line) and assigned(FileName) then
+            ErrorBox(#3'Could not set Breakpoint'#13+
+              #3+NameAndExtOf(FileName^)+':'+IntToStr(Line),nil)
+          else
+            ErrorBox(#3'Could not set Breakpoint'#13+
+              #3+BreakpointTypeStr[typ]+' '+GetStr(Name),nil);
           state:=bs_disabled;
         end;
     end
@@ -983,6 +1018,24 @@ begin
   if assigned(CurrentValue) then
     DisposeStr(CurrentValue);
   CurrentValue:=nil;
+end;
+
+procedure  TBreakpoint.UpdateSource;
+var W: PSourceWindow;
+    b : boolean;
+begin
+  if typ=bt_file_line then
+    begin
+      W:=SearchOnDesktop(GetStr(FileName),false);
+      If assigned(W) then
+        begin
+          if state=bs_enabled then
+            b:=true
+          else
+            b:=false;
+          W^.Editor^.SetLineBreakState(Line,b);
+        end;
+    end;
 end;
 
 destructor TBreakpoint.Done;
@@ -1038,8 +1091,26 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
 
   procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
-    If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
+    If assigned(P^.FileName) and (P^.FileName^=NameAndExtOf(W^.Editor^.FileName)) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
+  end;
+
+begin
+  ForEach(@SetInSource);
+end;
+
+procedure TBreakpointCollection.ShowAllBreakpoints;
+
+  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+    var
+      W : PSourceWindow;
+  begin
+    If assigned(P^.FileName) then
+      begin
+        W:=SearchOnDesktop(P^.FileName^,false);
+        if assigned(W) then
+          W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
+      end;
   end;
 
 begin
@@ -1057,15 +1128,16 @@ begin
   GetType:=FirstThat(@IsThis);
 end;
 
-function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Longint) : boolean;
+function TBreakpointCollection.ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
 
 var PB : PBreakpoint;
 
   function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
-    IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
+    IsThere:=(P^.typ=bt_file_line) and (GDBFileName(P^.FileName^)=FileName) and (P^.Line=LineNr);
   end;
 begin
+    FileName:=GDBFileName(FileName);
     PB:=FirstThat(@IsThere);
     ToggleFileLine:=false;
     If Assigned(PB) then
@@ -1085,6 +1157,8 @@ begin
             ToggleFileLine:=true;
           End;
       end;
+    if assigned(PB) then
+      PB^.UpdateSource;
     Update;
 end;
 
@@ -1179,6 +1253,10 @@ begin
         case Event.KeyCode of
           kbEnter :
             Message(@Self,evCommand,cmMsgGotoSource,nil);
+          kbIns :
+            Message(@Self,evCommand,cmNewBreakpoint,nil);
+          kbDel :
+            Message(@Self,evCommand,cmDeleteBreakpoint,nil);
         else
           DontClear:=true;
         end;
@@ -1233,6 +1311,7 @@ begin
   SetRange(List^.Count);
   if Focused=List^.Count-1-1 then
      FocusItem(List^.Count-1);
+  P^.Breakpoint^.UpdateSource;
   DrawView;
 end;
 
@@ -1302,10 +1381,8 @@ begin
 end;
 
 procedure TBreakpointsListBox.ToggleCurrent;
-var W: PSourceWindow;
-    P: PBreakpointItem;
-    b : boolean;
-    (* Row,Col: sw_integer; *)
+var
+  P: PBreakpointItem;
 begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
@@ -1314,19 +1391,8 @@ begin
     P^.Breakpoint^.state:=bs_disabled
   else if P^.Breakpoint^.state=bs_disabled then
     P^.Breakpoint^.state:=bs_enabled;
+  P^.Breakpoint^.UpdateSource;
   BreakpointsCollection^.Update;
-  if P^.Breakpoint^.typ=bt_file_line then
-    begin
-      W:=TryToOpenFile(nil,GetStr(P^.Breakpoint^.FileName),1,P^.Breakpoint^.Line,false);
-      If assigned(W) then
-        begin
-          if P^.Breakpoint^.state=bs_enabled then
-            b:=true
-          else
-            b:=false;
-          W^.Editor^.SetLineBreakState(P^.Breakpoint^.Line,b);
-        end;
-    end;
 end;
 
 procedure TBreakpointsListBox.EditCurrent;
@@ -1337,6 +1403,7 @@ begin
   P:=List^.At(Focused);
   if P=nil then Exit;
   Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P^.Breakpoint)),nil);
+  P^.Breakpoint^.UpdateSource;
   BreakpointsCollection^.Update;
 end;
 
@@ -1347,6 +1414,9 @@ begin
   if Range=0 then Exit;
   P:=List^.At(Focused);
   if P=nil then Exit;
+  { delete it form source window }
+  P^.Breakpoint^.state:=bs_disabled;
+  P^.Breakpoint^.UpdateSource;
   BreakpointsCollection^.free(P^.Breakpoint);
   List^.free(P);
   BreakpointsCollection^.Update;
@@ -1359,6 +1429,7 @@ begin
   P:=New(PBreakpoint,Init_Empty);
   if Application^.ExecuteDialog(New(PBreakpointItemDialog,Init(P)),nil)<>cmCancel then
     begin
+      P^.UpdateSource;
       BreakpointsCollection^.Insert(P);
       BreakpointsCollection^.Update;
     end
@@ -2879,6 +2950,7 @@ var s : string;
 {$endif DEBUG}
 begin
 {$ifdef DEBUG}
+  PushStatus('Starting debugger');
   Assign(gdb_file,GDBOutFileName);
   {$I-}
   Rewrite(gdb_file);
@@ -2923,11 +2995,17 @@ begin
 {$ifdef GDBWINDOW}
   InitGDBWindow;
 {$endif def GDBWINDOW}
+{$ifdef DEBUG}
+  PopStatus;
+{$endif DEBUG}
 end;
 
 
 procedure DoneDebugger;
 begin
+{$ifdef DEBUG}
+  PushStatus('Closing debugger');
+{$endif}
   if assigned(Debugger) then
    dispose(Debugger,Done);
   Debugger:=nil;
@@ -2935,7 +3013,8 @@ begin
   If Use_gdb_file then
     Close(GDB_file);
   Use_gdb_file:=false;
-{$endif}
+  PopStatus;
+{$endif DEBUG}
   {DoneGDBWindow;}
 end;
 
@@ -3040,7 +3119,10 @@ end.
 
 {
   $Log$
-  Revision 1.46  2000-02-01 10:59:58  pierre
+  Revision 1.47  2000-02-04 00:10:58  pierre
+   * Breakpoint line in Source Window better handled
+
+  Revision 1.46  2000/02/01 10:59:58  pierre
    * allow FP to debug itself
 
   Revision 1.45  2000/01/28 22:38:21  pierre
