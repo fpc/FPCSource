@@ -1062,6 +1062,7 @@ implementation
                    else
                      asmop:=A_ADD;
                  case p^.resulttype^.size of
+                   8 : opsize:=S_L;
                    4 : opsize:=S_L;
                    2 : opsize:=S_W;
                    1 : opsize:=S_B;
@@ -1115,6 +1116,7 @@ implementation
                               1 : opsize:=S_B;
                               2 : opsize:=S_W;
                               4 : opsize:=S_L;
+                              8 : opsize:=S_L;
                              end;
                            end;
               pointerdef : begin
@@ -1426,7 +1428,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-11-06 14:34:17  peter
+  Revision 1.78  1999-11-09 22:54:45  peter
+    * fixed wrong asm with inc(qword), but not it's not correctly supported
+
+  Revision 1.77  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.76  1999/10/29 15:28:51  peter
