@@ -213,7 +213,8 @@ unit mmx;
     procedure femms;assembler;
 
       asm
-         femms
+          .byte $0x0f, $0x0e
+{         femms instruction not supported with older as versions }
       end;
 
 
@@ -249,7 +250,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 21:33:05  carl
+  Revision 1.8  2002-09-23 18:25:55  hajny
+    * femms replaced with opcode to allow older as
+
+  Revision 1.7  2002/09/07 21:33:05  carl
     - removed unused defines
 
   Revision 1.6  2002/09/07 16:01:19  peter
