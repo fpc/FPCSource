@@ -96,7 +96,7 @@ uses
   App,Commands,tokens,
   CompHook, Compiler, systems, browcol,
   WUtils,WEditor,
-  FPRedir,FPDesk,FPUsrScr,
+  FPRedir,FPDesk,FPUsrScr,FPHelp,
   FPIde,FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
 {$ifndef NOOBJREG}
@@ -180,6 +180,7 @@ begin
   if not assigned(UserScreen) then
     exit;
   DisplayCompilerWindow:=false;
+  PushStatus('Parsing User Screen');
   for Y:=0 to UserScreen^.GetHeight do
     begin
       UserScreen^.GetLine(Y,Text,Attr);
@@ -198,6 +199,7 @@ begin
       CompilerMessageWindow^.MakeFirst;
       CompilerMessageWindow^.MsgLB^.SelectFirstError;
     end;
+  PopStatus;
 end;
 
 {*****************************************************************************
@@ -866,7 +868,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.53  2000-03-21 23:33:18  pierre
+  Revision 1.54  2000-03-23 22:23:21  pierre
+   + Use PushStatus in ParseUserScreen
+
+  Revision 1.53  2000/03/21 23:33:18  pierre
    adapted to wcedit addition by Gabor
 
   Revision 1.52  2000/03/08 16:48:07  pierre
