@@ -275,10 +275,16 @@ unit ptconst;
                            generate_pascii(datasegment,p^.values,strlength);
 {$else UseAnsiString}
                            if length(p^.values^)>=def^.size then
-                             strlength:=def^.size-1
+                             begin
+                               strlength:=def^.size-1;
+                               generate_ascii(char(strlength)+copy(p^.values^,1,strlength));
+                             end
                            else
-                             strlength:=length(p^.values^);
-                           generate_ascii(char(strlength)+p^.values^);
+                             begin
+                               strlength:=length(p^.values^);
+                               generate_ascii(char(strlength)+p^.values^);
+                             end;
+
 {$endif UseAnsiString}
                         end
                       else if is_constcharnode(p) then
@@ -506,7 +512,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.12  1998-08-31 12:26:32  peter
+  Revision 1.13  1998-09-01 09:05:36  peter
+    * fixed string[4]='.library'
+
+  Revision 1.12  1998/08/31 12:26:32  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.11  1998/08/10 14:50:20  peter
