@@ -41,7 +41,7 @@ begin
   With FDatasources do
     begin
     While Count>0 do
-      TDatasource(Items[Count]).DataSet:=Nil;
+      TDatasource(Items[Count - 1]).DataSet:=Nil;
     Free;  
     end;  
   Inherited Destroy;
@@ -1569,7 +1569,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-12-23 10:10:21  michael
+  Revision 1.1.2.3  2000-12-23 23:23:49  sg
+  * Fixed TDataSet.Destroy (array index was wrong)
+
+  Revision 1.1.2.2  2000/12/23 10:10:21  michael
   + Added missing TDatasource support
 
   Revision 1.1.2.1  2000/08/05 18:22:29  peter
