@@ -53,7 +53,6 @@ function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCu
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; stdcall; external 'kernel32' name 'CreateEventA';
 function  ResetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
 function  SetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
-function PulseEvent(hEvent:THANDLE):CARDINAL {WINBOOL}; stdcall; external 'kernel32' name 'PulseEvent';
 
 CONST
    WAIT_OBJECT_0 = 0;
@@ -394,7 +393,7 @@ end;
 
 procedure intRTLEventSetEvent(AEvent: PRTLEvent);
 begin
-  PulseEvent(THANDLE(AEvent));
+  SetEvent(THANDLE(AEvent));
 end;
 
 procedure intRTLEventStartWait(AEvent: PRTLEvent);
@@ -459,7 +458,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 13:06:20  peter
+  Revision 1.2  2005-02-08 16:28:27  peter
+  pulseevent -> setevent
+
+  Revision 1.1  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 
