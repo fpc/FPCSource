@@ -7,6 +7,9 @@
 \begin{mysyntdiag}
 \synt{property\ interface}
 \[ \synt{property\ parameter\ list}\] \lit*: \synt{type\ identifier}
+\[
+\lit*{index} \synt{integer constant}
+\]
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{property\ parameter\ list} \lit*[

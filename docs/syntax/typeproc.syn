@@ -1,11 +1,11 @@
-\begin{diagram}{Procedural Types}{Procedural types}
+\begin{diagram}{Procedural types}{proceduraltypes}
 \begin{mysyntdiag}
 \synt{procedural\ type} 
 \( \synt{function\ header} \\ 
    \synt{procedure\ header}
 \)
 \[ \lit*{of} \lit*{object} \]
-\[ \synt{call\ modifiers} \] 
+\[ \lit* ; \synt{call\ modifiers} \] 
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{function\ header} \lit*{function} \synt{formal\ parameter\ list}

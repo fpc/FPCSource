@@ -33,15 +33,12 @@ sign \begin{stack} \lit* + \\ \lit* - \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{unsigned\ real} \synt{digit\ sequence} 
-\begin{stack}
-  \begin{stack} \\
+\[
     \lit . \synt{digit\ sequence} 
-  \end{stack}
-  \begin{stack} \\
-    \synt{scale\ factor} 
-  \end{stack} \\
-  \synt{scale\ factor} 
-\end{stack}
+\]
+\[
+ \synt{scale\ factor} 
+\]
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{scale\ factor} \begin{stack} \lit*{E} \\ \lit*{e} \end{stack}

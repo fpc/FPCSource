@@ -1,4 +1,4 @@
-\begin{diagram}{object type}{objecttype}
+\begin{diagram}{object types}{objecttype}
 \begin{mysyntdiag}
 \[ \lit*{packed} \]
 \lit*{object} 

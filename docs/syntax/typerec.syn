@@ -17,6 +17,7 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{variant\ part} 
+\lit*{case}
 \[ \synt{identifier} \lit*: \] 
 \synt{ordinal\ type\ identifier} 
 \lit*{of} \<[b] \synt{variant} \\ \lit*; \>

@@ -1,4 +1,4 @@
-\begin{diagram}{Class type}{classtype}
+\begin{diagram}{Class types}{classtype}
 \begin{mysyntdiag}
 \[ \lit*{packed} \]
 \lit*{class} 

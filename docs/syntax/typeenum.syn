@@ -1,4 +1,4 @@
-\begin{diagram}{Enumerated type}{enumeratedtype}
+\begin{diagram}{Enumerated types}{enumeratedtype}
 \begin{mysyntdiag}
 \synt{enumerated\ type} \lit* ( 
 \begin{rep}[b]
