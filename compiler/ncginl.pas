@@ -468,7 +468,6 @@ implementation
          cgsize : tcgsize;
          href : treference;
         begin
-          location_copy(location,left.location);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
@@ -682,7 +681,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2003-05-23 21:10:38  jonas
+  Revision 1.33  2003-05-24 17:15:59  jonas
+    - removed bogus location_copy for include/exclude
+
+  Revision 1.32  2003/05/23 21:10:38  jonas
     * fixed exclude
 
   Revision 1.31  2003/05/23 14:27:35  peter
