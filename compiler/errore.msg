@@ -270,6 +270,8 @@ scan_e_resourcefiles_not_supported=E_Resource files are not supported for this t
 scan_w_include_env_not_found=W_Include environment $1 not found in environment
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
+scan_e_invalid_maxfpureg_value=E_Illegal value for FPU register limit
+% Valid values for this directive are 0..8 and NORMAL/DEFAULT
 % \end{description}
 #
 # Parser

@@ -654,15 +654,23 @@ implementation
 
                         { in non leaf procedures we must be very careful }
                         { with assigning registers                       }
-                        if (procinfo^.flags and pi_do_call)<>0 then
+                        if aktmaxfpuregisters=-1 then
                           begin
-                             for i:=maxfpuvarregs downto 2 do
-                               regvars[i]:=nil;
+                             if (procinfo^.flags and pi_do_call)<>0 then
+                               begin
+                                  for i:=maxfpuvarregs downto 2 do
+                                    regvars[i]:=nil;
+                               end
+                             else
+                               begin
+                                  for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu do
+                                    regvars[i]:=nil;
+                               end;
                           end
                         else
                           begin
-                             for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu do
-                               regvars[i]:=nil;
+                             for i:=aktmaxfpuregisters+1 to maxfpuvarregs do
+                                regvars[i]:=nil;
                           end;
                         { now assign register }
                         for i:=1 to maxfpuvarregs do
@@ -741,7 +749,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-12-22 01:01:52  peter
+  Revision 1.48  2000-01-04 15:15:52  florian
+    + added compiler switch $maxfpuregisters
+    + fixed a small problem in secondvecn
+
+  Revision 1.47  1999/12/22 01:01:52  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

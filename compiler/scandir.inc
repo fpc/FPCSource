@@ -38,7 +38,7 @@ type
        _DIR_INFO,_DIR_INLINE,
      _DIR_L,_DIR_LIBRARYPATH,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,
        _DIR_LONGSTRINGS,
-     _DIR_M,_DIR_MACRO,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
+     _DIR_M,_DIR_MACRO,_DIR_MAXFPUREGISTERS,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
      _DIR_NOTE,_DIR_NOTES,
      _DIR_OBJECTPATH,_DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
@@ -96,6 +96,7 @@ const
      'M',
      {12345678901234567890 (To determine longest string.)}
      'MACRO',
+     'MAXFPUREGISTERS',
      'MEMORY',
      'MESSAGE',
      'MINENUMSIZE',
@@ -891,6 +892,34 @@ const
          end;
       end;
 
+    procedure dir_maxfpuregisters(t:tdirectivetoken);
+
+      var
+         l : longint;
+         hs : string;
+
+      begin
+         current_scanner^.skipspace;
+         if not(c in ['0'..'9']) then
+           begin
+              hs:=current_scanner^.readid;
+              if (hs='NORMAL') or (hs='DEFAULT') then
+                aktmaxfpuregisters:=-1
+              else
+                Message(scan_e_invalid_maxfpureg_value);
+           end
+         else
+           begin
+              l:=current_scanner^.readval;
+              case l of
+                 0..8:
+                   aktmaxfpuregisters:=l;
+                 else
+                   Message(scan_e_invalid_maxfpureg_value);
+              end;
+           end;
+      end;
+
 
     procedure dir_packenum(t:tdirectivetoken);
       var
@@ -1107,6 +1136,7 @@ const
          {_DIR_LONGSTRINGS} dir_delphiswitch,
          {_DIR_M} dir_memory,
          {_DIR_MACRO} dir_moduleswitch,
+         {_DIR_MAXFPUREGISTERS} dir_maxfpuregisters,
          {_DIR_MEMORY} dir_memory,
          {_DIR_MESSAGE} dir_message,
          {_DIR_MINENUMSIZE} dir_packenum,
@@ -1220,7 +1250,11 @@ const
 
 {
   $Log$
-  Revision 1.70  1999-12-20 23:23:30  pierre
+  Revision 1.71  2000-01-04 15:15:53  florian
+    + added compiler switch $maxfpuregisters
+    + fixed a small problem in secondvecn
+
+  Revision 1.70  1999/12/20 23:23:30  pierre
    + $description $version
 
   Revision 1.69  1999/12/02 17:34:34  peter

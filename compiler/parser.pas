@@ -258,6 +258,7 @@ unit parser;
          oldaktlocalswitches  : tlocalswitches;
          oldaktmoduleswitches : tmoduleswitches;
          oldaktfilepos      : tfileposinfo;
+         oldaktpackenum,oldaktmaxfpuregisters : longint;
          oldaktpackrecords  : tpackrecords;
          oldaktoutputformat : tasm;
          oldaktoptprocessor : tprocessors;
@@ -317,6 +318,8 @@ unit parser;
          oldaktlocalswitches:=aktlocalswitches;
          oldaktmoduleswitches:=aktmoduleswitches;
          oldaktpackrecords:=aktpackrecords;
+         oldaktpackenum:=aktpackenum;
+         oldaktmaxfpuregisters:=aktmaxfpuregisters;
          oldaktoutputformat:=aktoutputformat;
          oldaktoptprocessor:=aktoptprocessor;
          oldaktasmmode:=aktasmmode;
@@ -340,6 +343,7 @@ unit parser;
          aktprocsym:=nil;
          procprefix:='';
          registerdef:=true;
+         aktmaxfpuregisters:=-1;
          { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
@@ -499,6 +503,8 @@ unit parser;
               aktlocalswitches:=oldaktlocalswitches;
               aktmoduleswitches:=oldaktmoduleswitches;
               aktpackrecords:=oldaktpackrecords;
+              aktpackenum:=oldaktpackenum;
+              aktmaxfpuregisters:=oldaktmaxfpuregisters;
               aktoutputformat:=oldaktoutputformat;
               aktoptprocessor:=oldaktoptprocessor;
               aktasmmode:=oldaktasmmode;
@@ -575,7 +581,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.94  1999-12-02 17:34:34  peter
+  Revision 1.95  2000-01-04 15:15:52  florian
+    + added compiler switch $maxfpuregisters
+    + fixed a small problem in secondvecn
+
+  Revision 1.94  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.93  1999/11/24 11:41:03  pierre

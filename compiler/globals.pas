@@ -161,6 +161,7 @@ unit globals;
        aktlocalswitches  : tlocalswitches;
        aktmodeswitches   : tmodeswitches;
        aktpackenum       : longint;
+       aktmaxfpuregisters: longint;
        aktpackrecords    : tpackrecords;
        aktoutputformat   : tasm;
        aktoptprocessor   : tprocessors;
@@ -1422,7 +1423,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  1999-12-22 01:01:48  peter
+  Revision 1.43  2000-01-04 15:15:50  florian
+    + added compiler switch $maxfpuregisters
+    + fixed a small problem in secondvecn
+
+  Revision 1.42  1999/12/22 01:01:48  peter
     - removed freelabel()
     * added undefined label detection in internal assembler, this prevents
       a lot of ld crashes and wrong .o files

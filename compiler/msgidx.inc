@@ -66,6 +66,7 @@ type tmsgconst=(
   scan_e_wrong_switch_toggle,
   scan_e_resourcefiles_not_supported,
   scan_w_include_env_not_found,
+  scan_e_invalid_maxfpureg_value,
   parser_e_syntax_error,
   parser_w_proc_far_ignored,
   parser_w_proc_near_ignored,
