@@ -149,7 +149,6 @@ type
 
     function  FGetNodeValue: DOMString; virtual;
     procedure FSetNodeValue(AValue: DOMString); virtual;
-    function  FGetChildNodes: TDOMNodeList; virtual;
     function  FGetFirstChild: TDOMNode; virtual;
     function  FGetLastChild: TDOMNode; virtual;
     function  FGetAttributes: TDOMNamedNodeMap; virtual;
@@ -160,7 +159,8 @@ type
     property NodeValue: DOMString read FGetNodeValue write FSetNodeValue;
     property NodeType: Integer read FNodeType;
     property ParentNode: TDOMNode read FParentNode;
-    property ChildNodes: TDOMNodeList read FGetChildNodes;
+    // Free NodeList with TDOMNodeList.Release!
+    function GetChildNodes: TDOMNodeList; virtual;
     property FirstChild: TDOMNode read FGetFirstChild;
     property LastChild: TDOMNode read FGetLastChild;
     property PreviousSibling: TDOMNode read FPreviousSibling;
@@ -187,7 +187,6 @@ type
   TDOMNode_WithChildren = class(TDOMNode)
   protected
     FFirstChild, FLastChild: TDOMNode;
-    function FGetChildNodes: TDOMNodeList; virtual;
     function FGetFirstChild: TDOMNode; override;
     function FGetLastChild: TDOMNode; override;
   public
@@ -202,10 +201,12 @@ type
 //   NodeList
 // -------------------------------------------------------
 
-  // ### should be a descendant of TRefClass   - sg
-
-  TDOMNodeList = class(TList)
+  TDOMNodeList = class(TRefClass)
   protected
+    node: TDOMNode;
+    filter: DOMString;
+    UseFilter: Boolean;
+    constructor Create(ANode: TDOMNode; AFilter: DOMString);
     function FGetCount: LongWord;
     function FGetItem(index: LongWord): TDOMNode;
   public
@@ -298,6 +299,7 @@ type
     function CreateAttribute(const name: DOMString): TDOMAttr; virtual;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
+    // Free NodeList with TDOMNodeList.Release!
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 
     // Extensions to DOM interface:
@@ -357,6 +359,7 @@ type
     function  GetAttributeNode(const name: DOMString): TDOMAttr;
     procedure SetAttributeNode(NewAttr: TDOMAttr);
     function  RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
+    // Free NodeList with TDOMNodeList.Release!
     function  GetElementsByTagName(const name: DOMString): TDOMNodeList;
     procedure Normalize;
   end;
@@ -553,9 +556,9 @@ begin
   FNodeValue := AValue;
 end;
 
-function TDOMNode.FGetChildNodes: TDOMNodeList;
+function TDOMNode.GetChildNodes: TDOMNodeList;
 begin
-  raise EDOMNotSupported.Create('Node.GetChildNodes');
+  Result := TDOMNodeList.Create(Self, '*');
 end;
 
 function TDOMNode.FGetFirstChild: TDOMNode; begin Result := nil end;
@@ -616,11 +619,6 @@ end;
 function TDOMNode_WithChildren.FGetLastChild: TDOMNode;
 begin
   Result := FLastChild;
-end;
-
-function TDOMNode_WithChildren.FGetChildNodes: TDOMNodeList;
-begin
-  raise EDOMNotSupported.Create('NodeWC.GetChildNodes');
 end;
 
 function TDOMNode_WithChildren.InsertBefore(NewChild, RefChild: TDOMNode):
@@ -722,17 +720,43 @@ end;
 // -------------------------------------------------------
 
 
-function TDOMNodeList.FGetCount: LongWord;
+constructor TDOMNodeList.Create(ANode: TDOMNode; AFilter: DOMString);
 begin
-//  Result := LongWord(inherited Count);
+  inherited Create;
+  node := ANode;
+  filter := AFilter;
+  UseFilter := filter <> '*';
+end;
+
+function TDOMNodeList.FGetCount: LongWord;
+var
+  child: TDOMNode;
+begin
+  Result := 0;
+  child := node.FirstChild;
+  while child <> nil do begin
+    if (not UseFilter) or (child.NodeName = filter) then
+      Inc(Result);
+    child := child.NextSibling;
+  end;
 end;
 
 function TDOMNodeList.FGetItem(index: LongWord): TDOMNode;
+var
+  child: TDOMNode;
 begin
-  if (index < 0) or (index >= Count) then
-    Result := nil
-  else
-    Result := TDOMNode(Items[index]);
+  Result := nil;
+  if index < 0 then exit;
+  child := node.FirstChild;
+  while child <> nil do begin
+    if index = 0 then begin
+      Result := child;
+      break;
+    end;
+    if (not UseFilter) or (child.NodeName = filter) then
+      Dec(index);
+    child := child.NextSibling;
+  end;
 end;
 
 
@@ -948,14 +972,8 @@ begin
 end;
 
 function TDOMDocument.GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
-var
-  i: Integer;
 begin
-  Result := TDOMNodeList.Create;
-  if ChildNodes <> nil then
-    for i := 0 to ChildNodes.Count - 1 do
-      if (tagname = '*') or (tagname = ChildNodes.Item[i].FNodeName) then
-        Result.Add(ChildNodes.Item[i]);
+  Result := TDOMNodeList.Create(Self, tagname);
 end;
 
 
@@ -1116,13 +1134,8 @@ begin
 end;
 
 function TDOMElement.GetElementsByTagName(const name: DOMString): TDOMNodeList;
-var
-  i: Integer;
 begin
-  Result := TDOMNodeList.Create;
-  for i := 0 to FAttributes.Count - 1 do
-    if (name = '*') or (name = FAttributes.Item[i].NodeName) then
-      Result.Add(FAttributes.Item[i]);
+  Result := TDOMNodeList.Create(Self, name);
 end;
 
 procedure TDOMElement.Normalize;
@@ -1239,7 +1252,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-07-11 20:20:11  michael
+  Revision 1.5  1999-07-12 12:19:49  michael
+  + More fixes from Sebastian Guenther
+
+  Revision 1.4  1999/07/11 20:20:11  michael
   + Fixes from Sebastian Guenther
 
   Revision 1.3  1999/07/10 21:48:26  michael
