@@ -148,6 +148,7 @@ implementation
                         pd:=p2^.resulttype;
                       if not(is_equal(pd,p2^.resulttype)) then
                        begin
+                         aktfilepos:=p2^.fileinfo;
                          CGMessage(type_e_typeconflict_in_set);
                          disposetree(p2);
                        end
@@ -161,7 +162,10 @@ implementation
                                firstpass(p3);
                              end;
                             if not(is_equal(pd,p3^.resulttype)) then
-                              CGMessage(type_e_typeconflict_in_set)
+                              begin
+                                 aktfilepos:=p3^.fileinfo;
+                                 CGMessage(type_e_typeconflict_in_set);
+                              end
                             else
                               begin
                                 if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
@@ -915,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35.2.3  1999-06-17 12:51:48  pierre
+  Revision 1.35.2.4  1999-06-28 00:33:50  pierre
+   * better error position bug0269
+
+  Revision 1.35.2.3  1999/06/17 12:51:48  pierre
    * changed is_assignment_overloaded into
       function assignment_overloaded : pprocdef
       to allow overloading of assignment with only different result type

@@ -146,11 +146,17 @@ implementation
 
          { check the type }
          if (p^.left^.resulttype=nil) or (p^.left^.resulttype^.deftype<>pointerdef) then
-           CGMessage(type_e_pointer_type_expected);
+           begin
+              aktfilepos:=p^.left^.fileinfo;
+              CGMessage(type_e_pointer_type_expected);
+           end;
 
          if (p^.left^.location.loc<>LOC_REFERENCE) {and
             (p^.left^.location.loc<>LOC_CREGISTER)} then
-           CGMessage(cg_e_illegal_expression);
+           begin
+              aktfilepos:=p^.left^.fileinfo;
+              CGMessage(cg_e_illegal_expression);
+           end;
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -266,7 +272,10 @@ implementation
 
          { we should allow loc_mem for @string }
          if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-           CGMessage(cg_e_illegal_expression);
+           begin
+              aktfilepos:=p^.left^.fileinfo;
+              CGMessage(cg_e_illegal_expression);
+           end;
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -570,7 +579,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-06-03 09:34:12  peter
+  Revision 1.18.2.1  1999-06-28 00:33:53  pierre
+   * better error position bug0269
+
+  Revision 1.18  1999/06/03 09:34:12  peter
     * better methodpointer check for proc->procvar
 
   Revision 1.17  1999/05/27 19:45:24  peter

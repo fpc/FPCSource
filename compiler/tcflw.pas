@@ -77,6 +77,7 @@ implementation
          if not((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
+               aktfilepos:=p^.left^.fileinfo;
                CGMessage(type_e_mismatch);
                exit;
             end;
@@ -255,7 +256,10 @@ implementation
 {$endif SUPPORT_MMX}
 
          if p^.left^.treetype<>assignn then
-           CGMessage(cg_e_illegal_expression);
+           begin
+              aktfilepos:=p^.left^.fileinfo;
+              CGMessage(cg_e_illegal_expression);
+           end;
 
          cleartempgen;
          must_be_valid:=false;
@@ -281,11 +285,16 @@ implementation
          while (hp^.treetype=subscriptn) do
           hp:=hp^.left;
          if (hp^.treetype<>loadn) then
-          CGMessage(cg_e_illegal_count_var)
+          begin
+             aktfilepos:=hp^.fileinfo;
+             CGMessage(cg_e_illegal_count_var)
+          end
          else
           if (not(is_ordinal(p^.t2^.resulttype))) then
-           CGMessage(type_e_ordinal_expr_expected);
-
+           begin
+              aktfilepos:=p^.t2^.fileinfo;
+              CGMessage(type_e_ordinal_expr_expected);
+           end;
          if p^.t2^.registers32>p^.registers32 then
            p^.registers32:=p^.t2^.registers32;
          if p^.t2^.registersfpu>p^.registersfpu then
@@ -384,7 +393,10 @@ implementation
               { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
                 ((pobjectdef(p^.left^.resulttype)^.options and oo_is_class)=0) then
-                CGMessage(type_e_mismatch);
+                begin
+                   aktfilepos:=p^.left^.fileinfo;
+                   CGMessage(type_e_mismatch);
+                end;
 
               p^.registersfpu:=p^.left^.registersfpu;
               p^.registers32:=p^.left^.registers32;
@@ -495,7 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10.2.1  1999-06-13 22:38:54  peter
+  Revision 1.10.2.2  1999-06-28 00:33:52  pierre
+   * better error position bug0269
+
+  Revision 1.10.2.1  1999/06/13 22:38:54  peter
     * better error message when type is wrong with if statement
 
   Revision 1.10  1999/05/27 19:45:18  peter
