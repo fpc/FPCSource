@@ -1,7 +1,67 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.4 aka 2.0.0-Beta3
+                        Version 1.9.6 aka 2.0.0-Rc1
+
+******************************************************************************
+                      Whats New in 1.9.6 aka 2.0.0-Rc1
+******************************************************************************
+
+Compiler:
+  + x86_64/amd64 (Linux) compiler
+  + Sparc (Linux) compiler
+  + PowerPC MorphOS support
+  + Netware Libc support (-Tnetwlibc)
+  + Register variable support (-Or) for all targets
+  + MacPas compiler mode (-Mmacpas)
+  * Better inlining support
+  * For loop variable assignment is not allowed anymore
+  * $fpctarget expands to <cpu>-<os> (except for 8.3 limited targets),
+    old $target replaced with $fpcos
+  * Implicit loading of Variants unit
+  * Lots of bug fixes
+
+RTL:
+  + x86_64/amd64 Linux support
+  + Sparc Linux support
+  + PowerPC MorphOS support
+  + Netware Libc support
+  + New heap manager that releases memory back to the OS
+  + TThread.Synchronize support
+  + utf8bidi unit
+  + GetHeapStatus added
+  + GetProcessID added
+  + SysUtils.GetEnvironmentVariableCount and SysUtils.GetEnvironmentString added
+  * gpm unit does not need libgpm anymore
+  + Further additions for improved Delphi compatibility
+  + System.GetProcessID and System.GetThreadID added
+  + Dos.GetMsCount added
+  + Support for changing console resolution in Video for Win32
+  + Support for using high memory (> 512 MB) under OS/2 (where available)
+  - Removed MaxAvail, MemAvail, HeapSize due to their unreliability
+    (bogus/misleading return values) in multitasking environment with swapping
+
+FCL:
+  + RTTIUtils unit added
+  + fpcunit test-framework added
+  * Lots of dbf and other db fixes
+
+FV:
+  * Updated to fvision implementation, first official release
+
+IDE:
+  * Lots of improvements and stability fixes
+  * Support latest gdb 6.2.x and 6.3.x releases
+
+Docs:
+  + Lots of updates
+  + Easier to navigate html documentation
+  * fpDoc is used to generate all unit documentation
+
+Misc:
+  * Makefiles create units in a separate directory units/cpu-os/
+  * More cross compilation improvements
+
 
 ******************************************************************************
                       Whats New in 1.9.4 aka 2.0.0-Beta3
@@ -106,7 +166,7 @@ Compiler:
   + full boolean evaluation is now also available
   + threadvar support, enabled by using {$threading on}
   * support of int64 integer constants
-  * improved delphi compatibility in -Sd mode
+  * improved Delphi compatibility in -Sd mode
   * a lot of bug fixes
   * large parts of the compiler are rewritten to create a more stable,
     portable and maintainable compiler
@@ -114,7 +174,7 @@ Compiler:
 RTL:
   + multithreading support
   * completely rewritten unix runtime library
-  * improved delphi compatiblity
+  * improved Delphi compatiblity
   * significantly improved speed of exception related code
   * prepared for big endian and 64 Bit CPUs
   * a lot of bug fixes
@@ -133,3 +193,4 @@ IDE:
 
 Misc:
   * improved cross compilation
+  
