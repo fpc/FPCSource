@@ -1,6 +1,18 @@
 UNIT Unzip;
 INTERFACE
 
+{$IFDEF FPC}
+ {$DEFINE BIT32}
+{$ENDIF}
+
+{$IFDEF OS2}
+ {$DEFINE BIT32}
+{$ENDIF}
+
+{$IFDEF WIN32}
+ {$DEFINE BIT32}
+{$ENDIF}
+
 {$IFNDEF FPC}
   {$F+}
 {$ENDIF}
@@ -270,7 +282,7 @@ CONST   {Error codes returned by huft_build}
   huft_incomplete = 1;   {Incomplete tree <- sufficient in some cases!}
   huft_error     = 2;   {bad tree constructed}
   huft_outofmem  = 3;   {not enough memory}
-  MaxMax = {$ifdef Win32}256 * 1024    {Win32 =  256kb buffer}
+  MaxMax = {$ifdef BIT32}256 * 1024    {BIT32 =  256kb buffer}
            {$else}Maxint -1{$endif}; {16-bit = 32kb buffer}
 
 CONST wsize = $8000;          {Size of sliding dictionary}
@@ -2390,7 +2402,7 @@ BEGIN
       {$I+}
       err := ioresult;
       {$endif}
-      p := strtok ( p, '\' );
+      p := strtok ( NIL, '\' );
     END;
 {$endif}
     WHILE ( p <> NIL ) AND ( p <> p1 ) DO BEGIN
@@ -2427,7 +2439,7 @@ BEGIN
           err := ioresult;
       END;
       IF err = 0 THEN
-        p := strtok ( p, DirSep )
+        p := strtok ( NIL, DirSep )
       ELSE
         p := NIL;
     END;
@@ -2806,7 +2818,7 @@ VAR
     l, err : integer;
     f : file;
     buf : ARRAY [ 0..4 ] of char;
-    oldcurdir : string{$ifndef Win32} [ 80 ]{$endif};
+    oldcurdir : string{$ifndef BIT32} [ 80 ]{$endif};
 
 BEGIN
   filemode := 0;
@@ -2928,7 +2940,7 @@ b : boolean;
 i : integer;
 BEGIN
    Matches := TRUE;
-   IF ( s = '' ) OR ( s = '*.*' ) THEN exit; {'' or '*.*' = all files match}
+   IF ( s = '' ) OR ( s = AllFiles ) THEN exit; {'' or '*.*' = all files match}
    s := upper ( s );
    b := copy ( s, 1, 2 ) = '*.';  {e.g., *.PAS}
    IF b THEN BEGIN

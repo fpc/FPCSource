@@ -16,12 +16,29 @@
  **********************************************************************}
 program install;
 
+{$DEFINE FV}
+
+{$IFDEF OS2}
+ {$UNDEF FV}
+{$ENDIF}
+
   uses
-{$ifdef HEAPTRC}
-     heaptrc,
-{$endif HEAPTRC}
+{$IFDEF OS2}
+ {$IFDEF FPC}
+     DosCalls,
+ {$ELSE FPC}
+  {$IFDEF VirtualPascal}
+     OS2Base,
+  {$ELSE VirtualPascal}
+     BseDos,
+  {$ENDIF VirtualPascal}
+ {$ENDIF FPC}
+{$ENDIF OS2}
      strings,dos,objects,drivers,
-     commands,app,dialogs,views,menus,msgbox,
+{$IFDEF FV}
+     commands,
+{$ENDIF}
+     app,dialogs,views,menus,msgbox,
      unzip,ziptypes;
 
   const
@@ -29,12 +46,6 @@ program install;
      maxdefcfgs=200;
 
      cfgfile='install.dat';
-
-{$ifdef linux}
-     DirSep='/';
-{$else}
-     DirSep='\';
-{$endif}
 
   type
      tpackage=record
@@ -45,7 +56,7 @@ program install;
      cfgrec=record
        title    : string[80];
        version  : string[20];
-       basepath : string[80];
+       basepath : DirStr;
        binsub   : string[12];
        ppc386   : string[12];
        packages : longint;
@@ -56,7 +67,7 @@ program install;
      end;
 
      datarec=packed record
-       basepath : string[80];
+       basepath : DirStr;
        mask     : word;
      end;
 
@@ -168,7 +179,7 @@ program install;
     end;
 
 
-  function createdir(var s : string) : boolean;
+  function createdir(s : string) : boolean;
     var
       start,
       s1 : string;
@@ -179,38 +190,44 @@ program install;
     begin
        if s[length(s)]=DirSep then
         dec(s[0]);
-       s:=lower(s);
-       FindFirst(s,$ff,dir);
+       FindFirst(s,AnyFile,dir);
        if doserror=0 then
          begin
             result:=messagebox('The installation directory exists already. '+
-              'Do want to enter a new installation directory ?',nil,
+              'Do you want to enter a new installation directory ?',nil,
               mferror+mfyesbutton+mfnobutton);
             createdir:=(result=cmNo);
             exit;
          end;
        err:=false;
        {$I-}
-       getdir(0,start);	 
+       getdir(0,start);
+{$ifndef linux}
+       if (s[2]=':') and (s[3]=DirSep) then
+        begin
+          chdir(Copy(s,1,3));
+          Delete(S,1,3);
+        end;
+{$endif}
        repeat
          i:=Pos(DirSep,s);
-	 if i=0 then
-	  i:=255;
+         if i=0 then
+          i:=255;
          s1:=Copy(s,1,i-1);
-	 Delete(s,1,i);
-	 ChDir(s1);
-	 if ioresult<>0 then
-	  begin
-	    mkdir(s1);
-	    chdir(s1);
-	    if ioresult<>0 then
-	     begin
-	       err:=true;
-  	       break;
-	     end;  
-	  end;
+         Delete(s,1,i);
+         ChDir(s1);
+         if ioresult<>0 then
+          begin
+            mkdir(s1);
+            chdir(s1);
+            if ioresult<>0 then
+             begin
+               err:=true;
+               break;
+             end;
+          end;
        until s='';
-       chdir(start);	 
+       chdir(start);
        {$I+}
        if err then
          begin
@@ -220,6 +237,9 @@ program install;
             createdir:=false;
             exit;
          end;
+{$ifndef TP}
+       FindClose (dir);
+{$endif}
        createdir:=true;
     end;
 
@@ -296,7 +316,7 @@ program install;
          end;
        fn:=startpath+DirSep+s+#0;
        dir:=topath+#0;
-       wild:='*.*'#0;
+       wild:=AllFiles + #0;
        FileUnzipEx(@fn[1],@dir[1],@wild[1]);
        if doserror<>0 then
          begin
@@ -360,7 +380,7 @@ program install;
        line:=2;
        r.assign(3,line+1,28,line+2);
 
-       f:=new(pinputline,init(r,80));
+       f:=new(pinputline,init(r,high(DirStr)));
        insert(f);
 
        r.assign(3,line,8,line+1);
@@ -607,6 +627,17 @@ program install;
 
 
 begin
+{$IFDEF OS2}
+ {$IFDEF FPC}
+   DosCalls.DosError (0);
+ {$ELSE FPC}
+  {$IFDEF VirtualPascal}
+   OS2Base.DosError (ferr_DisableHardErr);
+  {$ELSE VirtualPascal}
+   BseDos.DosError (0);
+  {$ENDIF VirtualPascal}
+ {$ENDIF FPC}
+{$ENDIF}
    getdir(0,startpath);
    successfull:=false;
 
@@ -620,7 +651,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1998-12-21 13:11:39  peter
+  Revision 1.14  1998-12-22 22:47:34  peter
+    * updates for OS2
+    * small fixes
+
+  Revision 1.13  1998/12/21 13:11:39  peter
     * updates for 0.99.10
 
   Revision 1.12  1998/12/16 00:25:34  peter
