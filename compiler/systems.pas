@@ -590,19 +590,29 @@ begin
         {$ifdef WIN32}
           set_source(target_i386_WIN32);
         {$else}
-          {$Ifdef BSD}
-            set_source(target_i386_FreeBSD);
-          {$else}
-            {$ifdef sunos}
-              set_source(target_i386_sunos);
-            {$else}
-              { Must be the last as some freebsd also
-                defined linux }
-              {$ifdef Linux}
-                set_source(target_i386_LINUX);
-              {$endif linux}
-            {$endif sunos}
-          {$endif bsd}
+           {$ifdef FreeBSD}
+              set_source(target_i386_FreeBSD);
+           {$else}
+              {$ifdef netbsd}
+                set_source(target_i386_NetBSD);
+              {$else}
+                {$ifdef sunos}
+                  set_source(target_i386_sunos);
+                {$else}
+                  {$ifdef beos}
+                    set_source(target_i386_beos);
+                  {$else}
+                    { Must be the last as some freebsd also
+                      defined linux }
+                    {$ifdef linux}
+                      set_source(target_i386_linux);
+                    {$else}
+                      {$error Error setting source OS}
+                    {$endif linux}
+                  {$endif beos}
+               {$endif sunos}
+            {$endif netbsd}
+          {$endif freebsd}
         {$endif win32}
       {$endif os2}
     {$endif go32v2}
@@ -618,7 +628,7 @@ begin
       {$ifdef MACOS}
         set_source(target_m68k_MAC);
       {$else}
-        {$ifdef LINUX}
+        {$ifdef linux}
            set_source(target_m68k_linux);
         {$endif linux}
       {$endif macos}
@@ -626,58 +636,36 @@ begin
   {$endif amiga}
 {$endif cpu68}
 
-{ Now default target !! }
+{ Now default target, this is dependent on the i386 or m68k define,
+  when the define is the same as the current cpu then we use the source
+  os, else we pick a default }
 {$ifdef i386}
-  {$ifdef GO32V1}
-     default_target(target_i386_GO32V1);
-  {$else}
-    {$ifdef GO32V2}
-      default_target(target_i386_GO32V2);
-    {$else}
-      {$ifdef OS2}
-        default_target(target_i386_OS2);
-      {$else}
-        {$ifdef unix}
-         {$ifdef BSD}
-          default_target(target_i386_FreeBSD);
-         {$else}
-          default_target(target_i386_LINUX);
-         {$endif}
-        {$else}
-           {$ifdef WIN32}
-             default_target(target_i386_WIN32);
-           {$else}
-             default_target(target_i386_GO32V2);
-           {$endif win32}
-        {$endif linux}
-      {$endif os2}
-    {$endif go32v2}
-  {$endif go32v1}
+  {$ifdef cpu86}
+    default_target(source_info.target);
+  {$else cpu86}
+    default_target(target_i386_linux);
+  {$endif cpu86}
 {$endif i386}
 {$ifdef m68k}
-  {$ifdef AMIGA}
-    default_target(target_m68k_Amiga);
-  {$else}
-    {$ifdef ATARI}
-      default_target(target_m68k_Atari);
-    {$else}
-      {$ifdef MACOS}
-        default_target(target_m68k_Mac);
-      {$else}
-        {$ifdef LINUX}
-          default_target(target_m68k_linux);
-        {$else}
-          default_target(target_m68k_Amiga);
-        {$endif linux}
-      {$endif macos}
-    {$endif atari}
-  {$endif amiga}
+  {$ifdef cpu68}
+    default_target(source_info.target);
+  {$else cpu68}
+    default_target(target_m68k_linux);
+  {$endif cpu68}
 {$endif m68k}
 {$ifdef alpha}
-  default_target(target_alpha_linux);
+  {$ifdef cpualpha}
+    default_target(source_info.target);
+  {$else cpualpha}
+    default_target(target_alpha_linux);
+  {$endif cpualpha}
 {$endif alpha}
 {$ifdef powerpc}
-  default_target(target_powerpc_linux);
+  {$ifdef cpuppc}
+    default_target(source_info.target);
+  {$else cpuppc}
+    default_target(target_powerpc_linux);
+  {$endif cpuppc}
 {$endif powerpc}
 end;
 
@@ -688,7 +676,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2001-09-24 10:57:22  jonas
+  Revision 1.30  2001-09-30 21:27:59  peter
+    * much cleaner default source and target setting
+
+  Revision 1.29  2001/09/24 10:57:22  jonas
     * fixed typo in Carl's patch
 
   Revision 1.28  2001/09/22 00:03:53  carl
