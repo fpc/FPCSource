@@ -721,7 +721,8 @@ unit pmodules;
                    if current_module^.compiled then
                      begin
                         { this unit symtable is obsolete }
-                        dispose(unitst,done);
+                        { dispose(unitst,done);
+                        disposed as localsymtable !! }
                         exit;
                      end;
                    unitst^.symtabletype:=globalsymtable;
@@ -786,13 +787,6 @@ unit pmodules;
 
          if current_module^.compiled then
            begin
-              { this unit symtable is obsolete }
-              dispose(unitst,done);
-              { avoid self recursive destructor call !! PM }
-              aktprocsym^.definition^.localst:=nil;
-              { absence does not matter here !! }
-              aktprocsym^.definition^.forwarddef:=false;
-              dispose(st,done);
               exit;
            end;
 
@@ -1076,7 +1070,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.63  1998-10-08 23:29:01  peter
+  Revision 1.64  1998-10-09 08:56:28  pierre
+    * several memory leaks fixed
+
+  Revision 1.63  1998/10/08 23:29:01  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.62  1998/10/08 17:17:25  pierre

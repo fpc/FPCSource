@@ -391,6 +391,7 @@ unit ptconst;
                    else if is_constcharnode(p) then
                      s:=char(byte(p^.value))
                    else Message(cg_e_illegal_expression);
+                   disposetree(p);
                    l:=length(s);
                    for i:=Parraydef(def)^.lowrange to Parraydef(def)^.highrange do
                      begin
@@ -511,7 +512,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.16  1998-09-24 23:49:18  peter
+  Revision 1.17  1998-10-09 08:56:29  pierre
+    * several memory leaks fixed
+
+  Revision 1.16  1998/09/24 23:49:18  peter
     + aktmodeswitches
 
   Revision 1.15  1998/09/07 18:46:11  peter

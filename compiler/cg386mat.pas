@@ -73,6 +73,7 @@ implementation
                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
                     hreg1)));
                 end;
+              clear_location(p^.left^.location);
               p^.left^.location.loc:=LOC_REGISTER;
               p^.left^.location.register:=hreg1;
            end
@@ -171,6 +172,7 @@ implementation
            { this registers are always used when div/mod are present }
          usedinproc:=usedinproc or ($80 shr byte(R_EAX));
          usedinproc:=usedinproc or ($80 shr byte(R_EDX));
+         clear_location(p^.location);
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=hreg1;
       end;
@@ -559,7 +561,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-09-17 09:42:17  peter
+  Revision 1.8  1998-10-09 08:56:24  pierre
+    * several memory leaks fixed
+
+  Revision 1.7  1998/09/17 09:42:17  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

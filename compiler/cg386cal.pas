@@ -789,6 +789,8 @@ implementation
                    p^.methodpointer^.location.loc:=LOC_REGISTER;
                    p^.methodpointer^.location.register:=R_ESI;
                    p^.methodpointer^.resulttype:=p^.symtable^.defowner;
+                   { change dispose type !! }
+                   p^.disposetyp:=dt_mbleft_and_method;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
@@ -1457,7 +1459,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1998-10-06 17:16:39  pierre
+  Revision 1.34  1998-10-09 08:56:22  pierre
+    * several memory leaks fixed
+
+  Revision 1.33  1998/10/06 17:16:39  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.32  1998/10/01 09:22:52  peter

@@ -137,8 +137,8 @@ implementation
 
     const
       { use any special name that is an invalid file name to avoid problems }
-      macro_special_name = '__##&&Macro&&##__';
-
+      macro_special_name = '____Macro____';
+      
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
       length, so a search only will be done in that small part }
@@ -1449,7 +1449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  1998-10-08 23:29:05  peter
+  Revision 1.60  1998-10-09 08:56:31  pierre
+    * several memory leaks fixed
+
+  Revision 1.59  1998/10/08 23:29:05  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.58  1998/10/08 17:17:30  pierre

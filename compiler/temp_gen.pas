@@ -95,9 +95,7 @@ unit temp_gen;
 {$endif}
               hp:=templist;
               templist:=hp^.next;
-{$ifndef EXTDEBUG}
               dispose(hp);
-{$endif not EXTDEBUG}
            end;
          templist:=nil;
          tmpfreelist:=nil;
@@ -183,7 +181,7 @@ unit temp_gen;
          tl^.persistant:=false;
          templist:=tl;
 {$ifdef EXTDEBUG}
-         tl^.line:=current_scanner^.line_no;
+         tl^.line:=aktfilepos.line;
 {$endif}
          gettempofsize:=ofs;
       end;
@@ -451,7 +449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-07-16 08:01:42  pierre
+  Revision 1.4  1998-10-09 08:56:32  pierre
+    * several memory leaks fixed
+
+  Revision 1.3  1998/07/16 08:01:42  pierre
     * small bug correction due to newinput
       (only with tempdebug conditionnal)
 

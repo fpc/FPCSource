@@ -938,7 +938,7 @@ implementation
                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,newreference(p^.location.reference),
                                hregister)));
                           end;
-                        clear_location(p^.left^.location);
+                        clear_location(p^.location);
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
                      end;
@@ -1071,7 +1071,7 @@ implementation
                                 gten : flags:=F_AE;
                           end;
                         end;
-                       clear_location(p^.left^.location);
+                       clear_location(p^.location);
                        p^.location.loc:=LOC_FLAGS;
                        p^.location.resflags:=flags;
                        cmpop:=false;
@@ -1284,7 +1284,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-10-08 17:17:10  pierre
+  Revision 1.16  1998-10-09 08:56:21  pierre
+    * several memory leaks fixed
+
+  Revision 1.15  1998/10/08 17:17:10  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)

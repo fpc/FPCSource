@@ -319,7 +319,8 @@ unit files;
          begin
            Freemem(buf,maxbufsize);
            buf:=nil;
-           is_macro:=false;
+           {is_macro:=false;
+           still needed for dispose in scanner PM }
            closed:=true;
            exit;
          end;
@@ -1006,7 +1007,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.55  1998-10-08 23:28:54  peter
+  Revision 1.56  1998-10-09 08:56:26  pierre
+    * several memory leaks fixed
+
+  Revision 1.55  1998/10/08 23:28:54  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.54  1998/10/08 17:17:19  pierre

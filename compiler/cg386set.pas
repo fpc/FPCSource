@@ -422,6 +422,8 @@ implementation
                 end;
              end;
           end;
+          if (p^.right^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+            ungetiftemp(p^.right^.location.reference);
        end;
 
 
@@ -785,7 +787,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-10-08 17:17:14  pierre
+  Revision 1.19  1998-10-09 08:56:25  pierre
+    * several memory leaks fixed
+
+  Revision 1.18  1998/10/08 17:17:14  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
