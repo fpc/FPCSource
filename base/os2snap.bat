@@ -291,6 +291,7 @@ echo *Warning: Cannot locate your %COMPILER% and AS.EXE, make sure they're on PA
 echo *Checking parameters >> %FPCERRLOG%
 set PARAMS=%1
 if .%PARAMS% == . set PARAMS=snapshot
+if %@EVAL[0] == 0 set PARAMS=%@LOWER[%PARAMS%]
 :ParLoop
 shift
 if %1. == . goto NoPars
@@ -303,7 +304,6 @@ if %1 == verbose set DOVERBOSE=1
 if %1 == ppas set FORCEPPAS=1
 goto ParLoop
 :Shl1
-set PARAMS=%@LOWER[%PARAMS%]
 if %@LOWER[%1] == debug set CURRENTOPT1=%DEBUGOPT1%
 if %@LOWER[%1] == debug set CURRENTOPT2=%DEBUGOPT2%
 if %@LOWER[%1] == release set CURRENTOPT1=%RELEASEOPT1%
@@ -456,6 +456,10 @@ echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit ObjPas ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\OBJPAS.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Objects ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\OBJECTS.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
@@ -468,20 +472,20 @@ echo *Compiling unit HeapTrace ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\HEAPTRC.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
-echo *Compiling unit CPU ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\CPU.PP
-if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
-if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
-echo *Compiling unit MMX ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
-if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
-if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DosCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOSCALLS.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DOS ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOS.PAS
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit CPU ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\CPU.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit MMX ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
@@ -686,7 +690,10 @@ goto End
 
 
   $Log$
-  Revision 1.13  2000-03-16 19:43:36  hajny
+  Revision 1.14  2000-03-28 19:30:49  hajny
+    * another change of order
+
+  Revision 1.13  2000/03/16 19:43:36  hajny
     * fix for COMMAND.COM, order, etc.
 
   Revision 1.12  2000/03/12 18:29:40  hajny
