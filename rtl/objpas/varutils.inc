@@ -30,6 +30,20 @@ begin
     SafeArrayUnlock(P);
 end;
 
+Procedure MakeWideString (Var P : PWideChar; W : WideString);
+
+begin
+  WideString(Pointer(P)):=W;
+  UniqueString(WideString(P));
+end;
+
+Procedure CopyAsWideString (Var PDest : PWideChar; PSource : PWideChar);
+
+begin
+  WideString(Pointer(PDest)):=WideString(Pointer(PSource));
+  UniqueString(WideString(PDest));
+end;
+
 { ---------------------------------------------------------------------
     Basic variant handling.
   ---------------------------------------------------------------------}
@@ -59,7 +73,7 @@ begin
           varCurrency, varDate, varError, varBoolean, varByte,VarShortInt,
           varInt64, VarLongWord,VarQWord:;
           varOleStr:
-            NoWideStrings;
+            WideString(Pointer(VOleStr)):='';
           varDispatch,
           varUnknown:
             NoInterfaces;
@@ -93,7 +107,7 @@ begin
           varInt64, VarLongWord,VarQWord:
             Move(VBytes, VargDest.VBytes, SizeOf(VargDest.VBytes));
           varOleStr:
-            NoWideStrings; // We should copy here...
+            CopyAsWideString(VargDest.VOleStr,VOleStr);
           varDispatch,
           varUnknown:
             NoInterfaces; // We should bump up reference count here (Addref)
@@ -130,7 +144,7 @@ begin
       VarLongWord : VargDest.VLongWord:=PCardinal(VPointer)^;
       VarQWord    : VargDest.VQWord:=PQWord(VPointer)^;
       varVariant  : Variant(VargDest):=Variant(PVarData(VPointer)^);
-      varOleStr   : NoWideStrings;
+      varOleStr   : CopyAsWideString(VargDest.VOleStr,PVarData(VPointer)^.VoleStr);
       varDispatch,
       varUnknown  : NoInterfaces;
       else
@@ -140,9 +154,6 @@ begin
     end;
   Result:=VAR_OK;
 end;
-
-
-
 
 Function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData;
   LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
@@ -167,7 +178,7 @@ begin
           varDouble   : VargDest.VDouble:=VariantToDouble(Tmp);
           varCurrency : VargDest.VCurrency:=VariantToCurrency(Tmp);
           varDate     : VargDest.VDate:=VariantToDate(tmp);
-          varOleStr   : NoWidestrings;
+          varOleStr   : MakeWideString(VargDest.VoleStr, VariantToWideString(tmp));
           varDispatch : Result:=VAR_TYPEMISMATCH;
           varUnknown  : Result:=VAR_TYPEMISMATCH;
           varBoolean  : VargDest.VBoolean:=VariantToBoolean(Tmp);
@@ -812,7 +823,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.5  2001-11-14 23:00:17  michael
+  Revision 1.6  2001-11-15 22:33:14  michael
+  + Real/Boolean support added, Start of string support
+
+  Revision 1.5  2001/11/14 23:00:17  michael
   + First working variant support
 
   Revision 1.4  2001/08/19 21:02:02  florian

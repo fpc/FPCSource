@@ -328,10 +328,10 @@ begin
         VarSmallInt: Result:=VSmallInt;
         VarShortInt: Result:=VShortInt;
         VarInteger : Result:=VInteger;
-        VarSingle  : Result:=FloatToCurr(VSingle);
-        VarDouble  : Result:=FloatToCurr(VDouble);
+        VarSingle  : Result:=Trunc(VSingle);
+        VarDouble  : Result:=Trunc(VDouble);
         VarCurrency: Result:=VCurrency;
-        VarDate    : Result:=FloatToCurr(VDate);
+        VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
@@ -359,10 +359,10 @@ begin
         VarSmallInt: Result:=VSmallint;
         VarShortInt: Result:=VShortInt;
         VarInteger : Result:=VInteger;
-        VarSingle  : Result:=FloatToCurr(VSingle);
-        VarDouble  : Result:=FloatToCurr(VDouble);
+        VarSingle  : Result:=Trunc(VSingle);
+        VarDouble  : Result:=Trunc(VDouble);
         VarCurrency: Result:=VCurrency;
-        VarDate    : Result:=FloatToCurr(VDate);
+        VarDate    : Result:=Trunc(VDate);
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
@@ -381,10 +381,57 @@ begin
   end;
 end;
 
+Function VariantToWideString(Const VargSrc : TVarData) : WideString;
+
+Const
+ BS : Array[Boolean] of WideString = ('False','True');
+
+begin
+  Try
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt : Result:=IntTostr(VSmallint);
+        VarShortInt : Result:=IntToStr(VShortInt);
+        VarInteger  : Result:=IntToStr(VInteger);
+        VarSingle   : Result:=FloatToStr(VSingle);
+        VarDouble   : Result:=FloatToStr(VDouble);
+        VarCurrency : Result:=IntToStr(VCurrency);
+        VarDate     : Result:=DateTimeToStr(VDate);
+        VarOleStr   : Result:=WideString(Pointer(VOleStr));
+        VarBoolean  : Result:=BS[VBoolean];
+        VarByte     : Result:=IntToStr(VByte);
+        VarWord     : Result:=IntToStr(VWord);
+        VarLongWord : Result:=IntToStr(VLongWord);
+        VarInt64    : Result:=IntToStr(VInt64);
+        VarQword    : Result:=IntToStr(VQWord);
+    else
+      VariantTypeMismatch;
+    end;
+  except
+    On EConvertError do
+      VariantTypeMismatch;
+    else
+      Raise;
+  end;
+end;
+
+Function VariantToAnsiString(Const VargSrc : TVarData) : AnsiString;
+
+begin
+end;
+
+Function VariantToShortString(Const VargSrc : TVarData) : ShortString;
+
+begin
+end;
+
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.3  2001-11-14 23:00:17  michael
+  Revision 1.4  2001-11-15 22:33:14  michael
+  + Real/Boolean support added, Start of string support
+
+  Revision 1.3  2001/11/14 23:00:17  michael
   + First working variant support
 
   Revision 1.2  2001/08/19 21:02:02  florian

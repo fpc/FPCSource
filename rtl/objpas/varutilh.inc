@@ -144,6 +144,9 @@ Function VariantToBoolean(Const VargSrc : TVarData) : Boolean;
 Function VariantToByte(Const VargSrc : TVarData) : Byte;
 Function VariantToInt64(Const VargSrc : TVarData ) : Int64;
 Function VariantToQWord(Const VargSrc : TVarData ) : Qword;
+Function VariantToWideString(Const VargSrc : TVarData) : WideString;
+Function VariantToAnsiString(Const VargSrc : TVarData) : AnsiString;
+Function VariantToShortString(Const VargSrc : TVarData) : ShortString;
 
 {Debug routines }
 Procedure DumpVariant(Const VArgSrc : TVarData);
@@ -176,7 +179,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2001-11-14 23:00:17  michael
+  Revision 1.4  2001-11-15 22:33:14  michael
+  + Real/Boolean support added, Start of string support
+
+  Revision 1.3  2001/11/14 23:00:17  michael
   + First working variant support
 
   Revision 1.2  2001/08/19 21:02:02  florian
