@@ -103,3 +103,7 @@ testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
 .PHONY: test
 
 test: examples
+
+clean: fpc_clean
+        $(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+
