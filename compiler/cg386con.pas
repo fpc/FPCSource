@@ -199,14 +199,14 @@ implementation
                              consts^.concat(new(pai_const,init_32bit(0)))
                            else
                              begin
-                                getlabel(l1);
+                                getdatalabel(l1);
                                 consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
                                 consts^.concat(new(pai_label,init(l1)));
-                                getmem(pc,p^.length+1);
-                                move(p^.value_str^,pc^,p^.length+1);
+                                getmem(pc,p^.length+2);
+                                move(p^.value_str^,pc^,p^.length);
                                 pc[p^.length]:=#0;
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-11-05 23:40:45  pierre
+  Revision 1.20  1998-11-16 12:11:29  peter
+    * fixed ansistring crash
+
+  Revision 1.19  1998/11/05 23:40:45  pierre
    * fix for const strings
 
   Revision 1.18  1998/11/05 15:26:38  pierre
