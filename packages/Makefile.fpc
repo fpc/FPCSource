@@ -15,7 +15,7 @@ dirs_netbsd=zlib ncurses x11 gtk syslog \
            mysql ibase postgres oracle \
            opengl forms svgalib ggi libpng libgd \
            utmp paszlib gdbint cmem regexpr unzip
-
+dirs_beos=uncgi paszlib unzip regexpr
 dirs_os2=uncgi paszlib unzip regexpr
 dirs_freebsd=zlib ncurses x11 gtk syslog \
            inet uncgi \
