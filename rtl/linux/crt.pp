@@ -1340,7 +1340,7 @@ Begin
 End;
 
 
-Function CrtReturn:Integer;
+Function CrtReturn(Var F:TextRec):Integer;
 Begin
   CrtReturn:=0;
 end;
@@ -1597,7 +1597,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.18  1999-09-07 07:47:46  peter
+  Revision 1.19  1999-10-22 14:36:20  peter
+    * crtreturn also needs f:textrec as parameter
+
+  Revision 1.18  1999/09/07 07:47:46  peter
     * write > 255 chars
 
   Revision 1.17  1999/09/07 07:38:09  michael

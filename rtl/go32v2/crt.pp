@@ -747,7 +747,7 @@ Begin
 End;
 
 
-Function CrtReturn:Integer;
+Function CrtReturn(Var F: TextRec): Integer;
 Begin
   CrtReturn:=0;
 end;
@@ -815,7 +815,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-06-09 16:46:09  peter
+  Revision 1.6  1999-10-22 14:36:20  peter
+    * crtreturn also needs f:textrec as parameter
+
+  Revision 1.5  1999/06/09 16:46:09  peter
     * fixed fullwin,textbackground
 
   Revision 1.4  1999/03/26 00:00:17  peter

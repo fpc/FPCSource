@@ -887,7 +887,7 @@ Begin
 End;
 
 
-Function CrtReturn:Integer;
+Function CrtReturn(Var F:TextRec):Integer;
 Begin
   CrtReturn:=0;
 end;
@@ -967,7 +967,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.11  1999-08-28 09:30:39  peter
+  Revision 1.12  1999-10-22 14:36:20  peter
+    * crtreturn also needs f:textrec as parameter
+
+  Revision 1.11  1999/08/28 09:30:39  peter
     * fixes from Maarten Bekers
 
   Revision 1.10  1999/08/24 13:15:44  peter
