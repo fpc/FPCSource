@@ -15,6 +15,25 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
+Function TStream.GetPositionReadable : Boolean;
+
+begin
+  Result:=SeekSupport in [ssFull,ssForwardOnly]
+end;
+
+Function TStream.GetSizeReadable : Boolean;
+
+begin
+  Result:=SeekSupport=ssFull;
+end;
+
+Function Tstream.GetSizeWritable : Boolean;
+
+begin
+  Result:=true; // For Delphi compatibility.
+end;
+
+
 {$ifdef seek64bit}
   function TStream.GetPosition: Int64;
 
@@ -158,18 +177,22 @@
 
     begin
        CopyFrom:=0;
+       If (Count=0) then
+         begin
+         // This WILL fail for non-seekable streams...
+         Source.Position:=0;
+         Count:=Source.Size;
+         end;
        while Count>0 do
          begin
-            if (Count>sizeof(buffer)) then
-              i:=sizeof(Buffer)
-            else
-              i:=Count;
-            i:=Source.Read(buffer,i);
-            i:=Write(buffer,i);
-            dec(count,i);
-            CopyFrom:=CopyFrom+i;
-            if i=0 then
-              exit;
+         if (Count>sizeof(buffer)) then
+           i:=sizeof(Buffer)
+         else
+           i:=Count;
+         i:=Source.Read(buffer,i);
+         i:=Write(buffer,i);
+         dec(count,i);
+         CopyFrom:=CopyFrom+i;
          end;
     end;
 
@@ -783,10 +806,8 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
+  Revision 1.2  2003-10-26 14:52:29  michael
+  + Fixed TStream.CopyFrom with Count=0
 
   Revision 1.13  2003/07/26 16:20:50  michael
   + Fixed readstring from TStringStream (
