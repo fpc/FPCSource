@@ -621,7 +621,9 @@ implementation
          { but an int/int gives real/real! }
          if nodetype=slashn then
           begin
-            CGMessage(type_h_use_div_for_int);
+            if (left.resulttype.def.deftype <> floatdef) and
+               (right.resulttype.def.deftype <> floatdef) then
+              CGMessage(type_h_use_div_for_int);
             inserttypeconv(right,pbestrealtype^);
             inserttypeconv(left,pbestrealtype^);
           end
@@ -1826,7 +1828,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-10-05 00:47:03  peter
+  Revision 1.68  2002-10-08 16:50:43  jonas
+    * fixed web bug 2136
+
+  Revision 1.67  2002/10/05 00:47:03  peter
     * support dynamicarray<>nil
 
   Revision 1.66  2002/10/04 21:19:28  jonas
