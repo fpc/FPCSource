@@ -22,6 +22,8 @@
 }
 unit pdecl;
 
+{$define UseUnionSymtable}
+
   interface
 
     uses
@@ -328,6 +330,13 @@ unit pdecl;
          { startvarrec contains the start of the variant part of a record }
          maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : ptree;
+{$ifdef UseUnionSymtable}
+         unionsymtable : psymtable;
+         offset : longint;
+         uniondef : precorddef;
+         unionsym : pvarsym;
+         uniontype : ttype;
+{$endif UseUnionSymtable}
       begin
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
@@ -669,6 +678,14 @@ unit pdecl;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
+{$ifdef UseUnionSymtable}
+              UnionSymtable:=new(psymtable,init(recordsymtable));
+              UnionSymtable^.next:=symtablestack;
+              registerdef:=false;
+              UnionDef:=new(precorddef,init(unionsymtable));
+              registerdef:=true;
+              symtablestack:=UnionSymtable;
+{$endif UseUnionSymtable}
               startvarrecsize:=symtablestack^.datasize;
               startvarrecalign:=symtablestack^.dataalignment;
               repeat
@@ -705,6 +722,22 @@ unit pdecl;
               { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
               symtablestack^.dataalignment:=maxalignment;
+{$ifdef UseUnionSymtable}
+              uniontype.def:=uniondef;
+              uniontype.sym:=nil;
+              UnionSym:=new(pvarsym,init('case',uniontype));
+              symtablestack:=symtablestack^.next;
+              { we do NOT call symtablestack^.insert
+               on purpose PM }
+              offset:=align_from_size(symtablestack^.datasize,maxalignment);
+              symtablestack^.datasize:=offset+unionsymtable^.datasize;
+              if maxalignment>symtablestack^.dataalignment then
+                symtablestack^.dataalignment:=maxalignment;
+              UnionSymtable^.Insert_in(symtablestack,offset);
+              UnionSym^.owner:=nil;
+              dispose(unionsym,done);
+              dispose(uniondef,done);
+{$endif UseUnionSymtable}
            end;
          block_type:=old_block_type;
          current_object_option:=old_current_object_option;
@@ -1217,7 +1250,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.187  2000-06-23 20:14:39  peter
+  Revision 1.188  2000-06-23 21:34:09  pierre
+   * align all variants to same start address
+
+  Revision 1.187  2000/06/23 20:14:39  peter
     * reset current_object_option when reading other symtables than
       object declarations
 

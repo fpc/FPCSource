@@ -203,6 +203,7 @@ unit symtable;
           function  rename(const olds,news : stringid):psym;
           procedure foreach(proc2call : tnamedindexcallback);
           procedure insert(sym : psym);
+          procedure insert_in(psymt : psymtable;offset : longint);
           function  search(const s : stringid) : psym;
           function  speedsearch(const s : stringid;speedvalue : longint) : psym;
           procedure registerdef(p : pdef);
@@ -1646,6 +1647,49 @@ implementation
          end;
       end;
 
+    { this procedure is reserved for inserting case variant into
+      a record symtable }
+    { the offset is the location of the start of the variant
+      and datasize and dataalignment corresponds to
+      the complete size (see code in pdecl unit) PM }
+    procedure tsymtable.insert_in(psymt : psymtable;offset : longint);
+      var
+        ps,nps : pvarsym;
+        pd,npd : pdef;
+        storesize,storealign : longint;
+      begin
+        storesize:=psymt^.datasize;
+        storealign:=psymt^.dataalignment;
+        psymt^.datasize:=offset;
+        ps:=pvarsym(symindex^.first);
+        while assigned(ps) do
+          begin
+            { this is used to insert case variant into the main
+              record }
+            if ps^.address=0 then
+              psymt^.datasize:=offset;
+            nps:=pvarsym(ps^.next);
+            symindex^.deleteindex(ps);
+            ps^.next:=nil;
+            ps^.left:=nil;
+            ps^.right:=nil;
+            psymt^.insert(ps);
+            ps:=nps;
+          end;
+        pd:=pdef(defindex^.first);
+        while assigned(pd) do
+          begin
+            npd:=pdef(pd^.next);
+            defindex^.deleteindex(pd);
+            pd^.next:=nil;
+            pd^.left:=nil;
+            pd^.right:=nil;
+            psymt^.registerdef(pd);
+            pd:=npd;
+          end;
+        psymt^.datasize:=storesize;
+        psymt^.dataalignment:=storealign;
+      end;
 
     constructor tsymtable.loadas(typ : tsymtabletype);
       var
@@ -2934,7 +2978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  2000-06-18 18:11:32  peter
+  Revision 1.101  2000-06-23 21:34:10  pierre
+   * align all variants to same start address
+
+  Revision 1.100  2000/06/18 18:11:32  peter
     * C record packing fixed to also check first entry of the record
       if bigger than the recordalignment itself
     * variant record alignment uses alignment per variant and saves the
