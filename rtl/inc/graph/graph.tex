@@ -258,6 +258,7 @@ of driver names are 'DosGX', 'DirectX', 'QuickDrw','CyberGFX', 'Dive'.
 
 
 
+
 \var{CloseGraph}
 
 The CloseGraph routine is called directly by the user and must
@@ -504,7 +505,65 @@ None.
 \SeeAlso
 \seef{GetColor}, \seep{SetBkColor}
 \end{procedure}
+----------------------------
+\begin{procedure}{SetDirectVideo}
+\Declaration
+Procedure SetDirectVideo (DirectAccess : boolean);
 
+\Description
+Determines how the video access should be done, if DirectAccess
+is set to TRUE then access will be done directly to video memory, if
+it is supported, otherwise Operating systems calls will be done to
+access the video memory.
+
+The behaviour of this routine depends on the platform, and is required
+for example to use the graph unit under older multitaskers such as
+Desqview (DOS platform). Certain modes simply are simply not supported
+via Operating system calls, while others are only supported by the
+operating system. In those cases this routine is simply ignored.
+
+Using operating system calls to plot pixels is much slower then using
+the direct mode, but it provides more compatibility.
+
+\textbf{Platform specific}
+Windows NT, OS/2, Windows '9x, Windows 3.x, Linux DOSEMU support
+all \textit{standard} video DOS modes, even in DirectVideo mode.
+Others, like Desqview, Topview, DoubleDOS and MultiDOS might not.
+In that case, \vaR{SetDirectVideo} should be called and set to FALSE.
+
+VESA modes are not considered as standard DOS video modes,
+and should simply not be used under such multitaskers/emulators.
+
+Mode-X is not considered a standard DOS mode, but is supported in
+most modern operating systems, since it uses only standard VGA
+I/O ports and memory. (Exception: older multitaskers such as Desqview).
+
+NOT IMPLEMENTED YET.
+
+
+\Errors
+None.
+\SeeAlso
+\seef{GetDirectVideo}
+\end{procedure}
+
+----------------------------
+\begin{function}{GetDirectVideo}
+\Declaration
+Function GetDirectVideo : boolean;
+
+\Description
+Returns the state of the of DirectAccess flag. If this value returns
+TRUE, then in the case where it is possible, the video memory is directly
+accessed to plot graphics points, otherwise operating system calls
+are used.
+
+
+\Errors
+None.
+\SeeAlso
+\seep{SetDirectVideo}
+\end{procedure}
 
 
 ----------------------------
@@ -1120,7 +1179,7 @@ the last graphical operation. If the returned value is zero, all went well.
 A value different from zero means an error has occurred.
 
 Note that \var{GraphResult} is reset to zero after it has been called.
-Therefore the value should be saved into a temporary location if he wishes
+Therefore the value should be saved into a temporary location if you wish
 to use it later.
 
 To see which routine might return errors, see the introduction section at
@@ -1184,8 +1243,9 @@ If the requested driver or mode is invalid, this function returns either
 \var{grError} or \var{grInvalidMode}.
 
 Before calling this function, you should call QueryAdapterInfo, and
-go through the list of supported modes to determine which mode sets
-your needs the best.
+go through the list of supported modes to determine which mode suites
+your needs. As stated in the introduction, each graph unit implementation
+should support a 320x200 color mode.
 
 \Errors
 None.
@@ -1197,17 +1257,17 @@ Introduction, (page \pageref{se:Introduction}),
 Example:
 \begin{verbatim}
 var
-   gd,gm : integer; 
+   gd,gm : integer;
    PathToDriver : string;
-begin 
-   gd:=detect; { highest possible resolution } 
+begin
+   gd:=detect; { highest possible resolution }
    gm:=0; { not needed, auto detection }
-   PathToDriver:='C:\PP\BGI'; { path to BGI fonts, 
-                                drivers aren't needed } 
-   InitGraph(gd,gm,PathToDriver); 
-   if GraphResult<>grok then 
-     halt; ..... { whatever you need } 
-   CloseGraph; { restores the old graphics mode } 
+   PathToDriver:='C:\PP\BGI'; { path to BGI fonts,
+                                drivers aren't needed }
+   InitGraph(gd,gm,PathToDriver);
+   if GraphResult<>grok then
+     halt; ..... { whatever you need }
+   CloseGraph; { restores the old graphics mode }
 end.
 \end{verbatim}
 
@@ -1245,6 +1305,12 @@ Procedure Line (X1,Y1,X2,Y2 : Integer);
 \var{Line} draws a line starting from
 \var{(X1,Y1} to \var{(X2,Y2)}, in the current line style and color.
 The current pointer is not updated after this call.
+
+This is the base routine which is called by several other routines
+in this unit. This routine is somewhat faster then the other
+LineXXX routines contained herein.
+
+
 \Errors
 None.
 \SeeAlso
@@ -1296,7 +1362,7 @@ None.
 Procedure MoveTo (X,Y : Integer);
 
 \Description
-\var{MoveTo} moves the pointer to the
+\var{MoveTo} moves the current pointer to the
 point \var{(X,Y)}.
 \Errors
 None.
@@ -1310,7 +1376,14 @@ Procedure OutText (Const TextString : String);
 \Description
 \var{OutText} puts \var{TextString} on the screen, at the current pointer
 position, using the current font and text settings. The current pointer is
-moved to the end of the text.
+updated only if the text justification is set to left and is horizontal.
+
+The text is truncated according to the current viewport settings if it
+cannot fit.
+
+In order to maintain compatibility when using several fonts, use \var{TextWidth}
+and \var{TextHeight} calls to determine the dimensions of the string.
+
 \Errors
 None.
 \SeeAlso
@@ -1322,8 +1395,13 @@ Procedure OutTextXY (X,Y : Integer; Const TextString : String);
 
 \Description
 \var{OutText} puts \var{TextString} on the screen, at position \var{(X,Y)},
-using the current font and text settings. The current position is
-moved to the end of the text.
+using the current font and text settings.
+
+Contrary to \var{OutText} , this routine does not update the current pointer.
+
+In order to maintain compatibility when using several fonts, use \var{TextWidth}
+and \var{TextHeight} calls to determine the dimensions of the string.
+
 \Errors
 None.
 \SeeAlso
@@ -1331,12 +1409,14 @@ None.
 \end{procedure}
 \begin{procedure}{PieSlice}
 \Declaration
-Procedure PieSlice (X,Y : Integer; \\ Start,Stop,Radius : Word);
+Procedure PieSlice (X,Y,stangle,endAngle:integer;Radius: Word);
 
 \Description
 \var{PieSlice}
-draws and fills a sector of a circle with center \var{(X,Y)} and radius 
-\var{Radius}, starting at angle \var{Start} and ending at angle \var{Stop}.
+draws and fills a sector of a circle with center \var{(X,Y)} and radius
+\var{Radius}, starting at angle \var{StAngle} and ending at angle \var{EndAngle}
+using the current fill style and fill pattern. The pie slice is outlined
+with the current line style and current active color.
 \Errors
 None.
 \SeeAlso
@@ -1344,12 +1424,13 @@ None.
 \end{procedure}
 \begin{procedure}{PutImage}
 \Declaration
-Procedure PutImage (X1,Y1 : Integer; Var Bitmap; How : word) ;
+Procedure PutImage (X,Y: Integer; var Bitmap; BitBlt: Word);
 
 \Description
 \var{PutImage}
-Places the bitmap in \var{Bitmap} on the screen at \var{(X1,Y1)}. \var{How}
-determines how the bitmap will be placed on the screen. Possible values are :
+Places the bitmap in \var{Bitmap} on the screen at upper left
+corner \var{(X, Y)}. \var{BitBlt} determines how the bitmap
+will be placed on the screen. Possible values are :
 \begin{itemize}
 \item CopyPut
 \item XORPut
@@ -1357,6 +1438,12 @@ determines how the bitmap will be placed on the screen. Possible values are :
 \item AndPut
 \item NotPut
 \end{itemize}
+
+\textit{Compatibility}
+
+Contrary to the Borland graph unit, putimage \textit{is} clipped to the
+viewport boundaries.
+
 \Errors
 None
 \SeeAlso
@@ -1368,7 +1455,8 @@ Procedure PutPixel (X,Y : Integer; Color : Word);
 
 \Description
 Puts a point at
-\var{(X,Y)} using color \var{Color}
+\var{(X,Y)} using color \var{Color}. This routine is viewport
+relative.
 \Errors
 None.
 \SeeAlso
@@ -1381,7 +1469,7 @@ Procedure Rectangle (X1,Y1,X2,Y2 : Integer);
 \Description
 Draws a rectangle with
 corners at \var{(X1,Y1)} and \var{(X2,Y2)}, using the current color and
-style.
+the current line style.
 \Errors
 None.
 \SeeAlso
@@ -1392,7 +1480,8 @@ None.
 Function RegisterBGIDriver (Driver : Pointer) : Integer;
 
 \Description
-Registers a user-defined BGI driver
+This routine is not supported in FPC. It is here for compatibility and it
+always returns \var{grError}.
 \Errors
 None.
 \SeeAlso
@@ -1404,7 +1493,20 @@ None.
 Function RegisterBGIFont (Font : Pointer) : Integer;
 
 \Description
-Registers a user-defined BGI driver
+This routine permits the user to add a font to the list of known fonts
+by the graph unit. \var{Font} is a pointer to image of the loaded font.
+
+The value returned is either a negative error number (\var{grInvalidFont}),
+or the font number you need to use when accessing it via \var{SetTextStyle}.
+
+This routine may be called before \var{InitGraph}.
+
+
+\textit{Compatibility}
+Watch out for the byte endian when using this routine. This might work
+on little endian machines, and not on big endian machines and vice-versa.
+
+
 \Errors
 None.
 \SeeAlso
@@ -1416,13 +1518,42 @@ None.
 Procedure RestoreCRTMode ;
 
 \Description
-Restores the screen modus which was active before
-the graphical modus was started.
+Restores the screen mode which was active before
+the graphical mode was started. Can be used to switch back and forth
+between text and graphics mode.
 \Errors
 None.
 \SeeAlso
 \seep{InitGraph}
+
+
 \end{procedure}
+
+Example:
+\begin{verbatim}
+uses Graph;
+
+var
+ Gd, Gm: Integer;
+ Mode: Integer;
+begin
+ Gd := Detect;
+ InitGraph(Gd, Gm, ' ');
+ if GraphResult <> grOk then
+   Halt(1);
+ OutText('<ENTER> to leave graphics:');
+ Readln;
+ RestoreCrtMode;
+ Writeln('Now in text mode');
+ Write('<ENTER> to enter graphics mode:');
+ Readln;
+ SetGraphMode(GetGraphMode);
+ OutTextXY(0, 0, 'Back in graphics mode');
+ OutTextXY(0, TextHeight('H'), '<ENTER> to quit:');
+ Readln;
+ CloseGraph;
+end.
+\end{verbatim}
 \begin{procedure}{Sector}
 \Declaration
 Procedure Sector (X,Y : Integer; \\ Start,Stop,XRadius,YRadius : Word);
@@ -1441,7 +1572,7 @@ None.
 Procedure SetActivePage (Page : Word);
 
 \Description
-Sets \var{Page} as the active page 
+Sets \var{Page} as the active page
 for all graphical output.
 \Errors
 None.
