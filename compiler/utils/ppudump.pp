@@ -871,7 +871,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=25;
+  procopts=26;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -2088,7 +2088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-11-19 08:17:02  michael
+  Revision 1.63  2004-11-19 08:33:02  marco
+   * fix for " Split po_public into po_public and po_global"
+
+  Revision 1.62  2004/11/19 08:17:02  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.61  2004/11/17 22:22:12  peter
