@@ -223,11 +223,12 @@ unit temp_gen;
             if bestsize=size then
              begin
                bestslot^.temptype:=tt_normal;
+               tl:=bestslot;
                { Remove from the tempfreelist }
                if assigned(bestprev) then
                  bestprev^.nextfree:=bestslot^.nextfree
                else
-                 tempfreelist:=nil;
+                 tempfreelist:=bestslot^.nextfree;
              end
             else
              begin
@@ -245,7 +246,12 @@ unit temp_gen;
              end;
           end
          else
-          ofs:=newtempofsize(size);
+          begin
+             ofs:=newtempofsize(size);
+{$ifdef EXTDEBUG}
+             tl:=templist;
+{$endif}
+          end;
 {$ifdef EXTDEBUG}
          tl^.posinfo:=aktfilepos;
 {$endif}
@@ -402,9 +408,9 @@ unit temp_gen;
             if (hp^.pos=pos) then
              begin
                { check type }
+               ungettemp:=hp^.temptype;
                if hp^.temptype<>allowtype then
                 begin
-                  ungettemp:=hp^.temptype;
                   exit;
                 end;
                exprasmlist^.concat(new(paitempalloc,dealloc(hp^.pos,hp^.size)));
@@ -492,7 +498,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-05-15 21:33:21  peter
+  Revision 1.23  1999-05-17 12:49:16  pierre
+    * several problems with EXTDEBUG fixed
+
+  Revision 1.22  1999/05/15 21:33:21  peter
     * redesigned temp_gen temp allocation so temp allocation for
       ansistring works correct. It also does a best fit instead of first fit
 
