@@ -66,6 +66,7 @@ interface
 
     function tppcaddnode.pass_1: tnode;
       begin
+        resulttypepass(left);
         if (nodetype in [equaln,unequaln]) and
            is_64bit(left.resulttype.def) then
           begin
@@ -1478,7 +1479,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2004-07-17 14:47:16  jonas
+  Revision 1.47  2004-07-21 15:09:10  jonas
+    * do a resulttypepass of left in the overloaded pass_1 before checking
+      its resulttype
+
+  Revision 1.46  2004/07/17 14:47:16  jonas
     - removed useless maybe_pushfpu code for ppc
 
   Revision 1.45  2004/06/20 08:55:32  florian
