@@ -998,12 +998,14 @@ implementation
 
     procedure tscannerfile.skipuntildirective;
       var
+        incomment : boolean;
         found : longint;
         next_char_loaded : boolean;
         oldcommentstyle : tcommentstyle;
       begin
          found:=0;
          next_char_loaded:=false;
+         incomment:=true;
          oldcommentstyle:=aktcommentstyle;
          repeat
            case c of
@@ -1018,11 +1020,13 @@ implementation
                     aktcommentstyle:=comment_tp;
                   end;
                  inc_comment_level;
+                 incomment:=true;
                end;
              '}' :
                begin
                  dec_comment_level;
                  found:=0;
+                 incomment:=false;
                end;
              '$' :
                begin
@@ -1030,7 +1034,7 @@ implementation
                   found:=2;
                end;
              '''' :
-               if not(m_nested_comment in aktmodeswitches) then
+               if not incomment then
                 begin
                   repeat
                     readchar;
@@ -1932,7 +1936,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.9  2000-11-30 20:27:51  peter
+  Revision 1.10  2000-12-16 15:36:02  peter
+    * fixed parsing of strings and comments in skipuntildirective
+
+  Revision 1.9  2000/11/30 20:27:51  peter
     * merged fix for bug 1229
 
   Revision 1.8  2000/11/29 00:30:40  florian
