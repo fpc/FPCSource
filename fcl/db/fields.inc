@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
     Free Pascal development team
 
     TFields and related components implementations.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -24,13 +24,13 @@ begin
   Write ('Memory dump : ');
   For I:=0 to Size-1 do
     Write (Pbyte(P)[i],' ');
-  Writeln;  
+  Writeln;
 end;
 
 { ---------------------------------------------------------------------
     TFieldDef
   ---------------------------------------------------------------------}
-     
+
 Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
 
@@ -44,10 +44,10 @@ begin
   // Correct sizes.
   If FDataType=ftFloat then
     begin
-    If Not FSize in [4,8,10] then FSize:=10
+    If Not (FSize in [4,8,10]) then FSize:=10
     end
   else If FDataType in [ftWord,ftsmallint,ftinteger] Then
-    If Not FSize in [1,2,4] then FSize:=4;
+    If Not (FSize in [1,2,4]) then FSize:=4;
   FFieldNo:=AFieldNo;
   AOwner.FItems.Add(Self);
 end;
@@ -89,11 +89,11 @@ Function TFieldDef.GetFieldClass : TFieldClass;
 
 begin
   //!! Should be owner as tdataset but that doesn't work ??
-  
+
   If Assigned(Owner) then
     Result:=TFieldDefs(Owner).FDataSet.GetFieldClass(FDataType)
   else
-    Result:=Nil;  
+    Result:=Nil;
 end;
 
 { ---------------------------------------------------------------------
@@ -113,7 +113,7 @@ procedure TFieldDefs.Add(const AName: string; ADataType: TFieldType; ASize: Word
 
 begin
   Writeln ('Adding fielddef');
-  If Length(Name)=0 Then 
+  If Length(Name)=0 Then
     DatabaseError(SNeedFieldName);
   // the fielddef will register itself here as a owned component.
   // fieldno is 1 based !
@@ -147,7 +147,7 @@ Var I : longint;
 begin
   Clear;
   For i:=1 to FieldDefs.Count-1 do
-    With FieldDefs[i] do 
+    With FieldDefs[i] do
       Add(Name,DataType,Size,Required);
 end;
 
@@ -195,14 +195,14 @@ end;
     TField
   ---------------------------------------------------------------------}
 
-Const 
+Const
   SBoolean = 'Boolean';
   SDateTime = 'TDateTime';
   SFloat = 'Float';
   SInteger = 'Integer';
   SString = 'String';
 
-constructor TField.Create(AOwner: TComponent); 
+constructor TField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -210,7 +210,7 @@ begin
   FValidChars:=[#0..#155];
 end;
 
-destructor TField.Destroy; 
+destructor TField.Destroy;
 
 begin
   IF Assigned(FDataSet) then
@@ -227,27 +227,27 @@ begin
   Result:=EDatabaseError.CreateFmt(SinvalidTypeConversion,[TypeName,FFieldName]);
 end;
 
-procedure TField.Assign(Source: TPersistent); 
+procedure TField.Assign(Source: TPersistent);
 
 begin
   //!! To be implemented
 end;
 
-procedure TField.Change; 
+procedure TField.Change;
 
 begin
-  If Assigned(FOnChange) Then 
+  If Assigned(FOnChange) Then
     FOnChange(Self);
 end;
 
 procedure TField.CheckInactive;
 
 begin
-  If Assigned(FDataSet) then 
+  If Assigned(FDataSet) then
     FDataset.CheckInactive;
 end;
 
-procedure TField.Clear; 
+procedure TField.Clear;
 
 begin
   SetData(Nil);
@@ -265,48 +265,48 @@ begin
   FDataSet.DataEvent(deFocusControl,longint(Self));
 end;
 
-procedure TField.FreeBuffers; 
+procedure TField.FreeBuffers;
 
 begin
   // Empty. Provided for backward compatibiliy;
   // TDataset manages the buffers.
 end;
 
-function TField.GetAsBoolean: Boolean; 
+function TField.GetAsBoolean: Boolean;
 
 begin
   AccessError(SBoolean);
 end;
 
-function TField.GetAsDateTime: TDateTime; 
+function TField.GetAsDateTime: TDateTime;
 
 begin
   AccessError(SdateTime);
 end;
 
-function TField.GetAsFloat: Extended; 
+function TField.GetAsFloat: Extended;
 
 begin
   AccessError(SDateTime);
 end;
 
-function TField.GetAsLongint: Longint; 
+function TField.GetAsLongint: Longint;
 
 begin
   AccessError(SInteger);
 end;
 
-function TField.GetAsString: string; 
+function TField.GetAsString: string;
 
 begin
   AccessError(SString);
 end;
 
-function TField.GetCanModify: Boolean; 
+function TField.GetCanModify: Boolean;
 
 begin
   Result:=Not ReadOnly;
-  If Result then 
+  If Result then
     begin
     Result:=Assigned(DataSet);
     If Result then
@@ -329,13 +329,13 @@ begin
     Result:=FDataset.GetFieldData(Self,Buffer);
 end;
 
-function TField.GetDataSize: Word; 
+function TField.GetDataSize: Word;
 
 begin
   Result:=0;
 end;
 
-function TField.GetDefaultWidth: Longint; 
+function TField.GetDefaultWidth: Longint;
 
 begin
   Result:=10;
@@ -359,38 +359,38 @@ begin
     Result:=-1;
 end;
 
-function TField.GetIsNull: Boolean; 
+function TField.GetIsNull: Boolean;
 
 begin
   Result:=Not(GetData (Nil));
 end;
 
-function TField.GetParentComponent: TComponent; 
+function TField.GetParentComponent: TComponent;
 
 begin
   //!! To be implemented
 end;
 
-procedure TField.GetText(var AText: string; ADisplayText: Boolean); 
+procedure TField.GetText(var AText: string; ADisplayText: Boolean);
 
 begin
   AText:=GetAsString;
 end;
 
-function TField.HasParent: Boolean; 
+function TField.HasParent: Boolean;
 
 begin
   HasParent:=True;
 end;
 
-function TField.IsValidChar(InputChar: Char): Boolean; 
+function TField.IsValidChar(InputChar: Char): Boolean;
 
 begin
   // FValidChars must be set in Create.
   Result:=InputChar in FValidChars;
 end;
 
-procedure TField.Notification(AComponent: TComponent; Operation: TOperation); 
+procedure TField.Notification(AComponent: TComponent; Operation: TOperation);
 
 begin
   Inherited Notification(AComponent,Operation);
@@ -406,37 +406,37 @@ begin
       FDataset.DataEvent(deDatasetchange,0);
 end;
 
-procedure TField.ReadState(Reader: TReader); 
+procedure TField.ReadState(Reader: TReader);
 
 begin
   //!! To be implemented
 end;
 
-procedure TField.SetAsBoolean(AValue: Boolean); 
+procedure TField.SetAsBoolean(AValue: Boolean);
 
 begin
   AccessError(SBoolean);
 end;
 
-procedure TField.SetAsDateTime(AValue: TDateTime); 
+procedure TField.SetAsDateTime(AValue: TDateTime);
 
 begin
   AccessError(SDateTime);
 end;
 
-procedure TField.SetAsFloat(AValue: Extended); 
+procedure TField.SetAsFloat(AValue: Extended);
 
 begin
   AccessError(SFloat);
 end;
 
-procedure TField.SetAsLongint(AValue: Longint); 
+procedure TField.SetAsLongint(AValue: Longint);
 
 begin
   AccessError(SInteger);
 end;
 
-procedure TField.SetAsString(const AValue: string); 
+procedure TField.SetAsString(const AValue: string);
 
 begin
   AccessError(SString);
@@ -447,7 +447,7 @@ procedure TField.SetData(Buffer: Pointer);
 begin
   If Not Assigned(FDataset) then
     EDatabaseError.CreateFmt(SNoDataset,[FieldName]);
-  FDataSet.SetFieldData(Self,Buffer);  
+  FDataSet.SetFieldData(Self,Buffer);
 end;
 
 Procedure TField.SetDataset (Value : TDataset);
@@ -464,12 +464,12 @@ begin
     end;
   If Assigned(FDataset) then
     FDataset.FFieldList.Remove(Self);
-  If Assigned(Value) then 
+  If Assigned(Value) then
     begin
     Writeln('Adding field to list..');
     Value.FFieldList.Add(Self);
     end;
-  FDataset:=Value;    
+  FDataset:=Value;
 end;
 
 procedure TField.SetDataType(AValue: TFieldType);
@@ -478,19 +478,19 @@ begin
   FDataType := AValue;
 end;
 
-procedure TField.SetFieldType(AValue: TFieldType); 
+procedure TField.SetFieldType(AValue: TFieldType);
 
 begin
   //!! To be implemented
 end;
 
-procedure TField.SetParentComponent(AParent: TComponent); 
+procedure TField.SetParentComponent(AParent: TComponent);
 
 begin
   //!! To be implemented
 end;
 
-procedure TField.SetSize(AValue: Word); 
+procedure TField.SetSize(AValue: Word);
 
 begin
   CheckInactive;
@@ -498,7 +498,7 @@ begin
   FSize:=AValue;
 end;
 
-procedure TField.SetText(const AValue: string); 
+procedure TField.SetText(const AValue: string);
 
 begin
   AsString:=AValue;
@@ -516,28 +516,40 @@ begin
     finally
       FValidating:=False;
     end;
-    end;   
+    end;
 end;
 
-class function Tfield.IsBlob: Boolean; 
+class function Tfield.IsBlob: Boolean;
 
 begin
   Result:=False;
 end;
 
-class procedure TField.CheckTypeSize(AValue: Longint); 
+class procedure TField.CheckTypeSize(AValue: Longint);
 
 begin
   If (AValue<>0) and Not IsBlob Then
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
+// TField private methods
+
+function TField.GetDisplayText: String;
+begin
+  SetLength(Result, 0);
+  if Assigned(OnGetText) then
+    OnGetText(Self, Result, True)
+  else
+    GetText(Result, True);
+end;
+
+
 { ---------------------------------------------------------------------
     TStringField
   ---------------------------------------------------------------------}
-  
 
-constructor TStringField.Create(AOwner: TComponent); 
+
+constructor TStringField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -545,14 +557,14 @@ begin
   Size:=20;
 end;
 
-class procedure TStringField.CheckTypeSize(AValue: Longint); 
+class procedure TStringField.CheckTypeSize(AValue: Longint);
 
 begin
   If (AValue<1) or (AValue>dsMaxStringSize) Then
     databaseErrorFmt(SInvalidFieldSize,[AValue])
 end;
 
-function TStringField.GetAsBoolean: Boolean; 
+function TStringField.GetAsBoolean: Boolean;
 
 Var S : String;
 
@@ -561,44 +573,44 @@ begin
   result := (Length(S)>0) and (Upcase(S[1]) in ['T',YesNoChars[True]]);
 end;
 
-function TStringField.GetAsDateTime: TDateTime; 
+function TStringField.GetAsDateTime: TDateTime;
 
 begin
   Result:=StrToDateTime(GetAsString);
 end;
 
-function TStringField.GetAsFloat: Extended; 
+function TStringField.GetAsFloat: Extended;
 
 begin
   Result:=StrToFloat(GetAsString);
 end;
 
-function TStringField.GetAsLongint: Longint; 
+function TStringField.GetAsLongint: Longint;
 
 begin
   Result:=StrToInt(GetAsString);
 end;
 
-function TStringField.GetAsString: string; 
+function TStringField.GetAsString: string;
 
 begin
-  If Not GetValue(Result) then 
+  If Not GetValue(Result) then
     Result:='';
 end;
 
-function TStringField.GetDataSize: Word; 
+function TStringField.GetDataSize: Word;
 
 begin
   Result:=Size+1;
 end;
 
-function TStringField.GetDefaultWidth: Longint; 
+function TStringField.GetDefaultWidth: Longint;
 
 begin
   result:=Size;
 end;
 
-Procedure TStringField.GetText(var AText: string; DisplayText: Boolean); 
+Procedure TStringField.GetText(var AText: string; ADisplayText: Boolean);
 
 begin
     AText:=GetAsString;
@@ -614,7 +626,7 @@ begin
     AValue:=Buf;
 end;
 
-procedure TStringField.SetAsBoolean(AValue: Boolean); 
+procedure TStringField.SetAsBoolean(AValue: Boolean);
 
 begin
   If AValue Then
@@ -623,25 +635,25 @@ begin
     SetAsString('F');
 end;
 
-procedure TStringField.SetAsDateTime(AValue: TDateTime); 
+procedure TStringField.SetAsDateTime(AValue: TDateTime);
 
 begin
   SetAsString(DateTimeToStr(AValue));
 end;
 
-procedure TStringField.SetAsFloat(AValue: Extended); 
+procedure TStringField.SetAsFloat(AValue: Extended);
 
 begin
   SetAsString(FloatToStr(AValue));
 end;
 
-procedure TStringField.SetAsLongint(AValue: Longint); 
+procedure TStringField.SetAsLongint(AValue: Longint);
 
 begin
   SetAsString(intToStr(AValue));
 end;
 
-procedure TStringField.SetAsString(const AValue: string); 
+procedure TStringField.SetAsString(const AValue: string);
 
 Const NullByte : char = #0;
 
@@ -649,7 +661,7 @@ begin
   IF Length(AValue)=0 then
     SetData(@NullByte)
   else
-    SetData(@AValue[1]);  
+    SetData(@AValue[1]);
 end;
 
 { ---------------------------------------------------------------------
@@ -657,7 +669,7 @@ end;
   ---------------------------------------------------------------------}
 
 
-constructor TNumericField.Create(AOwner: TComponent); 
+constructor TNumericField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -695,30 +707,30 @@ end;
   ---------------------------------------------------------------------}
 
 
-constructor TLongintField.Create(AOwner: TComponent); 
+constructor TLongintField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
   SetDatatype(ftinteger);
-  FMinRange:=$80000000;
-  FMaxRange:=$7fffffff;
+  FMinRange:=Low(LongInt);
+  FMaxRange:=High(LongInt);
   FValidchars:=['+','-','0'..'9'];
 end;
 
-function TLongintField.GetAsFloat: Extended; 
+function TLongintField.GetAsFloat: Extended;
 
 begin
   Result:=GetAsLongint;
 end;
 
-function TLongintField.GetAsLongint: Longint; 
+function TLongintField.GetAsLongint: Longint;
 
 begin
-  If Not GetValue(Result) then 
+  If Not GetValue(Result) then
     Result:=0;
 end;
 
-function TLongintField.GetAsString: string; 
+function TLongintField.GetAsString: string;
 
 Var L : Longint;
 
@@ -729,13 +741,13 @@ begin
     Result:='';
 end;
 
-function TLongintField.GetDataSize: Word; 
+function TLongintField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(Longint);
 end;
 
-procedure TLongintField.GetText(var AText: string; DisplayText: Boolean); 
+procedure TLongintField.GetText(var AText: string; ADisplayText: Boolean);
 
 var l : longint;
     fmt : string;
@@ -743,7 +755,7 @@ var l : longint;
 begin
   Atext:='';
   If Not GetData(@l) then exit;
-  If DisplayText or (FEditFormat='') then
+  If ADisplayText or (FEditFormat='') then
     fmt:=FDisplayFormat
   else
     fmt:=FEditFormat;
@@ -757,14 +769,14 @@ end;
 
 function TLongintField.GetValue(var AValue: Longint): Boolean;
 
-Type 
+Type
   PSmallint = ^SmallInt;
   PLongint = ^Longint;
   PWord = ^Word;
 
 Var L : Longint;
     P : PLongint;
-    
+
 begin
   P:=@L;
   Result:=GetData(P);
@@ -776,13 +788,13 @@ begin
     end;
 end;
 
-procedure TLongintField.SetAsFloat(AValue: Extended); 
+procedure TLongintField.SetAsFloat(AValue: Extended);
 
 begin
   SetAsLongint(Round(Avalue));
 end;
 
-procedure TLongintField.SetAsLongint(AValue: Longint); 
+procedure TLongintField.SetAsLongint(AValue: Longint);
 
 begin
   If CheckRange(AValue) then
@@ -791,7 +803,7 @@ begin
     RangeError(Avalue,FMinrange,FMaxRange);
 end;
 
-procedure TLongintField.SetAsString(const AValue: string); 
+procedure TLongintField.SetAsString(const AValue: string);
 
 Var L,Code : longint;
 
@@ -837,13 +849,13 @@ end;
 
 { TSmallintField }
 
-function TSmallintField.GetDataSize: Word; 
+function TSmallintField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(SmallInt);
 end;
 
-constructor TSmallintField.Create(AOwner: TComponent); 
+constructor TSmallintField.Create(AOwner: TComponent);
 
 begin
   inherited Create(AOwner);
@@ -855,13 +867,13 @@ end;
 
 { TWordField }
 
-function TWordField.GetDataSize: Word; 
+function TWordField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(Word);
 end;
 
-constructor TWordField.Create(AOwner: TComponent); 
+constructor TWordField.Create(AOwner: TComponent);
 
 begin
   inherited Create(AOwner);
@@ -873,14 +885,14 @@ end;
 
 { TAutoIncField }
 
-constructor TAutoIncField.Create(AOwner: TComponent); 
+constructor TAutoIncField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOWner);
   SetDataType(ftAutoInc);
 end;
 
-Procedure TAutoIncField.SetAsLongint(AValue : Longint); 
+Procedure TAutoIncField.SetAsLongint(AValue : Longint);
 
 begin
   DataBaseError(SCantSetAutoIncfields);
@@ -888,47 +900,47 @@ end;
 
 { TFloatField }
 
-function TFloatField.GetAsFloat: Extended; 
+function TFloatField.GetAsFloat: Extended;
 
 begin
-  If Not GetData(@Result) Then 
+  If Not GetData(@Result) Then
     Result:=0.0;
 end;
 
-function TFloatField.GetAsLongint: Longint; 
+function TFloatField.GetAsLongint: Longint;
 
 begin
   Result:=Round(GetAsFloat);
 end;
 
-function TFloatField.GetAsString: string; 
+function TFloatField.GetAsString: string;
 
 Var R : Extended;
-   
+
 begin
-  If GetData(@R) then 
+  If GetData(@R) then
     Result:=FloatToStr(R)
   else
     Result:='';
 end;
 
-function TFloatField.GetDataSize: Word; 
+function TFloatField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(Extended);
 end;
 
-procedure TFloatField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TFloatField.GetText(var TheText: string; ADisplayText: Boolean);
 
-Var 
+Var
     fmt : string;
     E : Extended;
-    
+
 begin
   text:='';
   If Not GetData(@E) then exit;
-  If DisplayText or (Length(FEditFormat) = 0) Then
-    Fmt:=FDisplayFormat 
+  If ADisplayText or (Length(FEditFormat) = 0) Then
+    Fmt:=FDisplayFormat
   else
     Fmt:=FEditFormat;
 {  // No formatfloat yet
@@ -939,7 +951,7 @@ begin
     Text:=FloatToStrF(E,ffgeneral,FPrecision,0);
 end;
 
-procedure TFloatField.SetAsFloat(AValue: Extended); 
+procedure TFloatField.SetAsFloat(AValue: Extended);
 
 begin
   If CheckRange(AValue) then
@@ -948,13 +960,13 @@ begin
     RangeError(AValue,FMinValue,FMaxValue);
 end;
 
-procedure TFloatField.SetAsLongint(AValue: Longint); 
+procedure TFloatField.SetAsLongint(AValue: Longint);
 
 begin
   SetAsFloat(Avalue);
 end;
 
-procedure TFloatField.SetAsString(const AValue: string); 
+procedure TFloatField.SetAsString(const AValue: string);
 
 Var R : Extended;
     Code : longint;
@@ -967,7 +979,7 @@ begin
     SetAsFloat(R);
 end;
 
-constructor TFloatField.Create(AOwner: TComponent); 
+constructor TFloatField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -986,14 +998,14 @@ end;
 
 { TBooleanField }
 
-function TBooleanField.GetAsBoolean: Boolean; 
+function TBooleanField.GetAsBoolean: Boolean;
 
 begin
-  If not GetData(@Result) then 
+  If not GetData(@Result) then
     Result:=False;
 end;
 
-function TBooleanField.GetAsString: string; 
+function TBooleanField.GetAsString: string;
 
 Var B : boolean;
 
@@ -1004,13 +1016,13 @@ begin
     result:='';
 end;
 
-function TBooleanField.GetDataSize: Word; 
+function TBooleanField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(Boolean);
 end;
 
-function TBooleanField.GetDefaultWidth: Longint; 
+function TBooleanField.GetDefaultWidth: Longint;
 
 begin
   Result:=Length(FDisplays[false,false]);
@@ -1018,13 +1030,13 @@ begin
     Result:=Length(FDisplays[false,True]);
 end;
 
-procedure TBooleanField.SetAsBoolean(AValue: Boolean); 
+procedure TBooleanField.SetAsBoolean(AValue: Boolean);
 
 begin
   SetData(@AValue);
 end;
 
-procedure TBooleanField.SetAsString(const AValue: string); 
+procedure TBooleanField.SetAsString(const AValue: string);
 
 Var Temp : string;
 
@@ -1038,7 +1050,7 @@ begin
     DatabaseErrorFmt(SNotABoolean,[AValue]);
 end;
 
-constructor TBooleanField.Create(AOwner: TComponent); 
+constructor TBooleanField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1069,7 +1081,7 @@ end;
 { TDateTimeField }
 
 
-function TDateTimeField.GetAsDateTime: TDateTime; 
+function TDateTimeField.GetAsDateTime: TDateTime;
 
 begin
   If Not GetData(@Result) then
@@ -1077,28 +1089,28 @@ begin
 end;
 
 
-function TDateTimeField.GetAsFloat: Extended; 
+function TDateTimeField.GetAsFloat: Extended;
 
 begin
   Result:=GetAsdateTime;
 end;
 
 
-function TDateTimeField.GetAsString: string; 
+function TDateTimeField.GetAsString: string;
 
 begin
   GetText(Result,False);
 end;
 
 
-function TDateTimeField.GetDataSize: Word; 
+function TDateTimeField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(TDateTime);
 end;
 
 
-procedure TDateTimeField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TDateTimeField.GetText(var TheText: string; ADisplayText: Boolean);
 
 Var R : TDateTime;
     F : String;
@@ -1108,7 +1120,7 @@ begin
     TheText:=''
   else
     begin
-    If (DisplayText) and (Length(FDisplayFormat)<>0) then 
+    If (ADisplayText) and (Length(FDisplayFormat)<>0) then
       F:=FDisplayFormat
     else
       Case DataType of
@@ -1122,21 +1134,21 @@ begin
 end;
 
 
-procedure TDateTimeField.SetAsDateTime(AValue: TDateTime); 
+procedure TDateTimeField.SetAsDateTime(AValue: TDateTime);
 
 begin
   SetData(@Avalue);
 end;
 
 
-procedure TDateTimeField.SetAsFloat(AValue: Extended); 
+procedure TDateTimeField.SetAsFloat(AValue: Extended);
 
 begin
   SetAsDateTime(AValue);
 end;
 
 
-procedure TDateTimeField.SetAsString(const AValue: string); 
+procedure TDateTimeField.SetAsString(const AValue: string);
 
 Var R : TDateTime;
 
@@ -1146,7 +1158,7 @@ begin
 end;
 
 
-constructor TDateTimeField.Create(AOwner: TComponent); 
+constructor TDateTimeField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1155,14 +1167,14 @@ end;
 
 { TDateField }
 
-function TDateField.GetDataSize: Word; 
+function TDateField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(TDateTime);
 end;
 
 
-constructor TDateField.Create(AOwner: TComponent); 
+constructor TDateField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1173,14 +1185,14 @@ end;
 
 { TTimeField }
 
-function TTimeField.GetDataSize: Word; 
+function TTimeField.GetDataSize: Word;
 
 begin
   Result:=SizeOf(TDateTime);
 end;
 
 
-constructor TTimeField.Create(AOwner: TComponent); 
+constructor TTimeField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1191,17 +1203,17 @@ end;
 
 { TBinaryField }
 
-class procedure TBinaryField.CheckTypeSize(AValue: Longint); 
+class procedure TBinaryField.CheckTypeSize(AValue: Longint);
 
 begin
-  // Just check for really invalid stuff; actual size is 
+  // Just check for really invalid stuff; actual size is
   // dependent on the record...
-  If AValue<1 then 
+  If AValue<1 then
     DatabaseErrorfmt(SInvalidFieldSize,[Avalue]);
 end;
 
 
-function TBinaryField.GetAsString: string; 
+function TBinaryField.GetAsString: string;
 
 begin
   Setlength(Result,DataSize);
@@ -1209,18 +1221,18 @@ begin
 end;
 
 
-procedure TBinaryField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBinaryField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
   TheText:=GetAsString;
 end;
 
 
-procedure TBinaryField.SetAsString(const AValue: string); 
+procedure TBinaryField.SetAsString(const AValue: string);
 
 Var Buf : PChar;
     Allocated : Boolean;
-    
+
 begin
   Allocated:=False;
   If Length(AVAlue)=DataSize then
@@ -1237,14 +1249,14 @@ begin
 end;
 
 
-procedure TBinaryField.SetText(const AValue: string); 
+procedure TBinaryField.SetText(const AValue: string);
 
 begin
   SetAsString(Avalue);
 end;
 
 
-constructor TBinaryField.Create(AOwner: TComponent); 
+constructor TBinaryField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1254,14 +1266,14 @@ end;
 
 { TBytesField }
 
-function TBytesField.GetDataSize: Word; 
+function TBytesField.GetDataSize: Word;
 
 begin
   Result:=Size;
 end;
 
 
-constructor TBytesField.Create(AOwner: TComponent); 
+constructor TBytesField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1273,14 +1285,14 @@ end;
 
 { TVarBytesField }
 
-function TVarBytesField.GetDataSize: Word; 
+function TVarBytesField.GetDataSize: Word;
 
 begin
   Result:=Size+2;
 end;
 
 
-constructor TVarBytesField.Create(AOwner: TComponent); 
+constructor TVarBytesField.Create(AOwner: TComponent);
 
 begin
   INherited Create(AOwner);
@@ -1292,77 +1304,77 @@ end;
 
 { TBCDField }
 
-class procedure TBCDField.CheckTypeSize(AValue: Longint); 
+class procedure TBCDField.CheckTypeSize(AValue: Longint);
 
 begin
   //!! To be implemented
 end;
 
 
-function TBCDField.GetAsFloat: Extended; 
+function TBCDField.GetAsFloat: Extended;
 
 begin
   //!! To be implemented
 end;
 
 
-function TBCDField.GetAsLongint: Longint; 
+function TBCDField.GetAsLongint: Longint;
 
 begin
   //!! To be implemented
 end;
 
 
-function TBCDField.GetAsString: string; 
+function TBCDField.GetAsString: string;
 
 begin
   //!! To be implemented
 end;
 
 
-function TBCDField.GetDataSize: Word; 
+function TBCDField.GetDataSize: Word;
 
 begin
   //!! To be implemented
 end;
 
 
-function TBCDField.GetDefaultWidth: Longint; 
+function TBCDField.GetDefaultWidth: Longint;
 
 begin
   //!! To be implemented
 end;
 
 
-procedure TBCDField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
   //!! To be implemented
 end;
 
 
-procedure TBCDField.SetAsFloat(AValue: Extended); 
+procedure TBCDField.SetAsFloat(AValue: Extended);
 
 begin
   //!! To be implemented
 end;
 
 
-procedure TBCDField.SetAsLongint(AValue: Longint); 
+procedure TBCDField.SetAsLongint(AValue: Longint);
 
 begin
   //!! To be implemented
 end;
 
 
-procedure TBCDField.SetAsString(const AValue: string); 
+procedure TBCDField.SetAsString(const AValue: string);
 
 begin
   //!! To be implemented
 end;
 
 
-constructor TBCDField.Create(AOwner: TComponent); 
+constructor TBCDField.Create(AOwner: TComponent);
 
 begin
   DatabaseError('BCD fields not supported yet. Sorry !');
@@ -1373,7 +1385,7 @@ end;
 { TBlobField }
 
 
-procedure TBlobField.AssignTo(Dest: TPersistent); 
+procedure TBlobField.AssignTo(Dest: TPersistent);
 
 begin
   //!! To be implemented
@@ -1385,13 +1397,13 @@ begin
   Result:=FDataset.CreateBlobStream(Self,Mode);
 end;
 
-procedure TBlobField.FreeBuffers; 
+procedure TBlobField.FreeBuffers;
 
 begin
 end;
 
 
-function TBlobField.GetAsString: string; 
+function TBlobField.GetAsString: string;
 
 begin
   With GetBlobStream(bmRead) do
@@ -1416,13 +1428,13 @@ begin
 end;
 
 
-function TBlobField.GetIsNull: Boolean; 
+function TBlobField.GetIsNull: Boolean;
 
 begin
   If Not Modified then
     result:= inherited GetIsnull
   else
-    With GetBlobStream(bmread) do 
+    With GetBlobStream(bmread) do
       try
         Result:=(Size=0);
       Finally
@@ -1431,14 +1443,14 @@ begin
 end;
 
 
-procedure TBlobField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBlobField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
   TheText:=GetAsString;
 end;
 
 
-procedure TBlobField.SetAsString(const AValue: string); 
+procedure TBlobField.SetAsString(const AValue: string);
 
 begin
   With GetBlobStream(bmwrite) do
@@ -1450,14 +1462,14 @@ begin
 end;
 
 
-procedure TBlobField.SetText(const AValue: string); 
+procedure TBlobField.SetText(const AValue: string);
 
 begin
   SetAsString(AValue);
 end;
 
 
-constructor TBlobField.Create(AOwner: TComponent); 
+constructor TBlobField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOWner);
@@ -1465,21 +1477,21 @@ begin
 end;
 
 
-procedure TBlobField.Assign(Source: TPersistent); 
+procedure TBlobField.Assign(Source: TPersistent);
 
 begin
   //!! To be implemented
 end;
 
 
-procedure TBlobField.Clear; 
+procedure TBlobField.Clear;
 
 begin
   GetBlobStream(bmWrite).free;
 end;
 
 
-class function TBlobField.IsBlob: Boolean; 
+class function TBlobField.IsBlob: Boolean;
 
 begin
   Result:=True;
@@ -1535,12 +1547,12 @@ begin
   Try
     Stream.CopyFrom(S,0);
   finally
-    S.Free;  
+    S.Free;
   end;
 end;
 
 
-procedure TBlobField.SetFieldType(AValue: TFieldType); 
+procedure TBlobField.SetFieldType(AValue: TFieldType);
 
 begin
   If AValue in [Low(TBlobType)..High(TBlobType)] then
@@ -1551,7 +1563,7 @@ end;
 
 { TMemoField }
 
-constructor TMemoField.Create(AOwner: TComponent); 
+constructor TMemoField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1561,7 +1573,7 @@ end;
 
 { TGraphicField }
 
-constructor TGraphicField.Create(AOwner: TComponent); 
+constructor TGraphicField.Create(AOwner: TComponent);
 
 begin
   Inherited Create(AOwner);
@@ -1645,7 +1657,7 @@ Procedure TFields.CheckFieldName (Const Value : String);
 
 Var I : longint;
     S : String;
-    
+
 begin
   If FindField(Value)<>Nil then
     begin
@@ -1682,7 +1694,7 @@ Function TFields.FindField (Const Value : String) : TField;
 
 Var S : String;
     I : longint;
-    
+
 begin
   Result:=Nil;
   S:=UpperCase(Value);
@@ -1746,17 +1758,19 @@ Var I : longint;
 
 begin
   I:=IndexOf(Value);
-  If I<>0 then 
-    FFieldList.Delete(I); 
+  If I<>0 then
+    FFieldList.Delete(I);
 end;
 
 {
   $Log$
-  Revision 1.3  2000-09-02 09:36:36  sg
+  Revision 1.4  2000-12-24 12:45:19  peter
+    * merges from 1.0.x branch
+
+  Revision 1.3  2000/09/02 09:36:36  sg
   * Changed all occurences of TAbstractReader to TReader, as FCL streaming
     is source compatible to VCL streaming now (for quite a while, BTW)
 
   Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
- 
 }

@@ -43,6 +43,7 @@ type
   TDataSetState = (dsInactive, dsBrowse, dsEdit, dsInsert, dsSetKey,
     dsCalcFields, dsFilter, dsNewValue, dsOldValue, dsCurValue);
 
+
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
     deCheckBrowseMode, dePropertyChange, deFieldListChange, deFocusControl);
@@ -57,6 +58,8 @@ type
   TFields = Class;
   TDataSet = class;
   TDataBase = Class;
+  TDatasource = Class;
+  TDatalink = Class;
 
 { Exception classes }
 
@@ -176,6 +179,7 @@ type
     FVisible : Boolean;
     Function GetIndex : longint;
     Procedure SetDataset(VAlue : TDataset);
+    function GetDisplayText: String;
   protected
     function AccessError(const TypeName: string): EDatabaseError;
     procedure CheckInactive;
@@ -191,7 +195,7 @@ type
     function GetCanModify: Boolean; virtual;
     function GetDataSize: Word; virtual;
     function GetDefaultWidth: Longint; virtual;
-    function GetDisplayName : String; 
+    function GetDisplayName : String;
     function GetIsNull: Boolean; virtual;
     function GetParentComponent: TComponent; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); virtual;
@@ -231,6 +235,8 @@ type
     property DataSet: TDataSet read FDataSet write SetDataSet;
     property DataSize: Word read GetDataSize;
     property DataType: TFieldType read FDataType;
+    property DisplayName: String Read GetDisplayName;
+    property DisplayText: String read GetDisplayText;
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
@@ -244,7 +250,6 @@ type
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
     property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
-    property DisplayName : String Read GetDisplayName; 
     property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
@@ -278,7 +283,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
-    procedure GetText(var AText: string; DisplayText: Boolean); override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: string): Boolean;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
@@ -323,7 +328,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var AText: string; DisplayText: Boolean); override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
@@ -377,7 +382,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var theText: string; DisplayText: Boolean); override;
+    procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
@@ -425,7 +430,7 @@ type
     function GetAsFloat: Extended; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var theText: string; DisplayText: Boolean); override;
+    procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsString(const AValue: string); override;
@@ -460,7 +465,7 @@ type
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsString: string; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
   public
@@ -498,7 +503,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
@@ -525,7 +530,7 @@ type
     function GetAsString: string; override;
     function GetBlobSize: Longint; virtual;
     function GetIsNull: Boolean; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
   public
@@ -749,9 +754,13 @@ type
     FCalcFieldsSize: Longint;
     FCanModify: Boolean;
     FConstraints: TCheckConstraints;
+    FDisableControlsCount : Integer;
+    FDisableControlsState : TDatasetState;
     FCurrentRecord: Longint;
+    FDataSources : TList;
     FDefaultFields: Boolean;
     FEOF: Boolean;
+    FEnableControlsEvent : TDataEvent;
     FFieldList : TFields;
     FFieldCount : Longint;
     FFieldDefs: TFieldDefs;
@@ -770,17 +779,19 @@ type
     FRecNo: Longint;
     FRecordCount: Longint;
     FRecordSize: Word;
-    FState: TDataSetState;
+    FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
+    Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffers (Offset,Distance : Longint);
     Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
+    Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
   protected
     procedure ActivateBuffers; virtual;
@@ -982,6 +993,135 @@ type
     property OnPostError: TDataSetErrorEvent read FOnPostError write FOnPostError;
   end;
 
+  TDataLink = class(TPersistent)
+  private
+    FFIrstRecord,
+    FBufferCount : Integer;
+    FActive,
+    FDataSourceFixed,
+    FEditing,
+    FReadOnly,
+    FUpdatingRecord,
+    FVisualControl : Boolean;
+    FDataSource : TDataSource;
+    Function  CalcFirstRecord(Index : Integer) : Integer;
+    Procedure CheckActiveAndEditing;
+    Function  GetDataset : TDataset;
+    procedure SetDataSource(Value : TDatasource);
+    Procedure SetReadOnly(Value : Boolean);
+  protected
+    procedure ActiveChanged; virtual;
+    procedure CheckBrowseMode; virtual;
+    procedure DataEvent(Event: TDataEvent; Info: Longint); virtual;
+    procedure DataSetChanged; virtual;
+    procedure DataSetScrolled(Distance: Integer); virtual;
+    procedure EditingChanged; virtual;
+    procedure FocusControl(Field: TFieldRef); virtual;
+    function  GetActiveRecord: Integer; virtual;
+    function  GetBOF: Boolean; virtual;
+    function  GetBufferCount: Integer; virtual;
+    function  GetEOF: Boolean; virtual;
+    function  GetRecordCount: Integer; virtual;
+    procedure LayoutChanged; virtual;
+    function  MoveBy(Distance: Integer): Integer; virtual;
+    procedure RecordChanged(Field: TField); virtual;
+    procedure SetActiveRecord(Value: Integer); virtual;
+    procedure SetBufferCount(Value: Integer); virtual;
+    procedure UpdateData; virtual;
+    property VisualControl: Boolean read FVisualControl write FVisualControl;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function  Edit: Boolean;
+    procedure UpdateRecord;
+    property Active: Boolean read FActive;
+    property ActiveRecord: Integer read GetActiveRecord write SetActiveRecord;
+    property BOF: Boolean read GetBOF;
+    property BufferCount: Integer read FBufferCount write SetBufferCount;
+    property DataSet: TDataSet read GetDataSet;
+    property DataSource: TDataSource read FDataSource write SetDataSource;
+    property DataSourceFixed: Boolean read FDataSourceFixed write FDataSourceFixed;
+    property Editing: Boolean read FEditing;
+    property Eof: Boolean read GetEOF;
+    property ReadOnly: Boolean read FReadOnly write SetReadOnly;
+    property RecordCount: Integer read GetRecordCount;
+  end;
+
+{ TDetailDataLink }
+
+  TDetailDataLink = class(TDataLink)
+  protected
+    function GetDetailDataSet: TDataSet; virtual;
+  public
+    property DetailDataSet: TDataSet read GetDetailDataSet;
+  end;
+
+{ TMasterDataLink }
+
+  TMasterDataLink = class(TDetailDataLink)
+  private
+    FDataSet: TDataSet;
+    FFieldNames: string;
+    FFields: TList;
+    FOnMasterChange: TNotifyEvent;
+    FOnMasterDisable: TNotifyEvent;
+    procedure SetFieldNames(const Value: string);
+  protected
+    procedure ActiveChanged; override;
+    procedure CheckBrowseMode; override;
+    function GetDetailDataSet: TDataSet; override;
+    procedure LayoutChanged; override;
+    procedure RecordChanged(Field: TField); override;
+  public
+    constructor Create(ADataSet: TDataSet);
+    destructor Destroy; override;
+    property FieldNames: string read FFieldNames write SetFieldNames;
+    property Fields: TList read FFields;
+    property OnMasterChange: TNotifyEvent read FOnMasterChange write FOnMasterChange;
+    property OnMasterDisable: TNotifyEvent read FOnMasterDisable write FOnMasterDisable;
+  end;
+
+{ TDataSource }
+
+  TDataChangeEvent = procedure(Sender: TObject; Field: TField) of object;
+
+  TDataSource = class(TComponent)
+  private
+    FDataSet: TDataSet;
+    FDataLinks: TList;
+    FEnabled: Boolean;
+    FAutoEdit: Boolean;
+    FState: TDataSetState;
+    FOnStateChange: TNotifyEvent;
+    FOnDataChange: TDataChangeEvent;
+    FOnUpdateData: TNotifyEvent;
+    procedure DistributeEvent(Event: TDataEvent; Info: Longint);
+    procedure RegisterDataLink(DataLink: TDataLink);
+    Procedure ProcessEvent(Event : TDataEvent; Info : longint);
+    procedure SetDataSet(ADataSet: TDataSet);
+    procedure SetEnabled(Value: Boolean);
+    procedure UnregisterDataLink(DataLink: TDataLink);
+  protected
+    Procedure DoDataChange (Info : Pointer);virtual;
+    Procedure DoStateChange; virtual;
+    Procedure DoUpdateData;
+    property DataLinks: TList read FDataLinks;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Edit;
+    function IsLinkedTo(ADataSet: TDataSet): Boolean;
+    property State: TDataSetState read FState;
+  published
+    property AutoEdit: Boolean read FAutoEdit write FAutoEdit default True;
+    property DataSet: TDataSet read FDataSet write SetDataSet;
+    property Enabled: Boolean read FEnabled write SetEnabled default True;
+    property OnStateChange: TNotifyEvent read FOnStateChange write FOnStateChange;
+    property OnDataChange: TDataChangeEvent read FOnDataChange write FOnDataChange;
+    property OnUpdateData: TNotifyEvent read FOnUpdateData write FOnUpdateData;
+  end;
+
+
  { TDBDataset }
 
   TDBDatasetClass = Class of TDBDataset;
@@ -1069,6 +1209,8 @@ Const
       'TypedBinary',
       'Cursor'
     );
+
+   dsEditModes = [dsEdit, dsInsert];
 { Auxiliary functions }
 
 Procedure DatabaseError (Const Msg : String);
@@ -1254,17 +1396,20 @@ end;
 
 {$i dataset.inc}
 {$i fields.inc}
+{$i datasource.inc}
 {$i database.inc}
 
 end.
 
 {
   $Log$
-  Revision 1.3  2000-09-02 09:36:36  sg
+  Revision 1.4  2000-12-24 12:45:19  peter
+    * merges from 1.0.x branch
+
+  Revision 1.3  2000/09/02 09:36:36  sg
   * Changed all occurences of TAbstractReader to TReader, as FCL streaming
     is source compatible to VCL streaming now (for quite a while, BTW)
 
   Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
- 
 }

@@ -5,7 +5,7 @@
     Free Pascal development team
 
     Constants used for displaying messages in DB unit
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,7 +18,7 @@
 Const
   SUnknownFieldType = 'Unknown field type : %s';
   SUnknownField = 'No field named "%s" was found in dataset "%s"';
-  SNeedFieldName = 'Field needs a name';  
+  SNeedFieldName = 'Field needs a name';
   SInvalidTypeConversion = 'Invalid type conversion to %s in field %s';
   SReadOnlyField = 'Field %s cannot be modified, it is read-only.';
   SInvalidFieldSize = 'Invalid field size : %d';
@@ -39,13 +39,15 @@ Const
   SNoDatasetRegistered = 'No such dataset registered : "%s"';
   SNotConnected = 'Operation cannot be performed on an disconnected database';
   SConnected = 'Operation cannot be performed on an connected database';
-  SNoSuchRecord = 'Could not find the requested record.';  
+  SNoSuchRecord = 'Could not find the requested record.';
   SDatasetReadOnly = 'Dataset is read-only.';
   SNeedField = 'Field %s is required, but not supplied.';
-  
+  SNotInEditState = 'Operation not allowed, dataset "%s" is not in an edit state.';
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
+  Revision 1.3  2000-12-24 12:45:19  peter
+    * merges from 1.0.x branch
+
+  Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
- 
 }

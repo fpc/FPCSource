@@ -7,11 +7,11 @@ examples=testib
 
 [require]
 options=-S2 
-packages=fcl ibase
+packages=ibase
 
 [install]
-unitssubdir=fcl
-packagename=interbase
+unitsubdir=fcl
+packagename=fcl
 
 [dirs]
 fpcdir=../../..

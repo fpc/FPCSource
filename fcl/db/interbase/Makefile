@@ -186,7 +186,8 @@ override EXAMPLEOBJECTS+=testib
 
 # Install
 
-PACKAGENAME=interbase
+UNITSUBDIR=fcl
+PACKAGENAME=fcl
 ZIPTARGET=install
 
 # Defaults
@@ -201,7 +202,7 @@ endif
 
 # Packages
 
-override PACKAGES+=rtl fcl ibase
+override PACKAGES+=rtl ibase
 
 # Libraries
 
@@ -506,7 +507,6 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
-PACKAGEFCL=1
 PACKAGEIBASE=1
 
 ifdef PACKAGERTL
@@ -536,35 +536,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef PACKAGEFCL
-ifneq ($(wildcard $(FPCDIR)/fcl),)
-ifneq ($(wildcard $(FPCDIR)/fcl/$(OS_TARGET)),)
-PACKAGEDIR_FCL=$(FPCDIR)/fcl/$(OS_TARGET)
-else
-PACKAGEDIR_FCL=$(FPCDIR)/fcl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_fcl
-package_fcl:
-	$(MAKE) -C $(PACKAGEDIR_FCL) all
-endif
-UNITDIR_FCL=$(PACKAGEDIR_FCL)
-else
-PACKAGEDIR_FCL=
-ifneq ($(wildcard $(UNITSDIR)/fcl),)
-ifneq ($(wildcard $(UNITSDIR)/fcl/$(OS_TARGET)),)
-UNITDIR_FCL=$(UNITSDIR)/fcl/$(OS_TARGET)
-else
-UNITDIR_FCL=$(UNITSDIR)/fcl
-endif
-else
-UNITDIR_FCL=
-endif
-endif
-ifdef UNITDIR_FCL
-override NEEDUNITDIR+=$(UNITDIR_FCL)
 endif
 endif
 ifdef PACKAGEIBASE
