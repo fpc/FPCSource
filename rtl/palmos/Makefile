@@ -23,18 +23,12 @@
 
 # What is the Operating System ?
 ifndef OS_SOURCE
-OS_SOURCE=linux
+OS_SOURCE=dos
 endif
 
 # What is the target operating system ?
 ifndef OS_TARGET
-OS_TARGET=palmos
-endif
-
-# What is the target processor :
-ifndef CPU
-#CPU=i386
-CPU=m68k
+override OS_TARGET=palmos
 endif
 
 # What compiler to use ?
@@ -78,6 +72,8 @@ endif
 # End of configurable section.
 # Do not edit after this line.
 #####################################################################
+override OS_TARGET=palmos
+override CPU=m68k
 
 #####################################################################
 # System independent
@@ -122,9 +118,9 @@ ifeq ($(LINK_TO_C),YES)
 override OPT:=$(OPT) -dCRTLIB
 endif
 
-# Define Linux Units
-SYSTEMPPU=syspalm$(PPUEXT)
-OBJECTS=strings
+# Define PalmOS units
+SYSTEMPPU = syspalm.ppu
+OBJECTS=syspalm
 
 PRT=prt0
 LOADERAS=$(PRT).as
@@ -168,21 +164,21 @@ clean :
 #
 
 $(SYSTEMPPU) : syspalm.pp $(SYSLINUXDEPS) $(SYSDEPS)
-	$(PP) $(OPT) -Us -Sg syspalm.pp $(REDIR)
+	$(COMPILER) -Us -Sg syspalm.pp $(REDIR)
 
-strings$(PPUEXT) : ../template/strings.pp $(SYSTEMPPU)
-	$(COPY) ../template/strings.pp .
-	$(PP) $(OPT) strings $(REDIR)
-	$(DEL) strings.pp
+# strings$(PPUEXT) : ../template/strings.pp $(SYSTEMPPU)
+#         $(COPY) ../template/strings.pp .
+#         $(PP) $(OPT) strings $(REDIR)
+#         $(DEL) strings.pp
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(PP) $(OPT) objpas $(REDIR)
-	$(DEL) objpas.pp
+# objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
+#         $(COPY) $(OBJPASDIR)/objpas.pp .
+#         $(PP) $(OPT) objpas $(REDIR)
+#         $(DEL) objpas.pp
 
 #
 # System Dependent Units
@@ -246,7 +242,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-10-02 09:26:03  peter
+# Revision 1.3  1998-10-14 10:31:28  florian
+#   * adapted to work
+#
+# Revision 1.2  1998/10/02 09:26:03  peter
 #   * fixed rtl path
 #
 # Revision 1.1  1998/09/10 14:15:51  peter
