@@ -324,14 +324,15 @@ BEGIN
    FOR X:=0 TO PlayFieldXDimension-1 DO
     BEGIN
      Y:=PlayFieldYDimension-1; J:=Y;
-     REPEAT
+     while y>=0 do
+      begin
        IF MarkField[X,Y]<>4 THEN
         BEGIN
          PlayField[X,J]:=PlayField[X,Y];
          DEC(J);
         END;
        DEC(Y);
-      UNTIL Y<0;
+      end;
     FOR Y:=0 TO J  DO
      PlayField[X,Y]:=3;
     END;
@@ -600,7 +601,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.8  2004-06-21 07:01:34  marco
+  Revision 1.9  2004-06-21 07:03:36  marco
+   * 2nd recommendation 3177
+
+  Revision 1.8  2004/06/21 07:01:34  marco
    * 1st and 3rd recommendation of bug 3177
 
   Revision 1.7  2004/02/18 16:43:29  marco
