@@ -51,6 +51,9 @@ interface
 {$ifdef i386}
        target_cpu_string = 'i386';
 {$endif}
+{$ifdef sparc}
+       target_cpu_string = 'sparc';
+{$endif}
 {$ifdef m68k}
        target_cpu_string = 'm68k';
 {$endif}
@@ -101,7 +104,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2002-03-01 12:47:21  pierre
+  Revision 1.9  2002-03-24 19:12:11  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.8  2002/03/01 12:47:21  pierre
    * used shl 7 for release number
 
   Revision 1.7  2000/11/29 00:30:43  florian

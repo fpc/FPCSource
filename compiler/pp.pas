@@ -86,6 +86,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif ALPHA}
+   {$ifdef SPARC}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif SPARC}
    {$ifndef CPUDEFINED}
      {$fatal A CPU type switch must be defined}
    {$endif CPUDEFINED}
@@ -162,7 +168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-11-14 01:12:45  florian
+  Revision 1.10  2002-03-24 19:06:29  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.9  2001/11/14 01:12:45  florian
     * variant paramter passing and functions results fixed
 
   Revision 1.8  2001/08/26 13:36:46  florian

@@ -690,6 +690,9 @@ interface
 {$ifdef ia64}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif}
+{$ifdef SPARC}
+       pbestrealtype : ^ttype = @s64floattype;
+{$endif SPARC}
 
 
 {$ifdef GDB}
@@ -5475,7 +5478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2002-02-04 08:16:07  jonas
+  Revision 1.66  2002-03-24 19:10:14  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.65  2002/02/04 08:16:07  jonas
     * fixed severe slowdown when compiling a program with arrays that have
       a lot (15+) dimensions ("merged")
 

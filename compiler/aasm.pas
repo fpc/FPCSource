@@ -73,6 +73,9 @@ interface
           ait_bundle,
           ait_stop,
 {$endif ia64}
+{$ifdef SPARC}
+          ait_labeled_instruction,
+{$endif SPARC}
           { never used, makes insertation of new ait_ easier to type }
           { lazy guy !!!! ;-) (FK) }
           ait_dummy);
@@ -1160,7 +1163,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.19  2001-12-31 16:54:14  peter
+  Revision 1.20  2002-03-24 19:04:31  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.19  2001/12/31 16:54:14  peter
     * fixed inline crash with assembler routines
 
   Revision 1.18  2001/08/30 19:43:50  peter

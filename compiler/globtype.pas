@@ -66,6 +66,13 @@ interface
        { on the ia64 comp will be mapped to int64 }
        ts64comp = comp;
 {$endif}
+{$ifdef SPARC}
+  bestreal = real;
+  ts32real = single;
+  ts64real = double;
+  ts80real = extended;
+  ts64comp = extended;
+{$endif}
 
        pbestreal=^bestreal;
 
@@ -246,7 +253,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-01-24 18:25:48  peter
+  Revision 1.21  2002-03-24 19:05:59  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.20  2002/01/24 18:25:48  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 

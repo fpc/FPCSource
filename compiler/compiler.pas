@@ -64,6 +64,13 @@ unit compiler;
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
+    {$ifdef SPARC}
+    {$ifndef CPUOK}
+    {$DEFINE CPUOK}
+    {$else}
+      {$fatal cannot define two CPU switches}
+    {$endif}
+    {$endif}
 
    {$ifndef CPUOK}
    {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
@@ -330,7 +337,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2001-09-18 11:30:47  michael
+  Revision 1.23  2002-03-24 19:05:31  carl
+  + patch for SPARC from Mazen NEIFER
+
+  Revision 1.22  2001/09/18 11:30:47  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
