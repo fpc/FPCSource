@@ -20,6 +20,12 @@
 
  ****************************************************************************
 }
+{# @abstract(This unit implements an abstract asm output class for all processor types)
+  This unit implements an abstract assembler output class for all processors, these
+  are then overriden for each assembler writer to actually write the data in these
+  classes to an assembler file.
+}  
+   
 unit aasm;
 
 {$i defines.inc}
@@ -1131,7 +1137,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.21  2002-04-07 10:17:40  carl
+  Revision 1.22  2002-04-07 13:18:19  carl
+  + more documentation
+
+  Revision 1.21  2002/04/07 10:17:40  carl
   - remove packenumfixed (requires version 1.0.2 or later to compile now!)
   + changing some comments so its commented automatically
 

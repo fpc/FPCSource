@@ -21,7 +21,10 @@
 
  ****************************************************************************
 }
-{# @abstract(Abstract code generator unit) }
+{# @abstract(Abstract code generator unit) 
+   Abstreact code generator unit. This contains the base class
+   to implement for all new supported processors.
+}
 unit cgobj;
 
 {$i defines.inc}
@@ -42,7 +45,8 @@ unit cgobj;
           This class implements an abstract instruction generator. Some of 
           the methods of this class are generic, while others must
           be overriden for all new processors which will be supported
-          by Free Pascal.
+          by Free Pascal. For 32-bit processors, the base class
+          sould be @link(tcg64f32) and not @var(tcg).
        }   
        tcg = class
           scratch_register_array_pointer : aword;
@@ -1656,7 +1660,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2002-04-07 09:12:46  carl
+  Revision 1.13  2002-04-07 13:22:11  carl
+  + more documentation
+
+  Revision 1.12  2002/04/07 09:12:46  carl
   + documentation
 
   Revision 1.11  2002/04/06 18:10:42  jonas

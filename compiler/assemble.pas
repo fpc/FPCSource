@@ -20,6 +20,11 @@
 
  ****************************************************************************
 }
+{# @abstract(This unit handles the assembler file write and assembler calls of FPC)
+   Handles the calls to the actual external assemblers, as well as the generation
+   of object files for smart linking. Also contains the base class for writing
+   the assembler statements to file.
+}
 unit assemble;
 
 {$i defines.inc}
@@ -60,6 +65,10 @@ interface
         procedure MakeObject;virtual;abstract;
       end;
 
+      {# This is the base class which should be overriden for each each
+         assembler writer. It is used to actually assembler a file, 
+         and write the output to the assembler file.
+      }
       TExternalAssembler=class(TAssembler)
       private
         procedure CreateSmartLinkPath(const s:string);
@@ -71,19 +80,39 @@ interface
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
       public
+        {# Returns the complete path and executable name of the assembler program. 
+           
+           It first tries looking in the UTIL directory if specified, otherwise
+           it searches in the free pascal binary directory, in the current
+           working directory and the in the  directories in the $PATH environment.
+        }
         Function  FindAssembler:string;
+        {# Actually does the call to the assembler file. Returns false
+           if the assembling of the file failed.
+        }
         Function  CallAssembler(const command,para:string):Boolean;
         Function  DoAssemble:boolean;virtual;
         Procedure RemoveAsm;
         Procedure AsmFlush;
         Procedure AsmClear;
+        {# Write a string to the assembler file }
         Procedure AsmWrite(const s:string);
+        {# Write a string to the assembler file }
         Procedure AsmWritePChar(p:pchar);
+        {# Write a string to the assembler file followed by a new line }
         Procedure AsmWriteLn(const s:string);
+        {# Write a new line to the assembler file }
         Procedure AsmLn;
         procedure AsmCreate(Aplace:tcutplace);
         procedure AsmClose;
+        {# This routine should be overriden for each assembler, it is used 
+           to actually write the abstract assembler stream to file. 
+        }
         procedure WriteTree(p:TAAsmoutput);virtual;
+        {# This routine should be overriden for each assembler, it is used 
+           to actually write all the different abstract assembler streams
+           by calling for each stream type, the @var(WriteTree) method.
+        }
         procedure WriteAsmList;virtual;
       public
         Constructor Create(smart:boolean);override;
@@ -1552,7 +1581,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-04-04 19:05:54  peter
+  Revision 1.32  2002-04-07 13:19:14  carl
+  + more documentation
+
+  Revision 1.31  2002/04/04 19:05:54  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 

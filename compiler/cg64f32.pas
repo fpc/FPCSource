@@ -22,7 +22,10 @@
 
  ****************************************************************************
 }
-
+{# This unit implements the code generation for 64 bit int arithmethics on 
+   32 bit processors. All 32-bit processors should use this class as
+   the base code generator class instead of tcg.
+}   
 unit cg64f32;
 
   {$i defines.inc}
@@ -36,6 +39,10 @@ unit cg64f32;
        node,symtype;
 
     type
+      {# Defines all the methods required on 32-bit processors 
+         to handle 64-bit integers. All 32-bit processors should
+         create derive a class of this type instead of @var(tcg).
+      }
       tcg64f32 = class(tcg)
         procedure a_load64_const_ref(list : taasmoutput;valuelo, valuehi : AWord;const ref : treference);
         procedure a_load64_reg_ref(list : taasmoutput;reglo, reghi : tregister;const ref : treference);
@@ -584,7 +591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-04-03 10:41:35  jonas
+  Revision 1.7  2002-04-07 13:21:18  carl
+  + more documentation
+
+  Revision 1.6  2002/04/03 10:41:35  jonas
     + a_load64_const_loc method
 
   Revision 1.5  2002/04/02 17:11:27  peter
