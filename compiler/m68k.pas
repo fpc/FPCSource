@@ -359,8 +359,6 @@ type
 
     function newreference(const r : treference) : preference;
 
-    function new_reference(base : tregister;offset : longint) : preference;
-    
     function reg2str(r : tregister) : string;
 
     { generates an help record for constants }
@@ -849,6 +847,14 @@ type
        'fp6','fp7','fpcr','sr','ssp','dfc',
        'sfc','vbr','fpsr');
 
+     gasPalmOS_reg2str : array[R_NO..R_FPSR] of string[6] =
+      ('', '%d0','%d1','%d2','%d3','%d4','%d5','%d6','%d7',
+       '%a0','%a1','%a2','%a3','%a4','%a5','%a6','%sp',
+       '-(%sp)','(%sp)+',
+       '%ccr','%fp0','%fp1','%fp2','%fp3','%fp4','%fp5',
+       '%fp6','%fp7','%fpcr','%sr','%ssp','%dfc',
+       '%sfc','%vbr','%fpsr');
+
 
   implementation
 
@@ -898,18 +904,6 @@ type
           direction := dir_none;
         end;
       end;
-
-      function new_reference(base : tregister;offset : longint) : preference;
-
-        var
-           r : preference;
-        begin
-           new(r);
-           reset_reference(r^);
-           r^.base:=base;
-           r^.offset:=offset;
-           new_reference:=r;
-        end;
 
     procedure clear_reference(var ref : treference);
 
@@ -1579,7 +1573,10 @@ type
 end.
 {
   $Log$
-  Revision 1.6  1998-08-21 14:08:44  pierre
+  Revision 1.7  1998-08-31 12:26:27  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.6  1998/08/21 14:08:44  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

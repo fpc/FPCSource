@@ -518,7 +518,11 @@ begin
      exit;
    end;
   readdata(w,2);
-  getword:=w;
+  if change_endian then
+   getword:=swap(w)
+  else
+
+   getword:=w;
   inc(entryidx,2);
 end;
 
@@ -536,7 +540,11 @@ begin
      exit;
    end;
   readdata(l,4);
-  getlongint:=l;
+  if change_endian then
+   getlongint:=swap(l shr 16) or (longint(swap(l and $ffff)) shl 16)
+  else
+
+   getlongint:=l;
   inc(entryidx,4);
 end;
 
@@ -762,7 +770,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-17 09:17:51  peter
+  Revision 1.10  1998-08-31 12:26:30  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.9  1998/08/17 09:17:51  peter
     * static/shared linking updates
 
   Revision 1.8  1998/08/11 15:31:40  peter

@@ -147,6 +147,7 @@ unit ag68kgas;
          getreferencestring:=s;
       end;
 
+
     function getopstr(t : byte;o : pointer) : string;
 
       var
@@ -155,7 +156,10 @@ unit ag68kgas;
 
       begin
          case t of
-            top_reg : getopstr:=gas_reg2str[tregister(o)];
+            top_reg : if target_info.target=target_PalmOS then
+                        getopstr:=gasPalmOS_reg2str[tregister(o)]
+                      else
+                        getopstr:=gas_reg2str[tregister(o)];
                top_ref : getopstr:=getreferencestring(preference(o)^);
          top_reglist: begin
                       hs:='';
@@ -476,7 +480,10 @@ ait_labeled_instruction : begin
                             A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
                         s:=#9+mot_op2str[pai68k(hp)^._operator]
                        else
-                        s:=#9+mot_op2str[pai68k(hp)^._operator]+mit_opsize2str[pai68k(hp)^.size];
+                        if target_info.target=target_PalmOS then
+                          s:=#9+mot_op2str[pai68k(hp)^._operator]+gas_opsize2str[pai68k(hp)^.size]
+                        else
+                          s:=#9+mot_op2str[pai68k(hp)^._operator]+mit_opsize2str[pai68k(hp)^.size];
                        if pai68k(hp)^.op1t<>top_none then
                         begin
                         { call and jmp need an extra handling                          }
@@ -605,7 +612,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-10 14:49:36  peter
+  Revision 1.9  1998-08-31 12:26:20  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.8  1998/08/10 14:49:36  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/07/14 14:46:38  peter

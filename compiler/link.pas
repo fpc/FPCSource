@@ -286,6 +286,7 @@ begin
                   end;
 {$endif i386}
 {$ifdef m68k}
+  target_Palmos : prtobj:='';
    target_linux : begin
                     if cs_profile in aktmoduleswitches then
                      begin
@@ -488,7 +489,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1998-08-19 10:06:14  peter
+  Revision 1.21  1998-08-31 12:26:26  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.20  1998/08/19 10:06:14  peter
     * fixed filenames and removedir which supports slash at the end
 
   Revision 1.19  1998/08/17 09:17:47  peter

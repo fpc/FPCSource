@@ -146,8 +146,8 @@ unit pmodules;
 
     procedure inserttargetspecific;
       begin
-{$ifdef i386}
         case target_info.target of
+{$ifdef i386}
        target_GO32V2 : begin
                        { stacksize can be specified }
                          datasegment^.concat(new(pai_symbol,init_global('__stklen')));
@@ -159,8 +159,16 @@ unit pmodules;
                          asw (PFV) }
                          datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
                        end;
-        end;
 {$endif i386}
+{$ifdef m68k}
+       target_Atari : begin
+                       { stacksize can be specified }
+                         datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+                         datasegment^.concat(new(pai_const,init_32bit(stacksize)));
+                       end;
+{$endif m68k}           
+
+        end;
       end;
 
 
@@ -857,6 +865,12 @@ unit pmodules;
          names.insert('program_init');
          names.insert('PASCALMAIN');
          names.insert(target_os.cprefix+'main');
+{$ifdef m68k}   
+
+         if target_info.target=target_PalmOS then
+           names.insert('PilotMain');
+{$endif}        
+
          compile_proc_body(names,true,false);
          names.done;
 
@@ -901,7 +915,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.44  1998-08-26 15:35:33  peter
+  Revision 1.45  1998-08-31 12:26:28  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.44  1998/08/26 15:35:33  peter
     * fixed scannerfiles for macros
     + $I %<environment>%
 

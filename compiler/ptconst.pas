@@ -51,22 +51,21 @@ unit ptconst;
     procedure readtypedconst(def : pdef;sym : ptypedconstsym);
 
       var
-         p : ptree;
-         i,l,strlength : longint;
-         ll : plabel;
-         s : string;
-         ca : pchar;
-         aktpos : longint;
-         pd : pprocdef;
-         hp1,hp2 : pdefcoll;
-
-         value : bestreal;
-         {problem with fldt !!
-         anyway .valued is not extended !!
-         value : double; }
+{$ifdef m68k}
+         j : longint;
+{$endif m68k}
+         p         : ptree;
+         i,l,
+         strlength : longint;
+         ll        : plabel;
+         s         : string;
+         ca        : pchar;
+         aktpos    : longint;
+         pd        : pprocdef;
+         hp1,hp2   : pdefcoll;
+         value     : bestreal;
 
       procedure check_range;
-
         begin
            if ((p^.value>porddef(def)^.high) or
                (p^.value<porddef(def)^.low)) then
@@ -218,8 +217,23 @@ unit ptconst;
                      Message(cg_e_illegal_expression)
                    else
                      begin
-                       for l:=0 to def^.savesize-1 do
-                         datasegment^.concat(new(pai_const,init_8bit(p^.constset^[l])));
+{$ifdef i386}
+                        for l:=0 to def^.savesize-1 do
+                          datasegment^.concat(new(pai_const,init_8bit(p^.constset^[l])));
+{$endif}
+{$ifdef m68k}
+                        j:=0;
+                        for l:=0 to ((def^.savesize-1) div 4) do
+                        { HORRIBLE HACK because of endian        }
+                        { now use intel endian for constant sets }
+                         begin
+                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+3])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+2])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+1])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j])));
+                           Inc(j,4);
+                         end;
+{$endif}
                      end;
                 end
               else
@@ -492,7 +506,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.11  1998-08-10 14:50:20  peter
+  Revision 1.12  1998-08-31 12:26:32  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.11  1998/08/10 14:50:20  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.10  1998/07/21 11:16:25  florian

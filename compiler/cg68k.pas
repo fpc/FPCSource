@@ -386,10 +386,10 @@ implementation
               else
                Begin
                  { optimize using ADDQ if possible!   }
-              if (p^.right^.value-1) < 9 then
-                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,p^.right^.value-1, hreg1)))
-              else
-                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ADD, S_L,p^.right^.value-1, hreg1)));
+                 if (p^.right^.value-1) < 9 then
+                   exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,p^.right^.value-1, hreg1)))
+                 else
+                   exprasmlist^.concat(new(pai68k, op_const_reg(A_ADD, S_L,p^.right^.value-1, hreg1)));
                end;
               emitl(A_LABEL, hl);
               if (power > 0) and (power < 9) then
@@ -956,7 +956,7 @@ implementation
                               { but to few are free then LEA                  }
                               if (p^.left^.location.reference.base<>R_NO) and
                                  (p^.left^.location.reference.index<>R_NO) and
-                                 (usablereg32<p^.right^.registers32) then
+                                 (usableaddress<p^.right^.registers32) then
                                 begin
                                    del_reference(p^.left^.location.reference);
                                    hregister:=getaddressreg;
@@ -2326,6 +2326,26 @@ implementation
 
               emit_bounds_check(hpp^, hregister);
               end;
+               p^.location.loc:=LOC_REGISTER;
+              p^.location.register:=hregister;
+              exit;
+           end
+         { -------------- endian problems once again --------------------}
+         { If RIGHT   enumdef (32-bit) and we do a typecase to a smaller }
+         { type we must absolutely load it into a register first.        }
+         { --------------------------------------------------------------}
+         { ------------ supposing enumdef is always 32-bit --------------}
+         { --------------------------------------------------------------}
+         else
+         if (hp^.resulttype^.deftype = enumdef) and (p^.resulttype^.deftype = orddef) then
+           begin
+              if (hp^.location.loc=LOC_REGISTER) or (hp^.location.loc=LOC_CREGISTER) then
+                 hregister:=hp^.location.register
+              else
+                 begin
+                     hregister:=getregister32;
+                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(hp^.location.reference),hregister)));
+                 end;
               p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister;
               exit;
@@ -2333,8 +2353,7 @@ implementation
          if (p^.left^.location.loc=LOC_REGISTER) or
            (p^.left^.location.loc=LOC_CREGISTER) then
            begin
-{ handled by secondpas by called routine ??? }
-{              p^.location.loc:=p^.left^.location.loc; }
+              { handled by secondpas by called routine ??? }
               p^.location.register:=p^.left^.location.register;
            end;
       end;
@@ -2858,7 +2877,7 @@ implementation
                                    getlabel(hlabel);
                                    inc(pushedparasize,2);
                                    emitl(A_LABEL,truelabel);
-                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,1,R_SPPUSH)));
+                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,1 shl 8,R_SPPUSH)));
                                    emitl(A_JMP,hlabel);
                                    emitl(A_LABEL,falselabel);
                                    exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,0,R_SPPUSH)));
@@ -2870,6 +2889,10 @@ implementation
                                    exprasmlist^.concat(new(pai68k,op_reg(A_NEG, S_B, R_D0)));
                                    exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_W,$ff, R_D0)));
                                    inc(pushedparasize,2);
+                                   { ----------------- HACK ----------------------- }
+                                   { HERE IS THE BYTE SIZED PUSH HACK ONCE AGAIN    }
+                                   { SHIFT LEFT THE BYTE TO MAKE IT WORK!           }
+                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,8, R_D0)));
                                    exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,R_D0,R_SPPUSH)));
                                 end;
                 end;
@@ -3319,6 +3342,11 @@ implementation
                    r^.base := R_A0;
                   exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,r)));
                 end
+              else if (p^.procdefinition^.options and popalmossyscall)<>0 then
+                begin
+                   exprasmlist^.concat(new(pai68k,op_const(A_TRAP,S_NO,15)));
+                   exprasmlist^.concat(new(pai_const,init_16bit(p^.procdefinition^.extnumber)));
+                end
               else
                 emitcall(p^.procdefinition^.mangledname,
                   p^.symtableproc^.symtabletype=unitsymtable);
@@ -3465,7 +3493,7 @@ implementation
                                               if cs_fp_emulation in aktmoduleswitches then
                                               begin
                                                 p^.location.loc:=LOC_FPU;
-                                                      hregister:=getregister32;
+                                                hregister:=getregister32;
                                                 emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
                                                 p^.location.fpureg:=hregister;
                                               end
@@ -4058,10 +4086,11 @@ implementation
                    { load vmt }
                    if p^.left^.treetype=typen then
                      begin
-                      p^.location.register:=getregister32;
-                      exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,
+                      exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_LEA,
                         S_L,newcsymbol(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,0),
-                        p^.location.register)));
+                        R_A0)));
+                      p^.location.register:=getregister32;
+                      emit_reg_reg(A_MOVE,S_L,R_A0,p^.location.register);
                      end
                    else
                      begin
@@ -4084,7 +4113,7 @@ implementation
                         { because now supposedly p^.location.register is an }
                         { address.                                          }
                         emit_reg_reg(A_MOVE, S_L, p^.location.register, R_A0);
-            r^.base:=R_A0;
+                        r^.base:=R_A0;
                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,
                           p^.location.register)));
                      end;
@@ -4613,40 +4642,40 @@ implementation
                           if is_mem then
                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D0)))
-                    else
-                    begin
-                      if pfloatdef(procinfo.retdef)^.typ=f32bit then
-                        emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)
-                      else
-                      begin
-                        { single values are in the floating point registers }
-                        if cs_fp_emulation in aktmoduleswitches then
-                          emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
-                        else
+                          else
+                            begin
+                               if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                                  emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)
+                               else
+                                  begin
+                                     { single values are in the floating point registers }
+                                     if cs_fp_emulation in aktmoduleswitches then
+                                        emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
+                                     else
                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
                                            p^.left^.location.fpureg,R_D0)));
-                      end;
-                    end;
-                  end
-                  else
+                                  end;
+                            end;
+                       end
+                     else
                        Begin
-                    { this is only possible in real non emulation mode }
-                    { LOC_MEM,LOC_REFERENCE }
-                    if is_mem then
-                    begin
-                          exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                         { this is only possible in real non emulation mode }
+                         { LOC_MEM,LOC_REFERENCE }
+                         if is_mem then
+                           begin
+                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
                                   getfloatsize(pfloatdef(procinfo.retdef)^.typ),
                                     newreference(p^.left^.location.reference),R_FP0)));
-                    end
-                    else
-                    { LOC_FPU }
-                    begin
-                          { convert from extended to correct type }
-                          { when storing                          }
-                          exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
-                             getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
-                    end;
-              end;
+                           end
+                         else
+                          { LOC_FPU }
+                            begin
+                               { convert from extended to correct type }
+                               { when storing                          }
+                               exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
+                                 getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
+                            end;
+                       end;
               end;
 do_jmp:
               truelabel:=otlabel;
@@ -5466,6 +5495,7 @@ end;
               usableregs:=[R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,R_A0,R_A1,R_A2,R_A3,R_A4,
                   R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,R_FP7];
               c_usableregs:=4;
+              usableaddress:=3;
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
       end;
@@ -5475,7 +5505,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-08-19 16:07:39  jonas
+  Revision 1.15  1998-08-31 12:26:21  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.14  1998/08/19 16:07:39  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.13  1998/08/10 14:43:14  peter

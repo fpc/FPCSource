@@ -102,9 +102,14 @@ unit cga68k;
 
       begin
          pushusedregisters(pushed,$ffff);
-         emitpushreferenceaddr(dref);
-         emitpushreferenceaddr(sref);
-         push_int(len);
+{         emitpushreferenceaddr(dref);       }
+{         emitpushreferenceaddr(sref);       }
+{         push_int(len);                     }
+         { This speeds up from 116 cycles to 24 cycles on the 68000 }
+         { when passing register parameters!                        }
+         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(dref),R_A1)));
+         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(sref),R_A0)));
+         exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,len,R_D0)));
          emitcall('STRCOPY',true);
          maybe_loada5;
          popusedregisters(pushed);
@@ -130,7 +135,9 @@ unit cga68k;
             orddef : begin
                        if p^.right^.treetype=ordconstn then
                         begin
-                            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_W,p^.right^.value*256+1,
+                            { offset 0: length of string }
+                            { offset 1: character        }
+                            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_W,1*256+p^.right^.value,
                               newreference(p^.left^.location.reference))))
                         end
                        else
@@ -139,45 +146,33 @@ unit cga68k;
                             if (p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                               begin
                                  exprasmlist^.concat(new(pai68k,op_reg_reg(
-                                    A_MOVE,S_L,p^.right^.location.register,R_D0)));
+                                    A_MOVE,S_B,p^.right^.location.register,R_D0)));
                                  ungetregister32(p^.right^.location.register);
                               end
                             else
                               begin
                                  exprasmlist^.concat(new(pai68k,op_ref_reg(
-                                    A_MOVE,S_L,newreference(p^.right^.location.reference),R_D0)));
+                                    A_MOVE,S_B,newreference(p^.right^.location.reference),R_D0)));
                                  del_reference(p^.right^.location.reference);
                               end;
-                            if (aktoptprocessor = MC68020) then
-                             { alignment is not a problem on the 68020 and higher processors }
+                            { alignment can cause problems }
+                            { add length of string to ref }
+                            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,1,
+                               newreference(p^.left^.location.reference))));
+(*                            if abs(p^.left^.location.reference.offset) >= 1 then
+                              Begin *)
+                              { temporarily decrease offset }
+                                Inc(p^.left^.location.reference.offset);
+                                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_B,R_D0,
+                                  newreference(p^.left^.location.reference))));
+                                Dec(p^.left^.location.reference.offset);
+                                { restore offset }
+(*                              end
+                            else
                               Begin
-                               { add length of string to word }
-                                exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_W,$0100,R_D0)));
-                               { put back into mem ...        }
-                                exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_W,R_D0,
-                                  newreference(p^.left^.location.reference))));
-                             end
-                           else
-                             Begin
-                              { alignment can cause problems }
-                              { add length of string to ref }
-                               exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,1,
-                                  newreference(p^.left^.location.reference))));
-                               if abs(p^.left^.location.reference.offset) >= 1 then
-                                 Begin
-                                 { temporarily decrease offset }
-                                   Inc(p^.left^.location.reference.offset);
-                                   exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_B,R_D0,
-                                     newreference(p^.left^.location.reference))));
-                                   Dec(p^.left^.location.reference.offset);
-                                 { restore offset }
-                                 end
-                               else
-                                Begin
-                                 Comment(V_Debug,'SecondChar2String() internal error.');
-                                 internalerror(34);
-                                end;
-                             end;
+                                Comment(V_Debug,'SecondChar2String() internal error.');
+                                internalerror(34);
+                              end; *)
                          end;
                        end;
         else
@@ -195,7 +190,11 @@ unit cga68k;
          hregister :  tregister;
 
       begin
-         hregister:=getregister32;
+         if (p^.location.loc=LOC_REGISTER) or (p^.location.loc=LOC_CREGISTER) then
+            hregister:=getregister32
+         else
+            hregister:=getaddressreg;
+
          exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SPPULL,hregister)));
          if (p^.location.loc=LOC_REGISTER) or (p^.location.loc=LOC_CREGISTER) then
            begin
@@ -204,7 +203,7 @@ unit cga68k;
          else
            begin
               reset_reference(p^.location.reference);
-              p^.location.reference.index:=hregister;
+              p^.location.reference.base:=hregister;
               set_location(p^.left^.location,p^.location);
            end;
       end;
@@ -214,7 +213,7 @@ unit cga68k;
       var
          pushed : boolean;
       begin
-         if needed>usablereg32 then
+         if (needed>usablereg32) or (needed > usableaddress) then
            begin
               if (p^.location.loc=LOC_REGISTER) or
                  (p^.location.loc=LOC_CREGISTER) then
@@ -223,17 +222,15 @@ unit cga68k;
                    exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.location.register,R_SPPUSH)));
                    ungetregister32(p^.location.register);
                 end
-              else if ((p^.location.loc=LOC_MEM) or
-                       (p^.location.loc=LOC_REFERENCE)
-                      ) and
-                      ((p^.location.reference.base<>R_NO) or
-                       (p^.location.reference.index<>R_NO)
-                      ) then
+               else
+                 if ((p^.location.loc=LOC_MEM) or(p^.location.loc=LOC_REFERENCE)) and
+                    ((p^.location.reference.base<>R_NO) or
+                    (p^.location.reference.index<>R_NO)) then
                   begin
                      del_reference(p^.location.reference);
                      exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
-               R_A0)));
-             exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A0,R_SPPUSH)));
+                        R_A0)));
+                     exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A0,R_SPPUSH)));
                      pushed:=true;
                   end
               else pushed:=false;
@@ -381,7 +378,7 @@ unit cga68k;
            begin
           exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_L,R_D6)));
               exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
-          R_D6, R_SPPUSH)));
+              R_D6, R_SPPUSH)));
            end
          else
          if not(cs_littlesize in aktglobalswitches) and (l >= -128) and (l <= 127) then
@@ -394,18 +391,18 @@ unit cga68k;
       end;
 
     procedure emit_push_mem(const ref : treference);
-
+    { Push a value on to the stack }
       begin
          if ref.isintvalue then
            push_int(ref.offset)
          else
-           exprasmlist^.concat(new(pai68k,op_ref(A_PEA,S_L,newreference(ref))));
+           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(ref),R_SPPUSH)));
       end;
 
 
     { USES REGISTER R_A1 }
     procedure emitpushreferenceaddr(const ref : treference);
-
+    { Push a pointer to a value on the stack }
       begin
          if ref.isintvalue then
            push_int(ref.offset)
@@ -465,7 +462,19 @@ begin
                 begin
                     procinfo.aktentrycode^.insert(new(pai68k,
                      op_csymbol(A_JSR,S_NO,newcsymbol('INIT_STACK_CHECK',0))));
+                end
+            else
+            { The main program has already allocated its stack - so we simply compare }
+            { with a value of ZERO, and the comparison will directly check!           }
+            if (cs_check_stack in aktlocalswitches) then
+                begin
+                  procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+                      newcsymbol('STACKCHECK',0))));
+                  procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
+                      0,R_D0)));
+                  concat_external('STACKCHECK',EXT_NEAR);
                 end;
+
 
             unitinits.init;
 
@@ -529,9 +538,14 @@ begin
                             if (cs_check_stack in aktlocalswitches) and
                                (target_info.target<>target_linux) then
                                 begin
-                                    procinfo.aktentrycode^.insert(new(pai68k,
-                                     op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
-                                    procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,stackframe,R_SPPUSH)));
+                                  { If only not in main program, do we setup stack checking }
+                                  if (aktprocsym^.definition^.options and poproginit=0) then
+                                   Begin
+                                       procinfo.aktentrycode^.insert(new(pai68k,
+                                         op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
+                                       procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
+                                       concat_external('STACKCHECK',EXT_NEAR);
+                                   end;
                                 end;
                             { to allocate stack space }
                             { here we allocate space using link signed 16-bit version }
@@ -549,12 +563,14 @@ begin
                           if (stackframe > -32767) and (stackframe < 32769) then
                             begin
                               procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
-                              if (cs_check_stack in aktlocalswitches) then
+                              { IF only NOT in main program do we check the stack normally }
+                              if (cs_check_stack in aktlocalswitches)
+                              and (aktprocsym^.definition^.options and poproginit=0) then
                                 begin
                                   procinfo.aktentrycode^.insert(new(pai68k,
                                    op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
                                   procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
-                                    stackframe,R_SPPUSH)));
+                                    stackframe,R_D0)));
                                   concat_external('STACKCHECK',EXT_NEAR);
                                 end;
                                procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
@@ -570,6 +586,7 @@ begin
                  procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                end;
         end;
+
 
     if (aktprocsym^.definition^.options and pointerrupt)<>0 then
         generate_interrupt_stackframe_entry;
@@ -616,13 +633,6 @@ begin
                 procinfo.aktentrycode^.insert(stab_function_name);
             if make_global or ((procinfo.flags and pi_is_global) <> 0) then
                 aktprocsym^.is_global := True;
-            {This is dead code! Because lexlevel is increased at the
-             start of compile_proc_body it can never be zero.}
-{           if (lexlevel > 0) and (oldprocsym^.definition^.localst^.name = nil) then
-                if oldprocsym^.owner^.symtabletype = objectsymtable then
-                    oldprocsym^.definition^.localst^.name := stringdup(oldprocsym^.owner^.name^+'_'+oldprocsym^.name)
-                else
-                    oldprocsym^.definition^.localst^.name := stringdup(oldprocsym^.name);}
             aktprocsym^.isstabwritten:=true;
         end;
 {$endif GDB}
@@ -660,7 +670,8 @@ begin
 
     { call __EXIT for main program }
     { ????????? }
-    if (aktprocsym^.definition^.options and poproginit)<>0 then
+    if ((aktprocsym^.definition^.options and poproginit)<>0) and
+      (target_info.target<>target_PalmOS) then
      begin
        procinfo.aktexitcode^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('__EXIT',0))));
        externals^.concat(new(pai_external,init('__EXIT',EXT_NEAR)));
@@ -705,9 +716,9 @@ begin
                                         else
                                             begin
                                              { how the return value is handled                          }
-                                             { if in FPU mode, return in FP0                            }
-                                             if (pfloatdef(procinfo.retdef)^.typ = s32real)
-                                              and (cs_fp_emulation in aktmoduleswitches) then
+                                             { if single value, then return in d0, otherwise return in  }
+                                             { TRUE FPU register (does not apply in emulation mode)     }
+                                             if (pfloatdef(procinfo.retdef)^.typ = s32real) then
                                               begin
                                                 procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,
                                                   S_L,hr,R_D0)))
@@ -806,6 +817,7 @@ end;
 
 
     { USES REGISTERS R_A0 AND R_A1 }
+    { maximum size of copy is 65535 bytes                                       }
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean);
 
       var
@@ -820,7 +832,11 @@ end;
          hp1 : treference;
          hp2 : treference;
          hl : plabel;
+         hl2: plabel;
       begin
+         { this should never occur }
+         if size > 65535 then
+           internalerror(0);
          hregister := getregister32;
          if delsource then
            del_reference(source);
@@ -879,35 +895,58 @@ end;
               hp1.direction := dir_inc;
               reset_reference(hp2);
               hp2.base := jregister;
-              hp1.direction := dir_inc;
+              hp2.direction := dir_inc;
               { iregister = source }
               { jregister = destination }
+
+
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(source),iregister)));
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(dest),jregister)));
 
-              { double word move }
-              helpsize := size - size mod 4;
-              size := size mod 4;
-              exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,helpsize div 4,hregister)));
-              getlabel(hl);
-              emitl(A_LABEL,hl);
-              exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_L,newreference(hp1),newreference(hp2))));
-              exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,S_L,4,hregister)));
-              emitl(A_BNE,hl);
-              if size > 1 then
+              { double word move only on 68020+ machines }
+              { because of possible alignment problems   }
+              { use fast loop mode }
+              if (aktoptprocessor=MC68020) then
                 begin
-                    dec(size,2);
-                    exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_W,newreference(hp1), newreference(hp2))));
-                end;
-              if size = 1 then
+                   helpsize := size - size mod 4;
+                   size := size mod 4;
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,helpsize div 4,hregister)));
+                   getlabel(hl2);
+                   emitl(A_BRA,hl2);
+                   getlabel(hl);
+                   emitl(A_LABEL,hl);
+                   exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_L,newreference(hp1),newreference(hp2))));
+                   emitl(A_LABEL,hl2);
+                   exprasmlist^.concat(new(pai_labeled, init_reg(A_DBRA,hl,hregister)));
+                   if size > 1 then
+                     begin
+                        dec(size,2);
+                        exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_W,newreference(hp1), newreference(hp2))));
+                     end;
+                   if size = 1 then
                     exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_B,newreference(hp1), newreference(hp2))));
+                end
+              else
+                begin
+                   { Fast 68010 loop mode with no possible alignment problems }
+                   helpsize := size;
+                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,helpsize,hregister)));
+                   getlabel(hl2);
+                   emitl(A_BRA,hl2);
+                   getlabel(hl);
+                   emitl(A_LABEL,hl);
+                   exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_B,newreference(hp1),newreference(hp2))));
+                   emitl(A_LABEL,hl2);
+                   exprasmlist^.concat(new(pai_labeled, init_reg(A_DBRA,hl,hregister)));
+                end;
+
        { restore the registers that we have just used olny if they are used! }
-          if jregister = R_A1 then
-            hp2.base := R_NO;
-          if iregister = R_A0 then
-            hp1.base := R_NO;
-          del_reference(hp1);
-          del_reference(hp2);
+              if jregister = R_A1 then
+                hp2.base := R_NO;
+              if iregister = R_A0 then
+                hp1.base := R_NO;
+              del_reference(hp1);
+              del_reference(hp2);
            end;
 
            { loading SELF-reference again }
@@ -934,7 +973,7 @@ end;
                 begin
                     case orddef^.typ of
                         u8bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,location.register,destreg)));
+                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
                                  exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$FF,destreg)));
                                end;
                         s8bit: begin
@@ -971,7 +1010,7 @@ end;
                     r:=newreference(location.reference);
                     case orddef^.typ of
                         u8bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,destreg)));
+                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,r,destreg)));
                                  exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$FF,destreg)));
                                end;
                         s8bit:  begin
@@ -1149,7 +1188,17 @@ end;
         end; { end case }
         if not ((cs_fp_emulation) in aktmoduleswitches) then
         begin
-            exprasmlist^.concat(new(pai68k,op_reg_ref(A_FMOVE,s,location.fpureg,newreference(ref))));
+            { This permits the mixing of emulation and non-emulation routines }
+            { only possible for REAL = SINGLE values                          }
+            if not (location.fpureg in [R_FP0..R_FP7]) then
+             Begin
+               if s = S_FS then
+                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,location.fpureg,newreference(ref))))
+               else
+                 internalerror(255);
+             end
+            else
+               exprasmlist^.concat(new(pai68k,op_reg_ref(A_FMOVE,s,location.fpureg,newreference(ref))));
             ungetregister(location.fpureg);
         end
         else
@@ -1194,42 +1243,20 @@ end;
          else p^.swaped:=false;
       end;
 
+
     procedure secondfuncret(var p : ptree);
       var
-         hr : tregister;
-         hp : preference;
-         pp : pprocinfo;
-         hr_valid : boolean;
+         hregister : tregister;
+
       begin
          clear_reference(p^.location.reference);
-         hr_valid:=false;
-         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
-           begin
-              hr:=getaddressreg;
-              hr_valid:=true;
-              hp:=new_reference(procinfo.framepointer,
-                procinfo.framepointer_offset);
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,hp,hr)));
-              pp:=procinfo.parent;
-              { walk up the stack frame }
-              while pp<>pprocinfo(p^.funcretprocinfo) do
-                begin
-                   hp:=new_reference(hr,
-                     pp^.framepointer_offset);
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,hp,hr)));
-                   pp:=pp^.parent;
-                end;
-              p^.location.reference.base:=hr;
-           end
-         else
-           p^.location.reference.base:=procinfo.framepointer;
+         p^.location.reference.base:=procinfo.framepointer;
          p^.location.reference.offset:=procinfo.retoffset;
-         if ret_in_param(p^.retdef) then
+         if ret_in_param(procinfo.retdef) then
            begin
-              if not hr_valid then
-                hr:=getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,newreference(p^.location.reference),hr)));
-              p^.location.reference.base:=hr;
+              hregister:=getaddressreg;
+              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,newreference(p^.location.reference),hregister)));
+              p^.location.reference.base:=hregister;
               p^.location.reference.offset:=0;
            end;
       end;
@@ -1237,7 +1264,10 @@ end;
   end.
 {
   $Log$
-  Revision 1.10  1998-08-21 14:08:41  pierre
+  Revision 1.11  1998-08-31 12:26:24  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.10  1998/08/21 14:08:41  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

@@ -486,24 +486,22 @@ Implementation
                           begin
                              if (p^.right^.treetype=ordconstn) and (op=A_CMP) and
                                 (p^.right^.value=0) then
-                               begin
-                                  exprasmlist^.concat(new(pai68k,op_reg(A_TST,opsize,p^.location.register)));
-                               end
-                             else if (p^.right^.treetype=ordconstn) and (op=A_MULS) and
-                                (ispowerof2(p^.right^.value,power)) then
-                               begin
-                                  if (power <= 8) then
-                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_ASL,opsize,power,
-                                        p^.location.register)))
-                                  else
-                                   begin
-
-                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,power,
-                                        R_D6)));
-                                      exprasmlist^.concat(new(pai68k,op_reg_reg(A_ASL,opsize,R_D6,
-                                        p^.location.register)))
-                                   end;
-                               end
+                                  exprasmlist^.concat(new(pai68k,op_reg(A_TST,opsize,p^.location.register)))
+                             else
+                                if (p^.right^.treetype=ordconstn) and (op=A_MULS) and
+                                   (ispowerof2(p^.right^.value,power)) then
+                                  begin
+                                    if (power <= 8) then
+                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_ASL,opsize,power,
+                                         p^.location.register)))
+                                    else
+                                      begin
+                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,power,
+                                         R_D6)));
+                                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_ASL,opsize,R_D6,
+                                          p^.location.register)))
+                                      end;
+                                  end
                              else
                                begin
                                   if (p^.right^.location.loc=LOC_CREGISTER) then
@@ -558,6 +556,18 @@ Implementation
                                             else
                                             if (op=A_MULU) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                              Message(cg_f_32bit_not_supported_in_68000)
+                                            else
+                                            { When one of the source/destination is a memory reference  }
+                                            { and the operator is EOR, the we must load it into the     }
+                                            { value into a register first since only EOR reg,reg exists }
+                                            { on the m68k                                               }
+                                            if (op=A_EOR) then
+                                              begin
+                                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,newreference(
+                                                    p^.right^.location.reference),R_D0)));
+                                                exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,R_D0,
+                                                    p^.location.register)));
+                                              end
                                             else
                                               exprasmlist^.concat(new(pai68k,op_ref_reg(op,opsize,newreference(
                                                 p^.right^.location.reference),p^.location.register)));
@@ -615,6 +625,7 @@ Implementation
                    if mboverflow then
                      emitoverflowcheck(p);
                end
+{*********************************************************************}
               else if ((p^.left^.resulttype^.deftype=orddef) and
                  (porddef(p^.left^.resulttype)^.typ=uchar)) then
                 begin
@@ -1411,15 +1422,17 @@ Implementation
 
 
 
-
     { This routine needs to be further checked to see if it works correctly  }
     { because contrary to the intel version, all large set elements are read }
     { as 32-bit values, and then decomposed to find the correct byte.        }
-    { CHECKED -> Requires 32-bit read.                                       }
+
+    { CHECKED : Depending on the result size, if reference, a load may be    }
+    { required on word, long or byte.                                        }
     procedure loadsetelement(var p : ptree);
 
       var
          hr : tregister;
+         opsize : topsize;
 
       begin
          { copy the element in the d0.b register, slightly complicated }
@@ -1432,8 +1445,23 @@ Implementation
                            end;
             else
                begin
-                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                 { This is quite complicated, because of the endian on }
+                 { the m68k!                                           }
+                 opsize:=S_NO;
+                 case integer(p^.resulttype^.savesize) of
+                   1 : opsize:=S_B;
+                   2 : opsize:=S_W;
+                   4 : opsize:=S_L;
+                 else
+                   internalerror(19);
+                 end;
+                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
                     newreference(p^.location.reference),R_D0)));
+                 exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                    255,R_D0)));
+{
+                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                    newreference(p^.location.reference),R_D0)));        }
 {                  exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                     $ff,R_D0))); }
                   del_reference(p^.location.reference);
@@ -1459,15 +1487,29 @@ Implementation
          i,numparts:byte;
          href,href2:Treference;
          l,l2 : plabel;
-       hl,hl1 : plabel;
-       hl2, hl3: plabel;
+         hl,hl1 : plabel;
+         hl2, hl3: plabel;
+         opsize : topsize;
 
+
+               function swaplongint(l : longint): longint;
+               var
+                 w1: word;
+                 w2: word;
+               begin
+                 w1:=l and $ffff;
+                 w2:=l shr 16;
+                 l:=swap(w2)+(longint(swap(w1)) shl 16);
+                 swaplongint:=l;
+               end;
 
             function analizeset(Aset:Pconstset):boolean;
 
-            var compares,maxcompares:word;
-                i:byte;
             type    byteset=set of byte;
+                    tlongset  = array[0..7] of longint;
+            var compares,maxcompares:word;
+                someset : tlongset;
+                i:byte;
 
             begin
                 analizeset:=false;
@@ -1480,8 +1522,16 @@ Implementation
                 maxcompares:=5;
                 if cs_littlesize in aktglobalswitches then
                     maxcompares:=8;
+                move(ASet^,someset,32);
+                { On Big endian machines sets are stored   }
+                { as INTEL Little-endian format, therefore }
+                { we must convert it to the correct format }
+{$IFDEF BIG_ENDIAN}
+                for I:=0 to 7 do
+                  someset[i]:=swaplongint(someset[i]);
+{$ENDIF}
                 for i:=0 to 255 do
-                    if i in byteset(Aset^) then
+                    if i in byteset(someset) then
                         begin
                             if (numparts=0) or
                              (i<>setparts[numparts].stop+1) then
@@ -1528,25 +1578,25 @@ Implementation
                 begin
                    { only compulsory }
                    secondpass(p^.left);
-                       secondpass(p^.right);
+                   secondpass(p^.right);
                    if codegenerror then
                      exit;
                    p^.location.resflags:=F_NE;
                    { Because of the Endian of the m68k, we have to consider this as a  }
                    { normal set and load it byte per byte, otherwise we will never get }
                    { the correct result.                                               }
-                       case p^.right^.location.loc of
+                   case p^.right^.location.loc of
                      LOC_REGISTER,LOC_CREGISTER :
                        begin
-                                                    emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,R_D1);
-                                                    exprasmlist^.concat(new(pai68k,
+                         emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,R_D1);
+                         exprasmlist^.concat(new(pai68k,
                            op_const_reg(A_AND,S_L, 1 shl (p^.left^.value and 31),R_D1)));
-                                                   end;
-                      else
+                       end;
+                   else
                        begin
-                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(
-                             p^.right^.location.reference),R_D1)));
-                           exprasmlist^.concat(new(pai68k,op_const_reg(
+                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(
+                           p^.right^.location.reference),R_D1)));
+                         exprasmlist^.concat(new(pai68k,op_const_reg(
                            A_AND,S_L,1 shl (p^.left^.value and 31) ,R_D1)));
                        end;
                    end;
@@ -1566,16 +1616,15 @@ Implementation
                    { of course not commutative }
                    if p^.swaped then
                         swaptree(p);
-              { load index into register }
+                   { load index into register }
                    case p^.left^.location.loc of
                       LOC_REGISTER,
                       LOC_CREGISTER :
-                                        hr:=p^.left^.location.register;
+                          hr:=p^.left^.location.register;
                       else
                          begin
-                            { the set element isn't never samller than a byte  }
-                            { and because it's a small set we need only 5 bits }
-                            { but 8 bits are eaiser to load                    }
+                            { Small sets are always 32 bit values, there is no  }
+                            { way they can be anything else, so no problems here}
                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D1)));
                             hr:=R_D1;
@@ -1587,9 +1636,8 @@ Implementation
                       LOC_CREGISTER : exprasmlist^.concat(new(pai68k, op_reg_reg(A_BTST,S_L,hr,p^.right^.location.register)));
                       else
                          begin
-                     { OOPS ... bug here thanks Florian!! }
-                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
-                        R_D0)));
+                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
+                              R_D0)));
                             exprasmlist^.concat(new(pai68k,op_reg_reg(A_BTST,S_L,hr,R_D0)));
                             del_reference(p^.right^.location.reference);
                          end;
@@ -1612,7 +1660,7 @@ Implementation
                    p^.location.resflags:=F_C;
                 end;
            end
-         else { NOT a small set }
+         else { //// NOT a small set  //// }
            begin
               if p^.left^.treetype=ordconstn then
                 begin
@@ -1627,19 +1675,19 @@ Implementation
                        newreference(p^.right^.location.reference), R_D1)));
                    exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_L,
                        1 shl (p^.left^.value mod 32),R_D1)));
-               del_reference(p^.right^.location.reference);
-            end
-          else
-            begin
-               if (p^.right^.treetype=setconstrn) and
-                  analizeset(p^.right^.constset) then
+                   del_reference(p^.right^.location.reference);
+                end
+             else
+                begin
+                  if (p^.right^.treetype=setconstrn) and
+                     analizeset(p^.right^.constset) then
                     begin
-                        {It gives us advantage to check for the set elements
-                         separately instead of using the SET_IN_BYTE procedure.
-                         To do: Build in support for LOC_JUMP.}
-                        secondpass(p^.left);
-                        {We won't do a second pass on p^.right, because
-                         this will emit the constant set.}
+                      {It gives us advantage to check for the set elements
+                        separately instead of using the SET_IN_BYTE procedure.
+                       To do: Build in support for LOC_JUMP.}
+                      secondpass(p^.left);
+                      {We won't do a second pass on p^.right, because
+                      this will emit the constant set.}
                       case p^.left^.location.loc of
                         LOC_REGISTER,
                         LOC_CREGISTER :
@@ -1647,133 +1695,149 @@ Implementation
                              255,p^.left^.location.register)));
                         else
                          Begin
-                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                           { Because of the m68k endian, then we must LOAD normally the    }
+                           { value into a register first, all depending on the source      }
+                           { size!                                                         }
+                           opsize:=S_NO;
+                           case integer(p^.left^.resulttype^.savesize) of
+                             1 : opsize:=S_B;
+                             2 : opsize:=S_W;
+                             4 : opsize:=S_L;
+                           else
+                             internalerror(19);
+                           end;
+                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
                              newreference(p^.left^.location.reference),R_D0)));
                            exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                              255,R_D0)));
                          end;
                       end;
-                            {Get a label to jump to the end.}
-                            p^.location.loc:=LOC_FLAGS;
+                      {Get a label to jump to the end.}
+                      p^.location.loc:=LOC_FLAGS;
                       {It's better to use the zero flag when there are no ranges.}
-                            if ranges then
-                                p^.location.resflags:=F_C
-                            else
-                                p^.location.resflags:=F_E;
-                            href.symbol := nil;
-                            clear_reference(href);
-                            getlabel(l);
-                            href.symbol:=stringdup(lab2str(l));
-                            for i:=1 to numparts do
-                                if setparts[i].range then
-                                    begin
-                                        {Check if left is in a range.}
-                                        {Get a label to jump over the check.}
-                                        href2.symbol := nil;
-                                        clear_reference(href2);
-                                        getlabel(l2);
-                                        href.symbol:=stringdup(lab2str(l2));
-                                        if setparts[i].start=setparts[i].stop-1 then
-                                        begin
-                                          case p^.left^.location.loc of
-                                           LOC_REGISTER,
-                                           LOC_CREGISTER :
+                      if ranges then
+                        p^.location.resflags:=F_C
+                      else
+                        p^.location.resflags:=F_E;
+                      href.symbol := nil;
+                      clear_reference(href);
+                      getlabel(l);
+                      href.symbol:=stringdup(lab2str(l));
+                      for i:=1 to numparts do
+                          if setparts[i].range then
+                             begin
+                                  {Check if left is in a range.}
+                                  {Get a label to jump over the check.}
+                                  href2.symbol := nil;
+                                  clear_reference(href2);
+                                  getlabel(l2);
+                                  href.symbol:=stringdup(lab2str(l2));
+                                  if setparts[i].start=setparts[i].stop-1 then
+                                  begin
+                                    case p^.left^.location.loc of
+                                      LOC_REGISTER,
+                                      LOC_CREGISTER :
                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
-                                                    setparts[i].start,p^.left^.location.register)));
-                                          else
+                                           setparts[i].start,p^.left^.location.register)));
+                                    else
                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                            setparts[i].start,R_D0)));
 {                                         exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                            setparts[i].start,newreference(p^.left^.location.reference))));}
-                                          end;
-                                          {Result should be in carry flag when ranges are used.}
-                                          { Here the m68k does not affect any flag except the  }
-                                          { flag which is OR'ed                                }
-                                          if ranges then
-                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
-                                          {If found, jump to end.}
-                                          emitl(A_BEQ,l);
-                                          case p^.left^.location.loc of
-                                           LOC_REGISTER,
-                                           LOC_CREGISTER :
+                                    end;
+                                  {Result should be in carry flag when ranges are used.}
+                                  { Here the m68k does not affect any flag except the  }
+                                  { flag which is OR'ed                                }
+                                  if ranges then
+                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                  {If found, jump to end.}
+                                  emitl(A_BEQ,l);
+                                  case p^.left^.location.loc of
+                                    LOC_REGISTER,
+                                    LOC_CREGISTER :
                                       exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
-                                                 setparts[i].stop,p^.left^.location.register)));
-                                          else
+                                        setparts[i].stop,p^.left^.location.register)));
+                                    else
                                       exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                         setparts[i].stop,R_D0)));
 {                                      exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                       setparts[i].stop,newreference(p^.left^.location.reference))));}
-                                          end;
-                                          {Result should be in carry flag when ranges are used.}
-                                          { Here the m68k does not affect any flag except the  }
-                                          { flag which is OR'ed                                }
-                                          if ranges then
-                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
-                                          {If found, jump to end.}
-                                          emitl(A_BEQ,l);
-                                       end
-                                        else
-                                            begin
-                                                if setparts[i].start<>0 then
-                                                    begin
-                                                        {We only check for the lower bound if it is > 0, because
-                                                         set elements lower than 0 do nt exist.}
-                                           case p^.left^.location.loc of
-                                               LOC_REGISTER,
-                                               LOC_CREGISTER :
+                                  end;
+                                  {Result should be in carry flag when ranges are used.}
+                                  { Here the m68k does not affect any flag except the  }
+                                  { flag which is OR'ed                                }
+                                  if ranges then
+                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                  {If found, jump to end.}
+                                  emitl(A_BEQ,l);
+                             end
+                          else
+                             begin
+                               if setparts[i].start<>0 then
+                                  begin
+                                  {We only check for the lower bound if it is > 0, because
+                                   set elements lower than 0 do nt exist.}
+                                    case p^.left^.location.loc of
+                                      LOC_REGISTER,
+                                      LOC_CREGISTER :
                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
-                                                         setparts[i].start,p^.left^.location.register)));
-                                          else
+                                        setparts[i].start,p^.left^.location.register)));
+                                    else
                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                         setparts[i].start,R_D0)));
 {                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                         setparts[i].start,newreference(p^.left^.location.reference)))); }
-                                          end;
-                                                        {If lower, jump to next check.}
-                                                        emitl(A_BCS,l2);
-                                                    end;
-                                                if setparts[i].stop<>255 then
-                                                    begin
-                                                        {We only check for the high bound if it is < 255, because
-                                                         set elements higher than 255 do nt exist.}
-                                           case p^.left^.location.loc of
-                                               LOC_REGISTER,
-                                               LOC_CREGISTER :
+                                    end;
+                                    {If lower, jump to next check.}
+                                    emitl(A_BCS,l2);
+                                    end;
+                                    if setparts[i].stop<>255 then
+                                       begin
+                                       {We only check for the high bound if it is < 255, because
+                                          set elements higher than 255 do nt exist.}
+                                          case p^.left^.location.loc of
+                                            LOC_REGISTER,
+                                            LOC_CREGISTER :
                                               exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
-                                                         setparts[i].stop+1,p^.left^.location.register)));
+                                                setparts[i].stop+1,p^.left^.location.register)));
                                           else
                                               exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                                 setparts[i].stop+1,R_D0)));
 {                                              exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                                 setparts[i].stop+1,newreference(p^.left^.location.reference))));}
                                           end; { end case }
-                                                        {If higher, element is in set.}
-                                                        emitl(A_BCS,l);
-                                                    end;
-                                            end;
-                                        {Emit the jump over label.}
-                                        exprasmlist^.concat(new(pai_label,init(l2)));
-                                    end
-                                else
-                                    begin
-                                        {Emit code to check if left is an element.}
-                              case p^.left^.location.loc of
-                                LOC_REGISTER,
-                                LOC_CREGISTER :
+                                          {If higher, element is in set.}
+                                          emitl(A_BCS,l);
+                                       end
+                                     else
+                                       begin
+                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                         emitl(A_JMP,l);
+                                       end;
+                                  end;
+                               {Emit the jump over label.}
+                               exprasmlist^.concat(new(pai_label,init(l2)));
+                             end
+                            else
+                               begin
+                               {Emit code to check if left is an element.}
+                                 case p^.left^.location.loc of
+                                   LOC_REGISTER,
+                                   LOC_CREGISTER :
                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
-                                         setparts[i].stop,p^.left^.location.register)));
-                              else
+                                      setparts[i].stop,p^.left^.location.register)));
+                                   else
 {                                     exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
                                      setparts[i].stop,newreference(p^.left^.location.reference))));}
                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                       setparts[i].stop,R_D0)));
-                              end;
-                                        {Result should be in carry flag when ranges are used.}
-                                        if ranges then
-                                            exprasmlist^.concat(new(pai68k, op_const_reg(A_OR,S_B,$01,R_CCR)));
-                                        {If found, jump to end.}
-                                        emitl(A_BEQ,l);
-                                    end;
+                                   end;
+                                 {Result should be in carry flag when ranges are used.}
+                                 if ranges then
+                                   exprasmlist^.concat(new(pai68k, op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                   {If found, jump to end.}
+                                 emitl(A_BEQ,l);
+                               end;
                             if ranges then
                             { clear carry flag }
                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,$FE,R_CCR)));
@@ -1807,16 +1871,15 @@ Implementation
                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
                               newreference(p^.right^.location.reference),R_A0)));;
 {                            emitpushreferenceaddr(p^.right^.location.reference);}
-                           del_reference(p^.right^.location.reference);
-                           emitcall('SET_IN_BYTE',true);
-                     { ungetiftemp(p^.right^.location.reference); }
-                          p^.location.loc:=LOC_FLAGS;
-                          p^.location.resflags:=F_C;
+                            del_reference(p^.right^.location.reference);
+                            emitcall('SET_IN_BYTE',true);
+                            { ungetiftemp(p^.right^.location.reference); }
+                            p^.location.loc:=LOC_FLAGS;
+                            p^.location.resflags:=F_C;
                         end;
                 end;
              end;
       end;
-
 
 
     procedure secondexpr(var p : ptree);
@@ -1875,7 +1938,7 @@ Implementation
               truelabel:=otlabel;
               falselabel:=oflabel;
            end
-         else
+         else { //// NOT a small set  //// }
            begin
               { handling code at the end as it is much more efficient }
               emitl(A_JMP,l2);
@@ -1884,7 +1947,7 @@ Implementation
               cleartempgen;
 
               getlabel(l3);
-              aktcontinuelabel:=l1;
+              aktcontinuelabel:=l2;
               aktbreaklabel:=l3;
 
               if assigned(p^.right) then
@@ -1960,7 +2023,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-08-10 14:43:17  peter
+  Revision 1.8  1998-08-31 12:26:23  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.7  1998/08/10 14:43:17  peter
     * string type st_ fixed
 
   Revision 1.6  1998/07/10 10:51:00  peter

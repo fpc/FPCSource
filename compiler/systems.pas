@@ -56,7 +56,7 @@ unit systems;
               target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
        {$endif i386}
        {$ifdef m68k}
-              target_Amiga,target_Atari,target_Mac68k,target_Linux
+              target_Amiga,target_Atari,target_Mac68k,target_Linux,target_PalmOS
        {$endif}
        );
 
@@ -95,7 +95,7 @@ unit systems;
               os_GO32V1, os_GO32V2, os_Linux, os_OS2, os_WIN32
        {$endif i386}
        {$ifdef m68k}
-              os_Amiga, os_Atari, os_Mac68k, os_Linux
+              os_Amiga, os_Atari, os_Mac68k, os_Linux, os_PalmOS
        {$endif}
        );
 
@@ -279,7 +279,7 @@ implementation
             exeext       : '';
             scriptext    : '';
             libprefix    : '';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #10;
             endian       : en_big_endian;
             use_function_relative_addresses : false
@@ -293,7 +293,7 @@ implementation
             exeext       : '.tpp';
             scriptext    : '';
             libprefix    : '';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #10;
             endian       : en_big_endian;
             use_function_relative_addresses : false
@@ -307,7 +307,7 @@ implementation
             exeext       : '.tpp';
             scriptext    : '';
             libprefix    : '';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #13;
             endian       : en_big_endian;
             use_function_relative_addresses : false
@@ -325,6 +325,20 @@ implementation
             newline      : #10;
             endian       : en_big_endian;
             use_function_relative_addresses : true
+          ),
+          (
+            name         : 'PalmOS';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            scriptext    : '';
+            libprefix    : '';
+            Cprefix      : '_';
+            newline      : #10;
+            endian       : en_big_endian;
+            use_function_relative_addresses : false
           )
 {$endif m68k}
           );
@@ -677,7 +691,7 @@ implementation
             link        : link_ld;
             assem       : as_o;
             ar          : ar_ar;
-            heapsize    : 512*1024;
+            heapsize    : 128*1024;
             stacksize   : 8192
           ),
           (
@@ -695,7 +709,7 @@ implementation
             link        : link_ld;
             assem       : as_o;
             ar          : ar_ar;
-            heapsize    : 512*1024;
+            heapsize    : 16*1024;
             stacksize   : 8192
           ),
           (
@@ -713,7 +727,7 @@ implementation
             link        : link_ld;
             assem       : as_o;
             ar          : ar_ar;
-            heapsize    : 512*1024;
+            heapsize    : 128*1024;
             stacksize   : 8192
           ),
           (
@@ -731,7 +745,25 @@ implementation
             link        : link_ld;
             assem       : as_o;
             ar          : ar_ar;
-            heapsize    : 512*1024;
+            heapsize    : 128*1024;
+            stacksize   : 8192
+          ),
+          (
+            target      : target_PalmOS;
+            short_name  : 'PALMOS';
+            unit_env    : 'PALMUNITS';
+            system_unit : 'syspalm';
+            smartext    : '.sl';
+            unitext     : '.ppu';
+            unitlibext  : '.ppl';
+            asmext      : '.s';
+            objext      : '.o';
+            exeext      : '';
+            os          : os_PalmOS;
+            link        : link_ld;
+            assem       : as_o;
+            ar          : ar_ar;
+            heapsize    : 128*1024;
             stacksize   : 8192
           )
 {$endif m68k}
@@ -876,7 +908,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1998-08-26 10:09:21  peter
+  Revision 1.30  1998-08-31 12:26:34  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.29  1998/08/26 10:09:21  peter
     * more lowercase extensions
 
   Revision 1.28  1998/08/25 12:42:47  pierre

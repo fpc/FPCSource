@@ -78,6 +78,24 @@ unit tgen68k;
 
   implementation
 
+
+    function getusableaddr: byte;
+    { Since address registers are different then data registers }
+    { we check the unused register list to determine the number }
+    { of address registers which are available.                 }
+    var
+      i: byte;
+    Begin
+      i:=0;
+      if R_A2 in unused then
+        Inc(i);
+      if R_A3 in unused then
+        Inc(i);
+      if R_A4 in unused then
+         Inc(i);
+      getusableaddr:=i;
+    end;
+
     procedure pushusedregisters(var pushed : tpushed;b : word);
 
       var
@@ -169,22 +187,12 @@ unit tgen68k;
               inc(usablefloatreg);
          end
          else
-         if r in [R_A2,R_A3,R_A4,R_A6,R_SP] then
+         if r in [R_A2,R_A3,R_A4] then
            begin
               unused:=unused+[r];
               inc(usableaddress);
-{$ifdef EXTDEBUG}
-           end
-         else
-         begin
-           if not (r in [R_NO]) then
-           begin
-            Comment(V_Debug,'ungetregister32() deallocation of reserved register.');
-         end;
-         end;
-{$ELSE}
            end;
-{$ENDIF}
+        { other registers are RESERVED and should not be freed }
       end;
 
 
@@ -287,6 +295,7 @@ unit tgen68k;
       begin
          unused:=usableregs;
          usablereg32:=c_usableregs;
+         usableaddress:=getusableaddr;
       end;
 
 begin
@@ -298,86 +307,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-06-08 13:13:46  pierre
+  Revision 1.3  1998-08-31 12:26:35  peter
+    * m68k and palmos updates from surebugfixes
+
+  Revision 1.2  1998/06/08 13:13:46  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx
       (which are defaults for i386)
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.12  1998/03/22 12:45:38  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.11  1998/03/10 04:21:15  carl
-    * fixed extdebug problems
-
-  Revision 1.10  1998/03/10 01:17:30  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.9  1998/03/06 00:53:00  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.8  1998/03/02 01:49:35  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.7  1998/02/13 10:35:51  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.6  1998/01/11 03:40:16  carl
-    + added fpu register allocation
-
-  Revision 1.3  1997/12/09 14:13:07  carl
-  * bugfix of free register list.
-
-  Revision 1.2  1997/11/28 18:14:49  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:33:03  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-  + feature added
-  - removed
-  * bug fixed or changed
-
-  History (started with version 0.9.0):
-       7th december 1996:
-         * some code from Pierre Muller inserted
-           makes the use of the stack more efficient
-   5th september 1997:
-        + Converted for Motorola MC68000 output (C. E. Codere)
-   24nd september 1997:
-        + Reserved register list modified. (CEC)
-   26 september 1997:
-        + Converted to work with v093 (CEC)
-        * Knowing that base is in address register, modified routines
-          accordingly. (CEC)
-   27 september 1997:
-      + pushusedregisters now pushes only non-scratch registers.
-    2nd october 1997:
-      + added strict error checking when extdebug defined.
-   23 october 1997:
-      - it seems that sp, and the base pointer can be freed in ungetregister,
-        removed warning accordingly. (CEC).
-      * bugfix of address register in usableregs set. (They were not defined...) (CEC).
-      * other stupid bug! When I changed the register conventions, I forgot to change
-        getaddressreg to reflect those changes!! (CEC).
-
 }
