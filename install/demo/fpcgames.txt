@@ -49,6 +49,9 @@ Currently the games are
                                         (like TANK distributed with QBasic)
 - Maze (Randy Ding)                     Maze generator and "game"
 - Quad (Justin and Whitney Pierce)      Memory game but with 4 cards each.
+- Voxel(Marcin Borkowski or
+        Bas van Gaalen, depends on src) Displays a landscape in which you can
+                                        move.
 
 All "other games" games are simpler than my ones, though Quad has overall
 the most sophisticated graphics, and Maze a reasonably complicated algoritm
@@ -59,7 +62,7 @@ generic routines:
 - textual and graphics mode safe input dialogue (replacement for readkey)
 - highscores (show, helper routines for entering scores etc)
 - wrappers for mouse via msmouse or API on other targets
-- Some routines needed for BP compability
+- Some routines needed for BP compability. (Go32 and cursor routines in Crt)
 
 To compile the games on non dos targets you have to change DEFINE the
 MouseAPI conditional in gameunit.pp (automatical for Linux).
@@ -275,3 +278,20 @@ TODO:
 HISTORY
  v0.01 :
        - Initial FPC port.
+
+-------------
+Voxel, more a demo than a game.
+
+A program I already ported to M2 once. Also from SWAG I believe, but it
+has been cycling FIDOnets Pascal areas for years.
+
+The program displays a landscape in which you can move with the cursor keys.
+Exit with ESCAPE. A flabbergasting effect in just 150 lines.
+
+TODO:
+- Higher resolution (LFB) graphics?
+
+HISTORY
+ v0.01 :
+       - Initial FPC port.
+
