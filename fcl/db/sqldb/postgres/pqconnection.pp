@@ -2,11 +2,18 @@ unit pqconnection;
 
 {$mode objfpc}{$H+}
 
+{$Define LinkDynamically}
+
 interface
 
 uses
-  Classes, SysUtils, sqldb, db,postgres3, dbconst;
-  
+  Classes, SysUtils, sqldb, db, dbconst,
+{$IfDef LinkDynamically}
+  postgres3dyn;
+{$Else}
+  postgres3;
+{$EndIf}
+
 type
   TPQTrans = Class(TSQLHandle)
     protected
@@ -20,10 +27,12 @@ type
     nFields   : integer;
     res       : PPGresult;
     BaseRes   : PPGresult;
+    Nr        : string;
   end;
 
   TPQConnection = class (TSQLConnection)
   private
+    FCursorCount         : word;
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
     function TranslateFldType(Type_Oid : integer) : TFieldType;
@@ -48,6 +57,8 @@ type
     procedure CommitRetaining(trans : TSQLHandle); override;
     function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
+    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+
   published
     property DatabaseName;
     property KeepConnection;
@@ -71,6 +82,7 @@ ResourceString
   
 const Oid_Bool     = 16;
       Oid_Text     = 25;
+      Oid_Name     = 19;
       Oid_Int8     = 20;
       Oid_int2     = 21;
       Oid_Int4     = 23;
@@ -238,6 +250,10 @@ procedure TPQConnection.DoInternalConnect;
 var msg : string;
 
 begin
+{$IfDef LinkDynamically}
+  InitialisePostgres3;
+{$EndIf}
+
   inherited dointernalconnect;
 
   if (DatabaseName = '') then
@@ -261,13 +277,18 @@ end;
 procedure TPQConnection.DoInternalDisconnect;
 begin
   PQfinish(FSQLDatabaseHandle);
+{$IfDef LinkDynamically}
+  ReleasePostgres3;
+{$EndIf}
+
 end;
 
 function TPQConnection.TranslateFldType(Type_Oid : integer) : TFieldType;
 
 begin
   case Type_Oid of
-    Oid_varchar,Oid_bpchar : Result := ftstring;
+    Oid_varchar,Oid_bpchar,
+    Oid_name               : Result := ftstring;
     Oid_text               : REsult := ftmemo;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
@@ -301,7 +322,11 @@ begin
     begin
     (cursor as TPQCursor).statement := buf;
     if StatementType = stselect then
-      statement := 'DECLARE selectst' + name + '  BINARY CURSOR FOR ' + statement;
+      begin
+      nr := inttostr(FCursorcount);
+      statement := 'DECLARE slctst' + name + nr +' BINARY CURSOR FOR ' + statement;
+      inc(FCursorcount);
+      end;
     end;
 end;
 
@@ -313,7 +338,7 @@ begin
     begin
     if StatementType = stselect then
       begin
-      Res := pqexec(tr,pchar('CLOSE selectst' + name));
+      Res := pqexec(tr,pchar('CLOSE slctst' + name + nr));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
         pqclear(res);
@@ -361,7 +386,7 @@ begin
   with cursor as TPQCursor do
     begin
 //    BaseRes := pqexecParams(tr,'FETCH 0 IN selectst' + pchar(name) ,0,nil,nil,nil,nil,1);
-    st := 'FETCH 0 IN selectst' + pchar(name);
+    st := pchar('FETCH 0 IN slctst' + name+nr);
     BaseRes := pqexec(tr,pchar(st));
     if (PQresultStatus(BaseRes) <> PGRES_TUPLES_OK) then
       begin
@@ -374,7 +399,7 @@ begin
       size := PQfsize(BaseRes, i);
       fieldtype := TranslateFldType(PQftype(BaseRes, i));
 
-      if fieldtype = ftstring  then
+      if (fieldtype = ftstring) and (size = -1) then
         size := pqfmod(baseres,i)-3;
       if fieldtype = ftdate  then
         size := sizeof(double);
@@ -396,7 +421,7 @@ var st : string;
 begin
   with cursor as TPQCursor do
     begin
-    st := 'FETCH NEXT IN selectst' + pchar(name);
+    st := pchar('FETCH NEXT IN slctst' + name+nr);
     Res := pqexec(tr,pchar(st));
     if (PQresultStatus(res) <> PGRES_TUPLES_OK) then
       begin
@@ -475,6 +500,63 @@ begin
       result := true;
       end;
     end;
+end;
+
+procedure TPQConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+
+var qry : TSQLQuery;
+
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := tsqlquery.Create(nil);
+  qry.transaction := Transaction;
+  qry.database := Self;
+  with qry do
+    begin
+    ReadOnly := True;
+    sql.clear;
+
+    sql.add('select '+
+              'ic.relname as indexname,  '+
+              'tc.relname as tablename, '+
+              'ia.attname, '+
+              'i.indisprimary, '+
+              'i.indisunique '+
+            'from '+
+              'pg_attribute ta, '+
+              'pg_attribute ia, '+
+              'pg_class tc, '+
+              'pg_class ic, '+
+              'pg_index i '+
+            'where '+
+              '(i.indrelid = tc.oid) and '+
+              '(ta.attrelid = tc.oid) and '+
+              '(ia.attrelid = i.indexrelid) and '+
+              '(ic.oid = i.indexrelid) and '+
+              '(ta.attnum = i.indkey[ia.attnum-1]) and '+
+              '(upper(tc.relname)=''' +  UpperCase(TableName) +''') '+
+            'order by '+
+              'ic.relname;');
+    open;
+    end;
+
+  while not qry.eof do with IndexDefs.AddIndexDef do
+    begin
+    Name := trim(qry.fields[0].asstring);
+    Fields := trim(qry.Fields[2].asstring);
+    If qry.fields[3].asboolean then options := options + [ixPrimary];
+    If qry.fields[4].asboolean then options := options + [ixUnique];
+    qry.next;
+    while (name = qry.fields[0].asstring) and (not qry.eof) do
+      begin
+      Fields := Fields + ';' + trim(qry.Fields[2].asstring);
+      qry.next;
+      end;
+    end;
+  qry.close;
+  qry.free;
 end;
 
 
