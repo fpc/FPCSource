@@ -629,7 +629,8 @@ implementation
                       not(oo_can_have_published in aktclass.objectoptions) then
                       Message(parser_e_cant_have_published);
 
-                    if not(sp_public in current_object_option) then
+                    if not(sp_public in current_object_option) and
+                       not(sp_published in current_object_option) then
                       Message(parser_w_constructor_should_be_public);
 
                     if is_interface(aktclass) then
@@ -736,7 +737,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2004-08-25 15:57:04  peter
+  Revision 1.81  2004-08-29 11:28:10  peter
+  allow published for constructors
+
+  Revision 1.80  2004/08/25 15:57:04  peter
     * allow only 1 default property
 
   Revision 1.79  2004/08/22 11:23:45  peter
