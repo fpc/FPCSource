@@ -191,14 +191,14 @@ unit systems;
        target_ar   : tarinfo;
        source_os   : tosinfo;
 
-    function set_string_target(const s : string) : boolean;
-    function set_string_asm(const s : string) : boolean;
-    function set_string_asmmode(const s:string;var t:tasmmode):boolean;
+    function set_string_target(s : string) : boolean;
+    function set_string_asm(s : string) : boolean;
+    function set_string_asmmode(s:string;var t:tasmmode):boolean;
 
 implementation
 
   uses
-    verbose;
+    globals,verbose;
   
     const
 
@@ -863,11 +863,13 @@ end;
                              Load from string
 ****************************************************************************}
 
-function set_string_target(const s : string) : boolean;
+function set_string_target(s : string) : boolean;
 var
   i : longint;
 begin
   set_string_target:=false;
+  { this should be case insensitive !! PM }
+  s:=upper(s);
   for i:=0 to (sizeof(target_infos) div sizeof(ttargetinfo))-1 do
    if target_infos[ttarget(i)].short_name=s then
     begin
@@ -877,11 +879,13 @@ begin
 end;
 
 
-function set_string_asm(const s : string) : boolean;
+function set_string_asm(s : string) : boolean;
 var
   i : longint;
 begin
   set_string_asm:=false;
+  { this should be case insensitive !! PM }
+  s:=upper(s);
   for i:=0 to (sizeof(as_infos) div sizeof(tasminfo))-1 do
    if as_infos[tasm(i)].idtxt=s then
     begin
@@ -891,11 +895,13 @@ begin
 end;
 
 
-function set_string_asmmode(const s:string;var t:tasmmode):boolean;
+function set_string_asmmode(s:string;var t:tasmmode):boolean;
 var
   i : longint;
 begin
   set_string_asmmode:=false;
+  { this should be case insensitive !! PM }
+  s:=upper(s);
   for i:=0 to (sizeof(asmmodeinfos) div sizeof(tasmmodeinfo))-1 do
    if asmmodeinfos[tasmmode(i)].idtxt=s then
     begin
@@ -1014,7 +1020,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  1998-10-13 08:19:42  pierre
+  Revision 1.40  1998-10-13 09:13:09  pierre
+   * assembler type output command line was case sensitive
+
+  Revision 1.39  1998/10/13 08:19:42  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to
