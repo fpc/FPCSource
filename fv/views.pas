@@ -78,17 +78,7 @@ UNIT Views;
 
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     {$IFNDEF PPC_SPEED}                              { NON SPEEDSOFT SYBIL2+ }
-       {$IFDEF PPC_FPC}                               { FPC WINDOWS COMPILER }
          Windows,                                     { Standard unit }
-       {$ELSE}                                        { OTHER COMPILERS }
-         WinTypes, WinProcs,                          { Stardard units }
-       {$ENDIF}
-       {$IFDEF PPC_BP} Win31, {$ENDIF}                { Standard 3.1 unit }
-       {$IFDEF PPC_DELPHI} Messages, {$ENDIF}         { Delphi3+ unit }
-     {$ELSE}                                          { SPEEDSOFT SYBIL2+ }
-       WinBase, WinDef, WinUser, WinGDI,              { Standard unit }
-     {$ENDIF}
    {$ENDIF}
 
    {$IFDEF OS_OS2}                                    { OS2 CODE }
@@ -309,22 +299,11 @@ CONST
 
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 
-{$IFDEF BIT_16}                                       { WINDOWS 16 BIT CODE }
-{---------------------------------------------------------------------------}
-{             WIN16 LABEL CONSTANTS FOR WINDOW PROPERTY CALLS               }
-{---------------------------------------------------------------------------}
-CONST
-   ViewSeg = 'TVWINSEG'+#0;                           { View segment label }
-   ViewOfs = 'TVWINOFS'+#0;                           { View offset label }
-{$ENDIF}
-
-{$IFDEF BIT_32}                                       { WINDOWS 32 BIT CODE }
 {---------------------------------------------------------------------------}
 {            WIN32/NT LABEL CONSTANTS FOR WINDOW PROPERTY CALLS             }
 {---------------------------------------------------------------------------}
 CONST
    ViewPtr = 'TVWINPTR'+#0;                           { View ptr label }
-{$ENDIF}
 
 {$ENDIF}
 
@@ -410,20 +389,6 @@ TYPE
 
          RevCol    : Boolean;
 
-         {$IFDEF OS_WINDOWS}                          { WIN/NT DATA ONLY }
-         ExStyle  : LongInt;                          { Extended style }
-         Dc       : HDc;                              { Device context }
-         {$ENDIF}
-         {$IFDEF OS_OS2}                              { OS2 DATA ONLY }
-         lStyle   : LongInt;                          { Style }
-         Client   : HWnd;                             { Client handle }
-         Ps       : HPs;                              { Paint structure }
-         {$ENDIF}
-         {$IFNDEF NO_WINDOW}                          { WIN/NT/OS2 DATA ONLY }
-         FrameSize: Integer;                          { Frame size (X) }
-         CaptSize : Integer;                          { Caption size (Y) }
-         HWindow  : HWnd;                             { Window handle }
-         {$ENDIF}
       CONSTRUCTOR Init (Var Bounds: TRect);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
@@ -495,16 +460,6 @@ TYPE
       PROCEDURE GetPeerViewPtr (Var S: TStream; Var P);
       PROCEDURE PutPeerViewPtr (Var S: TStream; P: PView);
       PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      FUNCTION GetClassId: LongInt; Virtual;
-      FUNCTION GetClassName: String; Virtual;
-      FUNCTION GetClassText: String; Virtual;
-      FUNCTION GetClassAttr: LongInt; Virtual;
-      FUNCTION GetNotifyCmd: LongInt; Virtual;
-      FUNCTION GetMsgHandler: Pointer; Virtual;
-      {$ENDIF}
-
-
 
       FUNCTION Exposed: Boolean;   { This needs help!!!!! }
       PROCEDURE GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
@@ -530,9 +485,6 @@ TYPE
       FUNCTION FontWidth: Integer;
       FUNCTION Fontheight: Integer;
 
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      PROCEDURE CreateWindowNow (CmdShow: Integer);                  Virtual;
-      {$ENDIF}
    END;
 
    SelectMode = (NormalSelect, EnterSelect, LeaveSelect);
@@ -579,9 +531,6 @@ TYPE
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PROCEDURE GetSubViewPtr (Var S: TStream; Var P);
       PROCEDURE PutSubViewPtr (Var S: TStream; P: PView);
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      PROCEDURE CreateWindowNow (CmdShow: Integer); Virtual;
-      {$ENDIF}
 
       PRIVATE
          LockFlag: Byte;
@@ -631,11 +580,6 @@ TYPE
       PROCEDURE SetParams (AValue, AMin, AMax, APgStep, AArStep: Integer);
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      FUNCTION GetClassName: String; Virtual;
-      FUNCTION GetClassAttr: LongInt; Virtual;
-      PROCEDURE CreateWindowNow (CmdShow: Integer);                  Virtual;
-      {$ENDIF}
       PRIVATE
          Chars: TScrollChars;                         { Scrollbar chars }
       FUNCTION GetPos: Integer;
@@ -698,12 +642,6 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
-      {$IFNDEF NO_WINDOW}                             { WIN/NT CODE }
-      FUNCTION GetNotifyCmd: LongInt; Virtual;
-      FUNCTION GetClassName: String; Virtual;
-      FUNCTION GetClassAttr: LongInt; Virtual;
-      PROCEDURE CreateWindowNow (CmdShow: Integer); Virtual;
-      {$ENDIF}
       PRIVATE
       PROCEDURE FocusItemNum (Item: Integer); Virtual;
    END;
@@ -734,10 +672,6 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE SizeLimits (Var Min, Max: TPoint); Virtual;
-      {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-      FUNCTION GetClassText: String; Virtual;
-      FUNCTION GetClassAttr: LongInt; Virtual;
-      {$ENDIF}
    END;
    PWindow = ^TWindow;
 
@@ -787,55 +721,13 @@ the scrollbar id number.
 ---------------------------------------------------------------------}
 FUNCTION CreateIdScrollBar (X, Y, Size, Id: Integer; Horz: Boolean): PScrollBar;
 
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{             NEW WIN/NT/OS2 VERSION SPECIFIC INTERFACE ROUTINES            }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{$IFNDEF NO_WINDOW}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-{-TvViewMsgHandler---------------------------------------------------
-This is the default WIN/NT handler for TView objects. Descendant
-objects may need to call back to this handler so it must be provided
-on the interface.
-11Aug99 LdB
----------------------------------------------------------------------}
-FUNCTION TvViewMsgHandler (Wnd: hWnd; iMessage, wParam: Sw_Word;
-lParam: LongInt): LongInt;
-{$IFDEF BIT_16} EXPORT; {$ENDIF}
-{$IFDEF BIT_32} {$IFDEF PPC_SPEED} CDECL; {$ELSE} STDCALL; {$ENDIF} {$ENDIF}
-
-{$ENDIF}
-
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-{-TvViewMsgHandler---------------------------------------------------
-This is the default OS2 handler for TView objects. Descendant objects
-may need to call back to this handler so it must be provided on the
-interface.
-11Aug99 LdB
----------------------------------------------------------------------}
-FUNCTION TvViewMsgHandler(Wnd: HWnd; Msg: ULong; Mp1, Mp2: MParam): MResult;
-CDECL; EXPORT;
-{$ENDIF}
-{$ENDIF not NO_WINDOW}
-
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
 {***************************************************************************}
 
 {$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
 
-{$IFDEF PPC_FPC}                                      { FPC WINDOWS COMPILER }
 TYPE TColorRef = LongInt;                             { TColorRef defined }
-{$ENDIF}
-
-{$IFDEF PPC_SPEED}                                    { SPEEDSOFT SYBIL2+ }
-TYPE
-   TColorRef = LongInt;                               { TColorRef defined }
-   TPaintStruct = PaintStruct;                        { TPaintStruct define }
-   TWindowPos = WindowPos;                            { TWindowPos defined }
-   TSize = Size;                                      { TSize defined }
-   TWndClass = WndClass;                              { TWndClass defined }
-{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {                        INITIALIZED WIN/NT VARIABLES                       }
@@ -995,20 +887,10 @@ CONST
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                              IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-{$ifdef Use_API}
-  uses
-    Video;
-{$endif Use_API}
-
-{***************************************************************************}
-{                     PRIVATE CONSTANT DEFINITIONS                          }
-{***************************************************************************}
-
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-{$IFDEF PPC_SPEED}                                    { SPEEDSOFT SYBIL2+ }
-CONST WM_Notify = $004E;                              { Value was left out }
-{$ENDIF}
-{$ENDIF}
+{$IFNDEF GRAPH_API}
+USES
+  Video;
+{$ENDIF GRAPH_API}
 
 {***************************************************************************}
 {                       PRIVATE TYPE DEFINITIONS                            }
@@ -1040,463 +922,6 @@ CONST
 {                          PRIVATE INTERNAL ROUTINES                        }
 {***************************************************************************}
 
-{$IFNDEF NO_WINDOW}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CODE }
-{---------------------------------------------------------------------------}
-{  TvViewMsgHandler -> Platforms WIN/NT - Updated 09Aug99 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TvViewMsgHandler (Wnd: hWnd; iMessage, wParam: Sw_Word;
-lParam: LongInt): LongInt; {$IFDEF PPC_FPC} STDCALL; {$ENDIF}
-VAR Bc: Byte; I: LongInt; W: Word; Event: TEvent; P, Tp: PView;
-    Q: PScrollBar; Ps: TPaintStruct; Wp: ^TWindowPos;
-BEGIN
-   {$IFDEF BIT_16}                                    { 16 BIT WINDOWS CODE }
-   PtrRec(P).Seg := GetProp(Wnd, ViewSeg);            { Fetch seg property }
-   PtrRec(P).Ofs := GetProp(Wnd, ViewOfs);            { Fetch ofs property }
-   {$ENDIF}
-   {$IFDEF BIT_32}                                    { 32 BIT WINDOWS CODE }
-   LongInt(P) := GetProp(Wnd, ViewPtr);               { Fetch view pointer }
-   {$ENDIF}
-   If (P <> Nil) Then Begin                           { Valid view pointer }
-     TvViewMsgHandler := 0;                           { Preset return zero }
-     Event.What := evNothing;                         { Preset no event }
-     Case iMessage Of
-       WM_Close: Begin                                { CLOSE COMMAND }
-         If (P^.GetState(sfFocused) = False) Then
-           P^.FocusFromTop;                           { Focus if behind }
-         Event.What := evCommand;                     { Command event }
-         Event.Command := cmClose;                    { Quit command }
-         Event.InfoPtr := P;                          { Pointer to view }
-       End;
-       WM_LButtonDown: Begin                          { LEFT MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR mbLeftButton;{ Set button mask }
-       End;
-       WM_LButtonUp: Begin                            { LEFT MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbLeftButton;                              { Clear button mask }
-       End;
-       WM_LButtonDBLClk: Begin                        { LEFT MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR mbLeftButton;{ Set button mask }
-       End;
-       WM_RButtonDown: Begin                          { RIGHT MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR
-           mbRightButton;                             { Set button mask }
-       End;
-       WM_RButtonUp: Begin                            { RIGHT MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbRightButton;                             { Clear button mask }
-       End;
-       WM_RButtonDBLClk: Begin                        { RIGHT MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR
-           mbRightButton;                             { Set button mask }
-       End;
-       WM_MButtonDown: Begin                          { MIDDLE MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR
-           mbMiddleButton;                            { Set button mask }
-       End;
-       WM_MButtonUp: Begin                            { MIDDLE MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbMiddleButton;                            { Clear button mask }
-       End;
-       WM_MButtonDBLClk: Begin                        { MIDDLE MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR
-           mbMiddleButton;                            { Set button mask }
-       End;
-       WM_MouseMove: Begin                            { MOUSE MOVEMENT }
-         Event.What := evMouseMove;                   { Mouse move event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := 0;                           { Preset clear buttons }
-         If (wParam AND mk_LButton <> 0) Then
-           MouseButtons := MouseButtons OR
-             mbLeftButton;                            { Left button mask }
-         If (wParam AND mk_MButton <> 0) Then
-           MouseButtons := MouseButtons OR
-             mbLeftButton;                            { Middle button mask }
-         If (wParam AND mk_RButton <> 0) Then
-           MouseButtons := MouseButtons OR
-             mbRightButton;                           { Set right button mask }
-       End;
-       WM_EraseBkGnd: TvViewMsgHandler := 1;          { BACKGROUND MESSAGE }
-       WM_Paint: If (P^.Dc = 0) Then Begin            { PAINT MESSAGE }
-         P^.Dc := BeginPaint(Wnd, Ps);                { Fetch structure }
-         SelectObject(ps.hDC, DefGFVFont);            { Select default font }
-         P^.DrawMask := P^.DrawMask OR vdNoChild;     { Draw this view only }
-         P^.ReDrawArea(Ps.rcPaint.Left + P^.RawOrigin.X,
-           Ps.rcPaint.Top + P^.RawOrigin.Y,
-           Ps.rcPaint.Right + P^.RawOrigin.X-1,
-           Ps.rcPaint.Bottom + P^.RawOrigin.Y-1);     { Redraw the area }
-         P^.DrawMask := P^.DrawMask AND NOT vdNoChild;{ Child draws enabled }
-         P^.Dc := 0;                                  { Zero device context }
-         EndPaint(Wnd, Ps);                           { End painting }
-       End Else PostMessage(Wnd, iMessage, wParam,
-        lParam);                                      { Busy repost message }
-       WM_HScroll, WM_VScroll: Begin                  { SCROLLBAR MESSAGES }
-         {$IFDEF BIT_16}                              { 16 BIT WINDOWS CODE }
-         PtrRec(Q).Seg := GetProp(HiWord(lParam),
-           ViewSeg);                                  { Fetch seg property }
-         PtrRec(Q).Ofs := GetProp(HiWord(lParam),
-           ViewOfs);                                  { Fetch ofs property }
-         W := wParam;                                 { Transfer word }
-         {$ENDIF}
-         {$IFDEF BIT_32}                              { 32 BIT WINDOWS CODE }
-         LongInt(Q) := GetProp(lParam, ViewPtr);      { Fetch seg property }
-         W := LoWord(wParam);                         { Low param part }
-         {$ENDIF}
-         If (Q <> Nil) Then Begin                     { Valid scrollbar }
-           If (Q^.GetState(sfFocused) = False) Then
-             Q^.FocusFromTop;                         { Focus up to us }
-           Bc := 0;                                   { Preset do call }
-           Case W Of
-             SB_TOP: Q^.SetValue(Q^.Min);             { Set to minimum }
-             SB_BOTTOM: Q^.SetValue(Q^.Max);          { Set to maximum }
-             SB_ENDSCROLL: Bc := 1;                   { Fail this call }
-             SB_LINEDOWN: Q^.SetValue(Q^.Value +
-                 Q^.ScrollStep(sbDownArrow));         { One line down }
-             SB_LINEUP: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbUpArrow));             { One line up }
-             SB_PAGEDOWN: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbPageDown));            { One page down }
-             SB_PAGEUP: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbPageUp));              { One page up }
-             SB_THUMBPOSITION, SB_THUMBTRACK:
-               {$IFDEF BIT_16}                        { 16 BIT WINDOWS CODE }
-               Q^.SetValue(LoWord(lParam));           { Set to position }
-               {$ENDIF}
-               {$IFDEF BIT_32}                        { 32 BIT WINDOWS CODE }
-               Q^.SetValue(HiWord(wParam));           { Set to position }
-               {$ENDIF}
-             Else Bc := 1;                            { Fail other cases }
-           End;
-           If (Bc=0) Then NewMessage(Q^.Owner,
-             evBroadcast, cmScrollBarClicked, Q^.Id,
-             Q^.Value, Q);                            { Old TV style message }
-         End;
-       End;
-       {$IFDEF BIT_16}                                { 16 BIT WINDOWS CODE }
-       WM_CtlColor: If (HiWord(lParam) = CtlColor_Btn){ COLOUR CONTROL }
-       OR  (HiWord(lParam) = CtlColor_ListBox)
-       {$ENDIF}
-       {$IFDEF BIT_32}                                { 32 BIT WINDOWS CODE }
-       WM_CtlColorListBox, WM_CtlColorBtn:            { COLOUR LISTBOX/BUTTON }
-       If (lParam <> 0)                               { Valid handle }
-       {$ENDIF}
-       Then Begin
-         {$IFDEF BIT_16}                              { 16 BIT WINDOWS CODE }
-         PtrRec(P).Seg := GetProp(LoWord(lParam),
-           ViewSeg);                                  { Get view segment }
-         PtrRec(P).Ofs := GetProp(LoWord(lParam),
-           ViewOfs);                                  { Get view segment }
-         {$ENDIF}
-         {$IFDEF BIT_32}                              { 32 BIT WINDOWS CODE }
-         LongInt(P) := GetProp(LoWord(lParam),
-           ViewPtr);                                  { Get view pointer }
-         {$ENDIF}
-         If (P <> Nil) Then Begin                     { Valid view }
-           Bc := P^.GetColor(1) AND $F0 SHR 4;        { Background colour }
-           SetTextColor(wParam, ColRef[P^.GetColor(1)
-             AND $0F]);                               { Set text colour }
-           SetBkColor(wParam, ColRef[Bc]);            { Set background colour }
-           TvViewMsgHandler := ColBrush[Bc];          { Return colour brush }
-         End Else TvViewMsgHandler := DefWindowProc(
-           Wnd, iMessage, wParam, lParam);            { Call default handler }
-       End Else TvViewMsgHandler := DefWindowProc(
-         Wnd, iMessage, wParam, lParam);              { Call default handler }
-       WM_SysCommand: Begin                           { SYSTEM COMMAND MESSAGE }
-         If (P^.GetState(sfFocused) = False) Then
-           P^.FocusFromTop;                           { Focus if behind }
-         TvViewMsgHandler := DefWindowProc(
-          Wnd, iMessage, wParam, lParam);
-         If IsIconic(Wnd) Then BringWindowToTop(Wnd);
-       End;
-       WM_Command: Begin                              { COMMAND MESSAGE }
-         {$IFDEF BIT_16}                              { 16 BIT WINDOWS CODE }
-         W := HiWord(lParam);                         { Message of lParam }
-         {$ENDIF}
-         {$IFDEF BIT_32}                              { 32 BIT WINDOWS CODE }
-         W := HiWord(wParam);                         { Handle high of wParam }
-         {$ENDIF}
-         Case W Of
-           cbn_SelChange: Begin                       { COMBO/LIST SELECTION }
-             {$IFDEF BIT_16}                          { 16 BIT WINDOWS CODE }
-             PtrRec(Tp).Seg := GetProp(LoWord(lParam),
-               ViewSeg);                              { Fetch combo seg }
-             PtrRec(Tp).Ofs := GetProp(LoWord(lParam),
-               ViewOfs);                              { Fetch combo ofs }
-             {$ENDIF}
-             {$IFDEF BIT_32}                          { 32 BIT WINDOWS CODE }
-             LongInt(Tp) := GetProp(LoWord(lParam),
-               ViewPtr);                              { Fetch combo ptr }
-             {$ENDIF}
-             {$IFNDEF NO_WINDOW}
-             If (Tp <> Nil) Then Begin                { View is valid }
-               I := SendMessage(LoWord(lParam),
-                 Tp^.GetNotifyCmd, 0, 0);             { Get current state }
-               Event.What := evCommand;               { Command event }
-               Event.Command := cmNotify;             { Notify command }
-               Event.data := I;                       { Load data value }
-               Event.InfoPtr := Tp;                   { Pointer to view }
-             End;
-             {$ENDIF}
-           End;
-           cbn_SetFocus: Begin                        { DROP BOX FOCUSED }
-             {$IFDEF BIT_16}                          { 16 BIT WINDOWS CODE }
-             PtrRec(Tp).Seg := GetProp(LoWord(lParam),
-               ViewSeg);                              { Fetch combo seg }
-             PtrRec(Tp).Ofs := GetProp(LoWord(lParam),
-               ViewOfs);                              { Fetch combo ofs }
-             {$ENDIF}
-             {$IFDEF BIT_32}                          { 32 BIT WINDOWS CODE }
-             LongInt(Tp) := GetProp(LoWord(lParam),
-               ViewPtr);                              { Fetch combo ptr }
-             {$ENDIF}
-             If (Tp <> Nil) AND                       { Combo box valid }
-               (Tp^.GetState(sfFocused) = False) Then { We have not focus }
-                 Tp^.FocusFromTop;                    { Focus up to us }
-           End;
-           lbn_SetFocus: Begin                        { LIST BOX FOCUSED }
-             {$IFDEF BIT_16}                          { 16 BIT WINDOWS CODE }
-             PtrRec(Tp).Seg := GetProp(LoWord(lParam),
-               ViewSeg);                              { Fetch listbox seg }
-             PtrRec(Tp).Ofs := GetProp(LoWord(lParam),
-               ViewOfs);                              { Fetch listbox ofs }
-             {$ENDIF}
-             {$IFDEF BIT_32}                          { 32 BIT WINDOWS CODE }
-             LongInt(Tp) := GetProp(LoWord(lParam),
-               ViewPtr);                              { Fetch listbox ptr }
-             {$ENDIF}
-             If (Tp <> Nil) Then Begin                { Listbox is valid }
-               If (Tp^.GetState(sfFocused) = False)   { We have not focus }
-                 Then Tp^.FocusFromTop;               { Focus up to us }
-             End;
-           End;
-           Else TvViewMsgHandler := DefWindowProc(
-            Wnd, iMessage, wParam, lParam);           { Call default handler }
-         End;
-       End;
-       WM_Activate, WM_ChildActivate: Begin
-         If (P^.Options AND ofTopSelect <> 0)         { Top selectable view }
-         AND (P^.Options AND ofSelectable <> 0)       { View is selectable }
-         Then P^.FocusFromTop;                        { Focus us from top }
-       End;
-       WM_WindowPosChanged: Begin                     { WINDOW HAS MOVED }
-         If (NOT ISIconic(Wnd)) AND (lParam <> 0)     { Window not iconic }
-         Then Begin
-           Wp := Pointer(lParam);                     { TWindowpos structure }
-           If (Wp^.Flags AND swp_NoMove = 0)          { No move flag is clear }
-           Then Begin
-             If (P^.Owner <> Nil) Then
-             P^.DisplaceBy(Wp^.X + P^.Owner^.RawOrigin.X -
-               P^.RawOrigin.X + P^.Owner^.FrameSize,
-               Wp^.Y + P^.Owner^.RawOrigin.Y -
-               P^.RawOrigin.Y + P^.Owner^.CaptSize)   { Displace the window }
-             Else P^.DisplaceBy(Wp^.X + P^.RawOrigin.X,
-               Wp^.Y - P^.RawOrigin.Y);               { Displace the window }
-           End;
-           If (Wp^.Flags AND swp_NoSize = 0)          { No resize flag clear }
-           Then Begin
-             P^.RawSize.X := Wp^.Cx;                  { Size the window x }
-             P^.RawSize.Y := Wp^.Cy;                  { Size the window y }
-           End;
-         End;
-         TvViewMsgHandler := DefWindowProc(Wnd,
-           iMessage, wParam, lParam);                 { Default handler }
-       End;
-       Else TvViewMsgHandler := DefWindowProc(Wnd,
-         iMessage, wParam, lParam);                   { Call Default handler }
-     End;                                             { End of case }
-     If (Event.What <> evNothing) Then Begin          { Check any GFV event }
-       If (Event.What AND evMouse <> 0) Then Begin    { Mouse event }
-         If (P <> Nil) Then Begin                     { Valid view pointer }
-           Event.Where.X := LoWord(lParam) +
-             P^.RawOrigin.X + P^.FrameSize;           { X mouse co-ordinate }
-           Event.Where.Y := HiWord(lParam) +
-             P^.RawOrigin.Y + P^.CaptSize;            { Y mouse co-ordinate }
-           MouseWhere := Event.Where;                 { Update mouse where }
-           Event.Buttons := MouseButtons;             { Return mouse buttons }
-         End Else Exit;                               { View is not valid }
-       End;
-       PutEventInQueue(Event);                        { Put event in queue }
-     End;
-   End Else TvViewMsgHandler := DefWindowProc(Wnd,
-     iMessage, wParam, lParam);                       { Call Default handler }
-END;
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CODE }
-{---------------------------------------------------------------------------}
-{  TvViewMsgHandler -> Platforms OS2 - Updated 09Aug99 LdB                  }
-{---------------------------------------------------------------------------}
-FUNCTION TvViewMsgHandler(Wnd: HWnd; Msg: ULong; Mp1, Mp2: MParam): MResult;
-VAR Bc: Byte; R: RectL; Event: TEvent; P: PView; Pt: PointL; PS: hPs; Sp: Swp;
-    Q: PScrollBar; Sh: HWnd;
-BEGIN
-   P := Nil;                                          { Clear the pointer }
-   WinQueryPresParam(Wnd, PP_User, 0, Nil,
-     SizeOf(Pointer), @P, 0);                         { Fetch view pointer }
-   If (P <> Nil) Then Begin                           { PView is valid }
-     TvViewMSgHandler := 0;                           { Preset handled }
-     Event.What := evNothing;                         { Preset no event }
-     Case Msg Of
-       WM_Close: Begin                                { CLOSE COMMAND }
-         If (P^.GetState(sfFocused) = False) Then
-           P^.FocusFromTop;                           { Focus if behind }
-         Event.What := evCommand;                     { Command event }
-         Event.Command := cmClose;                    { Quit command }
-         Event.InfoPtr := P;                          { Pointer to view }
-       End;
-       WM_EraseBackGround: TvViewMsgHandler :=        { BACKGROUND ERASE }
-         LongInt(False);                              { Return false }
-       WM_Paint: If (P^.Ps = 0) Then Begin            { PAINT MESSAGE }
-         P^.Ps := WinBeginPaint(Wnd, 0, @R);          { Fetch structure }
-         P^.DrawMask := P^.DrawMask OR vdNoChild;     { Draw this view only }
-         P^.ReDrawArea(R.xLeft + P^.RawOrigin.X,
-           R.yBottom + P^.RawOrigin.Y,
-           R.xRight + P^.RawOrigin.X,
-           R.yTop + P^.RawOrigin.Y);                  { Redraw the area }
-         P^.DrawMask := P^.DrawMask AND NOT vdNoChild;{ Child draws enabled }
-         P^.Ps := 0;                                  { Zero device context }
-         WinEndPaint(Ps);                             { End painting }
-       End Else WinPostMsg(Wnd, Msg, Mp1, Mp2);       { Busy repost message }
-       WM_Button1Down: Begin                          { LEFT MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR
-           mbLeftButton;                              { Set button mask }
-       End;
-       WM_Button1Up: Begin                            { LEFT MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbLeftButton;                              { Clear button mask }
-       End;
-       WM_Button1DBLClk: Begin                        { LEFT MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR
-           mbLeftButton;                              { Set button mask }
-       End;
-       WM_Button2Down: Begin                          { RIGHT MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR
-           mbRightButton;                             { Set button mask }
-       End;
-       WM_Button2Up: Begin                            { RIGHT MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbRightButton;                             { Clear button mask }
-       End;
-       WM_Button2DBLClk: Begin                        { RIGHT MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR
-           mbLeftButton;                              { Set button mask }
-       End;
-       WM_Button3Down: Begin                          { MIDDLE MOUSE DOWN }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons OR
-           mbMiddleButton;                            { Set button mask }
-       End;
-       WM_Button3Up: Begin                            { MIDDLE MOUSE UP }
-         Event.What := evMouseUp;                     { Mouse up event }
-         Event.Double := False;                       { Not double click }
-         MouseButtons := MouseButtons AND NOT
-           mbMiddleButton;                            { Clear button mask }
-       End;
-       WM_Button3DBLClk: Begin                        { MIDDLE MOUSE DBL CLK }
-         Event.What := evMouseDown;                   { Mouse down event }
-         Event.Double := True;                        { Double click }
-         MouseButtons := MouseButtons OR
-           mbMiddleButton;                            { Set button mask }
-       End;
-       WM_MouseMove: Begin                            { MOUSE MOVEMENT }
-         Event.What := evMouseMove;                   { Mouse move event }
-         Event.Double := False;                       { Not double click }
-         If (WinQueryPointer(HWND_Desktop) <>
-           DefPointer) Then                           { Check mouse ptr }
-           WinSetPointer(HWND_DeskTop, DefPointer);   { Set mouse ptr }
-       End;
-       WM_HScroll, WM_VScroll: Begin                  { SCROLLBAR MESSAGES }
-         Q := Nil;                                    { Clear the pointer }
-         Sh := WinQueryFocus(HWnd_DeskTop);           { Scrollbar has focus }
-         If (Sh <> 0) Then WinQueryPresParam(Sh,
-           PP_User, 0, Nil, SizeOf(Pointer), @Q, 0);  { Fetch scrollbar ptr }
-         If (Q <> Nil) AND (Q^.GOptions AND
-         goNativeClass <> 0) Then Begin               { Valid scrollbar }
-           If (Q^.GetState(sfFocused) = False) Then
-             Q^.FocusFromTop;                         { Focus up to us }
-           Bc := 0;                                   { Preset do call }
-           Case Short2FromMP(Mp2) Of                  { Scrollbar message }
-             SB_ENDSCROLL:;
-             SB_LINEDOWN: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbDownArrow));           { One line down }
-             SB_LINEUP: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbUpArrow));             { One line up }
-             SB_PAGEDOWN: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbPageDown));            { One page down }
-             SB_PAGEUP: Q^.SetValue(Q^.Value +
-               Q^.ScrollStep(sbPageUp));              { One page up }
-             SB_SLIDERPOSITION, SB_SLIDERTRACK:
-               Q^.SetValue(Short1FromMP(Mp2));        { Set to position }
-             Else Bc := 1;                            { Fail other cases }
-           End;
-           If (Bc=0) Then NewMessage(Q^.Owner,
-             evBroadcast, cmScrollBarClicked, Q^.Id,
-             Q^.Value, Q);                            { Old TV style message }
-         End;
-       End;
-       WM_QueryTrackInfo: Begin                      { WINDOW HAS MOVED }
-         (*If (NOT ISIconic(Wnd)) AND (lParam <> 0)    { Window not iconic }
-         Then Begin*)
-           (*Sp := PSwp(Mp1)^;                          { New SWP data }
-           If (Sp.Fl AND swp_Size  <> 0) Then Begin   { Size change request }
-             P^.RawSize.X := Sp.Cx-1;                 { Size the window x }
-             P^.RawSize.Y := Sp.Cy-1;                 { Size the window y }
-           End;*)
-           (*P^.DisplaceBy(Sp1.X - Sp2.X,
-             -(Sp1.Y - Sp2.Y));*)
-         TvViewMSgHandler := 0;
-       End;
-       Else TvViewMSgHandler := WinDefWindowProc(
-         Wnd, Msg, Mp1, Mp2);                         { Call default handler }
-     End;
-     If (Event.What <> evNothing) Then Begin          { Check any FV event }
-       If (Event.What AND evMouse <> 0) Then Begin    { Mouse event }
-         WinQueryWindowPos(Wnd, Sp);                  { Query client area }
-         Event.Where.X := Short1FromMP(Mp1)-1
-          + P^.RawOrigin.X;                           { X mouse co-ordinate }
-         Event.Where.Y := Sp.Cy -
-          Short2FromMP(Mp1)-1 + P^.RawOrigin.Y;       { Y mouse co-ordinate }
-         Event.Buttons := MouseButtons;               { Return buttons }
-         MouseWhere := Event.Where;                   { Update mouse where }
-       End;
-       PutEventInQueue(Event);                        { Put event in queue }
-     End;
-   End Else TvViewMSgHandler := WinDefWindowProc(Wnd,
-     Msg, Mp1, Mp2);                                  { Call default handler }
-END;
-{$ENDIF}
-{$ENDIF not NO_WINDOW}
-
 {***************************************************************************}
 {                              OBJECT METHODS                               }
 {***************************************************************************}
@@ -1504,13 +929,6 @@ END;
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                            TView OBJECT METHODS                           }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
-{$IFNDEF OS_DOS}                                      { WIN/NT/OS2 CODE }
-{---------------------------------------------------------------------------}
-{                     TView WINDOW CLASS NAME CONSTANT                      }
-{---------------------------------------------------------------------------}
-CONST TvViewClassName = 'TVIEW';                      { TView window class }
-{$ENDIF}
 
 {--TView--------------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20Jun96 LdB              }
@@ -1568,7 +986,7 @@ END;
 {  Done -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Nov99 LdB              }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TView.Done;
-VAR P: PComplexArea; {$IFNDEF OS_DOS} S: String; {$ENDIF}
+VAR P: PComplexArea;
 BEGIN
    Hide;                                              { Hide the view }
    If (Owner <> Nil) Then Owner^.Delete(@Self);       { Delete from owner }
@@ -1577,33 +995,6 @@ BEGIN
      FreeMem(HoldLimit, SizeOf(TComplexArea));        { Release memory }
      HoldLimit := P;                                  { Shuffle to next }
    End;
-   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-   If (HWindow <> 0) Then Begin                       { Handle valid }
-     S := GetClassName + #0;                          { Make asciiz }
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE}
-       {$IFDEF BIT_16}                                { 16 BIT CODE }
-       RemoveProp(HWindow, ViewSeg);                  { Remove seg property }
-       RemoveProp(HWindow, ViewOfs);                  { Remove offs property }
-       {$ENDIF}
-       {$IFDEF BIT_32}                                { 32 BIT CODE }
-       RemoveProp(HWindow, ViewPtr);                  { Remove view property }
-       {$ENDIF}
-       DestroyWindow(HWindow);                        { Destroy window }
-       If (GOptions AND goNativeClass = 0) Then       { Not native class check }
-         {$IFDEF PPC_SPEED}                           { SPEEDSOFT SYBIL2+ }
-         UnRegisterClass(CString(@S[1]), 0);          { Unregister class }
-         {$ELSE}                                      { OTHER COMPILERS }
-         UnRegisterClass(@S[1], HInstance);           { Unregister class }
-         {$ENDIF}
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-       WinRemovePresParam(HWindow, PP_User);          { Remove self ptr }
-       WinDestroyWindow(HWindow);                     { Destroy window }
-       If (GOptions AND goNativeClass = 0) Then       { Not native class check }
-         WinDeregisterObjectClass(@S[1]);             { Unregister class }
-     {$ENDIF}
-   End;
-   {$ENDIF}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1773,70 +1164,13 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TView.TextWidth (Txt: String): Integer;
 VAR I: Integer; S: String;
-{$IFNDEF NO_WINDOW} P: Pointer; Wnd: HWnd; {$ENDIF}
-{$IFDEF OS_WINDOWS} ODc: HDc; M: TSize; {$ENDIF}
-{$IFDEF OS_OS2} OPs: HPs; Pt: Array [0..3] Of PointL; {$ENDIF}
 BEGIN
    S := Txt;                                          { Transfer text }
    Repeat
      I := Pos('~', S);                                { Check for tilde }
       If (I <> 0) Then System.Delete(S, I, 1);        { Remove the tilde }
    Until (I = 0);                                     { Remove all tildes }
-   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
-     TextWidth := Length(S) * SysFontWidth;           { Calc text length }
-   {$ELSE not NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-     ODc := Dc;                                       { Hold device context }
-     If (Dc = 0) Then Begin                           { No context set }
-       If (HWindow = 0) OR (State AND sfVisible = 0)  { Check window valid }
-       OR (State AND sfExposed = 0)
-         Then Wnd := AppWindow Else Wnd := HWindow;   { Select window or app }
-       Dc := GetDC(Wnd);                              { Get device context }
-     End;
-     SelectObject(Dc, DefGFVFont);                    { Select the font }
-     P := @S[1];                                      { Pointer to text }
-     {$IFDEF BIT_32}                                  { WINDOWS 32 BIT CODE }
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-         If (GetTextExtentPoint(Dc, CString(P),
-           Length(S), M)=False) Then M.Cx := 0;       { Get text extents }
-       {$ELSE}                                        { OTHER COMPILERS }
-         {$IFDEF PPC_FPC}                             { FPC WINDOWS COMPILER }
-          If (GetTextExtentPoint(Dc, P, Length(S),
-           @M)=False) Then M.Cx := 0;                 { Get text extents }
-         {$ELSE}                                      { ALL OTHER COMPILERS }
-         If (GetTextExtentPoint(Dc, P, Length(S),
-           M)=False) Then M.Cx := 0;                  { Get text extents }
-         {$ENDIF}
-       {$ENDIF}
-     {$ELSE}                                          { WINDOWS 16 BIT CODE }
-       {$IFDEF PPC_DELPHI}                            { DELPHI1 COMPILER }
-         If (GetTextExtentPoint(Dc, @S[1], Length(S),
-           M)=False)Then M.Cx := 0;                   { Get text extents }
-       {$ELSE}                                        { OTHER COMPILERS }
-         If (GetTextExtentPoint(Dc, @S[1], Length(S),
-           M.Cx)=False)Then M.Cx := 0;                { Get text extents }
-       {$ENDIF}
-     {$ENDIF}
-     TextWidth := M.Cx;                               { Return text width }
-     If (ODc = 0) Then ReleaseDC(Wnd, Dc);            { Release context }
-     Dc := ODc;                                       { Original context set }
-   {$ENDIF}
-   {$IFDEF OS_OS2}
-     OPs := Ps;                                       { Hold pres space }
-     If (Ps = 0) Then Begin
-       If (HWindow = 0) OR (State AND sfVisible = 0)  { Check window valid }
-       OR (State AND sfExposed = 0)
-         Then Wnd := AppWindow Else Wnd := Client;    { Select window or app }
-       Ps := WinGetPS(Wnd);                           { Get pres space  }
-     End;
-     GPISetCharSet(PS, DefGFVFont);                   { Set the font style }
-     P := @S[1];                                      { Pointer to text }
-     GpiQueryTextBox(Ps, Length(S), P, 3, Pt[0]);     { Get text extents }
-     TextWidth := Pt[2].X;                            { Return text width }
-     If (OPs = 0) Then WinReleasePS(Ps);              { Release pres space }
-     Ps := OPs;                                       { Original pres space }
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
+   TextWidth := Length(S) * SysFontWidth;             { Calc text length }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1933,8 +1267,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawView;
 VAR ViewPort: ViewPortType;                           { Common variables }
-   {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}             { WIN/NT variables }
-   {$IFDEF OS_OS2} OPs: HPs; {$ENDIF}                 { OS2 variables }
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) AND                     { View is exposed }
@@ -1943,20 +1275,7 @@ BEGIN
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       {$IFDEF NO_WINDOW}                                { DOS/DPMI CODE }
          HideMouseCursor;                             { Hide mouse cursor }
-       {$ELSE not NO_WINDOW}
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       If (HWindow <> 0) Then Begin                   { Valid window }
-         ODc := Dc;                                   { Hold device context }
-         If (Dc = 0) Then Dc := GetDc(HWindow);       { Get device context }
-       {$ENDIF}
-       {$IFDEF OS_OS2}                                { OS2 CODE }
-       If (HWindow <> 0) Then Begin                   { Valid window }
-         OPs := Ps;                                   { Hold paint struct }
-         If (Ps = 0) Then Ps := WinGetPS(Client);     { Create paint struct }
-       {$ENDIF}
-       {$ENDIF not NO_WINDOW}
          If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
          Then Begin                                   { Treat as a full redraw }
            DrawBackGround;                            { Draw background }
@@ -1981,20 +1300,7 @@ BEGIN
            If (DrawMask AND vdBorder <> 0) Then       { Check border mask }
              DrawBorder;                              { Draw border }
          End;
-       {$IFDEF NO_WINDOW}                                { DOS/DPMI CODE }
          ShowMouseCursor;                             { Show mouse cursor }
-       {$ELSE not NO_WINDOW}
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-         If (ODc = 0) Then ReleaseDc(HWindow, Dc);    { Release context }
-         Dc := ODc;                                   { Reset held context }
-       End;
-       {$ENDIF}
-       {$IFDEF OS_OS2}                                { OS2 CODE }
-         If (OPs = 0) Then WinReleasePS(Ps);          { Free paint struct }
-         Ps := OPs;                                   { Reset held struct }
-       End;
-       {$ENDIF}
-       {$ENDIF not NO_WINDOW}
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -2008,18 +1314,6 @@ PROCEDURE TView.MakeFirst;
 BEGIN
    If (Owner <> Nil) Then Begin                       { Must have owner }
      PutInFrontOf(Owner^.First);                      { Float to the top }
-    {$IFNDEF NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then                           { Valid window }
-       SetWindowPos(HWindow, HWND_TOP, 0, 0, 0, 0,
-         swp_NoSize OR swp_NoMove);                   { Bring window to top }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then                           { Valid window }
-       WinSetWindowPos(HWindow, HWND_TOP, 0, 0, 0, 0,
-         swp_ZOrder);                                 { Bring window to top }
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -2049,7 +1343,6 @@ VAR I : sw_integer;
     LeftLowCorner,
     RightLowCorner : Char;
 BEGIN
-   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE ONLY }
    If (TextModeGFV = FALSE) Then Begin                { GRAPHICS GFV MODE }
      BiColorRectangle(0, 0, RawSize.X, RawSize.Y,
        White, DarkGray, False);                       { Draw 3d effect }
@@ -2092,7 +1385,6 @@ BEGIN
      WriteChar(1,Size.Y-1,HorizontalBar,1,Size.X-2);
      WriteChar(Size.X-1,Size.Y-1,RightLowCorner,1,1);
    End;
-   {$ENDIF}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2189,11 +1481,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBackGround;
 VAR Bc: Byte; X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
-{$IFDEF Use_API}X, Y: Integer;
-{$ELSE not Use_API}
-{$IFDEF OS_DOS} X, Y: Integer; {$ENDIF}
-{$ENDIF not Use_API}
-{$IFDEF OS_OS2} Ptl: PointL; {$ENDIF}
+    X, Y: Integer;
 BEGIN
    If (GOptions AND goNoDrawView = 0) Then Begin      { Non draw views exit }
      If (State AND sfDisabled = 0) Then
@@ -2210,21 +1498,6 @@ BEGIN
      If (ViewPort.Y2 >= RawOrigin.Y+RawSize.Y) Then
        Y2 := RawSize.Y Else                           { Right to bottom edge }
        Y2 := ViewPort.Y2-RawOrigin.Y;                 { Offset from bottom }
-     {$IFDEF Use_API}                                 { DOS/DPMI CODE }
-         X1 := (RawOrigin.X+X1) DIV SysFontWidth;
-         Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
-         X2 := (RawOrigin.X+X2) DIV SysFontWidth;
-         Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
-         If (State AND sfDisabled = 0) Then
-           Bc := GetColor(1) Else           { Select back colour }
-           Bc := GetColor(4);               { Disabled back colour }
-         For Y := Y1 To Y2 Do
-           For X := X1 To X2 Do Begin
-             VideoBuf^[(Y*Drivers.ScreenWidth+X)] := (Bc shl 8) or $20;
-           End;
-         UpdateScreen(false);
-     {$ELSE not Use_API}
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
        If (TextModeGFV <> True) Then Begin            { GRAPHICS MODE GFV }
          SetFillStyle(SolidFill, Bc);                 { Set fill colour }
          Bar(0, 0, X2-X1, Y2-Y1);                     { Clear the area }
@@ -2238,30 +1511,12 @@ BEGIN
            Bc := GetColor(4);               { Disabled back colour }
          For Y := Y1 To Y2 Do
            For X := X1 To X2 Do Begin
-             Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2] := $20;
-             Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2+1] := Bc;
+             { FIXME: we shouldn't write direct here }
+             VideoBuf^[(Y*Drivers.ScreenWidth+X)] := (Bc shl 8) or $20;
            End;
+         { FIXME: we shouldn't update always here }
+         UpdateScreen(false);
        End;
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (Dc <> 0) Then Begin                          { Valid device context }
-       SelectObject(Dc, ColBrush[Bc]);                { Select brush }
-       SelectObject(Dc, ColPen[Bc]);                  { Select pen }
-       Rectangle(Dc, X1, Y1, X2+1, Y2+1);             { Clear the view area }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (Ps <> 0) Then Begin                          { Valid pres space }
-       GpiSetColor(Ps, ColRef[Bc]);                   { Select colour }
-       Ptl.X := X1;                                   { X1 position }
-       Ptl.Y := RawSize.Y - Y1;                       { Y1 position }
-       GpiMove(PS, Ptl);                              { Move to position }
-       Ptl.X := X2;                                   { X2 position }
-       Ptl.Y := RawSize.Y - Y2;                       { Y2 position }
-       GpiBox(Ps, dro_Fill, Ptl, 0, 0);               { Clear the view area }
-     End;
-     {$ENDIF}
-     {$ENDIF not Use_API}
    End;
 END;
 
@@ -2448,27 +1703,10 @@ BEGIN
      If (Owner <> Nil) AND                            { valid owner }
      (Owner^.State AND sfExposed <> 0)                { If owner exposed }
        Then SetState(sfExposed, Enable);              { Expose this view }
-     {$IFDEF NO_WINDOW}                                  { DOS/DPMI CODE }
      If Enable Then DrawView Else                     { Draw the view }
        If (Owner <> Nil) Then Owner^.ReDrawArea(      { Owner valid }
          RawOrigin.X, RawOrigin.Y, RawOrigin.X +
          RawSize.X, RawOrigin.Y + RawSize.Y);         { Owner redraws area }
-     {$ELSE not NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then Begin                     { Window handle valid }
-       If Enable Then ShowWindow(HWindow, sw_Show)    { Show the window }
-         Else ShowWindow(HWindow, sw_Hide);           { Hide the window }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then Begin                     { Window handle valid }
-       If Enable Then WinSetWindowPos(HWindow, 0, 0,
-         0, 0, 0, swp_Show)                           { Show the window }
-       Else WinSetWindowPos(HWindow, 0, 0, 0, 0, 0,
-         swp_Hide);                                   { Hide the window }
-     End;
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
      If (Options AND ofSelectable <> 0) Then          { View is selectable }
        If (Owner <> Nil) Then Owner^.ResetCurrent;    { Reset selected }
    End;
@@ -2478,17 +1716,6 @@ BEGIN
          Else Command := cmReleasedFocus;             { View losing focus }
        Message(Owner, evBroadcast, Command, @Self);   { Send out message }
      End;
-     {$IFNDEF NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then                           { Window handle valid }
-       If Enable Then SetFocus(HWindow);              { Focus the window }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then                           { Window handle valid }
-       If Enable Then WinSetFocus(HWND_DESKTOP,
-         HWindow);                                    { Focus the window }
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
      If (GOptions AND goDrawFocus <> 0) Then Begin    { Draw focus view }
        SetDrawMask(vdFocus);                          { Set focus draw mask }
        DrawView;                                      { Redraw focus change }
@@ -2499,21 +1726,6 @@ BEGIN
      SetDrawMask(vdCursor);                           { Set cursor draw mask }
      DrawView;                                        { Redraw the cursor }
    End;
-   If (AState AND sfDisabled <> 0) Then Begin         { Disbale change }
-     {$IFNDEF NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then                           { Window handle valid }
-       If Enable Then EnableWindow(HWindow, False)    { Disable the window }
-         Else EnableWindow(HWindow, True);            { Enable the window }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then                           { Window handle valid }
-       If Enable Then WinEnableWindow(HWindow,False)  { Disable the window }
-         Else WinEnableWindow(HWindow, True);         { Enable the window }
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
-   End;
-   If (AState AND sfShadow <> 0) Then Begin End;      { Change shadow state }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2580,7 +1792,8 @@ END;
 {  Locate -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 24Sep99 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Locate (Var Bounds: TRect);
-VAR {$IFDEF NO_WINDOW} X1, Y1, X2, Y2: Integer; {$ENDIF}
+VAR
+    X1, Y1, X2, Y2: Integer;
     Min, Max: TPoint; R: TRect;
 
    FUNCTION Range(Val, Min, Max: Integer): Integer;
@@ -2591,12 +1804,10 @@ VAR {$IFDEF NO_WINDOW} X1, Y1, X2, Y2: Integer; {$ENDIF}
    END;
 
 BEGIN
-   {$IFDEF NO_WINDOW}                                 { DOS/DPMI CODE }
    X1 := RawOrigin.X;                                 { Current x origin }
    Y1 := RawOrigin.Y;                                 { Current y origin }
    X2 := RawOrigin.X + RawSize.X;                     { Current x size }
    Y2 := RawOrigin.Y + RawSize.Y;                     { Current y size }
-   {$ENDIF}
    SizeLimits(Min, Max);                              { Get size limits }
    Bounds.B.X := Bounds.A.X + Range(Bounds.B.X -
      Bounds.A.X, Min.X, Max.X);                       { X bound limit }
@@ -2605,36 +1816,10 @@ BEGIN
    GetBounds(R);                                      { Current bounds }
    If NOT Bounds.Equals(R) Then Begin                 { Size has changed }
      ChangeBounds(Bounds);                            { Change bounds }
-     {$IFDEF NO_WINDOW}                               { DOS/DPMI CODE }
      If (State AND sfVisible <> 0) AND                { View is visible }
      (State AND sfExposed <> 0) AND (Owner <> Nil)    { Check view exposed }
        Then Owner^.ReDrawArea(X1, Y1, X2, Y2);        { Owner redraw }
      DrawView;                                        { Redraw the view }
-     {$ELSE not NO_WINDOW}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     If (HWindow <> 0) Then Begin                     { Valid window handle }
-       If (Owner <> Nil) AND (Owner^.HWindow <> 0)    { Valid owner }
-       Then MoveWindow(HWindow, RawOrigin.X-Owner^.RawOrigin.X,
-         RawOrigin.Y-Owner^.RawOrigin.Y, RawSize.X+1,
-         RawSize.Y+1, True) Else                      { Move window in owner }
-       MoveWindow(HWindow, RawOrigin.X, RawOrigin.Y,
-         RawSize.X+1, RawSize.Y+1, True);             { Move window raw }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     If (HWindow <> 0) Then Begin                     { Valid window handle }
-       If (Owner <> Nil) AND (Owner^.HWindow <> 0)    { Valid owner }
-       Then WinSetWindowPos(HWindow, 0,
-         RawOrigin.X - Owner^.RawOrigin.X,
-         (Owner^.RawOrigin.Y + Owner^.RawSize.Y) -
-         (RawOrigin.Y + RawSize.Y), RawSize.X,
-         RawSize.Y, swp_Size OR swp_Move) Else        { Move window in owner }
-       WinSetWindowPos(HWindow, 0, RawOrigin.X,
-         SysScreenHeight - (RawOrigin.Y + RawSize.Y),
-         RawSize.X, RawSize.Y, swp_Size OR swp_Move); { Move window raw }
-     End;
-     {$ENDIF}
-     {$ENDIF not NO_WINDOW}
    End;
 END;
 
@@ -2882,105 +2067,6 @@ BEGIN
      Bounds.A.Y, Min.Y, Max.Y);                       { Set lower side }
 END;
 
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{                    TView OBJECT WIN/NT/OS2 ONLY METHODS                   }
-{***************************************************************************}
-
-{--TView--------------------------------------------------------------------}
-{  GetClassId -> Platforms WIN/NT/OS2 - Updated 29Jul99 LdB                 }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetClassId: LongInt;
-BEGIN
-   GetClassId := 0;                                   { No view class id }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  GetClassName -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetClassName: String;
-BEGIN
-   GetClassName := TvViewClassName;                   { View class name }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  GetClassText -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetClassText: String;
-BEGIN
-   GetClassText := '';                                { Return empty string }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  GetClassAttr -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetClassAttr: LongInt;
-VAR Li: LongInt;
-BEGIN
-   If (State AND sfVisible = 0) Then Li := 0          { View not visible }
-     Else Li := ws_Visible;                           { View is visible }
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (State AND sfDisabled <> 0) Then                { Check disabled flag }
-     Li := Li OR ws_Disabled;                         { Set disabled flag }
-   If (GOptions AND goTitled <> 0) Then Begin
-     Li := Li OR ws_Caption;                          { View has a caption }
-     CaptSize := GetSystemMetrics(SM_CYCaption);      { Caption height }
-   End;
-   If (GOptions AND goThickFramed <> 0) Then Begin
-     Li := Li OR ws_ThickFrame;                       { Thick frame on view  }
-     FrameSize := GetSystemMetrics(SM_CXFrame);       { Frame width }
-     If (GOptions AND goTitled = 0) Then
-      CaptSize := GetSystemMetrics(SM_CYFrame);       { Frame height }
-   End Else If (Options AND ofFramed <> 0) Then Begin
-     Li := Li OR ws_Border;                           { Normal frame on view }
-     FrameSize := GetSystemMetrics(SM_CXBorder);      { Frame width }
-     If (GOPtions AND goTitled = 0) Then
-       CaptSize := GetSystemMetrics(SM_CYBorder);     { Frame height }
-   End;
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   Li := Li OR fcf_NoByteAlign;                       { Not byte aligned }
-   If (GOptions AND goTitled <> 0) Then Begin
-     Li := Li OR fcf_TitleBar;                        { View has a caption }
-     CaptSize := WinQuerySysValue(HWND_Desktop,
-       SV_CYTitleBar);                                { Caption height }
-   End;
-   If (GOptions AND goThickFramed <> 0) Then Begin
-     Li := Li OR fcf_DlgBorder;                       { Thick frame on view  }
-     FrameSize := WinQuerySysValue(HWND_DeskTop,
-      SV_CXSizeBorder);                               { Frame width }
-     CaptSize := CaptSize + WinQuerySysValue(
-       HWND_DeskTop, SV_CYSizeBorder);                { Frame height }
-   End Else If (Options AND ofFramed <> 0) Then Begin
-     Li := Li OR fcf_Border;                          { Normal frame on view }
-     FrameSize := WinQuerySysValue(HWND_Desktop,
-       SV_CXBorder);                                  { Frame width }
-     CaptSize := CaptSize + WinQuerySysValue(
-       HWND_DeskTop, SV_CYBorder);                    { Frame height }
-   End;
-   {$ENDIF}
-   Li := Li OR ws_ClipChildren OR ws_ClipSiblings;    { By default clip others }
-   GetClassAttr := Li;                                { Return attributes }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  GetNotifyCmd -> Platforms WIN/NT/OS2 - Updated 06Aug99 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetNotifyCmd: LongInt;
-BEGIN
-   GetNotifyCmd := -1;                                { No notify cmd }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  GetMsgHandler -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB              }
-{---------------------------------------------------------------------------}
-FUNCTION TView.GetMsgHandler: Pointer;
-BEGIN
-   GetMsgHandler := @TvViewMsgHandler;                { Default msg handler }
-END;
-
-{$ENDIF}
-
 {***************************************************************************}
 {                       TView OBJECT PRIVATE METHODS                        }
 {***************************************************************************}
@@ -3159,81 +2245,6 @@ END;
 {  FirstThat -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB         }
 {---------------------------------------------------------------------------}
 FUNCTION TGroup.FirstThat (P: Pointer): PView; ASSEMBLER;
-{&USES EBX, ECX, ESI, EDI} {&FRAME-}
-{$IFDEF BIT_16} VAR HoldLast: Pointer; {$ENDIF}
-{$IFDEF BIT_16}                                       { 16 BIT CODE }
-ASM
-   LES DI, Self;                                      { Load self pointer }
-   LES DI, ES:[DI].TGroup.Last;                       { Fetch last view }
-   MOV AX, ES;
-   OR AX, DI;                                         { Check for nil }
-   JZ @@Exit;                                         { No subviews exit }
-   MOV WORD PTR HoldLast[2], ES;
-   MOV WORD PTR HoldLast[0], DI;                      { Hold this last view }
-@@LoopPoint:
-   LES DI, ES:[DI].TView.Next;                        { Move to next view }
-   PUSH ES;                                           { * Save this view for }
-   PUSH DI;                                           { post call to proc P * }
-   PUSH ES;
-   PUSH DI;                                           { Push view for proc P }
-   MOV AX, [BP];                                      { Get our frame }
-   {$IFNDEF OS_DOS}                                   { WIN/OS2 CODE }
-   AND AL, 0FEH;                                      { Must be even }
-   {$ENDIF}
-   PUSH AX;                                           { Push this frame }
-   CALL P;                                            { Call the procedure P }
-   POP DI;                                            { * Restore the view }
-   POP ES;                                            { we saved above * }
-   OR AL, AL;                                         { Look for true result }
-   JNZ @@TrueReturned;                                { Branch if true }
-   CMP DI, WORD PTR HoldLast[0];                      { HoldLast ofs match? }
-   JNZ @@LoopPoint;                                   { No match the continue }
-   MOV AX, ES;
-   CMP AX, WORD PTR HoldLast[2];                      { HoldLast seg match? }
-   JNZ @@LoopPoint;                                   { No match continue }
-   XOR DI, DI;
-   MOV ES, DI;                                        { No matches return nil }
-@@TrueReturned:
-    MOV SP, BP;                                       { Restore stack pointer }
-@@Exit:
-    MOV AX, DI;
-    MOV DX, ES;                                       { Return result pointer }
-END;
-{$ENDIF}
-{$IFDEF BIT_32}                                       { 32 BIT CODE }
-
-   {$IFNDEF PPC_FPC}                                  { NONE FPC COMPILERS }
-   ASM
-     MOV EAX, Self;                                   { Fetch self pointer }
-     MOV EAX, [EAX].TGroup.Last;                      { Fetch last view }
-     OR EAX, EAX;                                     { Check for nil }
-     JZ @@Exit;                                       { No subviews exit }
-     MOV ECX, EAX;                                    { Hold this last view }
-     MOV EBX, P;                                      { Procedure to call }
-   @@LoopPoint:
-     MOV EAX, [EAX].TView.Next;                       { Fetch next view }
-     PUSH ECX;                                        { Save holdlast view }
-     PUSH EBX;                                        { Save procedure address }
-     PUSH EAX;                                        { Save for recovery }
-     PUSH EAX;                                        { [1]:Pointer = PView }
-     {$IFDEF PPC_SPEED}                               { SPEEDSOFT SYBIL 2.0+ }
-     DB $66;
-     DB $FF;
-     DB $D1;                                          { Doesn't know CALL ECX }
-     {$ELSE}
-     CALL EBX;                                        { Call the test function }
-     {$ENDIF}
-     TEST AL, AL;                                     { True result check }
-     POP EAX;                                         { PView recovered }
-     POP EBX;                                         { Restore procedure addr }
-     POP ECX;                                         { Restore holdlast view }
-     JNZ @@Exit;                                      { Exit if true }
-     CMP EAX, ECX;                                    { Check if last view }
-     JNZ @@LoopPoint;                                 { Reloop if not last }
-     XOR EAX, EAX;                                    { No matches return nil }
-   @@Exit:
-   END;
-   {$ELSE}                                            { FPC COMPILER }
    ASM
      MOVL 8(%EBP), %ESI;                              { Self pointer }
      MOVL TGroup.Last(%ESI), %EAX;                    { Load last view }
@@ -3259,11 +2270,8 @@ END;
      JNZ .L_LoopPoint;                                { Continue to last }
      XOR %EAX, %EAX;                                  { No views gave true }
    .L_Exit:
-     MOVL %EAX, -4(%EBP);                             { Return result }
+     MOVL %EAX, __RESULT;                             { Return result }
    END;
-  {$ENDIF}
-
-{$ENDIF}
 
 {--TGroup-------------------------------------------------------------------}
 {  Valid -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB             }
@@ -3358,11 +2366,6 @@ BEGIN
        P^.DisplaceBy(Origin.X*FontWidth,
          Origin.Y*FontHeight);                        { Displace old view }
    InsertBefore(P, First);                            { Insert the view }
-   {$IFNDEF NO_WINDOW}                                { WIN/NT/OS2 CODE }
-   If (HWindow <> 0) Then                             { We are created }
-     If (P^.HWindow = 0) Then                         { Child not created }
-       P^.CreateWindowNow(0);                         { Create child window }
-   {$ENDIF}
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -3391,95 +2394,6 @@ END;
 PROCEDURE TGroup.ForEach (P: Pointer); ASSEMBLER;
 {&USES EBX, ECX, EDI} {&FRAME-}
 VAR HoldLast: Pointer;
-{$IFDEF BIT_16}                                       { 16 BIT CODE }
-ASM
-   LES DI, Self;                                      { Load self pointer }
-   LES DI, ES:[DI].TGroup.Last;                       { Fetch last view }
-   MOV AX, ES;
-   OR AX, DI;                                         { Check for nil }
-   JZ @@Exit;                                         { No subviews exit }
-   MOV WORD PTR HoldLast[2], ES;
-   MOV WORD PTR HoldLast[0], DI;                      { Hold this last view }
-   LES DI, ES:[DI].TView.Next;                        { Move to next view }
-@@LoopPoint:
-   CMP DI, WORD PTR HoldLast[0];                      { HoldLast ofs match? }
-   JNZ @@2;                                           { No match continue }
-   MOV AX, ES;
-   CMP AX, WORD PTR HoldLast[2];                      { HoldLast seg match? }
-   JZ @@3;                                            { Branch if last }
-@@2:
-   PUSH WORD PTR ES:[DI].TView.Next[2];               { * Save this view }
-   PUSH WORD PTR ES:[DI].TView.Next[0];               { for recovery later * }
-   PUSH ES;
-   PUSH DI;                                           { Push view to test }
-   MOV AX, [BP];                                      { Get our frame }
-   {$IFNDEF OS_DOS}                                   { WIN/OS2 CODE }
-   AND AL, 0FEH;                                      { Must be even }
-   {$ENDIF}
-   PUSH AX;                                           { Push our frame }
-   CALL P;                                            { Call the proc P }
-   POP DI;                                            { * Recover the view }
-   POP ES;                                            { we saved earlier * }
-   JMP @@LoopPoint;                                   { Continue on }
-@@3:
-   MOV AX, [BP];                                      { Get our frame }
-   {$IFNDEF OS_DOS}                                   { WIN/OS2 CODE }
-   AND AL, 0FEH;                                      { Must be even }
-   {$ENDIF}
-   PUSH AX;                                           { Push our frame }
-   CALL P;                                            { Call the proc P }
-@@Exit:
-END;
-{$ENDIF}
-{$IFDEF BIT_32}                                       { 32 BIT CODE }
-
-   {$IFNDEF PPC_FPC}                                  { NON FPC COMPILERS }
-   ASM
-     MOV ECX, Self;                                   { Load self pointer }
-     MOV ECX, [ECX].TGroup.Last;                      { Fetch last view }
-     OR ECX, ECX;                                     { Check for nil }
-     JZ @@Exit;                                       { No subviews exit }
-     MOV HoldLast, ECX;                               { Hold last view }
-     MOV ECX, [ECX].TView.Next;                       { Fetch next pointer }
-     MOV EBX, P;                                      { Fetch proc address }
-   @@LoopPoint:
-     CMP ECX, HoldLast;                               { Check if last view }
-     JZ @@2;                                          { Branch if last view }
-     MOV EAX, [ECX].TView.Next;                       { Fetch next view }
-     PUSH EBX;                                        { Save procedure address }
-     PUSH EAX;                                        { Save next view }
-     {$IFDEF PPC_DELPHI3}                             { DELPHI3+ COMPILER }
-     MOV EAX, ECX;                                    { Use register parameter }
-     MOV ESI, ECX;
-     {$ELSE}                                          { OTHER COMPILERS }
-     PUSH ECX;                                        { Push view to do }
-     {$ENDIF}
-     {$IFDEF PPC_SPEED}                               { SPEEDSOFT SYBIL 2.0+ }
-     DB $66;
-     DB $FF;
-     DB $D3;                                          { Can't do CALL EBX }
-     {$ELSE}
-     CALL EBX;                                        { Call the proc P }
-     {$ENDIF}
-     POP ECX;                                         { Recover saved view }
-     POP EBX;                                         { Recover procedure addr }
-     JMP @@LoopPoint;                                 { Continue on }
-   @@2:
-     {$IFDEF PPC_DELPHI3}                             { DELPHI3+ COMPILERS }
-     MOV EAX, ECX;                                    { Use register parameter }
-     {$ELSE}                                          { OTHER COMPILERS }
-     PUSH ECX;                                        { Push view to do }
-     {$ENDIF}
-     {$IFDEF PPC_SPEED}                               { SPEEDSOFT SYBIL 2.0+ }
-     DB $66;
-     DB $FF;
-     DB $D3;                                          { Can't do CALL EBX }
-     {$ELSE}
-     CALL EBX;                                        { Call the proc P }
-     {$ENDIF}
-   @@Exit:
-   END;
-   {$ELSE}                                            { FPC COMPILER }
    ASM
      MOVL 8(%EBP), %ESI;                              { Self pointer }
      MOVL TGroup.Last(%ESI), %ECX;                    { Load last view }
@@ -3506,9 +2420,6 @@ END;
      CALL %EBX;                                       { Call the procedure }
    .L_Exit:
   END;
-  {$ENDIF}
-
-{$ENDIF}
 
 {--TGroup-------------------------------------------------------------------}
 {  EndModal -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
@@ -3784,26 +2695,6 @@ BEGIN
    S.Write(Index, 2);                                 { Write the index }
 END;
 
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{                  TGroup OBJECT WIN/NT/OS2 ONLY METHODS                    }
-{***************************************************************************}
-
-{--TGroup-------------------------------------------------------------------}
-{  CreateWindowNow -> Platforms WIN/NT/OS2 - Updated 23Mar98 LdB            }
-{---------------------------------------------------------------------------}
-PROCEDURE TGroup.CreateWindowNow (CmdShow: Integer);
-VAR P: PView;
-BEGIN
-   Inherited CreateWindowNow (CmdShow);               { Call ancestor }
-   P := Last;                                         { Start on Last }
-   While (P <> Nil) Do Begin
-     If (P^.HWindow = 0) Then                         { No window created }
-       P^.CreateWindowNow(0);                         { Create each subview }
-     P := P^.PrevView;                                { Move to prev view }
-   End;
-END;
-{$ENDIF}
 
 {***************************************************************************}
 {                       TGroup OBJECT PRIVATE METHODS                       }
@@ -3958,11 +2849,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TFrame.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CFrame;                             { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CFrame)] = CFrame;             { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -3971,15 +2858,6 @@ END;
 {                         TScrollBar OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-{---------------------------------------------------------------------------}
-{                  TScrollBar WINDOW CLASS NAME CONSTANT                    }
-{---------------------------------------------------------------------------}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT CLASSNAME }
-CONST TvScrollBarName = 'SCROLLBAR';                  { Native classname }
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 CLASSNAME }
-CONST TvScrollBarName = '#8';                         { Native classname }
-{$ENDIF}
 
 {--TScrollBar---------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB              }
@@ -3989,12 +2867,6 @@ CONST VChars: TScrollChars = (#30, #31, #177, #254, #178);
       HChars: TScrollChars = (#17, #16, #177, #254, #178);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (Size.X = 1) Then RawSize.X := WinQuerySysValue(
-     HWND_Desktop, SV_CXVScroll) Else
-     RawSize.Y := WinQuerySysValue(HWND_Desktop,
-       SV_CYHScroll);                                 { Set approp size }
-   {$ENDIF}
    PgStep := 1;                                       { Page step size = 1 }
    ArStep := 1;                                       { Arrow step sizes = 1 }
    If (Size.X = 1) Then Begin                         { Vertical scrollbar }
@@ -4029,11 +2901,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TScrollBar.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CScrollBar;                         { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CScrollBar)] = CScrollBar;     { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -4133,22 +3001,6 @@ BEGIN
          ClearPos(GetPos);                            { Clear old position }
        Min := AMin;                                   { Set new minimum }
        Max := AMax;                                   { Set new maximum }
-       {$IFNDEF NO_WINDOW}
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
-       (HWindow <> 0) Then
-         SetScrollRange(HWindow, sb_Ctl, Min, Max,    { Set range }
-           AValue = Value);                           { Value=AValue redraws }
-       {$ENDIF}
-       {$IFDEF OS_OS2}                                { OS2 CODE }
-       If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
-       (HWindow <> 0) AND ((Min <> 0) OR (Max <> 0))
-       Then Begin                                     { Valid window }
-         WinSendMsg(HWindow, sbm_SetScrollBar, Value,
-           (LongInt(Max-1) SHL 16) OR Min);           { Post the message }
-       End;
-       {$ENDIF}
-       {$ENDIF not NO_WINDOW}
        { This was removed as found not needed but if you
        change limits but value unchanged scrollbar is not redrawm..LdB }
        {If (Value = AValue) AND (State and sfVisible <> 0)
@@ -4163,19 +3015,6 @@ BEGIN
          SetDrawMask(vdInner);                        { Set draw masks }
          DrawView;                                    { Redraw changed }
        End;
-       {$IFNDEF NO_WINDOW}
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
-       (HWindow <> 0) Then                            { Valid handle }
-         SetScrollPos(HWindow, sb_Ctl, Value, True);  { Set scrollbar pos }
-       {$ENDIF}
-       {$IFDEF OS_OS2}                                { OS2 CODE }
-       If (GOptions AND goNativeClass <> 0) AND       { In native class mode }
-       (HWindow <> 0) Then Begin                      { Valid window }
-         WinSendMsg(HWindow, sbm_SetPos, Value, 0);   { Dispatch the message }
-       End;
-       {$ENDIF}
-       {$ENDIF not USE_API}
        If (State AND sfVisible <> 0) Then ScrollDraw; { Send update message }
      End;
    End;
@@ -4330,66 +3169,6 @@ BEGIN
    End;
 END;
 
-{$IFNDEF NO_WINDOW}                                      { WIN/NT/OS2 CODE }
-{***************************************************************************}
-{                TScrollBar OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TScrollBar---------------------------------------------------------------}
-{  GetClassName -> Platforms WIN/NT/OS2 - Updated 21May98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TScrollBar.GetClassName: String;
-BEGIN
-   If UseNativeClasses Then Begin
-     GetClassName := TvScrollBarName;                 { Windows class name }
-     GOptions := GOptions OR goNativeClass;           { Native class window }
-   End Else GetClassName := Inherited GetClassName;   { Use standard class }
-END;
-
-{--TScrollBar---------------------------------------------------------------}
-{  GetClassAttr -> Platforms WIN/NT/OS2 - Updated 20May98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TScrollBar.GetClassAttr: LongInt;
-VAR Li: LongInt;
-BEGIN
-   Li := Inherited GetClassAttr;                      { Call ancestor }
-   If UseNativeClasses Then Begin
-     If (Size.Y = 1) Then
-       {$IFDEF OS_WINDOWS}                            { WIN/NT CODE }
-       Li := Li OR sbs_Horz OR sbs_TopAlign Else      { Horizontal scrollbar }
-       Li := Li OR sbs_Vert OR sbs_LeftAlign;         { Vertical scollbar }
-       {$ENDIF}
-       {$IFDEF OS_OS2}                                { OS2 CODE }
-       lStyle :=lStyle OR sbs_Horz OR sbs_AutoSize    { Horizontal scrollbar }
-         Else lStyle := lStyle OR sbs_Vert OR
-           sbs_AutoSize;                              { Vertical scollbar }
-       {$ENDIF}
-   End;
-   GetClassAttr := Li;                                { Return attributes }
-END;
-
-{--TScrollBar---------------------------------------------------------------}
-{  CreateWindowNow -> Platforms WIN/NT/OS2 - Updated 22May98 LdB            }
-{---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.CreateWindowNow (CmdShow: Integer);
-{$IFDEF OS_OS2} VAR Mp1, Mp2: MParam; {$ENDIF}
-BEGIN
-    Inherited CreateWindowNow(0);                     { Call inherited }
-    If (GOptions AND goNativeClass <> 0) AND          { In native class mode }
-    (HWindow <> 0) AND ((Min <> 0) OR (Max <> 0))
-    Then Begin                                        { Scrollbar created }
-      {$IFDEF OS_WINDOWS}                             { WIN/NT CODE }
-      SetScrollRange(HWindow, sb_Ctl, Min,Max, True); { Set scrollbar range }
-      SetScrollPos(HWindow, sb_Ctl, Value, True);     { Set scrollbar pos }
-      {$ENDIF}
-      {$IFDEF OS_OS2}                                 { OS2 CODE }
-      WinSendMsg(HWindow, sbm_SetScrollBar, Value,
-        (LongInt(Max-1) SHL 16) OR Min);              { Post the message }
-      {$ENDIF}
-    End;
-END;
-{$ENDIF}
-
 {***************************************************************************}
 {                 TScrollBar OBJECT PRIVATE METHODS                         }
 {***************************************************************************}
@@ -4435,9 +3214,7 @@ BEGIN
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       {$IFDEF OS_DOS}
        HideMouseCursor;                               { Hide the mouse }
-       {$ENDIF}
        X1 := 0;                                       { Initial x position }
        Y1 := 0;                                       { Initial y position }
        If (Size.X=1) Then Y1 := Pos + FontHeight      { Vertical bar }
@@ -4451,9 +3228,7 @@ BEGIN
        Inc(X1, 1);                                    { One in off left }
        Dec(X2, 1);                                    { One in off right }
        BiColorRectangle(X1, Y1, X2, Y2, 15, 8, True); { Draw line marker }
-       {$IFDEF OS_DOS}
        ShowMouseCursor;                               { Show the mouse }
-       {$ENDIF}
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -4475,18 +3250,14 @@ BEGIN
      GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
      If OverlapsArea(ViewPort.X1, ViewPort.Y1,
      ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       {$IFDEF OS_DOS}
        HideMouseCursor;                               { Hide the mouse }
-       {$ENDIF}
        X := 0;                                        { Initial x position }
        Y := 0;                                        { Initial y position }
        If (Size.X=1) Then Y := Pos + FontHeight       { Vertical bar }
          Else X := Pos + FontWidth;                   { Horizontal bar }
        ClearArea(X, Y, X+FontWidth-1, Y+FontHeight-1,
          GetColor(1) AND $F0 SHR 4);                  { Clear the area }
-       {$IFDEF OS_DOS}
        ShowMouseCursor;                               { Show the mouse }
-       {$ENDIF}
      End;
      ReleaseViewLimits;                               { Release the limits }
    End;
@@ -4529,11 +3300,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TScroller.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CScroller;                          { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CScroller)] = CScroller;       { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Scroller palette }
 END;
@@ -4664,11 +3431,7 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TListViewer.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST P: String = CListViewer;                        { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST P: String[Length(CListViewer)] = CListViewer;   { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
@@ -4696,46 +3459,11 @@ END;
 PROCEDURE TListViewer.DrawBackGround;
 VAR  I, J, ColWidth, Item, Indent, CurCol: Integer; Color: Word;
     Text: String; B: TDrawBuffer;
-    {$IFDEF OS_WINDOWS} S: String; {$ENDIF}           { WIN/NT CODE }
 
 BEGIN
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
    If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
      Indent := HScrollBar^.Value;                     { Fetch any indent }
-   {$IFNDEF USE_API}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (GOptions AND goNativeClass <> 0) Then Begin    { Native class mode }
-     If (Range <> SendMessage(HWindow, lb_GetCount,
-     0, 0)) Then SendMessage(HWindow,lb_ResetContent, { If ranges differ }
-       0, 0);                                         { Clear all strings }
-     For I := 1 To Range Do Begin                     { For each item }
-       J := SendMessage(HWindow, lb_GetText, 0,
-         LongInt(@S[1]));                             { Get current text }
-       If (J <> lb_Err) Then Begin                    { Check for error }
-         {$IFDEF PPC_DELPHI3}                         { DELPHI 3+ COMPILER }
-         SetLength(S, J);                             { Set string length }
-         {$ELSE}                                      { OTHER COMPILERS }
-         S[0] := Chr(J);                              { Set string legth }
-         {$ENDIF}
-       End Else S := '';                              { Error no string }
-       Text := GetText(I-1, ColWidth + Indent);       { Fetch text }
-       Text := Copy(Text, Indent, ColWidth) + #0;     { Select right bit }
-       If (S <> Text) Then Begin                      { Strings differ }
-         If (J <> lb_Err) Then SendMessage(HWindow,
-          lb_DeleteString, I-1, 0);                   { Delete current string }
-         SendMessage(HWindow, lb_InsertString, I-1,
-           LongInt(@Text[1]));                        { Set string in list }
-       End;
-     End;
-     If (Options AND ofSelectable <> 0) Then
-       SendMessage(HWindow, lb_SetCurSel, Focused, 0); { Focus selected item }
-     TopItem := SendMessage(HWindow, lb_GetTopIndex,
-       0, 0);                                         { Synchronize }
-     UpdateWindow(HWindow);                           { Redraw new strings }
-     Exit;                                            { Native mode is done }
-    End;
-   {$ENDIF}
-   {$ENDIF not USE_API}
    Inherited DrawBackGround;                          { Call ancestor }
    Color := GetColor(2);                              { Normal colour }
    For I := 0 To Size.Y - 1 Do Begin                  { For each line }
@@ -4772,9 +3500,6 @@ VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Integer;
   B: TDrawBuffer;
   Text: String;
 BEGIN
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (GOptions AND goNativeClass <> 0) Then Exit;    { Native class exits }
-   {$ENDIF}
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
    If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
      Indent := HScrollBar^.Value;                     { Fetch any indent }
@@ -4827,19 +3552,6 @@ BEGIN
    Focused := Item;                                   { Set focus to item }
    If (VScrollBar <> Nil) Then
      VScrollBar^.SetValue(Item);                      { Scrollbar to value }
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (GOptions AND goNativeClass <> 0) Then Begin    { Native class mode }
-     If (HWindow <> 0) Then Begin                     { Check window valid }
-       If (Options AND ofSelectable <> 0) Then
-       SendMessage(HWindow, lb_SetCurSel, Focused, 0);{ Focus selected item }
-       TopItem := SendMessage(HWindow, lb_GetTopIndex,
-         0, 0);                                       { Synchronize }
-     End;
-     Exit;                                            { Native mode done }
-   End;
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
    If (Item < TopItem) Then                           { Item above top item }
      If (NumCols = 1) Then TopItem := Item            { Set top item }
        Else TopItem := Item - Item MOD Size.Y         { Set top item }
@@ -4855,13 +3567,6 @@ END;
 PROCEDURE TListViewer.SetTopItem (Item: Integer);
 BEGIN
    TopItem := Item;                                   { Set the top item }
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (GOptions AND goNativeClass <> 0) AND           { Native class mode }
-   (HWindow <> 0) Then                                { Window valid }
-     SendMessage(HWindow, lb_SetTopIndex, Item, 0);   { Synchronize }
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -4903,11 +3608,7 @@ PROCEDURE TListViewer.SetState (AState: Word; Enable: Boolean);
    BEGIN
      If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
        Cs := State;                                   { Hold current state }
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       State := State AND (sfActive XOR $FFFF);       { Weird bug!!! }
-       {$ELSE}                                        { OTHER COMPILERS }
        State := State AND NOT sfActive;               { Must remove focus }
-       {$ENDIF}
        SetDrawmask(vdFocus);                          { Set focus mask }
        DrawView;                                      { Remove focus box }
        State := Cs;                                   { Reset state masks }
@@ -4954,11 +3655,7 @@ VAR Oi, Ni: Integer; Ct, Cw: Word; Mouse: TPoint;
      If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
        Ti := TopItem;                                 { Hold top item }
        Cs := State;                                   { Hold current state }
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       State := State AND (sfActive XOR $FFFF);       { Weird bug!!!! }
-       {$ELSE}                                        { OTHER COMPILERS }
        State := State AND NOT sfActive;               { Must remove focus }
-       {$ENDIF}
        SetDrawmask(vdFocus);                          { Set focus mask }
        DrawView;                                      { Remove focus box }
        State := Cs;                                   { Reset state masks }
@@ -4999,14 +3696,6 @@ BEGIN
        MoveFocus(Ni);                                 { Move the focus }
        ClearEvent(Event);                             { Event was handled }
      End;
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     evCommand: If (Event.Command = cmNotify) Then    { Notify command }
-     Begin
-       FocusItem(Round(Event.Data));                  { Focus the item }
-       SelectItem(Focused);                           { Select the item }
-       ClearEvent(Event);                             { Event was handled }
-     End Else Exit;                                   { Not handled command }
-     {$ENDIF}
      evBroadcast: Begin                               { Broadcast event }
        If (Options AND ofSelectable <> 0) Then        { View is selectable }
          If (Event.Command = cmScrollBarClicked) AND  { Scrollbar click }
@@ -5079,61 +3768,6 @@ BEGIN
      VScrollBar^.SetStep(Size.Y * NumCols,
        VScrollBar^.ArStep);                           { Update vert bar }
 END;
-
-{$IFNDEF NO_WINDOW}                                   { WIN/NT CODE }
-{***************************************************************************}
-{                  TListViewer OBJECT WIN/NT ONLY METHODS                   }
-{***************************************************************************}
-
-{--TListViewer--------------------------------------------------------------}
-{  GetNotifyCmd -> Platforms WIN/NT/OS2 - Updated 06Aug99 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TListViewer.GetNotifyCmd: LongInt;
-BEGIN
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   GetNotifyCmd := lb_GetCurSel;                      { Listbox get selection }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   GetNotifyCmd := lm_QuerySelection;                 { Listbox get selection }
-   {$ENDIF}
-END;
-
-{--TListViewer--------------------------------------------------------------}
-{  GetClassName -> Platforms WIN/NT - Updated 27Oct99 LdB                   }
-{---------------------------------------------------------------------------}
-FUNCTION TListViewer.GetClassName: String;
-BEGIN
-   If UseNativeClasses Then Begin                     { Use native classes }
-     GetClassName := TvListViewerName;                { Windows class name }
-     GOptions := GOptions OR goNativeClass;           { Native class window }
-   End Else GetClassName := Inherited GetClassName;   { Use standard class }
-END;
-
-{--TListViewer--------------------------------------------------------------}
-{  GetClassAttr -> Platforms WIN/NT - Updated 27Oct99 LdB                   }
-{---------------------------------------------------------------------------}
-FUNCTION TListViewer.GetClassAttr: LongInt;
-VAR Li: LongInt;
-BEGIN
-   Li := Inherited GetClassAttr;                      { Call ancestor }
-   Li := Li OR lbs_HasStrings OR lbs_Notify;          { Set has strings mask }
-   If (NumCols > 1) Then
-     Li := Li OR lbs_MultiColumn;                     { Has multiple columns }
-
-   Li := Li OR LBS_NOINTEGRALHEIGHT ;
-   GetClassAttr := Li;                                { Return attributes }
-END;
-
-{--TListViewer--------------------------------------------------------------}
-{  CreateWindowNow -> Platforms WIN/NT - Updated 27Oct99 LdB                }
-{---------------------------------------------------------------------------}
-PROCEDURE TListViewer.CreateWindowNow (CmdShow: Integer);
-BEGIN
-   Inherited CreateWindowNow(CmdShow);                { Call ancestor }
-   DrawView;                                          { Redraw the view }
-END;
-
-{$ENDIF}
 
 {***************************************************************************}
 {                     TListViewer OBJECT PRIVATE METHODS                    }
@@ -5212,13 +3846,8 @@ END;
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION TWindow.GetPalette: PPalette;
-{$IFDEF PPC_DELPHI3}                                  { DELPHI3+ COMPILER }
-CONST  P: ARRAY [wpBlueWindow..wpGrayWindow] Of String =
-  (CBlueWindow, CCyanWindow, CGrayWindow);            { Possible huge string }
-{$ELSE}                                               { OTHER COMPILERS }
 CONST  P: ARRAY [wpBlueWindow..wpGrayWindow] Of String[Length(CBlueWindow)] =
   (CBlueWindow, CCyanWindow, CGrayWindow);            { Always normal string }
-{$ENDIF}
 BEGIN
    GetPalette := @P[Palette];                         { Return palette }
 END;
@@ -5334,9 +3963,9 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11Aug99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.HandleEvent (Var Event: TEvent);
-VAR {$IFDEF NO_WINDOW} I, J: Integer; {$ENDIF} Min, Max: TPoint; Limits: TRect;
+VAR I, J: Integer;
+    Min, Max: TPoint; Limits: TRect;
 
-   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    PROCEDURE DragWindow (Mode: Byte);
    VAR Limits: TRect; Min, Max: TPoint;
    BEGIN
@@ -5346,7 +3975,6 @@ VAR {$IFDEF NO_WINDOW} I, J: Integer; {$ENDIF} Min, Max: TPoint; Limits: TRect;
        Max);                                          { Drag the view }
      ClearEvent(Event);                               { Clear the event }
    END;
-   {$ENDIF}
 
 BEGIN
    Inherited HandleEvent(Event);                      { Call ancestor }
@@ -5403,7 +4031,6 @@ BEGIN
          End;
        End;
      End;
-     {$IFDEF NO_WINDOW}                               { DOS/DPMI CODE ONLY }
      evMouseDown:                                     { MOUSE DOWN EVENT }
        If (GOptions AND goTitled <> 0) Then Begin     { Must have title area }
          If TextModeGFV then
@@ -5439,7 +4066,6 @@ BEGIN
          Then If (Flags AND wfGrow <> 0) Then         { Check grow flags }
            DragWindow(dmDragGrow);                    { Change window size }
        End;
-     {$ENDIF}
    End;                                               { Event.What case end }
 END;
 
@@ -5452,44 +4078,6 @@ BEGIN
    Min.X := MinWinSize.X;                             { Set min x size }
    Min.Y := MinWinSize.Y;                             { Set min y size }
 END;
-
-{$IFNDEF NO_WINDOW}
-{***************************************************************************}
-{                   TWindow OBJECT WIN/NT/OS2 ONLY METHODS                  }
-{***************************************************************************}
-
-{--TWindow------------------------------------------------------------------}
-{  GetClassText -> Platforms WIN/NT/OS2 - Updated 18Jul99 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TWindow.GetClassText: String;
-BEGIN
-   GetClassText := GetTitle(255);                     { Return window title }
-END;
-
-{--TWindow------------------------------------------------------------------}
-{  GetClassAttr -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB               }
-{---------------------------------------------------------------------------}
-FUNCTION TWindow.GetClassAttr: LongInt;
-VAR Li: LongInt;
-BEGIN
-   Li := Inherited GetClassAttr;                      { Call ancestor }
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (Flags AND wfZoom <> 0) Then Li := Li OR        { Check zoom flags }
-     ws_MinimizeBox OR ws_MaximizeBox;                { Add min/max boxes }
-   If (Flags AND wfClose <> 0) Then                   { Check close option }
-     Li := Li OR ws_SysMenu;                          { Set menu flag }
-   Li := Li OR ws_ClipSiblings OR ws_ClipChildren;    { Clip other windows }
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (Flags AND wfZoom <> 0) Then Li := Li OR        { Check zoom flags }
-     fcf_MinButton OR fcf_MaxButton;                  { Add min/max boxes }
-   If (Flags AND wfClose <> 0) Then                   { Check close option }
-     Li := Li OR fcf_SysMenu;                         { Set menu flag }
-   {$ENDIF}
-   GetClassAttr := Li;                                { Return masks }
-END;
-
-{$ENDIF}
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                       UNCOMPLETED OBJECT METHODS                          }
@@ -5516,11 +4104,8 @@ END;
 {  GraphLine -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
-{$IFDEF NO_WINDOW} VAR ViewPort: ViewPortType; {$ENDIF}  { DOS/DPMI VARIABLES }
-    {$IFDEF OS_WINDOWS}VAR I: Word; ODc: hDc; {$ENDIF}   { WIN/NT VARIABLES }
-    {$IFDEF OS_OS2}VAR I: LongInt; Lp: PointL; OPs: HPs; {$ENDIF}{ OS2 VARIABLES }
+VAR ViewPort: ViewPortType;
 BEGIN
-   {$IFDEF OS_DOS}                                 { DOS/DPMI CODE }
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
    If (TextModeGFV <> TRUE) Then Begin
      SetColor(Colour);                                { Set line colour }
@@ -5529,73 +4114,11 @@ BEGIN
        - ViewPort.X1, RawOrigin.Y + Y2-ViewPort.Y1);  { Draw the line }
    End Else Begin                                     { LEON???? }
    End;
-   {$ENDIF}
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;                            { Adjust X1 for frame }
-     X2 := X2 - FrameSize;                            { Adjust X2 for frame }
-     Y1 := Y1 - CaptSize;                             { Adjust Y1 for title }
-     Y2 := Y2 - CaptSize;                             { Adjust Y2 for title }
-     ODc := Dc;                                       { Hold device context }
-     If (Dc = 0) Then Dc := GetDC(HWindow);           { Create a context }
-     SelectObject(Dc, ColPen[Colour]);                { Select line colour }
-     Case WriteMode Of
-       NormalPut: I := R2_CopyPen;                    { Normal overwrite }
-       AndPut: I := R2_MaskPen;                       { AND colour write }
-       OrPut: I := R2_MergePen;                       { OR colour write }
-       XorPut: I := R2_XORPen;                        { XOR colour write }
-       NotPut: I := R2_Not;                           { NOT colour write }
-     End;
-     SetRop2(Dc, I);                                  { Set write mode }
-     {$IFDEF BIT_16}                                  { 16 BIT WIN CODE }
-     WinProcs.MoveTo(Dc, X1, Y1);                     { Move to first point }
-     {$ELSE}                                          { 32 BIT WIN/NT CODE }
-     MoveToEx(Dc, X1, Y1, Nil);                       { Move to first point }
-     {$ENDIF}
-     If (Abs(X2-X1) > 1) OR (Abs(Y2-Y1) > 1) Then     { Not single point }
-       LineTo(Dc, X2, Y2);                            { Line to second point }
-     SetPixel(Dc, X2, Y2, ColRef[Colour]);            { Draw last point }
-     If (ODc = 0) Then ReleaseDC(HWindow, Dc);        { Release context }
-     Dc := ODc;                                       { Reset held context }
-   End;
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;                            { Adjust X1 for frame }
-     X2 := X2 - FrameSize;                            { Adjust X2 for frame }
-     Y1 := Y1 - CaptSize;                             { Adjust Y1 for title }
-     Y2 := Y2 - CaptSize;                             { Adjust Y2 for title }
-     OPs := Ps;                                       { Hold paint struct }
-     If (Ps = 0) Then Ps := WinGetPS(Client);         { Create paint struct }
-     Case WriteMode Of
-       NormalPut: I := fm_Overpaint;                  { Normal overwrite }
-       AndPut: I := fm_And;                           { AND colour write }
-       OrPut: I := fm_Or;                             { OR colour write }
-       XorPut: I := fm_Xor;                           { XOR colour write }
-       NotPut: I := fm_Invert;                        { NOT colour write }
-     End;
-     GPISetMix(Ps, I);                                { Set write mode }
-     GPISetColor(Ps, ColRef[Colour]);
-     Lp.X := X1;                                      { Transfer x1 value }
-     Lp.Y := RawSize.Y-Y1;                            { Transfer y1 value }
-     GPIMove(Ps, Lp);                                 { Move to first point }
-     Lp.X := X2;                                      { Transfer x2 value }
-     Lp.Y := RawSize.Y-Y2;                            { Transfer y2 value }
-     GPILine(Ps, Lp);                                 { Line to second point }
-     If (OPs = 0) Then WinReleasePS(Ps);              { Release paint struct }
-     Ps := OPs;                                       { Reset held struct }
-   End;
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
 END;
 
 PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Integer; Colour: Byte);
-{$IFDEF OS_DOS}VAR ViewPort: ViewPortType; {$ENDIF}
-{$IFDEF OS_WINDOWS}VAR I: Word; ODc: hDc; {$ENDIF}
-{$IFDEF OS_OS2}VAR Lp: PointL; OPs: HPs; {$ENDIF}
+VAR ViewPort: ViewPortType;
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
    If (TextModeGFV <> TRUE) Then Begin                { GRAPHICS MODE GFV }
      SetColor(Colour);                                { Set line colour }
      GetViewSettings(ViewPort, TextModeGFV);
@@ -5604,67 +4127,6 @@ BEGIN
        RawOrigin.Y+Y2-ViewPort.Y1);                   { Draw a rectangle }
    End Else Begin                                     { LEON???? }
    End;
-   {$ENDIF}
-   {$IFNDEF NO_WINDOW}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;
-     X2 := X2 - FrameSize;
-     Y1 := Y1 - CaptSize;
-     Y2 := Y2 - CaptSize;
-     ODc := Dc;                                       { Hold device context }
-     If (Dc = 0) Then Dc := GetDC(HWindow);           { Create a context }
-     SelectObject(Dc, ColPen[Colour]);
-     Case WriteMode Of
-       NormalPut: I := R2_CopyPen;                    { Normal overwrite }
-       AndPut: I := R2_MaskPen;                       { AND colour write }
-       OrPut: I := R2_MergePen;                       { OR colour write }
-       XorPut: I := R2_XORPen;                        { XOR colour write }
-       NotPut: I := R2_Not;                           { NOT colour write }
-     End;
-     SetRop2(Dc, I);
-     {$IFDEF WIN32}
-     MoveToEx(Dc, X1, Y1, Nil);                       { Move to first point }
-     {$ELSE}
-     WinProcs.MoveTo(Dc, X1, Y1);                     { Move to first point }
-     {$ENDIF}
-     LineTo(Dc, X2, Y1);                              { Line to second point }
-     LineTo(Dc, X2, Y2);                              { Line to third point }
-     LineTo(Dc, X1, Y2);                              { Line to fourth point }
-     LineTo(Dc, X1, Y1);                              { Line to first point }
-     If (ODc = 0) Then ReleaseDC(HWindow, Dc);        { Release context }
-     Dc := ODc;                                       { Reset held context }
-   End;
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;                            { Adjust X1 for frame }
-     X2 := X2 - FrameSize;                            { Adjust X2 for frame }
-     Y1 := Y1 - CaptSize;                             { Adjust Y1 for title }
-     Y2 := Y2 - CaptSize;                             { Adjust Y2 for title }
-     OPs := Ps;                                       { Hold paint struct }
-     If (Ps = 0) Then Ps := WinGetPS(Client);         { Create paint struct }
-     GPISetColor(Ps, ColRef[Colour]);                 { Set colour }
-     Lp.X := X1;                                      { Transfer x1 value }
-     Lp.Y := RawSize.Y-Y1;                            { Transfer y1 value }
-     GPIMove(Ps, Lp);                                 { Move to first point }
-     Lp.X := X2;                                      { Transfer x2 value }
-     Lp.Y := RawSize.Y-Y1;                            { Transfer y1 value }
-     GPILine(Ps, Lp);                                 { Line to second point }
-     Lp.X := X2;                                      { Transfer x2 value }
-     Lp.Y := RawSize.Y-Y2;                            { Transfer y2 value }
-     GPILine(Ps, Lp);                                 { Line to third point }
-     Lp.X := X1;                                      { Transfer x1 value }
-     Lp.Y := RawSize.Y-Y2;                            { Transfer y2 value }
-     GPILine(Ps, Lp);                                 { Line to fourth point }
-     Lp.X := X1;                                      { Transfer x1 value }
-     Lp.Y := RawSize.Y-Y1;                            { Transfer y1 value }
-     GPILine(Ps, Lp);                                 { Line to first point }
-     If (OPs = 0) Then WinReleasePS(Ps);              { Release paint struct }
-     Ps := OPs;                                       { Reset held struct }
-   End;
-   {$ENDIF}
-   {$ENDIF not NO_WINDOW}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5672,14 +4134,15 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Integer; Colour: Byte);
 VAR
-    {$IFDEF Use_API}X, Y: Integer;
-    {$ELSE not Use_API}
-    {$IFDEF OS_DOS} X, Y: Integer; ViewPort: ViewPortType; {$ENDIF}{$ENDIF}
-    {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
-    {$IFDEF OS_OS2} Lp: PointL; OPs: HPs; {$ENDIF}
+    X, Y: Integer; ViewPort: ViewPortType;
 BEGIN
-   {$IFDEF Use_API}                                    { DOS/DPMI CODE }
-   Begin                                     { TEXT MODE GFV }
+   GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
+   If (TextModeGFV <> TRUE) Then Begin                { GRAPHICAL GFV MODE }
+     SetFillStyle(SolidFill, Colour);                 { Set colour up }
+     Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
+       ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
+       RawOrigin.Y+Y2-ViewPort.Y1);                   { Clear the area }
+   End Else Begin                                     { TEXT MODE GFV }
      X1 := (RawOrigin.X+X1) DIV SysFontWidth;
      Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
      X2 := (RawOrigin.X+X2-1) DIV SysFontWidth;
@@ -5690,65 +4153,6 @@ BEGIN
        End;
        UpdateScreen(false);
    End;
-   {$ELSE not Use_API}
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
-   GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
-   If (TextModeGFV <> TRUE) Then Begin                { GRAPHICAL GFV MODE }
-     SetFillStyle(SolidFill, Colour);                 { Set colour up }
-     Bar(RawOrigin.X+X1-ViewPort.X1, RawOrigin.Y+Y1-
-       ViewPort.Y1, RawOrigin.X+X2-ViewPort.X1,
-       RawOrigin.Y+Y2-ViewPort.Y1);                   { Clear the area }
-   End Else Begin                                     { TEXT MODE GFV }
-     X1 := (RawOrigin.X+X1) DIV SysFontWidth;
-     Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
-     X2 := (RawOrigin.X+X2) DIV SysFontWidth;
-     Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
-     For Y := Y1 To Y2 Do
-       For X := X1 To X2 Do Begin
-         Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2] := $20;
-         Mem[$B800:$0+(Y*Drivers.ScreenWidth+X)*2+1] := Colour SHL 4;
-       End;
-   End;
-   {$ENDIF}
-   {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;                            { Correct for frame }
-     Y1 := Y1 - CaptSize;                             { Correct for caption }
-     X2 := X2 - FrameSize;                            { Correct for frame }
-     Y2 := Y2 - CaptSize;                             { Correct for caption }
-     ODc := Dc;                                       { Hold device context }
-     If (Dc = 0) Then Dc := GetDC(HWindow);           { Create a context }
-     SelectObject(Dc, ColPen[Colour]);
-     SelectObject(Dc, ColBrush[Colour]);
-     {$IFNDEF PPC_SPEED}
-     Rectangle(Dc, X1, Y1, X2+1, Y2+1);
-     {$ELSE}                                          { SPEEDSOFT SYBIL2+ }
-     WinGDI.Rectangle(Dc, X1, Y1, X2+1, Y2+1);
-     {$ENDIF}
-     If (ODc = 0) Then ReleaseDC(HWindow, Dc);        { Release context }
-     Dc := ODc;                                       { Reset held context }
-   End;
-   {$ENDIF}
-   {$IFDEF OS_OS2}                                    { OS2 CODE }
-   If (HWindow <> 0) Then Begin                       { Valid window }
-     X1 := X1 - FrameSize;                            { Adjust X1 for frame }
-     X2 := X2 - FrameSize;                            { Adjust X2 for frame }
-     Y1 := Y1 - CaptSize;                             { Adjust Y1 for title }
-     Y2 := Y2 - CaptSize;                             { Adjust Y2 for title }
-     OPs := Ps;                                       { Hold paint struct }
-     If (Ps = 0) Then Ps := WinGetPs(Client);         { Create paint struct }
-     GpiSetColor(Ps, ColRef[Colour]);
-     Lp.X := X1;
-     Lp.Y := RawSize.Y-Y1;
-     GpiMove(Ps, Lp);
-     Lp.X := X2;
-     Lp.Y := RawSize.Y-Y2;
-     GpiBox(Ps, dro_Fill, Lp, 0, 0);
-     If (OPs = 0) Then WinReleasePS(Ps);              { Release paint struct }
-     Ps := OPs;                                       { Reset held struct }
-   End;
-   {$ENDIF}
-   {$ENDIF not Use_API}
 END;
 
 
@@ -5757,7 +4161,7 @@ Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
 VAR X1, Y1, X2, Y2, X3, Y3: Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
 BEGIN
-   {$IFNDEF NO_WINDOW}
+   {$IFDEF NOT_IMPLEMENTED}
    {$IFDEF OS_WINDOWS}
    Xc := Xc - FrameSize;
    Yc := Yc - CaptSize;
@@ -5793,7 +4197,7 @@ BEGIN
      Dc := ODc;                                       { Reset held context }
    End;
    {$ENDIF}
-   {$ENDIF not NO_WINDOW}
+   {$ENDIF not NOT_IMPLEMENTED}
 END;
 
 PROCEDURE TView.FilletArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad, Ht: Integer;
@@ -5801,7 +4205,7 @@ Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
 {$IFDEF OS_WINDOWS} VAR X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer; ODc: hDc; {$ENDIF}
 BEGIN
-   {$IFNDEF NO_WINDOW}
+   {$IFNDEF NOT_IMPLEMENTED}
    {$IFDEF OS_WINDOWS}
    If (HWindow <> 0) Then Begin                       { Valid window }
      Xc := Xc - FrameSize;
@@ -5846,7 +4250,7 @@ BEGIN
      Dc := ODc;                                       { Reset held context }
    End;
    {$ENDIF}
-   {$ENDIF not NO_WINDOW}
+   {$ENDIF not NOT_IMPLEMENTED}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -5871,14 +4275,11 @@ END;
 
 PROCEDURE TView.WriteBuf (X, Y, W, H: Integer; Var Buf);
 VAR I, J, K, L, CW: Integer; P: PDrawBuffer;
-    {$IFDEF OS_DOS} Tix, Tiy: Integer; ViewPort: ViewPortType; {$ENDIF}
-    {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
-    {$IFDEF OS_OS2} OPs: HPs; Pt: PointL; {$ENDIF}
+    Tix, Tiy: Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
    (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
-   {$ifdef Use_API}
      then begin
        P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
        L := 0;                                          { Set buffer position }
@@ -5889,105 +4290,48 @@ BEGIN
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
+     If TextModeGFV then Begin
        X := X DIV SysFontWidth;
        Y := Y DIV SysFontHeight;
-     For J := 1 To H Do Begin                         { For each line }
-       K := X;                                        { Reset x position }
-       For I := 0 To (W-1) Do Begin                   { For each character }
-         VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[L];
-         Inc(K);
-         Inc(L);                                      { Next character }
-       End;
-       Inc(Y);                                        { Next line down }
-     end;
-   Video.UpdateScreen(false);
-   end;
-   {$else not Use_API}
-   {$IFNDEF OS_DOS} AND (HWindow <> 0) {$ENDIF}       { WIN/NT/OS2 CODE }
-   Then Begin
-     P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
-     L := 0;                                          { Set buffer position }
-     If (GOptions AND (goGraphical + goGraphView)= 0) Then Begin     { Not raw graphical }
-       X := X * SysFontWidth;                         { X graphical adjust }
-       Y := Y * SysFontHeight;                        { Y graphical adjust }
      End;
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-       GetViewSettings(ViewPort, TextModeGFV);        { Get current viewport }
-       X := X + RawOrigin.X - ViewPort.X1;            { Calc x position }
-       Y := Y + RawOrigin.Y - ViewPort.Y1;            { Calc y position }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-       ODc := Dc;                                     { Hold device context }
-       If (Dc = 0) Then Dc := GetDC(HWindow);         { If needed get context }
-       SelectObject(Dc, DefGFVFont);                  { Select the font }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-       OPs := Ps;                                     { Hold pres space }
-       If (Ps = 0) Then Ps := WinGetPS(Client);       { If needed get PS }
-       GPISetCharSet(Ps, DefGFVFont);                 { Select the font }
-       GpiSetBackMix(Ps, bm_OverPaint);               { Set overpaint mode }
-     {$ENDIF}
+     GetViewSettings(ViewPort, TextModeGFV);          { Get current viewport }
+     If not TextModeGFV then Begin
+       X := X - ViewPort.X1;                          { Calc x position }
+       Y := Y - ViewPort.Y1;                          { Calc y position }
+     End;
      For J := 1 To H Do Begin                         { For each line }
        K := X;                                        { Reset x position }
        For I := 0 To (W-1) Do Begin                   { For each character }
          Cw := TextWidth(Chr(Lo(P^[L])));             { Width of this char }
-         {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
-           If (TextModeGFV <> TRUE) Then Begin        { GRAPHICAL MODE GFV }
-             SetFillStyle(SolidFill, Hi(P^[L]) AND
-               $F0 SHR 4);                            { Set back colour }
-             SetColor(Hi(P^[L]) AND $0F);             { Set text colour }
-             Bar(K, Y, K+Cw, Y+FontHeight-1);         { Clear text backing }
-             OutTextXY(K, Y+2, Chr(Lo(P^[L])));       { Write text char }
-           End Else Begin                             { TEXT MODE GFV }
-             Tix := (K + ViewPort.X1) DIV SysFontWidth;
-             Tiy := (Y + 2 + ViewPort.Y1) DIV SysFontHeight;
-             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Lo(P^[L]);
-             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := Hi(P^[L]);
-           End;
-         {$ENDIF}
-         {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
-           SetBkColor(Dc, ColRef[Hi(P^[L]) AND $F0
-             SHR 4]);                                 { Set back colour }
-           SetTextColor(Dc, ColRef[Hi(P^[L])
-             AND $0F]);                               { Set text colour }
-           TextOut(Dc, K, Y, @P^[L], 1);              { Write text char }
-         {$ENDIF}
-         {$IFDEF OS_OS2}                              { OS2 CODE }
-           GPISetBackColor(Ps, ColRef[Hi(P^[L])
-             AND $F0 SHR 4]);                         { Set back colour }
-           GpiSetColor(Ps, ColRef[Hi(P^[L])
-             AND $0F]);                               { Set text colour }
-           Pt.X := K;
-           Pt.Y := RawSize.Y - Y - FontHeight + 5;
-           GpiCharStringAt(Ps, Pt, 1, @P^[L]);        { Write text char }
-         {$ENDIF}
-         K := K + Cw;                                 { Add char width }
+         If (TextModeGFV <> TRUE) Then Begin          { GRAPHICAL MODE GFV }
+           SetFillStyle(SolidFill, Hi(P^[L]) AND
+             $F0 SHR 4);                              { Set back colour }
+           SetColor(Hi(P^[L]) AND $0F);               { Set text colour }
+           Bar(K, Y, K+Cw, Y+FontHeight-1);           { Clear text backing }
+           OutTextXY(K, Y+2, Chr(Lo(P^[L])));         { Write text char }
+           Inc(K,Cw);
+         End else Begin
+           VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[L];
+           Inc(K);
+         End;
          Inc(L);                                      { Next character }
        End;
-       Y := Y + SysFontHeight;                        { Next line down }
-     End;
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-       If (ODc = 0) Then ReleaseDC(HWindow, Dc);      { Release context }
-       Dc := ODc;                                     { Restore old context }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-       If (OPs = 0) Then WinReleasePS(Ps);            { Release pres space }
-       Ps := OPs;                                     { Restore original PS }
-     {$ENDIF}
-   End;
-   {$endif not Use_API}
+       If Not TextModeGFV then
+         Y := Y + SysFontHeight                       { Next line down }
+       Else
+         Inc(Y);                                      { Next line down }
+     end;
+     Video.UpdateScreen(false);
+   end;
 END;
 
 PROCEDURE TView.WriteLine (X, Y, W, H: Integer; Var Buf);
 VAR I, J, K, Cw: Integer; P: PDrawBuffer;
-    {$IFDEF OS_DOS} Tix, Tiy: Integer; ViewPort: ViewPortType; {$ENDIF}
-    {$IFDEF OS_WINDOWS} ODc: HDc; {$ENDIF}
-    {$IFDEF OS_OS2} OPs: HPs; Pt: PointL; {$ENDIF}
+    Tix, Tiy: Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
    (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
-   {$ifdef Use_API}
      then begin
        P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
      If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
@@ -5997,90 +4341,38 @@ BEGIN
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
+     If TextModeGFV then Begin
        X := X DIV SysFontWidth;
        Y := Y DIV SysFontHeight;
-     For J := 1 To H Do Begin                         { For each line }
-       K := X;                                        { Reset x position }
-       For I := 0 To (W-1) Do Begin                   { For each character }
-         VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[I];
-         Inc(K);
-       End;
-       Inc(Y);                                        { Next line down }
-     end;
-     Video.UpdateScreen(false);
-     end;
-   {$else not Use_API}
-   {$IFNDEF OS_DOS} AND (HWindow <> 0) {$ENDIF}       { WIN/NT/OS2 CODE }
-   Then Begin
-     P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
-     If (GOptions AND (goGraphical + goGraphView)= 0) Then Begin     { Not raw graphical }
-       X := X * SysFontWidth;                         { X graphical adjust }
-       Y := Y * SysFontHeight;                        { Y graphical adjust }
      End;
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
-       GetViewSettings(ViewPort, TextModeGFV);        { Get current viewport }
-       X := X + RawOrigin.X - ViewPort.X1;            { Calc x position }
-       Y := Y + RawOrigin.Y - ViewPort.Y1;            { Calc y position }
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-       ODc := Dc;                                     { Hold device context }
-       If (Dc = 0) Then Dc := GetDC(HWindow);         { If needed get context }
-       SelectObject(Dc, DefGFVFont);                  { Select the font }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-       OPs := Ps;                                     { Hold pres space }
-       If (Ps = 0) Then Ps := WinGetPS(Client);       { If needed get PS }
-       GPISetCharSet(Ps, DefGFVFont);                 { Select the font }
-       GpiSetBackMix(Ps, bm_OverPaint);               { Set overpaint mode }
-     {$ENDIF}
+     GetViewSettings(ViewPort, TextModeGFV);          { Get current viewport }
+     If not TextModeGFV then Begin
+       X := X - ViewPort.X1;                          { Calc x position }
+       Y := Y - ViewPort.Y1;                          { Calc y position }
+     End;
      For J := 1 To H Do Begin                         { For each line }
        K := X;                                        { Reset x position }
        For I := 0 To (W-1) Do Begin                   { For each character }
          Cw := TextWidth(Chr(Lo(P^[I])));             { Width of this char }
-         {$IFDEF OS_DOS}                              { DOS/DPMI CODE }
            If (TextModeGFV <> TRUE) Then Begin        { GRAPHICAL MODE GFV }
              SetFillStyle(SolidFill, Hi(P^[I]) AND
                $F0 SHR 4);                            { Set back colour }
              SetColor(Hi(P^[I]) AND $0F);             { Set text colour }
              Bar(K, Y, K+Cw, Y+FontHeight-1);         { Clear text backing }
              OutTextXY(K, Y+2, Chr(Lo(P^[I])));       { Write text char }
+             Inc(K,Cw);
            End Else Begin                             { TEXT MODE GFV }
-             Tix := (K + ViewPort.X1) DIV SysFontWidth;
-             Tiy := (Y + ViewPort.Y1 + 2) DIV SysFontHeight;
-             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Lo(P^[I]);
-             Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := Hi(P^[I]);
+             VideoBuf^[((y * Drivers.ScreenWidth)+k)] := P^[I];
+             Inc(K);
            End;
-         {$ENDIF}
-         {$IFDEF OS_WINDOWS}                          { WIN/NT CODE }
-           SetBkColor(Dc, ColRef[Hi(P^[I]) AND $F0
-             SHR 4]);                                 { Set back colour }
-           SetTextColor(Dc, ColRef[Hi(P^[I])
-             AND $0F]);                               { Set text colour }
-           TextOut(Dc, K, Y, @P^[I], 1);              { Write text char }
-         {$ENDIF}
-         {$IFDEF OS_OS2}                              { OS2 CODE }
-           GPISetBackColor(Ps, ColRef[Hi(P^[I])
-             AND $F0 SHR 4]);                         { Set back colour }
-           GpiSetColor(Ps, ColRef[Hi(P^[I])
-             AND $0F]);                               { Set text colour }
-           Pt.X := K;
-           Pt.Y := RawSize.Y - Y - FontHeight + 5;
-           GpiCharStringAt(Ps, Pt, 1, @P^[I]);        { Write text char }
-         {$ENDIF}
-         K := K + Cw;                                 { Add char width }
        End;
-       Y := Y + SysFontHeight;                        { Next line down }
-     End;
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-       If (ODc = 0) Then ReleaseDC(HWindow, Dc);      { Release context }
-       Dc := ODc;                                     { Restore old context }
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-       If (OPs = 0) Then WinReleasePS(Ps);            { Release pres space }
-       Ps := OPs;                                     { Restore original PS }
-     {$ENDIF}
+       If Not TextModeGFV then
+         Y := Y + SysFontHeight                       { Next line down }
+       Else
+         Inc(Y);                                      { Next line down }
+     end;
+     Video.UpdateScreen(false);
    End;
-   {$endif not Use_API}
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -6113,11 +4405,7 @@ END;
 
 PROCEDURE TView.WriteStr (X, Y: Integer; Str: String; Color: Byte);
 VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Integer;
-    {$IFDEF Use_API}Tix, Tiy, Ti: Integer;
-    {$ELSE not Use_API}
-    {$IFDEF OS_DOS} Tix, Tiy, Ti: Integer; ViewPort: ViewPortType; {$ENDIF}{$ENDIF}
-    {$IFDEF OS_WINDOWS} ODc: HDc; P: Pointer; {$ENDIF}
-    {$IFDEF OS_OS2} OPs: HPs; P: Pointer; Pt: PointL; {$ENDIF}
+    Tix, Tiy, Ti: Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) AND                     { View is exposed }
@@ -6134,25 +4422,7 @@ BEGIN
        Fc := B;
      End;
 
-
-     {$IFDEF Use_API}
      If (X >= 0) AND (Y >= 0) AND ((GOptions and goGraphView)=0) Then Begin
-       X := RawOrigin.X+X*FontWidth;                    { X position }
-       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
-     End Else Begin
-       X := RawOrigin.X + Abs(X);
-       Y := RawOrigin.Y + Abs(Y);
-     End;
-       Tix := X DIV SysFontWidth;
-       Tiy := Y DIV SysFontHeight;
-       For Ti := 1 To length(Str) Do Begin
-         VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(Str[Ti]);
-         Inc(Tix);
-       end;
-       UpdateScreen(false);
-     {$ELSE not Use_API}
-     {$IFDEF OS_DOS}
-     If (X >= 0) AND (Y >= 0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
        Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
      End Else Begin
@@ -6171,126 +4441,18 @@ BEGIN
        Tix := X DIV SysFontWidth;
        Tiy := Y DIV SysFontHeight;
        For Ti := 1 To length(Str) Do Begin
-         Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Ord(Str[Ti]);
-         Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := GetColor(Color);
-         Tix := Tix + SysFontWidth;
-       End;
+         VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(Str[Ti]);
+         Inc(Tix);
+       end;
      End;
-     {$ENDIF}
-     {$IFDEF OS_WINDOWS}
-     If (HWindow <> 0) Then Begin
-       ODc := Dc;                                     { Hold device handle }
-       If (Dc = 0) Then Dc := GetDC(HWindow);         { Chk capture context }
-       SelectObject(Dc, DefGFVFont);
-       SetTextColor(Dc, ColRef[Fc]);                  { Set text colour }
-       SetBkColor(Dc, ColRef[Bc]);                    { Set back colour }
-       If (GOptions AND goGraphView <> 0) OR (X < 0)
-       OR (Y < 0) Then Begin
-         X := Abs(X);
-         Y := Abs(Y);
-         X1 := X - FrameSize;               { Left position }
-         Y1 := Y - CaptSize;               { Top position }
-         X2 := X1 + TextWidth(Str);              { Right position }
-       End Else Begin
-         X1 := X * FontWidth - FrameSize;               { Left position }
-         Y1 := Y * FontHeight - CaptSize;               { Top position }
-         X2 := X1 + Length(Str)*FontWidth;              { Right position }
-       End;
-       Y2 := Y1 + FontHeight;                         { Bottom position }
-       SelectObject(Dc, ColPen[Bc]);                  { Select pen }
-       SelectObject(Dc, ColBrush[Bc]);                { Select brush }
-       P := @Str[1];
-       Rectangle(Dc, X1, Y1, X2, Y2);                 { Clear the area }
-       {$IFNDEF PPC_SPEED}
-       TextOut(Dc, X1, Y1, P, Length(Str));           { Write text data }
-       {$ELSE}                                        { SPEEDSOFT SYBIL2+ }
-       TextOut(Dc, X1, Y1, CString(P), Length(Str));  { Write text data }
-       {$ENDIF}
-       If (ODc = 0) Then ReleaseDC(HWindow, Dc);      { Release context }
-       Dc := ODc;                                     { Clear device handle }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}
-     If (HWindow <> 0) Then Begin
-       OPs := Ps;                                     { Hold device handle }
-       If (Ps = 0) Then Ps := WinGetPs(Client);      { Chk capture context }
-       {SelectObject(Dc, DefGFVFont);}
-       If (GOptions AND goGraphView <> 0) OR (X < 0)
-       OR (Y < 0) Then Begin
-         X := Abs(X);
-         Y := Abs(Y);
-         X1 := X - FrameSize;               { Left position }
-         Y1 := Y - CaptSize;               { Top position }
-         X2 := X1 + TextWidth(Str);              { Right position }
-       End Else Begin
-         X1 := X * FontWidth - FrameSize;               { Left position }
-         Y1 := Y * FontHeight - CaptSize;               { Top position }
-         X2 := X1 + Length(Str)*FontWidth;              { Right position }
-       End;
-       Y2 := Y1 + FontHeight;                         { Bottom position }
-       {SelectObject(Dc, ColPen[Bc]);}                  { Select pen }
-       {SelectObject(Dc, ColBrush[Bc]);}                { Select brush }
-       P := @Str[1];
-       (*Pt.X := X1;
-       Pt.Y := RawSize.Y - Y1;
-       GpiMove(Ps, Pt);
-       Pt.X := X2;
-       Pt.Y := RawSize.Y - Y2;
-       GpiSetColor(Ps, ColRef[Bc]);                   { Set text colour }
-       GpiBox(Ps, dro_Fill, Pt, 0, 0);*)
-
-       GpiSetColor(Ps, ColRef[Fc]);                   { Set text colour }
-       GpiSetBackColor(Ps, ColRef[Bc]);               { Set back colour }
-           GpiSetBackMix(Ps, bm_OverPaint );
-       Pt.X := X1;
-       Pt.Y := RawSize.Y - Y1 - FontHeight + 5;
-       GpiCharStringAt(Ps, Pt, Length(Str), P);   { Write text char }
-       If (OPs = 0) Then WinReleasePs(Ps);        { Release context }
-       Ps := OPs;                                 { Clear device handle }
-     End;
-     {$ENDIF}
-     {$ENDIF not Use_API}
-
+     UpdateScreen(false);
    End;
 END;
 
 PROCEDURE TView.WriteChar (X, Y: Integer; C: Char; Color: Byte;
   Count: Integer);
-{$IFDEF OS_DOS}
 VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String; ViewPort: ViewPortType;
-{$else}
-{$ifdef Use_API}
-VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String;
-{$endif Use_API}
-{$ENDIF}
 BEGIN
-     {$IFDEF Use_API}
-     Col := GetColor(Color);                          { Get view color }
-     Fc := Col AND $0F;                               { Foreground colour }
-     Bc := Col AND $F0 SHR 4;                         { Background colour }
-     FillChar(S[1], 255, C);                          { Fill the string }
-     If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
-       X := RawOrigin.X+X*SysFontWidth;                    { X position }
-       Y := RawOrigin.Y+Y*SysFontHeight;                   { Y position }
-     End Else Begin
-       X := RawOrigin.X + Abs(X);
-       Y := RawOrigin.Y + Abs(Y);
-     End;
-       Tix := X DIV SysFontWidth;
-       Tiy := Y DIV SysFontHeight;
-     While (Count>0) Do Begin
-       If (Count>255) Then I := 255 Else I := Count;  { Size to make }
-       S[0] := Chr(I);                                { Set string length }
-       For Ti := 1 To length(S) Do Begin
-         VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(S[Ti]);
-         Inc(Tix);
-       end;
-       Count := Count - I;                            { Subtract count }
-       X := X + I;                                    { Move x position }
-     End;
-       UpdateScreen(false);
-     {$ELSE not Use_API}
-   {$IFDEF OS_DOS}
    If (State AND sfVisible <> 0) AND                  { View visible }
    (State AND sfExposed <> 0) Then Begin              { View exposed }
      GetViewSettings(ViewPort, TextModeGFV);
@@ -6314,17 +4476,19 @@ BEGIN
          Tix := X DIV SysFontWidth;
          Tiy := Y DIV SysFontHeight;
          For Ti := 1 To length(S) Do Begin
-           Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2] := Ord(S[Ti]);
-           Mem[$B800:$0+((Tiy * Drivers.ScreenWidth)+Tix)*2+1] := GetColor(Color);
-           Tix := Tix + SysFontWidth;
+           VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(S[Ti]);
+           Inc(Tix);
          End;
        End;
        Count := Count - I;                            { Subtract count }
-       X := X + I*FontWidth;                          { Move x position }
+       If TextModeGFV then
+         X := X + I                                    { Move x position }
+       else
+         X := X + I*FontWidth;                          { Move x position }
      End;
+     If TextModeGFV then
+       UpdateScreen(false);
    End;
-   {$ENDIF}
-     {$ENDIF not Use_API}
 END;
 
 PROCEDURE TView.DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
@@ -6391,15 +4555,11 @@ BEGIN
      PState := State;                                 { Hold current state }
      if not TextModeGFV then
        State := State AND NOT sfVisible;                { Temp not visible }
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      HideMouseCursor;                                 { Hide the mouse }
-     {$ENDIF}
      SetWriteMode(XORPut, TextModeGFV);
      GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
      SetWriteMode(NormalPut, TextModeGFV);
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      ShowMouseCursor;                                 { Show the mouse }
-     {$ENDIF}
      Repeat
        Mouse.X := Round(Event.Where.X/FontWidth)-Q.X; { New x origin point }
        Mouse.Y := Round(Event.Where.Y/FontHeight)-Q.Y;{ New y origin point }
@@ -6418,9 +4578,7 @@ BEGIN
          Mouse.X := Mouse.X+Q.X-Origin.X;
          Mouse.Y := Mouse.Y+Q.Y-Origin.Y;
        End;
-       {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        HideMouseCursor;                               { Hide the mouse }
-       {$ENDIF}
        if not TextModeGFV then
          begin
            SetWriteMode(XORPut, TextModeGFV);
@@ -6435,9 +4593,7 @@ BEGIN
          begin
            MoveGrow(R, Mouse);                            { Resize the view }
          end;
-       {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        ShowMouseCursor;                               { Show the mouse }
-       {$ENDIF}
      Until NOT MouseEvent(Event, evMouseMove);        { Finished moving }
      State := PState;                                 { Restore view state }
      If (Owner<>Nil) Then
@@ -6478,176 +4634,6 @@ FUNCTION TView.FontHeight: Integer;
 BEGIN
    FontHeight := SysFontHeight;
 END;
-
-
-{$IFNDEF NO_WINDOW}
-{***************************************************************************}
-{                      TView OBJECT WIN/NT ONLY METHODS                     }
-{***************************************************************************}
-
-{--TView--------------------------------------------------------------------}
-{  CreateWindowNow -> Platforms WIN/NT/OS2 - Updated 17Mar98 LdB            }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.CreateWindowNow (CmdShow: Integer);
-VAR Li: LongInt; S: String; Cp, Ct: Array[0..256] Of Char;
-{$IFDEF OS_WINDOWS} VAR WndClass: TWndClass; {$ENDIF}
-{$IFDEF OS_OS2} VAR P: Pointer; WndClass: ClassInfo; {$ENDIF}
-BEGIN
-   If (HWindow = 0) Then Begin                        { Window not created }
-     S := GetClassName;                               { Fetch classname }
-     FillChar(Cp, SizeOf(Cp), #0);                    { Clear buffer }
-     Move(S[1], Cp, Length(S));                       { Transfer classname }
-     S := GetClassText;                               { Fetch class text }
-     FillChar(Ct, SizeOf(Ct), #0);                    { Clear buffer }
-     Move(S[1], Ct, Length(S));                       { Transfer class text }
-     If (GOptions AND goNativeClass = 0) AND          { Not native class }
-     {$IFDEF OS_WINDOWS}                              { WIN/NT CODE }
-     {$IFNDEF PPC_SPEED}
-       {$IFDEF PPC_FPC}
-       NOT GetClassInfo(HInstance, Cp, @WndClass)
-       {$ELSE}
-       NOT GetClassInfo(HInstance, Cp, WndClass)
-       {$ENDIF}
-     {$ELSE}                                          { SPEEDSOFT SYBIL2+ }
-     NOT GetClassInfo(0, CString(Cp), WndClass)
-     {$ENDIF}
-     Then Begin                                       { Class not registered }
-       WndClass.Style := CS_HRedraw OR CS_VReDraw OR
-         CS_DBLClks;                                  { Class styles }
-       {$IFDEF PPC_SPEED}
-       WndClass.lpfnWndProc:= WndProc(GetMsgHandler); { Message handler }
-       {$ELSE}
-       Pointer(WndClass.lpfnWndProc) := GetMsgHandler;{ Message handler }
-       {$ENDIF}
-       WndClass.cbClsExtra := 0;                      { No extra data }
-       WndClass.cbWndExtra := 0;                      { No extra data }
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       WndClass.hInstance := 0;
-       WndClass.hIcon := Idi_Application;             { Set icon }
-       {$ELSE}
-       WndClass.hInstance := HInstance;               { Set instance }
-       WndClass.hIcon := LoadIcon(0, Idi_Application);{ Set icon }
-       {$ENDIF}
-       WndClass.hCursor := LoadCursor(0, Idc_Arrow);  { Set cursor }
-       WndClass.hbrBackground := GetStockObject(
-         Null_Brush);                                 { Class brush }
-       WndClass.lpszMenuName := Nil;                  { No menu }
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       WndClass.lpszClassName := @Cp;                 { Set class name }
-       {$ELSE}                                        { OTHER COMPILERS }
-       WndClass.lpszClassName := Cp;                  { Set class name }
-       {$ENDIF}
-       {$IFDEF BIT_32}                                { 32 BIT CODE }
-       If (RegisterClass(WndClass) = 0)
-       {$ENDIF}
-       {$IFDEF BIT_16}                                { 16 BIT CODE }
-       If (RegisterClass(WndClass) = False)
-       {$ENDIF}
-       Then Begin
-         MessageBox(GetFocus, 'Can not Register Class',
-           'UnKnown Error Cause?', mb_OK);            { Failed to register }
-         Halt;                                        { Halt on failure }
-       End;
-     End;
-     If (GOptions AND goNativeClass <> 0) Then
-       Li := 1 Else Li := 0;
-     If (Owner <> Nil) AND (Owner^.HWindow <> 0)      { Valid owner window }
-     Then HWindow := CreateWindowEx(ExStyle,
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       CString(Cp), Ct, GetClassAttr OR ws_Child,
-       RawOrigin.X-Owner^.RawOrigin.X-Owner^.FrameSize,
-       RawOrigin.Y-Owner^.RawOrigin.Y-Owner^.CaptSize+Li,
-       RawSize.X+1,
-       RawSize.Y+1, Owner^.HWindow, GetClassId, 0, Nil)
-       {$ELSE}
-       Cp, Ct, GetClassAttr OR ws_Child,
-       RawOrigin.X-Owner^.RawOrigin.X-Owner^.FrameSize,
-       RawOrigin.Y-Owner^.RawOrigin.Y-Owner^.CaptSize+Li,
-       RawSize.X+1,
-       RawSize.Y+1, Owner^.HWindow, GetClassId, hInstance, Nil)
-       {$ENDIF}
-     Else HWindow := CreateWindowEx(ExStyle,
-       {$IFDEF PPC_SPEED}                             { SPEEDSOFT SYBIL2+ }
-       CString(Cp), Ct, GetClassAttr,
-       RawOrigin.X, RawOrigin.Y, RawSize.X+1, RawSize.Y+1,
-       AppWindow, GetClassId, 0, Nil);        { Create the window }
-       {$ELSE}
-       Cp, Ct, GetClassAttr,
-       RawOrigin.X, RawOrigin.Y, RawSize.X+1, RawSize.Y+1,
-       AppWindow, GetClassId, hInstance, Nil);        { Create the window }
-       {$ENDIF}
-     If (HWindow <> 0) Then Begin                     { Window created ok }
-       SendMessage(HWindow, WM_SetFont, DefGFVFont, 1);
-       Li := LongInt(@Self);                          { Address of  self }
-       {$IFDEF BIT_16}                                { 16 BIT CODE }
-       SetProp(HWindow, ViewSeg, Li AND $FFFF0000
-         SHR 16);                                     { Set seg property }
-       SetProp(HWindow, ViewOfs, Li AND $FFFF);       { Set ofs propertry }
-       {$ENDIF}
-       {$IFDEF BIT_32}                                { 32 BIT CODE }
-       SetProp(HWindow, ViewPtr, Li );                { Set view property }
-       {$ENDIF}
-       If (CmdShow <> 0) Then
-         ShowWindow(HWindow, cmdShow);                { Execute show cmd }
-       If (State AND sfVisible <> 0) Then Begin
-         UpdateWindow(HWindow);                       { Update the window }
-         BringWindowToTop(HWindow);                   { Bring window to top }
-       End;
-       If (State AND sfDisabled <> 0) Then
-         EnableWindow(HWindow, False);                { Disable the window }
-     End;
-     {$ENDIF}
-     {$IFDEF OS_OS2}                                  { OS2 CODE }
-     (WinQueryClassInfo(Anchor, Cp, WndClass) = False)
-     Then Begin                                       { Class not registered }
-       P := GetMsgHandler;                            { Message handler }
-       If (WinRegisterClass(Anchor, Cp, P,
-         cs_SizeRedraw, SizeOf(Pointer))= False)      { Register the class }
-       Then Begin
-         WinMessageBox(0, 0, 'Can not Register Class',
-           'UnKnown Error Cause?', 0, mb_OK);         { Failed to register }
-         Halt;                                        { Halt on failure }
-       End;
-     End;
-     Li := GetClassAttr;                              { Class attributes }
-     If (Owner <> Nil) AND (Owner^.HWindow <> 0)      { Valid owner window }
-     Then Begin
-       HWindow := WinCreateStdWindow(Owner^.Client,
-       0, Li, Cp, Ct, lStyle, 0, 0, @Client);
-       If (HWindow <> 0) Then Begin                   { Window created ok }
-         Li := LongInt(@Self);                        { Address of  self }
-         WinSetPresParam(Client, PP_User,
-           SizeOf(Pointer), @Li);                     { Hold as property }
-         WinSetWindowPos(HWindow, 0, RawOrigin.X-Owner^.RawOrigin.X,
-           (Owner^.RawOrigin.Y + Owner^.RawSize.Y) -
-           (RawOrigin.Y + RawSize.Y),
-           RawSize.X+1, RawSize.Y+1,
-           swp_Move + swp_Size + swp_Activate + swp_Show);
-         If (GOptions AND goNativeClass <> 0) Then Begin
-           WinSetOwner(Client, Owner^.Client);
-         End;
-         If (State AND sfDisabled <> 0) Then
-           WinEnableWindow(HWindow, False);           { Disable the window }
-       End;
-     End Else Begin
-       HWindow := WinCreateStdWindow(HWND_Desktop,
-        0, Li, Cp, Ct, lStyle, 0, 0, @Client);
-       If (HWindow <> 0) Then Begin                   { Window created ok }
-         Li := LongInt(@Self);                        { Address of  self }
-         WinSetPresParam(Client, PP_User,
-           SizeOf(Pointer), @Li);                     { Hold as property }
-         WinSetWindowPos(HWindow, 0, RawOrigin.X,
-           WinQuerySysValue(hwnd_Desktop, sv_CyScreen)-RawSize.Y,
-           RawSize.X, RawSize.Y,
-           swp_Move + swp_Size + swp_Activate OR cmdShow);
-       End;
-     End;
-     {$ENDIF}
-   End;
-END;
-
-{$ENDIF}
-
 
 
 
@@ -6737,10 +4723,9 @@ BEGIN
 END;
 
 PROCEDURE TWindow.DrawBorder;
-{$IFDEF NO_WINDOW} VAR Fc, Bc: Byte; X, Y: Integer; S: String;
-ViewPort: ViewPortType; {$ENDIF}
+VAR Fc, Bc: Byte; X, Y: Integer; S: String;
+    ViewPort: ViewPortType;
 BEGIN
-   {$IFDEF NO_WINDOW}
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
    Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
    If TextModeGFV then
@@ -6800,7 +4785,6 @@ BEGIN
        BiColorRectangle(Y+1, Y+1, RawSize.X-Y-2, Y+FontHeight-1,
          White, DarkGray, False);                         { Draw 3d effect }
      end;
-   {$ENDIF}
 END;
 
 
@@ -6894,7 +4878,10 @@ END.
 
 {
  $Log$
- Revision 1.8  2001-05-04 15:43:46  pierre
+ Revision 1.9  2001-05-07 23:36:35  pierre
+  NO_WINDOW cond removed
+
+ Revision 1.8  2001/05/04 15:43:46  pierre
   * several more fixes
 
  Revision 1.7  2001/05/04 10:46:03  pierre

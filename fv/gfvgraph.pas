@@ -131,7 +131,10 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    SolidFill = Graph.SolidFill;
-{$ENDIF}
+{$ELSE not GRAPH_API }
+CONST
+   SolidFill = 0;
+{$ENDIF not GRAPH_API}
 
 
 {***************************************************************************}
@@ -395,7 +398,10 @@ END;
 END.
 {
  $Log$
- Revision 1.6  2001-05-07 22:22:03  pierre
+ Revision 1.7  2001-05-07 23:36:35  pierre
+  NO_WINDOW cond removed
+
+ Revision 1.6  2001/05/07 22:22:03  pierre
   * removed NO_WINDOW cond, added GRAPH_API
 
  Revision 1.5  2001/05/04 15:43:45  pierre
