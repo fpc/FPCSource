@@ -80,21 +80,13 @@ _haltproc:
 ___fpc_brk_addr:
         .long   0
 
-        .globl  __curbrk                /* necessary for libc */
-        .type   __curbrk,@object
-        .size   __curbrk,4
-__curbrk:
-        .long   0
-
-        .globl  __environ
-        .type   __environ,@object
-        .size   __environ,4
-__environ:
-        .long   0
 
 #
 # $Log$
-# Revision 1.3  2000-01-07 16:41:42  daniel
+# Revision 1.4  2000-02-08 12:39:48  peter
+#   * removed curbrk
+#
+# Revision 1.3  2000/01/07 16:41:42  daniel
 #   * copyright 2000
 #
 # Revision 1.2  2000/01/07 16:32:28  daniel
