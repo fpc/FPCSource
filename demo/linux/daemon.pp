@@ -85,11 +85,15 @@ Begin
    aTerm^.handler.sh := @DoSig;
    aTerm^.sa_mask := 0;
    aTerm^.sa_flags := 0;
-   aTerm^.sa_restorer := nil;
+   {$ifndef BSD}		{Linux'ism}
+    aTerm^.sa_restorer := nil;
+   {$endif}
    aHup^.handler.sh := @DoSig;
    aHup^.sa_mask := 0;
    aHup^.sa_flags := 0;
-   aHup^.sa_restorer := nil;
+   {$ifndef BSD}		{Linux'ism}
+    aHup^.sa_restorer := nil;
+   {$endif}
    SigAction(SIGTERM,aTerm,aOld);
    SigAction(SIGHUP,aHup,aOld);
 
@@ -115,6 +119,7 @@ Begin
          {$I-}
          Close(fLog);
          {$I+}
+   	 IOResult;
          NewLog;
          bHup := false;
       End;
@@ -136,7 +141,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2002-02-25 12:56:43  marco
+   * Fixed two linux'isms, and commited Jonas fix for the RTE 103
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:09  michael

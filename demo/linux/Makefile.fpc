@@ -4,6 +4,8 @@
 
 [target]
 programs_linux=daemon
+programs_freebsd=daemon
+programs_netbsd=daemon
 
 [default]
 fpcdir=../..
