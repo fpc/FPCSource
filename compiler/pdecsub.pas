@@ -128,18 +128,11 @@ implementation
         { create dummy symtable for procvars }
         if is_procvar then
          begin
-           { we can't insert the dummyst in the symtablestack,
-             because definitions will be inserted in the symtablestack. And
-             this symtable is disposed at the end of the parsing, so the
-             definitions are lost }
            dummyst:=tparasymtable.create;
            currparast:=dummyst;
          end
         else
          begin
-           { parast is available, we can insert in symtablestack }
-           tprocdef(aktprocdef).parast.next:=symtablestack;
-           symtablestack:=tprocdef(aktprocdef).parast;
            currparast:=tparasymtable(tprocdef(aktprocdef).parast);
          end;
         { reset }
@@ -337,9 +330,7 @@ implementation
         until not try_to_consume(_SEMICOLON);
         { remove parasymtable from stack }
         if is_procvar then
-          dummyst.free
-        else
-          symtablestack:=symtablestack.next;
+          dummyst.free;
         sc.free;
         { reset object options }
         dec(testcurobject);
@@ -1998,7 +1989,11 @@ const
 end.
 {
   $Log$
-  Revision 1.73  2002-09-09 19:39:07  peter
+  Revision 1.74  2002-09-10 16:27:28  peter
+    * don't insert parast in symtablestack, because typesyms should not be
+      searched in the the parast
+
+  Revision 1.73  2002/09/09 19:39:07  peter
     * check return type for forwarddefs also not delphi mode when
       the type is not void
 
