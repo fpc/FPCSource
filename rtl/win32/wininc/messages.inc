@@ -1176,7 +1176,7 @@ Type
           0: (
               wParam : WPARAM;
               lParam : LPARAM;
-              Result : DWORD;
+              Result : LRESULT;
              );
           1: (
               wParamlo,
@@ -1267,7 +1267,10 @@ Type
 
 {
   $Log$
-  Revision 1.7  2003-10-08 16:24:47  florian
+  Revision 1.8  2003-11-09 13:49:28  michael
+  + TMessage result member is a longint, not a cardinal (from Micha Nelissen, verified in D6).
+
+  Revision 1.7  2003/10/08 16:24:47  florian
     * fixed some variant issues
     * improved type declarations
 
