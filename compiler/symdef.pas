@@ -368,6 +368,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function gettypename:string;override;
+          function  is_publishable : boolean;override;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -2683,6 +2684,13 @@ implementation
       begin
          gettypename:='Class Of '+pointertype.def.typename;
       end;
+
+
+    function tclassrefdef.is_publishable : boolean;
+      begin
+         is_publishable:=true;
+      end;
+
 
 
 {***************************************************************************
@@ -6396,7 +6404,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.302  2005-03-28 15:04:13  peter
+  Revision 1.303  2005-04-03 15:20:42  florian
+    * class ref. properties can be published now
+
+  Revision 1.302  2005/03/28 15:04:13  peter
   fix loading of inline info
 
   Revision 1.301  2005/03/25 21:55:43  jonas
