@@ -143,6 +143,7 @@ const
 {$ifdef TEST_REGEXP}
       ffUseRegExp        = $0100;
       ffmUseRegExpFind   = $0004;
+      ffmOptionsFind     = $0003;
       ffsUseRegExpFind   = 8 - 2;
       ffmUseRegExpReplace = $0008;
       ffsUseRegExpReplace = 8 - 3;
@@ -5871,8 +5872,8 @@ begin
     if GetCurrentWord<>'' then
       Find:=GetCurrentWord;
 {$ifdef TEST_REGEXP}
-    Options := (FindFlags and ffmOptions) shr ffsOptions or
-               (FindFlags and ffUseRegExp) shr ffsUseRegExpFind;
+    Options := ((FindFlags and ffmOptionsFind) shr ffsOptions) or
+               ((FindFlags and ffUseRegExp) shr ffsUseRegExpFind);
 {$else not TEST_REGEXP}
     Options := (FindFlags and ffmOptions) shr ffsOptions;
 {$endif TEST_REGEXP}
@@ -5883,11 +5884,14 @@ begin
     if EditorDialog(edFind, @FindRec) <> cmCancel then
     begin
       FindStr := Find;
-      FindFlags := ((Options and ffmOptions) shl ffsOptions) or (Direction shl ffsDirection) or
 {$ifdef TEST_REGEXP}
+      FindFlags := ((Options and ffmOptionsFind) shl ffsOptions) or (Direction shl ffsDirection) or
          ((Options and ffmUseRegExpFind) shl ffsUseRegExpFind) or
-{$endif TEST_REGEXP}
          (Scope shl ffsScope) or (Origin shl ffsOrigin);
+{$else : not TEST_REGEXP}
+      FindFlags := ((Options and ffmOptions) shl ffsOptions) or (Direction shl ffsDirection) or
+         (Scope shl ffsScope) or (Origin shl ffsOrigin);
+{$endif TEST_REGEXP}
       FindFlags := FindFlags and not ffDoReplace;
       if DoConf then
         FindFlags := (FindFlags or ffPromptOnReplace);
@@ -7025,7 +7029,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2001-09-14 23:47:09  pierre
+  Revision 1.8  2001-09-17 21:30:26  pierre
+   * fix a bug in Find/Replace dialog about RegExp
+
+  Revision 1.7  2001/09/14 23:47:09  pierre
    + more regexp, options now in Find/Replace dialogs
 
   Revision 1.6  2001/09/13 16:11:34  pierre
