@@ -514,7 +514,7 @@ Function NetToHost (Net : Longint) : Longint;
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
-  nettohost:=host;
+  nettohost:=net;
 {$else}
   NetToHost:=THostAddr(Net)[4];
   NetToHost:=NetToHost or ( (THostAddr(Net)[3]) shl 8);
@@ -539,7 +539,10 @@ end.
 
 
    $Log$
-   Revision 1.4  2004-04-10 15:37:57  marco
+   Revision 1.5  2004-04-13 09:04:55  marco
+    * small typo fix from Mischi
+
+   Revision 1.4  2004/04/10 15:37:57  marco
     * bug/endianfix to hosttonet nettohost
 
    Revision 1.3  2003/12/10 12:16:14  marco
