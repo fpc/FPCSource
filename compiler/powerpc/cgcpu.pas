@@ -242,41 +242,82 @@ const
       end;
 
 
-    { calling a code fragment by name }
+    { calling a procedure by name }
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
       var
         href : treference;
       begin
+         {MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
+         if it is a cross-TOC call. If so, it also replaces the NOP
+         with some restore code.}
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          if target_info.system=system_powerpc_macos then
            list.concat(taicpu.op_none(A_NOP));
          procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
-
+    { calling a procedure by address }
     procedure tcgppc.a_call_reg(list : taasmoutput;reg: tregister);
+
+      var
+        tmpreg : tregister;
+        tmpref : treference;
+
       begin
-        list.concat(taicpu.op_reg(A_MTCTR,reg));
-        list.concat(taicpu.op_none(A_BCTRL));
         if target_info.system=system_powerpc_macos then
-          list.concat(taicpu.op_none(A_NOP));
+          begin
+            {Generate instruction to load the procedure address from
+            the transition vector.}
+            //TODO: Support cross-TOC calls.
+            tmpreg := get_scratch_reg_int(list);
+            reference_reset(tmpref);
+            tmpref.offset := 0;
+            //tmpref.symaddr := refs_full;
+            tmpref.base:= reg;
+            list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+            list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
+            free_scratch_reg(list,tmpreg);
+          end
+        else
+          list.concat(taicpu.op_reg(A_MTCTR,reg));
+        list.concat(taicpu.op_none(A_BCTRL));
+        //if target_info.system=system_powerpc_macos then
+        //  //NOP is not needed here.
+        //  list.concat(taicpu.op_none(A_NOP));
         procinfo.flags:=procinfo.flags or pi_do_call;
+        //list.concat(tai_comment.create(strpnew('***** a_call_reg')));
       end;
 
 
-    { calling a code fragment through a reference }
+    { calling a procedure by address }
     procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
+
       var
         tmpreg : tregister;
+        tmpref : treference;
+
       begin
         tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
+        if target_info.system=system_powerpc_macos then
+          begin
+            {Generate instruction to load the procedure address from
+            the transition vector.}
+            //TODO: Support cross-TOC calls.
+            reference_reset(tmpref);
+            tmpref.offset := 0;
+            //tmpref.symaddr := refs_full;
+            tmpref.base:= tmpreg;
+            list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+          end;
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
         free_scratch_reg(list,tmpreg);
         list.concat(taicpu.op_none(A_BCTRL));
-        if target_info.system=system_powerpc_macos then
-          list.concat(taicpu.op_none(A_NOP));
+        //if target_info.system=system_powerpc_macos then
+        //  //NOP is not needed here.
+        //  list.concat(taicpu.op_none(A_NOP));
         procinfo.flags:=procinfo.flags or pi_do_call;
+        //list.concat(tai_comment.create(strpnew('***** a_call_ref')));
       end;
 
 {********************** load instructions ********************}
@@ -1428,7 +1469,7 @@ const
        var
          ref2, tmpref: treference;
          freereg: boolean;
-         r2:Tregister;
+         r2,tmpreg:Tregister;
 
        begin
          ref2 := ref;
@@ -1440,14 +1481,35 @@ const
                  if ref2.base.enum <> R_NO then
                    internalerror(2002103102); //TODO: Implement this if needed
 
-                 reference_reset(tmpref);
-                 tmpref.offset := ref2.offset;
-                 tmpref.symbol := ref2.symbol;
-                 tmpref.symaddr := refs_full;
-                 tmpref.base.enum := R_NO;
-                 r2.enum:=R_TOC;
-                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r2,tmpref));
-               end
+                 if macos_direct_globals then
+                   begin
+                     reference_reset(tmpref);
+                     tmpref.offset := ref2.offset;
+                     tmpref.symbol := ref2.symbol;
+                     tmpref.symaddr := refs_full;
+                     tmpref.base.enum := R_NO;
+                     r2.enum:=R_TOC;
+                     list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r2,tmpref));
+                   end
+                 else
+                   begin
+                     tmpreg := get_scratch_reg_address(list);
+                     reference_reset(tmpref);
+                     tmpref.symbol := ref2.symbol;
+                     tmpref.offset := ref2.offset;
+                     tmpref.symaddr := refs_full;
+                     tmpref.base.enum:= R_TOC;
+                     list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+
+                     reference_reset(tmpref);
+                     tmpref.offset := 0;
+                     tmpref.symaddr := refs_full;
+                     tmpref.base:= tmpreg;
+                     list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
+                     free_scratch_reg(list,tmpreg);
+                   end;
+                 //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
+                 end
              else
                begin
 
@@ -1826,35 +1888,80 @@ const
               begin
                 if ref.base.enum <> R_NO then
                   begin
-                    {Generates
-                      add   tempreg, ref.base, RTOC
-                      op    reg, symbolplusoffset, tempreg
-                    which is eqvivalent to the more comprehensive
-                      addi  tempreg, RTOC, symbolplusoffset
-                      add   tempreg, ref.base, RTOC
-                      op    reg, tempreg
-                    but which saves one instruction.}
+                    if macos_direct_globals then
+                      begin
+                        {Generates
+                          add   tempreg, ref.base, RTOC
+                          op    reg, symbolplusoffset, tempreg
+                        which is eqvivalent to the more comprehensive
+                          addi  tempreg, RTOC, symbolplusoffset
+                          add   tempreg, ref.base, tempreg
+                          op    reg, tempreg
+                        but which saves one instruction.}
 
-                    tmpreg := get_scratch_reg_address(list);
-                    reference_reset(tmpref);
-                    tmpref.symbol := ref.symbol;
-                    tmpref.offset := ref.offset;
-                    tmpref.symaddr := refs_full;
-                    tmpref.base:= tmpreg;
+                        tmpreg := get_scratch_reg_address(list);
+                        reference_reset(tmpref);
+                        tmpref.symbol := ref.symbol;
+                        tmpref.offset := ref.offset;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base:= tmpreg;
 
-                    r.enum:=R_TOC;
-                    list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
-                        ref.base,r));
-                    list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+                        r.enum:=R_TOC;
+                        list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
+                            ref.base,r));
+                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+                      end
+                    else
+                      begin
+                        tmpreg := get_scratch_reg_address(list);
+                        reference_reset(tmpref);
+                        tmpref.symbol := ref.symbol;
+                        tmpref.offset := ref.offset;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base.enum:= R_TOC;
+                        list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+                        list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
+                            ref.base,tmpreg));
+
+                        reference_reset(tmpref);
+                        tmpref.offset := 0;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base:= tmpreg;
+                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+
+                      end;
+
+                    //list.concat(tai_comment.create(strpnew('**** a_load_store 1')));
                   end
                 else
                   begin
-                    reference_reset(tmpref);
-                    tmpref.symbol := ref.symbol;
-                    tmpref.offset := ref.offset;
-                    tmpref.symaddr := refs_full;
-                    tmpref.base.enum:= R_TOC;
-                    list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+                    if macos_direct_globals then
+                      begin
+                        reference_reset(tmpref);
+                        tmpref.symbol := ref.symbol;
+                        tmpref.offset := ref.offset;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base.enum:= R_TOC;
+                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+                      end
+                    else
+                      begin
+                        tmpreg := get_scratch_reg_address(list);
+                        reference_reset(tmpref);
+                        tmpref.symbol := ref.symbol;
+                        tmpref.offset := ref.offset;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base.enum:= R_TOC;
+                        list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+
+                        reference_reset(tmpref);
+                        tmpref.offset := 0;
+                        tmpref.symaddr := refs_full;
+                        tmpref.base:= tmpreg;
+                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+
+                      end;
+                    //list.concat(tai_comment.create(strpnew('*** a_load_store 2')));
                   end;
               end
             else
@@ -2000,7 +2107,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-01-09 22:00:53  florian
+  Revision 1.70  2003-01-13 17:17:50  olle
+    * changed global var access, TOC now contain pointers to globals
+    * fixed handling of function pointers
+
+  Revision 1.69  2003/01/09 22:00:53  florian
     * fixed some PowerPC issues
 
   Revision 1.68  2003/01/08 18:43:58  daniel

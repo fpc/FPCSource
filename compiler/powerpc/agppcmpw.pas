@@ -70,7 +70,11 @@ interface
 
     const
       line_length = 70;
-      use_PR = false; {Whether internal references should be xxx[PR] }
+
+      {Whether internal procedure references should be xxx[PR]: }
+      use_PR = false;
+
+      const_storage_class = '[RW]';
 
 
     function ReplaceForbiddenChars(var s: string):Boolean;
@@ -721,10 +725,20 @@ function getreferencestring(var ref : treference) : string;
                    else
                      AsmWriteLn(#9'export'#9+s);
 
-                 AsmWriteLn(#9'csect'#9+s+'[TC]');
 
-                 AsmWriteLn(PadTabs(s+':',#0)+'ds.b '+tostr(tai_datablock(hp).size));
-                 {TODO: ? PadTabs(s,#0) }
+                 if not macos_direct_globals then
+                   begin
+                     AsmWriteLn(#9'toc');
+                     AsmWriteLn(#9'tc'#9+s+'[TC], '+s+'[RW]');
+                     AsmWriteLn(#9'csect'#9+s+'[RW]');
+                     AsmWriteLn(#9'ds.b '+tostr(tai_datablock(hp).size));
+                   end
+                 else
+                   begin
+                     AsmWriteLn(#9'csect'#9+s+'[TC]');
+                     AsmWriteLn(PadTabs(s+':',#0)+'ds.b '+tostr(tai_datablock(hp).size));
+                     {TODO: ? PadTabs(s,#0) }
+                   end;
               end;
             ait_const_32bit,
             ait_const_8bit,
@@ -765,10 +779,15 @@ function getreferencestring(var ref : treference) : string;
                     if use_PR then
                       AsmWriteLn(#9'dc.l'#9'.'+ s +'[PR]')
                     else
-                      AsmWriteLn(#9'dc.l'#9'.'+ s)
+                      AsmWriteLn(#9'dc.l'#9 + s + '[DS]')
                   end
                 else
-                  AsmWriteLn(#9'dc.l'#9+ s);
+                  begin
+                    if macos_direct_globals then
+                      AsmWriteLn(#9'dc.l'#9+s)
+                    else
+                      AsmWriteLn(#9'dc.l'#9+s+const_storage_class);
+                  end;
 
                 (* TODO: the following might need to be included. Temporaily we
                 generate an error
@@ -872,18 +891,22 @@ function getreferencestring(var ref : treference) : string;
                   begin
                     s:= tai_label(hp).l.name;
                     ReplaceForbiddenChars(s);
-                    if s[1] <> '@' then
-                      AsmWriteLn(#9'csect'#9+s+'[TC]');
-
-                    AsmWrite(s);
-                    {if assigned(hp.next) and not(tai(hp.next).typ in
-                       [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                        ait_const_symbol,ait_const_rva,
-                        ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
-                     AsmWriteLn(':')
+                    if s[1] = '@' then
+                      AsmWriteLn(s+':')
                     else
-                     DoNotSplitLine:=true;}
-                    AsmWriteLn(':');
+                      begin
+                        if not macos_direct_globals then
+                          begin
+                            AsmWriteLn(#9'toc');
+                            AsmWriteLn(#9'tc'#9+s+'[TC], '+s+const_storage_class);
+                            AsmWriteLn(#9'csect'#9+s+const_storage_class);
+                          end
+                        else
+                          begin
+                            AsmWriteLn(#9'csect'#9+s+'[TC]');
+                            AsmWriteLn(PadTabs(s+':',#0));
+                          end;
+                      end;
                   end;
                end;
              ait_direct:
@@ -903,10 +926,20 @@ function getreferencestring(var ref : treference) : string;
                          if replaced then
                            AsmWriteLn(#9'export'#9+s+' => '''+tai_symbol(hp).sym.name+'''')
                          else
-                           AsmWriteLn(#9'export'#9+s);
-                       AsmWriteLn(#9'csect'#9+s+'[TC]');
-                       AsmWrite(s);
-                       AsmWriteLn(':');
+                           AsmWriteLn(#9'export'#9+s+'[RW]');
+
+
+                       if not macos_direct_globals then
+                         begin
+                           AsmWriteLn(#9'toc');
+                           AsmWriteLn(#9'tc'#9+s+'[TC], '+s+ const_storage_class);
+                           AsmWriteLn(#9'csect'#9+s+ const_storage_class);
+                         end
+                       else
+                         begin
+                           AsmWriteLn(#9'csect'#9+s+'[TC]');
+                           AsmWriteLn(s+':');
+                         end;
                     end;
                 end;
               ait_symbol_end:
@@ -1008,7 +1041,11 @@ ait_stab_function_name : ;
                    if ReplaceForbiddenChars(s) then
                      currentasmlist.AsmWriteLn(#9'import'#9+s+' <= '''+p.name+'''')
                    else
-                     currentasmlist.AsmWriteLn(#9'import'#9+s);
+                     begin
+                       currentasmlist.AsmWriteLn(#9'import'#9+s+'[RW]');
+                       currentasmlist.AsmWriteLn(#9'toc');
+                       currentasmlist.AsmWriteLn(#9'tc'#9+s+'[TC],'+s+'[RW]');
+                     end;
                 end;
             end;
           end;
@@ -1059,7 +1096,7 @@ ait_stab_function_name : ;
       AsmLn;
       *)
 
-      AsmWriteLn(#9'STRING ASIS'); {Interpret strings just to be the content between the quotes.}
+      AsmWriteLn(#9'string asis'); {Interpret strings just to be the content between the quotes.}
       AsmLn;
     end;
 
@@ -1122,7 +1159,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2003-01-08 18:43:57  daniel
+  Revision 1.18  2003-01-13 17:17:50  olle
+    * changed global var access, TOC now contain pointers to globals
+    * fixed handling of function pointers
+
+  Revision 1.17  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.16  2002/11/28 10:56:07  olle

@@ -112,7 +112,7 @@ uses
         R_CR,R_CR0,R_CR1,R_CR2,R_CR3,R_CR4,R_CR5,R_CR6,R_CR7,
         R_XER,R_LR,R_CTR,R_FPSCR
       );
-      
+
       Tregister=record
         enum:Toldregister;
         number:word;
@@ -308,6 +308,11 @@ uses
 
     const
       symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
+
+    const
+      { MacOS only. Whether the direct data area (TOC) directly contain
+        global variables. Otherwise it contains pointers to global variables. }
+      macos_direct_globals = false;
 
 {*****************************************************************************
                                 Operand
@@ -755,7 +760,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-01-09 15:49:56  daniel
+  Revision 1.41  2003-01-13 17:17:50  olle
+    * changed global var access, TOC now contain pointers to globals
+    * fixed handling of function pointers
+
+  Revision 1.40  2003/01/09 15:49:56  daniel
     * Added register conversion
 
   Revision 1.39  2003/01/08 18:43:58  daniel
