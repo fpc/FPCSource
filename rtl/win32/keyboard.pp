@@ -56,7 +56,8 @@ var
    altNumBuffer   : string [3];
    { used for keyboard specific stuff }
    KeyBoardLayout : HKL;
-
+   Inited : Boolean;
+   
 procedure incqueueindex(var l : longint);
 
   begin
@@ -75,6 +76,11 @@ end;
 { gets or peeks the next key from the queue, does not wait for new keys }
 function getKeyEventFromQueue (VAR t : TKeyEventRecord; Peek : boolean) : boolean;
 begin
+  if not Inited then
+    begin
+    getKeyEventFromQueue := false;
+    exit;
+    end;
   EnterCriticalSection (lockVar);
   if keyEventsInQueue then
   begin
@@ -94,6 +100,11 @@ end;
 { gets the next key from the queue, does wait for new keys }
 function getKeyEventFromQueueWait (VAR t : TKeyEventRecord) : boolean;
 begin
+  if not Inited then
+    begin
+      getKeyEventFromQueueWait := false;
+      exit;
+    end;
   WaitForSingleObject (newKeyEvent, dword(INFINITE));
   getKeyEventFromQueueWait := getKeyEventFromQueue (t, false);
 end;
@@ -236,6 +247,7 @@ begin
    nextkeyevent:=0;
    nextfreekeyevent:=0;
    SetKeyboardEventHandler (@HandleKeyboard);
+   Inited:=true;
 end;
 
 procedure SysDoneKeyboard;
@@ -244,6 +256,7 @@ begin
   DeleteCriticalSection (lockVar);
   FlushConsoleInputBuffer(StdInputHandle);
   closeHandle (newKeyEvent);
+  Inited:=false;
 end;
 
 {$define USEKEYCODES}
@@ -820,7 +833,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:28  peter
+  Revision 1.10  2003-10-27 15:28:07  peter
+    * set inited boolean to prevent crashes
+
+  Revision 1.9  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/07/17 07:28:21  pierre
