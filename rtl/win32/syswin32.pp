@@ -18,7 +18,9 @@
 unit syswin32;
 
 {$I os.inc}
-{$DEFINE WINHEAP}
+
+{.$DEFINE WINHEAP}   { Use windows heap manager, if not set use FPC heap }
+
 
 interface
 
@@ -759,7 +761,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-07-30 13:27:19  michael
+  Revision 1.15  1998-08-21 10:10:16  peter
+    * winheap turned off by default
+
+  Revision 1.14  1998/07/30 13:27:19  michael
   + Added support for errorproc. Changed runerror to HandleError
 
   Revision 1.13  1998/07/13 21:19:15  florian
