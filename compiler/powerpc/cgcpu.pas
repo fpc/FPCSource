@@ -1382,30 +1382,46 @@ const
          ref2 := ref;
          freereg := fixref(list,ref2);
          if assigned(ref2.symbol) then
-           { add the symbol's value to the base of the reference, and if the }
-           { reference doesn't have a base, create one                       }
            begin
-             reference_reset(tmpref);
-             tmpref.offset := ref2.offset;
-             tmpref.symbol := ref2.symbol;
-             tmpref.symaddr := refs_ha;
-             if ref2.base <> R_NO then
+             if target_info.system = system_powerpc_macos then
                begin
-                 list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
-                   ref2.base,tmpref));
-                 if freereg then
-                   begin
-                     cg.free_scratch_reg(list,ref2.base);
-                     freereg := false;
-                   end;
+                 if ref2.base <> R_NO then
+                   internalerror(2002103102);
+
+                 reference_reset(tmpref);
+                 tmpref.offset := ref2.offset;
+                 tmpref.symbol := ref2.symbol;
+                 tmpref.symaddr := refs_full;
+                 tmpref.base := R_2;
+                 list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
                end
              else
-               list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
-             tmpref.base := R_NO;
-             tmpref.symaddr := refs_l;
-             { can be folded with one of the next instructions by the }
-             { optimizer probably                                     }
-             list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
+               begin
+
+                 { add the symbol's value to the base of the reference, and if the }
+                 { reference doesn't have a base, create one                       }
+                 reference_reset(tmpref);
+                 tmpref.offset := ref2.offset;
+                 tmpref.symbol := ref2.symbol;
+                 tmpref.symaddr := refs_ha;
+                 if ref2.base <> R_NO then
+                   begin
+                     list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
+                       ref2.base,tmpref));
+                     if freereg then
+                       begin
+                         cg.free_scratch_reg(list,ref2.base);
+                         freereg := false;
+                       end;
+                   end
+                 else
+                   list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
+                 tmpref.base := R_NO;
+                 tmpref.symaddr := refs_l;
+                 { can be folded with one of the next instructions by the }
+                 { optimizer probably                                     }
+                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
+               end
            end
          else if ref2.offset <> 0 Then
            if ref2.base <> R_NO then
@@ -1740,20 +1756,50 @@ const
            (cardinal(ref.offset-low(smallint)) >
             high(smallint)-low(smallint)) then
           begin
-            tmpreg := get_scratch_reg_address(list);
-            reference_reset(tmpref);
-            tmpref.symbol := ref.symbol;
-            tmpref.offset := ref.offset;
-            tmpref.symaddr := refs_ha;
-            if ref.base <> R_NO then
-              list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                ref.base,tmpref))
+            if target_info.system = system_powerpc_macos then
+              begin
+                (* base is often erroneous set to r13, when r2 is ment.
+                if ref.base <> R_NO then
+                  begin
+                    tmpreg := get_scratch_reg_address(list);
+                    reference_reset(tmpref);
+                    tmpref.symbol := ref.symbol;
+                    tmpref.offset := ref.offset;
+                    tmpref.symaddr := refs_full;
+                    list.concat(taicpu.op_reg_reg_ref(A_ADDI,tmpreg,
+                        ref.base,tmpref));
+                    list.concat(taicpu.op_reg_reg(op,reg,tmpreg));
+                    //list.concat(tai_comment.create('HALABALO'));
+                  end
+                else *)
+                  begin
+                    reference_reset(tmpref);
+                    tmpref.symbol := ref.symbol;
+                    tmpref.offset := ref.offset;
+                    tmpref.symaddr := refs_full;
+                    tmpref.base:= R_2;
+                    list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+                  end;
+              end
             else
-              list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-            ref.base := tmpreg;
-            ref.symaddr := refs_l;
-          end;
-        list.concat(taicpu.op_reg_ref(op,reg,ref));
+              begin
+                tmpreg := get_scratch_reg_address(list);
+                reference_reset(tmpref);
+                tmpref.symbol := ref.symbol;
+                tmpref.offset := ref.offset;
+                tmpref.symaddr := refs_ha;
+                if ref.base <> R_NO then
+                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
+                    ref.base,tmpref))
+                else
+                  list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                ref.base := tmpreg;
+                ref.symaddr := refs_l;
+                list.concat(taicpu.op_reg_ref(op,reg,ref));
+              end
+          end
+        else
+          list.concat(taicpu.op_reg_ref(op,reg,ref));
         if (tmpreg <> R_NO) then
           free_scratch_reg(list,tmpreg);
       end;
@@ -1878,7 +1924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2002-10-28 22:24:28  olle
+  Revision 1.64  2002-11-04 18:24:19  olle
+    * macos: globals are located in TOC and relative r2, instead of absolute
+
+  Revision 1.63  2002/10/28 22:24:28  olle
     * macos entry/exit: only used registers are saved
     - macos entry/exit: stackptr not saved in r31 anymore
     * macos entry/exit: misc fixes
