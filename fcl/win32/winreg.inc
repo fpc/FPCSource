@@ -31,7 +31,7 @@ end;
 function TRegistry.sysCreateKey(const Key: String): Boolean;
 Var
   P: PChar;
-  Disposition: LPDWord;
+  Disposition: Integer;
   Handle: HKEY;
   SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
 
@@ -46,7 +46,7 @@ begin
                          KEY_ALL_ACCESS,
                          SecurityAttributes,
                          Handle,
-                         Disposition) = ERROR_SUCCESS;
+                         @Disposition) = ERROR_SUCCESS;
   RegCloseKey(Handle);
 end;
 
@@ -133,17 +133,22 @@ function TRegistry.OpenKey(const Key: string; CanCreate: Boolean): Boolean;
 Var
   P: PChar;
   Handle: HKEY;
-  Disposition: LPDWord;
+  Disposition: Integer;
   SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
 
 begin
   SecurityAttributes := Nil;
   P:=PrepKey(Key);
   If CanCreate then
+    begin 
+    Handle:=0;
     Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),P,0,'',
+    
                            REG_OPTION_NON_VOLATILE,
                            fAccess,SecurityAttributes,Handle,
-                           Disposition)=ERROR_SUCCESS 
+                           @Disposition)=ERROR_SUCCESS 
+                           
+    end
   else
     Result:=RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),
                          P,0,fAccess,Handle)=ERROR_SUCCESS;
