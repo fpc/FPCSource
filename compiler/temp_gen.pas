@@ -491,6 +491,7 @@ unit temp_gen;
                           );
                         Exit;
                      end;
+                   tl:=tl^.next;
                 end;
 
 {$endIf}
@@ -503,7 +504,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-02-02 23:52:33  florian
+  Revision 1.8  1999-02-11 09:35:19  pierre
+   * ExtDebug conditionnal infinite loop on temp problem removed
+
+  Revision 1.7  1999/02/02 23:52:33  florian
     * problem with calls to method pointers in methods fixed
     - double ansistrings temp management removed
 
