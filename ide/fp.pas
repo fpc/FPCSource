@@ -31,7 +31,7 @@ uses
   dpmiexcp,
 {$endif go32v2}
 {$ifdef fpc}
-  keyboard,video,
+  keyboard,video,mouse,
 {$endif fpc}
   Dos,Objects,
   BrowCol,
@@ -47,6 +47,26 @@ uses
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp;
+
+
+{$ifdef fpc}
+Const
+  DummyMouseDriver : TMouseDriver = (
+    useDefaultQueue : true;
+    InitDriver      : nil;
+    DoneDriver      : nil;
+    DetectMouse     : nil;
+    ShowMouse       : nil;
+    HideMouse       : nil;
+    GetMouseX       : nil;
+    GetMouseY       : nil;
+    GetMouseButtons : nil;
+    SetMouseXY      : nil;
+    GetMouseEvent   : nil;
+    PollMouseEvent  : nil;
+    PutMouseEvent   : nil;
+  );
+{$endif fpc}
 
 procedure ProcessParams(BeforeINI: boolean);
 
@@ -106,6 +126,10 @@ begin
              if Length(Param)=1 then
                begin
                  UseMouse:=false;
+{$ifdef fpc}
+                 DoneMouse;
+                 SetMouseDriver(DummyMouseDriver);
+{$endif fpc}
                  ButtonCount:=0;
                end;
 {$ifdef fpc}
@@ -295,7 +319,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 12:23:00  peter
+  Revision 1.3  2002-01-09 09:46:10  pierre
+   * fix problems with -S option
+
+  Revision 1.2  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.1  2001/08/04 11:30:22  peter
