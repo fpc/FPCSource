@@ -38,11 +38,12 @@ ifeq ($(CPU_TARGET),alpha)
 PPSUF=axp
 endif
 
+
 ifneq ($(OS_TARGET),$(OS_SOURCE))
-PPPRE=ppcross
+PPPRE=ppcross$(CPU_TARGET)
 else
 ifneq ($(CPU_TARGET),$(CPU_SOURCE))
-PPPRE=ppcross
+PPPRE=ppcross$(CPU_TARGET)
 else
 PPPRE=ppc
 endif
