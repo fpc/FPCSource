@@ -19,38 +19,58 @@
     *********************************************************************
 }
 
+
 function WideUpperCase(const s : WideString) : WideString;
   begin
-        result:=widestringmanager.UpperWideStringProc(s);
+    result:=widestringmanager.UpperWideStringProc(s);
   end;
 
 
 function WideLowerCase(const s : WideString) : WideString;
   begin
-        result:=widestringmanager.LowerWideStringProc(s);
+    result:=widestringmanager.LowerWideStringProc(s);
   end;
 
 
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;
   begin
-        result:=widestringmanager.CompareWideStringProc(s1,s2);
+    result:=widestringmanager.CompareWideStringProc(s1,s2);
   end;
 
 
 function WideSameStr(const s1, s2 : WideString) : Boolean;
   begin
-        result:=widestringmanager.SameWideStringProc(s1,s2);
+    result:=widestringmanager.SameWideStringProc(s1,s2);
   end;
 
 
 function WideCompareText(const s1, s2 : WideString) : PtrInt;
   begin
-        result:=widestringmanager.CompareTextWideStringProc(s1,s2);
+    result:=widestringmanager.CompareTextWideStringProc(s1,s2);
   end;
+
+{ we've no templates, but with includes we can simulate this :) }
+{$macro on}
+{$define INWIDEFORMAT}
+{$define TFormatString:=widestring}
+{$define TFormatChar:=widechar}
+
+Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
+{$i sysformt.inc}
+
+{$undef TFormatString}
+{$undef TFormatChar}
+{$undef INWIDEFORMAT}
+{$macro off}
 
 {
   $Log$
-  Revision 1.3  2005-02-14 17:13:31  peter
+  Revision 1.4  2005-02-26 10:21:17  florian
+    + implemented WideFormat
+    + some Widestring stuff implemented
+    * some Widestring stuff fixed
+
+  Revision 1.3  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.2  2005/02/03 18:40:02  florian

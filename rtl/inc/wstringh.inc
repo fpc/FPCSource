@@ -26,9 +26,13 @@ Function  Length (Const S : WideString) : SizeInt;
 {$ifndef InternCopy}
 Function  Copy (Const S : WideString; Index,Size : SizeInt) : WideString;
 {$endif interncopy}
-Function  Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
-Function  Pos (c : Char; Const s : WideString) : SizeInt;
-Function  Pos (c : WideChar; Const s : WideString) : SizeInt;
+Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
+Function Pos (c : Char; Const s : WideString) : SizeInt;
+Function Pos (c : WideChar; Const s : WideString) : SizeInt;
+Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
+
+Function UpCase(const s : WideString) : WideString;
+
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
 Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Procedure SetString (Var S : WideString; Buf : PWideChar; Len : SizeInt);
@@ -82,7 +86,12 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 {
   $Log$
-  Revision 1.3  2005-02-06 09:38:45  florian
+  Revision 1.4  2005-02-26 10:21:17  florian
+    + implemented WideFormat
+    + some Widestring stuff implemented
+    * some Widestring stuff fixed
+
+  Revision 1.3  2005/02/06 09:38:45  florian
     +  StrCharLength infrastructure
 
   Revision 1.2  2005/02/03 18:40:50  florian

@@ -83,19 +83,19 @@ end;
 
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
 begin
-        manager:=widestringmanager;
+  manager:=widestringmanager;
 end;
 
 
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 begin
-        Old:=widestringmanager;
-        widestringmanager:=New;
+  Old:=widestringmanager;
+  widestringmanager:=New;
 end;
 
 Procedure SetWideStringManager (Const New : TWideStringManager);
 begin
-        widestringmanager:=New;
+  widestringmanager:=New;
 end;
 
 (*
@@ -930,6 +930,26 @@ begin
 end;
 
 
+Function Pos (c : WideChar; Const s : AnsiString) : SizeInt;
+var
+  i: SizeInt;
+  pc : pchar;
+begin
+  pc:=@s[1];
+  for i:=1 to length(s) do
+   begin
+     if widechar(pc^)=c then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
+  pos:=0;
+end;
+
+
+
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
@@ -1001,6 +1021,12 @@ begin
   If (LS-Index)>0 then
     Move(PWideChar(S)[Index],PWideChar(temp)[Length(Source)+index],(LS-Index)*sizeof(WideChar));
   S:=Temp;
+end;
+
+
+function UpCase(const s : WideString) : WideString;
+begin
+  result:=widestringmanager.UpperWideStringProc(s);
 end;
 
 
@@ -1406,9 +1432,9 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   end;
 
 function CharLengthPChar(const Str: PChar): PtrInt;
-begin
+  begin
     unimplementedwidestring;
-end;
+  end;
 
 procedure initwidestringmanager;
   begin
@@ -1416,6 +1442,7 @@ procedure initwidestringmanager;
     widestringmanager.Wide2AnsiMoveProc:=@Wide2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
+    widestringmanager.LowerWideStringProc:=@GenericWideCase;
     widestringmanager.CompareWideStringProc:=@CompareWideString;
     widestringmanager.SameWideStringProc:=@SameWideString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
@@ -1425,7 +1452,12 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.51  2005-02-14 17:13:30  peter
+  Revision 1.52  2005-02-26 10:21:17  florian
+    + implemented WideFormat
+    + some Widestring stuff implemented
+    * some Widestring stuff fixed
+
+  Revision 1.51  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.50  2005/02/06 09:38:45  florian

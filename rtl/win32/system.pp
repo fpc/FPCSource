@@ -909,6 +909,38 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
+{****************************************************************************
+                      OS dependend widestrings
+****************************************************************************}
+
+function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharUpperBuffW';
+function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharLowerBuffW';
+
+
+function Win32WideUpper(const s : WideString) : WideString;
+  begin
+    result:=s;
+    UniqueString(result);
+    if length(result)>0 then  	
+      CharUpperBuff(LPWSTR(result),length(result));
+  end;
+
+
+function Win32WideLower(const s : WideString) : WideString;
+  begin
+    result:=s;
+    UniqueString(result);
+    if length(result)>0 then
+      CharLowerBuff(LPWSTR(result),length(result));
+  end;
+
+
+procedure InitWin32Widestrings;
+  begin
+    widestringmanager.UpperWideStringProc:=@Win32WideUpper;
+    widestringmanager.LowerWideStringProc:=@Win32WideLower;
+  end;
+
 
 {****************************************************************************
                     Error Message writing using messageboxes
@@ -1061,12 +1093,18 @@ begin
 {$endif HASVARIANT}
 {$ifdef HASWIDESTRING}
   initwidestringmanager;
+  InitWin32Widestrings
 {$endif HASWIDESTRING}
 end.
 
 {
   $Log$
-  Revision 1.68  2005-02-14 17:13:32  peter
+  Revision 1.69  2005-02-26 10:21:17  florian
+    + implemented WideFormat
+    + some Widestring stuff implemented
+    * some Widestring stuff fixed
+
+  Revision 1.68  2005/02/14 17:13:32  peter
     * truncate log
 
   Revision 1.67  2005/02/06 13:06:20  peter
