@@ -21,20 +21,23 @@
  ****************************************************************************}
 Program ppufiles;
 
-{$ifndef TP}
-  {$H+}
-{$endif}
-
 uses
   dos,
   ppu;
 
 const
-  Version   = 'Version 0.99.13';
+  Version   = 'Version 0.99.14';
   Title     = 'PPU-Files';
   Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
   PPUExt = 'ppu';
+
+type
+  poutfile = ^toutfile;
+  toutfile = record
+    name : string;
+    next : poutfile;
+  end;
 
 var
   skipdup,
@@ -42,7 +45,7 @@ var
   showshared,
   showobjects : boolean;
 
-  OutFiles    : String;
+  OutFiles    : poutfile;
 
 
 {*****************************************************************************
@@ -101,14 +104,27 @@ end;
 
 
 Procedure AddFile(const s:string);
+var
+  p : poutfile;
 begin
+  p:=nil;
   if skipdup then
    begin
-     if pos(' '+s,OutFiles)=0 then
-      OutFiles:=OutFiles+' '+s;
-   end
-  else
-   OutFiles:=OutFiles+' '+s;
+     p:=outfiles;
+     while assigned(p) do
+      begin
+        if s=p^.name then
+         break;
+        p:=p^.next;
+      end;
+   end;
+  if not assigned(p) then
+   begin
+     new(p);
+     p^.name:=s;
+     p^.next:=outfiles;
+     outfiles:=p;
+   end;
 end;
 
 
@@ -180,6 +196,7 @@ var
   i,parafile : longint;
   dir        : SearchRec;
   s,InFile   : String;
+  p          : poutfile;
 begin
 { defaults }
   skipdup:=true;
@@ -226,16 +243,27 @@ begin
         DoPPU(SplitPath(InFile)+Dir.Name);
         FindNext(Dir);
       end;
+{$ifdef fpc}
      FindClose(Dir);
+{$endif}
    end;
 { Display the files }
-  if (OutFiles<>'') and (OutFiles[1]=' ') then
-   Delete(OutFiles,1,1);
-  Write(OutFiles);
+  while assigned(outfiles) do
+   begin
+     p:=outfiles;
+     write(outfiles^.name);
+     outfiles:=outfiles^.next;
+     dispose(p);
+     if assigned(outfiles) then
+      write(' ');
+   end;
 end.
 {
   $Log$
-  Revision 1.2  2000-01-07 16:46:04  daniel
+  Revision 1.3  2000-01-24 12:32:22  daniel
+    * use a linkedlist instead of ansistring
+
+  Revision 1.2  2000/01/07 16:46:04  daniel
     * copyright 2000
 
   Revision 1.1  1999/11/23 09:44:41  peter
