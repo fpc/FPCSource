@@ -85,6 +85,48 @@ implementation
 { some declarations for Win32 API calls }
 {$I win32.inc}
 
+
+CONST
+  { These constants are used for conversion of error codes }
+  { from win32 i/o errors to tp i/o errors                 }
+  { errors 1 to 18 are the same as in Turbo Pascal         }
+  { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING! }
+
+{  The media is write protected.                   }
+    ERROR_WRITE_PROTECT       =      19;
+{  The system cannot find the device specified.    }
+    ERROR_BAD_UNIT            =      20;
+{  The device is not ready.                        }
+    ERROR_NOT_READY           =      21;
+{  The device does not recognize the command.      }
+    ERROR_BAD_COMMAND         =      22;
+{  Data error (cyclic redundancy check)            }
+    ERROR_CRC                 =      23;
+{  The program issued a command but the            }
+{  command length is incorrect.                    }
+    ERROR_BAD_LENGTH           =     24;
+{  The drive cannot locate a specific              }
+{  area or track on the disk.                      }
+    ERROR_SEEK                 =     25;
+{  The specified disk or diskette cannot be accessed. }
+    ERROR_NOT_DOS_DISK         =     26;
+{  The drive cannot find the sector requested.     }
+    ERROR_SECTOR_NOT_FOUND      =    27;
+{  The printer is out of paper.                    }
+    ERROR_OUT_OF_PAPER          =    28;
+{  The system cannot write to the specified device. }
+    ERROR_WRITE_FAULT           =    29;
+{  The system cannot read from the specified device. }
+    ERROR_READ_FAULT            =    30;
+{  A device attached to the system is not functioning.}
+    ERROR_GEN_FAILURE           =    31;
+{  The process cannot access the file because         }
+{  it is being used by another process.               }
+    ERROR_SHARING_VIOLATION      =   32;
+
+var
+    errno : longint;
+
 type
   plongint = ^longint;
 
@@ -103,28 +145,48 @@ type
      external 'kernel32' name 'ExitProcess';
 
 
+   Procedure Errno2InOutRes;
+   Begin
+     { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
+     if (errno >= ERROR_WRITE_PROTECT) and (errno <= ERROR_GEN_FAILURE) THEN
+       BEGIN
+          { This is the offset to the Win32 to add to directly map  }
+          { to the DOS/TP compatible error codes when in this range }
+          InOutRes := word(errno)+131;
+       END
+     else
+     { This case is special }
+     if errno=ERROR_SHARING_VIOLATION THEN
+       BEGIN
+         InOutRes :=5;
+       END
+     else
+     { other error codes can directly be mapped }
+         InOutRes := Word(errno);
+     errno:=0;
+   end;
+
+
 {$ifdef dummy}
 procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
   is set this function must preserve esi !!!! because esi is set by
   the calling proc for methods it must preserve all registers !!
+
+  With a 2048 byte safe area used to write to StdIo without crossing
+  the stack boundary
+
 }
 begin
   asm
         pushl   %eax
         pushl   %ebx
         movl    stack_size,%ebx
+        addl    $2048,%ebx
         movl    %esp,%eax
         subl    %ebx,%eax
-{$ifdef SYSTEMDEBUG}
-        movl    U_SYSTEM_LOWESTSTACK,%ebx
-        cmpl    %eax,%ebx
-        jb      _is_not_lowest
-        movl    %eax,U_SYSTEM_LOWESTSTACK
-_is_not_lowest:
-{$endif SYSTEMDEBUG}
-        movl    __stkbottom,%ebx
+        movl    stacklimit,%ebx
         cmpl    %eax,%ebx
         jae     __short_on_stack
         popl    %ebx
@@ -267,7 +329,10 @@ procedure do_erase(p : pchar);
 begin
    AllowSlash(p);
    if DeleteFile(p)=0 then
-      inoutres:=GetLastError;
+    Begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
 end;
 
 
@@ -276,7 +341,10 @@ begin
   AllowSlash(p1);
   AllowSlash(p2);
   if MoveFile(p1,p2)=0 then
-   inoutres:=GetLastError;
+   Begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+   end;
 end;
 
 
@@ -285,7 +353,10 @@ var
    size:longint;
 begin
    if writefile(h,pointer(addr),len,size,nil)=0 then
-     inoutres:=GetLastError;
+    Begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
    do_write:=size;
 end;
 
@@ -295,7 +366,10 @@ var
   result:longint;
 begin
   if readfile(h,pointer(addr),len,result,nil)=0 then
-   inoutres:=GetLastError;
+    Begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
   do_read:=result;
 end;
 
@@ -308,7 +382,8 @@ begin
   if l=-1 then
    begin
     l:=0;
-    inoutres:=GetLastError;
+    errno:=GetLastError;
+    Errno2InoutRes;
    end;
   do_filepos:=l;
 end;
@@ -317,7 +392,10 @@ end;
 procedure do_seek(handle,pos : longint);
 begin
   if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
-   inoutres:=GetLastError;
+   Begin
+    errno:=GetLastError;
+    Errno2InoutRes;
+   end;
 end;
 
 
@@ -326,8 +404,8 @@ begin
   do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
   if do_seekend=-1 then
     begin
-       inoutres:=GetLastError;
-       do_seekend:=0;
+      errno:=GetLastError;
+      Errno2InoutRes;
     end;
 end;
 
@@ -346,7 +424,10 @@ procedure do_truncate (handle,pos:longint);
 begin
    do_seek(handle,pos);
    if not(SetEndOfFile(handle)) then
-     inoutres:=GetLastError;
+    begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
 end;
 
 
@@ -426,7 +507,10 @@ begin
    end;
 { get errors }
   if filerec(f).handle=0 then
-   inoutres:=GetLastError;
+    begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
 end;
 
 
@@ -481,7 +565,10 @@ begin
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
   if aFunc(@buffer)=0 then
-   inoutres:=GetLastError;
+    begin
+      errno:=GetLastError;
+      Errno2InoutRes;
+    end;
 end;
 
 function CreateDirectoryTrunc(name:pointer):word;
@@ -620,7 +707,27 @@ begin
    { that's all folks }
    ExitProcess(0);
 end;
+
+{$ifdef dummy}
+Function SetUpStack : longint;
+{ This routine does the following :                            }
+{  returns the value of the initial SP - __stklen              }
+begin
+  asm
+    pushl %ebx
+    pushl %eax
+    movl  __stklen,%ebx
+    movl  %esp,%eax
+    subl  %ebx,%eax
+    movl  %eax,__RESULT
+    popl  %eax
+    popl  %ebx
+  end;
+end;
+{$endif}
 {$ASMMODE ATT}
+
+
 
 
 begin
@@ -632,6 +739,8 @@ begin
   cmdshow:=startupinfo.wshowwindow;
 { to test stack depth }
   loweststack:=maxlongint;
+{ real test stack depth        }
+{   stacklimit := setupstack;  }
 { Setup heap }
 {$ifndef WinHeap}
   InitHeap;
@@ -647,11 +756,17 @@ begin
   setup_arguments;
 { Reset IO Error }
   InOutRes:=0;
+{ Reset internal error variable }
+  errno := 0;
 end.
 
 {
   $Log$
-  Revision 1.11  1998-07-02 12:33:18  carl
+  Revision 1.12  1998-07-07 12:37:28  carl
+    * correct mapping of error codes for TP compatibility
+    + implemented stack checking in ifdef dummy
+
+  Revision 1.11  1998/07/02 12:33:18  carl
     * IOCheck/InOutRes check for mkdir,rmdir and chdir like in TP
 
   Revision 1.10  1998/07/01 15:30:02  peter
