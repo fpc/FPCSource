@@ -1,5 +1,6 @@
 This is the interface unit for the gd library, version 1.8.4.
 The gd library is a library to produce graphics files (jpeg,png and wbmp)
+available from http://www.boutell.com/gd/.
 
 The gd unit is a straight translation of the library headers.
 It has some additional calls which make it more pascal like:
