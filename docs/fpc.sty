@@ -180,7 +180,7 @@
 %
 % Some versions
 %
-\newcommand{\fpcversion}{0.99.12}
+\newcommand{\fpcversion}{0.99.14}
 %
 % PDF support
 %
@@ -209,17 +209,6 @@
 \lstset{keywordstyle=\bfseries}%
 \lstset{blankstring=true}%
 %
-% PDF stuff
-%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\usepackage{times}
-\usepackage[T1]{fontenc}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\fi
-%
 % Page settings
 \setlength{\oddsidemargin}{20pt}
 \addtolength{\textwidth}{39pt}
@@ -231,5 +220,16 @@
 \addtolength{\headwidth}{\marginparsep}
 \addtolength{\headwidth}{\marginparwidth}
 \addtolength{\headwidth}{-59pt}
+%
+% PDF stuff
+%
+\ifpdf
+\usepackage[pdftex,bookmarks=true]{hyperref}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\pdfcompresslevel=9
+\pdfpagewidth=210mm
+\pdfpageheight=297mm
+\fi
 %
 % end of fpc.sty
