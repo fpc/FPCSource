@@ -175,6 +175,8 @@ unit cobjects;
           destructor  done;
           { true when the container is empty }
           function  empty:boolean;
+          { amount of strings in the container }
+          function  count:longint;
           { inserts a string }
           procedure insert(item:pcontaineritem);
           { gets a string }
@@ -906,6 +908,22 @@ end;
     function tcontainer.empty:boolean;
       begin
         empty:=(root=nil);
+      end;
+
+
+    function tcontainer.count:longint;
+      var
+        i : longint;
+        p : pcontaineritem;
+      begin
+        i:=0;
+        p:=root;
+        while assigned(p) do
+         begin
+           p:=p^.next;
+           inc(i);
+         end;
+        count:=i;
       end;
 
 
@@ -2393,7 +2411,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:38  michael
+  Revision 1.3  2000-08-02 19:49:58  peter
+    * first things for default parameters
+
+  Revision 1.2  2000/07/13 11:32:38  michael
   + removed logs
 
 }

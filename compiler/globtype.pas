@@ -129,7 +129,8 @@ interface
          m_initfinal,           { initialization/finalization for units }
          m_add_pointer,         { allow pointer add/sub operations }
          m_default_ansistring,  { ansistring turned on by default }
-         m_out                  { support the calling convention OUT }
+         m_out,                 { support the calling convention OUT }
+         m_default_para         { support default parameters }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -200,7 +201,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:25  michael
+  Revision 1.4  2000-08-02 19:49:59  peter
+    * first things for default parameters
+
+  Revision 1.3  2000/07/13 12:08:25  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:41  michael

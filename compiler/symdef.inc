@@ -2387,7 +2387,7 @@
       end;
 
 
-    procedure tabstractprocdef.concatpara(tt:ttype;vsp : tvarspez);
+    procedure tabstractprocdef.concatpara(tt:ttype;vsp : tvarspez;defval:psym);
       var
         hp : pparaitem;
       begin
@@ -2395,6 +2395,7 @@
         hp^.paratyp:=vsp;
         hp^.paratype:=tt;
         hp^.register:=R_NO;
+        hp^.defaultvalue:=defval;
         para^.insert(hp);
       end;
 
@@ -4187,10 +4188,13 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-08-02 19:49:59  peter
+    * first things for default parameters
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
- 
+
 }

@@ -95,6 +95,7 @@
           argconvtyp   : targconvtyp;
           convertlevel : byte;
           register     : tregister;
+          defaultvalue : psym; { pconstsym }
        end;
 
        tfiletyp = (ft_text,ft_typed,ft_untyped);
@@ -352,7 +353,7 @@
           destructor done;virtual;
           procedure  write;virtual;
           procedure deref;virtual;
-          procedure concatpara(tt:ttype;vsp : tvarspez);
+          procedure concatpara(tt:ttype;vsp : tvarspez;defval:psym);
           function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
           function  proccalloption2str : string;
@@ -534,10 +535,13 @@
 
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:27  michael
+  Revision 1.4  2000-08-02 19:49:59  peter
+    * first things for default parameters
+
+  Revision 1.3  2000/07/13 12:08:27  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
- 
+
 }

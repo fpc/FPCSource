@@ -275,7 +275,7 @@ implementation
                        hp2:=pparaitem(hp3^.para^.last);
                        while assigned(hp2) do
                          begin
-                            pprocvardef(p^.resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp);
+                            pprocvardef(p^.resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp,hp2^.defaultvalue);
                             hp2:=pparaitem(hp2^.previous);
                          end;
                     end
@@ -642,7 +642,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-08-02 19:49:59  peter
+    * first things for default parameters
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:52  michael

@@ -61,9 +61,77 @@ unit pdecl;
 {$else}
        ,hcodegen
 {$endif}
-
        ,hcgdata
        ;
+
+
+    function readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
+      var
+        hp : pconstsym;
+        p : ptree;
+        ps : pconstset;
+        pd : pbestreal;
+        sp : pchar;
+        storetokenpos : tfileposinfo;
+      begin
+        readconstant:=nil;
+        if name='' then
+         internalerror(9584582);
+        hp:=nil;
+        p:=comp_expr(true);
+        do_firstpass(p);
+        storetokenpos:=tokenpos;
+        tokenpos:=filepos;
+        case p^.treetype of
+           ordconstn:
+             begin
+                if is_constintnode(p) then
+                  hp:=new(pconstsym,init_def(name,constint,p^.value,nil))
+                else if is_constcharnode(p) then
+                  hp:=new(pconstsym,init_def(name,constchar,p^.value,nil))
+                else if is_constboolnode(p) then
+                  hp:=new(pconstsym,init_def(name,constbool,p^.value,nil))
+                else if p^.resulttype^.deftype=enumdef then
+                  hp:=new(pconstsym,init_def(name,constord,p^.value,p^.resulttype))
+                else if p^.resulttype^.deftype=pointerdef then
+                  hp:=new(pconstsym,init_def(name,constord,p^.value,p^.resulttype))
+                else internalerror(111);
+             end;
+           stringconstn:
+             begin
+                getmem(sp,p^.length+1);
+                move(p^.value_str^,sp^,p^.length+1);
+                hp:=new(pconstsym,init_string(name,conststring,sp,p^.length));
+             end;
+           realconstn :
+             begin
+                new(pd);
+                pd^:=p^.value_real;
+                hp:=new(pconstsym,init(name,constreal,longint(pd)));
+             end;
+           setconstn :
+             begin
+               new(ps);
+               ps^:=p^.value_set^;
+               hp:=new(pconstsym,init_def(name,constset,longint(ps),p^.resulttype));
+             end;
+           pointerconstn :
+             begin
+               hp:=new(pconstsym,init_def(name,constpointer,p^.value,p^.resulttype));
+             end;
+           niln :
+             begin
+               hp:=new(pconstsym,init_def(name,constnil,0,p^.resulttype));
+             end;
+           else
+             Message(cg_e_illegal_expression);
+        end;
+        if assigned(hp) then
+         symtablestack^.insert(hp);
+        tokenpos:=storetokenpos;
+        disposetree(p);
+        readconstant:=hp;
+      end;
 
 
     procedure parameter_dec(aktprocdef:pabstractprocdef);
@@ -74,6 +142,7 @@ unit pdecl;
         is_procvar : boolean;
         sc      : Pstringcontainer;
         s       : string;
+        hpos,
         storetokenpos : tfileposinfo;
         tt      : ttype;
         hvs,
@@ -81,7 +150,11 @@ unit pdecl;
         hs1,hs2 : string;
         varspez : Tvarspez;
         inserthigh : boolean;
+        pdefaultvalue : pconstsym;
+        defaultrequired : boolean;
       begin
+        { reset }
+        defaultrequired:=false;
         { parsing a proc or procvar ? }
         is_procvar:=(aktprocdef^.deftype=procvardef);
         consume(_LKLAMMER);
@@ -98,6 +171,7 @@ unit pdecl;
           else
               varspez:=vs_value;
           inserthigh:=false;
+          pdefaultvalue:=nil;
           tt.reset;
           { self is only allowed in procvars and class methods }
           if (idtoken=_SELF) and
@@ -121,7 +195,7 @@ unit pdecl;
               consume(idtoken);
               consume(_COLON);
               single_type(tt,hs1,false);
-              aktprocdef^.concatpara(tt,vs_value);
+              aktprocdef^.concatpara(tt,vs_value,nil);
               { check the types for procedures only }
               if not is_procvar then
                CheckTypes(tt.def,procinfo^._class);
@@ -164,24 +238,48 @@ unit pdecl;
                       end;
                      inserthigh:=true;
                    end
-                  { open string ? }
-                  else if (varspez=vs_var) and
-                          (
-                            (
-                              ((token=_STRING) or (idtoken=_SHORTSTRING)) and
-                              (cs_openstring in aktmoduleswitches) and
-                              not(cs_ansistrings in aktlocalswitches)
-                            ) or
-                          (idtoken=_OPENSTRING)) then
-                   begin
-                     consume(token);
-                     tt.setdef(openshortstringdef);
-                     hs1:='openstring';
-                     inserthigh:=true;
-                   end
-                  { everything else }
                   else
-                   single_type(tt,hs1,false);
+                   begin
+                     { open string ? }
+                     if (varspez=vs_var) and
+                             (
+                               (
+                                 ((token=_STRING) or (idtoken=_SHORTSTRING)) and
+                                 (cs_openstring in aktmoduleswitches) and
+                                 not(cs_ansistrings in aktlocalswitches)
+                               ) or
+                             (idtoken=_OPENSTRING)) then
+                      begin
+                        consume(token);
+                        tt.setdef(openshortstringdef);
+                        hs1:='openstring';
+                        inserthigh:=true;
+                      end
+                     else
+                      begin
+                        { everything else }
+                        single_type(tt,hs1,false);
+                      end;
+                     { default parameter }
+                     if (m_default_para in aktmodeswitches) then
+                      begin
+                        if try_to_consume(_EQUAL) then
+                         begin
+                           s:=sc^.get_with_tokeninfo(hpos);
+                           if not sc^.empty then
+                            Comment(V_Error,'default value only allowed for one parameter');
+                           sc^.insert_with_tokeninfo(s,hpos);
+                           s:=lower(aktprocsym^.name+'.'+s);
+                           pdefaultvalue:=ReadConstant(s,hpos);
+                           defaultrequired:=true;
+                         end
+                        else
+                         begin
+                           if defaultrequired then
+                            Comment(V_Error,'default parameter required');
+                         end;
+                      end;
+                   end;
                 end
                else
                 begin
@@ -198,7 +296,7 @@ unit pdecl;
                while not sc^.empty do
                 begin
                   s:=sc^.get_with_tokeninfo(tokenpos);
-                  aktprocdef^.concatpara(tt,varspez);
+                  aktprocdef^.concatpara(tt,varspez,pdefaultvalue);
                   { For proc vars we only need the definitions }
                   if not is_procvar then
                    begin
@@ -722,14 +820,10 @@ unit pdecl;
     procedure const_dec;
       var
          name : stringid;
-         p : ptree;
          tt  : ttype;
          sym : psym;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
-         ps : pconstset;
-         pd : pbestreal;
-         sp : pchar;
          skipequal : boolean;
       begin
          consume(_CONST);
@@ -744,57 +838,8 @@ unit pdecl;
              _EQUAL:
                 begin
                    consume(_EQUAL);
-                   p:=comp_expr(true);
-                   do_firstpass(p);
-                   storetokenpos:=tokenpos;
-                   tokenpos:=filepos;
-                   case p^.treetype of
-                      ordconstn:
-                        begin
-                           if is_constintnode(p) then
-                             symtablestack^.insert(new(pconstsym,init_def(name,constint,p^.value,nil)))
-                           else if is_constcharnode(p) then
-                             symtablestack^.insert(new(pconstsym,init_def(name,constchar,p^.value,nil)))
-                           else if is_constboolnode(p) then
-                             symtablestack^.insert(new(pconstsym,init_def(name,constbool,p^.value,nil)))
-                           else if p^.resulttype^.deftype=enumdef then
-                             symtablestack^.insert(new(pconstsym,init_def(name,constord,p^.value,p^.resulttype)))
-                           else if p^.resulttype^.deftype=pointerdef then
-                             symtablestack^.insert(new(pconstsym,init_def(name,constord,p^.value,p^.resulttype)))
-                           else internalerror(111);
-                        end;
-                      stringconstn:
-                        begin
-                           getmem(sp,p^.length+1);
-                           move(p^.value_str^,sp^,p^.length+1);
-                           symtablestack^.insert(new(pconstsym,init_string(name,conststring,sp,p^.length)));
-                        end;
-                      realconstn :
-                        begin
-                           new(pd);
-                           pd^:=p^.value_real;
-                           symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd))));
-                        end;
-                      setconstn :
-                        begin
-                          new(ps);
-                          ps^:=p^.value_set^;
-                          symtablestack^.insert(new(pconstsym,init_def(name,constset,longint(ps),p^.resulttype)));
-                        end;
-                      pointerconstn :
-                        begin
-                          symtablestack^.insert(new(pconstsym,init_def(name,constpointer,p^.value,p^.resulttype)))
-                        end;
-                      niln :
-                        begin
-                          symtablestack^.insert(new(pconstsym,init_def(name,constnil,0,p^.resulttype)));
-                        end;
-                      else
-                        Message(cg_e_illegal_expression);
-                   end;
-                   tokenpos:=storetokenpos;
+                   readconstant(name,filepos);
                    consume(_SEMICOLON);
-                   disposetree(p);
                 end;
 
              _COLON:
@@ -1228,7 +1273,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.5  2000-07-30 17:04:43  peter
+  Revision 1.6  2000-08-02 19:49:59  peter
+    * first things for default parameters
+
+  Revision 1.5  2000/07/30 17:04:43  peter
     * merged fixes
 
   Revision 1.4  2000/07/14 05:11:49  michael
