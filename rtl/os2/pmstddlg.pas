@@ -1,9 +1,46 @@
-unit pmstddlg;
+{****************************************************************************
+
+    $Id$
+
+                          PMSTDDLG interface unit
+                     FPC Pascal Runtime Library for OS/2
+                   Copyright (c) 1999-2000 by Florian Klaempfl
+                    Copyright (c) 2002 by Yuri Prokushev
+
+ The Free Pascal runtime library is distributed under the Library GNU Public
+ License v2. So is this unit. The Library GNU Public License requires you to
+ distribute the source code of this unit with any product that uses it.
+ Because the EMX library isn't under the LGPL, we grant you an exception to
+ this, and that is, when you compile a program with the Free Pascal Compiler,
+ you do not need to ship source code with that program, AS LONG AS YOU ARE
+ USING UNMODIFIED CODE! If you modify this code, you MUST change the next
+ line:
+
+ <This an unofficial, modified Free Pascal source code file.>
+
+ Send us your modified files, we can work together if you want!
+
+ Free Pascal is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ Library GNU General Public License for more details.
+
+ You should have received a copy of the Library GNU General Public License
+ along with Free Pascal; see the file COPYING.LIB.  If not, write to
+ the Free Software Foundation, 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.
+
+ ****************************************************************************}
+
+{Warning: This code is alfa. Future versions of this unit will propably
+ not be compatible.}
+ 
+unit PMStdDlg;
 
   interface
   
     uses
-       os2def,bsedos,pmwin,pmgpi;
+       os2def,doscalls,pmwin,pmgpi;
 
     const
        FDS_CENTER = $00000001;
@@ -39,41 +76,41 @@ unit pmstddlg;
        FDM_ERROR = WM_USER+42;
 
     type
-       APSZ = array[0..0] of PSZ;
+       APSZ = array [0..0] of PChar;
 
        PAPSZ = ^APSZ;
 
-       FILEDLG = record
-          cbSize : ULONG;
-          fl : ULONG;
-          ulUser : ULONG;
-          lReturn : LONG;
-          lSRC : LONG;
-          pszTitle : PSZ;
-          pszOKButton : PSZ;
-          pfnDlgProc : PFNWP;
-          pszIType : PSZ;
+       FileDlg = record
+          cbSize : cardinal;
+          fl : cardinal;
+          ulUser : cardinal;
+          lReturn : longint;
+          lSRC : longint;
+          pszTitle : PChar;
+          pszOKButton : PChar;
+          pfnDlgProc : Pointer;
+          pszIType : PChar;
           papszITypeList : PAPSZ;
-          pszIDrive : PSZ;
+          pszIDrive : PChar;
           papszIDriveList : PAPSZ;
-          hMod : HMODULE;
-          szFullFile : array[0..CCHMAXPATH-1] of CHAR;
+          hMod : cardinal;
+          szFullFile : array [0..MaxPathLength-1] of char;
           papszFQFilename : PAPSZ;
-          ulFQFCount : ULONG;
-          usDlgId : USHORT;
-          x : SHORT;
-          y : SHORT;
-          sEAType : SHORT;
+          ulFQFCount : cardinal;
+          usDlgId : word;
+          x : integer;
+          y : integer;
+          sEAType : integer;
        end;
 
-       PFILEDLG = ^FILEDLG;
+       PFileDlg = ^FileDlg;
 
 
-    function WinFileDlg(hwndP : HWND;hwndO : HWND;pfild : PFILEDLG) : HWND;
+    function WinFileDlg (hwndP: HWnd; hwndO: HWnd; pfild: PFileDlg) : HWnd; cdecl;
 
-    function WinDefFileDlgProc(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;
+    function WinDefFileDlgProc (hwnd : HWnd;msg : cardinal;mp1 : MPARAM;mp2 : MPARAM) : MRESULT; cdecl;
 
-    function WinFreeFileDlgList(papszFQFilename : PAPSZ) : BOOL;
+    function WinFreeFileDlgList(papszFQFilename : PAPSZ) : Longbool; cdecl;
 
     const
        DID_FILE_DIALOG = 256;
@@ -140,43 +177,43 @@ unit pmstddlg;
        IDS_FILE_OK_WHEN_READY = 1128;
 
     type
-       FONTDLG = record
-          cbSize : ULONG;
+       FontDlg = record
+          cbSize : cardinal;
           hpsScreen : HPS;
           hpsPrinter : HPS;
-          pszTitle : PSZ;
-          pszPreview : PSZ;
-          pszPtSizeList : PSZ;
-          pfnDlgProc : PFNWP;
-          pszFamilyname : PSZ;
-          fxPointSize : FIXED;
-          fl : ULONG;
-          flFlags : ULONG;
-          flType : ULONG;
-          flTypeMask : ULONG;
-          flStyle : ULONG;
-          flStyleMask : ULONG;
-          clrFore : LONG;
-          clrBack : LONG;
-          ulUser : ULONG;
-          lReturn : LONG;
-          lSRC : LONG;
-          lEmHeight : LONG;
-          lXHeight : LONG;
-          lExternalLeading : LONG;
-          hMod : HMODULE;
-          fAttrs : FATTRS;
-          sNominalPointSize : SHORT;
-          usWeight : USHORT;
-          usWidth : USHORT;
-          x : SHORT;
-          y : SHORT;
-          usDlgId : USHORT;
-          usFamilyBufLen : USHORT;
-          usReserved : USHORT;
+          pszTitle : PChar;
+          pszPreview : PChar;
+          pszPtSizeList : PChar;
+          pfnDlgProc : Pointer;
+          pszFamilyname : PChar;
+          fxPointSize : longint;
+          fl : cardinal;
+          flFlags : cardinal;
+          flType : cardinal;
+          flTypeMask : cardinal;
+          flStyle : cardinal;
+          flStyleMask : cardinal;
+          clrFore : longint;
+          clrBack : longint;
+          ulUser : cardinal;
+          lReturn : longint;
+          lSRC : longint;
+          lEmHeight : longint;
+          lXHeight : longint;
+          lExternalLeading : longint;
+          hMod : cardinal;
+          _fAttrs : FATTRS;
+          sNominalPointSize : integer;
+          usWeight : word;
+          usWidth : word;
+          x : integer;
+          y : integer;
+          usDlgId : word;
+          usFamilyBufLen : word;
+          usReserved : word;
        end;
 
-       PFONTDLG = ^FONTDLG;
+       PFontDlg = ^FontDlg;
 
     const
        FNTS_CENTER = $00000001;
@@ -222,27 +259,27 @@ unit pmstddlg;
        FNTM_FILTERLIST = WM_USER+55;
 
     type
-       STYLECHANGE = record
-          usWeight : USHORT;
-          usWeightOld : USHORT;
-          usWidth : USHORT;
-          usWidthOld : USHORT;
-          flType : ULONG;
-          flTypeOld : ULONG;
-          flTypeMask : ULONG;
-          flTypeMaskOld : ULONG;
-          flStyle : ULONG;
-          flStyleOld : ULONG;
-          flStyleMask : ULONG;
-          flStyleMaskOld : ULONG;
+       StyleChange = record
+          usWeight : word;
+          usWeightOld : word;
+          usWidth : word;
+          usWidthOld : word;
+          flType : cardinal;
+          flTypeOld : cardinal;
+          flTypeMask : cardinal;
+          flTypeMaskOld : cardinal;
+          flStyle : cardinal;
+          flStyleOld : cardinal;
+          flStyleMask : cardinal;
+          flStyleMaskOld : cardinal;
        end;
 
-       PSTYLECHANGE = ^STYLECHANGE;
+       PStyleChange = ^StyleChange;
 
 
-    function WinFontDlg(hwndP : HWND;hwndO : HWND;pfntd : PFONTDLG) : HWND;
+    function WinFontDlg(hwndP : HWnd;hwndO : HWnd;pfntd : PFontDlg) : HWnd; cdecl;
 
-    function WinDefFontDlgProc(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;
+    function WinDefFontDlgProc(_hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
 
     const
        DID_FONT_DIALOG = 300;
@@ -413,142 +450,142 @@ unit pmstddlg;
        DFF_DELETE = 3;
 
     type
-       HSTR = LHANDLE;
+       HStr = cardinal;
 
-       DRAGITEM = record
-          hwndItem : HWND;
-          ulItemID : ULONG;
-          hstrType : HSTR;
-          hstrRMF : HSTR;
-          hstrContainerName : HSTR;
-          hstrSourceName : HSTR;
-          hstrTargetName : HSTR;
-          cxOffset : SHORT;
-          cyOffset : SHORT;
-          fsControl : USHORT;
-          fsSupportedOps : USHORT;
+       DragItem = record
+          hwndItem : HWnd;
+          ulItemID : cardinal;
+          hstrType : HStr;
+          hstrRMF : HStr;
+          hstrContainerName : HStr;
+          hstrSourceName : HStr;
+          hstrTargetName : HStr;
+          cxOffset : integer;
+          cyOffset : integer;
+          fsControl : word;
+          fsSupportedOps : word;
        end;
 
-       PDRAGITEM = ^DRAGITEM;
+       PDragItem = ^DragItem;
 
-       DRAGINFO = record
-          cbDraginfo : ULONG;
-          cbDragitem : USHORT;
-          usOperation : USHORT;
-          hwndSource : HWND;
-          xDrop : SHORT;
-          yDrop : SHORT;
-          cditem : USHORT;
-          usReserved : USHORT;
+       DragInfo = record
+          cbDraginfo : cardinal;
+          cbDragitem : word;
+          usOperation : word;
+          hwndSource : HWnd;
+          xDrop : integer;
+          yDrop : integer;
+          cditem : word;
+          usReserved : word;
        end;
 
-       PDRAGINFO = ^DRAGINFO;
+       PDragInfo = ^DragInfo;
 
-       DRAGIMAGE = record
-          cb : USHORT;
-          cptl : USHORT;
-          hImage : LHANDLE;
-          sizlStretch : SIZEL;
-          fl : ULONG;
-          cxOffset : SHORT;
-          cyOffset : SHORT;
+       DragImage = record
+          cb : word;
+          cptl : word;
+          hImage : cardinal;
+          sizlStretch : SizeL;
+          fl : cardinal;
+          cxOffset : integer;
+          cyOffset : integer;
        end;
 
-       PDRAGIMAGE = ^DRAGIMAGE;
+       PDragImage = ^DragImage;
 
-       DRAGTRANSFER = record
-          cb : ULONG;
-          hwndClient : HWND;
-          pditem : PDRAGITEM;
-          hstrSelectedRMF : HSTR;
-          hstrRenderToName : HSTR;
-          ulTargetInfo : ULONG;
-          usOperation : USHORT;
-          fsReply : USHORT;
+       DragTransfer = record
+          cb : cardinal;
+          hwndClient : HWnd;
+          pditem : PDragItem;
+          hstrSelectedRMF : HStr;
+          hstrRenderToName : HStr;
+          ulTargetInfo : cardinal;
+          usOperation : word;
+          fsReply : word;
        end;
 
-       PDRAGTRANSFER = ^DRAGTRANSFER;
+       PDragTransfer = ^DragTransfer;
 
-       RENDERFILE = record
-          hwndDragFiles : HWND;
-          hstrSource : HSTR;
-          hstrTarget : HSTR;
-          fMove : USHORT;
-          usRsvd : USHORT;
+       RenderFile = record
+          hwndDragFiles : HWnd;
+          hstrSource : HStr;
+          hstrTarget : HStr;
+          fMove : word;
+          usRsvd : word;
        end;
 
-       PRENDERFILE = ^RENDERFILE;
+       PRenderFile = ^RenderFile;
 
 
-    function DrgAcceptDroppedFiles(hwnd : HWND;pszPath : PSZ;pszTypes : PSZ;ulDefaultOp : ULONG;ulRsvd : ULONG) : BOOL;
+    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PChar;pszTypes : PChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
 
-    function DrgAllocDraginfo(cditem : ULONG) : PDRAGINFO;
+    function DrgAllocDraginfo(cditem : cardinal) : PDragInfo; cdecl;
 
-    function DrgAllocDragtransfer(cdxfer : ULONG) : PDRAGTRANSFER;
+    function DrgAllocDragtransfer(cdxfer : cardinal) : PDragTransfer; cdecl;
 
-    function DrgDrag(hwndSource : HWND;pdinfo : PDRAGINFO;pdimg : PDRAGIMAGE;cdimg : ULONG;vkTerminate : LONG;pRsvd : PVOID) : HWND;
+    function DrgDrag(hwndSource : HWnd;pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal;vkTerminate : longint; var pRsvd) : HWnd; cdecl;
 
     type
-       PPSZ = ^PSZ;
+       PPSZ = ^PChar;
 
 
-    function DrgDragFiles(hwnd : HWND;apszFiles : PPSZ;apszTypes : PPSZ;apszTargets : PPSZ;cFiles : ULONG;hptrDrag : HPOINTER;vkTerm : ULONG;fSourceRender : BOOL;ulRsvd : ULONG) : BOOL;
+    function DrgDragFiles(hwnd : HWnd;apszFiles : PPSZ;apszTypes : PPSZ;apszTargets : PPSZ;cFiles : cardinal;hptrDrag : cardinal;vkTerm : cardinal;fSourceRender : Longbool;ulRsvd : cardinal) : Longbool; cdecl;
 
-    function DrgPostTransferMsg(hwnd : HWND;msg : ULONG;pdxfer : PDRAGTRANSFER;fl : ULONG;ulRsvd : ULONG;fRetry : BOOL) : BOOL;
+    function DrgPostTransferMsg(hwnd : HWnd;msg : cardinal;pdxfer : PDragTransfer;fl : cardinal;ulRsvd : cardinal;fRetry : Longbool) : Longbool; cdecl;
 
-    function DrgQueryDragitem(pdinfo : PDRAGINFO;cbBuffer : ULONG;pditem : PDRAGITEM;iItem : ULONG) : BOOL;
+    function DrgQueryDragitem(pdinfo : PDragInfo;cbBuffer : cardinal;pditem : PDragItem;iItem : cardinal) : Longbool; cdecl;
 
-    function DrgQueryDragitemCount(pdinfo : PDRAGINFO) : ULONG;
+    function DrgQueryDragitemCount(pdinfo : PDragInfo) : cardinal; cdecl;
 
-    function DrgQueryDragitemPtr(pdinfo : PDRAGINFO;i : ULONG) : PDRAGITEM;
+    function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl;
 
-    function DrgQueryNativeRMF(pditem : PDRAGITEM;cbBuffer : ULONG;pBuffer : PCHAR) : BOOL;
+    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
 
-    function DrgQueryNativeRMFLen(pditem : PDRAGITEM) : ULONG;
+    function DrgQueryNativeRMFLen(pditem : PDragItem) : cardinal; cdecl;
 
-    function DrgQueryStrName(hstr : HSTR;cbBuffer : ULONG;pBuffer : PSZ) : ULONG;
+    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PChar) : cardinal; cdecl;
 
-    function DrgQueryStrNameLen(hstr : HSTR) : ULONG;
+    function DrgQueryStrNameLen(hstr : HStr) : cardinal; cdecl;
 
-    function DrgQueryTrueType(pditem : PDRAGITEM;cbBuffer : ULONG;pBuffer : PSZ) : BOOL;
+    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
 
-    function DrgQueryTrueTypeLen(pditem : PDRAGITEM) : ULONG;
+    function DrgQueryTrueTypeLen(pditem : PDragItem) : cardinal; cdecl;
 
-    function DrgSendTransferMsg(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;
+    function DrgSendTransferMsg(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
 
-    function DrgSetDragitem(pdinfo : PDRAGINFO;pditem : PDRAGITEM;cbBuffer : ULONG;iItem : ULONG) : BOOL;
+    function DrgSetDragitem(pdinfo : PDragInfo;pditem : PDragItem;cbBuffer : cardinal;iItem : cardinal) : Longbool; cdecl;
 
-    function DrgSetDragImage(pdinfo : PDRAGINFO;pdimg : PDRAGIMAGE;cdimg : ULONG;pRsvd : PVOID) : BOOL;
+    function DrgSetDragImage(pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal; var pRsvd) : Longbool; cdecl;
 
-    function DrgVerifyTypeSet(pditem : PDRAGITEM;pszType : PSZ;cbMatch : ULONG;pszMatch : PSZ) : BOOL;
+    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PChar;cbMatch : cardinal;pszMatch : PChar) : Longbool; cdecl;
 
-    function DrgAccessDraginfo(pdinfo : PDRAGINFO) : BOOL;
+    function DrgAccessDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
 
-    function DrgAddStrHandle(psz : PSZ) : HSTR;
+    function DrgAddStrHandle(psz : PChar) : HStr; cdecl;
 
-    function DrgDeleteDraginfoStrHandles(pdinfo : PDRAGINFO) : BOOL;
+    function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl;
 
-    function DrgDeleteStrHandle(hstr : HSTR) : BOOL;
+    function DrgDeleteStrHandle(hstr : HStr) : Longbool; cdecl;
 
-    function DrgFreeDraginfo(pdinfo : PDRAGINFO) : BOOL;
+    function DrgFreeDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
 
-    function DrgFreeDragtransfer(pdxfer : PDRAGTRANSFER) : BOOL;
+    function DrgFreeDragtransfer(pdxfer : PDragTransfer) : Longbool; cdecl;
 
-    function DrgGetPS(hwnd : HWND) : HPS;
+    function DrgGetPS(hwnd : HWnd) : HPS; cdecl;
 
-    function DrgPushDraginfo(pdinfo : PDRAGINFO;hwndDest : HWND) : BOOL;
+    function DrgPushDraginfo(pdinfo : PDragInfo;hwndDest : HWnd) : Longbool; cdecl;
 
-    function DrgReleasePS(hps : HPS) : BOOL;
+    function DrgReleasePS(hps : HPS) : Longbool; cdecl;
 
-    function DrgSetDragPointer(pdinfo : PDRAGINFO;hptr : HPOINTER) : BOOL;
+    function DrgSetDragPointer(pdinfo : PDragInfo;hptr : cardinal) : Longbool; cdecl;
 
-    function DrgVerifyNativeRMF(pditem : PDRAGITEM;pszRMF : PSZ) : BOOL;
+    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PChar) : Longbool; cdecl;
 
-    function DrgVerifyRMF(pditem : PDRAGITEM;pszMech : PSZ;pszFmt : PSZ) : BOOL;
+    function DrgVerifyRMF(pditem : PDragItem;pszMech : PChar;pszFmt : PChar) : Longbool; cdecl;
 
-    function DrgVerifyTrueType(pditem : PDRAGITEM;pszType : PSZ) : BOOL;
+    function DrgVerifyTrueType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
 
-    function DrgVerifyType(pditem : PDRAGITEM;pszType : PSZ) : BOOL;
+    function DrgVerifyType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
 
     const
        PMERR_NOFILTERED_ITEMS = $1f02;
@@ -595,98 +632,98 @@ unit pmstddlg;
        CID_MLE = $7FFA;
 
     type
-       TREEITEMDESC = record
-          hbmExpanded : HBITMAP;
-          hbmCollapsed : HBITMAP;
-          hptrExpanded : HPOINTER;
-          hptrCollapsed : HPOINTER;
+       TreeItemDesc = record
+          hbmExpanded : HBitmap;
+          hbmCollapsed : HBitmap;
+          hptrExpanded : cardinal;
+          hptrCollapsed : cardinal;
        end;
 
-       PTREEITEMDESC = ^TREEITEMDESC;
+       PTreeItemDesc = ^TreeItemDesc;
 
-       PFIELDINFO = ^FIELDINFO;
+       PFieldInfo = ^FieldInfo;
 
-       FIELDINFO = record
-          cb : ULONG;
-          flData : ULONG;
-          flTitle : ULONG;
-          pTitleData : PVOID;
-          offStruct : ULONG;
-          pUserData : PVOID;
-          pNextFieldInfo : PFIELDINFO;
-          cxWidth : ULONG;
+       FieldInfo = record
+          cb : cardinal;
+          flData : cardinal;
+          flTitle : cardinal;
+          pTitleData : Pointer;
+          offStruct : cardinal;
+          pUserData : Pointer;
+          pNextFieldInfo : PFieldInfo;
+          cxWidth : cardinal;
        end;
 
-       PRECORDCORE = ^RECORDCORE;
+       PRecordCore = ^RecordCore;
 
-       RECORDCORE = record
-          cb : ULONG;
-          flRecordAttr : ULONG;
-          ptlIcon : POINTL;
-          preccNextRecord : PRECORDCORE;
-          pszIcon : PSZ;
-          hptrIcon : HPOINTER;
-          hptrMiniIcon : HPOINTER;
-          hbmBitmap : HBITMAP;
-          hbmMiniBitmap : HBITMAP;
-          pTreeItemDesc : PTREEITEMDESC;
-          pszText : PSZ;
-          pszName : PSZ;
-          pszTree : PSZ;
+       RecordCore = record
+          cb : cardinal;
+          flRecordAttr : cardinal;
+          ptlIcon : PointL;
+          preccNextRecord : PRecordCore;
+          pszIcon : PChar;
+          hptrIcon : cardinal;
+          hptrMiniIcon : cardinal;
+          hbmBitmap : HBitmap;
+          hbmMiniBitmap : HBitmap;
+          pTreeItemDesc : PTreeItemDesc;
+          pszText : PChar;
+          pszName : PChar;
+          pszTree : PChar;
        end;
 
-       PMINIRECORDCORE = ^MINIRECORDCORE;
+       PMiniRecordCore = ^MiniRecordCore;
 
        MINIRECORDCORE = record
-          cb : ULONG;
-          flRecordAttr : ULONG;
-          ptlIcon : POINTL;
-          preccNextRecord : PMINIRECORDCORE;
-          pszIcon : PSZ;
-          hptrIcon : HPOINTER;
+          cb : cardinal;
+          flRecordAttr : cardinal;
+          ptlIcon : PointL;
+          preccNextRecord : PMiniRecordCore;
+          pszIcon : PChar;
+          hptrIcon : cardinal;
        end;
 
-       CNRINFO = record
-          cb : ULONG;
-          pSortRecord : PVOID;
-          pFieldInfoLast : PFIELDINFO;
-          pFieldInfoObject : PFIELDINFO;
-          pszCnrTitle : PSZ;
-          flWindowAttr : ULONG;
-          ptlOrigin : POINTL;
-          cDelta : ULONG;
-          cRecords : ULONG;
-          slBitmapOrIcon : SIZEL;
-          slTreeBitmapOrIcon : SIZEL;
-          hbmExpanded : HBITMAP;
-          hbmCollapsed : HBITMAP;
-          hptrExpanded : HPOINTER;
-          hptrCollapsed : HPOINTER;
-          cyLineSpacing : LONG;
-          cxTreeIndent : LONG;
-          cxTreeLine : LONG;
-          cFields : ULONG;
-          xVertSplitbar : LONG;
+       CNRInfo = record
+          cb : cardinal;
+          pSortRecord : Pointer;
+          pFieldInfoLast : PFieldInfo;
+          pFieldInfoObject : PFieldInfo;
+          pszCnrTitle : PChar;
+          flWindowAttr : cardinal;
+          ptlOrigin : PointL;
+          cDelta : cardinal;
+          cRecords : cardinal;
+          slBitmapOrIcon : SizeL;
+          slTreeBitmapOrIcon : SizeL;
+          hbmExpanded : HBitmap;
+          hbmCollapsed : HBitmap;
+          hptrExpanded : cardinal;
+          hptrCollapsed : cardinal;
+          cyLineSpacing : longint;
+          cxTreeIndent : longint;
+          cxTreeLine : longint;
+          cFields : cardinal;
+          xVertSplitbar : longint;
        end;
 
-       PCNRINFO = ^CNRINFO;
+       PCNRInfo = ^CNRInfo;
 
-       CDATE = record
-          day : UCHAR;
-          month : UCHAR;
-          year : USHORT;
+       CDate = record
+          day : Byte;
+          month : Byte;
+          year : word;
        end;
 
-       PCDATE = ^CDATE;
+       PCDate = ^CDate;
 
-       CTIME = record
-          hours : UCHAR;
-          minutes : UCHAR;
-          seconds : UCHAR;
-          ucReserved : UCHAR;
+       CTime = record
+          hours : Byte;
+          minutes : Byte;
+          seconds : Byte;
+          ucReserved : Byte;
        end;
 
-       PCTIME = ^CTIME;
+       PCTime = ^CTime;
 
     const
        CFA_LEFT = $00000001;
@@ -769,129 +806,129 @@ unit pmstddlg;
        CN_CONTEXTMENU = 119;
 
     type
-       CNRDRAGINIT = record
-          hwndCnr : HWND;
-          pRecord : PRECORDCORE;
-          x : LONG;
-          y : LONG;
-          cx : LONG;
-          cy : LONG;
+       CNRDragInit = record
+          hwndCnr : HWnd;
+          pRecord : PRecordCore;
+          x : longint;
+          y : longint;
+          cx : longint;
+          cy : longint;
        end;
 
-       PCNRDRAGINIT = ^CNRDRAGINIT;
+       PCNRDragInit = ^CNRDragInit;
 
-       FIELDINFOINSERT = record
-          cb : ULONG;
-          pFieldInfoOrder : PFIELDINFO;
-          fInvalidateFieldInfo : ULONG;
-          cFieldInfoInsert : ULONG;
+       FieldInfoInsert = record
+          cb : cardinal;
+          pFieldInfoOrder : PFieldInfo;
+          fInvalidateFieldInfo : cardinal;
+          cFieldInfoInsert : cardinal;
        end;
 
-       PFIELDINFOINSERT = ^FIELDINFOINSERT;
+       PFieldInfoInsert = ^FieldInfoInsert;
 
-       RECORDINSERT = record
-          cb : ULONG;
-          pRecordOrder : PRECORDCORE;
-          pRecordParent : PRECORDCORE;
-          fInvalidateRecord : ULONG;
-          zOrder : ULONG;
-          cRecordsInsert : ULONG;
+       RecordInsert = record
+          cb : cardinal;
+          pRecordOrder : PRecordCore;
+          pRecordParent : PRecordCore;
+          fInvalidateRecord : cardinal;
+          zOrder : cardinal;
+          cRecordsInsert : cardinal;
        end;
 
-       PRECORDINSERT = ^RECORDINSERT;
+       PRecordInsert = ^RecordInsert;
 
-       QUERYRECFROMRECT = record
-          cb : ULONG;
-          rect : RECTL;
-          fsSearch : ULONG;
+       QueryRecFromRect = record
+          cb : cardinal;
+          rect : RectL;
+          fsSearch : cardinal;
        end;
 
-       PQUERYRECFROMRECT = ^QUERYRECFROMRECT;
+       PQueryRecFromRect = ^QueryRecFromRect;
 
-       QUERYRECORDRECT = record
-          cb : ULONG;
-          pRecord : PRECORDCORE;
-          fRightSplitWindow : ULONG;
-          fsExtent : ULONG;
+       QueryRecordRect = record
+          cb : cardinal;
+          pRecord : PRecordCore;
+          fRightSplitWindow : cardinal;
+          fsExtent : cardinal;
        end;
 
-       PQUERYRECORDRECT = ^QUERYRECORDRECT;
+       PQueryRecordRect = ^QueryRecordRect;
 
-       SEARCHSTRING = record
-          cb : ULONG;
-          pszSearch : PSZ;
-          fsPrefix : ULONG;
-          fsCaseSensitive : ULONG;
-          usView : ULONG;
+       SearchString = record
+          cb : cardinal;
+          pszSearch : PChar;
+          fsPrefix : cardinal;
+          fsCaseSensitive : cardinal;
+          usView : cardinal;
        end;
 
-       PSEARCHSTRING = ^SEARCHSTRING;
+       PSearchString = ^SearchString;
 
-       CNRDRAGINFO = record
-          pDragInfo : PDRAGINFO;
-          pRecord : PRECORDCORE;
+       CNRDragInfo = record
+          pDragInfo : PDragInfo;
+          pRecord : PRecordCore;
        end;
 
-       PCNRDRAGINFO = ^CNRDRAGINFO;
+       PCNRDragInfo = ^CNRDragInfo;
 
-       NOTIFYRECORDEMPHASIS = record
-          hwndCnr : HWND;
-          pRecord : PRECORDCORE;
-          fEmphasisMask : ULONG;
+       NotifyRecordEmphasis = record
+          hwndCnr : HWnd;
+          pRecord : PRecordCore;
+          fEmphasisMask : cardinal;
        end;
 
-       PNOTIFYRECORDEMPHASIS = ^NOTIFYRECORDEMPHASIS;
+       PNotifyRecordEmphasis = ^NotifyRecordEmphasis;
 
-       NOTIFYRECORDENTER = record
-          hwndCnr : HWND;
-          fKey : ULONG;
-          pRecord : PRECORDCORE;
+       NotifyRecordEnter = record
+          hwndCnr : HWnd;
+          fKey : cardinal;
+          pRecord : PRecordCore;
        end;
 
-       PNOTIFYRECORDENTER = ^NOTIFYRECORDENTER;
+       PNotifyRecordEnter = ^NotifyRecordEnter;
 
-       NOTIFYDELTA = record
-          hwndCnr : HWND;
-          fDelta : ULONG;
+       NotifyDelta = record
+          hwndCnr : HWnd;
+          fDelta : cardinal;
        end;
 
-       PNOTIFYDELTA = ^NOTIFYDELTA;
+       PNotifyDelta = ^NotifyDelta;
 
-       NOTIFYSCROLL = record
-          hwndCnr : HWND;
-          lScrollInc : LONG;
-          fScroll : ULONG;
+       NotifyScroll = record
+          hwndCnr : HWnd;
+          lScrollInc : longint;
+          fScroll : cardinal;
        end;
 
-       PNOTIFYSCROLL = ^NOTIFYSCROLL;
+       PNotifyScroll = ^NotifyScroll;
 
-       CNREDITDATA = record
-          cb : ULONG;
-          hwndCnr : HWND;
-          pRecord : PRECORDCORE;
-          pFieldInfo : PFIELDINFO;
+       CNREditData = record
+          cb : cardinal;
+          hwndCnr : HWnd;
+          pRecord : PRecordCore;
+          pFieldInfo : PFieldInfo;
           ppszText : PPSZ;
-          cbText : ULONG;
-          id : ULONG;
+          cbText : cardinal;
+          id : cardinal;
        end;
 
-       PCNREDITDATA = ^CNREDITDATA;
+       PCNREditData = ^CNREditData;
 
-       OWNERBACKGROUND = record
-          hwnd : HWND;
+       OwnerBackground = record
+          hwnd : HWnd;
           hps : HPS;
-          rclBackground : RECTL;
-          idWindow : LONG;
+          rclBackground : RectL;
+          idWindow : longint;
        end;
 
-       POWNERBACKGROUND = ^OWNERBACKGROUND;
+       POwnerBackground = ^OwnerBackground;
 
-       CNRDRAWITEMINFO = record
-          pRecord : PRECORDCORE;
-          pFieldInfo : PFIELDINFO;
+       CNRDrawItemInfo = record
+          pRecord : PRecordCore;
+          pFieldInfo : PFieldInfo;
        end;
 
-       PCNRDRAWITEMINFO = ^CNRDRAWITEMINFO;
+       PCNRDrawItemInfo = ^CNRDrawItemInfo;
 
     const
        CMA_TOP = $0001;
@@ -957,15 +994,15 @@ unit pmstddlg;
        SLN_KILLFOCUS = 4;
 
     type
-       SLDCDATA = record
-          cbSize : ULONG;
-          usScale1Increments : USHORT;
-          usScale1Spacing : USHORT;
-          usScale2Increments : USHORT;
-          usScale2Spacing : USHORT;
+       SLDCData = record
+          cbSize : cardinal;
+          usScale1Increments : word;
+          usScale1Spacing : word;
+          usScale2Increments : word;
+          usScale2Spacing : word;
        end;
 
-       PSLDCDATA = ^SLDCDATA;
+       PSLDCData = ^SLDCData;
 
     const
        SLS_HORIZONTAL = $00000000;
@@ -1024,40 +1061,40 @@ unit pmstddlg;
        VN_HELP = 129;
 
     type
-       VSCDATA = record
-          cbSize : ULONG;
-          usRowCount : USHORT;
-          usColumnCount : USHORT;
+       VSCData = record
+          cbSize : cardinal;
+          usRowCount : word;
+          usColumnCount : word;
        end;
 
-       PVSCDATA = ^VSCDATA;
+       PVSCData = ^VSCData;
 
-       VSDRAGINIT = record
-          hwnd : HWND;
-          x : LONG;
-          y : LONG;
-          cx : LONG;
-          cy : LONG;
-          usRow : USHORT;
-          usColumn : USHORT;
+       VSDragInit = record
+          hwnd : HWnd;
+          x : longint;
+          y : longint;
+          cx : longint;
+          cy : longint;
+          usRow : word;
+          usColumn : word;
        end;
 
-       PVSDRAGINIT = ^VSDRAGINIT;
+       PVSDragInit = ^VSDragInit;
 
-       VSDRAGINFO = record
-          pDragInfo : PDRAGINFO;
-          usRow : USHORT;
-          usColumn : USHORT;
+       VSDragInfo = record
+          pDragInfo : PDragInfo;
+          usRow : word;
+          usColumn : word;
        end;
 
-       PVSDRAGINFO = ^VSDRAGINFO;
+       PVSDragInfo = ^VSDragInfo;
 
-       VSTEXT = record
-          pszItemText : PSZ;
-          ulBufLen : ULONG;
+       VSText = record
+          pszItemText : PChar;
+          ulBufLen : cardinal;
        end;
 
-       PVSTEXT = ^VSTEXT;
+       PVSText = ^VSText;
 
     const
        VS_BITMAP = $0001;
@@ -1160,69 +1197,114 @@ unit pmstddlg;
        BOOKERR_INVALID_PARAMETERS = -1;
 
     type
-       BOOKTEXT = record
-          pString : PSZ;
-          textLen : ULONG;
+       BookText = record
+          pString : PChar;
+          textLen : cardinal;
        end;
 
-       PBOOKTEXT = ^BOOKTEXT;
+       PBookText = ^BookText;
 
-       DELETENOTIFY = record
-          hwndBook : HWND;
-          hwndPage : HWND;
-          ulAppPageData : ULONG;
-          hbmTab : HBITMAP;
+       DeleteNotify = record
+          hwndBook : HWnd;
+          hwndPage : HWnd;
+          ulAppPageData : cardinal;
+          hbmTab : HBitmap;
        end;
 
-       PDELETENOTIFY = ^DELETENOTIFY;
+       PDeleteNotify = ^DeleteNotify;
 
-       PAGESELECTNOTIFY = record
-          hwndBook : HWND;
-          ulPageIdCur : ULONG;
-          ulPageIdNew : ULONG;
+       PageSelectNotify = record
+          hwndBook : HWnd;
+          ulPageIdCur : cardinal;
+          ulPageIdNew : cardinal;
        end;
 
-       PPAGESELECTNOTIFY = ^PAGESELECTNOTIFY;
+       PPageSelectNotify = ^PageSelectNotify;
 
   implementation
   
-    function WinFileDlg(hwndP : HWND;hwndO : HWND;pfild : PFILEDLG) : HWND;[SYSTEM];
-    function WinDefFileDlgProc(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;[SYSTEM];
-    function WinFreeFileDlgList(papszFQFilename : PAPSZ) : BOOL;[SYSTEM];
-    function WinFontDlg(hwndP : HWND;hwndO : HWND;pfntd : PFONTDLG) : HWND;[SYSTEM];
-    function WinDefFontDlgProc(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;[SYSTEM];
-    function DrgAcceptDroppedFiles(hwnd : HWND;pszPath : PSZ;pszTypes : PSZ;ulDefaultOp : ULONG;ulRsvd : ULONG) : BOOL;[SYSTEM];
-    function DrgAllocDraginfo(cditem : ULONG) : PDRAGINFO;[SYSTEM];
-    function DrgAllocDragtransfer(cdxfer : ULONG) : PDRAGTRANSFER;[SYSTEM];
-    function DrgDrag(hwndSource : HWND;pdinfo : PDRAGINFO;pdimg : PDRAGIMAGE;cdimg : ULONG;vkTerminate : LONG;pRsvd : PVOID) : HWND;[SYSTEM];
-    function DrgDragFiles(hwnd : HWND;apszFiles : PPSZ;apszTypes : PPSZ;apszTargets : PPSZ;cFiles : ULONG;hptrDrag : HPOINTER;vkTerm : ULONG;fSourceRender : BOOL;ulRsvd : ULONG) : BOOL;[SYSTEM];
-    function DrgPostTransferMsg(hwnd : HWND;msg : ULONG;pdxfer : PDRAGTRANSFER;fl : ULONG;ulRsvd : ULONG;fRetry : BOOL) : BOOL;[SYSTEM];
-    function DrgQueryDragitem(pdinfo : PDRAGINFO;cbBuffer : ULONG;pditem : PDRAGITEM;iItem : ULONG) : BOOL;[SYSTEM];
-    function DrgQueryDragitemCount(pdinfo : PDRAGINFO) : ULONG;[SYSTEM];
-    function DrgQueryDragitemPtr(pdinfo : PDRAGINFO;i : ULONG) : PDRAGITEM;[SYSTEM];
-    function DrgQueryNativeRMF(pditem : PDRAGITEM;cbBuffer : ULONG;pBuffer : PCHAR) : BOOL;[SYSTEM];
-    function DrgQueryNativeRMFLen(pditem : PDRAGITEM) : ULONG;[SYSTEM];
-    function DrgQueryStrName(hstr : HSTR;cbBuffer : ULONG;pBuffer : PSZ) : ULONG;[SYSTEM];
-    function DrgQueryStrNameLen(hstr : HSTR) : ULONG;[SYSTEM];
-    function DrgQueryTrueType(pditem : PDRAGITEM;cbBuffer : ULONG;pBuffer : PSZ) : BOOL;[SYSTEM];
-    function DrgQueryTrueTypeLen(pditem : PDRAGITEM) : ULONG;[SYSTEM];
-    function DrgSendTransferMsg(hwnd : HWND;msg : ULONG;mp1 : MPARAM;mp2 : MPARAM) : MRESULT;[SYSTEM];
-    function DrgSetDragitem(pdinfo : PDRAGINFO;pditem : PDRAGITEM;cbBuffer : ULONG;iItem : ULONG) : BOOL;[SYSTEM];
-    function DrgSetDragImage(pdinfo : PDRAGINFO;pdimg : PDRAGIMAGE;cdimg : ULONG;pRsvd : PVOID) : BOOL;[SYSTEM];
-    function DrgVerifyTypeSet(pditem : PDRAGITEM;pszType : PSZ;cbMatch : ULONG;pszMatch : PSZ) : BOOL;[SYSTEM];
-    function DrgAccessDraginfo(pdinfo : PDRAGINFO) : BOOL;[SYSTEM];
-    function DrgAddStrHandle(psz : PSZ) : HSTR;[SYSTEM];
-    function DrgDeleteDraginfoStrHandles(pdinfo : PDRAGINFO) : BOOL;[SYSTEM];
-    function DrgDeleteStrHandle(hstr : HSTR) : BOOL;[SYSTEM];
-    function DrgFreeDraginfo(pdinfo : PDRAGINFO) : BOOL;[SYSTEM];
-    function DrgFreeDragtransfer(pdxfer : PDRAGTRANSFER) : BOOL;[SYSTEM];
-    function DrgGetPS(hwnd : HWND) : HPS;[SYSTEM];
-    function DrgPushDraginfo(pdinfo : PDRAGINFO;hwndDest : HWND) : BOOL;[SYSTEM];
-    function DrgReleasePS(hps : HPS) : BOOL;[SYSTEM];
-    function DrgSetDragPointer(pdinfo : PDRAGINFO;hptr : HPOINTER) : BOOL;[SYSTEM];
-    function DrgVerifyNativeRMF(pditem : PDRAGITEM;pszRMF : PSZ) : BOOL;[SYSTEM];
-    function DrgVerifyRMF(pditem : PDRAGITEM;pszMech : PSZ;pszFmt : PSZ) : BOOL;[SYSTEM];
-    function DrgVerifyTrueType(pditem : PDRAGITEM;pszType : PSZ) : BOOL;[SYSTEM];
-    function DrgVerifyType(pditem : PDRAGITEM;pszType : PSZ) : BOOL;[SYSTEM];
-  
+    function WinFileDlg(hwndP : HWnd;hwndO : HWnd;pfild : PFileDlg) : HWnd; cdecl;
+        external 'PMCTLS' index 4;
+    function WinDefFileDlgProc(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl; 
+        external 'PMCTLS' index 5;
+    function WinFreeFileDlgList(papszFQFilename : PAPSZ) : Longbool; cdecl;
+        external 'PMCTLS' index 6;
+    function WinFontDlg(hwndP : HWnd;hwndO : HWnd;pfntd : PFontDlg) : HWnd; cdecl;
+        external 'PMCTLS' index 2;
+    function WinDefFontDlgProc(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
+        external 'PMCTLS' index 3;
+    function DrgAcceptDroppedFiles(hwnd : HWnd;pszPath : PChar;pszTypes : PChar;ulDefaultOp : cardinal;ulRsvd : cardinal) : Longbool; cdecl;
+        external 'PMDRAG' index 66;
+    function DrgAllocDraginfo(cditem : cardinal) : PDragInfo; cdecl;
+        external 'PMDRAG' index 34;
+    function DrgAllocDragtransfer(cdxfer : cardinal) : PDragTransfer; cdecl;
+        external 'PMDRAG' index 35;
+    function DrgDrag(hwndSource : HWnd;pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal;vkTerminate : longint; var pRsvd) : HWnd; cdecl;
+        external 'PMDRAG' index 38;
+    function DrgDragFiles(hwnd : HWnd;apszFiles : PPSZ;apszTypes : PPSZ;apszTargets : PPSZ;cFiles : cardinal;hptrDrag : cardinal;vkTerm : cardinal;fSourceRender : Longbool;ulRsvd : cardinal) : Longbool; cdecl;
+        external 'PMDRAG' index 65;
+    function DrgPostTransferMsg(hwnd : HWnd;msg : cardinal;pdxfer : PDragTransfer;fl : cardinal;ulRsvd : cardinal;fRetry : Longbool) : Longbool; cdecl;
+        external 'PMDRAG' index 42;
+    function DrgQueryDragitem(pdinfo : PDragInfo;cbBuffer : cardinal;pditem : PDragItem;iItem : cardinal) : Longbool; cdecl;
+        external 'PMDRAG' index 44;
+    function DrgQueryDragitemCount(pdinfo : PDragInfo) : cardinal; cdecl;
+        external 'PMDRAG' index 45;
+    function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl; 
+        external 'PMDRAG' index 46;
+    function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PCHAR) : Longbool; cdecl;
+        external 'PMDRAG' index 47;
+    function DrgQueryNativeRMFLen(pditem : PDragItem) : cardinal; cdecl;
+        external 'PMDRAG' index 48;
+    function DrgQueryStrName(hstr : HStr;cbBuffer : cardinal;pBuffer : PChar) : cardinal; cdecl;
+        external 'PMDRAG' index 49;
+    function DrgQueryStrNameLen(hstr : HStr) : cardinal; cdecl;
+        external 'PMDRAG' index 50;
+    function DrgQueryTrueType(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 51;
+    function DrgQueryTrueTypeLen(pditem : PDragItem) : cardinal; cdecl;
+        external 'PMDRAG' index 52;
+    function DrgSendTransferMsg(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
+        external 'PMDRAG' index 54;
+    function DrgSetDragitem(pdinfo : PDragInfo;pditem : PDragItem;cbBuffer : cardinal;iItem : cardinal) : Longbool; cdecl;
+        external 'PMDRAG' index 57;
+    function DrgSetDragImage(pdinfo : PDragInfo;pdimg : PDragImage;cdimg : cardinal; var pRsvd) : Longbool; cdecl;
+        external 'PMDRAG' index 56;
+    function DrgVerifyTypeSet(pditem : PDragItem;pszType : PChar;cbMatch : cardinal;pszMatch : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 62;
+    function DrgAccessDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
+        external 'PMDRAG' index 32;
+    function DrgAddStrHandle(PSZ : PChar) : HStr; cdecl;
+        external 'PMDRAG' index 33;
+    function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl; 
+        external 'PMDRAG' index 36;
+    function DrgDeleteStrHandle(hstr : HStr) : Longbool; cdecl;
+        external 'PMDRAG' index 37;
+    function DrgFreeDraginfo(pdinfo : PDragInfo) : Longbool; cdecl;
+        external 'PMDRAG' index 39;
+    function DrgFreeDragtransfer(pdxfer : PDragTransfer) : Longbool; cdecl;
+        external 'PMDRAG' index 40;
+    function DrgGetPS(hwnd : HWnd) : HPS; cdecl;
+        external 'PMDRAG' index 41;
+    function DrgPushDraginfo(pdinfo : PDragInfo;hwndDest : HWnd) : Longbool; cdecl;
+        external 'PMDRAG' index 43;
+    function DrgReleasePS(hps : HPS) : Longbool; cdecl;
+        external 'PMDRAG' index 53;
+    function DrgSetDragPointer(pdinfo : PDragInfo;hptr : cardinal) : Longbool; cdecl;
+        external 'PMDRAG' index 55;
+    function DrgVerifyNativeRMF(pditem : PDragItem;pszRMF : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 58;
+    function DrgVerifyRMF(pditem : PDragItem;pszMech : PChar;pszFmt : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 59;
+    function DrgVerifyTrueType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 60;
+    function DrgVerifyType(pditem : PDragItem;pszType : PChar) : Longbool; cdecl;
+        external 'PMDRAG' index 61;
+
 end.
+{
+  $Log$
+  Revision 1.2  2002-10-05 18:33:14  hajny
+    + Finally made usable by Yuri Prokushev
+
+
+}
