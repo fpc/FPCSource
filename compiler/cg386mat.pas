@@ -65,10 +65,11 @@ implementation
          shrdiv := false;
          andmod := false;
          secondpass(p^.left);
-         set_location(p^.location,p^.left^.location);
-         pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
+         pushed:=maybe_push(p^.right^.registers32,p^.left,is_64bitint(p^.left^.resulttype));
          secondpass(p^.right);
-         if pushed then restore(p,is_64bitint(p^.left^.resulttype));
+         if pushed then
+           restore(p^.left,is_64bitint(p^.left^.resulttype));
+         set_location(p^.location,p^.left^.location);
 
          if is_64bitint(p^.resulttype) then
            begin
@@ -939,7 +940,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-09-02 17:07:38  florian
+  Revision 1.33  1999-09-27 23:37:26  peter
+    * fixed push/restore bug in div/mod
+
+  Revision 1.32  1999/09/02 17:07:38  florian
     * problems with -Or fixed: tdef.isfpuregable was wrong!
 
   Revision 1.31  1999/08/19 13:08:50  pierre
