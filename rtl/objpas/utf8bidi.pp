@@ -22,6 +22,8 @@ type
 function UnicodeToUTF8(aChar:TUCS32Char):TUTF8Char;
 {Converts a wide char UCS 16 bits chcarcter to UTF8 character}
 function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
+{Converts a wide char UCS 16 bits string to UTF8 character}
+function UnicodeToUTF8(const Src:TString):TUTF8String;
 {Converts an UTF8 character to UCS 32 bits character}
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
 {Converts an UTF8 string to UCS 16 bits string}
@@ -143,8 +145,34 @@ begin
 end;
 
 function UnicodeToUTF8(aChar:WideChar):TUTF8Char;
+var
+  c:TUCS16Char absolute aChar;
 begin
-  Result := UnicodeToUTF8(Word(aChar));
+  case c of
+    0..$7f:
+      begin
+        Result[1]:=char(c);
+        SetLength(UnicodeToUTF8,1);
+      end;
+    $80..$7ff:
+      begin
+        Result[1]:=char($c0 or (c shr 6));
+        Result[2]:=char($80 or (c and $3f));
+        SetLength(UnicodeToUTF8,2);
+      end;
+  else
+    SetLength(UnicodeToUTF8, 0);
+  end;
+end;
+
+function UnicodeToUTF8(const Src:TString):TUTF8String;
+var
+  vp:Integer;
+begin
+  vp := 1;
+  Result := '';
+  for vp :=1 to Length(Src) do
+    Result += UnicodeToUTF8(Src[vp]);
 end;
 
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
@@ -169,19 +197,36 @@ begin
   end
 end;
 
+function UTF8ToUCS16(const UTF8Char:TUTF8Char):TUCS16Char;
+begin
+  case ComputeCharLength(@UTF8Char[1]) of
+    1:{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
+      Result := ord(UTF8Char[1]);
+    2:
+      Result := ((ord(UTF8Char[1]) and %00011111) shl 6)
+                or (ord(UTF8Char[2]) and %00111111);
+  else
+    Result := $FFFF;
+  end
+end;
+
+
 function UTF8ToUnicode(const Src:TUTF8String):TString;
 var
-  lp:Integer;
+  lp, vp:Integer;
   c:TUTF8Char;
 begin
   lp := 1;
-  Result := '';
+  vp := 1;
+  SetLength(Result, Length(Src));
   while lp <= Length(Src) do
   begin
     c := LCharOf(Src, lp);
-    Result += WideChar(UTF8ToUCS32(c));
+    Result[vp] := WideChar(UTF8ToUCS16(c));
     lp += Length(c);
+    vp += 1;
   end;
+  SetLength(Result, vp);
 end;
 
 function UTF8ToDoubleByteString(const UTF8Str: TUTF8String): string;
