@@ -270,11 +270,20 @@ implementation
          if codegenerror then
            exit;
 
-         { we should allow loc_mem for @string }
-         if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+         { don't allow constants }
+         if is_constnode(p^.left) then
+          begin
+            aktfilepos:=p^.left^.fileinfo;
+            Comment(V_Error,'can''t get the address of constants')
+          end
+         else
            begin
-              aktfilepos:=p^.left^.fileinfo;
-              CGMessage(cg_e_illegal_expression);
+             { we should allow loc_mem for @string }
+             if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+               begin
+                 aktfilepos:=p^.left^.fileinfo;
+                 CGMessage(cg_e_illegal_expression);
+               end;
            end;
 
          p^.registers32:=p^.left^.registers32;
@@ -579,7 +588,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18.2.1  1999-06-28 00:33:53  pierre
+  Revision 1.18.2.2  1999-07-05 16:22:56  peter
+    * error if @constant
+
+  Revision 1.18.2.1  1999/06/28 00:33:53  pierre
    * better error position bug0269
 
   Revision 1.18  1999/06/03 09:34:12  peter
