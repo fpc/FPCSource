@@ -36,7 +36,7 @@ Type
 
 function Do_SysCall(sysnr:TSysParam):TSysResult;  external name 'FPC_DOSYS0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_DOSYS1';
-function Do_SysCall(sysnr,param1:integer):TSysResult; external name 'FPC_DOSYS1w';
+//function Do_SysCall(sysnr,param1:integer):TSysResult; external name 'FPC_DOSYS1w';
 function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_DOSYS2';
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_DOSYS3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_DOSYS4';
@@ -46,7 +46,10 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysP
 
 {
   $Log$
-  Revision 1.5  2003-01-05 19:01:28  marco
+  Revision 1.6  2003-05-30 19:58:40  marco
+   * Getting NetBSD/i386 to compile.
+
+  Revision 1.5  2003/01/05 19:01:28  marco
    * FreeBSD compiles now with baseunix mods.
 
   Revision 1.4  2002/10/16 18:44:00  marco

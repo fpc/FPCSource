@@ -167,8 +167,8 @@ function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):int64;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;
 {$else}
 Function SysCall(callnr:longint;var regs:SysCallregs):longint;
 {$endif}
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  2003-05-30 19:37:14  marco
+  Revision 1.30  2003-05-30 19:58:40  marco
+   * Getting NetBSD/i386 to compile.
+
+  Revision 1.29  2003/05/30 19:37:14  marco
    * small changes
 
   Revision 1.28  2003/03/11 08:26:50  michael

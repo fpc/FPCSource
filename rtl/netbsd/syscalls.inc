@@ -30,131 +30,15 @@
 For now I do them in assembler, which makes it easier to test them (copy and
 paste to and AS source). Ultimately I hope to design something like this}
 
-
-procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
-    asm
-         int $0x80
-         jb .LErrorcode
-         xor %ebx,%ebx
-         ret
-.LErrorcode:
-         mov %eax,%ebx
-         mov $-1,%eax
-   end;
-
-function Do_SysCall(sysnr:LONGINT):longint; assembler;
-
-asm
-  movl  sysnr,%eax
-  call  actualsyscall
-  movw  %bx,Errno
-end;
-
-function Do_SysCall(sysnr,param1:longint):longint; assembler;
-
- asm
-  movl  sysnr,%eax
-  pushl Param1
-  call  actualsyscall
-  addl  $4,%esp
-  movw  %bx,Errno
- end;
-
-{
-function Do_SysCall(sysnr,param1:integer):longint; assembler;
-
- asm
-  movl  sysnr,%eax
-  pushw Param1
-  call  actualsyscall
-  add   $2,%esp
-  movw  %bx,Errno
- end;
-}
-
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler;
-
- asm
-   movl  sysnr,%eax
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $8,%esp
-   movw  %bx,Errno
- end;
-
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;
-
- asm
-   movl  sysnr,%eax
-   pushl param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $12,%esp
-   movw  %bx,Errno
- end;
-
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;
-
-asm
-   movl  sysnr,%eax
-   pushl param4
-   pushl param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $16,%esp
-   movw  %bx,Errno
-end;
+type size_t=longint;
+     off_t=int64;
+     cint=longint;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  assembler;
+{$i syscallh.inc}
+{$i ossysch.inc}
 
- asm
-   movl  sysnr,%eax
-   pushl param5
-   pushl param4
-   pushl param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $20,%esp
-   movw  %bx,Errno
- end;
-
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;
-
-asm
-   movl  sysnr,%eax
-   pushl param6
-   pushl param5
-   pushl param4
-   pushl param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $24,%esp
-   movw  %bx,Errno
-end;
-
-
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler;
-
-asm
-   movl  sysnr,%eax
-   pushl param7
-   pushl param6
-   pushl param5
-   pushl param4
-   pushl param3
-   pushl param2
-   pushl Param1
-   call  actualsyscall
-   addl  $28,%esp
-   movw  %bx,Errno
-end;
-
+function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'FPC_SYSC_LSEEK';
 
 Function Sys_Time:longint;
 
@@ -192,14 +76,17 @@ Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 var returnvalue64 : int64;
 begin
  {Lseek's offset is 64-bit, the highword  is the 0}
-// do_syscall(syscall_nr_lseek,longint(@returnvalue64),F,Off,0,Whence);
+{$ifdef i386} 
  do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,f,0,off,0,whence);
  asm
   lea  returnvalue64,%ebx
   movl %eax,(%ebx)
   movl %edx,4(%ebx)
  end;
-sys_lseek:=longint(returnvalue64);
+ sys_lseek:=longint(returnvalue64);
+ {$else}		// powerpc
+  sys_lseek:=fplseek(f,off,whence);
+ {$endif}
 end;
 {$endif m68k}
 
@@ -461,14 +348,14 @@ end;
 
 Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
 begin
-  Sys_mmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
+  Sys_mmap:=fpmmap(Adr,Len,Prot,Flags,fdes,off);
 end;
 
 
 {
   $Log$
-  Revision 1.4  2003-05-30 19:37:14  marco
-   * small changes
+  Revision 1.5  2003-05-30 19:58:40  marco
+   * Getting NetBSD/i386 to compile.
 
   Revision 1.3  2003/01/21 15:39:45  marco
    * NetBSD first rtl. Still not 100%, but close
