@@ -681,6 +681,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
+                            { release the registers }
+                            del_reference(t.reference);
                            if freetemp then
                             ungetiftemp(t.reference);
                          end;
@@ -3329,7 +3331,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.39  1999-09-10 15:42:51  peter
+  Revision 1.40  1999-09-11 11:23:58  florian
+    * bug 603 fixed
+
+  Revision 1.39  1999/09/10 15:42:51  peter
     * fixed with <calln> do
     * fixed finalize/initialize call for new/dispose
 
