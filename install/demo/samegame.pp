@@ -30,22 +30,26 @@ Uses Crt,Dos,
  GameUnit;
 
 CONST
+   {$IFDEF UseGraphics}
         GrFieldX                          = 10; {X topleft of playfield}
         GrFieldY                          = 70; {Y topleft of playfield}
         ScalerX                           = 22; {ScalerX x Scaler y dots
                                                   must be approx a square}
         ScalerY                           = 20;
+   {$ENDIF}
         FieldX                            = 10; {Top left playfield
                                                  coordinates in squares(textmode)}
         FieldY                            =  3; {Top left playfield coordinates}
         PlayFieldXDimension               = 20; {Dimensions of playfield}
         PlayFieldYDimension               = 15;
+   {$IFDEF UseGraphics}
         RowDispl                          = 15;
         MenuX                             = 480;
         MenuY                             = 120;
         grNewGameLine                     = 'NEW GAME';
         grHelpLine                        = 'HELP';
         grEndGame                         = 'END GAME';
+   {$ENDIF}
 
 
        {Used colors. Colors[0..2] are the colors used on the playfield, Colors[3]
@@ -547,7 +551,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2000-01-21 00:44:51  peter
+  Revision 1.5  2000-03-08 21:01:48  alex
+  braced some vars to avoid compiler warnings
+
+  Revision 1.4  2000/01/21 00:44:51  peter
     * remove unused vars
     * renamed to .pp
 
