@@ -19,7 +19,7 @@
 
 # Where do you want the html files to be put ?
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=/usr/doc/fpc-0.99.8
+DOCINSTALLDIR=/usr/doc/fpc-0.99.11
 endif 
 
 #
@@ -199,8 +199,8 @@ refex.chk:
 messages: 
 	msg2inc -TE ../compiler/errore.msg messages.tex
 
-date:
-	@echo \\date\{`date +'%B %Y'`\} >date.inc
+date.inc:
+	@echo \\date\{`date +'%B %Y'`\} > date.inc
 
 units.dvi: units.tex date.inc $(CHAPTERS)
 
@@ -226,7 +226,7 @@ all : dvi ps pdf txt html
 
 user: user.chk
 
-user.chk: user.tex 
+user.chk: user.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
          -t "User's guide for Free Pascal" user.tex
 	sed -f foot.sed <user/footnode.html >user/footnote.html
@@ -237,7 +237,7 @@ user.chk: user.tex
 
 units: units.chk
 
-units.chk: units.tex unitex.chk
+units.chk: units.tex unitex.chk date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
         -t "Unit reference for Free Pascal" units.tex
 	sed -f foot.sed <units/footnode.html >units/footnote.html
@@ -247,7 +247,7 @@ units.chk: units.tex unitex.chk
 
 ref: ref.chk
 
-ref.chk: refex.chk ref.tex
+ref.chk: refex.chk ref.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html
@@ -257,7 +257,7 @@ ref.chk: refex.chk ref.tex
 
 prog: prog.chk
 
-prog.chk: prog.tex 
+prog.chk: prog.tex date.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
         -t "Free Pascal programmers guide" prog.tex
 	sed -f foot.sed <prog/footnode.html >prog/footnote.html
@@ -305,7 +305,7 @@ htm: html
 	makehtm `find . -name '*.html'`
 	zip -q docs-htm `find . -name '*.htm' -or -name '*.gif' -or -name '*.css'`
 	rm `find -name '*.htm'`
-	
+
 htmdist: htm
 
 txtdist: txt
@@ -328,7 +328,7 @@ examples:
 	$(MAKE) -C refex
 	$(MAKE) -C stringex
 	$(MAKE) -C ipcex
-	$(MAKE) -C objectex[A
+	$(MAKE) -C objectex
 
 dosexamples: examples
 	$(MAKE) -C go32ex
@@ -341,7 +341,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.21  1999-05-28 19:59:37  michael
+# Revision 1.22  1999-05-31 16:37:08  peter
+#   * fixes for html creation
+#
+# Revision 1.21  1999/05/28 19:59:37  michael
 # Additional changes
 #
 # Revision 1.20  1999/04/10 14:57:43  michael

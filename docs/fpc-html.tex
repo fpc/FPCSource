@@ -106,3 +106,22 @@
 \htmladdtonavigation{%
 \htmladdnormallink{\htmladdimg{../buttons/search.gif}}{javascript:opensearch()}%
 }
+%
+% Some versions 
+%
+\newcommand{\fpcversion}{0.99.12}
+%
+% PDF support
+%
+\latex{
+\usepackage{ifthen}
+\newif\ifpdf
+\ifx\pdfoutput\undefined
+   \pdffalse
+\else
+   \pdfoutput=1
+   \pdftrue
+\fi
+}
+%
+% end of fpc.sty
