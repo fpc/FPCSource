@@ -1053,8 +1053,6 @@ begin
 {$ifdef i386}
   def_symbol('CPU86');
   def_symbol('CPU87');
-  if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
-   def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
 {$endif}
 {$ifdef m68k}
   def_symbol('CPU68');
@@ -1219,6 +1217,10 @@ begin
      (cs_profile in initmoduleswitches) then
     initglobalswitches:=initglobalswitches-[cs_link_strip];
 
+{ Set defines depending on the target }
+  if (target_info.target in [target_i386_GO32V1,target_i386_GO32V2]) then
+   def_symbol('DPMI'); { MSDOS is not defined in BP when target is DPMI }
+
   MaybeLoadMessageFile;
 
   dispose(option,Done);
@@ -1228,7 +1230,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-10-03 19:44:41  peter
+  Revision 1.25  1999-10-13 10:24:49  peter
+    * dpmi can only be set after reading the options
+
+  Revision 1.24  1999/10/03 19:44:41  peter
     * removed objpasunit reference, tvarrec is now searched in systemunit
       where it already was located
 
