@@ -853,10 +853,14 @@ implementation
 *****************************************************************************}
 
     procedure firstis(var p : ptree);
-
+      var
+         Store_valid : boolean;
       begin
+         Store_valid:=Must_be_valid;
+         Must_be_valid:=true;
          firstpass(p^.left);
          firstpass(p^.right);
+         Must_be_valid:=Store_valid;
          if codegenerror then
            exit;
 
@@ -887,9 +891,14 @@ implementation
 *****************************************************************************}
 
     procedure firstas(var p : ptree);
+      var
+         Store_valid : boolean;
       begin
+         Store_valid:=Must_be_valid;
+         Must_be_valid:=true;
          firstpass(p^.right);
          firstpass(p^.left);
+         Must_be_valid:=Store_valid;
          if codegenerror then
            exit;
 
@@ -918,7 +927,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-03-06 17:25:20  peter
+  Revision 1.22  1999-04-08 09:47:31  pierre
+   * warn if uninitilized local vars are used in IS or AS statements
+
+  Revision 1.21  1999/03/06 17:25:20  peter
     * moved comp<->real warning so it doesn't occure everytime that
       isconvertable is called with
 
