@@ -238,7 +238,7 @@ end;
 {$IFNDEF HAS_FSPLIT}
 Procedure FSplit (Path: PathStr; var Dir: DirStr; var Name: NameStr; var Ext: ExtStr);
 var
-  DirEnd, ExtStart: cardinal;
+  DirEnd, ExtStart: Longint;
 begin
   if DirectorySeparator = '/' then
   { allow backslash as slash }
@@ -298,7 +298,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-12-05 16:44:43  hajny
+  Revision 1.3  2004-12-15 17:03:01  peter
+    * fixed overflow
+
+  Revision 1.2  2004/12/05 16:44:43  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.1  2004/11/28 12:33:35  hajny
