@@ -1666,8 +1666,7 @@ implementation
           begin
             { this is used to insert case variant into the main
               record }
-            if ps^.address=0 then
-              psymt^.datasize:=offset;
+            psymt^.datasize:=ps^.address+offset;
             nps:=pvarsym(ps^.next);
             symindex^.deleteindex(ps);
             ps^.next:=nil;
@@ -2978,7 +2977,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-06-23 21:34:10  pierre
+  Revision 1.102  2000-07-03 09:48:23  pierre
+   * fix for bug 1019
+
+  Revision 1.101  2000/06/23 21:34:10  pierre
    * align all variants to same start address
 
   Revision 1.100  2000/06/18 18:11:32  peter
