@@ -1026,7 +1026,7 @@ implementation
      procedure second_proc_to_procvar(p,hp : ptree;convtyp : tconverttype);
 
      begin
-        secondpass(hp);
+        { secondpass(hp); already done in secondtypeconv PM }
         clear_location(p^.location);
         p^.location.loc:=LOC_REGISTER;
         del_reference(hp^.location.reference);
@@ -1142,6 +1142,8 @@ implementation
          else
            internalerror(10061);
          end;
+         freelabel(truelabel);
+         freelabel(falselabel);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
      end;
@@ -1396,7 +1398,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-14 11:28:17  florian
+  Revision 1.10  1998-10-15 12:41:17  pierre
+    * last memory leaks found when compiler
+      a native atari compiler fixed
+
+  Revision 1.9  1998/10/14 11:28:17  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 

@@ -453,7 +453,9 @@ implementation
                            { the complex one first }
                            firstcomplex(p);
                            secondpass(p^.left);
-                           set_location(p^.location,p^.left^.location);
+                           {
+                           unnecessary !! PM
+                           set_location(p^.location,p^.left^.location);}
                            { are too few registers free? }
                            pushed:=maybe_push(p^.right^.registers32,p);
                            secondpass(p^.right);
@@ -812,7 +814,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-10-13 16:50:11  pierre
+  Revision 1.7  1998-10-15 12:41:19  pierre
+    * last memory leaks found when compiler
+      a native atari compiler fixed
+
+  Revision 1.6  1998/10/13 16:50:11  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

@@ -511,6 +511,8 @@ implementation
                    p^.methodpointer:=genzeronode(callparan);
                    p^.methodpointer^.location.loc:=LOC_REGISTER;
                    p^.methodpointer^.location.register:=R_A5;
+                   { change dispose type !! }
+                   p^.disposetyp:=dt_mbleft_and_method;
                    { make a reference }
                    new(r);
                    reset_reference(r^);
@@ -1047,7 +1049,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-14 11:28:16  florian
+  Revision 1.10  1998-10-15 12:41:16  pierre
+    * last memory leaks found when compiler
+      a native atari compiler fixed
+
+  Revision 1.9  1998/10/14 11:28:16  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
