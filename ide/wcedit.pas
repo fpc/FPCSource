@@ -1788,7 +1788,7 @@ end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
-  IsChangedOnDisk:=(Core^.OnDiskLoadTime<>GetFileTime(FileName)) and
+  IsChangedOnDisk:=(Core^.OnDiskLoadTime<>Cardinal(GetFileTime(FileName))) and
     (Core^.OnDiskLoadTime<>0);
 end;
 
@@ -1834,7 +1834,7 @@ begin
   { don't forget to update the OnDiskLoadTime value }
   if OK then
     begin
-      Core^.OnDiskLoadTime:=GetFileTime(FileName);
+      Core^.OnDiskLoadTime:=Cardinal(GetFileTime(FileName));
       Core^.SystemLoadTime:=SaveTime;
     end;
   if not OK then
@@ -1871,7 +1871,7 @@ begin
       SetModified(false);
       ClearUndoList;
       { don't forget to update the OnDiskLoadTime value }
-      Core^.OnDiskLoadTime:=GetFileTime(FileName);
+      Core^.OnDiskLoadTime:=Cardinal(GetFileTime(FileName));
       Core^.SystemLoadTime:=Core^.OnDiskLoadTime;
       DrawView;
     end
@@ -1898,7 +1898,7 @@ end;
 function TFileEditor.SaveAs: Boolean;
 var
   SavedName : String;
-  SavedDiskLoadTime : longint;
+  SavedDiskLoadTime : cardinal;
 begin
   SaveAs := False;
   SavedName:=FileName;
@@ -2071,7 +2071,10 @@ end;
 END.
 {
  $Log$
- Revision 1.17  2002-12-18 16:10:01  pierre
+ Revision 1.18  2003-06-19 15:20:29  pierre
+  * add explicit typecast to OnDiskLoadTime assignments
+
+ Revision 1.17  2002/12/18 16:10:01  pierre
   * fix bug report 2205
 
  Revision 1.16  2002/12/16 15:14:44  pierre
