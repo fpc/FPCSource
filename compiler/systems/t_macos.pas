@@ -27,12 +27,12 @@ unit t_macos;
 interface
 
   uses
-     import,symsym;
+     import,symsym,symdef;
 
   type
     timportlibmacos=class(timportlib)
       procedure preparelib(const s:string);override;
-      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
@@ -54,14 +54,14 @@ begin
 end;
 
 
-procedure timportlibmacos.importprocedure(const func,module : string;index : longint;const name : string);
+procedure timportliblinux.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
    begin
-     aktprocdef.setmangledname(name);
+     aprocdef.setmangledname(name);
    end
   else
     message(parser_e_empty_import_name);
@@ -99,7 +99,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-11-17 16:32:04  carl
+  Revision 1.5  2003-04-27 08:50:45  peter
+    * compile fix
+
+  Revision 1.4  2002/11/17 16:32:04  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k
