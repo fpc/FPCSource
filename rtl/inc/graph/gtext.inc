@@ -423,7 +423,9 @@ end;
                         for j:=0 to 7 do
                            for k:=0 to 7 do
                              if Fontbitmap[j,k]<>0 then
-                               PutPixel(xpos+k,j+y,CurrentColor);
+                               PutPixel(xpos+k,j+y,CurrentColor)
+                             else if DrawTextBackground then
+                               PutPixel(xpos+k,j+y,CurrentBkColor);
                       end
                      else
                       { perform scaling of bitmap font }
@@ -443,7 +445,9 @@ end;
                                   for cnt1 := 0 to charsize-1 do
                                     begin
                                        If FontBitmap[j,k] <> 0 then
-                                           PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
+                                           PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor)
+                                       else if DrawTextBackground then
+                                           PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentBkColor);
                                     end;
                                     Inc(k);
                                     Inc(cnt2,charsize);
@@ -470,8 +474,10 @@ end;
                  Begin
                    for j:=0 to 7 do
                       for k:=0 to 7 do
-                        if Fontbitmap[j,k] <> 0 then PutPixel(xpos+j,ypos-k,
-                           CurrentColor);
+                        if Fontbitmap[j,k] <> 0 then
+                          PutPixel(xpos+j,ypos-k,CurrentColor)
+                        else if DrawTextBackground then
+                          PutPixel(xpos+j,ypos-k,CurrentBkColor);
                  end
                 else
                  { perform scaling of bitmap font }
@@ -491,8 +497,9 @@ end;
                              for cnt1 := 0 to charsize-1 do
                                begin
                                   If FontBitmap[j,k] <> 0 then
-                                      PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,
-                                        CurrentColor);
+                                    PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,CurrentColor)
+                                  else if DrawTextBackground then
+                                    PutPixel(xpos+cnt3-cnt4,ypos+cnt1-cnt2,CurrentBkColor);
                                end;
                                Inc(k);
                                Inc(cnt2,charsize);
@@ -777,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.3  2002-07-18 07:11:11  pierre
+   merged from FIXES branch: DrawTextBackground support
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }

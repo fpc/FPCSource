@@ -718,7 +718,7 @@ const
 
 
   GraphStringTransTable: PCharsetTransTable = nil;
-
+  DrawTextBackground : boolean = false;
 
 function queryadapterinfo : pmodeinfo;
 
@@ -808,7 +808,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.5  2001-06-01 11:13:22  jonas
+  Revision 1.6  2002-07-18 07:11:11  pierre
+   merged from FIXES branch: DrawTextBackground support
+
+  Revision 1.5  2001/06/01 11:13:22  jonas
     * GetMaxMode() now returns a smallint instead of a word (since the type
       of the modenumbers is smallint too) (merged)
 
