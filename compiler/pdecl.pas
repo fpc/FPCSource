@@ -353,7 +353,7 @@ unit pdecl;
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p^.para1,propertyparas) then
+                  if equal_paras(p^.para1,propertyparas,true) then
                     break;
                   p:=p^.nextoverloaded;
                end;
@@ -407,12 +407,14 @@ unit pdecl;
                             consume(COLON);
                             if token=_ARRAY then
                               begin
+                                 {
                                  if (varspez<>vs_const) and
                                    (varspez<>vs_var) then
                                    begin
                                       varspez:=vs_const;
                                       Message(parser_e_illegal_open_parameter);
                                    end;
+                                 }
                                  consume(_ARRAY);
                                  consume(_OF);
                                  { define range and type of range }
@@ -1063,12 +1065,14 @@ unit pdecl;
                    consume(COLON);
                    if token=_ARRAY then
                      begin
+                        {
                         if (varspez<>vs_const) and
                           (varspez<>vs_var) then
                           begin
                              varspez:=vs_const;
                              Message(parser_e_illegal_open_parameter);
                           end;
+                        }
                         consume(_ARRAY);
                         consume(_OF);
                         { define range and type of range }
@@ -1726,7 +1730,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.7  1998-04-09 23:02:15  florian
+  Revision 1.8  1998-04-10 15:39:48  florian
+    * more fixes to get classes.pas compiled
+
+  Revision 1.7  1998/04/09 23:02:15  florian
     * small problems solved to get remake3 work
 
   Revision 1.6  1998/04/09 22:16:35  florian

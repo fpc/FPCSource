@@ -1918,22 +1918,22 @@ for the last instruction of an include file !}
                                 begin
                                    repeat
                                      nextchar;
-                     case c of
-                       #26 : begin
-                               Message(scan_f_end_of_file);
-                               break;
-                             end;
-                       #13,
-                               newline : begin
-                                            Message(scan_f_string_exceeds_line);
-                                            break;
-                                         end;
-                       '''' : begin
-                                  nextchar;
-                                  if c<>'''' then
-                                      break;
-                              end;
-                   end;
+                                     case c of
+                                       #26 : begin
+                                               Message(scan_f_end_of_file);
+                                               break;
+                                             end;
+                                       #13,
+                                               newline : begin
+                                                            Message(scan_f_string_exceeds_line);
+                                                            break;
+                                                         end;
+                                       '''' : begin
+                                                  nextchar;
+                                                  if c<>'''' then
+                                                      break;
+                                              end;
+                                     end;
                                      pattern:=pattern+c;
                                    until false;
                                 end;
@@ -2103,7 +2103,10 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.6  1998-04-09 09:33:15  pierre
+  Revision 1.7  1998-04-10 15:39:48  florian
+    * more fixes to get classes.pas compiled
+
+  Revision 1.6  1998/04/09 09:33:15  pierre
     * bugfix of newline in BP was wrong !!
       (ate a character !!)
 

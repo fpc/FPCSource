@@ -63,8 +63,11 @@ unit types;
     { to use on other types                              }
     function is_subequal(def1, def2: pdef): boolean;
 
-    { true, if two parameter lists are equal }
-    function equal_paras(def1,def2 : pdefcoll) : boolean;
+    { true, if two parameter lists are equal        }
+    { if value_equal_const is true, call by value   }
+    { and call by const parameter are assumed as    }
+    { equal                                         }
+    function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
@@ -131,16 +134,32 @@ unit types;
            (porddef(p^.resulttype)^.typ=bool8bit));
       end;
 
-    function equal_paras(def1,def2 : pdefcoll) : boolean;
+    function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
 
       begin
          while (assigned(def1)) and (assigned(def2)) do
            begin
-              if not(is_equal(def1^.data,def2^.data)) or
-                 (def1^.paratyp<>def2^.paratyp) then
+              if value_equal_const then
                 begin
-                   equal_paras:=false;
-                   exit;
+                   if not(is_equal(def1^.data,def2^.data)) or
+                     ((def1^.paratyp<>def2^.paratyp) and
+                      ((def1^.paratyp=vs_var) or
+                       (def1^.paratyp=vs_var)
+                      )
+                     ) then
+                     begin
+                        equal_paras:=false;
+                        exit;
+                     end;
+                end
+              else
+                begin
+                   if not(is_equal(def1^.data,def2^.data)) or
+                     (def1^.paratyp<>def2^.paratyp) then
+                     begin
+                        equal_paras:=false;
+                        exit;
+                     end;
                 end;
               def1:=def1^.next;
               def2:=def2^.next;
@@ -156,6 +175,7 @@ unit types;
       begin
          is_fpu:=(def^.deftype=floatdef) and (pfloatdef(def)^.typ<>f32bit);
       end;
+
     function is_ordinal(def : pdef) : boolean;
 
       var
@@ -666,7 +686,7 @@ unit types;
                              while assigned(procdefcoll) do
                                begin
                                   { compare parameters }
-                                  if equal_paras(procdefcoll^.data^.para1,hp^.para1) and
+                                  if equal_paras(procdefcoll^.data^.para1,hp^.para1,false) and
                                      (
                                        ((procdefcoll^.data^.options and povirtualmethod)<>0) or
                                        ((hp^.options and povirtualmethod)<>0)
@@ -876,7 +896,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-09 23:02:16  florian
+  Revision 1.6  1998-04-10 15:39:49  florian
+    * more fixes to get classes.pas compiled
+
+  Revision 1.5  1998/04/09 23:02:16  florian
     * small problems solved to get remake3 work
 
   Revision 1.4  1998/04/08 16:58:09  pierre
