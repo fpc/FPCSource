@@ -1972,7 +1972,15 @@ implementation
                               localloc.loc:=LOC_REFERENCE;
                               localloc.size:=paraitem.paraloc[calleeside].size;
                               tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-                            end
+                            end;
+{$ifdef powerpc}
+                          LOC_REFERENCE:
+                            begin
+                              localloc.loc := LOC_REFERENCE;
+                              localloc.size:=paraitem.paraloc[calleeside].size;
+                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
+                            end;
+{$endif powerpc}
                           else
                             localloc:=paraitem.paraloc[calleeside];
                         end;
@@ -1980,18 +1988,12 @@ implementation
                     else
                       localloc:=paraitem.paraloc[calleeside];
                     if cs_asm_source in aktglobalswitches then
-                      begin
-                        case localloc.loc of
-                          LOC_REFERENCE :
-                            begin
-                              list.concat(Tai_comment.Create(strpnew('Para '+realname+' located at '+
-                                  std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
-{$ifdef powerpc}
-                              localloc.size:=paraitem.paraloc[calleeside].size;
-                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-{$endif powerpc}
-                            end;
-                        end;
+                      case localloc.loc of
+                        LOC_REFERENCE :
+                          begin
+                            list.concat(Tai_comment.Create(strpnew('Para '+realname+' located at '+
+                                std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
+                          end;
                       end;
                   end;
               end;
@@ -2148,7 +2150,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.205  2004-05-30 21:41:15  jonas
+  Revision 1.206  2004-06-01 20:39:33  jonas
+    * fixed bug regarding parameters on the ppc (they were allocated twice
+      under some circumstances and not at all in others)
+
+  Revision 1.205  2004/05/30 21:41:15  jonas
     * more regvar optimizations in location_force_reg
 
   Revision 1.204  2004/05/30 21:18:22  jonas
