@@ -22,22 +22,13 @@
 %
 % Preamble
 %
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{a4}
-\usepackage{makeidx}
 \usepackage{html}
 \usepackage{htmllist}
-\usepackage{fancyhdr}
 \usepackage{epsfig}
 \usepackage{multicol}
 \usepackage{fpc}
 \latex{%
   \ifpdf
-  \usepackage[pdftex,bookmarks=true]{hyperref}
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
            /Subject(Free Pascal Users' guide)
@@ -47,11 +38,6 @@
 }
 %
 \html{\input{fpc-html.tex}}
-%
-% Settings
-%
-\pagestyle{fancy}
-\fancyhead[LO,RE]{}
 \makeindex
 %
 % Start of document.
@@ -73,8 +59,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About this document
 \section{About this document}
-This is the user's manual for \fpc . It describes the installation and use of
-the \fpc compiler on the different supported platforms.
+This is the user's manual for \fpc . It describes the installation and 
+use of the \fpc compiler on the different supported platforms.
 It does not attempt to give an exhaustive list of all supported commands,
 nor a definition of the Pascal language. Look at the
 \refref for these things.
@@ -88,8 +74,7 @@ writing. Since the compiler is under continuous development, some of the
 things described here may be outdated. In case of doubt, consult the
 \file{README} files, distributed with the compiler.
 The \file{README} files are, in case of conflict with this manual,
- authoritative.
-
+authoritative.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % About the compiler
@@ -450,11 +435,12 @@ important to know where the compiler looks for its source files and other
 files. In this section we discuss this, and we indicate how to influence
 this.
 
-{\em Remark:}
+\begin{remark}
 The use of slashes (/) and backslashes (\verb+\+) as directory separators
 is irrelevant, the compiler will convert to whatever character is used on
 the current operating system. Examples will be given using slashes, since
 this avoids problems on \linux.
+\end{remark}
 
 % Command-line files.
 \subsection{Command line files}
@@ -484,9 +470,9 @@ look for compiled versions of these units in the following way:
 (not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
-You can add a directory to the unit search path with the \var{-Up} or
-\var{-Fu} options (\seeo{Up}, \seeo{Fu}). Every occurrence of one of
-those options will append a directory to the unit search path.
+You can add a directory to the unit search path with the \var{-Fu} option 
+(\seeo{Fu}). Every occurrence of one of this options will {\em insert} 
+a directory to the unit search path.
 
 On \linux, the compiler will first convert the filename of a unit to
 all-lowercase. This is necessary, since Pascal is case-independent, and
@@ -657,12 +643,12 @@ So don't delete them. If you want to distribute the unit, you must
 provide both the \file{.ppu} and \file{.o} file. One is useless without the
 other.
 
-{\em Remark:}
+\begin{remark}
 Under \linux, a unit source file {\em must} have a lowercase filename.
 Since Pascal is case independent, you can specify the names of units in the
 \var{uses} clause in either case. To get a unique filename, the \fpc compiler
 changes the name of the unit to all lowercase when looking for unit files.
-
+\end{remark}
 The compiler produces lowercase files, so your unit will be found, even if
 your source file has uppercase letters in it. Only when the compiler tries to
 recompile the unit, it will not find your source because of the uppercase
@@ -773,8 +759,9 @@ On the command line, and the \file{strip} program will remove all unnecessary
 information from your program. This can lead to size reductions of up to
 30 \%.
 
-{\em remark: in the \win32{} version, strip is called stripw}
-
+\begin{remark}
+In the \win version, \file{strip} is called \file{stripw}.
+\end{remark}
 You can use the \var{-Xs} switch to let the compiler do this stripping
 automatically at program compile time (the switch has no effect when
 compiling units).
@@ -804,7 +791,7 @@ unit xxx}: This typically happens when
 your unit path isn't set correctly. Remember that the compiler looks for
 units only in the current directory, and in the directory where the compiler
 itself is. If you want it to look somewhere else too, you must explicitly
-tell it to do so using the \var{-Up} option (\seeo{Up}). Or you must set op
+tell it to do so using the \var{-Fu} option (\seeo{Fu}). Or you must set op
 a configuration file.
 \end{itemize}
 
@@ -1929,6 +1916,30 @@ end;
 Using memory streams allows very fast formatting of code, and is perfectly
 suitable for editors.
 
+\subsection{rstconv program}
+
+The \file{rstconv} program converts the resource string files generates by
+the compiler (when you use resource string sections) to \file{.po} files
+that can be understood by the GNU \file{msgfmt} program.
+
+Its usage is very easy; it accepts the following options:
+\begin{description}
+\item[-i file] Use the specified file instead of stdin as input file. This
+option is optional.
+\item[-o file] write output to the specified file. This option is required.
+\item[-f format] Specifies the output format. At the moment, only one output
+format is supported: {\em po} for GNU gettext \file{.po} format. 
+It is the default format.
+\end{description}
+As an example:
+\begin{verbatim}
+rstconv -i resdemo.rst -o resdemo.po
+\end{verbatim}
+will convert the \file{resdemo.rst} file to \file{resdemo.po}. 
+
+More information on the \file{rstconv} utility can be found in the \progref,
+under the chapter about resource strings.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied units
 \section{Supplied units}
@@ -2116,8 +2127,9 @@ debugging your program:
 \item [file\ ] Loads a new program into the debugger.
 \item [directory\ ] Add a new directory to the search path for source
 files.\\
-{\em Remark:} My copy of gdb needs '.' to be added explicitly to the search
+\begin{remark} My copy of gdb needs '.' to be added explicitly to the search
 path, otherwise it doesn't find the sources.
+\end{remark}
 \item [list\ ] Lists the program sources per 10 lines. As an option you can
 specify a line number or function name.
 \item [break\ ] Sets a breakpoint at a specified line or function
