@@ -40,6 +40,9 @@ specific processor ABI. It is overriden for each CPU target.
     procedure a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);override;
     procedure a_call_name(list:TAasmOutput;CONST s:string);override;
     procedure a_call_ref(list:TAasmOutput;CONST ref:TReference);override;
+    {Branch Instruction}
+    procedure a_jmp_always(List:TAasmOutput;l:TAsmLabel);override;
+    {General purpose instyructions}
     procedure a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegister);override;
     procedure a_op_const_ref(list:TAasmOutput;Op:TOpCG;size:TCGSize;a:AWord;CONST ref:TReference);override;
     procedure a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
@@ -71,6 +74,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);{ override;}
     procedure a_jmp_flags(list:TAasmOutput;CONST f:TResFlags;l:tasmlabel);override;
     procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;reg:TRegister);override;
+    procedure g_overflowCheck(List:TAasmOutput;const p:TNode);override;
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
@@ -205,6 +209,11 @@ procedure tcgSPARC.a_call_ref(list:TAasmOutput;CONST ref:TReference);
     list.concat(taicpu.op_ref(A_CALL,ref));
     list.concat(taicpu.op_none(A_NOP));
   END;
+{********************** branch instructions ********************}
+procedure TCgSPARC.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
+  begin
+    List.Concat(TAiCpu.op_sym(A_BA,S_NO,objectlibrary.newasmsymbol(l.name)));
+  end;
 {********************** load instructions ********************}
 procedure tcgSPARC.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TRegister);
   BEGIN
@@ -803,7 +812,28 @@ procedure tcgSPARC.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
     THEN
       a_load_reg_reg(list,OS_8,OS_8,hreg,reg);
   END;
-
+procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
+  var
+    hl:TAsmLabel;
+  begin
+    if not(cs_check_overflow in aktlocalswitches)
+    then
+      exit;
+    objectlibrary.getlabel(hl);
+    if not((p.resulttype.def.deftype=pointerdef) or
+       ((p.resulttype.def.deftype=orddef) and
+        (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                         bool8bit,bool16bit,bool32bit])))
+    then
+      begin
+        list.concat(taicpu.op_reg(A_NONE,R_NONE));
+        a_jmp_always(list,hl)
+      end
+    else
+      a_jmp_cond(list,OC_NONE,hl);
+      a_call_name(list,'FPC_OVERFLOW');
+      a_label(list,hl);
+    end;
 { *********** entry/exit code and address loading ************ }
 
 procedure tcgSPARC.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
@@ -1253,7 +1283,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.25  2002-11-25 17:43:28  peter
+  Revision 1.26  2002-11-25 19:21:49  mazen
+  * fixed support of nSparcInline
+
+  Revision 1.25  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

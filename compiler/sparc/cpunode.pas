@@ -1,13 +1,4 @@
-{*****************************************************************************}
-{ File                   : cpunode.pas                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\26\26                                         }
-{ Last modification date : 2002\07\14                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
     $Id$
     Copyright (c) 2000 by Florian Klaempfl
 
@@ -27,18 +18,18 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************}
-UNIT cpunode;
+ *****************************************************************************}
+unit CpuNode;
 {$INCLUDE fpcdefs.inc}
-INTERFACE
+interface
 {This unit is used to define the specific CPU implementations. All needed
 actions are included in the INITALIZATION part of these units. This explains
 the behaviour of such a unit having just a USES clause!}
-IMPLEMENTATION
-USES
+implementation
+uses
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
   naddcpu,ncpucall,{n386con,n386cnv,n386flw,n386mat,n386mem,}
-  {n386set,n386inl,n386opt,}ncpucnv,
+  {n386set,}ncpuinline,{n386opt,}ncpucnv,
   { this not really a node }
   {nSPARCobj,}rgcpu;
-END.
+end.

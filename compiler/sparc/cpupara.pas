@@ -40,7 +40,6 @@ type
 implementation
 uses
   verbose,
-  globtype,
   cpuinfo,cginfo,cgbase,
   defutil;
 function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
@@ -123,15 +122,14 @@ push_addr_param for the def is true}
 procedure TSparcParaManager.create_param_loc_info(p:tabstractprocdef);
   var
     nextintreg,nextfloatreg:tregister;
-    stack_offset : aword;
-    hp : tparaitem;
-    loc : tloc;
-    is_64bit: boolean;
+    stack_offset:aword;
+    hp:tparaitem;
+    loc:tloc;
+    is_64bit:boolean;
   begin
-    nextintreg:=R_i0;
+    nextintreg:=R_O0;
     nextfloatreg:=R_F0;
     stack_offset:=92;
-WriteLn('***********************************************');
     hp:=TParaItem(p.para.First);
     while assigned(hp) do
       begin
@@ -147,7 +145,6 @@ WriteLn('***********************************************');
               if NextIntReg<=TRegister(ord(R_i5)-ord(is_64bit))
               then
                 begin
-                  WriteLn('Allocating ',std_reg2str[NextIntReg]);
                   hp.paraloc.loc:=LOC_REGISTER;
                   hp.paraloc.registerlow:=NextIntReg;
                   inc(NextIntReg);
@@ -173,36 +170,39 @@ WriteLn('***********************************************');
             end;
           LOC_FPUREGISTER:
             begin
-                      if hp.paratyp in [vs_var,vs_out] then
-                        begin
-                            if nextintreg<=R_O5 then
-                             begin
-                                hp.paraloc.size:=OS_ADDR;
-                                hp.paraloc.loc:=LOC_REGISTER;
-                                hp.paraloc.register:=nextintreg;
-                                inc(nextintreg);
-                             end
-                           else
-                              begin
-                                 {!!!!!!!}
-                                 hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                                 internalerror(2002071006);
-                             end;
-                        end
-                      else if nextfloatreg<=R_F10 then
-                        begin
-                           hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                           hp.paraloc.loc:=LOC_FPUREGISTER;
-                           hp.paraloc.register:=nextfloatreg;
-                           inc(nextfloatreg);
-                        end
-                      else
-                         begin
-                            {!!!!!!!}
-                             hp.paraloc.size:=def_cgsize(hp.paratype.def);
-                            internalerror(2002071004);
-                        end;
-                   end;
+              if hp.paratyp in [vs_var,vs_out]
+              then
+                begin
+                  if NextIntReg<=R_O5
+                  then
+                    begin
+                      hp.paraloc.size:=OS_ADDR;
+                      hp.paraloc.loc:=LOC_REGISTER;
+                      hp.paraloc.register:=nextintreg;
+                      inc(nextintreg);
+                    end
+                  else
+                    begin
+                      {!!!!!!!}
+                      WriteLn('NextIntReg=',std_reg2str[NextIntReg]);
+                      hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                      internalerror(2002071006);
+                    end;
+                end
+              else if nextfloatreg<=R_F10 then
+                begin
+                  hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                  hp.paraloc.loc:=LOC_FPUREGISTER;
+                  hp.paraloc.register:=nextfloatreg;
+                  inc(nextfloatreg);
+                end
+              else
+                begin
+                  {!!!!!!!}
+                  hp.paraloc.size:=def_cgsize(hp.paratype.def);
+                  internalerror(2002071004);
+                end;
+            end;
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_ADDR;
@@ -242,9 +242,8 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
       case p.rettype.def.deftype of
         orddef,enumdef:
           begin
-            WriteLn('Allocating i0 as return register');
             loc:=LOC_REGISTER;
-            register:=R_I0;
+            register:=return_result_reg;
             size:=def_cgsize(p.rettype.def);
             if size in [OS_S64,OS_64]
             then
@@ -283,7 +282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-11-25 17:43:28  peter
+  Revision 1.12  2002-11-25 19:21:49  mazen
+  * fixed support of nSparcInline
+
+  Revision 1.11  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
