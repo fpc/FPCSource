@@ -59,15 +59,14 @@ interface
   {$LINKLIB gdb}
     {$ifdef GDB_V5}
       {$LINKLIB bfd}
-      {$LINKLIB intl}
       {$LINKLIB readline}
       {$LINKLIB opcodes}
       {$LINKLIB history}
       {$LINKLIB iberty}
       {$LINKLIB ncurses}
       {$LINKLIB m}
-      {$LINKLIB intl}
       {$LINKLIB iberty}
+      {$LINKLIB dl}
     {$endif GDB_V5}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -2391,7 +2390,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.3  2000-10-01 22:24:44  pierre
+  Revision 1.1.2.4  2000-11-08 16:05:15  pierre
+   * change libs so that IDE compiles
+
+  Revision 1.1.2.3  2000/10/01 22:24:44  pierre
    * libraries for linux with GDB 5
 
   Revision 1.1.2.2  2000/09/27 22:31:13  pierre
