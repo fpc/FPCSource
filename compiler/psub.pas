@@ -301,12 +301,6 @@ implementation
             { the procedure is now defined }
             aktprocdef.forwarddef:=false;
 
-{$ifdef state_tracking}
-{       writenode(code);
-        do_track_state_pass(code);
-        writenode(code);}
-{$endif}
-
              { only generate the code if no type errors are found, else
                finish at least the type checking pass }
 {$ifndef NOPASS2}
@@ -805,7 +799,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-11-25 17:43:23  peter
+  Revision 1.79  2002-11-25 18:43:32  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.78  2002/11/25 17:43:23  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

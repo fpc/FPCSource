@@ -254,7 +254,7 @@ const
   parser_e_no_local_external=03174;
   parser_w_skipped_fields_before=03175;
   parser_e_skipped_fields_before=03176;
-  parser_h_skipped_fields_after=03177;
+  parser_w_skipped_fields_after=03177;
   parser_e_varargs_need_cdecl_and_external=03178;
   parser_e_self_call_by_value=03179;
   parser_e_interface_has_no_guid=03180;
@@ -313,7 +313,7 @@ const
   type_w_string_too_long=04043;
   type_w_signed_unsigned_always_false=04044;
   type_w_signed_unsigned_always_true=04045;
-  type_w_mixed_signed_unsigned3=04046;
+  type_w_instance_with_abstract=04046;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -633,7 +633,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35273;
+  MsgTxtSize = 35258;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,190,47,43,41,98,19,35,43,

@@ -864,17 +864,7 @@ implementation
                       if (is_constintnode(right) and (nodetype in [ltn,lten])) or
                          (is_constintnode(left) and (nodetype in [gtn,gten])) then
                          CGMessage(type_w_signed_unsigned_always_false);
-                    end
-                 else
-                 { give out a warning if types are not of the same sign, and are
-                   not constants.
-                 }
-                 if (((byte(is_signed(rd)) xor byte(is_signed(ld))) and 1)<>0) and
-                      (nodetype in [ltn,gtn,gten,lten,equaln,unequaln]) and (not is_constintnode(left)) and
-                      (not is_constintnode(right)) then
-                   begin
-                       CGMessage(type_w_mixed_signed_unsigned3);
-                   end;
+                    end;
 
                  inserttypeconv(right,s32bittype);
                  inserttypeconv(left,s32bittype);
@@ -1891,7 +1881,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2002-11-25 17:43:17  peter
+  Revision 1.73  2002-11-25 18:43:32  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.72  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -440,16 +440,6 @@ unit cgx86;
     procedure tcgx86.a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);
 
       begin
-{$ifdef OPTLOAD0}
-        { zero is often used several times in succession -> load it in a  }
-        { register and then store it to memory, so the optimizer can then }
-        { remove the unnecessary loads of registers and you get smaller   }
-        { (and faster) code                                               }
-        if (a = 0) and
-           (size in [OS_32,OS_S32]) then
-          inherited a_load_const_ref(list,size,a,ref)
-        else
-{$endif OPTLOAD0}
           list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],a,ref));
       end;
 
@@ -1682,7 +1672,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.22  2002-11-25 17:43:29  peter
+  Revision 1.23  2002-11-25 18:43:34  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.22  2002/11/25 17:43:29  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -432,7 +432,7 @@ implementation
                     newtype:=ttypesym(sym);
                     tt:=newtype.restype;
                   end;
-                  message1(parser_h_type_redef,typename);
+                  message1(parser_h_type_redef,lower(typename));
                end;
             end;
            { no old type reused ? Then insert this new type }
@@ -627,7 +627,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-11-23 22:50:06  carl
+  Revision 1.61  2002-11-25 18:43:32  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.60  2002/11/23 22:50:06  carl
     * some small speed optimizations
     + added several new warnings/hints
 

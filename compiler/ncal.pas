@@ -29,6 +29,7 @@ unit ncal;
 interface
 
     uses
+       cutils,cclasses,
        globtype,
        node,
        {$ifdef state_tracking}
@@ -56,7 +57,6 @@ interface
           { function return reference node, this is used to pass an already
             allocated reference for a ret_in_param return value }
           funcretrefnode : tnode;
-
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
@@ -68,6 +68,14 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
           function  getcopy : tnode;override;
+          { Goes through all symbols in a class and subclasses and calls
+            verify abstract for each .
+          }
+          procedure verifyabstractcalls;
+          { called for each definition in a class and verifies if a method
+            is abstract or not, if it is abstract, give out a warning
+          }
+          procedure verifyabstract(p : tnamedindexitem;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
        {$ifdef nice_ncal}
@@ -79,6 +87,8 @@ interface
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
           procedure set_procvar(procvar:tnode);
+       private
+          AbstractMethodsList : TStringList;
        end;
        tcallnodeclass = class of tcallnode;
 
@@ -145,7 +155,7 @@ interface
 implementation
 
     uses
-      cutils,systems,
+      systems,
       verbose,globals,
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,cpuinfo,cpubase,
@@ -153,6 +163,12 @@ implementation
       rgobj,cgbase
       ;
 
+type
+     tobjectinfoitem = class(tlinkedlistitem)
+       objinfo : tobjectdef;
+       constructor create(def : tobjectdef);
+     end;
+      
 
 {****************************************************************************
                              HELPERS
@@ -218,6 +234,12 @@ implementation
          end;
       end;
 
+
+      constructor tobjectinfoitem.create(def : tobjectdef);
+        begin
+          inherited create;
+          objinfo := def;
+        end;
 
 {****************************************************************************
                              TCALLPARANODE
@@ -827,6 +849,109 @@ implementation
       begin
       end;
 
+
+    procedure tcallnode.verifyabstract(p : tnamedindexitem;arg:pointer);
+
+      var
+         hp : tprocdef;
+          j: integer;
+      begin
+         if (tsym(p).typ=procsym) then
+           begin
+              for j:=1 to tprocsym(p).procdef_count do
+               begin
+                  { index starts at 1 }
+                  hp:=tprocsym(p).procdef[j];
+                  { If this is an abstract method insert into the list }
+                  if (po_abstractmethod in hp.procoptions) then
+                     AbstractMethodsList.Insert(hp.procsym.name)
+                  else 
+                    { If this symbol is already in the list, and it is 
+                      an overriding method or dynamic, then remove it from the list
+                    }
+                    begin
+                       { symbol was found }
+                       if AbstractMethodsList.Find(hp.procsym.name) <> nil then
+                         begin
+                            if po_overridingmethod in hp.procoptions then
+                              AbstractMethodsList.Remove(hp.procsym.name);
+                         end;
+                 
+                  end;
+               end;
+           end;
+      end;
+
+
+    procedure tcallnode.verifyabstractcalls;
+     var
+       objectdf : tobjectdef;
+       parents : tlinkedlist;
+       objectinfo : tobjectinfoitem;
+       stritem : tstringlistitem;
+       _classname : string;
+     begin
+       objectdf := nil;
+       { verify if trying to create an instance of a class which contains
+         non-implemented abstract methods }
+     
+       { first verify this class type, no class than exit  }
+       { also, this checking can only be done if the constructor is directly 
+         called, indirect constructor calls cannot be checked. 
+       }
+       if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
+           if (methodpointer.resulttype.def.deftype = classrefdef) and 
+             (methodpointer.nodetype in [typen,loadvmtn]) then
+             begin
+               if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
+                   objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
+                   
+             end;
+       if not assigned(objectdf) then exit;
+       if assigned(objectdf.symtable.name) then 
+         _classname := objectdf.symtable.name^
+       else
+         _classname := '';
+   
+       parents := tlinkedlist.create;
+       AbstractMethodsList := tstringlist.create;
+
+       { insert all parents in this class : the first item in the  
+         list will be the base parent of the class . 
+       }
+       while assigned(objectdf) do
+         begin
+           objectinfo:=tobjectinfoitem.create(objectdf);
+           parents.insert(objectinfo);
+           objectdf := objectdf.childof;
+       end;
+       { now all parents are in the correct order 
+         insert all abstract methods in the list, and remove
+         those which are overriden by parent classes.
+       }
+       objectinfo:=tobjectinfoitem(parents.first);
+       while assigned(objectinfo) do
+         begin
+            objectdf := objectinfo.objinfo;
+            if assigned(objectdf.symtable) then
+              objectdf.symtable.foreach({$ifdef FPCPROCVAR}@{$endif}verifyabstract,nil);
+            objectinfo:=tobjectinfoitem(objectinfo.next);
+         end;
+       if assigned(parents) then
+         parents.free;
+       { Finally give out a warning for each abstract method still in the list }
+       stritem := tstringlistitem(AbstractMethodsList.first);
+       while assigned(stritem) do
+        begin
+          if assigned(stritem.fpstr) then
+             Message2(type_w_instance_with_abstract,lower(_classname),lower(stritem.fpstr^)); 
+          stritem := tstringlistitem(stritem.next);
+        end;        
+       if assigned(AbstractMethodsList) then
+         AbstractMethodsList.Free;
+   end;
+
+
 {$ifdef nice_ncal}
 
     function Tcallnode.choose_definition_to_call(paralength:byte;var errorexit:boolean):Tnode;
@@ -1377,6 +1502,7 @@ implementation
                  assigned(methodpointer.resulttype.def) and
                  (methodpointer.resulttype.def.deftype=classrefdef) then
                     resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
+
             end;
 
         { flag all callparanodes that belong to the varargs }
@@ -2239,6 +2365,7 @@ implementation
                 assigned(methodpointer.resulttype.def) and
                 (methodpointer.resulttype.def.deftype=classrefdef) then
                resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
+
            end;
 
          { flag all callparanodes that belong to the varargs }
@@ -2430,6 +2557,10 @@ implementation
          { if this is a call to a method calc the registers }
          if (methodpointer<>nil) then
            begin
+              { if we are calling the constructor }
+              if procdefinition.proctypeoption in [potype_constructor] then
+                verifyabstractcalls;
+
               case methodpointer.nodetype of
                 { but only, if this is not a supporting node }
                 typen: ;
@@ -2664,7 +2795,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2002-11-25 17:43:17  peter
+  Revision 1.110  2002-11-25 18:43:32  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.109  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -3061,11 +3061,7 @@ implementation
       begin
          if assigned(rettype.def) and
             (rettype.def.deftype=floatdef) then
-{$ifdef FAST_FPU}
-           fpu_used:=3;
-{$else : not FAST_FPU, i.e. SAFE_FPU}
-           fpu_used:={2}maxfpuregs;
-{$endif FAST_FPU}
+           fpu_used:=maxfpuregs;
       end;
 
 
@@ -3931,11 +3927,7 @@ implementation
          { a more secure way would be
            to allways store in a temp }
          if is_fpu(rettype.def) then
-{$ifdef FAST_FPU}
-           fpu_used:=3
-{$else : not FAST_FPU, i.e. SAFE_FPU}
            fpu_used:={2}maxfpuregs
-{$endif FAST_FPU}
          else
            fpu_used:=0;
          inherited ppuwrite(ppufile);
@@ -5537,7 +5529,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  2002-11-25 17:43:24  peter
+  Revision 1.111  2002-11-25 18:43:33  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.110  2002/11/25 17:43:24  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

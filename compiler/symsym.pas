@@ -284,10 +284,6 @@ interface
           consttyp    : tconsttyp;
           value : tconstvalue;
           resstrindex  : longint;     { needed for resource strings }
-(*        valueord    : tconstexprint; { used for ordinal values }
-          valueordptr : TConstPtrUInt; { used for pointer values }
-          valueptr    : pointer; { used for string, set, real values }
-          len         : longint; { len is needed for string length }*)
           constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint);
           constructor create_ord_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
           constructor create_ordptr_typed(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
@@ -2483,7 +2479,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-11-25 17:43:26  peter
+  Revision 1.77  2002-11-25 18:43:34  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.76  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -919,10 +919,10 @@ parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't in
 parser_e_skipped_fields_before=03176_E_Some fields coming before "$1" weren't initialized
 % In all syntax modes but Delphi mode, you can't leave some fields uninitialized
 % in the middle of a typed constant record
-parser_h_skipped_fields_after=03177_H_Some fields coming after "$1" weren't initialized
+parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't initialized
 % You can leave some fields at the end of a type constant record uninitialized
-% (the compiler will initialize them to zero automatically), but the the
-% compiler gives a hint because it can be the source of a problem.
+% (the compiler will initialize them to zero automatically). This may be the cause
+% of subtle problems.
 parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl and External
 % The varargs directive can only be used with procedures or functions
 % that are declared with CDecl and External directives. The varargs directive
@@ -1143,12 +1143,11 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
+type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
+% An instance of a class is created which contains non-implemented abstract 
+% methods. This will probably lead to a runtime error 211 in the code if that
+% routine is ever called. All abstract methods should be overriden.
 %
-type_w_mixed_signed_unsigned3=04046_W_Comparison might always be true (or false) due to range of values
-% There is a comparison between an unsigned value and a signed value which might
-% be less than zero. Because of type promotion, the statement might incorrectly
-% be evaluated. Exlicitly typecast the signed value to the same type as the
-% unsigned value to avoid this problem.
 % \end{description}
 #
 # Symtable

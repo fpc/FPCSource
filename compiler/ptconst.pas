@@ -860,7 +860,7 @@ implementation
                     { after the last initialized field                      }
                     ((recsym=nil) or
                      (tvarsym(srsym).address > tvarsym(recsym).address)) then
-                   Message1(parser_h_skipped_fields_after,s);
+                   Message1(parser_w_skipped_fields_after,s);
 
                  for i:=1 to t.def.size-aktpos do
                    curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -985,7 +985,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  2002-11-25 17:43:23  peter
+  Revision 1.61  2002-11-25 18:43:33  carl
+   - removed the invalid if <> checking (Delphi is strange on this)
+   + implemented abstract warning on instance creation of class with
+      abstract methods.
+   * some error message cleanups
+
+  Revision 1.60  2002/11/25 17:43:23  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
