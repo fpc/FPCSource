@@ -33,17 +33,13 @@ uses
   verbose;
 
 Var
-{$ifdef linux}
-  NewSignal,OldSigSegm,OldSigInt : PSignalHandler;
-{$else}
   NewSignal,OldSigSegm,OldSigInt : SignalHandler;
-{$endif}
 
 
 Implementation
 
 {$ifdef linux}
-Procedure CatchSignal(Sig : Integer);
+Procedure CatchSignal(Sig : Integer);cdecl;
 {$else}
 Function CatchSignal(Sig : longint):longint;
 {$endif}
@@ -67,7 +63,7 @@ end;
 
 begin
 {$ifdef linux}
-  NewSignal:=PSignalHandler(@CatchSignal);
+  NewSignal:=@CatchSignal;
   OldSigSegm:=Signal (SIGSEGV,NewSignal);
   OldSigInt:=Signal (SIGINT,NewSignal);
 {$else}
@@ -79,8 +75,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-09-08 13:01:09  michael
+  Adapted to changed Signal call
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.5  1998/03/10 01:17:15  peter
     * all files have the same header
