@@ -17,7 +17,8 @@
 # <part>_<type>_<txtidentifier>
 #
 # <part> is the part of the compiler the message is used
-#   assem_    assembler parsing
+#   asmr_     assembler parsing
+#   asmw_     assembler writing/binary writers
 #   unit_     unit handling
 #   scan_     scanner
 #   parser_   parser
@@ -742,6 +743,9 @@ parser_e_threadvars_only_sg=E_Threadvariablen kînnen nur statisch oder global se
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
+parser_f_direct_assembler_not_allowed=F_Direct Assembler wird als Ausgabeformat nicht unterstÅtzt
+% You can't use direct assembler when using a binary writer, choose an
+% other outputformat or use an other assembler reader
 % \end{description}
 #
 # Type Checking
@@ -1063,193 +1067,141 @@ cg_e_cannot_call_message_direct=E_Kann Message Handler Methode nicht direkt aufr
 % explicit self argument
 % \end{description}
 # EndOfTeX
+
 #
-# Assembler reader/writers
+# Assembler reader
 #
-assem_f_ev_zero_divide=F_Division durch Null in asm Ausdruck
-assem_f_ev_stack_overflow=F_Ausdruck ergibt StackÅberlauf
-assem_f_ev_stack_underflow=F_Ausdruck ergiby Stackunterlauf
-assem_f_ev_invalid_number=F_UnzulÑssiges Zahlenformat in asm Ausdruck
-assem_f_ev_invalid_op=F_UngÅlitger Operator in asm Ausdruck
-assem_f_ev_unknown=F_Unbekannter Fehler in asm Ausdruck
-assem_w_invalid_numeric=W_UnzulÑssiger Zahlenwert
-assem_e_escape_seq_ignored=E_Escapefolge ignoriert: $1
-assem_e_syn_prefix_not_found=E_Asm Syntaxfehler - Prefix nicht gefunden
-assem_e_syn_try_add_more_prefix=E_Asm Syntaxfehler - Versuch mehr als einen Prefix anzuwenden
-assem_e_syn_opcode_not_found=E_Asm Syntaxfehler - Opcode nicht gefunden
-assem_e_invalid_symbol_ref=E_UngÅlitge Symbol Referenz
-assem_w_calling_overload_func=W_Aufrufe einer overload Funktion in asm
-assem_e_constant_out_of_bounds=E_Konstante ausserhalb der Grenzen
-assem_e_none_label_contain_at=E_Nicht-Label Folge enthaelt @
-assem_e_invalid_operand=E_UngÅlitger Operand: $1
-assem_w_override_op_not_supported=W_Override Operator nicht unterstÅtzt
-assem_e_error_in_binary_const=E_Fehler in BinÑr Konstante: $1
-assem_e_error_in_octal_const=E_Fehler in Oktal Konstante: $1
-assem_e_error_in_hex_const=E_Fehler in Hexadezimal Konstante: $1
-assem_e_error_in_integer_const=E_Fehler in Integer Konstante: $1
-assem_e_invalid_labeled_opcode=E_UngÅltiger belabelter Opcode
-assem_f_internal_error_in_findtype=F_Interner Fehler in Findtype()
-assem_e_invalid_size_movzx=E_UngÅlitige Grîsse fÅr MOVSX/MOVZX
-assem_e_16bit_base_in_32bit_segment=E_16-bit Basis in 32-bit Segment
-assem_e_16bit_index_in_32bit_segment=E_16-bit Index in 32-bit Segment
-assem_e_invalid_opcode=E_UngÅltiger Opcode
-assem_e_const_ref_not_allowed=E_Konstanten Referenz nicht erlaubt
-assem_w_fwait_emu_prob=W_Fwait kann Emulationsprobleme mit emu387 verursachen
-assem_e_invalid_opcode_and_operand=E_UngÅltige Kombination von Opcode und Operanden
-assem_e_unsupported_opcode_and_operand=E_Nicht unterstÅtzte Kombination von Opcode und Operanden
-assem_w_opcode_not_in_table=W_Opcode $1 nicht in Tabelle, Operanden nicht geprÅft
-assem_f_internal_error_in_concatopcode=F_Interner Fehler in ConcatOpcode()
-assem_e_invalid_size_in_ref=E_UngÅltige Grîsse in Referenz
-assem_e_invalid_middle_sized_operand=E_UngÅltiger Operand mittlerer Grîsse
-assem_e_invalid_three_operand_opcode=E_UngÅltiger drei Operanden Opcode
-assem_e_syntax_error=E_Assembler Syntaxfehler
-assem_e_invalid_operand_type=E_UngÅltiger Operandentyp
-assem_e_segment_override_not_supported=E_Segment overrides werden nicht unterstÅtzt
-assem_e_invalid_const_symbol=E_UngÅltiges Konstanten Symbol $1
-assem_f_error_converting_bin=F_Interner Fehler beim Umwandeln einer binÑren Zahl
-assem_f_error_converting_hex=F_Interner Fehler beim Umwandeln einer hexadezimalen Zahl
-assem_f_error_converting_octal=F_Interner Fehler beim Umwandeln einer oktalen Zahl
-assem_e_invalid_constant_expression=E_UngÅltiger Konstanten Ausdruck
-assem_e_unknown_id=E_Unbekannter Bezeichner: $1
-assem_e_defining_index_more_than_once=E_Versuch ein Index Register mehr als einmal zu definieren
-assem_e_invalid_field_specifier=E_UngÅltiger Feldbezeichner
-assem_f_internal_error_in_buildscale=F_Interner Fehlerr in BuildScaling()
-assem_e_invalid_scaling_factor=E_UngÅltiger Skalierungsfaktor
-assem_e_invalid_scaling_value=E_UngÅltiger Skalierungswert
-assem_e_scaling_value_only_allowed_with_index=E_Skalierungswert nur mit Index zulÑssig
-assem_e_syn_no_ref_with_brackets=E_UngÅltige Assembler Syntax, keine Referenz mit Klammern
-assem_e_expression_form_not_supported=E_Ausdruecke der Form [sreg:reg...] werden im Augenblick noch nicht unterstÅtzt
-assem_e_defining_seg_more_than_once=E_Versuch ein Segmentregister zweimal zu definieren
-assem_e_defining_base_more_than_once=E_Versuch ein Basisregister zweimal zu definieren
-assem_e_negative_index_register=E_Versuch ein negatives Indexregister zu verwenden
-assem_e_syn_reference=E_Asm Syntaxfehler - Fehler in Referenz
-assem_e_local_symbol_not_allowed_as_ref=E_Locale Symbole als Referenz nicht zulÑssig
-assem_e_invalid_operand_in_bracket_expression=E_UngÅltiger Operand in geklammertem Ausdruck
-assem_e_invalid_symbol_name=E_UngÅltiger Symbolname: $1
-assem_e_invalid_reference_syntax=E_UngÅltige Referenz Syntax
-assem_e_invalid_string_as_opcode_operand=E_UngÅltiger String als Opcode Operand: $1
-assem_w_CODE_and_DATA_not_supported=W_@CODE und @DATA nicht unterstÅtzt
-assem_e_null_label_ref_not_allowed=E_Bezug auf Null-Label sind nicht zulÑssig
-assem_w_calling_overloaded=W_Aufruf einer overload Funktion im Direkt Modus
-assem_e_cannot_use_SELF_outside_a_method=E_Kann SELF ausserhalb einer Methode nicht verwenden
-assem_e_syn_start_with_bracket=E_Asm Syntaxfehler - sollte mit Klammer beginnen
-assem_e_syn_register=E_Asm Syntaxfehler - Register: $1
-assem_e_SEG_and_OFFSET_not_supported=E_SEG und OFFSET nicht unterstÅtzt
-assem_e_syn_opcode_operand=E_Asm Syntaxfehler - in Opcode Operand
-assem_e_invalid_string_expression=E_UngÅltiger String Ausdruck
-assem_e_expression_out_of_bounds=E_Konstanter Ausdruck ausserhalb Bereich
-assem_f_internal_error_in_buildconstant=F_Interner Fehler in BuildConstant()
-assem_w_repeat_prefix_and_seg_override=W_Ein repeat Prefix und ein Segment Override auf <= i386 kann Fehler verursachen wenn ein Interrupt auftritt
-assem_e_invalid_or_missing_opcode=E_UngÅltiger oder fehlender Opcode
-assem_e_invalid_prefix_and_opcode=E_UngÅltige Kombination von Prefix und Opcode: $1
-assem_e_invalid_override_and_opcode=E_UngÅltige Kombination von Override und Opcode: $1
-assem_e_too_many_operands=E_Zu viele Operanden auf der Zeile
-assem_e_dup_local_sym=E_Doppeltes lokales Symbol: $1
-assem_e_unknown_label_identifer=E_Unbekannter Label Bezeichner: $1
-assem_e_assemble_node_syntax_error=E_Assemble node Syntaxfehler
-assem_e_unknown_local_sym=E_Undefiniertes lokales Symbol: $1
-assem_d_start_intel=D_Starte intel Stil assembler Parsen...
-assem_d_finish_intel=D_Beende intel Stil assembler Parsen...
-assem_e_not_directive_or_local_symbol=E_Keine Direktive oder lokales Symbol: $1
-assem_e_slash_at_begin_of_line_not_allowed=E_/ am Anfang einer Zeile nicht zulÑssig
-assem_e_nor_not_supported=E_NOR nicht unterstÅtzt
-assem_e_invalid_fpu_register=E_UngÅltiger Fliesskomma Registername
-assem_w_modulo_not_supported=W_Modulo nicht unterstÅtzt
-assem_e_invalid_float_const=E_Ungueltige Fliesskomma Konstante: $1
-assem_e_size_suffix_and_dest_reg_dont_match=E_Grîssen Suffix und Zielregister passen nicht zusammen
-assem_e_size_suffix_and_dest_dont_match=E_Grîssen Suffix und Ziel- oder Quellgrîsse passen nicht zusammen
-assem_w_size_suffix_and_dest_dont_match=W_Grîssen Suffix und Ziel- oder Quellgrîsse passen nicht zusammen
-assem_f_internal_error_in_concatlabeledinstr=E_Interner Fehler in ConcatLabeledInstr()
-assem_w_float_bin_ignored=W_Fliesskomma BinÑrangabe ignoriert
-assem_w_float_hex_ignored=W_Fliesskomma Hexadezimalangabe ignoriert
-assem_w_float_octal_ignored=W_Fliesskomma Oktalangabe ignoriert
-assem_e_invalid_real_const=E_UngÅltiger Real Konstanten Ausdruck
-assem_e_parenthesis_are_not_allowed=E_Klammern nicht zulÑssig
-assem_e_invalid_reference=E_UngÅltige Referenz
-assem_e_cannot_use___SELF_outside_methode=E_Kann __SELF ausserhalb einer Methode nicht verwenden
-assem_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann __OLDEBP ausserhalb einer verschatelten Prozedur nicht verwenden
-assem_w_id_supposed_external=W_Bezeichner $1 vermultich external
-assem_e_invalid_seg_override=E_UngÅltiger Segment override Audruck
-assem_e_string_not_allowed_as_const=E_Strings sind als Konstanten nicht zulÑssig
-assem_d_start_att=D_Starte AT&T Stil assembler Parsien...
-assem_d_finish_att=D_Beende AT&T Stil assembler Parsen...
-assem_e_switching_sections_not_allowed=E_Umschalten von Abschnitten ist einem assembler Block nicht erlaubt
-assem_e_invalid_global_def=E_UngÅltige globale Definition
-assem_e_line_separator_expected=E_Zeilentrenner erwartet
-assem_w_globl_not_supported=W_globl nicht unterstÅtzt
-assem_w_align_not_supported=W_align nicht unterstÅtzt
-assem_w_lcomm_not_supported=W_lcomm nicht unterstÅtzt
-assem_w_comm_not_supported=W_comm nicht unterstÅtzt
-assem_e_invalid_lcomm_def=E_UngÅltige locale Allgemeindefinition
-assem_e_invalid_comm_def=E_UngÅltige globale Allgemeindefinition
-assem_e_local_sym_not_found_in_asm_statement=E_Lokales Symbol: $1 innerhalb asm Block nicht gefunden
-assem_e_assembler_code_not_returned_to_text=E_Assemblercode kehrt nicht zum Text zurÅck
-assem_f_internal_error_in_buildreference=F_internal error in BuildReference()
-assem_e_invalid_opcode_size=E_UngÅltige Opcode Grîsse
-assem_w_near_ignored=W_NEAR ignoriert
-assem_w_far_ignored=W_FAR ignoriert
-assem_d_creating_lookup_tables=D_Erzeuge Inline asm lookup Tabellen
-assem_w_using_defined_as_local=E_Benutze einen definierten Namen als Lokales Label
-assem_f_internal_error_in_handleextend=F_Interner Fehler in HandleExtend()
-assem_e_invalid_char_smaller=E_UngÅltiges Zeichen: <
-assem_e_invalid_char_greater=E_UngÅltiges Zeichen: >
-assem_e_unsupported_opcode=E_Nicht unterstÅtzter Opcode
-assem_e_no_inc_and_dec_together=E_Increment und Decrement Modus in Kombination nicht erlaubt
-assem_e_invalid_reg_list_in_movem=E_UngÅltige Registerliste in movem/fmovem
-assem_e_invalid_reg_list_for_opcode=E_UngÅltige Registerliste for opcode
-assem_e_68020_mode_required=E_68020+ Modus zum Assemblieren notwendig
-assem_d_start_motorola=D_Starting Motorola styled assembler parsing...
-assem_d_finish_motorola=D_Finished Motorola styled assembler parsing...
-assem_w_xdef_not_supported=W_XDEF not supported
-assem_w_void_function=W_Functions with void return value can't return any value in asm code
-assem_f_invalid_suffix_intel=E_Invalid suffix for intel assembler
-assem_e_extended_not_supported=E_Extended not supported in this mode
-assem_e_comp_not_supported=E_Comp not supported in this mode
-assem_w_mmxwarning_as_281=W_You need GNU as version >= 2.81 to compile this MMX code
-assem_f_too_many_asm_files=F_Too many assembler files
-assem_f_assembler_output_not_supported=F_Selected assembler output not supported
-assem_e_unsupported_symbol_type=E_Unsupported symbol type for operand
-assem_e_cannot_index_relative_var=E_Cannot index a local var or parameter with a register
-assem_h_direct_global_to_mangled=H_$1 translated to $2
-assem_w_direct_global_is_overloaded_func=W_$1 is associated to an overloaded function
-assem_d_arg_offset=Z_Reference at $1 corresponds to $2 arg
-assem_d_arg_unfound_offset=Z_Reference at $1 is not an arg !
+asmr_d_start_reading=D_Starte $1 Stil Assembler Parsen
+asmr_d_finish_reading=D_Beende $1 Stil Assembler Parsen
+asmr_e_none_label_contain_at=E_Nicht-Label Bezeichner enthÑlt @
+asmr_w_override_op_not_supported=W_Override Operator wird nicht unterstÅtzt
+asmr_e_building_record_offset=E_Fehler beim Ermittlen des Recordoffsets
+asmr_e_offset_without_identifier=E_OFFSET ohne Bezeicner verwendet
+asmr_e_no_local_or_para_allowed=E_Lokale Variable oder Parameter kînnen hier nicht versendet werden
+asmr_e_need_offset=E_Hier muss OFFSET verwendet werden
+asmr_e_cant_have_multiple_relocatable_symbols=E_Verwendung von mehreren verschiebbraren Symbolen nicht mîglich
+asmr_e_only_add_relocatable_symbol=E_Verschiebbares Symbol kann nur addiert werden
+asmr_e_invalid_constant_expression=E_UngÅltiger Konstantenausdruck
+asmr_e_relocatable_symbol_not_allowed=E_Verschiebbares Symbol ist nicht zulÑssig
+asmr_e_invalid_reference_syntax=E_UngÅltige Verweis-Syntax
+asmr_e_local_symbol_not_allowed_as_ref=E_Lokale Symbole sind als Referenz nicht zulÑssig
+asmr_e_wrong_base_index=E_UngÅltige Verwendung von Basis- und Index-Registern
+asmr_e_wrong_scale_factor=E_Falscher Skalierungsfator angegeben
+asmr_e_multiple_index=E_Mehrfache Verwendung fon Index-Registern
+asmr_e_invalid_operand_type=E_UngÅltiger Operandentyp
+asmr_e_invalid_string_as_opcode_operand=E_UngÅlitge Zeichenkette als Opcode Operand: $1
+asmr_w_CODE_and_DATA_not_supported=W_@CODE und @DATA werden nicht unterstÅtzt
+asmr_e_null_label_ref_not_allowed=E_Null-Label Bezug nicht mîglich
+asmr_e_ev_zero_divide=F_Division durch Null in asm Ausdruck
+asmr_e_ev_stack_overflow=F_Ausdruck liefert StackÅberlauf
+asmr_e_ev_stack_underflow=F_Ausdruck liefert Stackunterlauf
+asmr_e_ev_invalid_number=F_UngÅltiges Zahlenformat in asm Ausdruck
+asmr_e_ev_invalid_op=F_UngÅltiger Operator in asm Ausdruck
+asmr_e_escape_seq_ignored=E_Escape Sequenz Ignoriert: $1
+asmr_e_invalid_symbol_ref=E_UngÅltige Symbol Verwendung
+asmr_w_fwait_emu_prob=W_Fwait kann Emulationsprobleme mit emu387 verursachen
+asmr_w_calling_overload_func=W_Aufruf einer overload Funktion in Assembler
+asmr_e_unsupported_symbol_type=E_Nicht unterstÅtzter Symboltyp fÅr Operand
+asmr_e_constant_out_of_bounds=E_Konstante ausserhalb des Bereichts
+asmr_e_error_converting_decimal=E_Fehler beim Umwandeln in Dezimal $1
+asmr_e_error_converting_octal=E_Fehler beim Umwandeln in Oktal $1
+asmr_e_error_converting_binary=E_Fehler beim Umwandeln in BinÑr $1
+asmr_e_error_converting_hexadecimal=E_Fehler beim Umwandeln in Hexadezimal $1
+asmr_h_direct_global_to_mangled=H_$1 Åbersetzt nach $2
+asmr_w_direct_global_is_overloaded_func=W_$1 ist einer overload Funktion zugeordnet
+asmr_e_cannot_use_SELF_outside_a_method=E_Kann SELF ausserhalb einer Methode nicht verwenden
+asmr_e_cannot_use___SELF_outside_methode=E_Kann __SELF ausserhalb einer Methode nicht verwenden
+asmr_e_cannot_use___OLDEBP_outside_nested_procedure=E_Kann __OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwednen
+asmr_e_void_function=W_Prozeduren kînnen keinen Wert im asm Code zurÅckliefern
+asmr_e_SEG_not_supported=E_SEG nicht unterstÅtzt
+asmr_e_size_suffix_and_dest_dont_match=E_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
+asmr_w_size_suffix_and_dest_dont_match=W_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
+asmr_e_syntax_error=E_Assembler Syntaxfehler
+asmr_e_invalid_opcode_and_operand=E_UngÅltige Kombination von Opcode und Operanden
+asmr_e_syn_operand=E_Assemler Syntaxfehler im Operanden
+asmr_e_syn_constant=E_Assemler Syntaxfehler in Konstanten
+asmr_e_invalid_string_expression=E_UngÅltiger String Ausdruck
+asmr_w_const32bit_for_address=32bit Konstanten fÅr Adresse erzeugt
+asmr_e_invalid_or_missing_opcode=E_UngÅltiger oder fehlender Opcode
+asmr_e_invalid_prefix_and_opcode=E_UngÅltige Kombination von Prefix und Opcode: $1
+asmr_e_invalid_override_and_opcode=E_UngÅltige Kombination von Override und Opcode: $1
+asmr_e_too_many_operands=E_Zu viele Operanden auf der Zeile
+asmr_w_near_ignored=W_NEAR ignoriert
+asmr_w_far_ignored=W_FAR ignoriert
+asmr_e_dup_local_sym=E_Doppelters lokales Symbol $1
+asmr_e_unknown_local_sym=E_Undefiniertes lokales Symbol $1
+asmr_e_unknown_label_identifier=E_Unbekannter Label Bezeichner $1
+asmr_e_invalid_fpu_register=E_UngÅltiger Name fÅr Flieskomma Register
+asmr_e_nor_not_supported=E_NOR nicht unterstÅtzt
+asmr_w_modulo_not_supported=W_Modulo nicht unterstÅtzt
+asmr_e_invalid_float_const=E_UngÅltige Fliesskomma Konstante $1
+asmr_e_invalid_float_expr=E_UngÅltiger Fliesskomma Ausdruck
+asmr_e_wrong_sym_type=E_Falscher Symboltyp
+asmr_e_cannot_index_relative_var=E_Kann lokale Variable oder Parameter nicht mit Register indizieren
+asmr_e_invalid_seg_override=E_UngÅltiger Segmentoverride Ausdruck
+asmr_w_id_supposed_external=W_Bezeichner $1 ist vermutlich External
+asmr_e_string_not_allowed_as_const=E_Strings sind als Konstanten nicht zulÑssig
+asmr_e_no_var_type_specified=Typ der Variable nicht angegeben
+asmr_w_assembler_code_not_returned_to_text=E_Assembler Code kehrt nicht zum Text zurÅck
+asmr_e_not_directive_or_local_symbol=E_Keine Directive oder lokales Symbol $1
+asmr_w_using_defined_as_local=E_Verwendung eines definierten Namens als lokales Label
+
+
+#
+# Assembler/binary writers
+#
+asmw_f_too_many_asm_files=F_Zu viele Assembler Dateien
+asmw_f_assembler_output_not_supported=F_GewÑhlte Assembler Ausgabe wird nicht unterstÅtzt
+asmw_f_comp_not_supported=F_Comp nicht unterstÅtzt
+asmw_f_direct_not_supported=F_Direct nicht unterstÅtzt fÅr binÑres Schreiben
+asmw_e_alloc_data_only_in_bss=E_Allozieren von Daten ist nur in bss Abschnitten zulÑssig
+asmw_f_no_binary_writer_selected=F_Kein BinÑrschreiber ausgewÑhlt
+asmw_e_opcode_not_in_table=E_Asm: Opcode $1 ist nicht in Tabelle
+asmw_e_invalid_opcode_and_operands=E_Asm: $1 ungÅltige Kombination von Opcode und Operanden
+asmw_e_16bit_not_supported=E_Asm: 16 Bit Verweise nicht untertÅtzt
+asmw_e_invalid_effective_address=E_Asm: UngÅltige effektive Adresse
+asmw_e_immediate_or_reference_expected=E_Asm: Konstanter Ausdruck oder Referenz erwartet
+asmw_e_value_exceeds_bounds=E_Asm: $1 Wert Åberschreitet Grenzen $2
+asmw_e_short_jmp_out_of_range=E_Asm: "Short jump" ist ausserhalb der Bereichs $1
+
+
 #
 # Executing linker/assembler
 #
-exec_w_source_os_redefined=W_Source operating system redefined
-exec_i_assembling_pipe=I_Assembling (pipe) $1
-exec_d_cant_create_asmfile=E_Can't create assember file $1
-exec_w_assembler_not_found=W_Assembler $1 not found, switching to external assembling
-exec_t_using_assembler=T_Using assembler: $1
-exec_w_error_while_assembling=W_Error while assembling exitcode $1
-exec_w_cant_call_assembler=W_Can't call the assembler, error $1 switching to external assembling
-exec_i_assembling=I_Assembling $1
-exec_w_linker_not_found=W_Linker $1 not found, switching to external linking
-exec_t_using_linker=T_Using linker: $1
-exec_w_objfile_not_found=W_Object $1 not found, Linking may fail !
-exec_w_libfile_not_found=W_Library $1 not found, Linking may fail !
-exec_w_error_while_linking=W_Error while linking
-exec_w_cant_call_linker=W_Can't call the linker, switching to external linking
-exec_i_linking=I_Linking $1
-exec_w_binder_not_found=W_binder not found, switching to external binding
-exec_w_ar_not_found=W_ar not found, switching to external ar
-exec_e_dll_not_supported=E_Dynamic Libraries not supported
-exec_i_closing_script=I_Closing script $1
-exec_w_res_not_found=W_resource compiler not found, switching to external mode
-exec_i_compilingresource=I_Compiling resource $1
+exec_w_source_os_redefined=W_Quell-Betriebssystem wurde neu definiert
+exec_i_assembling_pipe=I_Assembliere (pipe) $1
+exec_d_cant_create_asmfile=E_Kann Assembler Datei nicht erzeugen $1
+exec_w_assembler_not_found=W_Assembler $1 nicht gefunden, schalte um auf externes Assemblieren
+exec_t_using_assembler=T_Benutze Assembler: $1
+exec_w_error_while_assembling=W_Fehler wÑhren des Assemblierens, Exitcode $1
+exec_w_cant_call_assembler=W_Kann den Assembler nicht aufrufen, Fehler $1 beim Umschalten auf externen Assembler
+exec_i_assembling=I_Assembliere $1
+exec_w_linker_not_found=W_Linker $1 nicht gefunden, schalte um auf externes Linken
+exec_t_using_linker=T_Benutze Linker: $1
+exec_w_objfile_not_found=W_Objekt $1 nicht gefunden, Linken kann fehlschlagen !
+exec_w_libfile_not_found=W_Bibliothek $1 nicht gefunden, Linken kann fehlschlagen !
+exec_w_error_while_linking=W_Fehler wÑhrend des Linkens
+exec_w_cant_call_linker=W_Kann Linker nicht aufrufen, schalte um auf externe Linken
+exec_i_linking=I_Linke $1
+exec_w_binder_not_found=W_Binder nicht gefunden, schalte um auf externes Binden
+exec_w_ar_not_found=W_Ar nicht gefunden, schalte um auf externen ar
+exec_e_dll_not_supported=E_Dynamische Bibliotheken nicht unterstÅtzt
+exec_i_closing_script=I_Schliesse Skript $1
+exec_w_res_not_found=W_Resource Compiler nicht gefunden, schalte um auf externen Modus
+exec_i_compilingresource=I_Compiliere Resource $1
 
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=F_Can't post process executable $1
-execinfo_f_cant_open_executable=F_Can't open executable $1
-execinfo_x_codesize=X_Size of Code: $1 bytes
-execinfo_x_initdatasize=X_Size of initialized data: $1 bytes
-execinfo_x_uninitdatasize=X_Size of uninitialized data: $1 bytes
-execinfo_x_stackreserve=X_Stack space reserved: $1 bytes
-execinfo_x_stackcommit=X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=F_Kann ausfÅhrbare Datei nicht nachbearbeiten $1
+execinfo_f_cant_open_executable=F_Kann ausfÅhrbare Datei nicht îffnen $1
+execinfo_x_codesize=X_Grîsse des Codes: $1 Bytes
+execinfo_x_initdatasize=X_Grîsse der initialisierten Daten: $1 Bytes
+execinfo_x_uninitdatasize=X_Grîsse der nicht initialisierten Daten: $1 Bytes
+execinfo_x_stackreserve=X_Stack Bereich "reserved": $1 Bytes
+execinfo_x_stackcommit=X_Stack Bereich "commited": $1 Bytes
 
+#
 # Unit loading
 #
 # BeginOfTeX
@@ -1258,99 +1210,99 @@ execinfo_x_stackcommit=X_Stack space commited: $1 bytes
 % loading a unit from disk into memory. Many of these mesages are
 % informational messages.
 % \begin{description}
-unit_t_unitsearch=T_Unitsearch: $1
+unit_t_unitsearch=T_Suche Unit: $1
 % When you use the \var{-vt}, the compiler tells you where it tries to find
 % unit files.
-unit_t_ppu_loading=T_PPU Loading $1
+unit_t_ppu_loading=T_Lade PPU: $1
 % When the \var{-vt} switch is used, the compiler tells you
 % what units it loads.
 unit_u_ppu_name=U_PPU Name: $1
 % When you use the \var{-vu} flag, the unit name is shown.
 unit_u_ppu_flags=U_PPU Flags: $1
 % When you use the \var{-vu} flag, the unit flags are shown.
-unit_u_ppu_crc=U_PPU Crc: $1
+unit_u_ppu_crc=U_PPU CRC: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
-unit_u_ppu_time=U_PPU Time: $1
+unit_u_ppu_time=U_PPU Zeit: $1
 % When you use the \var{-vu} flag, the unit time is shown.
-unit_u_ppu_file_too_short=U_PPU File too short
+unit_u_ppu_file_too_short=U_PPU Datei zu kurz
 % When you use the \var{-vu} flag, the unit time is shown.
-unit_u_ppu_invalid_header=U_PPU Invalid Header (no PPU at the begin)
+unit_u_ppu_invalid_header=U_PPU UngÅltiger Header (kein PPU am Anfang)
 % A unit file contains as the first three bytes the ascii codes of \var{PPU}
-unit_u_ppu_invalid_version=U_PPU Invalid Version $1
+unit_u_ppu_invalid_version=U_PPU UngÅltige Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=U_PPU is compiled for an other processor
+unit_u_ppu_invalid_processor=U_PPU ist fÅr einen anderen Prozessor kompiliert
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=U_PPU is compiled for an other target
+unit_u_ppu_invalid_target=U_PPU ist fÅr ein anderes Zielsystem kompiliert
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_source=U_PPU Source: $1
+unit_u_ppu_source=U_PPU Quelle: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
-unit_u_ppu_write=U_Writing $1
+unit_u_ppu_write=U_Schreibe $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
-unit_f_ppu_cannot_write=F_Can't Write PPU-File
+unit_f_ppu_cannot_write=F_Kann PPU-Datei nicht schreiben
 % An err
-unit_f_ppu_read_error=F_reading PPU-File
+unit_f_ppu_read_error=F_Lese PPU-Datei
 % Unexpected end of file
-unit_f_ppu_read_unexpected_end=F_unexpected end of PPU-File
+unit_f_ppu_read_unexpected_end=F_Unerwartetes Ende der PPU-Datei
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
-unit_f_ppu_invalid_entry=F_Invalid PPU-File entry: $1
+unit_f_ppu_invalid_entry=F_UngÅltiger Eintrag in PPU-Datei: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
-unit_f_ppu_dbx_count_problem=F_PPU Dbx count problem
+unit_f_ppu_dbx_count_problem=F_PPU Dbx ZÑhler-Problem
 % There is an inconsistency in the debugging information of the unit.
-unit_e_illegal_unit_name=E_Illegal unit name: $1
+unit_e_illegal_unit_name=E_UngÅltiger Unit Name: $1
 % The name of the unit doesn't match the file name.
-unit_f_too_much_units=F_Too much units
+unit_f_too_much_units=F_Zu viele Units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
 % by changing the \var{maxunits} constant in the \file{files.pas} file of the
 % compiler, and recompiling the compiler.
-unit_f_circular_unit_reference=F_Circular unit reference between $1 and $2
+unit_f_circular_unit_reference=F_Gegenseitige Unit Referenz zwischen $1 und $2
 % Two units are using each other in the interface part. This is only allowed
 % in the \var{implementation} part. At least one unit must contain the other one
 % in the \var{implementation} section.
-unit_f_cant_compile_unit=F_Can't compile unit $1, no sources available
+unit_f_cant_compile_unit=F_Kann Unit $1 nicht Åbersetzen, keine Quellen vorhanden
 % A unit was found that needs to be recompiled, but no sources are
 % available.
-unit_w_switch_us_missed=W_Compiling the system unit requires the -Us switch
+unit_w_switch_us_missed=W_öbersetzen der Systemunit erfordert den Schalter -Us
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.
-unit_f_errors_in_unit=F_There were $1 errors compiling module, stopping
+unit_f_errors_in_unit=F_Es traten $1 Fehler beim öbersetzen des Moduls auf, halte an
 % When the compiler encounters a fatal error or too many errors in a module
 % then it stops with this message.
-unit_u_load_unit=U_Load from $1 ($2) unit $3
+unit_u_load_unit=U_Lade aus $1 ($2) die Unit $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
-unit_u_recompile_crc_change=U_Recompiling $1, checksum changed for $2
-unit_u_recompile_source_found_alone=U_Recompiling $1, source found only
+unit_u_recompile_crc_change=U_öbersetze $1 erneut, PrÅfsumme fÅr $2 hat sich geÑndert
+unit_u_recompile_source_found_alone=U_öbersetze $1, nur Quellcode gefunden
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
-unit_u_recompile_staticlib_is_older=U_Recompiling unit, static lib is older than ppufile
+unit_u_recompile_staticlib_is_older=U_öbersetze unit erneut, statische Biblothek ist Ñlter als PPU-Datei
 % When you use the \var{-vu} flag, the compiler warns if the static library
 % of the unit are older than the unit file itself.
-unit_u_recompile_sharedlib_is_older=U_Recompiling unit, shared lib is older than ppufile
+unit_u_recompile_sharedlib_is_older=U_öbersetze unit erneut, gemeinsame Bibliothek ist Ñlter als PPU-Datei
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
-unit_u_recompile_obj_and_asm_older=U_Recompiling unit, obj and asm are older than ppufile
+unit_u_recompile_obj_and_asm_older=U_öbersetze unit erneut, obj und asm sind Ñlter als PPU-Datei
 % When you use the \var{-vu} flag, the compiler warns if the assembler of
 % object file of the unit are older than the unit file itself.
-unit_u_recompile_obj_older_than_asm=U_Recompiling unit, obj is older than asm
+unit_u_recompile_obj_older_than_asm=U_öbersetze unit erneut, obj ist Ñlter als asm
 % When you use the \var{-vu} flag, the compiler warns if the assembler
 % file of the unit is older than the object file of the unit.
-unit_u_start_parse_interface=U_Parsing interface of $1
+unit_u_start_parse_interface=U_Parse Interface Abschnitt von $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the interface part of the unit
-unit_u_start_parse_implementation=U_Parsing implementation of $1
+unit_u_start_parse_implementation=U_Parse Implementation Abschnitt von $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the implementation part of the unit
-unit_u_second_load_unit=U_Second load for unit $1
+unit_u_second_load_unit=U_Zweites Laden fÅr Unit $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_check_time=U_PPU Check file $1 time $2
+unit_u_check_time=U_PPU prÅfe Datei $1 Zeit $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
 % \end{description}
@@ -1358,57 +1310,57 @@ unit_u_check_time=U_PPU Check file $1 time $2
 #
 #  Options
 #
-option_usage=$1 [options] <inputfile> [options]
+option_usage=$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=W_Only one source file supported
+option_only_one_source_support=W_Nur eine Quelldatei unterstÅtzt
 % You can specify only one source file on the command line. The first
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
-option_def_only_for_os2=W_DEF file can be created only for OS/2
+option_def_only_for_os2=W_DEF Datei kann nur fÅr OS/2 erzeugt werden
 % This option can only be specified when you're compiling for OS/2
-option_no_nested_response_file=E_nested response files are not supported
+option_no_nested_response_file=E_Verschachtelte Response-Dateien werden nicht unterstÅtzt
 % you cannot nest response files with the \var {@file} command-line option.
-option_no_source_found=F_No source file name in command line
+option_no_source_found=F_Kein Name fuer Quelldatei auf der Kommandzeile
 % The compiler expects a source file name on the command line.
-option_illegal_para=E_Illegal parameter: $1
+option_illegal_para=E_UngÅltiger Parameter: $1
 % You specified an unknown option.
-option_help_pages_para=H_-? writes help pages
+option_help_pages_para=H_-? zeigt Hilfetext an
 % When an unknown option is given, this message is diplayed.
-option_too_many_cfg_files=F_Too many config files nested
+option_too_many_cfg_files=F_Zu viele verschachtelte Konfigurtionsdateien
 % You can only nest up to 16 config files.
-option_unable_open_file=F_Unable to open file $1
+option_unable_open_file=F_Kann Datei nicht îffnen $1
 % The option file cannot be found.
-option_reading_further_from=N_Reading further options from $1
+option_reading_further_from=N_Lese weitere Optionen aus $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
-option_target_is_already_set=W_Target is already set to: $1
+option_target_is_already_set=W_Zielsystem ist bereits gesetzt: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=W_Shared libs not supported on DOS platform, reverting to static
+option_no_shared_lib_under_dos=W_Gemeinsame Bibliotheken sind auf der DOS Platform nicht verfÅgbar, gehe zurÅck nach static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
-option_too_many_ifdef=F_too many IF(N)DEFs
+option_too_many_ifdef=F_Zu viele IF(N)DEFs
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=F_too many ENDIFs
+option_too_many_endif=F_Zu viele ENDIFs
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=F_open conditional at the end of the file
+option_too_less_endif=F_Offene Bedingung am Dateiende
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_no_debug_support=W_Debug information generation is not supported by this executable
+option_no_debug_support=W_Erzeugung von Debug Information wird von dieser ausfÅhrbaren Datei nicht unterstÅtzt
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_no_debug_support_recompile_fpc=H_Try recompiling with -dGDB
+option_no_debug_support_recompile_fpc=H_Versuchen Sie mit -dGDB erneut zu kompilieren
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=W_You are using the obsolete switch $1
+option_obsolete_switch=W_Sie verwenden den ehemaligen Schalter $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
