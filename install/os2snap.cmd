@@ -192,10 +192,16 @@ set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
 set OS2UNITP=-Fu%FPCSNAPRTL%
 rem Path to compiler units
-set COMPUNITP=-Fu%COMPSPATH%
+set COMPUNITP=-Fu%COMPSPATH%;%COMPSPATH%\i386;%COMPSPATH%\targets
+set COMPUNIT386=-Fu%COMPSPATH%\i386
+set COMPUNITTRG=-Fu%COMPSPATH%\targets
+
 rem Path to compiler include files
-set COMPINCP=-Fi%COMPSPATH%
+set COMPINCP=-Fi%COMPSPATH%;%COMPSPATH%\i386
+set COMPINCP386=-Fu%COMPSPATH%\i386
 rem Path to compiler object files
+
+
 set COMPOBJP=-Fo%COMPSPATH%
 rem Target path for RTL units
 set OS2UNITT=-FU%FPCSNAPRTL%
@@ -413,10 +419,10 @@ echo *End of basic options used for compilation >> %FPCERRLOG%
 if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG%
 :CompS1
 echo *Assembling the helpers ... >> %FPCERRLOG%
-%REALTOOLS%\as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as >> %FPCERRLOG%
-%REALTOOLS%\as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as >> %FPCERRLOG%
-%REALTOOLS%\as -o %FPCSNAPRTL%\code2.oo2 %OS2RTL%\code2.as >> %FPCERRLOG%
-%REALTOOLS%\as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as >> %FPCERRLOG%
+%REALTOOLS%as -o %FPCSNAPRTL%\prt0.oo2 %OS2RTL%\prt0.as >> %FPCERRLOG%
+%REALTOOLS%as -o %FPCSNAPRTL%\prt1.oo2 %OS2RTL%\prt1.as >> %FPCERRLOG%
+%REALTOOLS%as -o %FPCSNAPRTL%\code2.oo2 %OS2RTL%\code2.as >> %FPCERRLOG%
+%REALTOOLS%as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as >> %FPCERRLOG%
 echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
@@ -454,7 +460,7 @@ echo *Compiling unit MMX ... >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\SYSUTILS.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit TypInfo ... >> %FPCERRLOG%
@@ -518,6 +524,10 @@ if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling MMOS2 units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DIVE.PAS
+echo *Compiling API units... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MOUSE.PP
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KEYBOARD.PP
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VIDEO.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
@@ -561,6 +571,7 @@ if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\link.res >> %FPCERRLOG%
 :Comp2
 ren %FPCSNAPBIN%\pp.exe ppos2.exe >> %FPCERRLOG%
+copy %FPCSNAPBIN%\ppos2.exe ppc386.exe >> %FPCERRLOG%
 if exist %FPCSNAPBIN%\ppos2.exe goto OKCompiler
 if not exist %FPCSNAPBIN%\pp goto C2Cont
 if exist %FPCSNAPBIN%\ppas.bat goto PPasBat
@@ -595,6 +606,7 @@ echo *Backing up previous compiler version to ppos2.%CYCLE% ... >> %FPCERRLOG%
 copy %REALTOOLS%ppos2.exe %REALTOOLS%ppos2.%CYCLE% >> %FPCERRLOG%
 echo *Copying the newly created compiler to %REALTOOLS% ... >> %FPCERRLOG%
 copy %FPCSNAPBIN%\ppos2.exe %REALTOOLS%. >> %FPCERRLOG%
+copy %FPCSNAPBIN%\ppos2.exe %REALTOOLS%ppc386.exe >> %FPCERRLOG%
 if %CYCLE% == 1 goto Cycle2
 set COMPILER=PPOS2.EXE
 set CYCLE=1
@@ -621,7 +633,7 @@ echo The snapshot has the same structure as the release ZIP files, so it may be 
 echo installed using the normal installer (INSTALL.EXE and INSTALL.DAT must be >> %FPCSNAPTXT%
 echo in the same directory) or directly unzipped into your FPC tree. >> %FPCSNAPTXT%
 echo *Copying the message files ... >> %FPCERRLOG%
-copy %COMPSPATH%\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
+copy %COMPSPATH%\msg\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
 
 if %@EVAL[0] == 0 goto Pack
 echo *Warning: Packing in this environment might fail. >> %FPCERRLOG%
@@ -643,7 +655,7 @@ cdd %FPCSNAP%
 :Cmd2
 
 rem ZIP.EXE must be on the PATH
-zip -9 -r baseemx.zip bin\os2\ppos2.exe doc\* msg\* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
+zip -9 -r baseemx.zip bin\os2\ppc386.exe doc\* msg\* units\os2\rtl\*.ppo units\os2\rtl\*.oo2 units\os2\rtl\*.ao2 >> %FPCERRLOG%
 if exist baseemx.zip goto ZipOK
 echo *Error: The ZIP file hasn't been created!! >> %FPCERRLOG%
 :ZipOK
@@ -659,7 +671,10 @@ goto End
 
 
   $Log$
-  Revision 1.1  2000-07-14 10:09:29  michael
+  Revision 1.1.2.1  2001-05-15 18:41:14  carl
+  * updated to work with FPC v1.0.x
+
+  Revision 1.1  2000/07/14 10:09:29  michael
   + Moved from base
 
   Revision 1.1  2000/07/13 06:31:26  michael

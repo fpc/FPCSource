@@ -224,9 +224,9 @@ set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
 set OS2UNITP=-Fu%FPCSNAPRTL%
 rem Path to compiler units
-set COMPUNITP=-Fu%COMPSPATH%
+set COMPUNITP=-Fu%COMPSPATH%;%COMPSPATH%\i386;%COMPSPATH%\targets
 rem Path to compiler include files
-set COMPINCP=-Fi%COMPSPATH%
+set COMPINCP=-Fi%COMPSPATH%;%COMPSPATH%\i386
 rem Path to compiler object files
 set COMPOBJP=-Fo%COMPSPATH%
 rem Target path for RTL units
@@ -489,7 +489,7 @@ echo *Compiling unit MMX ... >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\SYSUTILS.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit TypInfo ... >> %FPCERRLOG%
@@ -553,6 +553,16 @@ if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling MMOS2 units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DIVE.PAS
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling API unts ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MOUSE.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KEYBOARD.PP
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VIDEO.PP
 if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
@@ -653,7 +663,7 @@ echo The snapshot has the same structure as the release ZIP files, so it may be 
 echo installed using the normal installer (INSTALL.EXE and INSTALL.DAT must be >> %FPCSNAPTXT%
 echo in the same directory) or directly unzipped into your FPC tree. >> %FPCSNAPTXT%
 echo *Copying the message files ... >> %FPCERRLOG%
-copy %COMPSPATH%\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
+copy %COMPSPATH%\msg\*.msg %FPCSNAPMSG% >> %FPCERRLOG%
 
 if %@EVAL[0] == 0 goto Pack
 echo *Warning: Packing in this environment might fail. >> %FPCERRLOG%
@@ -695,7 +705,10 @@ goto End
 
 
   $Log$
-  Revision 1.1  2000-07-14 10:09:29  michael
+  Revision 1.1.2.1  2001-05-15 18:41:00  carl
+  * updated to work with FPC v1.0.x
+
+  Revision 1.1  2000/07/14 10:09:29  michael
   + Moved from base
 
   Revision 1.1  2000/07/13 06:31:26  michael
