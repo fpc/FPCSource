@@ -43,7 +43,14 @@ Uses BaseUnix,Unix;
 {$i errno.inc}
 {$I signal.inc}
 
+{$IFNDEF VER1_0}		// ugly voodoo. Sacrifice a chicken and hope
+				// that it works.
 Type stat=baseunix.tstat;
+{$ELSE}
+type
+{$I stat.inc}
+{$ENDIF}
+
 
 var
   LinuxError : Longint;
@@ -3120,7 +3127,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2003-09-15 21:07:41  marco
+  Revision 1.4  2003-09-16 15:39:31  marco
+   * voodoo....
+
+  Revision 1.3  2003/09/15 21:07:41  marco
    * second round of linux fixes. oldlinux now works
 
   Revision 1.2  2003/09/15 20:08:49  marco
