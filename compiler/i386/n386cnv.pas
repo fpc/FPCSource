@@ -199,8 +199,10 @@ implementation
              begin
                 emit_ref(A_FILD,S_IL,href);
                 rg.getexplicitregisterint(exprasmlist,R_EDI);
-                r.enum:=R_EDI;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_EDI;
                 emit_reg(A_POP,S_L,r);
+                r.enum:=R_EDI;
                 rg.ungetregisterint(exprasmlist,r);
              end;
          end;
@@ -428,7 +430,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-01-08 18:43:57  daniel
+  Revision 1.55  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.54  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.53  2002/12/05 14:27:42  florian

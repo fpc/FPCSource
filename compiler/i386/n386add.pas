@@ -224,11 +224,13 @@ interface
             begin
               if extra_not then
                 emit_reg(A_NOT,opsize,left.location.register);
-              r.enum:=R_EDI;
               rg.getexplicitregisterint(exprasmlist,R_EDI);
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_EDI;
               cg.a_load_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op,opsize,left.location.register,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register);
+              r.enum:=R_EDI;
               rg.ungetregisterint(exprasmlist,r);
             end
            else
@@ -269,11 +271,13 @@ interface
                  begin
                    if extra_not then
                      begin
-                        r.enum:=R_EDI;
                         rg.getexplicitregisterint(exprasmlist,R_EDI);
+                        r.enum:=R_INTREGISTER;
+                        r.number:=NR_EDI;
                         cg.a_load_loc_reg(exprasmlist,right.location,r);
                         emit_reg(A_NOT,S_L,r);
                         emit_reg_reg(A_AND,S_L,r,left.location.register);
+                        r.enum:=R_EDI;
                         rg.ungetregisterint(exprasmlist,r);
                      end
                    else
@@ -1025,8 +1029,9 @@ interface
            { right.location<>LOC_REGISTER }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
-              r.enum:=R_EDI;
               rg.getexplicitregisterint(exprasmlist,R_EDI);
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_EDI;
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op1,opsize,left.location.registerlow,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
@@ -1034,6 +1039,7 @@ interface
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.registerhigh,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
+              r.enum:=R_EDI;
               rg.ungetregisterint(exprasmlist,r);
               if right.location.loc<>LOC_CREGISTER then
                begin
@@ -1468,28 +1474,29 @@ interface
                { used in either the left or the right location, excepts if   }
                {they are regvars. It DOES contain them if they are used in   }
                { another location (JM)                                       }
+               r.enum:=R_INTREGISTER;
                if not(R_EAX in rg.unusedregsint) and
                   (R_EAX in regstopush) then
                  begin
-                   r.enum:=R_EAX;
+                   r.number:=NR_EAX;
                    emit_reg(A_PUSH,S_L,r);
                    popeax:=true;
                  end;
                if not(R_EDX in rg.unusedregsint) and
                    (R_EDX in regstopush) then
                  begin
-                   r.enum:=R_EDX;
+                   r.number:=NR_EDX;
                    emit_reg(A_PUSH,S_L,r);
                    popedx:=true;
                  end;
                { left.location can be R_EAX !!! }
-               r.enum:=R_EDI;
                rg.getexplicitregisterint(exprasmlist,R_EDI);
                { load the left value }
+               r.number:=NR_EDI;
                cg.a_load_loc_reg(exprasmlist,left.location,r);
                location_release(exprasmlist,left.location);
                { allocate EAX }
-               r.enum:=R_EAX;
+               r.number:=NR_EAX;
                if R_EAX in rg.unusedregsint then
                  exprasmList.concat(tai_regalloc.Alloc(r));
                { load he right value }
@@ -1500,25 +1507,27 @@ interface
                  exprasmList.concat(tai_regalloc.Alloc(r));
                { also allocate EDX, since it is also modified by }
                { a mul (JM)                                      }
-               r.enum:=R_EDX;
+               r.number:=NR_EDX;
                if R_EDX in rg.unusedregsint then
                  exprasmList.concat(tai_regalloc.Alloc(r));
-               r.enum:=R_EDI;
+               r.number:=NR_EDI;
                emit_reg(A_MUL,S_L,r);
+               r.enum:=R_EDI;
                rg.ungetregisterint(exprasmlist,r);
-               r.enum:=R_EDX;
+               r.enum:=R_INTREGISTER;
+               r.number:=NR_EDX;
                if R_EDX in rg.unusedregsint then
                  exprasmList.concat(tai_regalloc.DeAlloc(r));
-               r.enum:=R_EAX;
+               r.number:=NR_EAX;
                if R_EAX in rg.unusedregsint then
                  exprasmList.concat(tai_regalloc.DeAlloc(r));
                location.register:=rg.getregisterint(exprasmlist);
-               r.enum:=R_EAX;
+               r.number:=NR_EAX;
                emit_reg_reg(A_MOV,S_L,r,location.register);
-               r.enum:=R_EDX;
+               r.number:=NR_EDX;
                if popedx then
                  emit_reg(A_POP,S_L,r);
-               r.enum:=R_EAX;
+               r.number:=NR_EAX;
                if popeax then
                  emit_reg(A_POP,S_L,r);
                location_freetemp(exprasmlist,left.location);
@@ -1580,7 +1589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-01-08 18:43:57  daniel
+  Revision 1.54  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.53  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.52  2002/11/25 17:43:26  peter

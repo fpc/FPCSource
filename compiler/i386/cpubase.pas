@@ -234,10 +234,12 @@ uses
               RS_32   = 3;    {Like EAX}
               RS_64   = 4;    {Like RAX}
 
-      type  Tregister = packed record
+      type  Tnewregister=word;
+
+            Tregister = packed record
               enum:Toldregister;
-              number:word;        {This is a word for now, change to cardinal when
-                                   the old register coding is away.}
+              number:Tnewregister;  {This is a word for now, change to cardinal
+                                     when the old register coding is away.}
             end;
       {$packenum normal}
 
@@ -251,6 +253,7 @@ uses
 
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
+      Tsupregset = set of byte;
 
 
     const
@@ -711,7 +714,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2003-01-09 20:41:00  daniel
+  Revision 1.40  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.39  2003/01/09 20:41:00  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.38  2003/01/09 15:49:56  daniel

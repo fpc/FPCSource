@@ -1124,8 +1124,9 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo._class=nil) then
                     begin
-                       r.enum:=R_EDI;
                        rg.getexplicitregisterint(exprasmlist,R_EDI);
+                       r.enum:=R_INTREGISTER;
+                       r.number:=NR_EDI;
                        emit_reg(A_POP,S_L,r);
                        rg.ungetregisterint(exprasmlist,r);
                        r.enum:=R_ESI;
@@ -1276,7 +1277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-01-08 18:43:57  daniel
+  Revision 1.80  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.79  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.78  2002/12/15 21:30:12  florian

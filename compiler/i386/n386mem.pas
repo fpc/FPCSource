@@ -82,7 +82,10 @@ implementation
       begin
          inherited pass_2;
          if tpointerdef(left.resulttype.def).is_far then
-          location.reference.segment.enum:=R_FS;
+          begin
+            location.reference.segment.enum:=R_INTREGISTER;
+            location.reference.segment.number:=NR_FS;
+          end;
       end;
 
 
@@ -135,7 +138,10 @@ implementation
         inherited pass_2;
 
         if nf_memseg in flags then
-          location.reference.segment.enum:=R_FS;
+          begin
+            location.reference.segment.enum:=R_INTREGISTER;
+            location.reference.segment.number:=NR_FS;
+          end;
       end;
 
 
@@ -146,7 +152,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-01-08 18:43:57  daniel
+  Revision 1.49  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.48  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.47  2002/12/03 22:14:12  carl

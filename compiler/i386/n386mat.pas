@@ -814,7 +814,8 @@ implementation
              secondpass(left);
              location_reset(location,LOC_MMXREGISTER,OS_NO);
              { prepare EDI }
-             r.enum:=R_EDI;
+             r.enum:=R_INTREGISTER;
+             r.number:=NR_EDI;
              r2.enum:=R_MM7;
              rg.getexplicitregisterint(exprasmlist,R_EDI);
              emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
@@ -837,6 +838,7 @@ implementation
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,r,r2);
+             r.enum:=R_EDI;
              rg.ungetregisterint(exprasmlist,r);
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,r2,location.register);
@@ -875,7 +877,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-01-13 14:54:34  daniel
+  Revision 1.44  2003-01-13 18:37:44  daniel
+    * Work on register conversion
+
+  Revision 1.43  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 
