@@ -109,6 +109,7 @@ Function  DiskFree(drive: byte) : longint;
 Function  DiskSize(drive: byte) : longint;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
+Procedure FindClose(Var f: SearchRec);
 
 {File}
 Procedure GetFAttr(var f; var attr: word);
@@ -481,6 +482,12 @@ begin
 end;
 
 
+Procedure FindClose(Var f: SearchRec);
+begin
+  DosError:=0;
+end;
+
+
 procedure swapvectors;
 begin
   DosError:=0;
@@ -784,7 +791,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-22 10:07:02  daniel
+  Revision 1.3  1999-01-22 16:22:09  pierre
+   * Daniel removal of findclose reverted
+
+  Revision 1.2  1999/01/22 10:07:02  daniel
   - Findclose removed: This is TP incompatible!!
 
   Revision 1.1  1998/12/21 13:07:02  peter
@@ -860,4 +870,5 @@ end.
     * fixed read_text_as_array
     + read_text_as_pchar which was not yet in the rtl
 }
+
 
