@@ -602,8 +602,10 @@ uses
 
 {
   Define MACRO_DIFF_HINT for the whole compiler (and ppudump)
-  to turn this facility on. There is some problems with this,
-  thats why it is shut off:
+  to turn this facility on. Also the hint messages defined
+  below must be commented in in the msg/errore.msg file.
+  
+  There is some problems with this, thats why it is shut off:
   
   At the first compilation, consider a macro which is not initially
   defined, but it is used (e g the check that it is undefined is true).
@@ -1573,7 +1575,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.64  2005-01-09 20:24:43  olle
+  Revision 1.65  2005-01-10 21:02:35  olle
+    - disabled macro diff message
+
+  Revision 1.64  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

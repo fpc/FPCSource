@@ -1909,16 +1909,17 @@ unit_u_second_load_unit=10036_U_Second load for unit $1
 unit_u_check_time=10037_U_PPU Check file $1 time $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
-unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that currently is defined, but was not used the last
-% time the unit was compiled.
-unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that was used the last time the unit was compiled, but
-% the conditional is currently not defined.
+### The following two error msgs is currently disabled.
+#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that currently is defined, but was not used the last
+#% time the unit was compiled.
+#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that was used the last time the unit was compiled, but
+#% the conditional is currently not defined.
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.

@@ -589,8 +589,6 @@ const
   unit_u_parsing_implementation=10035;
   unit_u_second_load_unit=10036;
   unit_u_check_time=10037;
-  unit_h_cond_not_set_in_last_compile=10038;
-  unit_h_cond_set_in_last_compile=10039;
   unit_w_cant_compile_unit_with_changed_incfile=10040;
   unit_h_source_modified=10041;
   unit_u_ppu_invalid_fpumode=10042;
@@ -650,7 +648,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37945;
+  MsgTxtSize = 37811;
 
   MsgIdxMax : array[1..20] of longint=(
     18,68,213,59,57,46,100,20,35,60,
