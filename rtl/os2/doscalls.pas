@@ -2490,7 +2490,7 @@ type
   Sel, Offset: word;
  end;
 
-function SelToFlat (AFarPtr: TFarPtr): pointer; cdecl;
+function SelToFlat (AFarPtr: TFarPtr): pointer;
 
 {Convert a 32 bit near pointer to a 16 bit far pointer.
  This procedure needs to be called from assembler.
@@ -2505,7 +2505,7 @@ Out:
 procedure DosFlatToSel; cdecl;
 
 {typecast result to TFarPtr}
-function FlatToSel (APtr: pointer): cardinal; cdecl;
+function FlatToSel (APtr: pointer): cardinal;
 
 {***************************************************************************}
 implementation
@@ -3869,21 +3869,17 @@ procedure DosFlatToSel; cdecl;
 external 'DOSCALLS' index 426;
 
 {$ASMMODE INTEL}
-function SelToFlat (AFarPtr: TFarPtr): pointer; cdecl;
-begin
+function SelToFlat (AFarPtr: TFarPtr): pointer; assembler;
  asm
   mov eax, AFarPtr
   call DosSelToFlat
  end;
-end;
 
-function FlatToSel (APtr: pointer): cardinal; cdecl;
-begin
+function FlatToSel (APtr: pointer): cardinal; assembler;
  asm
   mov eax, APtr
   call DosFlatToSel
  end;
-end;
 
 (* Todo:
 
@@ -3953,8 +3949,13 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-14 10:33:10  michael
+  Revision 1.3  2000-09-28 19:57:22  hajny
+    * SelToFlat correction (still not OK probably)
+
+  Revision 1.2  2000/07/14 10:33:10  michael
   + Conditionals fixed
+  Revision 1.1.2.1  2000/09/28 19:52:23  hajny
+    * SelToFlat correction (still not OK probably)
 
   Revision 1.1  2000/07/13 06:31:04  michael
   + Initial import
