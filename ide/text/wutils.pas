@@ -191,7 +191,7 @@ end;
 procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : boolean);
   var
     c : char;
-    i : longint;
+    i,pos : longint;
   begin
     linecomplete:=false;
     c:=#0;
@@ -207,11 +207,24 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete : bool
           s[i]:=c;
         end;
      end;
-    if (c=#10) or eofstream(stream) then
-      linecomplete:=true;
     { if there was a CR LF then remove the CR Dos newline style }
     if (i>0) and (s[i]=#13) then
-      dec(i);
+      begin
+        dec(i);
+      end;
+    if (c=#13) and (not eofstream(stream)) then
+      stream^.read(c,sizeof(c));
+    if (i=255) and not eofstream(stream) then
+      begin
+        pos:=stream^.getpos;
+        stream^.read(c,sizeof(c));
+        if (c=#13) and not eofstream(stream) then
+          stream^.read(c,sizeof(c));
+        if c<>#10 then
+          stream^.seek(pos);
+      end;
+    if (c=#10) or eofstream(stream) then
+      linecomplete:=true;
     s[0]:=chr(i);
   end;
 
@@ -921,7 +934,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2000-06-16 08:50:45  pierre
+  Revision 1.24  2000-06-16 21:16:41  pierre
+   * allow to read until 255 chars per line
+
+  Revision 1.23  2000/06/16 08:50:45  pierre
    + new bunch of Gabor's changes
 
   Revision 1.22  2000/05/29 11:09:14  pierre
