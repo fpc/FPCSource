@@ -89,10 +89,12 @@ begin
      illegalsw : Message1(scan_w_illegal_switch,'$'+switch);
  unsupportedsw : Message1(scan_w_unsupported_switch,'$'+switch);
        localsw : begin
+                   if not localswitcheschanged then
+                     nextaktlocalswitches:=aktlocalswitches;
                    if state='+' then
-                    nextaktlocalswitches:=aktlocalswitches+[tlocalswitch(setsw)]
+                    nextaktlocalswitches:=nextaktlocalswitches+[tlocalswitch(setsw)]
                    else
-                    nextaktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
+                    nextaktlocalswitches:=nextaktlocalswitches-[tlocalswitch(setsw)];
                    localswitcheschanged:=true;
                  { Message for linux which has global checking only }
                    if (switch='S') and (
@@ -172,7 +174,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2000-05-03 14:36:58  pierre
+  Revision 1.28  2000-05-09 21:31:50  pierre
+   * fix problem when modifying several local switches in a row
+
+  Revision 1.27  2000/05/03 14:36:58  pierre
    * fix for tests/test/testrang.pp bug
 
   Revision 1.26  2000/02/09 13:23:04  peter

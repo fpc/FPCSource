@@ -587,10 +587,12 @@ const
         state:=current_scanner^.readstate;
         if (sw<>cs_localnone) and (state in ['-','+']) then
          begin
+           if not localswitcheschanged then
+             nextaktlocalswitches:=aktlocalswitches;
            if state='-' then
-            nextaktlocalswitches:=aktlocalswitches-[sw]
+            nextaktlocalswitches:=nextaktlocalswitches-[sw]
            else
-            nextaktlocalswitches:=aktlocalswitches+[sw];
+            nextaktlocalswitches:=nextaktlocalswitches+[sw];
            localswitcheschanged:=true;
          end;
       end;
@@ -1333,7 +1335,10 @@ const
 
 {
   $Log$
-  Revision 1.79  2000-05-03 14:36:58  pierre
+  Revision 1.80  2000-05-09 21:31:50  pierre
+   * fix problem when modifying several local switches in a row
+
+  Revision 1.79  2000/05/03 14:36:58  pierre
    * fix for tests/test/testrang.pp bug
 
   Revision 1.78  2000/04/14 11:16:10  pierre
