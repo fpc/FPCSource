@@ -432,13 +432,17 @@ begin
 { empty name is special }
   if p[0]=#0 then
    begin
-     case filerec(f).mode of
-       fminput : filerec(f).handle:=StdInputHandle;
-      fmappend,
-      fmoutput : begin
-                   filerec(f).handle:=StdOutputHandle;
-                   filerec(f).mode:=fmoutput; {fool fmappend}
-                 end;
+     case FileRec(f).mode of
+       fminput :
+         FileRec(f).Handle:=StdInputHandle;
+       fminout, { this is set by rewrite }
+       fmoutput :
+         FileRec(f).Handle:=StdOutputHandle;
+       fmappend :
+         begin
+           FileRec(f).Handle:=StdOutputHandle;
+           FileRec(f).mode:=fmoutput; {fool fmappend}
+         end;
      end;
      exit;
    end;
@@ -614,7 +618,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  2000-01-07 16:41:30  daniel
+  Revision 1.9  2000-01-20 23:38:02  peter
+    * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
+      rewrite opens always with filemode 2
+
+  Revision 1.8  2000/01/07 16:41:30  daniel
     * copyright 2000
 
   Revision 1.7  2000/01/07 16:32:23  daniel

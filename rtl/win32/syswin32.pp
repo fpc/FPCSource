@@ -527,13 +527,17 @@ begin
 { empty name is special }
   if p[0]=#0 then
    begin
-     case filerec(f).mode of
-       fminput : filerec(f).handle:=StdInputHandle;
-      fmappend,
-      fmoutput : begin
-                   filerec(f).handle:=StdOutputHandle;
-                   filerec(f).mode:=fmoutput; {fool fmappend}
-                 end;
+     case FileRec(f).mode of
+       fminput :
+         FileRec(f).Handle:=StdInputHandle;
+       fminout, { this is set by rewrite }
+       fmoutput :
+         FileRec(f).Handle:=StdOutputHandle;
+       fmappend :
+         begin
+           FileRec(f).Handle:=StdOutputHandle;
+           FileRec(f).mode:=fmoutput; {fool fmappend}
+         end;
      end;
      exit;
    end;
@@ -1166,7 +1170,11 @@ end.
 
 {
   $Log$
-  Revision 1.57  2000-01-18 09:03:04  pierre
+  Revision 1.58  2000-01-20 23:38:02  peter
+    * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
+      rewrite opens always with filemode 2
+
+  Revision 1.57  2000/01/18 09:03:04  pierre
     * DLL crash fixed : ExitProcess can not be called in DLL system_exit
       Problem : Halt or RunError code inside DLL will return to caller !!
     * Changed the "if h<4 then" into "if do_isdevice(h) then " in do_close
