@@ -160,8 +160,11 @@ begin
      P:=@Dir;
      If Pos(Dir+';',GetSourceDirectories)=0 then
        if ConfirmBox(msg_confirmsourcediradd,@P,false)=cmYes then
-          SourceDirs:=SourceDirs+';'+Dir;
-
+         begin
+           SourceDirs:=SourceDirs+';'+Dir;
+           if assigned(Debugger) then
+             Debugger^.SetDirectories;
+         end;
      OpenEditorWindow(nil,FileName,0,0);
    end;
   OpenSearch:=OpenIt;
@@ -210,7 +213,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-09-12 09:49:35  pierre
+   + Call to TDebugController.SetDirectories when SourceDirs changes
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.4  2001/06/20 22:57:26  pierre
