@@ -100,7 +100,7 @@ begin
  lb1 := FALSE;
  tolong := longint(lb1);
  WriteLn('longbool->longint : value should be 0...',tolong);
- { left : LOC_REFISTER }
+ { left : LOC_REGISTER }
  { from : LOC_REFERENCE }
  wb1 := TRUE;
  bb2 := wb1;
@@ -204,7 +204,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2001-07-27 02:56:10  carl
+   Revision 1.2  2001-07-31 01:55:47  carl
+   * corrected small spelling mistake
+
+   Revision 1.1  2001/07/27 02:56:10  carl
    + second_bool_to_int node testing (initial revision)
 
 }
