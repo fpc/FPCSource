@@ -88,23 +88,23 @@ implementation
          if (location.loc = LOC_CREGISTER) then
            begin
              location.loc := LOC_REGISTER;
-             location.register := rg.getregisterint(exprasmlist,OS_INT);
+             location.register := cg.GetIntRegister(exprasmlist,OS_INT);
              resultreg := location.register;
            end;
          if (nodetype = modn) then
-           resultreg := rg.getregisterint(exprasmlist,OS_INT);
+           resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
 
          if (nodetype = divn) and
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
-             tmpreg:=rg.getregisterint(exprasmlist,OS_INT);
+             tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
              { if signed, tmpreg=right value-1, otherwise 0 }
              cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
              { add to the left value }
              cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
-             rg.ungetregisterint(exprasmlist,tmpreg);
+             cg.UngetRegister(exprasmlist,tmpreg);
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
            end
          else
@@ -124,17 +124,17 @@ implementation
              if (nodetype = modn) then
                begin
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
-                 rg.UnGetRegisterInt(exprasmlist,divider);
+                 cg.UngetRegister(exprasmlist,divider);
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,numerator,resultreg));
-                 rg.ungetregisterint(exprasmlist,resultreg);
+                 cg.UngetRegister(exprasmlist,resultreg);
                  resultreg := location.register;
                end
              else
-               rg.UnGetRegisterInt(exprasmlist,divider);
+               cg.UngetRegister(exprasmlist,divider);
            end;
         { free used registers }
         if numerator<>resultreg then
-          rg.ungetregisterint(exprasmlist,numerator);
+          cg.UngetRegister(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
@@ -172,8 +172,8 @@ procedure tSparcshlshrnode.pass_2;
         if (location.loc = LOC_CREGISTER) then
           begin
             location.loc := LOC_REGISTER;
-            location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
-            location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+            location.registerhigh := cg.GetIntRegister(exprasmlist,OS_INT);
+            location.registerlow := cg.GetIntRegister(exprasmlist,OS_INT);
           end;
         if (right.nodetype = ordconstn) then
           begin
@@ -241,7 +241,7 @@ procedure tSparcshlshrnode.pass_2;
         if (location.loc = LOC_CREGISTER) then
           begin
             location.loc := LOC_REGISTER;
-            resultreg := rg.getregisterint(exprasmlist,OS_INT);
+            resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
             location.register := resultreg;
           end;
         { determine operator }
@@ -258,7 +258,7 @@ procedure tSparcshlshrnode.pass_2;
             location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
             hregister2 := right.location.register;
             cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,hregister1,resultreg);
-            rg.UnGetRegisterInt(exprasmlist,hregister2);
+            cg.UngetRegister(exprasmlist,hregister2);
           end;
       end;
   end;
@@ -318,7 +318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-10-01 20:34:50  peter
+  Revision 1.16  2003-10-24 11:33:30  mazen
+  *fixes related to removal of rg
+
+  Revision 1.15  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

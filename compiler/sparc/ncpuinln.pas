@@ -65,7 +65,7 @@ implementation
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin
-           location.register:=rg.getregisterfpu(exprasmlist,location.size);
+           location.register:=cg.getfpuregister(exprasmlist,location.size);
            location.loc := LOC_FPUREGISTER;
          end;
       end;
@@ -123,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-10-01 20:34:50  peter
+  Revision 1.7  2003-10-24 11:32:34  mazen
+  *fixes related to removal of rg
+
+  Revision 1.6  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

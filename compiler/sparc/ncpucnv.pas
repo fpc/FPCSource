@@ -112,7 +112,7 @@ implementation
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
         location_force_mem(exprasmlist,left.location);
-        location.register:=rg.getregisterfpu(exprasmlist,location.size);
+        location.register:=cg.getfpuregister(exprasmlist,location.size);
         { Load memory in fpu register }
         cg.a_loadfpu_ref_reg(exprasmlist,location.size,left.location.reference,location.register);
 {$warning TODO Handle also double}
@@ -152,19 +152,19 @@ procedure TSparctypeconvnode.second_int_to_bool;
           then
             begin
               reference_release(exprasmlist,left.location.reference);
-              hreg2:=rg.getregisterint(exprasmlist,opsize);
+              hreg2:=cg.GetIntRegister(exprasmlist,opsize);
               cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
             end
           else
             hreg2 := left.location.register;
-            hreg1 := rg.getregisterint(exprasmlist,opsize);
+            hreg1 := cg.GetIntRegister(exprasmlist,opsize);
             exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
             exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
-            rg.UnGetRegisterInt(exprasmlist,hreg2);
+            cg.UnGetRegister(exprasmlist,hreg2);
         end;
       LOC_FLAGS :
         begin
-          hreg1:=rg.getregisterint(exprasmlist,location.size);
+          hreg1:=cg.GetIntRegister(exprasmlist,location.size);
           resflags:=left.location.resflags;
           cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
         end;
@@ -251,7 +251,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-10-01 20:34:50  peter
+  Revision 1.20  2003-10-24 11:31:43  mazen
+  *fixes related to removal of rg
+
+  Revision 1.19  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
