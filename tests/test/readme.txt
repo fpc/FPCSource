@@ -21,3 +21,6 @@ input/output .......... inoutres.pp    tests inoutres values of invalid
                                        operations
 Units ................. testu1.pp      tests init. & finalization and halt
                         testu2.pp      in finalization
+                        testu3.pp      a type redefining problem
+                        testu4.pp
+                        testu5.pp
