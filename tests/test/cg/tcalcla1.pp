@@ -241,17 +241,6 @@ type
    procedure method_dynamic_call_destructor;dynamic;
    procedure method_dynamic_call_inherited_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);dynamic;
-
-   { message methods which contain self }
-   procedure method_message_params_mixed(self : tvmtclass;
-    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);message 0;
-   procedure method_message_call_virtual_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);message 1;
-   procedure method_message_call_normal_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);message 2;
-   procedure method_message_call_dynamic_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);message 3;
-
  end;
 
  pheritedvmtclass = ^theritedvmtclass;
@@ -631,38 +620,6 @@ procedure tvmtclass.method_dynamic_call_inherited_params_mixed(
    object_s32bit := s32;
    object_s64bit := s64;
   end;
-
-  (* message routines with self *)
- procedure tvmtclass.method_message_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-
-  begin
-   object_u8bit := u8;
-   object_u16bit := u16;
-   object_bigstring := bigstring;
-   object_s32bit := s32;
-   object_s64bit := s64;
-  end;
-
- procedure tvmtclass.method_message_call_virtual_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-  begin
-    method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
-  end;
-
- procedure tvmtclass.method_message_call_normal_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-  begin
-    method_normal_params_mixed(u8, u16, bigstring, s32, s64);
-  end;
-
- procedure tvmtclass.method_message_call_dynamic_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-  begin
-    method_dynamic_params_mixed(u8, u16, bigstring, s32, s64);
-  end;
-
-
 
 
 {**************************************************************************}
@@ -1089,76 +1046,6 @@ var
       fail
     else
       Writeln('Passed!');
-
-
- (* Message method testing
-
-    DON'T KNOW HOW TO CALL DIRECTLY - cannot test - Carl
-
-    clear_globals;
-    clear_values;
-    failed := false;
-
-    Write('Testing mixed parameter (LOC_CONSTANT) message call...');
-    vmtclass := tvmtclass.constructor_init;
-    vmtclass.method_message_params_mixed(vmtclass,
-       RESULT_U8BIT, RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
-    if vmtclass.object_u8bit <> RESULT_U8BIT then
-      failed := true;
-    if vmtclass.object_u16bit <> RESULT_U16BIT then
-      failed := true;
-    if vmtclass.object_s32bit <> RESULT_S32BIT then
-      failed := true;
-    if vmtclass.object_s64bit <> RESULT_S64BIT then
-      failed := true;
-    if vmtclass.object_bigstring <> RESULT_BIGSTRING then
-      failed := true;
-    vmtclass.destructor_params_done;
-
-    if failed then
-      fail
-    else
-      Writeln('Passed!');
-
-    clear_globals;
-    clear_values;
-    failed := false;
-
-    Write('Testing mixed parameter (LOC_REFERENCE) message call...');
-    value_u8bit := RESULT_U8BIT;
-    value_u16bit := RESULT_U16BIT;
-    value_bigstring := RESULT_BIGSTRING;
-    value_s32bit := RESULT_S32BIT;
-    value_s64bit := RESULT_S64BIT;
-    vmtclass := tvmtclass.constructor_init;
-    vmtclass.method_message_params_mixed(vmtclass
-       ,value_u8bit, value_u16bit, value_bigstring, value_s32bit,
-        value_s64bit);
-    if vmtclass.object_u8bit <> RESULT_U8BIT then
-      failed := true;
-    if vmtclass.object_u16bit <> RESULT_U16BIT then
-      failed := true;
-    if vmtclass.object_s32bit <> RESULT_S32BIT then
-      failed := true;
-    if vmtclass.object_s64bit <> RESULT_S64BIT then
-      failed := true;
-    if vmtclass.object_bigstring <> RESULT_BIGSTRING then
-      failed := true;
-    vmtclass.destructor_params_done;
-
-    if failed then
-      fail
-    else
-      Writeln('Passed!');
- procedure tvmtclass.method_message_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
- procedure tvmtclass.method_message_call_virtual_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
- procedure tvmtclass.method_message_call_normal_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
- procedure tvmtclass.method_message_call_dynamic_params_mixed(self : tvmtclass;
-      u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-*)
   end;
 
 
@@ -4124,7 +4011,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-04-22 10:24:29  florian
+  Revision 1.4  2003-05-15 20:38:11  peter
+    * remove po_containsself tests
+
+  Revision 1.3  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.2  2002/09/07 15:40:49  peter
