@@ -204,8 +204,8 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=pasjpeg
-override PACKAGE_VERSION=1.9.2
-override TARGET_UNITS+=jmorecfg jpeglib jdeferr jerror jcomapi jinclude rdcolmap cdjpeg jdapimin jmemmgr jutils jmemnobs jdmarker jdinput jdapistd jdmaster jdcolor jdsample jdpostct jddctmgr jdct jidctfst jidctint jidctflt jidctred jdphuff jdhuff jdcoefct jdmainct jquant2 jquant1 jdmerge jdatasrc wrbmp wrppm wrtarga
+override PACKAGE_VERSION=1.9.3
+override TARGET_UNITS+=jcapimin jcapistd jccoefct jccolor jcdctmgr jchuff jcinit jcmainct jcmarker jcmaster jcomapi jcparam jcphuff jcprepct jcsample jdapimin jdapistd jdatadst jdatasrc jdcoefct jdcolor jdct jddctmgr jdeferr jdhuff jdinput jdmainct jdmarker jdmaster jdmerge jdphuff jdpostct jdsample jerror jfdctflt jfdctfst jfdctint jidctflt jidctfst jidctint jidctred jinclude jmemmgr jmemnobs jmorecfg jpeglib jquant1 jquant2 jutils
 override TARGET_EXAMPLES+=cjpeg demo djpeg jpegtran rdjpgcom
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
