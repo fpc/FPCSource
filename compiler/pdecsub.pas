@@ -1631,8 +1631,10 @@ const
         for i:=1 to num_proc_directives do
          if proc_direcdata[i].idtok=idtoken then
           begin
-            if (not isprocvar) or
-               (pd_procvar in proc_direcdata[i].pd_flags) then
+            if ((not isprocvar) or
+               (pd_procvar in proc_direcdata[i].pd_flags)) and
+               { don't eat a public directive in classes }
+               not((proc_direcdata[i].idtok=_PUBLIC) and (symtablestack.symtabletype=objectsymtable)) then
               is_proc_directive:=true;
             exit;
           end;
@@ -1738,7 +1740,11 @@ const
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
-         end;
+         end
+        { don't eat public in object/class declarions }
+        else if (pd.deftype=procvardef) and (proc_direcdata[p].idtok=_PUBLIC) and
+          (symtablestack.symtabletype=objectsymtable) then
+          exit;
 
         { consume directive, and turn flag on }
         consume(token);
@@ -2260,7 +2266,10 @@ const
 end.
 {
   $Log$
-  Revision 1.184  2004-07-17 13:51:57  florian
+  Revision 1.185  2004-08-08 12:35:09  florian
+    * proc. var declarations in a class doesn't eat a public anymore
+
+  Revision 1.184  2004/07/17 13:51:57  florian
     * function result location for syscalls on MOS hopefully correctly set now
 
   Revision 1.183  2004/07/14 23:19:21  olle
