@@ -969,7 +969,8 @@ uses
 
          storetypecanbeforward:=typecanbeforward;
          { for tp mode don't allow forward types }
-         if m_tp in aktmodeswitches then
+         if (m_tp in aktmodeswitches) and
+            not (m_delphi in aktmodeswitches) then
            typecanbeforward:=false;
 
          { distinguish classes and objects }
@@ -1591,7 +1592,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.23  2000-03-19 14:56:38  florian
+  Revision 1.24  2000-03-27 21:51:19  pierre
+   * fix for bug 739
+
+  Revision 1.23  2000/03/19 14:56:38  florian
     * bug 873 fixed
     * some cleanup in objectdec
 
