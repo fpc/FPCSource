@@ -682,9 +682,6 @@ begin
      if getKeyEventFromQueueWait (t) then
        key := translateKey (t);
   until key <> 0;
-{$ifdef DEBUG}
-  last_ir.Event.KeyEvent:=t;
-{$endif DEBUG}
   SysGetKeyEvent := key;
 end;
 
@@ -770,16 +767,19 @@ Const
     PollKeyEvent : @SysPollKeyEvent;
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : @SysTranslateKeyEvent;
-    TranslateKeyEventUnicode : Nil; 
+    TranslateKeyEventUnicode : Nil;
   );
 
 
-begin 
+begin
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
 {
   $Log$
-  Revision 1.5  2001-09-21 21:33:36  michael
+  Revision 1.6  2002-03-02 09:43:46  peter
+    * fixed compile bug in debug mode
+
+  Revision 1.5  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
 
   Revision 1.4  2001/08/05 12:23:57  peter
