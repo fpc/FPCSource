@@ -79,7 +79,7 @@ implementation
        scanner,
        pbase,pinline,
        { codegen }
-       procinfo,cpuinfo
+       cgbase,procinfo,cpuinfo
        ;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
@@ -294,6 +294,39 @@ implementation
          in_args:=prev_in_args;
          parse_paras:=p2;
       end;
+
+
+     function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
+       var
+         hp    : tnode;
+         htype : ttype;
+         temp  : ttempcreatenode;
+         newstatement : tstatementnode;
+       begin
+         hp:=p1;
+         while assigned(hp) and
+               (hp.nodetype in [derefn,subscriptn,vecn,typeconvn]) do
+           hp:=tunarynode(hp).left;
+         if not assigned(hp) then
+           internalerror(200410121);
+         if (hp.nodetype=calln) then
+           begin
+             resulttypepass(p1);
+             result:=internalstatements(newstatement);
+             htype.setdef(tpointerdef.create(p1.resulttype));
+             temp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent);
+             addstatement(newstatement,temp);
+             addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create(p1)));
+             addstatement(newstatement,cassignmentnode.create(
+                 cderefnode.create(ctemprefnode.create(temp)),
+                 caddnode.create(addn,
+                     cderefnode.create(ctemprefnode.create(temp)),
+                     p2)));
+             addstatement(newstatement,ctempdeletenode.create(temp));
+           end
+         else
+           result:=cassignmentnode.create(p1,caddnode.create(addn,p1.getcopy,p2));
+       end;
 
 
      function statement_syssym(l : longint) : tnode;
@@ -2381,25 +2414,25 @@ implementation
              begin
                consume(_PLUSASN);
                p2:=sub_expr(opcompare,true);
-               p1:=cassignmentnode.create(p1,caddnode.create(addn,p1.getcopy,p2));
+               p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
                consume(_MINUSASN);
                p2:=sub_expr(opcompare,true);
-               p1:=cassignmentnode.create(p1,caddnode.create(subn,p1.getcopy,p2));
+               p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
                consume(_STARASN  );
                p2:=sub_expr(opcompare,true);
-               p1:=cassignmentnode.create(p1,caddnode.create(muln,p1.getcopy,p2));
+               p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
                consume(_SLASHASN  );
                p2:=sub_expr(opcompare,true);
-               p1:=cassignmentnode.create(p1,caddnode.create(slashn,p1.getcopy,p2));
+               p1:=gen_c_style_operator(slashn,p1,p2);
             end;
          end;
          { get the resulttype for this expression }
@@ -2457,7 +2490,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2004-08-25 15:58:36  peter
+  Revision 1.164  2004-10-12 14:35:47  peter
+    * cstyle operators with calln in the tree now use a temp
+
+  Revision 1.163  2004/08/25 15:58:36  peter
     * fix crash with calling method pointer from class procedure
 
   Revision 1.162  2004/07/05 23:25:34  olle
