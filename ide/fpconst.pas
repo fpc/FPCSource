@@ -63,7 +63,11 @@ const
      WinHelpExt           = '.hlp';
      HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt+';*'+INFExt;
 
+{$ifdef UNIX}
+     EnterSign            = '<'+#196#217;
+{$else}     
      EnterSign            = #17#196#217;
+{$endif}
 
      { Main menu submenu indexes }
      menuFile             = 0;
@@ -438,7 +442,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.5  2002-01-24 09:21:41  pierre
+  Revision 1.6  2002-03-28 16:25:16  peter
+    * use < for left arrow under unix
+
+  Revision 1.5  2002/01/24 09:21:41  pierre
    * only disable Alt-X in Options|Compiler dialog
 
   Revision 1.4  2002/01/22 16:33:51  pierre
