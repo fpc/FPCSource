@@ -20,11 +20,18 @@ unit cmem;
 
 interface
 
-Function Malloc (Size : Longint) : Pointer;cdecl; external 'c' name 'malloc';
-Procedure Free (P : pointer); cdecl; external 'c' name 'free';
-Procedure FreeMem (P : Pointer); cdecl; external 'c' name 'free';
-function ReAlloc (P : Pointer; Size : longint) : pointer; cdecl; external 'c' name 'realloc';
-Function CAlloc (unitSize,UnitCount : Longint) : pointer;cdecl;external 'c' name 'calloc';
+Const
+{$ifndef win32}
+  LibName = 'c';
+{$else}
+  LibName = 'msvcrt';
+{$endif}
+
+Function Malloc (Size : Longint) : Pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
+Procedure Free (P : pointer); {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
+Procedure FreeMem (P : Pointer); {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
+function ReAlloc (P : Pointer; Size : longint) : pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
+Function CAlloc (unitSize,UnitCount : Longint) : pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
 
 implementation
 
@@ -112,7 +119,10 @@ end.
 
 {   
  $Log$
- Revision 1.2  2002-06-13 04:54:47  michael
+ Revision 1.3  2002-06-13 05:01:44  michael
+ + Added windows msvcrt support
+
+ Revision 1.2  2002/06/13 04:54:47  michael
  + Fixed parameter type mismatch
 
  Revision 1.1  2002/01/29 17:54:59  peter
