@@ -1,10 +1,9 @@
 {
     $Id$
     This file is part of the Free Component Library
-    This file:
-      Copyright (c) 2000 by Sebastian Guenther, sg@freepascal.org
 
     XML serialisation driver
+    Copyright (c) 2000 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -242,7 +241,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:08  michael
+  Revision 1.3  2000-07-29 14:52:25  sg
+  * Modified the copyright notice to remove ambiguities
+
+  Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
  
 }
