@@ -1909,7 +1909,8 @@ type
             else
               begin
                 { local? }
-                if (tloadnode(n).symtableentry.typ <> localvarsym) then
+                if (tloadnode(n).symtableentry.typ <> localvarsym) or
+                   (tloadnode(n).symtableentry.owner <> tprocdef(procdefinition).localst) then
                   exit;
                 if (tloadnode(n).symtableentry.indexnr >= inlinelocals.capacity) or
                    not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
@@ -2408,7 +2409,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.264  2004-11-27 22:43:01  jonas
+  Revision 1.265  2004-11-28 14:34:59  jonas
+    * only try to replace locals from the inlined procedure with temps,
+      cycle now works with -dNODEINLINE
+
+  Revision 1.264  2004/11/27 22:43:01  jonas
     * fixed some bugs in the node inlining code due to the transition from
       dynamic array to tlist
     * fixed some register temp bugs (node inlining still does not work again
