@@ -30,7 +30,7 @@ unit cpupara;
 
     uses
        cpubase,
-       symconst,symbase,symtype,symdef,paramgr;
+       symdef,paramgr;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -46,75 +46,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,
-       globtype,
-       cpuinfo,cginfo,cgbase,
-       defutil;
-
-    function getparaloc(p : tdef) : tcgloc;
-
-      begin
-         { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
-           if push_addr_param for the def is true
-         }
-         // !!!!! Fix aggregate types
-         case p.deftype of
-            orddef:
-              getparaloc:=LOC_REGISTER;
-            floatdef:
-              case tfloatdef(p).typ of
-                 s80real:
-                   getparaloc:=LOC_REFERENCE;
-                 s32real,
-                 s64real,
-                 s64comp,
-                 s64currency,
-                 s128real:
-                   getparaloc:=LOC_MMREGISTER;
-              end;
-            enumdef:
-              getparaloc:=LOC_REGISTER;
-            pointerdef:
-              getparaloc:=LOC_REGISTER;
-            formaldef:
-              getparaloc:=LOC_REGISTER;
-            classrefdef:
-              getparaloc:=LOC_REGISTER;
-            recorddef:
-              getparaloc:=LOC_REFERENCE;
-            objectdef:
-              if is_object(p) then
-                getparaloc:=LOC_REFERENCE
-              else
-                getparaloc:=LOC_REGISTER;
-            stringdef:
-              if is_shortstring(p) or is_longstring(p) then
-                getparaloc:=LOC_REFERENCE
-              else
-                getparaloc:=LOC_REGISTER;
-            procvardef:
-              if (po_methodpointer in tprocvardef(p).procoptions) then
-                getparaloc:=LOC_REFERENCE
-              else
-                getparaloc:=LOC_REGISTER;
-            filedef:
-              getparaloc:=LOC_REGISTER;
-            arraydef:
-              getparaloc:=LOC_REFERENCE;
-            setdef:
-              if is_smallset(p) then
-                getparaloc:=LOC_REGISTER
-              else
-                getparaloc:=LOC_REFERENCE;
-            variantdef:
-              getparaloc:=LOC_REFERENCE;
-            { avoid problems with errornous definitions }
-            errordef:
-              getparaloc:=LOC_REGISTER;
-            else
-              internalerror(2002071001);
-         end;
-      end;
+       verbose;
 
     function tx86_64paramanager.getintparaloc(nr : longint) : tparalocation;
       begin
@@ -134,14 +66,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-04-25 16:12:09  florian
-    * fixed more problems with cpubase and x86-64
-
-  Revision 1.2  2003/01/05 13:36:54  florian
-    * x86-64 compiles
-    + very basic support for float128 type (x86-64 only)
-
-  Revision 1.1  2002/07/24 22:38:15  florian
+  Revision 1.1  2002-07-24 22:38:15  florian
     + initial release of x86-64 target code
 
 }
