@@ -982,6 +982,7 @@ end;
            singlepathstring:=FixPath(s,false);
            if not onlysource then
             begin
+{$ifdef CHECKPPL}
             { Check for PPL file }
               if not Found then
                begin
@@ -992,6 +993,7 @@ end;
                     Found:=OpenPPU;
                   End;
                 end;
+{$endif CHECKPPL}
             { Check for PPU file }
               if not Found then
                begin
@@ -1355,7 +1357,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.114  2000-02-09 13:22:52  peter
+  Revision 1.115  2000-02-10 16:00:23  peter
+    * dont' check for ppl files as they aren't used atm.
+
+  Revision 1.114  2000/02/09 13:22:52  peter
     * log truncated
 
   Revision 1.113  2000/01/11 09:52:06  peter
