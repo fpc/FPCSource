@@ -2,7 +2,7 @@
 
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Carl Eric Codere
+    Copyright (c) 1999-2000 by Carl Eric Codere
 
     This include implements VESA basic access.
 
@@ -2499,7 +2499,10 @@ end;
 
 (*
 $Log$
-Revision 1.17  2000-01-07 16:32:24  daniel
+Revision 1.18  2000-01-07 16:41:32  daniel
+  * copyright 2000
+
+Revision 1.17  2000/01/07 16:32:24  daniel
   * copyright 2000 added
 
 Revision 1.16  2000/01/06 15:19:42  jonas

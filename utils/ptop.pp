@@ -3,7 +3,7 @@ Program PtoP;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Michael Van Canneyt, member of 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of 
     the Free Pascal development team
 
     Pascal pretty print program
@@ -156,7 +156,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-07-08 21:17:10  michael
+  Revision 1.3  2000-01-07 16:46:04  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/07/08 21:17:10  michael
   + Made output linesize variable
 
   Revision 1.1  1999/05/12 16:11:39  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal Run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -999,7 +999,10 @@ end;
 
 {
   $Log$
-  Revision 1.62  2000-01-07 16:32:25  daniel
+  Revision 1.63  2000-01-07 16:41:36  daniel
+    * copyright 2000
+
+  Revision 1.62  2000/01/07 16:32:25  daniel
     * copyright 2000 added
 
   Revision 1.61  1999/12/02 17:40:06  peter

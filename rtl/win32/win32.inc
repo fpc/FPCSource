@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Win32 Types and Constants
 
@@ -106,7 +106,10 @@ type
 
 {
   $Log$
-  Revision 1.8  1999-01-29 09:24:48  pierre
+  Revision 1.9  2000-01-07 16:41:53  daniel
+    * copyright 2000
+
+  Revision 1.8  1999/01/29 09:24:48  pierre
   win32.inc
 
   Revision 1.7  1998/06/10 10:39:18  peter

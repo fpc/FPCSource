@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     These files adds support for TP styled port accesses (port[],
     portw[] and portl[] constructs) using Delphi classes.
@@ -146,7 +146,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-02 17:37:42  hajny
+  Revision 1.4  2000-01-07 16:41:50  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/02 17:37:42  hajny
     * warning notes added
 
   Revision 1.2  2000/01/02 17:13:12  hajny

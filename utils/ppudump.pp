@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1995-99 by the FPC Development Team
+    Copyright (c) 1998-2000 by the FPC Development Team
 
     Dumps the contents of a FPC unit file (PPU File)
 
@@ -32,7 +32,7 @@ uses
 const
   Version   = 'Version 0.99.13';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1995-99 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -1442,7 +1442,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1999-11-30 10:35:37  peter
+  Revision 1.12  2000-01-07 16:46:03  daniel
+    * copyright 2000
+
+  Revision 1.11  1999/11/30 10:35:37  peter
     * support new readtype
 
   Revision 1.10  1999/11/08 14:06:45  florian

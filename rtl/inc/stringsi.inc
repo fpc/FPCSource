@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Processor independent part for strings and sysutils units
 
@@ -68,7 +68,10 @@
 
 {
   $Log$
-  Revision 1.5  1999-12-10 15:02:12  peter
+  Revision 1.6  2000-01-07 16:41:36  daniel
+    * copyright 2000
+
+  Revision 1.5  1999/12/10 15:02:12  peter
     * strnew is ofcourse also different between sysutils and strings, just
       like stralloc/strdispose.
 

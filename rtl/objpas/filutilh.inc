@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     File utility calls
     
@@ -71,7 +71,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.5  1999-05-15 07:25:22  michael
+  Revision 1.6  2000-01-07 16:41:43  daniel
+    * copyright 2000
+
+  Revision 1.5  1999/05/15 07:25:22  michael
   + Defined seek constants
 
   Revision 1.4  1999/02/09 12:38:43  michael

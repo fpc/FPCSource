@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Heap tracer
 
@@ -945,7 +945,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2000-01-07 16:32:24  daniel
+  Revision 1.33  2000-01-07 16:41:34  daniel
+    * copyright 2000
+
+  Revision 1.32  2000/01/07 16:32:24  daniel
     * copyright 2000 added
 
   Revision 1.31  2000/01/05 13:56:55  jonas

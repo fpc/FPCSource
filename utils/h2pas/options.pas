@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -174,7 +174,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  1999-05-12 16:11:39  peter
+   Revision 1.2  2000-01-07 16:46:05  daniel
+     * copyright 2000
+
+   Revision 1.1  1999/05/12 16:11:39  peter
      * moved
 
    Revision 1.10  1999/04/08 20:47:02  florian

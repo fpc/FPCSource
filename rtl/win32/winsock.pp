@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     This unit contains the declarations for the Win32 Socket Library
 
-    Copyright (c) 1999 by Florian Klaempfl,
+    Copyright (c) 1999-2000 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -929,7 +929,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.3  1999-06-30 07:50:39  michael
+  Revision 1.4  2000-01-07 16:41:53  daniel
+    * copyright 2000
+
+  Revision 1.3  1999/06/30 07:50:39  michael
   + Fixed PServEnt
 
   Revision 1.2  1999/06/21 12:41:34  florian

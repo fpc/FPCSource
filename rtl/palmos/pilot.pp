@@ -1,8 +1,8 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by H.M. Swartjes
-    Parts Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by H.M. Swartjes
+    Parts Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface unit for PalmOS calls
     
@@ -688,7 +688,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-10-14 14:30:03  florian
+  Revision 1.2  2000-01-07 16:41:50  daniel
+    * copyright 2000
+
+  Revision 1.1  1998/10/14 14:30:03  florian
     + Initial revision
 
 }

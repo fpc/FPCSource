@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines to read/write ppu files
 
@@ -994,7 +994,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-11-30 10:35:36  peter
+  Revision 1.9  2000-01-07 16:46:02  daniel
+    * copyright 2000
+
+  Revision 1.8  1999/11/30 10:35:36  peter
     * support new readtype
 
   Revision 1.51  1999/11/23 09:42:38  peter

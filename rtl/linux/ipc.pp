@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     This file implements IPC calls calls for Linux
 
@@ -369,7 +369,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-05-27 21:38:31  peter
+  Revision 1.7  2000-01-07 16:41:40  daniel
+    * copyright 2000
+
+  Revision 1.6  1999/05/27 21:38:31  peter
     * log inserted
 
 }

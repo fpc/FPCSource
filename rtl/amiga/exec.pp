@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1999-2000 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -1555,7 +1555,10 @@ END. (* UNIT EXEC *)
 
 {
   $Log$
-  Revision 1.3  1998-09-14 20:22:32  carl
+  Revision 1.4  2000-01-07 16:41:28  daniel
+    * copyright 2000
+
+  Revision 1.3  1998/09/14 20:22:32  carl
     * Several bugfixes by Nils Sjoholm
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root

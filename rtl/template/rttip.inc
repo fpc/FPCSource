@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt
+    Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -162,7 +162,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-08-23 20:58:53  florian
+  Revision 1.4  2000-01-07 16:41:51  daniel
+    * copyright 2000
+
+  Revision 1.3  1998/08/23 20:58:53  florian
     + rtti for objects and classes
     + TObject.GetClassName implemented
 

@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     and implements some stuff for protected mode programming
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     These files adds support for TP styled port accesses
     
@@ -103,7 +103,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-01-07 16:32:23  daniel
+  Revision 1.3  2000-01-07 16:41:32  daniel
+    * copyright 2000
+
+  Revision 1.2  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
   Revision 1.1  1999/09/01 14:47:31  pierre

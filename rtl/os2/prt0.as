@@ -1,5 +1,5 @@
 / prt0.s (emx+fpk) -- Made from crt0.s,
-/                     Copyright (c) 1990-1994 by Eberhard Mattes.
+/                     Copyright (c) 1990-1999-2000 by Eberhard Mattes.
 /                     Changed for FPK-Pascal in 1997 Dani‰l Mantione.
 /                     This code is _not_ under the Library GNU Public
 /                     License, because the original is not. See copying.emx

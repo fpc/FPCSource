@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Contains the Ascii functions for windows unit
 
@@ -1822,7 +1822,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.2  1999-09-28 22:30:00  peter
+  Revision 1.3  2000-01-07 16:41:54  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/09/28 22:30:00  peter
     * fixed createdc to be D4 compatible
 
   Revision 1.1  1999/09/16 13:38:22  peter

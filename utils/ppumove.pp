@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998 by the FPC Development Team
+    Copyright (c) 1999-2000 by the FPC Development Team
 
     Add multiple FPC units into a static/shared library
 
@@ -35,7 +35,7 @@ uses
 const
   Version   = 'Version 0.99.13';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-99 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:qhsvbw';
   BufSize = 4096;
@@ -596,7 +596,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-11-25 00:00:39  peter
+  Revision 1.8  2000-01-07 16:46:04  daniel
+    * copyright 2000
+
+  Revision 1.7  1999/11/25 00:00:39  peter
     * strip created .so file with strip --strip-unneeded
 
   Revision 1.6  1999/11/23 09:44:15  peter

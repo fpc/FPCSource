@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Processor dependent part of strings.pp, not shared with
     sysutils unit.
@@ -77,7 +77,10 @@ end ['EDI','ESI','EBX','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.5  1999-04-08 11:30:58  peter
+  Revision 1.6  2000-01-07 16:41:33  daniel
+    * copyright 2000
+
+  Revision 1.5  1999/04/08 11:30:58  peter
     * removed warnings
 
   Revision 1.4  1999/03/30 16:58:51  peter

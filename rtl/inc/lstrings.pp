@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1997 by Michael Van Canneyt,
+    Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -535,7 +535,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-05-12 10:42:45  peter
+  Revision 1.3  2000-01-07 16:41:34  daniel
+    * copyright 2000
+
+  Revision 1.2  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

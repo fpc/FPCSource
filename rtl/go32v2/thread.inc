@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Dummy multithreading support for DOS
 
@@ -39,7 +39,10 @@ function relocate_threadvar(offset : dword) : pointer;[public,alias: 'FPC_RELOCA
 
 {
   $Log$
-  Revision 1.2  1999-04-28 06:01:26  florian
+  Revision 1.3  2000-01-07 16:41:32  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/04/28 06:01:26  florian
     * define MT for multithreading introduced
 
   Revision 1.1  1999/04/27 19:41:06  florian

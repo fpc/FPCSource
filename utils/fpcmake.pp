@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1999-2000 by Peter Vreman
 
     Convert Makefile.fpc to Makefile
 
@@ -1093,7 +1093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-01-06 15:49:23  peter
+  Revision 1.20  2000-01-07 16:46:02  daniel
+    * copyright 2000
+
+  Revision 1.19  2000/01/06 15:49:23  peter
     * rtldir removed, it's now handled like any other package
 
   Revision 1.18  2000/01/06 01:29:59  peter

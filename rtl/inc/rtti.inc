@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt
+    Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -71,7 +71,10 @@ TArrayRec = record
 
 { 
   $Log$
-  Revision 1.4  1998-07-20 18:42:51  florian
+  Revision 1.5  2000-01-07 16:41:36  daniel
+    * copyright 2000
+
+  Revision 1.4  1998/07/20 18:42:51  florian
   *** empty log message ***
 
   Revision 1.3  1998/07/13 21:19:11  florian

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1999-2000 by Peter Vreman
 
     List files needed by PPU
 
@@ -32,7 +32,7 @@ uses
 const
   Version   = 'Version 0.99.13';
   Title     = 'PPU-Files';
-  Copyright = 'Copyright (c) 1999 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1999-2000 by the Free Pascal Development Team';
 
   PPUExt = 'ppu';
 
@@ -235,7 +235,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-23 09:44:41  peter
+  Revision 1.2  2000-01-07 16:46:04  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/11/23 09:44:41  peter
     * initial version
 
 }

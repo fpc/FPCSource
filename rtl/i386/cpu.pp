@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
 
     This unit contains some routines to get informations about the
     processor
@@ -75,7 +75,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-09-14 10:48:06  peter
+  Revision 1.6  2000-01-07 16:41:32  daniel
+    * copyright 2000
+
+  Revision 1.5  1998/09/14 10:48:06  peter
     * FPC_ names
     * Heap manager is now system independent
 

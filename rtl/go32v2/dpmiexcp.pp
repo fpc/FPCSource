@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Pierre Muller
+    Copyright (c) 1999-2000 by Pierre Muller
 
     DPMI Exception routines for Go32V2
 
@@ -890,7 +890,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 16:32:23  daniel
+  Revision 1.9  2000-01-07 16:41:31  daniel
+    * copyright 2000
+
+  Revision 1.8  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
   Revision 1.7  1999/03/01 15:40:49  peter

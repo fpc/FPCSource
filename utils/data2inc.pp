@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman (msg2inc) and
+    Copyright (c) 1999-2000 by Peter Vreman (msg2inc) and
                           Marco van de Voort (data2inc)
     Placed under LGPL (See the file COPYING.FPC, included in this
     distribution, for details about the copyright)
@@ -892,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-12-03 10:49:31  michael
+  Revision 1.4  2000-01-07 16:46:01  daniel
+    * copyright 2000
+
+  Revision 1.3  1999/12/03 10:49:31  michael
   Counters must be global or completely local
 
   Revision 1.2  1999/11/23 09:42:18  peter

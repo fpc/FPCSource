@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Includefile for objects.pp implementing OS-dependent file routines
     for Go32V1
@@ -173,7 +173,10 @@ END;
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:32:23  daniel
+  Revision 1.4  2000-01-07 16:41:30  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
   Revision 1.2  1999/06/01 13:23:10  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Sebastian Guenther
+    Copyright (c) 1999-2000 by Sebastian Guenther
 
     .rst resource string table file converter.
     
@@ -207,7 +207,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-07-24 18:35:10  michael
+  Revision 1.4  2000-01-07 16:46:04  daniel
+    * copyright 2000
+
+  Revision 1.3  1999/07/24 18:35:10  michael
   + Added check for missing unitname in constant name
 
   Revision 1.2  1999/07/24 16:22:38  michael

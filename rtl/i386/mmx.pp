@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -123,7 +123,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.4  1998-12-15 22:42:58  peter
+    Revision 1.5  2000-01-07 16:41:33  daniel
+      * copyright 2000
+
+    Revision 1.4  1998/12/15 22:42:58  peter
       * removed temp symbols
 
     Revision 1.3  1998/11/13 10:10:54  peter

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Disk functions from Delphi's sysutils.pas
 
@@ -53,7 +53,10 @@ end;
 
 {
  $Log$
- Revision 1.1  1999-11-08 22:45:01  peter
+ Revision 1.2  2000-01-07 16:41:51  daniel
+   * copyright 2000
+
+ Revision 1.1  1999/11/08 22:45:01  peter
    * inserted as templates
 
  Revision 1.1  1998/10/11 13:42:55  michael

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Pierre Muller,
+    Copyright (c) 1999-2000 by Pierre Muller,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -615,7 +615,10 @@ Unit UComplex;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 16:32:25  daniel
+  Revision 1.4  2000-01-07 16:41:37  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:25  daniel
     * copyright 2000 added
 
   Revision 1.2  1999/12/20 22:24:48  pierre

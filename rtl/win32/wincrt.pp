@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
     This is unit implements some of the crt functionality
@@ -131,7 +131,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-11-29 22:03:39  florian
+  Revision 1.3  2000-01-07 16:41:53  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/11/29 22:03:39  florian
     * first implementation of winmouse unit
 
   Revision 1.1  1999/11/24 22:33:15  florian

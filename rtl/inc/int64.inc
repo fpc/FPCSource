@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     This file contains some helper routines for int64 and qword
 
@@ -302,7 +302,10 @@
 
 {
   $Log$
-  Revision 1.13  1999-07-05 20:04:23  peter
+  Revision 1.14  2000-01-07 16:41:34  daniel
+    * copyright 2000
+
+  Revision 1.13  1999/07/05 20:04:23  peter
     * removed temp defines
 
   Revision 1.12  1999/07/04 16:34:45  florian

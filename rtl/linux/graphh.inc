@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
 
     Graph include file for linux.
 
@@ -81,7 +81,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  1999-12-20 11:22:38  peter
+  Revision 1.3  2000-01-07 16:41:40  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/12/20 11:22:38  peter
     * modes moved to interface
     * integer -> smallint
 

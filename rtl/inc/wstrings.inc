@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Florian Klaempfl,
+    Copyright (c) 1999-2000 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     This file implements support routines for WideStrings with FPC
@@ -36,7 +36,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-12-18 14:55:53  florian
+  Revision 1.2  2000-01-07 16:41:37  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/12/18 14:55:53  florian
     + initial version
 
 }

@@ -4,7 +4,7 @@
 
                              DIVE interface unit
                      FPC Pascal Runtime Library for OS/2
-             Copyright (c) 1999 by Karoly Balogh (aka Charlie/INQ)
+             Copyright (c) 1999-2000 by Karoly Balogh (aka Charlie/INQ)
 
  The FPC Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -328,7 +328,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  1999-10-01 11:17:09  hajny
+  Revision 1.2  2000-01-07 16:41:45  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/10/01 11:17:09  hajny
     + initial version
 
 

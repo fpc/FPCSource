@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     and implements some stuff for protected mode programming
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -1211,7 +1211,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-01-07 16:32:23  daniel
+  Revision 1.4  2000-01-07 16:41:30  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:23  daniel
     * copyright 2000 added
 
   Revision 1.2  1999/06/01 13:23:09  peter

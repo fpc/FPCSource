@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Dos unit for BP7 compatible RTL
 
@@ -806,7 +806,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.27  2000-01-07 16:32:34  daniel
+  Revision 1.28  2000-01-07 16:41:52  daniel
+    * copyright 2000
+
+  Revision 1.27  2000/01/07 16:32:34  daniel
     * copyright 2000 added
 
   Revision 1.26  1999/11/18 15:28:47  michael

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal simulator environment
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
 
     This unit implemements a memory manager for 64 bit processor
     simulations, it works also with TP
@@ -296,7 +296,10 @@ unit mm64;
 end.
 {
   $Log$
-  Revision 1.1  1999-06-14 11:49:48  florian
+  Revision 1.2  2000-01-07 16:46:07  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/06/14 11:49:48  florian
     + initial revision, it runs simple Alpha Linux ELF executables
        - integer operations are nearly completed (non with overflow checking)
        - floating point operations aren't implemented (except loading and

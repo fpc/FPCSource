@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     This is a prototype file to show all function that need to be implemented 
     for a new operating system (provided the processor specific
@@ -274,7 +274,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2000-01-07 16:32:34  daniel
+  Revision 1.4  2000-01-07 16:41:51  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:34  daniel
     * copyright 2000 added
 
   Revision 1.2  1999/01/18 10:11:10  pierre

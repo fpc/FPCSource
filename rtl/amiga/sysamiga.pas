@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Carl Eric Codere
+    Copyright (c) 1999-2000 by Carl Eric Codere
     Some parts taken from
        Marcel Timmermans - Modula 2 Compiler
        Nils Sjoholm - Amiga porter
@@ -1814,7 +1814,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-01-07 16:32:22  daniel
+  Revision 1.15  2000-01-07 16:41:29  daniel
+    * copyright 2000
+
+  Revision 1.14  2000/01/07 16:32:22  daniel
     * copyright 2000 added
 
   Revision 1.13  1999/09/10 15:40:32  peter

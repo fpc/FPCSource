@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Florian Klaempfl
 
     This file implements the win32 gui support for the graph unit
 
@@ -718,7 +718,10 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.5  1999-12-08 09:09:34  pierre
+  Revision 1.6  2000-01-07 16:41:52  daniel
+    * copyright 2000
+
+  Revision 1.5  1999/12/08 09:09:34  pierre
    + add VESA compatible mode in 16 and 256 colors
 
   Revision 1.4  1999/12/02 00:24:36  pierre

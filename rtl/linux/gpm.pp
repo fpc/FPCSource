@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1999-2000 by Peter Vreman
 
     GPM (>v1.17) mouse Interface for linux
 
@@ -209,7 +209,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-07-01 19:39:43  peter
+  Revision 1.2  2000-01-07 16:41:40  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/07/01 19:39:43  peter
     + gpm unit
 
 }

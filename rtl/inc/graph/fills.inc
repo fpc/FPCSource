@@ -2,7 +2,7 @@
     $Id$
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by Thomas Schatzl and Carl Eric Codere
+    Copyright (c) 1999-2000 by Thomas Schatzl and Carl Eric Codere
 
     This include implements polygon filling and flood filling.
 
@@ -545,7 +545,10 @@ var
 
 {
 $Log$
-Revision 1.15  2000-01-07 16:32:25  daniel
+Revision 1.16  2000-01-07 16:41:37  daniel
+  * copyright 2000
+
+Revision 1.15  2000/01/07 16:32:25  daniel
   * copyright 2000 added
 
 Revision 1.14  2000/01/02 19:01:32  jonas

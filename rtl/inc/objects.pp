@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Objects.pas clone for Free Pascal
 
@@ -20,15 +20,15 @@
 {                                                          }
 {    Interface Copyright (c) 1992 Borland International    }
 {                                                          }
-{    Parts Copyright (c) 1998-2000 by Florian Klaempfl       }
+{    Parts Copyright (c) 1999-2000 by Florian Klaempfl       }
 {    fnklaemp@cip.ft.uni-erlangen.de                       }
 {                                                          }
-{    Parts Copyright (c) 1996 by Frank ZAGO                }
+{    Parts Copyright (c) 1999-2000 by Frank ZAGO                }
 {    zago@ecoledoc.ipc.fr                                  }
 {                                                          }
-{    Parts Copyright (c) 1995 by MH Spiegel                }
+{    Parts Copyright (c) 1999-2000 by MH Spiegel                }
 {                                                          }
-{    Parts Copyright (c) 1996, 1997 by Leon de Boer        }
+{    Parts Copyright (c) 1996, 1999-2000 by Leon de Boer        }
 {    ldeboer@ibm.net                                       }
 {                                                          }
 {    Free Vision project coordinator Balazs Scheidler      }
@@ -2761,7 +2761,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.33  2000-01-07 16:32:24  daniel
+  Revision 1.34  2000-01-07 16:41:34  daniel
+    * copyright 2000
+
+  Revision 1.33  2000/01/07 16:32:24  daniel
     * copyright 2000 added
 
   Revision 1.32  1999/12/06 18:25:30  peter

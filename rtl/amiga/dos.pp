@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Nils Sjoholm and Carl Eric Codere
+    Copyright (c) 1999-2000 by Nils Sjoholm and Carl Eric Codere
     members of the Free Pascal development team
       Date conversion routine taken from SWAG
 
@@ -1722,7 +1722,10 @@ End.
 
 {
   $Log$
-  Revision 1.11  2000-01-07 16:32:21  daniel
+  Revision 1.12  2000-01-07 16:41:28  daniel
+    * copyright 2000
+
+  Revision 1.11  2000/01/07 16:32:21  daniel
     * copyright 2000 added
 
   Revision 1.10  1998/10/14 10:46:14  pierre

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     svgalib implementation of graph unit.
 
@@ -440,7 +440,10 @@ end;
 
 {
 $Log$
-Revision 1.4  1999-12-20 11:22:38  peter
+Revision 1.5  2000-01-07 16:41:42  daniel
+  * copyright 2000
+
+Revision 1.4  1999/12/20 11:22:38  peter
   * modes moved to interface
   * integer -> smallint
 

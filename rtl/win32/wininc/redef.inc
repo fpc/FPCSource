@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     This file defines type names as they are used by Delphi
 
@@ -102,7 +102,10 @@ type
 
 {
   $Log$
-  Revision 1.1  1999-09-16 13:38:24  peter
+  Revision 1.2  2000-01-07 16:41:56  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/09/16 13:38:24  peter
     * windows unit include moved to wininc/
 
   Revision 1.4  1999/06/18 13:59:50  florian

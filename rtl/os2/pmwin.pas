@@ -4,8 +4,8 @@
 
                             PMWIN interface unit
                      FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1998-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999 by Ramon Bosque
+                   Copyright (c) 1999-2000 by Florian Kl„mpfl
+                    Copyright (c) 1999-2000 by Ramon Bosque
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -2295,7 +2295,10 @@ const
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 16:32:33  daniel
+  Revision 1.9  2000-01-07 16:41:49  daniel
+    * copyright 2000
+
+  Revision 1.8  2000/01/07 16:32:33  daniel
     * copyright 2000 added
 
   Revision 1.7  1999/08/10 14:20:52  hajny

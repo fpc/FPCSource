@@ -2,7 +2,7 @@ program bin2obj;
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by Michael Van Canneyt, member of the 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the 
     Free Pascal development team
 
     Binary file to include file converter.
@@ -264,7 +264,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-12-08 23:11:20  michael
+  Revision 1.2  2000-01-07 16:46:01  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/12/08 23:11:20  michael
   + Initial implementation
 
 }

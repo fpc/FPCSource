@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Disk functions from Delphi's sysutils.pas
 
@@ -110,7 +110,10 @@ end;
 
 {
  $Log$
- Revision 1.4  1999-04-26 09:34:32  peter
+ Revision 1.5  2000-01-07 16:41:40  daniel
+   * copyright 2000
+
+ Revision 1.4  1999/04/26 09:34:32  peter
    * fixed diskfree,disksize
    * dir functions now return error status instead of true
 

@@ -2,8 +2,8 @@
 
     $Id$
 
-              Copyright (c) 1998-2000 by Florian Klaempfl
-                  Copyright (c) 1999 by Ramon Bosque
+              Copyright (c) 1999-2000 by Florian Klaempfl
+                  Copyright (c) 1999-2000 by Ramon Bosque
 
  The Free Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -200,7 +200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 16:32:32  daniel
+  Revision 1.8  2000-01-07 16:41:48  daniel
+    * copyright 2000
+
+  Revision 1.7  2000/01/07 16:32:32  daniel
     * copyright 2000 added
 
   Revision 1.6  1999/09/15 09:13:49  hajny

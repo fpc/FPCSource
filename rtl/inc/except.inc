@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by Michael Van Canneyt
+    Copyright (c) 1999-2000 by Michael Van Canneyt
     member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -215,7 +215,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.13  1999-07-27 08:14:15  florian
+  Revision 1.14  2000-01-07 16:41:33  daniel
+    * copyright 2000
+
+  Revision 1.13  1999/07/27 08:14:15  florian
     * catch doesn't call popaddrstack anymore, this is done now by the compiler
 
   Revision 1.12  1999/07/26 12:11:28  florian

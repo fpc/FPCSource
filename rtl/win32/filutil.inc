@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     File utility calls
 
@@ -427,7 +427,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  1999-08-18 08:38:42  michael
+  Revision 1.12  2000-01-07 16:41:52  daniel
+    * copyright 2000
+
+  Revision 1.11  1999/08/18 08:38:42  michael
   * Fixed bug 533, in findmatch
 
   Revision 1.10  1999/04/20 11:36:13  peter

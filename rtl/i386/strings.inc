@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     Processor dependent part of strings.pp, that can be shared with
     sysutils unit.
@@ -337,7 +337,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-12-18 23:08:33  florian
+  Revision 1.6  2000-01-07 16:41:33  daniel
+    * copyright 2000
+
+  Revision 1.5  1999/12/18 23:08:33  florian
     * bug 766 fixed
 
   Revision 1.4  1999/04/09 07:58:41  michael

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     File utility calls
 
@@ -167,7 +167,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1999-11-08 22:45:55  peter
+  Revision 1.4  2000-01-07 16:41:47  daniel
+    * copyright 2000
+
+  Revision 1.3  1999/11/08 22:45:55  peter
     * updated
 
   Revision 1.2  1998/10/12 08:35:22  pierre

@@ -8,9 +8,9 @@ Part of FPK Pascal runtime library for OS/2
 History:
     2 June 1997 : Creation.
 
-This unit is copyright (c) 1997 by Dani‰l Mantione.
-FPK Pascal is copyright (c) -1997 by Florian Klaempfl.
-EMX.DLL is copyright (c) -1996 by Eberhard Mattes.
+This unit is copyright (c) 1999-2000 by Dani‰l Mantione.
+FPK Pascal is copyright (c) -1999-2000 by Florian Klaempfl.
+EMX.DLL is copyright (c) -1999-2000 by Eberhard Mattes.
 
 Modifying this unit is allowed, under the following conditions:
 

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998-2000 by several people
+    Copyright (c) 1999-2000 by several people
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -909,7 +909,10 @@ const sincof : TabCoef = (
 
 {
   $Log$
-  Revision 1.2  2000-01-07 16:32:29  daniel
+  Revision 1.3  2000-01-07 16:41:43  daniel
+    * copyright 2000
+
+  Revision 1.2  2000/01/07 16:32:29  daniel
     * copyright 2000 added
 
   Revision 1.1.1.1  1998/03/25 11:18:44  root

@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Peter Vreman
+    Copyright (c) 1999-2000 by Peter Vreman
 
     Deletes all files generated for Pascal (*.exe,units,objects,libs)
 
@@ -209,7 +209,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-12-19 17:12:10  peter
+  Revision 1.4  2000-01-07 16:46:02  daniel
+    * copyright 2000
+
+  Revision 1.3  1999/12/19 17:12:10  peter
     * added fpcmade
 
   Revision 1.2  1999/12/02 11:31:11  peter

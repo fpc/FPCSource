@@ -4,7 +4,7 @@
 
                          Free Pascal Runtime-Library
                               DOS unit for OS/2
-                   Copyright (c) 1997,1998 by Daniel Mantione,
+                   Copyright (c) 1997,1999-2000 by Daniel Mantione,
                    member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-10-13 12:21:56  daniel
+  Revision 1.18  2000-01-07 16:41:45  daniel
+    * copyright 2000
+
+  Revision 1.17  1999/10/13 12:21:56  daniel
   * OS/2 compiler works again.
 
   Revision 1.16  1999/09/13 18:21:02  hajny

@@ -2,7 +2,7 @@
   adapted for use with Free Pascal by Florian Klaempfl
 }
 { -------------------------------------------------- }
-{ Copyright 1998 by H.M. Swartjes         }
+{ Copyright 1999-2000 by H.M. Swartjes         }
 { Part of project Leave, release  17-8-98 }
 
 unit SysTraps;
@@ -860,7 +860,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-10-14 14:30:03  florian
+  Revision 1.2  2000-01-07 16:41:51  daniel
+    * copyright 2000
+
+  Revision 1.1  1998/10/14 14:30:03  florian
     + Initial revision
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1998 by the Free Pascal development team
+    Copyright (c) 1999-2000 by the Free Pascal development team
 
     This file implements english error message strings
     
@@ -57,7 +57,10 @@ Const
    SInvalidOp = 'Invalid floating point operation';
 {
   $Log$
-  Revision 1.8  1999-08-28 14:53:27  florian
+  Revision 1.9  2000-01-07 16:41:44  daniel
+    * copyright 2000
+
+  Revision 1.8  1999/08/28 14:53:27  florian
     * bug 471 fixed: run time error 2 is now converted into a file not
       found exception
 

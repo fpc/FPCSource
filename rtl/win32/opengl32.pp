@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Contains part of the OpenGL DLL
 
@@ -113,7 +113,10 @@ unit opengl32;
 end.
 {
   $Log$
-  Revision 1.1  1999-05-10 22:07:13  florian
+  Revision 1.2  2000-01-07 16:41:52  daniel
+    * copyright 2000
+
+  Revision 1.1  1999/05/10 22:07:13  florian
     * initial version with some functions are removed from windows unit
 
 }

@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Contains the Ascii functions for windows unit
 
@@ -1838,7 +1838,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.4  1999-11-21 01:39:26  pierre
+  Revision 1.5  2000-01-07 16:41:53  daniel
+    * copyright 2000
+
+  Revision 1.4  1999/11/21 01:39:26  pierre
    * used TWNDCLASS in interface and WNDCLASS in implementation
 
   Revision 1.3  1999/11/05 09:53:02  pierre

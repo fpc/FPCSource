@@ -4,8 +4,8 @@
 
                             PMGPI interface unit
                      FPC Pascal Runtime Library for OS/2
-                   Copyright (c) 1998-2000 by Florian Kl„mpfl
-                    Copyright (c) 1999 by Ramon Bosque
+                   Copyright (c) 1999-2000 by Florian Kl„mpfl
+                    Copyright (c) 1999-2000 by Ramon Bosque
 
  The FPK-Pascal runtime library is distributed under the Library GNU Public
  License v2. So is this unit. The Library GNU Public License requires you to
@@ -1228,7 +1228,10 @@ function GpiPolygons(hps,ulCount : cardinal;var paplgn : POLYGON;flOptions,flMod
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 16:32:32  daniel
+  Revision 1.8  2000-01-07 16:41:48  daniel
+    * copyright 2000
+
+  Revision 1.7  2000/01/07 16:32:32  daniel
     * copyright 2000 added
 
   Revision 1.6  1999/08/04 15:51:07  hajny
