@@ -45,6 +45,7 @@ type
     as_bin   : string;
   {outfile}
     AsmSize,
+    AsmStartSize,
     outcnt   : longint;
     outbuf   : array[0..AsmOutSize-1] of char;
     outfile  : file;
@@ -56,6 +57,7 @@ type
     Procedure RemoveAsm;
     procedure NextSmartName;
     Procedure AsmFlush;
+    Procedure AsmClear;
     Procedure AsmWrite(const s:string);
     Procedure AsmWritePChar(p:pchar);
     Procedure AsmWriteLn(const s:string);
@@ -228,6 +230,12 @@ begin
 end;
 
 
+Procedure TAsmList.AsmClear;
+begin
+  outcnt:=0;
+end;
+
+
 Procedure TAsmList.AsmWrite(const s:string);
 begin
   if OutCnt+length(s)>=AsmOutSize then
@@ -303,6 +311,7 @@ begin
    end;
   outcnt:=0;
   AsmSize:=0;
+  AsmStartSize:=0;
 end;
 
 
@@ -437,7 +446,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1998-08-21 14:08:39  pierre
+  Revision 1.19  1998-08-26 10:06:34  peter
+    * reduce amount of asmfiles generated
+    * no stabs are written in writefilelineinfo when debuginfo is off
+
+  Revision 1.18  1998/08/21 14:08:39  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 
