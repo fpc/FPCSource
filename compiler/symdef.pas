@@ -625,8 +625,13 @@ interface
           constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : longint);
           constructor loadlong(ppufile:tcompilerppufile);
+       {$ifdef ansistring_bits}
+          constructor createansi(l:longint;bits:Tstringbits);
+          constructor loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
+       {$else}
           constructor createansi(l : longint);
           constructor loadansi(ppufile:tcompilerppufile);
+       {$endif}
           constructor createwide(l : longint);
           constructor loadwide(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
@@ -736,7 +741,13 @@ interface
        s32fixedtype,              { pointer to type of temp. fixed }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
+{$ifdef ansistring_bits}
+       cansistringtype16,         { pointer to type of ansi string const  }
+       cansistringtype32,         { pointer to type of ansi string const  }
+       cansistringtype64,         { pointer to type of ansi string const  }
+{$else}
        cansistringtype,           { pointer to type of ansi string const  }
+{$endif}
        cwidestringtype,           { pointer to type of wide string const  }
        openshortstringtype,       { pointer to type of an open shortstring,
                                     needed for readln() }
@@ -1302,8 +1313,40 @@ implementation
          savesize:=POINTER_SIZE;
       end;
 
+{$ifdef ansistring_bits}
+    constructor tstringdef.createansi(l:longint;bits:Tstringbits);
+      begin
+         inherited create;
+         case bits of
+           sb_16:
+             string_typ:=st_ansistring16;
+           sb_32:
+             string_typ:=st_ansistring32;
+           sb_64:
+             string_typ:=st_ansistring64;
+         end;
+         deftype:=stringdef;
+         len:=l;
+         savesize:=POINTER_SIZE;
+      end;
 
-    constructor tstringdef.createansi(l : longint);
+    constructor tstringdef.loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
+      begin
+         inherited ppuloaddef(ppufile);
+         deftype:=stringdef;
+         case bits of
+           sb_16:
+             string_typ:=st_ansistring16;
+           sb_32:
+             string_typ:=st_ansistring32;
+           sb_64:
+             string_typ:=st_ansistring64;
+         end;
+         len:=ppufile.getlongint;
+         savesize:=POINTER_SIZE;
+      end;
+{$else}
+    constructor tstringdef.createansi(l:longint);
       begin
          inherited create;
          string_typ:=st_ansistring;
@@ -1312,8 +1355,8 @@ implementation
          savesize:=POINTER_SIZE;
       end;
 
-
     constructor tstringdef.loadansi(ppufile:tcompilerppufile);
+
       begin
          inherited ppuloaddef(ppufile);
          deftype:=stringdef;
@@ -1321,7 +1364,7 @@ implementation
          len:=ppufile.getlongint;
          savesize:=POINTER_SIZE;
       end;
-
+{$endif}
 
     constructor tstringdef.createwide(l : longint);
       begin
@@ -1354,10 +1397,17 @@ implementation
 
 
     function tstringdef.stringtypname:string;
+{$ifdef ansistring_bits}
+      const
+        typname:array[tstringtype] of string[9]=('',
+          'shortstr','longstr','ansistr16','ansistr32','ansistr64','widestr'
+        );
+{$else}
       const
         typname:array[tstringtype] of string[8]=('',
           'shortstr','longstr','ansistr','widestr'
         );
+{$endif}
       begin
         stringtypname:=typname[string_typ];
       end;
@@ -1384,7 +1434,13 @@ implementation
          case string_typ of
             st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);
+         {$ifdef ansistring_bits}
+            st_ansistring16 : ppufile.writeentry(ibansistring16def);
+            st_ansistring32 : ppufile.writeentry(ibansistring32def);
+            st_ansistring64 : ppufile.writeentry(ibansistring64def);
+         {$else}
             st_ansistring : ppufile.writeentry(ibansistringdef);
+         {$endif}
             st_widestring : ppufile.writeentry(ibwidestringdef);
          end;
       end;
@@ -1423,7 +1479,11 @@ implementation
                             [tostr(len+5),longst,tostr(len),charst,tostr(len*8),bytest]);
               {$EndIf}
              end;
+         {$ifdef ansistring_bits}
+           st_ansistring16,st_ansistring32,st_ansistring64:
+         {$else}
            st_ansistring:
+         {$endif}
              begin
                { an ansi string looks like a pchar easy !! }
                charst:=tstoreddef(cchartype.def).numberstring;
@@ -1459,7 +1519,11 @@ implementation
                tstoreddef(u32inttype.def).concatstabto(asmlist);
              {$EndIf}
              end;
+         {$ifdef ansistring_bits}
+           st_ansistring16,st_ansistring32,st_ansistring64:
+         {$else}
            st_ansistring:
+         {$endif}
              tstoreddef(cchartype.def).concatstabto(asmlist);
            st_widestring:
              tstoreddef(cwidechartype.def).concatstabto(asmlist);
@@ -1471,14 +1535,24 @@ implementation
 
     function tstringdef.needs_inittable : boolean;
       begin
+      {$ifdef ansistring_bits}
+         needs_inittable:=string_typ in [st_ansistring16,st_ansistring32,st_ansistring64,st_widestring];
+      {$else}
          needs_inittable:=string_typ in [st_ansistring,st_widestring];
+      {$endif}
       end;
 
 
     function tstringdef.gettypename : string;
+{$ifdef ansistring_bits}
+      const
+         names : array[tstringtype] of string[20] = ('',
+           'shortstring','longstring','ansistring16','ansistring32','ansistring64','widestring');
+{$else}
       const
          names : array[tstringtype] of string[20] = ('',
            'ShortString','LongString','AnsiString','WideString');
+{$endif}
       begin
          gettypename:=names[string_typ];
       end;
@@ -1487,11 +1561,29 @@ implementation
     procedure tstringdef.write_rtti_data(rt:trttitype);
       begin
          case string_typ of
+          {$ifdef ansistring_bits}
+            st_ansistring16:
+              begin
+                 rttiList.concat(Tai_const.Create_8bit(tkA16String));
+                 write_rtti_name;
+              end;
+            st_ansistring32:
+              begin
+                 rttiList.concat(Tai_const.Create_8bit(tkA32String));
+                 write_rtti_name;
+              end;
+            st_ansistring64:
+              begin
+                 rttiList.concat(Tai_const.Create_8bit(tkA64String));
+                 write_rtti_name;
+              end;
+          {$else}
             st_ansistring:
               begin
                  rttiList.concat(Tai_const.Create_8bit(tkAString));
                  write_rtti_name;
               end;
+          {$endif}
             st_widestring:
               begin
                  rttiList.concat(Tai_const.Create_8bit(tkWString));
@@ -6073,7 +6165,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.234  2004-04-18 15:22:24  florian
+  Revision 1.235  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.234  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
 
   Revision 1.233  2004/03/23 22:34:49  peter

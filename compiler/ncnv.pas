@@ -632,8 +632,14 @@ implementation
          if left.nodetype=stringconstn then
           begin
              { convert ascii 2 unicode }
+           {$ifdef ansistring_bits}
+             if (tstringdef(resulttype.def).string_typ=st_widestring) and
+                (tstringconstnode(left).st_type in [st_ansistring16,st_ansistring32,
+                       st_ansistring64,st_shortstring,st_longstring]) then
+           {$else}
              if (tstringdef(resulttype.def).string_typ=st_widestring) and
                 (tstringconstnode(left).st_type in [st_ansistring,st_shortstring,st_longstring]) then
+           {$endif}
               begin
                 initwidestring(pw);
                 ascii2unicode(tstringconstnode(left).value_str,tstringconstnode(left).len,pw);
@@ -642,8 +648,14 @@ implementation
               end
              else
              { convert unicode 2 ascii }
+           {$ifdef ansistring_bits}
+             if (tstringconstnode(left).st_type=st_widestring) and
+                (tstringdef(resulttype.def).string_typ in [st_ansistring16,st_ansistring32,
+                           st_ansistring64,st_shortstring,st_longstring]) then
+           {$else}
              if (tstringconstnode(left).st_type=st_widestring) and
                 (tstringdef(resulttype.def).string_typ in [st_ansistring,st_shortstring,st_longstring]) then
+           {$endif}
               begin
                 pw:=pcompilerwidestring(tstringconstnode(left).value_str);
                 getmem(pc,getlengthwidestring(pw)+1);
@@ -2402,7 +2414,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2004-03-23 22:34:49  peter
+  Revision 1.144  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.143  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

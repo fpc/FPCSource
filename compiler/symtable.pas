@@ -310,7 +310,13 @@ implementation
                  ibprocdef : hp:=tprocdef.ppuload(ppufile);
           ibshortstringdef : hp:=tstringdef.loadshort(ppufile);
            iblongstringdef : hp:=tstringdef.loadlong(ppufile);
+{$ifdef ansistring_bits}
+         ibansistring16def : hp:=tstringdef.loadansi(ppufile,sb_16);
+         ibansistring32def : hp:=tstringdef.loadansi(ppufile,sb_32);
+         ibansistring64def : hp:=tstringdef.loadansi(ppufile,sb_64);
+{$else}
            ibansistringdef : hp:=tstringdef.loadansi(ppufile);
+{$endif}
            ibwidestringdef : hp:=tstringdef.loadwide(ppufile);
                ibrecorddef : hp:=trecorddef.ppuload(ppufile);
                ibobjectdef : hp:=tobjectdef.ppuload(ppufile);
@@ -2302,7 +2308,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2004-03-14 20:08:37  peter
+  Revision 1.145  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.144  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS
     * default packrecords now uses value 0 and uses info from aligment
       structure only, initpackrecords removed

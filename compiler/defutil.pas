@@ -506,13 +506,21 @@ implementation
                         );
       end;
 
+{$ifdef ansistring_bits}
+    { true if p is an ansi string def }
+    function is_ansistring(p : tdef) : boolean;
+      begin
+         is_ansistring:=(p.deftype=stringdef) and
+                        (tstringdef(p).string_typ in [st_ansistring16,st_ansistring32,st_ansistring64]);
+      end;
+{$else}
     { true if p is an ansi string def }
     function is_ansistring(p : tdef) : boolean;
       begin
          is_ansistring:=(p.deftype=stringdef) and
                         (tstringdef(p).string_typ=st_ansistring);
       end;
-
+{$endif}
 
     { true if p is an long string def }
     function is_longstring(p : tdef) : boolean;
@@ -886,7 +894,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2004-03-29 14:44:10  peter
+  Revision 1.13  2004-04-29 19:56:36  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.12  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
 
   Revision 1.11  2004/03/23 22:34:49  peter

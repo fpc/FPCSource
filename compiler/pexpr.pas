@@ -142,7 +142,18 @@ implementation
           else
             begin
                if cs_ansistrings in aktlocalswitches then
+                 {$ifdef ansistring_bits}
+                 case aktansistring_bits of
+                   sb_16:
+                     t:=cansistringtype16;
+                   sb_32:
+                     t:=cansistringtype32;
+                   sb_64:
+                     t:=cansistringtype64;
+                 end
+                 {$else}
                  t:=cansistringtype
+                 {$endif}
                else
                  t:=cshortstringtype;
             end;
@@ -1341,7 +1352,18 @@ implementation
                         begin
                           p1:=cloadnode.create(srsym,srsymtable);
                           do_resulttypepass(p1);
+                        {$ifdef ansistring_bits}
+                          case aktansistring_bits of
+                            sb_16:
+                              p1.resulttype:=cansistringtype16;
+                            sb_32:
+                              p1.resulttype:=cansistringtype32;
+                            sb_64:
+                              p1.resulttype:=cansistringtype64;
+                          end;
+                        {$else}
                           p1.resulttype:=cansistringtype;
+                        {$endif}
                         end;
                       constguid :
                         p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
@@ -2399,7 +2421,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.153  2004-04-12 18:59:32  florian
+  Revision 1.154  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.153  2004/04/12 18:59:32  florian
     * small x86_64 fixes
 
   Revision 1.152  2004/03/29 14:42:52  peter

@@ -126,7 +126,11 @@ interface
                location.register:=cg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
+         {$ifdef ansistring_bits}
+           st_ansistring16,st_ansistring32,st_ansistring64 :
+         {$else}
            st_ansistring :
+         {$endif}
              begin
                if (left.nodetype=stringconstn) and
                   (str_length(left)=0) then
@@ -535,7 +539,10 @@ end.
 
 {
   $Log$
-  Revision 1.56  2004-03-02 00:36:33  olle
+  Revision 1.57  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.56  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.55  2004/02/27 10:21:05  florian

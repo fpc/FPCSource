@@ -583,7 +583,38 @@ implementation
                           curconstSegment.concat(Tai_string.Create_length_pchar(ca,t.def.size-strlength-1));
                         end;
                      end;
-                   st_ansistring:
+                 {$ifdef ansistrings_bits}
+                   st_ansistring16:
+                     begin
+                        { an empty ansi string is nil! }
+                        if (strlength=0) then
+                          curconstSegment.concat(Tai_const.Create_ptr(0))
+                        else
+                          begin
+                            objectlibrary.getdatalabel(ll);
+                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            { the actual structure starts at -12 from start label - CEC }
+                            Consts.concat(tai_align.create(const_align(pointer_size)));
+                            { first write the maximum size }
+                            Consts.concat(Tai_const.Create_16bit(strlength));
+                            { second write the real length }
+                            Consts.concat(Tai_const.Create_16bit(strlength));
+                            { redondent with maxlength but who knows ... (PM) }
+                            { third write use count (set to -1 for safety ) }
+                            Consts.concat(Tai_const.Create_16bit(Cardinal(-1)));
+                            Consts.concat(Tai_label.Create(ll));
+                            getmem(ca,strlength+2);
+                            move(strval^,ca^,strlength);
+                            { The terminating #0 to be stored in the .data section (JM) }
+                            ca[strlength]:=#0;
+                            { End of the PChar. The memory has to be allocated because in }
+                            { tai_string.done, there is a freemem(len+1) (JM)             }
+                            ca[strlength+1]:=#0;
+                            Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                          end;
+                     end;
+                 {$endif}
+                   {$ifdef ansistring_bits}st_ansistring32{$else}st_ansistring{$endif}:
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
@@ -612,6 +643,37 @@ implementation
                             Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
                           end;
                      end;
+                 {$ifdef ansistring_bits}
+                   st_ansistring64:
+                     begin
+                        { an empty ansi string is nil! }
+                        if (strlength=0) then
+                          curconstSegment.concat(Tai_const.Create_ptr(0))
+                        else
+                          begin
+                            objectlibrary.getdatalabel(ll);
+                            curconstSegment.concat(Tai_const_symbol.Create(ll));
+                            { the actual structure starts at -12 from start label - CEC }
+                            Consts.concat(tai_align.create(const_align(pointer_size)));
+                            { first write the maximum size }
+                            Consts.concat(Tai_const.Create_64bit(strlength));
+                            { second write the real length }
+                            Consts.concat(Tai_const.Create_64bit(strlength));
+                            { redondent with maxlength but who knows ... (PM) }
+                            { third write use count (set to -1 for safety ) }
+                            Consts.concat(Tai_const.Create_64bit(Cardinal(-1)));
+                            Consts.concat(Tai_label.Create(ll));
+                            getmem(ca,strlength+2);
+                            move(strval^,ca^,strlength);
+                            { The terminating #0 to be stored in the .data section (JM) }
+                            ca[strlength]:=#0;
+                            { End of the PChar. The memory has to be allocated because in }
+                            { tai_string.done, there is a freemem(len+1) (JM)             }
+                            ca[strlength+1]:=#0;
+                            Consts.concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                          end;
+                     end;
+                 {$endif}
                    st_widestring:
                      begin
                         { an empty ansi string is nil! }
@@ -1028,7 +1090,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-04-11 10:44:23  peter
+  Revision 1.84  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.83  2004/04/11 10:44:23  peter
     * block_type is bt_const when parsing typed consts
 
   Revision 1.82  2004/03/18 11:43:57  olle

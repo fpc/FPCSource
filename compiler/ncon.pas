@@ -599,7 +599,18 @@ implementation
          if st=st_default then
           begin
             if cs_ansistrings in aktlocalswitches then
+            {$ifdef ansistring_bits}
+              case aktansistring_bits of
+                sb_16:
+                  st_type:=st_ansistring16;
+                sb_32:
+                  st_type:=st_ansistring32;
+                sb_64:
+                  st_type:=st_ansistring64;
+              end
+            {$else}
               st_type:=st_ansistring
+            {$endif}
             else
               st_type:=st_shortstring;
           end
@@ -626,7 +637,18 @@ implementation
          value_str:=s;
          if (cs_ansistrings in aktlocalswitches) or
             (len>255) then
-          st_type:=st_ansistring
+          {$ifdef ansistring_bits}
+            case aktansistring_bits of
+              sb_16:
+                st_type:=st_ansistring16;
+              sb_32:
+                st_type:=st_ansistring32;
+              sb_64:
+                st_type:=st_ansistring64;
+            end
+          {$else}
+            st_type:=st_ansistring
+          {$endif}
          else
           st_type:=st_shortstring;
          lab_str:=nil;
@@ -704,8 +726,17 @@ implementation
         case st_type of
           st_shortstring :
             resulttype:=cshortstringtype;
+        {$ifdef ansistring_bits}
+          st_ansistring16:
+            resulttype:=cansistringtype16;
+          st_ansistring32:
+            resulttype:=cansistringtype32;
+          st_ansistring64:
+            resulttype:=cansistringtype64;
+        {$else}
           st_ansistring :
             resulttype:=cansistringtype;
+        {$endif}
           st_widestring :
             resulttype:=cwidestringtype;
           st_longstring :
@@ -716,7 +747,11 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
+      {$ifdef ansistring_bits}
+        if (st_type in [st_ansistring16,st_ansistring32,st_ansistring64,st_widestring]) and
+      {$else}
         if (st_type in [st_ansistring,st_widestring]) and
+      {$endif}
            (len=0) then
          expectloc:=LOC_CONSTANT
         else
@@ -934,7 +969,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-03-23 22:34:49  peter
+  Revision 1.61  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.60  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

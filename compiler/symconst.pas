@@ -44,7 +44,11 @@ const
   tkSString  = 7;
   tkString   = tkSString;
   tkLString  = 8;
+{$ifdef ansistring_bits}
+  tkA32String  = 9;
+{$else}
   tkAString  = 9;
+{$endif}
   tkWString  = 10;
   tkVariant  = 11;
   tkArray    = 12;
@@ -58,6 +62,10 @@ const
   tkQWord    = 20;
   tkDynArray = 21;
   tkInterfaceCorba = 22;
+{$ifdef ansistring_bits}
+  tkA16string = 23;
+  tkA64string = 24;
+{$endif}
 
   otSByte    = 0;
   otUByte    = 1;
@@ -162,7 +170,16 @@ type
 
   { string types }
   tstringtype = (st_default,
-    st_shortstring, st_longstring, st_ansistring, st_widestring
+    st_shortstring,
+    st_longstring,
+  {$ifndef ansistring_bits}
+    st_ansistring,
+  {$else}
+    st_ansistring16,
+    st_ansistring32,
+    st_ansistring64,
+  {$endif}
+    st_widestring
   );
 
   { set types }
@@ -407,7 +424,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.80  2004-04-28 15:19:03  florian
+  Revision 1.81  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.80  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.79  2004/04/18 15:22:24  florian

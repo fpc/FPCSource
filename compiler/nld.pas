@@ -236,7 +236,20 @@ implementation
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 resulttype:=cansistringtype
+                 begin
+                 {$ifdef ansistring_bits}
+                   case aktansistring_bits of
+                     sb_16:
+                       resulttype:=cansistringtype16;
+                     sb_32:
+                       resulttype:=cansistringtype32;
+                     sb_64:
+                       resulttype:=cansistringtype64;
+                   end;
+                 {$else}
+                   resulttype:=cansistringtype
+                 {$endif}
+                 end
                else
                  internalerror(22799);
              end;
@@ -469,11 +482,11 @@ implementation
                     hp:=ccallparanode.create(tbinarynode(right).right,
                       ccallparanode.create(left,nil));
                     if is_char(tbinarynode(right).right.resulttype.def) then
-                      result:=ccallnode.createintern('fpc_ansistr_append_char',hp)
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_char',hp)
                     else if is_shortstring(tbinarynode(right).right.resulttype.def) then
-                      result:=ccallnode.createintern('fpc_ansistr_append_shortstring',hp)
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_shortstring',hp)
                     else
-                      result:=ccallnode.createintern('fpc_ansistr_append_ansistring',hp);
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_ansistring',hp);
                     tbinarynode(right).right:=nil;
                     left:=nil;
                     exit;
@@ -1124,7 +1137,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2004-03-02 17:32:12  florian
+  Revision 1.126  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.125  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

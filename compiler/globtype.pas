@@ -167,6 +167,9 @@ interface
        );
        tproccalloptions = set of tproccalloption;
 
+{$ifdef ansistring_bits}
+       Tstringbits=(sb_16,sb_32,sb_64);
+{$endif}
 
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
@@ -239,7 +242,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2004-04-28 15:19:03  florian
+  Revision 1.53  2004-04-29 19:56:36  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.52  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.51  2004/04/04 18:46:09  olle

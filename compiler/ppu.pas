@@ -44,7 +44,11 @@ type
 {$endif Test_Double_checksum}
 
 const
+{$ifdef ansistring_bits}
+  CurrentPPUVersion=41;
+{$else}
   CurrentPPUVersion=40;
+{$endif}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -111,7 +115,13 @@ const
   ibfloatdef       = 52;
   ibclassrefdef    = 53;
   iblongstringdef  = 54;
+{$ifdef ansistring_bits}
+  ibansistring16def  = 58;
+  ibansistring32def  = 55;
+  ibansistring64def  = 59;
+{$else}
   ibansistringdef  = 55;
+{$endif}
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
   {implementation/objectdata}
@@ -1042,7 +1052,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2004-03-23 22:34:49  peter
+  Revision 1.48  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.47  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

@@ -633,6 +633,7 @@ implementation
         paradef : tdef;
         counter : integer;
         newstatement : tstatementnode;
+        mode    : byte;
       begin
         { for easy exiting if something goes wrong }
         result := cerrornode.create;
@@ -656,12 +657,40 @@ implementation
            ppn:=tcallparanode(ppn.right);
          end;
         paradef:=ppn.left.resulttype.def;
+{$ifdef ansistring_bits}
+        if is_ansistring(paradef) then
+          case Tstringdef(paradef).string_typ of
+            st_ansistring16:
+              mode:=16;
+            st_ansistring32:
+              mode:=32;
+            st_ansistring64:
+              mode:=64;
+          end;
+        if (is_chararray(paradef) and (paradef.size>255)) or
+           ((cs_ansistrings in aktlocalswitches) and is_pchar(paradef)) then
+          case aktansistring_bits of
+            sb_16:
+              mode:=16;
+            sb_32:
+              mode:=32;
+            sb_64:
+              mode:=64;
+          end;
+        if mode=16 then
+          copynode:=ccallnode.createintern('fpc_ansistr16_copy',paras)
+        else if mode=32 then
+          copynode:=ccallnode.createintern('fpc_ansistr32_copy',paras)
+        else if mode=64 then
+          copynode:=ccallnode.createintern('fpc_ansistr64_copy',paras)
+{$else}
         if is_ansistring(paradef) or
            (is_chararray(paradef) and
             (paradef.size>255)) or
            ((cs_ansistrings in aktlocalswitches) and
             is_pchar(paradef)) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
+{$endif}
         else
          if is_widestring(paradef) or
             is_widechararray(paradef) or
@@ -734,7 +763,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2004-02-04 18:45:29  jonas
+  Revision 1.30  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.29  2004/02/04 18:45:29  jonas
     + some more usage of register temps
 
   Revision 1.28  2004/02/03 22:32:54  peter

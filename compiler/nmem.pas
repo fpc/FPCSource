@@ -727,7 +727,11 @@ implementation
                 case tstringdef(left.resulttype.def).string_typ of
                    st_widestring :
                      resulttype:=cwidechartype;
+                 {$ifdef ansistring_bits}
+                   st_ansistring16,st_ansistring32,st_ansistring64 :
+                 {$else}
                    st_ansistring :
+                 {$endif}
                      resulttype:=cchartype;
                    st_longstring :
                      resulttype:=cchartype;
@@ -977,7 +981,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2004-03-29 14:42:52  peter
+  Revision 1.83  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.82  2004/03/29 14:42:52  peter
     * variant array support
 
   Revision 1.81  2004/03/18 16:19:03  peter

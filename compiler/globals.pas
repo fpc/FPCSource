@@ -193,6 +193,9 @@ interface
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
        initpackenum       : shortint;
+     {$ifdef ansistring_bits}
+       initansistring_bits: Tstringbits;
+     {$endif}
        initalignment      : talignmentinfo;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
@@ -215,6 +218,9 @@ interface
        {$ENDIF}
        aktpackrecords,
        aktpackenum        : longint;
+     {$ifdef ansistring_bits}
+       aktansistring_bits : Tstringbits;
+     {$endif}
        aktmaxfpuregisters : longint;
        aktalignment       : talignmentinfo;
        aktoptprocessor,
@@ -1897,7 +1903,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.127  2004-04-28 15:19:03  florian
+  Revision 1.128  2004-04-29 19:56:36  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.127  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.126  2004/03/14 20:08:37  peter

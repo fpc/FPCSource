@@ -604,6 +604,7 @@ implementation
               if nf_callunique in flags then
                 internalerror(200304236);
 
+              {DM!!!!!}
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_CREGISTER :
@@ -700,7 +701,11 @@ implementation
                        case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
+                       {$ifdef ansistring_bits}
+                         st_ansistring16,st_ansistring32,st_ansistring64:
+                       {$else}
                          st_ansistring:
+                       {$endif}
                            begin
                               paraloc1:=paramanager.getintparaloc(pocall_default,1);
                               paraloc2:=paramanager.getintparaloc(pocall_default,2);
@@ -834,7 +839,11 @@ implementation
                       case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
+                       {$ifdef ansistring_bits}
+                         st_ansistring16,st_ansistring32,st_ansistring64:
+                       {$else}
                          st_ansistring:
+                       {$endif}
                            begin
                               paraloc1:=paramanager.getintparaloc(pocall_default,1);
                               paraloc2:=paramanager.getintparaloc(pocall_default,2);
@@ -882,7 +891,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-04-21 17:39:40  jonas
+  Revision 1.91  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.90  2004/04/21 17:39:40  jonas
     - disabled with-symtable debugging code since it was broken and
       at the same time confused the register allocator and therefore also
       the optimizer. May be fixed in the future using dwarf support

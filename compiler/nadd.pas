@@ -1005,9 +1005,35 @@ implementation
                 else if is_ansistring(rd) or is_ansistring(ld) then
                   begin
                      if not(is_ansistring(rd)) then
-                       inserttypeconv(right,cansistringtype);
+                       begin
+                       {$ifdef ansistring_bits}
+                         case Tstringdef(ld).string_typ of
+                           st_ansistring16:
+                             inserttypeconv(right,cansistringtype16);
+                           st_ansistring32:
+                             inserttypeconv(right,cansistringtype32);
+                           st_ansistring64:
+                             inserttypeconv(right,cansistringtype64);
+                         end;
+                       {$else}
+                         inserttypeconv(right,cansistringtype);
+                       {$endif}
+                       end;
                      if not(is_ansistring(ld)) then
-                       inserttypeconv(left,cansistringtype);
+                       begin
+                       {$ifdef ansistring_bits}
+                         case Tstringdef(rd).string_typ of
+                           st_ansistring16:
+                             inserttypeconv(left,cansistringtype16);
+                           st_ansistring32:
+                             inserttypeconv(left,cansistringtype32);
+                           st_ansistring64:
+                             inserttypeconv(left,cansistringtype64);
+                         end;
+                       {$else}
+                         inserttypeconv(left,cansistringtype);
+                       {$endif}
+                       end;
                   end
                 else if is_longstring(rd) or is_longstring(ld) then
                   begin
@@ -1926,7 +1952,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2004-04-18 07:52:43  florian
+  Revision 1.117  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.116  2004/04/18 07:52:43  florian
     * fixed web bug 3048: comparision of dyn. arrays
 
   Revision 1.115  2004/03/29 14:44:10  peter

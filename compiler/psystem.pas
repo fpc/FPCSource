@@ -151,7 +151,13 @@ implementation
         addtype('FarPointer',voidfarpointertype);
         addtype('ShortString',cshortstringtype);
         addtype('LongString',clongstringtype);
+{$ifdef ansistring_bits}
+        addtype('AnsiString',cansistringtype16);
+        addtype('AnsiString',cansistringtype32);
+        addtype('AnsiString',cansistringtype64);
+{$else}
         addtype('AnsiString',cansistringtype);
+{$endif}
         addtype('WideString',cwidestringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',booltype);
@@ -186,7 +192,13 @@ implementation
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
+      {$ifdef ansistring_bits}
+        addtype('$ansistring16',cansistringtype16);
+        addtype('$ansistring32',cansistringtype32);
+        addtype('$ansistring64',cansistringtype64);
+      {$else}
         addtype('$ansistring',cansistringtype);
+      {$endif}
         addtype('$widestring',cwidestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
@@ -259,7 +271,13 @@ implementation
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);
+      {$ifdef ansistring_bits}
+        loadtype('ansistring16',cansistringtype16);
+        loadtype('ansistring32',cansistringtype32);
+        loadtype('ansistring64',cansistringtype64);
+      {$else}
         loadtype('ansistring',cansistringtype);
+      {$endif}
         loadtype('widestring',cwidestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
@@ -316,7 +334,13 @@ implementation
         cshortstringtype.setdef(tstringdef.createshort(255));
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype.setdef(tstringdef.createlong(-1));
+      {$ifdef ansistring_bits}
+        cansistringtype16.setdef(tstringdef.createansi(-1,sb_16));
+        cansistringtype32.setdef(tstringdef.createansi(-1,sb_32));
+        cansistringtype64.setdef(tstringdef.createansi(-1,sb_64));
+      {$else}
         cansistringtype.setdef(tstringdef.createansi(-1));
+      {$endif}
         cwidestringtype.setdef(tstringdef.createwide(-1));
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype.setdef(tstringdef.createshort(0));
@@ -512,7 +536,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-03-23 22:34:49  peter
+  Revision 1.68  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.67  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

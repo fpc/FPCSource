@@ -715,13 +715,15 @@ implementation
         vtClass      = 8;
         vtWideChar   = 9;
         vtPWideChar  = 10;
-        vtAnsiString = 11;
+        vtAnsiString32 = 11;
         vtCurrency   = 12;
         vtVariant    = 13;
         vtInterface  = 14;
         vtWideString = 15;
         vtInt64      = 16;
         vtQWord      = 17;
+        vtAnsiString16 = 18;
+        vtAnsiString64 = 19;
 
     procedure tcgarrayconstructornode.pass_2;
       var
@@ -835,10 +837,24 @@ implementation
                         end
                        else
                         if is_ansistring(lt) then
+                        {$ifdef ansistring_bits}
+                         begin
+                           case Tstringdef(lt).string_typ of
+                             st_ansistring16:
+                               vtype:=vtAnsiString16;
+                             st_ansistring32:
+                               vtype:=vtAnsiString32;
+                             st_ansistring64:
+                               vtype:=vtAnsiString64;
+                           end;
+                           freetemp:=false;
+                         end
+                        {$else}
                          begin
                            vtype:=vtAnsiString;
                            freetemp:=false;
                          end
+                        {$endif}
                        else
                         if is_widestring(lt) then
                          begin
@@ -926,7 +942,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2004-03-02 17:32:12  florian
+  Revision 1.115  2004-04-29 19:56:37  daniel
+    * Prepare compiler infrastructure for multiple ansistring types
+
+  Revision 1.114  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented
