@@ -307,6 +307,7 @@ type tmsgconst=(
   assem_e_const_ref_not_allowed,
   assem_w_fwait_emu_prob,
   assem_e_invalid_opcode_and_operand,
+  assem_e_unsupported_opcode_and_operand,
   assem_w_opcode_not_in_table,
   assem_f_internal_error_in_concatopcode,
   assem_e_invalid_size_in_ref,
