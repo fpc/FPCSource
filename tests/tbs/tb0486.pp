@@ -1,4 +1,4 @@
-{ $mode delphi}
+{$mode delphi}
 type
   tprocedure = procedure;
   pprocedure = ^tprocedure;
