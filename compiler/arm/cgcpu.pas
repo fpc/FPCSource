@@ -526,6 +526,11 @@ unit cgcpu;
             ((ref.offset<-255) or
              (ref.offset>255)
             )
+           ) or
+           ((op in [A_LDF,A_STF]) and
+            ((ref.offset<-1020) or
+             (ref.offset>1020)
+            )
            ) then
           begin
             reference_reset(tmpref);
@@ -601,8 +606,8 @@ unit cgcpu;
                       list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.base))
                     else
                       list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.base));
+                    ref.base:=tmpreg;
                     ref.index:=NR_NO;
-                    ref.index:=tmpreg;
                   end;
               end
             else
@@ -1268,7 +1273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-01-28 15:36:47  florian
+  Revision 1.43  2004-01-29 17:09:32  florian
+    * handling of floating point references fixed
+
+  Revision 1.42  2004/01/28 15:36:47  florian
     * fixed another couple of arm bugs
 
   Revision 1.41  2004/01/27 15:04:06  florian
