@@ -2305,7 +2305,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.GetData (Var Rec);
 BEGIN
-   Word(Rec) := Value;                                { Return current value }
+   sw_Word(Rec) := Value;                             { Return current value }
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2313,7 +2313,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.SetData (Var Rec);
 BEGIN
-   Value := Word(Rec);                                { Set current value }
+   Value :=sw_Word(Rec);                              { Set current value }
    SetDrawMask(vdFocus OR vdInner);                   { Set redraw mask }
    DrawView;                                          { Redraw masked areas }
 END;
@@ -4225,7 +4225,10 @@ END;
 END.
 {
  $Log$
- Revision 1.21  2002-10-17 11:24:16  pierre
+ Revision 1.22  2002-10-17 13:27:53  pierre
+  * fix TCluster.Get/SetData on big endian machines
+
+ Revision 1.21  2002/10/17 11:24:16  pierre
   * Clean up the Load/Store routines so they are endian independent
 
  Revision 1.20  2002/09/22 19:42:23  hajny
