@@ -44,17 +44,19 @@ type
   Flags                 =Longint;
 
 type
-  SOMObjectType                         = Pointer;
+  TSOMObject                         = Pointer;
   SOMClassType                          = Pointer;
   SOMMSingleInstanceType                = Pointer;
   SOMClassMgrType                       = Pointer;
   SOMClassPtr                           = ^SOMClassType;
-  SOMObjectPtr                          = ^SOMObjectType;
-  CORBAObjectType                       = SOMObjectType;    (* in SOM, a CORBA object is a SOM object *)
+  PSOMClass                             = ^SOMClassType;
+  PSOMObject                          = ^TSOMObject;
+  CORBAObjectType                       = TSOMObject;    (* in SOM, a CORBA object is a SOM object *)
 
   somToken              =Pointer;       (* Uninterpretted value   *)
   somId                 =^PChar;
   somIdPtr              =^somId;
+  PsomToken             =^somToken;       (* Uninterpretted value   *)
 
   somMToken             =somToken;
   somDToken             =somToken;
@@ -121,7 +123,7 @@ type
   somMethodData         =somMethodDataStruct;
   somMethodDataPtr      =^somMethodDataStruct;
 
-  somMethodProc         =Procedure(somSelf:SOMObjectType);
+  somMethodProc         =Procedure(somSelf:TSOMObject);
   somMethodProcPtr      =^somMethodProc;
 
 
@@ -292,7 +294,7 @@ type
 (* -- For building lists of objects *)
   somObjects            =^somObjectList;
   somObjectList         =record
-    obj                 :SOMObjectType;
+    obj                 :TSOMObject;
     next                :somObjects;
   end;
 
@@ -407,8 +409,8 @@ const
  * where a somId is used to identify a registered method,
  * the somId can include explicit scoping. An explicitly-scoped
  * method name is called a method descriptor. For example,
- * the method introduced by SOMObjectType as somGetClass has the
- * method descriptor "SOMObjectType::somGetClass". When a
+ * the method introduced by TSOMObject as somGetClass has the
+ * method descriptor "TSOMObject::somGetClass". When a
  * class is contained in an IDL module, the descriptor syntax
  * <moduleName>::<className>::<methodName> can be used. Method
  * descriptors can be useful when a class supports different methods
@@ -701,7 +703,7 @@ type
   _IDL_SEQUENCE_SOMObject       = record
     _maximum                    : Cardinal;
     _length                     : Cardinal;
-    _buffer                     : SOMObjectPtr;
+    _buffer                     : PSOMObject;
   end;
   SOMClass_SOMClassSequence     = _IDL_SEQUENCE_SOMClass;
 
@@ -739,7 +741,7 @@ Function  somAbnormalEnd:Boolean; cdecl;
  *  Offset-based method resolution.
  *)
 
-Function  somResolve(obj:SOMObjectType; mdata:somMToken):{somMethodProc}pointer; cdecl;
+Function  somResolve(obj:TSOMObject; mdata:somMToken):{somMethodProc}pointer; cdecl;
   external 'som' name 'somResolve'; {index 37}
 Function  somParentResolve(parentMtabs:somMethodTabs;
                            mToken:somMToken):somMethodProc; cdecl;
@@ -749,19 +751,19 @@ Function  somParentNumResolve(parentMtabs:somMethodTabs;
   external 'som' name 'somParentNumResolve'; {index 50}
 Function  somClassResolve(obj:SOMClassType; mdata:somMToken):{somMethodProc}pointer; cdecl;
   external 'som' name 'somClassResolve'; {index 48}
-Function  somAncestorResolve(obj:SOMObjectType;                 (* the object *)
+Function  somAncestorResolve(obj:TSOMObject;                 (* the object *)
                              var ccds:somCClassDataStructure;   (* id the ancestor *)
                              mToken:somMToken):{somMethodProc}pointer; cdecl;
   external 'som' name 'somAncestorResolve'; {index 74}
-Function  somResolveByName(obj:SOMObjectType;
+Function  somResolveByName(obj:TSOMObject;
                            methodName:PChar):{somMethodProc}pointer; cdecl;
   external 'som' name 'somResolveByName'; {index 61}
 (*------------------------------------------------------------------------------
  * Offset-based data resolution
  *)
-Function  somDataResolve(obj:SOMObjectType; dataId:somDToken):somToken; cdecl;
+Function  somDataResolve(obj:TSOMObject; dataId:somDToken):somToken; cdecl;
   external 'som' name 'somDataResolve'; {index 47}
-Function  somDataResolveChk(obj:SOMObjectType; dataId:somDToken):somToken; cdecl;
+Function  somDataResolveChk(obj:TSOMObject; dataId:somDToken):somToken; cdecl;
   external 'som' name 'somDataResolveChk'; {index 72}
 
 
@@ -917,7 +919,7 @@ Procedure somRegisterClassLibrary(libraryName:PChar;
  * be NULL.
  *)
 
-Function  somApply(var somSelf:SOMObjectType;
+Function  somApply(var somSelf:TSOMObject;
                    var retVal:somToken;
                    mdPtr:somMethodDataPtr;
                    var ap):Boolean; cdecl;
@@ -1096,8 +1098,8 @@ var
  * SOM API.
  *)
 
-Function  somTestCls(obj:SOMObjectType; classObj:SOMClassType;
-                     fileName:PChar; lineNumber:Longint):SOMObjectType; cdecl;
+Function  somTestCls(obj:TSOMObject; classObj:SOMClassType;
+                     fileName:PChar; lineNumber:Longint):TSOMObject; cdecl;
   external 'som' name 'somTestCls'; {index 42}
 Procedure somTest(condition,severity:Longint;fileName:PChar;
                   lineNum:Longint;msg:PChar); cdecl;
@@ -1401,7 +1403,7 @@ Procedure somUnregisterClassLibrary (libraryName: PChar); cdecl;
   external 'som' name 'somUnregisterClassLibrary'; {index 89}
 Function somResolveTerminal(x : SOMClassPtr; mdata: somMToken): somMethodProcPtr; cdecl;
   external 'som' name 'somResolveTerminal'; {index 133}
-Function somPCallResolve(obj: SOMObjectPtr; callingCls: SOMClassPtr; method: somMToken): somMethodProcPtr; cdecl;
+Function somPCallResolve(obj: PSOMObject; callingCls: SOMClassPtr; method: somMToken): somMethodProcPtr; cdecl;
   external 'som' name 'somPCallResolve'; {index 362}
 Function va_SOMObject_somDispatchA(somSelf: PSOMObject;
                 methodId: somId;
@@ -1425,8 +1427,8 @@ Function somva_SOMObject_somDispatchL(somSelf: PSOMObject;
   external 'som' name 'somva_SOMObject_somDispatchL'; {index 98}
   
 Function va_SOMObject_somDispatch(somSelf: PSOMObject;
-                retValue: PsomTokenl
-                methodId: somIdl
+                retValue: PsomToken;
+                methodId: somId;
                 args: array of const): Boolean; cdecl;
   external 'som' name 'va_SOMObject_somDispatch'; {index 68}
 
@@ -1448,7 +1450,7 @@ Function va_SOMObject_somDispatchD(somSelf: PSOMObject;
                 args: array of const): double; cdecl;
   external 'som' name 'va_SOMObject_somDispatchD'; {index 65}
 
-Function somva_SOMObject_somDispatchD(somSelf: SOMObject;
+Function somva_SOMObject_somDispatchD(somSelf: PSOMObject;
                 methodId: somId;
                 descriptor: somId;
                 args: array of const): double; cdecl;
@@ -1460,7 +1462,7 @@ Function somva_SOMObject_somDispatch(somSelf: PSOMObject;
   external 'som' name 'somva_SOMObject_somDispatch'; {index 100}
 Function somva_SOMObject_somClassDispatch(somSelf: PSOMObject;
                 clsObj: PSOMClass;
-                retValue: PsomToken,
+                retValue: PsomToken;
                 methodId: somId;
                 args: array of const): boolean; cdecl;
   external 'som' name 'somva_SOMObject_somClassDispatch'; {index 101}
@@ -1523,7 +1525,10 @@ End.
 
 {
 $Log$
-Revision 1.4  2004-12-23 05:04:38  yuri
+Revision 1.5  2004-12-23 05:16:31  yuri
+* Fixed compilation
+
+Revision 1.4  2004/12/23 05:04:38  yuri
 * Porting finished.
 
 Revision 1.3  2004/05/26 16:38:58  yuri
