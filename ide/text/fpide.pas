@@ -668,7 +668,16 @@ begin
   {$ifdef linux}
     Shell(ProgramPath+' '+Params);
   {$else}
-    if (InFile='') and (OutFile='') then
+    { DO NOT use COMSPEC for exe files as the
+      ExitCode is lost in those cases PM }
+    if Pos('.EXE',UpCaseStr(ProgramPath))=Length(ProgramPath)-3 then
+      begin
+        if (InFile='') and (OutFile='') then
+          DosExecute(ProgramPath,Params)
+        else
+          ExecuteRedir(ProgramPath,Params,InFile,OutFile,'stderr');
+      end
+    else if (InFile='') and (OutFile='') then
       DosExecute(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
     else
       ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
@@ -877,7 +886,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.52  2000-02-07 12:02:32  pierre
+  Revision 1.53  2000-03-06 11:31:30  pierre
+    * Do not use COMSPEC to Run files with .EXE suffix
+      because Command.com at least does not return the errorcode
+      of the program called
+
+  Revision 1.52  2000/02/07 12:02:32  pierre
    Gabor's changes
 
   Revision 1.51  2000/01/23 21:25:17  florian
