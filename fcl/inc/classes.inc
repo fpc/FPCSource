@@ -63,7 +63,7 @@
 {$i lists.inc}
 
 { TStrings and TStringList implementations }
-{$i strings.inc}
+{$i stringl.inc}
 
 { TThread implementation }
 {$i thread.inc}
@@ -377,7 +377,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1999-04-08 10:18:50  peter
+  Revision 1.10  1999-04-13 08:52:29  michael
+  + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
+
+  Revision 1.9  1999/04/08 10:18:50  peter
     * makefile updates
 
 }

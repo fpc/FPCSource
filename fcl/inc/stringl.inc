@@ -938,7 +938,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-04-08 10:18:56  peter
+  Revision 1.1  1999-04-13 08:52:28  michael
+  + Moved strings.inc to stringl.inc, to avoid conflict with strings unit
+
+  Revision 1.15  1999/04/08 10:18:56  peter
     * makefile updates
 
 }
