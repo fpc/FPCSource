@@ -650,8 +650,7 @@ implementation
                           end;
                       end;
                      if (eq=te_incompatible) and
-                        explicit and
-                        (m_delphi in aktmodeswitches) then
+                        explicit then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -1210,7 +1209,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-05-26 21:17:17  peter
+  Revision 1.27  2003-06-03 21:02:08  peter
+    * allow pointer(int64) in all modes
+
+  Revision 1.26  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
