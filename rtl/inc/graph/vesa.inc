@@ -1,0 +1,1252 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,99 by Carl Eric Codere
+
+    This include implements VESA basic access.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+type
+  pModeList = ^tModeList;
+  tModeList = Array [0..255] of word; {list of modes terminated by -1}
+                                      {VESA modes are >=100h}
+
+  palrec = packed record              { record used for set/get DAC palette }
+       red: byte;
+       green: byte;
+       blue : byte;
+       align: byte;
+  end;
+
+const
+  { VESA attributes     }
+  attrSwitchDAC        = $01;    { DAC is switchable           (1.2)   }
+  attrNotVGACompatible = $02;    { Video is NOT VGA compatible (2.0)   }
+  attrSnowCheck        = $04;    { Video must use snow checking(2.0)   }
+
+  { mode attribute bits }
+  modeAvail          = $01;      { Hardware supports this mode (1.0)   }
+  modeExtendInfo     = $02;      { Extended information        (1.0)   }
+  modeBIOSSupport    = $04;      { TTY BIOS Support            (1.0)   }
+  modeColor          = $08;      { This is a color mode        (1.0)   }
+  modeGraphics       = $10;      { This is a graphics mode     (1.0)   }
+  modeNotVGACompatible = $20;    { this mode is NOT I/O VGA compatible (2.0)}
+  modeNoWindowed     = $40;      { This mode does not support Windows (2.0) }
+  modeLinearBuffer   = $80;      { This mode supports linear buffers  (2.0) }
+
+  { window attributes }
+  winSupported       = $01;
+  winReadable        = $02;
+  winWritable        = $04;
+
+  { memory model }
+  modelText          = $00;
+  modelCGA           = $01;
+  modelHerc          = $02;
+  model4plane        = $03;
+  modelPacked        = $04;
+  modelModeX         = $05;
+  modelRGB           = $06;
+  modelYUV           = $07;
+
+
+TYPE
+
+
+
+  TVESAinfo = packed record  { VESA Information request }
+    signature : array [1..4] of char;     { This should be VESA   }
+    version   : word;                     { VESA revision         }
+    str       : pChar;                    { pointer to OEM string }
+    caps      : longint;                  { video capabilities    }
+    modeList  : pModeList;                { pointer to SVGA modes }
+    pad       : array [18..260] of byte;  { extra padding more then   }
+  end;                             { VESA standard because of bugs on }
+                                   { some video cards.                }
+
+  TVESAModeInfo = packed record
+    attr           : word;             { mode attributes   (1.0)    }
+    winAAttr,
+    winBAttr       : byte;             { window attributes (1.0)    }
+    winGranularity : word;  {in K}     { Window granularity (1.0)   }
+    winSize        : word;  {in K}     { window size       (1.0)    }
+    winASeg,                           { Window A Segment address (1.0) }
+    winBSeg        : word;             { Window B Segment address (1.0) }
+    winFunct       : procedure;        { Function to swtich bank    }
+    BytesPerScanLine: word;            {bytes per scan line (1.0)   }
+    { extended information }
+    extendedInfo   : packed record
+      xRes, yRes : word;    {pixels}
+      xCharSize,
+      yCharSize  : byte;
+      planes     : byte;
+      bitsPixel  : byte;
+      banks      : byte;
+      memModel   : byte;
+      bankSize   : byte;  {in K}
+      NumberOfPages: byte;
+    end;
+
+    pad : array [29..260] of byte; { always put some more space then required}
+  end;
+
+
+var
+  VESAInfo    : TVESAInfo;         { VESA Driver information  }
+  ModeInfo    : TVESAModeInfo;     { Current Mode information }
+
+
+  BytesPerLine: word;              { Number of bytes per scanline }
+
+  { window management }
+  ReadWindow : byte;      { Window number for reading. }
+  WriteWindow: byte;      { Window number for writing. }
+  winReadSeg : word;      { Address of segment for read  }
+  winWriteSeg: word;      { Address of segment for writes}
+  CurrentReadBank : integer; { active read bank          }
+  CurrentWriteBank: integer; { active write bank         }
+
+  BankShift : word;       { address to shift by when switching banks. }
+  funct      : procedure;
+
+
+function hexstr(val : longint;cnt : byte) : string;
+const
+  HexTbl : array[0..15] of char='0123456789ABCDEF';
+var
+  i : longint;
+begin
+  hexstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     hexstr[i]:=hextbl[val and $f];
+     val:=val shr 4;
+   end;
+end;
+
+
+{$IFDEF DPMI}
+
+  function getVESAInfo(var VESAInfo: TVESAInfo) : boolean;
+   var
+    ptrlong : longint;
+    VESAPtr : ^TVESAInfo;
+    regs : TDPMIRegisters;
+    ModeSel: word;
+    offs: longint;
+    { added... }
+    modelist: PmodeList;
+    modeptr : pointer;
+    i: longint;
+    RealSeg : word;
+   begin
+    { Allocate real mode buffer }
+    Ptrlong:=GlobalDosAlloc(sizeof(TVESAInfo));
+    { Get selector value }
+    VESAPtr := pointer(longint(Ptrlong and $0000ffff) shl 16);
+    { Get segment value }
+    RealSeg := word((Ptrlong and $ffff0000) shr 16);
+    if not assigned(VESAPtr) then
+      RunError(203);
+    FillChar(regs, sizeof(TDPMIRegisters), #0);
+
+    { Get VESA Mode information ... }
+    regs.eax := $4f00;
+    regs.es := RealSeg;
+    regs.edi := $00;
+    RealIntr($10, regs);
+    if VESAPtr^.Signature <> 'VESA' then
+      getVesaInfo := FALSE
+    else
+      getVesaInfo := TRUE;
+    { The mode pointer buffer points to a real mode memory }
+    { Therefore steps to get the modes:                    }
+    {  1. Allocate Selector and SetLimit to max number of  }
+    {     of possible modes.                               }
+    ModeSel := AllocSelector(0);
+    SetSelectorLimit(ModeSel, 256*sizeof(word));
+
+    {  2. Set Selector linear address to the real mode pointer }
+    {     returned.                                            }
+    offs := longint((longint(VESAPtr^.ModeList) and $ffff0000) shr 16) shl 4;
+    offs:=  offs OR word(VESAPtr^.ModeList);
+    SetSelectorBase(ModeSel, offs);
+
+
+    { copy VESA mode information to a protected mode buffer and }
+    { then free the real mode buffer...                         }
+    Move(VESAPtr^, VESAInfo, sizeof(TVESAInfo));
+    GlobalDosFree(word(longint(VESAPtr) shr 16));
+
+    { ModeList points to the mode list     }
+    { We must copy it somewhere...         }
+    ModeList := Ptr(ModeSel, 0);
+    i:=0;
+    new(VESAInfo.ModeList);
+    while ModeList^[i]<> $ffff do
+     begin
+      VESAInfo.ModeList^[i] := ModeList^[i];
+      Inc(i);
+     end;
+    VESAInfo.ModeList^[i]:=$ffff;
+    { Free the temporary selector used to get mode information }
+    FreeSelector(ModeSel);
+   end;
+
+  function getModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;
+   var
+    Ptr: longint;
+    VESAPtr : ^TModeInfo;
+    regs : TDPMIRegisters;
+    RealSeg: word;
+   begin
+    { Alllocate real mode buffer }
+    Ptr:=GlobalDosAlloc(sizeof(TModeInfo));
+    { get the selector and segment values }
+    VESAPtr := pointer(longint(Ptr and $0000ffff) shl 16);
+    RealSeg := word((Ptr and $ffff0000) shr 16);
+    if not assigned(VESAPtr) then
+      RunError(203);
+    { setup interrupt registers }
+    FillChar(regs, sizeof(TDPMIRegisters), #0);
+    { call VESA mode information...}
+    regs.eax := $4f01;
+    regs.es := RealSeg;
+    regs.edi := $00;
+    regs.ecx := mode;
+    RealIntr($10, regs);
+    if word(regs.eax) <> $4f then
+      getModeInfo := FALSE
+    else
+      getModeInfo := TRUE;
+    { copy to protected mode buffer ... }
+    Move(VESAPtr^, ModeInfo, sizeof(TModeInfo));
+    { free real mode memory  }
+    GlobalDosFree(word(longint(VESAPtr) shr 16));
+   end;
+
+{$ELSE}
+  function getVESAInfo(var VESAInfo: TVESAInfo) : boolean;
+  begin
+  asm
+       mov ax,4F00h
+       les di,VESAInfo
+       int 10h
+       sub ax,004Fh  {make sure we got 004Fh back}
+       cmp ax,1
+       sbb al,al
+       cmp word ptr es:[di],'V'or('E'shl 8)  {signature should be 'VESA'}
+       jne @@ERR
+       cmp word ptr es:[di+2],'S'or('A'shl 8)
+       je @@X
+     @@ERR:
+       mov al,0
+     @@X:
+    end;
+  end;
+
+
+  function getModeInfo(var ModeInfo: TVESAModeInfo;mode:word):boolean;assembler;
+   asm
+     mov ax,4F01h
+     mov cx,mode
+     les di,ModeInfo
+     int 10h
+     sub ax,004Fh   {make sure it's 004Fh}
+     cmp ax,1
+     sbb al,al
+   end;
+
+{$ENDIF}
+
+  function SearchVESAModes(mode: Word): boolean;
+  {********************************************************}
+  { Searches for a specific DEFINED vesa mode. If the mode }
+  { is not available for some reason, then returns FALSE   }
+  { otherwise returns TRUE.                                }
+  {********************************************************}
+   var
+     i: word;
+     ModeSupported : Boolean;
+    begin
+      i:=0;
+      { let's assume it's not available ... }
+      ModeSupported := FALSE;
+      { This is a STUB VESA implementation  }
+      if VESAInfo.ModeList^[0] = $FFFF then exit;
+      repeat
+        if VESAInfo.ModeList^[i] = mode then
+         begin
+            { we found it, the card supports this mode... }
+            ModeSupported := TRUE;
+            break;
+         end;
+        Inc(i);
+      until VESAInfo.ModeList^[i] = $ffff;
+      { now check if the hardware supports it... }
+      If ModeSupported then
+        begin
+          { we have to init everything to zero, since VBE < 1.1  }
+          { may not setup fields correctly.                      }
+          FillChar(ModeInfo, sizeof(ModeInfo), #0);
+          GetModeInfo(ModeInfo, Mode);
+          if (ModeInfo.attr and modeAvail) <> 0 then
+            ModeSupported := TRUE
+          else
+            ModeSupported := FALSE;
+        end;
+       SearchVESAModes := ModeSupported;
+    end;
+
+
+
+  procedure SetBankIndex(win: byte; BankNr: Integer); assembler;
+   asm
+     mov  ax,4f05h
+     mov  bh,00h
+     mov  bl,[Win]
+     mov  dx,[BankNr]
+     int  10h
+   end;
+
+  {********************************************************}
+  { There are two routines for setting banks. This may in  }
+  { in some cases optimize a bit some operations, if the   }
+  { hardware supports it, because one window is used for   }
+  { reading and one window is used for writing.            }
+  {********************************************************}
+  procedure SetReadBank(BankNr: Integer);
+   begin
+     { check if this is the current bank... if so do nothing. }
+     if BankNr = CurrentReadBank then exit;
+     CurrentReadBank := BankNr;          { save current bank number     }
+     BankNr := BankNr shl BankShift;     { adjust to window granularity }
+     { we set both banks, since one may read only }
+     SetBankIndex(ReadWindow, BankNr);
+     { if the hardware supports only one window }
+     { then there is only one single bank, so   }
+     { update both bank numbers.                }
+     if ReadWindow = WriteWindow then
+       CurrentWriteBank := CurrentReadBank;
+   end;
+
+  procedure SetWriteBank(BankNr: Integer);
+   begin
+     { check if this is the current bank... if so do nothing. }
+     if BankNr = CurrentWriteBank then exit;
+     CurrentWriteBank := BankNr;          { save current bank number     }
+     BankNr := BankNr shl BankShift;     { adjust to window granularity }
+     { we set both banks, since one may read only }
+     SetBankIndex(WriteWindow, BankNr);
+     { if the hardware supports only one window }
+     { then there is only one single bank, so   }
+     { update both bank numbers.                }
+     if ReadWindow = WriteWindow then
+       CurrentReadBank := CurrentWriteBank;
+   end;
+
+ {************************************************************************}
+ {*                     8-bit pixels VESA mode routines                  *)
+ {************************************************************************}
+
+  procedure PutPixVESA256(x, y : integer; color : word);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+     if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+     offs := longint(y) * BytesPerLine + x;
+     SetWriteBank(integer(offs shr 16));
+     mem[WinWriteSeg : word(offs)] := byte(color);
+  end;
+
+  procedure DirectPutPixVESA256(x, y : integer);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     offs := longint(y) * BytesPerLine + x;
+     SetWriteBank(integer(offs shr 16));
+     mem[WinWriteSeg : word(offs)] := byte(CurrentColor);
+  end;
+
+  function GetPixVESA256(x, y : integer): word;
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     offs := longint(y) * BytesPerLine + x;
+     SetReadBank(integer(offs shr 16));
+     GetPixVESA256:=mem[WinWriteSeg : word(offs)];
+  end;
+
+ {************************************************************************}
+ {*                    15/16bit pixels VESA mode routines                *)
+ {************************************************************************}
+
+  procedure PutPixVESA32k(x, y : integer; color : word);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+     if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+     offs := longint(y) * BytesPerLine + 2*x;
+     SetWriteBank(integer(offs shr 16));
+     memW[WinWriteSeg : word(offs)] := color;
+  end;
+
+  procedure PutPixVESA64k(x, y : integer; color : word);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+     if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+    offs := longint(y) * BytesPerLine + 2*x;
+    SetWriteBank(integer(offs shr 16));
+    memW[WinWriteSeg : word(offs)] := color;
+  end;
+
+  function GetPixVESA32k(x, y : integer): word;
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     offs := longint(y) * BytesPerLine + 2*x;
+     SetReadBank(integer(offs shr 16));
+     GetPixVESA32k:=memW[WinWriteSeg : word(offs)];
+  end;
+
+  function GetPixVESA64k(x, y : integer): word;
+  var
+     bank : word;
+     offs : longint;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     offs := longint(y) * BytesPerLine + 2*x;
+     SetReadBank(integer(offs shr 16));
+     GetPixVESA64k:=memW[WinWriteSeg : word(offs)];
+  end;
+
+  procedure DirectPutPixVESA32k(x, y : integer);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     offs := longint(y) * BytesPerLine + 2*x;
+     SetWriteBank(integer((offs shr 16) and $ff));
+     memW[WinWriteSeg : word(offs)] := CurrentColor;
+  end;
+
+  procedure DirectPutPixVESA64k(x, y : integer);
+  var
+     bank : word;
+     offs : longint;
+  begin
+     offs := longint(y) * BytesPerLine + 2*x;
+     SetWriteBank(integer(offs shr 16));
+     memW[WinWriteSeg : word(offs)] := CurrentColor;
+  end;
+
+ {************************************************************************}
+ {*                     4-bit pixels VESA mode routines                  *)
+ {************************************************************************}
+
+  procedure PutPixVESA16(x, y : integer; color : word);
+    var
+     bank : word;
+     offs : longint;
+     dummy_read : byte;
+  begin
+     X:= X + StartXViewPort;
+     Y:= Y + StartYViewPort;
+     { convert to absolute coordinates and then verify clipping...}
+    if ClipPixels then
+     Begin
+       if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+         exit;
+       if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+         exit;
+     end;
+     { this can be done only once at InitGraph }
+     PortW[$3C4] := $0f02;
+     PortW[$3CE] := $0003;
+     PortW[$3CE] := $0205;
+     { }
+     offs := longint(y) * BytesPerLine + (x div 8);
+     SetWriteBank(integer(offs shr 16));
+     port[$3CE] := $08;
+     port[$3CF] := ($80 shr (x and 7));
+     dummy_read := mem[WinWriteSeg : word(offs)];
+     mem[winWriteSeg : offs] := byte(color);
+     { this can be done only once at DoneGraph..}
+     PortW[$3CE] := $FF08;
+     PortW[$3CE] := $0005;
+     { }
+  end;
+
+  procedure DirectPutPixVESA16(x, y : integer);
+    var
+     bank : word;
+     offs : longint;
+     dummy_read : byte;
+  begin
+     { this can be done only once at InitGraph }
+     PortW[$3C4] := $0f02;
+     PortW[$3CE] := $0003;
+     PortW[$3CE] := $0205;
+     { }
+     offs := longint(y) * BytesPerLine + (x div 8);
+     SetWriteBank(integer(offs shr 16));
+     port[$3CE] := $08;
+     port[$3CF] := ($80 shr (x and 7));
+     dummy_read := mem[WinWriteSeg : word(offs)];
+     mem[winWriteSeg : offs] := byte(CurrentColor);
+     { this can be done only once at DoneGraph..}
+     PortW[$3CE] := $FF08;
+     PortW[$3CE] := $0005;
+     { }
+  end;
+
+
+ {************************************************************************}
+ {*                     VESA Palette entries                             *)
+ {************************************************************************}
+
+ { BIG PROBLEM: The routines seems to be wrong, with Function 09h on my ATI }
+ { technologies MACH64 - the palrec record seems to be at the END of the    }
+ { record, contrary to the VBE 2 specification!!! To verify with other video}
+ { cards.                                                                   }
+
+{$IFDEF DPMI}
+   Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
+      BlueValue : Integer);
+    var
+     FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
+     pal: palrec;
+     Error : boolean;     { VBE call error                             }
+     regs: TDPMIRegisters;
+     Ptr: longint;
+     PalPtr : ^PalRec;
+     RealSeg: word;
+    begin
+      if DirectColor then
+        Begin
+          _GraphResult := grError;
+          exit;
+        end;
+        Error := TRUE;
+        pal.align := 0;
+        pal.red := byte(RedValue);
+        pal.green := byte(GreenValue);
+        pal.blue := byte(BlueValue);
+        { use the set/get palette function }
+        if VESAInfo.Version >= $0200 then
+          Begin
+            { check if blanking bit must be set when programming }
+            { the RAMDAC.                                        }
+            if (VESAInfo.caps and attrSnowCheck) <> 0 then
+              FunctionNr := $80
+            else
+              FunctionNr := $00;
+
+            { Alllocate real mode buffer }
+            Ptr:=GlobalDosAlloc(sizeof(palrec));
+            { get the selector and segment values }
+            PalPtr := pointer(longint(Ptr and $0000ffff) shl 16);
+            RealSeg := word((Ptr and $ffff0000) shr 16);
+            if not assigned(PalPtr) then
+               RunError(203);
+            { setup interrupt registers }
+            FillChar(regs, sizeof(TDPMIRegisters), #0);
+            { copy palette values to real mode buffer }
+            move(pal, palptr^, sizeof(palrec));
+
+            regs.eax := $4F09;
+            regs.ebx := FunctionNr;
+            regs.ecx := $01;
+            regs.edx := ColorNum;
+            regs.es  := RealSeg;
+            regs.edi := 0;         { offset is always zero }
+            RealIntr($10, regs);
+
+            { free real mode memory  }
+            GlobalDosFree(word(longint(PalPtr) shr 16));
+
+            if word(regs.eax) <> $004F then
+              begin
+                _GraphResult := grError;
+                exit;
+              end;
+          end
+        else
+          { assume it's fully VGA compatible palette-wise. }
+          Begin
+            SetVGARGBPalette(ColorNum, RedValue, GreenValue, BlueValue);
+          end;
+    end;
+
+
+  Procedure GetVESARGBPalette(ColorNum: integer; Var
+      RedValue, GreenValue, BlueValue : integer);
+   var
+    pal: PalRec;
+    Error: boolean;
+    palptr : ^PalRec;
+    regs : TDPMIRegisters;
+    RealSeg: word;
+    ptr: longint;
+   begin
+      if DirectColor then
+        Begin
+          _GraphResult := grError;
+          exit;
+        end;
+        { use the set/get palette function }
+        if VESAInfo.Version >= $0200 then
+          Begin
+            { Alllocate real mode buffer }
+            Ptr:=GlobalDosAlloc(sizeof(palrec));
+            { get the selector and segment values }
+            PalPtr := pointer(longint(Ptr and $0000ffff) shl 16);
+            RealSeg := word((Ptr and $ffff0000) shr 16);
+            if not assigned(PalPtr) then
+               RunError(203);
+            { setup interrupt registers }
+            FillChar(regs, sizeof(TDPMIRegisters), #0);
+
+
+            regs.eax := $4F09;
+            regs.ebx := $01;       { get palette data      }
+            regs.ecx := $01;
+            regs.edx := ColorNum;
+            regs.es  := RealSeg;
+            regs.edi := 0;         { offset is always zero }
+            RealIntr($10, regs);
+
+           { copy to protected mode buffer ... }
+           Move(PalPtr^, Pal, sizeof(palrec));
+           { free real mode memory  }
+           GlobalDosFree(word(longint(PalPtr) shr 16));
+
+            if word(regs.eax) <> $004F then
+              begin
+                _GraphResult := grError;
+                exit;
+              end
+            else
+              begin
+                RedValue := Integer(pal.Red);
+                GreenValue := Integer(pal.Green);
+                BlueValue := Integer(pal.Blue);
+              end;
+          end
+        else
+            GetVGARGBPalette(ColorNum, RedValue, GreenValue, BlueValue);
+   end;
+{$ELSE}
+
+   Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
+      BlueValue : Integer);
+    var
+     FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
+     pal: ^palrec;
+     Error : boolean;     { VBE call error                             }
+    begin
+      if DirectColor then
+        Begin
+          _GraphResult := grError;
+          exit;
+        end;
+        Error := FALSE;
+        new(pal);
+        if not assigned(pal) then RunError(203);
+        pal^.align := 0;
+        pal^.red := byte(RedValue);
+        pal^.green := byte(GreenValue);
+        pal^.blue := byte(BlueValue);
+        { use the set/get palette function }
+        if VESAInfo.Version >= $0200 then
+          Begin
+            { check if blanking bit must be set when programming }
+            { the RAMDAC.                                        }
+            if (VESAInfo.caps and attrSnowCheck) <> 0 then
+              FunctionNr := $80
+            else
+              FunctionNr := $00;
+            asm
+              mov  ax, 4F09h         { Set/Get Palette data    }
+              mov  bl, [FunctionNr]  { Set palette data        }
+              mov  cx, 01h           { update one palette reg. }
+              mov  dx, [ColorNum]    { register number to update }
+              les  di, [pal]         { get palette address     }
+              int  10h
+              cmp  ax, 004Fh         { check if success        }
+              jz   @noerror
+              mov  [Error], TRUE
+             @noerror:
+            end;
+            if not Error then
+                Dispose(pal)
+            else
+              begin
+                _GraphResult := grError;
+                exit;
+              end;
+          end
+        else
+          { assume it's fully VGA compatible palette-wise. }
+          Begin
+            SetVGARGBPalette(ColorNum, RedValue, GreenValue, BlueValue);
+          end;
+    end;
+
+
+
+
+  Procedure GetVESARGBPalette(ColorNum: integer; Var
+      RedValue, GreenValue, BlueValue : integer);
+   var
+    Error: boolean;
+    pal: ^palrec;
+   begin
+      if DirectColor then
+        Begin
+          _GraphResult := grError;
+          exit;
+        end;
+      Error := FALSE;
+      new(pal);
+      if not assigned(pal) then RunError(203);
+      FillChar(pal^, sizeof(palrec), #0);
+      { use the set/get palette function }
+      if VESAInfo.Version >= $0200 then
+        Begin
+          asm
+            mov  ax, 4F09h         { Set/Get Palette data    }
+            mov  bl, 01h           { Set palette data        }
+            mov  cx, 01h           { update one palette reg. }
+            mov  dx, [ColorNum]    { register number to update }
+            les  di, [pal]         { get palette address     }
+            int  10h
+            cmp  ax, 004Fh         { check if success        }
+            jz   @noerror
+            mov  [Error], TRUE
+          @noerror:
+          end;
+          if not Error then
+            begin
+              RedValue := Integer(pal^.Red);
+              GreenValue := Integer(pal^.Green);
+              BlueValue := Integer(pal^.Blue);
+              Dispose(pal);
+            end
+          else
+            begin
+              _GraphResult := grError;
+              exit;
+            end;
+        end
+        else
+            GetVGARGBPalette(ColorNum, RedValue, GreenValue, BlueValue);
+
+   end;
+{$ENDIF}
+
+
+  procedure SetupLinear(var ModeInfo: TVESAModeInfo);
+   begin
+     { !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
+   end;
+
+  procedure SetupWindows(var ModeInfo: TVESAModeInfo);
+   begin
+     { now we check the windowing scheme ...}
+     if (ModeInfo.WinAAttr and WinSupported) <> 0 then
+       { is this window supported ... }
+       begin
+         { now check if the window is R/W }
+         if (ModeInfo.WinAAttr and WinReadable) <> 0 then
+         begin
+           ReadWindow := 0;
+           WinReadSeg := ModeInfo.WinASeg;
+         end;
+         if (ModeInfo.WinAAttr and WinWritable) <> 0 then
+         begin
+           WriteWindow := 0;
+           WinWriteSeg := ModeInfo.WinASeg;
+         end;
+       end;
+     if (ModeInfo.WinBAttr and WinSupported) <> 0 then
+       { is this window supported ... }
+       begin
+
+         { OPTIMIZATION ... }
+         { if window A supports both read/write, then we try to optimize }
+         { everything, by using a different window for Read and/or write.}
+         if (WinReadSeg <> 0) and (WinWriteSeg <> 0) then
+           begin
+              { check if winB supports read }
+              if (ModeInfo.WinBAttr and winReadable) <> 0 then
+                begin
+                  WinReadSeg := ModeInfo.WinBSeg;
+                  ReadWindow := 1;
+                end
+              else
+              { check if WinB supports write }
+              if (ModeInfo.WinBAttr and WinWritable) <> 0 then
+                begin
+                  WinWriteSeg := ModeInfo.WinBSeg;
+                  WriteWindow := 1;
+                end;
+           end
+         else
+         { Window A only supported Read OR Write, no we have to make }
+         { sure that window B supports the other mode.               }
+         if (WinReadSeg = 0) and (WinWriteSeg<>0) then
+           begin
+              if (ModeInfo.WinBAttr and WinReadable <> 0) then
+                begin
+                  ReadWindow := 1;
+                  WinReadSeg := ModeInfo.WinBSeg;
+                end
+              else
+                { impossible, this VESA mode is WRITE only! }
+                begin
+                  WriteLn('Invalid VESA Window attribute.');
+                  Halt(255);
+                end;
+           end
+         else
+         if (winWriteSeg = 0) and (WinReadSeg<>0) then
+           begin
+             if (ModeInfo.WinBAttr and WinWritable) <> 0 then
+               begin
+                 WriteWindow := 1;
+                 WinWriteSeg := ModeInfo.WinBSeg;
+               end
+             else
+               { impossible, this VESA mode is READ only! }
+               begin
+                  WriteLn('Invalid VESA Window attribute.');
+                  Halt(255);
+               end;
+           end
+         else
+         if (winReadSeg = 0) and (winWriteSeg = 0) then
+         { no read/write in this mode! }
+           begin
+                  WriteLn('Invalid VESA Window attribute.');
+                  Halt(255);
+           end;
+       end;
+
+     { if both windows are not supported, then we can assume }
+     { that there is ONE single NON relocatable window.      }
+     if (WinWriteSeg = 0) and (WinReadSeg = 0) then
+       begin
+         WinWriteSeg := ModeInfo.WinASeg;
+         WinReadSeg := ModeInfo.WinASeg;
+       end;
+
+    { 16-bit Protected mode checking code...  }
+    { change segment values to protected mode }
+    { selectors.                              }
+    if WinReadSeg = $A000 then
+      WinReadSeg := SegA000
+    else
+    if WinReadSeg = $B000 then
+      WinReadSeg := SegB000
+    else
+    if WinReadSeg = $B800 then
+      WinReadSeg := SegB800
+    else
+      begin
+        WriteLn('Invalid segment address.');
+        Halt(255);
+      end;
+    if WinWriteSeg = $A000 then
+      WinWriteSeg := SegA000
+    else
+    if WinWriteSeg = $B000 then
+      WinWriteSeg := SegB000
+    else
+    if WinWriteSeg = $B800 then
+      WinWriteSeg := SegB800
+    else
+      begin
+        WriteLn('Invalid segment address.');
+        Halt(255);
+      end;
+
+   end;
+
+
+
+  function setVESAMode(mode:word):boolean;
+    var i:word;
+  begin
+   { Init mode information, for compatibility with VBE < 1.1 }
+   FillChar(ModeInfo, sizeof(ModeInfo), #0);
+   { get the video mode information }
+   if getModeInfo(modeinfo, mode) then
+   begin
+     { checks if the hardware supports the video mode. }
+     if (ModeInfo.attr and modeAvail) <> 0 then
+       begin
+         SetVESAMode := TRUE;
+       end
+     else
+       begin
+         SetVESAmode := TRUE;
+         _GraphResult := grError;
+         exit;
+       end;
+
+     BankShift := 0;
+     while (64 shl BankShift) <> ModeInfo.WinGranularity do
+        Inc(BankShift);
+     CurrentWriteBank := -1;
+     CurrentReadBank := -1;
+     BytesPerLine := ModeInfo.BytesPerScanLine;
+
+     { These are the window adresses ... }
+     WinWriteSeg := 0;  { This is the segment to use for writes }
+     WinReadSeg := 0;   { This is the segment to use for reads  }
+     ReadWindow := 0;
+     WriteWindow := 0;
+
+     { VBE 2.0 and higher supports >= non VGA linear buffer types...}
+     { this is backward compatible.                                 }
+     if ((ModeInfo.Attr and ModeNoWindowed) <> 0) and
+          ((ModeInfo.Attr and ModeLinearBuffer) <> 0) then
+        SetupLinear(ModeInfo)
+     else
+     { if linear and windowed is supported, then use windowed }
+     { method.                                                }
+        SetUpWindows(ModeInfo);
+
+
+   asm
+    mov ax,4F02h
+    mov bx,mode
+    int 10h
+    sub ax,004Fh
+    cmp ax,1
+    sbb al,al
+    mov @RESULT,al
+   end;
+  end;
+ end;
+
+
+ function getVESAMode:word;assembler;
+   asm  {return -1 if error}
+    mov ax,4F03h
+    int 10h
+    cmp ax,004Fh
+    je @@OK
+    mov ax,-1
+    jmp @@X
+  @@OK:
+    mov ax,bx
+  @@X:
+   end;
+
+
+
+
+ {************************************************************************}
+ {*                     VESA Modes inits                                 *)
+ {************************************************************************}
+
+ procedure Init1280x1024x64k;
+  begin
+    SetVesaMode(m1280x1024x64k);
+  end;
+
+ procedure Init1280x1024x32k;
+  begin
+    SetVESAMode(m1280x1024x32k);
+  end;
+
+ procedure Init1280x1024x256;
+  begin
+    SetVESAMode(m1280x1024x256);
+  end;
+
+
+ procedure Init1280x1024x16;
+  begin
+    SetVESAMode(m1280x1024x16);
+  end;
+
+ procedure Init1024x768x64k;
+  begin
+    SetVESAMode(m1024x768x64k);
+  end;
+
+ procedure Init640x480x32k;
+  begin
+    SetVESAMode(m640x480x32k);
+  end;
+
+ procedure Init1024x768x256;
+  begin
+    SetVESAMode(m1024x768x256);
+  end;
+
+ procedure Init1024x768x16;
+  begin
+    SetVESAMode(m1024x768x16);
+  end;
+
+ procedure Init800x600x64k;
+  begin
+    SetVESAMode(m800x600x64k);
+  end;
+
+ procedure Init800x600x32k;
+  begin
+    SetVESAMode(m800x600x32k);
+  end;
+
+ procedure Init800x600x256;
+  begin
+    SetVESAMode(m800x600x256);
+  end;
+
+ procedure Init800x600x16;
+  begin
+    SetVesaMode(m800x600x16);
+  end;
+
+ procedure Init640x480x64k;
+  begin
+    SetVESAMode(m640x480x64k);
+  end;
+
+
+ procedure Init640x480x256;
+  begin
+    SetVESAMode(m640x480x256);
+  end;
+
+ procedure Init640x400x256;
+  begin
+    SetVESAMode(m640x400x256);
+  end;
+
+ procedure Init320x200x64k;
+  begin
+    SetVESAMode(m320x200x64k);
+  end;
+
+ procedure Init320x200x32k;
+  begin
+    SetVESAMode(m320x200x32k);
+  end;
+
+
+{$IFDEF DPMI}
+
+ Procedure SaveStateVESA;
+ var
+  PtrLong: longint;
+  regs: TDPMIRegisters;
+  begin
+    SaveSupported := FALSE;
+    SavePtr := nil;
+    { Get the video mode }
+    asm
+      mov  ah,0fh
+      int  10h
+      mov  [VideoMode], al
+    end;
+    { Prepare to save video state...}
+    asm
+      mov  ax, 4F04h       { get buffer size to save state }
+      mov  dx, 00h
+      mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+      int  10h
+      mov  [StateSize], bx
+      cmp  al,04fh
+      jnz  @notok
+      mov  [SaveSupported],TRUE
+     @notok:
+    end;
+    if SaveSupported then
+      begin
+        PtrLong:=GlobalDosAlloc(64*StateSize);  { values returned in 64-byte blocks }
+        if PtrLong = 0 then
+           RunError(203);
+        SavePtr := pointer(longint(PtrLong and $0000ffff) shl 16);
+        RealStateSeg := word((PtrLong and $ffff0000) shr 16);
+        if not assigned(SavePtr) then
+           RunError(203);
+
+        FillChar(regs, sizeof(regs), #0);
+        { call the real mode interrupt ... }
+        regs.eax := $4F04;      { save the state buffer                   }
+        regs.ecx := $0F;        { Save DAC / Data areas / Hardware states }
+        regs.edx := $01;        { save state                              }
+        regs.es := RealStateSeg;
+        regs.ebx := 0;
+        RealIntr($10,regs);
+        FillChar(regs, sizeof(regs), #0);
+        { restore state, according to Ralph Brown Interrupt list }
+        { some BIOS corrupt the hardware after a save...         }
+        regs.eax := $4F04;      { restore the state buffer                }
+        regs.ecx := $0F;        { rest DAC / Data areas / Hardware states }
+        regs.edx := $02;
+        regs.es := RealStateSeg;
+        regs.ebx := 0;
+        RealIntr($10,regs);
+      end;
+  end;
+
+ procedure RestoreStateVESA;
+  var
+   regs:TDPMIRegisters;
+  begin
+     { go back to the old video mode...}
+     asm
+      mov  ah,00
+      mov  al,[VideoMode]
+      int  10h
+     end;
+     { then restore all state information }
+     if assigned(SavePtr) and (SaveSupported=TRUE) then
+       begin
+        FillChar(regs, sizeof(regs), #0);
+        { restore state, according to Ralph Brown Interrupt list }
+        { some BIOS corrupt the hardware after a save...         }
+         regs.eax := $4F04;      { restore the state buffer                }
+         regs.ecx := $0F;        { rest DAC / Data areas / Hardware states }
+         regs.edx := $02;        { restore state                           }
+         regs.es := RealStateSeg;
+         regs.ebx := 0;
+         RealIntr($10,regs);
+         if GlobalDosFree(longint(SavePtr) shr 16)<>0 then
+          RunError(216);
+
+         SavePtr := nil;
+       end;
+  end;
+
+{$ELSE}
+
+      {**************************************************************}
+      {*                     Real mode routines                     *}
+      {**************************************************************}
+
+ Procedure SaveStateVESA;
+  begin
+    SavePtr := nil;
+    SaveSupported := FALSE;
+    { Get the video mode }
+    asm
+      mov  ah,0fh
+      int  10h
+      mov  [VideoMode], al
+    end;
+    { Prepare to save video state...}
+    asm
+      mov  ax, 1C00h       { get buffer size to save state }
+      mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
+      int  10h
+      mov  [StateSize], bx
+      cmp  al,01ch
+      jnz  @notok
+      mov  [SaveSupported],TRUE
+     @notok:
+    end;
+    if SaveSupported then
+      Begin
+        GetMem(SavePtr, 64*StateSize); { values returned in 64-byte blocks }
+        if not assigned(SavePtr) then
+           RunError(203);
+        asm
+         mov  ax, 4F04h       { save the state buffer                   }
+         mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+         mov  dx, 01h
+         mov  es, WORD PTR [SavePtr+2]
+         mov  bx, WORD PTR [SavePtr]
+         int  10h
+        end;
+        { restore state, according to Ralph Brown Interrupt list }
+        { some BIOS corrupt the hardware after a save...         }
+        asm
+         mov  ax, 4F04h       { save the state buffer                   }
+         mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+         mov  dx, 02h
+         mov  es, WORD PTR [SavePtr+2]
+         mov  bx, WORD PTR [SavePtr]
+         int  10h
+        end;
+      end;
+  end;
+
+ procedure RestoreStateVESA;
+  begin
+     { go back to the old video mode...}
+     asm
+      mov  ah,00
+      mov  al,[VideoMode]
+      int  10h
+     end;
+
+     { then restore all state information }
+     if assigned(SavePtr) and (SaveSupported=TRUE) then
+       begin
+         { restore state, according to Ralph Brown Interrupt list }
+         asm
+           mov  ax, 4F04h       { save the state buffer                   }
+           mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
+           mov  dx, 02h         { restore state                           }
+           mov  es, WORD PTR [SavePtr+2]
+           mov  bx, WORD PTR [SavePtr]
+           int  10h
+         end;
+         FreeMem(SavePtr, 64*StateSize);
+         SavePtr := nil;
+       end;
+  end;
+{$ENDIF DPMI}
