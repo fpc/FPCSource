@@ -506,8 +506,8 @@ end;
 
 function TLinkerNetware.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr   : string;
+  binstr : String;
+  cmdstr   : TCmdStr;
   success  : boolean;
   StripStr : string[2];
 begin
@@ -571,7 +571,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-09-24 10:48:31  armin
+  Revision 1.18  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.17  2004/09/24 10:48:31  armin
   * added GROUP for .a files to linker script
 
   Revision 1.16  2004/09/22 15:25:14  mazen

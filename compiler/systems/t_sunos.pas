@@ -396,8 +396,8 @@ end;
 
 function TLinkersunos.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -442,8 +442,8 @@ end;
 
 Function TLinkersunos.MakeSharedLibrary:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -494,7 +494,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-10-01 17:41:21  marco
+  Revision 1.12  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.11  2004/10/01 17:41:21  marco
    * small updates to make playing with sparc/sunos easier
 
   Revision 1.10  2004/09/22 15:25:14  mazen

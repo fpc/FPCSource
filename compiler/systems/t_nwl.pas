@@ -549,8 +549,8 @@ Const
 
 function TLinkerNetwlibc.MakeNetwareLoadableModule (isLib : boolean):boolean;
 var
-  binstr,
-  cmdstr,
+  binstr : String;
+  cmdstr : TcmdStr;
   xdcname : string;
   success  : boolean;
   StripStr : string[2];
@@ -653,7 +653,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-09-24 10:48:31  armin
+  Revision 1.7  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.6  2004/09/24 10:48:31  armin
   * added GROUP for .a files to linker script
 
   Revision 1.5  2004/09/22 15:25:14  mazen

@@ -382,8 +382,8 @@ end;
 
 function TLinkerBeOS.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TcmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -433,8 +433,8 @@ end;
 
 Function TLinkerBeOS.MakeSharedLibrary:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -505,7 +505,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-09-22 15:25:14  mazen
+  Revision 1.13  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.12  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.10  2004/06/20 08:55:32  florian

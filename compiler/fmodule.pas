@@ -175,6 +175,7 @@ implementation
     uses
     {$IFDEF USE_SYSUTILS}
       SysUtils,
+      GlobType,
     {$ELSE USE_SYSUTILS}
       dos,
     {$ENDIF USE_SYSUTILS}
@@ -700,7 +701,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2004-10-14 17:30:09  mazen
+  Revision 1.48  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.47  2004/10/14 17:30:09  mazen
   * use SysUtils unit instead of Dos Unit
 
   Revision 1.46  2004/08/30 20:23:33  peter

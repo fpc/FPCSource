@@ -1014,8 +1014,8 @@ end;
 
 function TLinkerWin32.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
   cmds,i       : longint;
   AsBinStr     : string[80];
@@ -1096,8 +1096,8 @@ end;
 
 Function TLinkerWin32.MakeSharedLibrary:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
   cmds,
   i       : longint;
@@ -1659,7 +1659,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.37  2004-09-22 15:25:14  mazen
+  Revision 1.38  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.37  2004/09/22 15:25:14  mazen
   * Fix error committing : previous version must be in branch USE_SYSUTILS
 
   Revision 1.35  2004/06/20 08:55:32  florian

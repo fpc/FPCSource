@@ -361,7 +361,11 @@ end;
 Function def_GetNamedFileTime (Const F : String) : Longint;
 var
   L : Longint;
+{$IFDEF USE_SYSUTILS}
+  info : TSearchRec;
+{$ELSE USE_SYSUTILS}
   info : SearchRec;
+{$ENDIF USE_SYSUTILS}
 begin
   l:=-1;
 {$IFDEF USE_SYSUTILS}
@@ -379,7 +383,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2004-10-14 17:10:15  mazen
+  Revision 1.30  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.29  2004/10/14 17:10:15  mazen
   * use SysUtils unit instead of Dos Unit
   + overload Replace to use AnsiString
 

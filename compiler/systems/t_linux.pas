@@ -432,8 +432,8 @@ end;
 
 function TLinkerLinux.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -486,8 +486,8 @@ var
   InitStr,
   FiniStr,
   SoNameStr : string[80];
-  binstr,
-  cmdstr  : string;
+  binstr : String;
+  cmdstr  : TCmdStr;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
@@ -579,7 +579,11 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-09-25 18:44:12  florian
+  Revision 1.25  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.24  2004/09/25 18:44:12  florian
     * fixed dyn. linker name for sparc
 
   Revision 1.23  2004/09/22 15:25:14  mazen

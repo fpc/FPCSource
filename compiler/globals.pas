@@ -40,13 +40,12 @@ interface
       Baseunix,unix,
   {$endif}
 {$endif}
-{$ifdef Delphi}
+{$IFDEF USE_SYSUTILS}
       SysUtils,
-      dmisc,
-{$else}
+{$ELSE USE_SYSUTILS}
       strings,
       dos,
-{$endif}
+{$ENDIF USE_SYSUTILS}
       cutils,cclasses,
       globtype,version,systems,cpuinfo;
 
@@ -304,7 +303,7 @@ interface
     function  FixFileName(const s:string):string;
     function  TargetFixPath(s:string;allowdot:boolean):string;
     function  TargetFixFileName(const s:string):string;
-    procedure SplitBinCmd(const s:string;var bstr,cstr:string);
+    procedure SplitBinCmd(const s:string;var bstr: String;var cstr:TCmdStr);
     function  FindFile(const f : string;path : string;var foundfile:string):boolean;
     function  FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
     function  FindExe(const bin:string;var foundfile:string):boolean;
@@ -401,11 +400,11 @@ implementation
       var
         hour,min,sec,hsec : word;
       begin
-{$ifdef delphi}
-        dmisc.gettime(hour,min,sec,hsec);
-{$else delphi}
+{$IFDEF USE_SYSUTILS}
+        DecodeTime(Time,hour,min,sec,hsec);
+{$ELSE USE_SYSUTILS}
         dos.gettime(hour,min,sec,hsec);
-{$endif delphi}
+{$ENDIF USE_SYSUTILS}
         gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
       end;
 
@@ -415,13 +414,17 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
+{$IFDEF USE_SYSUTILS}
+        Year,Month,Day: Word;
+{$ELSE USE_SYSUTILS}
         Year,Month,Day,Wday : Word;
+{$ENDIF USE_SYSUTILS}
       begin
-{$ifdef delphi}
-        dmisc.getdate(year,month,day,wday);
-{$else}
+{$IFDEF USE_SYSUTILS}
+        DecodeDate(Date,year,month,day);
+{$ELSE USE_SYSUTILS}
         dos.getdate(year,month,day,wday);
-{$endif}
+{$ENDIF USE_SYSUTILS}
         getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
       end;
 
@@ -431,15 +434,30 @@ implementation
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }
      var
+{$IFDEF USE_SYSUTILS}
+       DT : TDateTime;
+{$ELSE USE_SYSUTILS}
        DT : DateTime;
+{$ENDIF USE_SYSUTILS}
+       Year,Month,Day: Word;
+       hour,min,sec,hsec : word;
      begin
        if t=-1 then
         begin
-          FileTimeString:='Not Found';
+          Result := 'Not Found';
           exit;
         end;
+{$IFDEF USE_SYSUTILS}
+       DT := FileDateToDateTime(t);
+       DecodeTime(DT,hour,min,sec,hsec);
+       DecodeDate(DT,year,month,day);
+{$ELSE USE_SYSUTILS}
        unpacktime(t,DT);
-       filetimestring:=L0(dt.Year)+'/'+L0(dt.Month)+'/'+L0(dt.Day)+' '+L0(dt.Hour)+':'+L0(dt.min)+':'+L0(dt.sec);
+       Year := DT.Year;
+       Month := DT.Month;
+       Hour := DT.Hour;
+{$ENDIF USE_SYSUTILS}
+       Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
 
@@ -525,27 +543,26 @@ implementation
 
 
     Function FileExists ( Const F : String) : Boolean;
-      Var
-         res : boolean;
-{$ifndef delphi}
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
+      var
          Info : SearchRec;
-{$endif}
+{$ENDIF USE_SYSUTILS}
       begin
-{$ifdef delphi}
-        res:=sysutils.FileExists(f);
-{$else}
+{$IFDEF USE_SYSUTILS}
+        Result:=SysUtils.FileExists(f);
+{$ELSE USE_SYSUTILS}
         findfirst(F,readonly+archive+hidden,info);
-        res:=(doserror=0);
+        result:=(doserror=0);
         findclose(Info);
-{$endif delphi}
+{$ENDIF USE_SYSUTILS}
         if assigned({$ifndef FPCPROVCAR}@{$endif}do_comment) then
          begin
-           if res then
+           if Result then
              do_comment(V_Tried,'Searching file '+F+'... found')
            else
              do_comment(V_Tried,'Searching file '+F+'... not found');
          end;
-        FileExists:=res;
       end;
 
 
@@ -606,7 +623,10 @@ implementation
 
     Function PathExists ( F : String) : Boolean;
       Var
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
         FF : file;
+{$ENDIF USE_SYSUTILS}
         A: word;
         I: longint;
       begin
@@ -621,9 +641,13 @@ implementation
                   and (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1))
           then
             Delete (F, Length (F), 1);
+{$IFDEF USE_SYSUTILS}
+        PathExists := FileGetAttr(F) and faDirectory = faDirectory;
+{$ELSE USE_SYSUTILS}
         Assign (FF, FExpand (F));
         GetFAttr (FF, A);
         PathExists := (DosError = 0) and (A and Directory = Directory);
+{$ENDIF USE_SYSUTILS}
       end;
 
 
@@ -662,13 +686,20 @@ implementation
 
 
     Function SplitFileName(const s:string):string;
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
       var
         p : dirstr;
         n : namestr;
         e : extstr;
+{$ENDIF USE_SYSUTILS}
       begin
+{$IFDEF USE_SYSUTILS}
+        SplitFileName:=ExtractFileName(s);
+{$ELSE USE_SYSUTILS}
         FSplit(s,p,n,e);
         SplitFileName:=n+e;
+{$ENDIF USE_SYSUTILS}
       end;
 
 
@@ -973,7 +1004,7 @@ implementation
      end;
 
 
-   procedure SplitBinCmd(const s:string;var bstr,cstr:string);
+   procedure SplitBinCmd(const s:string;var bstr:String;var cstr:TCmdStr);
      var
        i : longint;
      begin
@@ -1002,7 +1033,11 @@ implementation
        CurrentDir,
        currPath : string;
        subdirfound : boolean;
+{$IFDEF USE_SYSUTILS}
+       dir      : TSearchRec;
+{$ELSE USE_SYSUTILS}
        dir      : searchrec;
+{$ENDIF USE_SYSUTILS}
        hp       : TStringListItem;
 
        procedure AddCurrPath;
@@ -1077,8 +1112,28 @@ implementation
             else
              hs:=currpath;
             hsd:=SplitPath(hs);
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
             findfirst(hs,directory,dir);
+{$ENDIF USE_SYSUTILS}
             subdirfound:=false;
+{$IFDEF USE_SYSUTILS}
+            if findfirst(hs,faDirectory,dir) = 0
+            then repeat
+              if (dir.name<>'.') and
+                  (dir.name<>'..') and
+                  ((dir.attr and faDirectory)<>0) then
+                begin
+                  subdirfound:=true;
+                  currpath:=hsd+dir.name+source_info.dirsep;
+                  hp:=Find(currPath);
+                  if not assigned(hp) then
+                   AddCurrPath;
+                end;
+               if not subdirfound then
+                 WarnNonExistingPath(currpath);
+            until findnext(dir) <> 0;
+{$ELSE USE_SYSUTILS}
             while doserror=0 do
              begin
                if (dir.name<>'.') and
@@ -1095,6 +1150,7 @@ implementation
                if not subdirfound then
                  WarnNonExistingPath(currpath);
              end;
+{$ENDIF USE_SYSUTILS}
             FindClose(dir);
           end
          else
@@ -1383,23 +1439,31 @@ implementation
       {$else}
       {$ifdef amiga}
       begin
+{$IFDEF USE_SYSUTILS}
+        result := ExecuteProcess('',command);
+{$ELSE USE_SYSUTILS}
         exec('',command);
         if (doserror <> 0) then
           result := doserror
         else
           result := dosexitcode;
       end;
+{$ENDIF USE_SYSUTILS}
       {$else}
       var
         comspec : string;
       begin
         comspec:=getenv('COMSPEC');
+{$IFDEF USE_SYSUTILS}
+        result := ExecuteProcess(comspec,' /C '+command);
+{$ELSE USE_SYSUTILS}
         Exec(comspec,' /C '+command);
         if (doserror <> 0) then
           result := doserror
         else
           result := dosexitcode;
       end;
+{$ENDIF USE_SYSUTILS}
       {$endif}
       {$endif}
 
@@ -1877,17 +1941,27 @@ implementation
      var
        hs1 : namestr;
        hs2 : extstr;
+{$IFDEF USE_SYSUTILS}
+       exeName:String;
+{$ENDIF USE_SYSUTILS}
 {$ifdef need_path_search}
        p   : pchar;
 {$endif need_path_search}
      begin
-{$ifdef delphi}
-       exepath:=dmisc.getenv('PPC_EXEC_PATH');
-{$else delphi}
+{$IFDEF USE_SYSUTILS}
+       exepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
+{$ELSE USE_SYSUTILS}
        exepath:=dos.getenv('PPC_EXEC_PATH');
-{$endif delphi}
+{$ENDIF USE_SYSUTILS}
        if exepath='' then
+{$IFDEF USE_SYSUTILS}
+        exeName := FixFileName(system.paramstr(0));
+        exepath := ExtractFilePath(exeName);
+        hs1 := ExtractFileName(exeName);
+        hs2 := ExtractFileExt(exeName);
+{$ELSE USE_SYSUTILS}
         fsplit(FixFileName(system.paramstr(0)),exepath,hs1,hs2);
+{$ENDIF USE_SYSUTILS}
 {$ifdef need_path_search}
        if exepath='' then
         begin
@@ -2047,7 +2121,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2004-10-10 15:42:22  peter
+  Revision 1.144  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.143  2004/10/10 15:42:22  peter
     * default optimization cpu changed to CLassPentium3
 
   Revision 1.142  2004/10/09 11:27:59  olle

@@ -164,6 +164,7 @@ implementation
 uses
 {$IFDEF USE_SYSUTILS}
   SysUtils,
+  GlobType,
 {$ELSE USE_SYSUTILS}
   dos,
 {$ENDIF USE_SYSUTILS}
@@ -189,7 +190,7 @@ uses
       begin
 {$IFDEF USE_SYSUTILS}
         name:=stringdup(SplitFileName(fn));
-        path:=stringdupSplitPath(fn));
+        path:=stringdup(SplitPath(fn));
 {$ELSE USE_SYSUTILS}
         FSplit(fn,p,n,e);
         name:=stringdup(n+e);
@@ -740,7 +741,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  2004-10-14 17:26:04  mazen
+  Revision 1.28  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.27  2004/10/14 17:26:04  mazen
   * use SysUtils unit instead of Dos Unit
 
   Revision 1.26  2004/08/02 07:15:54  michael

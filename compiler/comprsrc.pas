@@ -74,8 +74,8 @@ var
 {$IFDEF USE_SYSUTILS}
 {$ELSE USE_SYSUTILS}
   e       : extstr;
-  s,
 {$ENDIF USE_SYSUTILS}
+  s,
   resobj,
   resbin   : string;
   resfound,
@@ -182,7 +182,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-10-14 16:38:38  mazen
+  Revision 1.22  2004-10-14 18:16:17  mazen
+  * USE_SYSUTILS merged successfully : cycles with and without defines
+  * Need to be optimized in performance
+
+  Revision 1.21  2004/10/14 16:38:38  mazen
   * Merge is complete for this file, cycles !
 
   Revision 1.20  2004/06/20 08:55:29  florian
