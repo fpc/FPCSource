@@ -143,6 +143,9 @@ Type
     FPRocessPriority : TProcessPriority;
     FStartupInfo : TStartupInfo;
     Procedure FreeStreams;
+{$ifdef win32}
+    Procedure CloseProcessHandles;
+{$endif}
     Function  GetExitStatus : Integer;
     Function  GetHandle : THandle;
     Function  GetRunning : Boolean;
@@ -249,6 +252,9 @@ begin
   If assigned (FThreadAttributes) then Dispose (FThreadAttributes);
   FEnvironment.Free;
   FreeStreams;
+{$ifdef win32}
+  CloseProcessHandles;
+{$endif}
   Inherited Destroy;
 end;
 
@@ -281,6 +287,18 @@ begin
     FreedStreams.Free;
   end;
 end;
+
+{$ifdef win32}
+procedure TProcess.CloseProcessHandles;
+begin
+  with FProcessInformation do begin
+    if (hProcess<>0) then
+      CloseHandle(hProcess);
+    if (ThreadHandle<>0) then
+      CloseHandle(hThread);
+  end;
+end;
+{$endif}
 
 Function TProcess.GetExitStatus : Integer;
 
@@ -945,7 +963,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2004-02-03 08:12:22  michael
+  Revision 1.20  2004-07-30 12:55:42  michael
+  Closing process handles in Windows. Patch from Vincent Snijders
+
+  Revision 1.19  2004/02/03 08:12:22  michael
   + Patch from Vincent Snijders to fix passing environment vars in win32
 
   Revision 1.18  2003/10/30 20:34:47  florian
