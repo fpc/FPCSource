@@ -210,10 +210,10 @@ Begin
 End;
 
 
-Function Do_Write(Handle,Addr,Len:SizeInt):longint;
+Function Do_Write(Handle:SizeInt;Addr:Pointer;Len:SizeInt):SizeInt;
 Begin
   repeat
-    Do_Write:=Fpwrite(Handle,pchar(addr),len);
+    Do_Write:=Fpwrite(Handle,addr,len);
   until (Do_Write>=0) or (getErrNo<>ESysEINTR);
   If Do_Write<0 Then
    Begin
@@ -225,10 +225,10 @@ Begin
 End;
 
 
-Function Do_Read(Handle,Addr,Len:SizeInt):Longint;
+Function Do_Read(Handle:SizeInt;Addr:Pointer;Len:SizeInt):SizeInt;
 Begin
   repeat
-    Do_Read:=Fpread(Handle,pchar(addr),len);
+    Do_Read:=Fpread(Handle,addr,len);
   until (Do_Read>=0) or (getErrNo<>ESysEINTR);
   If Do_Read<0 Then
    Begin
@@ -584,7 +584,10 @@ end;
 
 {
  $Log$
- Revision 1.14  2004-03-27 14:33:45  florian
+ Revision 1.15  2004-04-22 21:16:35  peter
+   * do_write/do_read fix
+
+ Revision 1.14  2004/03/27 14:33:45  florian
    * tell sigaction to pass siginfo on arm
 
  Revision 1.13  2004/03/10 20:35:33  peter
