@@ -326,7 +326,7 @@ unit tgobj;
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(l);
-         ref.base:=procinfo.framepointer;
+         ref.base:=procinfo^.framepointer;
       end;
 
 
@@ -336,7 +336,7 @@ unit tgobj;
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
-         ref.base:=procinfo.framepointer;
+         ref.base:=procinfo^.framepointer;
          { Reuse old ansi slot ? }
          foundslot:=nil;
          tl:=templist;
@@ -406,7 +406,7 @@ unit tgobj;
     function ttgobj.istemp(const ref : treference) : boolean;
 
       begin
-         istemp:=((ref.base=procinfo.framepointer) and
+         istemp:=((ref.base=procinfo^.framepointer) and
                   (ref.offset<firsttemp));
       end;
 
@@ -692,7 +692,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.6  1999-09-10 18:48:11  florian
+  Revision 1.7  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.6  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

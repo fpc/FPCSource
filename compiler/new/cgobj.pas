@@ -448,11 +448,11 @@ unit cgobj;
               pobjectdef(pvarsym(p)^.definition)^.is_class) and
             pvarsym(p)^.definition^.needs_inittable then
            begin
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
               if psym(p)^.owner^.symtabletype=localsymtable then
                 begin
-                   hr.base:=procinfo.framepointer;
+                   hr.base:=procinfo^.framepointer;
                    hr.offset:=-pvarsym(p)^.address;
                 end
               else
@@ -477,13 +477,13 @@ unit cgobj;
             pvarsym(p)^.definition^.needs_inittable and
             ((pvarsym(p)^.varspez=vs_value)) then
            begin
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
               hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
               a_param_ref_addr(list,hr,2);
               reset_reference(hr);
-              hr.base:=procinfo.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              hr.base:=procinfo^.framepointer;
+              hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
               a_param_ref_addr(list,hr,1);
               reset_reference(hr);
               a_call_name(list,'FPC_ADDREF',0);
@@ -510,18 +510,18 @@ unit cgobj;
                  (pvarsym(p)^.varspez=vs_const) { and
                  (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
                 exit;
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               reset_reference(hr);
               case psym(p)^.owner^.symtabletype of
                  localsymtable:
                    begin
-                      hr.base:=procinfo.framepointer;
+                      hr.base:=procinfo^.framepointer;
                       hr.offset:=-pvarsym(p)^.address;
                    end;
                  parasymtable:
                    begin
-                      hr.base:=procinfo.framepointer;
-                      hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+                      hr.base:=procinfo^.framepointer;
+                      hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
                    end;
                  else
                    hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
@@ -561,9 +561,9 @@ unit cgobj;
            begin
               if hp^.temptype in [tt_ansistring,tt_freeansistring] then
                 begin
-                   procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                   procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
                    reset_reference(hr);
-                   hr.base:=procinfo.framepointer;
+                   hr.base:=procinfo^.framepointer;
                    hr.offset:=hp^.pos;
                    a_param_ref_addr(list,hr,1);
                    a_call_name(list,'FPC_ANSISTR_DECR_REF',0);
@@ -635,21 +635,21 @@ unit cgobj;
            end;
         { omit stack frame ? }
         if not inlined then
-          if procinfo.framepointer=stack_pointer then
+          if procinfo^.framepointer=stack_pointer then
             begin
                CGMessage(cg_d_stackframe_omited);
                nostackframe:=true;
                if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-pointersize;
             end
           else
             begin
                if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-pointersize*2;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-pointersize*2;
                nostackframe:=false;
 
                if (po_interrupt in aktprocsym^.definition^.procoptions) then
@@ -693,7 +693,7 @@ unit cgobj;
          { a constructor needs a help procedure }
          if (aktprocsym^.definition^.options and poconstructor)<>0 then
            begin
-             if procinfo._class^.isclass then
+             if procinfo^._class^.isclass then
                begin
                  list^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
                  list^.concat(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
@@ -704,7 +704,7 @@ unit cgobj;
                  list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
                  list^.insert(new(paicpu,op_csymbol(A_CALL,S_NO,
                    newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-                 list^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+                 list^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
                  concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
                  }
                end;
@@ -716,12 +716,13 @@ unit cgobj;
   {$endif GDB}
 
          { initialize return value }
-         if is_ansistring(procinfo.retdef) or
-           is_widestring(procinfo.retdef) then
+         if assigned(procinfo^.retdef) and
+	   is_ansistring(procinfo^.retdef) or
+           is_widestring(procinfo^.retdef) then
            begin
               reset_reference(hr);
-              hr.offset:=procinfo.retoffset;
-              hr.base:=procinfo.framepointer;
+              hr.offset:=procinfo^.retoffset;
+              hr.base:=procinfo^.framepointer;
               a_load_const_ref(list,OS_32,0,hr);
            end;
 
@@ -737,7 +738,7 @@ unit cgobj;
 
          if (cs_profile in aktmoduleswitches) or
            (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-           (assigned(procinfo._class) and (procinfo._class^.owner^.symtabletype=globalsymtable)) then
+           (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
            make_global:=true;
          if not inlined then
            begin
@@ -773,7 +774,7 @@ unit cgobj;
            begin
               if target_os.use_function_relative_addresses then
                   list^.insert(stab_function_name);
-              if make_global or ((procinfo.flags and pi_is_global) <> 0) then
+              if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
                   aktprocsym^.is_global := True;
               list^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
               aktprocsym^.isstabwritten:=true;
@@ -788,7 +789,7 @@ unit cgobj;
          mangled_length : longint;
          p : pchar;
   {$endif GDB}
-         noreraiselabel : pasmlabel;
+         nofinal,noreraiselabel : pasmlabel;
          hr : treference;
          r : tregister;
 
@@ -799,16 +800,30 @@ unit cgobj;
          { call the destructor help procedure }
          if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
            begin
-             if procinfo._class^.is_class then
+             if procinfo^._class^.is_class then
                a_call_name(list,'FPC_DISPOSE_CLASS',0)
              else
                begin
-                  we must do a finalize here for objects if
-                  necessary
+                  if procinfo^._class^.needs_inittable then
+                    begin
+                       getlabel(nofinal);
+                       {!!!!!!!!!!
+                       reset_reference(hr);
+                       hr.base:=R_EBP;
+                       hr.offset:=8;
+                       a_cmp_reg_const_label(list,OS_ADDR,OZ_EQ,
+                       }
+                       reset_reference(hr);
+                       hr.symbol:=procinfo^._class^.get_inittable_label;
+                       a_paramaddr_ref(list,hr,2);
+                       a_param_reg(list,OS_ADDR,self_pointer,1);
+                       a_call_name(list,'FPC_FINALIZE',0);
+                       a_label(list,nofinal);
+                    end;
                   { vmt_offset_reg can be a scratch register, }
                   { but it must be always the same            }
                   a_reg_alloc(list,vmt_offset_reg);
-                  a_load_const_reg(list,OS_32,procinfo._class^.vmt_offset,vmt_offset_reg);
+                  a_load_const_reg(list,OS_32,procinfo^._class^.vmt_offset,vmt_offset_reg);
                   a_call_name(list,'FPC_HELP_DESTRUCTOR',0);
                   a_reg_dealloc(list,vmt_offset_reg);
                end;
@@ -827,7 +842,7 @@ unit cgobj;
            aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}_finalize_data);
 
          { do we need to handle exceptions because of ansi/widestrings ? }
-         if (procinfo.flags and pi_needs_implicit_finally)<>0 then
+         if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
            begin
               getlabel(noreraiselabel);
 
@@ -838,15 +853,15 @@ unit cgobj;
               a_reg_dealloc(list,accumulator);
 
               { must be the return value finalized before reraising the exception? }
-              if (procinfo.retdef<>pdef(voiddef)) and
-                (procinfo.retdef^.needs_inittable) and
-                ((procinfo.retdef^.deftype<>objectdef) or
-                not(pobjectdef(procinfo.retdef)^.is_class)) then
+              if (procinfo^.retdef<>pdef(voiddef)) and
+                (procinfo^.retdef^.needs_inittable) and
+                ((procinfo^.retdef^.deftype<>objectdef) or
+                not(pobjectdef(procinfo^.retdef)^.is_class)) then
                 begin
                    reset_reference(hr);
-                   hr.offset:=procinfo.retoffset;
-                   hr.base:=procinfo.framepointer;
-                   g_finalize(list,procinfo.retdef,hr,ret_in_param(procinfo.retdef));
+                   hr.offset:=procinfo^.retoffset;
+                   hr.base:=procinfo^.framepointer;
+                   g_finalize(list,procinfo^.retdef,hr,ret_in_param(procinfo^.retdef));
                 end;
 
               a_call_name(list,'FPC_RERAISE',0);
@@ -912,42 +927,53 @@ unit cgobj;
     {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and not inlined  then
              begin
-                 aktprocsym^.concatstabto(exprasmlist);
-                 if assigned(procinfo._class) then
-                   if (not assigned(procinfo.parent) or
-                      not assigned(procinfo.parent^._class)) then
-                     list^.concat(new(pai_stabs,init(strpnew(
-                      '"$t:v'+procinfo._class^.numberstring+'",'+
-                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.selfpointer_offset)))))
-                   else
-                     list^.concat(new(pai_stabs,init(strpnew(
-                      '"$t:r'+procinfo._class^.numberstring+'",'+
-                      tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
-
-                 if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
-                   if ret_in_param(aktprocsym^.definition^.retdef) then
-                     list^.concat(new(pai_stabs,init(strpnew(
-                      '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
-                   else
-                     list^.concat(new(pai_stabs,init(strpnew(
-                      '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                      tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
-
-                 mangled_length:=length(aktprocsym^.definition^.mangledname);
-                 getmem(p,mangled_length+50);
-                 strpcopy(p,'192,0,0,');
-                 strpcopy(strend(p),aktprocsym^.definition^.mangledname);
-                 exprasmlist^.concat(new(pai_stabn,init(strnew(p))));
-                 {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
-                  +aktprocsym^.definition^.mangledname))));
-                 p[0]:='2';p[1]:='2';p[2]:='4';
-                 strpcopy(strend(p),'_end');}
-                 freemem(p,mangled_length+50);
-                 exprasmlist^.concat(new(pai_stabn,init(
-                   strpnew('224,0,0,'+aktexit2label^.name))));
-                  { strpnew('224,0,0,'
-                  +aktprocsym^.definition^.mangledname+'_end'))));}
+                aktprocsym^.concatstabto(list);
+                if assigned(procinfo^._class) then
+                  if (not assigned(procinfo^.parent) or
+                     not assigned(procinfo^.parent^._class)) then
+                    list^.concat(new(pai_stabs,init(strpnew(
+                     '"$t:v'+procinfo^._class^.numberstring+'",'+
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
+                  {!!!!!!!!!!!!
+                  else
+                    list^.concat(new(pai_stabs,init(strpnew(
+                     '"$t:r'+procinfo^._class^.numberstring+'",'+
+                     tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
+                  }
+                if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
+                  begin
+                    if ret_in_param(aktprocsym^.definition^.retdef) then
+                      list^.concat(new(pai_stabs,init(strpnew(
+                       '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                    else
+                      list^.concat(new(pai_stabs,init(strpnew(
+                       '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                    if (m_result in aktmodeswitches) then
+                      if ret_in_param(aktprocsym^.definition^.retdef) then
+                        list^.concat(new(pai_stabs,init(strpnew(
+                         '"RESULT:X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
+                      else
+                        list^.concat(new(pai_stabs,init(strpnew(
+                         '"RESULT:X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
+                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
+                  end;
+                mangled_length:=length(aktprocsym^.definition^.mangledname);
+                getmem(p,mangled_length+50);
+                strpcopy(p,'192,0,0,');
+                strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                list^.concat(new(pai_stabn,init(strnew(p))));
+                {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
+                 +aktprocsym^.definition^.mangledname))));
+                p[0]:='2';p[1]:='2';p[2]:='4';
+                strpcopy(strend(p),'_end');}
+                freemem(p,mangled_length+50);
+                list^.concat(new(pai_stabn,init(
+                  strpnew('224,0,0,'+aktexit2label^.name))));
+                 { strpnew('224,0,0,'
+                 +aktprocsym^.definition^.mangledname+'_end'))));}
              end;
     {$endif GDB}
       end;
@@ -1082,7 +1108,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.27  1999-09-29 11:46:20  florian
+  Revision 1.28  1999-10-12 21:20:46  florian
+    * new codegenerator compiles again
+
+  Revision 1.27  1999/09/29 11:46:20  florian
     * fixed bug 292 from bugs directory
 
   Revision 1.26  1999/09/14 11:16:09  florian

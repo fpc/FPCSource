@@ -106,7 +106,7 @@ implementation
     procedure firstasm(var p : ptree);
 
       begin
-        procinfo.flags:=procinfo.flags or pi_uses_asm;
+        procinfo.flags:=procinfo^.flags or pi_uses_asm;
       end;
 
 {$endif dummy}
@@ -123,35 +123,9 @@ implementation
          not_first : boolean;
 {$endif extdebug}
       begin
-{$ifdef extdebug}
-         inc(total_of_firstpass);
-         if (p^.firstpasscount>0) and only_one_pass then
-           exit;
-{$endif extdebug}
          oldcodegenerror:=codegenerror;
          oldpos:=aktfilepos;
          oldlocalswitches:=aktlocalswitches;
-{$ifdef extdebug}
-         if p^.firstpasscount>0 then
-           begin
-              move(p^,str1[1],sizeof(ttree));
-       {$ifndef TP}
-         {$ifopt H+}
-           SetLength(str1,sizeof(ttree));
-         {$else}
-              str1[0]:=char(sizeof(ttree));
-         {$endif}
-       {$else}
-              str1[0]:=char(sizeof(ttree));
-       {$endif}
-              new(oldp);
-              oldp^:=p^;
-              not_first:=true;
-              inc(firstpass_several);
-           end
-         else
-           not_first:=false;
-{$endif extdebug}
 
          if not p^.error then
            begin
@@ -166,33 +140,6 @@ implementation
            end
          else
            codegenerror:=true;
-{$ifdef extdebug}
-         if not_first then
-           begin
-              { dirty trick to compare two ttree's (PM) }
-              move(p^,str2[1],sizeof(ttree));
-       {$ifndef TP}
-         {$ifopt H+}
-           SetLength(str2,sizeof(ttree));
-         {$else}
-              str2[0]:=char(sizeof(ttree));
-         {$endif}
-       {$else}
-              str2[0]:=char(sizeof(ttree));
-       {$endif}
-              if str1<>str2 then
-                begin
-                   comment(v_debug,'tree changed after first counting pass '
-                     +tostr(longint(p^.treetype)));
-                   {!!!!!!! compare_trees(oldp,p); }
-                end;
-              dispose(oldp);
-           end;
-         {!!!!!!!
-         if count_ref then
-           inc(p^.firstpasscount);
-         }
-{$endif extdebug}
       end;
 
 
@@ -221,7 +168,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-08-04 00:23:57  florian
+  Revision 1.6  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.5  1999/08/04 00:23:57  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.4  1999/08/01 18:22:36  florian

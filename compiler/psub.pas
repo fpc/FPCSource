@@ -53,7 +53,12 @@ uses
   strings,globals,verbose,files,
   scanner,aasm,tree,types,
   import,gendef,
-  hcodegen,temp_gen,pass_1,cpubase,cpuasm
+{$ifdef newcg}
+  cgbase,
+{$else newcg}
+  hcodegen,
+{$endif newcg}
+  temp_gen,pass_1,cpubase,cpuasm
 {$ifndef NOPASS2}
   ,pass_2
 {$endif}
@@ -130,7 +135,11 @@ begin
 {$else}
             aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_containsself];
 {$endif}
+{$ifdef newcg}
+            inc(procinfo^.selfpointer_offset,vs^.address);
+{$else newcg}
             inc(procinfo^.ESI_offset,vs^.address);
+{$endif newcg}
             consume(idtoken);
             consume(_COLON);
             p:=single_type(hs1,false);
@@ -473,7 +482,11 @@ begin
   { self isn't pushed in nested procedure of methods }
   if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
     begin
+{$ifdef newcg}
+      procinfo^.selfpointer_offset:=paramoffset;
+{$else newcg}
       procinfo^.ESI_offset:=paramoffset;
+{$endif newcg}
       if assigned(aktprocsym^.definition) and
          not(po_containsself in aktprocsym^.definition^.procoptions) then
         inc(paramoffset,target_os.size_of_pointer);
@@ -2078,7 +2091,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  1999-10-03 19:38:39  peter
+  Revision 1.27  1999-10-12 21:20:46  florian
+    * new codegenerator compiles again
+
+  Revision 1.26  1999/10/03 19:38:39  peter
     * fixed forward decl check for tp7/delphi
 
   Revision 1.25  1999/10/01 10:05:44  peter

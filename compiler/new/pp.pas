@@ -267,9 +267,6 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifdef fpc}
-  heapblocks:=true;
-{$endif}
 {$ifdef UseOverlay}
   InitOverlay;
 {$endif}
@@ -279,7 +276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-08-04 12:59:22  jonas
+  Revision 1.7  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.6  1999/08/04 12:59:22  jonas
     * all tokes now start with an underscore
     * PowerPC compiles!!
 

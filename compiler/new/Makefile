@@ -136,7 +136,7 @@ ifneq ($(findstring -di386,$(COMPILER)),)
 override COMPILER+=-dSUPPORT_MMX
 endif
 
-override COMPILER+=$(LOCALOPT) -Fu$(CPU)
+override COMPILER+=-Fu$(CPU) $(LOCALOPT)
 
 ifneq (,$(findstring -s ,$(LOCALOPT)))
 override EXECPPAS=@$(PPAS)
@@ -175,6 +175,12 @@ endif
 
 PPEXENAME=pp$(EXEEXT)
 EXENAME=ppc386$(EXEEXT)
+ifeq ($(CPU),powerpc)
+EXENAME=ppcppc$(EXEEXT)
+endif
+ifeq ($(CPU),alpha)
+EXENAME=ppcalpha$(EXEEXT)
+endif
 M68KEXENAME=ppc68k$(EXEEXT)
 TEMPNAME=ppc$(EXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
@@ -195,7 +201,7 @@ ifeq ($(MAKELEVEL),0)
 ifndef STARTTIME
 ifdef DATE
 STARTTIME:=$(shell $(DATE) +%T)
-else
+else         
 STARTTIME:=unknown
 endif
 endif
@@ -394,7 +400,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.2  1999-08-02 17:16:41  michael
+# Revision 1.3  1999-10-12 21:20:46  florian
+#   * new codegenerator compiles again
+#
+# Revision 1.2  1999/08/02 17:16:41  michael
 # + Changes for alpha
 #
 # Revision 1.1  1999/08/01 23:19:58  florian

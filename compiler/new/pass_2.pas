@@ -288,7 +288,7 @@ implementation
               { only if no asm is used }
               { and no try statement   }
               if (cs_regalloc in aktglobalswitches) and
-                ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                 begin
                    { can we omit the stack frame ? }
                    { conditions:
@@ -301,25 +301,25 @@ implementation
                      begin
                        if not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
                           not(po_interrupt in aktprocsym^.definition^.procoptions) and
-                          ((procinfo.flags and pi_do_call)=0) and
+                          ((procinfo^.flags and pi_do_call)=0) and
                           (lexlevel>=normal_function_level) then
                        begin
                          { use ESP as frame pointer }
-                         procinfo.framepointer:=stack_pointer;
+                         procinfo^.framepointer:=stack_pointer;
                          use_esp_stackframe:=true;
 
                          { calc parameter distance new }
-                         dec(procinfo.framepointer_offset,pointersize);
-                         dec(procinfo.selfpointer_offset,pointersize);
+                         dec(procinfo^.framepointer_offset,pointersize);
+                         dec(procinfo^.selfpointer_offset,pointersize);
 
                          { is this correct ???}
                          { retoffset can be negativ for results in eax !! }
                          { the value should be decreased only if positive }
-                         if procinfo.retoffset>=0 then
-                           dec(procinfo.retoffset,4);
+                         if procinfo^.retoffset>=0 then
+                           dec(procinfo^.retoffset,4);
 
-                         dec(procinfo.call_offset,4);
-                         aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
+                         dec(procinfo^.call_offset,4);
+                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
                        end;
                      end;
                    if (p^.registersint<maxvarregs) then
@@ -413,10 +413,10 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
-                                       hr^.base:=procinfo.framepointer;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
+                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
@@ -451,20 +451,23 @@ implementation
 
               do_secondpass(p);
 
-              if assigned(procinfo.def) then
-                procinfo.def^.fpu_used:=p^.registersfpu;
+              if assigned(procinfo^.def) then
+                procinfo^.def^.fpu_used:=p^.registersfpu;
 
               { all registers can be used again }
               tg.resetusableregisters;
            end;
-         procinfo.aktproccode^.concatlist(exprasmlist);
+         procinfo^.aktproccode^.concatlist(exprasmlist);
          make_const_global:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.7  1999-08-25 12:00:13  jonas
+  Revision 1.8  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.7  1999/08/25 12:00:13  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.6  1999/08/05 14:58:15  florian

@@ -130,7 +130,7 @@ unit cgbase;
 
     var
        { info about the current sub routine }
-       procinfo : tprocinfo;
+       procinfo : pprocinfo;
 
        { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : pasmlabel;
@@ -145,7 +145,7 @@ unit cgbase;
        aktexit2label : pasmlabel;
 
        { only used in constructor for fail or if getmem fails }
-       quickexitlabel : pasmlabel;
+       faillabel,quickexitlabel : pasmlabel;
 
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
@@ -262,25 +262,27 @@ unit cgbase;
       begin
          aktbreaklabel:=nil;
          aktcontinuelabel:=nil;
+         new(procinfo);
          { aktexitlabel:=0; is store in oldaktexitlabel
            so it must not be reset to zero before this storage !}
          { the type of this lists isn't important }
          { because the code of this lists is      }
          { copied to the code segment             }
-         procinfo.aktentrycode:=new(paasmoutput,init);
-         procinfo.aktexitcode:=new(paasmoutput,init);
-         procinfo.aktproccode:=new(paasmoutput,init);
-         procinfo.aktlocaldata:=new(paasmoutput,init);
+         procinfo^.aktentrycode:=new(paasmoutput,init);
+         procinfo^.aktexitcode:=new(paasmoutput,init);
+         procinfo^.aktproccode:=new(paasmoutput,init);
+         procinfo^.aktlocaldata:=new(paasmoutput,init);
       end;
 
 
 
     procedure codegen_doneprocedure;
       begin
-         dispose(procinfo.aktentrycode,done);
-         dispose(procinfo.aktexitcode,done);
-         dispose(procinfo.aktproccode,done);
-         dispose(procinfo.aktlocaldata,done);
+         dispose(procinfo^.aktentrycode,done);
+         dispose(procinfo^.aktexitcode,done);
+         dispose(procinfo^.aktproccode,done);
+         dispose(procinfo^.aktlocaldata,done);
+         dispose(procinfo);
       end;
 
 
@@ -425,7 +427,10 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.9  1999-09-10 18:48:11  florian
+  Revision 1.10  1999-10-12 21:20:46  florian
+    * new codegenerator compiles again
+
+  Revision 1.9  1999/09/10 18:48:11  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

@@ -116,7 +116,8 @@ unit tree;
           arrayconstructrangen, {Range element to allow sets in array construction tree}
           { added for optimizations where we cannot suppress }
           nothingn,
-          loadvmtn
+          loadvmtn,
+          pointerconstn
        );
 
        tconverttype = (
@@ -133,8 +134,9 @@ unit tree;
           tc_array_2_pointer,
           tc_pointer_2_array,
           tc_int_2_int,
-          tc_bool_2_int,
           tc_int_2_bool,
+          tc_bool_2_bool,
+          tc_bool_2_int,
           tc_real_2_real,
           tc_int_2_real,
           tc_int_2_fix,
@@ -143,7 +145,7 @@ unit tree;
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
           tc_load_smallset,
-          tc_bool_2_bool
+          tc_cord_2_pointer
        );
 
       { different assignment types }
@@ -358,6 +360,7 @@ unit tree;
     function gensubscriptnode(varsym : pvarsym;l : ptree) : ptree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
+    function genpointerconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
     function gentypenode(t : pdef;sym:ptypesym) : ptree;
     function gencallparanode(expr,next : ptree) : ptree;
@@ -601,7 +604,8 @@ unit tree;
           'arrayconstructn',
           'arrayconstructrangen',
           'nothingn',
-          'loadvmtn');
+          'loadvmtn',
+	  'pointerconstn');
 
       begin
          write(indention,'(',treetype2str[treetype]);
@@ -1276,6 +1280,27 @@ unit tree;
          genpcharconstnode:=p;
       end;
 
+
+    function genpointerconstnode(v : longint;def : pdef) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_nothing;
+         p^.treetype:=pointerconstn;
+         p^.registers32:=0;
+         { p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=def;
+         p^.value:=v;
+         genpointerconstnode:=p;
+      end;
 
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
 
@@ -2018,7 +2043,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.14  1999-09-14 11:16:09  florian
+  Revision 1.15  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.14  1999/09/14 11:16:09  florian
     * only small updates to work with the current compiler
 
   Revision 1.13  1999/08/06 18:05:55  florian

@@ -44,7 +44,7 @@ blockn:
                    { Funktionsresultate an exit anh„ngen }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if ret_in_acc(procinfo.retdef) and
+                   if ret_in_acc(procinfo^.retdef) and
                       assigned(hp^.left) and
                       (hp^.left^.right^.treetype=exitn) and
                       (hp^.right^.treetype=assignn) and
@@ -82,7 +82,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-01-23 23:35:02  florian
+  Revision 1.2  1999-10-12 21:20:47  florian
+    * new codegenerator compiles again
+
+  Revision 1.1  1999/01/23 23:35:02  florian
     + first versions
 
 }

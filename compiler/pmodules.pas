@@ -43,7 +43,12 @@ unit pmodules;
     uses
        globtype,version,systems,tokens,
        cobjects,comphook,globals,verbose,files,
-       symconst,symtable,aasm,hcodegen,
+       symconst,symtable,aasm,
+{$ifdef newcg}
+       cgbase,
+{$else newcg}
+       hcodegen,
+{$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
        cresstr,cpubase,cpuasm,
        scanner,pbase,psystem,pdecl,psub,parser;
@@ -1455,7 +1460,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.158  1999-10-03 19:44:42  peter
+  Revision 1.159  1999-10-12 21:20:45  florian
+    * new codegenerator compiles again
+
+  Revision 1.158  1999/10/03 19:44:42  peter
     * removed objpasunit reference, tvarrec is now searched in systemunit
       where it already was located
 

@@ -289,7 +289,9 @@ begin
 {$ifdef FPC}
   Writeln('Memory Lost = '+tostr(system.HeapSize-MemAvail-EntryMemUsed));
 {$endif FPC}
+{$ifndef newcg}
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
+{$endif newcg}
 {$endif EXTDEBUG}
 
 end;
@@ -298,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1999-09-28 19:48:45  florian
+  Revision 1.36  1999-10-12 21:20:41  florian
+    * new codegenerator compiles again
+
+  Revision 1.35  1999/09/28 19:48:45  florian
     * bug 617 fixed
 
   Revision 1.34  1999/09/16 23:05:52  florian

@@ -47,7 +47,10 @@ unit parser;
     uses
       globtype,version,tokens,systems,
       cobjects,globals,verbose,
-      symtable,files,aasm,hcodegen,
+      symtable,files,aasm,
+{$ifndef newcg}
+      hcodegen,
+{$endif newcg}
       assemble,link,script,gendef,
 {$ifdef BrowserLog}
       browlog,
@@ -61,6 +64,8 @@ unit parser;
 {$ifdef newcg}
       cgobj,
       cgcpu,
+      { cgbase must be after hcodegen to use the correct procinfo !!! }
+      cgbase,
 {$endif newcg}
       comphook,tree,scanner,pbase,pdecl,psystem,pmodules,cresstr;
 
@@ -482,7 +487,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.87  1999-10-03 19:44:41  peter
+  Revision 1.88  1999-10-12 21:20:45  florian
+    * new codegenerator compiles again
+
+  Revision 1.87  1999/10/03 19:44:41  peter
     * removed objpasunit reference, tvarrec is now searched in systemunit
       where it already was located
 

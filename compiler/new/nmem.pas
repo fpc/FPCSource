@@ -190,8 +190,8 @@ unit nmem;
                                         hregister:=tg.getregisterint;
 
                                         { make a reference }
-                                        hp:=new_reference(procinfo.framepointer,
-                                          procinfo.framepointer_offset);
+                                        hp:=new_reference(procinfo^.framepointer,
+                                          procinfo^.framepointer_offset);
 
 
                                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,hp,hregister)));
@@ -216,7 +216,7 @@ unit nmem;
                                                     end;
                                    stt_exceptsymtable:
                                      begin
-                                        location.reference.base:=procinfo.framepointer;
+                                        location.reference.base:=procinfo^.framepointer;
                                         location.reference.offset:=pvarsym(symtableentry)^.address;
                                      end;
                                    objectsymtable:
@@ -239,7 +239,7 @@ unit nmem;
                                         { symtable datasize field
                                           contains the offset of the temp
                                           stored }
-                                        hp:=new_reference(procinfo.framepointer,
+                                        hp:=new_reference(procinfo^.framepointer,
                                           symtable^.datasize);
 
                                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,hp,hregister)));
@@ -262,7 +262,7 @@ unit nmem;
                               if is_open_array(pvarsym(symtableentry)^.definition) or
                                  is_open_string(pvarsym(symtableentry)^.definition) then
                                 begin
-                                   if (location.reference.base=procinfo.framepointer) then
+                                   if (location.reference.base=procinfo^.framepointer) then
                                      begin
                                         highframepointer:=location.reference.base;
                                         highoffset:=location.reference.offset;
@@ -711,7 +711,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.13  1999-09-15 20:35:46  florian
+  Revision 1.14  1999-10-12 21:20:46  florian
+    * new codegenerator compiles again
+
+  Revision 1.13  1999/09/15 20:35:46  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers
