@@ -355,8 +355,8 @@ for the last instruction of an include file !}
              begin
                 prevc:=c;
                 reload;
-                if (byte(c)+byte(prevc)=23) then
-                  inc(inputpointer);
+                if (byte(c)+byte(prevc)<>23) then
+                  dec(inputpointer);
              end;
            c:=newline;
          end;
@@ -2103,7 +2103,11 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.5  1998-04-07 22:45:05  florian
+  Revision 1.6  1998-04-09 09:33:15  pierre
+    * bugfix of newline in BP was wrong !!
+      (ate a character !!)
+
+  Revision 1.5  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 
