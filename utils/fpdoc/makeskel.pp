@@ -41,6 +41,8 @@ type
 
 const
   CmdLineAction: TCmdLineAction = actionConvert;
+  OSTarget: String = {$I %FPCTARGETOS%};
+  CPUTarget: String = {$I %FPCTARGETCPU%};
 
 var
   InputFiles, DescrFiles: TStringList;
@@ -252,7 +254,7 @@ begin
     // Process all source files
     for i := 0 to InputFiles.Count - 1 do
     begin
-      Module := ParseSource(Engine, InputFiles[i]);
+      Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
       try
 	WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
       finally
@@ -274,7 +276,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2003-03-28 13:01:36  michael
+  + Patch from Charlie/iNQ to work with new scanner/parser
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.7  2003/03/13 22:02:13  sg
