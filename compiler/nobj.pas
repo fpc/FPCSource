@@ -853,6 +853,7 @@ implementation
       begin
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
+        rawdata.concat(tai_align.create(const_align(POINTER_SIZE)));
         if (cs_create_smart in aktmoduleswitches) then
          rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_DATA ,0))
         else
@@ -1381,7 +1382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.68  2004-03-18 11:43:57  olle
+  Revision 1.69  2004-03-31 21:01:01  florian
+    * vtbls are now properly aligned
+
+  Revision 1.68  2004/03/18 11:43:57  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.67  2004/03/08 22:07:46  peter
