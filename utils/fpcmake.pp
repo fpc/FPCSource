@@ -37,7 +37,7 @@ type
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
-  tbic=(bic_none,bic_build,bic_install,bic_clean);
+  tbic=(bic_none,bic_build,bic_install,bic_zipinstall,bic_clean);
 
   tspecialdir=record
     dir,unitdir,packdir : string;
@@ -69,7 +69,7 @@ const
     'all','debug',
     'examples','test',
     'smart','shared',
-    'showinstall','install','sourceinstall','zipinstall','zipinstalladd',
+    'showinstall','install','sourceinstall','zipinstall','zipsourceinstall',
     'clean','cleanall',
     'require','info'
   );
@@ -87,7 +87,7 @@ const
     bic_build,bic_build,
     bic_build,bic_build,
     bic_build,bic_build,
-    bic_install,bic_install,bic_install,bic_install,bic_install,
+    bic_install,bic_install,bic_install,bic_zipinstall,bic_zipinstall,
     bic_clean,bic_clean,
     bic_none,bic_none
   );
@@ -130,11 +130,14 @@ type
     TargetUnits,
     TargetPrograms,
     TargetExamples,
+    TargetPkgs,
     TargetRST      : TTargetsString;
     InstallPackageName,
     InstallUnitSubDir,
     InstallPrefixDir,
     InstallDataDir,
+    InstallSourceSubDir,
+    InstallSourceTopDir,
     InstallBaseDir : string;
     InstallUnits,
     InstallFiles   : TTargetsString;
@@ -145,6 +148,7 @@ type
     DefaultRule,
     DefaultBuildDir,
     DefaultInstallDir,
+    DefaultZipInstallDir,
     DefaultCleanDir,
     DefaultDir,
     DefaultTarget,
@@ -159,7 +163,7 @@ type
     DirTarget,
     DirUnitTarget,
     DirSources,
-    DirInc         : string;
+    DirInc          : string;
     RequireRTL      : boolean;
     RequireOptions  : string;
     RequireToolkits,
@@ -184,7 +188,8 @@ type
     ToolsCmp,
     ToolsUpx,
     ToolsDate,
-    ToolsZip       : boolean;
+    ToolsZip,
+    ToolsTar       : boolean;
     MultiPacks,
     PreSettings,
     PostSettings,
@@ -219,6 +224,27 @@ begin
 end;
 
 
+function posidx(const substr,s : string;idx:integer):integer;
+var
+  i,j : integer;
+  e   : boolean;
+begin
+  i := idx;
+  j := 0;
+  e:=(length(SubStr)>0);
+  while e and (i<=Length(s)-Length(SubStr)) do
+   begin
+     inc(i);
+     if (SubStr[1]=s[i]) and (Substr=Copy(s,i,Length(SubStr))) then
+      begin
+        j:=i;
+        e:=false;
+      end;
+   end;
+  PosIdx:=j;
+end;
+
+
 function TargetStringEmpty(const t:TTargetsString):boolean;
 var
   i : integer;
@@ -235,25 +261,32 @@ end;
 
 procedure AddStrNoDup(var s:string;const s2:string);
 var
-  i : longint;
-  add : boolean;
+  i,idx : longint;
+  again,add : boolean;
 begin
   add:=false;
-  i:=pos(s2,s);
-  if (i=0) then
-   add:=true
-  else
-   if (i=1) then
-    begin
-      if (length(s)>length(s2)) and
-         (s[length(s2)+1]<>' ') then
-       add:=true;
-    end
-  else
-   if (i>1) and
-      ((s[i-1]<>' ') or
-       ((length(s)>=i+length(s2)) and (s[i+length(s2)]<>' '))) then
-    add:=true;
+  idx:=0;
+  repeat
+    again:=false;
+    i:=posidx(s2,s,idx);
+    if (i=0) then
+     add:=true
+    else
+     if (i=1) then
+      begin
+        if (length(s)>length(s2)) and
+           (s[length(s2)+1]<>' ') then
+         add:=true;
+      end
+    else
+     if (i>1) and
+        ((s[i-1]<>' ') or
+         ((length(s)>=i+length(s2)) and (s[i+length(s2)]<>' '))) then
+      begin
+        idx:=i+length(s2);
+        again:=true;
+      end;
+  until not again;
   if add then
    begin
      if s='' then
@@ -294,6 +327,7 @@ var
 
 var
   sec : tsections;
+  b   : boolean;
 begin
   ReadMakefilefpc:=false;
 
@@ -309,6 +343,9 @@ begin
      ReadTargetsString(TargetPrograms,ini_targets,'programs','');
      ReadTargetsString(TargetExamples,ini_targets,'examples','');
      ReadTargetsString(TargetRST,ini_targets,'rst','');
+     ReadTargetsString(TargetPkgs,ini_targets,'pkgs','');
+     if not TargetStringEmpty(TargetPkgs) then
+      TargetPkgs[0]:='all '+TargetPkgs[0];
    { clean }
      ReadTargetsString(CleanUnits,ini_clean,'units','');
      ReadTargetsString(CleanFiles,ini_clean,'files','');
@@ -318,6 +355,8 @@ begin
      InstallBaseDir:=ReadString(ini_install,'basedir','');
      InstallDataDir:=ReadString(ini_install,'datadir','');
      InstallUnitSubDir:=ReadString(ini_install,'unitsubdir','');
+     InstallSourceSubDir:=ReadString(ini_install,'sourcesubdir','');
+     InstallSourceTopDir:=ReadString(ini_install,'sourcetopdir','');
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
    { zip }
@@ -327,12 +366,14 @@ begin
      DefaultDir:=ReadString(ini_defaults,'defaultdir','');
      DefaultBuildDir:=ReadString(ini_defaults,'defaultbuilddir','');
      DefaultInstallDir:=ReadString(ini_defaults,'defaultinstalldir','');
+     DefaultZipInstallDir:=ReadString(ini_defaults,'defaultzipinstalldir','');
      DefaultCleanDir:=ReadString(ini_defaults,'defaultcleandir','');
      DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
      DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
    { require }
-     RequireRTL:=ReadBool(ini_require,'rtl',true);
+     b:=not(TargetStringEmpty(targetunits) and TargetStringEmpty(targetprograms) and TargetStringEmpty(targetexamples));
+     RequireRTL:=ReadBool(ini_require,'rtl',b);
      RequireOptions:=ReadString(ini_require,'options','');
      ReadTargetsString(requireToolkits,ini_require,'toolkit','');
      ReadTargetsString(requirePackages,ini_require,'packages','');
@@ -344,6 +385,23 @@ begin
         else
          userini.Requirepackages[0]:='rtl';
       end;
+   { sections, but allow overriding the 'none' option to include a few sects only }
+     for sec:=low(tsections) to high(tsections) do
+      Section[sec]:=sectiondef[sec];
+     Section[sec_None]:=ReadBool(ini_sections,sectionstr[sec_none],sectiondef[sec_none]);
+     if Section[sec_None] then
+      FillChar(Section,sizeof(Section),0);
+     for sec:=low(tsections) to high(tsections) do
+      Section[sec]:=ReadBool(ini_sections,sectionstr[sec],section[sec]);
+     { turn on needed sections }
+     if not TargetStringEmpty(TargetLoaders) then
+      section[sec_loaders]:=true;
+     if not TargetStringEmpty(TargetUnits) then
+      section[sec_units]:=true;
+     if not TargetStringEmpty(TargetPrograms) then
+      section[sec_exes]:=true;
+     if not TargetStringEmpty(TargetExamples) then
+      section[sec_examples]:=true;
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
      DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
@@ -362,33 +420,17 @@ begin
      LibGcc:=ReadBool(ini_libs,'libgcc',false);
      LibOther:=ReadBool(ini_libs,'libother',false);
    { tools }
-     ToolsPPDep:=ReadBool(ini_tools,'toolppdep',true);
-     ToolsPPUMove:=ReadBool(ini_tools,'toolppumove',true);
-     ToolsPPUFiles:=ReadBool(ini_tools,'toolppufiles',true);
+     ToolsPPUMove:=ReadBool(ini_tools,'toolppumove',section[sec_compile]);
+     ToolsPPUFiles:=ReadBool(ini_tools,'toolppufiles',section[sec_install] or section[sec_clean]);
+     ToolsUpx:=ReadBool(ini_tools,'toolupx',section[sec_install]);
+     ToolsZip:=ReadBool(ini_tools,'toolzip',section[sec_zipinstall]);
+     ToolsTar:=ReadBool(ini_tools,'tooltar',section[sec_zipinstall]);
+     ToolsPPDep:=ReadBool(ini_tools,'toolppdep',false);
      ToolsSed:=ReadBool(ini_tools,'toolsed',false);
      ToolsData2Inc:=ReadBool(ini_tools,'tooldata2inc',false);
      ToolsDiff:=ReadBool(ini_tools,'tooldiff',false);
      ToolsCmp:=ReadBool(ini_tools,'toolcmp',false);
-     ToolsUpx:=ReadBool(ini_tools,'toolupx',true);
-     ToolsDate:=ReadBool(ini_tools,'tooldate',true);
-     ToolsZip:=ReadBool(ini_tools,'toolzip',true);
-   { sections, but allow overriding the 'none' option to include a few sects only }
-     for sec:=low(tsections) to high(tsections) do
-      Section[sec]:=sectiondef[sec];
-     Section[sec_None]:=ReadBool(ini_sections,sectionstr[sec_none],sectiondef[sec_none]);
-     if Section[sec_None] then
-      FillChar(Section,sizeof(Section),0);
-     for sec:=low(tsections) to high(tsections) do
-      Section[sec]:=ReadBool(ini_sections,sectionstr[sec],section[sec]);
-     { turn on needed sections }
-     if not TargetStringEmpty(TargetLoaders) then
-      section[sec_loaders]:=true;
-     if not TargetStringEmpty(TargetUnits) then
-      section[sec_units]:=true;
-     if not TargetStringEmpty(TargetPrograms) then
-      section[sec_exes]:=true;
-     if not TargetStringEmpty(TargetExamples) then
-      section[sec_examples]:=true;
+     ToolsDate:=ReadBool(ini_tools,'tooldate',false);
    { info }
      InfoCfg:=ReadBool(ini_info,'infoconfig',true);
      InfoDirs:=ReadBool(ini_info,'infodirs',false);
@@ -458,7 +500,7 @@ end;
 
 function VarName(const s:string):string;
 var
-  i : longint;
+  i,j : longint;
 begin
   i:=0;
   result:=s;
@@ -466,6 +508,16 @@ begin
    begin
      inc(i);
      case result[i] of
+       '{' :
+         begin
+           { this are pkgs which are hold the dirs between the accolades }
+           j:=PosIdx('}',result,i);
+           if j>0 then
+            Delete(result,i,j-i+1)
+           else
+            Delete(result,i,1);
+           dec(i);
+         end;
        '$','(',')' :
          begin
            Delete(result,i,1);
@@ -564,22 +616,33 @@ var
        inc(i);
      end;
     hs:='';
-    if userini.section[rule2sec[rule]] then
-     hs:=hs+' fpc_'+rulestr[rule];
-    if userini.DefaultDir<>'' then
-     hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultdir+')'
+    { zipinstall is special, it allows packages }
+    if ((rulestr[rule]='zipinstall') or
+        (rulestr[rule]='zipsourceinstall')) and
+       (not TargetStringEmpty(userini.targetpkgs)) then
+     hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(PKGOBJECTS))'
     else
-     if (userini.DefaultBuildDir<>'') and (rule2bic[rule]=bic_build) then
-      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultbuilddir+')'
-    else
-     if (userini.DefaultInstallDir<>'') and (rule2bic[rule]=bic_install) then
-      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultinstalldir+')'
-    else
-     if (userini.DefaultCleanDir<>'') and (rule2bic[rule]=bic_clean) then
-      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultcleandir+')'
-    else
-     if rulediralso[rule] and (not TargetStringEmpty(userini.targetdirs)) then
-      hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+     begin
+       if userini.section[rule2sec[rule]] then
+        hs:=hs+' fpc_'+rulestr[rule];
+       if userini.DefaultDir<>'' then
+        hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultdir+')'
+       else
+        if (userini.DefaultBuildDir<>'') and (rule2bic[rule]=bic_build) then
+         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultbuilddir+')'
+       else
+        if (userini.DefaultInstallDir<>'') and (rule2bic[rule]=bic_install) then
+         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultinstalldir+')'
+       else
+        if (userini.DefaultZipInstallDir<>'') and (rule2bic[rule]=bic_zipinstall) then
+         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultzipinstalldir+')'
+       else
+        if (userini.DefaultCleanDir<>'') and (rule2bic[rule]=bic_clean) then
+         hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultcleandir+')'
+       else
+        if rulediralso[rule] and (not TargetStringEmpty(userini.targetdirs)) then
+         hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
+     end;
     if hs<>'' then
      begin
        Phony:=Phony+' '+rulestr[rule];
@@ -633,8 +696,8 @@ var
 
   function AddTargetDefines(const ts:TTargetsString;const prefix:string):string;
   var
-    j,i : integer;
-    hs,hs2 : string;
+    k1,k2,j,i : integer;
+    name,hs,hs2,hs3 : string;
   begin
     hs2:='';
     for j:=0 to targets do
@@ -647,9 +710,27 @@ var
           i:=pos(' ',hs);
           if i=0 then
            i:=length(hs)+1;
-          mf.Add(prefix+VarName(Copy(hs,1,i-1))+'=1');
+          name:=Copy(hs,1,i-1);
+          k1:=pos('{',name);
+          if k1>0 then
+           begin
+             k2:=PosIdx('}',name,k1);
+             if k2=0 then
+              begin
+                Writeln('Error: missing closing } for "',name,'"');
+                k2:=length(name)+1;
+              end;
+             hs3:=Copy(name,k1+1,k2-k1-1);
+             for j:=1to length(hs3) do
+              if hs3[j]=',' then
+               hs3[j]:=' ';
+             name:=Copy(name,1,k1-1);
+             mf.Add(prefix+VarName(name)+'='+hs3);
+           end
+          else
+           mf.Add(prefix+VarName(name)+'=1');
           { add to the list of dirs without duplicates }
-          AddStrNoDup(hs2,Copy(hs,1,i-1));
+          AddStrNoDup(hs2,name);
           system.delete(hs,1,i);
         until hs='';
         if j<>0 then
@@ -740,6 +821,75 @@ var
       end;
   end;
 
+  procedure AddPkg(const pack:string);
+  var
+    j  : integer;
+    packname,pkgdirsvar,hs : string;
+  begin
+    packname:=pack;
+    AddHead('Pkg '+packname);
+    mf.Add('ifdef PKG'+VarName(packname));
+    hs:='.PHONY: ';
+    for j:=1 to rules do
+     hs:=hs+' pkg'+packname+'_'+rulestr[j];
+    mf.Add(hs);
+    mf.Add('');
+    { pkgall is special which processes all directories }
+    if pack='all' then
+     pkgdirsvar:='DIROBJECTS'
+    else
+     begin
+       mf.Add('override PKGOBJECTS+=pkg'+packname);
+       pkgdirsvar:='PKG'+VarName(packname);
+     end;
+    for j:=1to rules do
+     if rulediralso[j] then
+      begin
+        mf.Add('pkg'+packname+'_'+rulestr[j]+': $(addsuffix _'+rulestr[j]+',$('+pkgdirsvar+'))');
+        if j<rules then
+         mf.Add('');
+      end
+     else
+      begin
+        { zipinstall is special for pkgs }
+        if (rulestr[j]='zipinstall') or (rulestr[j]='zipsourceinstall') then
+         begin
+           mf.Add('pkg'+packname+'_'+rulestr[j]+':');
+           mf.Add(#9'$(MAKE) fpc_'+rulestr[j]+' PACKAGENAME='+packname+' ZIPTARGET=pkg'+packname+'_'+Copy(rulestr[j],4,length(rulestr[j])-3));
+           if j<rules then
+            mf.Add('');
+         end;
+      end;
+    mf.Add('endif');
+  end;
+
+  procedure AddTargetsPkgs(const ts:TTargetsString);
+  var
+    Phony,hs : string;
+    i  : integer;
+  begin
+   { Components }
+     Phony:='';
+     if not TargetStringEmpty(ts) then
+      begin
+        hs:=AddTargetDefines(ts,'PKG');
+        mf.Add('');
+        repeat
+          i:=pos(' ',hs);
+          if i=0 then
+           i:=length(hs)+1;
+          AddPkg(Copy(hs,1,i-1));
+          system.delete(hs,1,i);
+        until hs='';
+        mf.Add('');
+      end;
+     if Phony<>'' then
+      begin
+        mf.Add('.PHONY: '+Phony);
+        mf.Add('');
+      end;
+  end;
+
 var
   hs  : string;
   i : integer;
@@ -797,16 +947,20 @@ begin
      AddSection(true,'fpcdirdetect');
 
    { fpcdir subdirs }
-     Add('ifndef PACKAGESDIR');
-     Add('PACKAGESDIR='+userini.dirpackage);
-     Add('endif');
-     Add('ifndef TOOLKITSDIR');
-     Add('TOOLKITSDIR='+userini.dirtoolkit);
-     Add('endif');
-     Add('ifndef COMPONENTSDIR');
-     Add('COMPONENTSDIR='+userini.dircomponent);
-     Add('endif');
-     AddSection(userini.requirertl,'fpcdirsubs');
+     if userini.RequireRTL then
+      begin
+        Add('ifndef PACKAGESDIR');
+        Add('PACKAGESDIR='+userini.dirpackage);
+        Add('endif');
+        Add('ifndef TOOLKITSDIR');
+        Add('TOOLKITSDIR='+userini.dirtoolkit);
+        Add('endif');
+        Add('ifndef COMPONENTSDIR');
+        Add('COMPONENTSDIR='+userini.dircomponent);
+        Add('endif');
+        Add('');
+        AddSection(true,'fpcdirsubs');
+      end;
 
    { write the default & user settings }
      AddSection(true,'usersettings');
@@ -837,6 +991,10 @@ begin
       Add('DATAINSTALLDIR='+userini.installdatadir);
      if userini.InstallUnitSubDir<>'' then
       Add('UNITSUBDIR='+userini.InstallUnitSubDir);
+     if userini.InstallSourceSubDir<>'' then
+      Add('SOURCESUBDIR='+userini.InstallSourceSubDir);
+     if userini.InstallSourceTopDir<>'' then
+      Add('SOURCETOPDIR='+userini.InstallSourceTopDir);
      if userini.installpackagename<>'' then
       Add('PACKAGENAME='+userini.installpackagename);
 
@@ -930,20 +1088,18 @@ begin
      AddSection(userini.section[sec_command] or userini.section[sec_tools],'shelltools');
 
    { write tools }
-     if userini.section[sec_tools] then
-      begin
-        AddSection(true,'tool_default');
-        AddSection(userini.toolsppdep,'tool_ppdep');
-        AddSection(userini.toolsppumove,'tool_ppumove');
-        AddSection(userini.toolsppufiles,'tool_ppufiles');
-        AddSection(userini.toolsdata2inc,'tool_data2inc');
-        AddSection(userini.toolsupx,'tool_upx');
-        AddSection(userini.toolssed,'tool_sed');
-        AddSection(userini.toolsdate,'tool_date');
-        AddSection(userini.toolszip,'tool_zip');
-        AddSection(userini.toolscmp,'tool_cmp');
-        AddSection(userini.toolsdiff,'tool_diff');
-      end;
+     AddSection(userini.section[sec_tools],'tool_default');
+     AddSection(userini.toolsppdep,'tool_ppdep');
+     AddSection(userini.toolsppumove,'tool_ppumove');
+     AddSection(userini.toolsppufiles,'tool_ppufiles');
+     AddSection(userini.toolsdata2inc,'tool_data2inc');
+     AddSection(userini.toolsupx,'tool_upx');
+     AddSection(userini.toolssed,'tool_sed');
+     AddSection(userini.toolscmp,'tool_cmp');
+     AddSection(userini.toolsdiff,'tool_diff');
+     AddSection(userini.toolsdate,'tool_date');
+     AddSection(userini.toolszip,'tool_zip');
+     AddSection(userini.toolstar,'tool_tar');
 
    { extensions }
      if userini.section[sec_exts] then
@@ -957,10 +1113,13 @@ begin
      AddTargetsPackages('$(COMPONENTSDIR)',userini.Requirecomponents);
      Add('');
 
+   { Pkgs }
+     AddTargetsPkgs(userini.targetpkgs);
+
    { write dirs }
+     AddSection(true,'dir_default');
      if userini.section[sec_dirs] then
       begin
-        AddSection(true,'dir_default');
         AddSection(userini.libgcc,'dir_gcclib');
         AddSection(userini.libother,'dir_otherlib');
         AddSection(true,'dir_install');
@@ -1031,7 +1190,7 @@ begin
    { Target dirs }
      if not TargetStringEmpty(userini.targetdirs) then
       begin
-        AddHead('Target Dirs');
+        AddSection(true,'directorytargets');
         hs:=AddTargetDefines(userini.targetdirs,'OBJECTDIR');
         repeat
           i:=pos(' ',hs);
@@ -1114,7 +1273,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2000-01-13 11:34:26  peter
+  Revision 1.25  2000-01-13 21:08:46  peter
+    * zipsourcesinstall
+    * zip fixes, bzip2 support with USETAR=bz2
+    * multi pkg's support to include several dirs
+
+  Revision 1.24  2000/01/13 11:34:26  peter
     * better package dep creation
 
   Revision 1.23  2000/01/12 23:20:37  peter
