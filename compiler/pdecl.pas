@@ -433,7 +433,8 @@ implementation
                     object_dec(orgtypename,tobjectdef(ttypesym(sym).restype.def));
                     newtype:=ttypesym(sym);
                     tt:=newtype.restype;
-                  end;
+                  end
+                 else
                   message1(parser_h_type_redef,typename);
                end;
             end;
@@ -636,7 +637,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2003-10-03 14:45:09  peter
+  Revision 1.72  2003-11-12 15:48:48  peter
+    * don't give redefinition warning for forward classes
+
+  Revision 1.71  2003/10/03 14:45:09  peter
     * more proc directive for procvar fixes
 
   Revision 1.70  2003/10/02 21:13:09  peter
