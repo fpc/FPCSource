@@ -83,13 +83,18 @@ interface
          public
          ErrorCode : Longint;
          end;
-       EInvalidPointer = Class(Exception);
-       EOutOfMemory    = Class(Exception);
+       EInvalidPointer  = Class(Exception);
+       EOutOfMemory     = Class(Exception);
+       EAccessViolation = Class(Exception);
        
-       econverterror = class(exception);
+       
+       { String conversion errors }
+       EConvertError = class(Exception);
 
-
-
+       { Other errors } 
+       EAbort         = Class(Exception);
+       EAbstractError = Class(Exception);
+       
   { Read date & Time function declarations }
   {$i datih.inc}
 
@@ -190,22 +195,34 @@ Var E : Exception;
     
 begin
   Case Errno of
-   1 : E:=OutOfMemory;
+   1,203 : E:=OutOfMemory;
    //!! ?? 2 is a 'file not found error' ??
-   2 : E:=InvalidPointer;
-   3,4,5,100,101,106 : { I/O errors }
+   2,204 : E:=InvalidPointer;
+   3,4,5,6,100,101,102,103,105,106 : { I/O errors }
      begin
      Case Errno of
        3 : S:=SInvalidFileName;
        4 : S:=STooManyOpenFiles;
        5 : S:=SAccessDenied;
+       6 : S:=SInvalidFileHandle;
+       15 : S:=SInvalidDrive;
        100 : S:=SEndOfFile;
        101 : S:=SDiskFull;
+       102 : S:=SFileNotAssigned;
+       103 : S:=SFileNotOpen;
+       104 : S:=SFileNotOpenForInput;
+       105 : S:=SFileNotOpenForOutput;
        106 : S:=SInvalidInput;
      end;
      E:=EinOutError.Create (S);
      EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
      end;
+  // We don't set abstracterrorhandler, but we do it here. 
+  // Unless the use sets another handler we'll get here anyway...
+  200 : E:=EDivByZero.Create(SDivByZero);
+  201 : E:=ERangeError.Create(SRangeError);
+  211 : E:=EAbstractError.Create(SAbstractError);
+  216 : E:=EAccessViolation.Create (SAccessViolation);
   else
 {$ifdef autoobjpas}
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
@@ -237,7 +254,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.12  1998-10-02 12:17:18  michael
+    Revision 1.13  1998-10-02 13:00:11  michael
+    + More RTL error handling
+
+    Revision 1.12  1998/10/02 12:17:18  michael
     + Made sure it compiles with official 0.99.8
 
     Revision 1.11  1998/10/01 16:04:11  michael

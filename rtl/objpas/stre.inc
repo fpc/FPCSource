@@ -23,20 +23,31 @@ Const
 
    { Error messages for exceptions }
    
+   SAbstractError = 'Abstract method called';
    SAccessDenied = 'Access denied';
+   SAccessViolation = 'Access violation';
    SDiskFull = 'Disk Full';
+   SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file'; 
+   SFileNotAssigned = 'File not assigned';
+   SFileNotOpen = 'File not open';
+   SFileNotOpenForInput = 'File not open for input';
+   SFileNotOpenForOutput = 'File not open for output';
+   SInvalidDrive = 'Invalid drive specified';
+   SInvalidFileHandle = 'Invalid file handle';
    SInValidFileName = 'Invalid filename';
    SInvalidInput = 'Invalid input';
    SInvalidPointer = 'Invalid pointer operation';
    SOutOfMemory = 'Out of memory';
+   SRangeError = 'Range check error';
    STooManyOpenFiles = 'Too many open files';
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
-   
-   
 {
   $Log$
-  Revision 1.1  1998-10-01 16:04:59  michael
+  Revision 1.2  1998-10-02 13:00:09  michael
+  + More RTL error handling
+
+  Revision 1.1  1998/10/01 16:04:59  michael
   + Initial implementation
 
 }   
