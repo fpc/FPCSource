@@ -627,7 +627,11 @@ end;
 
 procedure TSAXAttributes.BadIndex(Index: Integer);
 begin
+{$ifdef VER1_0}
   raise ESAXAttributeIndexError.Create(Index) at get_caller_addr(get_frame);
+{$else VER1_0}
+  raise ESAXAttributeIndexError.Create(Index) at pointer(get_caller_addr(get_frame));
+{$endif VER1_0}
 end;
 
 
@@ -930,7 +934,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-12-11 21:06:07  sg
+  Revision 1.2  2002-12-12 13:43:38  michael
+  + Patches from peter to fix 1.1 compile
+
+  Revision 1.1  2002/12/11 21:06:07  sg
   * Small cleanups
   * Replaced htmldoc unit with dom_html unit
   * Added SAX parser framework and SAX HTML parser

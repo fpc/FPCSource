@@ -337,15 +337,15 @@ var
 begin
   case ScannerContext of
     scWhitespace:
-      DoIgnorableWhitespace(PChar(TokenText), 1, Length(TokenText));
+      DoIgnorableWhitespace(PSAXChar(TokenText), 1, Length(TokenText));
     scText:
-      DoCharacters(PChar(TokenText), 0, Length(TokenText));
+      DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
 	begin
 	  EntString := Ent;
-	  DoCharacters(PChar(EntString), 0, 1);
+	  DoCharacters(PSAXChar(EntString), 0, 1);
 	end else
 	begin
 	  { Is this a predefined Unicode character entity? We must check this,
@@ -361,7 +361,7 @@ begin
 	  if Found then
 	    DoSkippedEntity(TokenText)
 	  else
-            DoCharacters(PChar('&' + TokenText), 0, Length(TokenText) + 1);
+            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
 	end;
       end;
     scTag:
@@ -547,7 +547,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-12-11 21:06:07  sg
+  Revision 1.2  2002-12-12 13:43:38  michael
+  + Patches from peter to fix 1.1 compile
+
+  Revision 1.1  2002/12/11 21:06:07  sg
   * Small cleanups
   * Replaced htmldoc unit with dom_html unit
   * Added SAX parser framework and SAX HTML parser
