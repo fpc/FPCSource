@@ -732,7 +732,8 @@ unit pexpr;
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
                       do_proc_call(getaddr or
                         (getprocvar and
-                        proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
+                         (m_tp_procvar in aktmodeswitches) and
+                         proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
                         ,again,p1,pd);
                       { now we know the real method e.g. we can check for }
                       { a class method                              }
@@ -1083,7 +1084,8 @@ unit pexpr;
                               p1^.unit_specific:=unit_specific;
                               do_proc_call(getaddr or
                                 (getprocvar and
-                                proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
+                                 (m_tp_procvar in aktmodeswitches) and
+                                 proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
                                 again,p1,pd);
                               if possible_error and
                                  ((p1^.procdefinition^.options and poclassmethod)=0) then
@@ -1876,7 +1878,7 @@ unit pexpr;
                  end;
             end;
       end;
-      
+
 
     function comp_expr(accept_equal : boolean):Ptree;
       var
@@ -2016,13 +2018,16 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112  1999-06-02 22:44:11  pierre
+  Revision 1.112.2.1  1999-06-13 22:38:09  peter
+    * tp_procvar check for loading of procvars when getaddr=false
+
+  Revision 1.112  1999/06/02 22:44:11  pierre
    * previous wrong log corrected
 
   Revision 1.111  1999/06/02 22:25:43  pierre
   * changed $ifdef FPC @ into $ifndef TP
   * changes for correct procvar handling under tp mode
-  
+
   Revision 1.110  1999/06/01 19:27:55  peter
     * better checks for procvar and methodpointer
 
