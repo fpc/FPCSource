@@ -3060,6 +3060,7 @@ implementation
          inherited create;
          parast:=tparasymtable.create(level);
          parast.defowner:=self;
+         parast.next:=owner;
          para:=TLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
@@ -5766,7 +5767,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2003-06-07 20:26:32  peter
+  Revision 1.151  2003-06-08 11:41:21  peter
+    * set parast.next to the owner of the procdef
+
+  Revision 1.150  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
