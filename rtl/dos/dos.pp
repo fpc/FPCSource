@@ -47,7 +47,7 @@ Const
 
 Type
 {$IFDEF GO32V2}
-{ Needed for Win95 LFN Support }
+{ Needed for LFN Support }
   ComStr  = String[255];
   PathStr = String[255];
   DirStr  = String[255];
@@ -87,7 +87,7 @@ Type
      time : longint;
      { reserved : word; not in DJGPP V2 }
      size : longint;
-     name : string[12]; { the same size as declared by (DJ GNU C) }
+     name : string[255]; { LFN Name, DJGPP uses only [12] but more can't hurt (PFV) }
   end;
 
   Registers = Go32.Registers;
@@ -344,21 +344,6 @@ var
 
 {$ifdef GO32V2}
 
-{
-        Table 0931
-        Format of EXEC parameter block for AL=00h,01h,04h:
-        Offset  Size    Description
-         00h    WORD    segment of environment to copy for child process (copy caller's
-                          environment if 0000h)
-         this does not seem to work (PM)
-         02h    DWORD   pointer to command tail to be copied into child's PSP
-         06h    DWORD   pointer to first FCB to be copied into child's PSP
-         0Ah    DWORD   pointer to second FCB to be copied into child's PSP
-         0Eh    DWORD   (AL=01h) will hold subprogram's initial SS:SP on return
-         12h    DWORD   (AL=01h) will hold entry point (CS:IP) on return
-        INT 21 4B--
-}
-
 procedure exec(const path : pathstr;const comline : comstr);
 type
   realptr = packed record
@@ -574,152 +559,251 @@ end;
 
 
 {******************************************************************************
-                         --- Findfirst FindNext ---
+                      --- LFNFindfirst LFNFindNext ---
 ******************************************************************************}
 
-    procedure searchrec2dossearchrec(var f : searchrec);
-      var
-         l,i : longint;
-      begin
-         l:=length(f.name);
-         for i:=1 to 12 do
-           f.name[i-1]:=f.name[i];
-         f.name[l]:=#0;
-      end;
-
-    procedure dossearchrec2searchrec(var f : searchrec);
-      var
-         l,i : longint;
-      begin
-         l:=12;
-         for i:=0 to 12 do
-           if f.name[i]=#0 then
-             begin
-                l:=i;
-                break;
-             end;
-         for i:=11 downto 0 do
-           f.name[i+1]:=f.name[i];
-         f.name[0]:=chr(l);
-      end;
-
-    procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
-
 {$ifdef GO32V2}
 
-      procedure _findfirst(path : pchar;attr : word;var f : searchrec);
+type
+  LFNSearchRec=packed record
+    attr,
+    crtime,
+    crtimehi,
+    actime,
+    actimehi,
+    lmtime,
+    lmtimehi,
+    sizehi,
+    size      : longint;
+    reserved  : array[0..7] of byte;
+    name      : array[0..259] of byte;
+    shortname : array[0..13] of byte;
+  end;
 
-        var
-           i : longint;
-        begin
-           { allow slash as backslash }
-           for i:=0 to strlen(path) do
-             if path[i]='/' then path[i]:='\';
-           copytodos(f,sizeof(searchrec));
-           dosregs.edx:=transfer_buffer mod 16;
-           dosregs.ds:=transfer_buffer div 16;
-           dosregs.ah:=$1a;
-           msdos(dosregs);
-           dosregs.ecx:=attr;
-           dosregs.edx:=(transfer_buffer mod 16) + Sizeof(searchrec)+1;
-           dosmemput(transfer_buffer div 16,
-             (transfer_buffer mod 16) +Sizeof(searchrec)+1,path^,strlen(path)+1);
-           dosregs.ds:=transfer_buffer div 16;
-           dosregs.ah:=$4e;
-           msdos(dosregs);
-           copyfromdos(f,sizeof(searchrec));
-           LoadDosError;
-        end;
+procedure LFNSearchRec2Dos(const w:LFNSearchRec;hdl:longint;var d:Searchrec);
+var
+  Len : longint;
+begin
+  With w do
+   begin
+     FillChar(d,sizeof(SearchRec),0);
+     if DosError=0 then
+      len:=StrLen(@Name)
+     else
+      len:=0;
+     d.Name[0]:=chr(len);
+     Move(Name[0],d.Name[1],Len);
+     d.Time:=lmTime;
+     d.Size:=Size;
+     d.Attr:=Attr;
+     Move(hdl,d.Fill,4);
+   end;
+end;
 
-{$else GO32V2}
 
-      procedure _findfirst(path : pchar;attr : word;var f : searchrec);
+procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
+var
+  i : longint;
+  w : LFNSearchRec;
+begin
+  { allow slash as backslash }
+  for i:=0 to strlen(path) do
+    if path[i]='/' then path[i]:='\';
+  dosregs.si:=1; { use ms-dos time }
+  dosregs.ecx:=attr;
+  dosregs.edx:=(transfer_buffer and 15) + Sizeof(LFNSearchrec)+1;
+  dosmemput(transfer_buffer shr 4,(transfer_buffer and 15)+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=transfer_buffer shr 4;
+  dosregs.edi:=transfer_buffer and 15;
+  dosregs.es:=transfer_buffer shr 4;
+  dosregs.ax:=$714e;
+  msdos(dosregs);
+  LoadDosError;
+  copyfromdos(w,sizeof(LFNSearchRec));
+  LFNSearchRec2Dos(w,dosregs.ax,s);
+end;
 
-        var
-           i : longint;
-        begin
-           { allow slash as backslash }
-           for i:=0 to strlen(path) do
-             if path[i]='/' then path[i]:='\';
-           asm
-              movl f,%edx
-              movb $0x1a,%ah
-              int $0x21
-              movl path,%edx
-              movzwl attr,%ecx
-              movb $0x4e,%ah
-              int $0x21
-              jnc .LFF
-              movw %ax,DosError
-           .LFF:
-           end;
-        end;
+
+procedure LFNFindNext(var s:searchrec);
+var
+  hdl : longint;
+  w   : LFNSearchRec;
+begin
+  Move(s.Fill,hdl,4);
+  dosregs.si:=1; { use ms-dos time }
+  dosregs.edi:=transfer_buffer and 15;
+  dosregs.es:=transfer_buffer shr 4;
+  dosregs.ebx:=hdl;
+  dosregs.ax:=$714f;
+  msdos(dosregs);
+  LoadDosError;
+  copyfromdos(w,sizeof(LFNSearchRec));
+  LFNSearchRec2Dos(w,hdl,s);
+end;
+
+
+procedure LFNFindClose(var s:searchrec);
+var
+  hdl : longint;
+begin
+  Move(s.Fill,hdl,4);
+  dosregs.ebx:=hdl;
+  dosregs.ax:=$71a1;
+  msdos(dosregs);
+  LoadDosError;
+end;
 
 {$endif GO32V2}
 
-      var
-         path0 : array[0..80] of char;
 
-      begin
-         { no error }
-         doserror:=0;
-         strpcopy(path0,path);
-         _findfirst(path0,attr,f);
-         dossearchrec2searchrec(f);
-      end;
+{******************************************************************************
+                     --- DosFindfirst DosFindNext ---
+******************************************************************************}
 
-    procedure findnext(var f : searchRec);
+procedure dossearchrec2searchrec(var f : searchrec);
+var
+  len : longint;
+begin
+  len:=StrLen(@f.Name);
+  Move(f.Name[0],f.Name[1],Len);
+  f.Name[0]:=chr(len);
+end;
+
 
 {$ifdef GO32V2}
 
-      procedure _findnext(var f : searchrec);
+procedure DosFindfirst(path : pchar;attr : word;var f : searchrec);
+var
+   i : longint;
+begin
+  { allow slash as backslash }
+  for i:=0 to strlen(path) do
+    if path[i]='/' then path[i]:='\';
+  copytodos(f,sizeof(searchrec));
+  dosregs.edx:=transfer_buffer and 15;
+  dosregs.ds:=transfer_buffer shr 4;
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.ecx:=attr;
+  dosregs.edx:=(transfer_buffer mod 16) + Sizeof(searchrec)+1;
+  dosmemput(transfer_buffer div 16,(transfer_buffer mod 16) +Sizeof(searchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=transfer_buffer div 16;
+  dosregs.ah:=$4e;
+  msdos(dosregs);
+  copyfromdos(f,sizeof(searchrec));
+  LoadDosError;
+  dossearchrec2searchrec(f);
+end;
 
-        begin
-           copytodos(f,sizeof(searchrec));
-           dosregs.edx:=transfer_buffer mod 16;
-           dosregs.ds:=transfer_buffer div 16;
-           dosregs.ah:=$1a;
-           msdos(dosregs);
-           dosregs.ah:=$4f;
-           msdos(dosregs);
-           copyfromdos(f,sizeof(searchrec));
-           LoadDosError;
-        end;
+
+procedure Dosfindnext(var f : searchrec);
+begin
+  copytodos(f,sizeof(searchrec));
+  dosregs.edx:=transfer_buffer mod 16;
+  dosregs.ds:=transfer_buffer div 16;
+  dosregs.ah:=$1a;
+  msdos(dosregs);
+  dosregs.ah:=$4f;
+  msdos(dosregs);
+  copyfromdos(f,sizeof(searchrec));
+  LoadDosError;
+  dossearchrec2searchrec(f);
+end;
 
 {$else GO32V2}
 
-      procedure _findnext(var f : searchrec);
+procedure Dosfindfirst(path : pchar;attr : word;var f : searchrec);
+var
+   i : longint;
+begin
+   { allow slash as backslash }
+   for i:=0 to strlen(path) do
+     if path[i]='/' then path[i]:='\';
+   asm
+      movl f,%edx
+      movb $0x1a,%ah
+      int $0x21
+      movl path,%edx
+      movzwl attr,%ecx
+      movb $0x4e,%ah
+      int $0x21
+      jnc .LFF
+      movw %ax,DosError
+   .LFF:
+   end;
+  dossearchrec2searchrec(f);
+end;
 
-        begin
-           asm
-              movl 12(%ebp),%edx
-              movb $0x1a,%ah
-              int $0x21
-              movb $0x4f,%ah
-              int $0x21
-              jnc .LFN
-              movw %ax,DosError
-           .LFN:
-           end;
-        end;
+
+procedure Dosfindnext(var f : searchrec);
+begin
+   asm
+      movl 12(%ebp),%edx
+      movb $0x1a,%ah
+      int $0x21
+      movb $0x4f,%ah
+      int $0x21
+      jnc .LFN
+      movw %ax,DosError
+   .LFN:
+   end;
+  dossearchrec2searchrec(f);
+end;
 
 {$endif GO32V2}
 
-      begin
-         { no error }
-         doserror:=0;
-         searchrec2dossearchrec(f);
-         _findnext(f);
-         dossearchrec2searchrec(f);
-      end;
 
-    procedure swapvectors;
+{******************************************************************************
+                     --- Findfirst FindNext ---
+******************************************************************************}
+
+procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
+var
+  path0 : array[0..80] of char;
+begin
+  doserror:=0;
+  strpcopy(path0,path);
+{$ifdef Go32V2}
+  if Win95 then
+   LFNFindFirst(path0,attr,f)
+  else
+   Dosfindfirst(path0,attr,f);
+{$else}
+  Dosfindfirst(path0,attr,f);
+{$endif}
+end;
+
+
+procedure findnext(var f : searchRec);
+begin
+  doserror:=0;
+{$ifdef Go32V2}
+  if Win95 then
+   LFNFindnext(f)
+  else
+   Dosfindnext(f);
+{$else}
+  Dosfindnext(f);
+{$endif}
+end;
+
+
+Procedure FindClose(Var f: SearchRec);
+begin
+{$ifdef Go32V2}
+  if Win95 then
+   LFNFindClose(f);
+{$endif}
+end;
+
+
+{$ASMMODE DIRECT}
+procedure swapvectors;
+begin
 {$ifdef go32v2}
+  asm
 { uses four global symbols from v2prt0.as to be able to know the current
   exception state without using dpmiexcp unit }
-{$ASMMODE DIRECT}
-    begin
-         asm
             movl _exception_exit,%eax
             orl  %eax,%eax
             je   .Lno_excep
@@ -733,60 +817,54 @@ end;
             movl _swap_in,%eax
             call *%eax
          .Lno_excep:
-         end;
-      end;
-{$ASMMODE ATT}
-{$else not go32v2}
-      begin
-      end;
+  end;
 {$endif go32v2}
+end;
+{$ASMMODE ATT}
 
-
-    Procedure FindClose(Var f: SearchRec);
-      begin
-      end;
 
 {******************************************************************************
                                --- File ---
 ******************************************************************************}
 
-    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
-      var
-         p1,i : longint;
-      begin
-         { allow slash as backslash }
-         for i:=1 to length(path) do
-          if path[i]='/' then path[i]:='\';
-         { get drive name }
-         p1:=pos(':',path);
-         if p1>0 then
-           begin
-              dir:=path[1]+':';
-              delete(path,1,p1);
-           end
-         else
-           dir:='';
-         { split the path and the name, there are no more path informtions }
-         { if path contains no backslashes                                 }
-         while true do
-           begin
-              p1:=pos('\',path);
-              if p1=0 then
-                break;
-              dir:=dir+copy(path,1,p1);
-              delete(path,1,p1);
-           end;
-         { try to find out a extension }
-         p1:=pos('.',path);
-         if p1>0 then
-           begin
-              ext:=copy(path,p1,4);
-              delete(path,p1,length(path)-p1+1);
-           end
-         else
-           ext:='';
-         name:=path;
-      end;
+procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
+var
+   p1,i : longint;
+begin
+  { allow slash as backslash }
+  for i:=1 to length(path) do
+   if path[i]='/' then path[i]:='\';
+  { get drive name }
+  p1:=pos(':',path);
+  if p1>0 then
+    begin
+       dir:=path[1]+':';
+       delete(path,1,p1);
+    end
+  else
+    dir:='';
+  { split the path and the name, there are no more path informtions }
+  { if path contains no backslashes                                 }
+  while true do
+    begin
+       p1:=pos('\',path);
+       if p1=0 then
+         break;
+       dir:=dir+copy(path,1,p1);
+       delete(path,1,p1);
+    end;
+  { try to find out a extension }
+  p1:=pos('.',path);
+  if p1>0 then
+    begin
+       ext:=copy(path,p1,4);
+       delete(path,p1,length(path)-p1+1);
+    end
+  else
+    ext:='';
+  name:=path;
+end;
+
 
     function fexpand(const path : pathstr) : pathstr;
        var
@@ -870,62 +948,69 @@ end;
           fexpand:=pa;
        end;
 
-    Function FSearch(path: pathstr; dirlist: string): pathstr;
-      var
-         i,p1   : longint;
-         s      : searchrec;
-         newdir : pathstr;
-      begin
-      { No wildcards allowed in these things }
-         if (pos('?',path)<>0) or (pos('*',path)<>0) then
-           fsearch:=''
+
+Function FSearch(path: pathstr; dirlist: string): pathstr;
+var
+  i,p1   : longint;
+  s      : searchrec;
+  newdir : pathstr;
+begin
+{ No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+    fsearch:=''
+  else
+    begin
+       { allow slash as backslash }
+       for i:=1 to length(dirlist) do
+         if dirlist[i]='/' then dirlist[i]:='\';
+       repeat
+         p1:=pos(';',dirlist);
+         if p1<>0 then
+          begin
+            newdir:=copy(dirlist,1,p1-1);
+            delete(dirlist,1,p1);
+          end
          else
-           begin
-              { allow slash as backslash }
-              for i:=1 to length(dirlist) do
-                if dirlist[i]='/' then dirlist[i]:='\';
-              repeat
-                p1:=pos(';',dirlist);
-                if p1<>0 then
-                 begin
-                   newdir:=copy(dirlist,1,p1-1);
-                   delete(dirlist,1,p1);
-                 end
-                else
-                 begin
-                   newdir:=dirlist;
-                   dirlist:='';
-                 end;
-                if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
-                 newdir:=newdir+'\';
-                findfirst(newdir+path,anyfile,s);
-                if doserror=0 then
-                 newdir:=newdir+path
-                else
-                 newdir:='';
-              until (dirlist='') or (newdir<>'');
-              fsearch:=newdir;
-           end;
-      end;
+          begin
+            newdir:=dirlist;
+            dirlist:='';
+          end;
+         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+          newdir:=newdir+'\';
+         findfirst(newdir+path,anyfile,s);
+         if doserror=0 then
+          newdir:=newdir+path
+         else
+          newdir:='';
+       until (dirlist='') or (newdir<>'');
+       fsearch:=newdir;
+    end;
+end;
 
-    procedure getftime(var f;var time : longint);
-      begin
-         dosregs.bx:=textrec(f).handle;
-         dosregs.ax:=$5700;
-         msdos(dosregs);
-         time:=(dosregs.dx shl 16)+dosregs.cx;
-         doserror:=dosregs.al;
-      end;
 
-   procedure setftime(var f;time : longint);
-      begin
-         dosregs.bx:=textrec(f).handle;
-         dosregs.cx:=time and $ffff;
-         dosregs.dx:=time shr 16;
-         dosregs.ax:=$5701;
-         msdos(dosregs);
-         doserror:=dosregs.al;
-      end;
+{******************************************************************************
+                       --- Get/Set File Time,Attr ---
+******************************************************************************}
+
+procedure getftime(var f;var time : longint);
+begin
+  dosregs.bx:=textrec(f).handle;
+  dosregs.ax:=$5700;
+  msdos(dosregs);
+  time:=(dosregs.dx shl 16)+dosregs.cx;
+  doserror:=dosregs.al;
+end;
+
+
+procedure setftime(var f;time : longint);
+begin
+  dosregs.bx:=textrec(f).handle;
+  dosregs.cx:=time and $ffff;
+  dosregs.dx:=time shr 16;
+  dosregs.ax:=$5701;
+  msdos(dosregs);
+  doserror:=dosregs.al;
+end;
 
 
 procedure getfattr(var f;var attr : word);
@@ -942,7 +1027,13 @@ begin
   strpcopy(n,filerec(f).name);
   dosregs.edx:=longint(@n);
 {$endif}
-  dosregs.ax:=$4300;
+  if Win95 then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=0;
+   end
+  else
+   dosregs.ax:=$4300;
   msdos(dosregs);
   LoadDosError;
   Attr:=dosregs.cx;
@@ -963,7 +1054,13 @@ begin
   strpcopy(n,filerec(f).name);
   dosregs.edx:=longint(@n);
 {$endif}
-  dosregs.ax:=$4301;
+  if Win95 then
+   begin
+     dosregs.ax:=$7143;
+     dosregs.bx:=1;
+   end
+  else
+   dosregs.ax:=$4301;
   dosregs.cx:=attr;
   msdos(dosregs);
   LoadDosError;
@@ -1042,7 +1139,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  1998-08-16 09:12:13  michael
+  Revision 1.8  1998-08-16 20:39:49  peter
+    + LFN Support
+
+  Revision 1.7  1998/08/16 09:12:13  michael
   Corrected fexpand behaviour.
 
   Revision 1.6  1998/08/05 21:01:50  michael
@@ -1062,6 +1162,4 @@ end.
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array
     + read_text_as_pchar which was not yet in the rtl
-
 }
-
