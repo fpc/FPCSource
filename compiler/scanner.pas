@@ -139,6 +139,23 @@ implementation
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
 
+{$ifdef new__is_keyword}
+    function encode(const s:string):longint;
+
+    var i,result:longint;
+
+    begin
+        result:=0;
+        for i:=1 to 6 do
+            begin
+                if length(s)<i then
+                    break;
+                result:=result*32+byte(s[i])-65;
+            end;
+        encode:=result;
+    end;
+{$endif new__is_keyword}
+
     procedure create_tokenidx;
     { create an index with the first and last token for every possible token
       length, so a search only will be done in that small part }
@@ -152,11 +169,14 @@ implementation
               if ord(tokenidx[length(tokens[t].str)].first)=0 then
                tokenidx[length(tokens[t].str)].first:=t;
               tokenidx[length(tokens[t].str)].last:=t;
+              {$ifdef new__is_keyword}
+              tokens[t].encoded:=encode(tokens[t].str);
+              {$endif new__is_keyword}
             end;
          end;
       end;
 
-
+{$ifndef new__is_keyword}
     function is_keyword(const s:string):boolean;
       var
         low,high,mid : longint;
@@ -179,6 +199,28 @@ implementation
         is_keyword:=(pattern=tokens[ttoken(high)].str) and
                     (tokens[ttoken(high)].keyword in aktmodeswitches);
       end;
+{$else}
+
+    function is_keyword(const s:string):boolean;
+      var
+        encoded,low,high,mid : longint;
+      begin
+        encoded:=encode(s);
+        low:=ord(tokenidx[length(s)].first);
+        high:=ord(tokenidx[length(s)].last);
+        while low<high do
+         begin
+           mid:=(high+low+1) shr 1;
+           if encoded<tokens[ttoken(mid)].encoded then
+            high:=mid-1
+           else
+            low:=mid;
+         end;
+        is_keyword:=(encoded=tokens[ttoken(high)].encoded) and
+                    ((length(s)<6) or (pattern=tokens[Ttoken(high)].str)) and
+                    (tokens[ttoken(high)].keyword in aktmodeswitches);
+      end;
+{$endif new__is_keyword}
 
 
 {*****************************************************************************
@@ -875,9 +917,12 @@ implementation
       var
         code    : integer;
         low,high,mid,
-        l       : longint;
+        l       : {$ifdef TP} word; {$else} longint; {$endif}
+        m       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
+        encoded : longint;
+        p:^byte;
       label
          exit_label;
       begin
@@ -929,25 +974,44 @@ implementation
          gettokenpos;
 
       { Check first for a identifier/keyword, this is 20+% faster (PFV) }
-        if c in ['_','A'..'Z','a'..'z'] then
+        if c in ['A'..'Z','a'..'z','_'] then
          begin
            readstring;
            token:=ID;
            idtoken:=ID;
          { keyword or any other known token ? }
-           if (length(pattern) in [2..tokenidlen]) then
+           if length(pattern) in [2..tokenidlen] then
             begin
+              {$ifdef new__is_keyword}
+              encoded:=0;
+              p:=@pattern[1];
+              l:=1;
+              while (length(pattern)>=l) and (l<7) do
+                begin
+                    encoded:=encoded*32+p^-65;
+                    inc(p);
+                    inc(l);
+                end;
+              {$endif new__is_keyword}
               low:=ord(tokenidx[length(pattern)].first);
               high:=ord(tokenidx[length(pattern)].last);
               while low<high do
                begin
                  mid:=(high+low+1) shr 1;
+                 {$ifndef new__is_keyword}
                  if pattern<tokens[ttoken(mid)].str then
+                 {$else}
+                 if encoded<tokens[ttoken(mid)].encoded then
+                 {$endif new__is_keyword}
                   high:=mid-1
                  else
                   low:=mid;
                end;
+             {$ifndef new__is_token}
               if pattern=tokens[ttoken(high)].str then
+             {$else}
+              if encoded=tokens[ttoken(high)].encoded then
+             {$endif new__is_token}
                begin
                  if tokens[ttoken(high)].keyword in aktmodeswitches then
                   token:=ttoken(high);
@@ -1229,11 +1293,11 @@ implementation
                                            readchar;
                                          end;
                                      end;
-                                   valint(asciinr,l,code);
+                                   valint(asciinr,m,code);
                                    if (asciinr='') or (code<>0) or
-                                      (l<0) or (l>255) then
+                                      (m<0) or (m>255) then
                                     Message(scan_e_illegal_char_const);
-                                   pattern:=pattern+chr(l);
+                                   pattern:=pattern+chr(m);
                                  end;
                           '''' : begin
                                    repeat
@@ -1451,7 +1515,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  1998-10-15 12:22:23  pierre
+  Revision 1.63  1998-10-16 14:20:57  daniel
+  * Faster keyword scanning.
+  * Import library and smartlink library in one file.
+
+  Revision 1.62  1998/10/15 12:22:23  pierre
     * close include files immediately after end reading
       instead of waiting until unit compilation ended !
 

@@ -178,6 +178,7 @@ type
     str     : string[tokenidlen];
     special : boolean;
     keyword : tmodeswitch;
+    encoded : longint;
   end;
 
 const
@@ -333,7 +334,11 @@ const
 
 {
   $Log$
-  Revision 1.2  1998-09-30 12:12:30  peter
+  Revision 1.3  1998-10-16 14:21:05  daniel
+  * Faster keyword scanning.
+  * Import library and smartlink library in one file.
+
+  Revision 1.2  1998/09/30 12:12:30  peter
     * fixed far,near which are not keywords
 
   Revision 1.1  1998/09/26 17:45:47  peter

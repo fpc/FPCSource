@@ -259,8 +259,9 @@ const   ar_magic:array[1..8] of char='!<arch>'#10;
 
 begin
     seq_no:=1;
-    current_module^.linksharedlibs.insert(s);
-    assign(out_file,s+'.ao2');
+    if not (cs_smartlink in aktmoduleswitches) then
+        current_module^.linkstaticlibs.insert(s);
+    assign(out_file,current_module^.path^+s+'.ao2');
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));
 end;
@@ -328,7 +329,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-06-17 14:10:14  peter
+  Revision 1.5  1998-10-16 14:20:53  daniel
+  * Faster keyword scanning.
+  * Import library and smartlink library in one file.
+
+  Revision 1.4  1998/06/17 14:10:14  peter
     * small os2 fixes
     * fixed interdependent units with newppu (remake3 under linux works now)
 
