@@ -1282,6 +1282,13 @@ implementation
         if assigned(next) and
            (next.symtabletype=parasymtable) then
           begin
+            { check para symtable }
+            hsym:=tsym(next.search(sym.name));
+            if assigned(hsym) then
+              begin
+                DuplicateSym(hsym);
+                exit;
+              end;
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
                { funcretsym is allowed !! }
@@ -2452,7 +2459,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-06-07 20:26:32  peter
+  Revision 1.105  2003-06-08 11:40:00  peter
+    * check parast when inserting in localst
+
+  Revision 1.104  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
