@@ -46,6 +46,9 @@ uses
   FPRedir,
   FPConst,FPVars,FPUtils,FPIntf,FPSwitch;
 
+const
+    LastStatusUpdate : longint = 0;
+
 constructor TCompileStatusDialog.Init;
 var R: TRect;
 begin
@@ -117,8 +120,14 @@ end;
 ****************************************************************************}
 
 function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
+var TT: longint;
 begin
+  TT:=GetDosTicks;
+  if abs(TT-LastStatusUpdate)>=round(CompilerStatusUpdateDelay*18.2) then
+    begin
+      LastStatusUpdate:=TT;
   if SD<>nil then SD^.Update;
+    end;
   CompilerStatus:=false;
 end;
 
@@ -279,7 +288,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-03-12 01:13:56  peter
+  Revision 1.18  1999-03-16 12:38:07  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.17  1999/03/12 01:13:56  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

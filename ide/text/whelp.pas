@@ -443,7 +443,11 @@ begin
   New(F, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
-  if OK then begin FS:=F^.GetSize; OK:=ReadHeader; end;
+  if OK then
+    begin
+      FS:=F^.GetSize;
+      OK:=ReadHeader;
+    end;
   while OK do
   begin
     L:=F^.GetPos;
@@ -478,7 +482,7 @@ var S: string;
     OK: boolean;
 begin
   F^.Seek(0);
-  F^.Read(S[1],255); S[0]:=#255;
+  F^.Read(S[1],128); S[0]:=#255;
   OK:=(F^.Status=stOK); P:=Pos(Signature,S);
   OK:=OK and (P>0);
   if OK then
@@ -506,7 +510,7 @@ begin
   OK:=ReadRecord(R, true);
   if OK then
   with THLPContexts(R.Data^) do
-  for I:=1 to ContextCount-1 do
+  for I:=1 to longint(ContextCount)-1 do
   begin
     if Topics^.Count=MaxCollectionSize then Break;
     L:=GetCtxPos(Contexts[I]);
@@ -622,11 +626,10 @@ begin
   case N of
     $00       : C:=#0;
     $01..$0D  : C:=chr(Compression.CharTable[N]);
-{$ifdef FPC}
-    ncRawChar : C:=chr(GetNextNibble shl 4+GetNextNibble);
-{$else}
-    ncRawChar : C:=chr(GetNextNibble+GetNextNibble shl 4);
-{$endif}
+    ncRawChar : begin
+                  I:=GetNextNibble;
+                  C:=chr(I+GetNextNibble shl 4);
+                end;
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
                   C:=GetNextChar{$ifdef FPC}(){$endif};
@@ -919,7 +922,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-03-08 14:58:19  peter
+  Revision 1.11  1999-03-16 12:38:16  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.10  1999/03/08 14:58:19  peter
     + prompt with dialogs for tools
 
   Revision 1.9  1999/03/03 16:44:05  pierre

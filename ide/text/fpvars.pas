@@ -59,6 +59,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
+      DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -73,7 +74,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.12  1999-03-12 01:14:02  peter
+  Revision 1.13  1999-03-16 12:38:15  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.12  1999/03/12 01:14:02  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

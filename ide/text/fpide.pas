@@ -32,6 +32,7 @@ type
       procedure   Open(FileName: string);
       function    OpenSearch(FileName: string) : boolean;
       procedure   Idle; virtual;
+      procedure   Update;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
@@ -40,8 +41,6 @@ type
     public
       procedure ShowUserScreen;
       procedure ShowIDEScreen;
-    public
-      procedure UpdatePrimaryFile;
     private
       Heap: PFPHeapView;
       procedure NewEditor;
@@ -83,6 +82,7 @@ type
       procedure Preferences;
       procedure EditorOptions(Editor: PEditor);
       procedure BrowserOptions(Browser: PBrowserWindow);
+      procedure DesktopOptions;
       procedure Mouse;
       procedure StartUp;
       procedure Colors;
@@ -105,8 +105,8 @@ type
       function  SearchRecentFile(AFileName: string): integer;
       procedure RemoveRecentFile(Index: integer);
     private
-      procedure Update;
       procedure CurDirChanged;
+      procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
       procedure UpdateRecentFileList;
       procedure UpdateTools;
@@ -251,10 +251,11 @@ begin
       NewSubMenu('~E~nvironment', hcEnvironmentMenu, NewMenu(
         NewItem('~P~references...','', kbNoKey, cmPreferences, hcPreferences,
         NewItem('~E~ditor...','', kbNoKey, cmEditor, hcEditor,
+        NewItem('~D~esktop...','', kbNoKey, cmDesktopOptions, hcDesktopOptions,
         NewItem('~M~ouse...','', kbNoKey, cmMouse, hcMouse,
         NewItem('~S~tartup...','', kbNoKey, cmStartup, hcStartup,
         NewItem('~C~olors...','', kbNoKey, cmColors, hcColors,
-        nil)))))),
+        nil))))))),
       NewLine(
       NewItem('~O~pen...','', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem('~S~ave','', kbNoKey, cmSaveINI, hcSaveINI,
@@ -411,6 +412,7 @@ begin
              cmBrowserOptions : BrowserOptions(Event.InfoPtr);
              cmMouse         : Mouse;
              cmStartup       : StartUp;
+             cmDesktopOptions: DesktopOptions;
              cmColors        : Colors;
              cmOpenINI       : OpenINI;
              cmSaveINI       : SaveINI;
@@ -718,7 +720,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  1999-03-12 01:13:57  peter
+  Revision 1.23  1999-03-16 12:38:10  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.22  1999/03/12 01:13:57  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

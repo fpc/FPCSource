@@ -89,11 +89,12 @@ BEGIN
   ReadSwitches(SwitchesPath);
 
   MyApp.Init;
+
   { load all options after init because of open files }
   ReadINIFile;
+
   { Update IDE }
-  if PrimaryFile<>'' then
-   MyApp.UpdatePrimaryFile;
+  MyApp.Update;
 
   ProcessParams(false);
 
@@ -118,7 +119,12 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.16  1999-03-12 01:13:01  peter
+  Revision 1.17  1999-03-16 12:38:06  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.16  1999/03/12 01:13:01  peter
     * use TryToOpen() with parameter files to overcome double opened files
       at startup
 

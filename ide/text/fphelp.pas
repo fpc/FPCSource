@@ -155,6 +155,7 @@ begin
     hcToolsBase..
     hcToolsBase+MaxToolCount
                     : S:='User installed tool';
+    hcASCIITable    : S:='Show ASCII table';
 
     hcOptionsMenu   : S:='Setting for compiler, editor, mouse, etc.';
     hcSwitchesMode  : S:='Select settings for normal, debug or release version';
@@ -170,6 +171,7 @@ begin
     hcPreferences   : S:='Specify desktop settings';
     hcEditor        : S:='Specify default editor settings';
     hcMouse         : S:='Specify mouse settings';
+    hcDesktopOptions: S:='Specify desktop settings';
     hcStartup       : S:='Permanently change default startup options';
     hcColors        : S:='Customize IDE colors for windows, menus, editors, etc.';
     hcOpenINI       : S:='Load a previously saved options file';
@@ -377,11 +379,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-03-01 15:41:53  peter
+  Revision 1.12  1999-03-16 12:38:09  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.11  1999/03/01 15:41:53  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

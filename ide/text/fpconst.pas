@@ -26,6 +26,8 @@ const
      MaxRecentFileCount   = 5;
      MaxToolCount         = 16;
 
+     CompilerStatusUpdateDelay = 0.8; { in secs }
+
      ININame              = 'fp.ini';
      SwitchesName         = 'fp.cfg';
 
@@ -58,6 +60,14 @@ const
 
      { Startup Option constants }
      soReturnToLastDir    = $00000001;
+
+     { Desktop Flag constants - what to include in the desktop file }
+     dfHistoryLists       = $00000001;
+     dfClipboardContent   = $00000002;
+     dfWatches            = $00000004;
+     dfBreakpoints        = $00000008;
+     dfOpenWindows        = $00000010;
+     dfSymbolInformation  = $00000020;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -130,6 +140,7 @@ const
      cmSaveAsINI         = 2013;
      cmSwitchesMode      = 2014;
      cmBrowser           = 2015;
+     cmDesktopOptions    = 2016;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
@@ -192,6 +203,7 @@ const
 {     hcGrep              = hcShift+cmGrep;}
      hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcBrowser           = hcShift+cmBrowser;
+     hcDesktopOptions    = hcShift+cmDesktopOptions;
      hcAbout             = hcShift+cmAbout;
 
      hcSystemMenu        = 9000;
@@ -294,11 +306,16 @@ implementation
 END.
 {
   $Log$
-  Revision 1.13  1999-03-01 15:41:51  peter
+  Revision 1.14  1999-03-16 12:38:08  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.13  1999/03/01 15:41:51  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

@@ -484,7 +484,7 @@ var R,R2: TRect;
     items : PSItem;
     videomode : tvideomode;
     i,modevalue : longint;
-    
+
 
   function ToStr(l : longint) : string;
 
@@ -498,7 +498,7 @@ var R,R2: TRect;
 
   const
      color2str : array[false..true] of string = ('in b/w','in color');
-    
+
 begin
   GetVideoMode(videomode);
   CountModes:=0;
@@ -512,7 +512,7 @@ begin
      items:=nil;
      r2.assign(2,3,24,17);
      while assigned(hp) do
-       begin          
+       begin
           items:=NewSItem(ToStr(hp^.col)+'x'+ToStr(hp^.row)+' '+color2str[hp^.color],items);
           if (hp^.col=videomode.col) and (hp^.row=videomode.row) and
             (hp^.color=videomode.color) then
@@ -525,7 +525,7 @@ begin
           hp:=hp^.next;
        end;
      modevalue:=CountModes-modevalue-1;
-     new(rb1,init(r2,items));     
+     new(rb1,init(r2,items));
      insert(rb1);
      rb1^.value:=modevalue;
 
@@ -538,7 +538,7 @@ begin
       { change video mode ? }
       if rb1^.value<>modevalue then
         begin
-            
+
         end;
    end;
   Dispose(D, Done);
@@ -704,6 +704,38 @@ end;
 procedure TIDEApp.Startup;
 begin
   NotImplemented;
+end;
+
+procedure TIDEApp.DesktopOptions;
+var R: TRect;
+    D: PCenterDialog;
+    CB: PCheckBoxes;
+begin
+  R.Assign(0,0,40,10);
+  New(D, Init(R, 'Desktop Preferences'));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+6;
+    New(CB, Init(R,
+      NewSItem('~H~istory lists',
+      NewSItem('~C~lipboard content',
+      NewSItem('~W~atch expressions',
+      NewSItem('~B~reakpoints',
+      NewSItem('~O~pen windows',
+      NewSItem('~S~ymbol information',
+      nil))))))));
+    CB^.Value:=DesktopFileFlags;
+    Insert(CB);
+    R.Move(0,-1); R.B.Y:=R.A.Y+1;
+    Insert(New(PLabel, Init(R, '~P~reserved across sessions', CB)));
+  end;
+  InsertButtons(D);
+  CB^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+    begin
+      DesktopFileFlags:=CB^.Value;
+    end;
+  Dispose(D, Done);
 end;
 
 procedure TIDEApp.Mouse;
@@ -891,7 +923,12 @@ end;
 
 {
   $Log$
-  Revision 1.20  1999-03-14 22:18:16  florian
+  Revision 1.21  1999-03-16 12:38:12  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.20  1999/03/14 22:18:16  florian
     + options/preferences dialog added, without function yet
 
   Revision 1.19  1999/03/12 01:14:00  peter

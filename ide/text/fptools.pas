@@ -214,6 +214,31 @@ begin
   GetHotKeyName:=S;
 end;
 
+function WriteToolMessagesToFile(FileName: string): boolean;
+var OK: boolean;
+    f: text;
+    M: PToolMessage;
+    I: sw_integer;
+begin
+  I:=0;
+  Assign(f,FileName);
+{$I-}
+  Rewrite(f);
+  OK:=EatIO=0;
+  if Assigned(ToolMessages) then
+  while OK and (I<ToolMessages^.Count) do
+  begin
+    M:=ToolMessages^.At(I);
+    writeln(f,GetStr(M^.Module)+#0+GetStr(M^.Text)+#0+IntToStr(M^.Row)+#0+IntToStr(M^.Col));
+    Inc(I);
+    OK:=EatIO=0;
+  end;
+  Close(f);
+  EatIO;
+{$I+}
+  WriteToolMessagesToFile:=OK;
+end;
+
 constructor TTool.Init(const ATitle, AProgramPath, ACommandLine: string; AHotKey: word);
 begin
   inherited Init;
@@ -967,7 +992,7 @@ begin
               if ReadTill(S,')')=false then Err:=I else
               begin
                 Consume(')');
-                I:=I+ReplacePart(LastWordStart,I-1,'');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 ToolFilter:=S;
                 CaptureToolTo:=capMessageWindow;
               end;
@@ -976,7 +1001,7 @@ begin
           begin
             if (Pass=2) then
               begin
-                I:=I+ReplacePart(LastWordStart,I-1,'');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 CaptureToolTo:=capEditWindow;
               end;
           end else
@@ -986,13 +1011,13 @@ begin
             begin
               if W=nil then L:=0 else
                 L:=W^.Editor^.CurPos.X+1;
-              I:=I+ReplacePart(LastWordStart,I-1,IntToStr(L));
+              I:=I+ReplacePart(LastWordStart,I-1,IntToStr(L))-1;
             end;
           end else
         if (WordS='$CONFIG') then
           begin
             if (Pass=1) then
-              I:=I+ReplacePart(LastWordStart,I-1,INIPath);
+              I:=I+ReplacePart(LastWordStart,I-1,INIPath)-1;
           end else
         if (WordS='$DIR') then
           begin
@@ -1002,7 +1027,8 @@ begin
               begin
                 Consume(')');
                 FSplit(S,D,N,E);
-                I:=I+ReplacePart(LastWordStart,I-1,D);
+                L:=Pos(':',D);if L>0 then Delete(D,1,L);
+                I:=I+ReplacePart(LastWordStart,I-1,D)-1;
               end;
           end else
         if (WordS='$DRIVE') then
@@ -1013,9 +1039,9 @@ begin
               begin
                 Consume(')');
                 FSplit(S,D,N,E);
-                L:=Pos(':',D); if L=0 then L:=-1;
-                D:=copy(D,1,L+1);
-                I:=I+ReplacePart(LastWordStart,I-1,D);
+                L:=Pos(':',D);
+                D:=copy(D,1,L);
+                I:=I+ReplacePart(LastWordStart,I-1,D)-1;
               end;
           end else
         if (WordS='$EDNAME') then
@@ -1024,13 +1050,13 @@ begin
             begin
               if W=nil then S:='' else
                 S:=W^.Editor^.FileName;
-              I:=I+ReplacePart(LastWordStart,I-1,S);
+              I:=I+ReplacePart(LastWordStart,I-1,S)-1;
             end;
           end else
         if (WordS='$EXENAME') then
           begin
             if (Pass=1) then
-              I:=I+ReplacePart(LastWordStart,I-1,EXEFile);
+              I:=I+ReplacePart(LastWordStart,I-1,EXEFile)-1;
           end else
         if (WordS='$EXT') then
           begin
@@ -1040,7 +1066,7 @@ begin
               begin
                 Consume(')');
                 FSplit(S,D,N,E); E:=copy(E,2,255);
-                I:=I+ReplacePart(LastWordStart,I-1,E);
+                I:=I+ReplacePart(LastWordStart,I-1,E)-1;
               end;
           end else
         if (WordS='$LINE') then
@@ -1049,7 +1075,7 @@ begin
             begin
               if W=nil then L:=0 else
                 L:=W^.Editor^.CurPos.Y+1;
-              I:=I+ReplacePart(LastWordStart,I-1,IntToStr(L));
+              I:=I+ReplacePart(LastWordStart,I-1,IntToStr(L))-1;
             end;
           end else
         if (WordS='$NAME') then
@@ -1060,7 +1086,7 @@ begin
               begin
                 Consume(')');
                 FSplit(S,D,N,E);
-                I:=I+ReplacePart(LastWordStart,I-1,N);
+                I:=I+ReplacePart(LastWordStart,I-1,N)-1;
               end;
           end else
         if (WordS='$NAMEEXT') then
@@ -1071,14 +1097,14 @@ begin
               begin
                 Consume(')');
                 FSplit(S,D,N,E);
-                I:=I+ReplacePart(LastWordStart,I-1,N+E);
+                I:=I+ReplacePart(LastWordStart,I-1,N+E)-1;
               end;
           end else
         if (WordS='$NOSWAP') then
           begin
             if (Pass=1) then
             begin
-              I:=I+ReplacePart(LastWordStart,I-1,'');
+              I:=I+ReplacePart(LastWordStart,I-1,'')-1;
             end;
           end else
         if (WordS='$DRIVE') then
@@ -1091,7 +1117,7 @@ begin
                 FSplit(S,D,N,E);
                 L:=Pos(':',D); if L=0 then L:=-1;
                 D:=copy(D,1,L+1);
-                I:=I+ReplacePart(LastWordStart,I-1,D);
+                I:=I+ReplacePart(LastWordStart,I-1,D)-1;
               end;
           end else
         if (WordS='$PROMPT') then
@@ -1108,12 +1134,12 @@ begin
                         if ExecutePromptDialog(S,S)=false then
                           Err:=I
                         else
-                          I:=I+ReplacePart(LastWordStart,I-1,S);
+                          I:=I+ReplacePart(LastWordStart,I-1,S)-1;
                   end;
                 end
               else { just prompt for parms }
                 begin
-                  I:=I+ReplacePart(LastWordStart,I-1,'');
+                  I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                   if CheckOnly=false then
                     begin
                       S:=copy(Params,I+1,255);
@@ -1137,7 +1163,7 @@ begin
           begin
             if (Pass=2) then
               begin
-                I:=I+ReplacePart(LastWordStart,I-1,'');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 Message(Application,evCommand,cmSaveAll,nil);
               end;
           end else
@@ -1145,7 +1171,7 @@ begin
           begin
             if (Pass=2) then
               begin
-                I:=I+ReplacePart(LastWordStart,I-1,'');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 Message(W,evCommand,cmSave,nil);
               end;
           end else
@@ -1153,10 +1179,22 @@ begin
           begin
             if (Pass=2) then
               begin
-                I:=I+ReplacePart(LastWordStart,I-1,'');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
                 if W<>nil then
                   if W^.Editor^.SaveAsk=false then
                     Err:=-1;
+              end;
+          end else
+        if (WordS='$WRITEMSG') then
+          begin
+            if (Pass=2) then
+              if Consume('(')=false then Err:=I else
+              if ReadTill(S,')')=false then Err:=I else
+              begin
+                Consume(')');
+                I:=I+ReplacePart(LastWordStart,I-1,'')-1;
+                if CheckOnly=false then
+                  WriteToolMessagesToFile(S);
               end;
           end else
         if copy(WordS,1,1)='$' then
@@ -1388,7 +1426,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-03-08 14:58:12  peter
+  Revision 1.6  1999-03-16 12:38:14  peter
+    * tools macro fixes
+    + tph writer
+    + first things for resource files
+
+  Revision 1.5  1999/03/08 14:58:12  peter
     + prompt with dialogs for tools
 
   Revision 1.4  1999/03/01 15:42:04  peter
