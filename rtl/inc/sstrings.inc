@@ -359,7 +359,7 @@ end;
 
 procedure val(const s : string;var l : longint;var code : integer);
 begin
-  val(s,l,integer(code));
+  val(s,l,word(code));
 end;
 
 
@@ -904,7 +904,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-10-10 15:28:46  peter
+  Revision 1.14  1998-10-11 14:30:19  peter
+    * small typo :(
+
+  Revision 1.13  1998/10/10 15:28:46  peter
     + read single,fixed
     + val with code:longint
     + val for fixed
