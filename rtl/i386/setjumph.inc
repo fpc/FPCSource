@@ -14,10 +14,13 @@
 
  **********************************************************************}
 
-{$ifdef linux}
-  {$define needsigprocmask}
+{$ifndef VER1_0}
+  {$if (FPC_VERSION>1) or ((FPC_RELEASE>=9) and (FPC_PATCH>6))}
+    {$ifdef linux}
+      {$define needsigprocmask}
+    {$endif}
+  {$endif}
 {$endif}
-
 
 {$ifdef needsigprocmask}
 const
@@ -47,7 +50,10 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.5  2005-01-20 16:38:28  peter
+  Revision 1.6  2005-01-24 16:54:16  peter
+    * no sigprocmask for 1.0.x bootstrapping
+
+  Revision 1.5  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
 
   Revision 1.4  2002/09/15 10:04:31  carl
