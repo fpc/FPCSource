@@ -32,7 +32,7 @@ interface
 
     uses
        { common }
-       cobjects,
+       cclasses,cobjects,
        { target }
        systems,
        { assembler }
@@ -63,7 +63,7 @@ interface
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
          strs,
-         syms    : Pdynamicarray;
+         syms    : Tdynamicarray;
        end;
 
        tcoffoutput = class(tobjectoutput)
@@ -191,8 +191,8 @@ implementation
       var
         s : string;
       begin
-        new(syms,init(symbolresize));
-        new(strs,init(strsresize));
+        Syms:=TDynamicArray.Create(symbolresize);
+        Strs:=TDynamicArray.Create(strsresize);
         { we need at least the following 3 sections }
         createsection(sec_code);
         createsection(sec_data);
@@ -292,9 +292,9 @@ implementation
            s:=p^.name;
            if length(s)>8 then
             begin
-              sym.nameidx:=strs^.size+4;
-              strs^.writestr(s);
-              strs^.writestr(#0);
+              sym.nameidx:=Strs.size+4;
+              Strs.writestr(s);
+              Strs.writestr(#0);
             end
            else
             begin
@@ -302,9 +302,9 @@ implementation
               sym.namestr:=s;
             end;
            { update the asmsymbol index }
-           p^.idx:=syms^.size div sizeof(TOutputSymbol);
+           p^.idx:=Syms.size div sizeof(TOutputSymbol);
            { write the symbol }
-           syms^.write(sym,sizeof(toutputsymbol));
+           Syms.write(sym,sizeof(toutputsymbol));
          end
         else
          begin
@@ -623,10 +623,10 @@ implementation
                writer.write(secrec,sizeof(secrec));
              end;
            { The real symbols }
-           syms^.seek(0);
-           for i:=1 to syms^.size div sizeof(TOutputSymbol) do
+           Syms.seek(0);
+           for i:=1 to Syms.size div sizeof(TOutputSymbol) do
             begin
-              syms^.read(sym,sizeof(TOutputSymbol));
+              Syms.read(sym,sizeof(TOutputSymbol));
               if sym.bind=AB_LOCAL then
                 globalval:=3
               else
@@ -679,8 +679,8 @@ implementation
               hstab.nother:=0;
               hstab.ndesc:=(sects[sec_stab].datasize div sizeof(coffstab))-1{+1 according to gas output PM};
               hstab.nvalue:=sects[sec_stabstr].datasize;
-              sects[sec_stab].data^.seek(0);
-              sects[sec_stab].data^.write(hstab,sizeof(hstab));
+              sects[sec_stab].data.seek(0);
+              sects[sec_stab].data.write(hstab,sizeof(hstab));
             end;
          { Calculate the filepositions }
            datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
@@ -709,7 +709,7 @@ implementation
            header.mach:=$14c;
            header.nsects:=nsects;
            header.sympos:=sympos;
-           header.syms:=(syms^.size div sizeof(TOutputSymbol))+initsym;
+           header.syms:=(Syms.size div sizeof(TOutputSymbol))+initsym;
            if gotreloc then
             header.flag:=$104
            else
@@ -745,7 +745,7 @@ implementation
                assigned(sects[sec].data) then
              begin
                sects[sec].alignsection;
-               hp:=sects[sec].data^.firstblock;
+               hp:=sects[sec].data.firstblock;
                while assigned(hp) do
                 begin
                   writer.write(hp^.data,hp^.used);
@@ -759,9 +759,9 @@ implementation
          { Symbols }
            write_symbols;
          { Strings }
-           i:=strs^.size+4;
+           i:=Strs.size+4;
            writer.write(i,4);
-           hp:=strs^.firstblock;
+           hp:=Strs.firstblock;
            while assigned(hp) do
             begin
               writer.write(hp^.data,hp^.used);
@@ -778,7 +778,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-12-23 19:59:35  peter
+  Revision 1.7  2000-12-24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.6  2000/12/23 19:59:35  peter
     * object to class for ow/og objects
     * split objectdata from objectoutput
 

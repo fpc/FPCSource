@@ -86,6 +86,12 @@ procedure ansistringdispose(var p : pchar;length : longint);
 function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
 function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
 
+{*****************************************************************************
+                                 File Functions
+*****************************************************************************}
+
+    function DeleteFile(const fn:string):boolean;
+
 
 implementation
 
@@ -606,12 +612,32 @@ end;
       end;
 
 
+{*****************************************************************************
+                                 File Functions
+*****************************************************************************}
+
+    function DeleteFile(const fn:string):boolean;
+      var
+        f : file;
+      begin
+        {$I-}
+         assign(f,fn);
+         erase(f);
+        {$I-}
+        DeleteFile:=(IOResult=0);
+      end;
+
+
 initialization
   initupperlower;
 end.
 {
   $Log$
-  Revision 1.4  2000-11-28 00:17:43  pierre
+  Revision 1.5  2000-12-24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.4  2000/11/28 00:17:43  pierre
    + int64tostr function added
 
   Revision 1.3  2000/11/07 20:47:35  peter

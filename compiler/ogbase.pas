@@ -35,7 +35,7 @@ interface
        dos,
 {$endif Delphi}
        { common }
-       cobjects,
+       cclasses,cobjects,
        { targets }
        systems,
        { outputwriters }
@@ -73,7 +73,7 @@ interface
           secsymidx : longint; { index for the section in symtab }
           addralign : longint;
           { size of the data and in the file }
-          data      : PDynamicArray;
+          data      : TDynamicArray;
           datasize  : longint;
           datapos   : longint;
           { size and position in memory, set by setsectionsize }
@@ -236,7 +236,7 @@ implementation
         if alloconly then
          data:=nil
         else
-         new(Data,Init(8192));
+         Data:=TDynamicArray.Create(8192);
         { position }
         mempos:=0;
         memsize:=0;
@@ -250,7 +250,7 @@ implementation
     destructor tobjectsection.destroy;
       begin
         if assigned(Data) then
-          dispose(Data,done);
+          Data.Free;
       end;
 
 
@@ -259,7 +259,7 @@ implementation
         write:=datasize;
         if not assigned(Data) then
          Internalerror(3334441);
-        Data^.write(d,l);
+        Data.write(d,l);
         inc(datasize,l);
       end;
 
@@ -269,7 +269,7 @@ implementation
         writestr:=datasize;
         if not assigned(Data) then
          Internalerror(3334441);
-        Data^.write(s[1],length(s));
+        Data.write(s[1],length(s));
         inc(datasize,length(s));
       end;
 
@@ -288,7 +288,7 @@ implementation
            if assigned(data) then
             begin
               fillchar(empty,sizeof(empty),0);
-              data^.write(empty,l-i);
+              Data.write(empty,l-i);
             end;
            inc(datasize,l-i);
          end;
@@ -529,7 +529,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-12-23 19:59:35  peter
+  Revision 1.4  2000-12-24 12:25:31  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.3  2000/12/23 19:59:35  peter
     * object to class for ow/og objects
     * split objectdata from objectoutput
 

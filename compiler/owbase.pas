@@ -25,6 +25,8 @@ unit owbase;
 {$i defines.inc}
 
 interface
+uses
+  cstreams;
 
 type
   tobjectwriter=class
@@ -35,7 +37,7 @@ type
     procedure writesym(const sym:string);virtual;
     procedure write(const b;len:longint);virtual;
   private
-    f      : file;
+    f      : TCFileStream;
     opened : boolean;
     buf    : pchar;
     bufidx : longint;
@@ -47,6 +49,7 @@ type
 implementation
 
 uses
+   cutils,
    verbose;
 
 const
@@ -71,11 +74,8 @@ end;
 
 procedure tobjectwriter.createfile(const fn:string);
 begin
-  assign(f,fn);
-  {$I-}
-   rewrite(f,1);
-  {$I+}
-  if ioresult<>0 then
+  f:=TCFileStream.Create(fn,fmCreate);
+  if CStreamError<>0 then
     begin
        Message1(exec_e_cant_create_objectfile,fn);
        exit;
@@ -87,18 +87,16 @@ end;
 
 
 procedure tobjectwriter.closefile;
+var
+  fn : string;
 begin
   if bufidx>0 then
    writebuf;
-  system.close(f);
+  fn:=f.filename;
+  f.free;
 { Remove if size is 0 }
   if size=0 then
-   begin
-     {$I-}
-      system.erase(f);
-     {$I+}
-     if ioresult<>0 then;
-   end;
+   DeleteFile(fn);
   opened:=false;
   size:=0;
 end;
@@ -106,7 +104,7 @@ end;
 
 procedure tobjectwriter.writebuf;
 begin
-  blockwrite(f,buf^,bufidx);
+  f.write(buf^,bufidx);
   bufidx:=0;
 end;
 
@@ -149,9 +147,9 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-12-23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
+  Revision 1.6  2000-12-24 12:25:32  peter
+    + cstreams unit
+    * dynamicarray object to class
 
   Revision 1.4  2000/09/24 15:06:20  peter
     * use defines.inc

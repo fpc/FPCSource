@@ -32,7 +32,7 @@ interface
 
     uses
        { common }
-       cobjects,
+       cclasses,cobjects,
        { target }
        systems,
        { assembler }
@@ -67,8 +67,7 @@ interface
          gotsect,
          pltsect,
          symsect  : telf32Section;
-         strs,
-         syms     : Pdynamicarray;
+         syms     : Tdynamicarray;
          constructor create;
          destructor  destroy;override;
          procedure createsection(sec:tsection);override;
@@ -107,7 +106,6 @@ implementation
 
     const
       symbolresize = 200*18;
-      strsresize   = 8192;
       DataResize   = 8192;
 
     const
@@ -286,7 +284,7 @@ implementation
       begin
         inherited create;
         { reset }
-        new(syms,init(symbolresize));
+        Syms:=TDynamicArray.Create(symbolresize);
         { default sections }
         symtabsect:=telf32section.createname('.symtab',2,0,0,0,4,16);
         strtabsect:=telf32section.createname('.strtab',3,0,0,0,1,0);
@@ -313,7 +311,7 @@ implementation
 
     destructor telf32data.destroy;
       begin
-        dispose(syms,done);
+        Syms.Free;
         symtabsect.free;
         strtabsect.free;
         shstrtabsect.free;
@@ -363,9 +361,9 @@ implementation
            strtabsect.writestr(p^.name);
            strtabsect.writestr(#0);
            { update the asmsymbol index }
-           p^.idx:=syms^.size div sizeof(toutputsymbol);
+           p^.idx:=syms.size div sizeof(toutputsymbol);
            { symbol }
-           syms^.write(sym,sizeof(toutputsymbol));
+           Syms.write(sym,sizeof(toutputsymbol));
          end
         else
          begin
@@ -589,10 +587,10 @@ implementation
                inc(locals);
              end;
          { symbols }
-           syms^.seek(0);
-           for i:=1 to (syms^.size div sizeof(toutputsymbol)) do
+           Syms.seek(0);
+           for i:=1 to (Syms.size div sizeof(toutputsymbol)) do
             begin
-              syms^.read(sym,sizeof(toutputsymbol));
+              Syms.read(sym,sizeof(toutputsymbol));
               fillchar(elfsym,sizeof(elfsym),0);
               elfsym.st_name:=sym.nameidx;
               elfsym.st_value:=sym.value;
@@ -720,8 +718,8 @@ implementation
               hstab.nother:=0;
               hstab.ndesc:=(sects[sec_stab].datasize div sizeof(telf32stab))-1{+1 according to gas output PM};
               hstab.nvalue:=sects[sec_stabstr].datasize;
-              sects[sec_stab].data^.seek(0);
-              sects[sec_stab].data^.write(hstab,sizeof(hstab));
+              sects[sec_stab].Data.seek(0);
+              sects[sec_stab].Data.write(hstab,sizeof(hstab));
             end;
          { Create the relocation sections }
            for sec:=low(tsection) to high(tsection) do
@@ -784,7 +782,7 @@ implementation
                assigned(sects[sec].data) then
              begin
                sects[sec].alignsection;
-               hp:=sects[sec].data^.firstblock;
+               hp:=sects[sec].Data.firstblock;
                while assigned(hp) do
                 begin
                   writer.write(hp^.data,hp^.used);
@@ -793,7 +791,7 @@ implementation
              end;
          { .shstrtab }
            shstrtabsect.alignsection;
-           hp:=shstrtabsect.data^.firstblock;
+           hp:=shstrtabsect.Data.firstblock;
            while assigned(hp) do
             begin
               writer.write(hp^.data,hp^.used);
@@ -813,7 +811,7 @@ implementation
            writesectionheader(strtabsect);
          { .symtab }
            symtabsect.alignsection;
-           hp:=symtabsect.data^.firstblock;
+           hp:=symtabsect.Data.firstblock;
            while assigned(hp) do
             begin
               writer.write(hp^.data,hp^.used);
@@ -821,7 +819,7 @@ implementation
             end;
          { .strtab }
            strtabsect.writealign(4);
-           hp:=strtabsect.data^.firstblock;
+           hp:=strtabsect.Data.firstblock;
            while assigned(hp) do
             begin
               writer.write(hp^.data,hp^.used);
@@ -833,7 +831,7 @@ implementation
                assigned(telf32section(sects[sec]).relocsect) then
              begin
                telf32section(sects[sec]).relocsect.alignsection;
-               hp:=telf32section(sects[sec]).relocsect.data^.firstblock;
+               hp:=telf32section(sects[sec]).relocsect.Data.firstblock;
                while assigned(hp) do
                 begin
                   writer.write(hp^.data,hp^.used);
@@ -846,7 +844,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-12-23 19:59:35  peter
+  Revision 1.4  2000-12-24 12:25:32  peter
+    + cstreams unit
+    * dynamicarray object to class
+
+  Revision 1.3  2000/12/23 19:59:35  peter
     * object to class for ow/og objects
     * split objectdata from objectoutput
 

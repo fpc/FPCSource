@@ -27,7 +27,8 @@ unit owar;
 interface
 
 uses
-  cobjects,owbase;
+  cclasses,
+  owbase;
 
 type
   tarhdr=packed record
@@ -53,7 +54,7 @@ type
     symreloc,
     symstr,
     lfnstr,
-    ardata      : PDynamicArray;
+    ardata      : TDynamicArray;
     objpos      : longint;
     objfn       : string;
     timestamp   : string[12];
@@ -65,6 +66,7 @@ type
 implementation
 
 uses
+   cstreams,
    verbose,
 {$ifdef Delphi}
    dmisc;
@@ -120,10 +122,10 @@ var
   dummy : word;
 begin
   arfn:=Aarfn;
-  new(arData,init(arbufsize));
-  new(symreloc,init(symrelocbufsize));
-  new(symstr,init(symstrbufsize));
-  new(lfnstr,init(lfnstrbufsize));
+  ardata:=TDynamicArray.Create(arbufsize);
+  symreloc:=TDynamicArray.Create(symrelocbufsize);
+  symstr:=TDynamicArray.Create(symstrbufsize);
+  lfnstr:=TDynamicArray.Create(lfnstrbufsize);
 { create timestamp }
   getdate(time.year,time.month,time.day,dummy);
   gettime(time.hour,time.min,time.sec,dummy);
@@ -135,10 +137,10 @@ destructor tarobjectwriter.destroy;
 begin
   if Errorcount=0 then
    writear;
-  dispose(arData,done);
-  dispose(symreloc,done);
-  dispose(symstr,done);
-  dispose(lfnstr,done);
+  arData.Free;
+  symreloc.Free;
+  symstr.Free;
+  lfnstr.Free;
 end;
 
 
@@ -152,10 +154,10 @@ begin
   if length(fn)>16 then
    begin
      arhdr.name[0]:='/';
-     str(lfnstr^.size,tmp);
+     str(lfnstr.size,tmp);
      move(tmp[1],arhdr.name[1],length(tmp));
      fn:=fn+#10;
-     lfnstr^.write(fn[1],length(fn));
+     lfnstr.write(fn[1],length(fn));
    end
   else
    move(fn[1],arhdr.name,length(fn));
@@ -174,19 +176,19 @@ end;
 procedure tarobjectwriter.createfile(const fn:string);
 begin
   objfn:=fn;
-  objpos:=ardata^.size;
-  ardata^.seek(objpos + sizeof(tarhdr));
+  objpos:=ardata.size;
+  ardata.seek(objpos + sizeof(tarhdr));
 end;
 
 
 procedure tarobjectwriter.closefile;
 begin
-  ardata^.align(2);
+  ardata.align(2);
 { fix the size in the header }
-  createarhdr(objfn,ardata^.size-objpos-sizeof(tarhdr),'42','42','644');
+  createarhdr(objfn,ardata.size-objpos-sizeof(tarhdr),'42','42','644');
 { write the header }
-  ardata^.seek(objpos);
-  ardata^.write(arhdr,sizeof(tarhdr));
+  ardata.seek(objpos);
+  ardata.write(arhdr,sizeof(tarhdr));
 end;
 
 
@@ -195,15 +197,15 @@ var
   c : char;
 begin
   c:=#0;
-  symreloc^.write(objpos,4);
-  symstr^.write(sym[1],length(sym));
-  symstr^.write(c,1);
+  symreloc.write(objpos,4);
+  symstr.write(sym[1],length(sym));
+  symstr.write(c,1);
 end;
 
 
 procedure tarobjectwriter.write(const b;len:longint);
 begin
-  ardata^.write(b,len);
+  ardata.write(b,len);
 end;
 
 
@@ -227,63 +229,60 @@ const
 type
   plongint=^longint;
 var
-  arf : file;
+  arf      : TCFileStream;
   fixup,l,
   relocs,i : longint;
 begin
-  assign(arf,arfn);
-  {$I-}
-   rewrite(arf,1);
-  {$I+}
-  if ioresult<>0 then
+  arf:=TCFileStream.Create(arfn,fmCreate);
+  if CStreamError<>0 then
     begin
        Message1(exec_e_cant_create_archivefile,arfn);
        exit;
     end;
-  blockwrite(arf,armagic,sizeof(armagic));
+  arf.Write(armagic,sizeof(armagic));
   { align first, because we need the size for the fixups of the symbol reloc }
-  if lfnstr^.size>0 then
-   lfnstr^.align(2);
-  if symreloc^.size>0 then
+  if lfnstr.size>0 then
+   lfnstr.align(2);
+  if symreloc.size>0 then
    begin
-     symstr^.align(2);
-     fixup:=12+sizeof(tarhdr)+symreloc^.size+symstr^.size;
-     if lfnstr^.size>0 then
-      inc(fixup,lfnstr^.size+sizeof(tarhdr));
-     relocs:=symreloc^.size div 4;
+     symstr.align(2);
+     fixup:=12+sizeof(tarhdr)+symreloc.size+symstr.size;
+     if lfnstr.size>0 then
+      inc(fixup,lfnstr.size+sizeof(tarhdr));
+     relocs:=symreloc.size div 4;
      { fixup relocs }
      for i:=0to relocs-1 do
       begin
-        symreloc^.seek(i*4);
-        symreloc^.read(l,4);
-        symreloc^.seek(i*4);
+        symreloc.seek(i*4);
+        symreloc.read(l,4);
+        symreloc.seek(i*4);
         l:=lsb2msb(l+fixup);
-        symreloc^.write(l,4);
+        symreloc.write(l,4);
       end;
-     createarhdr('',4+symreloc^.size+symstr^.size,'0','0','0');
-     blockwrite(arf,arhdr,sizeof(tarhdr));
+     createarhdr('',4+symreloc.size+symstr.size,'0','0','0');
+     arf.Write(arhdr,sizeof(tarhdr));
      relocs:=lsb2msb(relocs);
-     blockwrite(arf,relocs,4);
-     symreloc^.blockwrite(arf);
-     symstr^.blockwrite(arf);
+     arf.Write(relocs,4);
+     symreloc.WriteStream(arf);
+     symstr.WriteStream(arf);
    end;
-  if lfnstr^.size>0 then
+  if lfnstr.size>0 then
    begin
-     createarhdr('/',lfnstr^.size,'','','');
-     blockwrite(arf,arhdr,sizeof(tarhdr));
-     lfnstr^.blockwrite(arf);
+     createarhdr('/',lfnstr.size,'','','');
+     arf.Write(arhdr,sizeof(tarhdr));
+     lfnstr.WriteStream(arf);
    end;
-  ardata^.blockwrite(arf);
-  system.close(arf);
+  ardata.WriteStream(arf);
+  Arf.Free;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.6  2000-12-23 19:59:35  peter
-    * object to class for ow/og objects
-    * split objectdata from objectoutput
+  Revision 1.7  2000-12-24 12:25:32  peter
+    + cstreams unit
+    * dynamicarray object to class
 
   Revision 1.5  2000/09/24 15:06:20  peter
     * use defines.inc

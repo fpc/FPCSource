@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
-    This module provides some basic objects
+    This module provides some basic classes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,19 +20,16 @@
 
  ****************************************************************************
 }
-unit cobjects;
+unit cclasses;
 
 {$i defines.inc}
 
 interface
 
     uses
-      cutils;
+      cutils,cstreams;
 
-    const
-       { the real size will be [-hasharray..hasharray] ! }
-       hasharraysize = 2047;
-
+{$ifdef OLD}
     type
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
@@ -110,6 +107,10 @@ interface
           next : pstringqueueitem;
        end;
 
+{********************************************
+                 Queue
+********************************************}
+
        { String Queue}
        PStringQueue=^TStringQueue;
        TStringQueue=object
@@ -124,6 +125,10 @@ interface
          procedure Concat(const s:string);
          procedure Clear;
        end;
+
+{********************************************
+                 Container
+********************************************}
 
        { containeritem }
        pcontaineritem = ^tcontaineritem;
@@ -177,7 +182,15 @@ interface
           function find(const s:string):boolean;
        end;
 
+{********************************************
+                Dictionary
+********************************************}
 
+    const
+       { the real size will be [-hasharray..hasharray] ! }
+       hasharraysize = 2047;
+
+    type
        { namedindexobect for use with dictionary and indexarray }
        Pnamedindexobject=^Tnamedindexobject;
        Tnamedindexobject=object
@@ -280,8 +293,52 @@ interface
     end;
 {$endif fixLeaksOnError}
 
+{$endif OLD}
+
+{********************************************
+              DynamicArray
+********************************************}
+
+     const
+       dynamicblockbasesize = 12;
+
+     type
+       pdynamicblock = ^tdynamicblock;
+       tdynamicblock = record
+         pos,
+         used : longint;
+         next : pdynamicblock;
+         data : array[0..high(longint)-20] of byte;
+       end;
+
+       pdynamicarray = ^tdynamicarray;
+       tdynamicarray = class
+       private
+         FPosn       : longint;
+         FPosnblock  : pdynamicblock;
+         FBlocksize  : longint;
+         FFirstblock,
+         FLastblock  : pdynamicblock;
+         procedure grow;
+       public
+         constructor Create(Ablocksize:longint);
+         destructor  Destroy;override;
+         function  size:longint;
+         procedure align(i:longint);
+         procedure seek(i:longint);
+         function  read(var d;len:longint):longint;
+         procedure write(const d;len:longint);
+         procedure writestr(const s:string);
+         procedure readstream(f:TCStream);
+         procedure writestream(f:TCStream);
+         property  BlockSize : longint read FBlocksize;
+         property  FirstBlock : PDynamicBlock read FFirstBlock;
+       end;
 
 implementation
+
+
+{$ifdef OLD}
 
 {*****************************************************************************
                                     Memory debug
@@ -1462,12 +1519,11 @@ end;
         p^.listnext:=nil;
       end;
 
-
 {****************************************************************************
                                tindexarray
  ****************************************************************************}
 
-    constructor tindexarray.init(Agrowsize:longint);
+    constructor tindexarray.create(Agrowsize:longint);
       begin
         growsize:=Agrowsize;
         size:=0;
@@ -1477,16 +1533,17 @@ end;
         noclear:=false;
       end;
 
-    destructor tindexarray.done;
+    destructor tindexarray.destroy;
       begin
         if assigned(data) then
           begin
              if not noclear then
               clear;
-             freemem(data,size*4);
+             freemem(data);
              data:=nil;
           end;
       end;
+
 
     function tindexarray.search(nr:longint):Pnamedindexobject;
       begin
@@ -1581,9 +1638,7 @@ end;
          count:=p^.indexnr;
         if count>size then
          grow(((count div growsize)+1)*growsize);
-        {$ifdef Delphi}
         Assert(not assigned(data^[p^.indexnr]) or (p=data^[p^.indexnr]));
-        {$endif}
         data^[p^.indexnr]:=p;
         { update linked list backward }
         i:=p^.indexnr;
@@ -1612,72 +1667,242 @@ end;
         if i>count then
          p^.indexnext:=nil;
       end;
+{$endif OLD}
+
+
+{****************************************************************************
+                                tdynamicarray
+****************************************************************************}
+
+    constructor tdynamicarray.create(Ablocksize:longint);
+      begin
+        FPosn:=0;
+        FPosnblock:=nil;
+        FFirstblock:=nil;
+        FLastblock:=nil;
+        Fblocksize:=Ablocksize;
+        grow;
+      end;
+
+
+    destructor tdynamicarray.destroy;
+      var
+        hp : pdynamicblock;
+      begin
+        while assigned(FFirstblock) do
+         begin
+           hp:=FFirstblock;
+           FFirstblock:=FFirstblock^.next;
+           freemem(hp,blocksize+dynamicblockbasesize);
+         end;
+      end;
+
+
+    function  tdynamicarray.size:longint;
+      begin
+        if assigned(FLastblock) then
+         size:=FLastblock^.pos+FLastblock^.used
+        else
+         size:=0;
+      end;
+
+
+    procedure tdynamicarray.grow;
+      var
+        nblock : pdynamicblock;
+      begin
+        getmem(nblock,blocksize+dynamicblockbasesize);
+        if not assigned(FFirstblock) then
+         begin
+           FFirstblock:=nblock;
+           FPosnblock:=nblock;
+           nblock^.pos:=0;
+         end
+        else
+         begin
+           FLastblock^.next:=nblock;
+           nblock^.pos:=FLastblock^.pos+FLastblock^.used;
+         end;
+        nblock^.used:=0;
+        nblock^.next:=nil;
+        fillchar(nblock^.data,blocksize,0);
+        FLastblock:=nblock;
+      end;
+
+
+    procedure tdynamicarray.align(i:longint);
+      var
+        j : longint;
+      begin
+        j:=(FPosn mod i);
+        if j<>0 then
+         begin
+           j:=i-j;
+           if FPosnblock^.used+j>blocksize then
+            begin
+              dec(j,blocksize-FPosnblock^.used);
+              FPosnblock^.used:=blocksize;
+              grow;
+              FPosnblock:=FLastblock;
+            end;
+           inc(FPosnblock^.used,j);
+           inc(FPosn,j);
+         end;
+      end;
+
+
+    procedure tdynamicarray.seek(i:longint);
+      begin
+        if (i<FPosnblock^.pos) or (i>FPosnblock^.pos+blocksize) then
+         begin
+           { set FPosnblock correct if the size is bigger then
+             the current block }
+           if FPosnblock^.pos>i then
+            FPosnblock:=FFirstblock;
+           while assigned(FPosnblock) do
+            begin
+              if FPosnblock^.pos+blocksize>i then
+               break;
+              FPosnblock:=FPosnblock^.next;
+            end;
+           { not found ? then increase blocks }
+           if not assigned(FPosnblock) then
+            begin
+              { the current FLastblock is now also fully used }
+              FLastblock^.used:=blocksize;
+              repeat
+                grow;
+                FPosnblock:=FLastblock;
+              until FPosnblock^.pos+blocksize>=i;
+            end;
+         end;
+        FPosn:=i;
+        if FPosn mod blocksize>FPosnblock^.used then
+         FPosnblock^.used:=FPosn mod blocksize;
+      end;
+
+
+    procedure tdynamicarray.write(const d;len:longint);
+      var
+        p : pchar;
+        i,j : longint;
+      begin
+        p:=pchar(@d);
+        while (len>0) do
+         begin
+           i:=FPosn mod blocksize;
+           if i+len>=blocksize then
+            begin
+              j:=blocksize-i;
+              move(p^,FPosnblock^.data[i],j);
+              inc(p,j);
+              inc(FPosn,j);
+              dec(len,j);
+              FPosnblock^.used:=blocksize;
+              if assigned(FPosnblock^.next) then
+               FPosnblock:=FPosnblock^.next
+              else
+               begin
+                 grow;
+                 FPosnblock:=FLastblock;
+               end;
+            end
+           else
+            begin
+              move(p^,FPosnblock^.data[i],len);
+              inc(p,len);
+              inc(FPosn,len);
+              i:=FPosn mod blocksize;
+              if i>FPosnblock^.used then
+               FPosnblock^.used:=i;
+              len:=0;
+            end;
+         end;
+      end;
+
+
+    procedure tdynamicarray.writestr(const s:string);
+      begin
+        write(s[1],length(s));
+      end;
+
+
+    function tdynamicarray.read(var d;len:longint):longint;
+      var
+        p : pchar;
+        i,j,res : longint;
+      begin
+        res:=0;
+        p:=pchar(@d);
+        while (len>0) do
+         begin
+           i:=FPosn mod blocksize;
+           if i+len>=FPosnblock^.used then
+            begin
+              j:=FPosnblock^.used-i;
+              move(FPosnblock^.data[i],p^,j);
+              inc(p,j);
+              inc(FPosn,j);
+              inc(res,j);
+              dec(len,j);
+              if assigned(FPosnblock^.next) then
+               FPosnblock:=FPosnblock^.next
+              else
+               break;
+            end
+           else
+            begin
+              move(FPosnblock^.data[i],p^,len);
+              inc(p,len);
+              inc(FPosn,len);
+              inc(res,len);
+              len:=0;
+            end;
+         end;
+        read:=res;
+      end;
+
+
+    procedure tdynamicarray.readstream(f:TCStream);
+      var
+        i,left : longint;
+      begin
+        repeat
+          left:=blocksize-FPosnblock^.used;
+          i:=f.Read(FPosnblock^.data[FPosnblock^.used],left);
+          inc(FPosnblock^.used,i);
+          if FPosnblock^.used=blocksize then
+           begin
+             if assigned(FPosnblock^.next) then
+              FPosnblock:=FPosnblock^.next
+             else
+              begin
+                grow;
+                FPosnblock:=FLastblock;
+              end;
+           end;
+        until (i<left);
+      end;
+
+
+    procedure tdynamicarray.writestream(f:TCStream);
+      var
+        hp : pdynamicblock;
+      begin
+        hp:=FFirstblock;
+        while assigned(hp) do
+         begin
+           f.Write(hp^.data,hp^.used);
+           hp:=hp^.next;
+         end;
+      end;
+
 
 end.
 {
   $Log$
-  Revision 1.21  2000-12-24 12:25:31  peter
+  Revision 1.1  2000-12-24 12:25:31  peter
     + cstreams unit
     * dynamicarray object to class
-
-  Revision 1.19  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
-
-  Revision 1.18  2000/11/04 14:25:19  florian
-    + merged Attila's changes for interfaces, not tested yet
-
-  Revision 1.17  2000/11/03 19:41:06  jonas
-    * fixed bug in tdynamicarray.align (merged)
-
-  Revision 1.16  2000/10/31 22:02:46  peter
-    * symtable splitted, no real code changes
-
-  Revision 1.15  2000/10/14 10:14:46  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.14  2000/09/24 21:19:50  peter
-    * delphi compile fixes
-
-  Revision 1.13  2000/09/24 15:06:12  peter
-    * use defines.inc
-
-  Revision 1.12  2000/08/27 20:19:38  peter
-    * store strings with case in ppu, when an internal symbol is created
-      a '$' is prefixed so it's not automatic uppercased
-
-  Revision 1.11  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.10  2000/08/19 18:44:27  peter
-    * new tdynamicarray implementation using blocks instead of
-      reallocmem (merged)
-
-  Revision 1.9  2000/08/16 18:33:53  peter
-    * splitted namedobjectitem.next into indexnext and listnext so it
-      can be used in both lists
-    * don't allow "word = word" type definitions (merged)
-
-  Revision 1.8  2000/08/13 08:41:57  peter
-    * fixed typo in tsinglelist.clear (merged)
-
-  Revision 1.7  2000/08/12 15:34:22  peter
-    + usedasmsymbollist to check and reset only the used symbols (merged)
-
-  Revision 1.6  2000/08/10 12:20:44  jonas
-    * reallocmem is now also used under Delphi (merged from fixes branch)
-
-  Revision 1.5  2000/08/09 12:09:45  jonas
-    * tidexarray and tdynamicarray now use reallocmem() under FPC for
-      growing (merged from fixes branch)
-
-  Revision 1.4  2000/08/06 19:42:40  peter
-    * removed note
-
-  Revision 1.3  2000/08/02 19:49:58  peter
-    * first things for default parameters
-
-  Revision 1.2  2000/07/13 11:32:38  michael
-  + removed logs
 
 }
