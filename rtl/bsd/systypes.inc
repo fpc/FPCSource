@@ -1,0 +1,146 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Michael Van Canneyt,
+    member of the Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+type
+
+{
+ Linux system calls take arguments as follows :
+
+   i386/m68k:
+
+   %eax/%d0 : System call number
+   %ebx/%d1 : first argument
+   %ecx/%d2 : second argument
+   %edx/%d3 : third argumens
+   %esi/%d3 : fourth argument
+   %edi/%d4 : fifth argument
+
+  That is why we define a special type, with only these arguments
+  To make it processor independent, we don't give any system dependent
+  names, but the rather abstract reg1,reg2 etc;
+}
+  SysCallRegs=record
+    reg1,reg2,reg3,reg4,reg5,reg6 : longint;
+  end;
+  PSysCallRegs=^SysCallRegs;
+  TSysCallRegs=SysCallRegs;
+
+{ The following are records for system calls }
+  dirent = packed record
+    ino,
+    off    : longint;
+    reclen : word;
+    name   : array [0..255] of char;
+  end;
+  pdirent =^dirent;
+  TDirEnt = dirent;
+
+  TDir = packed record
+    fd     : integer;
+    loc    : longint;
+    size   : integer;
+    buf    : pdirent;
+  {The following are used in libc, but NOT in the linux kernel sources ??}
+    nextoff: longint;
+    dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
+    lock   : pointer;
+  end;
+  PDir =^TDir;
+
+{$packrecords C}
+ Stat =record {BSD version} 
+        dev,                            { inode's device }
+        ino        :  cardinal;         { inode's number }
+        mode, 				{ inode protection mode }
+        nlink	   :  word;             { number of hard links }
+        uid,				{ user ID of the file's owner }
+        gid,				{ group ID of the file's group }
+        dev_t	   :  cardinal;		{ device type }
+        atime,
+        atime_nsec,
+	atime,                          { time of last access }
+	atime_nsec,         		{ nsec of last access }
+	mtime,	           		{ time of last data modification }
+	mtime_nsec,         		{ nsec of last data modification }
+	ctime,            		{ time of last file status change }
+	ctime_nsec : longint;      	{ nsec of last file status change }
+	size,           		{ file size, in bytes }
+	blocks     : Int64;		{ blocks allocated for file }
+	blksze,         		{ optimal blocksize for I/O }
+	flags,          		{ user defined flags for file }
+	filegen    : cardinal;		{ file generation number }
+	lspare	   : longint;
+	qspare     : array[0..1] of int64;
+       end;
+
+  PStat=^Stat;
+  TStat=Stat;
+
+  Statfs = packed record
+    fstype,            { File system type }
+    bsize,             { Optimal block trensfer size }
+    blocks,            { Data blocks in system }
+    bfree,             { free blocks in system }
+    bavail,            { Available free blocks to non-root users }
+    files,             { File nodes in system }
+    ffree,             { Free file nodes in system }
+    fsid,              { File system ID }
+    namelen : longint; { Maximum name length in system }
+    spare   : array [0..6] of longint; { For later use }
+  end;
+  PStatFS=^StatFS;
+  TStatFS=StatFS;
+
+  fdSet=array[0..7] of longint;{=256 bits}
+  pfdset=^fdset;
+  TFDSet=fdset;
+
+  timeval = packed record
+    sec,usec:longint
+  end;
+  ptimeval=^timeval;
+  TTimeVal=timeval;
+
+  timezone = packed record
+    minuteswest,dsttime:longint;
+  end;
+  ptimezone =^timezone;
+  TTimeZone = timezone;
+
+  utsname = packed record
+    sysname,
+    nodename,
+    release,
+    version,
+    machine,
+    domainname : Array[0..64] of char;
+  end;
+  PUTSName=^UTSName;
+  TUTSName=UTSName;
+
+{
+  $Log$
+  Revision 1.1  2000-02-02 16:36:09  marco
+   * Initial version. Copy of linux version, with BSD stat.
+
+  Revision 1.5  2000/01/07 16:41:42  daniel
+    * copyright 2000
+
+  Revision 1.4  2000/01/07 16:32:28  daniel
+    * copyright 2000 added
+
+  Revision 1.3  1998/10/15 08:31:10  peter
+    * type aliases using delphi typenaming
+
+}
