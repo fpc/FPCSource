@@ -2,7 +2,7 @@ Program Example7;
 
 { Program to demonstrate the Execve function. }
 
-Uses linux, strings;
+Uses BaseUnix, strings;
 
 Const Arg0 : PChar = '/bin/ls';
       Arg1 : Pchar = '-l';
@@ -17,5 +17,5 @@ begin
   PP[3]:=Nil;
   { Execute '/bin/ls -l', with current environment }
   { Envp is defined in system.inc }
-  ExecVe ('/bin/ls',pp,envp);
+  fpExecVe ('/bin/ls',pp,envp);
 end.

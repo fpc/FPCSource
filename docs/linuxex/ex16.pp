@@ -2,8 +2,8 @@ Program Example16;
 
 { Program to demonstrate the GetPid, GetPPid function. }
 
-Uses linux;
+Uses BaseUnix;
 
 begin
-  Writeln ('Process Id = ',getpid,' Parent process Id = ',getppid);
+  Writeln ('Process Id = ',fpgetpid,' Parent process Id = ',fpgetppid);
 end.

@@ -2,7 +2,7 @@ Program Example13;
 
 { Program to demonstrate the Shell function. }
 
-Uses linux;
+Uses Unix;
 
 begin
   { This will send the output of 'ls -l' to the file ls.out }

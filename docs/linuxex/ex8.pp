@@ -2,7 +2,7 @@ Program Example8;
 
 { Program to demonstrate the Execv function. }
 
-Uses linux, strings;
+Uses Unix, strings;
 
 Const Arg0 : PChar = '/bin/ls';
       Arg1 : Pchar = '-l';
@@ -16,5 +16,5 @@ begin
   PP[1]:=Arg1;
   PP[3]:=Nil;
   { Execute '/bin/ls -l', with current environment }
-  Execv ('/bin/ls',pp);
+  fpExecv ('/bin/ls',pp);
 end.

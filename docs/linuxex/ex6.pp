@@ -2,7 +2,7 @@ Program Example6;
 
 { Program to demonstrate the GetDate function. }
 
-Uses linux;
+Uses Unix;
 
 Var Year, Month, Day : Word;
 

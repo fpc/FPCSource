@@ -2,13 +2,13 @@ Program Example15;
 
 { Program to demonstrate the Nice and Get/SetPriority functions. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 begin
   writeln ('Setting priority to 5');
-  setpriority (prio_process,getpid,5);
-  writeln ('New priority = ',getpriority (prio_process,getpid));
+  fpsetpriority (prio_process,fpgetpid,5);
+  writeln ('New priority = ',fpgetpriority (prio_process,fpgetpid));
   writeln ('Doing nice 10');
-  nice (10);
-  writeln ('New Priority = ',getpriority (prio_process,getpid));
+  fpnice (10);
+  writeln ('New Priority = ',fpgetpriority (prio_process,fpgetpid));
 end.

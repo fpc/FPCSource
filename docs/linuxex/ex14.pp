@@ -2,13 +2,13 @@ Program Example14;
 
 { Program to demonstrate the Fork and WaitPidfunction. }
 
-Uses linux;
+Uses BaseUnix;
 
-Var PID, ExitStatus : Longint;
+Var PID, ExitStatus : cint;
   
 begin
   Writeln ('Spawning a child');
-  PID:=Fork;
+  PID:=fpFork;
   If PID=0 then
     begin 
     Writeln ('Hello From the Child !!');
@@ -18,7 +18,7 @@ begin
   Else 
     begin
     Writeln ('Spawned child with PID : ',PID);
-    WaitPid (PID,@ExitStatus,0);
+    fpWaitPid (PID,@ExitStatus,0);
     Writeln ('Child exited with status : ',ExitStatus shr 8);
     end; 
 end.

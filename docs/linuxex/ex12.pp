@@ -2,7 +2,7 @@ Program Example12;
 
 { Program to demonstrate the Execlp function. }
 
-Uses linux, strings;
+Uses Unix, strings;
 
 begin
   { Execute 'ls -l', with current environment. }

@@ -2,7 +2,7 @@ Program Example11;
 
 { Program to demonstrate the Execle function. }
 
-Uses linux, strings;
+Uses Unix, strings;
 
 begin
   { Execute 'ls -l', with current environment. }

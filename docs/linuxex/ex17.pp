@@ -2,8 +2,8 @@ Program Example17;
 
 { Program to demonstrate the GetUid and GetEUid functions. }
 
-Uses linux;
+Uses BaseUnix;
 
 begin
-  writeln ('User Id = ',getuid,' Effective user Id = ',geteuid);
+  writeln ('User Id = ',fpgetuid,' Effective user Id = ',fpgeteuid);
 end.

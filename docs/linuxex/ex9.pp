@@ -2,7 +2,7 @@ Program Example9;
 
 { Program to demonstrate the Execvp function. }
 
-Uses linux, strings;
+Uses Unix, strings;
 
 Const Arg0 : PChar = 'ls';
       Arg1 : Pchar = '-l';
@@ -18,5 +18,5 @@ begin
   { Execute 'ls -l', with current environment. }
   { 'ls' is looked for in PATH environment variable.}
   { Envp is defined in the system unit. }
-  Execvp ('ls',pp,envp);
+  fpExecvpe ('ls',pp,envp);
 end.
