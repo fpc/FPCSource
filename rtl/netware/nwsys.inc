@@ -333,10 +333,18 @@ FUNCTION _ExitCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'ExitCritSec';
 FUNCTION _SetThreadGroupID (id : longint) : longint; CDecl; EXTERNAL ThreadsNlm NAME 'SetThreadGroupID';
 FUNCTION _GetThreadGroupID : longint; CDecl; EXTERNAL ThreadsNlm NAME 'GetThreadGroupID';
 
+CONST _SIGTERM = 6;
+
+PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME 'signal';
+
 
 {
   $Log$
-  Revision 1.5  2002-03-30 09:09:47  armin
+  Revision 1.6  2002-04-01 15:20:08  armin
+  + unload module no longer shows: Module did not release...
+  + check-function will no longer be removed when smartlink is on
+
+  Revision 1.5  2002/03/30 09:09:47  armin
   + support check-function for netware
 
   Revision 1.4  2002/03/08 19:06:47  armin

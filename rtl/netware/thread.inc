@@ -30,7 +30,8 @@
 }
 
 const
-   threadvarblocksize : dword = 0;  // total size of allocated threadvars
+   threadvarblocksize : dword = 0;     // total size of allocated threadvars
+   thredvarsmainthread: pointer = nil; // to free the threadvars in the signal handler
 
 type
    tthreadinfo = record
@@ -63,9 +64,6 @@ procedure init_unit_threadvars (tableEntry : pltvInitEntry);
 begin
   while tableEntry^.varaddr <> nil do
   begin
-    {$ifdef DEBUG_MT}
-    ConsolePrintf3(#13'init_unit_threadvars, size: %d, addr: %d'#13#10,tableEntry^.size,dword(tableEntry^.varaddr),0);
-    {$endif}
     init_threadvar (tableEntry^.varaddr^, tableEntry^.size);
     inc (pchar (tableEntry), sizeof (tableEntry^));
   end;
@@ -87,8 +85,15 @@ begin
   ConsolePrintf(#13'init_all_unit_threadvars (%d) units'#13#10,ThreadvarTablesTable.count);
   {$endif}
   for i := 1 to ThreadvarTablesTable.count do
+  begin
+    {$ifdef DEBUG_MT}
+    ConsolePrintf(#13'init_unit_threadvars for unit (%d):'#13#10,i);
+    {$endif}
     init_unit_threadvars (ThreadvarTablesTable.tables[i]);
-  
+    {$ifdef DEBUG_MT}
+    ConsolePrintf(#13'init_unit_threadvars for unit (%d) done'#13#10,i);
+    {$endif}
+  end;
 end;
 
 {$ifdef DEBUG_MT}
@@ -96,17 +101,18 @@ var dummy_buff : array [0..255] of char;  // to avoid abends (for current compil
 {$endif}
 
 function relocate_threadvar(offset : dword) : pointer;[public,alias: 'FPC_RELOCATE_THREADVAR'];
+var p : pointer;
 begin
  {$ifdef DEBUG_MT}
-   ConsolePrintf(#13'relocate_threadvar, offset: (%d)'#13#10,offset);
+//   ConsolePrintf(#13'relocate_threadvar, offset: (%d)'#13#10,offset);
    if offset > threadvarblocksize then
    begin
-     ConsolePrintf(#13'relocate_threadvar, invalid offset'#13#10,0);
+//     ConsolePrintf(#13'relocate_threadvar, invalid offset'#13#10,0);
      relocate_threadvar := @dummy_buff;
      exit;
    end;
  {$endif DEBUG_MT}
-  relocate_threadvar:=_GetThreadDataAreaPtr + offset;
+ relocate_threadvar:= _GetThreadDataAreaPtr + offset;
 end;
 
 procedure AllocateThreadVars;
@@ -124,9 +130,10 @@ procedure AllocateThreadVars;
      fillchar (threadvars^, threadvarblocksize, 0);
      _SaveThreadDataAreaPtr (threadvars);
      {$ifdef DEBUG_MT}
-       ConsolePrintf(#13'threadvars allocated at (%x)'#13#10,longint(threadvars));
-       ConsolePrintf(#13'size of threadvars: %d'#13#10,threadvarblocksize);
+       ConsolePrintf3(#13'threadvars allocated at (%x), size: %d'#13#10,longint(threadvars),threadvarblocksize,0);
      {$endif DEBUG_MT}
+     if thredvarsmainthread = nil then
+       thredvarsmainthread := threadvars;
   end;
 
 procedure ReleaseThreadVars;
@@ -136,7 +143,13 @@ begin
    if threadvarblocksize > 0 then
    begin
      threadvars:=_GetThreadDataAreaPtr;
-    _Free (threadvars);
+     if threadvars <> nil then
+     begin
+       {$ifdef DEBUG_MT}
+        ConsolePrintf (#13'free threadvars'#13#10,0);
+       {$endif DEBUG_MT}
+       _Free (threadvars);
+     end;
   end;
 end;
 
@@ -356,7 +369,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-04-01 10:47:31  armin
+  Revision 1.4  2002-04-01 15:20:08  armin
+  + unload module no longer shows: Module did not release...
+  + check-function will no longer be removed when smartlink is on
+
+  Revision 1.3  2002/04/01 10:47:31  armin
   makefile.fpc for netware
   stderr to netware console
   free all memory (threadvars and heap) to avoid error message while unloading nlm

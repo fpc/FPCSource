@@ -48,12 +48,15 @@ endif
 # Use new feature from 1.0.5 version
 # that generates release PPU files
 # which will not be recompiled
-ifdef RELEASE
+# ifdef RELEASE
 override FPCOPT+=-Ur
-endif
+# endif
 
 # for netware always use multithread
 override FPCOPT+=-dMT
+
+# and alway use smartlinking
+CREATESMART=1
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -180,3 +183,10 @@ nwimp/locnlm32.imp nwimp/ndpsrpc.imp nwimp/netnlm32.imp nwimp/nit.imp \
 nwimp/nlmlib.imp nwimp/nwpsrv3x.imp nwimp/nwpsrv.imp nwimp/nwsnut.imp \
 nwimp/requestr.imp nwimp/socklib.imp nwimp/streams.imp nwimp/threads.imp \
 nwimp/tli.imp nwimp/vollib.imp nwimp/ws2_32.imp nwimp/ws2nlm.imp
+
+# the smartlinked objects will not be installed by the
+# standard makefile ????
+
+#override UNITPPUFILES+=cpu.a crt.a dos.a getopts.a heaptrc.a keyboard.a \
+#lineinfo.a math.a mmx.a mouse.a netware.a objects.a objpas.a sockets.a \
+#strings.a system.a sysutils.a typinfo.a varutils.a video.a winsock2.a

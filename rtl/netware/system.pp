@@ -88,12 +88,6 @@ PROCEDURE ConsolePrintf (FormatStr : PCHAR);  CDecl;
 
 implementation
 
-{ ?? why does this not work ?? DEFINE FPC_SYSTEM_HAS_MOVE}
-{procedure move (const source; var dest; count : longint);
-begin
-  _memcpy (@dest, @source, count);
-end;}
-
 { include system independent routines }
 
 {$I system.inc}
@@ -102,13 +96,13 @@ end;}
 {$I nwsys.inc}
 {$I errno.inc}
 
-procedure setup_arguments;
+{procedure setup_arguments;
 begin
-end;
+end;}
 
-procedure setup_environment;
+{procedure setup_environment;
 begin
-end;
+end;}
 
 
 
@@ -134,31 +128,14 @@ procedure CloseAllRemainingSemaphores; FORWARD;
 procedure ReleaseThreadVars; FORWARD;
 {$endif}
 
-{ if return-value is <> 0, netware shows the message
-  Unload Anyway ?
-  To Disable unload at all, SetNLMDontUnloadFlag can be used on
-  Netware >= 4.0 }
-function CheckFunction : longint; CDECL; [public,alias: 'FPC_NW_CHECKFUNCTION'];
-var oldTG:longint;
-begin
-  if @NetwareCheckFunction <> nil then
-  begin
-    { this function is called without clib context, to allow clib
-      calls, we set the thread group id before calling the
-      user-function }
-    oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
-    result := 0;
-    NetwareCheckFunction (result);
-    _SetThreadGroupID (oldTG);
-  end else
-    result := 0;
-end;
 
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
 
 procedure FreeSbrkMem; forward;
+
+var SigTermHandlerActive : boolean;
 
 Procedure system_exit;
 begin
@@ -168,10 +145,13 @@ begin
 {$endif}
   FreeSbrkMem;            { free memory allocated by heapmanager }
 
-  if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
-    PressAnyKeyToContinue;
+  if not SigTermHandlerActive then
+  begin
+    if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
+      PressAnyKeyToContinue;
   
-  _exit (ExitCode);
+    _exit (ExitCode);
+  end;
 end;
 
 {*****************************************************************************
@@ -291,6 +271,7 @@ begin
     _free (HeapSbrkBlockList);
     HeapSbrkAllocated := 0;
     HeapSbrkLastUsed := 0;
+    HeapSbrkBlockList := nil;
   end;    
 end;
 
@@ -659,6 +640,34 @@ procedure InitFPU;assembler;
 { include threading stuff, this is os dependend part }
 {$I thread.inc}
 
+{ if return-value is <> 0, netware shows the message
+  Unload Anyway ?
+  To Disable unload at all, SetNLMDontUnloadFlag can be used on
+  Netware >= 4.0 }
+function CheckFunction : longint; CDECL; [public,alias: 'FPC_NW_CHECKFUNCTION'];
+var oldTG:longint;
+    oldPtr: pointer;
+begin
+  if assigned (NetwareCheckFunction) then
+  begin
+    { this function is called without clib context, to allow clib
+      calls, we set the thread group id before calling the
+      user-function }
+    oldTG := _SetThreadGroupID (NetwareMainThreadGroupID);
+    { to allow use of threadvars, we simply set the threadvar-memory
+      from the main thread }
+    oldPtr:= _GetThreadDataAreaPtr;
+    _SaveThreadDataAreaPtr (thredvarsmainthread);
+    result := 0;
+    NetwareCheckFunction (result);
+    _SaveThreadDataAreaPtr (oldPtr);
+    _SetThreadGroupID (oldTG);
+  end else
+    result := 0;
+end;
+
+
+
 {$ifdef StdErrToConsole}
 var ConsoleBuff : array [0..512] of char;
 
@@ -705,6 +714,27 @@ end;
 {$endif}
 
 
+{ this will be called if the nlm is unloaded. It will NOT be
+  called if the program exits i.e. with halt.
+  Halt (or _exit) can not be called from this callback procedure }
+procedure TermSigHandler (Sig:longint); CDecl;
+var oldTG : longint;
+    oldPtr: pointer;
+begin
+  oldTG := _SetThreadGroupID (NetwareMainThreadGroupID); { this is only needed for nw 3.11 }
+  
+  { _GetThreadDataAreaPtr will not be valid because the signal
+    handler is called by netware with a differnt thread. To avoid
+    problems in the exit routines, we set the data of the main thread
+    here }
+  oldPtr:= _GetThreadDataAreaPtr;
+  _SaveThreadDataAreaPtr (thredvarsmainthread);
+  SigTermHandlerActive := true;  { to avoid that system_exit calls _exit }
+  do_exit;                       { calls finalize units }
+  _SaveThreadDataAreaPtr (oldPtr);
+  _SetThreadGroupID (oldTG);
+end;
+
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -715,9 +745,11 @@ Begin
   { the exceptions use threadvars so do this _before_ initexceptions }
   AllocateThreadVars;
 {$endif MT}
-
+  SigTermHandlerActive := false;
   NetwareCheckFunction := nil;
   NetwareMainThreadGroupID := _GetThreadGroupID;
+  
+  _Signal (_SIGTERM, @TermSigHandler);
 
 { Setup heap }
   InitHeap;
@@ -739,8 +771,8 @@ Begin
   {$endif}
   
 { Setup environment and arguments }
-  Setup_Environment;
-  Setup_Arguments;
+  {Setup_Environment;
+  Setup_Arguments;}
 { Reset IO Error }
   InOutRes:=0;
   {Delphi Compatible}
@@ -750,7 +782,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.9  2002-04-01 10:47:31  armin
+  Revision 1.10  2002-04-01 15:20:08  armin
+  + unload module no longer shows: Module did not release...
+  + check-function will no longer be removed when smartlink is on
+
+  Revision 1.9  2002/04/01 10:47:31  armin
   makefile.fpc for netware
   stderr to netware console
   free all memory (threadvars and heap) to avoid error message while unloading nlm

@@ -27,6 +27,9 @@ _pasStart_:
     call	_SetupArgV_411
     addl	$4,%esp
     ret
+# this is a hack to avoid that FPC_NW_CHECKFUNCTION will be
+# eleminated by the linker (with smartlinking)
+    call	FPC_NW_CHECKFUNCTION
 
 
 #
