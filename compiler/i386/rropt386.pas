@@ -50,7 +50,8 @@ begin
     A_IMUL:
       canBeFirstSwitch :=
         (p^.ops >= 2) and
-        (reg32(p^.oper[p^.ops-1].reg) = reg);
+        (reg32(p^.oper[p^.ops-1].reg) = reg) and
+        (p^.oper[0].typ <> top_ref);
     A_INC,A_DEC,A_SUB,A_ADD:
       canBeFirstSwitch :=
         (p^.oper[1].typ = top_reg) and
@@ -333,7 +334,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-10-24 10:40:54  jonas
+  Revision 1.2  2000-11-22 16:30:04  jonas
+    * fixed bug where "imul mem32,reg,reg" could be generated
+
+  Revision 1.1  2000/10/24 10:40:54  jonas
     + register renaming ("fixes" bug1088)
     * changed command line options meanings for optimizer:
         O2 now means peepholopts, CSE and register renaming in 1 pass
