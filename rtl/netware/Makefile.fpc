@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) systhrds objpas strings \
-      netware winsock2 \
+      winsock \
       dos crt objects \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
@@ -53,6 +53,7 @@ endif
 override FPCOPT+=-Ur
 # endif
 
+#debug, -a: dont delete asm, -al include lines
 #override FPCOPT+=-a
 #override FPCOPT+=-al
 
@@ -61,7 +62,8 @@ override FPCOPT+=-Ur
 override FPCOPT+=-dMT
 
 # and alway use smartlinking
-CREATESMART=1
+#CREATESMART=1
+CREATESMART=0
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -192,7 +194,7 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 override INSTALLPPUFILES+=nwimp/aio.imp nwimp/aio.imp nwimp/audnlm32.imp \
 nwimp/calnlm32.imp nwimp/ccs.imp nwimp/ccs-os.imp nwimp/clibaux.imp \
 nwimp/clibctx.imp nwimp/clib.imp nwimp/clxnlm32.imp nwimp/dplsv386.imp \
-nwimp/dsapi.imp nwimp/dsevent.imp nwimp/fpsm.imp nwimp/lib0.imp \
+nwimp/dsapi.imp nwimp/dsevent.imp nwimp/lib0.imp \
 nwimp/locnlm32.imp nwimp/ndpsrpc.imp nwimp/netnlm32.imp nwimp/nit.imp \
 nwimp/nlmlib.imp nwimp/nwpsrv3x.imp nwimp/nwpsrv.imp nwimp/nwsnut.imp \
 nwimp/requestr.imp nwimp/socklib.imp nwimp/streams.imp nwimp/threads.imp \

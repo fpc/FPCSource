@@ -45,17 +45,18 @@ _Prelude:
    	pushl	%ebx
      	movl	0x14(%ebp),%edi
      	movl	0x18(%ebp),%esi
+	movl	%esi, __uninitializedDataSize
      	movl	0x1c(%ebp),%ebx
      	movl	0x20(%ebp),%ecx
      	movl	0x28(%ebp),%eax
    	pushl	$_pasStart_
    	pushl	$_kNLMInfo
    	pushl	%eax
-     	movl	0x24(%ebp),%edx
+     	movl	0x24(%ebp),%edx  # 1b7f6
    	pushl	%edx
-       	pushl	%ecx
+       	pushl	%ecx  
    	pushl	%ebx
-       	pushl	%esi
+       	pushl	%esi			# uninitialized data size
        	pushl	%edi
      	movl	0x10(%ebp),%edx
    	pushl	%edx
@@ -105,8 +106,37 @@ _Stop:
 #      LongDoubleSize : LONGINT;		// gcc nwpre defines 12, watcom 8
 #      wchar_tSize    : LONGINT;
 #    END;
-
+    .globl	_kNLMInfo		# will be used as data start
 _kNLMInfo:
 	.ascii	"NLMI"
 	.long	0,1,8,2
+	
 
+.text
+.globl	__getTextStart
+__getTextStart:
+    movl    $.text,%eax
+    ret	
+    
+.text
+.globl	__getDataStart
+__getDataStart:
+    movl    $.data,%eax
+    ret
+
+.text
+.globl	__getBssStart
+__getBssStart:
+    movl    $.bss,%eax
+    ret
+    
+.data 
+  __uninitializedDataSize:	.long
+    
+
+
+.text
+.globl  __getUninitializedDataSize
+__getUninitializedDataSize:
+    movl   __uninitializedDataSize, %eax
+    ret

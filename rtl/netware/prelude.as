@@ -23,11 +23,15 @@
 # it sets up the argc and argv and calls _nlm_main (in system.pp)
 # This version uses the old _SetupArgv and not the newer _SetupArvV_411
 #
+    .globl	_pas_Start_
 _pasStart_:
     pushl	$_nlm_main
     call	_SetupArgv
     addl	$4,%esp
     ret
+# this is a hack to avoid that FPC_NW_CHECKFUNCTION will be
+# eleminated by the linker (with smartlinking)
+    call	FPC_NW_CHECKFUNCTION
 
 
 #
@@ -43,6 +47,7 @@ _Prelude:
    	pushl	%ebx
      	movl	0x14(%ebp),%edi
      	movl	0x18(%ebp),%esi
+       	movl	%esi, __uninitializedDataSize
      	movl	0x1c(%ebp),%ebx
      	movl	0x20(%ebp),%ecx
      	movl	0x28(%ebp),%eax
@@ -96,4 +101,33 @@ _Stop:
 
 _NLMID:
 	.long	0
+
+.text
+.globl	__getTextStart
+__getTextStart:
+    movl    $.text,%eax
+    ret	
+    
+.text
+.globl	__getDataStart
+__getDataStart:
+    movl    $.data,%eax
+    ret
+
+.text
+.globl	__getBssStart
+__getBssStart:
+    movl    $.bss,%eax
+    ret
+    
+.data 
+  __uninitializedDataSize:	.long
+    
+
+
+.text
+.globl  __getUninitializedDataSize
+__getUninitializedDataSize:
+    movl   __uninitializedDataSize, %eax
+    ret
 

@@ -292,7 +292,7 @@ end;
 
 function getvolnum (drive : byte) : longint;
 var dir : STRING[255];
-    P,PS: BYTE;
+    P,PS,
     V   : LONGINT;
 begin
   if drive = 0 then
@@ -389,10 +389,10 @@ VAR Buf                 : ARRAY [0..255] OF CHAR;
     volumeNumber        : LONGINT;
 begin
   volumeNumber := getvolnum (drive);
-  if volumeNumber >= 0 then
+  if (volumeNumber >= 0) and (volumeNumber <= 255) then
   begin
     {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (volumeNumber,@Buf,
+    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
                                  TotalBlocks,
                                  SectorsPerBlock,
                                  availableBlocks,
@@ -419,10 +419,10 @@ VAR Buf                 : ARRAY [0..255] OF CHAR;
     volumeNumber        : LONGINT;
 begin
   volumeNumber := getvolnum (drive);
-  if volumeNumber >= 0 then
+  if (volumeNumber >= 0) and (volumeNumber <= 255) then
   begin
     {i think thats not the right function but for others i need a connection handle}
-    if _GetVolumeInfoWithNumber (volumeNumber,@Buf,
+    if _GetVolumeInfoWithNumber (byte(volumeNumber),@Buf,
                                  TotalBlocks,
                                  SectorsPerBlock,
                                  availableBlocks,
@@ -858,7 +858,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:20  peter
+  Revision 1.6  2003-03-25 18:17:54  armin
+  * support for fcl, support for linking without debug info
+  * renamed winsock2 to winsock for win32 compatinility
+  * new sockets unit for netware
+  * changes for compiler warnings
+
+  Revision 1.5  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
 }

@@ -20,13 +20,8 @@
   2001/04/14 armin: additional functions for crt-unit
 }
 
-CONST Clib       = 'clib.nlm';
-      NlmLib     = 'nlmlib.nlm';
-      Threads    = 'threads.nlm';
-      CalNlm     = 'calnlm32.nlm';
-      ClxNlm     = 'clxnlm32.nlm';
-      NitNlm     = 'nit.nlm';
-      ThreadsNlm = 'threads.nlm';
+CONST Clib       = 'clib';
+
 
 TYPE
   dev_t         = LONGINT;
@@ -66,8 +61,8 @@ TYPE
    st_spare      : ARRAY [0..3] OF LONGINT;
   END;
 
-FUNCTION  _stat  (path : PCHAR; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'stat_411';
-FUNCTION  _fstat (Fileno : LONGINT; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'fstat_411';
+FUNCTION  _stat  (path : PCHAR; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL Clib NAME 'stat_411';
+FUNCTION  _fstat (Fileno : LONGINT; VAR buf : NWStatBufT) : LONGINT; CDECL; EXTERNAL CLib NAME 'fstat_411';
 
 PROCEDURE NWFree   (P : POINTER); CDECL; EXTERNAL Clib NAME 'free';
 
@@ -75,9 +70,9 @@ PROCEDURE PressAnyKeyToContinue; CDecl; EXTERNAL; // Clib;
 
 
 PROCEDURE ExitThread (action_code, termination_code : LONGINT); CDecl; EXTERNAL CLib;
-FUNCTION _BeginThread (func, stack : pointer; Stacksize : LONGINT; arg : pointer) : LONGINT; Cdecl; EXTERNAL Threads NAME 'BeginThread';
-FUNCTION _GetThreadDataAreaPtr : POINTER; CDecl; EXTERNAL NlmLib NAME 'GetThreadDataAreaPtr';
-PROCEDURE _SaveThreadDataAreaPtr (P : POINTER); CDecl; EXTERNAL NlmLib NAME 'SaveThreadDataAreaPtr';
+FUNCTION _BeginThread (func, stack : pointer; Stacksize : LONGINT; arg : pointer) : LONGINT; Cdecl; EXTERNAL CLib NAME 'BeginThread';
+FUNCTION _GetThreadDataAreaPtr : POINTER; CDecl; EXTERNAL CLib NAME 'GetThreadDataAreaPtr';
+PROCEDURE _SaveThreadDataAreaPtr (P : POINTER); CDecl; EXTERNAL CLib NAME 'SaveThreadDataAreaPtr';
 PROCEDURE _exit (ExitCode : LONGINT); CDecl; EXTERNAL CLib;
 
 PROCEDURE ConsolePrintf (FormatStr : PCHAR; Param : LONGINT); CDecl; EXTERNAL CLib Name 'ConsolePrintf';
@@ -103,14 +98,14 @@ FUNCTION _GetStdOut : POINTER; CDECL; EXTERNAL Clib NAME '__get_stdout';
 FUNCTION _GetStdErr : POINTER; CDECL; EXTERNAL Clib NAME '__get_stderr';
 
 // FileIO by Fileno
-FUNCTION _open   (FileName : PCHAR; access, mode : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'open';
-FUNCTION _close  (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'close';
-FUNCTION _lseek  (FileNo,Pos,whence :LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'lseek';
-FUNCTION _chsize (FileNo,Pos : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'chsize';
-FUNCTION _tell   (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'tell';
-FUNCTION _write  (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'write';
-FUNCTION _read   (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'read';
-FUNCTION _filelength (filedes : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'filelength';
+FUNCTION _open   (FileName : PCHAR; access, mode : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'open';
+FUNCTION _close  (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'close';
+FUNCTION _lseek  (FileNo,Pos,whence :LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'lseek';
+FUNCTION _chsize (FileNo,Pos : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'chsize';
+FUNCTION _tell   (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'tell';
+FUNCTION _write  (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'write';
+FUNCTION _read   (FileNo : LONGINT; BufP : POINTER; Len : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'read';
+FUNCTION _filelength (filedes : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'filelength';
 
 TYPE
   NWModifyStructure =
@@ -151,15 +146,15 @@ CONST MModifyNameBit                 = $0001;
       MLastUpdatedInSecondsBit       = $4000;
 
 // Directory
-FUNCTION _chdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'chdir';
-FUNCTION _getcwd (path : PCHAR; pathlen : LONGINT) : PCHAR; CDECL; EXTERNAL NlmLib NAME 'getcwd';
-FUNCTION _mkdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'mkdir';
-FUNCTION _rmdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'rmdir';
-FUNCTION _ChangeDirectoryEntry (PathName : PCHAR; VAR ModyStruct : NWModifyStructure; ModifyBits, AllowWildcard : LONGINT) : LONGINT; CDECL; EXTERNAL NitNlm NAME 'ChangeDirectoryEntry';
+FUNCTION _chdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'chdir';
+FUNCTION _getcwd (path : PCHAR; pathlen : LONGINT) : PCHAR; CDECL; EXTERNAL CLib NAME 'getcwd';
+FUNCTION _mkdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'mkdir';
+FUNCTION _rmdir  (path : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'rmdir';
+FUNCTION _ChangeDirectoryEntry (PathName : PCHAR; VAR ModyStruct : NWModifyStructure; ModifyBits, AllowWildcard : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'ChangeDirectoryEntry';
 
 // get fileno from stream
 FUNCTION _fileno (Handle : LONGINT) : LONGINT; CDECL; EXTERNAL Clib NAME 'fileno';
-FUNCTION _isatty (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'isatty';
+FUNCTION _isatty (FileNo : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'isatty';
 
 (* values for 'o_flag' in open()... *)
 CONST O_RDONLY     = $0000;   (* open for read only *)
@@ -178,7 +173,7 @@ CONST O_RDONLY     = $0000;   (* open for read only *)
 
 
 // File Utils
-FUNCTION _unlink (FileName : PCHAR) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'unlink';
+FUNCTION _unlink (FileName : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'unlink';
 FUNCTION _rename (oldpath, newpath : PCHAR) : LONGINT; CDECL; EXTERNAL Clib NAME 'rename';
 
 // Error
@@ -186,10 +181,10 @@ TYPE _PLONGINT = ^LONGINT;
 FUNCTION __get_errno_ptr : _PLONGINT; CDECL; EXTERNAL Clib;
 
 // Memory
-FUNCTION _malloc (size : LONGINT) : POINTER; CDECL; EXTERNAL Threads NAME 'malloc';
-FUNCTION _realloc (p : POINTER; size : LONGINT) : POINTER; CDECL; EXTERNAL Threads NAME 'realloc';
-PROCEDURE _free (what : POINTER); CDECL; EXTERNAL Threads NAME 'free';
-FUNCTION _stackavail : LONGINT; CDECL; EXTERNAL Threads NAME 'stackavail';
+FUNCTION _malloc (size : LONGINT) : POINTER; CDECL; EXTERNAL CLib NAME 'malloc';
+FUNCTION _realloc (p : POINTER; size : LONGINT) : POINTER; CDECL; EXTERNAL CLib NAME 'realloc';
+PROCEDURE _free (what : POINTER); CDECL; EXTERNAL CLib NAME 'free';
+FUNCTION _stackavail : LONGINT; CDECL; EXTERNAL CLib NAME 'stackavail';
 
 // Debug
 PROCEDURE _EnterDebugger; CDECL; EXTERNAL Clib NAME 'EnterDebugger';
@@ -221,9 +216,9 @@ TYPE NWCONN_HANDLE = LONGINT;
                        Hour,Minute,Second,DayOfWeek : BYTE;
                      END;
 
-PROCEDURE GetFileServerDateAndTime (VAR TimeBuf : NWDateAndTime); CDECL; EXTERNAL NitNlm NAME 'GetFileServerDateAndTime';
+PROCEDURE GetFileServerDateAndTime (VAR TimeBuf : NWDateAndTime); CDECL; EXTERNAL CLib NAME 'GetFileServerDateAndTime';
 FUNCTION  SetFileServerDateAndTime(year:WORD; month:WORD; day:WORD; hour:WORD; minute:WORD;
-               second:WORD):longint;cdecl; EXTERNAL NitNlm Name 'SetFileServerDateAndTime';
+               second:WORD):longint;cdecl; EXTERNAL CLib Name 'SetFileServerDateAndTime';
 
 TYPE   FILE_SERV_INFO = record
             serverName              : array[0..47] of char;
@@ -250,7 +245,7 @@ TYPE   FILE_SERV_INFO = record
          end;
    pFILE_SERV_INFO = ^FILE_SERV_INFO;
 
-FUNCTION GetServerInformation(returnSize:longint; serverInfo:pFILE_SERV_INFO):longint;cdecl; EXTERNAL NitNlm NAME 'GetServerInformation';
+FUNCTION GetServerInformation(returnSize:longint; serverInfo:pFILE_SERV_INFO):longint;cdecl; EXTERNAL CLib NAME 'GetServerInformation';
 
 // Directory
 TYPE NWDirEnt =
@@ -277,17 +272,17 @@ TYPE NWDirEnt =
   END;
   PNWDirEnt = ^NWDirEnt;
 
-  FUNCTION _opendir (pathname : PCHAR) : PNWDirEnt; CDECL; EXTERNAL NlmLib NAME 'opendir_411';
-  FUNCTION _closedir (dirH : PNWDirEnt) : LONGINT; CDECL; EXTERNAL NlmLib NAME 'closedir';
-  FUNCTION _readdir  (dirH : PNWDirEnt) : PNWDirEnt; CDECL; EXTERNAL NlmLib NAME 'readdir';
-  FUNCTION _SetReaddirAttribute (dirH : PNWDirEnt; Attribute : LONGINT) : LONGINT; EXTERNAL NlmLib NAME 'SetReaddirAttribute';
+  FUNCTION _opendir (pathname : PCHAR) : PNWDirEnt; CDECL; EXTERNAL CLib NAME 'opendir_411';
+  FUNCTION _closedir (dirH : PNWDirEnt) : LONGINT; CDECL; EXTERNAL CLib NAME 'closedir';
+  FUNCTION _readdir  (dirH : PNWDirEnt) : PNWDirEnt; CDECL; EXTERNAL CLib NAME 'readdir';
+  FUNCTION _SetReaddirAttribute (dirH : PNWDirEnt; Attribute : LONGINT) : LONGINT; EXTERNAL CLib NAME 'SetReaddirAttribute';
 
 // Environment
-  FUNCTION _getenv (name : PCHAR) : PCHAR; CDECL; EXTERNAL NlmLib NAME 'getenv';
+  FUNCTION _getenv (name : PCHAR) : PCHAR; CDECL; EXTERNAL CLib NAME 'getenv';
 
 // Volumes
-  FUNCTION _GetVolumeName (volumeNumber : LONGINT; volumeName : PCHAR) : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetVolumeName';
-  FUNCTION _GetVolumeNumber (volumeName : PCHAR; VAR volumeNumber : LONGINT) : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetVolumeNumber';
+  FUNCTION _GetVolumeName (volumeNumber : LONGINT; volumeName : PCHAR) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeName';
+  FUNCTION _GetVolumeNumber (volumeName : PCHAR; VAR volumeNumber : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeNumber';
   FUNCTION _GetVolumeInfoWithNumber (VolumeNumber : BYTE;
                                      VolumeName   : PCHAR;
                                  VAR TotalBlocks  : WORD;
@@ -295,43 +290,43 @@ TYPE NWDirEnt =
                                  VAR availableBlocks : WORD;
                                  VAR totalDirectorySlots : WORD;
                                  VAR availableDirSlots   : WORD;
-                                 VAR volumeisRemovable   : WORD) : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetVolumeInfoWithNumber';
-  FUNCTION _GetNumberOfVolumes : LONGINT; CDECL; EXTERNAL NitNlm NAME 'GetNumberOfVolumes';
+                                 VAR volumeisRemovable   : WORD) : LONGINT; CDECL; EXTERNAL CLib NAME 'GetVolumeInfoWithNumber';
+  FUNCTION _GetNumberOfVolumes : LONGINT; CDECL; EXTERNAL CLib NAME 'GetNumberOfVolumes';
 
 // Screen/Keyboad
-PROCEDURE _CopyToScreenMemory (Height, Width : WORD; Data : POINTER; x, y : WORD); CDECL; EXTERNAL ThreadsNlm NAME 'CopyToScreenMemory';
-PROCEDURE _CopyFromScreenMemory (Height, Width : WORD; Data : POINTER; x, y : WORD); CDECL; EXTERNAL ThreadsNlm NAME 'CopyFromScreenMemory';
-FUNCTION  _DisplayInputCursor : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'DisplayInputCursor';
-FUNCTION  _HideInputCursor : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'HideInputCursor';
-FUNCTION  _SetPositionOfInputCursor (row,col : WORD): LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'SetPositionOfInputCursor';
-PROCEDURE _GotoXY (col, row : WORD); CDECL; EXTERNAL ThreadsNlm NAME 'gotoxy';
-FUNCTION  _GetSizeOfScreen (VAR height,width : WORD): LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'GetSizeOfScreen';
-FUNCTION  _IsColorMonitor : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'IsColorMonitor';
-PROCEDURE _RingTheBell; CDECL; EXTERNAL ThreadsNlm NAME 'RingTheBell';
-FUNCTION  _SetCursorShape (startline,endline : BYTE) : WORD; CDECL; EXTERNAL ThreadsNlm NAME 'SetCursorShape';
-FUNCTION  _GetCursorShape (VAR startline,endline : BYTE) : WORD; CDECL; EXTERNAL ThreadsNlm NAME 'GetCursorShape';
-FUNCTION  _wherex : WORD; CDECL; EXTERNAL ThreadsNlm NAME 'wherex';
-FUNCTION  _wherey : WORD; CDECL; EXTERNAL ThreadsNlm NAME 'wherey';
-PROCEDURE _clrscr; CDECL; EXTERNAL ThreadsNlm NAME 'clrscr';
-FUNCTION  _kbhit : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'kbhit';
-FUNCTION  _getch : CHAR; CDECL; EXTERNAL ThreadsNlm NAME 'getch';
-PROCEDURE _delay (miliseconds : longint); CDECL; EXTERNAL ThreadsNlm NAME 'delay';
-FUNCTION  _SetCtrlCharCheckMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL ThreadsNlm NAME 'SetCtrlCharCheckMode';
-FUNCTION  _SetAutoScreenDestructionMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL ThreadsNlm NAME 'SetAutoScreenDestructionMode';
+PROCEDURE _CopyToScreenMemory (Height, Width : WORD; Data : POINTER; x, y : WORD); CDECL; EXTERNAL Clib NAME 'CopyToScreenMemory';
+PROCEDURE _CopyFromScreenMemory (Height, Width : WORD; Data : POINTER; x, y : WORD); CDECL; EXTERNAL CLib NAME 'CopyFromScreenMemory';
+FUNCTION  _DisplayInputCursor : LONGINT; CDECL; EXTERNAL CLib NAME 'DisplayInputCursor';
+FUNCTION  _HideInputCursor : LONGINT; CDECL; EXTERNAL CLib NAME 'HideInputCursor';
+FUNCTION  _SetPositionOfInputCursor (row,col : WORD): LONGINT; CDECL; EXTERNAL Clib NAME 'SetPositionOfInputCursor';
+PROCEDURE _GotoXY (col, row : WORD); CDECL; EXTERNAL Clib NAME 'gotoxy';
+FUNCTION  _GetSizeOfScreen (VAR height,width : WORD): LONGINT; CDECL; EXTERNAL CLib NAME 'GetSizeOfScreen';
+FUNCTION  _IsColorMonitor : LONGINT; CDECL; EXTERNAL CLib NAME 'IsColorMonitor';
+PROCEDURE _RingTheBell; CDECL; EXTERNAL CLib NAME 'RingTheBell';
+FUNCTION  _SetCursorShape (startline,endline : BYTE) : WORD; CDECL; EXTERNAL CLib NAME 'SetCursorShape';
+FUNCTION  _GetCursorShape (VAR startline,endline : BYTE) : WORD; CDECL; EXTERNAL CLib NAME 'GetCursorShape';
+FUNCTION  _wherex : WORD; CDECL; EXTERNAL CLib NAME 'wherex';
+FUNCTION  _wherey : WORD; CDECL; EXTERNAL CLib NAME 'wherey';
+PROCEDURE _clrscr; CDECL; EXTERNAL CLib NAME 'clrscr';
+FUNCTION  _kbhit : LONGINT; CDECL; EXTERNAL Clib NAME 'kbhit';
+FUNCTION  _getch : CHAR; CDECL; EXTERNAL CLib NAME 'getch';
+PROCEDURE _delay (miliseconds : longint); CDECL; EXTERNAL Clib NAME 'delay';
+FUNCTION  _SetCtrlCharCheckMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL CLib NAME 'SetCtrlCharCheckMode';
+FUNCTION  _SetAutoScreenDestructionMode (Enabled : BOOLEAN) : BOOLEAN; CDECL; EXTERNAL CLib NAME 'SetAutoScreenDestructionMode';
 
 // Misc
-FUNCTION _memcpy (Dest, Src : POINTER; Len : LONGINT) : POINTER; CDECL; EXTERNAL ThreadsNlm NAME 'memcpy';
+FUNCTION _memcpy (Dest, Src : POINTER; Len : LONGINT) : POINTER; CDECL; EXTERNAL Clib NAME 'memcpy';
 
-FUNCTION _OpenLocalSemaphore (InitialValue : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'OpenLocalSemaphore';
-FUNCTION _WaitOnLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'WaitOnLocalSemaphore';
-FUNCTION _SignalLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'SignalLocalSemaphore';
-FUNCTION _CloseLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL ThreadsNlm NAME 'CloseLocalSemaphore';
-FUNCTION _EnterCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'EnterCritSec';
-FUNCTION _ExitCritSec : LONGINT; CDecl; EXTERNAL ThreadsNlm NAME 'ExitCritSec';
+FUNCTION _OpenLocalSemaphore (InitialValue : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'OpenLocalSemaphore';
+FUNCTION _WaitOnLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL Clib NAME 'WaitOnLocalSemaphore';
+FUNCTION _SignalLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'SignalLocalSemaphore';
+FUNCTION _CloseLocalSemaphore (semaphoreHandle : LONGINT) : LONGINT; CDECL; EXTERNAL CLib NAME 'CloseLocalSemaphore';
+FUNCTION _EnterCritSec : LONGINT; CDecl; EXTERNAL CLib NAME 'EnterCritSec';
+FUNCTION _ExitCritSec : LONGINT; CDecl; EXTERNAL CLib NAME 'ExitCritSec';
 
 
-FUNCTION _SetThreadGroupID (id : longint) : longint; CDecl; EXTERNAL ThreadsNlm NAME 'SetThreadGroupID';
-FUNCTION _GetThreadGroupID : longint; CDecl; EXTERNAL ThreadsNlm NAME 'GetThreadGroupID';
+FUNCTION _SetThreadGroupID (id : longint) : longint; CDecl; EXTERNAL CLib NAME 'SetThreadGroupID';
+FUNCTION _GetThreadGroupID : longint; CDecl; EXTERNAL CLib NAME 'GetThreadGroupID';
 
 CONST _SIGTERM = 6;
 
@@ -340,7 +335,13 @@ PROCEDURE _Signal (Sig : longint; SigFunc : pointer);  CDECL; EXTERNAL Clib NAME
 
 {
   $Log$
-  Revision 1.8  2003-02-16 17:46:11  armin
+  Revision 1.9  2003-03-25 18:17:54  armin
+  * support for fcl, support for linking without debug info
+  * renamed winsock2 to winsock for win32 compatinility
+  * new sockets unit for netware
+  * changes for compiler warnings
+
+  Revision 1.8  2003/02/16 17:46:11  armin
   * typo fixed
 
   Revision 1.7  2002/09/07 16:01:20  peter

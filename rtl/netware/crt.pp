@@ -219,7 +219,7 @@ end;
 
 procedure textmode(mode : integer);
 begin
-  Window (1,1,ScreenWidth,ScreenHeight);
+  Window (1,1,byte(ScreenWidth),byte(ScreenHeight));
   ClrScr;
 end;
 
@@ -325,7 +325,7 @@ begin
      rows   := WinMaxY-WinMinY+1;
      GetMem (p, rows * rowlen * 2);
      FillWord (p^, rows * rowlen, fil);
-     _CopyToScreenMemory (rows,rowlen,p,WinMinX-1,WinMinY-1);
+     _CopyToScreenMemory (word(rows),word(rowlen),p,WinMinX-1,WinMinY-1);
      FreeMem (p, rows * rowlen * 2);
    end;
   Gotoxy(1,1);
@@ -455,8 +455,8 @@ begin
   y:=WinMinY+y-1;
   While (y<=WinMaxY) do
    begin
-     _CopyFromScreenMemory (1,rowlen,p,WinMinX-1,y);
-     _CopyToScreenMemory (1,rowlen,p,WinMinX-1,y-1);
+     _CopyFromScreenMemory (1,rowlen,p,WinMinX-1,word(y));
+     _CopyToScreenMemory (1,rowlen,p,WinMinX-1,word(y-1));
      inc(y);
    end;
   FillWord (p^,rowlen,fil);
@@ -473,9 +473,10 @@ end;
 
 procedure insline;
 var
-  my,y : longint;
+  my : longint;
+  y  : word;
   fil : word;
-  rowlen,x : word;
+  rowlen : word;
   p : pointer;
 begin
   fil:=32 or (textattr shl 8);
@@ -485,12 +486,12 @@ begin
   GetMem (p, rowlen*2);
   while (my>=y) do
    begin
-     _CopyFromScreenMemory (1,rowlen,p,WinMinX-1,my);
-     _CopyToScreenMemory (1,rowlen,p,WinMinX-1,my+1);
+     _CopyFromScreenMemory (1,rowlen,p,WinMinX-1,word(my));
+     _CopyToScreenMemory (1,rowlen,p,WinMinX-1,word(my+1));
      dec(my);
    end;
   FillWord (p^,rowlen,fil);
-  _CopyToScreenMemory (1,rowlen,p,x,y);
+  _CopyToScreenMemory (1,rowlen,p,WinMinX-1,y);
   FreeMem (p, rowlen*2);
 end;
 

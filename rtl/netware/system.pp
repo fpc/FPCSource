@@ -76,6 +76,7 @@ VAR
    ArgV   : ppchar;
    NetwareCheckFunction    : TNWCheckFunction;
    NetwareMainThreadGroupID: longint;
+   NetwareCodeStartAddress : dword;
 
 CONST
    envp   : ppchar = nil;   {dummy to make heaptrc happy}
@@ -140,9 +141,17 @@ procedure fpc_do_exit;external name 'FPC_DO_EXIT';
                          Startup
 *****************************************************************************}
 
+    function __GetBssStart : pointer; external name '__getBssStart';
+    function __getUninitializedDataSize : longint; external name '__getUninitializedDataSize';
+    //function __getDataStart : longint; external name '__getDataStart';
+    function __GetTextStart : longint; external name '__getTextStart';
 
 PROCEDURE nlm_main (_ArgC : LONGINT; _ArgV : ppchar); CDECL; [public,alias: '_nlm_main'];
 BEGIN
+  // Initialize BSS
+  if __getUninitializedDataSize > 0 then
+    fillchar (__getBssStart^,__getUninitializedDataSize,0);
+  NetwareCodeStartAddress := __GetTextStart;
   ArgC := _ArgC;
   ArgV := _ArgV;
   fpc_threadvar_relocate_proc := nil;
@@ -168,7 +177,7 @@ begin
   if not SigTermHandlerActive then
   begin
     if ExitCode <> 0 Then   { otherwise we dont see runtime-errors }
-      PressAnyKeyToContinue;
+      _SetAutoScreenDestructionMode (false);
 
     _exit (ExitCode);
   end;
@@ -790,10 +799,11 @@ Begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
-  SysInitStdIO;
 
 { Reset IO Error }
   InOutRes:=0;
+  
+  SysInitStdIO;  
 
 {Delphi Compatible}
   IsLibrary := FALSE;
@@ -805,7 +815,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.16  2003-02-15 19:12:54  armin
+  Revision 1.17  2003-03-25 18:17:54  armin
+  * support for fcl, support for linking without debug info
+  * renamed winsock2 to winsock for win32 compatinility
+  * new sockets unit for netware
+  * changes for compiler warnings
+
+  Revision 1.16  2003/02/15 19:12:54  armin
   * changes for new threadvar support
 
   Revision 1.15  2002/10/13 09:28:45  florian

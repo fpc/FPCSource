@@ -12,6 +12,7 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$R-}
 unit Sockets;
 
 Interface
@@ -260,7 +261,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2003-03-23 17:47:15  armin
+  Revision 1.4  2003-03-25 18:17:54  armin
+  * support for fcl, support for linking without debug info
+  * renamed winsock2 to winsock for win32 compatinility
+  * new sockets unit for netware
+  * changes for compiler warnings
+
+  Revision 1.3  2003/03/23 17:47:15  armin
   * CloseSocket added
 
   Revision 1.10  2003/01/01 14:34:22  peter
