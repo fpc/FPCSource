@@ -414,7 +414,9 @@ implementation
       var
         hp : pinputfile;
       begin
-      { save old postion }
+      { save old postion and decrease linebreak }
+        if c=newline then
+         dec(line_no);
         dec(longint(inputpointer));
         tempcloseinputfile;
       { create macro 'file' }
@@ -1654,7 +1656,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  1999-05-04 21:45:04  florian
+  Revision 1.83  1999-05-20 14:57:29  peter
+    * fixed line counting with macro's
+
+  Revision 1.82  1999/05/04 21:45:04  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.81  1999/04/07 14:36:44  pierre
