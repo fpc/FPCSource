@@ -828,7 +828,8 @@ type
     po_nostackframe,
     po_has_mangledname,
     po_has_public_name,
-    po_forward
+    po_forward,
+    po_global
   );
   tprocoptions=set of tprocoption;
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
@@ -896,7 +897,8 @@ const
      (mask:po_nostackframe;    str:'NoStackFrame'),
      (mask:po_has_mangledname; str:'HasMangledName'),
      (mask:po_has_public_name; str:'HasPublicName'),
-     (mask:po_forward;         str:'Forward')
+     (mask:po_forward;         str:'Forward'),
+     (mask:po_global;          str:'Global')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1442,7 +1444,6 @@ begin
              read_abstract_proc_def(calloption,procoptions);
              if (po_has_mangledname in procoptions) then
                writeln(space,'     Mangled name : ',getstring);
-             writeln(space,'  Overload Number : ',getword);
              writeln(space,'           Number : ',getword);
              writeln(space,'            Level : ',getbyte);
              write  (space,'            Class : ');
@@ -2087,7 +2088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-11-17 22:22:12  peter
+  Revision 1.62  2004-11-19 08:17:02  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.61  2004/11/17 22:22:12  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 

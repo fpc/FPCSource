@@ -1566,7 +1566,7 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
-            if (po_public in current_procinfo.procdef.procoptions) then
+            if (po_global in current_procinfo.procdef.procoptions) then
               Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
             current_procinfo.procdef.concatstabto(list);
             Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
@@ -1583,7 +1583,7 @@ implementation
           list.concat(Tai_stab_function_name.create(strpnew(hs)));
 {$endif GDB}
           if (cs_profile in aktmoduleswitches) or
-             (po_public in current_procinfo.procdef.procoptions) then
+             (po_global in current_procinfo.procdef.procoptions) then
             list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
           else
             list.concat(Tai_symbol.createname(hs,AT_FUNCTION,0));
@@ -2210,7 +2210,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.241  2004-11-15 23:35:31  peter
+  Revision 1.242  2004-11-19 08:17:01  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.241  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

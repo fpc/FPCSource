@@ -803,7 +803,7 @@ implementation
             (symtablestack.symtabletype=objectsymtable) or
             (symtablestack.symtablelevel=main_program_level)
            ) then
-          include(pd.procoptions,po_public);
+          include(pd.procoptions,po_global);
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
@@ -1369,7 +1369,7 @@ const
       pd_flags : [pd_body,pd_interface,pd_implemen,pd_notobjintf];
       handler  : @pd_export;
       pocall   : pocall_none;
-      pooption : [po_exports,po_public];
+      pooption : [po_exports,po_global];
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external,po_interrupt]
@@ -1523,7 +1523,7 @@ const
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : @pd_public;
       pocall   : pocall_none;
-      pooption : [po_public];
+      pooption : [po_public,po_global];
       mutexclpocall : [pocall_internproc,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_external]
@@ -1967,6 +1967,7 @@ const
           begin
             tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
+            include(pd.procoptions,po_has_public_name);
           end;
 
         while token in [_ID,_LECKKLAMMER] do
@@ -2328,7 +2329,10 @@ const
 end.
 {
   $Log$
-  Revision 1.209  2004-11-17 22:41:41  peter
+  Revision 1.210  2004-11-19 08:17:01  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.209  2004/11/17 22:41:41  peter
     * make some checks EXTDEBUG only for now so linux cycles again
 
   Revision 1.208  2004/11/17 22:21:35  peter

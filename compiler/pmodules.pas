@@ -786,7 +786,7 @@ implementation
         inc(ps.refs);
         symtablestack.insert(ps);
         pd:=tprocdef.create(main_program_level);
-        include(pd.procoptions,po_public);
+        include(pd.procoptions,po_global);
         pd.procsym:=ps;
         ps.addprocdef(pd);
         { restore symtable }
@@ -1521,7 +1521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2004-11-16 20:32:40  peter
+  Revision 1.176  2004-11-19 08:17:02  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.175  2004/11/16 20:32:40  peter
   * fixes for win32 mangledname
 
   Revision 1.174  2004/11/15 23:35:31  peter

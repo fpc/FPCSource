@@ -1149,7 +1149,7 @@ implementation
             { set also the interface flag, for better error message when the
               implementation doesn't much this header }
             pd.interfacedef:=true;
-            include(pd.procoptions,po_public);
+            include(pd.procoptions,po_global);
             pdflags:=[pd_interface];
           end
          else
@@ -1159,7 +1159,7 @@ implementation
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
                maybe_smartlink_symbol then
-              include(pd.procoptions,po_public);
+              include(pd.procoptions,po_global);
             pd.forwarddef:=false;
           end;
 
@@ -1438,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.217  2004-11-17 22:21:35  peter
+  Revision 1.218  2004-11-19 08:17:02  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.217  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 

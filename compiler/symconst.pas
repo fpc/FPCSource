@@ -247,7 +247,8 @@ type
     po_nostackframe,
     po_has_mangledname,
     po_has_public_name,
-    po_forward
+    po_forward,
+    po_global
   );
   tprocoptions=set of tprocoption;
 
@@ -427,7 +428,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.94  2004-11-17 22:21:35  peter
+  Revision 1.95  2004-11-19 08:17:02  michael
+  * Split po_public into po_public and po_global (Peter)
+
+  Revision 1.94  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 
