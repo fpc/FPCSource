@@ -145,10 +145,9 @@ end;
 
 
 { Delphi style }
-function FreeMem(p:pointer):Longint;
+function FreeMem(var p:pointer):Longint;
 begin
-  if p <> nil then
-    Freemem:=MemoryManager.FreeMem(p);
+  Freemem:=MemoryManager.FreeMem(p);
 end;
 
 
@@ -164,7 +163,7 @@ begin
 end;
 
 
-function ReAllocMem(p:pointer;Size:Longint):pointer;
+function ReAllocMem(var p:pointer;Size:Longint):pointer;
 begin
   ReAllocMem:=MemoryManager.ReAllocMem(p,size);
 end;
@@ -427,7 +426,7 @@ end;
                                SysFreeMem
 *****************************************************************************}
 
-Function SysFreeMem(p : pointer):Longint;
+Function SysFreeMem(var p : pointer):Longint;
 var
   s : longint;
   pcurr : pfreerecord;
@@ -447,6 +446,7 @@ begin
   if assigned(pcurr^.next) then
    pcurr^.next^.prev:=pcurr;
   freelists[s]:=pcurr;
+  p:=nil;
   SysFreeMem:=pcurr^.size;
 end;
 
@@ -455,7 +455,7 @@ end;
                               SysFreeMemSize
 *****************************************************************************}
 
-Function SysFreeMemSize(p : pointer;size : longint):longint;
+Function SysFreeMemSize(var p : pointer;size : longint):longint;
 var
   s : longint;
   pcurr : pfreerecord;
@@ -518,7 +518,7 @@ end;
                                  SysReAllocMem
 *****************************************************************************}
 
-function SysReAllocMem(p:pointer;size : longint):pointer;
+function SysReAllocMem(var p:pointer;size : longint):pointer;
 var
   currsize,
   foundsize,
@@ -750,7 +750,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  1999-10-30 17:39:05  peter
+  Revision 1.22  1999-11-01 13:56:50  peter
+    * freemem,reallocmem now get var argument
+
+  Revision 1.21  1999/10/30 17:39:05  peter
     * memorymanager expanded with allocmem/reallocmem
 
   Revision 1.20  1999/10/22 22:03:07  sg

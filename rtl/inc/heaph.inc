@@ -19,10 +19,10 @@ type
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     Getmem      : Function(Size:Longint):Pointer;
-    Freemem     : Function(p:pointer):Longint;
-    FreememSize : Function(p:pointer;Size:Longint):Longint;
+    Freemem     : Function(var p:pointer):Longint;
+    FreememSize : Function(var p:pointer;Size:Longint):Longint;
     AllocMem    : Function(Size:longint):Pointer;
-    ReAllocMem  : Function(p:pointer;Size:longint):Pointer;
+    ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
     MemSize     : function(p:pointer):Longint;
     MemAvail    : Function:Longint;
     MaxAvail    : Function:Longint;
@@ -41,11 +41,11 @@ var
 
 { Default MemoryManager functions }
 Function  SysGetmem(Size:Longint):Pointer;
-Function  SysFreemem(p:pointer):Longint;
-Function  SysFreememSize(p:pointer;Size:Longint):Longint;
+Function  SysFreemem(var p:pointer):Longint;
+Function  SysFreememSize(var p:pointer;Size:Longint):Longint;
 Function  SysMemSize(p:pointer):Longint;
 Function  SysAllocMem(size:longint):Pointer;
-Function  SysReAllocMem(p:pointer;size:longint):Pointer;
+Function  SysReAllocMem(var p:pointer;size:longint):Pointer;
 Function  Sysmemavail:Longint;
 Function  Sysmaxavail:Longint;
 Function  Sysheapsize:longint;
@@ -61,10 +61,10 @@ Function  MemSize(p:pointer):Longint;
 Function  heapsize:longint;
 
 { Delphi functions }
-function Freemem(p:pointer):longint;
 function GetMem(size:longint):pointer;
+function Freemem(var p:pointer):longint;
 function AllocMem(Size:Longint):pointer;
-function ReAllocMem(p:pointer;Size:Longint):pointer;
+function ReAllocMem(var p:pointer;Size:Longint):pointer;
 
 { Needed to solve overloading problem with call from assembler (PFV) }
 Procedure AsmGetmem(var p:pointer;size:Longint);
@@ -76,7 +76,10 @@ Procedure release(var p : pointer);
 
 {
   $Log$
-  Revision 1.11  1999-10-30 17:39:05  peter
+  Revision 1.12  1999-11-01 13:56:50  peter
+    * freemem,reallocmem now get var argument
+
+  Revision 1.11  1999/10/30 17:39:05  peter
     * memorymanager expanded with allocmem/reallocmem
 
   Revision 1.10  1999/09/17 17:14:12  peter

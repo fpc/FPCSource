@@ -386,7 +386,7 @@ end;
                                TraceFreeMem
 *****************************************************************************}
 
-function TraceFreeMemSize(p:pointer;size:longint):longint;
+function TraceFreeMemSize(var p:pointer;size:longint):longint;
 var
   i,bp, ppsize : longint;
   pp : pheap_mem_info;
@@ -508,7 +508,7 @@ begin
 end;
 
 
-function TraceFreeMem(p:pointer):longint;
+function TraceFreeMem(var p:pointer):longint;
 var
   size : longint;
   pp : pheap_mem_info;
@@ -725,7 +725,7 @@ end;
                                 ReAllocMem
 *****************************************************************************}
 
-function TraceReAllocMem(p:pointer;size:longint):Pointer;
+function TraceReAllocMem(var p:pointer;size:longint):Pointer;
 var
   i,bp : longint;
   pl : plongint;
@@ -897,7 +897,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  1999-10-30 17:39:05  peter
+  Revision 1.26  1999-11-01 13:56:50  peter
+    * freemem,reallocmem now get var argument
+
+  Revision 1.25  1999/10/30 17:39:05  peter
     * memorymanager expanded with allocmem/reallocmem
 
   Revision 1.24  1999/09/17 17:14:12  peter
