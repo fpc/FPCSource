@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ Translated to FPK pascal by Pierre Muller,
+{ Translated to FPC pascal by Pierre Muller,
 without changing the exceptn.s file }
 Unit DPMIEXCP;
 
@@ -173,13 +173,13 @@ end;
 
 { const newline = #13#10; }
 
-procedure err(x : string);
+procedure err(const x : string);
 begin
    write(stderr, x);
    flush(stderr);
 end;
 
-procedure errln(x : string);
+procedure errln(const x : string);
 begin
    writeln(stderr, x);
    flush(stderr);
@@ -342,7 +342,7 @@ function do_faulting_finish_message : integer;
        end
      else
        begin
-          write(stderr, 'FPK ',en);
+          write(stderr, 'FPC ',en);
           err(' at eip=');
           itox(djgpp_exception_state^.__eip, 8);
        end;
@@ -619,7 +619,7 @@ const exception_level : longint = 0;
             { /* Not exception so continue OK */ }
               longjmp(pjmprec(djgpp_exception_state)^, djgpp_exception_state^.__eax);
             {/* User handler did not exit or longjmp, we must exit */}
-            err('FPK cannot continue from exception, exiting due to signal ');
+            err('FPC cannot continue from exception, exiting due to signal ');
             itox(sig, 4);
             errln('');
          end
@@ -627,7 +627,7 @@ const exception_level : longint = 0;
          begin
             if exception_level>2 then
               begin
-                 errln('FPK triple exception, exiting !!! ');
+                 errln('FPC triple exception, exiting !!! ');
                  if (exceptions_on) then
                    djgpp_exception_toggle;
                  asm
@@ -635,7 +635,7 @@ const exception_level : longint = 0;
                     call  ___exit
                  end;
               end;
-            err('FPK double exception, exiting due to signal ');
+            err('FPC double exception, exiting due to signal ');
             itox(sig, 4);
             errln('');
          end;
@@ -677,11 +677,11 @@ procedure djgpp_exception_toggle;
 {$ifdef SYSTEMDEBUG}
      if exceptions_on then
        begin
-          errln('Disabling FPK exceptions');
+          errln('Disabling FPC exceptions');
        end
      else
        begin
-          errln('Enabling FPK exceptions');
+          errln('Enabling FPC exceptions');
        end;
 {$endif SYSTEMDEBUG}
      { toggle here to avoid infinite recursion }
@@ -939,7 +939,10 @@ djgpp_exception_setup;
 end.
 {
   $Log$
-  Revision 1.5  1998-07-08 12:02:19  carl
+  Revision 1.6  1998-08-04 13:31:32  pierre
+    * changed all FPK into FPC
+
+  Revision 1.5  1998/07/08 12:02:19  carl
     * make it compiler under fpc v0995
 
   Revision 1.4  1998/06/26 08:19:08  pierre
