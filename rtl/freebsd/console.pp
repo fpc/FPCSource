@@ -1830,7 +1830,7 @@ function physicalconsole(fd:longint) : boolean;
 var name:string;
 
 begin
- if (isatty(fd)<>-1) then
+ if isatty(fd) then
   begin
    name:=ttyname(fd);
    if Copy(name,1,8)<>'/dev/tty' then
@@ -3476,7 +3476,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-01-03 12:18:29  marco
+  Revision 1.9  2004-07-09 20:21:20  daniel
+    * Fix compilation for now
+
+  Revision 1.8  2004/01/03 12:18:29  marco
    * a lot of copyright notices and CVS logs added and fixed
 
 
