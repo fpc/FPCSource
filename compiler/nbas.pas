@@ -351,7 +351,10 @@ implementation
                       not(cs_extsyntax in aktmoduleswitches) and
                       (hp.left.nodetype=calln) and
                       not(is_void(hp.left.resulttype.def)) and
-                      not(nf_return_value_used in tcallnode(hp.left).flags) then
+                      not(nf_return_value_used in tcallnode(hp.left).flags) and
+                      not((tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor) and
+                          assigned(tprocdef(tcallnode(hp.left).procdefinition)._class) and
+                          is_object(tprocdef(tcallnode(hp.left).procdefinition)._class)) then
                      CGMessagePos(hp.left.fileinfo,cg_e_illegal_expression);
                    { the resulttype of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
@@ -845,7 +848,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2003-10-23 14:44:07  peter
+  Revision 1.70  2003-10-29 20:34:20  peter
+    * move check for unused object constructor result to blocknode
+
+  Revision 1.69  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

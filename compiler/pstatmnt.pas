@@ -982,15 +982,11 @@ implementation
                                    continuen,labeln,blockn,exitn]) then
                Message(cg_e_illegal_expression);
 
-             { specify that we don't use the value returned by the call
-               it is used for :
+             { Specify that we don't use the value returned by the call.
+               This is used for :
                 - dispose of temp stack space
-                - dispose on FPU stack
-               Object constructor results are ignored }
-             if (p.nodetype=calln) and
-                not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
-                    assigned(tprocdef(tcallnode(p).procdefinition)._class) and
-                    is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
+                - dispose on FPU stack }
+             if (p.nodetype=calln) then
                exclude(p.flags,nf_return_value_used);
 
              code:=p;
@@ -1134,8 +1130,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2003-10-29 20:01:41  peter
-    * object constructor results are always used
+  Revision 1.119  2003-10-29 20:34:20  peter
+    * move check for unused object constructor result to blocknode
 
   Revision 1.117  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
