@@ -39,11 +39,14 @@ function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'F
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_SYSCALL3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL6';
 
 {
   $Log$
-  Revision 1.3  2003-05-23 22:36:39  florian
+  Revision 1.4  2003-07-06 21:26:10  peter
+    * syscall6 alias fixed
+
+  Revision 1.3  2003/05/23 22:36:39  florian
     * fixed compilation of sparc system unit
 
   Revision 1.2  2003/01/05 21:32:35  mazen

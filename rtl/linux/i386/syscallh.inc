@@ -41,12 +41,15 @@ function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external n
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
 {$ifdef notsupported}
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  external name 'FPC_SYSCALL6';
 {$endif notsupported}
 
 {
   $Log$
-  Revision 1.3  2002-12-18 20:41:33  peter
+  Revision 1.4  2003-07-06 21:26:10  peter
+    * syscall6 alias fixed
+
+  Revision 1.3  2002/12/18 20:41:33  peter
     * Threadvar support for Errno
     * Fixed syscall error return check
     * Uncommented Syscall with 6 parameters, only 5 were really set
