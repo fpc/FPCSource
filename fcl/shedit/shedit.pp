@@ -99,6 +99,7 @@ type
     StartX, StartY, EndX, EndY: Integer;
 
     function IsValid: Boolean;
+    function IsEmpty: Boolean;
     // Ordered coordinates: swaps start and end if necessary
     function OStartX: Integer;
     function OStartY: Integer;
@@ -113,9 +114,8 @@ type
 
   ISHWidget = class
     // Drawing
-    procedure InvalidateRect(x1, y1, x2, y2: Integer); virtual; abstract;
-    procedure InvalidateLines(y1, y2: Integer); virtual; abstract;
-    procedure ClearRect(x1, y1, x2, y2: Integer); virtual; abstract;
+    procedure InvalidateRect(x, y, w, h: Integer); virtual; abstract;
+    procedure ClearRect(x, y, w, h: Integer); virtual; abstract;
     procedure DrawTextLine(x1, x2, y: Integer; s: PChar); virtual; abstract;
 
     // Cursor placement
@@ -231,6 +231,7 @@ type
 
   public
     constructor Create(ADoc: TTextDoc; AWidget: ISHWidget); virtual;
+    destructor Destroy; override;
     function  AddKeyboardAction(AMethod: TKeyboardActionProc;ASelectionAction:TSelectionAction;ADescr: String): TKeyboardActionDescr;
     function AddKeyboardAssignment(AKeyCode: Integer; AShiftState: TShiftState;
       AAction: TKeyboardActionDescr): TShortcut;
@@ -238,7 +239,7 @@ type
 
     procedure FocusIn;
     procedure FocusOut;
-    procedure DrawContent(x1, y1, x2, y2: Integer);
+    procedure DrawContent(x, y, w, h: Integer);
 
     // Return value: True=Key has been pressed, False=Key has not been processed
     function  KeyPressed(KeyCode: LongWord; ShiftState: TShiftState): Boolean; virtual;
@@ -282,6 +283,11 @@ end;
 function TSelection.IsValid: Boolean;
 begin
   Result := StartX <> -1;
+end;
+
+function TSelection.IsEmpty: Boolean;
+begin
+  Result := (StartX = EndX) and (StartY = EndY);
 end;
 
 function TSelection.OStartX: Integer;
@@ -353,6 +359,33 @@ begin
   CursorY:=0;
 end;
 
+destructor TSHTextEdit.Destroy;
+var
+  buf, prev: TUndoInfo;
+begin
+  ViewInfo.Free;
+  FDoc.Release;
+  KeyboardActions.Free;
+  Shortcuts.Free;
+  FSel.Free;
+
+  buf := LastUndoInfo;
+  while Assigned(buf) do begin
+    prev := buf.prev;
+    buf.Free;
+    buf := prev;
+  end;
+
+  buf := LastRedoInfo;
+  while Assigned(buf) do begin
+    prev := buf.prev;
+    buf.Free;
+    buf := prev;
+  end;
+
+  inherited Destroy;
+end;
+
 procedure TSHTextEdit.ModifiedChanged(Sender: TObject);
 begin
   if Assigned(OnModifiedChange) then
@@ -422,25 +455,29 @@ procedure TSHTextEdit.EndSelectionChange;
 
   procedure RedrawArea(x1, y1, x2, y2: Integer);
   begin
-    // WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
+    WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
     if y1 = y2 then
-      FWidget.InvalidateRect(x1, y1, x2, y2)
+      FWidget.InvalidateRect(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1)
     else begin
-      FWidget.InvalidateRect(x1, y1, x1 + FWidget.PageWidth, y1);
+      FWidget.InvalidateRect(x1, y1, FWidget.PageWidth, 1);
       if y1 < y2 - 1 then
-        FWidget.InvalidateRect(0, y1+1, FWidget.PageWidth, y2 - 1);
-      FWidget.InvalidateRect(0, y2, x2, y2+1);
+        FWidget.InvalidateRect(0, y1 + 1, FWidget.PageWidth, (y2 - y1) - 1);
+      FWidget.InvalidateRect(0, y2, x2, 1);
     end;
   end;
 
 begin
+WriteLn('=> TSHTextEdit.EndSelectionChange');
   if not OldSelValid then begin
     if FSel.IsValid then
       RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
   end else begin
-    if not FSel.IsValid then
-      RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
-    else begin
+    WriteLn('Old selection: ', OldSelStartX, '/', OldSelStartY, ' - ', OldSelEndX, '/', OldSelEndY);
+    if not FSel.IsValid then begin
+      WriteLn('No new selection');
+      RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
+    end else begin
+      WriteLn('New selection: ', FSel.OStartX, '/', FSel.OStartY, ' - ', FSel.OEndX, '/', FSel.OEndY);
       // Do OldSel and FSel intersect?
       if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
          ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
@@ -476,7 +513,11 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-01-23 23:59:02  sg
+  Revision 1.15  2000-01-31 19:23:37  sg
+  * Fixed selection redrawing bugs
+  * Changed "x1, y2, x2, y2" arguments to "x, y, w, h"
+
+  Revision 1.14  2000/01/23 23:59:02  sg
   * KeyPressed now returns a Boolean which indicates if the key has been
     processed or not
 

@@ -71,19 +71,21 @@ begin
   end;
 
   // Redraw all lines with changed SH flags
-  FWidget.InvalidateLines(line, CurLine);
+  FWidget.InvalidateRect(line, 0, (CurLine - line) + 1, FWidget.PageWidth);
 end;
 
 
-procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
+procedure TSHTextEdit.DrawContent(x, y, w, h: Integer);
+var
+  x2, y2: Integer;
 
   procedure PostprocessOutput(py: Integer);
   begin
     // Erase free space below the text area
     if py < y2 then
-      FWidget.ClearRect(0, py, x2, y2);
+      FWidget.ClearRect(x, py, w, y2 - py);
 
-    if (FCursorX >= x1) and (FCursorY >= y1) and
+    if (FCursorX >= x) and (FCursorY >= y) and
       (FCursorX <= x2) and (FCursorY <= y2) then
       ShowCursor;
   end;
@@ -97,9 +99,9 @@ procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
   end;
 
 var
-  i, LineNumber, CheckLine: Integer;
+  i, cx, LineNumber, CheckLine: Integer;
   OrigStr, s, s2: PChar;
-  spos, x, smem: Integer;
+  spos, smem: Integer;
   flags: Byte;
   InSel: Boolean;
   LastCol: Char;
@@ -107,16 +109,29 @@ var
 
 begin
 
-  if (FCursorX >= x1) and (FCursorY >= y1) and
+  if x < 0 then begin
+    Inc(w, x);
+    x := 0;
+  end;
+  if y < 0 then begin
+    Inc(h, y);
+    y := 0;
+  end;
+  if (w < 0) or (h < 0) then exit;
+
+  x2 := x + w;
+  y2 := y + h;
+
+  if (FCursorX >= x) and (FCursorY >= y) and
     (FCursorX <= x2) and (FCursorY <= y2) then
     HideCursor;
 
-  if (FDoc = nil) or (FDoc.LineCount <= y1) then begin
-    PostprocessOutput(y1);
+  if (FDoc = nil) or (FDoc.LineCount <= y) then begin
+    PostprocessOutput(y);
     exit;
   end;
 
-  LineNumber := y1;
+  LineNumber := y;
 
   // Check if syntax highlighting flags are valid:
   if (FDoc.LineFlags[LineNumber] and LF_SH_Valid) <> 0 then
@@ -175,12 +190,12 @@ begin
           s[1] := Chr(shSelected);
           s[2] := #0;
         end;
-      end else if (LineNumber = FSel.OStartY) or
-        (LineNumber = FSel.OEndY) then begin
+      end else if ((LineNumber = FSel.OStartY) or (LineNumber = FSel.OEndY))
+        and not FSel.IsEmpty then begin
         s2 := StrNew(s);
         spos := 0;
         i := 0;
-        x := 0;
+        cx := 0;
         if LineNumber > FSel.OStartY then begin
 	  ASSERT(smem >= 2);
           s[0] := LF_Escape;
@@ -203,7 +218,7 @@ begin
             Inc(i, 2);
           end else begin
             if InSel then begin
-              if (LineNumber = FSel.OEndY) and (x = FSel.OEndX) then begin
+              if (LineNumber = FSel.OEndY) and (cx = FSel.OEndX) then begin
 	        ASSERT(smem > spos + 1);
                 s[spos] := LF_Escape;
                 s[spos + 1] := LastCol;
@@ -211,7 +226,7 @@ begin
                 InSel := False;
               end;
             end else
-              if (LineNumber = FSel.OStartY) and (x = FSel.OStartX) then begin
+              if (LineNumber = FSel.OStartY) and (cx = FSel.OStartX) then begin
 	        ASSERT(smem > spos + 1);
                 s[spos] := LF_Escape;
                 s[spos + 1] := Chr(shSelected);
@@ -223,7 +238,7 @@ begin
             s[spos] := s2[i];
             Inc(spos);
             Inc(i);
-            Inc(x);
+            Inc(cx);
           end;
         end;
 	ASSERT(smem > spos);
@@ -231,7 +246,7 @@ begin
         StrDispose(s2);
       end;
 
-    FWidget.DrawTextLine(x1, x2, LineNumber, s);
+    FWidget.DrawTextLine(x, x2, LineNumber, s);
 
     FreeMem(s);
     Inc(LineNumber);
@@ -243,7 +258,11 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:34  peter
+  Revision 1.9  2000-01-31 19:23:37  sg
+  * Fixed selection redrawing bugs
+  * Changed "x1, y2, x2, y2" arguments to "x, y, w, h"
+
+  Revision 1.8  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:34  peter
