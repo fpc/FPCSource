@@ -37,7 +37,9 @@ program pilrctst;
   var
      kidForm : longint;
 
-function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;[alias: 'PilotMain'];
+{function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;[alias: 'PilotMain'];}
+
+
 
   var
      b : boolean;
@@ -47,7 +49,7 @@ function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;
      ptbl : PTableType;
 
   begin
-     if _cmd=0 then
+     {if _cmd=0 then }
        begin
           kidForm:=kidForm1;
           FrmGotoForm(kidForm);
@@ -106,8 +108,8 @@ function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;
                end;
             end;
        end;
-     PilotMain:=0;
+     {PilotMain:=0;
   end;
 
-begin
+begin}
 end.
