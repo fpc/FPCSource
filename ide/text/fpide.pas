@@ -135,7 +135,9 @@ begin
   Desktop^.Insert(ClipboardWindow);
   New(CalcWindow, Init); CalcWindow^.Hide;
   Desktop^.Insert(CalcWindow);
-  New(ProgramInfoWindow, Init); ProgramInfoWindow^.Hide; Desktop^.Insert(ProgramInfoWindow);
+  New(ProgramInfoWindow, Init);
+  ProgramInfoWindow^.Hide;
+  Desktop^.Insert(ProgramInfoWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   InitTemplates;
   CurDirChanged;
@@ -396,9 +398,14 @@ begin
            cmUpdate              :
              Update;
            cmSourceWndClosing :
-             with PSourceWindow(Event.InfoPtr)^ do
-               if Editor^.FileName<>'' then
-                  AddRecentFile(Editor^.FileName,Editor^.CurPos.X,Editor^.CurPos.Y);
+             begin
+               with PSourceWindow(Event.InfoPtr)^ do
+                 if Editor^.FileName<>'' then
+                   AddRecentFile(Editor^.FileName,Editor^.CurPos.X,Editor^.CurPos.Y);
+               if assigned(Debugger) and (PView(Event.InfoPtr)=Debugger^.LastSource) then
+                 Debugger^.LastSource:=nil;
+             end;
+               
          end;
   end;
   inherited HandleEvent(Event);
@@ -647,7 +654,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-02-08 17:43:44  pierre
+  Revision 1.13  1999-02-10 09:54:11  pierre
+    * cmSourceWindowClosing resets Debugger LastSource field to avoid problems
+
+  Revision 1.12  1999/02/08 17:43:44  pierre
     * RestDebugger or multiple running of debugged program now works
     + added DoContToCursor(F4)
     * Breakpoints are now inserted correctly (was mainlyy a problem
