@@ -323,10 +323,8 @@ const
     {* INIT TOKEN TO NOTHING *}
     token := AS_NONE;
     { while space and tab , continue scan... }
-    while (c = ' ') or (c = #9) do
-    begin
-      c := asmgetchar;
-    end;
+    while c in [' ',#9] do
+     c:=asmgetchar;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
     if firsttoken and not (c in [newline,#13,'{',';']) then
@@ -350,8 +348,7 @@ const
           { local variables are case sensitive }
           gettoken := AS_LLABEL;
           { delete .L }
-          delete(actasmpattern,1,1);
-          delete(actasmpattern,1,1);
+          delete(actasmpattern,1,2);
           { point to next character ... }
           c := asmgetchar;
           exit;
@@ -3681,7 +3678,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-29 10:34:04  pierre
+  Revision 1.5  1998-04-29 13:52:23  peter
+    * small optimize fix
+
+  Revision 1.4  1998/04/29 10:34:04  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output
