@@ -54,6 +54,7 @@ Fixed bugs:
   bug0039.pp    shows the else-else problem                         OK 0.9.9 (FK)
   bug0040.pp    shows the if b1 xor b2 problem where b1,b2 :boolean OK 0.9.9 (FK)
   bug0041.pp    shows the if then end. problem                      OK 0.9.9 (FK)
+  bug0042.pp    shows assembler double operator expression problem  OK 0.99.7 (PFV)
   bug0043.pp    shows assembler nasm output fpu opcodes problem     OK 0.99.6 (PFV)
   bug0044.pp    shows $ifdef and comment nesting/directive problem  OK 0.99.1 (PFV)
   bug0045.pp    shows problem with virtual private methods          OK 0.9.9 (FK)
@@ -177,11 +178,11 @@ Unfixed not important bugs (mostly incompatibilities):
 ------------------------------------------------------
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
+bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 
 
 Unfixed bugs:
 -------------
-bug0042.pp   shows assembler double operator expression problem
 bug0049.pp   shows an error while defining subrange types
 bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
@@ -193,7 +194,6 @@ bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0127.pp   problem with cdecl in implementation part
 bug0132.pp   segmentation fault with type loop
-bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 bug0143.pp   cannot concat string and array of char in $X+ mode
 bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
