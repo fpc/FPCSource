@@ -10,6 +10,9 @@ set -e
 # if it is not equal to yes, the documentation is assumed present in a file docs.tar.gz
 MAKEDOCS=no
 
+# Set this to "no" if you want don't want to check for libgdb.a
+CHECKLIBGDB=yes
+
 unset FPCDIR
 
 # Goto the toplevel if necessary
@@ -26,7 +29,6 @@ SOURCECPU=`fpc -iSP | head -n1`
 SOURCEOS=`fpc -iSO | head -n1`
 
 # retrieve real OS.
-HOSTARCH=`uname -p | tr "[:upper:]" "[:lower:]"`
 HOSTOS=`uname -s | tr "[:upper:]" "[:lower:]"`
 
 MAKE=make
@@ -55,6 +57,17 @@ FULLSOURCE=$SOURCECPU-$SOURCEOS
 
 echo "FPC Source: $FULLSOURCE"
 echo "FPC Target: $FULLTARGET"
+
+# Check for libgdb.a
+if [ "$CHECKLIBGDB" = "yes" ]; then
+  if [ "$GDBLIBDIR" = "" ]; then
+    GDBLIBDIR=libgdb/$TARGETOS/$TARGETCPU
+  fi
+  if [ ! -e "$GDBLIBDIR/libgdb.a" ]; then
+    echo "Libgdb ($GDBLIBDIR/libgdb.a) not found, aborting"
+    exit 1
+  fi
+fi
 
 # Cross building
 #  - add prefix
@@ -90,16 +103,6 @@ if [ "$CROSS" = "" ]; then
       fi
     fi
   fi
-  ${MAKE}  sourcezip CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
-  if [ $? != 0 ]; then
-    echo "Failed to make source archive."
-    exit 1
-  fi
-  ${MAKE}  docsrc CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
-  if [ $? != 0 ]; then
-    echo "Failed to make documentation source archive."
-    exit 1
-  fi
   ${MAKE}  demozip CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
   if [ $? != 0 ]; then
     echo "Failed to make demo source archive."
@@ -131,15 +134,6 @@ fi
 RELFILES="$RELFILES $BINARYTAR"
 
 if [ "$CROSS" = "" ]; then
-  # sources.tar
-  echo "Creating sources.tar"
-  tar cf sources.tar *.source.tar.gz
-  if [ $? != 0 ]; then
-    echo "Failed to create sources.tar"
-    exit 1
-  fi
-  RELFILES="$RELFILES sources.tar"
-
   # demo, docs
   RELFILES="$RELFILES demo.tar.gz docs.tar.gz"
 fi

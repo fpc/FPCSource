@@ -15,12 +15,13 @@ VERSION=%version%
 # in the second parameter.
 ask ()
 {
-askvar=$2
-eval old=\$$askvar
-eval echo -n \""$1 [$old] : "\" 
-read $askvar
-eval test -z \"\$$askvar\" && eval $askvar=\'$old\'
+  askvar=$2
+  eval old=\$$askvar
+  eval echo -n \""$1 [$old] : "\" 
+  read $askvar
+  eval test -z \"\$$askvar\" && eval $askvar=\'$old\'
 }
+
 # yesno gives 1 on no, 0 on yes $1 gives text to display.
 yesno ()
 {
@@ -45,6 +46,7 @@ unztarfromtar ()
 {
  tar -xOf $HERE/$1 $2 | tar --directory $3 -xzf -
 }
+
 # Get file list from tar archive ($1) in variable ($2)
 # optionally filter result through sed ($3)
 listtarfiles ()
@@ -57,6 +59,7 @@ listtarfiles ()
   fi
   eval $askvar='$list'
 }
+
 # Make all the necessary directories to get $1
 makedirhierarch ()
 {
@@ -201,39 +204,6 @@ do
 done
 
 echo Done.
-echo
-
-# Install the sources. Optional.
-if yesno "Install sources"; then
-  echo Installing sources in $SRCDIR ...
-  unztarfromtar sources.tar  base.source.tar.gz $PREFIX
-  if yesno "Install compiler source"; then
-    unztarfromtar sources.tar compiler.source.tar.gz $PREFIX
-  fi    
-  if yesno "Install RTL source"; then
-    unztarfromtar sources.tar rtl.source.tar.gz $PREFIX
-  fi    
-  if yesno "Install FCL source"; then
-    unztarfromtar sources.tar fcl.source.tar.gz $PREFIX
-  fi    
-  if yesno "Install IDE source"; then
-    unztarfromtar sources.tar ide.source.tar.gz $PREFIX
-  fi    
-  if yesno "Install installer source"; then
-    unztarfromtar sources.tar installer.source.tar.gz $PREFIX
-  fi    
-  if yesno "Install Packages source"; then
-    listtarfiles sources.tar packages units
-    for f in $packages
-    do
-      p=`echo "$f" | sed -e 's+^.*units-\([^\.]*\)\..*+\1+'`
-      echo "Installing sources for $p"
-      unztarfromtar sources.tar $f $PREFIX
-    done
-  fi    
-  rm -f *.source.tar.gz
-  echo Done.
-fi
 echo
 
 # Install the documentation. Optional.
