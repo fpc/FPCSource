@@ -146,9 +146,13 @@ implementation
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
+{$ifdef x86}
         addtype('FarPointer',voidfarpointertype);
+{$endif x86}
         addtype('ShortString',cshortstringtype);
+{$ifdef support_longstring}
         addtype('LongString',clongstringtype);
+{$endif support_longstring}
 {$ifdef ansistring_bits}
         addtype('AnsiString',cansistringtype16);
         addtype('AnsiString',cansistringtype32);
@@ -542,7 +546,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2005-01-19 22:19:41  peter
+  Revision 1.77  2005-02-04 16:30:40  peter
+    * disable longstring
+
+  Revision 1.76  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
