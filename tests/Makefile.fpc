@@ -95,6 +95,7 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/objects
 
 allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
+        $(PP) test/ptest.pp
         $(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
         $(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
 
