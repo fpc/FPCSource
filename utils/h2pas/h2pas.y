@@ -147,9 +147,10 @@ program h2pas;
           'F' : b:=(up='FUNCTION') or (up='FALSE');
           'N' : b:=(up='NEW');
           'P' : b:=(up='PROPERTY') or (up='PROCEDURE');
-          'R' : b:=(up='RECORD');
+          'R' : b:=(up='RECORD') or (up='REPEAT');
           'S' : b:=(up='STRING');
           'T' : b:=(up='TYPE') or (up='TRUE');
+          'U' : b:=(up='UNTIL');
         end;
         if b then
          FixId:='_'+s
@@ -509,14 +510,15 @@ program h2pas;
 
     procedure write_args(var outfile:text; p : presobject);
       var
-         length,para : longint;
+         len,para : longint;
          old_in_args : boolean;
          varpara : boolean;
          lastp : presobject;
+         hs : string;
       begin
          NeedEllipsisOverload:=false;
          para:=1;
-         length:=0;
+         len:=0;
          lastp:=nil;
          old_in_args:=in_args;
          in_args:=true;
@@ -569,26 +571,27 @@ program h2pas;
                    if varpara then
                      begin
                         write(outfile,'var ');
-                        length:=length+4;
+                        inc(len,4);
                      end;
 
-                   (* write new type name *)
+                   (* write new parameter name *)
                    if assigned(p^.p1^.p2^.p2) then
                      begin
-                        write(outfile,p^.p1^.p2^.p2^.p);
-                        length:=length+p^.p1^.p2^.p2^.strlength;
+                        hs:=FixId(p^.p1^.p2^.p2^.p);
+                        write(outfile,hs);
+                        inc(len,length(hs));
                      end
                    else
                      begin
                        If removeUnderscore then
                          begin
                            Write (outfile,'para',para);
-                           inc(Length,5);
+                           inc(Len,5);
                          end
                        else
                          begin
                            write(outfile,'_para',para);
-                           inc(Length,6);
+                           inc(Len,6);
                          end;
                      end;
                    write(outfile,':');
@@ -603,7 +606,7 @@ program h2pas;
               if assigned(p) then
                 begin
                    write(outfile,'; ');
-                   { if length>40 then : too complicated to compute }
+                   { if len>40 then : too complicated to compute }
                    if (para mod 5) = 0 then
                      begin
                         writeln(outfile);
@@ -701,25 +704,33 @@ program h2pas;
                            end;
             t_arraydef : begin
                              constant:=false;
-                             if p^.p2^.typ=t_id then
-                               begin
-                                  val(p^.p2^.str,i,error);
-                                  if error=0 then
+                             if assigned(p^.p2) then
+                              begin
+                                if p^.p2^.typ=t_id then
+                                 begin
+                                   val(p^.p2^.str,i,error);
+                                   if error=0 then
                                     begin
-                                       dec(i);
-                                       constant:=true;
+                                      dec(i);
+                                      constant:=true;
                                     end;
-                               end;
-                             if not constant then
-                               begin
-                                  write(outfile,'array[0..(');
-                                  write_expr(outfile,p^.p2);
-                                  write(outfile,')-1] of ');
-                               end
+                                 end;
+                                if not constant then
+                                 begin
+                                   write(outfile,'array[0..(');
+                                   write_expr(outfile,p^.p2);
+                                   write(outfile,')-1] of ');
+                                 end
+                                else
+                                 begin
+                                   write(outfile,'array[0..',i,'] of ');
+                                 end;
+                              end
                              else
-                               begin
-                                  write(outfile,'array[0..',i,'] of ');
-                               end;
+                              begin
+                                (* open array *)
+                                write(outfile,'array of ');
+                              end;
                              flush(outfile);
                              write_p_a_def(outfile,p^.p1,simple_type);
                           end;
@@ -1056,7 +1067,7 @@ program h2pas;
                            hp1:=p^.p1;
                            while assigned(hp1) do
                              begin
-                                write(outfile,hp1^.p1^.p);
+                                write(outfile,FixId(hp1^.p1^.p));
                                 hp1:=hp1^.next;
                                 if assigned(hp1) then
                                   write(outfile,',')
@@ -1938,6 +1949,9 @@ argument_declaration_list : argument_declaration
      ELLIPSIS
      {
        $$:=new(presobject,init_two(t_arglist,ellipsisarg,nil));
+     } |
+     {
+       $$:=nil;
      }
      ;
 
@@ -2026,7 +2040,19 @@ declarator :
          hp:=hp^.p1;
        hp^.p1:=new(presobject,init_two(t_arraydef,nil,$3));
      } |
-     LKLAMMER declarator RKLAMMER { $$:=$2; }
+     declarator LECKKLAMMER RECKKLAMMER
+     {
+       (* this is translated into a pointer *)
+       hp:=$1;
+       $$:=hp;
+       while assigned(hp^.p1) do
+         hp:=hp^.p1;
+       hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+     } |
+     LKLAMMER declarator RKLAMMER
+     {
+       $$:=$2;
+     }
      ;
 
 no_arg : LKLAMMER RKLAMMER |
@@ -2082,8 +2108,19 @@ abstract_declarator :
          hp:=hp^.p1;
        hp^.p1:=new(presobject,init_two(t_arraydef,nil,$3));
      } |
+     declarator LECKKLAMMER RECKKLAMMER
+     {
+       (* this is translated into a pointer *)
+       hp:=$1;
+       $$:=hp;
+       while assigned(hp^.p1) do
+         hp:=hp^.p1;
+       hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+     } |
      LKLAMMER abstract_declarator RKLAMMER
-     { $$:=$2; } |
+     {
+       $$:=$2;
+     } |
      {
        $$:=new(presobject,init_two(t_dec,nil,nil));
      }
@@ -2404,8 +2441,8 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.1  2001-04-08 12:23:16  peter
-    * updated to more stable version in the main branch
+  Revision 1.1.2.2  2001-04-10 20:57:01  peter
+    * more stable version from mainbranch
 
   Revision 1.2  2000/12/27 21:59:59  peter
     * big update, it now converts much more files without serious errors

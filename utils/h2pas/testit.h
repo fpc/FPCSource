@@ -43,3 +43,30 @@ extern unsigned long long int q642;
 
 typedef DWORD (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
 typedef DWORD(WINAPI *LPPROGRESS_ROUTINE)(LARGE_INTEGER,LARGE_INTEGER,LARGE_INTEGER,LARGE_INTEGER,DWORD,DWORD,HANDLE,HANDLE,LPVOID);
+
+typedef Status (*XcmsConversionProc)();
+
+typedef XrmHashTable XrmSearchList[];
+
+#define XrmStringToRepresentation(string)   XrmStringToQuark(string)
+#define XrmRepresentationToString(type)   XrmQuarkToString(type)
+
+typedef struct _XRenderPictureAttributes {
+    Bool                repeat;
+    Picture             alpha_map;
+    int                 alpha_x_origin;
+    int                 alpha_y_origin;
+    int                 clip_x_origin;
+    int                 clip_y_origin;
+    Pixmap              clip_mask;
+    Bool                graphics_exposures;
+    int                 subwindow_mode;
+    int                 poly_edge;
+    int                 poly_mode;
+    Atom                dither;
+} XRenderPictureAttributes;
+
+void   gdk_gc_set_dashes          (GdkGC            *gc,
+                                   gint              dash_offset,
+                                   gint8             dash_list[],
+                                   gint              n);
