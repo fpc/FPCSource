@@ -68,6 +68,7 @@ interface
       begin
         resulttypepass(left);
         if (nodetype in [equaln,unequaln]) and
+           (left.resulttype.def.deftype = orddef) and
            is_64bit(left.resulttype.def) then
           begin
             result := nil;
@@ -1479,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-07-21 15:09:10  jonas
+  Revision 1.48  2004-08-30 09:28:40  jonas
+    * only specially handle 64bit operations on ordinals
+
+  Revision 1.47  2004/07/21 15:09:10  jonas
     * do a resulttypepass of left in the overloaded pass_1 before checking
       its resulttype
 
