@@ -689,8 +689,10 @@ unit win_targ;
          Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
          Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
          Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
-         Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
-         Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+
+         { change stack size (PM) }
+         { I am not sure that the default value is adequate !! }
+         peheader.SizeOfStackReserve:=stacksize;
          { change the header }
          { sub system }
          { gui=2 }
@@ -701,16 +703,25 @@ unit win_targ;
            peheader.Subsystem:=3;
          seek(f,peheaderpos);
          blockwrite(f,peheader,sizeof(tpeheader));
-         close(f);
          if ioresult<>0 then
            Message1(execinfo_f_cant_process_executable,n);
+         seek(f,peheaderpos);
+         blockread(f,peheader,sizeof(tpeheader));
+         { write the value after the change }
+         
+         Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
+         Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+         close(f);
          {$I+}
       end;
 
 end.
 {
   $Log$
-  Revision 1.24  1999-05-01 13:25:04  peter
+  Revision 1.25  1999-05-17 13:02:13  pierre
+   * -Csmmm works for win32 but default is set to 32Mb
+
+  Revision 1.24  1999/05/01 13:25:04  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

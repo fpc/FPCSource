@@ -1008,8 +1008,8 @@ implementation
             ar          : ar_i386_arw;
             res         : res_i386_windres;
             heapsize    : 2048*1024;
-            maxheapsize : 32768*1024;
-            stacksize   : 32768
+            maxheapsize : 32*1024*1024;
+            stacksize   : 32*1024*1024
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1470,7 +1470,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  1999-05-11 00:44:06  peter
+  Revision 1.74  1999-05-17 13:02:12  pierre
+   * -Csmmm works for win32 but default is set to 32Mb
+
+  Revision 1.73  1999/05/11 00:44:06  peter
     * released pecoff for win32 as default
 
   Revision 1.72  1999/05/05 22:22:05  peter
