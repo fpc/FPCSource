@@ -664,6 +664,12 @@ const
             Message1(scan_f_cannot_open_includefile,hs);
            Message1(scan_t_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
            current_scanner^.reload;
+         { process first read char }
+           case c of
+            #26 : current_scanner^.reload;
+            #10,
+            #13 : current_scanner^.linebreak;
+           end;
          { register for refs }
            current_module^.sourcefiles^.register_file(hp);
          end;
@@ -1157,7 +1163,11 @@ const
 
 {
   $Log$
-  Revision 1.64  1999-09-27 23:38:17  peter
+  Revision 1.65  1999-10-30 12:32:30  peter
+    * fixed line counter when the first line had #10 only. This was buggy
+      for both the main file as for include files
+
+  Revision 1.64  1999/09/27 23:38:17  peter
     * bracket support for macro define
 
   Revision 1.63  1999/09/20 16:39:02  peter

@@ -216,6 +216,12 @@ implementation
         if not openinputfile then
          Message1(scan_f_cannot_open_input,fn);
         reload;
+      { process first read char }
+        case c of
+         #26 : reload;
+         #10,
+         #13 : linebreak;
+        end;
       end;
 
 
@@ -1107,7 +1113,14 @@ implementation
                     insertmacro(pattern,mac^.buftext,mac^.buflen);
                   { handle empty macros }
                     if c=#0 then
-                     reload;
+                     begin
+                       reload;
+                       case c of
+                        #26 : reload;
+                        #10,
+                        #13 : linebreak;
+                       end;
+                     end;
                   { play it again ... }
                     inc(yylexcount);
                     if yylexcount>16 then
@@ -1671,7 +1684,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.96  1999-09-27 23:40:10  peter
+  Revision 1.97  1999-10-30 12:32:30  peter
+    * fixed line counter when the first line had #10 only. This was buggy
+      for both the main file as for include files
+
+  Revision 1.96  1999/09/27 23:40:10  peter
     * fixed macro within macro endless-loop
 
   Revision 1.95  1999/09/03 10:02:48  peter
