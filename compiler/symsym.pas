@@ -105,6 +105,8 @@ interface
           constructor create;
        end;
 
+       Tprocdefcallback = procedure(p:Tprocdef;arg:pointer);
+
        tprocsym = class(tstoredsym)
 {       protected}
           defs      : pprocdeflist; { linked list of overloaded procdefs }
@@ -124,13 +126,18 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
+          function procdef_count:byte;
+          function procdef(nr:byte):Tprocdef;
+          procedure add_para_match_to(Aprocsym:Tprocsym);
           procedure concat_procdefs_to(s:Tprocsym);
+          procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
           function first_procdef:Tprocdef;
           function last_procdef:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+          function search_procdef_bypara(params:Tparalinkedlist):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                                                      matchtype:Tdefmatch):Tprocdef;
+		                                              matchtype:Tdefmatch):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -873,10 +880,50 @@ implementation
         defs:=pd;
       end;
 
-    procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
+    function Tprocsym.procdef_count:byte;
 
     var pd:Pprocdeflist;
 
+    begin
+        procdef_count:=0;
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                inc(procdef_count);
+                pd:=pd^.next;
+            end;
+    end;
+
+    function Tprocsym.procdef(nr:byte):Tprocdef;
+
+    var i:byte;
+	    pd:Pprocdeflist;
+
+    begin
+        pd:=defs;
+        for i:=2 to nr do
+            pd:=pd^.next;
+        procdef:=pd^.def;
+    end;
+
+    procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym);
+
+    var pd:Pprocdeflist;
+
+    begin
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                if Aprocsym.search_procdef_bypara(pd^.def.para)=nil then
+                    Aprocsym.addprocdef(pd^.def);
+                pd:=pd^.next;
+            end;
+    end;
+    
+    procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
+    
+    var pd:Pprocdeflist;
+    
     begin
         pd:=defs;
         while assigned(defs) do
@@ -905,10 +952,23 @@ implementation
             end;
     end;
 
-    function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+    procedure Tprocsym.foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
 
     var p:Pprocdeflist;
 
+    begin
+        p:=defs;
+        while assigned(p) do
+            begin
+                proc2call(p^.def,arg);
+                p:=p^.next;
+            end;
+    end;
+
+    function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+    
+    var p:Pprocdeflist;
+    
     begin
         search_procdef_bytype:=nil;
         p:=defs;
@@ -923,6 +983,24 @@ implementation
             end;
     end;
 
+    function Tprocsym.search_procdef_bypara(params:Tparalinkedlist):Tprocdef;
+
+    var pd:Pprocdeflist;
+
+    begin
+        search_procdef_bypara:=nil;
+        pd:=defs;
+        while assigned(pd) do
+            begin
+                if equal_paras(pd^.def.para,params,cp_value_equal_const) then
+                    begin
+                        search_procdef_bypara:=pd^.def;
+                        break;
+                    end;
+                pd:=pd^.next;
+            end;
+    end;
+    
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
 
     var pd:Pprocdeflist;
@@ -2608,7 +2686,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-08-18 20:06:27  peter
+  Revision 1.54  2002-08-20 10:31:26  daniel
+   * Tcallnode.det_resulttype rewritten
+
+  Revision 1.53  2002/08/18 20:06:27  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

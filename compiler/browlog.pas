@@ -409,6 +409,25 @@ implementation
         dec(identidx,2);
       end;
 
+    procedure writesymtable(p:Tsymtable);forward;
+
+    procedure writelocalsymtables(p:Tprocdef;arg:pointer);
+
+    begin
+        if assigned(p.defref) then
+	    begin
+        	browserlog.AddLog('***'+p.mangledname);
+                browserlog.AddLogRefs(p.defref);
+                if (current_module.flags and uf_local_browser)<>0 then
+                    begin
+                        if assigned(p.parast) then
+                    	    writesymtable(p.parast);
+                        if assigned(p.localst) then
+                    	    writesymtable(p.localst);
+                    end;
+             end;
+    end;
+
 
     procedure writesymtable(p:tsymtable);
       var
@@ -445,25 +464,7 @@ implementation
                       writesymtable(tobjectdef(ttypesym(hp).restype.def).symtable);
                   end;
                 procsym :
-                  begin
-                    prdef:=tprocsym(hp).defs;
-                    while assigned(prdef) do
-                     begin
-                       if assigned(prdef^.def.defref) then
-                        begin
-                          browserlog.AddLog('***'+prdef^.def.mangledname);
-                          browserlog.AddLogRefs(prdef^.def.defref);
-                          if (current_module.flags and uf_local_browser)<>0 then
-                            begin
-                               if assigned(prdef^.def.parast) then
-                                 writesymtable(prdef^.def.parast);
-                               if assigned(prdef^.def.localst) then
-                                 writesymtable(prdef^.def.localst);
-                            end;
-                        end;
-                       prdef:=prdef^.next;
-                     end;
-                  end;
+		    Tprocsym(hp).foreach_procdef_static({$IFDEF FPCPROCVAR}@{$ENDIF}writelocalsymtables,nil);
               end;
               hp:=tstoredsym(hp.indexnext);
             end;
@@ -514,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-07-23 09:51:22  daniel
+  Revision 1.15  2002-08-20 10:31:26  daniel
+   * Tcallnode.det_resulttype rewritten
+
+  Revision 1.14  2002/07/23 09:51:22  daniel
   * Tried to make Tprocsym.defs protected. I didn't succeed but the cleanups
     are worth comitting.
 

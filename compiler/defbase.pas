@@ -1863,6 +1863,10 @@ implementation
                     b:=2;
                 end;
              end;
+	   formaldef:
+	     {Just about everything can be converted to a formaldef...}
+	     if not (def_from.deftype in [abstractdef,errordef]) then
+	        b:=1;
            else
              begin
                { assignment overwritten ?? }
@@ -1903,7 +1907,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-08-12 20:39:17  florian
+  Revision 1.6  2002-08-20 10:31:26  daniel
+   * Tcallnode.det_resulttype rewritten
+
+  Revision 1.5  2002/08/12 20:39:17  florian
     * casting of classes to interface fixed when the interface was
       implemented by a parent class
 

@@ -68,6 +68,9 @@ interface
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
+       {$ifdef nice_ncal}
+          function  choose_definition_to_call(paralength:byte;var errorexit:boolean):Tnode;
+       {$endif}
           function  det_resulttype:tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
@@ -83,6 +86,9 @@ interface
           cpf_convlevel1found,
           cpf_convlevel2found,
           cpf_is_colon_para
+{$ifdef nice_ncal}
+          ,cpf_nomatchfound
+{$endif}
        );
 
        tcallparanode = class(tbinarynode)
@@ -174,8 +180,7 @@ implementation
         speedvalue : cardinal;
         srsym      : tprocsym;
         s          : string;
-        found      : boolean;
-        srpdl,pdl  : pprocdeflist;
+        srpdl      : pprocdeflist;
         objdef     : tobjectdef;
       begin
         if aprocsym.overloadchecked then
@@ -199,24 +204,7 @@ implementation
                internalerror(200111022);
               if srsym.is_visible_for_proc(aktprocdef) then
                begin
-                 srpdl:=srsym.defs;
-                 while assigned(srpdl) do
-                  begin
-                    found:=false;
-                    pdl:=aprocsym.defs;
-                    while assigned(pdl) do
-                     begin
-                       if equal_paras(pdl^.def.para,srpdl^.def.para,cp_value_equal_const) then
-                        begin
-                          found:=true;
-                          break;
-                        end;
-                       pdl:=pdl^.next;
-                     end;
-                    if not found then
-                     aprocsym.addprocdef(srpdl^.def);
-                    srpdl:=srpdl^.next;
-                  end;
+                 srsym.add_para_match_to(Aprocsym);
                  { we can stop if the overloads were already added
                   for the found symbol }
                  if srsym.overloadchecked then
@@ -319,6 +307,48 @@ implementation
       end;
 
 
+    function is_var_para_incompatible(from_def,to_def:Tdef):boolean;
+
+    {Might be an idea to move this to defbase...}
+
+    begin
+        is_var_para_incompatible:=
+               { allows conversion from word to integer and
+                byte to shortint, but only for TP7 compatibility }
+                (not(
+                   (m_tp7 in aktmodeswitches) and
+                   (from_def.deftype=orddef) and
+                   (to_def.deftype=orddef) and
+                   (from_def.size=to_def.size)
+                    ) and
+              { an implicit pointer conversion is allowed }
+                not(
+                   (from_def.deftype=pointerdef) and
+                   (to_def.deftype=pointerdef)
+                    ) and
+              { child classes can be also passed }
+                not(
+                   (from_def.deftype=objectdef) and
+                   (to_def.deftype=objectdef) and
+                   tobjectdef(from_def).is_related(tobjectdef(to_def))
+                   ) and
+              { passing a single element to a openarray of the same type }
+                not(
+                   (is_open_array(to_def) and
+                   is_equal(tarraydef(to_def).elementtype.def,from_def))
+                   ) and
+              { an implicit file conversion is also allowed }
+              { from a typed file to an untyped one           }
+                not(
+                   (from_def.deftype=filedef) and
+                   (to_def.deftype=filedef) and
+                   (tfiledef(to_def).filetyp = ft_untyped) and
+                   (tfiledef(from_def).filetyp = ft_typed)
+                    ) and
+                not(is_equal(from_def,to_def)));
+
+    end;
+
     procedure tcallparanode.insert_typeconv(defcoll : tparaitem;do_count : boolean);
       var
         oldtype     : ttype;
@@ -414,39 +444,7 @@ implementation
                 (defcoll.paratype.def.deftype<>formaldef) then
            begin
               if (defcoll.paratyp in [vs_var,vs_out]) and
-              { allows conversion from word to integer and
-                byte to shortint, but only for TP7 compatibility }
-                (not(
-                   (m_tp7 in aktmodeswitches) and
-                   (left.resulttype.def.deftype=orddef) and
-                   (defcoll.paratype.def.deftype=orddef) and
-                   (left.resulttype.def.size=defcoll.paratype.def.size)
-                    ) and
-              { an implicit pointer conversion is allowed }
-                not(
-                   (left.resulttype.def.deftype=pointerdef) and
-                   (defcoll.paratype.def.deftype=pointerdef)
-                    ) and
-              { child classes can be also passed }
-                not(
-                   (left.resulttype.def.deftype=objectdef) and
-                   (defcoll.paratype.def.deftype=objectdef) and
-                   tobjectdef(left.resulttype.def).is_related(tobjectdef(defcoll.paratype.def))
-                   ) and
-              { passing a single element to a openarray of the same type }
-                not(
-                   (is_open_array(defcoll.paratype.def) and
-                   is_equal(tarraydef(defcoll.paratype.def).elementtype.def,left.resulttype.def))
-                   ) and
-              { an implicit file conversion is also allowed }
-              { from a typed file to an untyped one           }
-                not(
-                   (left.resulttype.def.deftype=filedef) and
-                   (defcoll.paratype.def.deftype=filedef) and
-                   (tfiledef(defcoll.paratype.def).filetyp = ft_untyped) and
-                   (tfiledef(left.resulttype.def).filetyp = ft_typed)
-                    ) and
-                not(is_equal(left.resulttype.def,defcoll.paratype.def))) then
+               is_var_para_incompatible(left.resulttype.def,defcoll.paratype.def) then
                   begin
                      CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
                        left.resulttype.def.typename,defcoll.paratype.def.typename);
@@ -717,7 +715,7 @@ implementation
         restypeset := true;
         { both the normal and specified resulttype either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(restype.def) xor paramanager.ret_in_param(symtableprocentry.defs^.def.rettype.def) then
+        if paramanager.ret_in_param(restype.def) xor paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def) then
           internalerror(200108291);
       end;
 
@@ -726,7 +724,7 @@ implementation
       begin
         self.createintern(name,params);
         funcretrefnode:=returnnode;
-        if not paramanager.ret_in_param(symtableprocentry.defs^.def.rettype.def) then
+        if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def) then
           internalerror(200204247);
       end;
 
@@ -807,7 +805,573 @@ implementation
       begin
       end;
 
+{$ifdef nice_ncal}
 
+    function Tcallnode.choose_definition_to_call(paralength:byte;var errorexit:boolean):Tnode;
+
+      { check if the resulttype.def from tree p is equal with def, needed
+        for stringconstn and formaldef }
+      function is_equal(p:tcallparanode;def:tdef) : boolean;
+
+        begin
+           { safety check }
+           if not (assigned(def) or assigned(p.resulttype.def)) then
+            begin
+              is_equal:=false;
+              exit;
+            end;
+           { all types can be passed to a formaldef }
+           is_equal:=(def.deftype=formaldef) or
+             (defbase.is_equal(p.resulttype.def,def))
+           { integer constants are compatible with all integer parameters if
+             the specified value matches the range }
+             or
+             (
+              (tbinarynode(p).left.nodetype=ordconstn) and
+              is_integer(p.resulttype.def) and
+              is_integer(def) and
+              (tordconstnode(p.left).value>=torddef(def).low) and
+              (tordconstnode(p.left).value<=torddef(def).high)
+             )
+           { to support ansi/long/wide strings in a proper way }
+           { string and string[10] are assumed as equal }
+           { when searching the correct overloaded procedure   }
+             or
+             (
+              (def.deftype=stringdef) and (p.resulttype.def.deftype=stringdef) and
+              (tstringdef(def).string_typ=tstringdef(p.resulttype.def).string_typ)
+             )
+             or
+             (
+              (p.left.nodetype=stringconstn) and
+              (is_ansistring(p.resulttype.def) and is_pchar(def))
+             )
+             or
+             (
+              (p.left.nodetype=ordconstn) and
+              (is_char(p.resulttype.def) and (is_shortstring(def) or is_ansistring(def)))
+             )
+           { set can also be a not yet converted array constructor }
+             or
+             (
+              (def.deftype=setdef) and (p.resulttype.def.deftype=arraydef) and
+              (tarraydef(p.resulttype.def).IsConstructor) and not(tarraydef(p.resulttype.def).IsVariant)
+             )
+           { in tp7 mode proc -> procvar is allowed }
+             or
+             (
+              (m_tp_procvar in aktmodeswitches) and
+              (def.deftype=procvardef) and (p.left.nodetype=calln) and
+              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def),false))
+             )
+             ;
+        end;
+
+        procedure get_candidate_information(var cl2_count,cl1_count,equal_count,exact_count:byte;
+                                            var ordspace:double;
+                                            treeparas:Tcallparanode;candparas:Tparaitem);
+
+        {Gets information how the parameters would be converted to the candidate.}
+
+        var hcvt:Tconverttype;
+            from_def,to_def:Tdef;
+
+        begin
+            cl2_count:=0;
+            cl1_count:=0;
+            equal_count:=0;
+            exact_count:=0;
+            ordspace:=0;
+            while candparas<>nil do
+                begin
+                    from_def:=treeparas.resulttype.def;
+                    to_def:=candparas.paratype.def;
+                    if to_def=from_def then
+                        inc(exact_count)
+                    { if a type is totally included in the other        }
+                    { we don't fear an overflow ,                       }
+                    { so we can do as if it is an equal match           }
+                    else if (treeparas.left.nodetype=ordconstn) and is_integer(to_def) then
+                        begin
+                            inc(equal_count);
+                            {To do: What to do with overflow??}
+                            ordspace:=ordspace+(double(Torddef(from_def).low)-Torddef(to_def).low)+
+                                         (double(Torddef(to_def).high)-Torddef(from_def).high);
+                        end
+                    else if ((from_def.deftype=orddef) and (to_def.deftype=orddef)) and
+                     (is_in_limit(from_def,to_def) or
+                      ((candparas.paratyp in [vs_var,vs_out]) and (from_def.size=to_def.size))
+                     ) then
+                        begin
+                            ordspace:=ordspace+Torddef(to_def).high;
+                            ordspace:=ordspace-Torddef(to_def).low;
+                            inc(equal_count);
+                        end
+                    else if is_equal(treeparas,to_def) then
+                        inc(equal_count)
+                    else
+                        case isconvertable(from_def,to_def,
+                         hcvt,treeparas.left.nodetype,false) of
+                            0:
+                                internalerror(200208021);
+                            1:
+                                inc(cl1_count);
+                            2:
+                                inc(cl2_count);
+                        end;
+                    treeparas:=Tcallparanode(treeparas.right);
+                    candparas:=Tparaitem(candparas.next);
+                end;
+        end;
+
+    var candidates_left,candidate_count,c1,c2:byte;
+        cl2_count1,cl1_count1,equal_count1,exact_count1:byte;
+        ordspace1:double;
+        cl2_count2,cl1_count2,equal_count2,exact_count2:byte;
+        ordspace2:double;
+        i,n:byte;
+        cont:boolean;
+        pt:Tcallparanode;
+        def:Tprocdef;
+        hcvt:Tconverttype;
+        pdc:Tparaitem;
+        hpt:Tnode;
+        srprocsym:Tprocsym;
+        srsymtable:Tsymtable;
+        candidates:set of 0..255;
+        candidates_exactmatch:set of 0..255;
+        delete_mask:set of 0..255;
+        candidate_defs:array[0..255] of Tprocdef;
+
+    begin
+        choose_definition_to_call:=nil;
+        errorexit:=true;
+
+        { when the definition has overload directive set, we search for
+          overloaded definitions in the class, this only needs to be done once
+          for class entries as the tree keeps always the same }
+        if (not symtableprocentry.overloadchecked) and
+         (po_overload in symtableprocentry.first_procdef.procoptions) and
+         (symtableprocentry.owner.symtabletype=objectsymtable) then
+            search_class_overloads(symtableprocentry);
+
+        candidates:=[];
+        candidates_exactmatch:=[];
+
+        {Collect all procedures which have the same # of parameters }
+        candidate_count:=0;
+        srprocsym:=symtableprocentry;
+        srsymtable:=symtableprocentry.owner;
+        repeat
+            for i:=1 to srprocsym.procdef_count do
+                begin
+                    def:=srprocsym.procdef(i);
+                    candidate_defs[i-1]:=def;
+                    { only when the # of parameter are supported by the
+                      procedure }
+                    if (paralength>=def.minparacount) and
+                     ((po_varargs in def.procoptions) or { varargs }
+                      (paralength<=def.maxparacount)) then
+                        include(candidates,i-1);
+                    inc(candidate_count);
+                end;
+            if po_overload in srprocsym.first_procdef.procoptions then
+                begin
+                    repeat
+                        repeat
+                            srsymtable:=srsymtable.next;
+                        until (srsymtable=nil) or (srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable]);
+                        if assigned(srsymtable) then
+                            srprocsym:=Tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
+                    until (srsymtable=nil) or (srprocsym<>nil);
+                    cont:=assigned(srprocsym);
+                end
+            else
+                cont:=false;
+        until not cont;
+
+        { no procedures found? then there is something wrong
+          with the parameter size }
+        if candidates=[] then
+            begin
+                { in tp mode we can try to convert to procvar if
+                  there are no parameters specified }
+                if not(assigned(left)) and
+                 (m_tp_procvar in aktmodeswitches) then
+                    begin
+                        hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
+                        if (symtableprocentry.owner.symtabletype=objectsymtable) and
+                         assigned(methodpointer) then
+                            tloadnode(hpt).set_mp(methodpointer.getcopy);
+                        resulttypepass(hpt);
+                        choose_definition_to_call:=hpt;
+                    end
+                else
+                    begin
+                        if assigned(left) then
+                            aktfilepos:=left.fileinfo;
+                        CGMessage(parser_e_wrong_parameter_size);
+                        symtableprocentry.write_parameter_lists(nil);
+                    end;
+                exit;
+            end;
+        {Walk through all candidates and remove the ones
+         that have incompatible parameters.}
+        for i:=1 to candidate_count do
+            if (i-1) in candidates then
+                begin
+                    def:=candidate_defs[i-1];
+                    {Walk through all parameters.}
+                    pdc:=Tparaitem(def.para.first);
+                    pt:=Tcallparanode(left);
+                    while assigned(pdc) do
+                        begin
+                            if pdc.paratyp in [vs_var,vs_out] then
+                                if is_var_para_incompatible(pt.resulttype.def,pdc.paratype.def) and
+                                 not(is_shortstring(pt.resulttype.def) and is_shortstring(pdc.paratype.def)) and
+                                 (pdc.paratype.def.deftype<>formaldef) then
+                                    {Not convertable, def is no longer a candidate.}
+                                    exclude(candidates,i-1)
+                                else
+                                    exclude(pt.callparaflags,cpf_nomatchfound)
+                            else
+                                if (pt.resulttype.def<>pdc.paratype.def) and
+                                 ((isconvertable(pt.resulttype.def,pdc.paratype.def,
+                                                 hcvt,pt.left.nodetype,false)=0) and
+                                  not is_equal(pt,pdc.paratype.def)) then
+                                    {Not convertable, def is no longer a candidate.}
+                                    exclude(candidates,i-1)
+                                else
+                                    exclude(pt.callparaflags,cpf_nomatchfound);
+                            pdc:=Tparaitem(pdc.next);
+                            pt:=Tcallparanode(pt.right);
+                        end;
+                end;
+        {Count the candidates that are left.}
+        candidates_left:=0;
+        for i:=1 to candidate_count do
+            if (i-1) in candidates then
+                inc(candidates_left);
+        {Are there any candidates left?}
+        if candidates_left=0 then
+            begin
+                {There is an error, must be wrong type, because
+                 wrong size is already checked (PFV) }
+                pt:=Tcallparanode(left);
+                n:=0;
+                while assigned(pt) do
+                    if cpf_nomatchfound in pt.callparaflags then
+                        break
+                    else
+                        begin
+                            pt:=tcallparanode(pt.right);
+                            inc(n);
+                        end;
+                if not(assigned(pt) and assigned(pt.resulttype.def)) then
+                    internalerror(39393);
+                {Def contains the last candidate tested.}
+                pdc:=Tparaitem(def.para.first);
+                for i:=1 to n do
+                    pdc:=Tparaitem(pdc.next);
+                aktfilepos:=pt.fileinfo;
+                cgmessage3(type_e_wrong_parameter_type,tostr(n+1),
+                           pt.resulttype.def.typename,pdc.paratype.def.typename);
+                symtableprocentry.write_parameter_lists(nil);
+                exit;
+            end;
+       {If there is more candidate that can be called, we have to
+        find the most suitable one. We collect the following
+        information:
+        - Amount of convertlevel 2 parameters.
+        - Amount of convertlevel 1 parameters.
+        - Amount of equal parameters.
+        - Amount of exact parameters.
+        - Amount of ordinal space the destination parameters
+          provide. For exampe, a word provides 65535-255=65280
+          of ordinal space above a byte.
+
+        The first criterium is the candidate that has the least
+        convertlevel 2 parameters. The next criterium is
+        the candidate that has the most exact parameters, next
+        criterium is the least ordinal space and 
+        the last criterium is the most equal parameters. (DM)}
+        if candidates_left>1 then
+            begin
+                {Find the first candidate.}
+                c1:=1;
+                while c1<=candidate_count do
+                    if (c1-1) in candidates then
+                        break
+                    else
+                        inc(c1);
+                delete_mask:=[c1-1];
+                {Get information about candidate c1.}
+                get_candidate_information(cl2_count1,cl1_count1,equal_count1,
+                                          exact_count1,ordspace1,Tcallparanode(left),
+                                          Tparaitem(candidate_defs[c1-1].para.first));
+                {Find the other candidates and eliminate the lesser ones.}
+                c2:=c1+1;
+                while c2<=candidate_count do
+                    if (c2-1) in candidates then
+                        begin
+                            {Candidate found, get information on it.}
+                            get_candidate_information(cl2_count2,cl1_count2,equal_count2,
+                                                      exact_count2,ordspace2,Tcallparanode(left),
+                                                      Tparaitem(candidate_defs[c2-1].para.first));
+                            {Is c1 the better candidate?}
+                            if (cl2_count1<cl2_count2) or
+                             ((cl2_count1=cl2_count2) and (exact_count1>exact_count2)) or
+                             ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1>equal_count2)) or
+                             ((cl2_count1=cl2_count2) and (exact_count1=exact_count2) and (equal_count1=equal_count2) and (ordspace1<ordspace2)) then
+                                begin
+                                    {C1 is better, drop c2.}
+                                    exclude(candidates,c2-1);
+                                end
+                            {Is c2 the better candidate?}
+                            else if (cl2_count2<cl2_count1) or
+                             ((cl2_count2=cl2_count1) and (exact_count2>exact_count1)) or
+                             ((cl2_count2=cl2_count1) and (exact_count2=exact_count1) and (equal_count2>equal_count1)) or
+                             ((cl2_count2=cl2_count1) and (exact_count2=exact_count1) and (equal_count2=equal_count1) and (ordspace2<ordspace1)) then
+                                begin
+                                    {C2 is better, drop all previous
+                                     candidates.}
+                                     include(delete_mask,c1-1);
+                                     candidates:=candidates-delete_mask;
+                                     c1:=c2;
+                                     cl2_count1:=cl2_count2;
+                                     cl1_count1:=cl1_count2;
+                                     equal_count1:=equal_count2;
+                                     exact_count1:=exact_count2;
+                                     ordspace1:=ordspace2;
+                                end
+                            else
+                                include(delete_mask,c2-1);
+                            {else the candidates have no advantage over each other,
+                             do nothing}
+                            inc(c2);
+                        end
+                    else
+                        inc(c2);
+            end;
+        {Count the candidates that are left.}
+        candidates_left:=0;
+        for i:=1 to candidate_count do
+            if (i-1) in candidates then
+                inc(candidates_left);
+        if candidates_left>1 then
+            begin
+                cgmessage(cg_e_cant_choose_overload_function);
+                symtableprocentry.write_parameter_lists(nil);
+                exit;
+            end;
+        for i:=1 to candidate_count do
+            if (i-1) in candidates then
+                begin
+                    procdefinition:=candidate_defs[i-1];
+                    break;
+                end;
+        if make_ref then
+            begin
+                Tprocdef(procdefinition).lastref:=Tref.create(Tprocdef(procdefinition).lastref,@fileinfo);
+                inc(Tprocdef(procdefinition).refcount);
+                if Tprocdef(procdefinition).defref=nil then
+                    Tprocdef(procdefinition).defref:=Tprocdef(procdefinition).lastref;
+            end;
+        { big error for with statements
+          symtableproc:=procdefinition.owner;
+          but neede for overloaded operators !! }
+        if symtableproc=nil then
+            symtableproc:=procdefinition.owner;
+        errorexit:=false;
+    end;
+
+    function tcallnode.det_resulttype:tnode;
+
+
+    var lastpara,paralength:byte;
+        oldcallprocdef:Tabstractprocdef;
+        pt:Tcallparanode;
+        i,n:byte;
+        e,is_const:boolean;
+        pdc:Tparaitem;
+        hpt:Tnode;
+
+    label errorexit;
+
+    begin
+        result:=nil;
+
+        oldcallprocdef:=aktcallprocdef;
+        aktcallprocdef:=nil;
+
+        { determine length of parameter list }
+        pt:=tcallparanode(left);
+        paralength:=0;
+        while assigned(pt) do
+          begin
+            include(pt.callparaflags,cpf_nomatchfound);
+            inc(paralength);
+            pt:=tcallparanode(pt.right);
+          end;
+
+        { determine the type of the parameters }
+        if assigned(left) then
+          begin
+            tcallparanode(left).get_paratype;
+            if codegenerror then
+             goto errorexit;
+          end;
+
+        { procedure variable ? }
+        if assigned(right) then
+           begin
+              set_varstate(right,true);
+              resulttypepass(right);
+              if codegenerror then
+               exit;
+
+              procdefinition:=tabstractprocdef(right.resulttype.def);
+
+              { check the amount of parameters }
+              pdc:=tparaitem(procdefinition.Para.first);
+              pt:=tcallparanode(left);
+              lastpara:=paralength;
+              while assigned(pdc) and assigned(pt) do
+                begin
+                  { only goto next para if we're out of the varargs }
+                  if not(po_varargs in procdefinition.procoptions) or
+                     (lastpara<=procdefinition.maxparacount) then
+                    pdc:=tparaitem(pdc.next);
+                  pt:=tcallparanode(pt.right);
+                  dec(lastpara);
+                end;
+              if assigned(pt) or assigned(pdc) then
+                begin
+                   if assigned(pt) then
+                     aktfilepos:=pt.fileinfo;
+                   CGMessage(parser_e_wrong_parameter_size);
+                end;
+           end
+        else
+        { not a procedure variable }
+            begin
+                { do we know the procedure to call ? }
+                if not(assigned(procdefinition)) then
+                    begin
+                        result:=choose_definition_to_call(paralength,e);
+                        if e then
+                            goto errorexit;
+                    end;
+(*              To do!!!
+                { add needed default parameters }
+                if assigned(procdefinition) and
+                 (paralength<procdefinition.maxparacount) then
+                    begin
+                        { add default parameters, just read back the skipped
+                          paras starting from firstPara.previous, when not available
+                          (all parameters are default) then start with the last
+                          parameter and read backward (PFV) }
+                        if not assigned(procs^.firstpara) then
+                            pdc:=tparaitem(procs^.data.Para.last)
+                        else
+                            pdc:=tparaitem(procs^.firstPara.previous);
+                        while assigned(pdc) do
+                            begin
+                                if not assigned(pdc.defaultvalue) then
+                                    internalerror(751349858);
+                                left:=ccallparanode.create(genconstsymtree(tconstsym(pdc.defaultvalue)),left);
+                                pdc:=tparaitem(pdc.previous);
+                            end;
+                    end;
+*)
+            end;
+        { handle predefined procedures }
+        is_const:=(po_internconst in procdefinition.procoptions) and
+                  ((block_type in [bt_const,bt_type]) or
+                   (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
+        if (procdefinition.proccalloption=pocall_internproc) or is_const then
+            begin
+                if assigned(left) then
+                    begin
+                        { ptr and settextbuf needs two args }
+                        if assigned(tcallparanode(left).right) then
+                            begin
+                                hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,left);
+                                left:=nil;
+                            end
+                        else
+                            begin
+                                hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,Tcallparanode(left).left);
+                                Tcallparanode(left).left:=nil;
+                            end;
+                    end
+                else
+                    hpt:=geninlinenode(Tprocdef(procdefinition).extnumber,is_const,nil);
+                result:=hpt;
+                goto errorexit;
+            end;
+        { Calling a message method directly ? }
+        if assigned(procdefinition) and
+         (po_containsself in procdefinition.procoptions) then
+            message(cg_e_cannot_call_message_direct);
+
+        { ensure that the result type is set }
+        if not restypeset then
+            resulttype:=procdefinition.rettype
+        else
+            resulttype:=restype;
+
+        { modify the exit code, in case of special cases }
+        if (not is_void(resulttype.def)) then
+            begin
+                if paramanager.ret_in_acc(resulttype.def) then
+                    begin
+                        { wide- and ansistrings are returned in EAX    }
+                        { but they are imm. moved to a memory location }
+                        if is_widestring(resulttype.def) or
+                         is_ansistring(resulttype.def) then
+                            begin
+                                { we use ansistrings so no fast exit here }
+                                if assigned(procinfo) then
+                                    procinfo.no_fast_exit:=true;
+                            end;
+                    end;
+            end;
+        { constructors return their current class type, not the type where the
+          constructor is declared, this can be different because of inheritance }
+        if (procdefinition.proctypeoption=potype_constructor) then
+            begin
+                if assigned(methodpointer) and
+                 assigned(methodpointer.resulttype.def) and
+                 (methodpointer.resulttype.def.deftype=classrefdef) then
+                    resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
+            end;
+
+        { flag all callparanodes that belong to the varargs }
+        if (po_varargs in procdefinition.procoptions) then
+            begin
+                pt:=tcallparanode(left);
+                i:=paralength;
+                while (i>procdefinition.maxparacount) do
+                    begin
+                        include(tcallparanode(pt).flags,nf_varargs_para);
+                        pt:=tcallparanode(pt.right);
+                        dec(i);
+                    end;
+            end;
+
+        { insert type conversions }
+        if assigned(left) then
+            begin
+                aktcallprocdef:=procdefinition;
+                tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
+            end;
+    errorexit:
+        { Reset some settings back }
+        aktcallprocdef:=oldcallprocdef;
+    end;
+
+{$else}
     function tcallnode.det_resulttype:tnode;
       type
          pprocdefcoll = ^tprocdefcoll;
@@ -899,6 +1463,8 @@ implementation
         srprocsym  : tprocsym;
         srsymtable : tsymtable;
       begin
+        if fileinfo.line=300 then
+            result:=nil;
          result:=nil;
 
          procs:=nil;
@@ -963,7 +1529,7 @@ implementation
                      overloaded definitions in the class, this only needs to be done once
                      for class entries as the tree keeps always the same }
                    if (not symtableprocentry.overloadchecked) and
-                      (po_overload in symtableprocentry.defs^.def.procoptions) and
+                      (po_overload in symtableprocentry.first_procdef.procoptions) and
                       (symtableprocentry.owner.symtabletype=objectsymtable) then
                     search_class_overloads(symtableprocentry);
 
@@ -998,7 +1564,7 @@ implementation
                      overloaded definitions in the symtablestack. The found
                      entries are only added to the procs list and not the procsym, because
                      the list can change in every situation }
-                   if (po_overload in symtableprocentry.defs^.def.procoptions) and
+                   if (po_overload in symtableprocentry.first_procdef.procoptions) and
                       (symtableprocentry.owner.symtabletype<>objectsymtable) then
                      begin
                        srsymtable:=symtableprocentry.owner.next;
@@ -1014,7 +1580,7 @@ implementation
                               begin
                                 { if this procedure doesn't have overload we can stop
                                   searching }
-                                if not(po_overload in srprocsym.defs^.def.procoptions) then
+                                if not(po_overload in srprocsym.first_procdef.procoptions) then
                                  break;
                                 { process all overloaded definitions }
                                 pd:=srprocsym.defs;
@@ -1631,7 +2197,7 @@ implementation
            dispose(procs);
          aktcallprocdef:=oldcallprocdef;
       end;
-
+{$endif}
 
     function tcallnode.pass_1 : tnode;
       var
@@ -1860,28 +2426,28 @@ implementation
     function Tcallnode.track_state_pass(exec_known:boolean):boolean;
 
     var hp:Tcallparanode;
-  value:Tnode;
+        value:Tnode;
 
     begin
-  track_state_pass:=false;
-  hp:=Tcallparanode(left);
-  while assigned(hp) do
-      begin
-    if left.track_state_pass(exec_known) then
-        begin
-      left.resulttype.def:=nil;
-      do_resulttypepass(left);
-        end;
-    value:=aktstate.find_fact(hp.left);
-    if value<>nil then
-        begin
-      track_state_pass:=true;
-      hp.left.destroy;
-      hp.left:=value.getcopy;
-      do_resulttypepass(hp.left);
-        end;
-    hp:=Tcallparanode(hp.right);
-      end;
+        track_state_pass:=false;
+        hp:=Tcallparanode(left);
+        while assigned(hp) do
+            begin
+                if left.track_state_pass(exec_known) then
+                    begin
+                        left.resulttype.def:=nil;
+                        do_resulttypepass(left);
+                    end;
+                value:=aktstate.find_fact(hp.left);
+                if value<>nil then
+                    begin
+                        track_state_pass:=true;
+                        hp.left.destroy;
+                        hp.left:=value.getcopy;
+                        do_resulttypepass(hp.left);
+                    end;
+                hp:=Tcallparanode(hp.right);
+            end;
     end;
 {$endif}
 
@@ -2017,7 +2583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2002-08-19 19:36:42  peter
+  Revision 1.88  2002-08-20 10:31:26  daniel
+   * Tcallnode.det_resulttype rewritten
+
+  Revision 1.87  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
