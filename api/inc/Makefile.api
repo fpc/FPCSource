@@ -1,1 +1,1 @@
-APIOBJECTS=apicomm common callspec video keyboard mouse filectrl filesys
+APIOBJECTS=apicomm callspec video keyboard mouse filectrl filesys
