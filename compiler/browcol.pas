@@ -28,8 +28,8 @@ interface
 uses
   cobjects,objects,symconst,symtable;
 
-  type
 {$ifndef FPC}
+  type
     sw_integer = integer;
 {$endif FPC}
 
@@ -1706,7 +1706,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1999-12-01 11:05:47  pierre
+  Revision 1.30  1999-12-01 11:11:19  pierre
+   * don't redefine sw_integer for FPC : corrected version
+
+  Revision 1.29  1999/12/01 11:05:47  pierre
    * don't redefine sw_integer for FPC
 
   Revision 1.28  1999/11/30 10:40:42  peter
