@@ -97,9 +97,9 @@ endif
 # Where to install the _real_executable and support files
 ifndef LIBINSTALLDIR
 ifdef inlinux
-LIBINSTALLDIR=/usr/lib/fpc/0.99.0
+LIBINSTALLDIR=/usr/lib/fpc/0.99.5
 # for a.out
-# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.0
+# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.5
 else
 LIBINSTALLDIR=$(PROGINSTALLDIR)
 endif
