@@ -147,7 +147,7 @@ type
       varfromword64 : procedure(var dest : variant;const source : qword);
       varfromreal : procedure(var dest : variant;const source : extended);
       varfrompstr: procedure(var dest: variant; const source: ShortString);
-      varfromlstr: procedure(var dest: variant; const source: string);
+      varfromlstr: procedure(var dest: variant; const source: ansistring);
       varfromwstr: procedure(var dest: variant; const source: WideString);
             
       {!!!!!!!}
@@ -256,7 +256,11 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.4  2001-11-14 23:00:17  michael
+  Revision 1.5  2002-06-12 15:45:42  jonas
+    * fixed bug in tvariantmanager declaration (string -> ansistring, this
+      file is compiled in non-objpas mode!)
+
+  Revision 1.4  2001/11/14 23:00:17  michael
   + First working variant support
 
   Revision 1.3  2001/11/08 20:59:10  michael
