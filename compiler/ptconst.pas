@@ -193,6 +193,24 @@ unit ptconst;
               end;
               disposetree(p);
            end;
+         classrefdef:
+           begin
+              p:=comp_expr(true);
+              do_firstpass(p);
+              case p^.treetype of
+                 loadvmtn:
+                   begin
+                      if not(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.is_related(
+                        pobjectdef(pclassrefdef(def)^.definition))) then
+                        Message(cg_e_illegal_expression);
+                      curconstsegment^.concat(new(pai_const_symbol,init(newasmsymbol(pobjectdef(
+                        pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname))));
+                   end;
+                 niln:
+                   curconstsegment^.concat(new(pai_const,init_32bit(0)));
+                 else Message(cg_e_illegal_expression);
+              end;
+           end;
          pointerdef:
            begin
               p:=comp_expr(true);
@@ -745,7 +763,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.55  1999-11-06 14:34:23  peter
+  Revision 1.56  1999-11-08 14:02:16  florian
+    * problem with "index X"-properties solved
+    * typed constants of class references are now allowed
+
+  Revision 1.55  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.54  1999/10/14 14:57:54  florian

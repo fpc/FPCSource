@@ -644,7 +644,7 @@ unit pexpr;
               { indexed property }
               if (ppo_indexed in ppropertysym(sym)^.propoptions) then
                 begin
-                   p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
+                   p2:=genordinalconstnode(ppropertysym(sym)^.index,ppropertysym(sym)^.indexdef);
                    paras:=gencallparanode(p2,paras);
                 end;
            end;
@@ -2113,7 +2113,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.156  1999-11-07 23:21:30  florian
+  Revision 1.157  1999-11-08 14:02:16  florian
+    * problem with "index X"-properties solved
+    * typed constants of class references are now allowed
+
+  Revision 1.156  1999/11/07 23:21:30  florian
     * previous fix for 517 was imcomplete: there was a problem if the property
       had only an index
 

@@ -451,11 +451,8 @@ uses
                              is_64bitint(pt^.resulttype) then
                             Message(parser_e_invalid_property_index_value);
                           p^.index:=pt^.value;
-{$ifdef INCLUDEOK}
+                          p^.indexdef:=pt^.resulttype;
                           include(p^.propoptions,ppo_indexed);
-{$else}
-                          p^.propoptions:=p^.propoptions+[ppo_indexed];
-{$endif}
                           { concat a longint to the para template }
                           new(hp2,init);
                           hp2^.paratyp:=vs_value;
@@ -483,6 +480,7 @@ uses
                           p^.writeaccessdef:=ppropertysym(overriden)^.writeaccessdef;
                           p^.readaccessdef:=ppropertysym(overriden)^.readaccessdef;
                           p^.storeddef:=ppropertysym(overriden)^.storeddef;
+                          p^.indexdef:=ppropertysym(overriden)^.indexdef;
                           p^.default:=ppropertysym(overriden)^.default;
                        end
                      else
@@ -1600,7 +1598,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  1999-11-07 23:16:49  florian
+  Revision 1.7  1999-11-08 14:02:16  florian
+    * problem with "index X"-properties solved
+    * typed constants of class references are now allowed
+
+  Revision 1.6  1999/11/07 23:16:49  florian
     * finally bug 517 solved ...
 
   Revision 1.5  1999/10/27 16:04:06  peter

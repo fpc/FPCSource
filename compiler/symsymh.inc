@@ -202,7 +202,7 @@
           propoptions : tpropertyoptions;
           proptype    : pdef;
           readaccesssym,writeaccesssym,storedsym : ppropsymlist;
-          readaccessdef,writeaccessdef,storeddef : pdef;
+          readaccessdef,writeaccessdef,storeddef,indexdef : pdef;
           index,default : longint;
           constructor init(const n : string);
           destructor  done;virtual;
@@ -328,7 +328,11 @@
 
 {
   $Log$
-  Revision 1.37  1999-11-06 14:34:28  peter
+  Revision 1.38  1999-11-08 14:02:17  florian
+    * problem with "index X"-properties solved
+    * typed constants of class references are now allowed
+
+  Revision 1.37  1999/11/06 14:34:28  peter
     * truncated log to 20 revs
 
   Revision 1.36  1999/10/01 08:02:48  peter

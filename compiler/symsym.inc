@@ -578,6 +578,7 @@
          writeaccesssym:=nil;
          storedsym:=nil;
          storeddef:=nil;
+         indexdef:=nil;
 
          index:=0;
          default:=0;
@@ -644,6 +645,7 @@
          readaccessdef:=readdefref;
          writeaccessdef:=readdefref;
          storeddef:=readdefref;
+         indexdef:=readdefref;
       end;
 
     procedure tpropertysym.deref;
@@ -662,6 +664,7 @@
          resolvedef(readaccessdef);
          resolvedef(writeaccessdef);
          resolvedef(storeddef);
+         resolvedef(indexdef);
          resolvepropsymlist(readaccesssym);
          resolvepropsymlist(writeaccesssym);
          resolvepropsymlist(storedsym);
@@ -697,6 +700,7 @@
          writedefref(readaccessdef);
          writedefref(writeaccessdef);
          writedefref(storeddef);
+         writedefref(indexdef);
          current_ppu^.writeentry(ibpropertysym);
       end;
 
@@ -2139,7 +2143,11 @@
 
 {
   $Log$
-  Revision 1.124  1999-11-06 14:34:27  peter
+  Revision 1.125  1999-11-08 14:02:17  florian
+    * problem with "index X"-properties solved
+    * typed constants of class references are now allowed
+
+  Revision 1.124  1999/11/06 14:34:27  peter
     * truncated log to 20 revs
 
   Revision 1.123  1999/11/05 17:18:03  pierre
