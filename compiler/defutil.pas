@@ -50,6 +50,8 @@ interface
     {# Returns basetype of the specified integer range }
     function range_to_basetype(l,h:TConstExprInt):tbasetype;
 
+    procedure range_to_type(l,h:TConstExprInt;var tt:ttype);
+
     procedure int_to_type(v:TConstExprInt;var tt:ttype);
 
     {# Returns true, if definition defines an integer type }
@@ -266,22 +268,29 @@ implementation
       end;
 
 
-    procedure int_to_type(v:TConstExprInt;var tt:ttype);
+    procedure range_to_type(l,h:TConstExprInt;var tt:ttype);
       begin
-        if (v>=0) and (v<=255) then
+        { generate a unsigned range if high<0 and low>=0 }
+        if (l>=0) and (h<=255) then
          tt:=u8inttype
-        else if (v>=-128) and (v<=127) then
+        else if (l>=-128) and (h<=127) then
          tt:=s8inttype
-        else if (v>=0) and (v<=65535) then
+        else if (l>=0) and (h<=65535) then
          tt:=u16inttype
-        else if (v>=-32768) and (v<=32767) then
+        else if (l>=-32768) and (h<=32767) then
          tt:=s16inttype
-        else if (v>=low(longint)) and (v<=high(longint)) then
+        else if (l>=low(longint)) and (h<=high(longint)) then
          tt:=s32inttype
-        else if (v>=low(cardinal)) and (v<=high(cardinal)) then
+        else if (l>=low(cardinal)) and (h<=high(cardinal)) then
          tt:=u32inttype
         else
          tt:=s64inttype;
+      end;
+
+
+    procedure int_to_type(v:TConstExprInt;var tt:ttype);
+      begin
+        range_to_type(v,v,tt);
       end;
 
 
@@ -877,7 +886,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-03-23 22:34:49  peter
+  Revision 1.12  2004-03-29 14:44:10  peter
+    * fixes to previous constant integer commit
+
+  Revision 1.11  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

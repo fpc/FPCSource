@@ -283,16 +283,6 @@ implementation
                begin
                  if not(equal_defs(ld,rd)) then
                    inserttypeconv(right,left.resulttype);
-               end
-              else if (lt=ordconstn) and (rt=ordconstn) then
-                begin
-                  { make left const type the biggest (u32bit is bigger than
-                    s32bit for or,and,xor) }
-                  if (rd.size>ld.size) or
-                     ((torddef(rd).typ=torddef(uinttype.def).typ) and
-                      (torddef(ld).typ=torddef(sinttype.def).typ) and
-                      (nodetype in [orn,andn,xorn])) then
-                    inserttypeconv(left,right.resulttype);
                 end;
 
               { load values }
@@ -340,11 +330,20 @@ implementation
                   else
                     t:=genintconstnode(int64(qword(lv)*qword(rv)));
                 xorn :
-                  t:=cordconstnode.create(lv xor rv,left.resulttype,false);
+                  if is_integer(ld) then
+                    t:=genintconstnode(lv xor rv)
+                  else
+                    t:=cordconstnode.create(lv xor rv,left.resulttype,true);
                 orn :
-                  t:=cordconstnode.create(lv or rv,left.resulttype,false);
+                  if is_integer(ld) then
+                    t:=genintconstnode(lv or rv)
+                  else
+                    t:=cordconstnode.create(lv or rv,left.resulttype,true);
                 andn :
-                  t:=cordconstnode.create(lv and rv,left.resulttype,false);
+                  if is_integer(ld) then
+                    t:=genintconstnode(lv and rv)
+                  else
+                    t:=cordconstnode.create(lv and rv,left.resulttype,true);
                 ltn :
                   t:=cordconstnode.create(ord(lv<rv),booltype,true);
                 lten :
@@ -1926,7 +1925,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2004-03-23 22:34:49  peter
+  Revision 1.115  2004-03-29 14:44:10  peter
+    * fixes to previous constant integer commit
+
+  Revision 1.114  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

@@ -536,7 +536,6 @@ implementation
     function tunaryminusnode.det_resulttype : tnode;
       var
          t : tnode;
-         minusdef : Tprocdef;
       begin
          result:=nil;
          resulttypepass(left);
@@ -547,9 +546,7 @@ implementation
          { constant folding }
          if is_constintnode(left) then
            begin
-              tordconstnode(left).value:=-tordconstnode(left).value;
-              result:=left;
-              left:=nil;
+              result:=genintconstnode(-tordconstnode(left).value);
               exit;
            end;
          if is_constrealnode(left) then
@@ -671,7 +668,6 @@ implementation
       var
          t : tnode;
          tt : ttype;
-         notdef : Tprocdef;
          v : tconstexprint;
       begin
          result:=nil;
@@ -856,7 +852,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-03-23 22:34:49  peter
+  Revision 1.61  2004-03-29 14:44:10  peter
+    * fixes to previous constant integer commit
+
+  Revision 1.60  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

@@ -408,6 +408,12 @@ implementation
                              if (trangenode(pt).left.nodetype=ordconstn) and
                                 (trangenode(pt).right.nodetype=ordconstn) then
                               begin
+                                { make both the same type or give an error. This is not
+                                  done when both are integer values, because typecasting
+                                  between -3200..3200 will result in a signed-unsigned
+                                  conflict and give a range check error (PFV) }
+                                if not(is_integer(trangenode(pt).left.resulttype.def) and is_integer(trangenode(pt).left.resulttype.def)) then
+                                  inserttypeconv(trangenode(pt).left,trangenode(pt).right.resulttype);
                                 lowval:=tordconstnode(trangenode(pt).left).value;
                                 highval:=tordconstnode(trangenode(pt).right).value;
                                 if highval<lowval then
@@ -415,7 +421,10 @@ implementation
                                    Message(parser_e_array_lower_less_than_upper_bound);
                                    highval:=lowval;
                                  end;
-                                arraytype:=trangenode(pt).right.resulttype;
+                                if is_integer(trangenode(pt).left.resulttype.def) then
+                                  range_to_type(lowval,highval,arraytype)
+                                else
+                                  arraytype:=trangenode(pt).left.resulttype;
                               end
                              else
                               Message(type_e_cant_eval_constant_expr);
@@ -647,7 +656,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2004-03-23 22:34:49  peter
+  Revision 1.66  2004-03-29 14:44:10  peter
+    * fixes to previous constant integer commit
+
+  Revision 1.65  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
