@@ -48,7 +48,8 @@ interface
 
     uses
       cutils,systems,
-      verbose;
+      cgbase,
+      verbose,itcpugas;
 
 
     function getreferencestring(var ref : treference) : string;
@@ -59,8 +60,8 @@ interface
          s:='';
          with ref do
            begin
-             basestr:=gas_reg2str[base.enum];
-             indexstr:=gas_reg2str[index.enum];
+             basestr:=gas_regname(base);
+             indexstr:=gas_regname(index);
              if assigned(symbol) then
                s:=s+symbol.name;
 
@@ -70,35 +71,35 @@ interface
                   if (symbol=nil) then s:=tostr(offset)
                        else s:=s+'+'+tostr(offset);
                     end
-                  else if (index.enum=R_NO) and (base.enum=R_NO) and not assigned(symbol) then
+                  else if (index=NR_NO) and (base=NR_NO) and not assigned(symbol) then
                     s:=s+'0';
 
-               if (index.enum<>R_NO) and (base.enum=R_NO) and (direction=dir_none) then
+               if (index<>NR_NO) and (base=NR_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                     s:=s+'(,'+indexstr+'.l)'
                   else
                     s:=s+'(,'+indexstr+'.l*'+tostr(scalefactor)+')'
                 end
-                else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_inc) then
+                else if (index=NR_NO) and (base<>NR_NO) and (direction=dir_inc) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                       s:=s+'('+basestr+')+'
                   else
                    InternalError(10002);
                 end
-                else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_dec) then
+                else if (index=NR_NO) and (base<>NR_NO) and (direction=dir_dec) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                       s:=s+'-('+basestr+')'
                   else
                    InternalError(10003);
                 end
-                  else if (index.enum=R_NO) and (base.enum<>R_NO) and (direction=dir_none) then
+                  else if (index=NR_NO) and (base<>NR_NO) and (direction=dir_none) then
                 begin
                   s:=s+'('+basestr+')'
                 end
-                  else if (index.enum<>R_NO) and (base.enum<>R_NO) and (direction=dir_none) then
+                  else if (index<>NR_NO) and (base<>NR_NO) and (direction=dir_none) then
                 begin
                   if (scalefactor = 1) or (scalefactor = 0) then
                     s:=s+'('+basestr+','+indexstr+'.l)'
@@ -111,144 +112,81 @@ interface
 
 
     function getopstr(const o:toper) : string;
-    var
-      hs : string;
-      i:Tsuperregister;
-    begin
-      case o.typ of
-            top_reg : getopstr:=gas_reg2str[o.reg.enum];
-            top_ref : getopstr:=getreferencestring(o.ref^);
-        top_reglist : begin
-                      hs:='';
-                      for i:=first_supreg to last_supreg do
-                      begin
-                        if i in o.registerlist then
-                         hs:=hs+supreg_name(i)+'/';
-                      end;
-                      delete(hs,length(hs),1);
-                      getopstr := hs;
-                    end;
-             top_const : getopstr:='#'+tostr(longint(o.val));
-            top_symbol :
-                    { compare with i386, where a symbol is considered }
-                    { a constant.                                     }
-                    begin
-                     if assigned(o.sym) then
-                       hs:='#'+o.sym.name
-                     else
-                       hs:='#';
-                       if o.symofs>0 then
-                        hs:=hs+'+'+tostr(o.symofs)
-                       else
-                        if o.symofs<0 then
-                         hs:=hs+tostr(o.symofs)
-                       else
-                        if not(assigned(o.sym)) then
-                          hs:=hs+'0';
-                       getopstr:=hs;
-                    end;
-            else internalerror(10001);
-         end;
+      var
+        hs : string;
+        i : tsuperregister;
+      begin
+        case o.typ of
+          top_reg:
+            getopstr:=gas_regname(o.reg);
+          top_ref:
+            getopstr:=getreferencestring(o.ref^);
+          top_reglist:
+            begin
+              hs:='';
+              for i:=first_supreg to last_supreg do
+                begin
+                  if i in o.registerlist then
+                   hs:=hs+supreg_name(i)+'/';
+                end;
+              delete(hs,length(hs),1);
+              getopstr := hs;
+            end;
+          top_const:
+            getopstr:='#'+tostr(longint(o.val));
+          top_symbol:
+            { compare with i386, where a symbol is considered
+              a constant.                                     }
+            begin
+             if assigned(o.sym) then
+               hs:='#'+o.sym.name
+             else
+               hs:='#';
+               if o.symofs>0 then
+                hs:=hs+'+'+tostr(o.symofs)
+               else
+                if o.symofs<0 then
+                 hs:=hs+tostr(o.symofs)
+               else
+                if not(assigned(o.sym)) then
+                  hs:=hs+'0';
+               getopstr:=hs;
+            end;
+          else internalerror(10001);
+        end;
       end;
 
+
     function getopstr_jmp(const o:toper) : string;
-    var
-      hs : string;
-    begin
-      case o.typ of
-            top_reg : getopstr_jmp:=gas_reg2str[o.reg.enum];
-            top_ref : getopstr_jmp:=getreferencestring(o.ref^);
-            top_const : getopstr_jmp:=tostr(o.val);
-            top_symbol : begin
-                           if assigned(o.sym) then
-                             hs:=o.sym.name
+      var
+        hs : string;
+      begin
+        case o.typ of
+          top_reg : getopstr_jmp:=gas_regname(o.reg);
+          top_ref : getopstr_jmp:=getreferencestring(o.ref^);
+          top_const : getopstr_jmp:=tostr(o.val);
+          top_symbol : begin
+                         if assigned(o.sym) then
+                           hs:=o.sym.name
+                         else
+                           hs:='';
+                           if o.symofs>0 then
+                            hs:=hs+'+'+tostr(o.symofs)
                            else
-                             hs:='';
-                             if o.symofs>0 then
-                              hs:=hs+'+'+tostr(o.symofs)
-                             else
-                              if o.symofs<0 then
-                               hs:=hs+tostr(o.symofs)
-                             else
-                              if not(assigned(o.sym)) then
-                                hs:=hs+'0';
-                           getopstr_jmp:=hs;
-                         end;
-            else internalerror(10001);
-         end;
+                            if o.symofs<0 then
+                             hs:=hs+tostr(o.symofs)
+                           else
+                            if not(assigned(o.sym)) then
+                              hs:=hs+'0';
+                         getopstr_jmp:=hs;
+                       end;
+          else internalerror(10001);
+        end;
       end;
 
 {****************************************************************************
                             TM68kASMOUTPUT
  ****************************************************************************}
-
-(*
-   ait_instruction : begin
-                       { old versions of GAS don't like PEA.L and LEA.L }
-                       if (paicpu(hp)^.opcode in [
-                            A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
-                            A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
-                            A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
-                            A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
-                        s:=#9+mot_op2str[paicpu(hp)^.opcode]
-                       else
-                        s:=#9+mot_op2str[paicpu(hp)^.opcode]+mit_opsize2str[paicpu(hp)^.opsize];
-                       if paicpu(hp)^.ops>0 then
-                        begin
-                        { call and jmp need an extra handling                          }
-                        { this code is only callded if jmp isn't a labeled instruction }
-                          if paicpu(hp)^.opcode in [A_BSR,A_BRA,A_LEA,A_PEA,A_JSR,A_JMP] then
-                           s:=s+#9#9+getopstr_jmp(paicpu(hp)^.oper[0])
-                          else
-                            s:=s+#9+getopstr(paicpu(hp)^.oper[0]);
-                           if paicpu(hp)^.ops>1 then
-                            begin
-                              s:=s+','+getopstr(paicpu(hp)^.oper[1]);
-                            { three operands }
-                              if paicpu(hp)^.ops>2 then
-                               begin
-                                   if (paicpu(hp)^.opcode = A_DIVSL) or
-                                      (paicpu(hp)^.opcode = A_DIVUL) or
-                                      (paicpu(hp)^.opcode = A_MULU) or
-                                      (paicpu(hp)^.opcode = A_MULS) or
-                                      (paicpu(hp)^.opcode = A_DIVS) or
-                                      (paicpu(hp)^.opcode = A_DIVU) then
-                                    s:=s+':'+getopstr(paicpu(hp)^.oper[2])
-                                   else
-                                    s:=s+','+getopstr(paicpu(hp)^.oper[2]);
-                               end;
-                            end;
-                        end;
-                       AsmWriteLn(s);
-                     end;
-
-
-ait_labeled_instruction : begin
-                     { labeled operand }
-                       if pai_labeled(hp)^.register = R_NO then
-                         begin
-                           if pai_labeled(hp)^.lab <> nil then
-                             AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^.opcode]+#9+pai_labeled(hp)^.lab^.name)
-                           else
-                             AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^.opcode]+#9+pai_labeled(hp)^.sym^.name);
-                         end
-                       else
-                     { labeled operand with register }
-                        begin
-                           if pai_labeled(hp)^.lab <> nil then
-                             begin
-                                  AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^.opcode]+#9+
-                                    gas_reg2str[pai_labeled(hp)^.register]+','+pai_labeled(hp)^.lab^.name);
-                               end
-                           else
-                           { a symbol is the value }
-                             begin
-                                  AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^.opcode]+#9+
-                                    gas_reg2str[pai_labeled(hp)^.register]+','+pai_labeled(hp)^.sym^.name);
-                             end;
-                        end;
-                     end;
-*)
 
     { returns the opcode string }
     function getopcodestring(hp : tai) : string;
@@ -275,7 +213,8 @@ ait_labeled_instruction : begin
         getopcodestring:=s;
       end;
 
-    procedure TM68kAssembler. WriteInstruction(hp: tai);
+
+    procedure TM68kAssembler.WriteInstruction(hp: tai);
     var
       op       : tasmop;
       s        : string;
@@ -352,7 +291,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-04-27 15:00:37  florian
+  Revision 1.10  2004-04-27 15:46:01  florian
+    * several updates for compilation
+
+  Revision 1.9  2004/04/27 15:00:37  florian
     - removed offsetfixup reference
 
   Revision 1.8  2004/04/25 21:26:16  florian
