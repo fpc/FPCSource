@@ -1,0 +1,118 @@
+{
+    $Id$
+    Copyright (c) 2001 by Carl Eric Codere
+
+    Implements POSIX 1003.1 conforming interface
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
+
+  {$Linklib c}
+
+{   var
+     Errno : cint; external name 'errno';}
+
+
+
+    function sys_fork : pid_t; cdecl; external name 'fork';
+    function sys_execve(const path : pchar; const argv : ppchar; const envp: ppchar): cint; cdecl; external name 'execve';
+    function sys_waitpid(pid : pid_t; var stat_loc : cint; options: cint): pid_t; cdecl; external name 'waitpid';
+    procedure sys_exit(status : cint); cdecl; external name '_exit';
+    function sys_uname(var name: utsname): cint; cdecl; external name 'uname';
+    function sys_opendir(const dirname : pchar): pdir; cdecl; external name 'opendir';
+    function sys_readdir(dirp : pdir) : pdirent;cdecl; external name 'readdir';
+    function sys_closedir(dirp : pdir): cint; cdecl; external name 'closedir';
+    function sys_chdir(const path : pchar): cint; cdecl; external name 'chdir';
+    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; cdecl; external name 'open';
+    function sys_mkdir(const path : pchar; mode: mode_t):cint; cdecl; external name 'mkdir';
+    function sys_unlink(const path: pchar): cint; cdecl; external name 'unlink';
+    function sys_rmdir(const path : pchar): cint; cdecl; external name 'rmdir';
+    function sys_rename(const old : pchar; const newpath: pchar): cint; cdecl;external name 'rename';
+    function sys_fstat(fd : cint; var sb : stat): cint; cdecl; external name 'fstat';
+    function sys_stat(const path: pchar; var buf : stat): cint; cdecl; external name 'stat';
+    function sys_access(const pathname : pchar; amode : cint): cint; cdecl; external name 'access';
+    function sys_close(fd : cint): cint; cdecl; external name 'close';
+    function sys_read(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; external name 'read';
+    function sys_write(fd: cint;const buf:pchar; nbytes : size_t): ssize_t; cdecl; external name 'write';
+    function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; cdecl; external name 'lseek';
+    function sys_time(var tloc:time_t): time_t; cdecl; external name 'time';
+    function sys_ftruncate(fd : cint; flength : off_t): cint; cdecl; external name 'ftruncate';
+    function sys_sigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external name 'sigaction';
+
+
+    function S_ISDIR(m : mode_t): boolean;
+      begin
+      end;
+
+    function S_ISCHR(m : mode_t): boolean;
+      begin
+      end;
+
+    function S_ISBLK(m : mode_t): boolean;
+      begin
+      end;
+
+    function S_ISREG(m : mode_t): boolean;
+      begin
+      end;
+
+    function S_ISFIFO(m : mode_t): boolean;
+      begin
+      end;
+
+    function wifexited(status : cint): cint;
+      begin
+      end;
+
+    function wexitstatus(status : cint): cint;
+     begin
+     end;
+
+    function wstopsig(status : cint): cint;
+     begin
+     end;
+
+    function wifsignaled(status : cint): cint;
+     begin
+     end;
+
+{
+
+ $Log$
+ Revision 1.2  2002-08-10 13:42:36  marco
+  * Fixes Posix dir copied to devel branch
+
+ Revision 1.1.2.5  2001/12/09 03:31:50  carl
+ + wifsignaled() added
+
+ Revision 1.1.2.4  2001/12/03 03:13:30  carl
+ * fix ftruncate prototype
+ * fix rename prototype
+ * change readdir / closedir prototype
+
+ Revision 1.1.2.3  2001/11/30 03:50:43  carl
+ + int -> cint
+ + missing prototypes added
+
+ Revision 1.1.2.2  2001/11/28 03:08:29  carl
+ * int -> cint
+ + several other stuff renamed
+
+ Revision 1.1.2.1  2001/08/15 00:15:04  carl
+ - renamed
+
+}

@@ -1,0 +1,67 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2001 by Free Pascal development team
+
+    This file implements all the types/constants which must
+    be defined to port FPC to a new POSIX compliant OS.
+    This defines all signal related types and constants.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+type
+    sigset_t =;          { used for additional signal   }
+
+
+   sighandler_t = procedure (signo: cint); cdecl;
+
+   { signal services }
+   sigactionrec = packed record
+   end;
+
+
+const
+
+    {************************ signals *****************************}
+    { more can be provided. Herein are only included the required  }
+    { values.                                                      }
+    {**************************************************************}
+    SIGABRT    =  ;     { abnormal termination           }
+    SIGALRM    =  ;     { alarm clock (used with alarm() }
+    SIGFPE     =  ;     { illegal arithmetic operation   }
+    SIGHUP     =  ;     { Hangup                         }
+    SIGILL     =  ;     { Illegal instruction            }
+    SIGINT     =  ;     { Interactive attention signal   }
+    SIGKILL    =  ;     { Kill, cannot be caught         }
+    SIGPIPE    =  ;     { Broken pipe signal             }
+    SIGQUIT    =  ;     { Interactive termination signal }
+    SIGSEGV    =  ;     { Detection of invalid memory reference }
+    SIGTERM    =  ;     { Termination request           }
+    SIGUSR1    =  ;     { Application defined signal 1  }
+    SIGUSR2    =  ;     { Application defined signal 2  }
+    SIGCHLD    =  ;     { Child process terminated / stopped }
+    SIGCONT    =  ;     { Continue if stopped               }
+    SIGSTOP    =  ;     { Stop signal. cannot be cuaght     }
+    SIGSTP     =  ;     { Interactive stop signal           }
+    SIGTTIN    =  ;     { Background read from TTY          }
+    SIGTTOU    =  ;     { Background write to TTY           }
+    SIGBUS     =  ;     { Access to undefined memory        }
+
+
+{
+  $Log$
+  Revision 1.2  2002-08-10 13:42:36  marco
+   * Fixes Posix dir copied to devel branch
+
+  Revision 1.1.2.1  2001/11/28 03:10:37  carl
+  + signal stuff posix include
+
+  
+}
