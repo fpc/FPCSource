@@ -63,6 +63,7 @@ interface
        tifnodeclass = class of tifnode;
 
        tfornode = class(tloopnode)
+	  testatbegin:boolean;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -590,6 +591,15 @@ implementation
          result:=nil;
          resulttype:=voidtype;
 
+	 {Can we spare the first comparision.}
+         {testatbegin:=false; Already false by constructor}
+         if right.nodetype=ordconstn then
+            if Tassignmentnode(left).right.nodetype=ordconstn then
+        	testatbegin:=((nf_backward in flags) and
+                 (Tordconstnode(Tassignmentnode(left).right).value>=Tordconstnode(right).value))
+                 or (not(nf_backward in flags) and
+                 (Tordconstnode(Tassignmentnode(left).right).value<=Tordconstnode(right).value));
+											  											  
          if left.nodetype<>assignn then
            begin
               CGMessage(cg_e_illegal_expression);
@@ -1234,7 +1244,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-07-20 08:19:31  daniel
+  Revision 1.41  2002-07-20 11:15:51  daniel
+  * The for node does a check if the first comparision can be skipped. I moved
+    the check from the second pass to the resulttype pass. The advantage is
+    that the state tracker can now decide to skip the first comparision too.
+
+  Revision 1.40  2002/07/20 08:19:31  daniel
   * State tracker automatically changes while loops into repeat loops
 
   Revision 1.39  2002/07/19 12:55:27  daniel

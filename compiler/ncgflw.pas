@@ -278,7 +278,7 @@ implementation
     procedure tcgfornode.pass_2;
       var
          l3,oldclabel,oldblabel : tasmlabel;
-         omitfirstcomp,temptovalue : boolean;
+         {omitfirstcomp,}temptovalue : boolean;
          hs : byte;
          temp1 : treference;
          hop : topcg;
@@ -294,13 +294,13 @@ implementation
          getlabel(l3);
 
          { could we spare the first comparison ? }
-         omitfirstcomp:=false;
+{         omitfirstcomp:=false;
          if right.nodetype=ordconstn then
            if tassignmentnode(left).right.nodetype=ordconstn then
              omitfirstcomp:=((nf_backward in flags) and
                (tordconstnode(tassignmentnode(left).right).value>=tordconstnode(right).value))
                or (not(nf_backward in flags) and
-                  (tordconstnode(tassignmentnode(left).right).value<=tordconstnode(right).value));
+                  (tordconstnode(tassignmentnode(left).right).value<=tordconstnode(right).value));}
 
          { only calculate reference }
          rg.cleartempgen;
@@ -358,7 +358,7 @@ implementation
            end
          else
            begin
-             if not(omitfirstcomp) then
+             if testatbegin then
                begin
                  cg.a_cmp_const_loc_label(exprasmlist,opsize,hcond,
                    aword(tordconstnode(right).value),
@@ -631,7 +631,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-07-20 08:14:24  daniel
+  Revision 1.25  2002-07-20 11:15:51  daniel
+  * The for node does a check if the first comparision can be skipped. I moved
+    the check from the second pass to the resulttype pass. The advantage is
+    that the state tracker can now decide to skip the first comparision too.
+
+  Revision 1.24  2002/07/20 08:14:24  daniel
   * Loops should not be aligned when optimizing for size
 
   Revision 1.23  2002/07/19 11:41:35  daniel
