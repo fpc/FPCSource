@@ -634,6 +634,7 @@ implementation
         hp    : ptree;
         href  : treference;
         lt    : pdef;
+        vaddr : boolean;
         vtype : longint;
       begin
         clear_reference(p^.location.reference);
@@ -647,6 +648,7 @@ implementation
             exit;
            { find the correct vtype value }
            vtype:=$ff;
+           vaddr:=false;
            lt:=hp^.left^.resulttype;
            case lt^.deftype of
            enumdef,
@@ -660,11 +662,10 @@ implementation
                        else
                         if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
                          vtype:=vtChar;
-                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
           floatdef : begin
                        vtype:=vtExtended;
-                       emit_lea_loc_ref(hp^.left^.location,href);
+                       vaddr:=true;
                      end;
         procvardef,
         pointerdef : begin
@@ -672,37 +673,33 @@ implementation
                         vtype:=vtPChar
                        else
                         vtype:=vtPointer;
-                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
-       classrefdef : begin
-                       vtype:=vtClass;
-                       emit_mov_loc_ref(hp^.left^.location,href);
-                     end;
+       classrefdef : vtype:=vtClass;
          objectdef : begin
                        vtype:=vtObject;
-                       emit_mov_loc_ref(hp^.left^.location,href);
                      end;
          stringdef : begin
                        if is_shortstring(lt) then
                         begin
                           vtype:=vtString;
-                          emit_lea_loc_ref(hp^.left^.location,href);
+                          vaddr:=true;
                         end
                        else
                         if is_ansistring(lt) then
-                         begin
-                           vtype:=vtAnsiString;
-                           emit_mov_loc_ref(hp^.left^.location,href);
-                         end;
+                         vtype:=vtAnsiString;
                      end;
            end;
            if vtype=$ff then
             internalerror(14357);
            { update href to the vtype field and write it }
-           inc(href.offset,4);
            exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
              vtype,newreference(href))));
-           { update href to the next element }
+           inc(href.offset,4);
+           { write changing field update href to the next element }
+           if vaddr then
+            emit_lea_loc_ref(hp^.left^.location,href)
+           else
+            emit_mov_loc_ref(hp^.left^.location,href);
            inc(href.offset,4);
            { load next entry }
            hp:=hp^.right;
@@ -713,7 +710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1998-09-23 17:49:59  peter
+  Revision 1.20  1998-09-24 14:26:03  peter
+    * updated for new tvarrec
+
+  Revision 1.19  1998/09/23 17:49:59  peter
     * high(arrayconstructor) is now correct
     * procvardef support for variant record
 
