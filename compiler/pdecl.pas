@@ -74,7 +74,6 @@ unit pdecl;
         s       : string;
         storetokenpos : tfileposinfo;
         tt      : ttype;
-        hsym    : psym;
         hvs,
         vs      : Pvarsym;
         hs1,hs2 : string;
@@ -215,31 +214,17 @@ unit pdecl;
                      vs^.varspez:=varspez;
                    { we have to add this to avoid var param to be in registers !!!}
                      if (varspez in [vs_var,vs_const]) and push_addr_param(tt.def) then
-{$ifdef INCLUDEOK}
                        include(vs^.varoptions,vo_regable);
-{$else}
-                       vs^.varoptions:=vs^.varoptions+[vo_regable];
-{$endif}
-
-                   { search for duplicate ids in object members/methods    }
-                   { but only the current class, I don't know why ...      }
-                   { at least TP and Delphi do it in that way   (FK) }
-                     if assigned(procinfo^._class) and
-                        (lexlevel=normal_function_level) then
-                      begin
-                        hsym:=procinfo^._class^.symtable^.search(vs^.name);
-                        if assigned(hsym) then
-                         DuplicateSym(hsym);
-                      end;
-
-                   { do we need a local copy? }
-                     if (varspez=vs_value) and
-                        push_addr_param(tt.def) and
-                        not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
-                       vs^.setname('val'+vs^.name);
 
                    { insert the sym in the parasymtable }
                      pprocdef(aktprocdef)^.parast^.insert(vs);
+
+                   { do we need a local copy? Then rename the varsym, do this after the
+                     insert so the dup id checking is done correctly }
+                     if (varspez=vs_value) and
+                        push_addr_param(tt.def) and
+                        not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
+                       pprocdef(aktprocdef)^.parast^.rename(vs^.name,'val'+vs^.name);
 
                    { also need to push a high value? }
                      if inserthigh then
@@ -1218,7 +1203,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.183  2000-06-02 21:18:13  pierre
+  Revision 1.184  2000-06-09 21:34:40  peter
+    * checking for dup id with para of methods fixed for delphi mode
+
+  Revision 1.183  2000/06/02 21:18:13  pierre
    + set vo_is_exported for vars
 
   Revision 1.182  2000/06/01 19:14:09  peter

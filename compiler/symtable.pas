@@ -1819,6 +1819,8 @@ implementation
 
 
     procedure tsymtable.insert(sym:psym);
+      label
+         doinsert;
       var
          hp : psymtable;
          hsym : psym;
@@ -1930,10 +1932,10 @@ implementation
                 (not(sp_private in hsym^.symoptions) or
                  (hsym^.owner^.defowner^.owner^.symtabletype<>unitsymtable)) then
                 begin
-                   { delphi allows to reuse the names of properties }
-                   { in parameter lists of methods                  }
-                   if not((hsym^.typ=propertysym) and
-                     (m_delphi in aktmodeswitches)) then
+                   { delphi allows to reuse the names in a class, but not
+                     in object (tp7 compatible) }
+                   if not((m_delphi in aktmodeswitches) and
+                          (procinfo^._class^.is_class)) then
                     begin
                       DuplicateSym(hsym);
                       exit;
@@ -2925,7 +2927,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2000-06-05 20:41:17  pierre
+  Revision 1.97  2000-06-09 21:34:40  peter
+    * checking for dup id with para of methods fixed for delphi mode
+
+  Revision 1.96  2000/06/05 20:41:17  pierre
     + support for NOT overloading
     + unsupported overloaded operators generate errors
 
