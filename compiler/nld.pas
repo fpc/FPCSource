@@ -360,10 +360,7 @@ implementation
             constsym:
               begin
                  if tconstsym(symtableentry).consttyp=constresourcestring then
-                   begin
-                      include(current_procinfo.flags,pi_needs_implicit_finally);
-                      expectloc:=LOC_CREFERENCE;
-                   end;
+                   expectloc:=LOC_CREFERENCE;
               end;
             globalvarsym,
             localvarsym,
@@ -1180,7 +1177,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.141  2004-12-07 13:52:54  michael
+  Revision 1.142  2004-12-26 16:21:39  peter
+    * resourcestring does not need exception frame
+
+  Revision 1.141  2004/12/07 13:52:54  michael
     * Convert array of widechar to pwidechar instead of pchar
 
   Revision 1.140  2004/12/05 12:28:11  peter
