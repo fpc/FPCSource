@@ -42,22 +42,20 @@ function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
     if nr<1
     then
       InternalError(2002100806);
-    FillChar(Result,SizeOf(TParaLocation),0);
+    FillChar(GetIntParaLoc,SizeOf(TParaLocation),0);
     Dec(nr);
-    with Result do
+    with GetIntParaLoc do
       if nr<6
       then{The six first parameters are passed into registers}
         begin
           loc:=LOC_REGISTER;
-          register:=TRegister(LongInt(R_O0)+nr);
-          WriteLn('-------------------------------------------');
+          register:=TRegister(LongInt(R_i0)+nr);
         end
       else{The other parameters are passed into the frame}
         begin
           loc:=LOC_REFERENCE;
           reference.index:=frame_pointer_reg;
-          reference.offset:=-92-(nr-6)*4;
-          WriteLn('+++++++++++++++++++++++++++++++++++++++++++');
+          reference.offset:=-68-nr*4;
         end;
   end;
 function GetParaLoc(p:TDef):TLoc;
@@ -124,7 +122,7 @@ procedure TSparcParaManager.create_param_loc_info(p:tabstractprocdef);
     loc : tloc;
     is_64bit: boolean;
   begin
-    nextintreg:=R_O0;
+    nextintreg:=R_i0;
     nextfloatreg:=R_F0;
     stack_offset:=92;
 WriteLn('***********************************************');
@@ -140,7 +138,7 @@ WriteLn('***********************************************');
               then
                 hp.paraloc.size:=OS_ADDR;
               is_64bit:=hp.paraloc.size in [OS_64,OS_S64];
-              if NextIntReg<=TRegister(ord(R_O5)-ord(is_64bit))
+              if NextIntReg<=TRegister(ord(R_i5)-ord(is_64bit))
               then
                 begin
                   WriteLn('Allocating ',std_reg2str[NextIntReg]);
@@ -156,7 +154,7 @@ WriteLn('***********************************************');
                 end
               else
                 begin
-                  nextintreg:=R_O6;
+                  nextintreg:=R_i6;
                   hp.paraloc.loc:=LOC_REFERENCE;
                   hp.paraloc.reference.index:=stack_pointer_reg;
                   hp.paraloc.reference.offset:=stack_offset;
@@ -239,11 +237,11 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
         begin
           WriteLn('Allocating i0 as return register');
           GetFuncRetParaLoc.loc:=LOC_REGISTER;
-          GetFuncRetParaLoc.register:=R_i0;
+          GetFuncRetParaLoc.register:=R_I0;
           GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
           if GetFuncRetParaLoc.size in [OS_S64,OS_64]
           then
-            GetFuncRetParaLoc.RegisterHigh:=R_O1;
+            GetFuncRetParaLoc.RegisterHigh:=R_I1;
         end;
       floatdef:
         begin
@@ -251,8 +249,6 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
           GetFuncRetParaLoc.register:=R_F1;
           GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
         end;
-            { smallsets are OS_INT in R3, others are OS_ADDR in R3 -> the same }
-            { ugly, I know :) (JM)                                             }
       setdef,
       variantdef,
       pointerdef,
@@ -267,7 +263,7 @@ function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
       errordef:
         begin
           GetFuncRetParaLoc.loc:=LOC_REGISTER;
-          GetFuncRetParaLoc.register:=R_O0;
+          GetFuncRetParaLoc.register:=R_I0;
           GetFuncRetParaLoc.size:=OS_ADDR;
         end;
       else
@@ -279,7 +275,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-10-10 15:10:39  mazen
+  Revision 1.7  2002-10-10 19:57:51  mazen
+  * Just to update repsitory
+
+  Revision 1.6  2002/10/10 15:10:39  mazen
   * Internal error fixed, but usually i386 parameter model used
 
   Revision 1.5  2002/10/09 13:52:19  mazen

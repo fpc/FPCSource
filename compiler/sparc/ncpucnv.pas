@@ -375,7 +375,8 @@ implementation
            @second_class_to_intf,
            @second_char_to_char,
            @second_nothing,  { normal_2_smallset }
-           @second_nothing   { dynarray_2_openarray }
+           @second_nothing,   { dynarray_2_openarray }
+					 @second_nothing
          );
       type
          tprocedureofobject = procedure of object;
@@ -421,7 +422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:25:14  peter
+  Revision 1.4  2002-10-10 19:57:52  mazen
+  * Just to update repsitory
+
+  Revision 1.3  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/08/30 06:15:27  mazen

@@ -40,10 +40,9 @@ TYPE
 {This method is used to pass a parameter, which is located in a register, to a
 routine. It should give the parameter to the routine, as required by the
 specific processor ABI. It is overriden for each CPU target.
-  Size : is the size of the operand in the register
-  r    : is the register source of the operand
-  nr   : is number of that parameter in the routine parameters list starting
-         from one from left to right}
+  Size    : is the size of the operand in the register
+  r       : is the register source of the operand
+  LocPara : is the location where the parameter will be stored}
     procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
     procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
     procedure a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
@@ -117,8 +116,16 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
     IF(Size<>OS_32)AND(Size<>OS_S32)
     THEN
       InternalError(2002032212);
-    List.Concat(taicpu.op_reg(A_LD,S_L,r));
-  END;
+		with list,LocPara do
+		  case Loc of
+			  LOC_REGISTER:
+    			if r<>Register
+					then
+						Concat(taicpu.op_Reg_Reg_Reg(A_OR,S_L,r,R_G0,Register));
+				else
+				  InternalError(2002101002);
+			end;
+  end;
 procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
   BEGIN
     IF(Size<>OS_32)AND(Size<>OS_S32)
@@ -131,36 +138,37 @@ procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;
     ref: treference;
     tmpreg:TRegister;
   begin
-    case locpara.loc of
-      LOC_REGISTER,LOC_CREGISTER:
-        a_load_ref_reg(list,size,r,locpara.register);
-      LOC_REFERENCE:
-        begin
+	  with LocPara do
+	    case locpara.loc of
+  	    LOC_REGISTER,LOC_CREGISTER:
+    	    a_load_ref_reg(list,size,r,Register);
+      	LOC_REFERENCE:
+        	begin
           {Code conventions need the parameters being allocated in %o6+92. See
           comment on g_stack_frame}
-          if locpara.sp_fixup<92
-          then
-            InternalError(2002081104);
-          reference_reset(ref);
-          ref.base:=locpara.reference.index;
-          ref.offset:=locpara.reference.offset;
-          tmpreg := get_scratch_reg_int(list);
-          a_load_ref_reg(list,size,r,tmpreg);
-          a_load_reg_ref(list,size,tmpreg,ref);
-          free_scratch_reg(list,tmpreg);
-        end;
-      LOC_FPUREGISTER,LOC_CFPUREGISTER:
-        case size of
-          OS_32:
-            a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
-          OS_64:
-            a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
-        else
-          internalerror(2002072801);
-        end;
-    else
-      internalerror(2002081103);
-    end;
+          	if locpara.sp_fixup<92
+          	then
+            	InternalError(2002081104);
+          	reference_reset(ref);
+          	ref.base:=locpara.reference.index;
+          	ref.offset:=locpara.reference.offset;
+          	tmpreg := get_scratch_reg_int(list);
+          	a_load_ref_reg(list,size,r,tmpreg);
+          	a_load_reg_ref(list,size,tmpreg,ref);
+          	free_scratch_reg(list,tmpreg);
+        	end;
+      	LOC_FPUREGISTER,LOC_CFPUREGISTER:
+        	case size of
+          	OS_32:
+            	a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
+	          OS_64:
+  	          a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+    	    else
+      	    internalerror(2002072801);
+        	end;
+	    	else
+  	    	internalerror(2002081103);
+    	end;
   end;
 procedure tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -1256,7 +1264,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.13  2002-10-10 15:10:39  mazen
+  Revision 1.14  2002-10-10 19:57:51  mazen
+  * Just to update repsitory
+
+  Revision 1.13  2002/10/10 15:10:39  mazen
   * Internal error fixed, but usually i386 parameter model used
 
   Revision 1.12  2002/10/08 17:17:03  mazen

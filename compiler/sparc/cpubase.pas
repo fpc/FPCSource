@@ -1,12 +1,5 @@
-{*****************************************************************************}
-{ File                   : cpubase.pas                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\04\26                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{    $Id$
+{******************************************************************************
+    $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
 
     Contains the base types for the Scalable Processor ARChitecture (SPARC)
@@ -401,7 +394,6 @@ used, because contains a lot of unnessary fields.}
 
 CONST
   general_registers = [R_L0..R_L7];
-
   { legEND:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
@@ -410,19 +402,16 @@ CONST
   {           excludes registers which can be only used for parameter      }
   {           passing on ABI's that define this)                           }
   { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-
-  intregs = [R_G0..R_I7];
-  usableregsint = general_registers;
+  IntRegs=[R_L0..R_O7];
+  usableregsint=general_registers;
   c_countusableregsint = 4;
-
-  fpuregs = [R_F0..R_F31];
-  usableregsfpu = [];
-  c_countusableregsfpu = 0;
-
-  mmregs = [R_G0..R_G7];
-  usableregsmm = [R_G0..R_G7];
-  c_countusableregsmm  = 8;
-
+  fpuregs=[R_F0..R_F31];
+  usableregsfpu=[];
+  c_countusableregsfpu=0;
+  mmregs=[];
+  usableregsmm=[];
+  c_countusableregsmm=8;
+  
   firstsaveintreg = R_G0;
   lastsaveintreg = R_I7;
   firstsavefpureg = R_F0;
@@ -468,9 +457,10 @@ function othewise it contains a pointer to the returned result}
 {There is no accumulator in the SPARC architecture. There are just families of
 registers. All registers belonging to the same family are identical except in
 the "global registers" family where GO is different from the others : G0 gives
-always 0 when it is red and thows away any value written to it}
-  accumulator     = R_L0;
-  accumulatorhigh = R_L7;
+always 0 when it is red and thows away any value written to it.Nevertheless,
+scalar routine results are returned onto R_O0.}
+  accumulator     = R_O0;
+  accumulatorhigh = R_O1;
   fpu_result_reg  =R_F0;
   mmresultreg     =R_G0;
 {*****************************************************************************}
@@ -581,7 +571,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.10  2002-10-02 22:20:28  mazen
+  Revision 1.11  2002-10-10 19:57:51  mazen
+  * Just to update repsitory
+
+  Revision 1.10  2002/10/02 22:20:28  mazen
   + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
 
   Revision 1.9  2002/10/01 21:06:29  mazen

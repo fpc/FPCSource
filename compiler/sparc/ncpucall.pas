@@ -1,20 +1,11 @@
-{*****************************************************************************}
-{ File                   : ncpucall.pas                                       }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\26\26                                         }
-{ Last modification date : 2002\07\01                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     Generate SPARC assembler for in call nodes
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published bymethodpointer
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -34,60 +25,60 @@ interface
 uses
   symdef,node,ncal,ncgcal;
 type
-  TSparccallnode = class(tcgcallnode)
-    function pass_1 : tnode;override;
+  TSparcCallNode=class(TCgCallNode)
+    function pass_1:TNode;override;
 {Under SPARC, the frame pointer is automatically set by the SAVE instruction
-which is part of the stardrad calling mechanism. This function will do nothing
-else than adding the function prologue, which is in some case loading the
-correct value into the frame pointer register!}
+which is part of the stardrad calling mechanism. This function will do nothing.
+the frame pointer register is the stack pointer register of the caller, and is
+set when generating function prologue in cgcpu.tcgSPARC.g_stackframe_entry}
     procedure load_framepointer;override;
   end;
-
 implementation
-
-    uses
-      globtype,systems,
-      cutils,verbose,globals,
-      symconst,symbase,symsym,symtable,defbase,paramgr,
+uses
+  globtype,systems,
+  cutils,verbose,globals,
+  symconst,symbase,symsym,symtable,defbase,paramgr,
 {$ifdef GDB}
   {$ifdef delphi}
-      sysutils,
+  sysutils,
   {$else}
-      strings,
+  strings,
   {$endif}
-      gdb,
+  gdb,
 {$endif GDB}
-      cginfo,cgbase,pass_2,
-      cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
-      nmem,nld,ncnv,
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpupi;
-
-  function TSparccallnode.pass_1 : tnode;
-
-    begin
-       result:=inherited pass_1;
-       if assigned(result) then
-         exit;
-       if procdefinition is tprocdef then
-         begin
-            if tprocdef(procdefinition).parast.datasize>TSparcprocinfo(procinfo).maxpushedparasize then
-              TSparcprocinfo(procinfo).maxpushedparasize:=tprocdef(procdefinition).parast.datasize
-         end
-       else
-         begin
-            {!!!!}
-         end;
-    end;
+  cginfo,cgbase,pass_2,
+  cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
+  nmem,nld,ncnv,
+  ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpupi;
+function TSparcCallNode.pass_1:TNode;
+  begin
+    result:=inherited pass_1;
+    if assigned(result)
+    then
+      exit;
+    if ProcDefinition is TProcDef
+    then
+      begin
+        if TProcDef(procdefinition).parast.datasize>TSparcProcInfo(procinfo).maxpushedparasize
+        then
+          TSparcProcInfo(procinfo).maxpushedparasize:=TProcdef(procdefinition).parast.datasize
+     end
+   else
+     InternalError(2002101001);
+  end;
 procedure TSparcCallNode.load_framepointer;
-	begin
-	  exprasmList.concat(TAiCpu.Op_reg_const_reg(A_SAVE,S_L,stack_pointer_reg,-tprocdef(procdefinition).parast.datasize,stack_pointer_reg));
+  begin
+    InternalError(2002101000);
   end;
 begin
-   ccallnode:=TSparccallnode;
+   ccallnode:=TSparcCallNode;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-30 19:12:14  mazen
+  Revision 1.4  2002-10-10 19:57:52  mazen
+  * Just to update repsitory
+
+  Revision 1.3  2002/09/30 19:12:14  mazen
   * function prologue fixed
 
   Revision 1.2  2002/08/30 13:16:23  mazen
