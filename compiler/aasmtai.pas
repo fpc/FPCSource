@@ -1503,23 +1503,27 @@ uses
         if opidx>=ops then
          ops:=opidx+1;
         with oper[opidx] do
-         begin
-           if typ<>top_ref then
-            new(ref);
-           ref^:=r;
+          begin
+            if typ<>top_ref then
+              new(ref);
+            ref^:=r;
 {$ifdef i386}
-           if ref^.segment.enum>lastreg then
-              internalerror(200301081);
-           { We allow this exception for i386, since overloading this would be
-             too much of a a speed penalty}
-           if not(ref^.segment.enum in [R_DS,R_NO]) then
-            segprefix:=ref^.segment;
+            { We allow this exception for i386, since overloading this would be
+              too much of a a speed penalty}
+            if ref^.segment.enum=R_INTREGISTER then
+              begin
+                if (ref^.segment.number <> NR_NO) and (ref^.segment.number <> NR_DS) then
+                  segprefix:=ref^.segment;
+              end
+            else
+              if not(ref^.segment.enum in [R_DS,R_NO]) then
+                segprefix:=ref^.segment;
 {$endif}
-           typ:=top_ref;
-           { mark symbol as used }
-           if assigned(ref^.symbol) then
-             ref^.symbol.increfs;
-         end;
+            typ:=top_ref;
+            { mark symbol as used }
+            if assigned(ref^.symbol) then
+              ref^.symbol.increfs;
+          end;
       end;
 
 
@@ -1750,7 +1754,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2003-01-09 20:40:59  daniel
+  Revision 1.19  2003-01-21 08:48:08  daniel
+    * Another 200301081 fixed
+
+  Revision 1.18  2003/01/09 20:40:59  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.17  2003/01/09 15:49:56  daniel
