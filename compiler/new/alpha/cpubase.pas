@@ -135,8 +135,13 @@ Type
    end;
  PReference = ^TReference;
 
- tloc = (LOC_INVALID,LOC_REGISTER,LOC_MEM,LOC_REFERENCE,LOC_JUMP,
-         LOC_FLAGS,LOC_CREGISTER,LOC_CONST);
+ tloc = (LOC_INVALID,
+         LOC_REGISTER,
+         LOC_MEM,
+         LOC_REFERENCE,
+         LOC_JUMP,
+         LOC_CREGISTER,
+         LOC_CONST);
 
  tlocation = record
    case loc : tloc of
@@ -214,7 +219,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-03 00:35:54  michael
+  Revision 1.4  1999-08-03 15:52:40  michael
+  * Additional changes
+
+  Revision 1.3  1999/08/03 00:35:54  michael
   + Added varregs
 
   Revision 1.2  1999/08/02 17:16:44  michael
