@@ -1035,6 +1035,51 @@ begin
     LongJmp(DLLBuf,1);
 end;
 
+function GetCurrentProcess : dword;
+ stdcall;external 'kernel32' name 'GetCurrentProcess';
+
+function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
+ stdcall;external 'kernel32' name 'ReadProcessMemory';
+
+function is_prefetch(p : pointer) : boolean;
+  var
+    a : array[0..15] of byte;
+    doagain : boolean;
+    instrlo,instrhi,opcode : byte;
+    i : longint;
+  begin
+    result:=false;
+    { read memory savely without causing another exeception }
+    if not(ReadProcessMemory(GetCurrentProcess,p,@a,sizeof(a),nil)) then
+      exit;
+    i:=0;
+    doagain:=true;
+    while doagain and (i<15) do
+      begin
+        opcode:=a[i];
+        instrlo:=opcode and $f;
+        instrhi:=opcode and $f0;
+        case instrhi of
+          { prefix? }
+          $20,$30:
+            doagain:=(instrlo and 7)=6;
+          $60:
+            doagain:=(instrlo and $c)=4;
+          $f0:
+            doagain:=instrlo in [0,2,3];
+          $0:
+            begin
+              result:=(instrlo=$f) and (a[i+1] in [$d,$18]);
+              exit;
+            end;
+          else
+            doagain:=false;
+        end;
+        inc(i);
+      end;
+  end;
+
+
 //
 // Hardware exception handling
 //
@@ -1349,9 +1394,19 @@ begin
                         res := SysHandleErrorFrame(207, frame, true);
                 STATUS_INTEGER_OVERFLOW :
                         res := SysHandleErrorFrame(215, frame, false);
-                STATUS_ILLEGAL_INSTRUCTION,
+                STATUS_ILLEGAL_INSTRUCTION:
+                  res := SysHandleErrorFrame(216, frame, true);
                 STATUS_ACCESS_VIOLATION:
-                        res := SysHandleErrorFrame(216, frame, true);
+                  { Athlon prefetch bug? }
+                  if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
+                    begin
+                      { if yes, then retry }
+                      excep^.ExceptionRecord^.ExceptionCode := 0;
+                      res:=EXCEPTION_CONTINUE_EXECUTION;
+                    end
+                  else
+                    res := SysHandleErrorFrame(216, frame, true);
+                        
                 STATUS_CONTROL_C_EXIT:
                         res := SysHandleErrorFrame(217, frame, true);
                 STATUS_PRIVILEGED_INSTRUCTION:
@@ -1552,7 +1607,10 @@ end.
 
 {
   $Log$
-  Revision 1.52  2004-01-20 23:12:49  hajny
+  Revision 1.53  2004-02-02 17:01:47  florian
+    * workaround for AMD prefetch bug
+
+  Revision 1.52  2004/01/20 23:12:49  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.51  2003/12/17 21:56:33  peter
