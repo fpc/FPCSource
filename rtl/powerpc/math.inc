@@ -95,7 +95,7 @@
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-    function round(d : extended) : longint;assembler;[internconst:in_const_round];
+    function round(d : extended) : int64;assembler;[internconst:in_const_round];
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -267,7 +267,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.12  2002-09-08 13:00:21  jonas
+  Revision 1.13  2002-10-21 18:08:28  jonas
+    * round has int64 instead of longint result
+
+  Revision 1.12  2002/09/08 13:00:21  jonas
     * made pi an internproc instead of internconst
 
   Revision 1.11  2002/09/07 16:01:26  peter
