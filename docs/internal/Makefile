@@ -26,24 +26,39 @@ PNGOBJECTS=$(addsuffix .png, $(SOURCEOBJECTS))
 
 PSOBJECTS=$(addsuffix .eps, $(SOURCEOBJECTS))
 
-pdf : $(PDFOBJECTS)
+all : pdfdoc  epsdoc
 
-png : $(PNGOBJECTS)
+pdffig : $(PDFOBJECTS)
 
-eps  : $(PSOBJECTS)
+pngfig : $(PNGOBJECTS)
 
-all : pdf png eps
+epsfig  : $(PSOBJECTS)
+
+# 4 times latex because of longtable. Theoretically it can even be higher, but we
+# don't use multicol.
+
+pdfdoc : pdffig
+	pdflatex comparch
+	pdflatex comparch
+	pdflatex comparch
+	pdflatex comparch
+
+epsdoc  :  epsfig
+	latex comparch
+	latex comparch
+	latex comparch
+	latex comparch
 
 clean : 
-	rm -f $(PDFOBJECTS) $(PNGOBJECTS) $(PSOBJECTS)
+	rm -f $(PDFOBJECTS) $(PNGOBJECTS) $(PSOBJECTS) *.aux *.idx *.toc *.lof *.log *.out comparch.pdf comparch.ps comparch.dvi
  
 $(PDFOBJECTS): %.pdf: %.fig
 	$(FIG2DEV) pdf $*.fig $*.pdf 
 
-$(PNGOBJECTS): %.png: %.fig
-	$(FIG2DEV) png $*.fig $*.png 
-
 $(PSOBJECTS): %.eps: %.fig
 	$(FIG2DEV) eps $*.fig $*.eps
 
- 
+# Could be handy for latex2html:
+
+$(PNGOBJECTS): %.png: %.fig
+	$(FIG2DEV) png $*.fig $*.png 
