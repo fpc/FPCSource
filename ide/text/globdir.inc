@@ -30,12 +30,14 @@
   {$define SUPPORTVESA}
   {$define SUPPORTREDIR}
   {$define WinClipSupported}
+  {$define HasSignal}
 {$endif}
 
 {$ifdef Linux}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
+  {$define HasSignal}
 {$endif}
 
 {$ifdef Win32}
@@ -65,13 +67,18 @@
 
 { include Undo/Redo code from Visa Harvey }
 { let everybody try it out  PM }
-{ undo should be a bit improved - it does work only with "normal" keystorkes.
+{ undo should be a bit improved - it does work only with "normal" keystrokes.
   neither the block, nor any shortcut operations (like Ctrl-T - delete word)
   do work... Gabor
   Partially solved at least PM }
 {$define Undo}
 {$ifdef DEBUG}
   {$define DebugUndo}
+  { Use this to incorporate a call to
+    external compiler.
+    Parsing of compiler output is done,
+    but there is no browser in that case!! PM }
+  { $ define USE_EXTERNAL_COMPILER}
 {$endif DEBUG}
 
 {$ifdef FPC}
