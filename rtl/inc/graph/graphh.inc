@@ -196,7 +196,12 @@
   {$G+}
 {$endif}
 
-type smallint = -32768..32767;
+type
+    smallint = -32768..32767;
+
+    TResolutionRec = record
+      x,y: longint;
+    end;
 
     const
        maxsmallint = high(smallint);
@@ -330,6 +335,24 @@ type smallint = -32768..32767;
        VGA           = 9;
        VESA          = 10;
 
+{$ifdef newmodes}
+
+       detectDriver = 30000;
+       D1bit = 11;
+       D2bit = 12;
+       D4bit = 13;
+       D8bit = 14;
+       D15bit = 15;
+       D16bit = 16;
+       D24bit = 17; { not yet supported }
+       D32bit = 18; { not yet supported }
+       D64bit = 19; { not yet supported }
+
+       lowNewDriver = 11;
+       highNewDriver = 19;
+{$endif newmodes}
+
+
        { graph modes }
        Default = 0;
 
@@ -337,6 +360,36 @@ type smallint = -32768..32767;
        VGALo   = 0;
        VGAMed  = 1;
        VGAHi   = 2;
+
+{$ifdef newmodes}
+       { They start at such a high number to make sure they don't clash     }
+       { with the mode numbers returned by getmoderange (those mode numbers }
+       { are about the same modes, but all supported modes must have a      }
+       { consecutive mode number for that, so they are generated on-the-fly }
+       { starting from 1)                                                   }
+
+       m320x200 = 30001;
+       m512x384 = 30002; { mac resolution }
+       m640x200 = 30003; { vga resolution }
+       m640x350 = 30004; { vga resolution }
+       m640x400 = 30005;
+       m640x480 = 30006;
+       m800x600 = 30007;
+       m832x624 = 30008; { mac resolution }
+       m1024x768 = 30009;
+       m1280x1024 = 30010;
+       m1600x1200 = 30011;
+       m2048x1536 = 30012;
+
+       lowNewMode = 30001;
+       highNewMode = 30012;
+
+       resolutions: array[lowNewMode..highNewMode] of TResolutionRec =
+       ((x:320;y:200),(x:512;y:384),(x:640;y:200),(x:640;y:350),(x:640;y:400),
+        (x:640;y:480),(x:800;y:600),(x:832;y:624),(x:1024;y:768),
+        (x:1280;y:1024),(x:1600;y:1200),(x:2048;y:1536));
+{$endif newmodes}
+
 
        { Hercules mono card }
        HercMonoHi = 0;
@@ -560,6 +613,15 @@ TYPE
       next: PModeInfo;
     end;
 
+{$ifdef newmodes}
+    TNewModeInfo = record
+      modeInfo: array[lowNewDriver..highNewDriver] of PModeInfo;
+      loHiModeNr: array[lowNewDriver..highNewDriver] of record
+        lo,hi: smallint;
+      end;
+    end;
+{$endif newmodes}
+
 
 
 VAR
@@ -731,7 +793,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.5  2000-06-17 11:16:07  sg
+  Revision 1.6  2000-06-17 19:09:23  jonas
+    * new platform independent mode handling (between -dnewmodes)
+
+  Revision 1.5  2000/06/17 11:16:07  sg
   * The string translation is now deactivated by default on all platforms.
 
   Revision 1.4  2000/06/16 17:06:08  sg

@@ -1,4 +1,4 @@
-{
+  {
     $Id$
 
     This file is part of the Free Pascal run time library.
@@ -19,7 +19,56 @@
 {                          Internal routines                            }
 {-----------------------------------------------------------------------}
 
- procedure addmode(mode: TModeInfo);
+{$ifdef newmodes}
+ procedure res2Mode(x, y, maxColor: longint; var driver,mode: smallInt);
+ var
+   l: longint;
+ begin
+   case maxColor of
+     2: driver := D1bit;
+     4: driver := D2bit;
+     16: driver := D4bit;
+     256: driver := D8bit;
+     32768: driver := D15bit;
+     65536: driver := D16bit;
+{    not yet supported
+     65536*256: driver := D24bit;
+     65536*65536: driver := D32bit;}
+     else
+       begin
+         driver := maxint;
+         exit;
+       end;
+   end;
+   { Check whether this is known/predefined mode }
+   for l := lowNewMode to highNewMode do
+     if (resolutions[l].x = x) and
+        (resolutions[l].y = y) then
+       begin
+         { Found! }
+         mode := l;
+         exit;
+       end;
+   { Not Found }
+   mode := maxint;
+ end;
+
+function mode2res(modeNr: smallInt; var x,y: longint): boolean;
+begin
+  if (modeNr < lowNewMode) or
+     (modeNr > highNewMode) then
+    begin
+      mode2res := false;
+      exit;
+    end;
+  mode2res := true;
+  x := resolutions[modeNr].x;
+  y := resolutions[modeNr].y;
+end;
+{$endif newmodes}
+
+
+ procedure addmode(const mode: TModeInfo);
   {********************************************************}
   { Procedure AddMode()                                    }
   {--------------------------------------------------------}
@@ -27,9 +76,92 @@
   { modes. Duplicates are allowed.                         }
   {********************************************************}
   var
+{$ifdef newmodes}
+    driverNr, modeNr: smallint;
+    prev: PModeInfo;
+{$endif newmodes}
     list: PModeInfo;
     newlst : PModeInfo;
   begin
+{$ifdef newmodes}
+    res2Mode(mode.maxx+1,mode.maxy+1,mode.maxColor,driverNr,ModeNr);
+    { bitdepth supported? }
+    if (driverNr <> maxint) then
+      { Yes, add the mode }
+      if not assigned(newModeList.modeinfo[driverNr]) then
+        begin
+          new(newModeList.modeinfo[driverNr]);
+          newModeList.modeinfo[driverNr]^ := mode;
+          with newModeList.modeinfo[driverNr]^ do
+            begin
+              driverNumber := driverNr;
+              modeNumber := 1;
+              next := nil;
+            end;
+          newModeList.loHiModeNr[driverNr].lo := 1;
+          newModeList.loHiModeNr[driverNr].hi := 1;
+        end
+      else
+        begin
+          prev := nil;
+          list := newModeList.modeinfo[driverNr];
+          { sort first by x resolution, then by yresolution }
+          while assigned(list) and
+                ((list^.maxx < mode.maxx) or
+                 ((list^.maxx = mode.maxx) and
+                  (list^.maxy < mode.maxy))) do
+            begin
+              prev := list;
+              list := list^.next;
+            end;
+          { mode already exists? -> replace (assume later added modes are }
+          { better)                                                       }
+          if assigned(list) and
+             (list^.maxx = mode.maxx) and
+             (list^.maxy = mode.maxy) then
+            begin
+              { save/restore next, drivernr and drivermode in list }
+              driverNr := list^.driverNumber;
+              modeNr := list^.modeNumber;
+              prev := list^.next;
+              list^ := mode;
+              list^.driverNumber := driverNr;
+              list^.modeNumber := modeNr;
+              list^.next := prev;
+            end
+          else
+            begin
+              new(newLst);
+              { Increase the number of modes for this driver }
+              inc(newModeList.loHiModeNr[driverNr].hi);
+              newLst^ := mode;
+              newLst^.driverNumber := driverNr;
+              if assigned(list) then
+                newLst^.next := list^.next
+              else
+                newLst^.next := nil;
+              if assigned(prev) then
+                begin
+                  prev^.next := newLst;
+                  newLst^.modeNumber := succ(prev^.modeNumber)
+                end
+              else
+                begin
+                  newModeList.modeinfo[driverNr] := newLst;
+                  newLst^.modeNumber := 1;
+                end;
+              { Increase the modenumbers of all modes coming after this one }
+              { with 1                                                      }
+              newLst := newLst^.next;
+              while assigned(newLst) do
+                begin
+                  inc(newLst^.modeNumber);
+                  newLst := newLst^.next;
+                end;
+            end;
+        end;
+{$endif newmodes}
+    { TP-like mode stuff }
     if not assigned(ModeList) then
       begin
         new(ModeList);
@@ -69,20 +201,80 @@
   { structure.                                             }
   { note: if reqmode = -32768, the first mode available    }
   {   for reqdriver is returned (JM)                       }
+  {       if reqmode = -32767, the last mode available     }
+  {   for reqdriver is returned (JM)                       }
   {********************************************************}
     var
      list, lastModeInfo: PModeInfo;
+     x,y: longint;
     begin
 {$ifdef logging}
       LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
 {$endif logging}
-        searchmode := nil;
-        list := ModeList;
-        If assigned(list) then
-          lastModeInfo := list;
-        { go to the end of the list }
-        while assigned(list) do
-          begin
+{$ifdef newmodes}
+      if (reqDriver >= lowNewDriver) and
+         (reqDriver <= highNewDriver) then
+        begin
+          case reqMode of
+            -32768:
+              begin
+                reqMode := newModeList.loHiModeNr[reqDriver].lo;
+                searchMode := newModeList.modeinfo[reqDriver];
+              end;
+            -32767:
+              begin
+                reqMode := newModeList.loHiModeNr[reqDriver].hi;
+                searchMode := nil;
+                { Are there any modes available for this driver? }
+                if reqMode <> -1 then
+                  begin
+                    list := newModeList.modeinfo[reqDriver];
+                    while assigned(list^.next) do
+                      list := list^.next;
+                    searchMode := list;
+                  end;
+              end;
+            else
+              begin
+                list := newModeList.modeinfo[reqDriver];
+                searchMode := nil;
+                if not assigned(list) then
+                  exit;
+                if mode2res(reqMode,x,y) then
+                  begin
+                    x := pred(x);
+                    y := pred(y);
+                    while assigned(list) and
+                          ((list^.maxx < x) or
+                           ((list^.maxx = x) and
+                            (list^.maxy < y))) do
+                      list := list^.next;
+                    if not assigned(list) or
+                       (list^.maxx <> x) or
+                       (list^.maxy <> y) then
+                      list := nil;
+                    searchmode := list;
+                  end
+                else
+                  begin
+                    while assigned(list) and
+                          (list^.modeNumber <> reqMode) do
+                      list := list^.next;
+                    searchMode := list;
+                  end;
+                  
+              end;
+          end;
+          exit;
+        end;
+{$endif newmodes}
+       searchmode := nil;
+       list := ModeList;
+       If assigned(list) then
+         lastModeInfo := list;
+       { go to the end of the list }
+       while assigned(list) do
+         begin
 {$ifdef logging}
            Log('Found driver '+strf(list^.DriverNumber)+
                ' and mode $'+hexstr(list^.ModeNumber,4)+'... ');
@@ -363,7 +555,10 @@
 
 {
 $Log$
-Revision 1.22  2000-04-02 12:13:37  florian
+Revision 1.23  2000-06-17 19:09:23  jonas
+  * new platform independent mode handling (between -dnewmodes)
+
+Revision 1.22  2000/04/02 12:13:37  florian
   * some more procedures can be now hooked by the OS specific implementation
 
 Revision 1.21  2000/03/24 18:16:33  florian

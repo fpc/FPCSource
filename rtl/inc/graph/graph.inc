@@ -126,6 +126,9 @@ var
   DriverName: String;
   DirectColor : Boolean ; { Is it a direct color mode? }
   ModeList : PModeInfo;
+{$ifdef newmodes}
+  newModeList: TNewModeInfo;
+{$endif newmodes}
   DirectVideo : Boolean;  { Direct access to video memory? }
 
 
@@ -2147,6 +2150,43 @@ end;
   begin
     HiMode := -1;
     LoMode := -1;
+{$ifdef newmodes}
+    { Search lowest supported bitDepth }
+    graphdriver := D1bit;
+    while (graphDriver <= highNewDriver) and
+          (hiMode = -1) do
+      begin
+        getModeRange(graphDriver,loMode,hiMode);
+        inc(graphDriver);
+      end;
+    dec(graphdriver);
+    if hiMode = -1 then
+      begin
+        _GraphResult := grNotDetected;
+        exit;
+      end;
+    CpyMode := 0;
+    repeat
+       GetModeRange(GraphDriver,LoMode,HiMode);
+       { save the highest mode possible...}
+       {$ifdef logging}
+       logln('Found driver '+strf(graphdriver)+' with modes '+
+              strf(lomode)+' - '+strf(himode));
+       {$endif logging}
+       if HiMode <> -1 then
+         begin
+           CpyMode:=HiMode;
+           CpyDriver:=GraphDriver;
+         end;
+       { go to next driver if it exists...}
+       Inc(graphDriver);
+    until (graphDriver > highNewDriver);
+    if cpyMode = 0 then
+      begin
+        _GraphResult := grNotDetected;
+        exit;
+      end;
+{$else newmodes}
     { We start at VGA }
     GraphDriver := VGA;
     CpyMode := 0;
@@ -2172,6 +2212,7 @@ end;
         _GraphResult := grNotDetected;
         exit;
       end;
+{$endif newmodes}
     _GraphResult := grOK;
     GraphDriver := CpyDriver;
     GraphMode := CpyMode;
@@ -2286,6 +2327,11 @@ begin
 {$endif logging}
  isgraphmode := false;
  ModeList := nil;
+{$ifdef newmodes}
+ fillChar(newModeList.modeinfo,sizeof(newModeList.modeinfo),#0);
+ { lo and hi modenumber are -1 currently (no modes supported) }
+ fillChar(newModeList.loHiModeNr,sizeof(newModeList.loHiModeNr),#255);
+{$endif newmodes}
  SaveVideoState := nil;
  RestoreVideoState := nil;
 {$ifdef oldfont}
@@ -2324,7 +2370,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.32  2000-06-07 07:33:42  jonas
+  Revision 1.33  2000-06-17 19:09:22  jonas
+    * new platform independent mode handling (between -dnewmodes)
+
+  Revision 1.32  2000/06/07 07:33:42  jonas
     * calling a graph function when initgraph is not yet called now prints
       a nice error message instead of giving a Run Time Error
 
