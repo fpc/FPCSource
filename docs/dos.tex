@@ -21,8 +21,11 @@
 \chapter{The DOS unit.}
 \FPCexampledir{dosex}
 
-This chapter describes the \var{DOS} unit for Free pascal, both under
-\dos, \ostwo, \windows and \linux. 
+This chapter describes the \var{DOS} unit for Free pascal. The \var{DOS}
+unit gives access to some operating system calls related to files, the
+file system, date and time. Except for the \palmos target, this unit is
+available to all supported platforms.
+
 The unit was first written for \dos by Florian kl\"ampfl. It was ported to 
 \linux by Mark May\footnote{Current e-mail address \textsf{mmay@dnaco.net}}, 
 and enhanced by Micha\"el Van Canneyt. The \amiga version was ported by
@@ -42,8 +45,53 @@ interface part of the DOS unit.
 \end{itemize}
 
 \section{Types, Variables, Constants}
+
+
 \subsection {Constants}
 The DOS unit implements the following constants:
+
+\subsubsection{File attributes}
+
+The File Attribute constants are used in \seep{FindFirst}, \seep{FindNext} to
+determine what type of special file to search for in addition to normal files. 
+These flags are also used in the \seep{SetFAttr} and \seep{GetFAttr} routines to 
+set and retrieve attributes of files. For their definitions consult 
+\seet{fileattributes}.
+
+\begin{FPCltable}{lll}{Possible file attributes}{fileattributes}
+\hline
+Constant & Description & Value\\ \hline
+\var{readonly} & Read only file & \$01\\
+\var{hidden} & Hidden file & \$02 \\
+\var{sysfile} & System file & \$04\\
+\var{volumeid} & Volume label & \$08\\
+\var{directory} & Directory & \$10\\
+\var{archive} & Archive & \$20\\ 
+\var{anyfile} & Any of the above special files & \$3F\\
+\hline
+\end{FPCltable}
+
+\subsubsection{fmXXXX}
+
+These constants are used in the \var{Mode} field of the \var{TextRec}
+record. Gives information on the filemode of the text I/O. For their
+definitions consult \seet{fmxxxconstants}.
+
+\begin{FPCltable}{lll}{Possible mode constants}{fmxxxconstants}
+\hline
+Constant & Description & Value\\ \hline
+\var{fmclosed} & File is closed & \$D7B0\\
+\var{fminput} & File is read only & \$D7B1 \\
+\var{fmoutput} & File is write only & \$D7B2\\
+\var{fminout} & File is read and write & \$D7B3\\
+\hline
+\end{FPCltable}
+
+\subsubsection{Other}
+
+The following constants are not portable, and should not be used. They
+are present for compatibility only.
+
 \begin{verbatim}
   {Bitmasks for CPU Flags}
   fcarry =     $0001;
@@ -52,19 +100,8 @@ The DOS unit implements the following constants:
   fzero =      $0040;
   fsign =      $0080;
   foverflow  = $0800;
-  {Bitmasks for file attribute}
-  readonly =   $01;
-  hidden =     $02;
-  sysfile =    $04;
-  volumeid =   $08;
-  directory =  $10;
-  archive =    $20;
-  anyfile =    $3F;
-  fmclosed =   $D7B0;
-  fminput =    $D7B1;
-  fmoutput =   $D7B2;
-  fminout =    $D7B3;
-\end{verbatim}
+\end{verbatim}  
+  
 \subsection{Types}
 The following string types are defined for easy handling of
 filenames :
@@ -205,8 +242,8 @@ Routines to handle files on disk.
 \procref{FSplit}{Split filename in parts}
 \procref{GetFAttr}{Return file attributes}
 \procref{GetFTime}{Return file time}
-\funcref{GetLongName}{Convert short filename to long filename}
-\funcref{GetShortName}{Convert long filename to short filename}
+\funcref{GetLongName}{Convert short filename to long filename (DOS only)}
+\funcref{GetShortName}{Convert long filename to short filename (DOS only)}
 \procref{SetFAttr}{Set file attributes}
 \procref{SetFTime}{Set file time}
 \end{funclist}
@@ -214,7 +251,7 @@ Routines to handle files on disk.
 \subsection{Directory and disk handling}
 Routines to handle disk information.
 \begin{funclist}
-\procref{AddDisk}{Add disk to list of disks}
+\procref{AddDisk}{Add disk to list of disks (UNIX only)}
 \funcref{DiskFree}{Return size of free disk space}
 \funcref{DiskSize}{Return total disk size}
 \end{funclist}
@@ -285,16 +322,15 @@ None
 
 \begin{function}{DiskFree}
 \Declaration
-Function DiskFree (Drive: byte) : Int64;
+Function DiskFree (Drive: byte) : int64;
 \Description
 
 \var{DiskFree} returns the number of free bytes on a disk. The parameter
 \var{Drive} indicates which disk should be checked. This parameter is 1 for
 floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the free
 space on the current drive. 
-Typically, the free space is the size of a disk block, multiplied by the
-number of free blocks on the disk.
-\textbf{For \linux only:}\\
+
+\textbf{For \unix only:}\\
 The \var{diskfree} and \var{disksize} functions need a file on the 
 specified drive, since this is required for the \var{statfs} system call.
 These filenames are set in the initialization of the dos unit, and have 
@@ -310,7 +346,7 @@ There is room for 1-26 drives. You can add a drive with the
 These settings can be coded in \var{dos.pp}, in the initialization part.
 
 \Errors
--1 when a failure occurs, or an invalid \var{drivenr} is given.
+-1 when a failure occurs, or an invalid drive number is given.
 \SeeAlso
 \seef{DiskSize}, \seep{AddDisk}
 \end{function}
@@ -319,14 +355,15 @@ These settings can be coded in \var{dos.pp}, in the initialization part.
 
 \begin{function}{DiskSize}
 \Declaration
-Function DiskSize (Drive: byte) : Int64;
+Function DiskSize (Drive: byte) : int64;
 \Description
 
 \var{DiskSize} returns the total size (in bytes) of a disk. The parameter
 \var{Drive} indicates which disk should be checked. This parameter is 1 for
 floppy \var{a:}, 2 for floppy \var{b:}, etc. A value of 0 returns the size
 of the current drive. 
-\textbf{For \linux only:}\\
+
+\textbf{For \unix only:}\\
 The \var{diskfree} and \var{disksize} functions need a file on the specified drive, since this
 is required for the \var{statfs} system call.
   These filenames are set in the initialization of the dos unit, and have 
@@ -366,9 +403,15 @@ None.
 \Declaration
 Function DosVersion  : Word;
 \Description
-\var{DosVersion} returns the \dos version number. On \linux systems, it
-returns the Linux version (The first 2 numbers, e.g Linux version 2.1.76 will
-give you DosVersion 2.1)
+\var{DosVersion} returns the operating system or kernel version. The
+low byte contains the major version number, while the high byte 
+contains the minor version number.
+\Portability
+On systems where versions consists of more then two numbers, 
+only the first two numbers will be returned. For example Linux version 2.1.76 
+will give you DosVersion 2.1. Some operating systems, such as \freebsd, do not
+have system calls to return the kernel version, in that case a value of 0 will
+be returned.
 \Errors
 None.
 \SeeAlso
@@ -397,8 +440,7 @@ Function EnvStr (Index: integer) : string;\Description
 of environment variables. 
 The index of the first pair is zero.
 \Errors
-The length is limited to 255 characters. This may cause problems under
-\linux. The \linux unit solves this problem.
+The length is limited to 255 characters. 
 \SeeAlso
 \seef{EnvCount}, \seef{Dos:GetEnv}
 \end{function}
@@ -428,10 +470,10 @@ Function FExpand (const path: pathstr) : pathstr;
 
 \var{FExpand} takes its argument and expands it to a complete filename, i.e.
 a filename starting from the root directory of the current drive, prepended
-with the drive-letter (under \dos).
-The resulting name is converted to uppercase on \dos systems. Under \linux,
-the name is left as it is. (filenames are case sensitive under Unix)
-
+with the drive-letter or volume name (when supported).
+\Portability
+On case sensitive file systems (such as \unix and \linux), the resulting
+name is left as it is, otherwise it is converted to uppercase.
 \Errors
 \seep{FSplit}
 \SeeAlso
@@ -442,17 +484,12 @@ the name is left as it is. (filenames are case sensitive under Unix)
 \Declaration
 Procedure FindClose (Var F: SearchRec);
 \Description
-\textbf{\linux, \windows and \ostwo wonly}
 \var{FindClose} frees any resources associated with the search record
 \var{F}.
 
-Under \linux, \windows and \ostwo the \var{findfirst/findnext} calls have 
-to be mimicked. This call is needed to free any internal resources allocated
-by the \seef{FindFirst} or \seef{FindNext} calls.
+This call is needed to free any internal resources allocated by the 
+\seef{FindFirst} or \seef{FindNext} calls.
 
-E.g. on \linux, an internal table of file descriptors is kept. 
-When using different \var{searchrecs} at the same time, 
-the system may run out of file descriptors for directories.
 
 The \linux implementation of the \dos unit therefore keeps a table of open
 directories, and when the table is full, closes one of the directories, and
@@ -464,6 +501,7 @@ this to the \dos unit by issuing a \var{FindClose} call. The directory
 which is kept open for this \var{searchrec} is then closed, and the table slot
 freed.
 
+\Portability
 It is recommended to use the \linux call \var{Glob} when looking for files 
 on \linux.
 
@@ -478,9 +516,11 @@ None.
 Procedure FindFirst (const Path: pathstr; Attr: word; var F: SearchRec);
 \Description
 
-\var{FindFirst} searches the file specified in \var{Path}, checks the
-atrributes specified in \var{Attr}. It returns a \var{SearchRec} record for
-further searching in \var{F}.
+\var{FindFirst} searches the file specified in \var{Path}. Normal files,
+as well as all special files which have the attributes specified in
+\var{Attr} will be returned.
+
+It returns a \var{SearchRec} record for further searching in \var{F}.
 \var{Path} can contain the wildcard characters \var{?} (matches any single
 character) and \var{*} (matches 0 ore more arbitrary characters). In this
 case \var{FindFirst} will return the first file which matches the specified
@@ -488,15 +528,12 @@ criteria.
 If \var{DosError} is different from zero, no file(s) matching the criteria 
 was(were) found.
 
+\Portability
 On \ostwo, you cannot issue two different \var{FindFirst} calls. That is,
 you must close any previous search operation with \seep{FindClose} before
 starting a new one. Failure to do so will end in a Run-Time Error 6 
 (Invalid file handle)
 
-Also, on \ostwo, the boolean variable \var{FileNameCaseSensitive} indicates
-whether searches are conducted case-sensitive or not. By default, searches
-are not case sensitive. If the varieble is set to \var{True}, searches on
-\ostwo are case sensistive.
 \Errors
 Errors are reported in DosError.
 \SeeAlso
@@ -528,10 +565,11 @@ Function FSearch (Path: pathstr; DirList: string) : pathstr;
 \Description
 \var{FSearch} searches the file \var{Path} in all directories listed in
 \var{DirList}. The full name of the found file is returned.
-\var{DirList} must be a list of directories, separated by semi-colons (or
-colons under \linux).
+\var{DirList} must be a list of directories, separated by semi-colons.
 When no file is found, an empty string is returned.
-
+\Portability
+On \unix systems, \var{DirList} can also be separated by colons, as is
+customary on those environments.
 \Errors
 None.
 \SeeAlso
@@ -566,13 +604,15 @@ None.
 Procedure GetCBreak (var breakvalue: boolean);
 \Description
 
-\var{GetCBreak} gets the status of CTRL-Break checking under \dos.
+\var{GetCBreak} gets the status of CTRL-Break checking under \dos and \amiga.
 When \var{BreakValue} is \var{false}, then \dos only checks for the 
 CTRL-Break key-press when I/O is performed. When it is set to \var{True},
 then a check is done at every system call.
-\Errors
-Under Linux, this exists but is 
-not implemented, i.e. the call does nothing.
+\Portability
+Under non-\dos and non-\amiga operating systems, \var{BreakValue} always returns 
+\var{True}.
+\Errors 
+None
 \SeeAlso
 \seep{SetCBreak}
 \end{procedure}
@@ -598,9 +638,11 @@ Function GetEnv (EnvVar: String) : String;
 \Description
 
 \var{Getenv} returns the value of the environment variable \var{EnvVar}.
-Under \linux, case is important when looking for \var{EnvVar}.
 When there is no environment variable \var{EnvVar} defined, an empty
 string is returned.
+\Portability
+Under some operating systems (such as \unix), case is important when looking
+for \var{EnvVar}.
 \Errors
 None.
 \SeeAlso
@@ -619,12 +661,12 @@ Procedure GetFAttr (var F; var Attr: word);
 have been assigned, but not opened. The attributes can be examined with the
 following constants :
 \begin{itemize}
-\item \var{ReadOnly  = 01h}
-\item \var{Hidden    = 02h}
-\item \var{SysFile   = 04h}
-\item \var{VolumeId  = 08h}
-\item \var{Directory = 10h}
-\item \var{Archive   = 20h}
+\item \var{ReadOnly}
+\item \var{Hidden}
+\item \var{SysFile}
+\item \var{VolumeId}
+\item \var{Directory}
+\item \var{Archive}
 \end{itemize}
 Under \linux, supported attributes are:
 \begin{itemize}
@@ -665,8 +707,10 @@ Procedure GetIntVec (IntNo: byte; var Vector: pointer);
 
 \var{GetIntVec} returns the address of interrupt vector
 \var{IntNo}.
+\Portability
+Under non-\dos operating systems, this call does nothing.
 \Errors
-Under non- \dos operating systems, this call does nothing.
+None.
 \SeeAlso
 \seep{SetIntVec}
 \end{procedure}
@@ -719,6 +763,9 @@ Procedure GetTime (var hour, minute, second, sec100: word);
 \var{GetTime} returns the system's time. \var{Hour} is a on a 24-hour time
 scale. \var{sec100} is in hundredth of a
 second.
+\Portability
+Certain operating systems (such as \amiga), always set the \var{sec100} field
+to zero.
 \Errors
 None.
 \SeeAlso
@@ -739,9 +786,11 @@ Procedure GetVerify (var verify: boolean);
 \var{Verify} is \var{True}, then \dos checks data which are written to disk,
 by reading them after writing. If \var{Verify} is \var{False}, then data
 written to disk are not verified.
+\Portability
+Under non-\dos systems (excluding \ostwo applications running under vanilla DOS),  
+Verify is always \var{True}.
 \Errors
-Under \linux,  Verify is always
-\var{True}.
+None.
 \SeeAlso
 \seep{SetVerify}
 \end{procedure}
@@ -753,9 +802,10 @@ Procedure Intr (IntNo: byte; var Regs: registers);
 \var{Intr} executes a software interrupt number \var{IntNo} (must be between
 0 and 255), with processor registers set to \var{Regs}. After the interrupt call
 returned, the processor registers are saved in \var{Regs}.
+\Portability
+Under non-\dos operating systems, this call does nothing.
 \Errors
-Under \linux this call does nothing, because interrupts are managed by the
-kernel. The only allowed interrupt is 80h, the Linux kernel entry interrupt.
+None.
 \SeeAlso
 \seep{MSDos}, see the \linux unit.
 \end{procedure}
@@ -777,8 +827,11 @@ Under non-\dos operating systems, this call does nothing.
 Procedure MSDos (var regs: registers);
 \Description
 
-\var{MSDos} executes an MS-\dos call (int 21h). This is the same as doing a
-\var{Intr} call with an interrupt number of 21h.
+\var{MSDos} executes an operating system. This is the same as doing a
+\var{Intr} call with the interrupt number for an os call.
+\Portability
+Under non-\dos operating systems, this call does nothing. On \dos systems,
+this calls interrupt \$21.
 \Errors
 None.
 \SeeAlso
@@ -804,13 +857,14 @@ None.
 Procedure SetCBreak (breakvalue: boolean);
 \Description
 
-\var{SetCBreak} sets the status of CTRL-Break checking under \dos.
-When \var{BreakValue} is \var{false}, then \dos only checks for the 
-CTRL-Break key-press when I/O is performed. When it is set to \var{True},
-then a check is done at every system call.
+\var{SetCBreak} sets the status of CTRL-Break checking. When 
+\var{BreakValue} is \var{false}, then \dos only checks for the CTRL-Break 
+key-press when I/O is performed. When it is set to \var{True}, then a 
+check is done at every system call.
+\Portability
+Under non-\dos and non-\amiga operating systems, this call does nothing.
 \Errors
-Under Linux, this call exists
-but is not implemented, i.e. it does nothing.
+None.
 \SeeAlso
 \seep{GetCBreak}
 \end{procedure}
@@ -821,10 +875,12 @@ Procedure SetDate (year,month,day: word);
 
 \var{SetDate} sets the system's internal date. \var{Year} is a number
 between 1980 and 2099.
+\Portability
+On a \linux machine, there must be root privileges, otherwise this
+routine will do nothing. On other \unix systems, this call currently
+does nothing.
 \Errors
-On a \linux  machine, this is not implemented (allthough a procedure
-exists, it just doesn't do anything. The setting of the date is a
-root-only privilege, and is hence not implemented.
+None.
 \SeeAlso
 \seep{Dos:GetDate},
 \seep{SetTime}
@@ -840,18 +896,19 @@ Procedure SetFAttr (var F; Attr: word);
 have been assigned, but not opened. The attributes can be a sum of the
 following constants:
 \begin{itemize}
-\item \var{ReadOnly  = 01h}
-\item \var{Hidden    = 02h}
-\item \var{SysFile   = 04h}
-\item \var{VolumeId  = 08h}
-\item \var{Directory = 10h}
-\item \var{Archive   = 20h}
-\item \var{AnyFile   = 3fh}
+\item \var{ReadOnly}
+\item \var{Hidden}
+\item \var{SysFile}
+\item \var{VolumeId}
+\item \var{Directory}
+\item \var{Archive}
 \end{itemize}
 
+\Portability
+Under \unix like systems (such as \linux and \beos) the call exists, but is not implemented, 
+i.e. it does nothing.
 \Errors
 Errors are reported in \var{DosError}.
-Under \linux the call exists, but is not implemented, i.e. it does nothing.
 \SeeAlso
 \seep{GetFAttr}
 \end{procedure}
@@ -864,6 +921,9 @@ Procedure SetFTime (var F; Time: longint);
 this time is encoded and must be encoded with \var{PackTime}. 
 \var{F} must be a file type, which has been assigned, and
 opened.
+\Portability
+Under \unix like systems (such as \linux and \beos) the call exists, but is not implemented, 
+i.e. it does nothing.
 \Errors
 Errors are reported in \var{DosError}
 \SeeAlso
@@ -877,7 +937,7 @@ Procedure SetIntVec (IntNo: byte; Vector: pointer);
 \var{SetIntVec} sets interrupt vector \var{IntNo} to \var{Vector}.
 \var{Vector} should point to an interrupt procedure.
 \Errors
-Under non- \dos operating systems, this call does nothing.
+Under non-\dos operating systems, this call does nothing.
 \SeeAlso
 \seep{GetIntVec}
 \end{procedure}
@@ -888,9 +948,12 @@ Procedure SetTime (hour,minute,second,sec100: word);
 \Description
 \var{SetTime} sets the system's internal clock. The \var{Hour} parameter is
 on a 24-hour time scale.
+\Portability
+On a \linux machine, there must be root privileges, otherwise this
+routine will do nothing. On other \unix systems, this call currently
+does nothing.
 \Errors
-this call exists, but is not implemented on \linux, 
-as setting the time is a root-only privilege.
+None.
 \SeeAlso
 \seep{Dos:GetTime}, \seep{SetDate}
 \end{procedure}
@@ -903,8 +966,11 @@ Procedure SetVerify (verify: boolean);
 \var{Verify} is \var{True}, then \dos checks data which are written to disk,
 by reading them after writing. If \var{Verify} is \var{False}, then data
 written to disk are not verified.
+\Portability
+Under non-\dos operating systems (excluding \ostwo applications running
+under vanilla dos), Verify is always \var{True}.
 \Errors
-Under \linux,  Verify is always
+None.
 \var{True}.
 \SeeAlso
 \seep{SetVerify}
@@ -919,8 +985,8 @@ vectors with the current contents of the interrupt vectors.
 This is called typically in before and after an \var{Exec} call.
 
 \Errors
-Under \linux this call does nothing, as the interrupt vectors are 
-managed by the kernel.
+Under certain operating systems, this routine may be implemented
+as an empty stub.
 \SeeAlso
 \seep{Exec}, \seep{SetIntVec}
 \end{procedure}
@@ -938,4 +1004,5 @@ None.
 \seep{GetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{PackTime}
 \end{procedure}
 For an example, see \seep{PackTime}.
+
 
