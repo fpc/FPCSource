@@ -9,7 +9,7 @@ name=ide
 version=1.9.4
 
 [target]
-dirs=compiler fakegdb
+dirs=compiler
 programs=fp
 rst=fpstrings
 
@@ -29,46 +29,12 @@ fpcdir=..
 
 [prerules]
 #
-# Linux->Unix transistion fix
-#
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override FPCOPT+=-dUNIX
-endif
-endif
-
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override FPCOPT+=-dUNIX
-endif
-endif
-
-
-#
-# Automatic detection of the compiler version
-#
-# compilers 1.0.x need to define COMPILER_1_0.
-#
-# To detect 1.0.x compilers we look for finput.ppu. If this unit
-# is not found then we include 1.0.x compiler
-#
-ifeq ($(wildcard units/$(FULL_TARGET)/finput.*),)
-override FPCOPT+=-dCOMPILER_1_0
-endif
-
-
-#
 # Automatic detection if libgdb.a is present
 #
 
-# when including debugger include the gdbinterface
-ifndef GDBINT
-GDBINT=gdbint
-endif
+ifndef NOGDB
 
 # Try to find GDB library
-ifeq ($(GDB),1)
-
 # Look for a valid GDBLIBDIR environment variable
 ifdef GDBLIBDIR
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
@@ -87,18 +53,23 @@ endif
 
 # Disable GDB when no libgdb.a found
 ifeq ($(LIBGDBFILE),)
-override GDB=
+GDB=
+else
+GDB=1
 endif
 
-# end GDB defined
-endif
-
-ifeq ($(GDB),1)
+ifdef GDB
 # The gdbint is already included due the gdbint package dependency
 override LIBDIR+=$(GDBLIBDIR)
-else
-override BUILDFAKEGDB=fakegdbunits
 endif
+
+else
+
+# Disable
+GDB=
+
+endif  #NOGDB
+
 
 [rules]
 .PHONY: compilerunits compilerclean \
@@ -110,34 +81,37 @@ clean: fpc_cleanall
 distclean: clean compilerclean
 
 #
-# FVision or old FV detection
+# GDB detection
 #
-ifneq ($(wildcard $(UNITDIR_FV)/fvconsts$(PPUEXT)),)
-override COMPILER+=-dFVISION
-endif
+ifndef NOGDB
 
-ifeq ($(GDB),1)
-ifneq ($(GDBFOUND),0)
-override COMPILER+=-dWITH_GDB
-endif
-endif
-
-fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
-
+ifdef GDB
 testgdb:
-ifneq ($(GDBFOUND),0)
         @$(ECHO) LibGDB found in $(LIBGDBFILE)
+
+postgdbinfo:
+        @$(ECHO) LibGDB was found, IDE has Debugger support
+
 else
+override COMPILER+=-dNODEBUG
+testgdb:
         @$(ECHO) LibGDB not found
         @$(ECHO) LIBGDBFILE=$(LIBGDBFILE)
         @$(ECHO) GDBLIBDIR=$(GDBLIBDIR)
         @$(ECHO) $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR)))
-endif
 
 postgdbinfo:
-ifeq ($(GDBFOUND),0)
         @$(ECHO) LibGDB was not found, IDE has no Debugger support
 endif
+
+else
+testgdb:
+        @$(ECHO) Building without Debugger
+postgdbinfo:
+        @$(ECHO) Debugger disabled, IDE has no Debugger support
+override COMPILER+=-dNODEBUG
+endif  # NOGDB
+
 
 #
 # Compiler
@@ -151,44 +125,32 @@ compilerclean :
         $(MAKE) -C compiler clean
 
 #
-# Fake GDB
-#
-
-fakegdbunits : fakegdb/$(FPCMADE)
-fakegdb/$(FPCMADE):
-        $(MAKE) -C fakegdb all
-
-fakegdbclean :
-        $(MAKE) -C fakegdb clean
-
-fakegdbinfo:
-        @$(ECHO) Using FakeGDB, IDE has no Debugger support
-
-#
 # Build targets
 #
-# building happends in 2 steps, first the packages, compiler and fakegdb
+# building happends in 2 steps, first the packages, compiler
 # dirs are build. In the second step the IDE is build. This is
 # required because it needs to detect which compiler version
 # to use.
 #
+fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
+
 buildfp:
-        $(MAKE) compilerunits $(BUILDFAKEGDB)
+        $(MAKE) compilerunits
+        $(MAKE) testgdb
         $(MAKE) fpc_all
+        $(MAKE) postgdbinfo
 
 gdb:
-        $(MAKE) testgdb buildfp postgdbinfo GDB=1
+        $(MAKE) buildfp
 
 nogdb:
-        $(MAKE) buildfp fakegdbinfo
+        $(MAKE) buildfp NOGDB=1
 
 #
 # Default targets
 #
 
 # By default we try to create the ide with full debugging support,
-# if gdbint and libgdb is not available it will fallback to use
-# fakegdb
 all: gdb
 
 # This is necessary because we don't have all units separate in the
@@ -222,7 +184,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.26  2004-11-05 19:10:18  peter
+# Revision 1.27  2004-11-11 15:20:52  florian
+#   * applied Peter's patch from yesterday
+#
+# Revision 1.26  2004/11/05 19:10:18  peter
 #   * report where libgdb.a is found
 #
 # Revision 1.25  2004/11/05 13:25:10  peter

@@ -48,9 +48,7 @@ uses Dos,
      Video,
      Views,App,HistList,BrowCol,
      WUtils,WResourc,WViews,WEditor,
-{$ifndef NODEBUG}
      fpdebug,
-{$endif ndef NODEBUG}
 {$ifdef Unix}
      FPKeys,
 {$endif Unix}
@@ -946,7 +944,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  2004-11-08 20:28:26  peter
+  Revision 1.11  2004-11-11 15:20:52  florian
+    * applied Peter's patch from yesterday
+
+  Revision 1.10  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

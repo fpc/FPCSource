@@ -17,6 +17,8 @@ Unit windebug;
 
 interface
 
+{$ifndef NODEBUG}
+
   type
     DebuggeeState = (Running_State,Stopped_State);
 
@@ -27,7 +29,12 @@ const
 
   main_pid_valid : boolean = false;
 
+{$endif NODEBUG}
+
+
 implementation
+
+{$ifndef NODEBUG}
 
 uses
   gdbint,
@@ -148,5 +155,7 @@ function GetWindowHandle(H : HWND; state : LPARAM) : WINBOOL;stdcall;
    begin
      EnumWindows(EnumWindowsProc(@GetWindowHandle),longint(State));
    end;
+
+{$endif NODEBUG}
 
 end.

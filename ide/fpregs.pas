@@ -131,11 +131,14 @@ uses
 
   procedure RegisterFPRegsViews;
 
+
 implementation
 
 uses
   Strings,
+{$ifndef NODEBUG}
   GDBCon,GDBInt,
+{$endif NODEBUG}
   App,Menus,
   WViews,WEditor,
 {$ifdef powerpc}
@@ -379,6 +382,9 @@ Const
 
     begin
        inherited draw;
+{$ifdef NODEBUG}
+       WriteStr(1,0,'<no values available>',7);
+{$else NODEBUG}
        If not assigned(Debugger) then
          begin
             WriteStr(1,0,'<no values available>',7);
@@ -530,6 +536,7 @@ Const
        else
          WriteStr(0,0,'<debugger error>',7);
        InDraw:=false;
+{$endif NODEBUG}
     end;
 
   destructor TRegistersView.Done;
@@ -819,6 +826,9 @@ Const
 
     begin
        inherited draw;
+{$ifdef NODEBUG}
+       WriteStr(1,0,'<no values available>',7);
+{$else NODEBUG}
        If not assigned(Debugger) then
          begin
             WriteStr(1,0,'<no values available>',7);
@@ -930,6 +940,7 @@ Const
        else
          WriteStr(0,0,'<debugger error>',7);
        InDraw:=false;
+{$endif NODEBUG}
     end;
 
   destructor TFPUView.Done;
@@ -1058,7 +1069,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-02-06 21:34:43  jonas
+  Revision 1.4  2004-11-11 15:20:52  florian
+    * applied Peter's patch from yesterday
+
+  Revision 1.3  2004/02/06 21:34:43  jonas
     * fixed ppc compilation error
 
   Revision 1.2  2002/12/16 15:51:13  pierre

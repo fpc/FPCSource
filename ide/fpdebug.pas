@@ -23,11 +23,15 @@ uses
   Windows,
 {$endif win32}
   Objects,Dialogs,Drivers,Views,
-  GDBCon,GDBInt,Menus,
+{$ifndef NODEBUG}
+  GDBCon,GDBInt,
+{$endif NODEBUG}
+  Menus,
   WViews,WEditor,
   FPViews;
 
 type
+{$ifndef NODEBUG}
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
      InvalidSourceLine : boolean;
@@ -81,6 +85,7 @@ type
     function  GetLongintAt(addr : CORE_ADDR) : longint;
     function  GetPointerAt(addr : CORE_ADDR) : CORE_ADDR;
   end;
+{$endif NODEBUG}
 
   BreakpointType = (bt_function,bt_file_line,bt_watch,
                     bt_awatch,bt_rwatch,bt_address,bt_invalid);
@@ -297,7 +302,9 @@ const
        = ( 'enabled','disabled','invalid',''{'to be deleted' should never be used});
 
 var
+{$ifndef NODEBUG}
   Debugger             : PDebugController;
+{$endif NODEBUG}
   BreakpointsCollection : PBreakpointCollection;
   WatchesCollection    : PwatchesCollection;
 
@@ -315,6 +322,7 @@ procedure DoneWatches;
 procedure RegisterFPDebugViews;
 
 procedure UpdateDebugViews;
+
 
 implementation
 
@@ -449,6 +457,9 @@ function  GDBFileName(st : string) : string;
 var i : longint;
 {$endif Unix}
 begin
+{$ifdef NODEBUG}
+  GDBFileName:=st;
+{$else NODEBUG}
 {$ifdef Unix}
   GDBFileName:=st;
 {$else}
@@ -476,6 +487,7 @@ begin
 {$endif go32v2}
   GDBFileName:=LowerCaseStr(st);
 {$endif}
+{$endif NODEBUG}
 end;
 
 function  OSFileName(st : string) : string;
@@ -487,9 +499,11 @@ begin
   OSFileName:=st;
 {$else}
 {$ifdef win32}
+ {$ifndef NODEBUG}
 { for win32 we should convert /cygdrive/e/ into e:\ PM }
   if pos(CygDrivePrefix+'/',st)=1 then
     st:=st[Length(CygdrivePrefix)+2]+':\'+copy(st,length(CygdrivePrefix)+4,length(st));
+ {$endif NODEBUG}
 {$endif win32}
 { support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
   for i:=Length(st) downto 2 do
@@ -523,8 +537,10 @@ procedure UpdateDebugViews;
        StackWindow^.Update;
      If assigned(RegistersWindow) then
        RegistersWindow^.Update;
+{$ifndef NODEBUG}
      If assigned(Debugger) then
        Debugger^.ReadWatches;
+{$endif NODEBUG}
      If assigned(FPUWindow) then
        FPUWindow^.Update;
      DeskTop^.UnLock;
@@ -532,6 +548,8 @@ procedure UpdateDebugViews;
      PopStatus;
 {$endif SUPPORT_REMOTE}
   end;
+
+{$ifndef NODEBUG}
 
 constructor TDebugController.Init;
 begin
@@ -676,23 +694,6 @@ procedure TDebugController.ResetBreakpointsValues;
 begin
    BreakpointsCollection^.ForEach(@DoResetVal);
 end;
-
-function  ActiveBreakpoints : boolean;
-  var
-    IsActive : boolean;
-
-  procedure TestActive(PB : PBreakpoint);
-    begin
-        If PB^.state=bs_enabled then
-          IsActive:=true;
-    end;
-begin
-   IsActive:=false;
-   If assigned(BreakpointsCollection) then
-     BreakpointsCollection^.ForEach(@TestActive);
-   ActiveBreakpoints:=IsActive;
-end;
-
 
 destructor TDebugController.Done;
 begin
@@ -1327,9 +1328,29 @@ begin
 {$endif win32}
 end;
 
+{$endif NODEBUG}
+
+
 {****************************************************************************
                                  TBreakpoint
 ****************************************************************************}
+
+function  ActiveBreakpoints : boolean;
+  var
+    IsActive : boolean;
+
+  procedure TestActive(PB : PBreakpoint);
+    begin
+        If PB^.state=bs_enabled then
+          IsActive:=true;
+    end;
+begin
+   IsActive:=false;
+   If assigned(BreakpointsCollection) then
+     BreakpointsCollection^.ForEach(@TestActive);
+   ActiveBreakpoints:=IsActive;
+end;
+
 
 constructor TBreakpoint.Init_function(Const AFunc : String);
 begin
@@ -1481,6 +1502,7 @@ procedure TBreakpoint.Insert;
     p,p2 : pchar;
     st : string;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Remove;
   Debugger^.last_breakpoint_number:=0;
@@ -1557,33 +1579,40 @@ begin
     Enable
   else if (GDBState=bs_enabled) and (state=bs_disabled) then
     Disable;
+{$endif NODEBUG}
 end;
 
 procedure TBreakpoint.Remove;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
     Debugger^.Command('delete '+IntToStr(GDBIndex));
   GDBIndex:=0;
   GDBState:=bs_deleted;
+{$endif NODEBUG}
 end;
 
 procedure TBreakpoint.Enable;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
     Debugger^.Command('enable '+IntToStr(GDBIndex))
   else
     Insert;
-  GDBState:=bs_enabled;
+  GDBState:=bs_disabled;
+{$endif NODEBUG}
 end;
 
 procedure TBreakpoint.Disable;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   if GDBIndex>0 then
     Debugger^.Command('disable '+IntToStr(GDBIndex));
   GDBState:=bs_disabled;
+{$endif NODEBUG}
 end;
 
 procedure TBreakpoint.ResetValues;
@@ -1641,11 +1670,13 @@ end;
 
 procedure TBreakpointCollection.Update;
 begin
+{$ifndef NODEBUG}
   if assigned(Debugger) then
     begin
       Debugger^.RemoveBreakpoints;
       Debugger^.InsertBreakpoints;
     end;
+{$endif NODEBUG}
   if assigned(BreakpointsWindow) then
     BreakpointsWindow^.Update;
 end;
@@ -2538,6 +2569,7 @@ procedure TWatch.rename(s : string);
   end;
 
 procedure TWatch.Get_new_value;
+{$ifndef NODEBUG}
   var p, q : pchar;
       i, j, curframe, startframe : longint;
       s,s2 : string;
@@ -2661,6 +2693,10 @@ procedure TWatch.Get_new_value;
     strdispose(p);
     GDBRunCount:=Debugger^.RunCount;
   end;
+{$else NODEBUG}
+  begin
+  end;
+{$endif NODEBUG}
 
 procedure TWatch.Force_new_value;
   begin
@@ -3163,8 +3199,10 @@ begin
   begin
     NameIL^.GetData(S1);
     Watch^.Rename(S1);
+{$ifndef NODEBUG}
     If assigned(Debugger) then
        Debugger^.ReadWatches;
+{$endif NODEBUG}
   end;
   Execute:=R;
 end;
@@ -3184,10 +3222,10 @@ end;
         W : PSourceWindow;
 
     begin
+{$ifndef NODEBUG}
       { call backtrace command }
       If not assigned(Debugger) then
         exit;
-    {$ifndef NODEBUG}
       DeskTop^.Lock;
       Clear;
       { forget all old frames }
@@ -3238,7 +3276,7 @@ end;
       if Debugger^.WindowWidth<>-1 then
         Debugger^.Command('set width '+IntToStr(Debugger^.WindowWidth));
       DeskTop^.Unlock;
-     {$endif}
+{$endif NODEBUG}
     end;
 
   function TFramesListBox.GetLocalMenu: PMenu;
@@ -3248,33 +3286,35 @@ end;
 
   procedure TFramesListBox.GotoSource;
     begin
+{$ifndef NODEBUG}
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-    {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
       Debugger^.RereadWatches;
-   {$endif}
+{$endif NODEBUG}
       { goto source }
       inherited GotoSource;
     end;
 
   procedure   TFramesListBox.GotoAssembly;
     begin
+{$ifndef NODEBUG}
       { select frame for watches }
       If not assigned(Debugger) then
         exit;
-    {$ifndef NODEBUG}
       Debugger^.Command('f '+IntToStr(Focused));
       { for local vars }
       Debugger^.RereadWatches;
-   {$endif}
+{$endif}
       { goto source/assembly mixture }
       InitDisassemblyWindow;
       DisassemblyWindow^.LoadFunction('');
+{$ifndef NODEBUG}
       DisassemblyWindow^.SetCurAddress(Debugger^.frames[Focused]^.address);
       DisassemblyWindow^.SelectInDebugSession;
+{$endif NODEBUG}
     end;
 
 
@@ -3453,6 +3493,7 @@ begin
      Exit;
    end;
 { init debugcontroller }
+{$ifndef NODEBUG}
   if not assigned(Debugger) then
     begin
       PushStatus(msg_startingdebugger);
@@ -3460,6 +3501,7 @@ begin
       PopStatus;
     end;
   Debugger^.SetExe(ExeFile);
+{$endif NODEBUG}
 {$ifdef GDBWINDOW}
   InitGDBWindow;
 {$endif def GDBWINDOW}
@@ -3472,9 +3514,11 @@ begin
   If IDEApp.IsRunning then
     PushStatus('Closing debugger');
 {$endif}
+{$ifndef NODEBUG}
   if assigned(Debugger) then
    dispose(Debugger,Done);
   Debugger:=nil;
+{$endif NODEBUG}
 {$ifdef DOS}
   If assigned(UserScreen) then
     PDosScreen(UserScreen)^.FreeGraphBuffer;
@@ -3592,7 +3636,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2004-11-08 21:55:09  peter
+  Revision 1.55  2004-11-11 15:20:52  florian
+    * applied Peter's patch from yesterday
+
+  Revision 1.54  2004/11/08 21:55:09  peter
     * fixed run directory
     * Open dialog starts in dir of last editted file
 

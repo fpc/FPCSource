@@ -2243,6 +2243,7 @@ begin
   CommandCalled:=false;
   if Pos(GDBPrompt,S)=1 then
     Delete(S,1,length(GDBPrompt));
+{$ifndef NODEBUG}
   if assigned(Debugger) then
     if S<>'' then
       begin
@@ -2259,6 +2260,7 @@ begin
         Debugger^.Command(LastCommand);
         CommandCalled:=true;
       end;
+{$endif NODEBUG}
   InsertNewLine:=inherited InsertNewLine;
   If CommandCalled then
     InsertText(GDBPrompt);
@@ -2294,8 +2296,10 @@ begin
   { Empty files are buggy !! }
     Editor^.AddLine('');
   Insert(Editor);
+{$ifndef NODEBUG}
   if assigned(Debugger) then
     Debugger^.SetWidth(Size.X-1);
+{$endif NODEBUG}
   Editor^.silent:=false;
   Editor^.AutoRepeat:=true;
   Editor^.InsertText(GDBPrompt);
@@ -2558,6 +2562,7 @@ procedure   TDisassemblyWindow.LoadFunction(Const FuncName : string);
 var
    p : pchar;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.Command('set print sym on');
   Debugger^.Command('set width 0xffffffff');
@@ -2566,12 +2571,14 @@ begin
   ProcessPChar(p);
   if (Debugger^.IsRunning) and (FuncName='') then
     Editor^.GetCurrentLine(Debugger^.current_pc);
+{$endif NODEBUG}
 end;
 
 procedure   TDisassemblyWindow.LoadAddress(Addr : cardinal);
 var
    p : pchar;
 begin
+{$ifndef NODEBUG}
   If not assigned(Debugger) then Exit;
   Debugger^.Command('set print sym on');
   Debugger^.Command('set width 0xffffffff');
@@ -2582,6 +2589,7 @@ begin
      (Debugger^.current_pc>=Editor^.MinAddress) and
      (Debugger^.current_pc<=Editor^.MaxAddress) then
     Editor^.GetCurrentLine(Debugger^.current_pc);
+{$endif NODEBUG}
 end;
 
 
@@ -4455,7 +4463,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.48  2004-11-08 21:55:09  peter
+  Revision 1.49  2004-11-11 15:20:52  florian
+    * applied Peter's patch from yesterday
+
+  Revision 1.48  2004/11/08 21:55:09  peter
     * fixed run directory
     * Open dialog starts in dir of last editted file
 
