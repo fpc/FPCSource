@@ -105,7 +105,10 @@ implementation
           stacksize:=target_info.stacksize;
 
          { open assembler response }
-         GenerateAsmRes(outputexedir+'ppas');
+         if cs_link_on_target in aktglobalswitches then
+           GenerateAsmRes(outputexedir+inputfile+'_ppas')
+         else
+           GenerateAsmRes(outputexedir+'ppas');
 
          { open deffile }
          DefFile:=TDefFile.Create(outputexedir+inputfile+target_info.defext);
@@ -618,7 +621,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-05-15 18:58:53  peter
+  Revision 1.54  2003-06-12 16:41:51  peter
+    * add inputfile prefix to ppas/link.res
+
+  Revision 1.53  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction

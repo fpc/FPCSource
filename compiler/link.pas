@@ -402,8 +402,16 @@ begin
   inherited Create;
   { set generic defaults }
   FillChar(Info,sizeof(Info),0);
-  Info.ResName:='link.res';
-  Info.ScriptName:='script.res';
+  if cs_link_on_target in aktglobalswitches then
+    begin
+      Info.ResName:=outputexedir+inputfile+'_link.res';
+      Info.ScriptName:=outputexedir+inputfile+'_script.res';
+    end
+  else
+    begin
+      Info.ResName:='link.res';
+      Info.ScriptName:='script.res';
+    end;
   { set the linker specific defaults }
   SetDefaultInfo;
   { Allow Parameter overrides for linker info }
@@ -656,7 +664,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2003-05-09 17:47:02  peter
+  Revision 1.37  2003-06-12 16:41:51  peter
+    * add inputfile prefix to ppas/link.res
+
+  Revision 1.36  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
