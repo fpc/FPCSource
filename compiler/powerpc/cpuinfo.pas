@@ -59,15 +59,18 @@ Const
      the size of this buffer is deduced from the
      jmp_buf structure in setjumph.inc file
    }
-{$warning setjmp buf_size unknown!}
-   jmp_buf_size = 0;
+   { for linux: }
+   jmp_buf_size = 232;
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.12  2002-09-07 20:57:08  carl
+  Revision 1.13  2003-04-26 20:15:22  florian
+    * fixed setjmp record size
+
+  Revision 1.12  2002/09/07 20:57:08  carl
     * cardinal -> longword
 
   Revision 1.11  2002/09/07 15:25:14  peter
