@@ -316,6 +316,49 @@ asm
         ret     $4
 end;
 
+{$ifdef FPC_TESTOBJEXT}
+{ checks for a correct vmt pointer }
+{ deeper check to see if the current object is }
+{ really related to the true }
+
+procedure int_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT'];
+asm
+        pushl   %ebp
+        movl    %esp,%ebp
+        pushl   %edi
+        movl    8(%ebp),%edi
+        pushl   %ebx
+        movl    12(%ebp),%ebx
+        pushl   %eax
+        { Here we must check if the VMT pointer is nil before  }
+        { accessing it...                                      }
+.Lcoext_obj:
+        orl     %edi,%edi
+        jz      .Lcoext_re
+        movl    (%edi),%eax
+        addl    4(%edi),%eax
+        jnz     .Lcoext_re
+        cmpl    %edi,%ebx
+        je      .Lcoext_ok
+.Lcoext_vmt:
+        movl    8(%edi),%eax
+        cmpl    %ebx,%eax
+        je      .Lcoext_ok
+        movl    %eax,%edi
+        jmp     .Lcoext_obj
+.Lcoext_re:
+        pushl   $220
+        call    HandleError
+.Lcoext_ok:
+        popl    %eax
+        popl    %ebx
+        popl    %edi
+        { the adress and vmt were pushed : it needs to be removed from stack !! PM }
+        popl    %ebp
+        ret     $8
+end;
+{$endif  FPC_TESTOBJEXT}
+
 
 {****************************************************************************
                                  String
@@ -695,7 +738,10 @@ end;
 
 {
   $Log$
-  Revision 1.38  1999-02-02 11:04:27  florian
+  Revision 1.39  1999-02-05 12:26:25  pierre
+   + code for FPC_TESTOBJEXT conditionnal
+
+  Revision 1.38  1999/02/02 11:04:27  florian
     * class destructor helper routine for the new calling copnventions fixed
 
   Revision 1.37  1998/12/21 14:28:20  pierre
