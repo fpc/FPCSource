@@ -168,7 +168,11 @@ uses
   {$endif}
   {$ifdef TEST_GRAPH_SWITCH}
     ,Graph,VESA
-  {$endif TEST_GRAPH_SWITCH}
+  {$else not TEST_GRAPH_SWITCH}
+  {$ifdef VESA}
+    ,VESA
+  {$endif VESA}
+  {$endif not TEST_GRAPH_SWITCH}
   ;
 
 function TScreen.GetWidth: integer;
@@ -341,7 +345,7 @@ begin
     begin
       if VesaSetMode(ConsoleVideoInfo.Mode or $8000) then
         begin
-          Graph.DontClearVesaMemory:=true;
+          Graph.DontClearGraphMemory:=true;
           if ConsoleVideoInfo.Mode>=$100 then
             begin
               GraphDriver:=Graph.Vesa;
@@ -365,7 +369,7 @@ begin
             begin
               ConsoleGraphDriver:=GraphDriver;
               ConsoleGraphMode:=GraphMode;
-              Graph.DontClearVesaMemory:=false;
+              Graph.DontClearGraphMemory:=false;
               GraphImageSize:=ImageSize(0,0,Graph.GetmaxX,Graph.GetMaxY);
               GetMem(GraphBuffer,GraphImageSize);
               FillChar(GraphBuffer^,GraphImageSize,#0);
@@ -1100,7 +1104,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2002-09-02 09:29:55  pierre
+  Revision 1.15  2002-09-03 05:45:39  pierre
+   * fix compilation without DEBUG conditional
+
+  Revision 1.14  2002/09/02 09:29:55  pierre
    + new test code for go32v2 graphic screen saves (only with -dDEBUG)
 
   Revision 1.13  2002/06/13 11:18:32  pierre
