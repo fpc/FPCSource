@@ -936,7 +936,7 @@ implementation
 
                   { val doesn't calculate the registers really }
                   { correct, we need one register extra   (FK) }
-                  inc(p^.registers32,2);
+                  inc(p^.registers32,1);
                end;
 {$EndIf OLDVAL}
 
@@ -1104,7 +1104,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-05-02 21:33:57  florian
+  Revision 1.32  1999-05-05 22:25:21  florian
+    * fixed register allocation for val
+
+  Revision 1.31  1999/05/02 21:33:57  florian
     * several bugs regarding -Or fixed
 
   Revision 1.30  1999/05/01 13:24:53  peter
