@@ -111,49 +111,6 @@ end;
 
 
 {****************************************************************************
-                              Temp Heap Creation
-****************************************************************************}
-
-{$ifdef TP}
-  {$ifndef DPMI}
-  var
-    oldfreelist,
-    oldheapptr,
-    oldheaporg : pointer;
-  {$endif}
-{$endif}
-
-procedure CreateHeap;
-begin
-{$Ifdef TP}
-  {$ifndef DPMI}
-    { Save old heap }
-    oldfreelist:=freelist;
-    oldheapptr:=heapptr;
-    oldheaporg:=heaporg;
-    { Create a new heap }
-    heaporg:=oldheapptr;
-    heapptr:=heaporg;
-    freelist:=heaporg;
-  {$endif}
-{$endif}
-end;
-
-
-procedure RestoreHeap;
-begin
-{$Ifdef TP}
-  {$ifndef DPMI}
-  { Restore old heap }
-  freelist:=oldfreelist;
-  heapptr:=oldheapptr;
-  heaporg:=oldheaporg;
-  {$endif}
-{$endIf TP}
-end;
-
-
-{****************************************************************************
                                 Compiler
 ****************************************************************************}
 
@@ -208,9 +165,6 @@ begin
   EntryMemAvail:=MemAvail;
 {$endif}
 
-{ Get a new heap }
-  CreateHeap;
-
 { Initialize the compiler }
   InitCompiler(cmd);
 
@@ -253,9 +207,6 @@ begin
   Comment(V_Info,'Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif EXTDEBUG}
 
-{ Restore Heap }
-  RestoreHeap;
-
 { Set the return value if an error has occurred }
   if status.errorcount=0 then
    Compile:=0
@@ -267,7 +218,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-09-01 07:54:17  pierre
+  Revision 1.8  1998-09-01 09:00:27  peter
+    - removed tempheap creation/restore
+
+  Revision 1.7  1998/09/01 07:54:17  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation
