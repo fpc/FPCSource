@@ -14,9 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-PRocedure DumpMem (P : Pointer;Size : Longint);
-
-Type PByte = ^Byte;
+Procedure DumpMem (P : Pointer;Size : Longint);
 
 Var i : longint;
 
@@ -240,6 +238,8 @@ begin
   Inherited Create(AOwner);
   FVisible:=True;
   FValidChars:=[#0..#155];
+
+  FProviderFlags := [pfInUpdate,pfInWhere];
 end;
 
 destructor TField.Destroy;
@@ -544,17 +544,16 @@ begin
   Writeln ('Setting dataset');
 {$endif}
   If Value=FDataset then exit;
-  If Assigned(FDataset) Then FDataset.CheckInactive;
+  If Assigned(FDataset) Then
+    begin
+    FDataset.CheckInactive;
+    FDataset.FFieldList.Remove(Self);
+    end;
   If Assigned(Value) then
     begin
     Value.CheckInactive;
-// ?? Identifier idents no member ??
-    Value.FFieldList.CheckFieldName(FFieldName);
-    end;
-  If Assigned(FDataset) then
-    FDataset.FFieldList.Remove(Self);
-  If Assigned(Value) then
     Value.FFieldList.Add(Self);
+    end;
   FDataset:=Value;
 end;
 
@@ -875,6 +874,7 @@ end;
 function TLongintField.GetAsVariant: Variant;
 
 Var L : Longint;
+v : variant;
 
 begin
   If GetValue(L) then
@@ -919,11 +919,6 @@ begin
 end;
 
 function TLongintField.GetValue(var AValue: Longint): Boolean;
-
-Type
-  PSmallint = ^SmallInt;
-  PLongint = ^Longint;
-  PWord = ^Word;
 
 Var L : Longint;
     P : PLongint;
@@ -2207,7 +2202,13 @@ end;
 
 {
   $Log$
-  Revision 1.20  2004-12-29 20:27:08  michael
+  Revision 1.21  2005-01-12 10:29:54  michael
+   * Patch from Joost Van der Sluis:
+     - removed some duplicate definitions
+     - restructured SetDataset
+     - implemented UpdateMode, ProviderFlags
+
+  Revision 1.20  2004/12/29 20:27:08  michael
   + Patch from Joost van der Sluis to correct AsVariant
 
   Revision 1.19  2004/12/13 19:20:42  michael
