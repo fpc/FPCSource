@@ -1078,11 +1078,11 @@
                      'MODE:'+typeglobalnumber('longint')+',32,32;'+
                      'RECSIZE:'+typeglobalnumber('longint')+',64,32;'+
                      '_PRIVATE:ar'+typeglobalnumber('word')+';1;32;'+typeglobalnumber('byte')
-                        +',92,256;'+
+                        +',96,256;'+
                      'USERDATA:ar'+typeglobalnumber('word')+';1;16;'+typeglobalnumber('byte')
-                        +',348,128;'+
+                        +',352,128;'+
                      'NAME:ar'+typeglobalnumber('word')+';0;255;'+typeglobalnumber('char')
-                        +',476,2048;;');
+                        +',480,2048;;');
    {$EndIf}
       end;
 
@@ -2899,7 +2899,10 @@
 
 {
   $Log$
-  Revision 1.38  1998-09-07 23:10:23  florian
+  Revision 1.39  1998-09-08 10:23:44  pierre
+    * name field of filedef corrected
+
+  Revision 1.38  1998/09/07 23:10:23  florian
     * a lot of stuff fixed regarding rtti and publishing of properties,
       basics should now work
 
