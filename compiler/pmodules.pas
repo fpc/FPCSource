@@ -1247,6 +1247,9 @@ implementation
           begin
             gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
             aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
+            { Win32 startup code needs a single name }
+            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
+              aktprocdef.aliasnames.insert('PASCALMAIN');
             { this code is called from C so we need to save some
               registers }
             include(aktprocdef.procoptions,po_savestdregs);
@@ -1387,7 +1390,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-08-31 15:59:30  florian
+  Revision 1.76  2002-09-02 18:46:26  peter
+    * insert PASCALMAIN in library for Win32 only
+
+  Revision 1.75  2002/08/31 15:59:30  florian
     + HEAP* stuff must be generated for Linux/PPC as well
     + direct assembler reader searches now global and static symtables as well
 
