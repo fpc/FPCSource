@@ -1240,6 +1240,10 @@ Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
   Reg := Reg32(Reg);
+  { the following happens for fpu registers }
+  if (reg < low(NrOfInstrSinceLastMod)) or
+     (reg > high(NrOfInstrSinceLastMod)) then
+    exit;
   NrOfInstrSinceLastMod[Reg] := 0;
   If (Reg >= R_EAX) And (Reg <= R_EDI)
     Then
@@ -1339,9 +1343,8 @@ Begin {checks whether the two ops are equal}
 End;
 
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
-{$ifdef csdebug}
-var hp: pai;
-{$endif csdebug}
+var
+  hp: pai;
 Begin {checks whether two Paicpu instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Pai(p1)^.typ = ait_instruction) And
@@ -1368,11 +1371,10 @@ Begin {checks whether two Paicpu instructions are equal}
               Begin
                 With Paicpu(p2)^.oper[0].ref^ Do
                   Begin
-                    If Not(Base in [procinfo^.FramePointer, R_NO, R_ESP])
-       {it won't do any harm if the register is already in RegsLoadedForRef}
-                      Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
-                    If Not(Index in [procinfo^.FramePointer, R_NO, R_ESP])
-                      Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
+                    If Not(Base in [procinfo^.FramePointer, R_NO, R_ESP]) Then
+                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
+                    If Not(Index in [procinfo^.FramePointer, R_NO, R_ESP]) Then
+                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
                   End;
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
   from the reference are the same in the old and in the new instruction
@@ -1392,24 +1394,22 @@ Begin {checks whether two Paicpu instructions are equal}
             With Paicpu(p2)^.oper[0].ref^ Do
               Begin
                 If Not(Base in [procinfo^.FramePointer,
-                                Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
+                     Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP]) Then
  {it won't do any harm if the register is already in RegsLoadedForRef}
-                  Then
-                    Begin
-                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
+                  Begin
+                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
 {$ifdef csdebug}
-                      Writeln(att_reg2str[base], ' added');
+                    Writeln(att_reg2str[base], ' added');
 {$endif csdebug}
-                    end;
+                  end;
                 If Not(Index in [procinfo^.FramePointer,
-                                 Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
-                  Then
-                    Begin
-                      RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
+                     Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP]) Then
+                  Begin
+                    RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
 {$ifdef csdebug}
-                      Writeln(att_reg2str[index], ' added');
+                    Writeln(att_reg2str[index], ' added');
 {$endif csdebug}
-                    end;
+                  end;
 
               End;
             If Not(Reg32(Paicpu(p2)^.oper[1].reg) In [procinfo^.FramePointer,R_NO,R_ESP])
@@ -1657,7 +1657,7 @@ Begin
         if assigned(hp^.next) then
           hp^.next^.previous := hp;
 {$endif statedebug}
-        DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg, true);
+        DestroyReg(PPaiProp(PaiObj^.OptInfo), reg32(o.reg), true);
       end;
     top_ref:
       Begin
@@ -2335,7 +2335,10 @@ End.
 
 {
  $Log$
- Revision 1.86  2000-04-10 12:45:56  jonas
+ Revision 1.87  2000-04-29 16:56:45  jonas
+   * destroyreg overwrote some memory if the reg was an FPU register
+
+ Revision 1.86  2000/04/10 12:45:56  jonas
    * fixed a serious bug in the CSE which (I think) only showed with
      -dnewoptimizations when using multi-dimensional arrays with
      elements of a size different from 1, 2 or 4 (especially strings).
