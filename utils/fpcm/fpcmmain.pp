@@ -117,6 +117,7 @@ interface
         FSections       : TDictionary;
         FPackageSec,
         FExportSec      : TFPCMakeSection;
+        FUsesLCL,
         FIsPackage      : boolean;
         FPackageName,
         FPackageVersion,
@@ -157,6 +158,7 @@ interface
         property Section[const s:string]:TDictionaryItem read GetSec;default;
         property RequireList:TTargetRequireList read FRequireList;
         property Variables:TKeyValue read FVariables;
+        property UsesLCL:boolean read FUsesLCL;
         property IsPackage:boolean read FIsPackage;
         property PackageName:string read FPackageName;
         property PackageVersion:string read FPackageVersion;
@@ -512,6 +514,7 @@ implementation
         FExportSec:=nil;
         FIncludeTargets:=[low(TTarget)..high(TTarget)];
         VerboseIdent:='';
+        FUsesLCL:=false;
       end;
 
 
@@ -606,7 +609,10 @@ implementation
         { Load LCL code ? }
         s:=GetVariable('require_packages',true);
         if pos('lcl',s)>0 then
-         AddLCLDefaultVariables;
+         begin
+           FUsesLCL:=true;
+           AddLCLDefaultVariables;
+         end;
         { Show globals }
         Verbose(FPCMakeDebug,s_globals);
         Variables.Foreach(@PrintDic);
@@ -765,13 +771,13 @@ implementation
         SetVariable('TARGET',TargetStr[t],false);
         { Check for Makefile.fpc }
         s:=SubstVariables('$(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR))');
-        Verbose(FPCMakeDebug,'Looking for Makefile.fpc: "'+s+'"');
+        Verbose(FPCMakeDebug,'Package "'+ReqName+'": Looking for Makefile.fpc: "'+s+'"');
         s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
         { Check for Package.fpc }
         s:=SubstVariables('$(addsuffix /'+ReqName+'/Package.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(UNITSDIR)) $(addsuffix /'+ReqName+'/Package.fpc,$(REQUIRE_UNITSDIR))');
-        Verbose(FPCMakeDebug,'Looking for Package.fpc: "'+s+'"');
+        Verbose(FPCMakeDebug,'Package "'+ReqName+'": Looking for Package.fpc: "'+s+'"');
         s:=SubstVariables('$(firstword $(wildcard '+s+'))');
         if TryFile(s) then
          exit;
@@ -1335,7 +1341,7 @@ implementation
         Sec : TFPCMakeSection;
         P   : TKeyValueItem;
         i   : integer;
-        key : string;
+        tempval,key : string;
       begin
         Result:='';
         i:=Pos('_',inivar);
@@ -1357,7 +1363,16 @@ implementation
             TKeyValue(Sec.Dictionary).Add(key,value);
          end
         else
-         Variables[IniVar]:=value;
+         begin
+           if Add then
+            begin
+              tempval:=Variables[IniVar];
+              AddToken(tempval,Value,' ');
+              Variables[IniVar]:=tempval;
+            end
+           else
+            Variables[IniVar]:=Value;
+         end;
       end;
 
 
@@ -1419,7 +1434,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-12-26 21:02:00  peter
+  Revision 1.19  2002-01-06 21:50:04  peter
+    * lcl updates
+    * small optimizes for package check
+
+  Revision 1.18  2001/12/26 21:02:00  peter
     * little support for lcl and lazarus, but not yet working
 
   Revision 1.17  2001/12/15 04:16:57  carl

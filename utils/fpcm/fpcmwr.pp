@@ -26,7 +26,7 @@ interface
         sec_units,sec_exes,sec_loaders,sec_examples,sec_rsts,
         sec_compile,sec_install,
         sec_distinstall,sec_zipinstall,sec_clean,sec_libs,
-        sec_command,sec_exts,sec_dirs,sec_tools,sec_info
+        sec_command,sec_exts,sec_dirs,sec_tools,sec_info,sec_makefile
       );
 
       trules=(
@@ -36,7 +36,7 @@ interface
         r_install,r_sourceinstall,r_exampleinstall,r_distinstall,
         r_zipinstall,r_zipsourceinstall,r_zipexampleinstall,r_zipdistinstall,
         r_clean,r_distclean,r_cleanall,
-        r_info
+        r_info,r_makefile,r_makefiles,r_makefile_dirs
       );
 
 
@@ -48,7 +48,7 @@ interface
         'install','sourceinstall','exampleinstall','distinstall',
         'zipinstall','zipsourceinstall','zipexampleinstall','zipdistinstall',
         'clean','distclean','cleanall',
-        'info'
+        'info','makefile','makefiles','makefile_dirs'
       );
 
       rule2sec : array[trules] of tsections=(
@@ -58,7 +58,7 @@ interface
         sec_install,sec_install,sec_install,sec_distinstall,
         sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
         sec_clean,sec_clean,sec_clean,
-        sec_info
+        sec_info,sec_makefile,sec_makefile,sec_makefile
       );
 
 
@@ -505,7 +505,8 @@ implementation
              if CheckVariable('default_dir') then
               hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(DEFAULT_DIR))'
              else
-              if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall]) or
+              if not(rule in [r_sourceinstall,r_zipinstall,r_zipsourceinstall,
+                              r_makefile,r_makefiles,r_makefile_dirs]) or
                  not(CheckVariable('package_name')) then
                hs:=hs+' $(addsuffix _'+rule2str[rule]+',$(TARGET_DIRS))';
            end;
@@ -587,17 +588,17 @@ implementation
           { create needed variables }
           packdirvar:='PACKAGEDIR_'+VarName(pack);
           unitdirvar:='UNITDIR_'+VarName(pack);
-          { Search packagedir by looking for Makefile.fpc }
-          FOutput.Add(packdirvar+':=$(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR)))))');
+          { Search packagedir by looking for Makefile.fpc, for the RTL look
+            direct in the corresponding target directory }
+          if pack='rtl' then
+           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/$(OS_TARGET)/Makefile.fpc,$(PACKAGESDIR))))))')
+          else 
+           FOutput.Add(packdirvar+':=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /'+pack+'/Makefile.fpc,$(PACKAGESDIR))))))');
           FOutput.Add('ifneq ($('+packdirvar+'),)');
-          FOutput.Add(packdirvar+':=$(firstword $('+packdirvar+'))');
           { If Packagedir found look for FPCMade }
-          FOutput.Add('ifeq ($(wildcard $('+packdirvar+')/$(FPCMADE)),)');
-          FOutput.Add('override COMPILEPACKAGES+=package_'+pack);
-          AddPhony('package_'+pack);
-          FOutput.Add('package_'+pack+':');
+          FOutput.Add('override COMPILEPACKAGES+=$('+packdirvar+')/$(FPCMADE)');
+          FOutput.Add('$('+packdirvar+')/$(FPCMADE):');
           FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') all');
-          FOutput.Add('endif');
           { Create unit dir, check if os dependent dir exists }
           FOutput.Add('ifneq ($(wildcard $('+packdirvar+')/$(OS_TARGET)),)');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')/$(OS_TARGET)');
@@ -758,24 +759,21 @@ implementation
            else if CheckVariable('default_cpu') then
             Add('CPU_TARGET='+FInput.GetVariable('default_cpu',false));
            { FPC Detection }
+           AddVariable('default_fpcdir');
            AddIniSection('fpcdetect');
            AddIniSection('fpcdircheckenv');
-           if CheckVariable('default_fpcdir') then
-            begin
-              Add('ifeq ($(FPCDIR),wrong)');
-              Add('override FPCDIR='+FInput.GetVariable('default_fpcdir',false));
-              Add('ifeq ($(wildcard $(FPCDIR)/rtl),)');
-              Add('ifeq ($(wildcard $(FPCDIR)/units),)');
-              Add('override FPCDIR=wrong');
-              Add('endif');
-              Add('endif');
-              Add('endif');
-            end;
            AddIniSection('fpcdirdetect');
            { Package }
            AddVariable('package_name');
            AddVariable('package_version');
            AddVariable('package_targets');
+           { LCL rules }
+           if FInput.UsesLCL then
+            begin
+              AddVariable('default_lcldir');
+              AddVariable('lcl_platform');
+              AddIniSection('lclrules');
+            end;
            { First add the required packages sections }
 //           for i:=0 to FInput.RequireList.Count-1 do
 //            AddCustomSection(FInput.Requirelist[i]);
@@ -788,6 +786,7 @@ implementation
            AddTargetVariable('target_dirs');
            AddTargetVariable('target_programs');
            AddTargetVariable('target_units');
+           AddTargetVariable('target_implicitunits');
            AddTargetVariable('target_loaders');
            AddTargetVariable('target_rsts');
            AddTargetVariable('target_examples');
@@ -798,6 +797,7 @@ implementation
            { Install }
            AddTargetVariable('install_units');
            AddTargetVariable('install_files');
+           AddVariable('install_buildunit');
            AddVariable('install_prefix');
            AddVariable('install_basedir');
            AddVariable('install_datadir');
@@ -856,7 +856,12 @@ implementation
            { clean }
            AddIniSection('cleanrules');
            { info }
+           AddIniSection('baseinforules');
+           if FInput.UsesLCL then
+            AddIniSection('lclinforules');
            AddIniSection('inforules');
+           { info }
+           AddIniSection('makefilerules');
            { Subdirs }
            AddTargetDirs('target_dirs');
            AddTargetDirs('target_exampledirs');
@@ -879,7 +884,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2001-10-14 21:38:33  peter
+  Revision 1.19  2002-01-06 21:50:05  peter
+    * lcl updates
+    * small optimizes for package check
+
+  Revision 1.18  2001/10/14 21:38:33  peter
     * cross compiling support
 
   Revision 1.17  2001/09/11 11:04:51  pierre
