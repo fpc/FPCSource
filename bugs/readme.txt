@@ -265,3 +265,5 @@ bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
 bug0199.pp   bug in mul code
+bug0200.pp   problem with constant strings which exceed length of pascal
+             strings
