@@ -14,6 +14,54 @@
 
  **********************************************************************}
 
+{$ifdef SUPPORT_REMOTE}
+function GetRemoteString : string;
+var
+  St : string;
+begin
+  St:=RemoteSendCommand;
+  If RemoteConfig<>'' then
+    ReplaceStrI(St,'$CONFIG','-F '+RemoteConfig)
+  else
+    ReplaceStrI(St,'$CONFIG','');
+  If RemoteIdent<>'' then
+    ReplaceStrI(St,'$IDENT','-i '+RemoteIdent)
+  else
+    ReplaceStrI(St,'$IDENT','');
+  ReplaceStrI(St,'$LOCALFILE',GDBFileName(ExeFile));
+  ReplaceStrI(St,'$REMOTEDIR',RemoteDir);
+  ReplaceStrI(St,'$REMOTEMACHINE',RemoteMachine);
+  GetRemoteString:=st;
+end;
+
+procedure TIDEApp.TransferRemote;
+var
+  S,SendCommand : string;
+  Executed : boolean;
+begin
+  SendCommand:=GetRemoteString;
+  if SendCommand<>'' then
+    begin
+      s:='scp'+exeext;
+      if LocateExeFile(s) then
+        Executed:=DoExecute(s,SendCommand,'','','',exNormal)
+      else
+        Executed:=DoExecute('scp',SendCommand,'','','',exNormal);
+      if Executed then
+        begin
+         if (DosError<>0) or (DosExitCode<>0) then
+          ErrorBox(#3'Execution of'#13#3+s+' '+SendCommand+#13#3+
+            'returned ('+inttostr(DosError)+','+inttostr(DosExitCode)+')',nil);
+        end
+      else
+        ErrorBox(#3'Unable to execute'#13#3+s+' '+SendCommand,nil);
+
+    end
+  else
+    ErrorBox(#3'Unable to transfer executable',nil);
+end;
+{$endif SUPPORT_REMOTE}
+
 procedure TIDEApp.DoUserScreenWindow;
 begin
   if UserScreenWindow=nil then
@@ -182,7 +230,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-10-30 22:07:11  pierre
+  Revision 1.6  2002-11-28 12:57:00  pierre
+   + TransferRemote method added
+
+  Revision 1.5  2002/10/30 22:07:11  pierre
    * only handle direction keys specially if buffer is bigger than window
 
   Revision 1.4  2002/09/07 15:40:43  peter
