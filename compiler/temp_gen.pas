@@ -166,8 +166,6 @@ unit temp_gen;
                      if hp^.size>=size then
                        begin
                           ofs:=hp^.pos;
-                          if hp^.pos-size < maxtemp then
-                            maxtemp := hp^.size-size;
                           { the whole block is needed ? }
                           if hp^.size>size then
                             begin
@@ -508,7 +506,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-02-22 02:15:56  peter
+  Revision 1.10  1999-04-06 11:19:49  peter
+    * fixed temp reuse
+
+  Revision 1.9  1999/02/22 02:15:56  peter
     * updates for ag386bin
 
   Revision 1.8  1999/02/11 09:35:19  pierre
