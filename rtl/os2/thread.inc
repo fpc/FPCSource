@@ -106,7 +106,7 @@ begin
  if os_mode = osOS2 then
  begin
   if DosAllocMem (DataIndex^, ThreadVarBlockSize, pag_Read or pag_Write
-                                         or pag_Commit) <> 0 then RunError (8);
+                                      or pag_Commit) <> 0 then HandleError (8);
  end else
  begin
   (* Allocate the DOS memory here. *)
@@ -245,7 +245,7 @@ begin
  if os_mode = osOS2 then
  begin
   if DosCreateMutExSem (nil, CS.LockSemaphore2, 0, true) <> 0 then
-                                                                  RunError (8);
+                                                               HandleError (8);
   DosEnterCritSec;
   CS.LockCount := 0;
   CS.OwningThread := $FFFF;
@@ -317,7 +317,7 @@ begin
    Dec (LockCount);
    DosExitCritSec;
   end;
-  if Err then RunError (5);
+  if Err then HandleError (5);
  end;
 end;
 
@@ -325,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2001-02-01 21:30:01  hajny
+  Revision 1.4  2001-02-04 01:53:58  hajny
+    * HandleError instead of RunError
+
+  Revision 1.3  2001/02/01 21:30:01  hajny
     * MT support completion
 
   Revision 1.2  2001/01/27 18:28:52  hajny
