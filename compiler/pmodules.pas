@@ -316,9 +316,10 @@ unit pmodules;
               pu^.u:=loaded_unit;
               pu^.loaded:=true;
             { need to recompile the current unit ? }
-              if loaded_unit^.crc<>pu^.checksum then
+              if (loaded_unit^.interface_crc<>pu^.interface_checksum) and
+                 not(current_module^.in_second_compile) then
                 begin
-                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^);
+                  Message2(unit_u_recompile_crc_change,current_module^.modulename^,pu^.name^+' {impl}');
                   current_module^.do_compile:=true;
                   dispose(current_module^.map);
                   current_module^.map:=nil;
@@ -352,9 +353,8 @@ unit pmodules;
         st : punitsymtable;
         second_time : boolean;
         old_current_ppu : pppufile;
-        old_current_module,hp,hp2,hp3 : pmodule;
-        name : string;{ necessary because
-        current_module^.mainsource^ is reset in compile !! }
+        old_current_module,hp,hp2 : pmodule;
+        name : string;{ necessary because current_module^.mainsource^ is reset in compile !! }
         scanner : pscannerfile;
 
         procedure loadppufile;
@@ -425,7 +425,10 @@ unit pmodules;
                 begin
                    { forced to reload ? }
                    if hp^.do_reload then
-                    break;
+                    begin
+                      hp^.do_reload:=false;
+                      break;
+                    end;
                    { the unit is already registered   }
                    { and this means that the unit     }
                    { is already compiled              }
@@ -464,17 +467,6 @@ unit pmodules;
                loaded_units.remove(hp);
                scanner:=hp^.scanner;
                hp^.reset;
-               { now reload all dependent units }
-               hp2:=pmodule(loaded_units.first);
-               while assigned(hp2) do
-                begin
-                  if hp2^.do_reload then
-                   begin
-                     hp2^.do_reload:=false;
-                     hp3:=loadunit(hp^.modulename^,false);
-                   end;
-                  hp2:=pmodule(hp2^.next);
-                end;
                hp^.scanner:=scanner;
                { try to reopen ppu }
                hp^.search_unit(s,false);
@@ -499,12 +491,23 @@ unit pmodules;
             loadppufile;
           { set compiled flag }
             current_module^.compiled:=true;
-          { register the unit _once_ }
-          { this is buggy PM }
-            if not second_time then
-              usedunits.concat(new(pused_unit,init(current_module,true)));
           { load return pointer }
             hp:=current_module;
+          { for a second_time recompile reload all dependent units,
+            for a first time compile register the unit _once_ }
+            if second_time then
+             begin
+               { now reload all dependent units }
+               hp2:=pmodule(loaded_units.first);
+               while assigned(hp2) do
+                begin
+                  if hp2^.do_reload then
+                   loadunit(hp2^.modulename^,false);
+                  hp2:=pmodule(hp2^.next);
+                end;
+             end
+            else
+             usedunits.concat(new(pused_unit,init(current_module,true)));
           end;
          { set the old module }
          current_ppu:=old_current_ppu;
@@ -1121,7 +1124,8 @@ unit pmodules;
          pu:=pused_unit(usedunits.first);
          while assigned(pu) do
            begin
-              punitsymtable(pu^.u^.globalsymtable)^.is_stab_written:=false;
+              if assigned(pu^.u^.globalsymtable) then
+                punitsymtable(pu^.u^.globalsymtable)^.is_stab_written:=false;
               pu:=pused_unit(pu^.next);
            end;
 {$endif GDB}
@@ -1326,7 +1330,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.127  1999-07-05 16:21:27  peter
+  Revision 1.128  1999-07-06 00:53:48  peter
+    * merged
+
+  Revision 1.127  1999/07/05 16:21:27  peter
     * fixed linking for units without linking necessary
 
   Revision 1.126  1999/07/03 00:29:56  peter
@@ -1335,6 +1342,9 @@ end.
 
   Revision 1.125  1999/06/15 13:57:32  peter
     * merged
+
+  Revision 1.124.2.2  1999/07/06 00:47:52  peter
+    * killed recompile bug
 
   Revision 1.124.2.1  1999/06/15 13:54:26  peter
     * don't run ar anymore for binary writer, also not with -CS
