@@ -57,6 +57,23 @@ Type
     Procedure ListItemStart; override;
     Procedure ListItemEnd; override;
     Procedure DefinitionItem(Const Aname,AText : String); override;
+    // Form support
+    Procedure FormStart(Const Action,Method : String);
+    Procedure FormEnd;
+    Procedure EmitInput(Const Name,Value : String);
+    Procedure EmitInput(Const Name,Value, Attrs : String);
+    Procedure EmitPasswordInput(Const Name,Value : String);
+    Procedure EmitCheckBox(Const Name,Value : String);
+    Procedure EmitCheckBox(Const Name,Value : String; Checked : Boolean);
+    Procedure EmitRadioButton(Const Name,Value : String);
+    Procedure EmitRadioButton(Const Name,Value : String; Checked : Boolean);
+    Procedure EmitArea(Const Name,Value : String; Rows,Cols : Integer);
+    Procedure EmitComboBox(Const Name, Value : String; Items : TStrings; UseValues : Boolean);
+    Procedure EmitComboBox(Const Name, Value : String; Items : TStrings);
+    Procedure EmitButton(Const Name,ButtonType,Value : String);
+    Procedure EmitSubmitButton(Const Name,Value : String);
+    Procedure EmitResetButton(Const Name,Value : String);
+    Procedure EmitHiddenVar(Const Name,Value: String);
   end;
 
 Const
@@ -262,10 +279,188 @@ begin
   TagStart('U','');
 end;
 
+// Form support.
+
+Procedure THTMLWriter.FormStart(Const Action,Method : String);
+
+Var
+  A : String;
+
+begin
+  A:='ACTION="'+Action+'"';
+  If (Method<>'') then
+    A:=A+' METHOD="'+Method+'"';
+  TagStart('FORM',A);
+end;
+
+Procedure THTMLWriter.FormEnd;
+
+begin
+  Tagend('FORM');
+end;
+
+Procedure THTMLWriter.EmitInput(Const Name,Value : String);
+
+begin
+  EmitInput(Name,Value,'');
+end;
+
+Procedure THTMLWriter.EmitPasswordInput(Const Name,Value : String);
+
+begin
+  EmitInput(Name,Value,'TYPE="password"');
+end;
+
+
+Procedure THTMLWriter.EmitInput(Const Name,Value, Attrs : String);
+
+Var
+  A : String; 
+ 
+begin
+  A:='NAME="'+Name+'"';
+  If (Value<>'') then
+    A:=A+' VALUE="'+Value+'"'; 
+  If (Attrs<>'') then
+    A:=A+' '+Attrs;
+  TagStart('INPUT',A);
+end;
+
+Procedure THTMLWriter.EmitCheckBox(Const Name,Value : String);
+
+begin
+  EmitCheckBox(Name,Value,False);
+end;
+
+Procedure THTMLWriter.EmitCheckBox(Const Name,Value : String; Checked : Boolean);
+
+Var
+  A : String;
+
+begin
+  A:='NAME="'+Name+'" TYPE="checkbox" VALUE="'+Value+'"';
+  If Checked then
+    A:=A+' CHECKED=1';
+  TagStart('INPUT',A);
+end;
+
+Procedure THTMLWriter.EmitRadioButton(Const Name,Value : String);
+
+begin
+  EmitRadioButton(Name,Value,False);
+end;
+
+Procedure THTMLWriter.EmitRadioButton(Const Name,Value : String; Checked : Boolean);
+
+Var
+  A : String;
+
+begin
+  A:='NAME="'+Name+'" TYPE="checkbox" VALUE="'+Value+'"';
+  If Checked then
+    A:=A+' CHECKED=1';
+  TagStart('INPUT',A);
+  
+end;
+
+Procedure THTMLWriter.EmitArea(Const Name,Value : String; Rows,Cols : Integer);
+
+Var
+  A : String;
+  
+begin
+  A:='NAME="'+Name+'"';
+  If (Rows<>0) and (cols<>0) then
+    A:=A+Format(' ROWS=%d COLS=%d',[Rows,Cols]);
+  TagStart('TEXTAREA',A);
+  Write(Value);
+  TagEnd('TEXTAREA'); 
+end;
+
+Procedure THTMLWriter.EmitComboBox(Const Name, Value : String; Items : TStrings);
+
+begin
+  EmitComboBox(Name,Value,Items,False);
+end;
+
+Procedure THTMLWriter.EmitComboBox(Const Name, Value : String; Items : TStrings; UseValues : Boolean);
+
+Var
+  A,S,V : String;
+  I,P : Integer;
+  
+begin
+  TagStart('SELECT','NAME='+Name+'"');
+  A:='';
+  For I:=0 to Items.Count-1 do
+    begin
+    S:=Items[I];
+    If UseValues then
+      begin
+      P:=Pos('=',S);
+      If P>0 then
+        begin
+        V:=Copy(S,1,P-1);
+        Delete(S,1,P);
+        A:='VALUE="'+Copy(S,1,P-1)+'"';
+        end
+      else
+        begin
+        A:='';
+        V:=S;
+        end;
+      end;
+    If (Value<>'') and (V=Value) then
+      A:=A+' SELECTED';
+    TagStart('OPTION',A);  
+    end;
+  TagEnd('SELECT')  
+end;
+
+Procedure THTMLWriter.EmitSubmitButton(Const Name,Value : String);
+
+begin
+  EmitButton(Name,'submit',Value)
+end;
+
+Procedure THTMLWriter.EmitResetButton(Const Name,Value : String);
+
+begin
+  EmitButton(Name,'reset',Value)
+end;
+
+Procedure THTMLWriter.EmitButton(Const Name,ButtonType,Value : String);
+
+Var
+  A : String;
+
+begin
+  A:='TYPE="'+ButtonType+'"';
+  If (Value<>'') then
+    A:=A+' VALUE="'+Value+'"';
+  If (Name<>'')  then
+    A:=A+' NAME="'+Name+'"';
+  TagStart('INPUT',A)
+end;
+
+Procedure THTMLWriter.EmitHiddenVar(Const Name,Value: String);
+
+Var
+  A : String;
+
+begin
+  A:='TYPE="hidden" NAME="'+Name+'" VALUE="'+Value+'"';
+  TagStart('INPUT',A);  
+end;
+
+
 end.
 {
   $Log$
-  Revision 1.1  2003-10-01 20:49:29  michael
+  Revision 1.2  2003-10-03 08:42:22  michael
+  + Form support.
+
+  Revision 1.1  2003/10/01 20:49:29  michael
   + Initial implementation
 
 }

@@ -172,7 +172,7 @@ Var
   URL : String;
 
 begin
-  WriteString(Stream,'<HD>');
+  WriteString(Stream,'<TH>');
   With C do
     begin
     If (FCaptionURL<>'') then
@@ -193,7 +193,7 @@ begin
         WriteString(Stream,'</A>');
       end;
     end;
-  WriteString(Stream,'</HD>');
+  WriteString(Stream,'</TH>');
 end;
 
 procedure TTableProducer.CreateTableRow(Stream : TStream);
@@ -218,7 +218,7 @@ begin
   S:='<TABLE';
   If Border then
     S:=S+' BORDER=1';
-  S:=S+'/>';
+  S:=S+'>';
   WriteString(Stream,S);
 end;
 
@@ -382,7 +382,7 @@ Var
 begin
   DF:=Dataset.FieldByNAme(DataField);
   if (ValueField<>'') then
-    VF:=DF
+    VF:=Dataset.FieldByName(ValueField)
   else
     VF:=Nil;
   If (Value='') then
@@ -396,7 +396,7 @@ begin
   Try
     While not Dataset.EOF do
       begin
-      CreateItem(Stream,SF,DF,((SF<>Nil) and (SF.AsString=Value)));
+      CreateItem(Stream,VF,DF,((SF<>Nil) and (SF.AsString=Value)));
       Dataset.Next;
       end;
   Finally
@@ -496,7 +496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2003-10-01 21:07:48  michael
+  Revision 1.3  2003-10-03 08:42:22  michael
+  + Form support.
+
+  Revision 1.2  2003/10/01 21:07:48  michael
   + Added log/header
 
 }
