@@ -26,7 +26,8 @@ const
       btScope       = 1;
       btReferences  = 2;
       btInheritance = 4;
-
+      btBreakWatch  = 8;
+      
 type
     PSymbolView = ^TSymbolView;
     TSymbolView = object(TListBox)
@@ -74,7 +75,7 @@ type
 
     PBrowserWindow = ^TBrowserWindow;
     TBrowserWindow = object(TFPWindow)
-      constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;
+      constructor Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
                     const AName: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection);
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
@@ -83,11 +84,12 @@ type
       function    GetPalette: PPalette; virtual;
     private
       PageTab       : PBrowserTab;
+      Sym           : PSymbol;
       ScopeView     : PSymbolScopeView;
       ReferenceView : PSymbolReferenceView;
     end;
 
-procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;
+procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;S : PSymbol;
             Symbols: PSymbolCollection; References: PReferenceCollection);
 
 function IsSymbolInfoAvailable: boolean;
@@ -97,7 +99,7 @@ procedure OpenOneSymbolBrowser(Name : String);
 implementation
 
 uses Commands,App,
-     WEditor,
+     WEditor,FPDebug,
      FPConst,FPUtils,FPVars;
 
 function IsSymbolInfoAvailable: boolean;
@@ -123,7 +125,7 @@ begin
        PS:=BrowCol.Modules^.FirstThat(@Search);
        If assigned(PS) then
          OpenSymbolBrowser(0,20,
-                PS^.Items^.At(Index)^.GetName,'',
+                PS^.Items^.At(Index)^.GetName,'',PS^.Items^.At(Index),
                 PS^.Items^.At(Index)^.Items,PS^.Items^.At(Index)^.References)
        else
          begin
@@ -482,12 +484,12 @@ var B: TDrawBuffer;
     SelColor, NormColor, C: word;
     I,CurX,Count: Sw_integer;
 const
-    Names: string[3] = 'SRI';
+    Names: string[4] = 'SRIB';
 begin
   NormColor:=GetColor(1); SelColor:=GetColor(2);
   MoveChar(B,'Ä',SelColor,Size.X);
   CurX:=0; Count:=0;
-  for I:=0 to 2 do
+  for I:=0 to 3 do
     if (Flags and (1 shl I))<>0 then
     begin
       Inc(Count);
@@ -509,7 +511,7 @@ begin
   GetPalette:=@P;
 end;
 
-constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;
+constructor TBrowserWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer;ASym : PSymbol;
              const AName: string; ASymbols: PSymbolCollection; AReferences: PReferenceCollection);
 var R: TRect;
     ST: PStaticText;
@@ -518,6 +520,7 @@ function CreateVSB(R: TRect): PScrollBar;
 var R2: TRect;
     SB: PScrollBar;
 begin
+  Sym:=ASym;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); SB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   CreateVSB:=SB;
@@ -587,7 +590,7 @@ begin
               if (S^.GetReferenceCount>0) or (S^.GetItemCount>0) then
               OpenSymbolBrowser(Origin.X-1,P.Y,
                 S^.GetName,
-                ScopeView^.GetText(ScopeView^.Focused,255),
+                ScopeView^.GetText(ScopeView^.Focused,255),S,
                 S^.Items,S^.References);
             end;
       end;
@@ -597,6 +600,8 @@ begin
         case Event.KeyCode of
           kbEsc :
             Close;
+          kbCtrlB :
+            SelectTab(btBreakWatch);
           kbCtrlS :
             SelectTab(btScope);
           kbCtrlR :
@@ -627,6 +632,9 @@ end;
 
 procedure TBrowserWindow.SelectTab(BrowserTab: Sw_integer);
 var Tabs: Sw_integer;
+    PB : PBreakpoint;
+    PS :PString;
+    l : longint;
 begin
   case BrowserTab of
     btScope :
@@ -635,16 +643,77 @@ begin
     btReferences :
       if assigned(ReferenceView) then
         ReferenceView^.Select;
+    btBreakWatch :
+      begin
+        if Assigned(Sym) then
+          begin
+            if Pos('proc',Sym^.GetText)>0 then
+          { insert function breakpoint }
+            begin
+               { make it visible }
+               PS:=Sym^.Name;
+               l:=Length(PS^);
+               If PS^[l]='*' then
+                 begin
+                   PB:=BreakpointCollection^.GetType(bt_function,copy(GetStr(PS),1,l-1));
+                   If Assigned(PB) then
+                     BreakpointCollection^.Delete(PB);
+                   Sym^.Name:=NewStr(copy(GetStr(PS),1,l-1));
+                   DrawView;
+                   DisposeStr(PS);
+                 end
+               else
+                 begin
+                   Sym^.Name:=NewStr(GetStr(PS)+'*');
+                   DrawView;
+                   New(PB,init_function(GetStr(PS)));
+                   DisposeStr(PS);
+                   BreakpointCollection^.Insert(PB);
+                   BreakpointCollection^.Update;
+                 end;
+            end
+          else if pos('var',Sym^.GetText)>0 then
+            { insert watch point }
+            begin
+               { make it visible }
+               PS:=Sym^.Name;
+               l:=Length(PS^);
+               If PS^[l]='*' then
+                 begin
+                   PB:=BreakpointCollection^.GetType(bt_awatch,copy(PS^,1,l-1));
+                   If Assigned(PB) then
+                     BreakpointCollection^.Delete(PB);
+                   Sym^.Name:=NewStr(copy(PS^,1,l-1));
+                   DrawView;
+                   DisposeStr(PS);
+                 end
+               else
+                 begin
+                   Sym^.Name:=NewStr(GetStr(PS)+'*');
+                   DrawView;
+                   New(PB,init_type(bt_awatch,GetStr(PS)));
+                   DisposeStr(PS);
+                   BreakpointCollection^.Insert(PB);
+                   BreakpointCollection^.Update;
+                 end;
+            end;
+        end;
+      end;
+
   end;
   Tabs:=0;
   if assigned(ScopeView) then
     Tabs:=Tabs or btScope;
   if assigned(ReferenceView) then
     Tabs:=Tabs or btReferences;
+  if Assigned(Sym) then
+    if (Pos('proc',Sym^.GetText)>0) or (Pos('var',Sym^.GetText)>0) then
+      Tabs:=Tabs or btBreakWatch;
   if (Tabs and BrowserTab)=0 then
     if (Tabs and btScope)<>0 then BrowserTab:=btScope else
     if (Tabs and btReferences)<>0 then BrowserTab:=btReferences else
-      BrowserTab:=btInheritance;
+    if (Tabs and btInheritance)<>0 then BrowserTab:=btInheritance else
+      BrowserTab:=btBreakWatch;
   if PageTab<>nil then PageTab^.SetParams(Tabs,BrowserTab);
 end;
 
@@ -654,7 +723,7 @@ begin
   GetPalette:=@S;
 end;
 
-procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;
+procedure OpenSymbolBrowser(X,Y: Sw_integer;const Name,Line: string;S : PSymbol;
             Symbols: PSymbolCollection; References: PReferenceCollection);
 var R: TRect;
 begin
@@ -663,14 +732,18 @@ begin
   R.B.X:=R.A.X+35; R.B.Y:=R.A.Y+15;
   while (R.B.Y>Desktop^.Size.Y) do R.Move(0,-1);
   Desktop^.Insert(New(PBrowserWindow, Init(R,
-    'Browse: '+Name,SearchFreeWindowNo,Line,Symbols,References)));
+    'Browse: '+Name,SearchFreeWindowNo,S,Line,Symbols,References)));
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.5  1999-02-04 17:53:47  pierre
+  Revision 1.6  1999-02-10 09:44:59  pierre
+    + added B tab for functions and vars for break/watch
+      TBrowserWindow also stores the symbol itself for break/watchpoints
+
+  Revision 1.5  1999/02/04 17:53:47  pierre
    + OpenOneSymbolBrowser
 
   Revision 1.4  1999/02/04 13:16:14  pierre
