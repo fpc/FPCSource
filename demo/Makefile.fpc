@@ -28,3 +28,6 @@ installexamples:
         $(COPYTREE) * $(INSTALL_SOURCEDIR)
 
 demozip: zipsourceinstall
+
+[default]
+fpcdir=..
