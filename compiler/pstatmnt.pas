@@ -488,7 +488,7 @@ implementation
          paddr:=nil;
          pframe:=nil;
          consume(_RAISE);
-         if not(token in [_SEMICOLON,_END]) then
+         if not(token in [_SEMICOLON,_END,_ELSE]) then
            begin
               { object }
               pobj:=comp_expr(true);
@@ -1147,7 +1147,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-11-27 02:37:14  peter
+  Revision 1.82  2002-12-27 18:18:56  peter
+    * check for else after empty raise statement
+
+  Revision 1.81  2002/11/27 02:37:14  peter
     * case statement inlining added
     * fixed inlining of write()
     * switched statementnode left and right parts so the statements are
