@@ -108,7 +108,7 @@ interface
          cs_load_gpc_unit,
          { optimizer }
          cs_regalloc,cs_uncertainopts,cs_littlesize,cs_optimize,
-         cs_fastoptimize, cs_slowoptimize,
+         cs_fastoptimize, cs_slowoptimize,cs_align,
          { browser }
          cs_browser_log,
          { debugger }
@@ -223,7 +223,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-10-23 21:49:42  peter
+  Revision 1.18  2001-10-24 11:46:06  marco
+   * Opt Align fix.
+
+  Revision 1.17  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 
