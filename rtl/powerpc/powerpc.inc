@@ -613,7 +613,6 @@ end ['R0','R3','R4','R9','R10','CR0','CTR'];
                                  String
 ****************************************************************************}
 
-{!!! working but uses same define as SHORTSTR_ASSIGN
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 assembler;
@@ -626,8 +625,8 @@ asm
 
         { put min(length(sstr),len) in r4 }
         subfc   r7,r10,r4     { r0 := r4 - r10                               }
-        subfe   r6,r4,r4      { if r3 >= r4 then r3' := 0 else r3' := -1     }
-        and     r7,r7,r6      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
+        subfe   r4,r4,r4      { if r3 >= r4 then r3' := 0 else r3' := -1     }
+        and     r7,r7,r4      { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
         add     r4,r10,r7     { if r3 >= r4 then r3' := r10 else r3' := r3   }
 
         cmplwi  r4,0
@@ -641,9 +640,8 @@ LShortStrCopyLoop:
         bdnz    LShortStrCopyLoop
 LShortStrCopyDone:
 end ['R0','R3','R4','R5','R6','R7','R10','CR0','CTR'];
-}
 
-{!!!! buggy
+
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
 {$ifdef interncopy}
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
@@ -660,7 +658,7 @@ asm
 
         { put min(length(sstr),len) in r3 }
         subc    r0,r3,r10    { r0 := r3 - r10                               }
-        subfme  r3,r3        { if r3 >= r4 then r3' := 0 else r3' := -1     }
+        subfe   r3,r3,r3     { if r3 >= r4 then r3' := 0 else r3' := -1     }
         and     r3,r0,r3     { if r3 >= r4 then r3' := 0 else r3' := r3-r10 }
         add     r3,r3,r10    { if r3 >= r4 then r3' := r10 else r3' := r3   }
 
@@ -676,12 +674,8 @@ LShortStrCopyLoop2:
 LShortStrCopyDone2:
 end ['R0','R3','R4','R5','R10','CR0','CTR'];
 
-}
-
-(*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-BUGGY!! Probably the min is wrong, see fpc_shortstr_to_shortstr above
 
 function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
 { expects that results (r3) contains a pointer to the current string and s1 }
@@ -700,7 +694,7 @@ asm
       { calculate min(length(s1),255-length(result)) }
       subfic  r9,r9,255
       subc    r8,r9,r10    { r8 := r9 - r10                               }
-      subfme  r9,r9        { if r9 >= r10 then r9' := 0 else r9' := -1    }
+      subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
       and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
       add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
@@ -713,9 +707,8 @@ LShortStrConcatLoop:
       bdnz    LShortStrConcatLoop
 LShortStrConcatDone:
 end ['R3','R4','R8','R9','R10','CTR'];
-*)
 
-{!!!!!!!
+
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 assembler;
@@ -727,23 +720,26 @@ asm
       { save their difference for later and      }
       { calculate min(length(sstr),length(dstr)) }
       subfc    r7,r10,r9    { r0 := r9 - r10                               }
-      subfe    r6,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
-      and      r7,r7,r6     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
+      subfe    r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
+      and      r7,r7,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
       add      r9,r10,r7    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
       { first compare dwords (length/4) }
-      srwi.   r8,r9,2
+      srwi.   r5,r9,2
       { keep length mod 4 for the ends }
       rlwinm  r9,r9,0,30,31
       { already check whether length mod 4 = 0 }
       cmplwi  cr1,r9,0
+      { so we can load r3 with 0, in case the strings both have length 0 }
+      mr      r8,r3
+      li      r3, 0
       { length div 4 in ctr for loop }
-      mtctr   r8
+      mtctr   r5
       { if length < 3, goto byte comparing }
       beq     LShortStrCompare1
       { setup for use of update forms of load/store with dwords }
       subi    r4,r4,3
-      subi    r8,r3,3
+      subi    r8,r8,3
 LShortStrCompare4Loop:
       lwzu    r3,4(r4)
       lwzu    r10,4(r8)
@@ -758,18 +754,18 @@ LShortStrCompare1:
       { if comparelen mod 4 = 0, skip this and return the difference in }
       { lengths                                                         }
       beq     cr1,LShortStrCompareLen
+      mtctr   r9
 LShortStrCompare1Loop:
       lbzu    r3,1(r4)
       lbzu    r10,1(r8)
       sub.    r3,r3,r10
-      bdnzt   cr0+eq,LShortStrCompare4Loop
+      bdnzt   cr0+eq,LShortStrCompare1Loop
       bne     LShortStrCompareDone
 LShortStrCompareLen:
       { also return result in flags, maybe we can use this in the CG }
-      mr.     r3,r0
+      mr.     r3,r3
 LShortStrCompareDone:
-end ['R0','R3','R4','R6','R7','R8','R9','R10','CR0','CR1','CTR'];
-}
+end ['R0','R3','R4','R5','R6','R7','R8','R9','R10','CR0','CR1','CTR'];
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function fpc_pchar_to_shortstr(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
@@ -881,7 +877,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.36  2003-04-26 17:46:49  florian
+  Revision 1.37  2003-04-26 20:37:17  jonas
+    * fixed and re-enabled routines commented out by Florian :)
+
+  Revision 1.36  2003/04/26 17:46:49  florian
     * commented out not working routines
     * reactivated assembler fillchar
 
