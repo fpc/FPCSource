@@ -28,7 +28,7 @@ unit typinfo;
 // temporary types:
 
     type
-       ShortSTring=String;
+       ShortString=String;
        PByte      =^Byte;
        PBoolean   =^Boolean;
 
@@ -44,6 +44,10 @@ unit typinfo;
 
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,
                      ftFixed16,ftFixed32);
+       TMethodKind = (mkProcedure,mkFunction,mkSafeProcedure,mkSafeFunction);
+       TParamFlags = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
+       TIntfFlags = set of (ifHasGuid,ifDispInterface,ifDispatch);
+
 {$MINENUMSIZE DEFAULT}
 
    const
@@ -52,17 +56,15 @@ unit typinfo;
       ptVirtual = 2;
       ptConst = 3;
 
-   const
       tkString        = tkSString;
 
    type
-      TMethodKind = Byte;
-
       TTypeKinds = set of TTypeKind;
 
       TTypeInfo = record
          Kind : TTypeKind;
          Name : ShortString;
+         // here the type data follows as TTypeData record
       end;
 
       PTypeInfo = ^TTypeInfo;
@@ -96,6 +98,7 @@ unit typinfo;
                ParentInfo : PTypeInfo;
                PropCount : SmallInt;
                UnitName : ShortString
+               // here the properties follow as array of TPropInfo
               );
             tkMethod:
               ({!!!!!!!}
@@ -103,6 +106,12 @@ unit typinfo;
             tkInterface:
               ({!!!!!!!}
               );
+      end;
+
+      // unsed, just for completeness
+      TPropData = packed record
+        PropCount : Word;
+        PropList : record end;
       end;
 
       PPropInfo = ^TPropInfo;
@@ -134,19 +143,44 @@ unit typinfo;
       tkMethods = [tkMethod];
       tkProperties = tkAny-tkMethods-[tkUnknown];
 
+    { general property handling }
     // just skips the id and the name
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
     // searches in the property PropName
     function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-
-    // returns true, if PropInfo is a stored property
-    function IsStoredProp(Instance: TObject; PropInfo: PPropInfo): Boolean;
-    {
     procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
     function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
       PropList : PPropList) : Integer;
-    }
+
+    // returns true, if PropInfo is a stored property
+    function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+
+    { subroutines to read/write properties }
+    function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+    procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
+      Value : Longint);
+
+    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : string;
+    procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : string);
+
+    function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+    procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
+      Value : Extended);
+
+    function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+    procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value: Variant);
+
+    function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+    procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : TMethod);
+
+    { misc. stuff }
+    function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+    function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+
   implementation
 
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
@@ -185,7 +219,7 @@ unit typinfo;
            end;
       end;
 
-    function IsStoredProp(Instance: TObject; PropInfo: PPropInfo): Boolean;
+    function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
       type
          tbfunction = function : boolean of object;
@@ -220,11 +254,104 @@ unit typinfo;
          end;
       end;
 
+    procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
+      PropList : PPropList) : Integer;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
+      Value : Longint);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : string;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : string);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
+      Value : Extended);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value: Variant);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
+      const Value : TMethod);
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
+    function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+
+      begin
+         {!!!!!!!!!!!}
+      end;
+
 end.
 
 {
   $Log$
-  Revision 1.7  1998-09-08 09:52:31  florian
+  Revision 1.8  1998-09-19 08:33:53  florian
+    + some procedures added
+
+  Revision 1.7  1998/09/08 09:52:31  florian
     * small problems fixed
 
   Revision 1.6  1998/09/08 00:08:36  michael
