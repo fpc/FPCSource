@@ -643,7 +643,7 @@ begin
              end;
 
            'e' :
-             exepath:=FixPath(More,true);
+             exepath:=FixPath(FExpand(More),true);
 
            'E' :
              begin
@@ -667,11 +667,11 @@ begin
                        initsourcecodepage:=more;
                    end;
                  'D' :
-                   utilsdirectory:=FixPath(More,true);
+                   utilsdirectory:=FixPath(FExpand(More),true);
                  'e' :
                    SetRedirectFile(More);
                  'E' :
-                   OutputExeDir:=FixPath(More,true);
+                   OutputExeDir:=FixPath(FExpand(More),true);
                  'i' :
                    begin
                      if ispara then
@@ -712,7 +712,7 @@ begin
                        unitsearchpath.AddPath(More,true);
                    end;
                  'U' :
-                   OutputUnitDir:=FixPath(More,true);
+                   OutputUnitDir:=FixPath(FExpand(More),true);
                  else
                    IllegalPara(opt);
                end;
@@ -2087,7 +2087,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.141  2004-09-10 21:00:23  jonas
+  Revision 1.142  2004-09-16 16:31:53  peter
+    * Use FExpand on paths passed to compiler
+
+  Revision 1.141  2004/09/10 21:00:23  jonas
     * exit with exit code 0 instead of 1 after writing out quick options
       (such as -iV)
 
