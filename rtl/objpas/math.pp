@@ -114,6 +114,10 @@ interface
        EqualsValue = 0;
        LessThanValue = Low(TValueRelationship);
        GreaterThanValue = High(TValueRelationship);
+{$ifndef ver1_0}
+       NaN = 0.0/0.0;
+       Infinity = 1.0/0.0;
+{$endif ver1_0}
 
 { Min/max determination }
 function MinIntValue(const Data: array of Integer): Integer;
@@ -139,45 +143,44 @@ function Min(a, b: Extended): Extended;
 function Max(a, b: Extended): Extended;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean; 
-function InRange(const AValue, AMin, AMax: Int64): Boolean; 
+function InRange(const AValue, AMin, AMax: Integer): Boolean;
+function InRange(const AValue, AMin, AMax: Int64): Boolean;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean; 
+function InRange(const AValue, AMin, AMax: Double): Boolean;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer; 
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64; 
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double; 
+function EnsureRange(const AValue, AMin, AMax: Double): Double;
 {$endif FPC_HAS_TYPE_DOUBLE}
-
-
- 
-
 
 // Sign functions
 Type
   TValueSign = -1..1;
-  
+
 const
   NegativeValue = Low(TValueSign);
   ZeroValue = 0;
   PositiveValue = High(TValueSign);
-      
-function Sign(const AValue: Integer): TValueSign; 
-function Sign(const AValue: Int64): TValueSign; 
-function Sign(const AValue: Double): TValueSign; 
 
-function IsZero(const A: Single; Epsilon: Single): Boolean; 
-function IsZero(const A: Single): Boolean; 
+function Sign(const AValue: Integer): TValueSign;
+function Sign(const AValue: Int64): TValueSign;
+function Sign(const AValue: Double): TValueSign;
+
+function IsZero(const A: Single; Epsilon: Single): Boolean;
+function IsZero(const A: Single): Boolean;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function IsZero(const A: Double; Epsilon: Double): Boolean; 
-function IsZero(const A: Double): Boolean; 
+function IsZero(const A: Double; Epsilon: Double): Boolean;
+function IsZero(const A: Double): Boolean;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function IsZero(const A: Extended; Epsilon: Extended): Boolean; 
-function IsZero(const A: Extended): Boolean; 
+function IsZero(const A: Extended; Epsilon: Extended): Boolean;
+function IsZero(const A: Extended): Boolean;
 {$endif FPC_HAS_TYPE_EXTENDED}
+
+function IsNan(const d : Double): Boolean;
+function IsInfinite(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;
@@ -194,7 +197,7 @@ function SameValue(const A, B: Double; Epsilon: Double): Boolean;
 {$endif}
 function SameValue(const A, B: Single; Epsilon: Single): Boolean;
 
-        
+
 { angle conversion }
 
 function degtorad(deg : float) : float;
@@ -349,7 +352,7 @@ begin
 end;
 
 
-function Sign(const AValue: Integer): TValueSign; 
+function Sign(const AValue: Integer): TValueSign;
 
 begin
   If Avalue<0 then
@@ -360,7 +363,7 @@ begin
     Result:=ZeroValue;
 end;
 
-function Sign(const AValue: Int64): TValueSign; 
+function Sign(const AValue: Int64): TValueSign;
 
 begin
   If Avalue<0 then
@@ -381,7 +384,7 @@ begin
   else
     Result:=ZeroValue;
 end;
-        
+
 
 function degtorad(deg : float) : float;
 
@@ -1103,64 +1106,64 @@ begin
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean; 
+function InRange(const AValue, AMin, AMax: Integer): Boolean;
 
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
-function InRange(const AValue, AMin, AMax: Int64): Boolean; 
+function InRange(const AValue, AMin, AMax: Int64): Boolean;
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean; 
+function InRange(const AValue, AMin, AMax: Double): Boolean;
 
 begin
   Result:=(AValue>=AMin) and (AValue<=AMax);
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer; 
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;
 
 begin
   Result:=AValue;
   If Result<AMin then
     Result:=AMin
-  else if Result>AMax then  
+  else if Result>AMax then
     Result:=AMax;
 end;
 
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64; 
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;
 
 begin
   Result:=AValue;
   If Result<AMin then
     Result:=AMin
-  else if Result>AMax then  
+  else if Result>AMax then
     Result:=AMax;
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double; 
+function EnsureRange(const AValue, AMin, AMax: Double): Double;
 
 begin
   Result:=AValue;
   If Result<AMin then
     Result:=AMin
-  else if Result>AMax then  
+  else if Result>AMax then
     Result:=AMax;
 end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-Const 
+Const
   EZeroResolution = 1E-16;
   DZeroResolution = 1E-12;
   SZeroResolution = 1E-4;
 
 
-function IsZero(const A: Single; Epsilon: Single): Boolean; 
+function IsZero(const A: Single; Epsilon: Single): Boolean;
 
 begin
   if (Epsilon=0) then
@@ -1168,14 +1171,14 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Single): Boolean; 
+function IsZero(const A: Single): Boolean;
 
 begin
   Result:=IsZero(A,single(SZeroResolution));
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function IsZero(const A: Double; Epsilon: Double): Boolean; 
+function IsZero(const A: Double; Epsilon: Double): Boolean;
 
 begin
   if (Epsilon=0) then
@@ -1183,7 +1186,7 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Double): Boolean; 
+function IsZero(const A: Double): Boolean;
 
 begin
   Result:=IsZero(A,DZeroResolution);
@@ -1191,7 +1194,7 @@ end;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function IsZero(const A: Extended; Epsilon: Extended): Boolean; 
+function IsZero(const A: Extended; Epsilon: Extended): Boolean;
 
 begin
   if (Epsilon=0) then
@@ -1199,12 +1202,52 @@ begin
   Result:=Abs(A)<=Epsilon;
 end;
 
-function IsZero(const A: Extended): Boolean; 
+function IsZero(const A: Extended): Boolean;
 
 begin
   Result:=IsZero(A,EZeroResolution);
 end;
 {$endif FPC_HAS_TYPE_EXTENDED}
+
+
+type
+  TSplitDouble = packed record
+    cards: Array[0..1] of cardinal;
+  end;
+
+function IsNan(const d : Double): Boolean;
+  var
+    fraczero, expMaximal: boolean;
+  begin
+{$if defined(BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+    expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
+    fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
+                (TSplitDouble(d).cards[1] = 0);
+{$else BIG_ENDIAN}
+    expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
+    fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
+                (TSplitDouble(d).cards[0] = 0);
+{$endif BIG_ENDIAN}
+    Result:=expMaximal and not(fraczero);
+  end;
+
+
+function IsInfinite(const d : Double): Boolean;
+  var
+    fraczero, expMaximal: boolean;
+  begin
+{$if defined(BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+    expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
+    fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
+                (TSplitDouble(d).cards[1] = 0);
+{$else BIG_ENDIAN}
+    expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
+    fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
+                (TSplitDouble(d).cards[0] = 0);
+{$endif BIG_ENDIAN}
+    Result:=expMaximal and fraczero;
+  end;
+
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
@@ -1266,7 +1309,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2004-02-09 18:53:09  florian
+  Revision 1.20  2004-02-20 20:10:44  florian
+    + added Inf/Nan stuff
+
+  Revision 1.19  2004/02/09 18:53:09  florian
     * compilation on ppc fixed
 
   Revision 1.18  2004/02/09 17:21:04  marco
