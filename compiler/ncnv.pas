@@ -174,7 +174,7 @@ implementation
         pd:=nil;
         constsetlo:=0;
         constsethi:=0;
-        constp:=csetconstnode.create(nil,nil);
+        constp:=gensetconstnode(nil,nil);
         constp.value_set:=constset;
         buildp:=constp;
         if assigned(p.left) then
@@ -331,6 +331,7 @@ implementation
          end;
       { set the initial set type }
         constp.resulttype:=new(psetdef,init(pd,constsethi));
+        firstpass(buildp); 
       { set the new tree }
         p:=tarrayconstructornode(buildp);
       end;
@@ -1200,7 +1201,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-02-21 11:49:50  jonas
+  Revision 1.21  2001-03-08 17:44:47  jonas
+    * fixed web bug 1430
+
+  Revision 1.20  2001/02/21 11:49:50  jonas
     * evaluate typecasts of const pointers to ordinals inline ('merged')
 
   Revision 1.19  2001/02/20 18:37:10  peter
