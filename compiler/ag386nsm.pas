@@ -310,10 +310,8 @@ unit ag386nsm;
 
 
     procedure ti386nasmasmlist.WriteTree(p:paasmoutput);
-    type
-      twowords=record
-        word1,word2:word;
-      end;
+    const
+      allocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s,
       prefix,
@@ -333,13 +331,27 @@ unit ag386nsm;
       while assigned(hp) do
        begin
          case hp^.typ of
-       ait_comment : Begin
-                       AsmWrite(target_asm.comment);
-                       AsmWritePChar(pai_asm_comment(hp)^.str);
-                       AsmLn;
-                     End;
-       ait_regalloc,
-       ait_tempalloc : ;
+           ait_comment :
+             Begin
+               AsmWrite(target_asm.comment);
+               AsmWritePChar(pai_asm_comment(hp)^.str);
+               AsmLn;
+             End;
+
+           ait_regalloc :
+             begin
+               if (cs_asm_regalloc in aktglobalswitches) then
+                 AsmWriteLn(target_asm.comment+'Register '+att_reg2str[pairegalloc(hp)^.reg]+
+                   allocstr[pairegalloc(hp)^.allocation]);
+             end;
+
+           ait_tempalloc :
+             begin
+               if (cs_asm_tempalloc in aktglobalswitches) then
+                 AsmWriteLn(target_asm.comment+'Temp '+tostr(paitempalloc(hp)^.temppos)+','+
+                   tostr(paitempalloc(hp)^.tempsize)+allocstr[paitempalloc(hp)^.allocation]);
+             end;
+
        ait_section : begin
                        if pai_section(hp)^.sec<>sec_none then
                         begin
@@ -479,6 +491,9 @@ unit ag386nsm;
                            ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
+           ait_symbol_end :
+             begin
+             end;
    ait_instruction : begin
                      { We need intel order, no At&t }
                        paicpu(hp)^.SwapOperands;
@@ -602,7 +617,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.50  1999-09-02 18:47:43  daniel
+  Revision 1.51  1999-09-10 15:41:18  peter
+    * added symbol_end
+
+  Revision 1.50  1999/09/02 18:47:43  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.

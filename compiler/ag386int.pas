@@ -294,6 +294,8 @@ unit ag386int;
     end;
 
     procedure ti386intasmlist.WriteTree(p:paasmoutput);
+    const
+      allocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s,
       prefix,
@@ -475,6 +477,8 @@ unit ag386int;
                            ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
+    ait_symbol_end : begin
+                     end;
    ait_instruction : begin
                      { We need intel order, no At&t }
                        paicpu(hp)^.SwapOperands;
@@ -627,7 +631,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.53  1999-09-02 18:47:42  daniel
+  Revision 1.54  1999-09-10 15:41:18  peter
+    * added symbol_end
+
+  Revision 1.53  1999/09/02 18:47:42  daniel
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
