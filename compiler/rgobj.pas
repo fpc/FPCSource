@@ -1278,7 +1278,7 @@ unit rgobj;
             for j:=0 to adj^.length-1 do
               begin
                 a:=get_alias(adj^.buf^[j]);
-                if supregset_in(colourednodes,a) then
+                if supregset_in(colourednodes,a) and (reginfo[a].colour<=255) then
                   include(adj_colours,reginfo[a].colour);
               end;
           include(adj_colours,RS_STACK_POINTER_REG);
@@ -1986,7 +1986,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.132  2004-07-08 09:57:55  daniel
+  Revision 1.133  2004-07-09 21:38:30  daniel
+    * Add check <= 255 when adding to adj_colours
+
+  Revision 1.132  2004/07/08 09:57:55  daniel
     * Use a normal pascal set in assign_colours, since it only will contain
       real registers
 
