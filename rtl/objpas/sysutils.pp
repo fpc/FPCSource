@@ -100,19 +100,18 @@ interface
   { Read date & Time function declarations }
   {$i datih.inc}
 
-
   { Read String Handling functions declaration }
   {$i sysstrh.inc}
-
 
   { Read pchar handling functions declration }
   {$i syspchh.inc}
 
   { Read filename handling functions declaration }
-
   {$i finah.inc}
 
-
+  { Read other file handling function declarations }
+  {$i filutilh.inc}
+  
   implementation
   
   { Read message string definitions }
@@ -128,26 +127,26 @@ interface
   {$ENDIF}
 
   { Read filename handling functions implementation }
-
   {$i fina.inc}
 
+  { Read other file handling function implementations }
+  {$i filutil.inc}
+  
   { Read date & Time function implementations }
   {$i dati.inc}
-
 
   { Read String Handling functions implementation }
   {$i sysstr.inc}
 
-
   { Read pchar handling functions implementation }
   {$i syspch.inc}
+
 
     constructor exception.create(const msg : string);
 
       begin
          inherited create;
          fmessage:=msg;
-         {!!!!!}
       end;
 
 {$ifdef autoobjpas}
@@ -275,7 +274,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.15  1998-10-10 09:53:10  michael
+    Revision 1.16  1998-10-11 12:23:41  michael
+    + More sysutils calls.
+
+    Revision 1.15  1998/10/10 09:53:10  michael
     Added assertion handling
 
     Revision 1.14  1998/10/03 15:08:05  florian
