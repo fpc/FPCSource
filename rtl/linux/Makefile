@@ -266,6 +266,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
 #
 # Other system-dependent RTL Units
@@ -281,7 +282,10 @@ ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.24  1999-05-05 22:24:08  peter
+# Revision 1.25  1999-05-13 07:39:07  michael
+# + Fix in heaptrc target: needs -Sg
+#
+# Revision 1.24  1999/05/05 22:24:08  peter
 #   * 0.99.10 check for browser
 #
 # Revision 1.23  1999/05/04 11:59:45  peter
