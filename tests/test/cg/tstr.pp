@@ -10,6 +10,7 @@ var
   s: tlocalstring;
   len: byte;
   frac: word;
+  longval : longint;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -52,18 +53,37 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
+{$ifndef FPU_EMULATION}  
   str(f,s);
   check('-1.123450000000000E+000');
-  str(f:0,s);
-  check('-1.1E+000');
-  str(f:1,s);
-  check('-1.1E+000');
-  str(f:2,s);
-  check('-1.1E+000');
-  str(f:3,s);
-  check('-1.1E+000');
-  str(f:4,s);
-  check('-1.1E+000');
+{$endif}  
+  { the number of exponents depends on the maaping of the real type }
+  if sizeof(real) = 8 then
+    begin
+      str(f:0,s);
+      check('-1.1E+000');
+      str(f:1,s);
+      check('-1.1E+000');
+      str(f:2,s);
+      check('-1.1E+000');
+      str(f:3,s);
+      check('-1.1E+000');
+      str(f:4,s);
+      check('-1.1E+000');
+    end
+  else
+    begin
+      str(f:0,s);
+      check('-1.1E+00');
+      str(f:1,s);
+      check('-1.1E+00');
+      str(f:2,s);
+      check('-1.1E+00');
+      str(f:3,s);
+      check('-1.1E+00');
+      str(f:4,s);
+      check('-1.1E+00');
+    end;
   str(f:0:0,s);
   check('-1');
   str(f:0:1,s);
@@ -96,6 +116,29 @@ begin
   check('-1');
   str(i:3,s);
   check(' -1');
+  i:=655536;
+  str(i,s);
+  check('655536');
+  str(i:0,s);
+  check('655536');
+  str(i:1,s);
+  check('655536');
+  str(i:2,s);
+  check('655536');
+  str(i:3,s);
+  check('655536');
+  longval:=1;
+  i:=int64(longval) shl 33;
+  str(i,s);
+  check('8589934592');
+  str(i:0,s);
+  check('8589934592');
+  str(i:1,s);
+  check('8589934592');
+  str(i:2,s);
+  check('8589934592');
+  str(i:3,s);
+  check('8589934592');
 
   q := 10;
   str(q,s);
@@ -108,6 +151,29 @@ begin
   check('10');
   str(q:3,s);
   check(' 10');
+  q:=655536;
+  str(q,s);
+  check('655536');
+  str(q:0,s);
+  check('655536');
+  str(q:1,s);
+  check('655536');
+  str(q:2,s);
+  check('655536');
+  str(q:3,s);
+  check('655536');
+  longval:=1;
+  q:=qword(longval) shl 33;
+  str(q,s);
+  check('8589934592');
+  str(q:0,s);
+  check('8589934592');
+  str(q:1,s);
+  check('8589934592');
+  str(q:2,s);
+  check('8589934592');
+  str(q:3,s);
+  check('8589934592');
 end;
 
 procedure test_ansistr;
@@ -122,6 +188,7 @@ var
   s: tlocalstring;
   len: shortint;
   frac: smallint;
+  longval : longint;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -164,18 +231,37 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
+{$ifndef FPU_EMULATION}  
   str(f,s);
   check('-1.123450000000000E+000');
-  str(f:0,s);
-  check('-1.1E+000');
-  str(f:1,s);
-  check('-1.1E+000');
-  str(f:2,s);
-  check('-1.1E+000');
-  str(f:3,s);
-  check('-1.1E+000');
-  str(f:4,s);
-  check('-1.1E+000');
+{$endif}  
+  { the number of exponents depends on the maaping of the real type }
+  if sizeof(real) = 8 then
+    begin
+      str(f:0,s);
+      check('-1.1E+000');
+      str(f:1,s);
+      check('-1.1E+000');
+      str(f:2,s);
+      check('-1.1E+000');
+      str(f:3,s);
+      check('-1.1E+000');
+      str(f:4,s);
+      check('-1.1E+000');
+    end
+  else
+    begin
+      str(f:0,s);
+      check('-1.1E+00');
+      str(f:1,s);
+      check('-1.1E+00');
+      str(f:2,s);
+      check('-1.1E+00');
+      str(f:3,s);
+      check('-1.1E+00');
+      str(f:4,s);
+      check('-1.1E+00');
+    end;
   str(f:0:0,s);
   check('-1');
   str(f:0:1,s);
@@ -208,6 +294,29 @@ begin
   check('-1');
   str(i:3,s);
   check(' -1');
+  i:=655536;
+  str(i,s);
+  check('655536');
+  str(i:0,s);
+  check('655536');
+  str(i:1,s);
+  check('655536');
+  str(i:2,s);
+  check('655536');
+  str(i:3,s);
+  check('655536');
+  longval:=1;
+  i:=int64(longval) shl 33;
+  str(i,s);
+  check('8589934592');
+  str(i:0,s);
+  check('8589934592');
+  str(i:1,s);
+  check('8589934592');
+  str(i:2,s);
+  check('8589934592');
+  str(i:3,s);
+  check('8589934592');
 
   q := 10;
   str(q,s);
@@ -220,6 +329,29 @@ begin
   check('10');
   str(q:3,s);
   check(' 10');
+  q:=655536;
+  str(q,s);
+  check('655536');
+  str(q:0,s);
+  check('655536');
+  str(q:1,s);
+  check('655536');
+  str(q:2,s);
+  check('655536');
+  str(q:3,s);
+  check('655536');
+  longval:=1;
+  q:=qword(longval) shl 33;
+  str(q,s);
+  check('8589934592');
+  str(q:0,s);
+  check('8589934592');
+  str(q:1,s);
+  check('8589934592');
+  str(q:2,s);
+  check('8589934592');
+  str(q:3,s);
+  check('8589934592');
 end;
 
 {$ifdef haswidestring}
@@ -235,6 +367,7 @@ var
   s: tlocalstring;
   len: longint;
   frac: cardinal;
+  longval : longint;
 
   procedure check(const ss: tlocalstring);
   begin
@@ -277,18 +410,37 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
+{$ifndef FPU_EMULATION}  
   str(f,s);
   check('-1.123450000000000E+000');
-  str(f:0,s);
-  check('-1.1E+000');
-  str(f:1,s);
-  check('-1.1E+000');
-  str(f:2,s);
-  check('-1.1E+000');
-  str(f:3,s);
-  check('-1.1E+000');
-  str(f:4,s);
-  check('-1.1E+000');
+{$endif}  
+  { the number of exponents depends on the maaping of the real type }
+  if sizeof(real) = 8 then
+    begin
+      str(f:0,s);
+      check('-1.1E+000');
+      str(f:1,s);
+      check('-1.1E+000');
+      str(f:2,s);
+      check('-1.1E+000');
+      str(f:3,s);
+      check('-1.1E+000');
+      str(f:4,s);
+      check('-1.1E+000');
+    end
+  else
+    begin
+      str(f:0,s);
+      check('-1.1E+00');
+      str(f:1,s);
+      check('-1.1E+00');
+      str(f:2,s);
+      check('-1.1E+00');
+      str(f:3,s);
+      check('-1.1E+00');
+      str(f:4,s);
+      check('-1.1E+00');
+    end;
   str(f:0:0,s);
   check('-1');
   str(f:0:1,s);
@@ -321,6 +473,29 @@ begin
   check('-1');
   str(i:3,s);
   check(' -1');
+  i:=655536;
+  str(i,s);
+  check('655536');
+  str(i:0,s);
+  check('655536');
+  str(i:1,s);
+  check('655536');
+  str(i:2,s);
+  check('655536');
+  str(i:3,s);
+  check('655536');
+  longval:=1;
+  i:=int64(longval) shl 33;
+  str(i,s);
+  check('8589934592');
+  str(i:0,s);
+  check('8589934592');
+  str(i:1,s);
+  check('8589934592');
+  str(i:2,s);
+  check('8589934592');
+  str(i:3,s);
+  check('8589934592');
 
   q := 10;
   str(q,s);
@@ -333,6 +508,29 @@ begin
   check('10');
   str(q:3,s);
   check(' 10');
+  q:=655536;
+  str(q,s);
+  check('655536');
+  str(q:0,s);
+  check('655536');
+  str(q:1,s);
+  check('655536');
+  str(q:2,s);
+  check('655536');
+  str(q:3,s);
+  check('655536');
+  longval:=1;
+  q:=qword(longval) shl 33;
+  str(q,s);
+  check('8589934592');
+  str(q:0,s);
+  check('8589934592');
+  str(q:1,s);
+  check('8589934592');
+  str(q:2,s);
+  check('8589934592');
+  str(q:3,s);
+  check('8589934592');
 end;
 {$endif haswidestring}
 
