@@ -64,11 +64,14 @@ ifeq ($(OS_TARGET),win32)
         $(FPC) -n -Fuunits -FEunits utils/win32err.pp
 endif
 
+ifndef DOTEST
 DOTEST=./dotest$(EXEEXT)
+DOTESTDEP+=$(DOTEST)
 $(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
         $(FPC) -n -Fuunits -FE. utils/dotest.pp
         $(FPC) -n -Fuunits -FE. utils/fail.pp
         $(FPC) -n -Fuunits -FE. utils/testfail.pp
+endif
 
 ifneq ($(wildcard ./testfail$(SRCEXEEXT)),)
 TESTCOMSPECRES:=$(shell ./testfail$(SRCEXEEXT))
@@ -81,21 +84,24 @@ endif
 #
 # Digest program
 #
-ifeq ($(USESQL),YES)
-DIGESTEXE=./dbdigest$(EXEEXT)
-DIGEST=$(DIGESTEXE) -v $(FPCVERSION)
-else
-DIGESTEXE=./digest$(EXEXEXT)
-DIGEST=$(DIGESTEXE)
+ifndef DBDIGEST
+DBDIGEST=./dbdigest$(EXEEXT)
+DIGESTDEP+=$(DBDIGEST)
+
+$(DBDIGEST) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
+        $(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
 endif
 
-./digest$(EXEEXT) : units utils/digest.pp utils/teststr.pp utils/testu.pp
+ifndef DIGEST
+DIGEST=./digest$(EXEEXT)
+DIGESTDEP+=$(DIGEST)
+
+$(DIGEST) : units utils/digest.pp utils/teststr.pp utils/testu.pp
         $(FPC) -n -Fuunits -FE. utils/digest.pp
+endif
 
-./dbdigest$(EXEEXT) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
-        $(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
 
-testcheck: units allpreps $(DOTEST)
+testcheck: units allpreps $(DOTESTDEP)
 
 #
 # Dotest options
@@ -130,10 +136,10 @@ endif
 
 DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/units/objects
 
-%.log : %.pp $(DOTEST)
+%.log : %.pp $(DOTESTDEP)
         $(DOTEST) $(DOTESTOPT) $<
 
-%.elg : %.pp $(DOTEST)
+%.elg : %.pp $(DOTESTDEP)
         $(DOTEST) $(DOTESTOPT) -e $<
 
 #
@@ -221,8 +227,11 @@ distclean: clean
 
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 
-rundigest : $(DIGESTEXE)
+rundigest : $(DIGESTDEP)
         -$(DIGEST)
+ifeq ($(USESQL),YES)
+        -$(DBDIGEST) -v $(FPC_VERSION)
+endif
 
 all : allexectests
 

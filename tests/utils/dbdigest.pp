@@ -146,7 +146,6 @@ Var
   Found : Boolean;
 
 begin
-  TS:=FirstStatus;
   Result:=False;
   For TS:=FirstStatus to LastStatus do
     begin
@@ -158,7 +157,6 @@ begin
       ExtractTestFileName(Line);
       Break;
       end;
-    TS:=succ(TS);
     end;
 end;
 
@@ -409,6 +407,7 @@ end;
 
 
 begin
+  Doverbose:=True;
   ProcessConfigFile('dbdigest.cfg');
   ProcessCommandLine;
   If LogFileName<>'' then
@@ -423,7 +422,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-10-04 21:30:21  florian
+  Revision 1.7  2003-10-06 16:53:04  fpc
+    * allow digest programs on commandline
+
+  Revision 1.6  2003/10/04 21:30:21  florian
     + added time to timestamp so multiple runs per day can be done
 
   Revision 1.5  2003/10/03 22:51:02  michael
