@@ -23,23 +23,29 @@
 unit cg386con;
 interface
 
-   uses tree;
+    uses
+      tree;
 
     procedure secondrealconst(var p : ptree);
     procedure secondfixconst(var p : ptree);
     procedure secondordconst(var p : ptree);
-    procedure secondniln(var p : ptree);
     procedure secondstringconst(var p : ptree);
+    procedure secondsetcons(var p : ptree);
+    procedure secondniln(var p : ptree);
+
 
 implementation
 
-   uses
-     cobjects,verbose,
-     symtable,aasm,i386,
-     hcodegen;
+    uses
+      cobjects,verbose,
+      symtable,aasm,i386,
+      hcodegen,cgai386,tgeni386,cgi386;
+
+{*****************************************************************************
+                             SecondRealConst
+*****************************************************************************}
 
     procedure secondrealconst(var p : ptree);
-
       var
          hp1 : pai;
          lastlabel : plabel;
@@ -96,8 +102,12 @@ implementation
            p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,constreal));
       end;
 
-    procedure secondfixconst(var p : ptree);
 
+{*****************************************************************************
+                             SecondFixConst
+*****************************************************************************}
+
+    procedure secondfixconst(var p : ptree);
       begin
          { an fix comma const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
@@ -105,8 +115,12 @@ implementation
          p^.location.reference.offset:=p^.valuef;
       end;
 
-    procedure secondordconst(var p : ptree);
 
+{*****************************************************************************
+                             SecondOrdConst
+*****************************************************************************}
+
+    procedure secondordconst(var p : ptree);
       begin
          { an integer const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
@@ -114,16 +128,12 @@ implementation
          p^.location.reference.offset:=p^.value;
       end;
 
-    procedure secondniln(var p : ptree);
 
-      begin
-         p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
-         p^.location.reference.offset:=0;
-      end;
+{*****************************************************************************
+                             SecondStringConst
+*****************************************************************************}
 
     procedure secondstringconst(var p : ptree);
-
       var
          hp1 : pai;
          lastlabel : plabel;
@@ -186,9 +196,9 @@ implementation
 
                    concat_constlabel(lastlabel,conststring);
 {$ifdef UseAnsiString}
-  {$ifdef debug}
+{$ifdef debug}
                    consts^.concat(new(pai_asm_comment,init('Header of ansistring')));
-  {$endif debug}
+{$endif debug}
                    consts^.concat(new(pai_const,init_32bit(p^.length)));
                    consts^.concat(new(pai_const,init_32bit(p^.length)));
                    consts^.concat(new(pai_const,init_32bit(-1)));
@@ -209,10 +219,119 @@ implementation
          p^.location.loc := LOC_MEM;
       end;
 
+
+{*****************************************************************************
+                             SecondSetCons
+*****************************************************************************}
+
+    procedure secondsetcons(var p : ptree);
+      var
+         l : plabel;
+         i : longint;
+         hp : ptree;
+         href,sref : treference;
+{$ifdef TestSmallSet}
+         smallsetvalue : longint;
+         hr,hr2 : tregister;
+{$endif TestSmallSet}
+      begin
+         { this should be reimplemented for smallsets }
+         { differently  (PM) }
+         { produce constant part }
+{$ifdef TestSmallSet}
+         if psetdef(p^.resulttype)^.settype=smallset then
+           begin
+              smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
+              smallsetvalue:=(smallsetvalue*256+p^.constset^[1])*256+p^.constset^[0];
+              {consts^.concat(new(pai_const,init_32bit(smallsetvalue)));}
+              hr:=getregister32;
+              exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,
+                smallsetvalue,hr)));
+              hp:=p^.left;
+              if assigned(hp) then
+                begin
+                   while assigned(hp) do
+                     begin
+                        secondpass(hp^.left);
+                        if codegenerror then
+                          exit;
+                        case hp^.left^.location.loc of
+                          LOC_MEM,LOC_REFERENCE :
+                            begin
+                               hr2:=getregister32;
+                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                               newreference(hp^.left^.location.reference),hr2)));
+                               exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
+                                 hr2,hr)));
+                               ungetregister32(hr2);
+                            end;
+                          LOC_REGISTER,LOC_CREGISTER :
+                            exprasmlist^.concat(new(pai386,op_reg_reg(A_BTS,S_NO,
+                              hp^.left^.location.register,hr)));
+                          else
+                            internalerror(10567);
+                          end;
+                        hp:=hp^.right;
+                     end;
+                end;
+              p^.location.loc:=LOC_REGISTER;
+              p^.location.register:=hr;
+           end
+         else
+{$endif TestSmallSet}
+           begin
+             href.symbol := Nil;
+             clear_reference(href);
+             getlabel(l);
+             stringdispose(p^.location.reference.symbol);
+             href.symbol:=stringdup(constlabel2str(l,constseta));
+             concat_constlabel(l,constseta);
+             for i:=0 to 31 do
+               consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+             hp:=p^.left;
+             if assigned(hp) then
+               begin
+                  sref.symbol:=nil;
+                  gettempofsizereference(32,sref);
+                  concatcopy(href,sref,32,false);
+                  while assigned(hp) do
+                    begin
+                       secondpass(hp^.left);
+                       if codegenerror then
+                         exit;
+                       pushsetelement(hp^.left);
+                       emitpushreferenceaddr(sref);
+                       { register is save in subroutine }
+                       emitcall('SET_SET_BYTE',true);
+                       hp:=hp^.right;
+                    end;
+                  p^.location.reference:=sref;
+               end
+             else
+               p^.location.reference:=href;
+           end;
+      end;
+
+
+{*****************************************************************************
+                             SecondNilN
+*****************************************************************************}
+
+    procedure secondniln(var p : ptree);
+      begin
+         p^.location.loc:=LOC_MEM;
+         p^.location.reference.isintvalue:=true;
+         p^.location.reference.offset:=0;
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.2  1998-06-05 16:13:31  pierre
+  Revision 1.3  1998-06-05 17:44:11  peter
+    * splitted cgi386
+
+  Revision 1.2  1998/06/05 16:13:31  pierre
     * fix for real and string consts inside inlined procs
 
   Revision 1.1  1998/05/23 01:21:02  peter

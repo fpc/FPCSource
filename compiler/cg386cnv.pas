@@ -26,9 +26,13 @@
 unit cg386cnv;
 interface
 
-   uses tree;
+    uses
+      tree;
 
     procedure secondtypeconv(var p : ptree);
+    procedure secondas(var p : ptree);
+    procedure secondis(var p : ptree);
+
 
 implementation
 
@@ -37,17 +41,19 @@ implementation
      symtable,aasm,i386,
      cgi386,cgai386,tgeni386,hcodegen;
 
-
-    { produces if necessary rangecheckcode }
+{*****************************************************************************
+                             SecondTypeConv
+*****************************************************************************}
 
      procedure maybe_rangechecking(p : ptree;p2,p1 : pdef);
-
+     {
+       produces if necessary rangecheckcode
+     }
        var
           hp : preference;
           hregister : tregister;
           neglabel,poslabel : plabel;
           is_register : boolean;
-
       begin
          { convert from p2 to p1 }
          { range check from enums is not made yet !!}
@@ -947,10 +953,119 @@ implementation
            secondconvert[p^.convtyp](p,p^.left,p^.convtyp)
       end;
 
+
+{*****************************************************************************
+                             SecondIs
+*****************************************************************************}
+
+    procedure secondis(var p : ptree);
+      var
+         pushed : tpushed;
+
+      begin
+         { save all used registers }
+         pushusedregisters(pushed,$ff);
+         secondpass(p^.left);
+         p^.location.loc:=LOC_FLAGS;
+         p^.location.resflags:=F_NE;
+
+         { push instance to check: }
+         case p^.left^.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
+                   S_L,p^.left^.location.register)));
+                 ungetregister32(p^.left^.location.register);
+              end;
+            LOC_MEM,LOC_REFERENCE:
+              begin
+                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
+                   S_L,newreference(p^.left^.location.reference))));
+                 del_reference(p^.left^.location.reference);
+              end;
+            else internalerror(100);
+         end;
+
+         { generate type checking }
+         secondpass(p^.right);
+         case p^.right^.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
+                   S_L,p^.right^.location.register)));
+                 ungetregister32(p^.right^.location.register);
+              end;
+            LOC_MEM,LOC_REFERENCE:
+              begin
+                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
+                   S_L,newreference(p^.right^.location.reference))));
+                 del_reference(p^.right^.location.reference);
+              end;
+            else internalerror(100);
+         end;
+         emitcall('DO_IS',true);
+         exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
+         popusedregisters(pushed);
+      end;
+
+
+{*****************************************************************************
+                             SecondAs
+*****************************************************************************}
+
+    procedure secondas(var p : ptree);
+      var
+         pushed : tpushed;
+      begin
+         secondpass(p^.left);
+         { save all used registers }
+         pushusedregisters(pushed,$ff);
+
+         { push instance to check: }
+         case p^.left^.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
+                S_L,p^.left^.location.register)));
+            LOC_MEM,LOC_REFERENCE:
+              exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
+                S_L,newreference(p^.left^.location.reference))));
+            else internalerror(100);
+         end;
+
+         { we doesn't modifiy the left side, we check only the type }
+         set_location(p^.location,p^.left^.location);
+
+         { generate type checking }
+         secondpass(p^.right);
+         case p^.right^.location.loc of
+            LOC_REGISTER,LOC_CREGISTER:
+              begin
+                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,
+                   S_L,p^.right^.location.register)));
+                 ungetregister32(p^.right^.location.register);
+              end;
+            LOC_MEM,LOC_REFERENCE:
+              begin
+                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,
+                   S_L,newreference(p^.right^.location.reference))));
+                 del_reference(p^.right^.location.reference);
+              end;
+            else internalerror(100);
+         end;
+         emitcall('DO_AS',true);
+         { restore register, this restores automatically the }
+         { result                                            }
+         popusedregisters(pushed);
+      end;
+
+
 end.
 {
   $Log$
-  Revision 1.3  1998-06-03 22:48:50  peter
+  Revision 1.4  1998-06-05 17:44:10  peter
+    * splitted cgi386
+
+  Revision 1.3  1998/06/03 22:48:50  peter
     + wordbool,longbool
     * rename bis,von -> high,low
     * moved some systemunit loading/creating to psystem.pas

@@ -23,21 +23,27 @@
 unit cg386mat;
 interface
 
-   uses tree;
+    uses
+      tree;
 
     procedure secondmoddiv(var p : ptree);
     procedure secondshlshr(var p : ptree);
     procedure secondumminus(var p : ptree);
+    procedure secondnot(var p : ptree);
+
 
 implementation
 
-   uses
-     cobjects,verbose,globals,
-     symtable,aasm,i386,
-     types,cgi386,cgai386,tgeni386,hcodegen;
+    uses
+      cobjects,verbose,globals,
+      symtable,aasm,i386,
+      types,cgi386,cgai386,tgeni386,hcodegen;
+
+{*****************************************************************************
+                             SecondModDiv
+*****************************************************************************}
 
     procedure secondmoddiv(var p : ptree);
-
       var
          hreg1 : tregister;
          pushed,popeax,popedx : boolean;
@@ -159,13 +165,16 @@ implementation
          p^.location.register:=hreg1;
       end;
 
-    procedure secondshlshr(var p : ptree);
 
+{*****************************************************************************
+                             SecondShlShr
+*****************************************************************************}
+
+    procedure secondshlshr(var p : ptree);
       var
          hregister1,hregister2,hregister3 : tregister;
          pushed,popecx : boolean;
          op : tasmop;
-
       begin
          popecx:=false;
 
@@ -270,14 +279,17 @@ implementation
          usedinproc:=usedinproc or ($80 shr byte(R_ECX));
       end;
 
+
+{*****************************************************************************
+                             SecondUmMinus
+*****************************************************************************}
+
     procedure secondumminus(var p : ptree);
 
 {$ifdef SUPPORT_MMX}
       procedure do_mmx_neg;
-
         var
            op : tasmop;
-
         begin
            p^.location.loc:=LOC_MMXREGISTER;
            if cs_mmx_saturation in aktswitches then
@@ -382,10 +394,165 @@ implementation
 {         emitoverflowcheck(p);}
       end;
 
+
+{*****************************************************************************
+                               SecondNot
+*****************************************************************************}
+
+    procedure secondnot(var p : ptree);
+      const
+         flagsinvers : array[F_E..F_BE] of tresflags =
+            (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
+             F_A,F_AE,F_B,F_BE);
+      var
+         hl : plabel;
+         opsize : topsize;
+      begin
+         if (p^.resulttype^.deftype=orddef) and
+            (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
+              begin
+                 case porddef(p^.resulttype)^.typ of
+                   bool8bit : opsize:=S_B;
+                  bool16bit : opsize:=S_W;
+                  bool32bit : opsize:=S_L;
+                 end;
+                 case p^.location.loc of
+                    LOC_JUMP : begin
+                                  hl:=truelabel;
+                                  truelabel:=falselabel;
+                                  falselabel:=hl;
+                                  secondpass(p^.left);
+                                  maketojumpbool(p^.left);
+                                  hl:=truelabel;
+                                  truelabel:=falselabel;
+                                  falselabel:=hl;
+                               end;
+                    LOC_FLAGS : begin
+                                   secondpass(p^.left);
+                                   p^.location.resflags:=flagsinvers[p^.left^.location.resflags];
+                                end;
+                    LOC_REGISTER : begin
+                                      secondpass(p^.left);
+                                      p^.location.register:=p^.left^.location.register;
+                                      exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                                   end;
+                    LOC_CREGISTER : begin
+                                       secondpass(p^.left);
+                                       p^.location.loc:=LOC_REGISTER;
+                                       case porddef(p^.resulttype)^.typ of
+                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
+                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
+                                        bool32bit : p^.location.register:=getregister32;
+                                       end;
+                                       emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register);
+                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                                    end;
+                    LOC_REFERENCE,
+                          LOC_MEM : begin
+                                       secondpass(p^.left);
+                                       del_reference(p^.left^.location.reference);
+                                       p^.location.loc:=LOC_REGISTER;
+                                       case porddef(p^.resulttype)^.typ of
+                                         bool8bit : p^.location.register:=reg32toreg8(getregister32);
+                                        bool16bit : p^.location.register:=reg32toreg16(getregister32);
+                                        bool32bit : p^.location.register:=getregister32;
+                                       end;
+                                       if p^.left^.location.loc=LOC_CREGISTER then
+                                         emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
+                                       else
+                                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                           newreference(p^.left^.location.reference),p^.location.register)));
+                                       exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                                     end;
+                 end;
+              end
+{$ifdef SUPPORT_MMX}
+            else if (cs_mmx in aktswitches) and is_mmx_able_array(p^.left^.resulttype) then
+              begin
+                 secondpass(p^.left);
+                 p^.location.loc:=LOC_MMXREGISTER;
+                 { prepare EDI }
+                 exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_L,$ffffffff,R_EDI)));
+                 { load operand }
+                 case p^.left^.location.loc of
+                    LOC_MMXREGISTER:
+                      p^.location:=p^.left^.location;
+                    LOC_CMMXREGISTER:
+                      begin
+                         p^.location.register:=getregistermmx;
+                         emit_reg_reg(A_MOVQ,S_NO,p^.left^.location.register,
+                           p^.location.register);
+                      end;
+                    LOC_REFERENCE,LOC_MEM:
+                      begin
+                         del_reference(p^.left^.location.reference);
+                         p^.location.register:=getregistermmx;
+                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVQ,S_NO,
+                           newreference(p^.left^.location.reference),
+                           p^.location.register)));
+                      end;
+                 end;
+                 { load mask }
+                 emit_reg_reg(A_MOV,S_D,R_EDI,R_MM7);
+                 { lower 32 bit }
+                 emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
+                 { shift mask }
+                 exprasmlist^.concat(new(pai386,op_const_reg(A_PSLLQ,S_NO,
+                   32,R_MM7)));
+                 { higher 32 bit }
+                 emit_reg_reg(A_PXOR,S_D,R_MM7,p^.location.register);
+              end
+{$endif SUPPORT_MMX}
+            else
+              begin
+                secondpass(p^.left);
+                p^.location.loc:=LOC_REGISTER;
+
+                case p^.left^.location.loc of
+                   LOC_REGISTER : begin
+                                     p^.location.register:=p^.left^.location.register;
+                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                                  end;
+                   LOC_CREGISTER : begin
+                                     p^.location.register:=getregister32;
+                                     emit_reg_reg(A_MOV,S_L,p^.left^.location.register,
+                                       p^.location.register);
+                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                                   end;
+                   LOC_REFERENCE,LOC_MEM :
+                                  begin
+                                     del_reference(p^.left^.location.reference);
+                                     p^.location.register:=getregister32;
+                                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                       newreference(p^.left^.location.reference),
+                                       p^.location.register)));
+                                     exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));
+                                  end;
+                end;
+                {if  p^.left^.location.loc=loc_register then
+                  p^.location.register:=p^.left^.location.register
+                else
+                  begin
+                     del_locref(p^.left^.location);
+                     p^.location.register:=getregister32;
+                     exprasmlist^.concat(new(pai386,op_loc_reg(A_MOV,S_L,
+                       p^.left^.location,
+                       p^.location.register)));
+                  end;
+                exprasmlist^.concat(new(pai386,op_reg(A_NOT,S_L,p^.location.register)));}
+
+             end;
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.2  1998-06-02 17:02:59  pierre
+  Revision 1.3  1998-06-05 17:44:12  peter
+    * splitted cgi386
+
+  Revision 1.2  1998/06/02 17:02:59  pierre
     *  with node corrected for objects
     * small bugs for SUPPORT_MMX fixed
 
