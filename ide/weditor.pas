@@ -6431,6 +6431,7 @@ end;
 
 procedure TCustomCodeEditor.CodeCompleteApply;
 var S: string;
+    FragLen,
     I: integer;
 begin
   Lock;
@@ -6439,12 +6440,9 @@ begin
     information, so activating it "undoes" only the completition first and
     doesn't delete the complete word at once... - Gabor }
 
-  S:=GetCodeCompleteFrag;
-  SetCurPtr(CurPos.X-length(S),CurPos.Y);
-  for I:=1 to length(S) do
-    DelChar;
+  FragLen:=Length(GetCodeCompleteFrag);
   S:=GetCodeCompleteWord;
-  for I:=1 to length(S) do
+  for I:=FragLen+1 to length(S) do
     AddChar(S[I]);
 
   UnLock;
@@ -7191,7 +7189,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.48  2004-11-08 20:28:29  peter
+  Revision 1.49  2004-12-06 16:23:43  peter
+  fix codecomplete in overwrite mode
+
+  Revision 1.48  2004/11/08 20:28:29  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new
