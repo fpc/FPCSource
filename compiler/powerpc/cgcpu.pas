@@ -241,6 +241,7 @@ const
          end;
       end;
 
+
     { calling a code fragment by name }
     procedure tcgppc.a_call_name(list : taasmoutput;const s : string);
 
@@ -259,9 +260,21 @@ const
 
     { calling a code fragment through a reference }
     procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
+
+      var
+        href : treference;
       begin
-         {$warning FIX ME}
-         procinfo.flags:=procinfo.flags or pi_do_call;
+        { save our RTOC register value. Only necessary when doing pointer based    }
+        { calls or cross TOC calls, but currently done always                      }
+        reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+        list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+        a_reg_alloc(list,R_0);
+        a_load_ref_reg(list,OS_ADDR,ref,R_0);
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_LR,R_0));
+        a_reg_dealloc(list,R_0);
+        list.concat(taicpu.op_none(A_BCCTRL));
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+        procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
 {********************** load instructions ********************}
@@ -1674,7 +1687,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-08-18 22:16:14  florian
+  Revision 1.46  2002-08-31 19:25:50  jonas
+    + implemented a_call_ref()
+
+  Revision 1.45  2002/08/18 22:16:14  florian
     + the ppc gas assembler writer adds now registers aliases
       to the assembler file
 
