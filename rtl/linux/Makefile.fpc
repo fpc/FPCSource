@@ -51,6 +51,7 @@ PRT0=prt0
 else
 SYSTEMUNIT=syslinux
 PRT0=prt0_10
+override FPCOPT+=-dUNIX
 endif
 
 # Paths
