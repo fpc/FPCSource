@@ -255,6 +255,7 @@ begin
 { Find the first DirectorySeparator or DriveSeparator from the end. }
   DirEnd := Length (Path);
 { Avoid problems with platforms having DriveSeparator = DirectorySeparator. }
+{$IFNDEF MACOS}
   if DirectorySeparator = DriveSeparator then
    while (DirEnd > 0) and not (Path [DirEnd] in [DirectorySeparator]) do
     Dec (DirEnd)
@@ -262,6 +263,10 @@ begin
    while (DirEnd > 0) and not (Path [DirEnd] in
                                        [DirectorySeparator, DriveSeparator]) do
     Dec (DirEnd);
+{$ELSE}
+  while (DirEnd > 0) and not (Path [DirEnd] in [DirectorySeparator]) do
+    Dec (DirEnd);
+{$ENDIF}
 
 { The first "extension" should be returned if LFN }
 { support not available, the last one otherwise.  }
@@ -303,7 +308,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-12-29 19:10:47  hajny
+  Revision 1.6  2005-01-01 20:31:02  olle
+    + hack again to make macos compile
+
+  Revision 1.5  2004/12/29 19:10:47  hajny
     * more generic fix for DriveSeparator = DirectorySeparator
 
   Revision 1.4  2004/12/28 21:50:14  olle
