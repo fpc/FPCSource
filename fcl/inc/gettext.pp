@@ -80,7 +80,6 @@ implementation
 
 uses dos;
 
-
 function CalcHash(s: String): LongWord;
 var
   g, i : LongWord;
@@ -203,47 +202,50 @@ end;
 //   Resourcestring translation procedures
 // -------------------------------------------------------
 
-type
-  PResourceStringRecord = ^TResourceStringRecord;
-  TResourceStringRecord = Packed Record
-     DefaultValue,
-     CurrentValue : AnsiString;
-     HashValue : longint;
-     Name : AnsiString;
-   end;
+{
+  Define USEITERATOR if you want to translate the strings using
+  the SetResourceStrings call. This is not recommended for this
+  particular iplementation, since we must pass through a global 
+  variable TheFile : TMOFile. However that works too.
+}
 
-   TResourceStringTable = Packed Record
-     Count : longint;
-     Resrec : Array[Word] of TResourceStringRecord;
-   end;
-   PResourceStringTable = ^TResourceStringTable;
+{$ifdef USEITERATOR}
+Var 
+  Thefile : TMOFile;
 
-   TResourceTableList = Packed Record
-     Count : longint;
-     Tables : Array[Word] of PResourceStringTable;
-   end;
+Function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
 
-Var
-  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
-
+begin
+  Result:=TheFile.Translate(Value);
+end;
 
 procedure TranslateResourceStrings(AFile: TMOFile);
 var
   i,j : Integer;
   s : String;
 begin
-  With ResourceStringTable do
-    For I:=0 to Count-1 do
-      With Tables[I]^ do
-         For J:=0 to Count-1 do
-           With ResRec[J] do
-            begin
-              // WriteLn(j, ': ', DefaultValue, ' / ', CurrentValue, ' / ', HashValue);
-              s := AFile.Translate(DefaultValue);
-              if s <> '' then
-               CurrentValue := s;
-            end;
+  TheFile:=AFile;
+  SetResourceStrings(@Translate);
 end;
+{$else}
+
+procedure TranslateResourceStrings(AFile: TMOFile);
+var
+  i,j,count : Integer;
+  s : String;
+begin
+  For I:=0 to ResourceStringTableCount-1 do
+    begin
+    Count:=ResourceStringCount(I);
+    For J:=0 to Count-1 do
+      begin
+      S:=AFile.Translate(GetResourceStringDefaultValue(I,J));
+      if S <> '' then
+        SetResourceStringValue(I,J,S);
+      end;
+    end;
+end;
+{$endif}
 
 procedure TranslateResourceStrings(AFilename: String);
 var
@@ -265,7 +267,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-08-26 11:05:15  peter
+  Revision 1.3  1999-08-27 15:53:36  michael
+  + Adapted to new resourcestring mechanism. Uses objpas interface only
+
+  Revision 1.2  1999/08/26 11:05:15  peter
     * updated for new resourcestrings
 
   Revision 1.1  1999/08/04 11:31:09  michael
