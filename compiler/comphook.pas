@@ -220,7 +220,7 @@ begin
              hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs
                  +tostr(status.currentcolumn)+': '
            else
-             hs:=status.currentsourcepath+'/'+status.currentsource+'('+tostr(status.currentline)
+             hs:=status.currentsource+'('+tostr(status.currentline)
                  +','+tostr(status.currentcolumn)+') '+hs;
          end
         else
@@ -261,7 +261,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-01-14 21:47:09  peter
+  Revision 1.15  1999-01-15 12:27:23  peter
+    * removed path from output, was there only for debugging
+
+  Revision 1.14  1999/01/14 21:47:09  peter
     * status.currentmodule is now also updated
     + status.currentsourcepath
 
