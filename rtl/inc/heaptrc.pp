@@ -14,13 +14,6 @@
 
  **********************************************************************}
 unit heaptrc;
-
-{ 0.99.12 had a bug that initialization/finalization only worked for
-  objfpc,delphi mode }
-{$ifdef VER0_99_12}
-  {$mode objfpc}
-{$endif}
-
 interface
 
 Procedure DumpHeap;
@@ -33,14 +26,15 @@ Procedure MarkHeap;
    WARNING this needs extremely much memory (PM) }
 
 type
-    FillExtraInfoType = procedure(p : pointer);
+   tFillExtraInfoProc = procedure(p : pointer);
+   tdisplayextrainfoProc = procedure (var ptext : text;p : pointer);
 
-    { allows to add several longint value that can help
-      to debug :
-      see for instance ppheap.pas unit of the compiler source PM }
+{ Allows to add info pre memory block, see ppheap.pas of the compiler
+  for example source }
+procedure SetHeapExtraInfo( size : longint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
 
-Procedure SetExtraInfo( size : longint;func : FillExtraInfoType);
-Procedure SetHeapTraceOutput(const name : string);
+{ Redirection of the output to a file }
+procedure SetHeapTraceOutput(const name : string);
 
 const
   { tracing level
@@ -57,11 +51,12 @@ const
     is freed several times }
 {$ifdef EXTRA}
   keepreleased : boolean=true;
-  add_tail : boolean = true;
 {$else EXTRA}
   keepreleased : boolean=false;
-  add_tail : boolean = false;
 {$endif EXTRA}
+  { add a small footprint at the end of memory blocks, this
+    can check for memory overwrites at the end of a block }
+  add_tail : boolean = true;
   { put crc in sig
     this allows to test for writing into that part }
   usecrc : boolean = true;
@@ -73,35 +68,46 @@ type
    plongint = ^longint;
 
 const
-  { allows to add custom info in heap_mem_info }
+  { allows to add custom info in heap_mem_info, this is the size that will
+    be allocated for this information }
   extra_info_size : longint = 0;
   exact_info_size : longint = 0;
   EntryMemUsed    : longint = 0;
   { function to fill this info up }
-  fill_extra_info : FillExtraInfoType = nil;
+  fill_extra_info_proc : TFillExtraInfoProc = nil;
+  display_extra_info_proc : TDisplayExtraInfoProc = nil;
   error_in_heap : boolean = false;
   inside_trace_getmem : boolean = false;
 
 type
-  pheap_mem_info = ^theap_mem_info;
+  pheap_extra_info = ^theap_extra_info;
+  theap_extra_info = record
+    fillproc : tfillextrainfoProc;
+    displayproc : tdisplayextrainfoProc;
+    data : record
+           end;
+  end;
+
   { warning the size of theap_mem_info
     must be a multiple of 8
     because otherwise you will get
     problems when releasing the usual memory part !!
     sizeof(theap_mem_info = 16+tracesize*4 so
     tracesize must be even !! PM }
+  pheap_mem_info = ^theap_mem_info;
   theap_mem_info = record
     previous,
     next     : pheap_mem_info;
     size     : longint;
-    sig      : longint;
+    sig      : longword;
 {$ifdef EXTRA}
-    release_sig : longint;
+    release_sig : longword;
     prev_valid  : pheap_mem_info;
 {$endif EXTRA}
     calls    : array [1..tracesize] of longint;
-    extra_info : record
-                 end;
+    exact_info_size : word;
+    extra_info_size : word;
+    extra_info      : pheap_extra_info;
   end;
 
 var
@@ -126,19 +132,11 @@ var
 *****************************************************************************}
 
 var
-{$ifdef Delphi}
   Crc32Tbl : array[0..255] of longword;
-{$else Delphi}
-  Crc32Tbl : array[0..255] of longint;
-{$endif Delphi}
 
 procedure MakeCRC32Tbl;
 var
-{$ifdef Delphi}
   crc : longword;
-{$else Delphi}
-  crc : longint;
-{$endif Delphi}
   i,n : byte;
 begin
   for i:=0 to 255 do
@@ -146,11 +144,7 @@ begin
      crc:=i;
      for n:=1 to 8 do
       if odd(crc) then
-{$ifdef Delphi}
        crc:=(crc shr 1) xor $edb88320
-{$else Delphi}
-       crc:=longint(cardinal(crc shr 1) xor $edb88320)
-{$endif Delphi}
       else
        crc:=crc shr 1;
      Crc32Tbl[i]:=crc;
@@ -158,13 +152,7 @@ begin
 end;
 
 
-{$ifopt R+}
-{$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
+Function UpdateCrc32(InitCrc:longword;var InBuf;InLen:Longint):longword;
 var
   i : longint;
   p : pchar;
@@ -173,25 +161,25 @@ begin
   for i:=1 to InLen do
    begin
      InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
-     inc(longint(p));
+     inc(p);
    end;
   UpdateCrc32:=InitCrc;
 end;
 
-Function calculate_sig(p : pheap_mem_info) : longint;
+Function calculate_sig(p : pheap_mem_info) : longword;
 var
-   crc : longint;
+   crc : longword;
    pl : plongint;
 begin
-   crc:=longint($ffffffff);
+   crc:=longword($ffffffff);
    crc:=UpdateCrc32(crc,p^.size,sizeof(longint));
    crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(longint));
-   if extra_info_size>0 then
-     crc:=UpdateCrc32(crc,p^.extra_info,exact_info_size);
+   if p^.extra_info_size>0 then
+     crc:=UpdateCrc32(crc,p^.extra_info^,p^.exact_info_size);
    if add_tail then
      begin
         { Check also 4 bytes just after allocation !! }
-        pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info)+p^.size;
+        pl:=pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size;
         crc:=UpdateCrc32(crc,pl^,sizeof(longint));
      end;
    calculate_sig:=crc;
@@ -200,32 +188,28 @@ end;
 {$ifdef EXTRA}
 Function calculate_release_sig(p : pheap_mem_info) : longint;
 var
-   crc : longint;
+   crc : longword;
    pl : plongint;
 begin
-   crc:=longint($ffffffff);
+   crc:=$ffffffff;
    crc:=UpdateCrc32(crc,p^.size,sizeof(longint));
    crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(longint));
-   if extra_info_size>0 then
-     crc:=UpdateCrc32(crc,p^.extra_info,exact_info_size);
+   if p^.extra_info_size>0 then
+     crc:=UpdateCrc32(crc,p^.extra_info^,p^.exact_info_size);
    { Check the whole of the whole allocation }
-   pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info);
+   pl:=pointer(p)+p^.extra_info_size+sizeof(theap_mem_info);
    crc:=UpdateCrc32(crc,pl^,p^.size);
    { Check also 4 bytes just after allocation !! }
    if add_tail then
      begin
         { Check also 4 bytes just after allocation !! }
-        pl:=pointer(p)+extra_info_size+sizeof(theap_mem_info)+p^.size;
+        pl:=pointer(p)+p^.extra_info_size+sizeof(theap_mem_info)+p^.size;
         crc:=UpdateCrc32(crc,pl^,sizeof(longint));
      end;
    calculate_release_sig:=crc;
 end;
 {$endif EXTRA}
 
-{$ifdef Range_check_on}
-{$R+}
-{$undef Range_check_on}
-{$endif Range_check_on}
 
 {*****************************************************************************
                                 Helpers
@@ -239,14 +223,14 @@ begin
   for i:=1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
-  for i:=0 to (exact_info_size div 4)-1 do
-    writeln(ptext,'info ',i,'=',plongint(pointer(@pp^.extra_info)+4*i)^);
+  if assigned(pp^.extra_info^.displayproc) then
+   pp^.extra_info^.displayproc(ptext,@pp^.extra_info^.data);
 end;
+
 
 procedure call_free_stack(pp : pheap_mem_info;var ptext : text);
 var
   i  : longint;
-
 begin
   writeln(ptext,'Call trace for block at 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize div 2 do
@@ -256,8 +240,8 @@ begin
   for i:=(tracesize div 2)+1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
-  for i:=0 to (exact_info_size div 4)-1 do
-    writeln(ptext,'info ',i,'=',plongint(pointer(@pp^.extra_info)+4*i)^);
+  for i:=0 to (pp^.exact_info_size div 4)-1 do
+    writeln(ptext,'info ',i,'=',plongint(pointer(pp^.extra_info)+4*i)^);
 end;
 
 
@@ -272,8 +256,7 @@ end;
 procedure dump_error(p : pheap_mem_info;var ptext : text);
 begin
   Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
-  Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8)
-    ,' instead of ',hexstr(calculate_sig(p),8));
+  Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
   dump_stack(ptext,get_caller_frame(get_frame));
 end;
 
@@ -283,11 +266,10 @@ procedure dump_change_after(p : pheap_mem_info;var ptext : text);
      i : longint;
 begin
   Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
-  Writeln(ptext,'Wrong release CRC $',hexstr(p^.release_sig,8)
-    ,' instead of ',hexstr(calculate_release_sig(p),8));
+  Writeln(ptext,'Wrong release CRC $',hexstr(p^.release_sig,8),' instead of ',hexstr(calculate_release_sig(p),8));
   Writeln(ptext,'This memory was changed after call to freemem !');
   call_free_stack(p,ptext);
-  pp:=pointer(p)+sizeof(theap_mem_info)+extra_info_size;
+  pp:=pointer(p)+sizeof(theap_mem_info);
   for i:=0 to p^.size-1 do
     if byte(pp[i])<>$F0 then
       Writeln(ptext,'offset',i,':$',hexstr(i,8),'"',pp[i],'"');
@@ -301,8 +283,8 @@ begin
   Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
   dump_stack(ptext,get_caller_frame(get_frame));
-  for i:=0 to (exact_info_size div 4)-1 do
-    writeln(ptext,'info ',i,'=',plongint(@p^.extra_info+4*i)^);
+  for i:=0 to (p^.exact_info_size div 4)-1 do
+    writeln(ptext,'info ',i,'=',plongint(p^.extra_info+4*i)^);
   call_stack(p,ptext);
 end;
 
@@ -317,9 +299,9 @@ begin
   i:=0;
   while pp<>nil do
    begin
-     if ((pp^.sig<>longint($DEADBEEF)) or usecrc) and
+     if ((pp^.sig<>$DEADBEEF) or usecrc) and
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) and
-        (pp^.sig <> longint($AAAAAAAA)) then
+        (pp^.sig <>$AAAAAAAA) then
       begin
         writeln(ptext^,'error in linked list of heap_mem_info');
         RunError(204);
@@ -352,13 +334,31 @@ begin
     inc(bp,sizeof(longint));
   p:=SysGetMem(bp);
 { Create the info block }
-  pheap_mem_info(p)^.sig:=longint($DEADBEEF);
+  pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
+  pheap_mem_info(p)^.extra_info_size:=extra_info_size;
+  pheap_mem_info(p)^.exact_info_size:=exact_info_size;
+  {
+    the end of the block contains:
+    <tail>   4 bytes
+    <extra_info>   X bytes
+  }
+  pheap_mem_info(p)^.extra_info:=pointer(p)+bp-extra_info_size;
+  fillchar(pheap_mem_info(p)^.extra_info^,extra_info_size,0);
+  pheap_mem_info(p)^.extra_info^.fillproc:=fill_extra_info_proc;
+  pheap_mem_info(p)^.extra_info^.displayproc:=display_extra_info_proc;
+  if assigned(fill_extra_info_proc) then
+    begin
+      inside_trace_getmem:=true;
+      fill_extra_info_proc(@pheap_mem_info(p)^.extra_info^.data);
+      inside_trace_getmem:=false;
+    end;
   if add_tail then
     begin
-      pl:=pointer(p)+bp-sizeof(longint);
-      pl^:=longint($DEADBEEF);
+      pl:=pointer(p)+bp-extra_info_size-sizeof(longint);
+      pl^:=$DEADBEEF;
     end;
+  { retrieve backtrace info }
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
@@ -381,16 +381,10 @@ begin
     because checkpointer can be called from within
     fill_extra_info PM }
   inc(getmem_cnt);
-  if assigned(fill_extra_info) then
-    begin
-      inside_trace_getmem:=true;
-      fill_extra_info(@pheap_mem_info(p)^.extra_info);
-      inside_trace_getmem:=false;
-    end;
 { update the pointer }
   if usecrc then
     pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
-  inc(p,sizeof(theap_mem_info)+extra_info_size);
+  inc(p,sizeof(theap_mem_info));
   TraceGetmem:=p;
 end;
 
@@ -406,23 +400,25 @@ var
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
 {$endif}
+  extra_size : longint;
 begin
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
-  ppsize:= size + sizeof(theap_mem_info)+extra_info_size;
-  if add_tail then
-    ppsize:=ppsize+sizeof(longint);
-  dec(p,sizeof(theap_mem_info)+extra_info_size);
+  dec(p,sizeof(theap_mem_info));
   pp:=pheap_mem_info(p);
+  extra_size:=pp^.extra_info_size;
+  ppsize:= size + sizeof(theap_mem_info)+pp^.extra_info_size;
+  if add_tail then
+    inc(ppsize,sizeof(longint));
   if not quicktrace and not(is_in_getmem_list(pp)) then
     RunError(204);
-  if (pp^.sig=longint($AAAAAAAA)) and not usecrc then
+  if (pp^.sig=$AAAAAAAA) and not usecrc then
     begin
        error_in_heap:=true;
        dump_already_free(pp,ptext^);
        if haltonerror then halt(1);
     end
-  else if ((pp^.sig<>longint($DEADBEEF)) or usecrc) and
+  else if ((pp^.sig<>$DEADBEEF) or usecrc) and
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
     begin
        error_in_heap:=true;
@@ -446,7 +442,7 @@ begin
        exit;
     end;
   { now it is released !! }
-  pp^.sig:=longint($AAAAAAAA);
+  pp^.sig:=$AAAAAAAA;
   if not keepreleased then
     begin
        if pp^.next<>nil then
@@ -470,13 +466,11 @@ begin
   { this way we keep all info about all released memory !! }
   if keepreleased then
     begin
-{$ifndef EXTRA}
-       dec(ppsize,sizeof(theap_mem_info)+extra_info_size);
-       inc(p,sizeof(theap_mem_info)+extra_info_size);
-{$else EXTRA}
-      inc(p,sizeof(theap_mem_info)+extra_info_size);
-      fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
-      { We want to check if the memory was changed after release !! }
+       i:=ppsize;
+       inc(p,sizeof(theap_mem_info));
+       fillchar(p^,size,#240); { $F0 will lead to GFP if used as pointer ! }
+{$ifdef EXTRA}
+       { We want to check if the memory was changed after release !! }
        pp^.release_sig:=calculate_release_sig(pp);
        if pp=heap_valid_last then
          begin
@@ -498,11 +492,12 @@ begin
             else
               pp2:=pp2^.prev_valid;
          end;
-       exit;
 {$endif EXTRA}
-    end;
-  i:=SysFreeMemSize(p,ppsize);
-  dec(i,sizeof(theap_mem_info)+extra_info_size);
+       exit;
+    end
+  else
+    i:=SysFreeMemSize(p,ppsize);
+  dec(i,sizeof(theap_mem_info)+extra_size);
   if add_tail then
    dec(i,sizeof(longint));
   TraceFreeMemSize:=i;
@@ -512,9 +507,12 @@ end;
 function TraceMemSize(p:pointer):Longint;
 var
   l : longint;
+  pp : pheap_mem_info;
 begin
-  l:=SysMemSize(p-(sizeof(theap_mem_info)+extra_info_size));
-  dec(l,sizeof(theap_mem_info)+extra_info_size);
+  dec(p,sizeof(theap_mem_info));
+  pp:=pheap_mem_info(p);
+  l:=SysMemSize(pp);
+  dec(l,sizeof(theap_mem_info)+pp^.extra_info_size);
   if add_tail then
    dec(l,sizeof(longint));
   TraceMemSize:=l;
@@ -526,7 +524,7 @@ var
   size : longint;
   pp : pheap_mem_info;
 begin
-  pp:=pheap_mem_info(pointer(p)-(sizeof(theap_mem_info)+extra_info_size));
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   size:=TraceMemSize(p);
   { this can never happend normaly }
   if pp^.size>size then
@@ -551,6 +549,10 @@ var
   i,bp : longint;
   pl : plongint;
   pp : pheap_mem_info;
+  oldextrasize,
+  oldexactsize : longint;
+  old_fill_extra_info_proc : tfillextrainfoproc;
+  old_display_extra_info_proc : tdisplayextrainfoproc;
 begin
 { Free block? }
   if size=0 then
@@ -568,10 +570,10 @@ begin
      exit;
    end;
 { Resize block }
-  dec(p,sizeof(theap_mem_info)+extra_info_size);
+  dec(p,sizeof(theap_mem_info));
   pp:=pheap_mem_info(p);
   { test block }
-  if ((pp^.sig<>longint($DEADBEEF)) or usecrc) and
+  if ((pp^.sig<>$DEADBEEF) or usecrc) and
      ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
    begin
      error_in_heap:=true;
@@ -583,15 +585,21 @@ begin
      if haltonerror then halt(1);
      exit;
    end;
+  { save info }
+  oldextrasize:=pp^.extra_info_size;
+  oldexactsize:=pp^.exact_info_size;
+  old_fill_extra_info_proc:=pp^.extra_info^.fillproc;
+  old_display_extra_info_proc:=pp^.extra_info^.displayproc;
   { Do the real ReAllocMem, but alloc also for the info block }
-  bp:=size+sizeof(theap_mem_info)+extra_info_size;
+  bp:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
    inc(bp,sizeof(longint));
-  { the internal ReAllocMem is not allowed to move any data }
+  { Try to resize the block, if not possible we need to do a
+    getmem, move data, freemem }
   if not SysTryResizeMem(p,bp) then
    begin
      { restore p }
-     inc(p,sizeof(theap_mem_info)+extra_info_size);
+     inc(p,sizeof(theap_mem_info));
      { get a new block }
      oldsize:=TraceMemSize(p);
      newP := TraceGetMem(size);
@@ -612,21 +620,28 @@ begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
 { Create the info block }
-  pp^.sig:=longint($DEADBEEF);
+  pp^.sig:=$DEADBEEF;
   pp^.size:=size;
-  if add_tail then
-    begin
-      pl:=pointer(p)+bp-sizeof(longint);
-      pl^:=longint($DEADBEEF);
-    end;
+  pp^.extra_info_size:=oldextrasize;
+  pp^.exact_info_size:=oldexactsize;
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
    begin
      pp^.calls[i]:=get_caller_addr(bp);
      bp:=get_caller_frame(bp);
    end;
-  if assigned(fill_extra_info) then
-    fill_extra_info(@pp^.extra_info);
+  { add the new extra_info and tail }
+  pp^.extra_info:=p+bp-pp^.extra_info_size;
+  fillchar(pp^.extra_info^,extra_info_size,0);
+  pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
+  pp^.extra_info^.displayproc:=old_display_extra_info_proc;
+  if assigned(pp^.extra_info^.fillproc) then
+    pp^.extra_info^.fillproc(@pp^.extra_info^.data);
+  if add_tail then
+    begin
+      pl:=pointer(p)+bp-pp^.extra_info_size-sizeof(longint);
+      pl^:=$DEADBEEF;
+    end;
 { update the pointer }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
@@ -727,10 +742,10 @@ begin
         (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+extra_info_size+pp^.size) then
        begin
           { check allocated block }
-          if ((pp^.sig=longint($DEADBEEF)) and not usecrc) or
+          if ((pp^.sig=$DEADBEEF) and not usecrc) or
              ((pp^.sig=calculate_sig(pp)) and usecrc) or
           { special case of the fill_extra_info call }
-             ((pp=heap_valid_last) and usecrc and (pp^.sig=longint($DEADBEEF))
+             ((pp=heap_valid_last) and usecrc and (pp^.sig=$DEADBEEF)
               and inside_trace_getmem) then
             goto _exit
           else
@@ -758,7 +773,7 @@ begin
      if (cardinal(p)>=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)) and
         (cardinal(p)<=cardinal(pp)+sizeof(theap_mem_info)+cardinal(extra_info_size)+cardinal(pp^.size)) then
         { allocated block }
-       if ((pp^.sig=longint($DEADBEEF)) and not usecrc) or
+       if ((pp^.sig=$DEADBEEF) and not usecrc) or
           ((pp^.sig=calculate_sig(pp)) and usecrc) then
           goto _exit
        else
@@ -817,7 +832,7 @@ begin
           Writeln(ptext^,'More memory blocks than expected');
           exit;
        end;
-     if ((pp^.sig=longint($DEADBEEF)) and not usecrc) or
+     if ((pp^.sig=$DEADBEEF) and not usecrc) or
         ((pp^.sig=calculate_sig(pp)) and usecrc) then
        begin
           { this one was not released !! }
@@ -825,7 +840,7 @@ begin
             call_stack(pp,ptext^);
           dec(i);
        end
-     else if pp^.sig<>longint($AAAAAAAA) then
+     else if pp^.sig<>$AAAAAAAA then
        begin
           dump_error(pp,ptext^);
 {$ifdef EXTRA}
@@ -854,7 +869,7 @@ begin
   pp:=heap_mem_root;
   while pp<>nil do
    begin
-     pp^.sig:=longint($AAAAAAAA);
+     pp^.sig:=$AAAAAAAA;
      pp:=pp^.previous;
    end;
 end;
@@ -958,22 +973,16 @@ begin
    writeln(ptext^);
 end;
 
-procedure SetExtraInfo( size : longint;func : fillextrainfotype);
+procedure SetHeapExtraInfo( size : longint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
+begin
+  { the total size must stay multiple of 8, also allocate 2 pointers for
+    the fill and display procvars }
+  exact_info_size:=size + sizeof(pointer)*2;
+  extra_info_size:=((exact_info_size+7) div 8)*8;
+  fill_extra_info_proc:=fillproc;
+  display_extra_info_proc:=displayproc;
+end;
 
-  begin
-     if getmem_cnt>0 then
-       begin
-         writeln(ptext^,'Setting extra info is only possible at start !! ');
-         dumpheap;
-       end
-     else
-       begin
-          { the total size must stay multiple of 8 !! }
-          exact_info_size:=size;
-          extra_info_size:=((size+7) div 8)*8;
-          fill_extra_info:=func;
-       end;
-  end;
 
 Initialization
   EntryMemUsed:=System.HeapSize-MemAvail;
@@ -996,7 +1005,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2000-12-16 15:57:17  jonas
+  Revision 1.7  2001-04-11 12:34:50  peter
+    * extra info update so it can be always be set on/off
+
+  Revision 1.6  2000/12/16 15:57:17  jonas
     * removed 64bit evaluations when range checking is on
 
   Revision 1.5  2000/12/07 17:19:47  jonas
