@@ -773,7 +773,7 @@ A_BCS,A_BPOS,A_NEG,A_BVC,A_BVS,A_BA,A_BNE,A_NONE,A_NONE,A_NONE,A_NONE,A_NONE,A_N
         is_jmp:=true;
         Opcode:=AsmCond2OpCode[c];
       {$IFDEF EXTDEBUG}
-        WriteLn('In TAiCpu.SetCondition TAsmCond=',Byte(Opcode),'==>',std_op2str[AsmCond2OpCode[c]]);
+        WriteLn('In TAiCpu.SetCondition TAsmCond=',cond2str[c],'==>',std_op2str[OpCode]);
       {$ENDIF EXTDEBUG}
       end;
   end;
@@ -1096,7 +1096,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.19  2003-03-15 22:51:58  mazen
+    Revision 1.20  2003-04-28 09:40:47  mazen
+    * Debug message in SetCondition more explicit.
+
+    Revision 1.19  2003/03/15 22:51:58  mazen
     * remaking sparc rtl compile
 
     Revision 1.18  2003/03/10 21:59:54  mazen
