@@ -1001,6 +1001,7 @@ implementation
           varsym :
             begin
               if not(vo_is_local_copy in tvarsym(p).varoptions) and
+                 not(vo_is_funcret in tvarsym(p).varoptions) and
                  assigned(tvarsym(p).vartype.def) and
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
@@ -2005,7 +2006,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-04-27 16:30:34  jonas
+  Revision 1.94  2003-04-28 21:17:38  peter
+    * do not finalize function results
+
+  Revision 1.93  2003/04/27 16:30:34  jonas
     * store register para's to memory before copying the valuepara's, because
       that one requires them to be there already (and it calls subroutines ->
       could overwrite those registers)
