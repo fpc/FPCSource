@@ -325,6 +325,10 @@ interface
     procedure T386IntelAssembler.WriteTree(p:TAAsmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
+      nolinetai =[ait_label,
+                  ait_regalloc,ait_tempalloc,
+                  ait_stabn,ait_stabs,ait_section,
+                  ait_cut,ait_marker,ait_align,ait_stab_function_name];
     var
       s,
       prefix,
@@ -350,7 +354,7 @@ interface
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-         if do_line then
+         if do_line and not(hp.typ in nolinetai) then
            begin
            { load infile }
              if lastfileinfo.fileindex<>hp.fileinfo.fileindex then
@@ -599,6 +603,11 @@ interface
                           { nasm prefers prefix on a line alone
                           AsmWriteln(#9#9+prefix); but not masm PM
                           prefix:=''; }
+                          if (aktoutputformat = as_i386_masm) then
+                             begin
+                               AsmWriteln(s);
+                               prefix:='';
+                             end;
                         end
                        else
                         prefix:= '';
@@ -739,7 +748,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.7  2001-03-05 21:39:11  peter
+  Revision 1.8  2001-03-25 12:30:17  peter
+    * masm -al fix (merged)
+
+  Revision 1.7  2001/03/05 21:39:11  peter
     * changed to class with common TAssembler also for internal assembler
 
   Revision 1.6  2001/02/20 21:36:39  peter
