@@ -1754,4 +1754,4 @@ unixutil$(PPUEXT) : ../unix/unixutil.pp
 	$(COMPILER) ../unix/unixutil.pp $(REDIR)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
