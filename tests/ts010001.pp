@@ -1,8 +1,6 @@
 { $OPT=-S2
 }
 type
-   tclass = class of tobject;
-
    tmyclass = class of tmyobject;
 
    tmyobject = class
@@ -23,6 +21,11 @@ var
    classref : tclass;
    myclassref : tmyclass;
 
+const
+   constclassref1 : tclass = tobject;
+   constclassref2 : tclass = nil;
+   constclassref3 : tclass = tobject;
+
 begin
    { simple test }
    classref:=classref;
@@ -31,4 +34,11 @@ begin
    classref:=tobject;
 
    classref:=getanchestor(myclassref);
+   if (constclassref1.classname<>'TOBJECT') or
+     (constclassref2<>nil) or
+     (constclassref2.classname<>'TMYOBJECT')then
+     begin
+        writeln('Error');
+        halt(1);
+     end;
 end.
