@@ -991,7 +991,7 @@ unit struct;
      TSMALL_RECT = SMALL_RECT;
      PSMALL_RECT = ^SMALL_RECT;
 
-     CONSOLE_SCREEN_BUFFER_INFO = record
+     CONSOLE_SCREEN_BUFFER_INFO = packed record
           dwSize : COORD;
           dwCursorPosition : COORD;
           wAttributes : WORD;
@@ -6931,7 +6931,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.8  1999-04-20 11:36:17  peter
+  Revision 1.9  1999-05-19 16:22:03  peter
+    * fixed left crt bugs
+
+  Revision 1.8  1999/04/20 11:36:17  peter
     * compatibility fixes
 
   Revision 1.7  1999/03/22 22:12:52  florian

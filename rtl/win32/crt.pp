@@ -103,8 +103,6 @@ uses
 var OutHandle     : THandle;
     InputHandle   : THandle;
 
-    UsingAttr     : Longint;
-
     CursorSaveX   : Longint;
     CursorSaveY   : Longint;
 
@@ -116,59 +114,7 @@ var OutHandle     : THandle;
 {
   definition of textrec is in textrec.inc
 }
-{$ifdef FPC}
-  {$i textrec.inc}
-{$endif}
-
-Const
-  NO_EVENT = 0;
-  KEY_EVENT_IN_PROGRESS = $100;
-  _MOUSE_EVENT_IN_PROGRESS = $200;
-
-type
-  PInputBuffer = ^TInputBuffer;
-  TInputBuffer = array[0..1200] of TInputRecord;
-
-
-Function KeyPressed: boolean;
-var
-  hConsoleInput: THandle;
-  pInput: pInputBuffer;
-  lpNumberOfEvents: dword;
-  lpNumberRead: integer;
-  i: word;
-
-  const
-  KeysToSkip: set of byte =
-    [VK_SHIFT, VK_CONTROL, VK_MENU, VK_CAPITAL, VK_NUMLOCK, VK_SCROLL];
-
-begin
-  hConsoleInput := GetStdHandle(STD_INPUT_HANDLE);
-  GetNumberOfConsoleInputEvents(hConsoleInput, lpNumberOfEvents);
-  Result := FALSE;
-  if lpNumberOfEvents > 0 then
-  try
-    GetMem(pInput, lpNumberOfEvents * SizeOf(TInputRecord));
-    PeekConsoleInput(hConsoleInput, pInput^[0], lpNumberOfEvents, lpNumberRead);
-    i := 0;
-    repeat
-      with pInput^[i] do begin
-        if EventType = KEY_EVENT then
-          Result := (KeyEvent.bKeyDown = false) and
-                    not (KeyEvent.wVirtualKeyCode in KeysToSkip);
-      end;
-      inc(i);
-    until (Result = TRUE) or (i >= lpNumberOfEvents);
-
-  finally
-    {$IFDEF VER0_99_11}
-      FreeMem(pInput, lpNumberOfEvents * SizeOf(TInputRecord));
-    {$ELSE}
-      FreeMem(pInput);
-    {$ENDIF}
-  end;
-end;
-
+{$i textrec.inc}
 
 {****************************************************************************
                            Low level Routines
@@ -177,8 +123,8 @@ end;
 function GetScreenHeight : longint;
 var ConsoleInfo: TConsoleScreenBufferinfo;
 begin
+  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
-
   Result := ConsoleInfo.SrWindow.Bottom + 1;
 end;
 
@@ -186,6 +132,7 @@ end;
 function GetScreenWidth : longint;
 var ConsoleInfo: TConsoleScreenBufferInfo;
 begin
+  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
   GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
 
   Result := ConsoleInfo.SrWindow.Right + 1;
@@ -357,34 +304,26 @@ Begin
 End;
 
 
-Procedure ClrScr;
-{
-  Clear the current window, and set the cursor on 1,1
-}
-var
-  ClipRect: TSmallRect;
-  SrcRect: TSmallRect;
-  DestCoor: TCoord;
-  CharInfo: TCharInfo;
+procedure ClrScr;
+var Temp    : Dword;
+    CharInfo: Char;
+    Coord   : TCoord;
 begin
-  CharInfo.UnicodeChar := 32;
-  CharInfo.Attributes := TextAttr;
+  Coord.X := 0;
+  Coord.Y := 0;
 
-  SrcRect.Left := WinMinX;
-  SrcRect.Top := WinMinY;
-  SrcRect.Right := WinMaxX;
-  SrcRect.Bottom := WinMaxY;
-  ClipRect := SrcRect;
+  Temp := 00;
+  Charinfo := #32;
 
-  DestCoor.X := WinMinX - 1;
-  DestCoor.Y := WinMinY - 1;
+  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX * WinMaxY, Coord, @Temp);
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
+  Temp := 07;   { We don't use black because that will disable the cursor under NT4 }
+  FillConsoleOutputAttribute(OutHandle, Temp, WinMaxX * WinMaxY, Coord, @Temp);
   Gotoxy(1,1);
-end;
+end; { proc. ClrScr }
 
 
-Procedure ClrEol;
+procedure ClrEol;
 {
   Clear from current position to end of line.
 }
@@ -392,7 +331,7 @@ var Temp: Dword;
     CharInfo: Char;
     Coord: TCoord;
     X,Y: Longint;
-Begin
+begin
   GetScreenCursor(x,y);
 
   CharInfo := #32;
@@ -433,63 +372,14 @@ End;
                             KeyBoard
 *************************************************************************}
 
-Function InputEvent: word;
 var
-  hConsoleInput: THandle;
-  pInput: pInputBuffer;
-  lpNumberOfEvents: dword;
-  lpNumberRead: integer;
-  i: word;
-
-  const
-  KeysToSkip: set of byte =
-    [VK_SHIFT, VK_CONTROL, VK_MENU, VK_CAPITAL, VK_NUMLOCK, VK_SCROLL];
-
-begin
-  hConsoleInput := GetStdHandle(STD_INPUT_HANDLE);
-  GetNumberOfConsoleInputEvents(hConsoleInput, lpNumberOfEvents);
-  Result := NO_EVENT;
-  if lpNumberOfEvents > 0 then
-  try
-    GetMem(pInput, lpNumberOfEvents * SizeOf(TInputRecord));
-    PeekConsoleInput(hConsoleInput, pInput^[0], lpNumberOfEvents, lpNumberRead);
-    i := 0;
-    repeat
-      with pInput^[i] do begin
-        case EventType of
-          KEY_EVENT:
-            if (KeyEvent.bKeyDown = false) and
-               not (KeyEvent.wVirtualKeyCode in KeysToSkip) then
-               Result := EventType
-             else
-               Result := KEY_EVENT_IN_PROGRESS;
-          _MOUSE_EVENT:
-            if (MouseEvent.dwEventFlags <> MOUSE_MOVED) then
-               Result := EventType
-             else
-               Result := _MOUSE_EVENT_IN_PROGRESS;
-          else
-            Result := EventType;
-        end;
-      end;
-      inc(i);
-    until (Result <> NO_EVENT) or (i >= lpNumberOfEvents);
-  finally
-    {$IFDEF VER0_99_11}
-      FreeMem(pInput, lpNumberOfEvents * SizeOf(TInputRecord));
-    {$ELSE}
-      FreeMem(pInput);
-    {$ENDIF}
-  end;
-end;
-
+   ScanCode : char;
+   SpecialKey : boolean;
 
 Function RemapScanCode (ScanCode: byte; CtrlKeyState: byte): byte;
-
   { Several remappings of scancodes are necessary to comply with what
     we get with MSDOS. Special Windows keys, as Alt-Tab, Ctrl-Esc etc.
     are excluded }
-
 var
   AltKey, CtrlKey, ShiftKey: boolean;
 const
@@ -562,85 +452,55 @@ begin
 end;
 
 
-
-Function ReadKey: char;
+function KeyPressed : boolean;
 var
-  hConsoleInput: THandle;
-  pInput: pInputRecord;
-  lpcRead: integer;
-  AltKey, CtrlKey, ShiftKey: boolean;
-
-const
-  ExtendedChar: boolean = false;
-  Scancode: byte = 0;
-  {
-    Scancodes to skip:
-
-      $1D - Ctrl keys
-      $2A - left Shift key
-      $36 - right Shift key
-      $38 - Alt keys
-      $3A - Caps lock key
-      $45 - Num lock key
-      $46 - Scroll lock key
-  }
-  ScanCodesToSkip: set of 0..255 =
-    [$1D, $2A, $36, $38, $3A, $45, $46];
-
+  nevents, nread, i: longint;
+  buf : TINPUTRECORD;
 begin
-  if not ExtendedChar then begin
-    hConsoleInput := GetStdHandle(STD_INPUT_HANDLE);
-    try
-      New(pInput);
-      with pInput^.KeyEvent do begin
-        Repeat
-          ReadConsoleInput(hConsoleInput, pInput^, 1, lpcRead);
-        until (pInput^.EventType = KEY_EVENT)
-          and (bKeyDown = false)
-          and not (wVirtualScanCode in ScanCodesToSkip);
-
-        { Get state of control keys }
-
-        AltKey := ((dwControlKeyState AND
-                  (RIGHT_ALT_PRESSED OR LEFT_ALT_PRESSED)) > 0);
-        CtrlKey := ((dwControlKeyState AND
-                  (RIGHT_CTRL_PRESSED OR LEFT_CTRL_PRESSED)) > 0);
-        ShiftKey := ((dwControlKeyState AND SHIFT_PRESSED) > 0);
-
-        { Get key value, making some corrections to comply with MSDOS}
-
-        if AltKey then
-          Result := #0
-        else begin
-          Result := AsciiChar;
-          if CtrlKey then
-            case wVirtualScanCode of
-              $07: Result := #$1E;    // ^_6  (Win32 gives ASCII = 0)
-              $0C: Result := #$1F;    // ^_-  (Win32 gives ASCII = 0)
-            end
-          else if ShiftKey then
-            case wVirtualScanCode of
-              $01: Result := #$1B;    // Shift Esc (Win32 gives ASCII = 0)
-              $0F: Result := #0;      // Shift Tab (Win32 gives ASCII = 9)
-            end;
-        end;
-
-        {Save scancode of non-ASCII keys for second call}
-
-        if (Result = #0) then begin
-          ExtendedChar := true;
-          ScanCode := RemapScanCode(wVirtualScanCode, dwControlKeyState);
-        end;
+  KeyPressed := FALSE;
+  if ScanCode <> #0 then
+    KeyPressed := TRUE
+  else
+   begin
+     nevents:=0;
+     GetNumberOfConsoleInputEvents(TextRec(input).Handle,nevents);
+     For i := 1 to nevents do
+      begin
+        ReadConsoleInputA(TextRec(input).Handle,buf,1,nread);
+        if buf.EventType = KEY_EVENT then
+         if buf.KeyEvent.bKeyDown then
+          begin
+            KeyPressed := TRUE;
+            if ord(buf.KeyEvent.AsciiChar) = 0 then
+             begin
+               SpecialKey := TRUE;
+               ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState));
+             end
+            else
+             begin
+               SpecialKey := FALSE;
+               ScanCode := Chr(Ord(buf.KeyEvent.AsciiChar));
+             end;
+            break;
+          end;
       end;
-    finally
-      Dispose(pInput);
-    end;
+   end;
+end;
+
+
+function ReadKey: char;
+begin
+  repeat until KeyPressed;
+  if SpecialKey then begin
+    ReadKey := #0;
+    SpecialKey := FALSE;
   end
   else begin
-    Result := char(ScanCode);
-    ExtendedChar := false;
+    ReadKey := ScanCode;
+    ScanCode := #0;
   end;
 end;
+
 
 {*************************************************************************
                                    Delay
@@ -959,24 +819,32 @@ begin
   TextRec(F).OpenFunc:=@CrtOpen;
 end;
 
-var CursorInfo: TConsoleCursorInfo;
+
+var CursorInfo : TConsoleCursorInfo;
+    ConsoleInfo: TConsoleScreenBufferinfo;
 begin
   { Initialize the output handles }
   OutHandle := GetStdHandle(STD_OUTPUT_HANDLE);
   InputHandle := GetStdHandle(STD_INPUT_HANDLE);
-  UsingAttr := 07;
   LastMode := 3;
 
-  {--------------------- Get the cursor information -------------------------}
+  {--------------------- Get the cursor size and such -----------------------}
+  FillChar(CursorInfo, SizeOf(CursorInfo), 00);
   GetConsoleCursorInfo(OutHandle, CursorInfo);
   SaveCursorSize := CursorInfo.dwSize;
+
+  {------------------ Get the current cursor position and attr --------------}
+  FillChar(ConsoleInfo, SizeOf(ConsoleInfo), 0);
+  GetConsoleScreenBufferInfo(OutHandle, ConsoleInfo);
+  CursorSaveX := ConsoleInfo.dwCursorPosition.X;
+  CursorSaveY := ConsoleInfo.dwCursorPosition.Y;
+  TextAttr := ConsoleInfo.wAttributes;
 
 
   { Load startup values }
   ScreenWidth := GetScreenWidth;
   ScreenHeight := GetScreenHeight;
   WindMax := (ScreenWidth - 1) OR ((ScreenHeight - 1) SHL 8);
-
 
   { Redirect the standard output }
   AssignCrt(Output);
@@ -989,7 +857,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.5  1999-05-01 13:18:26  peter
+  Revision 1.6  1999-05-19 16:22:02  peter
+    * fixed left crt bugs
+
+  Revision 1.5  1999/05/01 13:18:26  peter
     * changed back fixes
 
   Revision 1.4  1999/04/30 11:34:27  michael
@@ -1002,4 +873,3 @@ end. { unit Crt }
     + crt unit that compiles
 
 }
-
