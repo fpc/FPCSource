@@ -11,8 +11,8 @@ units=gdbint gdbcon
 examples=testgdb symify
 
 [compiler]
-objdir=libgdb/$(OS_TARGET)
-libdir=libgdb/$(OS_TARGET)
+objectdir=libgdb/$(OS_TARGET)
+librarydir=libgdb/$(OS_TARGET)
 
 [require]
 libc=y
@@ -22,25 +22,56 @@ fpcdir=../..
 
 
 [rules]
-.PHONY: localgdbverexe
-
-localgdbverexe : ./getver$(EXEEXT)
-
-./getver$(EXEEXT) : ./gdbver.pp
-        $(COMPILER) -o./getver$(EXEEXT) gdbver.pp
-
-ifdef GDBVER
-gdbint$(PPUEXT): gdbint.pp
-        $(ECHO) Using GDB $(GDBVER)
-        $(COMPILER) -d$(GDBVER) gdbint.pp
+# For unix be sure to use the locally created gdbver
+ifdef inUnix
+CURRDIR=./
 else
-gdbint$(PPUEXT): localgdbverexe gdbver$(EXEEXT)
-        $(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V$(strip $(shell ./gdbver$(EXEEXT) -n))
+CURRDIR=
+endif
+
+GDBLIBDIR+=libgdb/$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+GDBLIBDIR+=$(DJDIR)/lib
+endif
+endif
+# Detect if libgdb.a is available
+override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+ifeq ($(LIBGDB),)
+GDBFOUND=0
+else
+GDBFOUND=1
+endif
+
+ifeq ($(GDBFOUND),1)
+# libgdb.a found
+
+$(CURRDIR)getver$(EXEEXT) : gdbver.pp
+        $(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
+
+ifndef GOTGDBVER
+# gdbver doesn't exists, build it first
+gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT)
+        $(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
+else
+# gdbver exists
+GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
+gdbint$(PPUEXT): gdbint.pp
+        @$(ECHO) Using GDB $(GDBVER)
+        $(COMPILER) -d$(GDBVER) gdbint.pp
+        $(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+endif
+
+else
+# libgdb.a not found, default to libgdb v5
+GDBVER=GDB_V5
+gdbint$(PPUEXT): gdbint.pp
+        @$(ECHO) Warning: libgdb.a not found !
+        @$(ECHO) Using GDB $(GDBVER)
+        $(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
-
-gdbver$(EXEEXT): gdbver.pp
 
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)

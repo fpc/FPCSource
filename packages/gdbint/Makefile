@@ -121,6 +121,8 @@ override PACKAGE_NAME=gdbint
 override PACKAGE_VERSION=1.0.5
 override TARGET_UNITS+=gdbint gdbcon
 override TARGET_EXAMPLES+=testgdb symify
+override COMPILER_OBJECTDIR+=libgdb/$(OS_TARGET)
+override COMPILER_LIBRARYDIR+=libgdb/$(OS_TARGET)
 ifndef ECHO
 ECHO:=$(strip $(wildcard $(addsuffix /gecho$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
@@ -882,20 +884,44 @@ info: fpc_info
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
-.PHONY: localgdbverexe
-localgdbverexe : ./getver$(EXEEXT)
-./getver$(EXEEXT) : ./gdbver.pp
-	$(COMPILER) -o./getver$(EXEEXT) gdbver.pp
-ifdef GDBVER
-gdbint$(PPUEXT): gdbint.pp
-	$(ECHO) Using GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) gdbint.pp
+ifdef inUnix
+CURRDIR=./
 else
-gdbint$(PPUEXT): localgdbverexe gdbver$(EXEEXT)
-	$(MAKE) gdbint$(PPUEXT) GDBVER=GDB_V$(strip $(shell ./gdbver$(EXEEXT) -n))
+CURRDIR=
+endif
+GDBLIBDIR+=libgdb/$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+GDBLIBDIR+=$(DJDIR)/lib
+endif
+endif
+override LIBGDB:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+ifeq ($(LIBGDB),)
+GDBFOUND=0
+else
+GDBFOUND=1
+endif
+ifeq ($(GDBFOUND),1)
+$(CURRDIR)getver$(EXEEXT) : gdbver.pp
+	$(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
+ifndef GOTGDBVER
+gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT)
+	$(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
+else
+GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
+gdbint$(PPUEXT): gdbint.pp
+	@$(ECHO) Using GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
+	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+endif
+else
+GDBVER=GDB_V5
+gdbint$(PPUEXT): gdbint.pp
+	@$(ECHO) Warning: libgdb.a not found !
+	@$(ECHO) Using GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
-gdbver$(EXEEXT): gdbver.pp
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)
 else
