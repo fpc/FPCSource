@@ -924,7 +924,7 @@ implementation
          current_module.globalsymtable:=current_module.localsymtable;
          current_module.localsymtable:=nil;
 
-         reset_global_defs;
+         reset_all_defs;
 
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
@@ -982,7 +982,7 @@ implementation
            exit;
 
          { reset ranges/stabs in exported definitions }
-         reset_global_defs;
+         reset_all_defs;
 
          { All units are read, now give them a number }
          current_module.numberunits;
@@ -1094,7 +1094,7 @@ implementation
           end;
 {$endif GDB}
 
-         reset_global_defs;
+         reset_all_defs;
 
          if (Errorcount=0) then
            begin
@@ -1277,7 +1277,7 @@ implementation
            loadunits;
 
          { reset ranges/stabs in exported definitions }
-         reset_global_defs;
+         reset_all_defs;
 
          { All units are read, now give them a number }
          current_module.numberunits;
@@ -1438,7 +1438,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.138  2004-02-04 22:15:15  daniel
+  Revision 1.139  2004-02-06 22:37:00  daniel
+    * Removed not very usefull nextglobal & previousglobal fields from
+      Tstoreddef, saving 78 kb of memory
+
+  Revision 1.138  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

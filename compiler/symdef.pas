@@ -52,7 +52,9 @@ interface
 ************************************************}
 
        tstoreddef = class(tdef)
+       protected
           typesymderef  : tderef;
+       public
           { persistent (available across units) rtti and init tables }
           rttitablesym,
           inittablesym  : tsym; {trttisym}
@@ -61,8 +63,6 @@ interface
           { local (per module) rtti and init tables }
           localrttilab  : array[trttitype] of tasmlabel;
           { linked list of global definitions }
-          nextglobal,
-          previousglobal : tstoreddef;
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
 {$endif}
@@ -72,7 +72,7 @@ interface
 {$endif GDB}
           constructor create;
           constructor ppuloaddef(ppufile:tcompilerppufile);
-          destructor  destroy;override;
+          procedure reset;
           function getcopy : tstoreddef;virtual;
           procedure ppuwritedef(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
@@ -680,10 +680,6 @@ interface
 
     var
        aktobjectdef : tobjectdef;  { used for private functions check !! }
-
-       firstglobaldef,               { linked list of all globals defs }
-       lastglobaldef : tstoreddef;   { used to reset stabs/ranges }
-
 {$ifdef GDB}
        { for STAB debugging }
        globaltypecount  : word;
@@ -792,8 +788,6 @@ interface
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
-
-    procedure reset_global_defs;
 
 
 implementation
@@ -923,18 +917,6 @@ implementation
          is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
-         if assigned(lastglobaldef) then
-           begin
-              lastglobaldef.nextglobal := self;
-              previousglobal:=lastglobaldef;
-           end
-         else
-           begin
-              firstglobaldef := self;
-              previousglobal := nil;
-           end;
-         lastglobaldef := self;
-         nextglobal := nil;
          fillchar(localrttilab,sizeof(localrttilab),0);
       end;
 
@@ -949,18 +931,6 @@ implementation
          is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
-         if assigned(lastglobaldef) then
-           begin
-              lastglobaldef.nextglobal := self;
-              previousglobal:=lastglobaldef;
-           end
-         else
-           begin
-              firstglobaldef := self;
-              previousglobal:=nil;
-           end;
-         lastglobaldef := self;
-         nextglobal := nil;
          fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
          indexnr:=ppufile.getword;
@@ -973,32 +943,21 @@ implementation
       end;
 
 
-    destructor tstoreddef.destroy;
-      begin
-         { first element  ? }
-         if not(assigned(previousglobal)) then
-           begin
-              firstglobaldef := nextglobal;
-              if assigned(firstglobaldef) then
-                firstglobaldef.previousglobal:=nil;
-           end
-         else
-           begin
-              { remove reference in the element before }
-              previousglobal.nextglobal:=nextglobal;
-           end;
-         { last element ? }
-         if not(assigned(nextglobal)) then
-           begin
-              lastglobaldef := previousglobal;
-              if assigned(lastglobaldef) then
-                lastglobaldef.nextglobal:=nil;
-           end
-         else
-           nextglobal.previousglobal:=previousglobal;
-         previousglobal:=nil;
-         nextglobal:=nil;
-      end;
+    procedure Tstoreddef.reset;
+
+    begin    
+{$ifdef GDB}
+      if assigned(typesym) then
+        ttypesym(typesym).isusedinstab:=false;
+      is_def_stab_written:=not_written;
+{$endif GDB}
+      if assigned(rttitablesym) then
+        trttisym(rttitablesym).lab := nil;
+      if assigned(inittablesym) then
+        trttisym(inittablesym).lab := nil;
+      localrttilab[initrtti]:=nil;
+      localrttilab[fullrtti]:=nil;
+    end;
 
     function tstoreddef.getcopy : tstoreddef;
       begin
@@ -6058,40 +6017,6 @@ implementation
                            Definition Helpers
 ****************************************************************************}
 
-   procedure reset_global_defs;
-     var
-       def     : tstoreddef;
-{$ifdef debug}
-       prevdef : tstoreddef;
-{$endif debug}
-     begin
-{$ifdef debug}
-        prevdef:=nil;
-{$endif debug}
-{$ifdef GDB}
-        pglobaltypecount:=@globaltypecount;
-{$endif GDB}
-        def:=firstglobaldef;
-        while assigned(def) do
-          begin
-{$ifdef GDB}
-            if assigned(def.typesym) then
-              ttypesym(def.typesym).isusedinstab:=false;
-            def.is_def_stab_written:=not_written;
-{$endif GDB}
-            if assigned(def.rttitablesym) then
-              trttisym(def.rttitablesym).lab := nil;
-            if assigned(def.inittablesym) then
-              trttisym(def.inittablesym).lab := nil;
-            def.localrttilab[initrtti]:=nil;
-            def.localrttilab[fullrtti]:=nil;
-{$ifdef debug}
-            prevdef:=def;
-{$endif debug}
-            def:=def.nextglobal;
-          end;
-     end;
-
     function is_interfacecom(def: tdef): boolean;
       begin
         is_interfacecom:=
@@ -6152,7 +6077,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.215  2004-02-05 01:24:08  florian
+  Revision 1.216  2004-02-06 22:37:00  daniel
+    * Removed not very usefull nextglobal & previousglobal fields from
+      Tstoreddef, saving 78 kb of memory
+
+  Revision 1.215  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.214  2004/02/03 22:32:54  peter

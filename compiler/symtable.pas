@@ -62,6 +62,7 @@ interface
           procedure unchain_overloads(p : TNamedIndexItem;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
+          procedure reset_def(def:Tnamedindexitem;arg:pointer);
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
@@ -75,6 +76,7 @@ interface
           procedure deref;virtual;
           procedure derefimpl;virtual;
           procedure insert(sym : tsymentry);override;
+          procedure reset_all_defs;virtual;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
           procedure allsymbolsused;
           procedure allprivatesused;
@@ -215,6 +217,8 @@ interface
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
+
+    procedure reset_all_defs;
 
 {*** symtable stack ***}
 {$ifdef DEBUG}
@@ -839,6 +843,18 @@ implementation
         if tsym(p).typ <> procsym then
           Tstoredsym(p).isstabwritten:=false;
       end;
+
+    procedure Tstoredsymtable.reset_def(def:Tnamedindexitem;arg:pointer);
+
+    begin
+      Tstoreddef(def).reset;
+    end;
+
+    procedure Tstoredsymtable.reset_all_defs;
+
+    begin
+      defindex.foreach(@reset_def,nil);
+    end;
 
     procedure TStoredSymtable.concattypestab(p : TNamedIndexItem;arg:pointer);
 
@@ -2142,6 +2158,18 @@ implementation
         search_class_member:=nil;
       end;
 
+    procedure reset_all_defs;
+
+    var st:Tsymtable;
+
+    begin
+      st:=symtablestack;
+      while st<>nil do
+        begin
+          Tstoredsymtable(st).reset_all_defs;
+          st:=st.next;
+        end;
+    end;
 
 {*****************************************************************************
                             Definition Helpers
@@ -2350,8 +2378,6 @@ implementation
         symtablestack:=nil;
         systemunit:=nil;
 {$ifdef GDB}
-        firstglobaldef:=nil;
-        lastglobaldef:=nil;
         globaltypecount:=1;
         pglobaltypecount:=@globaltypecount;
 {$endif GDB}
@@ -2380,7 +2406,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2004-02-04 22:15:16  daniel
+  Revision 1.135  2004-02-06 22:37:00  daniel
+    * Removed not very usefull nextglobal & previousglobal fields from
+      Tstoreddef, saving 78 kb of memory
+
+  Revision 1.134  2004/02/04 22:15:16  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up
