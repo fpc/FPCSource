@@ -67,6 +67,8 @@ implementation
 
 uses
    cstreams,
+   systems,
+   globals,
    verbose,
 {$ifdef Delphi}
    dmisc;
@@ -149,7 +151,10 @@ var
 begin
   fillchar(arhdr,sizeof(tarhdr),' ');
 { create ar header }
-  fn:=fn+'/';
+  { win32 will change names starting with .\ to ./ when using lfn, corrupting
+    the sort order required for the idata sections. To prevent this strip
+    always the path from the filename. (PFV) }
+  fn:=SplitFileName(fn)+'/';
   if length(fn)>16 then
    begin
      arhdr.name[0]:='/';
@@ -278,7 +283,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-05-18 13:34:11  peter
+  Revision 1.13  2004-05-09 11:07:39  peter
+  strip path from filenames of members, because win32 changes .\ to ./ for long filenames
+
+  Revision 1.12  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.11  2002/05/16 19:46:42  carl
