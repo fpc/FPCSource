@@ -1494,7 +1494,7 @@ implementation
                             left:=nil;
                             resulttypepass(result);
                             exit;
-                          end;  
+                          end;
                       end;
                     else
                       CGMessage(type_e_mismatch);
@@ -1516,6 +1516,23 @@ implementation
 
               in_assigned_x:
                 begin
+                   { assigned(nil) is always false }
+                   if (tcallparanode(left).left.nodetype=niln) then
+                    begin
+                      hp:=cordconstnode.create(0,booltype);
+                      result:=hp;
+                      goto myexit;
+                    end;
+                   { assigned(pointer(n)) is only false when n=0 }
+                   if (tcallparanode(left).left.nodetype=pointerconstn) then
+                    begin
+                      if tpointerconstnode(tcallparanode(left).left).value=0 then
+                       hp:=cordconstnode.create(0,booltype)
+                      else
+                       hp:=cordconstnode.create(1,booltype);
+                      result:=hp;
+                      goto myexit;
+                    end;
                    set_varstate(left,true);
                    resulttype:=booltype;
                 end;
@@ -2324,7 +2341,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2001-12-28 14:09:21  jonas
+  Revision 1.68  2002-01-19 11:53:56  peter
+    * constant evaluation for assinged added
+
+  Revision 1.67  2001/12/28 14:09:21  jonas
     * fixed web bug 1735 (argument of inc/dec must be made unique) ("merged")
 
   Revision 1.66  2001/12/10 14:26:22  jonas
