@@ -7,6 +7,9 @@
     {$H-}
     {$goto on}
 
+    { This reduces the memory requirements a lot }
+    {$PACKENUM 1}
+
     {$define FPCPROCVAR}
     {$ifdef I386}
       {$define USEEXCEPT}
