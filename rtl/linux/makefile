@@ -220,10 +220,13 @@ endif
 
 # Which prt to use ?
 ifdef AOUT
-PRT=prt0.as
+PRT=prt0
 else
-PRT=prt1.as
+PRT=prt1
 endif
+
+LOADERAS=$(CPU)/$(PRT).as
+GLOADERAS=$(CPU)/g$(PRT).as
 
 # Define Loaders
 ifeq ($(LINK_TO_C),NO)
@@ -273,11 +276,11 @@ clean :
 # Loaders
 #
 
-prt0$(OEXT) : $(PRT)
-	-as $(PRT) -o prt0$(OEXT)
+prt0$(OEXT) : $(LOADERAS)
+	-as $(LOADERAS) -o prt0$(OEXT)
 
-gprt0$(OEXT) : gprt1.as
-	-as gprt1.as -o gprt0$(OEXT)
+gprt0$(OEXT) : $(GLOADERAS)
+	-as $(GLOADERAS) -o gprt0$(OEXT)
 
 lprt$(OEXT) : lprt.c
 	gcc $(AOUT) -c lprt.c -o lprt$(OEXT)
