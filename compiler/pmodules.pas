@@ -1238,10 +1238,10 @@ implementation
 
     procedure proc_program(islibrary : boolean);
       var
-         main_file: tinputfile;
-         st    : tsymtable;
-         hp    : tmodule;
-         pd : tprocdef;
+         main_file : tinputfile;
+         st        : tsymtable;
+         hp,hp2    : tmodule;
+         pd        : tprocdef;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -1481,6 +1481,17 @@ implementation
          { create the executable when we are at level 1 }
          if (compile_level=1) then
           begin
+            { remove all unused units, this happends when units are removed
+              from the uses clause in the source and the ppu was already being loaded }
+            hp:=tmodule(loaded_units.first);
+            while assigned(hp) do
+             begin
+               hp2:=hp;
+               hp:=tmodule(hp.next);
+               if hp2.is_unit and
+                  not assigned(hp2.globalsymtable) then
+                 loaded_units.remove(hp2);
+             end;
             { insert all .o files from all loaded units }
             hp:=tmodule(loaded_units.first);
             while assigned(hp) do
@@ -1505,7 +1516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2004-06-29 21:00:08  peter
+  Revision 1.160  2004-07-06 20:23:25  peter
+    * remove unused and not loaded units before linking
+
+  Revision 1.159  2004/06/29 21:00:08  peter
     * only enable dwarf for supported platforms
 
   Revision 1.158  2004/06/20 08:55:30  florian

@@ -877,6 +877,9 @@ uses
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
+           { we can already stop when we know that we must recompile }
+           if do_compile then
+             exit;
          until false;
       end;
 
@@ -1521,7 +1524,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.57  2004-07-06 19:52:04  peter
+  Revision 1.58  2004-07-06 20:23:25  peter
+    * remove unused and not loaded units before linking
+
+  Revision 1.57  2004/07/06 19:52:04  peter
     * fix storing of localst in ppu
 
   Revision 1.56  2004/07/05 21:26:28  olle
