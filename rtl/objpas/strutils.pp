@@ -92,6 +92,7 @@ Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; Se
 Function SearchBuf(Buf: PChar; BufLen: Integer; SelStart, SelLength: Integer; SearchString: String): PChar; // ; Options: TStringSearchOptions = [soDown]
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 Function PosEx(const SubStr, S: string): Integer; // Offset: Cardinal = 1
+Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
 
 { ---------------------------------------------------------------------
     Soundex Functions.
@@ -255,18 +256,33 @@ end;
 
 Function DupeString(const AText: string; ACount: Integer): string;
 
+var i,l : integer;
+
 begin
-  NotYetImplemented(' DupeString');
+ result:='';
+ if aCount>=0 then
+   begin
+     l:=length(atext);
+     SetLength(result,aCount*l);
+     for i:=0 to ACount-1 do
+       move(atext[1],Result[l*i+1],l);
+   end;
 end;
-
-
 
 Function ReverseString(const AText: string): string;
 
-begin
-  NotYetImplemented(' ReverseString');
-end;
+var c: char;
+    i,j:longint;
 
+begin
+  setlength(result,length(atext));
+  i:=1; j:=length(atext);
+  while (i<=j) do
+    begin
+      result[i]:=atext[j-i+1];
+      inc(i);
+    end;
+end;
 
 
 Function AnsiReverseString(const AText: AnsiString): AnsiString;
@@ -296,7 +312,7 @@ end;
 Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string; 
 
 begin
-  NotYetImplemented(' IfThen');
+  if avalue then result:=atrue else result:=afalse;
 end;
 
 
@@ -304,9 +320,8 @@ end;
 Function IfThen(AValue: Boolean; const ATrue: string): string; // ; AFalse: string = ''
 
 begin
-  NotYetImplemented(' IfThen');
+  if avalue then result:=atrue else result:='';
 end;
-
 
 
 
@@ -317,23 +332,26 @@ end;
 Function LeftStr(const AText: AnsiString; const ACount: Integer): AnsiString; 
 
 begin
-  NotYetImplemented(' LeftStr');
+  Result:=Copy(AText,1,ACount);
 end;
-
-
 
 Function RightStr(const AText: AnsiString; const ACount: Integer): AnsiString; 
 
+var j,l:integer;
+
 begin
-  NotYetImplemented(' RightStr');
+  l:=length(atext);
+  j:=ACount;
+  if j>l then j:=l;
+  Result:=Copy(AText,l-j+1,j);
 end;
-
-
 
 Function MidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString; 
 
 begin
-  NotYetImplemented(' MidStr');
+  if (ACount=0) or (AStart>length(atext)) then
+    exit('');
+  Result:=Copy(AText,AStart,ACount);  
 end;
 
 
@@ -433,19 +451,35 @@ end;
 
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 
+var i : pchar;
 begin
-  NotYetImplemented(' PosEx');
+  if (offset<1) or (offset>length(s)) then exit(0);
+  i:=strpos(@s[1],@substr[offset]);
+  if i=nil then
+    PosEx:=0   
+  else
+    PosEx:=(i-pchar(s))+offset;
 end;
-
 
 
 Function PosEx(const SubStr, S: string): Integer; // Offset: Cardinal = 1
 
 begin
-  NotYetImplemented(' PosEx');
+  posex:=posex(substr,s,1);
 end;
 
+Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
 
+var l : longint;
+begin
+  if (offset<1) or (offset>length(s)) then exit(0);
+  l:=length(s);
+  while (offset<=l) and (s[offset]<>c) do inc(offset);
+  if offset>l then
+   posex:=0
+  else 
+   posex:=offset;
+end;
 
 
 { ---------------------------------------------------------------------
