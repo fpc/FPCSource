@@ -53,8 +53,8 @@ function getint64cnt_2 : int64;
  begin
   longval := 1;
   getint64cnt_2 := int64(longval) shl 33;
- end; 
- 
+ end;
+
 
   {$ENDIF}
 
@@ -278,7 +278,7 @@ begin
   Write('Value should be -10...');
   test(longint(int64res), -10);
 
-  
+
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
   longval := 1;
@@ -287,7 +287,7 @@ begin
   int64res := int64res div int64cnt;
   Write('Value should be 85899345...');
   test(longint(int64res), 85899345);
-  
+
 
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REFERENCE       }
@@ -325,14 +325,14 @@ begin
   int64res := getint64cnt mod int64cnt;
   Write('Value should be -1...');
   test(longint(int64res), -1);
-  
+
   { RIGHT : LOC_REFERENCE      }
   { LEFT : LOC_REGISTER        }
   int64cnt := 100;
   int64res := getint64cnt_2 div int64cnt;
   Write('Value should be 85899345...');
   test(longint(int64res), 85899345);
-  
+
   { SPECIAL-------------------------------------------------}
   { special tests for results }
   Writeln('special numeric values tests...');
@@ -357,7 +357,11 @@ begin
 
   Writeln('special numeric values tests...');
   int64res := $7FFFFFFF;
+{$ifdef ver1_0}
+  int64cnt := dword($80000000);
+{$else ver1_0}
   int64cnt := $80000000;
+{$endif ver1_0}
   int64res := int64cnt div int64res;
   Write('Value should be 1...');
   test(longint(int64res), 1);
