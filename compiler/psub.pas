@@ -579,10 +579,32 @@ begin
 end;
 
 procedure pd_virtual(const procnames:Tstringcontainer);
+{$ifdef WITHDMT}
+var
+  pt : ptree;
+{$endif WITHDMT}
 begin
   if (aktprocsym^.definition^.proctypeoption=potype_constructor) and
      not(aktprocsym^.definition^._class^.is_class) then
     Message(parser_e_constructor_cannot_be_not_virtual);
+{$ifdef WITHDMT}
+  if not(aktprocsym^.definition^._class^.is_class) and
+    (token<>_SEMICOLON) then
+    begin
+       { any type of parameter is allowed here! }
+
+       pt:=comp_expr(true);
+       do_firstpass(pt);
+       if is_constintnode(pt) then
+         begin
+           include(aktprocsym^.definition^.procoptions,po_msgint);
+           aktprocsym^.definition^.messageinf.i:=pt^.value;
+         end
+       else
+         Message(parser_e_ill_msg_expr);
+       disposetree(pt);
+    end;
+{$endif WITHDMT}
 end;
 
 procedure pd_static(const procnames:Tstringcontainer);
@@ -1945,7 +1967,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2000-01-21 22:06:16  florian
+  Revision 1.44  2000-01-28 23:17:53  florian
+    * virtual XXXX; support for objects, only if -dWITHDMT is defined
+
+  Revision 1.43  2000/01/21 22:06:16  florian
     * fixed for the fix of bug 793
     * fpu variables modified by nested subroutines aren't regable anymore
     * $maxfpuregisters doesn't modify anymore the behavior of a procedure before

@@ -36,6 +36,10 @@ interface
     { generates a VMT for _class }
     procedure genvmt(list : paasmoutput;_class : pobjectdef);
 
+{$ifdef WITHDMT}
+    { generates a DMT for _class }
+    function gendmt(_class : pobjectdef) : pasmlabel;
+{$endif WITHDMT}
 
 implementation
 
@@ -256,6 +260,86 @@ implementation
               disposeprocdeftree(root);
            end;
       end;
+
+{$ifdef WITHDMT}
+
+    procedure insertdmtentry(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
+
+      var
+         hp : pprocdef;
+         pt : pprocdeftree;
+
+      begin
+         if psym(p)^.typ=procsym then
+           begin
+              hp:=pprocsym(p)^.definition;
+              while assigned(hp) do
+                begin
+                   if (po_msgint in hp^.procoptions) then
+                     begin
+                        new(pt);
+                        pt^.p:=hp;
+                        pt^.l:=nil;
+                        pt^.r:=nil;
+                        insertint(pt,root);
+                     end;
+                   hp:=hp^.nextoverloaded;
+                end;
+           end;
+      end;
+
+    procedure writedmtindexentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writedmtindexentry(p^.l);
+         datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
+         if assigned(p^.r) then
+           writedmtindexentry(p^.r);
+      end;
+
+    procedure writedmtaddressentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writedmtaddressentry(p^.l);
+         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+         if assigned(p^.r) then
+           writedmtaddressentry(p^.r);
+      end;
+
+    function gendmt(_class : pobjectdef) : pasmlabel;
+
+      var
+         r : pasmlabel;
+
+      begin
+         root:=nil;
+         count:=0;
+         gendmt:=nil;
+         { insert all message handlers into a tree, sorted by number }
+         _class^.symtable^.foreach({$ifndef TP}@{$endif}insertdmtentry);
+
+         if count>0 then
+           begin
+              getdatalabel(r);
+              gendmt:=r;
+              datasegment^.concat(new(pai_label,init(r)));
+              { entries for caching }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+
+              datasegment^.concat(new(pai_const,init_32bit(count)));
+              if assigned(root) then
+                begin
+                   writedmtindexentry(root);
+                   writedmtaddressentry(root);
+                   disposeprocdeftree(root);
+                end;
+           end;
+      end;
+
+{$endif WITHDMT}
 
     procedure do_count(p : pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
 
@@ -575,11 +659,7 @@ implementation
                                   { generates an instance                     }
                                   if (po_abstractmethod in procdefcoll^.data^.procoptions) then
                                     begin
-{$ifdef INCLUDEOK}
                                        include(_class^.objectoptions,oo_has_abstract);
-{$else}
-                                       _class^.objectoptions:=_class^.objectoptions+[oo_has_abstract];
-{$endif}
                                        list^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
                                     end
                                   else
@@ -616,7 +696,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-01-07 01:14:27  peter
+  Revision 1.24  2000-01-28 23:17:53  florian
+    * virtual XXXX; support for objects, only if -dWITHDMT is defined
+
+  Revision 1.23  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.22  1999/12/02 19:22:16  peter

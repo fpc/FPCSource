@@ -716,6 +716,9 @@ uses
          strmessagetable,classnamelabel : pasmlabel;
          storetypecanbeforward : boolean;
          vmtlist : taasmoutput;
+{$ifdef WITHDMT}
+         dmtlabel : pasmlabel;
+{$endif WITHDMT}
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -723,11 +726,8 @@ uses
          oldprocsym:=aktprocsym;
          { forward is resolved }
          if assigned(fd) then
-{$ifdef INCLUDEOK}
            exclude(fd^.objectoptions,oo_is_forward);
-{$else}
-           fd^.objectoptions:=fd^.objectoptions-[oo_is_forward];
-{$endif}
+
          there_is_a_destructor:=false;
          actmembertype:=[sp_public];
 
@@ -1047,6 +1047,9 @@ uses
          { Write the start of the VMT, wich is equal for classes and objects }
          if (oo_has_vmt in aktclass^.objectoptions) then
            begin
+{$ifdef WITHDMT}
+              dmtlabel:=gendmt(aktclass);
+{$endif WITHDMT}
               { this generates the entries }
               vmtlist.init;
               genvmt(@vmtlist,aktclass);
@@ -1089,7 +1092,15 @@ uses
               { size gives back 4 for classes                    }
               datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
               datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
-
+{$ifdef WITHDMT}
+              if not(is_a_class) then
+                begin
+                   if assigned(dmtlabel) then
+                     datasegment^.concat(new(pai_const_symbol,init(dmtlabel)))
+                   else
+                     datasegment^.concat(new(pai_const,init_32bit(0)));
+                end;
+{$endif WITHDMT}
               { write pointer to parent VMT, this isn't implemented in TP }
               { but this is not used in FPC ? (PM) }
               { it's not used yet, but the delphi-operators as and is need it (FK) }
@@ -1524,7 +1535,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.15  2000-01-27 16:31:40  florian
+  Revision 1.16  2000-01-28 23:17:53  florian
+    * virtual XXXX; support for objects, only if -dWITHDMT is defined
+
+  Revision 1.15  2000/01/27 16:31:40  florian
     * bug 738 fixed
 
   Revision 1.14  2000/01/11 17:16:06  jonas

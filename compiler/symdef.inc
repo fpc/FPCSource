@@ -3362,7 +3362,11 @@ Const local_symtable_index : longint = $8001;
         if is_class then
          vmtmethodoffset:=(index+12)*target_os.size_of_pointer
         else
+{$ifdef WITHDMT}
+         vmtmethodoffset:=(index+4)*target_os.size_of_pointer;
+{$else WITHDMT}
          vmtmethodoffset:=(index+3)*target_os.size_of_pointer;
+{$endif WITHDMT}
       end;
 
 
@@ -3859,7 +3863,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.189  2000-01-26 12:02:29  peter
+  Revision 1.190  2000-01-28 23:17:53  florian
+    * virtual XXXX; support for objects, only if -dWITHDMT is defined
+
+  Revision 1.189  2000/01/26 12:02:29  peter
     * abstractprocdef.para_size needs alignment parameter
     * secondcallparan gets para_alignment size instead of dword_align
 
