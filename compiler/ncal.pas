@@ -1705,8 +1705,10 @@ implementation
                                  begin
                                    hp^.nextPara.argconvtyp:=act_convertable;
                                    { var and out parameters are not be convertable
-                                     in Delphi/tp mode }
+                                     in Delphi/tp mode. The only exception is when the
+                                     procedure is defined in the system unit }
                                    if (hp^.nextPara.paratyp in [vs_var,vs_out]) and
+                                      (procs^.data.owner.unitid<>1) and
                                       ((m_delphi in aktmodeswitches) or
                                        (m_tp7 in aktmodeswitches)) then
                                     hp^.nextPara.convertlevel:=0
@@ -2602,7 +2604,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2002-09-09 19:30:34  peter
+  Revision 1.100  2002-09-15 17:49:59  peter
+    * don't have strict var parameter checking for procedures in the
+      system unit
+
+  Revision 1.99  2002/09/09 19:30:34  peter
     * don't allow convertable parameters for var and out parameters in
       delphi and tp mode
 
