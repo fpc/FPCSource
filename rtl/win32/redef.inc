@@ -27,6 +27,8 @@ type
    PCharInfo = ^TCharInfo;
    TCharInfo = _CHAR_INFO;
 
+   TFarProc = FARPROC;
+
   procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection);
   procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection);
   procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection);
@@ -100,7 +102,10 @@ type
 
 {
   $Log$
-  Revision 1.3  1999-04-20 11:36:16  peter
+  Revision 1.4  1999-06-18 13:59:50  florian
+    * changes for the winsock unit
+
+  Revision 1.3  1999/04/20 11:36:16  peter
     * compatibility fixes
 
   Revision 1.2  1999/03/22 22:12:51  florian

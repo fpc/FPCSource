@@ -65,7 +65,7 @@ LOADEROBJECTS=wprt0 wdllprt0
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
-	    windows ole2 opengl32 \
+            windows ole2 opengl32 winsock \
 	    dos crt objects \
 	    sysutils typinfo math \
 	    cpu mmx getopts heaptrc
@@ -207,6 +207,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 windows$(PPUEXT) : windows.pp redef.inc $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
+
+winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMPPU)
 
 #
 # TP7 Compatible RTL Units
@@ -382,7 +384,10 @@ endif
 
 #
 # $Log$
-# Revision 1.32  1999-06-10 15:02:15  peter
+# Revision 1.33  1999-06-18 13:59:49  florian
+#   * changes for the winsock unit
+#
+# Revision 1.32  1999/06/10 15:02:15  peter
 #   * last fixes for 0.99.12 release
 #
 # Revision 1.31  1999/05/13 22:38:03  peter
