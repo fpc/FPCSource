@@ -122,6 +122,40 @@ begin
   writeln ('Out of try/except at level (',level,')');  
 end;
 
+function _dotryfinally : boolean;
+
+var
+   problem : boolean;
+
+begin
+   result:=false;
+   try
+     try
+     finally
+       writeln('Raising an exception in finally statement');
+       Raiseanexception
+     end;
+   except
+   end;
+   try
+      exit;
+   finally
+      result:=true;
+   end;
+   writeln('Problem with finally and exit !!!!');
+   halt(1);
+end;
+
+procedure dotryfinally;
+
+  begin
+     if not(_dotryfinally) then
+       begin
+          writeln('Problem with finally and exit !!!!');
+          halt(1);
+       end;
+  end;
+
 Procedure Start(Const Msg : string);
 
 begin
@@ -154,6 +188,9 @@ begin
   Finish;
   Start ('Testing Mix with raise');
   DoMix (1,true);
+  Finish;
+  Start ('Testing Try/Finally with Exit');
+  dotryfinally;
   Finish;
   Writeln ('Testing Try/Finally with raise');
   Start ('This one should end with an error message !!.'); 
