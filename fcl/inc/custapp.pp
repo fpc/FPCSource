@@ -407,7 +407,7 @@ begin
               If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
                 begin
                 // Required argument
-                If ((P+1)<Length(ShortOptions)) and (Shortoptions[P+2]<>':') Then
+                If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     Result:=Format(SErrOptionNeeded,[I,O[J]]);
                 O:=O[j]; // O is added to arguments.  
