@@ -25,6 +25,8 @@
 {$i filerec.inc}
 {$i textrec.inc}
 
+Procedure HandleError (Errno : Longint); forward;
+
 type
   FileFunc = Procedure(var t : TextRec);
 
@@ -509,7 +511,7 @@ begin
     write (stderr,msg);
   writeln (stderr,'(File : ',name,', line ',LineNo,'.');
   flush (stderr);
-  runerror (227);
+  HandleError (227);
 end;
 
 {*****************************************************************************
@@ -527,7 +529,12 @@ end;
 
 {
   $Log$
-  Revision 1.24  1998-07-28 20:37:45  michael
+  Revision 1.25  1998-07-30 13:26:18  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.24  1998/07/28 20:37:45  michael
   + added setjmp/longjmp and exception support
 
   Revision 1.23  1998/07/23 19:53:20  michael

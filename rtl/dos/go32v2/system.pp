@@ -181,7 +181,7 @@ __short_on_stack:
         popl    %ebx
         popl    %eax
   end['EAX','EBX'];
-  RunError(202);
+  HandleError(202);
 end;
 
 
@@ -489,13 +489,13 @@ end;
 
      procedure syscopytodos(addr : longint; len : longint);
      begin
-        if len > tb_size then runerror(217);
+        if len > tb_size then HandleError(217);
         sysseg_move(get_ds,addr,dos_selector,tb,len);
      end;
 
      procedure syscopyfromdos(addr : longint; len : longint);
      begin
-        if len > tb_size then runerror(217);
+        if len > tb_size then HandleError(217);
         sysseg_move(dos_selector,tb,get_ds,addr,len);
      end;
 
@@ -627,7 +627,7 @@ begin
   AllowSlash(p1);
   AllowSlash(p2);
   if strlen(p1)+strlen(p2)+3>tb_size then
-   RunError(217);
+   HandleError(217);
   sysseg_move(get_ds,longint(p2),dos_selector,tb,strlen(p2)+1);
   sysseg_move(get_ds,longint(p1),dos_selector,tb+strlen(p2)+2,strlen(p1)+1);
   regs.realedi:=tb and 15;
@@ -1057,7 +1057,12 @@ Begin
 End.
 {
   $Log$
-  Revision 1.12  1998-07-13 21:19:08  florian
+  Revision 1.13  1998-07-30 13:26:22  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.12  1998/07/13 21:19:08  florian
     * some problems with ansi string support fixed
 
   Revision 1.11  1998/07/07 12:33:08  carl

@@ -93,6 +93,8 @@ const
   fmAppend = $D7B4;
   Filemode : byte = 2;
 
+Type TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
+
 var
 { Standard In- and Output }
   Output,
@@ -103,6 +105,9 @@ var
   StackBottom,
   LowestStack,
   RandSeed    : Longint;
+
+Const 
+  ErrorProc   : Pointer = nil;
 
 {****************************************************************************
                         Processor specific routines
@@ -405,7 +410,12 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.20  1998-07-28 20:37:47  michael
+  Revision 1.21  1998-07-30 13:26:17  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.20  1998/07/28 20:37:47  michael
   + added setjmp/longjmp and exception support
 
   Revision 1.19  1998/07/20 23:36:57  michael

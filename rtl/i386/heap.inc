@@ -192,7 +192,7 @@
        		      if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
 			  begin
 			      writeln('error in linked list of heap_mem_info');
-			       runerror(204);
+			       HandleError(204);
 			  end
 
 		      if pp=p then
@@ -637,13 +637,13 @@
 		if assigned(heaperror) then
                   begin
                      case call_heaperror(heaperror,size) of
-                        0 : runerror(203);
+                        0 : HandleError(203);
                         1 : p:=nil;
                         2 : nochmal:=true;
                      end;
                   end
                 else
-                  runerror(203);
+                  HandleError(203);
              end
            else
              begin
@@ -701,7 +701,7 @@ check_new:
           p:=p-sizeof(heap_mem_info);
           { made after heap_switch
           if not (is_in_getmem_list(p)) then
-		runerror(204); }
+		HandleError(204); }
        end;
 {$endif CHECKHEAP}
          if size=0 then
@@ -738,7 +738,7 @@ check_new:
 				begin
 				   writeln('pointer ',hexstr(longint(@p),8),' at ',
 					 hexstr(longint(p),8),' doesn''t points to the heap');
-				   runerror(204);
+				   HandleError(204);
 				end;
 		   end;
 {$endif TEMPHEAP}
@@ -746,7 +746,7 @@ check_new:
 	 if trace then
 	   begin
 	       if not (is_in_getmem_list(p)) then
-		   runerror(204);
+		   HandleError(204);
 	       if pheap_mem_info(p)^.sig=$AAAAAAAA then
 		   dump_free(p);
 	       if pheap_mem_info(p)^.next<>nil then
@@ -823,7 +823,7 @@ check_new:
 			   writeln('pointer to dispose at ',hexstr(longint(p),8),
 			    ' has already been disposed');
 {$endif CHECKHEAP}
-			   runerror(204);
+			   HandleError(204);
 		       end;
 		   { connecting two blocks ? }
 		   if hp+hp^.size=p then
@@ -845,7 +845,7 @@ check_new:
 					  writeln('pointer to dispose at ',hexstr(longint(p),8),
 					   ' is too big !!');
 {$endif CHECKHEAP}
-				          runerror(204);
+				          HandleError(204);
 				   end;
 			   break;
 		        end
@@ -1062,7 +1062,12 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-07-02 14:24:09  michael
+  Revision 1.14  1998-07-30 13:26:21  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.13  1998/07/02 14:24:09  michael
   Undid carls changes, but renamed _heapsize to _internal_heapsize. Make cycle now works
 
   Revision 1.11  1998/06/25 09:26:10  daniel

@@ -60,7 +60,7 @@ Begin
    fmOutput : Flags:=$1101;
    fmAppend : Flags:=$1011;
   else
-   RunError(102);
+   HandleError(102);
   End;
   Do_Open(t,PChar(@t.Name),Flags);
   t.CloseFunc:=@FileCloseFunc;
@@ -957,7 +957,7 @@ Begin
    ReadNumeric(f,hs,Base);
   Val(hs,l,code);
   If code<>0 Then
-   RunError(106);
+   HandleError(106);
 End;
 
 
@@ -969,7 +969,7 @@ Begin
   If InOutRes <> 0 then exit;
   Read_Longint(f,ll);
   If (ll<-32768) or (ll>32767) Then
-   RunError(106);
+   HandleError(106);
   l:=ll;
 End;
 
@@ -982,7 +982,7 @@ Begin
   If InOutRes <> 0 then exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>$ffff) Then
-   RunError(106);
+   HandleError(106);
   l:=ll;
 End;
 
@@ -995,7 +995,7 @@ Begin
   If InOutRes <> 0 then exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>255) Then
-   RunError(106);
+   HandleError(106);
   l:=ll;
 End;
 
@@ -1008,7 +1008,7 @@ Begin
   If InOutRes <> 0 then exit;
   Read_Longint(f,ll);
   If (ll<-128) or (ll>127) Then
-   RunError(106);
+   HandleError(106);
   l:=ll;
 End;
 
@@ -1028,7 +1028,7 @@ Begin
    ReadNumeric(f,hs,Base);
   val(hs,l,code);
   If code<>0 Then
-   RunError(106);
+   HandleError(106);
 End;
 
 
@@ -1066,7 +1066,7 @@ Begin
    end;
   val(hs,d,code);
   If code<>0 Then
-   RunError(106);
+   HandleError(106);
 End;
 
 
@@ -1105,7 +1105,7 @@ Begin
    end;
   val(hs,d,code);
   If code<>0 Then
-   RunError(106);
+   HandleError(106);
 End;
 {$endif SUPPORT_EXTENDED}
 
@@ -1145,7 +1145,7 @@ Begin
    end;
   val(hs,d,code);
   If code<>0 Then
-   RunError(106);
+   HandleError(106);
 End;
 {$endif SUPPORT_COMP}
 
@@ -1185,14 +1185,19 @@ begin
               TextRec(f).FlushFunc:=@FileWriteFunc;
             end;
   else
-   RunError(102);
+   HandleError(102);
   end;
 end;
 
 
 {
   $Log$
-  Revision 1.18  1998-07-29 21:44:35  michael
+  Revision 1.19  1998-07-30 13:26:16  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.18  1998/07/29 21:44:35  michael
   + Implemented reading/writing of ansistrings
 
   Revision 1.17  1998/07/19 19:55:33  michael

@@ -52,8 +52,10 @@
   asm
      move.b d0,b
   end;
-     RunError(b);
+     HandleError(b);
  end;
+
+
 
 
    Procedure FillChar(var x; count: longint; value: byte);
@@ -332,6 +334,42 @@
          end ['a0'];
       end;
 
+Procedure HandleError (Errno : longint);[alias : 'handleerror'];
+{
+  Procedure to handle internal errors, i.e. not user-invoked errors
+  Internal function should ALWAYS call HandleError instead of RunError.
+}
+      function get_addr : pointer;
+
+        begin
+           asm
+              move.l (a6),a0
+              move.l 4(a0),a0
+              move.l a0,@RESULT
+           end ['a0'];
+        end;
+      function get_error_bp : longint;
+
+        begin
+           asm
+              { get base pointer of error }
+              move.l (a6),d0
+              move.l d0,@RESULT
+           end ['d0'];
+        end;
+
+begin
+  If ErrorProc<>Nil then
+    TErrorProc (ErrorProc)(Errno,get_addr);
+  errorcode:=Errno;
+  exitcode:=Errno;
+  erroraddr:=Get_addr;
+  DoError := TRUE;
+  errorbase:=get_error_bp;
+  halt(errorcode);
+end;
+
+
     procedure runerror(w : word);
 
       function get_addr : longint;
@@ -398,7 +436,7 @@
             move.l d0,addr
          end;
          writeln('Overflow at 0x',HexStr(addr,8));
-         RunError(215);
+         HandleError(215);
       end;
 
 {    procedure strcopy(dstr,sstr : pointer;len : longint);[public,alias: 'STRCOPY'];}
@@ -748,7 +786,12 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.8  1998-07-10 11:02:41  peter
+  Revision 1.9  1998-07-30 13:26:14  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.8  1998/07/10 11:02:41  peter
     * support_fixed, becuase fixed is not 100% yet for the m68k
 
   Revision 1.7  1998/07/02 12:20:58  carl

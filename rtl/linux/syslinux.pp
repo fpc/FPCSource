@@ -646,7 +646,7 @@ end;
 Procedure SegFaultHandler (Sig : longint);
 begin
   if sig=11 then
-   RunError (216);
+   HandleError (216);
 end;
 
 
@@ -675,7 +675,12 @@ End.
 
 {
   $Log$
-  Revision 1.9  1998-07-20 23:40:20  michael
+  Revision 1.10  1998-07-30 13:26:15  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.9  1998/07/20 23:40:20  michael
   changed sbrk to fc_sbrk, to avoid conflicts with C library.
 
   Revision 1.8  1998/07/13 21:19:14  florian

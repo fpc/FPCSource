@@ -272,8 +272,8 @@ asm
      popl %edi
      ret $4
 .Lco_re:
-     pushw $210
-     call runerror
+     pushl $210
+     call handleerror
 end;
 
 
@@ -523,35 +523,54 @@ asm
 end ['EAX'];
 
 
+Procedure HandleError (Errno : longint);[alias : 'handleerror'];
+{
+  Procedure to handle internal errors, i.e. not user-invoked errors
+  Internal function should ALWAYS call HandleError instead of RunError.
+}
+function get_addr : Pointer;assembler;
+asm
+  movl (%ebp),%eax
+  movl 4(%eax),%eax
+end;
+
+function get_error_bp : Longint;assembler;
+asm
+   movl (%ebp),%eax 
+end;
+
+begin
+  If ErrorProc<>Nil then
+    TErrorProc (ErrorProc)(Errno,get_addr);
+  errorcode:=Errno;
+  exitcode:=Errno;
+  erroraddr:=Get_addr;
+  DoError := TRUE;
+  errorbase:=get_error_bp;
+  halt(errorcode);
+end;
+
 procedure runerror(w : word);[alias: 'runerror'];
 
-  function get_addr : longint;
+function get_addr : Pointer;assembler;
+asm
+   movl (%ebp),%eax
+   movl 4(%eax),%eax
+end;
 
-    begin
-       asm
-          movl (%ebp),%eax
-          movl 4(%eax),%eax
-          movl %eax,__RESULT
-       end ['EAX'];
-    end;
+function get_error_bp : Longint;assembler;
+asm
+   movl (%ebp),%eax {%ebp of run_error}
+end;
 
-  function get_error_bp : longint;
-
-    begin
-       asm
-          movl (%ebp),%eax {%ebp of run_error}
-          movl %eax,__RESULT
-       end ['EAX'];
-    end;
-
-  begin
-     errorcode:=w;
-     exitcode:=w;
-     erroraddr:=pointer(get_addr);
-     DoError := TRUE;
-     errorbase:=get_error_bp;
-     halt(errorcode);
-  end;
+begin
+  errorcode:=w;
+  exitcode:=w;
+  erroraddr:=pointer(get_addr);
+  DoError := TRUE;
+  errorbase:=get_error_bp;
+  halt(errorcode);
+end;
 
 procedure int_iocheck(addr : longint);[public,alias: 'IOCHECK'];
 var
@@ -565,12 +584,14 @@ begin
   l:=ioresult;
   if l<>0 then
    begin
+     If ErrorProc<>Nil then
+       TErrorProc(Errorproc)(l,pointer(addr));
 {$ifndef RTLLITE}
      writeln('IO-Error ',l,' at 0x',HexStr(addr,8));
 {$else}
      writeln('IO-Error ',l,' at ',addr);
 {$endif}
-     halt(byte(l));
+     Halt(byte(l));
    end;
   asm
         popal
@@ -587,12 +608,14 @@ begin
         movl    4(%ebp),%edi
         movl    %edi,addr
    end;
+   If ErrorProc<>Nil then
+     TErrorProc (ErrorProc)(215,Pointer(Addr));
 {$ifndef RTLLITE}
    writeln('Overflow at 0x',HexStr(addr,8));
 {$else}
    writeln('Overflow at ',addr);
 {$endif}
-   RunError(215);
+   HandleError(215);
 end;
 
 
@@ -728,7 +751,12 @@ end;
 
 {
   $Log$
-  Revision 1.16  1998-07-02 12:55:04  carl
+  Revision 1.17  1998-07-30 13:26:20  michael
+  + Added support for ErrorProc variable. All internal functions are required
+    to call HandleError instead of runerror from now on.
+    This is necessary for exception support.
+
+  Revision 1.16  1998/07/02 12:55:04  carl
     * Put back DoError, DO NOT TOUCH!
 
   Revision 1.15  1998/07/02 12:19:32  carl
