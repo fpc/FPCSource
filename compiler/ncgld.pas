@@ -698,9 +698,10 @@ implementation
            end;
          if paramanager.ret_in_param(resulttype.def) then
            begin
+              { the parameter is actual a pointer to the value }
               if not hr_valid then
-                hreg:=rg.getregisterint(exprasmlist);
-              cg.a_load_ref_reg(exprasmlist,OS_INT,location.reference,hreg);
+                hreg:=rg.getaddressregister(exprasmlist);
+              cg.a_load_ref_reg(exprasmlist,OS_ADDR,location.reference,hreg);
               location.reference.base:=hreg;
               location.reference.offset:=0;
            end;
@@ -923,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-07-27 19:53:51  jonas
+  Revision 1.17  2002-07-28 09:25:37  carl
+    + correct size of parameter (64-bit portability)
+
+  Revision 1.16  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 
