@@ -478,9 +478,10 @@ interface
                      end;
    ait_instruction : begin
                      { Must be done with args in ATT order }
+                       taicpu(hp).SetOperandOrder(op_att);
                        taicpu(hp).CheckNonCommutativeOpcodes;
                      { We need intel order, no At&t }
-                       taicpu(hp).SwapOperands;
+                       taicpu(hp).SetOperandOrder(op_intel);
                      { Reset }
                        suffix:='';
                        prefix:= '';
@@ -640,7 +641,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:31  peter
+  Revision 1.5  2001-01-13 20:24:24  peter
+    * fixed operand order that got mixed up for external writers after
+      my previous assembler block valid instruction check
+
+  Revision 1.4  2000/12/25 00:07:31  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -48,6 +48,8 @@ const
   MaxPrefixes=4;
 
 type
+  TOperandOrder = (op_intel,op_att);
+
   tairegalloc = class(tai)
      allocation : boolean;
      reg        : tregister;
@@ -113,10 +115,10 @@ type
      destructor destroy;override;
      function  getcopy:tlinkedlistitem;override;
      function  GetString:string;
-     procedure SwapOperands;
      procedure CheckNonCommutativeOpcodes;
   private
      segprefix : tregister;
+     FOperandOrder : TOperandOrder;
      procedure init(op : tasmop;_size : topsize); { this need to be called by all constructor }
 {$ifndef NOAG386BIN}
   public
@@ -125,6 +127,7 @@ type
      function  CheckIfValid:boolean;
      function  Pass1(offset:longint):longint;virtual;
      procedure Pass2;virtual;
+     procedure SetOperandOrder(order:TOperandOrder);
   private
      { next fields are filled in pass1, so pass2 is faster }
      insentry  : PInsEntry;
@@ -137,6 +140,7 @@ type
      function  calcsize(p:PInsEntry):longint;
      procedure gencode;
      function  NeedAddrPrefix(opidx:byte):boolean;
+     procedure SwapOperands;
 {$endif NOAG386BIN}
   end;
 
@@ -321,6 +325,8 @@ uses
       begin
          typ:=ait_instruction;
          is_jmp:=false;
+         { default order is att }
+         FOperandOrder:=op_att;
          segprefix:=R_NO;
          opcode:=op;
          opsize:=_size;
@@ -697,6 +703,17 @@ uses
         end;
       end;
 
+
+    procedure taicpu.SetOperandOrder(order:TOperandOrder);
+      begin
+        if FOperandOrder<>order then
+         begin
+           SwapOperands;
+           FOperandOrder:=order;
+         end;
+      end;
+
+
 { This check must be done with the operand in ATT order
   i.e.after swapping in the intel reader
   but before swapping in the NASM and TASM writers PM }
@@ -960,7 +977,7 @@ begin
   if Insentry=nil then
    begin
      { We need intel style operands }
-     SwapOperands;
+     SetOperandOrder(op_intel);
      { create the .ot fields }
      create_ot;
      { set the file postion }
@@ -1721,7 +1738,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-01-12 19:18:42  peter
+  Revision 1.10  2001-01-13 20:24:24  peter
+    * fixed operand order that got mixed up for external writers after
+      my previous assembler block valid instruction check
+
+  Revision 1.9  2001/01/12 19:18:42  peter
     * check for valid asm instructions
 
   Revision 1.8  2001/01/07 15:48:56  jonas
