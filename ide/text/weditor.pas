@@ -347,8 +347,8 @@ uses Dos,MsgBox,Dialogs,App,StdDlg,HistList,Validate,
 type
      TFindDialogRec = packed record
        Find     : String[80];
-       Options  : Word;
-       Direction: word;
+       Options  : {Word}longint;{checkboxes need 32  bits PM  }
+       Direction: word;{ and tcluster has word size }
        Scope    : word;
        Origin   : word;
      end;
@@ -356,7 +356,7 @@ type
      TReplaceDialogRec = packed record
        Find     : String[80];
        Replace  : String[80];
-       Options  : Word;
+       Options  : {Word}longint;{checkboxes need 32  bits PM  }
        Direction: word;
        Scope    : word;
        Origin   : word;
@@ -3433,7 +3433,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  1999-03-05 17:39:39  pierre
+  Revision 1.26  1999-03-07 22:58:57  pierre
+   * FindRec needs longint for CheckBoxes
+
+  Revision 1.25  1999/03/05 17:39:39  pierre
    * Actions item freeing
 
   Revision 1.24  1999/03/03 16:45:07  pierre
