@@ -779,7 +779,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
-Var Cnt, Cnt2, Cnt3: Longint;
+Var Cnt, Cnt2: Longint;
     p, hp1, hp2: Pai;
     hp3, hp4: pai;
 {$ifdef replacereg}
@@ -1140,7 +1140,10 @@ End.
 
 {
  $Log$
- Revision 1.60  2000-06-03 09:41:37  jonas
+ Revision 1.61  2000-06-18 18:13:12  peter
+   * removed unused var
+
+ Revision 1.60  2000/06/03 09:41:37  jonas
    * fixed web bug 972, test for the bug in tests/testopt/testcse3.pp
 
  Revision 1.59  2000/06/01 11:01:20  peter
