@@ -589,17 +589,15 @@ implementation
            end
          else
            begin
-              minusdef:=search_unary_operator(_minus,left.resulttype.def);
-              if assigned(minusdef) then
-                begin
-                  inc(minusdef.procsym.refs);
-                  t:=ccallnode.create(ccallparanode.create(left,nil),
-                                      Tprocsym(minusdef.procsym),nil,nil);
-                  left:=nil;
+             { allow operator overloading }
+             t:=self;
+             if isunaryoverloaded(t) then
+               begin
                   result:=t;
                   exit;
-                end;
-              CGMessage(type_e_mismatch);
+               end;
+
+             CGMessage(type_e_mismatch);
            end;
       end;
 
@@ -768,17 +766,15 @@ implementation
              end
          else
            begin
-              notdef:=search_unary_operator(_op_not,left.resulttype.def);
-              if assigned(notdef) then
-                begin
-                  inc(notdef.procsym.refs);
-                  t:=ccallnode.create(ccallparanode.create(left,nil),
-                                      Tprocsym(notdef.procsym),nil,nil);
-                  left:=nil;
+             { allow operator overloading }
+             t:=self;
+             if isunaryoverloaded(t) then
+               begin
                   result:=t;
                   exit;
-                end;
-              CGMessage(type_e_mismatch);
+               end;
+
+             CGMessage(type_e_mismatch);
            end;
       end;
 
@@ -862,7 +858,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-02-04 22:15:15  daniel
+  Revision 1.59  2004-02-24 16:12:39  peter
+    * operator overload chooses rewrite
+    * overload choosing is now generic and moved to htypechk
+
+  Revision 1.58  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

@@ -211,8 +211,6 @@ interface
     function  searchsysvar(const s: stringid; var srsym: tvarsym; var symowner: tsymtable): boolean;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
-    function  search_unary_operator(op:Ttoken;def:Tdef):Tprocdef;
-    function  search_binary_operator(op:Ttoken;def1,def2:Tdef):Tprocdef;
 
 {*** Object Helpers ***}
     procedure search_class_overloads(aprocsym : tprocsym);
@@ -2078,58 +2076,6 @@ implementation
         end;
     end;
 
-    function search_unary_operator(op:Ttoken;def:Tdef):Tprocdef;
-
-    var st:Tsymtable;
-        sym:Tprocsym;
-        sv:cardinal;
-
-    begin
-      result:=nil;
-      st:=symtablestack;
-      sv:=getspeedvalue(overloaded_names[op]);
-      while st<>nil do
-        begin
-          sym:=Tprocsym(st.speedsearch(overloaded_names[op],sv));
-          if sym<>nil then
-            begin
-              if sym.typ<>procsym then
-                internalerror(200402031);
-              result:=sym.search_procdef_unary_operator(def);
-              if result<>nil then
-                exit;
-            end;
-          st:=st.next;
-        end;
-    end;
-
-
-    function search_binary_operator(op:Ttoken;def1,def2:Tdef):Tprocdef;
-
-    var st:Tsymtable;
-        sym:Tprocsym;
-        sv:cardinal;
-
-    begin
-      result:=nil;
-      st:=symtablestack;
-      sv:=getspeedvalue(overloaded_names[op]);
-      while st<>nil do
-        begin
-          sym:=Tprocsym(st.speedsearch(overloaded_names[op],sv));
-          if sym<>nil then
-            begin
-              if sym.typ<>procsym then
-                internalerror(200402031);
-              result:=sym.search_procdef_binary_operator(def1,def2);
-              if result<>nil then
-                exit;
-            end;
-          st:=st.next;
-        end;
-    end;
-
-
     function searchsystype(const s: stringid; var srsym: ttypesym): boolean;
       var
         symowner: tsymtable;
@@ -2427,7 +2373,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.139  2004-02-20 21:55:59  peter
+  Revision 1.140  2004-02-24 16:12:39  peter
+    * operator overload chooses rewrite
+    * overload choosing is now generic and moved to htypechk
+
+  Revision 1.139  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.138  2004/02/17 15:57:49  peter

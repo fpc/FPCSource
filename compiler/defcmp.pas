@@ -1117,8 +1117,10 @@ implementation
         eq,lowesteq : tequaltype;
         hpd      : tprocdef;
         convtype : tconverttype;
+        cdoptions : tcompare_defs_options;
       begin
          compare_paras:=te_incompatible;
+         cdoptions:=[cdo_check_operator,cdo_allow_variant];
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
@@ -1154,7 +1156,8 @@ implementation
                  begin
                    if (currpara1.paratyp<>currpara2.paratyp) then
                     exit;
-                   eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                   eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                                        convtype,hpd,cdoptions);
                  end;
               end
              else
@@ -1168,20 +1171,22 @@ implementation
                             (currpara2.paratyp in [vs_var,vs_out]))
                           ) then
                          exit;
-                       eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                                            convtype,hpd,cdoptions);
                     end;
                   cp_all :
                     begin
                        if (currpara1.paratyp<>currpara2.paratyp) then
                          exit;
-                       eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                                            convtype,hpd,cdoptions);
                     end;
                   cp_procvar :
                     begin
                        if (currpara1.paratyp<>currpara2.paratyp) then
                          exit;
                        eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
-                                            convtype,hpd,[cdo_check_operator,cdo_allow_variant]);
+                                            convtype,hpd,cdoptions);
                        if (eq>te_incompatible) and
                           (eq<te_equal) and
                           not(
@@ -1193,7 +1198,8 @@ implementation
                         end;
                     end;
                   else
-                    eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                    eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                                         convtype,hpd,cdoptions);
                  end;
                end;
               { check type }
@@ -1267,7 +1273,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2004-02-15 12:18:22  peter
+  Revision 1.47  2004-02-24 16:12:39  peter
+    * operator overload chooses rewrite
+    * overload choosing is now generic and moved to htypechk
+
+  Revision 1.46  2004/02/15 12:18:22  peter
     * allow real_2_real conversion for realconstn, fixes 2971
 
   Revision 1.45  2004/02/13 15:42:21  peter

@@ -37,23 +37,6 @@ interface
        symbase,symtype,symsym,symdef,symtable;
 
     type
-       pcandidate = ^tcandidate;
-       tcandidate = record
-          next        : pcandidate;
-          data        : tprocdef;
-          wrongpara,
-          firstpara   : tparaitem;
-          exact_count,
-          equal_count,
-          cl1_count,
-          cl2_count,
-          cl3_count,
-          coper_count : integer; { should be signed }
-          ordinal_distance : bestreal;
-          invalid     : boolean;
-          wrongparanr : byte;
-       end;
-
        tcallnodeflags = (
          cnf_restypeset
        );
@@ -64,15 +47,6 @@ interface
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
           paravisible  : boolean;
-          function  candidates_find:pcandidate;
-          procedure candidates_free(procs:pcandidate);
-          procedure candidates_list(procs:pcandidate;all:boolean);
-          procedure candidates_get_information(procs:pcandidate);
-          function  candidates_choose_best(procs:pcandidate;var bestpd:tabstractprocdef):integer;
-          procedure candidates_find_wrong_para(procs:pcandidate);
-{$ifdef EXTDEBUG}
-          procedure candidates_dump_info(lvl:longint;procs:pcandidate);
-{$endif EXTDEBUG}
           function  gen_self_tree_methodpointer:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
@@ -291,200 +265,6 @@ type
             hightree:=ctypeconvnode.create_explicit(hightree,s32inttype);
           end;
         result:=hightree;
-      end;
-
-
-      function is_better_candidate(currpd,bestpd:pcandidate):integer;
-        var
-          res : integer;
-        begin
-          {
-            Return values:
-              > 0 when currpd is better than bestpd
-              < 0 when bestpd is better than currpd
-              = 0 when both are equal
-
-            To choose the best candidate we use the following order:
-            - Incompatible flag
-            - (Smaller) Number of convert operator parameters.
-            - (Smaller) Number of convertlevel 2 parameters.
-            - (Smaller) Number of convertlevel 1 parameters.
-            - (Bigger) Number of exact parameters.
-            - (Smaller) Number of equal parameters.
-            - (Smaller) Total of ordinal distance. For example, the distance of a word
-              to a byte is 65535-255=65280.
-          }
-          if bestpd^.invalid then
-           begin
-             if currpd^.invalid then
-              res:=0
-             else
-              res:=1;
-           end
-          else
-           if currpd^.invalid then
-            res:=-1
-          else
-           begin
-             { less operator parameters? }
-             res:=(bestpd^.coper_count-currpd^.coper_count);
-             if (res=0) then
-              begin
-                { less cl3 parameters? }
-                res:=(bestpd^.cl3_count-currpd^.cl3_count);
-                if (res=0) then
-                 begin
-                   { less cl2 parameters? }
-                   res:=(bestpd^.cl2_count-currpd^.cl2_count);
-                   if (res=0) then
-                    begin
-                      { less cl1 parameters? }
-                      res:=(bestpd^.cl1_count-currpd^.cl1_count);
-                      if (res=0) then
-                       begin
-                         { more exact parameters? }
-                         res:=(currpd^.exact_count-bestpd^.exact_count);
-                         if (res=0) then
-                          begin
-                            { less equal parameters? }
-                            res:=(bestpd^.equal_count-currpd^.equal_count);
-                            if (res=0) then
-                             begin
-                               { smaller ordinal distance? }
-                               if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                                res:=1
-                               else
-                                if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                                 res:=-1
-                               else
-                                res:=0;
-                             end;
-                          end;
-                       end;
-                    end;
-                 end;
-              end;
-           end;
-          is_better_candidate:=res;
-        end;
-
-
-    procedure var_para_allowed(var eq:tequaltype;def_from,def_to:Tdef);
-      begin
-        { Note: eq must be already valid, it will only be updated! }
-        case def_to.deftype of
-          formaldef :
-            begin
-              { all types can be passed to a formaldef }
-              eq:=te_equal;
-            end;
-          orddef :
-            begin
-              { allows conversion from word to integer and
-                byte to shortint, but only for TP7 compatibility }
-              if (m_tp7 in aktmodeswitches) and
-                 (def_from.deftype=orddef) and
-                 (def_from.size=def_to.size) then
-                eq:=te_convert_l1;
-            end;
-          arraydef :
-            begin
-              if is_open_array(def_to) and
-                 is_dynamic_array(def_from) and
-                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
-                eq:=te_convert_l2;
-            end;
-          pointerdef :
-            begin
-              { an implicit pointer conversion is allowed }
-              if (def_from.deftype=pointerdef) then
-                eq:=te_convert_l1;
-            end;
-          stringdef :
-            begin
-              { all shortstrings are allowed, size is not important }
-              if is_shortstring(def_from) and
-                 is_shortstring(def_to) then
-                eq:=te_equal;
-            end;
-          objectdef :
-            begin
-              { child objects can be also passed }
-              { in non-delphi mode, otherwise    }
-              { they must match exactly, except  }
-              { if they are objects              }
-              if (def_from.deftype=objectdef) and
-                 (
-                  not(m_delphi in aktmodeswitches) or
-                  (
-                   (tobjectdef(def_from).objecttype=odt_object) and
-                   (tobjectdef(def_to).objecttype=odt_object)
-                  )
-                 ) and
-                 (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
-                eq:=te_convert_l1;
-            end;
-          filedef :
-            begin
-              { an implicit file conversion is also allowed }
-              { from a typed file to an untyped one           }
-              if (def_from.deftype=filedef) and
-                 (tfiledef(def_from).filetyp = ft_typed) and
-                 (tfiledef(def_to).filetyp = ft_untyped) then
-                eq:=te_convert_l1;
-            end;
-        end;
-      end;
-
-
-    procedure para_allowed(var eq:tequaltype;p:tcallparanode;def_to:tdef);
-      begin
-        { Note: eq must be already valid, it will only be updated! }
-        case def_to.deftype of
-          formaldef :
-            begin
-              { all types can be passed to a formaldef }
-              eq:=te_equal;
-            end;
-          stringdef :
-            begin
-              { to support ansi/long/wide strings in a proper way }
-              { string and string[10] are assumed as equal }
-              { when searching the correct overloaded procedure   }
-              if (p.resulttype.def.deftype=stringdef) and
-                 (tstringdef(def_to).string_typ=tstringdef(p.resulttype.def).string_typ) then
-                eq:=te_equal
-              else
-              { Passing a constant char to ansistring or shortstring or
-                a widechar to widestring then handle it as equal. }
-               if (p.left.nodetype=ordconstn) and
-                  (
-                   is_char(p.resulttype.def) and
-                   (is_shortstring(def_to) or is_ansistring(def_to))
-                  ) or
-                  (
-                   is_widechar(p.resulttype.def) and
-                   is_widestring(def_to)
-                  ) then
-                eq:=te_equal
-            end;
-          setdef :
-            begin
-              { set can also be a not yet converted array constructor }
-              if (p.resulttype.def.deftype=arraydef) and
-                 (tarraydef(p.resulttype.def).IsConstructor) and
-                 not(tarraydef(p.resulttype.def).IsVariant) then
-                eq:=te_equal;
-            end;
-          procvardef :
-            begin
-              { in tp7 mode proc -> procvar is allowed }
-              if (m_tp_procvar in aktmodeswitches) and
-                 (p.left.nodetype=calln) and
-                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),true)>=te_equal) then
-               eq:=te_equal;
-            end;
-        end;
       end;
 
 
@@ -1232,514 +1012,6 @@ type
       end;
 
 
-    function Tcallnode.candidates_find:pcandidate;
-
-      var
-        j          : integer;
-        pd         : tprocdef;
-        procs,hp   : pcandidate;
-        found,
-        has_overload_directive : boolean;
-        topclassh  : tobjectdef;
-        srsymtable : tsymtable;
-        srprocsym  : tprocsym;
-
-        procedure proc_add(pd:tprocdef);
-        var
-          i : integer;
-        begin
-          { generate new candidate entry }
-          new(hp);
-          fillchar(hp^,sizeof(tcandidate),0);
-          hp^.data:=pd;
-          hp^.next:=procs;
-          procs:=hp;
-          { Find last parameter, skip all default parameters
-            that are not passed. Ignore this skipping for varargs }
-          hp^.firstpara:=tparaitem(pd.Para.last);
-          if not(po_varargs in pd.procoptions) then
-           begin
-             { ignore hidden parameters }
-             while assigned(hp^.firstpara) and (hp^.firstpara.is_hidden) do
-               hp^.firstpara:=tparaitem(hp^.firstpara.previous);
-             for i:=1 to pd.maxparacount-paralength do
-               begin
-                 if not assigned(hp^.firstpara) then
-                   internalerror(200401141);
-                 hp^.firstpara:=tparaitem(hp^.firstPara.previous);
-               end;
-           end;
-        end;
-
-      begin
-        procs:=nil;
-
-        { when the definition has overload directive set, we search for
-          overloaded definitions in the class, this only needs to be done once
-          for class entries as the tree keeps always the same }
-        if (not symtableprocentry.overloadchecked) and
-           (symtableprocentry.owner.symtabletype=objectsymtable) and
-           (po_overload in symtableprocentry.first_procdef.procoptions) then
-         search_class_overloads(symtableprocentry);
-
-         { when the class passed is defined in this unit we
-           need to use the scope of that class. This is a trick
-           that can be used to access protected members in other
-           units. At least kylix supports it this way (PFV) }
-         if assigned(symtableproc) and
-            (symtableproc.symtabletype=objectsymtable) and
-            (symtableproc.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-            (symtableproc.defowner.owner.unitid=0) then
-           topclassh:=tobjectdef(symtableproc.defowner)
-         else
-           begin
-             if assigned(current_procinfo) then
-               topclassh:=current_procinfo.procdef._class
-             else
-               topclassh:=nil;
-           end;
-
-        { link all procedures which have the same # of parameters }
-        paravisible:=false;
-        for j:=1 to symtableprocentry.procdef_count do
-          begin
-            pd:=symtableprocentry.procdef[j];
-            { Is the procdef visible? This needs to be checked on
-              procdef level since a symbol can contain both private and
-              public declarations. But the check should not be done
-              when the callnode is generated by a property }
-            if (nf_isproperty in flags) or
-               (pd.owner.symtabletype<>objectsymtable) or
-               pd.is_visible_for_object(topclassh) then
-             begin
-               { we have at least one procedure that is visible }
-               paravisible:=true;
-               { only when the # of parameter are supported by the
-                 procedure }
-               if (paralength>=pd.minparacount) and
-                  ((po_varargs in pd.procoptions) or { varargs }
-                   (paralength<=pd.maxparacount)) then
-                 proc_add(pd);
-             end;
-          end;
-
-        { remember if the procedure is declared with the overload directive,
-          it's information is still needed also after all procs are removed }
-        has_overload_directive:=(po_overload in symtableprocentry.first_procdef.procoptions);
-
-        { when the definition has overload directive set, we search for
-          overloaded definitions in the symtablestack. The found
-          entries are only added to the procs list and not the procsym, because
-          the list can change in every situation }
-        if has_overload_directive and
-           (symtableprocentry.owner.symtabletype<>objectsymtable) then
-          begin
-            srsymtable:=symtableprocentry.owner.next;
-            while assigned(srsymtable) do
-             begin
-               if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
-                begin
-                  srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
-                  { process only visible procsyms }
-                  if assigned(srprocsym) and
-                     (srprocsym.typ=procsym) and
-                     srprocsym.is_visible_for_object(topclassh) then
-                   begin
-                     { if this procedure doesn't have overload we can stop
-                       searching }
-                     if not(po_overload in srprocsym.first_procdef.procoptions) then
-                      break;
-                     { process all overloaded definitions }
-                     for j:=1 to srprocsym.procdef_count do
-                      begin
-                        pd:=srprocsym.procdef[j];
-                        { only when the # of parameter are supported by the
-                          procedure }
-                        if (paralength>=pd.minparacount) and
-                           ((po_varargs in pd.procoptions) or { varargs }
-                           (paralength<=pd.maxparacount)) then
-                         begin
-                           found:=false;
-                           hp:=procs;
-                           while assigned(hp) do
-                            begin
-                              { Only compare visible parameters for the user }
-                              if compare_paras(hp^.data.para,pd.para,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
-                               begin
-                                 found:=true;
-                                 break;
-                               end;
-                              hp:=hp^.next;
-                            end;
-                           if not found then
-                             proc_add(pd);
-                         end;
-                      end;
-                   end;
-                end;
-               srsymtable:=srsymtable.next;
-             end;
-          end;
-        candidates_find:=procs;
-      end;
-
-
-    procedure tcallnode.candidates_free(procs:pcandidate);
-      var
-        hpnext,
-        hp : pcandidate;
-      begin
-        hp:=procs;
-        while assigned(hp) do
-         begin
-           hpnext:=hp^.next;
-           dispose(hp);
-           hp:=hpnext;
-         end;
-      end;
-
-
-    procedure tcallnode.candidates_list(procs:pcandidate;all:boolean);
-      var
-        hp : pcandidate;
-      begin
-        hp:=procs;
-        while assigned(hp) do
-         begin
-           if all or
-              (not hp^.invalid) then
-             MessagePos1(hp^.data.fileinfo,sym_h_param_list,hp^.data.fullprocname(false));
-           hp:=hp^.next;
-         end;
-      end;
-
-
-{$ifdef EXTDEBUG}
-    procedure Tcallnode.candidates_dump_info(lvl:longint;procs:pcandidate);
-
-        function ParaTreeStr(p:tcallparanode):string;
-        begin
-          result:='';
-          while assigned(p) do
-           begin
-             if result<>'' then
-              result:=result+',';
-             result:=result+p.resulttype.def.typename;
-             p:=tcallparanode(p.right);
-           end;
-        end;
-
-      var
-        hp : pcandidate;
-        currpara : tparaitem;
-      begin
-        if not CheckVerbosity(lvl) then
-         exit;
-        Comment(lvl+V_LineInfo,'Overloaded callnode: '+symtableprocentry.name+'('+ParaTreeStr(tcallparanode(left))+')');
-        hp:=procs;
-        while assigned(hp) do
-         begin
-           Comment(lvl,'  '+hp^.data.fullprocname(false));
-           if (hp^.invalid) then
-            Comment(lvl,'   invalid')
-           else
-            begin
-              Comment(lvl,'   ex: '+tostr(hp^.exact_count)+
-                          ' eq: '+tostr(hp^.equal_count)+
-                          ' l1: '+tostr(hp^.cl1_count)+
-                          ' l2: '+tostr(hp^.cl2_count)+
-                          ' l3: '+tostr(hp^.cl3_count)+
-                          ' oper: '+tostr(hp^.coper_count)+
-                          ' ord: '+realtostr(hp^.exact_count));
-              { Print parameters in left-right order }
-              currpara:=hp^.firstpara;
-              if assigned(currpara) then
-               begin
-                 while assigned(currpara.next) do
-                  currpara:=tparaitem(currpara.next);
-               end;
-              while assigned(currpara) do
-               begin
-                 if (not currpara.is_hidden) then
-                   Comment(lvl,'    - '+currpara.paratype.def.typename+' : '+EqualTypeName[currpara.eqval]);
-                 currpara:=tparaitem(currpara.previous);
-               end;
-            end;
-           hp:=hp^.next;
-         end;
-      end;
-{$endif EXTDEBUG}
-
-
-    procedure Tcallnode.candidates_get_information(procs:pcandidate);
-      var
-        hp       : pcandidate;
-        currpara : tparaitem;
-        currparanr : byte;
-        def_from,
-        def_to   : tdef;
-        currpt,
-        pt       : tcallparanode;
-        eq       : tequaltype;
-        convtype : tconverttype;
-        pdoper   : tprocdef;
-        releasecurrpt : boolean;
-      begin
-        { process all procs }
-        hp:=procs;
-        while assigned(hp) do
-         begin
-           { We compare parameters in reverse order (right to left),
-             the firstpara is already pointing to the last parameter
-             were we need to start comparing }
-           currparanr:=paralength;
-           currpara:=hp^.firstpara;
-           while assigned(currpara) and (currpara.is_hidden) do
-             currpara:=tparaitem(currpara.previous);
-           pt:=tcallparanode(left);
-           while assigned(pt) and assigned(currpara) do
-            begin
-              { currpt can be changed from loadn to calln when a procvar
-                is passed. This is to prevent that the change is permanent }
-              currpt:=pt;
-              releasecurrpt:=false;
-              { retrieve current parameter definitions to compares }
-              eq:=te_incompatible;
-              def_from:=currpt.resulttype.def;
-              def_to:=currpara.paratype.def;
-              if not(assigned(def_from)) then
-               internalerror(200212091);
-              if not(
-                     assigned(def_to) or
-                     ((po_varargs in hp^.data.procoptions) and
-                      (currparanr>hp^.data.minparacount))
-                    ) then
-               internalerror(200212092);
-
-              { Convert tp procvars when not expecting a procvar }
-              if (def_to.deftype<>procvardef) and
-                 (currpt.left.resulttype.def.deftype=procvardef) then
-                begin
-                  releasecurrpt:=true;
-                  currpt:=tcallparanode(pt.getcopy);
-                  if maybe_call_procvar(currpt.left,true) then
-                    begin
-                      currpt.resulttype:=currpt.left.resulttype;
-                      def_from:=currpt.left.resulttype.def;
-                    end;
-                end;
-
-              { varargs are always equal, but not exact }
-              if (po_varargs in hp^.data.procoptions) and
-                 (currparanr>hp^.data.minparacount) then
-               begin
-                 eq:=te_equal;
-               end
-              else
-              { same definition -> exact }
-               if (def_from=def_to) then
-                begin
-                  eq:=te_exact;
-                end
-              else
-              { for value and const parameters check if a integer is constant or
-                included in other integer -> equal and calc ordinal_distance }
-               if not(currpara.paratyp in [vs_var,vs_out]) and
-                  is_integer(def_from) and
-                  is_integer(def_to) and
-                  is_in_limit(def_from,def_to) then
-                 begin
-                   eq:=te_equal;
-                   hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
-                   hp^.ordinal_distance:=hp^.ordinal_distance+
-                     abs(bestreal(torddef(def_to).high)-bestreal(torddef(def_from).high));
-                   { Give wrong sign a small penalty, this is need to get a diffrence
-                     from word->[longword,longint] }
-                   if is_signed(def_from)<>is_signed(def_to) then
-                     hp^.ordinal_distance:=hp^.ordinal_distance+1.0;
-                 end
-              else
-              { generic type comparision }
-               begin
-                 eq:=compare_defs_ext(def_from,def_to,currpt.left.nodetype,convtype,pdoper,
-                                      [cdo_allow_variant,cdo_check_operator]);
-
-                 { when the types are not equal we need to check
-                   some special case for parameter passing }
-                 if (eq<te_equal) then
-                  begin
-                    if currpara.paratyp in [vs_var,vs_out] then
-                      begin
-                        { para requires an equal type so the previous found
-                          match was not good enough, reset to incompatible }
-                        eq:=te_incompatible;
-                        { var_para_allowed will return te_equal and te_convert_l1 to
-                          make a difference for best matching }
-                        var_para_allowed(eq,currpt.resulttype.def,currpara.paratype.def)
-                      end
-                    else
-                      para_allowed(eq,currpt,def_to);
-                  end;
-               end;
-
-              { when a procvar was changed to a call an exact much is
-                downgraded to equal. This way an overload call with the
-                procvar is choosen. See tb0471 (PFV) }
-              if (pt<>currpt) and (eq=te_exact) then
-                eq:=te_equal;
-
-              { increase correct counter }
-              case eq of
-                te_exact :
-                  inc(hp^.exact_count);
-                te_equal :
-                  inc(hp^.equal_count);
-                te_convert_l1 :
-                  inc(hp^.cl1_count);
-                te_convert_l2 :
-                  inc(hp^.cl2_count);
-                te_convert_l3 :
-                  inc(hp^.cl3_count);
-                te_convert_operator :
-                  inc(hp^.coper_count);
-                te_incompatible :
-                  hp^.invalid:=true;
-                else
-                  internalerror(200212072);
-              end;
-
-              { stop checking when an incompatible parameter is found }
-              if hp^.invalid then
-               begin
-                 { store the current parameter info for
-                   a nice error message when no procedure is found }
-                 hp^.wrongpara:=currpara;
-                 hp^.wrongparanr:=currparanr;
-                 break;
-               end;
-
-{$ifdef EXTDEBUG}
-              { store equal in node tree for dump }
-              currpara.eqval:=eq;
-{$endif EXTDEBUG}
-
-              { maybe release temp currpt }
-              if releasecurrpt then
-                currpt.free;
-
-              { next parameter in the call tree }
-              pt:=tcallparanode(pt.right);
-
-              { next parameter for definition, only goto next para
-                if we're out of the varargs }
-              if not(po_varargs in hp^.data.procoptions) or
-                 (currparanr<=hp^.data.maxparacount) then
-               begin
-                 { Ignore vs_hidden parameters }
-                 repeat
-                   currpara:=tparaitem(currpara.previous);
-                 until (not assigned(currpara)) or (not currpara.is_hidden);
-               end;
-              dec(currparanr);
-            end;
-           if not(hp^.invalid) and
-              (assigned(pt) or assigned(currpara) or (currparanr<>0)) then
-             internalerror(200212141);
-           { next candidate }
-           hp:=hp^.next;
-         end;
-      end;
-
-
-    function Tcallnode.candidates_choose_best(procs:pcandidate;var bestpd:tabstractprocdef):integer;
-      var
-        besthpstart,
-        hp       : pcandidate;
-        cntpd,
-        res      : integer;
-      begin
-        {
-          Returns the number of candidates left and the
-          first candidate is returned in pdbest
-        }
-        { Setup the first procdef as best, only count it as a result
-          when it is valid }
-        bestpd:=procs^.data;
-        if procs^.invalid then
-         cntpd:=0
-        else
-         cntpd:=1;
-        if assigned(procs^.next) then
-         begin
-           besthpstart:=procs;
-           hp:=procs^.next;
-           while assigned(hp) do
-            begin
-              res:=is_better_candidate(hp,besthpstart);
-              if (res>0) then
-               begin
-                 { hp is better, flag all procs to be incompatible }
-                 while (besthpstart<>hp) do
-                  begin
-                    besthpstart^.invalid:=true;
-                    besthpstart:=besthpstart^.next;
-                  end;
-                 { besthpstart is already set to hp }
-                 bestpd:=besthpstart^.data;
-                 cntpd:=1;
-               end
-              else
-               if (res<0) then
-                begin
-                  { besthpstart is better, flag current hp to be incompatible }
-                  hp^.invalid:=true;
-                end
-              else
-               begin
-                 { res=0, both are valid }
-                 if not hp^.invalid then
-                   inc(cntpd);
-               end;
-              hp:=hp^.next;
-            end;
-         end;
-
-        candidates_choose_best:=cntpd;
-      end;
-
-
-    procedure tcallnode.candidates_find_wrong_para(procs:pcandidate);
-      var
-        currparanr : smallint;
-        hp : pcandidate;
-        pt : tcallparanode;
-      begin
-        { Only process the first overloaded procdef }
-        hp:=procs;
-        { Find callparanode corresponding to the argument }
-        pt:=tcallparanode(left);
-        currparanr:=paralength;
-        while assigned(pt) and
-              (currparanr>hp^.wrongparanr) do
-         begin
-           pt:=tcallparanode(pt.right);
-           dec(currparanr);
-         end;
-        if (currparanr<>hp^.wrongparanr) or
-           not assigned(pt) then
-          internalerror(200212094);
-        { Show error message, when it was a var or out parameter
-          guess that it is a missing typeconv }
-        if hp^.wrongpara.paratyp in [vs_var,vs_out] then
-          CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
-            pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename)
-        else
-          CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,
-            tostr(hp^.wrongparanr),pt.resulttype.def.typename,hp^.wrongpara.paratype.def.typename);
-      end;
-
-
     function tcallnode.gen_self_tree_methodpointer:tnode;
       var
         hsym : tvarsym;
@@ -2009,7 +1281,7 @@ type
 
     function tcallnode.det_resulttype:tnode;
       var
-        procs : pcandidate;
+        candidates : tcallcandidates;
         oldcallnode : tcallnode;
         hpt : tnode;
         pt : tcallparanode;
@@ -2023,7 +1295,7 @@ type
         errorexit;
       begin
          result:=nil;
-         procs:=nil;
+         candidates:=nil;
 
          oldcallnode:=aktcallnode;
          aktcallnode:=nil;
@@ -2090,12 +1362,12 @@ type
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-                   procs:=candidates_find;
+                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags));
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
                      not accessible }
-                   if not assigned(procs) then
+                   if candidates.count=0 then
                     begin
                       { when it's an auto inherited call and there
                         is no procedure found, but the procedures
@@ -2144,16 +1416,16 @@ type
                     end;
 
                    { Retrieve information about the candidates }
-                   candidates_get_information(procs);
+                   candidates.get_information;
 {$ifdef EXTDEBUG}
                    { Display info when multiple candidates are found }
-                   if assigned(procs^.next) then
-                     candidates_dump_info(V_Debug,procs);
+                   if candidates.count>1 then
+                     candidates.dump_info(V_Debug);
 {$endif EXTDEBUG}
 
                    { Choose the best candidate and count the number of
                      candidates left }
-                   cand_cnt:=candidates_choose_best(procs,procdefinition);
+                   cand_cnt:=candidates.choose_best(procdefinition);
 
                    { All parameters are checked, check if there are any
                      procedures left }
@@ -2164,9 +1436,9 @@ type
                        begin
                          CGMessage(cg_e_cant_choose_overload_function);
 {$ifdef EXTDEBUG}
-                         candidates_dump_info(V_Hint,procs);
-{$else}
-                         candidates_list(procs,false);
+                         candidates.dump_info(V_Hint);
+{$else EXTDEBUG}
+                         candidates.list(false);
 {$endif EXTDEBUG}
                          { we'll just use the first candidate to make the
                            call }
@@ -2192,18 +1464,18 @@ type
                         is filled with the first (random) definition that is
                         found. We use this definition to display a nice error
                         message that the wrong type is passed }
-                      candidates_find_wrong_para(procs);
-                      candidates_list(procs,true);
+                      candidates.find_wrong_para;
+                      candidates.list(true);
 {$ifdef EXTDEBUG}
-                      candidates_dump_info(V_Hint,procs);
+                      candidates.dump_info(V_Hint);
 {$endif EXTDEBUG}
 
                       { We can not proceed, release all procs and exit }
-                      candidates_free(procs);
+                      candidates.free;
                       goto errorexit;
                     end;
 
-                   candidates_free(procs);
+                   candidates.free;
                end; { end of procedure to call determination }
            end;
 
@@ -2756,7 +2028,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.227  2004-02-20 21:55:59  peter
+  Revision 1.228  2004-02-24 16:12:39  peter
+    * operator overload chooses rewrite
+    * overload choosing is now generic and moved to htypechk
+
+  Revision 1.227  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.226  2004/02/19 17:07:42  florian

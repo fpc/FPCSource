@@ -127,9 +127,7 @@ interface
                                          retdef:tdef;
                                          cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-          function search_procdef_unary_operator(firstpara:Tdef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
-          function search_procdef_binary_operator(def1,def2:tdef):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -918,39 +916,6 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_unary_operator(firstpara:Tdef):Tprocdef;
-      var
-        pd : pprocdeflist;
-        currpara : tparaitem;
-      begin
-        search_procdef_unary_operator:=nil;
-        pd:=pdlistfirst;
-        while assigned(pd) do
-          begin
-            currpara:=tparaitem(pd^.def.para.first);
-            { ignore vs_hidden parameters }
-            while assigned(currpara) and (currpara.is_hidden) do
-             currpara:=tparaitem(currpara.next);
-            if assigned(currpara) then
-             begin
-               if equal_defs(currpara.paratype.def,firstpara) then
-                 begin
-                   { This must be the last not hidden parameter }
-                   currpara:=tparaitem(currpara.next);
-                   while assigned(currpara) and (currpara.is_hidden) do
-                     currpara:=tparaitem(currpara.next);
-                   if currpara=nil then
-                     begin
-                       search_procdef_unary_operator:=pd^.def;
-                       break;
-                     end;
-                 end;
-             end;
-            pd:=pd^.next;
-          end;
-      end;
-
-
     function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef):Tprocdef;
       var
         convtyp : tconverttype;
@@ -960,12 +925,10 @@ implementation
         besteq : tequaltype;
         hpd : tprocdef;
         currpara : tparaitem;
-        cdoptions : tcompare_defs_options;
       begin
-        search_procdef_assignment_operator:=nil;
+        result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        cdoptions:=[];
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
@@ -977,10 +940,10 @@ implementation
                 currpara:=tparaitem(currpara.next);
                if assigned(currpara) then
                 begin
-                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
+                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,nothingn,convtyp,hpd,[]);
                   if eq=te_exact then
                    begin
-                     search_procdef_assignment_operator:=pd^.def;
+                     result:=pd^.def;
                      exit;
                    end;
                   if eq>besteq then
@@ -992,83 +955,7 @@ implementation
              end;
             pd:=pd^.next;
           end;
-        search_procdef_assignment_operator:=bestpd;
-      end;
-
-
-    function Tprocsym.search_procdef_binary_operator(def1,def2:tdef):Tprocdef;
-      var
-        convtyp : tconverttype;
-        pd : pprocdeflist;
-        bestpd : tprocdef;
-        eq1,eq2 : tequaltype;
-        eqlev,
-        bestlev : byte;
-        hpd : tprocdef;
-        nextpara,
-        currpara : tparaitem;
-        cdoptions : tcompare_defs_options;
-      begin
-        search_procdef_binary_operator:=nil;
-        bestpd:=nil;
-        bestlev:=0;
-        cdoptions:=[];
-        { variants arguments must match exact, don't allow conversion to variants that
-          will then allow things like enum->string, because enum->variant is available
-          and select the operator variant->string }
-        if (def1.deftype=variantdef) or (def1.deftype=variantdef) then
-          cdoptions:=[cdo_allow_variant];
-        pd:=pdlistfirst;
-        while assigned(pd) do
-          begin
-            currpara:=Tparaitem(pd^.def.para.first);
-            { ignore vs_hidden parameters }
-            while assigned(currpara) and (currpara.is_hidden) do
-             currpara:=tparaitem(currpara.next);
-            if assigned(currpara) then
-             begin
-               { Compare def1 with the first para }
-               eq1:=compare_defs_ext(def1,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
-               if eq1<>te_incompatible then
-                begin
-                  { Ignore vs_hidden parameters }
-                  repeat
-                    currpara:=tparaitem(currpara.next);
-                  until (not assigned(currpara)) or (not currpara.is_hidden);
-                  if assigned(currpara) then
-                   begin
-                     { Ignore vs_hidden parameters }
-                     nextpara:=currpara;
-                     repeat
-                       nextpara:=tparaitem(nextpara.next);
-                     until (not assigned(nextpara)) or (not nextpara.is_hidden);
-                     { There should be no other parameters left }
-                     if not assigned(nextpara) then
-                      begin
-                        { Compare def2 with the last para }
-                        eq2:=compare_defs_ext(def2,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
-                        if (eq2<>te_incompatible)  then
-                         begin
-                           { check level }
-                           eqlev:=byte(eq1)+byte(eq2);
-                           if eqlev=(byte(te_exact)+byte(te_exact)) then
-                            begin
-                              search_procdef_binary_operator:=pd^.def;
-                              exit;
-                            end;
-                           if eqlev>bestlev then
-                            begin
-                              bestpd:=pd^.def;
-                              bestlev:=eqlev;
-                            end;
-                         end;
-                      end;
-                   end;
-                end;
-             end;
-            pd:=pd^.next;
-          end;
-        search_procdef_binary_operator:=bestpd;
+        result:=bestpd;
       end;
 
 
@@ -2367,7 +2254,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.160  2004-02-22 22:13:27  daniel
+  Revision 1.161  2004-02-24 16:12:39  peter
+    * operator overload chooses rewrite
+    * overload choosing is now generic and moved to htypechk
+
+  Revision 1.160  2004/02/22 22:13:27  daniel
     * Escape newlines in constant string stabs
 
   Revision 1.159  2004/02/20 21:54:47  peter
