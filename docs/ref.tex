@@ -4768,6 +4768,7 @@ Functions concerning memory issues.
 \funcref{Maxavail}{Return size of largest free memory block}
 \funcref{Memavail}{Return total available memory}
 \procref{Move}{Move data from one location in memory to another}
+\procrefl{MoveChar0}{MoveCharNull}{Move data till first zero character}
 \procref{New}{Dynamically allocate memory for variable}
 \funcref{Ofs}{Return offset of variable}
 \funcref{Ptr}{Combine segmant and offset to pointer}
@@ -5738,12 +5739,14 @@ The position is zero-based.
 \begin{function}{IndexChar}
 \Declaration
 function  IndexChar(var buf;len:longint;b:char):longint;  
+function  IndexChar0(var buf;len:longint;b:char):longint;  
 \Description
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
 positions for the character \var{b} and returns it's position if it found one.
 If \var{b} is not found then -1 is returned.
 
-The position is zero-based.
+The position is zero-based. The \var{IndexChar0} variant stops looking if
+a null character is found, and returns -1 in that case.
 \Errors
 \var{Buf} and \var{Len} are not checked to see if they are valid values.
 \SeeAlso
@@ -6059,7 +6062,6 @@ For an example, see \seep{Rmdir}.
 \begin{procedure}{Move}
 \Declaration
 Procedure Move (var Source,Dest;Count : Longint);
-
 \Description
 \var{Move} moves \var{Count} bytes from \var{Source} to \var{Dest}.
 \Errors
@@ -6071,6 +6073,21 @@ the compiler, a segmentation-fault will occur.
 \end{procedure}
 
 \FPCexample{ex42}
+
+\begin{procedurel}{MoveChar0}{MoveCharNull}
+\Declaration
+procedure MoveChar0(var Src,Dest;Count:longint);
+\Description
+\var{MoveChar0} moves \var{Count} bytes from \var{Src} to \var{Dest}, and
+stops moving if a zero character is found.
+\Errors
+No checking is done to see if \var{Count} stays within the memory allocated
+to the process.
+\SeeAlso
+\seep{Move}
+\end{procedurel}
+
+\FPCexample{ex109}
 
 \begin{procedure}{New}
 \Declaration
