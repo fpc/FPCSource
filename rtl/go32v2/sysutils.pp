@@ -77,29 +77,24 @@ var
    Regs: registers;
 begin
   result := 0;
-  Handle := 0;
+  Handle := UnusedHandle;
   StringToTB(FileName);
   if LFNSupport then
-    Regs.Eax := $716c                       { Use LFN Open/Create API }
-  else  { Check if Extended Open/Create API is safe to use }
-    if lo(dosversion) < 7 then
-      Regs.Eax := $3d00 + (Mode and $ff)    { For now, map to Open API }
-    else
-      Regs.Eax := $6c00;                    { Use Extended Open/Create API }
-  if Regs.Ah = $3d then
+    begin
+      Regs.Eax := $716c;                    { Use LFN Open/Create API }
+      Regs.Edx := Action;                   { Action if file does/doesn't exist }
+      Regs.Esi := tb_offset;
+      Regs.Ebx := $2000 + (Mode and $ff);   { File open mode }
+    end
+  else
     begin
       if (Action and $00f0) <> 0 then
-        Regs.Eax := $3c00;                  { Map to Create/Replace API }
-      Regs.Ds := tb_segment;
+        Regs.Eax := $3c00                   { Map to Create/Replace API }
+      else
+        Regs.Eax := $3d00 + (Mode and $ff); { Map to Open_Existing API }
       Regs.Edx := tb_offset;
-    end
-  else  { LFN or Extended Open/Create API }
-    begin
-      Regs.Edx := Action;                   { Action if file exists/not exists }
-      Regs.Ds := tb_segment;
-      Regs.Esi := tb_offset;
-      Regs.Ebx := $2000 + (Mode and $ff);   { file open mode }
     end;
+  Regs.Ds := tb_segment;
   Regs.Ecx := $20;                          { Attributes }
   RealIntr($21, Regs);
   if (Regs.Flags and CarryFlag) <> 0 then
@@ -771,7 +766,7 @@ begin
        CommandLine := Path + ' ' + ComLine
       else
        CommandLine := Path;
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,Dos.DosError]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,Dos.DosError]);
       e.ErrorCode:=Dos.DosError;
       raise e;
     end;
@@ -798,68 +793,31 @@ end;
 
 
 {*************************************************************************
-                                   Sleep (copied from crt.Delay)
+                                   Sleep
 *************************************************************************}
 
+procedure Sleep (MilliSeconds: Cardinal);
 var
-  DelayCnt : Longint;
-
-
-procedure Delayloop;assembler;
-asm
-.LDelayLoop1:
-        subl    $1,%eax
-        jc      .LDelayLoop2
-        cmpl    %fs:(%edi),%ebx
-        je      .LDelayLoop1
-.LDelayLoop2:
-end;
-
-
-procedure initdelay;assembler;
-asm
-        pushl %ebx
-        pushl %edi
-        { for some reason, using int $31/ax=$901 doesn't work here }
-        { and interrupts are always disabled at this point when    }
-        { running a program inside gdb(pas). Web bug 1345 (JM)     }
-        sti
-        movl    $0x46c,%edi
-        movl    $-28,%edx
-        movl    %fs:(%edi),%ebx
-.LInitDel1:
-        cmpl    %fs:(%edi),%ebx
-        je      .LInitDel1
-        movl    %fs:(%edi),%ebx
-        movl    %edx,%eax
-        call    DelayLoop
-
-        notl    %eax
-        xorl    %edx,%edx
-        movl    $55,%ecx
-        divl    %ecx
-        movl    %eax,DelayCnt
-        popl %edi
-        popl %ebx
-end;
-
-
-procedure Sleep(MilliSeconds: Cardinal);assembler;
-asm
-        pushl %ebx
-        pushl %edi
-        movl  MilliSeconds,%ecx
-        jecxz   .LDelay2
-        movl    $0x400,%edi
-        movl    DelayCnt,%edx
-        movl    %fs:(%edi),%ebx
-.LDelay1:
-        movl    %edx,%eax
-        call    DelayLoop
-        loop    .LDelay1
-.LDelay2:
-        popl %edi
-        popl %ebx
+  R: Registers;
+  T0, T1, T2: int64;
+  DayOver: boolean;
+begin
+(* Sleep is supposed to give up time slice - DOS Idle Interrupt chosen
+   because it should be supported in all DOS versions. Not precise at all,
+   though - the smallest step is 10 ms even in the best case. *)
+  R.AH := $2C;
+  RealIntr($21, R);
+  T0 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
+  T2 := T0 + MilliSeconds;
+  DayOver := T2 > (24 * 3600000);
+  repeat
+    Intr ($28, R);
+(*    R.AH := $2C; - should be preserved. *)
+    RealIntr($21, R);
+    T1 := R.CH * 3600000 + R.CL * 60000 + R.DH * 1000 + R.DL * 10;
+    if DayOver and (T1 < T0) then
+     Inc (T1, 24 * 3600000);
+  until T1 >= T2;
 end;
 
 {****************************************************************************
@@ -869,13 +827,15 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
-  InitDelay;
 Finalization
   DoneExceptions;
 end.
 {
   $Log$
-  Revision 1.25  2004-12-11 11:32:44  michael
+  Revision 1.26  2004-12-18 20:22:17  hajny
+    * FileOpen fixes for DR-DOS, resourcestring in ExecuteProcess, implementation of Sleep changed to give up timeslices
+
+  Revision 1.25  2004/12/11 11:32:44  michael
   + Added GetEnvironmentVariableCount and GetEnvironmentString calls
 
   Revision 1.24  2004/02/15 21:34:06  hajny
