@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils classes math typinfo varutils \
       charset ucomplex getopts matrix \
       variants types rtlconst sysconst dateutil \
-      exec timer doslib utility hardware inputevent graphics layers
+      exec timer doslib utility hardware inputevent graphics layers intuition
 rsts=math rtlconst varutils typinfo variants classes sysconst dateutil
 
 [require]
