@@ -686,12 +686,14 @@ procedure CreateBrowserCol;
       Count: integer;
   begin
     Name:='(';
-    esym:=def^.First; Count:=0;
+    esym:=def^.Firstenum; Count:=0;
     while (esym<>nil) do
       begin
-        if Count>0 then Name:=Name+', ';
+        if Count>0 then
+          Name:=Name+', ';
         Name:=Name+esym^.name;
-        esym:=esym^.next; Inc(Count);
+        esym:=esym^.nextenum;
+        Inc(Count);
       end;
     Name:=Name+')';
     GetEnumDefStr:=Name;
@@ -1220,7 +1222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-04-10 16:15:00  peter
+  Revision 1.13  1999-04-14 18:59:52  peter
+    * fixed wrong variable names
+
+  Revision 1.12  1999/04/10 16:15:00  peter
     * fixed browcol
     + -ar to show regalloc info in .s file
 
