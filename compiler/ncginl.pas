@@ -526,8 +526,8 @@ implementation
           location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
           location.register := rg.makeregsize(hreg,def_cgsize(resulttype.def));
         end;
-        
-        
+
+*)
 {*****************************************************************************
                             FLOAT GENERIC HANDLING
 *****************************************************************************}
@@ -583,7 +583,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-07-25 22:58:30  florian
+  Revision 1.4  2002-07-26 09:45:20  florian
+    * fixed a mistake in yesterday's commit, forgot to commit it
+
+  Revision 1.3  2002/07/25 22:58:30  florian
   no message
 
   Revision 1.2  2002/07/25 17:55:41  carl
