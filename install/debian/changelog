@@ -1,8 +1,17 @@
-fpc (1.0.2-0) unstable; urgency=low
-  
-  * New Upstream Release
+fpc (1.0.3-0) unstable; urgency=low
 
- -- Peter Vreman <peter@freepascal.org>  Tue, 10 Oct 2000 12:00:00 +0200
+  * Snapshot release
+
+ -- Peter Vreman <peter@freepascal.org>  Sat, 18 Nov 2000 12:00:00 +0200
+
+fpc (1.0.2-1) unstable; urgency=low
+
+  * New upstream version.
+  * Maintainer field changed.
+  * Bug#60720 had already been fixed in the development tree some
+    time ago after the last upload (hence, this Closes: #60720).
+
+ -- Ulf Jaenicke-Roessler <ujr@debian.org>  Fri, 13 Oct 2000 13:11:34 +0200
 
 fpc (1.0.1-0.20000811.1) unstable; urgency=low
 

@@ -1,6 +1,13 @@
 #! /bin/sh
 
+set -e
+
 FPCDIR=/usr/lib/fpc/%{fpcversion}
+
+# add alternative
+update-alternatives \
+    --install /usr/bin/pc pc /usr/bin/fpc 20 \
+    --slave /usr/share/man/man1/fpc.1.gz fpc.1.gz /usr/share/man/man1/fpc.1.gz
 
 # create link
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
