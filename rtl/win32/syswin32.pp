@@ -71,6 +71,9 @@ var
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
   DLLreason,DLLparam:longint;
   Win32StackTop : Dword;
+{ Thread count for DLL }
+const
+  Thread_count : longint = 0;
 
 implementation
 
@@ -797,12 +800,18 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      ExitProcess(0);
   end;
 
+Const
+  { DllEntryPoint  }
+     DLL_PROCESS_ATTACH = 1;
+     DLL_THREAD_ATTACH = 2;
+     DLL_PROCESS_DETACH = 0;
+     DLL_THREAD_DETACH = 3;
 
 procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
   begin
      IsLibrary:=true;
      case DLLreason of
-       1,2 :
+       DLL_PROCESS_ATTACH :
          begin
            asm
              movl %esp,%eax
@@ -812,8 +821,12 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
              movl %edi,_SS
              call PASCALMAIN
            end;
-         end
-       else
+         end;
+       DLL_THREAD_ATTACH :
+         inc(Thread_count);
+       DLL_THREAD_DETACH :
+         dec(Thread_count);
+       DLL_PROCESS_DETACH :
          begin
            asm
              call FPC_DO_EXIT
@@ -1115,7 +1128,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  1999-11-09 22:34:00  pierre
+  Revision 1.49  1999-11-18 22:19:57  pierre
+   * bug fix for web bug703 and 704
+
+  Revision 1.48  1999/11/09 22:34:00  pierre
     * Check ErrorBuf at exit
     + Win32StackTop
 
