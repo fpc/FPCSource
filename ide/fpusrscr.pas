@@ -620,6 +620,13 @@ begin
   if not res then
     error:=GetLastError;
 {$endif win32bigwin}
+  { make sure that both Screen Handle have the sme buffer }
+  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
+  res:=SetConsoleScreenBufferSize(DosScreenBufferHandle,
+         ConsoleScreenBufferInfo.dwSize);
+  if not res then
+    error:=GetLastError;
   Capture;
   SwitchBackToIDEScreen;
 end;
@@ -730,13 +737,20 @@ type
 var
   LineBuf : ^CharInfoArray;
   BufSize,BufCoord : Coord;
-  LineSize : longint;
+  Error, LineSize,
+  Part, OnePartY: longint;
+  res : boolean;
   WriteRegion : SMALL_RECT;
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
+  DestConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
   GetConsoleScreenBufferInfo(Src,
     @ConsoleScreenBufferInfo);
+  GetConsoleScreenBufferInfo(Dest,
+    @DestConsoleScreenBufferInfo);
   GetMem(LineBuf,SizeOf(CharInfoArray));
+  FillChar(LineBuf^,SizeOf(CharInfoArray),#0);
+
   LineSize:=ConsoleScreenBufferInfo.dwSize.X;
   If LineSize>256 then
     LineSize:=256;
@@ -751,10 +765,48 @@ begin
       Bottom := ConsoleScreenBufferInfo.dwSize.Y-1;
       Right := LineSize-1;
     end;
-  ReadConsoleOutput(Src, PChar_info(LineBuf),
-    BufSize, BufCoord, @WriteRegion);
-  WriteConsoleOutput(Dest, PChar_info(LineBuf),
-    BufSize, BufCoord, @WriteRegion);
+  if BufSize.X*BufSize.Y*Sizeof(CHAR_INFO) >= $8000 then
+    begin
+      OnePartY := ($8000  -1) div (BufSize.X * SizeOf(Char_Info) );
+      BufSize.Y:=OnePartY;
+      Part:=0;
+      while ((Part+1)*OnePartY < ConsoleScreenBufferInfo.dwSize.Y) do
+        begin
+          WriteRegion.Top := Part*OnePartY;
+          WriteRegion.Bottom := (Part+1)*OnePartY-1;
+          res:=ReadConsoleOutput(Src, PChar_info(LineBuf),
+            BufSize, BufCoord, @WriteRegion);
+          if not res then
+            Error:=GetLastError;
+          res:=WriteConsoleOutput(Dest, PChar_info(LineBuf),
+            BufSize, BufCoord, @WriteRegion);
+          if not res then
+            Error:=GetLastError;
+          Inc(Part);
+        end;
+      BufSize.Y:=ConsoleScreenBufferInfo.dwSize.Y - Part*OnePartY;
+      WriteRegion.Top := Part*OnePartY;
+      WriteRegion.Bottom := ConsoleScreenBufferInfo.dwSize.Y-1;
+      res:=ReadConsoleOutput(Src, PChar_info(LineBuf),
+        BufSize, BufCoord, @WriteRegion);
+      if not res then
+        Error:=GetLastError;
+      res:=WriteConsoleOutput(Dest, PChar_info(LineBuf),
+        BufSize, BufCoord, @WriteRegion);
+      if not res then
+        Error:=GetLastError;
+    end
+  else
+    begin
+      res:=ReadConsoleOutput(Src, PChar_info(LineBuf),
+        BufSize, BufCoord, @WriteRegion);
+      if not res then
+        Error:=GetLastError;
+      res:=WriteConsoleOutput(Dest, PChar_info(LineBuf),
+        BufSize, BufCoord, @WriteRegion);
+      if not res then
+        Error:=GetLastError;
+    end;
   FreeMem(LineBuf,SizeOf(CharInfoArray));
   SetConsoleCursorPosition(Dest, ConsoleScreenBufferInfo.dwCursorPosition);
 end;
@@ -834,7 +886,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-10-24 14:17:27  pierre
+  Revision 1.5  2001-11-08 16:07:41  pierre
+   * overcome buffer win32 problem due to a bug in ReadConsoleOutput
+
+  Revision 1.4  2001/10/24 14:17:27  pierre
    * try to fix the Win2000 mouse problem
 
   Revision 1.3  2001/09/09 20:44:53  carl
