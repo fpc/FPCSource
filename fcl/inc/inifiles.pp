@@ -276,7 +276,7 @@ begin
          Inc(index);
          while (index < FFileBuffer.Count) and not IsSection(FFileBuffer[index]) do
          begin
-            if GetName(FFileBuffer[index]) = ident then
+            if CompareText(GetName(FFileBuffer[index]),ident)=0 then
             begin
               value := GetValue(FFileBuffer[index], ident);
               if value <> '' then
@@ -484,7 +484,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-03-11 15:56:17  michael
+  Revision 1.10  2000-04-08 17:59:47  michael
+  + Searching of values is now case-insensitive
+
+  Revision 1.9  2000/03/11 15:56:17  michael
   + Added EscapeLinefeeds boolean property.
 
   Revision 1.8  2000/01/07 01:24:33  peter
