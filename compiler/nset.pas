@@ -259,11 +259,11 @@ implementation
              )
             or
              (
-               (left.resulttype.def.deftype = enumdef)
-              and (tenumdef(left.resulttype.def).size <> 1)
+               (left.resulttype.def.deftype = enumdef) and
+               (tenumdef(left.resulttype.def).maxval > 255)
              )
           then
-             Message(type_h_in_range_check);
+             CGMessage(type_h_in_range_check);
 
          { type conversion/check }
          if assigned(tsetdef(right.resulttype.def).elementtype.def) then
@@ -695,7 +695,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-10-23 14:44:07  peter
+  Revision 1.50  2003-11-10 19:10:57  peter
+    * check for enumdef.maxval<255 instead of enumdef.savesize
+
+  Revision 1.49  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
