@@ -797,11 +797,13 @@ unit pexpr;
                    begin
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
                       do_proc_call(getaddr or
-                        (block_type=bt_const) or
                         (getprocvar and
-                         (m_tp_procvar in aktmodeswitches) and
-                         proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef))
-                        ,again,p1,pd);
+                         ((block_type=bt_const) or
+                          ((m_tp_procvar in aktmodeswitches) and
+                           proc_to_procvar_equal(pprocsym(sym)^.definition,getprocvardef)
+                          )
+                         )
+                        ),again,p1,pd);
                       if (block_type=bt_const) and
                          getprocvar then
                         handle_procvar(getprocvardef,p1);
@@ -879,16 +881,16 @@ unit pexpr;
           p:=procinfo;
           while assigned(p) do
             begin
-               { is this an access to a function result ? }
+               { is this an access to a function result? Accessing _RESULT is
+                 always allowed and funcretn is generated }
                if assigned(p^.funcretsym) and
-                  ((pfuncretsym(sym)=p^.funcretsym) or
-                   (pfuncretsym(sym)=p^.resultfuncretsym) or
-                   ((pvarsym(sym)=opsym) and
-                    ((p^.flags and pi_operator)<>0))) and
-                  (p^.retdef<>pdef(voiddef)) and
-                  (token<>_LKLAMMER) and
-                  (not ((m_tp in aktmodeswitches) and
-                  (afterassignment or in_args))) then
+                  ((pfuncretsym(sym)=p^.resultfuncretsym) or
+                   ((pfuncretsym(sym)=p^.funcretsym) or
+                    ((pvarsym(sym)=opsym) and ((p^.flags and pi_operator)<>0))) and
+                   (p^.retdef<>pdef(voiddef)) and
+                   (token<>_LKLAMMER) and
+                   (not ((m_tp in aktmodeswitches) and (afterassignment or in_args)))
+                  ) then
                  begin
                     if ((pvarsym(sym)=opsym) and
                        ((p^.flags and pi_operator)<>0)) then
@@ -1166,11 +1168,13 @@ unit pexpr;
                               p1:=gencallnode(pprocsym(srsym),srsymtable);
                               p1^.unit_specific:=unit_specific;
                               do_proc_call(getaddr or
-                                (block_type=bt_const) or
                                 (getprocvar and
-                                 (m_tp_procvar in aktmodeswitches) and
-                                 proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)),
-                                again,p1,pd);
+                                 ((block_type=bt_const) or
+                                  ((m_tp_procvar in aktmodeswitches) and
+                                   proc_to_procvar_equal(pprocsym(srsym)^.definition,getprocvardef)
+                                  )
+                                 )
+                                ),again,p1,pd);
                               if (block_type=bt_const) and
                                  getprocvar then
                                 handle_procvar(getprocvardef,p1);
@@ -2104,7 +2108,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.146  1999-09-27 23:44:54  peter
+  Revision 1.147  1999-09-28 11:03:54  peter
+    * fixed result access in 'if result = XXX then'
+    * fixed const cr=chr(13)
+
+  Revision 1.146  1999/09/27 23:44:54  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
