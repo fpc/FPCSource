@@ -6,8 +6,10 @@
 main=fcl
 
 [target]
-units_i386=Dbf
-examples_i386=testdbf
+units_x86=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
+      Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
+      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
+examples_x86=testdbf
 
 [compiler]
 options=-S2 -Sh
