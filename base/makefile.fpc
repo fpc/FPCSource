@@ -402,6 +402,9 @@ override PPOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
 # Library dirs
+ifdef LIBDIR
+override PPOPT+=$(addprefix -Fl,$(LIBDIR))
+endif
 ifdef NEEDLIBDIR
 override PPOPT+=$(addprefix -Fl,$(NEEDLIBDIR))
 endif
