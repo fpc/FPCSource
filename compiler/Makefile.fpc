@@ -30,7 +30,7 @@ fpcdir=..
 unexport FPC_VERSION
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc m68k
+CYCLETARGETS=i386 powerpc sparc m68k
 
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
@@ -38,6 +38,9 @@ PPC_TARGET=alpha
 endif
 ifdef POWERPC
 PPC_TARGET=powerpc
+endif
+ifdef SPARC
+PPC_TARGET=sparc
 endif
 ifdef M68K
 PPC_TARGET=m68k
@@ -108,6 +111,9 @@ endif
 ifeq ($(PPC_TARGET),powerpc)
 CPUSUF=ppc
 endif
+ifeq ($(PPC_TARGET),sparc)
+CPUSUF=sparc
+endif
 ifeq ($(PPC_TARGET),x86_64)
 CPUSUF=x64
 endif
@@ -152,6 +158,11 @@ endif
 
 # m68k specific
 ifeq ($(PPC_TARGET),m68k)
+override LOCALDEF+=-dNOOPT
+endif
+
+# Sparc specific
+ifeq ($(PPC_TARGET),sparc)
 override LOCALDEF+=-dNOOPT
 endif
 
@@ -229,7 +240,7 @@ MSG2INC=./msg2inc$(EXEEXT)
 # CPU targets
 #####################################################################
 
-.PHONY: alpha i386 m68k powerpc
+.PHONY: alpha i386 m68k powerpc sparc
 
 alpha:
         $(MAKE) PPC_TARGET=alpha CPU_UNITDIR=alpha all
@@ -243,6 +254,8 @@ m68k:
 powerpc:
         $(MAKE) PPC_TARGET=powerpc CPU_UNITDIR=powerpc all
 
+sparc:
+        $(MAKE) PPC_TARGET=sparc CPU_UNITDIR=sparc all
 
 #####################################################################
 # Default makefile
@@ -279,11 +292,11 @@ ppuclean:
         -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME)
+        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
 
 $(addsuffix _clean,$(CYCLETARGETS)):
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
-        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
+        -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
 
 clean : execlean fpc_cleanall $(addsuffix _clean,$(TARGET_DIRS)) $(addsuffix _clean,$(CYCLETARGETS))
 
