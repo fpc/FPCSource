@@ -33,8 +33,8 @@ asm
   sc
   bnslr
   neg   r3, r3
-  lis   r4,Errno@ha
-  stw   r3,Errno@l(r4)
+  lis   r4,(Errno+4)@ha
+  stw   r3,(Errno+4)@l(r4)
   li    r3,-1
 end;
 
@@ -49,8 +49,8 @@ asm
   sc
   bnslr
   neg   r3, r3
-  lis   r4,Errno@ha
-  stw   r3,Errno@l(r4)
+  lis   r4,(Errno+4)@ha
+  stw   r3,(Errno+4)@l(r4)
   li    r3,-1
 end;
 
@@ -67,8 +67,8 @@ asm
   sc
    bnslr
    neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
+   lis   r4,(Errno+4)@ha
+   stw   r3,(Errno+4)@l(r4)
    li    r3,-1
 end;
 
@@ -85,8 +85,8 @@ asm
   sc
    bnslr
    neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
+   lis   r4,(Errno+4)@ha
+   stw   r3,(Errno+4)@l(r4)
    li    r3,-1
 
 end;
@@ -106,8 +106,8 @@ asm
   sc
    bnslr
    neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
+   lis   r4,(Errno+4)@ha
+   stw   r3,(Errno+4)@l(r4)
    li    r3,-1
 end;
 
@@ -126,8 +126,8 @@ asm
   sc
    bnslr
    neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
+   lis   r4,(Errno+4)@ha
+   stw   r3,(Errno+4)@l(r4)
    li    r3,-1
 end;
 
@@ -148,8 +148,8 @@ asm
   sc
    bnslr
    neg   r3, r3
-   lis   r4,Errno@ha
-   stw   r3,Errno@l(r4)
+   lis   r4,(Errno+4)@ha
+   stw   r3,(Errno+4)@l(r4)
    li    r3,-1
 end;
 
@@ -238,7 +238,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-05-11 16:07:55  jonas
+  Revision 1.6  2003-05-23 21:58:30  jonas
+    * fixed storing to errno for single threaded programs
+
+  Revision 1.5  2003/05/11 16:07:55  jonas
     * fixed mmap for non-i386 non-m68k architectures (not sure about
       x86-64)
 
