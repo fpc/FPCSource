@@ -240,9 +240,10 @@ Fixed bugs:
   bug0204.pp   can typecast the result var in an assignment          OK 0.99.11 (PM)
   bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error) OK 0.99.11 (PM)
   bug0208.pp   implicit conversion from boolean to longint should not be allowed
-               (this is the reason of bug0205 !)                     OK 0.99.11 (PM)
+               (this is the reason of bug0205 !)                    OK 0.99.11 (PM)
   bug0209.pp   problem with boolean expressions of different store sizes
-               (problem created while solving bug205 ! PM)           OK 0.99.11 (PM) 
+               (problem created while solving bug205 ! PM)          OK 0.99.11 (PM)
+  bug0207.pp   a class destructor doesn't release the memory        OK 0.99.11 (FK) 
 
 Unproducable bugs:
 ------------------
@@ -281,4 +282,4 @@ bug0200.pp   array of char overloading problem with strings
 bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
-bug0207.pp   a class destructor doesn't release the memory
+
