@@ -1962,7 +1962,11 @@
       begin
          if (not binittable) and
             (psym(s)^.typ=varsym) then
-          binittable:=pvarsym(s)^.definition^.needs_inittable;
+          begin
+            if ((pvarsym(s)^.definition^.deftype<>objectdef) or
+               not(pobjectdef(pvarsym(s)^.definition)^.is_class)) then
+             binittable:=pvarsym(s)^.definition^.needs_inittable;
+          end;
       end;
 
 
@@ -3858,7 +3862,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.169  1999-10-03 19:41:38  peter
+  Revision 1.170  1999-10-04 13:46:04  michael
+  * patch from peter for classes
+
+  Revision 1.169  1999/10/03 19:41:38  peter
     * inittable for record fixed (it was only checking for classes)
 
   Revision 1.168  1999/10/01 10:05:44  peter
