@@ -208,7 +208,7 @@ begin
   Glibc21:=false;
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STRIP -L. -o $EXE $RES';
+     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      DllCmd[1]:='ld $OPT -shared -L. -o $EXE $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      { first try glibc2 }
@@ -348,6 +348,9 @@ begin
      { be sure that libc is the last lib }
      if linklibc then
       LinkRes.Add('-lc');
+     { when we have -static for the linker the we also need libgcc }
+     if (cs_link_staticflag in aktglobalswitches) then
+      LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') then
       LinkRes.AddFileName(Info.DynamicLinker);
      LinkRes.Add(')');
@@ -366,14 +369,18 @@ var
   cmdstr  : string;
   success : boolean;
   DynLinkStr : string[60];
+  StaticStr,
   StripStr   : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module^.exefilename^);
 
 { Create some replacements }
+  StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
+  if (cs_link_staticflag in aktglobalswitches) then
+   StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
   If (cs_profile in aktmoduleswitches) or
@@ -388,6 +395,7 @@ begin
   Replace(cmdstr,'$EXE',current_module^.exefilename^);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
@@ -439,7 +447,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-11 09:52:07  peter
+  Revision 1.9  2000-02-09 10:35:48  peter
+    * -Xt option to link staticly against c libs
+
+  Revision 1.8  2000/01/11 09:52:07  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking

@@ -796,6 +796,7 @@ begin
                        case More[j] of
                         'c' : initglobalswitches:=initglobalswitches+[cs_link_toc];
                         's' : initglobalswitches:=initglobalswitches+[cs_link_strip];
+                        't' : initglobalswitches:=initglobalswitches+[cs_link_staticflag];
                         'D' : begin
                                 def_symbol('FPC_LINK_DYNAMIC');
                                 undef_symbol('FPC_LINK_SMART');
@@ -1428,7 +1429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  2000-02-06 17:20:52  peter
+  Revision 1.58  2000-02-09 10:35:48  peter
+    * -Xt option to link staticly against c libs
+
+  Revision 1.57  2000/02/06 17:20:52  peter
     * -gl switch for auto lineinfo including
 
   Revision 1.56  2000/01/31 15:55:42  peter

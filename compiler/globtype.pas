@@ -105,7 +105,7 @@ interface
          cs_asm_regalloc,cs_asm_tempalloc,
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_toc
+         cs_link_strip,cs_link_toc,cs_link_staticflag
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -180,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2000-02-06 17:20:52  peter
+  Revision 1.27  2000-02-09 10:35:48  peter
+    * -Xt option to link staticly against c libs
+
+  Revision 1.26  2000/02/06 17:20:52  peter
     * -gl switch for auto lineinfo including
 
   Revision 1.25  2000/01/07 01:14:27  peter
