@@ -408,6 +408,13 @@ uses
   dos;
 {$endif}
 
+const
+{$ifdef LINUX}
+   DirSep = '/';
+{$else}
+   DirSep = '\';
+{$endif}
+
 procedure create_tokenidx;
 { create an index with the first and last token for every possible token
   length, so a search only will be done in that small part }
@@ -438,8 +445,10 @@ var
 {$endif TP}
 begin
 {$ifdef TP}
-    fsplit(paramstr(0),n,d,e);
-    assign(f,d+'\tokens.dat');
+    fsplit(paramstr(0),d,n,e);
+    if copy(d,length(d),1)<>DirSep then
+      d:=d+DirSep;
+    assign(f,d+'tokens.dat');
     {$I-}
     reset(f,1);
     {We are not sure that the msg file is loaded!}
@@ -449,6 +458,8 @@ begin
             { Very nice indeed !!! PM }
             writeln('Fatal: File tokens.dat not found.');
             halt(3);
+            { FV restores screen contents on exit, so this won't be visible
+              for the user anyway... :( - Gabor }
         end;
     blockread(f,header,1);
     blockread(f,header[1],length(header));
@@ -492,7 +503,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-09-17 09:16:13  peter
+  Revision 1.4  2000-02-07 08:30:12  michael
+  [*] the fake (!) TOKENS.PAS still contained the typo bug
+       FSplit(,n,d,e) (correctly FSplit(,d,n,e))
+
+  Revision 1.3  1999/09/17 09:16:13  peter
     * updated with compiler versions
 
 }
