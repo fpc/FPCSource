@@ -322,6 +322,7 @@ Fixed bugs:
   bug0276.pp   Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV)
   bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
   bug0280.pp   problem with object finalization.                    OK 0.99.13 (FK)
+  bug0282.pp   long mangledname problem with -Aas                   OK 0.99.13 (PFV)
 
 Unproducable bugs:
 ------------------
@@ -371,4 +372,5 @@ bug0277.pp   typecasting with const not possible
 bug0279.pp   crash with ansistring and new(^ansistring)
 bug0281.pp   dup id checking with property is wrong
 bug0282.pp   long mangledname problem with -Aas
-bug0283.pp   bug in constant char comparison evaluation
+bug0283.pp   wrong file position with dup id in other unit
+bug0284.pp   bug in constant char comparison evaluation
