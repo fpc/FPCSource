@@ -495,18 +495,18 @@ procedure TLatexWriter.StartSection(SectionName : String);
 begin
   WriteCommentLine;
   WriteComment(SectionName);
-  WriteComment('\section{'+EscapeText(SectionName)+'}');
+  Writeln('\section{'+EscapeText(SectionName)+'}');
 end;
 
 procedure TLatexWriter.StartSubSection(SubSectionName : String);
 begin
   WriteComment(SubSectionName);
-  Write('\subsection{'+EscapeText(SubSectionName)+'}');
+  Writeln('\subsection{'+EscapeText(SubSectionName)+'}');
 end;
 
 procedure TLatexWriter.StartSubSubSection(SubSubSectionName : String);
 begin
-  Write('\subsubsection{'+EscapeText(SubSubSectionName)+'}');
+  Writeln('\subsubsection{'+EscapeText(SubSubSectionName)+'}');
 end;
 
 procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -690,7 +690,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2005-02-14 17:13:39  peter
+  Revision 1.11  2005-03-10 20:32:16  michael
+  + Fixed subsection/section writing
+
+  Revision 1.10  2005/02/14 17:13:39  peter
     * truncate log
 
   Revision 1.9  2005/01/12 21:11:41  michael
