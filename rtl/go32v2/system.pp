@@ -29,6 +29,8 @@ const
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
 
+  FileNameCaseSensitive : boolean = false; 
+
 { Default memory segments (Tp7 compatibility) }
   seg0040 = $0040;
   segA000 = $A000;
@@ -1149,7 +1151,8 @@ begin
   dir[3]:='\';
   dir[0]:=char(i+3);
 { upcase the string }
-  dir:=upcase(dir);
+  if not FileNameCaseSensitive then
+   dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=char(65+drivenr-1)
   else
@@ -1228,12 +1231,17 @@ Begin
   Setup_Arguments;
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
+  if LFNSupport then
+   FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
 End.
 {
   $Log$
-  Revision 1.9  1999-04-28 06:01:25  florian
+  Revision 1.10  1999-04-28 11:42:45  peter
+    + FileNameCaseSensetive boolean
+
+  Revision 1.9  1999/04/28 06:01:25  florian
     * define MT for multithreading introduced
 
   Revision 1.8  1999/04/08 12:23:02  peter

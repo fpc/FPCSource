@@ -740,7 +740,10 @@ end;
               pa[1]:=CHR(ORD(Pa[1])-32);
            end
           else
-           pa:=upcase(path);
+           if FileNameCaseSensitive then
+            pa:=path
+           else
+            pa:=upcase(path);
           { allow slash as backslash }
           for i:=1 to length(pa) do
            if pa[i]='/' then
@@ -994,7 +997,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  1999-04-02 00:01:29  peter
+  Revision 1.6  1999-04-28 11:42:44  peter
+    + FileNameCaseSensetive boolean
+
+  Revision 1.5  1999/04/02 00:01:29  peter
     * fixed LFNFindfirst on network drives
 
   Revision 1.4  1999/03/01 15:40:48  peter

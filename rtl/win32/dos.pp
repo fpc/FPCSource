@@ -617,7 +617,10 @@ var
    i,j  : longint;
 begin
    getdir(0,s);
-   pa:=upcase(path);
+   if FileNameCaseSensitive then
+    pa:=path
+   else
+    pa:=upcase(path);
    { allow slash as backslash }
    for i:=1 to length(pa) do
     if pa[i]='/' then
@@ -876,7 +879,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.14  1999-04-08 12:23:07  peter
+  Revision 1.15  1999-04-28 11:42:52  peter
+    + FileNameCaseSensetive boolean
+
+  Revision 1.14  1999/04/08 12:23:07  peter
     * removed os.inc
 
   Revision 1.13  1998/11/16 15:48:53  peter

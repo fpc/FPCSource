@@ -34,6 +34,8 @@ const
    StdOutputHandle : longint = 0;
    StdErrorHandle  : longint = 0;
 
+   FileNameCaseSensitive : boolean = true;
+
 type
   TStartupInfo=packed record
     cb : longint;
@@ -613,12 +615,12 @@ procedure chdir(const s:string);[IOCHECK];
  end;
 
 procedure getdir(drivenr:byte;var dir:shortstring);
- const
+const
   Drive:array[0..3]of char=(#0,':',#0,#0);
- var
+var
   defaultdrive:boolean;
   DirBuf,SaveBuf:array[0..259] of Char;
- begin
+begin
   defaultdrive:=drivenr=0;
   if not defaultdrive then
    begin
@@ -630,7 +632,10 @@ procedure getdir(drivenr:byte;var dir:shortstring);
   if not defaultdrive then
    SetCurrentDirectory(@SaveBuf);
   dir:=strpas(DirBuf);
- end;
+  if not FileNameCaseSensitive then
+   dir:=upcase(dir);
+end;
+
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -1010,7 +1015,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  1999-04-08 12:23:11  peter
+  Revision 1.38  1999-04-28 11:42:53  peter
+    + FileNameCaseSensetive boolean
+
+  Revision 1.37  1999/04/08 12:23:11  peter
     * removed os.inc
 
   Revision 1.36  1999/03/24 23:25:59  peter

@@ -202,7 +202,7 @@ ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMPPU)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMPPU)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMPPU) objpas$(PPUEXT)
 
@@ -371,7 +371,10 @@ endif
 
 #
 # $Log$
-# Revision 1.26  1999-04-22 10:56:33  peter
+# Revision 1.27  1999-04-28 11:42:50  peter
+#   + FileNameCaseSensetive boolean
+#
+# Revision 1.26  1999/04/22 10:56:33  peter
 #   * fixed sysutils dependencys
 #   * objpas files are agian in the main Makefile, makefile.op is obsolete
 #
