@@ -1374,6 +1374,8 @@ unit pmodules;
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
+         { get correct output names }
+         current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
 
          { setup things using the global switches }
          setupglobalswitches;
@@ -1550,7 +1552,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.170  1999-11-22 00:23:09  pierre
+  Revision 1.171  1999-11-22 22:21:46  pierre
+   * Compute correct Exe Filenam
+
+  Revision 1.170  1999/11/22 00:23:09  pierre
    * also complain about unused functions in program
 
   Revision 1.169  1999/11/20 01:19:10  pierre
