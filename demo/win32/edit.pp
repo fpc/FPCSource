@@ -74,7 +74,7 @@ begin
   else
     StatText[0] := #9;  // Center the rest
   StrPCopy(@StatText[1],Text);
-  SendMessage(HStatus,SB_SETTEXT,Num,LongInt(@StatText));
+  SendMessage(HStatus,SB_SETTEXT,WPARAM(Num),LPARAM(@StatText));
 end;
 
 {********************************************************************}
@@ -189,7 +189,7 @@ Begin
   AskSave;
   FileName := 'Unsaved';
   SetStatusText(0,StrPas(FileName));
-  SendMessage(HEdit,WM_SetText,1,LongInt(Empty));
+  SendMessage(HEdit,WM_SetText,1,LRESULT(Empty));
   SendMessage(HEdit,EM_SetModify,0,0);
 End;
 
@@ -222,17 +222,17 @@ begin
       DeleteObject(TheFont);
       TheColor := ChooseFontRec.rgbColors;
       TheFont  := CreateFontIndirect(@TheLogFont);
-      SendMessage(HEdit,WM_SETFONT,TheFont,1);
+      SendMessage(HEdit,WM_SETFONT,WPARAM(TheFont),1);
     end;
 end;
 
 {********************************************************************}
 
-Function WindowProc (Window:HWnd;AMessage,WParam,LParam:Longint): Longint;
+Function WindowProc (Window:HWnd;AMessage: UINT;WParam:WPARAM; LParam:LPARAM): LRESULT;
 stdcall; export;
 Var
   R        : rect;
-  StatH    : Word;
+  StatH    : LONG;
   NrMenu   : Longint;
   NotiCode : LongInt;
 Begin
@@ -364,7 +364,7 @@ Begin
         end;
       TheColor := GetSysColor(COLOR_WINDOWTEXT);
       TheFont  := CreateFontIndirect(@TheLogFont);
-      SendMessage(HEdit,WM_SETFONT,TheFont,1);
+      SendMessage(HEdit,WM_SETFONT,WPARAM(TheFont),1);
       ShowWindow(Hedit,SW_Show);
       UpdateWindow(HEdit);
     End;
@@ -424,7 +424,7 @@ Begin
     begin
       Edges[1] := 400;
       Edges[2] := 500;
-      SendMessage(AWnd,SB_SETPARTS,2,LongInt(@Edges));
+      SendMessage(AWnd,SB_SETPARTS,2,LPARAM(@Edges));
     end;
   StatusCreate := AWnd;
 End;
@@ -461,7 +461,11 @@ End.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
+  Revision 1.2  2001-09-04 01:07:59  carl
+  * bugfix of range check errors (bug #1588)
+  + added win32 types for easier porting to win64
+
+  Revision 1.1  2001/05/03 21:39:34  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:10  michael

@@ -18,8 +18,8 @@ uses
 const
   AppName = 'WinHello';
 
-function WindowProc(Window: HWnd; AMessage, WParam,
-                    LParam: Longint): Longint; stdcall; export;
+function WindowProc(Window: HWnd; AMessage: UINT; WParam : WPARAM;
+                    LParam: LPARAM): LRESULT; stdcall; export;
 
   var
      dc : hdc;
@@ -110,7 +110,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:34  peter
+  Revision 1.2  2001-09-04 01:08:09  carl
+  * bugfix of range check errors (bug #1588)
+  + added win32 types for easier porting to win64
+
+  Revision 1.1  2001/05/03 21:39:34  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:10  michael
