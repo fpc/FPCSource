@@ -40,15 +40,18 @@ Uses objects;
 
 Const
 
-  MAXSYMBOLSIZE = 255;
+  MAXSYMBOLSIZE = 65500;
+  MAXSHOWSIZE = 40;
+
   MAXSTACKSIZE = 100;
-  MAXKEYLENGTH = 15;     { The longest keyword is PROCEDURE }
+  MAXKEYLENGTH = 15;     { The longest keywords are IMPLEMENTATION INITIALIZATION }
   MAXLINESIZE = 90;     { Maximum length of output line }
 
 TYPE
 
-  Token    = String[MAXSYMBOLSIZE];
-  String0  = STRING[1]; {Pascal/z had 0}
+  {Token    = String[MAXSYMBOLSIZE];}
+  Token    = AnsiString;
+{XXX this is not used  String0  = STRING[1];} {Pascal/z had 0}
   FileName = STRING;
 
 
@@ -67,10 +70,10 @@ TYPE
                readsym,writesym,unitsym,
                { Not used for formatting }
                andsym,arrsym,divsym,downsym,filesym,gotosym,insym,modsym,
-               notsym,nilsym,orsym,setsym,tosym,
+               notsym,nilsym,orsym,setsym,tosym,virtualsym,usessym,
                casevarsym,
                { other symbols }
-               becomes,delphicomment,opencomment,closecomment,semicolon,colon,equals,
+               becomes,delphicomment,dopencomment,dclosecomment,opencomment,closecomment,semicolon,colon,equals,
                openparen,closeparen,period,endoffile,othersym);
 
   { Formatting options }
@@ -118,7 +121,7 @@ Const FirstOpt = crsupp;
       LastOpt = capital; { Adjust this if you add options }
       FirstKey = endsym;
       LastKey = othersym; { Adjust this if you add options }
-      LastFormatsym = tosym;
+      LastFormatsym = usessym;
 
 Type
   tableptr = ^tableentry;
@@ -128,7 +131,7 @@ Type
   KeywordTable = ARRAY [endsym..lastFormatsym] OF String[MAXKEYLENGTH];
   SpecialChar = ARRAY [1..2] OF CHAR;
   dblcharset = SET OF endsym..othersym;
-  DblCharTable = ARRAY [becomes..opencomment] OF SpecialChar;
+  DblCharTable = ARRAY [becomes..dclosecomment] OF SpecialChar;
   SglCharTable = ARRAY [opencomment..period] OF CHAR;
 
   TPrettyPrinter=Object(TObject)
@@ -147,6 +150,7 @@ Type
                               VAR Value: Token);
       Procedure SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
       Procedure GetComment(sym: symbolinfo);
+      Procedure GetDoubleComment(sym: symbolinfo);
       Procedure GetDelphiComment(sym: symbolinfo);
       Procedure GetNumber(sym: symbolinfo);
       Procedure GetCharLiteral(sym: symbolinfo);
@@ -186,7 +190,7 @@ Procedure GenerateCfgFile(S: PStream);
 Implementation
 
 CONST
-  version = '28 November 1989';  {was '11 October 1984'; ..ancient stuff!}
+  version = '20 February 2005';  {was '11 October 1984','28 November 1989'; ..ancient stuff!}
 
   NUL = 0;      { ASCII null character }
   TAB = 9;      { ASCII tab character }
@@ -225,7 +229,7 @@ CONST
       {keywords not used for formatting }
       'AND', 'ARRAY', 'DIV', 'DOWNTO',
       'FILE', 'GOTO', 'IN', 'MOD',
-      'NOT', 'NIL', 'OR', 'SET','TO'
+      'NOT', 'NIL', 'OR', 'SET','TO','VIRTUAL','USES'
      );
 
 
@@ -242,9 +246,10 @@ CONST
                'read','write','unit',
 
                'and','arr','div','down','file','goto',
-               'in','mod','not','nil','or','set','to',
+               'in','mod','not','nil','or','set','to','virtual','uses',
                'casevar',
-               'becomes','delphicomment','opencomment','closecomment','semicolon',
+               'becomes','delphicomment','dopencomment','dclosecomment',
+               'opencomment','closecomment','semicolon',
                'colon','equals',
                'openparen','closeparen','period','endoffile','other');
 
@@ -256,7 +261,7 @@ CONST
 
 
   DblChar : DblCharTable =
-     ( ':=', '//','(*' );
+     ( ':=', '//','(*','*)' );
 
   SglChar : SglCharTable =
     ('{', '}', ';', ':', '=', '(', ')', '.' );
@@ -269,24 +274,24 @@ CONST
   var
     i  : longint;
   begin
+     setLength(upperStr,length(s));
      for i:=1 to length(s) do
       if s[i] in ['a'..'z'] then
        upperStr[i]:=char(byte(s[i])-32)
       else
        upperStr[i]:=s[i];
-     upperStr[0]:=s[0];
   end;
 
   function LowerStr(const s : string) : string;
   var
     i  : longint;
   begin
+     setLength(LowerStr,length(s));
      for i:=1 to length(s) do
       if s[i] in ['A'..'Z'] then
        LowerStr[i]:=char(byte(s[i])+32)
       else
        LowerStr[i]:=s[i];
-     LowerStr[0]:=s[0];
   end;
 
 
@@ -420,6 +425,7 @@ begin
   option[untilsym]^.terminators   := [endsym, untilsym, elsesym, semicolon];
   option[becomes]^.terminators    := [endsym, untilsym, elsesym, semicolon];
   option[openparen]^.terminators  := [closeparen];
+  option[usessym]^.terminators    := [semicolon];
 end;
 
 Procedure SetDefaultIndents (Var Option : OptionTable);
@@ -557,6 +563,12 @@ begin
   S^.Write(St[1],length(St));
 end;
 
+Procedure WriteAnsiString (S : PStream; ST : AnsiString);
+
+begin
+  S^.Write(St[1],length(St));
+end;
+
 
 Procedure WriteCR (S: PStream);
 
@@ -603,7 +615,7 @@ Procedure TPrettyPrinter.GetChar;
       ELSE If (Ch=#10) THEN
         BEGIN
         name := endofline;
-        Value := Blank;
+        Value := Ch;
         Inc(inlines);
         END
       ELSE
@@ -624,10 +636,10 @@ Procedure TPrettyPrinter.StoreNextChar(VAR lngth: INTEGER;
   { Store a character in the current symbol }
   BEGIN
     GetChar;
-    IF lngth < maxsymbolsize THEN BEGIN
+    IF lngth < MAXSYMBOLSIZE THEN BEGIN {XXX - should there be a limit at all?}
       Inc(lngth);
+      setlength(Value,lngth);
       Value[lngth] := currchar.Value;
-      Value[0] := chr(Lngth);
     END;
   END; { of StoreNextChar }
 
@@ -651,19 +663,27 @@ Procedure TPrettyPrinter.SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
 
 
 Procedure TPrettyPrinter.GetComment(sym: symbolinfo);
-  { Process comments using either brace or parenthesis notation }
+  { Process comments using brace notation }
   BEGIN
     sym^.name := opencomment;
+    WHILE NOT ((currchar.Value = '}') 
+    OR (nextchar.name = filemark)) DO
+      StoreNextChar(sym^.length, sym^.Value);
+    IF currchar.Value = '}' THEN sym^.name := closecomment;
+  END; { of GetCommment }
+
+Procedure TPrettyPrinter.GetDoubleComment(sym: symbolinfo);
+  { Process comments using parenthesis notation }
+  BEGIN
+    sym^.name := dopencomment;
     WHILE NOT (((currchar.Value = '*') AND (nextchar.Value = ')'))
-    OR (currchar.Value = '}') OR (nextchar.name = endofline)
     OR (nextchar.name = filemark)) DO
       StoreNextChar(sym^.length, sym^.Value);
     IF (currchar.Value = '*') AND (nextchar.Value = ')') THEN BEGIN
-      StoreNextChar(sym^.LENGTH, sym^.Value);
-      sym^.name := closecomment;
+      StoreNextChar(sym^.length, sym^.Value);
+      sym^.name := dclosecomment;
     END;
-    IF currchar.Value = '}' THEN sym^.name := closecomment;
-  END; { of GetCommment }
+  END; { of GetDoubleCommment }
 
 Procedure TPrettyPrinter.GetDelphiComment(sym: symbolinfo);
   { Process comments using either brace or parenthesis notation }
@@ -725,7 +745,7 @@ FUNCTION TPrettyPrinter.char_Type: keysymbol;
     NextTwoChars[2] := nextchar.Value;
     thischar := becomes;
     Hit := FALSE;
-    WHILE NOT (Hit OR (thischar = closecomment)) DO BEGIN
+    WHILE NOT (Hit OR (thischar = opencomment)) DO BEGIN
       IF NextTwoChars = DblChar[thischar] THEN Hit := TRUE
       ELSE Inc(thischar);
     END;
@@ -760,6 +780,7 @@ Procedure TPrettyPrinter.GetNextSymbol(sym: symbolinfo);
       otherchar:  BEGIN
                     GetSpecialChar(sym);
                     IF sym^.name = opencomment THEN GetComment(sym)
+                    else IF sym^.name = dopencomment THEN GetDoubleComment(sym)
                     else IF sym^.name= DelphiComment then GetDelphiComment(Sym)
                   END;
       filemark:   sym^.name := endoffile;
@@ -781,6 +802,7 @@ Procedure TprettyPrinter.GetSymbol;
     nextsym^.length := 0;
     nextsym^.IsKeyWord := FALSE;
     IF currsym^.name = opencomment THEN GetComment(nextsym)
+    ELSE IF currsym^.name = dopencomment THEN GetDoubleComment(nextsym)
     ELSE GetNextSymbol(nextsym);
   END;  {of GetSymbol}
 
@@ -909,13 +931,13 @@ Procedure TPrettyPrinter.PrintSymbol;
       else if capital in sets^.selected then
         begin
         WriteString(OutS,UpCase(CurrSym^.Value[1]));
-        WriteString(OutS,LowerStr(Copy(CurrSym^.Value,2,255)));
+        WriteString(OutS,LowerStr(Copy(CurrSym^.Value,2,MAXSYMBOLSIZE)));{XXX - ?should it be length?}
         end
       else
         WriteString(OutS,Currsym^.Value);
       end
     ELSE
-      WriteString(OutS, currsym^.Value);
+      WriteAnsiString(OutS, currsym^.Value);
     startpos := currlinepos;
     Inc(currlinepos,currsym^.length);
   END; { of PrintSymbol }
@@ -927,11 +949,11 @@ Procedure TPrettyPrinter.PPSymbol;
   BEGIN
     WriteCRs(currsym^.crsbefore);
     IF (currlinepos + currsym^.spacesbefore > currmargin)
-    OR (currsym^.name IN [opencomment, closecomment])
+    OR (currsym^.name IN [opencomment, closecomment,dopencomment, dclosecomment])
     THEN newlinepos := currlinepos + currsym^.spacesbefore
     ELSE newlinepos := currmargin;
 
-    IF newlinepos + currsym^.length > LINESIZE THEN BEGIN
+    IF newlinepos + currsym^.length > LINESIZE THEN BEGIN {XXX - this needs to be cleaned for case of long symbol values}
       WriteCRs(1);
       IF currmargin + currsym^.length <= LINESIZE
       THEN newlinepos := currmargin
@@ -1143,6 +1165,19 @@ begin
     end;
 end;
 
+Function trimMiddle ( a:ansistring; lnght: integer; size: integer):string;
+var
+    half:Integer;
+begin
+    if lnght > size 
+    then
+    begin
+      half := (size - 3) div 2;
+      trimMiddle := copy(a,1,half) + '...' + copy(a,lnght-half+1,half);
+    end
+    else
+      trimMiddle := a;
+end;
 
 Function TPrettyPrinter.PrettyPrint : Boolean;
 
@@ -1171,6 +1206,9 @@ Begin
   GetSymbol;
   WHILE nextsym^.name <> endoffile DO BEGIN
     GetSymbol;
+    Verbose('line in-'+IntToStr(inlines)+' out-'+IntToStr(outlines)+
+            ' symbol "'+EntryNames[currsym^.name]+'" = "'+ 
+            trimMiddle(currsym^.value,length(currsym^.value),MAXSHOWSIZE)+'"');
     sets := option[currsym^.name];
     IF (CrPending AND NOT (crsupp IN sets^.selected))
     OR (crbefore IN sets^.selected) THEN BEGIN
@@ -1219,7 +1257,17 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-11-24 22:39:25  michael
+  Revision 1.8  2005-02-21 07:59:10  michael
+  - keywords 'virtual' and 'uses' were added.
+  - '{}' and '(**)' comment types were separated.
+  - tokens now AnsiStrings
+  - the comments are now handled better, ptop now does multi line comments.
+  - added debug prints to verbose option
+          'line in-<number> out-<number> symbol "<name>" = "<value>"'
+    the <value> is truncated in the middle. this means visible beginning and
+    the end.
+
+  Revision 1.7  2003/11/24 22:39:25  michael
   + set maxsymbolsize to 255
 
   Revision 1.6  2003/03/27 14:23:00  michael
