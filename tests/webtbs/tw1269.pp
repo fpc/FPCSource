@@ -1,6 +1,12 @@
 { Source provided for Free Pascal Bug Report 1269 }
 { Submitted by "Rob Kolstad" on  2000-11-28 }
 { e-mail: kolstad@ace.delos.com }
+
+{$ifdef cpu68k}
+  {$define COMP_IS_INT64}
+{$endif cpu68k}
+
+
 var
   A : array [0..25, 0..100] of comp;
   V : array [1..25] of longint;
@@ -36,7 +42,11 @@ begin
   v[10] := 10;
   for i := 0 to 25 do
     for j := 0 to nn do A[i, j] := -1;
+{$ifdef COMP_IS_INT64}
+  writeln( calc(vt, nn));
+{$else not COMP_IS_INT64}
   writeln( calc(vt, nn) :0:0);
+{$endif COMP_IS_INT64}
 end.
 
 

@@ -1,5 +1,9 @@
 Program ansitest;
 
+{$ifdef cpu68k}
+  {$define COMP_IS_INT64}
+{$endif cpu68k}
+
 {$ifndef fpc}
 Function Memavail : Longint;
 begin
@@ -433,7 +437,11 @@ begin
   str(E,S);
   Writeln (S);
   Write ('str(Co,S)= ');
+{$ifdef COMP_IS_INT64}
+  Co:=4;
+{$else}
   Co:=4.0;
+{$endif}
   str(Co,S);
   Writeln (S);
   Write ('str(Si,S)= ');
