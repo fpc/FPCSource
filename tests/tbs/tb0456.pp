@@ -1,4 +1,4 @@
-{$mode delphi}
+{$ifdef fpc}{$mode delphi}{$endif}
 
 type
   c=class
