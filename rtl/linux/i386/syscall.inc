@@ -25,25 +25,29 @@ asm
 { load the registers... }
   movl  sysnr,%eax
   int   $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  Errno+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
@@ -53,25 +57,29 @@ asm
   movl sysnr,%eax
   movl param1,%ebx
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
@@ -82,25 +90,29 @@ asm
   movl param1,%ebx
   movl param2,%ecx
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
@@ -112,25 +124,29 @@ asm
   movl param2,%ecx
   movl param3,%edx
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
@@ -143,25 +159,29 @@ asm
   movl param3,%edx
   movl param4,%esi
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
@@ -175,25 +195,29 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 
 {$ifdef notsupported}
@@ -209,25 +233,29 @@ asm
   movl param4,%esi
   movl param5,%edi
   int $0x80
+  movl  %eax,%ecx
+  xorl  %edx,%edx
   testl %eax,%eax
-  jns   .LSyscEnd
+  jns   .LSyscOK
   negl  %eax
-  pushl %edx
-  pushl %eax
+  movl  $-1,%ecx
+  movl  %eax,%edx
+.LSyscOK:
+{$ifdef VER1_0}
+  movl  %edx,Errno
+{$else}
   movl  FPC_THREADVAR_RELOCATE,%eax
   testl %eax,%eax
   jne   .LThread
-  leal  ErrNo+4,%eax
+  movl  %edx,Errno+4
   jmp   .LNoThread
 .LThread:
   pushl Errno
   call  *%eax
-.LNoThread:
-  popl  %edx
   movl  %edx,(%eax)
-  popl  %edx
-  movl  $-1,%eax
-.LSyscEnd:
+.LNoThread:
+{$endif}
+  movl  %ecx,%eax
 end;
 {$endif notsupported}
 
@@ -320,7 +348,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-12-18 20:41:33  peter
+  Revision 1.5  2002-12-23 20:56:32  peter
+    * Reset Errno to 0 if call is successfull
+    * Fix broken 1.0.x Errno which does not have threadvar
+
+  Revision 1.4  2002/12/18 20:41:33  peter
     * Threadvar support for Errno
     * Fixed syscall error return check
     * Uncommented Syscall with 6 parameters, only 5 were really set
