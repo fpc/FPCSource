@@ -58,7 +58,7 @@ ifdef inUnix
 PATHSEP=/
 else
 PATHSEP:=$(subst /,\,/)
-ifneq ($(findstring sh.exe,$(SHELL)),)
+ifdef inCygWin
 PATHSEP=/
 endif
 endif

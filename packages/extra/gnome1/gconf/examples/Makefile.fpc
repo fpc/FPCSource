@@ -15,4 +15,4 @@ units=gconfcallback1 gconfcallback2 gconfexample
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../../../..
