@@ -392,8 +392,10 @@ unit symtable;
        { last operator which can be overloaded }
        first_overloaded = _PLUS;
        last_overloaded  = _ASSIGNMENT;
+    type
+       toverloaded_operators = array[first_overloaded..last_overloaded] of pprocsym;
     var
-       overloaded_operators : array[first_overloaded..last_overloaded] of pprocsym;
+       overloaded_operators : toverloaded_operators;
        { unequal is not equal}
     const
        overloaded_names : array [first_overloaded..last_overloaded] of string[16] =
@@ -2814,7 +2816,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2000-03-27 21:15:34  pierre
+  Revision 1.84  2000-04-24 12:45:44  peter
+    * made overloaded_operators local per unit, but it still doesn't work
+      correct
+
+  Revision 1.83  2000/03/27 21:15:34  pierre
    * fix bug 294 in a BP compatible way ie. hidding the function result
 
   Revision 1.82  2000/03/22 09:25:57  florian

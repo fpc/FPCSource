@@ -246,6 +246,7 @@ unit parser;
          oldsymtablestack : psymtable;
          oldprocprefix    : string;
          oldaktprocsym    : pprocsym;
+         oldoverloaded_operators : toverloaded_operators;
        { cg }
          oldnextlabelnr : longint;
          oldparse_only  : boolean;
@@ -299,6 +300,7 @@ unit parser;
          oldmacros:=macros;
          oldprocprefix:=procprefix;
          oldaktprocsym:=aktprocsym;
+         move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
        { save scanner state }
          oldc:=c;
          oldpattern:=pattern;
@@ -356,6 +358,7 @@ unit parser;
          procprefix:='';
          registerdef:=true;
          aktmaxfpuregisters:=-1;
+         fillchar(overloaded_operators,sizeof(toverloaded_operators),0);
          { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
@@ -517,6 +520,7 @@ unit parser;
               macros:=oldmacros;
               aktprocsym:=oldaktprocsym;
               procprefix:=oldprocprefix;
+              move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
               aktlocalswitches:=oldaktlocalswitches;
               aktmoduleswitches:=oldaktmoduleswitches;
               aktpackrecords:=oldaktpackrecords;
@@ -599,7 +603,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.101  2000-02-18 20:53:15  pierre
+  Revision 1.102  2000-04-24 12:45:44  peter
+    * made overloaded_operators local per unit, but it still doesn't work
+      correct
+
+  Revision 1.101  2000/02/18 20:53:15  pierre
     * fixes a stabs problem for functions
     + includes a stabs local var for with statements
       the name is with in lowercase followed by an index
