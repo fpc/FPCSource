@@ -1,3 +1,20 @@
+{
+    $Id$
+    This file is part of the Free Pascal Integrated Development Environment
+    Copyright (c) 1998 by Berczi Gabor
+
+    Code Complete routines
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
 unit FPCodCmp; { CodeComplete }
 
 interface
@@ -269,6 +286,11 @@ end;
 function LoadCodeComplete(var S: TStream): boolean;
 var C: PCodeCompleteWordList;
     OK: boolean;
+    NewCodeCompleteMinLen : byte;
+    NewUseStandardUnitsInCodeComplete,
+    NewUseAllUnitsInCodeComplete,
+    NewShowOnlyUnique : boolean;
+    NewCodeCompleteCase : TCodeCompleteCase;
     StPtr : PString;
 begin
   New(C, Load(S));
@@ -277,15 +299,42 @@ begin
     begin
       if Assigned(CodeCompleteWords) then Dispose(CodeCompleteWords, Done);
       CodeCompleteWords:=C;
-      S.Read(CodeCompleteCase,Sizeof(TCodeCompleteCase));
-      S.Read(UseStandardUnitsInCodeComplete,Sizeof(UseStandardUnitsInCodeComplete));
-      S.Read(UseAllUnitsInCodeComplete,Sizeof(UseAllUnitsInCodeComplete));
-      S.Read(ShowOnlyUnique,Sizeof(ShowOnlyUnique));
-      S.Read(CodeCompleteMinLen,Sizeof(CodeCompleteMinLen));
-      StPtr:=S.ReadStr;
-      StandardUnits:=GetStr(StPtr);
+      S.Read(NewCodeCompleteCase,Sizeof(TCodeCompleteCase));
+      OK:=(S.Status=stOk);
+      if OK then
+        CodeCompleteCase:=NewCodeCompleteCase;
+      { Old version of Code complete, also OK PM }
+      if not OK or (S.getPos=S.getSize) then
+        begin
+          LoadCodeComplete:=OK;
+          exit;
+        end;
+
+      if S.Status=stOK then
+        S.Read(NewUseStandardUnitsInCodeComplete,Sizeof(UseStandardUnitsInCodeComplete));
+      if S.Status=stOK then
+        NewUseStandardUnitsInCodeComplete:=UseStandardUnitsInCodeComplete;
+      if S.Status=stOK then
+        S.Read(NewUseAllUnitsInCodeComplete,Sizeof(UseAllUnitsInCodeComplete));
+      if S.Status=stOK then
+        NewUseAllUnitsInCodeComplete:=UseAllUnitsInCodeComplete;
+      if S.Status=stOK then
+        S.Read(NewShowOnlyUnique,Sizeof(ShowOnlyUnique));
+      if S.Status=stOK then
+        NewShowOnlyUnique:=ShowOnlyUnique;
+      if S.Status=stOK then
+        S.Read(NewCodeCompleteMinLen,Sizeof(CodeCompleteMinLen));
+      if S.Status=stOK then
+        NewCodeCompleteMinLen:=CodeCompleteMinLen;
+      if S.Status=stOK then
+        StPtr:=S.ReadStr
+      else
+        StPtr:=nil;
+      if (S.Status=stOK) then
+        StandardUnits:=GetStr(StPtr);
       if assigned(StPtr) then
         FreeMem(StPtr,Length(StandardUnits)+1);
+      OK:=S.Status=stOK;
     end
   else
     if Assigned(C) then
@@ -301,6 +350,7 @@ begin
   begin
     CodeCompleteWords^.Store(S);
     S.Write(CodeCompleteCase,Sizeof(TCodeCompleteCase));
+    { New fields added }
     S.Write(UseStandardUnitsInCodeComplete,Sizeof(UseStandardUnitsInCodeComplete));
     S.Write(UseAllUnitsInCodeComplete,Sizeof(UseAllUnitsInCodeComplete));
     S.Write(ShowOnlyUnique,Sizeof(ShowOnlyUnique));
@@ -579,3 +629,11 @@ begin
 end;
 
 END.
+
+{
+ $Log$
+ Revision 1.8  2002-09-09 06:22:45  pierre
+  * get it to load old and new desktops
+
+
+}
