@@ -239,6 +239,10 @@ procedure gtk_window_fullscreen(window: PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_unfullscreen(window: PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_set_keep_above(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
 procedure gtk_window_set_keep_below(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
+function  gtk_window_get_skip_pager_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
+procedure gtk_window_set_skip_pager_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
+function  gtk_window_get_skip_taskbar_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
+procedure gtk_window_set_skip_taskbar_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 {$endif HasGTK2_2}
 
 procedure gtk_window_begin_resize_drag(window:PGtkWindow; edge:TGdkWindowEdge; button:gint; root_x:gint; root_y:gint;
@@ -290,10 +294,6 @@ function gtk_window_get_accept_focus(window:PGtkWindow):gboolean; cdecl; externa
 procedure gtk_window_set_accept_focus(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 function gtk_window_has_toplevel_focus(window: PGtkWindow):gboolean;cdecl; external gtklib;
 function gtk_window_is_active(window: PGtkWindow):gboolean; cdecl; external gtklib;
-function  gtk_window_get_skip_pager_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
-procedure gtk_window_set_skip_pager_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
-function  gtk_window_get_skip_taskbar_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
-procedure gtk_window_set_skip_taskbar_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
 
