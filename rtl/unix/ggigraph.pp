@@ -326,6 +326,9 @@ end;
 procedure ggi_clrviewproc;
 begin
   ggidrawbox(Visual,StartXViewPort,StartYViewPort,ViewWidth,ViewHeight);
+  { reset coordinates }
+  CurrentX := 0;
+  CurrentY := 0;
 end;
 
 { Bitmap utilities }
@@ -534,7 +537,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2001-04-13 23:49:48  peter
+  Revision 1.5  2001-11-19 14:00:16  jonas
+    * fixed libvga_ClrViewProc (it didn't reset the coords to (0,0))
+      (merged)
+
+  Revision 1.4  2001/04/13 23:49:48  peter
     * fixes for the stricter compiler
 
   Revision 1.3  2001/01/21 20:21:40  marco
