@@ -805,14 +805,10 @@ implementation
 
               if (po_methodpointer in procdefinition.procoptions) then
                 begin
-                   { push self, but not if it's already explicitly pushed }
-                   if not(po_containsself in procdefinition.procoptions) then
-                     begin
-                       { push self }
-                       href:=right.location.reference;
-                       inc(href.offset,POINTER_SIZE);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
-                     end;
+                   { push self }
+                   href:=right.location.reference;
+                   inc(href.offset,POINTER_SIZE);
+                   cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
 
                    rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
                    rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
@@ -1022,7 +1018,10 @@ implementation
           if st.datasize>0 then
             begin
               tg.GetTemp(exprasmlist,st.datasize,tt_persistant,localsref);
-              st.address_fixup:=localsref.offset+st.datasize;
+              if tg.direction>0 then
+                st.address_fixup:=localsref.offset
+              else
+                st.address_fixup:=localsref.offset+st.datasize;
 {$ifdef extdebug}
               Comment(V_debug,'local symtable is at offset '+tostr(st.address_fixup));
               exprasmList.concat(tai_comment.Create(strpnew(
@@ -1129,7 +1128,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-05-14 19:36:54  jonas
+  Revision 1.65  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.64  2003/05/14 19:36:54  jonas
     * patch from Peter for int64 function results
 
   Revision 1.63  2003/05/13 19:14:41  peter

@@ -90,9 +90,8 @@ implementation
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):tnode;forward;
 
     const
-      got_addrn  : boolean = false;
-      anon_inherited : boolean = false;
-
+       { true, if the inherited call is anonymous }
+       anon_inherited : boolean = false;
 
 
 
@@ -2400,7 +2399,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.119  2003-05-13 20:54:39  peter
+  Revision 1.120  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.119  2003/05/13 20:54:39  peter
     * ifdef'd code that checked for failed inherited constructors
 
   Revision 1.118  2003/05/13 19:14:41  peter

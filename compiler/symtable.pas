@@ -1311,7 +1311,7 @@ implementation
               l:=tvarsym(sym).getvaluesize;
               varalign:=size_2_align(l);
               varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
-              if (tg.direction = 1) then
+              if (tg.direction>0) then
                 begin
                   { on the powerpc, the local variables are accessed with a positiv offset }
                   tvarsym(sym).address:=align(datasize,varalign);
@@ -1319,8 +1319,8 @@ implementation
                 end
               else
                 begin
-                  tvarsym(sym).address:=align(datasize+l,varalign);
-                  datasize:=tvarsym(sym).address;
+                  datasize:=align(datasize+l,varalign);
+                  tvarsym(sym).address:=-datasize;
                 end;
             end;
         end;
@@ -2420,7 +2420,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-05-13 15:17:13  peter
+  Revision 1.100  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.99  2003/05/13 15:17:13  peter
     * fix crash with hiding function result. The function result is now
       inserted as last so the symbol that we are going to insert is the
       result and needs to be renamed instead of the already existing

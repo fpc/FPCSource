@@ -303,12 +303,7 @@ implementation
                 { possible that it's been modified  (JM)                  }
                 if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                   begin
-                    reference_reset(hr);
-                    if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-                      hr.offset:=tg.direction*vsym.address+vsym.owner.address_fixup
-                    else
-                      hr.offset:=vsym.address+vsym.owner.address_fixup;
-                    hr.base:=current_procinfo.framepointer;
+                    reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
                 asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
@@ -330,12 +325,7 @@ implementation
       if not rg.regvar_loaded[reg.enum] then
         begin
           asml.concat(tai_regalloc.alloc(reg));
-          reference_reset(hr);
-          if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
-            hr.offset:=tg.direction*vsym.address+vsym.owner.address_fixup
-          else
-            hr.offset:=vsym.address+vsym.owner.address_fixup;
-          hr.base:=current_procinfo.framepointer;
+          reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
                paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
@@ -500,7 +490,13 @@ end.
 
 {
   $Log$
-  Revision 1.48  2003-05-12 17:22:00  jonas
+  Revision 1.49  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.48  2003/05/12 17:22:00  jonas
     * fixed (last?) remaining -tvarsym(X).address to
       tg.direction*tvarsym(X).address...
 

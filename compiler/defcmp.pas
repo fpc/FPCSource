@@ -1175,7 +1175,7 @@ implementation
             exit;
           end;
          { check return value and options, methodpointer is already checked }
-         po_comp:=[po_staticmethod,po_containsself,po_interrupt,
+         po_comp:=[po_staticmethod,po_interrupt,
                    po_iocheck,po_varargs];
          if (m_delphi in aktmodeswitches) then
            exclude(po_comp,po_varargs);
@@ -1211,7 +1211,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-05-09 17:47:02  peter
+  Revision 1.25  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.24  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

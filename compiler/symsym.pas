@@ -195,6 +195,7 @@ interface
           procedure set_mangledname(const s:string);
           function  getsize : longint;
           function  getvaluesize : longint;
+          function  adjusted_address : longint;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -1707,6 +1708,12 @@ implementation
       end;
 
 
+    function  tvarsym.adjusted_address : longint;
+      begin
+        result:=address+owner.address_fixup;
+      end;
+
+
     procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
 
     var n:Tnotification;
@@ -1803,7 +1810,7 @@ implementation
               end;
             stabstring := strpnew('"'+name+':'+st+'",'+
                   tostr(N_tsym)+',0,'+tostr(fileinfo.line)+','+
-                  tostr(address+owner.address_fixup));
+                  tostr(adjusted_address));
                   {offset to ebp => will not work if the framepointer is esp
                   so some optimizing will make things harder to debug }
          end
@@ -1825,31 +1832,54 @@ implementation
                   tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname)
            else
            stabstring := strpnew('"'+name+':'+st+'",'+
-                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+','+tostr(tg.direction*address+owner.address_fixup))
+                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+','+tostr(adjusted_address))
        else
          stabstring := inherited stabstring;
   end;
 
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
-      var stab_str : pchar;
+      var
+        stab_str : pchar;
+        c : char;
       begin
          if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
             (copy(name,1,6)='hidden') then
            exit;
-         inherited concatstabto(asmlist);
-      if (owner.symtabletype=parasymtable) and
-         (reg.enum<>R_NO) then
+         if (vo_is_self in varoptions) then
            begin
-              if reg.enum>lastreg then
-                internalerror(2003010801);
-           { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-           { this is the register order for GDB}
-              stab_str:=strpnew('"'+name+':r'
-                     +tstoreddef(vartype.def).numberstring+'",'+
-                     tostr(N_RSYM)+',0,'+
-                     tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
-              asmList.concat(Tai_stabs.Create(stab_str));
-           end;
+             if (po_classmethod in current_procdef.procoptions) or
+                (po_staticmethod in current_procdef.procoptions) then
+               begin
+                 asmlist.concat(Tai_stabs.Create(strpnew(
+                    '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
+                    tostr(N_tsym)+',0,0,'+tostr(adjusted_address))));
+               end
+             else
+               begin
+                 if not(is_class(current_procdef._class)) then
+                   c:='v'
+                 else
+                   c:='p';
+                 asmlist.concat(Tai_stabs.Create(strpnew(
+                    '"$t:'+c+current_procdef._class.numberstring+'",'+
+                    tostr(N_tsym)+',0,0,'+tostr(adjusted_address))));
+               end;
+           end
+         else
+           if (reg.enum<>R_NO) then
+             begin
+                if reg.enum>lastreg then
+                  internalerror(2003010801);
+                { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                { this is the register order for GDB}
+                stab_str:=strpnew('"'+name+':r'
+                       +tstoreddef(vartype.def).numberstring+'",'+
+                       tostr(N_RSYM)+',0,'+
+                       tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
+                asmList.concat(Tai_stabs.Create(stab_str));
+             end
+         else
+           inherited concatstabto(asmlist);
       end;
 {$endif GDB}
 
@@ -2558,7 +2588,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-05-12 18:13:57  peter
+  Revision 1.104  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.103  2003/05/12 18:13:57  peter
     * create rtti label using newasmsymboldata and update binding
       only when calling tai_symbol.create
     * tai_symbol.create_global added

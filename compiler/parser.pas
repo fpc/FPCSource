@@ -287,7 +287,6 @@ implementation
           old_compiled_module : tmodule;
           oldaktdefproccall : tproccalloption;
           oldsourcecodepage : tcodepagestring;
-          oldstatement_level : integer;
 {$ifdef GDB}
           store_dbx : plongint;
 {$endif GDB}
@@ -363,7 +362,6 @@ implementation
             oldaktinterfacetype:=aktinterfacetype;
             oldaktfilepos:=aktfilepos;
             oldaktmodeswitches:=aktmodeswitches;
-            oldstatement_level:=statement_level;
 {$ifdef GDB}
             store_dbx:=dbx_counter;
             dbx_counter:=nil;
@@ -379,7 +377,6 @@ implementation
          refsymtable:=nil;
          aktdefproccall:=initdefproccall;
          registerdef:=true;
-         statement_level:=0;
          aktexceptblock:=0;
          exceptblockcounter:=0;
          aktmaxfpuregisters:=-1;
@@ -548,7 +545,6 @@ implementation
                  aktinterfacetype:=oldaktinterfacetype;
                  aktfilepos:=oldaktfilepos;
                  aktmodeswitches:=oldaktmodeswitches;
-                 statement_level:=oldstatement_level;
                  aktexceptblock:=0;
                  exceptblockcounter:=0;
 {$ifdef GDB}
@@ -622,7 +618,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-04-27 11:21:33  peter
+  Revision 1.53  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.52  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

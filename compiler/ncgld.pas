@@ -192,25 +192,8 @@ implementation
                               inlineparasymtable :
                                 begin
                                   location.reference.base:=current_procinfo.framepointer;
-                                  if (symtabletype in [inlinelocalsymtable,
-                                                       localsymtable])
-                                    then
-                                    location.reference.offset:=
-                                      tvarsym(symtableentry).address+tg.direction*symtable.address_fixup
-                                  else
-                                    location.reference.offset:=
-                                      tvarsym(symtableentry).address+symtable.address_fixup;
+                                  location.reference.offset:=tvarsym(symtableentry).adjusted_address;
 
-{$ifndef powerpc}
-                                  if (symtabletype in [localsymtable,inlinelocalsymtable]) then
-                                    begin
-                                       if use_esp_stackframe then
-                                         dec(location.reference.offset,
-                                           tvarsym(symtableentry).getvaluesize)
-                                       else
-                                         location.reference.offset:=-location.reference.offset;
-                                    end;
-{$endif powerpc}
                                   if (current_procdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
                                        hregister:=rg.getaddressregister(exprasmlist);
@@ -932,7 +915,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-05-12 17:22:00  jonas
+  Revision 1.59  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.58  2003/05/12 17:22:00  jonas
     * fixed (last?) remaining -tvarsym(X).address to
       tg.direction*tvarsym(X).address...
 

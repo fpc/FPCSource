@@ -759,15 +759,9 @@ Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
   if assigned(current_procdef._class) then
-   Begin
-     opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=current_procinfo.selfpointer_offset;
-     opr.ref.base:=current_procinfo.framepointer;
-     opr.ref.options:=ref_selffixup;
-     SetupSelf:=true;
-   end
+    SetupSelf:=setupvar('self',false)
   else
-   Message(asmr_e_cannot_use_SELF_outside_a_method);
+    Message(asmr_e_cannot_use_SELF_outside_a_method);
 end;
 
 
@@ -775,15 +769,9 @@ Function TOperand.SetupOldEBP:boolean;
 Begin
   SetupOldEBP:=false;
   if current_procdef.parast.symtablelevel>normal_function_level then
-   Begin
-     opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=current_procinfo.framepointer_offset;
-     opr.ref.base:=current_procinfo.framepointer;
-     opr.ref.options:=ref_parafixup;
-     SetupOldEBP:=true;
-   end
+    SetupOldEBP:=setupvar('parentframe',false)
   else
-   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
+    Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
 end;
 
 
@@ -877,7 +865,7 @@ Begin
                       else
                         message1(asmr_e_local_para_unreachable,s);
                     end;
-                  opr.ref.offset:=tg.direction*(tvarsym(sym).address);
+                  opr.ref.offset:=tvarsym(sym).address;
                   if (current_procdef.localst.symtablelevel=tvarsym(sym).owner.symtablelevel) then
                     begin
                       opr.ref.offsetfixup:=current_procdef.localst.address_fixup;
@@ -1574,7 +1562,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2003-05-12 17:22:00  jonas
+  Revision 1.60  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.59  2003/05/12 17:22:00  jonas
     * fixed (last?) remaining -tvarsym(X).address to
       tg.direction*tvarsym(X).address...
 

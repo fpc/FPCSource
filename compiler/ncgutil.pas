@@ -975,13 +975,13 @@ implementation
            (tvarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+           reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).adjusted_address);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
              cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
            else
             begin
-              reference_reset_base(href2,current_procinfo.framepointer,tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
+              reference_reset_base(href2,current_procinfo.framepointer,tvarsym(p).localvarsym.adjusted_address);
               if is_shortstring(tvarsym(p).vartype.def) then
                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true)
               else
@@ -1007,7 +1007,7 @@ implementation
            if (cs_implicit_exceptions in aktmoduleswitches) then
             include(current_procinfo.flags,pi_needs_implicit_finally);
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-            reference_reset_base(href,current_procinfo.framepointer,tg.direction*tvarsym(p).address+tvarsym(p).owner.address_fixup)
+            reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address)
            else
             reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
@@ -1032,7 +1032,7 @@ implementation
                  tvarsym(p).vartype.def.needs_inittable then
                begin
                  if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-                  reference_reset_base(href,current_procinfo.framepointer,tg.direction*tvarsym(p).address+tvarsym(p).owner.address_fixup)
+                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address)
                  else
                   reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
                  cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
@@ -1070,15 +1070,14 @@ implementation
                  if (cs_implicit_exceptions in aktmoduleswitches) then
                   include(current_procinfo.flags,pi_needs_implicit_finally);
                  if assigned(tvarsym(p).localvarsym) then
-                  reference_reset_base(href,current_procinfo.framepointer,
-                      tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
+                   reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).localvarsym.adjusted_address)
                  else
-                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+                   reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address);
                  cg.g_incrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
                end;
              vs_out :
                begin
-                 reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+                 reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address);
                {$ifdef newra}
                  tmpreg:=rg.getaddressregister(list);
                {$else}
@@ -1111,10 +1110,9 @@ implementation
            if (tvarsym(p).varspez=vs_value) then
             begin
               if assigned(tvarsym(p).localvarsym) then
-               reference_reset_base(href,current_procinfo.framepointer,
-                   tg.direction*tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
+                reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).localvarsym.adjusted_address)
               else
-               reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+                reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).adjusted_address);
               cg.g_decrrefcount(list,tvarsym(p).vartype.def,href,is_open_array(tvarsym(p).vartype.def));
             end;
          end;
@@ -1357,11 +1355,10 @@ implementation
                            cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
                        end
                      else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
-                      LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                      (tvarsym(hp.parasym).reg.enum=R_NO) then
+                                                 LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
+                             (tvarsym(hp.parasym).reg.enum=R_NO) then
                        begin
-                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).address+
-                           tvarsym(hp.parasym).owner.address_fixup);
+                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
                          case hp.paraloc.loc of
                            LOC_CREGISTER,
                            LOC_REGISTER:
@@ -1620,13 +1617,13 @@ implementation
         stabsendlabel : tasmlabel;
         mangled_length : longint;
         p : pchar;
-        st : string[2];
 {$endif GDB}
         okexitlabel : tasmlabel;
         href : treference;
+        srsym : tsym;
         usesacc,
         usesacchi,
-        usesself,usesfpu : boolean;
+        usesfpu : boolean;
         rsp,r  : Tregister;
       begin
         if aktexit2label.is_used and
@@ -1639,7 +1636,7 @@ implementation
           end;
 
         if aktexitlabel.is_used then
-          list.concat(Tai_label.Create(aktexitlabel));
+          cg.a_label(list,aktexitlabel);
 
         cleanup_regvars(list);
 
@@ -1680,7 +1677,6 @@ implementation
           they didn't reference the result variable }
         usesacc:=false;
         usesacchi:=false;
-        usesself:=false;
         if not(po_assembler in current_procdef.procoptions) or
            (assigned(current_procdef.funcretsym) and
             (tvarsym(current_procdef.funcretsym).refcount>1)) then
@@ -1695,7 +1691,10 @@ implementation
                 r.number:=NR_ACCUMULATOR;
                 cg.a_reg_alloc(list,r);
                 { return the self pointer }
-                reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
+                srsym:=tvarsym(current_procdef.parast.search('self'));
+                if not assigned(srsym) then
+                  internalerror(200305058);
+                reference_reset_base(href,current_procinfo.framepointer,tvarsym(srsym).adjusted_address);
                 cg.a_load_ref_reg(list,OS_ADDR,href,r);
                 cg.a_reg_dealloc(list,r);
                 usesacc:=true;
@@ -1730,7 +1729,7 @@ implementation
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in current_procdef.procoptions) then
-          cg.g_restore_all_registers(list,usesself,usesacc,usesacchi)
+          cg.g_restore_all_registers(list,usesacc,usesacchi)
         else
          { should we restore edi ? }
          if (po_savestdregs in current_procdef.procoptions) then
@@ -1753,7 +1752,7 @@ implementation
         if not inlined then
          begin
            if (po_interrupt in current_procdef.procoptions) then
-            cg.g_interrupt_stackframe_exit(list,usesself,usesacc,usesacchi)
+            cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
            else
              begin
 {$ifndef i386}
@@ -1773,42 +1772,6 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-            if assigned(current_procdef._class) then
-              if (not assigned(current_procinfo.parent) or
-                  not assigned(current_procinfo.parent.procdef._class)) then
-                begin
-                  if (po_classmethod in current_procdef.procoptions) or
-                     ((po_virtualmethod in current_procdef.procoptions) and
-                      (potype_constructor=current_procdef.proctypeoption)) or
-                     (po_staticmethod in current_procdef.procoptions) then
-                    begin
-                      list.concat(Tai_stabs.Create(strpnew(
-                       '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(current_procinfo.selfpointer_offset))));
-                    end
-                  else
-                    begin
-                      if not(is_class(current_procdef._class)) then
-                        st:='v'
-                      else
-                        st:='p';
-                      list.concat(Tai_stabs.Create(strpnew(
-                       '"$t:'+st+current_procdef._class.numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(current_procinfo.selfpointer_offset))));
-                    end;
-                end
-              else
-                begin
-                  if not is_class(current_procdef._class) then
-                    st:='*'
-                  else
-                    st:='';
-{$warning GDB self}
-                  {list.concat(Tai_stabs.Create(strpnew(
-                   '"$t:r'+st+current_procdef._class.numberstring+'",'+
-                   tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));}
-                end;
-
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
             if  assigned(current_procinfo.parent) and
@@ -1872,7 +1835,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2003-05-14 19:37:25  jonas
+  Revision 1.104  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.103  2003/05/14 19:37:25  jonas
     * patch from Peter for int64 function results
 
   Revision 1.102  2003/05/13 19:14:41  peter

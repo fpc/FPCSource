@@ -205,7 +205,6 @@ implementation
           end;
 
          consume(_OF);
-         inc(statement_level);
          root:=nil;
          instruc:=nil;
          repeat
@@ -293,7 +292,6 @@ implementation
               elseblock:=nil;
               consume(_END);
            end;
-         dec(statement_level);
 
          code:=ccasenode.create(caseexpr,instruc,root);
 
@@ -311,7 +309,6 @@ implementation
       begin
          consume(_REPEAT);
          first:=nil;
-         inc(statement_level);
 
          while token<>_UNTIL do
            begin
@@ -330,7 +327,6 @@ implementation
               consume_emptystats;
            end;
          consume(_UNTIL);
-         dec(statement_level);
 
          first:=cblocknode.create(first,true);
          p_e:=comp_expr(true);
@@ -593,7 +589,6 @@ implementation
          inc(exceptblockcounter);
          oldaktexceptblock := aktexceptblock;
          aktexceptblock := exceptblockcounter;
-         inc(statement_level);
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
            begin
@@ -619,7 +614,6 @@ implementation
               aktexceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
-              dec(statement_level);
            end
          else
            begin
@@ -755,7 +749,6 @@ implementation
                    { catch all exceptions }
                    p_default:=statements_til_end;
                 end;
-              dec(statement_level);
 
               block_type:=old_block_type;
               try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
@@ -1009,7 +1002,6 @@ implementation
          first:=nil;
          filepos:=akttokenpos;
          consume(starttoken);
-         inc(statement_level);
 
          while not(token in [_END,_FINALIZATION]) do
            begin
@@ -1043,8 +1035,6 @@ implementation
            an initalization ! }
          if (starttoken<>_INITIALIZATION) or (token<>_FINALIZATION) then
            consume(_END);
-
-         dec(statement_level);
 
          last:=cblocknode.create(first,true);
          last.set_tree_filepos(filepos);
@@ -1185,7 +1175,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2003-05-13 19:14:41  peter
+  Revision 1.99  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.98  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

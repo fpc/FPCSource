@@ -72,11 +72,6 @@ unit cgbase;
              frame pointer from the outer procedure is stored.
           }
           framepointer_offset : longint;
-          {# offset from frame pointer to get self reference }
-          selfpointer_offset : longint;
-          {# offset from frame pointer to get vmt reference (constructors only) }
-          inheritedflag_offset,
-          vmtpointer_offset  : longint;
           {# result value offset in stack (functions only) }
           return_offset : longint;
           {# firsttemp position }
@@ -352,9 +347,6 @@ implementation
         parent:=aparent;
         procdef:=nil;
         framepointer_offset:=0;
-        selfpointer_offset:=0;
-        vmtpointer_offset:=0;
-        inheritedflag_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
         flags:=[];
@@ -424,60 +416,7 @@ implementation
       begin
          { Retrieve function result offset }
          if assigned(procdef.funcretsym) then
-           begin
-             current_procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
-                                     tvarsym(procdef.funcretsym).owner.address_fixup;
-             if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
-              current_procinfo.return_offset:=tg.direction*current_procinfo.return_offset;
-           end;
-         { retrieve offsets of self/vmt }
-         if assigned(procdef._class) then
-           begin
-              if (po_containsself in procdef.procoptions) then
-               begin
-                 inc(current_procinfo.selfpointer_offset,tvarsym(procdef.selfpara.parasym).address);
-               end
-              else
-               { self isn't pushed in nested procedure of methods }
-               if (procdef.parast.symtablelevel=normal_function_level) then
-                begin
-                  srsym:=tvarsym(procdef.parast.search('self'));
-                  if not assigned(srsym) then
-                   internalerror(200305058);
-                  selfpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
-                end;
-
-              { Special parameters for de-/constructors }
-              case procdef.proctypeoption of
-                potype_constructor :
-                  begin
-                    srsym:=tvarsym(procdef.parast.search('vmt'));
-                    if not assigned(srsym) then
-                     internalerror(200305058);
-                    vmtpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
-                  end;
-                potype_destructor :
-                  begin
-                    if is_object(procdef._class) then
-                     begin
-                       srsym:=tvarsym(procdef.parast.search('vmt'));
-                       if not assigned(srsym) then
-                        internalerror(200305058);
-                       vmtpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
-                     end
-                    else
-                     if is_class(procdef._class) then
-                      begin
-                        srsym:=tvarsym(procdef.parast.search('vmt'));
-                        if not assigned(srsym) then
-                         internalerror(200305058);
-                        inheritedflag_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
-                      end
-                    else
-                     internalerror(200303261);
-                  end;
-              end;
-           end;
+           current_procinfo.return_offset:=tvarsym(procdef.funcretsym).adjusted_address;
       end;
 
 
@@ -640,7 +579,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-05-13 19:14:41  peter
+  Revision 1.48  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.47  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

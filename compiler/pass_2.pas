@@ -264,7 +264,6 @@ implementation
            rg.t_times:=100;
          { clear register count }
          rg.clearregistercount;
-         use_esp_stackframe:=false;
          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
          { firstpass everything }
@@ -302,7 +301,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-05-13 19:14:41  peter
+  Revision 1.52  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.51  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

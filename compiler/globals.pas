@@ -130,7 +130,6 @@ interface
        do_build,
        do_release,
        do_make       : boolean;
-       not_unit_proc : boolean;
        { path for searching units, different paths can be seperated by ; }
        exepath            : dirstr;  { Path to ppc }
        librarysearchpath,
@@ -154,18 +153,14 @@ interface
 
        block_type : tblock_type;         { type of currently parsed block }
 
-       in_args : boolean;                { arguments must be checked especially }
        parsing_para_level : integer;     { parameter level, used to convert
                                            proc calls to proc loads in firstcalln }
        compile_level : word;
        make_ref : boolean;
        resolving_forward : boolean;      { used to add forward reference as second ref }
-       use_esp_stackframe : boolean;     { to test for call with ESP as stack frame }
        inlining_procedure : boolean;     { are we inlining a procedure }
-       statement_level : integer;
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
-       have_local_threadvars : boolean;  { set if a table of local threadvars-tables is present and has to be initialized }
 
      { commandline values }
        initdefines        : tstringlist;
@@ -1448,7 +1443,6 @@ implementation
         DLLsource:=false;
         inlining_procedure:=false;
         resolving_forward:=false;
-        in_args:=false;
         make_ref:=false;
 
       { Output }
@@ -1515,20 +1509,19 @@ implementation
         stacksize:=0;
         heapsize:=0;
 
-      { compile state }
-        in_args:=false;
-        { must_be_valid:=true; obsolete PM }
-        not_unit_proc:=true;
-
         apptype:=app_cui;
-
-        have_local_threadvars := false;
      end;
 
 end.
 {
   $Log$
-  Revision 1.88  2003-04-27 11:21:32  peter
+  Revision 1.89  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.88  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

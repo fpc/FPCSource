@@ -374,7 +374,7 @@ unit cgobj;
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
           }
-          procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;
+          procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
@@ -424,7 +424,7 @@ unit cgobj;
           }
           procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
-          procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
+          procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);virtual;abstract;
        end;
 
     {# @abstract(Abstract code generator for 64 Bit operations)
@@ -1635,7 +1635,7 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);
+    procedure tcg.g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);
       begin
       end;
 
@@ -1697,7 +1697,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.97  2003-05-13 19:14:41  peter
+  Revision 1.98  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.97  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

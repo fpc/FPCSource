@@ -414,7 +414,6 @@ interface
           rettype         : ttype;
           parast          : tsymtable;
           para            : tlinkedlist;
-          selfpara        : tparaitem;
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
@@ -3060,7 +3059,6 @@ implementation
          parast:=tparasymtable.create(level);
          parast.defowner:=self;
          para:=TLinkedList.Create;
-         selfpara:=nil;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3207,7 +3205,6 @@ implementation
          inherited ppuloaddef(ppufile);
          parast:=nil;
          Para:=TLinkedList.Create;
-         selfpara:=nil;
          minparacount:=0;
          maxparacount:=0;
          ppufile.gettype(rettype);
@@ -5764,7 +5761,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.143  2003-05-13 08:13:16  jonas
+  Revision 1.144  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.143  2003/05/13 08:13:16  jonas
     * patch from Peter for rtti symbols
 
   Revision 1.142  2003/05/11 21:37:03  peter

@@ -40,6 +40,12 @@ interface
        { true, if we are after an assignement }
        afterassignment : boolean = false;
 
+       { true, if we are parsing arguments }
+       in_args : boolean = false;
+
+       { true, if we got an @ to get the address }
+       got_addrn  : boolean = false;
+
        { special for handling procedure vars }
        getprocvardef : tprocvardef = nil;
 
@@ -267,7 +273,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-03-17 18:55:30  peter
+  Revision 1.24  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.23  2003/03/17 18:55:30  peter
     * allow more tokens instead of only semicolon after inherited
 
   Revision 1.22  2002/12/05 19:28:05  carl

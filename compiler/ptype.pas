@@ -612,7 +612,6 @@ implementation
                     consume(_OF);
                     consume(_OBJECT);
                     include(pd.procoptions,po_methodpointer);
-                    check_self_para(pd);
                   end;
                 { Add implicit hidden parameters and function result }
                 calc_parast(pd);
@@ -628,7 +627,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2003-05-09 17:47:03  peter
+  Revision 1.55  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.54  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 

@@ -45,8 +45,6 @@ interface
 
     procedure insert_funcret_local(pd:tprocdef);
 
-    procedure check_self_para(pd:tabstractprocdef);
-
     function  proc_add_definition(var pd:tprocdef):boolean;
 
     procedure handle_calling_convention(pd:tabstractprocdef);
@@ -132,16 +130,13 @@ implementation
         if (pd.deftype=procvardef) and
            pd.is_methodpointer then
           begin
-            if not(po_containsself in pd.procoptions) then
-             begin
-               { Generate self variable }
-               tt:=voidpointertype;
-               vs:=tvarsym.create('$self',vs_value,tt);
-               include(vs.varoptions,vo_is_self);
-               { Insert as hidden parameter }
-               pd.parast.insert(vs);
-               pd.insertpara(vs.vartype,vs,nil,true);
-             end;
+            { Generate self variable }
+            tt:=voidpointertype;
+            vs:=tvarsym.create('$self',vs_value,tt);
+            include(vs.varoptions,vo_is_self);
+            { Insert as hidden parameter }
+            pd.parast.insert(vs);
+            pd.insertpara(vs.vartype,vs,nil,true);
           end
         else
           begin
@@ -167,29 +162,25 @@ implementation
 
                 { Generate self variable, for classes we need
                   to use the generic voidpointer to be compatible with
-                  methodpointers.
-                  Only needed when there is no explicit self para }
-                if not(po_containsself in pd.procoptions) then
-                 begin
-                   vsp:=vs_value;
-                   if (po_staticmethod in pd.procoptions) or
-                      (po_classmethod in pd.procoptions) then
-                     begin
-                       tt.setdef(tprocdef(pd)._class);
-                       tt.setdef(tclassrefdef.create(tt));
-                     end
-                   else
-                     begin
-                       if is_object(tprocdef(pd)._class) then
-                         vsp:=vs_var;
-                       tt.setdef(tprocdef(pd)._class);
-                     end;
-                   vs:=tvarsym.create('$self',vsp,tt);
-                   include(vs.varoptions,vo_is_self);
-                   { Insert as hidden parameter }
-                   pd.parast.insert(vs);
-                   pd.insertpara(vs.vartype,vs,nil,true);
-                 end;
+                  methodpointers }
+                vsp:=vs_value;
+                if (po_staticmethod in pd.procoptions) or
+                   (po_classmethod in pd.procoptions) then
+                  begin
+                    tt.setdef(tprocdef(pd)._class);
+                    tt.setdef(tclassrefdef.create(tt));
+                  end
+                else
+                  begin
+                    if is_object(tprocdef(pd)._class) then
+                      vsp:=vs_var;
+                    tt.setdef(tprocdef(pd)._class);
+                  end;
+                vs:=tvarsym.create('$self',vsp,tt);
+                include(vs.varoptions,vo_is_self);
+                { Insert as hidden parameter }
+                pd.parast.insert(vs);
+                pd.insertpara(vs.vartype,vs,nil,true);
 
                 akttokenpos:=storepos;
               end;
@@ -333,36 +324,6 @@ implementation
                    Message(parser_e_C_array_of_const_must_be_last);
                end;
             end;
-         end;
-      end;
-
-
-    procedure check_self_para(pd:tabstractprocdef);
-      var
-        hpara : tparaitem;
-        vs : tvarsym;
-      begin
-        hpara:=pd.selfpara;
-        if assigned(hpara) and
-           (
-            ((pd.deftype=procvardef) and
-             (po_methodpointer in pd.procoptions)) or
-            ((pd.deftype=procdef) and
-             assigned(tprocdef(pd)._class))
-           ) then
-         begin
-           include(pd.procoptions,po_containsself);
-           if hpara.paratyp <> vs_value then
-             CGMessage(parser_e_self_call_by_value);
-           if (pd.deftype=procdef) then
-            begin
-              if compare_defs(hpara.paratype.def,tprocdef(pd)._class,nothingn)=te_incompatible then
-                CGMessage2(type_e_incompatible_types,hpara.paratype.def.typename,tprocdef(pd)._class.typename);
-            end;
-           { add an alias for $self which is for internal use }
-           vs:=tabsolutesym.create_ref('$self',hpara.paratype,tstoredsym(hpara.parasym));
-           include(vs.varoptions,vo_is_self);
-           pd.parast.insert(vs);
          end;
       end;
 
@@ -524,19 +485,11 @@ implementation
                   include(vs.varoptions,vo_regable);
               end;
              hpara:=pd.concatpara(nil,tt,vs,tdefaultvalue,false);
-             { save position of self parameter }
-             if vs.name='SELF' then
-              pd.selfpara:=hpara;
              vs:=tvarsym(vs.listnext);
            end;
         until not try_to_consume(_SEMICOLON);
         { remove parasymtable from stack }
         sc.free;
-        { check for a self parameter which is needed to allow message
-          directive, only for normal procedures. For procvars we need
-          to wait until the 'of object' is parsed }
-        if not is_procvar then
-          check_self_para(pd);
         { reset object options }
         dec(testcurobject);
         current_object_option:=old_object_option;
@@ -1107,8 +1060,7 @@ begin
   if not is_class(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
   { check parameter type }
-  if not(po_containsself in pd.procoptions) and
-     ((pd.minparacount<>1) or
+  if ((pd.minparacount<>1) or
       (pd.maxparacount<>1) or
       (TParaItem(pd.Para.first).paratyp<>vs_var)) then
     Message(parser_e_ill_msg_param);
@@ -1946,9 +1898,6 @@ const
       begin
         pdflags:=pd_object;
         parse_proc_directives(pd,pdflags);
-        if (po_containsself in pd.procoptions) and
-           (([po_msgstr,po_msgint]*pd.procoptions)=[]) then
-          Message(parser_e_self_in_non_message_handler);
       end;
 
 
@@ -2074,9 +2023,9 @@ const
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
                    if (m_fpc in aktmodeswitches) then
-                     po_comp:=[po_varargs,po_methodpointer,po_containsself,po_interrupt,po_clearstack]
+                     po_comp:=[po_varargs,po_methodpointer,po_interrupt,po_clearstack]
                    else
-                     po_comp:=[po_classmethod,po_methodpointer,po_containsself];
+                     po_comp:=[po_classmethod,po_methodpointer];
 
                    if ((po_comp * hd.procoptions)<>(po_comp * pd.procoptions)) then
                      begin
@@ -2224,7 +2173,13 @@ const
 end.
 {
   $Log$
-  Revision 1.123  2003-05-13 15:18:49  peter
+  Revision 1.124  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.123  2003/05/13 15:18:49  peter
     * fixed various crashes
 
   Revision 1.122  2003/05/09 17:47:03  peter

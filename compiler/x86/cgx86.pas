@@ -110,7 +110,7 @@ unit cgx86;
         { entry/exit code helpers }
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
-        procedure g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+        procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
         procedure g_stackpointer_alloc(list : taasmoutput;localsize : longint);override;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
@@ -119,7 +119,7 @@ unit cgx86;
         procedure g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
         procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+        procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const p: tnode);override;
 
@@ -1667,7 +1667,7 @@ unit cgx86;
     end;
 
 
-    procedure tcgx86.g_interrupt_stackframe_exit(list : taasmoutput;selfused,accused,acchiused:boolean);
+    procedure tcgx86.g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);
 
     var r:Tregister;
 
@@ -1695,16 +1695,6 @@ unit cgx86;
         else
           begin
              r.number:=NR_EDX;
-             list.concat(Taicpu.Op_reg(A_POP,S_L,r));
-          end;
-        if selfused then
-          begin
-             r.number:=NR_ESP;
-             list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,r))
-          end
-        else
-          begin
-             r.number:=NR_ESI;
              list.concat(Taicpu.Op_reg(A_POP,S_L,r));
           end;
         r.number:=NR_EDI;
@@ -1893,7 +1883,7 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);
+    procedure tcgx86.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
       var
         href : treference;
         r,rsp: Tregister;
@@ -1901,12 +1891,6 @@ unit cgx86;
         rsp.enum:=R_INTREGISTER;
         rsp.number:=NR_ESP;
         r.enum:=R_INTREGISTER;
-        if selfused then
-         begin
-           reference_reset_base(href,rsp,4);
-           r.number:=NR_ESI;
-           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,r,href));
-         end;
         if acchiused then
          begin
            reference_reset_base(href,rsp,20);
@@ -1955,7 +1939,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.44  2003-04-30 20:53:32  florian
+  Revision 1.45  2003-05-15 18:58:54  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.44  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

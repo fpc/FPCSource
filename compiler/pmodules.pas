@@ -209,8 +209,6 @@ implementation
           dataSegment.concat(Tai_cut.Create);
         dataSegment.concatlist(ltvTables);
         ltvTables.free;
-        if count > 0 then
-          have_local_threadvars := true;
       end;
 
 
@@ -1484,7 +1482,13 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.105  2003-05-11 19:31:28  florian
+  Revision 1.106  2003-05-15 18:58:53  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.105  2003/05/11 19:31:28  florian
     * fixed implicit init/final code for units, stack frame was wrong for ppc
 
   Revision 1.104  2003/04/28 21:19:02  peter

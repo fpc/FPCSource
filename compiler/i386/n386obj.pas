@@ -167,7 +167,7 @@ begin
   if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
   if not assigned(procdef._class) or
-     (procdef.procoptions*[po_containsself, po_classmethod, po_staticmethod,
+     (procdef.procoptions*[po_classmethod, po_staticmethod,
        po_methodpointer, po_interrupt, po_iocheck]<>[]) then
     Internalerror(200006138);
   if procdef.owner.symtabletype<>objectsymtable then
@@ -247,7 +247,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-04-22 14:33:38  peter
+  Revision 1.19  2003-05-15 18:58:54  peter
+    * removed selfpointer_offset, vmtpointer_offset
+    * tvarsym.adjusted_address
+    * address in localsymtable is now in the real direction
+    * removed some obsolete globals
+
+  Revision 1.18  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.17  2003/01/13 14:54:34  daniel
