@@ -21,6 +21,7 @@ begin
    gd:=detect;
    gm:=$103;
    initgraph(gd,gm,'');
+   setcolor(white);
    line(1,1,100,100);
    {readkey;}delay(1000);
    closegraph;
@@ -29,4 +30,5 @@ begin
    {readkey;}delay(1000);
    closegraph;
 {$endif OK}
+   writeln('OK');
 end.
