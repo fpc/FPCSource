@@ -87,17 +87,17 @@ if [ "$CROSS" = "" ]; then
       fi
     fi
   fi
-  ${MAKE}  sourcezip
+  ${MAKE}  sourcezip CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
   if [ $? != 0 ]; then
     echo "Failed to make source archive."
     exit 1
   fi
-  ${MAKE}  docsrc
+  ${MAKE}  docsrc CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
   if [ $? != 0 ]; then
     echo "Failed to make documentation source archive."
     exit 1
   fi
-  ${MAKE}  demozip
+  ${MAKE}  demozip CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS FPC_VERSION=$VERSION
   if [ $? != 0 ]; then
     echo "Failed to make demo source archive."
     exit 1
