@@ -183,7 +183,7 @@ implementation
          hs : string;
       begin
         if not (target_info.system in [system_i386_win32,system_i386_os2,
-                                       system_i386_emx]) then
+                                       system_i386_emx, system_powerpc_macos]) then
           Message(scan_w_app_type_not_support);
         if not current_module.in_global then
           Message(scan_w_switch_is_global)
@@ -198,6 +198,8 @@ implementation
              else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                          system_i386_emx]) then
                apptype:=app_fs
+             else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
+               apptype:=app_tool
              else
                Message1(scan_w_unsupported_app_type,hs);
           end;
@@ -992,7 +994,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2004-03-14 20:08:37  peter
+  Revision 1.32  2004-04-04 18:46:09  olle
+    + added $APPTYPE TOOL for MPW tools on MacOS
+
+  Revision 1.31  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS
     * default packrecords now uses value 0 and uses info from aligment
       structure only, initpackrecords removed

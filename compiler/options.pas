@@ -1080,6 +1080,13 @@ begin
                         else
                           apptype:=app_gui;
                       end;
+                    'T':
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_cui
+                        else
+                          apptype:=app_tool;
+                      end;
                     'N':
                       begin
                         RelocSection:=UnsetBool(More,j);
@@ -2040,7 +2047,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.132  2004-03-29 19:19:35  florian
+  Revision 1.133  2004-04-04 18:46:09  olle
+    + added $APPTYPE TOOL for MPW tools on MacOS
+
+  Revision 1.132  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added

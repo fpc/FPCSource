@@ -866,13 +866,15 @@ const msgtxt : array[0..000150,1..240] of char=(
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
-  '6*2Tmacos_Macintosh m68k'#010+
+  '6*2Tmacos_Macintosh m68k (not supported)'#010+
   '6*2Tpalmos_PalmOS'#010+
   'P*1T<x>_Target operating system:'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
-  'P*2Tlinux_Linux on PowerPC'#010+
-  'P*2Tmacos_Mac','OS (classic) on PowerPC'#010+
+  'P*2Tlinux_Linux on Power','PC'#010+
+  'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
+  'P*2WC_Specify console type application (MacOS only)'#010+
+  'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
   '**1h_shows this help without waiting'#000

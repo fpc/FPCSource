@@ -2234,13 +2234,15 @@ option_help_pages=11025_[
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux-68k
-6*2Tmacos_Macintosh m68k
+6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 P*1T<x>_Target operating system:
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
 P*2Tmorphos_MorphOS
+P*2WC_Specify console type application (MacOS only)
+P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting

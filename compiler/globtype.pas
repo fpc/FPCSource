@@ -111,9 +111,13 @@ interface
        );
        tmodeswitches = set of tmodeswitch;
 
-       { win32 & OS/2 application types }
-       tapptype = (app_none,
-         app_gui,app_cui,app_fs
+       { Win32, OS/2 & MacOS application types }
+       tapptype = (
+         app_none,
+         app_gui,		{ graphic user-interface application}
+         app_cui,       { console application}
+         app_fs,        { full-screen type application (OS/2 and EMX only) }
+         app_tool       { tool application, (MPW tool for MacOS, MacOS only)}
        );
 
        { interface types }
@@ -235,7 +239,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2004-03-10 22:52:57  peter
+  Revision 1.51  2004-04-04 18:46:09  olle
+    + added $APPTYPE TOOL for MPW tools on MacOS
+
+  Revision 1.50  2004/03/10 22:52:57  peter
     * more stabs fixes
     * special mode -gv for valgrind compatible stabs
 
