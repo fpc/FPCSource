@@ -356,31 +356,28 @@ implementation
                begin
                   CGMessage(parser_e_operator_not_overloaded);
                   ht.free;
-                  { the original t t will be released by firstpass! (JM) }
-                  t := t.getcopy;
-               end
-             else
-               begin
-                  inc(tcallnode(ht).symtableprocentry.refs);
-                  { we need copies, because the originals will be destroyed when we give a }
-                  { changed node back to firstpass! (JM)                                   }
-                  if assigned(tbinarynode(t).left) then
-                    if assigned(tbinarynode(t).right) then
-                      tcallnode(ht).left :=
-                        ccallparanode.create(tbinarynode(t).right.getcopy,
-                                             ccallparanode.create(tbinarynode(t).left.getcopy,nil))
-                    else
-                      tcallnode(ht).left :=
-                        ccallparanode.create(nil,
-                                             ccallparanode.create(tbinarynode(t).left.getcopy,nil))
-                  else if assigned(tbinarynode(t).right) then
-                      tcallnode(ht).left :=
-                         ccallparanode.create(tbinarynode(t).right.getcopy,
-                                              ccallparanode.create(nil,nil));
-                  if t.nodetype=unequaln then
-                    ht:=cnotnode.create(ht);
-                  t:=ht;
+                  isbinaryoverloaded:=false;
+                  exit;
                end;
+             inc(tcallnode(ht).symtableprocentry.refs);
+             { we need copies, because the originals will be destroyed when we give a }
+             { changed node back to firstpass! (JM)                                   }
+             if assigned(tbinarynode(t).left) then
+               if assigned(tbinarynode(t).right) then
+                 tcallnode(ht).left :=
+                   ccallparanode.create(tbinarynode(t).right.getcopy,
+                                        ccallparanode.create(tbinarynode(t).left.getcopy,nil))
+               else
+                 tcallnode(ht).left :=
+                   ccallparanode.create(nil,
+                                        ccallparanode.create(tbinarynode(t).left.getcopy,nil))
+             else if assigned(tbinarynode(t).right) then
+                 tcallnode(ht).left :=
+                    ccallparanode.create(tbinarynode(t).right.getcopy,
+                                         ccallparanode.create(nil,nil));
+             if t.nodetype=unequaln then
+               ht:=cnotnode.create(ht);
+             t:=ht;
           end;
       end;
 
@@ -923,7 +920,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-04-22 22:46:49  florian
+  Revision 1.26  2001-05-08 08:52:05  jonas
+    * fix from Peter to avoid excessive number of warnings
+
+  Revision 1.25  2001/04/22 22:46:49  florian
     * more variant support
 
   Revision 1.24  2001/04/13 01:22:08  peter
