@@ -52,6 +52,7 @@ interface
   {$LINKLIB c}
 {$endif go32v2}
 
+{$ifndef freebsd}
 {$ifdef linux}
   {$undef NotImplemented}
  {$ifndef GDB_V5}
@@ -72,6 +73,28 @@ interface
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif linux}
+{$endif freebsd}
+
+{$ifdef freebsd}
+  {$undef NotImplemented}
+ {$ifndef GDB_V5}
+  {$LINKLIB ncurses}
+ {$endif not GDB_V5}
+  {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+      {$LINKLIB ncurses}
+      {$LINKLIB m}
+      {$LINKLIB iberty}
+      {$LINKLIB dl}
+    {$endif GDB_V5}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
+{$endif freebsd}
 
 {$ifdef win32}
   {$undef NotImplemented}
@@ -115,6 +138,9 @@ interface
 {$ifdef linux}
   {$define supportexceptions}
 {$endif linux}
+{$ifdef freebsd}
+   {$define supportexceptions}
+{$endif}
 
 {$ifdef NotImplemented}
   {$fatal This OS is not yet supported !!!}
@@ -346,11 +372,13 @@ uses
   initc,
 {$endif win32}
 {$ifdef linux}
+ {$ifndef freebsd}
   {$ifdef ver1_0}
     linux,
   {$else}
     unix,
   {$endif}
+ {$endif}
 {$endif}
 {$ifdef freebsd}
   {$ifdef ver1_0}
@@ -2404,7 +2432,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-04-08 11:43:39  peter
+  Revision 1.6  2001-04-20 18:43:00  marco
+   * Freebsd fix
+
+  Revision 1.5  2001/04/08 11:43:39  peter
     * merged changes from fixes branch
 
   Revision 1.4  2001/01/21 21:38:52  marco
