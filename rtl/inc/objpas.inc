@@ -248,7 +248,7 @@
            vmt : tclass;
 
         begin
-           name:=pshortstring(message)^;
+           name:=pshortstring(@message)^;
            vmt:=ClassType;
            while assigned(vmt) do
              begin
@@ -325,7 +325,10 @@
 
 {
   $Log$
-  Revision 1.3  1999-05-17 21:52:37  florian
+  Revision 1.4  1999-05-19 13:20:09  peter
+    * fixed dispatchstr
+
+  Revision 1.3  1999/05/17 21:52:37  florian
     * most of the Object Pascal stuff moved to the system unit
 
 }
