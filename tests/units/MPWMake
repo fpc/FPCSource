@@ -25,7 +25,13 @@ rtl Ä rtl-stamp
 	Set Exit 1
 	"{FPC}" -FE:powerpc-macos: ::test:cg:ptest.pp
 
-extra Ä :powerpc-macos:erroru.ppu :powerpc-macos:ptest.ppu
+:powerpc-macos:popuperr.ppu Ä :popuperr.pp
+	Set Exit 0
+	NewFolder powerpc-macos
+	Set Exit 1
+	"{FPC}" -FE:powerpc-macos: :popuperr.pp
+
+extra Ä :powerpc-macos:erroru.ppu :powerpc-macos:ptest.ppu :powerpc-macos:popuperr.ppu
 
 all Ä rtl extra
 
