@@ -1362,7 +1362,8 @@ unit pmodules;
               consume(_PROGRAM);
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
-              exportlib^.preparelib(pattern);
+              if (target_info.target=target_i386_WIN32) then
+                exportlib^.preparelib(pattern);
               consume(_ID);
               if token=_LKLAMMER then
                 begin
@@ -1372,7 +1373,7 @@ unit pmodules;
                 end;
               consume(_SEMICOLON);
             end
-         else
+         else if (target_info.target=target_i386_WIN32) then
            exportlib^.preparelib(current_module^.modulename^);
 
          { global switches are read, so further changes aren't allowed }
@@ -1499,7 +1500,8 @@ unit pmodules;
          if current_module^.uses_imports then
           importlib^.generatelib;
 
-         if islibrary or (target_info.target=target_i386_WIN32) then
+         if islibrary or
+            (target_info.target=target_i386_WIN32) then
            exportlib^.generatelib;
 
 
@@ -1555,7 +1557,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.173  1999-11-29 15:18:27  pierre
+  Revision 1.174  1999-11-29 16:24:52  pierre
+   * bug in previous commit corrected
+
+  Revision 1.173  1999/11/29 15:18:27  pierre
    + allow exports in win32 executables
 
   Revision 1.172  1999/11/24 11:41:05  pierre
