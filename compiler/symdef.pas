@@ -714,6 +714,7 @@ interface
        generrortype,              { error in definition }
        voidpointertype,           { pointer for Void-Pointerdef }
        charpointertype,           { pointer for Char-Pointerdef }
+       widecharpointertype,       { pointer for WideChar-Pointerdef }
        voidfarpointertype,
        cformaltype,               { unique formal definition }
        voidtype,                  { Void (procedure) }
@@ -6123,7 +6124,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.282  2004-12-05 12:28:11  peter
+  Revision 1.283  2004-12-07 13:52:54  michael
+    * Convert array of widechar to pwidechar instead of pchar
+
+  Revision 1.282  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

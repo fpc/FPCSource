@@ -944,7 +944,15 @@ implementation
                    enumdef :
                      hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
                    arraydef :
-                     hp.left:=ctypeconvnode.create(hp.left,charpointertype);
+                     begin
+                       if is_chararray(hp.left.resulttype.def) then
+                         hp.left:=ctypeconvnode.create_internal(hp.left,charpointertype)
+                       else
+                         if is_widechararray(hp.left.resulttype.def) then
+                           hp.left:=ctypeconvnode.create_internal(hp.left,widecharpointertype)
+                       else
+                         CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
+                     end;
                    orddef :
                      begin
                        if is_integer(hp.left.resulttype.def) and
@@ -1172,7 +1180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2004-12-05 12:28:11  peter
+  Revision 1.141  2004-12-07 13:52:54  michael
+    * Convert array of widechar to pwidechar instead of pchar
+
+  Revision 1.140  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

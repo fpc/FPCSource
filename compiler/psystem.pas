@@ -202,6 +202,7 @@ implementation
         addtype('$boolean',booltype);
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
+        addtype('$widechar_pointer',widecharpointertype);
         addtype('$void_farpointer',voidfarpointertype);
         addtype('$openchararray',openchararraytype);
         addtype('$file',cfiletype);
@@ -286,6 +287,7 @@ implementation
         loadtype('boolean',booltype);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
+        loadtype('widechar_pointer',widecharpointertype);
         loadtype('void_farpointer',voidfarpointertype);
         loadtype('file',cfiletype);
         loadtype('pvmt',pvmttype);
@@ -386,6 +388,7 @@ implementation
         { some other definitions }
         voidpointertype.setdef(tpointerdef.create(voidtype));
         charpointertype.setdef(tpointerdef.create(cchartype));
+        widecharpointertype.setdef(tpointerdef.create(cwidechartype));
         voidfarpointertype.setdef(tpointerdef.createfar(voidtype));
         cfiletype.setdef(tfiledef.createuntyped);
         cvarianttype.setdef(tvariantdef.create(vt_normalvariant));
@@ -534,7 +537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2004-11-08 22:09:59  peter
+  Revision 1.74  2004-12-07 13:52:54  michael
+    * Convert array of widechar to pwidechar instead of pchar
+
+  Revision 1.73  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.72  2004/10/15 09:14:17  mazen
