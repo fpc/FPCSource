@@ -66,8 +66,7 @@ else
 # libgdb.a not found, default to libgdb v5
 GDBVER=GDB_V5
 gdbint$(PPUEXT): gdbint.pp
-        @$(ECHO) Warning: libgdb.a not found !
-        @$(ECHO) Using GDB $(GDBVER)
+        @$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
         $(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 

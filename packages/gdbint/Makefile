@@ -925,8 +925,7 @@ endif
 else
 GDBVER=GDB_V5
 gdbint$(PPUEXT): gdbint.pp
-	@$(ECHO) Warning: libgdb.a not found !
-	@$(ECHO) Using GDB $(GDBVER)
+	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
