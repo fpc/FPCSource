@@ -1274,20 +1274,23 @@ const fpcmakeini : array[0..121,1..240] of char=(
   'ifdef EXTRACLEANFILES'#010+
   '        -$(DEL) $(EXTRACLEANFILES)'#010+
   'endif'#010+
+  'ifdef LIBNAME'#010+
+  '        -$(DEL) $(LIBNAME)'#010+
+  'endif'#010+
   '        -$(DEL) $(FPCMADE) $(PPAS) link.res $(FPCEXTFILE) $(REDIRFILE)'+
   #010+
   #010+
   'fpc_distclean: fpc_clean'#010+
   #010+
-  'fpc_cleanall: $(CLEANTARGET)'#010+
+  'fpc_cle','anall: $(CLEANTARGET)'#010+
   'ifdef CLEANEXEFILES'#010+
-  '     ','   -$(DEL) $(CLEANEXEFILES)'#010+
+  '        -$(DEL) $(CLEANEXEFILES)'#010+
   'endif'#010+
   '        -$(DEL) *$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIB'+
   'EXT) *$(SHAREDLIBEXT) *$(PPLEXT)'#010+
   '        -$(DELTREE) *$(SMARTEXT)'#010+
-  '        -$(DEL) $(FPCMADE) $(PPAS) link.res $(FPCEXTFILE) $(REDIRFILE)',
-  #010+
+  '        -$(DEL) $(FPCMA','DE) $(PPAS) link.res $(FPCEXTFILE) $(REDIRFIL'+
+  'E)'#010+
   #010+
   #010+
   '[dependrules]'#010+
@@ -1296,18 +1299,18 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '#####################################################################'#010+
   #010+
   '.PHONY: fpc_depend'#010+
-  #010+
+  #010,
   'fpc_depend:'#010+
   '        $(PPDEP) $(UNITOBJECTS)'#010+
   #010+
   #010+
-  '[','inforules]'#010+
+  '[inforules]'#010+
   '#####################################################################'#010+
   '# Info rules'#010+
   '#####################################################################'#010+
   #010+
-  '.PHONY: fpc_info fpc_cfginfo fpc_objectinfo fpc_toolsinfo fpc_installi'+
-  'nfo \',#010+
+  '.PHONY: fpc_info fpc_cfginfo',' fpc_objectinfo fpc_toolsinfo fpc_instal'+
+  'linfo \'#010+
   '        fpc_dirinfo'#010+
   #010+
   'fpc_info: $(INFOTARGET)'#010+
@@ -1318,8 +1321,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '        @$(ECHO)  == Configuration info =='#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  FPC....... $(FPC)'#010+
-  '        @$(ECHO)  Version... $(FPC_VERSION)'#010+
-  '        @$(E','CHO)  CPU....... $(CPU_TARGET)'#010+
+  '        @','$(ECHO)  Version... $(FPC_VERSION)'#010+
+  '        @$(ECHO)  CPU....... $(CPU_TARGET)'#010+
   '        @$(ECHO)  Source.... $(OS_SOURCE)'#010+
   '        @$(ECHO)  Target.... $(OS_TARGET)'#010+
   '        @$(ECHO)'#010+
@@ -1328,8 +1331,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   'fpc_infodirs:'#010+
   'ifdef inlinux'#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO)  == Directory info =='#010+
-  '        @$(','ECHO)'#010+
+  '   ','     @$(ECHO)  == Directory info =='#010+
+  '        @$(ECHO)'#010+
   'ifdef NEEDGCCLIB'#010+
   '        @$(ECHO)  GCC library is needed.'#010+
   'endif'#010+
@@ -1337,8 +1340,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '        @$(ECHO)  Other library is needed.'#010+
   'endif'#010+
   '        @$(ECHO)  Basedir......... $(BASEDIR)'#010+
-  '        @$(ECHO)'#010+
-  '        @$(ECHO)  GCC library..... $(GC','CLIBDIR)'#010+
+  '        @','$(ECHO)'#010+
+  '        @$(ECHO)  GCC library..... $(GCCLIBDIR)'#010+
   '        @$(ECHO)  Other library... $(OTHERLIBDIR)'#010+
   '        @$(ECHO)'#010+
   'endif'#010+
@@ -1348,8 +1351,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '        @$(ECHO)'#010+
   '        @$(ECHO)  == Tools info =='#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO)  Pwd....... $(PWD)'#010+
-  '        @$(ECHO)  Echo..','.... $(ECHO)'#010+
+  '        @$(EC','HO)  Pwd....... $(PWD)'#010+
+  '        @$(ECHO)  Echo...... $(ECHO)'#010+
   'ifdef PPDEP'#010+
   '        @$(ECHO)  PPDep..... $(PPDEP)'#010+
   'endif'#010+
@@ -1359,8 +1362,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   'ifdef PPUFILES'#010+
   '        @$(ECHO)  PPUFiles.. $(PPUFILES)'#010+
   'endif'#010+
-  'ifdef DATA2INC'#010+
-  '        @$(ECHO)  Data2Inc.. $(DAT','A2INC)'#010+
+  'if','def DATA2INC'#010+
+  '        @$(ECHO)  Data2Inc.. $(DATA2INC)'#010+
   'endif'#010+
   'ifdef SED'#010+
   '        @$(ECHO)  Sed....... $(SED)'#010+
@@ -1372,10 +1375,10 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '        @$(ECHO)  Diff...... $(DIFF)'#010+
   'endif'#010+
   'ifdef CMP'#010+
-  '        @$(ECHO)  Cmp....... $(CMP)'#010+
+  '        @$','(ECHO)  Cmp....... $(CMP)'#010+
   'endif'#010+
   'ifdef UPXPROG'#010+
-  ' ','       @$(ECHO)  Upx....... $(UPXPROG)'#010+
+  '        @$(ECHO)  Upx....... $(UPXPROG)'#010+
   'endif'#010+
   'ifdef ZIPPROG'#010+
   '        @$(ECHO)  Zip....... $(ZIPPROG)'#010+
@@ -1385,58 +1388,57 @@ const fpcmakeini : array[0..121,1..240] of char=(
   '[info_objects]'#010+
   'fpc_infoobjects:'#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO)  == Object info =='#010+
+  '        @$(ECHO)  == ','Object info =='#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO',')  LoaderObjects..... $(LOADEROBJECTS)'#010+
+  '        @$(ECHO)  LoaderObjects..... $(LOADEROBJECTS)'#010+
   '        @$(ECHO)  UnitObjects....... $(UNITOBJECTS)'#010+
   '        @$(ECHO)  ExeObjects........ $(EXEOBJECTS)'#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)'#010+
-  '        @$(ECHO)  ExtraCl','eanFiles... $(EXTRACLEANFILES)'#010+
+  '        @$(ECHO)  ExtraCleanUnits.','.. $(EXTRACLEANUNITS)'#010+
+  '        @$(ECHO)  ExtraCleanFiles... $(EXTRACLEANFILES)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)'#010+
   '        @$(ECHO)  ExtraInstallFiles. $(EXTRAINSTALLFILES)'#010+
   '        @$(ECHO)'#010+
   #010+
-  '[info_install]'#010+
+  '[info_insta','ll]'#010+
   'fpc_infoinstall:'#010+
   '        @$(ECHO)'#010+
-  '        @','$(ECHO)  == Install info =='#010+
+  '        @$(ECHO)  == Install info =='#010+
   '        @$(ECHO)'#010+
   'ifdef DATE'#010+
   '        @$(ECHO)  DateStr.............. $(DATESTR)'#010+
   'endif'#010+
   'ifdef PACKAGEPREFIX'#010+
   '        @$(ECHO)  PackagePrefix........ $(PACKAGEPREFIX)'#010+
-  'endif'#010+
+  'end','if'#010+
   'ifdef PACKAGENAME'#010+
-  '        @$(ECHO)  PackageN','ame.......... $(PACKAGENAME)'#010+
+  '        @$(ECHO)  PackageName.......... $(PACKAGENAME)'#010+
   'endif'#010+
   '        @$(ECHO)  PackageSuffix........ $(PACKAGESUFFIX)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  BaseInstallDir....... $(BASEINSTALLDIR)'#010+
-  '        @$(ECHO)  BinInstallDir........ $(BININSTALLDIR)'#010+
-  '        @$(ECHO)','  LibInstallDir........ $(LIBINSTALLDIR)'#010+
+  '        @$(ECHO)  BinInsta','llDir........ $(BININSTALLDIR)'#010+
+  '        @$(ECHO)  LibInstallDir........ $(LIBINSTALLDIR)'#010+
   '        @$(ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)'#010+
   '        @$(ECHO)  SourceInstallDir..... $(SOURCEINSTALLDIR)'#010+
-  '        @$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)'#010+
-  '        @$(ECHO)  DataIn','stallDir....... $(DATAINSTALLDIR)'#010+
+  '        @$(ECHO)  DocInstallDir...','..... $(DOCINSTALLDIR)'#010+
+  '        @$(ECHO)  DataInstallDir....... $(DATAINSTALLDIR)'#010+
   '        @$(ECHO)'#010+
   '        @$(ECHO)  DestZipDir........... $(DESTZIPDIR)'#010+
   '        @$(ECHO)  ZipName.............. $(ZIPNAME)'#010+
   '        @$(ECHO)'#010+
   #010+
-  '[directorytargets]'#010+
-  '###############################################','#####################'+
-  '#'#010+
+  '[directorytargets]'#010,
+  '#####################################################################'#010+
   '# Directories'#010+
   '#####################################################################'#010+
   #010+
   '[localmakefile]'#010+
-  '#####################################################################'#010+
+  '#####################################################################',
+  #010+
   '# Local Makefile'#010+
-  '#############################','#######################################'+
-  '#'#010+
+  '#####################################################################'#010+
   #010+
   'ifneq ($(wildcard fpcmake.loc),)'#010+
   'include fpcmake.loc'#010+
@@ -1444,9 +1446,8 @@ const fpcmakeini : array[0..121,1..240] of char=(
   #010+
   '[userrules]'#010+
   '#####################################################################'#010+
-  '# Users rules'#010+
-  '##########################################','##########################'+
-  '#'#010+
+  '# Users r','ules'#010+
+  '#####################################################################'#010+
   #010+
   #010+
   '[end]'#010
