@@ -20,7 +20,7 @@ end;
 Function TProcess.PeekExitStatus : Boolean;
 
 begin
-  GetExitCodeProcess(Handle,FExitCode);
+  GetExitCodeProcess(ProcessHandle,FExitCode);
   Result:=(FExitCode=Still_Active);
 end;
 
