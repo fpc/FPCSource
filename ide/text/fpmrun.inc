@@ -91,26 +91,26 @@ end;
 
 procedure TIDEApp.DoRun;
 begin
-  if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or NeedRecompile then
-   DoCompile(cRun);
-  if CompilationPhase<>cpDone then
-     Exit;
-  if (EXEFile='') then
-   begin
-     ErrorBox('Oooops, nothing to run.',nil);
-     Exit;
-   end;
-  if not ExistsFile(ExeFile) then
-    begin
-      MsgParms[1].Ptr:=@EXEFile;
-      ErrorBox('Invalid filename %s',@MsgParms);
-      Exit;
-    end;
 
 {$ifndef NODEBUG}
   if not assigned(Debugger) or not Debugger^.debuggee_started then
 {$endif}
     begin
+      if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or NeedRecompile then
+       DoCompile(cRun);
+      if CompilationPhase<>cpDone then
+         Exit;
+      if (EXEFile='') then
+       begin
+         ErrorBox('Oooops, nothing to run.',nil);
+         Exit;
+       end;
+      if not ExistsFile(ExeFile) then
+        begin
+          MsgParms[1].Ptr:=@EXEFile;
+          ErrorBox('Invalid filename %s',@MsgParms);
+          Exit;
+        end;
       DoExecute(ExeFile,GetRunParameters,'','',exNormal);
       LastExitCode:=ExecuteResult;
       If IOStatus<>0 then
@@ -241,7 +241,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1999-11-10 17:17:02  pierre
+  Revision 1.23  1999-12-10 13:01:01  pierre
+   * do not recompile a program inside Debugging session
+
+  Revision 1.22  1999/11/10 17:17:02  pierre
    + Information box if exit code <> 0 or DosError
 
   Revision 1.21  1999/09/16 14:34:59  pierre
