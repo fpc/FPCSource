@@ -4,7 +4,7 @@
     Copyright (c) 1999 Sebastian Guenther
 
     XML reading routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -45,8 +45,6 @@ procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
 
 implementation
 
-{$I filerec.inc}
-
 const
 
   Letter = ['A'..'Z', 'a'..'z'];
@@ -74,24 +72,24 @@ type
     function  GetString(ValidChars: TSetOfChar): String;
 
     function  GetName(var s: String): Boolean;
-    function  ExpectName: String;					// [5]
-    procedure ExpectAttValue(attr: TDOMAttr);				// [10]
-    function  ExpectPubidLiteral: String;				// [12]
-    function  ParseComment(AOwner: TDOMNode): Boolean;			// [15]
-    function  ParsePI: Boolean;						// [16]
-    procedure ExpectProlog;			    			// [22]
-    function  ParseEq: Boolean;						// [25]
+    function  ExpectName: String;                                       // [5]
+    procedure ExpectAttValue(attr: TDOMAttr);                           // [10]
+    function  ExpectPubidLiteral: String;                               // [12]
+    function  ParseComment(AOwner: TDOMNode): Boolean;                  // [15]
+    function  ParsePI: Boolean;                                         // [16]
+    procedure ExpectProlog;                                             // [22]
+    function  ParseEq: Boolean;                                         // [25]
     procedure ExpectEq;
-    procedure ParseMisc(AOwner: TDOMNode);				// [27]
-    function  ParseMarkupDecl: Boolean;					// [29]
-    function  ParseElement(AOwner: TDOMNode): Boolean;			// [39]
+    procedure ParseMisc(AOwner: TDOMNode);                              // [27]
+    function  ParseMarkupDecl: Boolean;                                 // [29]
+    function  ParseElement(AOwner: TDOMNode): Boolean;                  // [39]
     procedure ExpectElement(AOwner: TDOMNode);
-    function  ParseReference(AOwner: TDOMNode): Boolean;		// [67]
+    function  ParseReference(AOwner: TDOMNode): Boolean;                // [67]
     procedure ExpectReference(AOwner: TDOMNode);
-    function  ParsePEReference: Boolean;				// [69]
-    function  ParseExternalID: Boolean;					// [75]
+    function  ParsePEReference: Boolean;                                // [69]
+    function  ParseExternalID: Boolean;                                 // [75]
     procedure ExpectExternalID;
-    function  ParseEncodingDecl: String;    				// [80]
+    function  ParseEncodingDecl: String;                                // [80]
   public
     doc: TXMLDocument;
     procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
@@ -336,12 +334,12 @@ begin
       ExpectEq;
       if buf[0] = '''' then begin
         Inc(buf);
-	if not (CheckFor('yes''') or CheckFor('no''')) then
-	  RaiseExc('Expected ''yes'' or ''no''');
+        if not (CheckFor('yes''') or CheckFor('no''')) then
+          RaiseExc('Expected ''yes'' or ''no''');
       end else if buf[0] = '''' then begin
         Inc(buf);
-	if not (CheckFor('yes"') or CheckFor('no"')) then
-	  RaiseExc('Expected "yes" or "no"');
+        if not (CheckFor('yes"') or CheckFor('no"')) then
+          RaiseExc('Expected "yes" or "no"');
       end;
       SkipWhitespace;
     end;
@@ -395,7 +393,7 @@ begin
 end;
 
 
-// Parse "Misc*": 
+// Parse "Misc*":
 //   Misc ::= Comment | PI | S
 
 procedure TXMLReader.ParseMisc(AOwner: TDOMNode);    // [27]
@@ -414,12 +412,12 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       procedure ExpectCP;    // [48]
       begin
         if CheckFor('(') then
-	  ExpectChoiceOrSeq
-	else
-	  ExpectName;
-	if CheckFor('?') then
-	else if CheckFor('*') then
-	else if CheckFor('+') then;
+          ExpectChoiceOrSeq
+        else
+          ExpectName;
+        if CheckFor('?') then
+        else if CheckFor('*') then
+        else if CheckFor('+') then;
       end;
 
     var
@@ -431,15 +429,15 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       delimiter := #0;
       while not CheckFor(')') do begin
         if delimiter = #0 then begin
-	  if (buf[0] = '|') or (buf[0] = ',') then
-	    delimiter := buf[0]
-	  else
-	    RaiseExc('Expected "|" or ","');
-	  Inc(buf);
-	end else
-	  ExpectString(delimiter);
-	SkipWhitespace;
-	ExpectCP;
+          if (buf[0] = '|') or (buf[0] = ',') then
+            delimiter := buf[0]
+          else
+            RaiseExc('Expected "|" or ","');
+          Inc(buf);
+        end else
+          ExpectString(delimiter);
+        SkipWhitespace;
+        ExpectCP;
       end;
     end;
 
@@ -454,25 +452,25 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       if CheckFor('EMPTY') then
       else if CheckFor('ANY') then
       else if CheckFor('(') then begin
-	SkipWhitespace;
-	if CheckFor('#PCDATA') then begin
+        SkipWhitespace;
+        if CheckFor('#PCDATA') then begin
           // Parse Mixed section [51]
-  	  SkipWhitespace;
-	  if not CheckFor(')') then
-	    repeat
-	      ExpectString('|');
-	      SkipWhitespace;
-	      ExpectName;
-	    until CheckFor(')*');
-	end else begin
-	  // Parse Children section [47]
+          SkipWhitespace;
+          if not CheckFor(')') then
+            repeat
+              ExpectString('|');
+              SkipWhitespace;
+              ExpectName;
+            until CheckFor(')*');
+        end else begin
+          // Parse Children section [47]
 
-	  ExpectChoiceOrSeq;
+          ExpectChoiceOrSeq;
 
-	  if CheckFor('?') then
-	  else if CheckFor('*') then
-	  else if CheckFor('+') then;
-	end;
+          if CheckFor('?') then
+          else if CheckFor('*') then
+          else if CheckFor('+') then;
+        end;
       end else
         RaiseExc('Invalid content specification');
 
@@ -493,53 +491,53 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       SkipWhitespace;
       while not CheckFor('>') do begin
         ExpectName;
-	ExpectWhitespace;
+        ExpectWhitespace;
 
         // Get AttType [54], [55], [56]
-	if CheckFor('CDATA') then
-	else if CheckFor('ID') then
-	else if CheckFor('IDREF') then
-	else if CheckFor('IDREFS') then
-	else if CheckFor('ENTITTY') then
-	else if CheckFor('ENTITIES') then
-	else if CheckFor('NMTOKEN') then
-	else if CheckFor('NMTOKENS') then
-	else if CheckFor('NOTATION') then begin   // [57], [58]
-	  ExpectWhitespace;
-	  ExpectString('(');
-	  SkipWhitespace;
-	  ExpectName;
-	  SkipWhitespace;
-	  while not CheckFor(')') do begin
-	    ExpectString('|');
-	    SkipWhitespace;
-	    ExpectName;
-	    SkipWhitespace;
-	  end;
-	end else if CheckFor('(') then begin    // [59]
-	  SkipWhitespace;
-	  GetString(Nmtoken);
-	  SkipWhitespace;
-	  while not CheckFor(')') do begin
-	    ExpectString('|');
-	    SkipWhitespace;
-	    GetString(Nmtoken);
-	    SkipWhitespace;
+        if CheckFor('CDATA') then
+        else if CheckFor('ID') then
+        else if CheckFor('IDREF') then
+        else if CheckFor('IDREFS') then
+        else if CheckFor('ENTITTY') then
+        else if CheckFor('ENTITIES') then
+        else if CheckFor('NMTOKEN') then
+        else if CheckFor('NMTOKENS') then
+        else if CheckFor('NOTATION') then begin   // [57], [58]
+          ExpectWhitespace;
+          ExpectString('(');
+          SkipWhitespace;
+          ExpectName;
+          SkipWhitespace;
+          while not CheckFor(')') do begin
+            ExpectString('|');
+            SkipWhitespace;
+            ExpectName;
+            SkipWhitespace;
           end;
-	end else
-	  RaiseExc('Invalid tokenized type');
+        end else if CheckFor('(') then begin    // [59]
+          SkipWhitespace;
+          GetString(Nmtoken);
+          SkipWhitespace;
+          while not CheckFor(')') do begin
+            ExpectString('|');
+            SkipWhitespace;
+            GetString(Nmtoken);
+            SkipWhitespace;
+          end;
+        end else
+          RaiseExc('Invalid tokenized type');
 
-	ExpectWhitespace;
+        ExpectWhitespace;
 
-	// Get DefaultDecl [60]
-	if CheckFor('#REQUIRED') then
-	else if CheckFor('#IMPLIED') then
-	else begin
-	  if CheckFor('#FIXED') then
-	    SkipWhitespace;
-	  attr := doc.CreateAttribute('');
-	  ExpectAttValue(attr);
-	end;
+        // Get DefaultDecl [60]
+        if CheckFor('#REQUIRED') then
+        else if CheckFor('#IMPLIED') then
+        else begin
+          if CheckFor('#FIXED') then
+            SkipWhitespace;
+          attr := doc.CreateAttribute('');
+          ExpectAttValue(attr);
+        end;
 
         SkipWhitespace;
       end;
@@ -565,10 +563,10 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       Inc(buf);
       while not CheckFor(strdel) do
         if ParsePEReference then
-	else if ParseReference(NewEntity) then
-	else begin
-	  Inc(buf);		// Normal haracter
-	end;
+        else if ParseReference(NewEntity) then
+        else begin
+          Inc(buf);             // Normal haracter
+        end;
       Result := True;
     end;
 
@@ -577,26 +575,26 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       ExpectWhitespace;
       if CheckFor('%') then begin    // [72]
         ExpectWhitespace;
-	NewEntity := doc.CreateEntity(ExpectName);
-	ExpectWhitespace;
-	// Get PEDef [74]
-	if ParseEntityValue then
-	else if ParseExternalID then
-	else
-	  RaiseExc('Expected entity value or external ID');
+        NewEntity := doc.CreateEntity(ExpectName);
+        ExpectWhitespace;
+        // Get PEDef [74]
+        if ParseEntityValue then
+        else if ParseExternalID then
+        else
+          RaiseExc('Expected entity value or external ID');
       end else begin    // [71]
         NewEntity := doc.CreateEntity(ExpectName);
-	ExpectWhitespace;
-	// Get EntityDef [73]
-	if ParseEntityValue then
-	else begin
-	  ExpectExternalID;
-	  // Get NDataDecl [76]
-	  ExpectWhitespace;
-	  ExpectString('NDATA');
-	  ExpectWhitespace;
-	  ExpectName;
-	end;
+        ExpectWhitespace;
+        // Get EntityDef [73]
+        if ParseEntityValue then
+        else begin
+          ExpectExternalID;
+          // Get NDataDecl [76]
+          ExpectWhitespace;
+          ExpectString('NDATA');
+          ExpectWhitespace;
+          ExpectName;
+        end;
       end;
       SkipWhitespace;
       ExpectString('>');
@@ -614,7 +612,7 @@ function TXMLReader.ParseMarkupDecl: Boolean;    // [29]
       if ParseExternalID then
       else if CheckFor('PUBLIC') then begin    // [83]
         ExpectWhitespace;
-	ExpectPubidLiteral;
+        ExpectPubidLiteral;
       end else
         RaiseExc('Expected external or public ID');
       SkipWhitespace;
@@ -729,7 +727,7 @@ begin
       // Get content
       while SkipWhitespace or ParseCharData or ParseCDSect or ParsePI or
         ParseComment(NewElem) or ParseElement(NewElem) or
-	ParseReference(NewElem) do;
+        ParseReference(NewElem) do;
 
       // Get ETag [42]
       ExpectString('</');
@@ -794,7 +792,7 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
       Result := '';
       while (buf[0] <> '''') and (buf[0] <> #0) do begin
         Result := Result + buf[0];
-	Inc(buf);
+        Inc(buf);
       end;
       ExpectString('''');
     end else if buf[0] = '"' then begin
@@ -802,7 +800,7 @@ function TXMLReader.ParseExternalID: Boolean;    // [75]
       Result := '';
       while (buf[0] <> '"') and (buf[0] <> #0) do begin
         Result := Result + buf[0];
-	Inc(buf);
+        Inc(buf);
       end;
       ExpectString('"');
     end;
@@ -979,7 +977,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-07-25 16:24:14  michael
+  Revision 1.6  1999-07-27 13:01:59  peter
+    * remove filerec.inc, it was missing from sysutils! You shouldn't need
+      to compile with -Irtl/inc !!
+
+  Revision 1.5  1999/07/25 16:24:14  michael
   + Fixes from Sebastiam Guenther - more error-proof
 
   Revision 1.4  1999/07/11 20:20:12  michael
