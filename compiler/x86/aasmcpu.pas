@@ -2231,7 +2231,7 @@ implementation
                             op:=opcode;
                             opcode:=A_MOV;
                             opsize:=reg2opsize(oper[1].reg);
-                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number,0,0,unusedregsint);
+                            pos:=get_insert_pos(Tai(previous),oper[0].reg.number shr 8,0,0,unusedregsint);
                             rgget(list,pos,subreg,helpreg);
                             helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
                             if pos=nil then
@@ -2395,7 +2395,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2003-08-20 16:52:01  daniel
+  Revision 1.15  2003-08-21 14:48:36  peter
+    * fix reg-supreg range check error
+
+  Revision 1.14  2003/08/20 16:52:01  daniel
     * Some old register convention code removed
     * A few changes to eliminate a few lines of code
 
