@@ -9,7 +9,7 @@
 {
     $Id$
 
-		Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software;you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ USES
   node,symconst;
 TYPE
   tcgSPARC=CLASS(tcg)
-		FreeParamRegSet:TRegisterSet;
+    FreeParamRegSet:TRegisterSet;
 {This method is used to pass a parameter, which is located in a register, to a
 routine. It should give the parameter to the routine, as required by the
 specific processor ABI. It is overriden for each CPU target.
@@ -87,7 +87,7 @@ specific processor ABI. It is overriden for each CPU target.
     procedure g_concatcopy(list:TAasmOutput;CONST source,dest:TReference;len:aword;delsource,loadref:boolean);override;
     class function reg_cgsize(CONST reg:tregister):tcgsize;override;
   PRIVATE
-		function IsSimpleRef(const ref:treference):boolean;
+    function IsSimpleRef(const ref:treference):boolean;
     procedure sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize);
     procedure floatload(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
     procedure floatstore(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
@@ -127,41 +127,40 @@ procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST Loc
     List.Concat(taicpu.op_const(A_LD,S_L,a));
   END;
 procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;const LocPara:TParaLocation);
-	var
-		ref: treference;
-		tmpreg:TRegister;
-	begin
-		if Size<>OS_32
-		then
-			InternalError(2002100400);
-		case locpara.loc of
-			LOC_REGISTER,LOC_CREGISTER:
-				a_load_ref_reg(list,size,r,locpara.register);
-			LOC_REFERENCE:
-				begin
-					reference_reset(ref);
-					ref.base:=locpara.reference.index;
-					ref.offset:=locpara.reference.offset;
-					tmpreg := get_scratch_reg_int(list);
-					a_load_ref_reg(list,size,r,tmpreg);
-					a_load_reg_ref(list,size,tmpreg,ref);
-					free_scratch_reg(list,tmpreg);
-				end;
-			LOC_FPUREGISTER,LOC_CFPUREGISTER:
-				case size of
-					OS_32:
-						a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
-					OS_64:
-						a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
-				else
-					internalerror(2002072801);
-				end;
-		else
-			internalerror(2002081103);
-		end;
-		if locpara.sp_fixup<>0
-		then
-			internalerror(2002081104);
+  var
+    ref: treference;
+    tmpreg:TRegister;
+  begin
+    case locpara.loc of
+      LOC_REGISTER,LOC_CREGISTER:
+        a_load_ref_reg(list,size,r,locpara.register);
+      LOC_REFERENCE:
+        begin
+          {Code conventions need the parameters being allocated in %o6+92. See
+          comment on g_stack_frame}
+          if locpara.sp_fixup<92
+          then
+            InternalError(2002081104);
+          reference_reset(ref);
+          ref.base:=locpara.reference.index;
+          ref.offset:=locpara.reference.offset;
+          tmpreg := get_scratch_reg_int(list);
+          a_load_ref_reg(list,size,r,tmpreg);
+          a_load_reg_ref(list,size,tmpreg,ref);
+          free_scratch_reg(list,tmpreg);
+        end;
+      LOC_FPUREGISTER,LOC_CFPUREGISTER:
+        case size of
+          OS_32:
+            a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
+          OS_64:
+            a_loadfpu_ref_reg(list,OS_F64,r,locpara.register);
+        else
+          internalerror(2002072801);
+        end;
+    else
+      internalerror(2002081103);
+    end;
   end;
 procedure tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);
   VAR
@@ -229,39 +228,39 @@ procedure tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CO
     list.concat(taicpu.op_reg_ref(A_LD,TCGSize2OpSize[size],reg,ref));
   END;
 procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);
-	var
-		op:tasmop;
-		s:topsize;
-	begin
-		sizes2load(size,S_L,op,s);
-		list.concat(taicpu.op_ref_reg(op,s,ref,reg));
-	end;
+  var
+    op:tasmop;
+    s:topsize;
+  begin
+    sizes2load(size,S_L,op,s);
+    list.concat(taicpu.op_ref_reg(op,s,ref,reg));
+  end;
 procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
-	var
-		op:tasmop;
-		s:topsize;
-	begin
-		if(reg1<>reg2)or
-			(tcgsize2size[tosize]<tcgsize2size[fromsize])or
-			((tcgsize2size[tosize] = tcgsize2size[fromsize])and
-				(tosize <> fromsize)and
-				not(fromsize in [OS_32,OS_S32]))
-		then
-			with list do
-				case fromsize of
-					OS_8:
-						InternalError(2002100800);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-8+1,31));}
-					OS_S8:
-						InternalError(2002100801);{concat(taicpu.op_reg_reg(A_EXTSB,reg2,reg1));}
-					OS_16:
-						InternalError(2002100802);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-16+1,31));}
-					OS_S16:
-						InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
-					OS_32,OS_S32:
-						concat(taicpu.op_reg_reg_reg(A_OR,S_L,R_G0,reg1,reg2));
-					else internalerror(2002090901);
-				end;
-	end;
+  var
+    op:tasmop;
+    s:topsize;
+  begin
+    if(reg1<>reg2)or
+      (tcgsize2size[tosize]<tcgsize2size[fromsize])or
+      ((tcgsize2size[tosize] = tcgsize2size[fromsize])and
+        (tosize <> fromsize)and
+        not(fromsize in [OS_32,OS_S32]))
+    then
+      with list do
+        case fromsize of
+          OS_8:
+            InternalError(2002100800);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-8+1,31));}
+          OS_S8:
+            InternalError(2002100801);{concat(taicpu.op_reg_reg(A_EXTSB,reg2,reg1));}
+          OS_16:
+            InternalError(2002100802);{concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,reg2,reg1,0,31-16+1,31));}
+          OS_S16:
+            InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
+          OS_32,OS_S32:
+            concat(taicpu.op_reg_reg_reg(A_OR,S_L,R_G0,reg1,reg2));
+          else internalerror(2002090901);
+        end;
+  end;
     { all fpu load routines expect that R_ST[0-7] means an fpu regvar and }
     { R_ST means "the current value at the top of the fpu stack" (JM)     }
 procedure tcgSPARC.a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);
@@ -801,57 +800,57 @@ procedure tcgSPARC.g_stackframe_entry(list:TAasmOutput;localsize:LongInt);
     again:tasmlabel;
   begin
 {According the the SPARC ABI the standard stack frame must include :
-	*	16 word save for the in and local registers in case of overflow/underflow.
+  *  16 word save for the in and local registers in case of overflow/underflow.
 this save area always must exist at the %o6+0,
-	*	software conventions requires space for the aggregate return value pointer, even if the word is not used,
-	*	althogh the first six words of arguments reside in registers, the standard
+  *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
+  *  althogh the first six words of arguments reside in registers, the standard
 stack frame reserves space for them. Arguments beond the sixth reside on the
 stack as in the Intel architecture,
-	* other areas depend on the compiler and the code being compiled. The
+  * other areas depend on the compiler and the code being compiled. The
 standard calling sequence does not define a maximum stack frame size, nor does
 it restrict how a language system uses the "unspecified" areas of the standard
 stack frame.}
-		Dec(LocalSize,(16+1+5)*4);
+    Dec(LocalSize,(16+1+5)*4);
 {Althogh the SPARC architecture require only word alignment, software
 convention and the operating system require every stack frame to be double word
 aligned}
-		LocalSize:=(LocalSize+3)and $FFFFFFFC;
+    LocalSize:=(LocalSize+3)and $FFFFFFFC;
 {Execute the SAVE instruction to get a new register window and get a new stack
 frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state before
 execution of the SAVE instrucion so it is the caller %i6, when the %i6 after
 execution of that instrucion is the called function stack pointer}
-		with list do
-			concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
-	end;
+    with list do
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
+  end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
-	begin
+  begin
 {This function intontionally does nothing as frame pointer is restored in the
 delay slot of the return instrucion done in g_return_from_proc}
-	end;
+  end;
 procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
-	var
-		RetReference:TReference;
-	begin
+  var
+    RetReference:TReference;
+  begin
 {According to the SPARC ABI, the stack is cleared using the RESTORE instruction
 which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
 RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
 delay slot, so an inversion is possible such as 
-	JMPL	%i6+8,%g0
-	RESTORE	%g0,0,%g0
+  JMPL  %i6+8,%g0
+  RESTORE  %g0,0,%g0
 If no inversion we can use just
-	RESTORE	%g0,0,%g0
-	JMPL	%i6+8,%g0
-	NOP}
-		with list do
-			begin
+  RESTORE  %g0,0,%g0
+  JMPL  %i6+8,%g0
+  NOP}
+    with list do
+      begin
 {Return address is computed by adding 8 to the CALL address saved onto %i6}
-				reference_reset_base(RetReference,R_I7,8);
-				concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
+        reference_reset_base(RetReference,R_I7,8);
+        concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
 {We use trivial restore in the delay slot of the JMPL instruction, as we
 already set result onto %i0}
-				concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
-			end
-	end;
+        concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
+      end
+  end;
 procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
 
        begin
@@ -970,17 +969,17 @@ procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tr
 
 { ************* concatcopy ************ }
 procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aword;delsource,loadref:boolean);
-	var
-		countreg: TRegister;
-		src, dst: TReference;
-		lab: tasmlabel;
-		count, count2: aword;
-		orgsrc, orgdst: boolean;
-	begin
+  var
+    countreg: TRegister;
+    src, dst: TReference;
+    lab: tasmlabel;
+    count, count2: aword;
+    orgsrc, orgdst: boolean;
+  begin
 {$ifdef extdebug}
-		if len > high(longint)
-		then
-			internalerror(2002072704);
+    if len > high(longint)
+    then
+      internalerror(2002072704);
 {$endif extdebug}
         { make sure short loads are handled as optimally as possible }
         if not loadref then
@@ -1134,60 +1133,60 @@ function tcgSPARC.reg_cgsize(CONST reg:tregister):tcgsize;
 
 {***************** This is private property, keep out! :) *****************}
 function TCgSparc.IsSimpleRef(const ref:treference):boolean;
-	begin
-		if(ref.base=R_NONE)and(ref.index <> R_NO)
-		then
-			InternalError(2002100804);
+  begin
+    if(ref.base=R_NONE)and(ref.index <> R_NO)
+    then
+      InternalError(2002100804);
     result :=not(assigned(ref.symbol))and
-							(((ref.index = R_NO) and
-							 (ref.offset >= low(smallint)) and
-								(ref.offset <= high(smallint))) or
-							((ref.index <> R_NO) and
-							(ref.offset = 0)));
-	end;
+              (((ref.index = R_NO) and
+               (ref.offset >= low(smallint)) and
+                (ref.offset <= high(smallint))) or
+              ((ref.index <> R_NO) and
+              (ref.offset = 0)));
+  end;
 procedure tcgSPARC.sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize);
-	begin
-		case s2 of
-			S_B:
-				if S1 in [OS_8,OS_S8]
-				then
-					s3 := S_B
-				else
-					internalerror(200109221);
-			S_W:
-				case s1 of
-					OS_8,OS_S8:
-						s3 := S_BW;
-					OS_16,OS_S16:
-						s3 := S_W;
-				else
-					internalerror(200109222);
-				end;
-			S_L:
-				case s1 of
-					OS_8,OS_S8:
-						s3 := S_BL;
-					OS_16,OS_S16:
-						s3 := S_WL;
-					OS_32,OS_S32:
-						s3 := S_L;
-					else
-						internalerror(200109223);
-				end;
-			else internalerror(200109227);
-		end;
-		if s3 in [S_B,S_W,S_L]
-		then
-			op := A_LD
-{		else if s3=S_DW
-		then
-		  op:=A_LDD
-		else if s3 in [OS_8,OS_16,OS_32]
-		then
-			op := A_NONE}
-		else
-			op := A_NONE;
-	end;
+  begin
+    case s2 of
+      S_B:
+        if S1 in [OS_8,OS_S8]
+        then
+          s3 := S_B
+        else
+          internalerror(200109221);
+      S_W:
+        case s1 of
+          OS_8,OS_S8:
+            s3 := S_BW;
+          OS_16,OS_S16:
+            s3 := S_W;
+        else
+          internalerror(200109222);
+        end;
+      S_L:
+        case s1 of
+          OS_8,OS_S8:
+            s3 := S_BL;
+          OS_16,OS_S16:
+            s3 := S_WL;
+          OS_32,OS_S32:
+            s3 := S_L;
+          else
+            internalerror(200109223);
+        end;
+      else internalerror(200109227);
+    end;
+    if s3 in [S_B,S_W,S_L]
+    then
+      op := A_LD
+{    else if s3=S_DW
+    then
+      op:=A_LDD
+    else if s3 in [OS_8,OS_16,OS_32]
+    then
+      op := A_NONE}
+    else
+      op := A_NONE;
+  end;
 procedure tcgSPARC.floatloadops(t:tcgsize;VAR op:tasmop;VAR s:topsize);
   BEGIN
 (*         case t of
@@ -1257,7 +1256,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.12  2002-10-08 17:17:03  mazen
+  Revision 1.13  2002-10-10 15:10:39  mazen
+  * Internal error fixed, but usually i386 parameter model used
+
+  Revision 1.12  2002/10/08 17:17:03  mazen
   *** empty log message ***
 
   Revision 1.11  2002/10/07 20:33:04  mazen
