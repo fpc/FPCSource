@@ -763,18 +763,18 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
+procedure int_strconcat(s1,s2:pointer);
+  [public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
   asm
-        xorl    %ecx,%ecx
         movl    s2,%edi
         movl    s1,%esi
         movl    %edi,%ebx
-        movb    (%edi),%cl
+        movzbl  (%edi),%ecx
+        xor     %eax,%eax
         lea     1(%edi,%ecx),%edi
         negl    %ecx
-        xor     %eax,%eax
-        addl    $0xff,%ecx
+        addl    $0x0ff,%ecx
         lodsb
         cmpl    %ecx,%eax
         jbe     .LStrConcat1
@@ -800,6 +800,46 @@ begin
         movsb
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
+
+{$ifdef newoptimizations}
+procedure int_strconcatlen(s1,s2:pointer;maxlen: longint);
+  [public,alias:'FPC_SHORTSTR_CONCAT_LEN'];
+begin
+  asm
+        movl    s2,%edi
+        movl    s1,%esi
+        movl    %edi,%ebx
+        movzbl  (%edi),%ecx
+        xor     %eax,%eax
+        lea     1(%edi,%ecx),%edi
+        negl    %ecx
+        addl    maxlen,%ecx
+        lodsb
+        cmpl    %ecx,%eax
+        jbe     .LStrConcat1
+        movl    %ecx,%eax
+.LStrConcat1:
+        addb    %al,(%ebx)
+        cmpl    $7,%eax
+        jl      .LStrConcat2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%eax
+        rep
+        movsb
+        movl    %eax,%ecx
+        andl    $3,%eax
+        shrl    $2,%ecx
+        rep
+        movsl
+.LStrConcat2:
+        movl    %eax,%ecx
+        rep
+        movsb
+  end ['EBX','ECX','EAX','ESI','EDI'];
+end;
+{$endif newoptimizations}
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -1156,7 +1196,10 @@ end;
 
 {
   $Log$
-  Revision 1.71  2000-04-10 09:47:15  jonas
+  Revision 1.72  2000-04-23 09:26:51  jonas
+    + FPC_SHORTSTR_CONCAT_LEN (temporary, for -dnewoptimizations)
+
+  Revision 1.71  2000/04/10 09:47:15  jonas
     + added destroyed registers list for move procedure (it doesn't destroy
       edx)
 
