@@ -249,16 +249,10 @@ begin
   InOutRes:=1;
 end;
 
-function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
-                                               [public, alias: 'FPC_GETDIRIO'];
-begin
-  GetDirIO:=1;
-end;
-
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
 
 begin
-  InOutRes := GetDirIO (DriveNr, Dir);
+  InOutRes := 1;
 end;
 
 
@@ -282,7 +276,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2001-03-16 20:42:44  hajny
+  Revision 1.4  2001-03-25 11:06:35  hajny
+    * GetDir fixed
+
+  Revision 1.3  2001/03/16 20:42:44  hajny
     * universal FExpand
 
   Revision 1.2  2000/07/13 11:33:56  michael
