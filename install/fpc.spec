@@ -31,17 +31,17 @@ utils. Provided units are the runtime library (RTL), free component library
 
 %build
 NEWPP=`pwd`/compiler/ppc386
-	make compiler_cycle
-	make rtl_clean rtl_smart PP=${NEWPP}
-	make packages_smart PP=${NEWPP}
-	make fcl_smart PP=${NEWPP}
-	make utils_all PP=${NEWPP}
+	make compiler_cycle FPC_VERSION=`ppc386 -iV`
+	make rtl_clean rtl_smart FPC=${NEWPP}
+	make packages_smart FPC=${NEWPP}
+	make fcl_smart FPC=${NEWPP}
+	make utils_all FPC=${NEWPP}
 
 %install
 	rm -rf %{buildroot}
 	
 NEWPP=`pwd`/compiler/ppc386
-INSTALLOPTS="PP=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_DOCDIR=%{builddocdir}"
+INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_DOCDIR=%{builddocdir}"
 	make compiler_distinstall ${INSTALLOPTS}
 	make rtl_distinstall ${INSTALLOPTS}
 	make packages_distinstall ${INSTALLOPTS}

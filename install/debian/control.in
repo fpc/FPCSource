@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Ulf Jaenicke-Roessler <ujr@debian.org>
 Standards-Version: 3.1.1
-Build-Depends: fp-compiler, debhelper, tetex-bin, awk
+Build-Depends: fp-compiler, debhelper, tetex-bin, tetex-extra, awk
 
 Package: fp-compiler
 Architecture: i386
