@@ -107,9 +107,12 @@ implementation
     procedure tppctypeconvnode.second_int_to_real;
 
       type
-        dummyrec = record
-          i: int64;
-        end;
+        tdummyarray = packed array[0..7] of byte;
+
+      const
+         dummyarray1 : tdummyarray = ($00,$00,$00,$80,$00,$00,$30,$43);
+         dummyarray2 : tdummyarray = ($00,$00,$00,$00,$00,$00,$30,$43);
+
       var
         tempconst: trealconstnode;
         ref: treference;
@@ -143,15 +146,17 @@ implementation
         { we need a certain constant for the conversion, so create it here }
         if signed then
           tempconst :=
-            { we need this strange typecast because we want the }
-            { double represented by $4330000080000000, not the  }
-            { double converted from the integer with that value }
-            crealconstnode.create(double(dummyrec($4330000080000000)),
+            { the array of byte is necessary because 1. the 1.0.x compiler
+              doesn't know 64 constants, 2. it won't work with big endian
+              and little endian machines at the same time (FK)
+            }
+            crealconstnode.create(double(dummyarray1),
             pbestrealtype^)
         else
           tempconst :=
-            crealconstnode.create(double(dummyrec($4330000000000000)),
+            crealconstnode.create(double(dummyarray2),
             pbestrealtype^);
+
         resulttypepass(tempconst);
         firstpass(tempconst);
         secondpass(tempconst);
@@ -372,7 +377,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-07-11 14:41:34  florian
+  Revision 1.12  2002-07-12 22:02:22  florian
+    * fixed to compile with 1.1
+
+  Revision 1.11  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.10  2002/07/11 07:42:31  jonas
