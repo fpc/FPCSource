@@ -397,8 +397,8 @@ begin
   skipped:=true;
   p:=PVideoCell(VideoBuf);
   pold:=PVideoCell(OldVideoBuf);
-{ init Attr and X,Y }
-  SendEscapeSeq(#27'[m'{#27'[H'});
+{ init Attr, X,Y and set autowrap off }
+  SendEscapeSeq(#27'[m'#27'[?7l'{#27'[H'} );
   LastAttr:=7;
   LastX:=-1;
   LastY:=-1;
@@ -479,6 +479,8 @@ begin
   fdWrite(TTYFd,outbuf,outptr);
   if InACS then
     SendEscapeSeqNdx(exit_alt_charset_mode);
+ {turn autowrap on}
+  SendEscapeSeq(#27'[?7h');
 end;
 
 var
@@ -824,7 +826,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2002-09-07 16:01:28  peter
+  Revision 1.13  2003-03-26 12:45:21  armin
+  * added wrapoff to avoid problems in the ide with some terminal emulators
+
+  Revision 1.12  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.11  2002/07/06 16:50:17  marco
