@@ -6,7 +6,7 @@
 
 # Version
 VERSION=1.0.6
-RELEASE=ELF
+RELEASE=i386
 
 unset FPCDIR
 
@@ -21,7 +21,7 @@ unset FPCDIR
 
 SOURCES=`/bin/ls *src.tar.gz`
 FILES=`/bin/ls *sun.tar.gz *exm.tar.gz`
-RELFILES="binary.tar sources.tar demo.tar.gz docs.tar.gz install.sh gtar gzip"
+RELFILES="binary.tar sources.tar demo.tar.gz fpcdoc.tar.gz install.sh gtar gzip"
 
 echo Creating binary.tar
 tar cf binary.tar $FILES
@@ -31,5 +31,5 @@ echo Copying install.sh
 cp install/sunos/install.sh .
 chmod 755 install.sh
 
-echo Creating fpc-$VERSION.$RELEASE.tar
-tar cf fpc-$VERSION.$RELEASE.tar $RELFILES
+echo Creating fpc-$VERSION-$RELEASE.tar
+tar cf fpc-$VERSION-$RELEASE.tar $RELFILES

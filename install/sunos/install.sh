@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Free Pascal installation script for Linux.
+# Free Pascal installation script for Solaris
 # Copyright 1996-2002 Michael Van Canneyt and Peter Vreman
 #
 # Don't edit this file. 
@@ -105,7 +105,7 @@ tar xf binary.tar
 echo Installing compiler and RTL ...
 unztar basesun $PREFIX
 rm -f $EXECDIR/ppc386
-ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
+ln -sf $LIBDIR/$VERSION/ppc386 $EXECDIR/ppc386
 echo Installing GNU Assembler and Linker Mandatory.
 unztar asldsun $PREFIX
 echo Installing utilities...
@@ -155,7 +155,7 @@ echo
 # Install the documentation. Optional.
 if yesno "Install documentation"; then
   echo Installing documentation in $DOCDIR ...
-  unztar docs.tar.gz $PREFIX
+  unztar fpcdoc $PREFIX
   echo Done.
 fi
 echo
@@ -171,7 +171,7 @@ fi
 echo
 
 # Install /etc/fpc.cfg, this is done using the samplecfg script
-$LIBDIR/samplecfg $LIBDIR
+$LIBDIR/$VERSION/samplecfg $LIBDIR
 
 # The End
 echo
