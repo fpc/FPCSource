@@ -1120,7 +1120,7 @@ unit pexpr;
                                 constresourcestring:
                                   begin
                                      p1:=genloadnode(pvarsym(srsym),srsymtable);
-                                     pd:=cansistringdef;
+                                     p1^.resulttype:=cansistringdef;
                                   end;
                               end;
                               pd:=p1^.resulttype;
@@ -2056,7 +2056,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.123  1999-07-23 11:37:46  peter
+  Revision 1.124  1999-07-23 21:31:42  peter
+    * fixed crash with resourcestring
+
+  Revision 1.123  1999/07/23 11:37:46  peter
     * error for illegal type reference, instead of 10998
 
   Revision 1.122  1999/07/22 09:37:52  florian
