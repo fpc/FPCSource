@@ -621,6 +621,7 @@ end;
 
 function SysGetMouseX:word;assembler;
 asm
+        pushl   %ebx
         cmpb    $1,MousePresent
         jne     .LGetMouseXError
         movl    $3,%eax
@@ -634,11 +635,13 @@ asm
 .LGetMouseXError:
         xorl    %eax,%eax
 .Lexit:
+        popl    %ebx
 end;
 
 
 function SysGetMouseY:word;assembler;
 asm
+        pushl   %ebx
         cmpb    $1,MousePresent
         jne     .LGetMouseYError
         movl    $3,%eax
@@ -652,6 +655,7 @@ asm
 .LGetMouseYError:
         xorl    %eax,%eax
 .Lexit:
+        popl    %ebx
 end;
 
 
@@ -675,6 +679,7 @@ end;
 
 procedure SysSetMouseXY(x,y:word);assembler;
 asm
+        pushl   %ebx
         cmpb    $1,MousePresent
         jne     .LSetMouseXYExit
         movw    x,%cx
@@ -684,6 +689,7 @@ asm
         int     $0x33
         popl    %ebp
 .LSetMouseXYExit:
+        popl    %ebx
 end;
 
 Procedure SetMouseXRange (Min,Max:Longint);
@@ -790,7 +796,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.9  2004-12-23 17:27:37  peter
+  Revision 1.10  2005-01-03 18:15:34  peter
+  save ebx in assembler procs
+
+  Revision 1.9  2004/12/23 17:27:37  peter
   never use ret direct in assembler
 
   Revision 1.8  2003/10/03 21:46:25  peter
