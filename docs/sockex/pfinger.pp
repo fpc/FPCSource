@@ -3,7 +3,7 @@ program pfinger;
 uses sockets,errors;
 
 Var Addr : TInetSockAddr;
-    S : Longint;
+ S : Longint;
     Sin,Sout : Text;
     Line : string;
     
@@ -29,6 +29,7 @@ begin
     readln (Sin,line);
     writeln (line);
     end;
+  Shutdown(s,2);
   close (sin);
   close (sout);
 end.
