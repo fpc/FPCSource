@@ -32,6 +32,13 @@ tests : clean all_compilations
 
 cont_tests : all_compilations
 
+setdate :
+	$(FPC) setdate.pp
+	setdate$(EXEEXT)
+	call setdate.bat
+
+.PHONY : setdate
+
 getret$(EXEEXT) : getret.pp
         $(FPC) getret
 
@@ -68,7 +75,7 @@ testsuccess:
 else
 testsuccess:
         @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)"
-        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >>$(LOG)
+        @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LOG)
 ifdef LONGLOG
         @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
         @echo "Test for $(FILE) fails (does not compile) error $(RETVAL)" >> $(LONGLOG)
@@ -76,8 +83,8 @@ ifdef LONGLOG
         cat $(FILE).log >> $(LONGLOG)
         @echo "" >> $(LONGLOG)
 endif
-        @echo $(FILE) >> ts_fail
-        @echo $(FILE) >> faillist
+        @echo $(FILE) does not compile >> ts_fail
+        @echo $(FILE) does not compile error $(RETVAL) >> faillist
 endif
 
 ifdef EXCFILE
@@ -98,6 +105,7 @@ else
 testexecsuccess:
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)"
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LOG)
+        @echo "Running $(FILE) fails with error $(EXERETVAL)" >> faillist
 ifdef LONGLOG
         @echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" >> $(LONGLOG)
         @echo "Test for exec $(FILE) fails exec error $(EXERETVAL)" >> $(LONGLOG)
@@ -127,10 +135,15 @@ ifeq ($(wildcard $(FILE)$(PPUEXT)),$(FILE)$(PPUEXT))
         @echo "file is a unit $(FILE)$(PPUEXT)"
         @echo "unit" > $(FILE).elg
 else
+ifeq ($(wildcard $(FILE).dll),$(FILE).dll)
+        @echo "file is a DLL $(FILE)$(PPUEXT)"
+        @echo "DLL" > $(FILE).elg
+else
         @echo "No exefile $(FILE)$(EXEEXT)"
         @echo $(FILE) >> faillist
 ifdef LONGLOG
         @echo "No exefile $(FILE)$(EXEEXT) was generated" >> $(LONGLOG)
+endif
 endif
 endif
 endif
@@ -151,8 +164,8 @@ testfail:
 ifdef LONGLOG
         @echo "Test for $(FILE) fails (does compile and should not)" >> $(LONGLOG)
 endif
-        @echo $(FILE) >> tf_fail
-        @echo $(FILE) >> faillist
+	@echo $(FILE) >> tf_fail
+        @echo $(FILE) compiles >> faillist
 endif
 
 ifndef LONGLOG
@@ -315,3 +328,4 @@ info :
         @echo created behave like the should
         @echo run \'make tesiexec\' to test executables
         @echo that require interactive mode
+
