@@ -1870,7 +1870,7 @@ option_help_pages=11025_[
 3*2Ou_enable uncertain optimizations (see docs)
 3*2O1_level 1 optimizations (quick optimizations)
 3*2O2_level 2 optimizations (-O1 + slower optimizations)
-3*2O3_level 3 optimizations (same as -O2u)
+3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)
 3*2Op<x>_target processor:
 3*3Op1_set target processor to 386/486
 3*3Op2_set target processor to Pentium/PentiumMMX (tm)

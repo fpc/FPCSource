@@ -43,15 +43,20 @@ Uses
 
 Procedure Optimize(AsmL: PAasmOutput);
 Var
-  count, max: longint;
   BlockStart, BlockEnd, HP: Pai;
+  pass: longint;
+  slowopt, changed, lastLoop: boolean;
 Begin
-  if (cs_slowoptimize in aktglobalswitches) then
-   { Optimize twice }
-    max := 2
-  else max := 1;
-  for count := 1 to max do
-    begin
+  slowopt := (cs_slowoptimize in aktglobalswitches);
+  pass := 0;
+  changed := false;
+  repeat
+     lastLoop :=
+       not(slowopt) or
+       (not changed and (pass > 2)) or
+      { prevent endless loops }
+       (pass = 4);
+     changed := false;
    { Setup labeltable, always necessary }
      BlockStart := Pai(AsmL^.First);
      BlockEnd := DFAPass1(AsmL, BlockStart);
@@ -59,13 +64,15 @@ Begin
    { or nil                                                                }
      While Assigned(BlockStart) Do
        Begin
+         if pass = 0 then
+           PrePeepHoleOpts(AsmL, BlockStart, BlockEnd);
         { Peephole optimizations }
          PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
         { Only perform them twice in the first pass }
-         if count = 1 then
+         if pass = 0 then
            PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
         { Data flow analyzer }
-         If (cs_slowoptimize in aktglobalswitches) Then
+         If (cs_fastoptimize in aktglobalswitches) Then
            Begin
              If DFAPass2(
 {$ifdef statedebug}
@@ -73,10 +80,12 @@ Begin
 {$endif statedebug}
                                BlockStart, BlockEnd) Then
               { common subexpression elimination }
-               CSE(AsmL, BlockStart, BlockEnd);
+               changed := CSE(asmL, blockStart, blockEnd, pass) or changed;
            End;
         { More peephole optimizations }
          PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
+         if lastLoop then
+           PostPeepHoleOpts(AsmL, BlockStart, BlockEnd);
         { Dispose labeltabel }
          ShutDownDFA;
         { Continue where we left off, BlockEnd is either the start of an }
@@ -100,15 +109,29 @@ Begin
                BlockEnd := DFAPass1(AsmL, BlockStart)
              { Otherwise, skip the next assembler block }
              Else BlockStart := HP;
-           End
-      End;
-   end;
+           End;
+       End;
+     inc(pass);
+  until lastLoop;
 End;
 
 End.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:42  peter
+  Revision 1.2  2000-10-24 10:40:53  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.1  2000/10/15 09:47:42  peter
     * moved to i386/
 
   Revision 1.5  2000/09/24 15:06:11  peter

@@ -28,14 +28,16 @@ Interface
 
 Uses Aasm;
 
+Procedure PrePeepHoleOpts(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 Procedure PeepHoleOptPass1(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
+Procedure PostPeepHoleOpts(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
 Implementation
 
 Uses
   globtype,systems,
-  globals,verbose,hcodegen,
+  globals,hcodegen,
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
@@ -96,6 +98,308 @@ begin
           end
     end;
 end;
+
+Procedure PrePeepHoleOpts(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
+var
+  p,hp1: pai;
+  l: longint;
+  tmpRef: treference;
+Begin
+  P := BlockStart;
+  While (P <> BlockEnd) Do
+    Begin
+      Case P^.Typ Of
+        Ait_Instruction:
+          Begin
+            Case Paicpu(p)^.opcode Of
+              A_IMUL:
+                {changes certain "imul const, %reg"'s to lea sequences}
+                Begin
+                  If (Paicpu(p)^.oper[0].typ = Top_Const) And
+                     (Paicpu(p)^.oper[1].typ = Top_Reg) And
+                     (Paicpu(p)^.opsize = S_L) Then
+                    If (Paicpu(p)^.oper[0].val = 1) Then
+                      If (Paicpu(p)^.oper[2].typ = Top_None) Then
+                       {remove "imul $1, reg"}
+                        Begin
+                          hp1 := Pai(p^.Next);
+                          AsmL^.Remove(p);
+                          Dispose(p, Done);
+                          p := hp1;
+                          Continue;
+                        End
+                      Else
+                       {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
+                        Begin
+                          hp1 := New(Paicpu, Op_Reg_Reg(A_MOV, S_L, Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[2].reg));
+                          InsertLLItem(AsmL, p^.previous, p^.next, hp1);
+                          Dispose(p, Done);
+                          p := hp1;
+                        End
+                    Else If
+                     ((Paicpu(p)^.oper[2].typ = Top_Reg) or
+                      (Paicpu(p)^.oper[2].typ = Top_None)) And
+                     (aktoptprocessor < ClassP6) And
+                     (Paicpu(p)^.oper[0].val <= 12) And
+                     Not(CS_LittleSize in aktglobalswitches) And
+                     (Not(GetNextInstruction(p, hp1)) Or
+                       {GetNextInstruction(p, hp1) And}
+                       Not((Pai(hp1)^.typ = ait_instruction) And
+                           ((paicpu(hp1)^.opcode=A_Jcc) and
+                            (paicpu(hp1)^.condition in [C_O,C_NO]))))
+                    Then
+                      Begin
+                        Reset_reference(tmpref);
+                        Case Paicpu(p)^.oper[0].val Of
+                          3: Begin
+                             {imul 3, reg1, reg2 to
+                                lea (reg1,reg1,2), reg2
+                              imul 3, reg1 to
+                                lea (reg1,reg1,2), reg1}
+                               TmpRef.base := Paicpu(p)^.oper[1].reg;
+                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                               TmpRef.ScaleFactor := 2;
+                               If (Paicpu(p)^.oper[2].typ = Top_None) Then
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
+                               Else
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
+                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                               Dispose(p, Done);
+                               p := hp1;
+                            End;
+                         5: Begin
+                            {imul 5, reg1, reg2 to
+                               lea (reg1,reg1,4), reg2
+                             imul 5, reg1 to
+                               lea (reg1,reg1,4), reg1}
+                              TmpRef.base := Paicpu(p)^.oper[1].reg;
+                              TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                              TmpRef.ScaleFactor := 4;
+                              If (Paicpu(p)^.oper[2].typ = Top_None) Then
+                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
+                              Else
+                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
+                              InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                              Dispose(p, Done);
+                              p := hp1;
+                            End;
+                         6: Begin
+                            {imul 6, reg1, reg2 to
+                               lea (,reg1,2), reg2
+                               lea (reg2,reg1,4), reg2
+                             imul 6, reg1 to
+                               lea (reg1,reg1,2), reg1
+                               add reg1, reg1}
+                              If (aktoptprocessor <= Class386)
+                                Then
+                                  Begin
+                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                    If (Paicpu(p)^.oper[2].typ = Top_Reg)
+                                      Then
+                                        Begin
+                                          TmpRef.base := Paicpu(p)^.oper[2].reg;
+                                          TmpRef.ScaleFactor := 4;
+                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
+                                        End
+                                      Else
+                                        Begin
+                                          hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
+                                            Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
+                                        End;
+                                    InsertLLItem(AsmL,p, p^.next, hp1);
+                                    Reset_reference(tmpref);
+                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                    TmpRef.ScaleFactor := 2;
+                                    If (Paicpu(p)^.oper[2].typ = Top_Reg)
+                                      Then
+                                        Begin
+                                          TmpRef.base := R_NO;
+                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef),
+                                            Paicpu(p)^.oper[2].reg));
+                                        End
+                                      Else
+                                        Begin
+                                          TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                          hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
+                                        End;
+                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                                    Dispose(p, Done);
+                                    p := Pai(hp1^.next);
+                                  End
+                            End;
+                          9: Begin
+                             {imul 9, reg1, reg2 to
+                                lea (reg1,reg1,8), reg2
+                              imul 9, reg1 to
+                                lea (reg1,reg1,8), reg1}
+                               TmpRef.base := Paicpu(p)^.oper[1].reg;
+                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                               TmpRef.ScaleFactor := 8;
+                               If (Paicpu(p)^.oper[2].typ = Top_None) Then
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
+                               Else
+                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
+                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                               Dispose(p, Done);
+                               p := hp1;
+                             End;
+                         10: Begin
+                            {imul 10, reg1, reg2 to
+                               lea (reg1,reg1,4), reg2
+                               add reg2, reg2
+                             imul 10, reg1 to
+                               lea (reg1,reg1,4), reg1
+                               add reg1, reg1}
+                               If (aktoptprocessor <= Class386) Then
+                                 Begin
+                                   If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
+                                     hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
+                                       Paicpu(p)^.oper[2].reg,Paicpu(p)^.oper[2].reg))
+                                   Else
+                                     hp1 := New(Paicpu, op_reg_reg(A_ADD, S_L,
+                                       Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
+                                   InsertLLItem(AsmL,p, p^.next, hp1);
+                                   TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                   TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                   TmpRef.ScaleFactor := 4;
+                                   If (Paicpu(p)^.oper[2].typ = Top_Reg)
+                                     Then
+                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg))
+                                     Else
+                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
+                                   InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                                   Dispose(p, Done);
+                                   p := Pai(hp1^.next);
+                                 End
+                             End;
+                         12: Begin
+                            {imul 12, reg1, reg2 to
+                               lea (,reg1,4), reg2
+                               lea (,reg1,8) reg2
+                             imul 12, reg1 to
+                               lea (reg1,reg1,2), reg1
+                               lea (,reg1,4), reg1}
+                               If (aktoptprocessor <= Class386)
+                                 Then
+                                   Begin
+                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                     If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
+                                       Begin
+                                         TmpRef.base := Paicpu(p)^.oper[2].reg;
+                                         TmpRef.ScaleFactor := 8;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
+                                       End
+                                     Else
+                                       Begin
+                                         TmpRef.base := R_NO;
+                                         TmpRef.ScaleFactor := 4;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
+                                       End;
+                                     InsertLLItem(AsmL,p, p^.next, hp1);
+                                     Reset_reference(tmpref);
+                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
+                                     If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
+                                       Begin
+                                         TmpRef.base := R_NO;
+                                         TmpRef.ScaleFactor := 4;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
+                                       End
+                                     Else
+                                       Begin
+                                         TmpRef.base := Paicpu(p)^.oper[1].reg;
+                                         TmpRef.ScaleFactor := 2;
+                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
+                                       End;
+                                     InsertLLItem(AsmL,p^.previous, p^.next, hp1);
+                                     Dispose(p, Done);
+                                     p := Pai(hp1^.next);
+                                   End
+                             End
+                        End;
+                      End;
+                End;
+              A_SAR, A_SHR:
+                  {changes the code sequence
+                   shr/sar const1, x
+                   shl     const2, x
+                   to either "sar/and", "shl/and" or just "and" depending on const1 and const2}
+                Begin
+                  If GetNextInstruction(p, hp1) And
+                     (pai(hp1)^.typ = ait_instruction) and
+                     (Paicpu(hp1)^.opcode = A_SHL) and
+                     (Paicpu(p)^.oper[0].typ = top_const) and
+                     (Paicpu(hp1)^.oper[0].typ = top_const) and
+                     (Paicpu(hp1)^.opsize = Paicpu(p)^.opsize) And
+                     (Paicpu(hp1)^.oper[1].typ = Paicpu(p)^.oper[1].typ) And
+                     OpsEqual(Paicpu(hp1)^.oper[1], Paicpu(p)^.oper[1])
+                    Then
+                      If (Paicpu(p)^.oper[0].val > Paicpu(hp1)^.oper[0].val) And
+                         Not(CS_LittleSize In aktglobalswitches)
+                        Then
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 > const2 }
+                          Begin
+                            Paicpu(p)^.LoadConst(0,Paicpu(p)^.oper[0].val-Paicpu(hp1)^.oper[0].val);
+                            Paicpu(hp1)^.opcode := A_AND;
+                            l := (1 shl (Paicpu(hp1)^.oper[0].val)) - 1;
+                            Case Paicpu(p)^.opsize Of
+                              S_L: Paicpu(hp1)^.LoadConst(0,l Xor longint(-1));
+                              S_B: Paicpu(hp1)^.LoadConst(0,l Xor $ff);
+                              S_W: Paicpu(hp1)^.LoadConst(0,l Xor $ffff);
+                            End;
+                          End
+                        Else
+                          If (Paicpu(p)^.oper[0].val<Paicpu(hp1)^.oper[0].val) And
+                             Not(CS_LittleSize In aktglobalswitches)
+                            Then
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 < const2 }
+                              Begin
+                                Paicpu(hp1)^.LoadConst(0,Paicpu(hp1)^.oper[0].val-Paicpu(p)^.oper[0].val);
+                                Paicpu(p)^.opcode := A_AND;
+                                l := (1 shl (Paicpu(p)^.oper[0].val))-1;
+                                Case Paicpu(p)^.opsize Of
+                                  S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                                  S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
+                                  S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
+                                End;
+                              End
+                            Else
+                   { shr/sar const1, %reg
+                     shl     const2, %reg
+                      with const1 = const2 }
+                              if (Paicpu(p)^.oper[0].val = Paicpu(hp1)^.oper[0].val) then
+                                Begin
+                                  Paicpu(p)^.opcode := A_AND;
+                                  l := (1 shl (Paicpu(p)^.oper[0].val))-1;
+                                  Case Paicpu(p)^.opsize Of
+                                    S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
+                                    S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
+                                    S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                                  End;
+                                  AsmL^.remove(hp1);
+                                  dispose(hp1, done);
+                                End;
+                End;
+              A_XOR:
+                If (Paicpu(p)^.oper[0].typ = top_reg) And
+                   (Paicpu(p)^.oper[1].typ = top_reg) And
+                   (Paicpu(p)^.oper[0].reg = Paicpu(p)^.oper[1].reg) then
+                 { temporarily change this to 'mov reg,0' to make it easier }
+                 { for the CSE. Will be changed back in pass 2              }
+                  begin
+                    paicpu(p)^.opcode := A_MOV;
+                    paicpu(p)^.loadconst(0,0);
+                  end;
+            End;
+          End;
+      End;
+      p := Pai(p^.next)
+    End;
+End;
+
 
 
 Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
@@ -279,9 +583,7 @@ Begin
                If (paicpu(p)^.opcode = A_JMP) Then
                  Begin
                    While GetNextInstruction(p, hp1) and
-                         ((hp1^.typ <> ait_label) or
-                   { skip unused labels, they're not referenced anywhere }
-                          labelCanBeSkipped(pai_label(hp1))) Do
+                         (hp1^.typ <> ait_label) do
                      If not(hp1^.typ in ([ait_label,ait_align]+skipinstr)) Then
                        Begin
                          AsmL^.Remove(hp1);
@@ -289,6 +591,7 @@ Begin
                        End
                      else break;
                   End;
+               { remove jumps to a label coming right after them }
                If GetNextInstruction(p, hp1) then
                  Begin
                    if FindLabel(pasmlabel(paicpu(p)^.oper[0].sym), hp1) then
@@ -528,212 +831,6 @@ Begin
               A_FSTP,A_FISTP:
                 if doFpuLoadStoreOpt(asmL,p) then
                   continue;
-              A_IMUL:
-                {changes certain "imul const, %reg"'s to lea sequences}
-                Begin
-                  If (Paicpu(p)^.oper[0].typ = Top_Const) And
-                     (Paicpu(p)^.oper[1].typ = Top_Reg) And
-                     (Paicpu(p)^.opsize = S_L) Then
-                    If (Paicpu(p)^.oper[0].val = 1) Then
-                      If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                       {remove "imul $1, reg"}
-                        Begin
-                          hp1 := Pai(p^.Next);
-                          AsmL^.Remove(p);
-                          Dispose(p, Done);
-                          p := hp1;
-                          Continue;
-                        End
-                      Else
-                       {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
-                        Begin
-                          hp1 := New(Paicpu, Op_Reg_Reg(A_MOV, S_L, Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[2].reg));
-                          InsertLLItem(AsmL, p^.previous, p^.next, hp1);
-                          Dispose(p, Done);
-                          p := hp1;
-                        End
-                    Else If
-                     ((Paicpu(p)^.oper[2].typ = Top_Reg) or
-                      (Paicpu(p)^.oper[2].typ = Top_None)) And
-                     (aktoptprocessor < ClassP6) And
-                     (Paicpu(p)^.oper[0].val <= 12) And
-                     Not(CS_LittleSize in aktglobalswitches) And
-                     (Not(GetNextInstruction(p, hp1)) Or
-                       {GetNextInstruction(p, hp1) And}
-                       Not((Pai(hp1)^.typ = ait_instruction) And
-                           ((paicpu(hp1)^.opcode=A_Jcc) and
-                            (paicpu(hp1)^.condition in [C_O,C_NO]))))
-                    Then
-                      Begin
-                        Reset_reference(tmpref);
-                        Case Paicpu(p)^.oper[0].val Of
-                          3: Begin
-                             {imul 3, reg1, reg2 to
-                                lea (reg1,reg1,2), reg2
-                              imul 3, reg1 to
-                                lea (reg1,reg1,2), reg1}
-                               TmpRef.base := Paicpu(p)^.oper[1].reg;
-                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                               TmpRef.ScaleFactor := 2;
-                               If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
-                               Else
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                               Dispose(p, Done);
-                               p := hp1;
-                            End;
-                         5: Begin
-                            {imul 5, reg1, reg2 to
-                               lea (reg1,reg1,4), reg2
-                             imul 5, reg1 to
-                               lea (reg1,reg1,4), reg1}
-                              TmpRef.base := Paicpu(p)^.oper[1].reg;
-                              TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                              TmpRef.ScaleFactor := 4;
-                              If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
-                              Else
-                                hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                              InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                              Dispose(p, Done);
-                              p := hp1;
-                            End;
-                         6: Begin
-                            {imul 6, reg1, reg2 to
-                               lea (,reg1,2), reg2
-                               lea (reg2,reg1,4), reg2
-                             imul 6, reg1 to
-                               lea (reg1,reg1,2), reg1
-                               add reg1, reg1}
-                              If (aktoptprocessor <= Class386)
-                                Then
-                                  Begin
-                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                                    If (Paicpu(p)^.oper[2].typ = Top_Reg)
-                                      Then
-                                        Begin
-                                          TmpRef.base := Paicpu(p)^.oper[2].reg;
-                                          TmpRef.ScaleFactor := 4;
-                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                        End
-                                      Else
-                                        Begin
-                                          hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
-                                            Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
-                                        End;
-                                    InsertLLItem(AsmL,p, p^.next, hp1);
-                                    Reset_reference(tmpref);
-                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                                    TmpRef.ScaleFactor := 2;
-                                    If (Paicpu(p)^.oper[2].typ = Top_Reg)
-                                      Then
-                                        Begin
-                                          TmpRef.base := R_NO;
-                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef),
-                                            Paicpu(p)^.oper[2].reg));
-                                        End
-                                      Else
-                                        Begin
-                                          TmpRef.base := Paicpu(p)^.oper[1].reg;
-                                          hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                        End;
-                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                                    Dispose(p, Done);
-                                    p := Pai(hp1^.next);
-                                  End
-                            End;
-                          9: Begin
-                             {imul 9, reg1, reg2 to
-                                lea (reg1,reg1,8), reg2
-                              imul 9, reg1 to
-                                lea (reg1,reg1,8), reg1}
-                               TmpRef.base := Paicpu(p)^.oper[1].reg;
-                               TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                               TmpRef.ScaleFactor := 8;
-                               If (Paicpu(p)^.oper[2].typ = Top_None) Then
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
-                               Else
-                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                               Dispose(p, Done);
-                               p := hp1;
-                             End;
-                         10: Begin
-                            {imul 10, reg1, reg2 to
-                               lea (reg1,reg1,4), reg2
-                               add reg2, reg2
-                             imul 10, reg1 to
-                               lea (reg1,reg1,4), reg1
-                               add reg1, reg1}
-                               If (aktoptprocessor <= Class386) Then
-                                 Begin
-                                   If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
-                                     hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
-                                       Paicpu(p)^.oper[2].reg,Paicpu(p)^.oper[2].reg))
-                                   Else
-                                     hp1 := New(Paicpu, op_reg_reg(A_ADD, S_L,
-                                       Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
-                                   InsertLLItem(AsmL,p, p^.next, hp1);
-                                   TmpRef.base := Paicpu(p)^.oper[1].reg;
-                                   TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                                   TmpRef.ScaleFactor := 4;
-                                   If (Paicpu(p)^.oper[2].typ = Top_Reg)
-                                     Then
-                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg))
-                                     Else
-                                       hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                   InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                                   Dispose(p, Done);
-                                   p := Pai(hp1^.next);
-                                 End
-                             End;
-                         12: Begin
-                            {imul 12, reg1, reg2 to
-                               lea (,reg1,4), reg2
-                               lea (,reg1,8) reg2
-                             imul 12, reg1 to
-                               lea (reg1,reg1,2), reg1
-                               lea (,reg1,4), reg1}
-                               If (aktoptprocessor <= Class386)
-                                 Then
-                                   Begin
-                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                                     If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
-                                       Begin
-                                         TmpRef.base := Paicpu(p)^.oper[2].reg;
-                                         TmpRef.ScaleFactor := 8;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                                       End
-                                     Else
-                                       Begin
-                                         TmpRef.base := R_NO;
-                                         TmpRef.ScaleFactor := 4;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                       End;
-                                     InsertLLItem(AsmL,p, p^.next, hp1);
-                                     Reset_reference(tmpref);
-                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
-                                     If (Paicpu(p)^.oper[2].typ = Top_Reg) Then
-                                       Begin
-                                         TmpRef.base := R_NO;
-                                         TmpRef.ScaleFactor := 4;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                                       End
-                                     Else
-                                       Begin
-                                         TmpRef.base := Paicpu(p)^.oper[1].reg;
-                                         TmpRef.ScaleFactor := 2;
-                                         hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                       End;
-                                     InsertLLItem(AsmL,p^.previous, p^.next, hp1);
-                                     Dispose(p, Done);
-                                     p := Pai(hp1^.next);
-                                   End
-                             End
-                        End;
-                      End;
-                End;
               A_LEA:
                 Begin
                 {removes seg register prefixes from LEA operations, as they
@@ -784,7 +881,6 @@ Begin
                                   end;
                               end;
                             end;
-
                 End;
               A_MOV:
                 Begin
@@ -1420,71 +1516,6 @@ Begin
                                    p := hp1;
                                  End
                 End;
-              A_SAR, A_SHR:
-                  {changes the code sequence
-                   shr/sar const1, x
-                   shl     const2, x
-                   to either "sar/and", "shl/and" or just "and" depending on const1 and const2}
-                Begin
-                  If GetNextInstruction(p, hp1) And
-                     (pai(hp1)^.typ = ait_instruction) and
-                     (Paicpu(hp1)^.opcode = A_SHL) and
-                     (Paicpu(p)^.oper[0].typ = top_const) and
-                     (Paicpu(hp1)^.oper[0].typ = top_const) and
-                     (Paicpu(hp1)^.opsize = Paicpu(p)^.opsize) And
-                     (Paicpu(hp1)^.oper[1].typ = Paicpu(p)^.oper[1].typ) And
-                     OpsEqual(Paicpu(hp1)^.oper[1], Paicpu(p)^.oper[1])
-                    Then
-                      If (Paicpu(p)^.oper[0].val > Paicpu(hp1)^.oper[0].val) And
-                         Not(CS_LittleSize In aktglobalswitches)
-                        Then
-                   { shr/sar const1, %reg
-                     shl     const2, %reg
-                      with const1 > const2 }
-                          Begin
-                            Paicpu(p)^.LoadConst(0,Paicpu(p)^.oper[0].val-Paicpu(hp1)^.oper[0].val);
-                            Paicpu(hp1)^.opcode := A_AND;
-                            l := (1 shl (Paicpu(hp1)^.oper[0].val)) - 1;
-                            Case Paicpu(p)^.opsize Of
-                              S_L: Paicpu(hp1)^.LoadConst(0,l Xor longint(-1));
-                              S_B: Paicpu(hp1)^.LoadConst(0,l Xor $ff);
-                              S_W: Paicpu(hp1)^.LoadConst(0,l Xor $ffff);
-                            End;
-                          End
-                        Else
-                          If (Paicpu(p)^.oper[0].val<Paicpu(hp1)^.oper[0].val) And
-                             Not(CS_LittleSize In aktglobalswitches)
-                            Then
-                   { shr/sar const1, %reg
-                     shl     const2, %reg
-                      with const1 < const2 }
-                              Begin
-                                Paicpu(hp1)^.LoadConst(0,Paicpu(hp1)^.oper[0].val-Paicpu(p)^.oper[0].val);
-                                Paicpu(p)^.opcode := A_AND;
-                                l := (1 shl (Paicpu(p)^.oper[0].val))-1;
-                                Case Paicpu(p)^.opsize Of
-                                  S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
-                                  S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
-                                  S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
-                                End;
-                              End
-                            Else
-                   { shr/sar const1, %reg
-                     shl     const2, %reg
-                      with const1 = const2 }
-                              if (Paicpu(p)^.oper[0].val = Paicpu(hp1)^.oper[0].val) then
-                                Begin
-                                  Paicpu(p)^.opcode := A_AND;
-                                  l := (1 shl (Paicpu(p)^.oper[0].val))-1;
-                                  Case Paicpu(p)^.opsize Of
-                                    S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
-                                    S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
-                                    S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
-                                  End;
-                                  AsmL^.remove(hp1);
-                                  dispose(hp1, done);
-                                End;
-                End;
               A_SETcc :
                 { changes
                     setcc (funcres)             setcc reg
@@ -1604,6 +1635,7 @@ end;
 
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
 
+{$ifdef USECMOV}
   function CanBeCMOV(p : pai) : boolean;
 
     begin
@@ -1613,6 +1645,7 @@ Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
          (paicpu(p)^.oper[0].typ in [top_reg,top_ref]) and
          (paicpu(p)^.oper[1].typ in [top_reg,top_ref]);
     end;
+{$endif USECMOV}
 
 var
   p,hp1,hp2: pai;
@@ -1633,20 +1666,6 @@ Begin
         Ait_Instruction:
           Begin
             Case Paicpu(p)^.opcode Of
-              A_CALL:
-                If (AktOptProcessor < ClassP6) And
-                   GetNextInstruction(p, hp1) And
-                   (hp1^.typ = ait_instruction) And
-                   (paicpu(hp1)^.opcode = A_JMP) Then
-                  Begin
-                    Inc(paicpu(hp1)^.oper[0].sym^.refs);
-                    hp2 := New(Paicpu,op_sym(A_PUSH,S_L,paicpu(hp1)^.oper[0].sym));
-                    InsertLLItem(AsmL, p^.previous, p, hp2);
-                    Paicpu(p)^.opcode := A_JMP;
-                    AsmL^.Remove(hp1);
-                    Dispose(hp1, Done)
-                  End;
-
 {$ifdef USECMOV}
               A_Jcc:
                 if (aktspecificoptprocessor=ClassP6) then
@@ -1833,59 +1852,6 @@ Begin
                        p := hp1
                      End;
                    End
-                  else if (Paicpu(p)^.oper[0].typ = Top_Const) And
-                     (Paicpu(p)^.oper[0].val = 0) And
-                     (Paicpu(p)^.oper[1].typ = Top_Reg) Then
-                    { change "mov $0, %reg" into "xor %reg, %reg" }
-                    Begin
-                      Paicpu(p)^.opcode := A_XOR;
-                      Paicpu(p)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
-                    End
-                End;
-              A_MOVZX:
-                Begin
-                  If (Paicpu(p)^.oper[1].typ = top_reg) Then
-                    If (Paicpu(p)^.oper[0].typ = top_reg)
-                      Then
-                        Case Paicpu(p)^.opsize of
-                          S_BL:
-                            Begin
-                              If IsGP32Reg(Paicpu(p)^.oper[1].reg) And
-                                 Not(CS_LittleSize in aktglobalswitches) And
-                                 (aktoptprocessor = ClassP5)
-                                Then
-                                  {Change "movzbl %reg1, %reg2" to
-                                   "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
-                                   PentiumMMX}
-                                  Begin
-                                    hp1 := New(Paicpu, op_reg_reg(A_XOR, S_L,
-                                               Paicpu(p)^.oper[1].reg, Paicpu(p)^.oper[1].reg));
-                                    InsertLLItem(AsmL,p^.previous, p, hp1);
-                                    Paicpu(p)^.opcode := A_MOV;
-                                    Paicpu(p)^.changeopsize(S_B);
-                                    Paicpu(p)^.LoadReg(1,Reg32ToReg8(Paicpu(p)^.oper[1].reg));
-                                  End;
-                            End;
-                        End
-                      Else
-                        If (Paicpu(p)^.oper[0].typ = top_ref) And
-                           (Paicpu(p)^.oper[0].ref^.base <> Paicpu(p)^.oper[1].reg) And
-                           (Paicpu(p)^.oper[0].ref^.index <> Paicpu(p)^.oper[1].reg) And
-                           Not(CS_LittleSize in aktglobalswitches) And
-                           IsGP32Reg(Paicpu(p)^.oper[1].reg) And
-                           (aktoptprocessor = ClassP5) And
-                           (Paicpu(p)^.opsize = S_BL)
-                          Then
-                            {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
-                             Pentium and PentiumMMX}
-                            Begin
-                              hp1 := New(Paicpu,op_reg_reg(A_XOR, S_L, Paicpu(p)^.oper[1].reg,
-                                         Paicpu(p)^.oper[1].reg));
-                              Paicpu(p)^.opcode := A_MOV;
-                              Paicpu(p)^.changeopsize(S_B);
-                              Paicpu(p)^.LoadReg(1,Reg32ToReg8(Paicpu(p)^.oper[1].reg));
-                              InsertLLItem(AsmL,p^.previous, p, hp1);
-                            End;
                 End;
               A_TEST, A_OR:
                 {removes the line marked with (x) from the sequence
@@ -1942,11 +1908,111 @@ Begin
     End;
 End;
 
+Procedure PostPeepHoleOpts(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
+var
+  p,hp1,hp2: pai;
+Begin
+  P := BlockStart;
+  While (P <> BlockEnd) Do
+    Begin
+      Case P^.Typ Of
+        Ait_Instruction:
+          Begin
+            Case Paicpu(p)^.opcode Of
+              A_CALL:
+                If (AktOptProcessor < ClassP6) And
+                   GetNextInstruction(p, hp1) And
+                   (hp1^.typ = ait_instruction) And
+                   (paicpu(hp1)^.opcode = A_JMP) Then
+                  Begin
+                    Inc(paicpu(hp1)^.oper[0].sym^.refs);
+                    hp2 := New(Paicpu,op_sym(A_PUSH,S_L,paicpu(hp1)^.oper[0].sym));
+                    InsertLLItem(AsmL, p^.previous, p, hp2);
+                    Paicpu(p)^.opcode := A_JMP;
+                    AsmL^.Remove(hp1);
+                    Dispose(hp1, Done)
+                  End;
+              A_MOV:
+                if (Paicpu(p)^.oper[0].typ = Top_Const) And
+                   (Paicpu(p)^.oper[0].val = 0) And
+                   (Paicpu(p)^.oper[1].typ = Top_Reg) Then
+                  { change "mov $0, %reg" into "xor %reg, %reg" }
+                  Begin
+                    Paicpu(p)^.opcode := A_XOR;
+                    Paicpu(p)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
+                  End;
+              A_MOVZX:
+                Begin
+                  If (Paicpu(p)^.oper[1].typ = top_reg) Then
+                    If (Paicpu(p)^.oper[0].typ = top_reg)
+                      Then
+                        Case Paicpu(p)^.opsize of
+                          S_BL:
+                            Begin
+                              If IsGP32Reg(Paicpu(p)^.oper[1].reg) And
+                                 Not(CS_LittleSize in aktglobalswitches) And
+                                 (aktoptprocessor = ClassP5)
+                                Then
+                                  {Change "movzbl %reg1, %reg2" to
+                                   "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
+                                   PentiumMMX}
+                                  Begin
+                                    hp1 := New(Paicpu, op_reg_reg(A_XOR, S_L,
+                                               Paicpu(p)^.oper[1].reg, Paicpu(p)^.oper[1].reg));
+                                    InsertLLItem(AsmL,p^.previous, p, hp1);
+                                    Paicpu(p)^.opcode := A_MOV;
+                                    Paicpu(p)^.changeopsize(S_B);
+                                    Paicpu(p)^.LoadReg(1,Reg32ToReg8(Paicpu(p)^.oper[1].reg));
+                                  End;
+                            End;
+                        End
+                      Else
+                        If (Paicpu(p)^.oper[0].typ = top_ref) And
+                           (Paicpu(p)^.oper[0].ref^.base <> Paicpu(p)^.oper[1].reg) And
+                           (Paicpu(p)^.oper[0].ref^.index <> Paicpu(p)^.oper[1].reg) And
+                           Not(CS_LittleSize in aktglobalswitches) And
+                           IsGP32Reg(Paicpu(p)^.oper[1].reg) And
+                           (aktoptprocessor = ClassP5) And
+                           (Paicpu(p)^.opsize = S_BL)
+                          Then
+                            {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
+                             Pentium and PentiumMMX}
+                            Begin
+                              hp1 := New(Paicpu,op_reg_reg(A_XOR, S_L, Paicpu(p)^.oper[1].reg,
+                                         Paicpu(p)^.oper[1].reg));
+                              Paicpu(p)^.opcode := A_MOV;
+                              Paicpu(p)^.changeopsize(S_B);
+                              Paicpu(p)^.LoadReg(1,Reg32ToReg8(Paicpu(p)^.oper[1].reg));
+                              InsertLLItem(AsmL,p^.previous, p, hp1);
+                            End;
+                End;
+            End;
+          End;
+      End;
+      p := Pai(p^.next)
+    End;
+End;
+
+
+
 End.
 
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:43  peter
+  Revision 1.2  2000-10-24 10:40:54  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.1  2000/10/15 09:47:43  peter
     * moved to i386/
 
   Revision 1.13  2000/10/02 13:01:29  jonas

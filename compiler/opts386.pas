@@ -58,10 +58,10 @@ begin
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' : initglobalswitches:=initglobalswitches+[cs_regalloc];
-                 'u' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_uncertainopts];
-                 '1' : initglobalswitches:=initglobalswitches-[cs_slowoptimize,cs_uncertainopts]+[cs_optimize,cs_fastoptimize];
-                 '2' : initglobalswitches:=initglobalswitches-[cs_uncertainopts]+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
-                 '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_uncertainopts];
+                 'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
+                 '1' : initglobalswitches:=initglobalswitches-[cs_fastoptimize,cs_slowoptimize]+[cs_optimize];
+                 '2' : initglobalswitches:=initglobalswitches-[cs_slowoptimize]+[cs_optimize,cs_fastoptimize];
+                 '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
                  'p' :
                    Begin
                      If j < Length(Opt) Then
@@ -115,7 +115,20 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:20  peter
+  Revision 1.6  2000-10-24 10:40:53  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.5  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.4  2000/08/27 16:11:51  peter

@@ -728,37 +728,37 @@ const msgtxt : array[0..000130,1..240] of char=(
   '3*2Ou_enable uncertain optimizations (see docs)'#010+
   '3*2O1_level 1 optimizat','ions (quick optimizations)'#010+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#010+
-  '3*2O3_level 3 optimizations (same as -O2u)'#010+
+  '3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)'#010+
   '3*2Op<x>_target processor:'#010+
   '3*3Op1_set target processor to 386/486'#010+
-  '3*3Op2_set target processor to Pentium/PentiumM','MX (tm)'#010+
+  '3*3Op2_set target processor to P','entium/PentiumMMX (tm)'#010+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#010+
   '3*1T<x>_Target operating system:'#010+
   '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#010+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#010+
   '3*2TLINUX_Linux'#010+
-  '3*2Tnetware_Novell Netware Module',' (experimental)'#010+
+  '3*2Tnetware_Novell',' Netware Module (experimental)'#010+
   '3*2TOS2_OS/2 2.x'#010+
   '3*2TWin32_Windows 32 Bit'#010+
   '3*1W<x>_Win32 target options'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
-  '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
-  '3*2WG_Specify',' graphic type application'#010+
+  '3*2WD_Use DEFFILE to export functions of DLL or EX','E'#010+
+  '3*2WG_Specify graphic type application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
-  '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6*2Am','ot_Standard Motorola assembler'#010+
+  '6*2Amit_MIT Syntax ','(old GAS)'#010+
+  '6*2Amot_Standard Motorola assembler'#010+
   '6*1O_optimizations:'#010+
   '6*2Oa_turn on the optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
-  '6*2O2_set target processor to a MC68020+'#010+
-  '6*1R<x>_assembl','er reading style:'#010+
+  '6*2O2_set target processor to a MC68020+'#010,
+  '6*1R<x>_assembler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2TAMIGA_Commodore Amiga'#010+
@@ -767,5 +767,5 @@ const msgtxt : array[0..000130,1..240] of char=(
   '6*2TLINUX_Linux-68k'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help withou','t waiting'#000
+  '**1h_shows t','his help without waiting'#000
 );

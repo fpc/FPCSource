@@ -183,6 +183,7 @@ Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
            hp: pai): boolean;
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
+function FindRegDealloc(reg: tregister; p: pai): boolean;
 
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
@@ -720,15 +721,14 @@ Begin
               End
             Else Regsequivalent := False
         Else
-          If Not(Reg32(NewReg) in NewRegsEncountered) and
-             ((OpAct = OpAct_Write) or
-              ((newReg = oldReg) and
-               not(newReg in usableregs + [R_EDI]))) Then
-            Begin
-              AddReg2RegInfo(OldReg, NewReg, RegInfo);
-              RegsEquivalent := True
-            End
-          Else RegsEquivalent := False
+           If Not(Reg32(NewReg) in NewRegsEncountered) and
+              ((OpAct = OpAct_Write) or
+               (newReg = oldReg)) Then
+             Begin
+               AddReg2RegInfo(OldReg, NewReg, RegInfo);
+               RegsEquivalent := True
+             End
+           Else RegsEquivalent := False 
     Else RegsEquivalent := False
   Else RegsEquivalent := OldReg = NewReg
 End;
@@ -973,7 +973,7 @@ Begin
            ((current^.typ = ait_label) and
             labelCanBeSkipped(pai_label(current)))) do
       Current := Pai(Current^.Next);
-    If Assigned(Current) And
+{    If Assigned(Current) And
        (Current^.typ = ait_Marker) And
        (Pai_Marker(Current)^.Kind = NoPropInfoStart) Then
       Begin
@@ -981,10 +981,10 @@ Begin
               ((Current^.typ <> ait_Marker) Or
                (Pai_Marker(Current)^.Kind <> NoPropInfoEnd)) Do
           Current := Pai(Current^.Next);
-      End;
+      End;}
   Until Not(Assigned(Current)) Or
         (Current^.typ <> ait_Marker) Or
-        (Pai_Marker(Current)^.Kind <> NoPropInfoEnd);
+        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart,NoPropInfoEnd]);
   Next := Current;
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
@@ -1009,12 +1009,12 @@ Begin
     Current := Pai(Current^.previous);
     While Assigned(Current) And
           (((Current^.typ = ait_Marker) And
-            Not(Pai_Marker(Current)^.Kind in [AsmBlockEnd,NoPropInfoEnd])) or
+            Not(Pai_Marker(Current)^.Kind in [AsmBlockEnd{,NoPropInfoEnd}])) or
            (Current^.typ In SkipInstr) or
            ((Current^.typ = ait_label) And
             labelCanBeSkipped(pai_label(current)))) Do
       Current := Pai(Current^.previous);
-    If Assigned(Current) And
+{    If Assigned(Current) And
        (Current^.typ = ait_Marker) And
        (Pai_Marker(Current)^.Kind = NoPropInfoEnd) Then
       Begin
@@ -1022,10 +1022,10 @@ Begin
               ((Current^.typ <> ait_Marker) Or
                (Pai_Marker(Current)^.Kind <> NoPropInfoStart)) Do
           Current := Pai(Current^.previous);
-      End;
+      End;}
   Until Not(Assigned(Current)) Or
         (Current^.typ <> ait_Marker) Or
-        (Pai_Marker(Current)^.Kind <> NoPropInfoStart);
+        not(Pai_Marker(Current)^.Kind in [NoPropInfoStart,NoPropInfoEnd]);
   If Not(Assigned(Current)) or
      (Current^.typ In SkipInstr) or
      ((Current^.typ = ait_label) And
@@ -1177,6 +1177,41 @@ Begin
    end;
 End;
 
+function FindRegDealloc(reg: tregister; p: pai): boolean;
+{ assumes reg is a 32bit register }
+var
+  hp: pai;
+  first: boolean;
+begin
+  findregdealloc := false;
+  first := true;
+  while assigned(p^.previous) and
+        ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
+         ((Pai(p^.previous)^.typ = ait_label) and
+          labelCanBeSkipped(pai_label(p^.previous)))) do
+    begin
+      p := pai(p^.previous);
+      if (p^.typ = ait_regalloc) and
+         (pairegalloc(p)^.reg = reg) then
+        if not(pairegalloc(p)^.allocation) then
+          if first then
+            begin
+              findregdealloc := true;
+              break;
+            end
+          else
+            begin
+              findRegDealloc :=
+                getNextInstruction(p,hp) and
+                 regLoadedWithNewValue(reg,false,hp);
+              break
+            end
+        else
+          first := false;
+    end
+end;
+
+
 
 Procedure IncState(Var S: Byte; amount: longint);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
@@ -1233,7 +1268,7 @@ Begin
   sequenceDependsonReg := TmpResult
 End;
 
-procedure invalidateDepedingRegs(p1: ppaiProp; reg: tregister);
+procedure invalidateDependingRegs(p1: ppaiProp; reg: tregister);
 var
   counter: tregister;
 begin
@@ -1277,7 +1312,7 @@ Begin
             { con_invalid and con_noRemoveRef = con_unknown }
             else typ := con_unknown;
         end;
-      invalidateDepedingRegs(p1,reg);
+      invalidateDependingRegs(p1,reg);
     end;
 End;
 
@@ -1644,7 +1679,7 @@ function writeToRegDestroysContents(destReg: tregister; reg: tregister;
 { modified                                                           }
 begin
   writeToRegDestroysContents :=
-    (c.typ <> con_unknown) and
+    (c.typ in [con_ref,con_noRemoveRef,con_invalid]) and
     sequenceDependsOnReg(c,reg,reg32(destReg));
 end;
 
@@ -2033,73 +2068,63 @@ Begin
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   Case Paicpu(p)^.oper[0].typ Of
-                    Top_Reg:
-                      Case Paicpu(p)^.oper[1].typ Of
-                        Top_Reg:
+                    top_ref, top_reg:
+                      case paicpu(p)^.oper[1].typ Of
+                        top_reg:
                           Begin
 {$ifdef statedebug}
                             hp := new(pai_asm_comment,init(strpnew('destroying '+
                               att_reg2str[Paicpu(p)^.oper[1].reg])));
                             insertllitem(asml,p,p^.next,hp);
 {$endif statedebug}
-                            DestroyReg(CurProp, Paicpu(p)^.oper[1].reg, true);
-                            ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
-{                            CurProp^.Regs[Paicpu(p)^.oper[1].reg] :=
-                              CurProp^.Regs[Paicpu(p)^.oper[0].reg];
-                            If (CurProp^.Regs[Paicpu(p)^.oper[1].reg].ModReg = R_NO) Then
-                              CurProp^.Regs[Paicpu(p)^.oper[1].reg].ModReg :=
-                                Paicpu(p)^.oper[0].reg;}
+
+                            readOp(curprop, paicpu(p)^.oper[0]);
+                            tmpreg := reg32(paicpu(p)^.oper[1].reg);
+                            if regInOp(tmpreg, paicpu(p)^.oper[0]) and
+                               (curProp^.regs[tmpReg].typ in [con_ref,con_noRemoveRef]) then
+                              begin
+                                with curprop^.regs[tmpreg] Do
+                                  begin
+                                    incState(wstate,1);
+ { also store how many instructions are part of the sequence in the first }
+ { instruction's PPaiProp, so it can be easily accessed from within       }
+ { CheckSequence                                                          }
+                                    inc(nrOfMods, nrOfInstrSinceLastMod[tmpreg]);
+                                    ppaiprop(startmod^.optinfo)^.regs[tmpreg].nrOfMods := nrOfMods;
+                                    nrOfInstrSinceLastMod[tmpreg] := 0;
+                                   { Destroy the contents of the registers  }
+                                   { that depended on the previous value of }
+                                   { this register                          }
+                                    invalidateDependingRegs(curprop,tmpreg);
+                                end;
+                            end
+                          else
+                            begin
+{$ifdef statedebug}
+                              hp := new(pai_asm_comment,init(strpnew('destroying & initing '+att_reg2str[tmpreg])));
+                              insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
+                              destroyReg(curprop, tmpreg, true);
+                              if not(reginop(tmpreg, paicpu(p)^.oper[0])) then
+                                with curprop^.regs[tmpreg] Do
+                                  begin
+                                    typ := con_ref;
+                                    startmod := p;
+                                    nrOfMods := 1;
+                                  end
+                            end;
+{$ifdef StateDebug}
+                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
+                  InsertLLItem(AsmL, p, p^.next, hp);
+{$endif StateDebug}
                           End;
                         Top_Ref:
+                          { can only be if oper[0] = top_reg }
                           Begin
                             ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
                             ReadRef(CurProp, Paicpu(p)^.oper[1].ref);
                             DestroyRefs(p, Paicpu(p)^.oper[1].ref^, Paicpu(p)^.oper[0].reg);
                           End;
-                      End;
-                    Top_Ref:
-                      Begin {destination is always a register in this case}
-                        ReadRef(CurProp, Paicpu(p)^.oper[0].ref);
-                        TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
-                        If RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^) And
-                           (curProp^.regs[tmpReg].typ in [con_ref,con_noRemoveRef])
-                          Then
-                            Begin
-                              With CurProp^.Regs[TmpReg] Do
-                                Begin
-                                  incState(wstate,1);
- {also store how many instructions are part of the sequence in the first
-  instructions PPaiProp, so it can be easily accessed from within
-  CheckSequence}
-                                  Inc(NrOfMods, NrOfInstrSinceLastMod[TmpReg]);
-                                  PPaiProp(Pai(StartMod)^.OptInfo)^.Regs[TmpReg].NrOfMods := NrOfMods;
-                                  NrOfInstrSinceLastMod[TmpReg] := 0;
-                                  { Destroy the contents of the registers  }
-                                  { that depended on the previous value of }
-                                  { this register                          }
-                                  invalidateDepedingRegs(curProp,tmpReg);
-                                End;
-                            End
-                          Else
-                            Begin
-{$ifdef statedebug}
-                              hp := new(pai_asm_comment,init(strpnew('destroying & initing '+att_reg2str[tmpreg])));
-                              insertllitem(asml,p,p^.next,hp);
-{$endif statedebug}
-                              DestroyReg(CurProp, TmpReg, true);
-                              If Not(RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^)) Then
-                                With CurProp^.Regs[TmpReg] Do
-                                  Begin
-                                    Typ := Con_Ref;
-                                    StartMod := p;
-                                    NrOfMods := 1;
-                                  End
-                            End;
-{$ifdef StateDebug}
-                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
-                  InsertLLItem(AsmL, p, p^.next, hp);
-{$endif StateDebug}
-
                       End;
                     top_symbol,Top_Const:
                       Begin
@@ -2317,12 +2342,12 @@ Begin
       GetNextInstruction(p, p);
     End;
 {Uncomment the next line to see how much memory the reloading optimizer needs}
-{  Writeln((NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4)));}
+{  Writeln(NrOfPaiObjs*SizeOf(TPaiProp));}
 {no need to check mem/maxavail, we've got as much virtual memory as we want}
   If NrOfPaiObjs <> 0 Then
     Begin
       InitDFAPass2 := True;
-      GetMem(PaiPropBlock, NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4));
+      GetMem(PaiPropBlock, NrOfPaiObjs*SizeOf(TPaiProp));
       p := BlockStart;
       SkipHead(p);
       For Count := 1 To NrOfPaiObjs Do
@@ -2362,7 +2387,20 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-10-19 15:59:40  jonas
+  Revision 1.3  2000-10-24 10:40:53  jonas
+    + register renaming ("fixes" bug1088)
+    * changed command line options meanings for optimizer:
+        O2 now means peepholopts, CSE and register renaming in 1 pass
+        O3 is the same, but repeated until no further optimizations are
+          possible or until 5 passes have been done (to avoid endless loops)
+    * changed aopt386 so it does this looping
+    * added some procedures from csopt386 to the interface because they're
+      used by rropt386 as well
+    * some changes to csopt386 and daopt386 so that newly added instructions
+      by the CSE get optimizer info (they were simply skipped previously),
+      this fixes some bugs
+
+  Revision 1.2  2000/10/19 15:59:40  jonas
     * fixed bug in allocregbetween (the register wasn't added to the
       usedregs set of the last instruction of the chain) ("merged")
 
