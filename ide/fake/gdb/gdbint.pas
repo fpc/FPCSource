@@ -166,7 +166,7 @@ end;
                                                                                                                                                                                                                                                                
 function  GDBVersion : string;
 begin
-  Version:='Fake GDB';
+  GDBVersion:='Fake GDB';
 end;
 
 {*****************************************************************************
@@ -266,7 +266,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-07-12 13:08:20  pierre
+  Revision 1.3  1999-07-13 11:25:57  peter
+    * fixed typo in gdbversion
+
+  Revision 1.2  1999/07/12 13:08:20  pierre
     + added GDBVersion function
     * tries to intercept quit command from GDB Window
     + AllowQuit method
