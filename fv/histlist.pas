@@ -240,9 +240,23 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE InsertString (Id: Byte; Const Str: String);
 VAR P1, P2: PChar;
+    P : PHistRec;
 BEGIN
-   While ((HistoryUsed-LongInt(HistoryBlock) +
-    Length(Str) > HistorySize)) Do RunError(199);   { Check sufficient memory }
+  while (HistoryUsed+Length(Str)+3>HistorySize) do
+   begin
+       P:=PHistRec(HistoryBlock);
+       while Pointer(P)<Pointer(HistoryBlock)+HistorySize do
+         begin
+           if Pointer(P)+Length(P^.Str)+6+Length(Str) >
+              Pointer(HistoryBlock)+HistorySize then
+             begin
+               HistoryUsed:=HistoryUsed-(Length(P^.Str)+3);
+               FillChar(P^,Pointer(HistoryBlock)+HistorySize-Pointer(P),#0);
+               break;
+             end;
+           P:=PHistRec(Pointer(P)+Length(P^.Str)+3);
+         end;
+   end;
    P1 := PChar(HistoryBlock)+1;                     { First history record }
    P2 := P1+Length(Str)+3;                          { History record after }
    Move(P1^, P2^, HistoryUsed -
@@ -400,7 +414,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-08-04 19:14:33  peter
+ Revision 1.4  2001-11-07 21:50:40  pierre
+  * copied from fvnew the changed that I made toremove runerror(199)
+
+ Revision 1.3  2001/08/04 19:14:33  peter
    * Added Makefiles
    * added FV specific units and objects from old FV
 
