@@ -1003,7 +1003,7 @@ end;
 Function NanoSleep(const req : timespec;var rem : timespec) : longint;
 
 begin
- nanosleep:=fpnanosleep(req,@rem);
+ nanosleep:=fpnanosleep(@req,@rem);
 end;
 
 Function  OpenDir(f:pchar):pdir;
@@ -3131,7 +3131,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2003-09-16 16:06:02  peter
+  Revision 1.7  2003-09-27 13:49:41  peter
+    * fpnanosleep exported
+
+  Revision 1.6  2003/09/16 16:06:02  peter
     * add typecasts for oldlinuxstat
 
   Revision 1.5  2003/09/16 15:40:31  marco

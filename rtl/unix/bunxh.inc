@@ -97,7 +97,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint;
     Function  FPSelect     (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
     Function  FpIOCtl      (Handle:cint;Ndx: culong;Data: Pointer):cint;
-
+    Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 
     Function  FpGetEnv     (name : pChar): pChar;
     Function  FpGetEnv     (name : String): pChar;
@@ -122,7 +122,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
   $Log$
-  Revision 1.9  2003-09-27 12:51:33  peter
+  Revision 1.10  2003-09-27 13:49:41  peter
+    * fpnanosleep exported
+
+  Revision 1.9  2003/09/27 12:51:33  peter
     * fpISxxx macros renamed to C compliant fpS_ISxxx
 
   Revision 1.8  2003/09/20 12:38:29  marco
