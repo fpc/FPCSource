@@ -6,7 +6,7 @@
 units=compunit
 
 [compiler]
-options=-Ur
+options=-Ur -dNOCATCH
 targetdir=.
 unitdir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET) $(COMPILERDIR)/targets $(COMPILERDIR)/systems
 includedir=$(COMPILERDIR) $(COMPILERDIR)/$(CPU_TARGET)
@@ -34,6 +34,9 @@ ifeq ($(CPU_TARGET),i386)
 # the x86 dir doesn't hurt for 1.0.x though we could leave it away
 override FPCOPT+= -Fu$(COMPILERDIR)/x86
 #-dSUPPORT_MMX
+endif
+ifeq ($(CPU_TARGET),x86_64)
+override FPCOPT+= -Fu$(COMPILERDIR)/x86 -dNOOPT
 endif
 
 [rules]
