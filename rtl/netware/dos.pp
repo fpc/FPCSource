@@ -39,7 +39,7 @@ uses
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_GETCBREAK}
-{$DEFINE HAS_SETSBREAK}
+{$DEFINE HAS_SETCBREAK}
 {$DEFINE HAS_KEEP}
 
 {$define FPC_FEXPAND_DRIVES}
@@ -422,7 +422,7 @@ end;
 procedure setftime(var f;time : longint);
 begin
   {is there a netware function to do that ?????}
-  ConsolePrintf ('warning: fpc dos.setftime not implemented'#13#10,0);
+  ConsolePrintf ('warning: fpc dos.setftime not implemented'#13#10);
 end;
 
 
@@ -440,7 +440,7 @@ end;
 procedure setfattr(var f;attr : word);
 begin
   {is there a netware function to do that ?????}
-  ConsolePrintf ('warning: fpc dos.setfattr not implemented'#13#10,0);
+  ConsolePrintf ('warning: fpc dos.setfattr not implemented'#13#10);
 end;
 
 
@@ -451,14 +451,14 @@ end;
 function envcount : longint;
 begin
   envcount := 0;  {is there a netware function to do that ?????}
-  ConsolePrintf ('warning: fpc dos.envcount not implemented'#13#10,0);
+  ConsolePrintf ('warning: fpc dos.envcount not implemented'#13#10);
 end;
 
 
 function envstr (index: longint) : string;
 begin
   envstr := '';   {is there a netware function to do that ?????}
-  ConsolePrintf ('warning: fpc dos.envstr not implemented'#13#10,0);
+  ConsolePrintf ('warning: fpc dos.envstr not implemented'#13#10);
 end;
 
 { works fine (at least with netware 6.5) }
@@ -519,7 +519,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.12  2004-12-05 16:44:43  hajny
+  Revision 1.13  2004-12-07 11:03:44  armin
+  * fixed typo's
+
+  Revision 1.12  2004/12/05 16:44:43  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.11  2004/08/01 20:02:48  armin
