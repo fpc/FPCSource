@@ -348,6 +348,38 @@ interface
       else
         { process operands }
         begin
+          case op of
+             A_MFSPR:
+               case taicpu(hp).oper[1].reg of
+                  R_CR:
+                    begin
+                       op:=A_MFCR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  R_LR:
+                    begin
+                       op:=A_MFLR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  else
+                    internalerror(2002100701);
+               end;
+             A_MTSPR:
+               case taicpu(hp).oper[1].reg of
+                  R_CR:
+                    begin
+                       op:=A_MTCR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  R_LR:
+                    begin
+                       op:=A_MTLR;
+                       taicpu(hp).ops:=1;
+                    end;
+                  else
+                    internalerror(2002100701);
+               end;
+          end;
           s:=#9+op2str[op];
           if taicpu(hp).ops<>0 then
             begin
@@ -429,7 +461,7 @@ interface
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
-        (#9'DC.L'#9,#9'DC.W'#9,#9'DC.B'#9);
+        (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
     Function PadTabs(const p:string;addch:char):string;
     var
@@ -561,9 +593,9 @@ interface
             ait_align:
               begin
                  case tai_align(hp).aligntype of
-                   1:AsmWriteLn(#9'ALIGN 0');
-                   2:AsmWriteLn(#9'ALIGN 1');
-                   4:AsmWriteLn(#9'ALIGN 2');
+                   1:AsmWriteLn(#9'align 0');
+                   2:AsmWriteLn(#9'align 1');
+                   4:AsmWriteLn(#9'align 2');
                    otherwise internalerror(10000);
                  end;
               end;
@@ -573,9 +605,9 @@ interface
                  replaced:= ReplaceForbiddenChars(s);
                  if tai_datablock(hp).is_global then
                    if replaced then
-                     AsmWriteLn(#9'EXPORT'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
+                     AsmWriteLn(#9'export'#9+s+' => '''+tai_datablock(hp).sym.name+'''')
                    else
-                     AsmWriteLn(#9'EXPORT'#9+s);
+                     AsmWriteLn(#9'export'#9+s);
                  AsmWriteLn(PadTabs(s,#0)+'DS.B '+tostr(tai_datablock(hp).size));
                  {TODO: ? PadTabs(s,#0) }
               end;
@@ -600,7 +632,7 @@ interface
                end;
             ait_const_symbol:
               begin
-                 AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
+                 AsmWriteLn(#9#9'dd'#9'offset '+tai_const_symbol(hp).sym.name);
                  if tai_const_symbol(hp).offset>0 then
                    AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                  else if tai_const_symbol(hp).offset<0 then
@@ -608,9 +640,9 @@ interface
                  AsmLn;
                end;
             ait_real_32bit:
-              AsmWriteLn(#9'DC.L'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
+              AsmWriteLn(#9'dc.l'#9'"'+single2str(tai_real_32bit(hp).value)+'"');
             ait_real_64bit:
-              AsmWriteLn(#9'DC.D'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
+              AsmWriteLn(#9'dc.d'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
             ait_string:
               begin
                  {NOTE When a single quote char is encountered, it is
@@ -623,7 +655,7 @@ interface
                   Begin
                     for j := 0 to lines-1 do
                      begin
-                       AsmWrite(#9'DC.B'#9);
+                       AsmWrite(#9'dc.b'#9);
                        quoted:=false;
                        for i:=counter to counter+line_length do
                           begin
@@ -656,7 +688,7 @@ interface
                        counter := counter+line_length;
                     end; { end for j:=0 ... }
                   { do last line of lines }
-                  AsmWrite(#9'DC.B'#9);
+                  AsmWrite(#9'dc.b'#9);
                   quoted:=false;
                   for i:=counter to tai_string(hp).len-1 do
                     begin
@@ -764,10 +796,10 @@ ait_stab_function_name : ;
                         begin
                           {
                           if LasTSec<>sec_none then
-                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ENDS');
+                           AsmWriteLn('_'+target_asm.secnames[LasTSec]+#9#9'ends');
                           AsmLn;
                           }
-                          AsmWriteLn(#9'END');
+                          AsmWriteLn(#9'end');
                           AsmClose;
                           DoAssemble;
                           AsmCreate(tai_cut(hp).place);
@@ -915,7 +947,7 @@ ait_stab_function_name : ;
       WriteTree(resourcestringlist);
       WriteTree(bsssegment);
 
-      AsmWriteLn(#9'END');
+      AsmWriteLn(#9'end');
       AsmLn;
 
 {$ifdef EXTDEBUG}
@@ -943,7 +975,7 @@ ait_stab_function_name : ;
             labelprefix : '@@';
             comment : '; ';
             secnames : ('',
-              'CSECT','CSECT','CSECT',  {TODO: Perhaps use other section types.}
+              'csect','csect','csect',  {TODO: Perhaps use other section types.}
               '','','','','','',
               '','','')
           );
@@ -953,7 +985,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-10-06 22:46:20  florian
+  Revision 1.9  2002-10-07 21:19:53  florian
+    * more mpw fixes
+
+  Revision 1.8  2002/10/06 22:46:20  florian
     * fixed function exporting
 
   Revision 1.7  2002/10/02 22:14:15  florian
@@ -969,4 +1004,3 @@ end.
     + target macos for ppc added
     + frame work for mpw assembler output
 }
-
