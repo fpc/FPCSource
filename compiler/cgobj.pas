@@ -1191,7 +1191,7 @@ unit cgobj;
             {!! this is a terrible hack, normally the helper should get three params : }
             {    one with self register, one with flag and one with VMT pointer        }
             {reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);}
-            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, getintparaloc(2);
+            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, getintparaloc(2));
 
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
@@ -1344,7 +1344,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.33  2002-07-07 09:52:32  florian
+  Revision 1.34  2002-07-07 10:05:34  florian
+    * typo fixed
+
+  Revision 1.33  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 
