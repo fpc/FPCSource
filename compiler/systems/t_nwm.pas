@@ -352,7 +352,11 @@ begin
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT (');
+  {$ifdef NETWARE_LIBC}
+  s2 := FindObjectFile('nwplibc','',false);
+  {$else}
   s2 := FindObjectFile('nwpre','',false);
+  {$endif}
   Comment (V_Debug,'adding Object File '+s2);
   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
@@ -376,10 +380,16 @@ begin
   {$endif}
   
   { start and stop-procedures }
+  {$ifdef NETWARE_LIBC}
+  NLMConvLinkFile.Add ('START _LibCPrelude');
+  NLMConvLinkFile.Add ('EXIT _LibCPostlude');
+  NLMConvLinkFile.Add ('CHECK _LibCCheckUnload');
+  {$else}
   NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
   NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
   NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
-
+  {$endif}
+  
   if not (cs_link_strip in aktglobalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
@@ -463,7 +473,8 @@ begin
       end
      else
       { really, i think it is possible }
-      Comment(V_Error,'Exporting of variables is not supported under netware');
+      {Comment(V_Error,'Exporting of variables is not supported under netware');}
+      Message1(parser_e_no_export_of_variables_for_target,'netware');
      hp2:=texported_item(hp2.next);
    end;
 
@@ -569,7 +580,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-08-01 19:29:06  armin
+  Revision 1.14  2004-08-30 11:17:34  armin
+  * added support for libc
+
+  Revision 1.13  2004/08/01 19:29:06  armin
   * changes to compile fpc on netware
 
   Revision 1.12  2004/07/30 16:00:19  armin
