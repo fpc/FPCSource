@@ -153,7 +153,7 @@ endif
 
 # Targets
 
-override DIROBJECTS+=$(wildcard compiler rtl utils packages fcl ide)
+override DIROBJECTS+=$(wildcard compiler rtl utils packages ide)
 
 # Clean
 
