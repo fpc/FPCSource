@@ -312,8 +312,7 @@ implementation
           subn,
           unaryminusn :
             begin
-              if is_integer(ld) or
-                 (ld.deftype=floatdef) then
+              if (ld.deftype in [orddef,enumdef,floatdef]) then
                 exit;
 
 {$ifdef SUPPORT_MMX}
@@ -327,8 +326,7 @@ implementation
 
           notn :
             begin
-              if is_integer(ld) or
-                 is_boolean(ld) then
+              if (ld.deftype in [orddef,enumdef,floatdef]) then
                 exit;
 
 {$ifdef SUPPORT_MMX}
@@ -2035,7 +2033,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.118  2005-02-20 13:12:22  peter
+  Revision 1.119  2005-03-10 00:15:20  peter
+  don't allow overloading orddef,enumdef.floatdef for unary operators
+
+  Revision 1.118  2005/02/20 13:12:22  peter
     * allow assignment to elements of constant dyn array in delphi mode
 
   Revision 1.117  2005/02/14 17:13:06  peter
