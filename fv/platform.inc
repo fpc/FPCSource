@@ -198,6 +198,20 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$DEFINE OS_UNIX}
 {$ENDIF}
 
+{------------------------------------------------}
+{  FPC Netware COMPILER changes operating system }
+{------------------------------------------------}
+{$IFDEF Netware}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_NETWARE}
+  {$IFDEF NETWARE_LIBC}
+    {$DEFINE OS_NETWARE_LIBC}
+  {$ELSE}
+    {$DEFINE OS_NETWARE_CLIB}
+  {$ENDIF}
+  {$DEFINE HasSysMsgUnit}
+{$ENDIF}
+
 {---------------------------------------------------------------------------}
 {  FPC GO32V2 COMPILER changes operating system - Updated 27Aug98 LdB       }
 {---------------------------------------------------------------------------}
@@ -386,7 +400,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.13  2004-11-04 20:57:58  peter
+ Revision 1.14  2004-11-06 19:19:31  armin
+ * added targets netware and netwlibc
+
+ Revision 1.13  2004/11/04 20:57:58  peter
  sysmsgs is always available
 
  Revision 1.12  2004/11/03 20:33:05  peter

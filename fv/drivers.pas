@@ -83,6 +83,13 @@ USES
      {$endif}
    {$ENDIF}
 
+   {$IFDEF OS_NETWARE_LIBC}
+      libc,
+   {$ENDIF}
+   {$IFDEF OS_NETWARE_CLIB}
+      nwserv,
+   {$ENDIF}
+
    video,
    SysMsg,
    FVCommon, Objects;                                 { GFV standard units }
@@ -721,6 +728,21 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetDosTicks:=MemL[$40:$6c];
   end;
 {$ENDIF OS_DOS}
+{$IFDEF OS_NETWARE_LIBC}
+var
+  tv : TTimeVal;
+  tz : TTimeZone;
+  begin
+    fpGetTimeOfDay(tv,tz);
+    GetDosTicks:=((tv.tv_sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 549
+  end;
+{$ENDIF}
+{$IFDEF OS_NETWARE_CLIB}
+  begin
+    GetDosTicks := Nwserv.GetCurrentTicks;
+  end;
+{$ENDIF}
+
 
 {---------------------------------------------------------------------------}
 {                UNINITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES                }
@@ -1443,7 +1465,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.43  2004-11-06 17:08:48  peter
+ Revision 1.44  2004-11-06 19:19:30  armin
+ * added targets netware and netwlibc
+
+ Revision 1.43  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }

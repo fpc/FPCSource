@@ -185,6 +185,10 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
   USES Dos;
 {$endif OS_GO32}
 
+{$ifdef OS_NETWARE}
+  USES Dos;
+{$endif OS_GO32}
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -317,6 +321,11 @@ BEGIN
  {settime is dummy in Linux}
 END;
 {$endif OS_UNIX}
+{$IFDEF OS_NETWARE}
+BEGIN
+ {settime is dummy in Netware (Libc and Clib) }
+END;
+{$ENDIF OS_NETWARE}
 
 {---------------------------------------------------------------------------}
 {  GetTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Nov97 LdB           }
@@ -429,6 +438,11 @@ BEGIN
   Dos.GetTime(Hour,Minute,Second,Sec100);
 END;
 {$endif OS_UNIX}
+{$IFDEF OS_NETWARE}
+BEGIN
+  Dos.GetTime(Hour,Minute,Second,Sec100);
+END;
+{$ENDIF OS_NETWARE}
 
 {---------------------------------------------------------------------------}
 {  MinutesToTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19Jun97 LdB     }
@@ -453,7 +467,10 @@ END.
 
 {
  $Log$
- Revision 1.12  2004-11-06 17:08:48  peter
+ Revision 1.13  2004-11-06 19:19:31  armin
+ * added targets netware and netwlibc
+
+ Revision 1.12  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
