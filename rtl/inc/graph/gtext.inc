@@ -48,9 +48,9 @@
         First_char: byte;     { first character in file               }
         cdefs :     integer;  { offset to character definitions       }
         scan_flag:  byte;     { TRUE if char is scanable              }
-        org_to_cap: shortint; { Height from origin to top of capitol}
-        org_to_base:shortint; { Height from origin to baseline        }
-        org_to_dec: shortint; { Height from origin to bot of decender }
+        org_to_cap: shortint;     { Height from origin to top of capitol  }
+        org_to_base:shortint;     { Height from origin to baseline        }
+        org_to_dec: shortint;     { Height from origin to bot of decender }
         _reserved: array[1..4] of char;
         Unused: byte;
       end;
@@ -615,11 +615,54 @@
             Currenttextinfo.charsize:=charsize;
 
          { This is only valid for stroked fonts }
+{$ifdef logging}
+         LogLn('(org_to_cap - org_to_dec): ' + strf(
+                fonts[Currenttextinfo.font].header.org_to_cap-
+                fonts[Currenttextinfo.font].header.org_to_dec));
+{$endif logging}
          if (charsize <> usercharsize) then
-         begin
-            CurrentXRatio := charsize / 4.0;
-            CurrentYRatio := charsize / 4.0;
-         end;
+           Case CharSize of
+             1: Begin
+                  CurrentXRatio := 0.55;
+                  CurrentYRatio := 0.55;
+                End;
+             2: Begin
+                  CurrentXRatio := 0.65;
+                  CurrentYRatio := 0.65;
+                End;
+             3: Begin
+                  CurrentXRatio := 0.75;
+                  CurrentYRatio := 0.75;
+                End;
+             4: Begin
+                  CurrentXRatio := 1.0;
+                  CurrentYRatio := 1.0;
+                End;
+             5: Begin
+                  CurrentXRatio := 1.3;
+                  CurrentYRatio := 1.3;
+                End;
+             6: Begin
+                  CurrentXRatio := 1.65;
+                  CurrentYRatio := 1.65
+                End;
+             7: Begin
+                  CurrentXRatio := 2.0;
+                  CurrentYRatio := 2.0;
+                End;
+             8: Begin
+                  CurrentXRatio := 2.5;
+                  CurrentYRatio := 2.5;
+                End;
+             9: Begin
+                  CurrentXRatio := 3.0;
+                  CurrentYRatio := 3.0;
+                End;
+             10: Begin
+                   CurrentXRatio := 4.0;
+                   CurrentYRatio := 4.0;
+                 End
+           End;
          { if this is a stroked font then load it if not already loaded }
          { into memory...                                               }
          if (font>DefaultFont) and not assigned(fonts[font].instr) then
@@ -685,25 +728,29 @@
 
     procedure SetUserCharSize(Multx,Divx,Multy,Divy : word);
       begin
-         CurrentXRatio := MultX div DivX;
-         CurrentYRatio := MultY div DivY;
+         CurrentXRatio := MultX / DivX;
+         CurrentYRatio := MultY / DivY;
       end;
 
 {
 $Log$
-Revision 1.2  1999-09-22 13:30:52  jonas
-  * changed org_to_cap, org_to_dec and org_to_base to shortints (from
-    Michael Knapp's gxtext unit, part of the GraphiX package)
-  * in settextstyle, the calculation of the ratios must be done with /,
-    not DIV!!
+Revision 1.3  1999-09-22 14:54:11  jonas
+  * changed ratios so font sizes on screen are the same as with TP
+  * SetUserCharSize must also use / instead of DIV
 
+Revision 1.2  1999/09/22 13:30:52  jonas  
+  * changed org_to_cap, org_to_dec and org_to_base to shortint (from
+    Michael Knapp's gxtext unit, part of the GraphiX package)
+  * in settextstyle, the calculation of the ratios must be done
+    with /, not DIV!!
+                
 Revision 1.1  1999/09/22 13:13:36  jonas
   * renamed text.inc -> gtext.inc to avoid conflict with system unit
   * fixed textwidth
   * isgraphmode now gets properly updated, so mode restoring works
     again
 
-Revision 1.7  1999/09/12 17:29:00  jonas
+Revision 1.7 1999/09/12 17:29:00 jonas
   * several changes to internalellipse to make it faster
     and to make sure it updates the ArcCall correctly
     (not yet done for width = 3)
