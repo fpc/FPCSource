@@ -141,7 +141,7 @@
                 methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
                 if assigned(methodtable) then
                   begin
-                     for i:=1 to methodtable^.count do
+                     for i:=0 to methodtable^.count-1 do
                        if methodtable^.entries[i].name^=name then
                          begin
                             MethodAddress:=methodtable^.entries[i].addr;
@@ -167,7 +167,7 @@
                 methodtable:=pmethodnametable((Pointer(c)+vmtMethodTable)^);
                 if assigned(methodtable) then
                   begin
-                     for i:=1 to methodtable^.count do
+                     for i:=0 to methodtable^.count-1 do
                        if methodtable^.entries[i].addr=address then
                          begin
                             MethodName:=methodtable^.entries[i].name^;
@@ -405,7 +405,10 @@
 
 {
   $Log$
-  Revision 1.10  1999-09-12 14:53:26  florian
+  Revision 1.11  1999-09-15 20:28:35  florian
+    * fixed methodname/address: the loops must go from 0 to ...^.count-1
+
+  Revision 1.10  1999/09/12 14:53:26  florian
     + tobject.methodaddress und tobject.methodname durchsucht nun auch
       die Elternklassen
 
