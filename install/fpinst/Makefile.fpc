@@ -1,25 +1,40 @@
 #
-#   Makefile.fpc for FPC installer
+#   Makefile.fpc for Free Pascal API (used by Free Vision) for win32
 #
 
-[targets]
-units=ziptypes unzip
-programs_go32v2=install
-programs_win32=install
-programs_os2=install
-programs_linux=installer
+[defaults]
+defaulttarget=win32
 
-[clean]
-files_linux=install.o
+[targets]
+units=event $(APIOBJECTS)
+examples=$(TESTOBJECTS)
 
 [dirs]
-fpcdir=../..
-unitdir=$(FPCDIR)/fv $(FPCDIR)/api
+fpcdir=../../..
 targetdir=.
+sourcesdir=$(INC)
+
+[libs]
+libname=fpapi
+
+
+[presettings]
+INC=../inc
+
+# Override defaults
+override PASEXT=.pas
+
+include ../test/Makefile.api
+include $(INC)/Makefile.api
 
 
 [rules]
-ifdef inlinux
-installer: install.pas
-        $(COMPILER) -oinstaller install.pas
-endif
+video$(PPUEXT): $(INC)/video.pas video.inc event$(PPUEXT)
+
+keyboard$(PPUEXT): $(INC)/keyboard.pas keyboard.inc event$(PPUEXT)
+
+mouse$(PPUEXT): $(INC)/mouse.pas mouse.inc event$(PPUEXT)
+
+filectrl$(PPUEXT): $(INC)/filectrl.pas filectrl.inc
+
+event$(PPUEXT): event.pas

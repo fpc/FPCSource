@@ -19,8 +19,8 @@ tooldate=1
 
 [presettings]
 # Test dir if none specified
-ifndef BASEINSTALLDIR
-BASEINSTALLDIR=/pptest
+ifndef PREFIXINSTALLDIR
+PREFIXINSTALLDIR=/pptest
 endif
 
 # Directory to the base of the CVS tree
@@ -32,67 +32,78 @@ PACKDIR=$(subst \,/,$(TMP))/pp_tmp
 
 # Use new ppc386
 PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386.exe
+PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles.exe
 
 # Test dir if none specified
 ifndef PACKAGEDIR
 PACKAGEDIR=$(BASEDIR)
 endif
 
+BUILDOPTSGO32V2=OS_TARGET=go32v2 FPC=$(PPNEW) RELEASE=1
+INSTALLOPTSGO32V2=OS_TARGET=go32v2 FPC=$(PPNEW) PPUFILES=$(PPUFILESNEW)
+BUILDOPTSWIN32=OS_TARGET=win32 FPC=$(PPNEW) RELEASE=1
+INSTALLOPTSWIN32=OS_TARGET=win32 FPC=$(PPNEW) PPUFILES=$(PPUFILESNEW)
 
 [rules]
 help:
-	@echo
-	@echo Possible targets are:
-	@echo
-	@echo basego32, basego32.zip
-	@echo basew32,	basew32.zip
-	@echo
-	@exit
+        @echo
+        @echo Possible targets are:
+        @echo
+        @echo basego32, basego32.zip
+        @echo basew32,  basew32.zip
+        @echo
+        @exit
 
 ##########################################################################
 # Install
 ##########################################################################
 
 installer:
-	$(MAKE) -C $(CVSBASE)/rtl/go32v2 all RELEASE=1
-	$(MAKE) -C $(CVSBASE)/api all RELEASE=1
-	$(MAKE) -C $(CVSBASE)/fv all RELEASE=1
-	$(MAKE) -C fpinst all RELEASE=1
+        $(MAKE) -C fpinst all RELEASE=1
 
 ##########################################################################
 # Basego32.zip
 ##########################################################################
 
+p:
+        $(MAKE) -C $(CVSBASE) compiler_install $(INSTALLOPTSGO32V2)
+
 basego32:
-# create dirs
-	$(MKDIR) $(BASEINSTALLDIR)
-	$(MKDIR) $(DOCINSTALLDIR)
-	$(MKDIR) $(BININSTALLDIR)
-	$(MKDIR) $(SOURCEINSTALLDIR)
-# readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
-# bingo32 (cwsdpmi,wmemu387.dxe)
-	$(COPY) bingo32/* $(BININSTALLDIR)
-# source (base)
-	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
-# compiler
-	$(MAKE) -C $(CVSBASE)/compiler cycle OS_TARGET=go32v2 RELEASE=1
-	$(MAKE) -C $(CVSBASE)/compiler install OS_TARGET=go32v2
-# rtl go32v2
-	$(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
-	$(MAKE) -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=go32v2 RELEASE=1 FPC=$(PPNEW)
-# rtl go32v2 libs
-#	$(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
-#	$(MAKE) -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
-# utils
-	$(MAKE) -C $(CVSBASE)/utils clean OS_TARGET=go32v2
-	$(MAKE) -C $(CVSBASE)/utils all OS_TARGET=go32v2 RELEASE=1 FPC=$(PPNEW)
-	$(MAKE) -C $(CVSBASE)/utils install OS_TARGET=go32v2 RELEASE=1 FPC=$(PPNEW)
+# create new compiler
+        $(MAKE) -C $(CVSBASE) compiler_cycle OS_TARGET=go32v2 RELEASE=1
+# clean
+        $(MAKE) -C $(CVSBASE) rtl_clean OS_TARGET=go32v2
+        $(MAKE) -C $(CVSBASE) fcl_clean OS_TARGET=go32v2
+        $(MAKE) -C $(CVSBASE) packages_clean OS_TARGET=go32v2
+        $(MAKE) -C $(CVSBASE) utils_clean OS_TARGET=go32v2
+# build everything
+        $(MAKE) -C $(CVSBASE) rtl_smart $(BUILDOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) fcl_smart $(BUILDOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) packages_smart $(BUILDOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) utils_all $(BUILDOPTSGO32V2)
+# install
+        # create dirs
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(MKDIR) $(DOCINSTALLDIR)
+        $(MKDIR) $(BININSTALLDIR)
+        $(MKDIR) $(SOURCEINSTALLDIR)
+        # readme & whatsnew and docs
+        $(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
+        # bingo32 (cwsdpmi,wmemu387.dxe)
+        $(COPY) bingo32/* $(BININSTALLDIR)
+        # source (base)
+        $(COPY) $(CVSBASE)/Makefile $(CVSBASE)/Makefile.fpc $(SOURCEINSTALLDIR)
+        # install generated things
+        $(MAKE) -C $(CVSBASE) compiler_install $(INSTALLOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) rtl_install $(INSTALLOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) fcl_install $(INSTALLOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) packages_install $(INSTALLOPTSGO32V2)
+        $(MAKE) -C $(CVSBASE) utils_install $(INSTALLOPTSGO32V2)
 
 basego32.zip:
-	$(MAKE) basego32 BASEINSTALLDIR=$(PACKDIR)
-	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/basego32.zip * ; cd $(BASEDIR)
-	$(DELTREE) $(PACKDIR)
+        $(MAKE) basego32 BASEINSTALLDIR=$(PACKDIR)
+        cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/basego32.zip * ; cd $(BASEDIR)
+        $(DELTREE) $(PACKDIR)
 
 
 ##########################################################################
@@ -101,38 +112,38 @@ basego32.zip:
 
 basew32:
 # create dirs
-	$(MKDIR) $(BASEINSTALLDIR)
-	$(MKDIR) $(DOCINSTALLDIR)
-	$(MKDIR) $(BININSTALLDIR)
-	$(MKDIR) $(SOURCEINSTALLDIR)
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(MKDIR) $(DOCINSTALLDIR)
+        $(MKDIR) $(BININSTALLDIR)
+        $(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
+        $(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # source (base)
-	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
+        $(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # readme.txt & whatsnew.txt
-	$(MKDIR) $(BASEINSTALLDIR)
-	$(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(COPY) readme.txt whatsnew.txt $(BASEINSTALLDIR)
 # compiler, the - is necessary because the files sometimes differ
-	-$(MAKE) -C $(CVSBASE)/compiler cycle OS_TARGET=win32 RELEASE=1
-	$(MAKE) -C $(CVSBASE)/compiler install OS_TARGET=win32
+        -$(MAKE) -C $(CVSBASE)/compiler cycle OS_TARGET=win32 RELEASE=1
+        $(MAKE) -C $(CVSBASE)/compiler install OS_TARGET=win32
 # rtl
-	$(MAKE) -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
-	$(MAKE) -C $(CVSBASE)/rtl/win32 install OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
+        $(MAKE) -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
+        $(MAKE) -C $(CVSBASE)/rtl/win32 install OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
 # rtl libs
-#	$(MAKE) -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
-#	$(MAKE) -C $(CVSBASE)/rtl/win32 libinstall OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
+#       $(MAKE) -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
+#       $(MAKE) -C $(CVSBASE)/rtl/win32 libinstall OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
 # utils
-	$(MAKE) -C $(CVSBASE)/utils clean OS_TARGET=win32
-	$(MAKE) -C $(CVSBASE)/utils install OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
+        $(MAKE) -C $(CVSBASE)/utils clean OS_TARGET=win32
+        $(MAKE) -C $(CVSBASE)/utils install OS_TARGET=win32 RELEASE=1 FPC=$(PPNEW)
 
 basew32.zip:
-	$(MAKE) basew32 BASEINSTALLDIR=$(PACKDIR)
-	$(MKDIR) $(PACKAGEDIR)
+        $(MAKE) basew32 BASEINSTALLDIR=$(PACKDIR)
+        $(MKDIR) $(PACKAGEDIR)
 # Maybe you need 4dos for it, becuase unix paths with / are used
-	cd $(PACKDIR)
-	$(ZIPPROG) $(PACKAGEDIR)/basew32.zip *
-	cd $(BASEDIR)
-	$(DELTREE) $(PACKDIR)
+        cd $(PACKDIR)
+        $(ZIPPROG) $(PACKAGEDIR)/basew32.zip *
+        cd $(BASEDIR)
+        $(DELTREE) $(PACKDIR)
 
 
 ##########################################################################
@@ -141,28 +152,28 @@ basew32.zip:
 
 baseemx:
 # create dirs
-	$(MKDIR) $(BASEINSTALLDIR)
-	$(MKDIR) $(DOCINSTALLDIR)
-	$(MKDIR) $(BININSTALLDIR)
-	$(MKDIR) $(SOURCEINSTALLDIR)
+        $(MKDIR) $(BASEINSTALLDIR)
+        $(MKDIR) $(DOCINSTALLDIR)
+        $(MKDIR) $(BININSTALLDIR)
+        $(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
+        $(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # source (base)
-	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
+        $(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # compiler
-	$(MAKE) -C $(CVSBASE)/compiler cycle OS_TARGET=os2 RELEASE=1
-	$(MAKE) -C $(CVSBASE)/compiler install OS_TARGET=os2
+        $(MAKE) -C $(CVSBASE)/compiler cycle OS_TARGET=os2 RELEASE=1
+        $(MAKE) -C $(CVSBASE)/compiler install OS_TARGET=os2
 # rtl os2
-	$(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=os2
-	$(MAKE) -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=os2 RELEASE=1 FPC=$(PPNEW)
+        $(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=os2
+        $(MAKE) -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=os2 RELEASE=1 FPC=$(PPNEW)
 # rtl go32v2 libs
-#	$(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
-#	$(MAKE) -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 FPC=$(PPNEW)
+#       $(MAKE) -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
+#       $(MAKE) -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 FPC=$(PPNEW)
 # utils
-	$(MAKE) -C $(CVSBASE)/utils clean OS_TARGET=os2
-	$(MAKE) -C $(CVSBASE)/utils install OS_TARGET=os2 RELEASE=1 FPC=$(PPNEW)
+        $(MAKE) -C $(CVSBASE)/utils clean OS_TARGET=os2
+        $(MAKE) -C $(CVSBASE)/utils install OS_TARGET=os2 RELEASE=1 FPC=$(PPNEW)
 
 baseemx.zip:
-	$(MAKE) baseemx BASEINSTALLDIR=$(PACKDIR)
-	cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/baseemx.zip * ; cd $(BASEDIR)
-	$(DELTREE) $(PACKDIR)
+        $(MAKE) baseemx BASEINSTALLDIR=$(PACKDIR)
+        cd $(PACKDIR) ; $(ZIPPROG) $(PACKAGEDIR)/baseemx.zip * ; cd $(BASEDIR)
+        $(DELTREE) $(PACKDIR)
