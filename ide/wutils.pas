@@ -340,7 +340,9 @@ begin
     begin
       CharStr:='';
       exit;
-    end;
+    end
+  else if Count>255 then
+    Count:=255;
 {$ifdef FPC}
   CharStr[0]:=chr(Count);
   FillChar(CharStr[1],Count,C);
@@ -1234,7 +1236,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2001-11-18 20:18:54  peter
+  Revision 1.6  2002-03-20 13:48:31  pierre
+   * avoid stack corruption in CharStr if count > 255
+
+  Revision 1.5  2001/11/18 20:18:54  peter
     * use cp_value_equal_const instead of cp_all
 
   Revision 1.4  2001/09/18 15:36:58  pierre
