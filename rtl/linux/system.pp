@@ -94,6 +94,7 @@ end;
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
+  StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
 { Set up signals handlers }
   InstallSignals;
@@ -113,8 +114,8 @@ End.
 
 {
   $Log$
-  Revision 1.4  2002-12-18 17:51:27  peter
-    * fixed ifdef ver1_0
+  Revision 1.5  2002-12-18 20:42:29  peter
+    * initial stacklen setup
 
   Revision 1.3  2002/12/18 16:44:09  marco
    * more new RTL
