@@ -443,6 +443,7 @@ begin
     begin
       WinClipEmpty:=GetTextWinClipboardSize=0;
       SetCmdState(FromWinClipCmds,Not WinClipEmpty);
+      PPW^.disabled:=WinClipEmpty;
     end;
 {$endif WinClipSupported}
   Current := Menu^.Default;
@@ -461,12 +462,14 @@ begin
           begin
             WinClipEmpty:=false;
             SetCmdState(FromWinClipCmds,true);
+            PPW^.disabled:=WinClipEmpty;
             DrawView;
           end
         else if Not WinClipEmpty and (GetTextWinClipboardSize=0) then
           begin
             WinClipEmpty:=true;
             SetCmdState(FromWinClipCmds,false);
+            PPW^.disabled:=WinClipEmpty;
             DrawView;
           end;
       end;
@@ -2532,7 +2535,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2004-02-10 07:16:28  pierre
+  Revision 1.8  2004-02-13 06:26:46  pierre
+  * try to fix webbug 2931 completely
+
+  Revision 1.7  2004/02/10 07:16:28  pierre
   * fix webbug 2932
 
   Revision 1.6  2002/09/09 07:06:53  pierre
