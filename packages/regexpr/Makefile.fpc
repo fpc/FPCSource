@@ -1,0 +1,13 @@
+#
+#   Makefile.fpc for RegExpr
+#
+
+[targets]
+units=regexpr
+examples=test1
+
+[install]
+sourcesubdir=packages
+
+[dirs]
+fpcdir=../..

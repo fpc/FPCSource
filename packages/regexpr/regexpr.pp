@@ -219,9 +219,6 @@ unit regexpr;
 
        function readcharset : tcharset;
 
-         var
-            c1,c2 : char;
-
          begin
             readcharset:=[];
             case currentpos^ of
@@ -468,7 +465,7 @@ unit regexpr;
      function RegExprPos(regexprengine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
 
        var
-          lastpos,startpos : pchar;
+          lastpos : pchar;
 
        function dosearch(regexpr : pregexprentry;pos : pchar) : boolean;
 
@@ -594,7 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-03-19 16:20:44  florian
+  Revision 1.4  2000-04-08 09:31:59  peter
+    * makefiles added
+    * removed notes
+
+  Revision 1.3  2000/03/19 16:20:44  florian
     * some improvements
 
   Revision 1.2  2000/03/14 22:57:51  florian
