@@ -402,7 +402,7 @@ function dos_MatchNext(anchor: PAnchorPath location 'd1'): LongInt; SysCall MOS_
 procedure dos_MatchEnd(anchor: PAnchorPath location 'd1') SysCall MOS_DOSBase 834;
 
 function dos_LockDosList(flags: LongInt location 'd1'): PDOSList; SysCall MOS_DOSBase 654;
-procedure dos_UnLockDosList(flags: LongInt location 'd2'); SysCall MOS_DOSBase 660;
+procedure dos_UnLockDosList(flags: LongInt location 'd1'); SysCall MOS_DOSBase 660;
 function dos_NextDosEntry(dlist: PDOSList location 'd1';
                           flags: LongInt location 'd2'): PDOSList; SysCall MOS_DOSBase 690;
 
@@ -1282,26 +1282,7 @@ begin
 end;
 
 
-{procedure SysInitExecPath;
-var
-  hs   : string[16];
-  link : string;
-  i    : longint;
 begin
-  str(Fpgetpid,hs);
-  hs:='/proc/'+hs+'/exe'#0;
-  i:=Fpreadlink(@hs[1],@link[1],high(link));
-  { it must also be an absolute filename, linux 2.0 points to a memory
-    location so this will skip that }
-  if (i>0) and (link[1]='/') then
-   begin
-     link[0]:=chr(i);
-     ExecPathStr:=link;
-   end;
-end;
-}
-
-Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
   StackLength := InitialStkLen;
@@ -1322,8 +1303,6 @@ Begin
 { Reset IO Error }
   InOutRes:=0;
 { Arguments }
-//  SetupCmdLine;
-//  SysInitExecPath;
   GenerateArgs;
 (* This should be changed to a real value during *)
 (* thread driver initialization if appropriate.  *)
@@ -1331,11 +1310,14 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
-End.
+end.
 
 {
   $Log$
-  Revision 1.11  2004-06-06 19:18:05  karoly
+  Revision 1.12  2004-06-06 23:31:13  karoly
+    * fixed dos_UnLockDosList from being nonsense, and some cleanup
+
+  Revision 1.11  2004/06/06 19:18:05  karoly
     + added support for paramstr(0)
 
   Revision 1.10  2004/06/05 19:49:19  karoly
