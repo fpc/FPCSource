@@ -2918,6 +2918,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
             pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
           pvarsym(p)^.vartype.def^.needs_inittable and
+          (not assigned(pvarsym(p)^.localvarsym)) and
           ((pvarsym(p)^.varspez=vs_value) {or
            (pvarsym(p)^.varspez=vs_const) and
            not(dont_copy_const_param(pvarsym(p)^.definition))}) then
@@ -2948,6 +2949,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           assigned(pvarsym(p)^.vartype.def) and
           not((pvarsym(p)^.vartype.def^.deftype=objectdef) and
           pobjectdef(pvarsym(p)^.vartype.def)^.is_class) and
+          (not assigned(pvarsym(p)^.localvarsym)) and
           pvarsym(p)^.vartype.def^.needs_inittable then
          begin
             { not all kind of parameters need to be finalized  }
@@ -3485,11 +3487,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            initialize(procinfo^.returntype.def,r,ret_in_param(procinfo^.returntype.def));
         end;
 
-      { generate copies of call by value parameters }
-      if not(po_assembler in aktprocsym^.definition^.procoptions) and
-         not (pocall_cdecl in aktprocsym^.definition^.proccalloptions) then
-        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
-
       { initialisize local data like ansistrings }
       case aktprocsym^.definition^.proctypeoption of
          potype_unitinit:
@@ -3504,6 +3501,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
       end;
+
+      { generate copies of call by value parameters }
+      if not(po_assembler in aktprocsym^.definition^.procoptions) and
+         not (pocall_cdecl in aktprocsym^.definition^.proccalloptions) then
+        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
       { add a reference to all call by value/const parameters }
       aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}incr_data);
@@ -4070,7 +4072,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.11  2000-08-19 20:09:33  peter
+  Revision 1.12  2000-08-24 19:07:54  peter
+    * don't initialize if localvarsym is set because that varsym will
+      already be initialized
+    * first initialize local data before copy of value para's (merged)
+
+  Revision 1.11  2000/08/19 20:09:33  peter
     * check size after checking openarray in push_value_para (merged)
 
   Revision 1.10  2000/08/16 13:06:06  florian
