@@ -6,8 +6,8 @@
 units=buildgl
 programs=c_linuxd
 
-[packages]
-fcl=1
+[require]
+packages=fcl
 
 [dirs]
 fpcdir=../../..
