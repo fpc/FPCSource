@@ -140,18 +140,18 @@ begin
  {$endif}
 end;
 
-Function IsATTY (Handle:cint):cint;
+Function IsATTY (Handle:cint):boolean;
 {
   Check if the filehandle described by 'handle' is a TTY (Terminal)
 }
 var
   t : Termios;
 begin
- IsAtty:=TCGetAttr(Handle,t);
+ IsAtty:=TCGetAttr(Handle,t)<>-1;
 end;
 
 
-Function IsATTY(var f: text):cint;
+Function IsATTY(var f: text):boolean;
 {
   Idem as previous, only now for text variables.
 }

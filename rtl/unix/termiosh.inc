@@ -25,14 +25,19 @@ Function  TCGetPGrp   (fd:cint;var id:cint):cint;
 Function  TCFlush     (fd,qsel:cint):cint;
 Function  TCDrain     (fd:cint)     :cint;
 Function  TCFlow      (fd,act:cint) :cint;
-Function  IsATTY      (Handle:cint) :cint;
-Function  IsATTY      (var f:text)  :cint;
+Function  IsATTY      (Handle:cint) :boolean;
+Function  IsATTY      (var f:text)  :boolean;
 function  TTYname     (Handle:cint):string;
 function  TTYname     (var F:Text) :string;
 
 {
     $Log$
-    Revision 1.1  2003-11-19 17:13:00  marco
+    Revision 1.2  2004-07-08 13:23:21  daniel
+      * gpm now uses a Pascal translation of libgpm instead of linking against
+        it.
+      * isatty result type changed into boolean
+
+    Revision 1.1  2003/11/19 17:13:00  marco
      * new termio units
 
 

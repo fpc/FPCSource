@@ -625,7 +625,7 @@ begin
 {$endif CPUI386}
   { check for tty }
   ThisTTY:=TTYName(stdinputhandle);
-  if (IsATTY(stdinputhandle)<>-1) then
+  if IsATTY(stdinputhandle) then
    begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
@@ -899,7 +899,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2004-07-03 13:29:23  daniel
+  Revision 1.22  2004-07-08 13:23:21  daniel
+    * gpm now uses a Pascal translation of libgpm instead of linking against
+      it.
+    * isatty result type changed into boolean
+
+  Revision 1.21  2004/07/03 13:29:23  daniel
     * Compilation fix.
 
   Revision 1.20  2003/11/19 17:11:40  marco

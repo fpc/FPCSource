@@ -1257,7 +1257,7 @@ var
   c : char;
   i : longint;
 Begin
-  if isATTY(F.Handle)<>-1 then
+  if isATTY(F.Handle) then
     begin
       F.BufPos := 0;
       i := 0;
@@ -1566,10 +1566,10 @@ Initialization
   Reset(Input);
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
-  OutputRedir:= IsAtty(TextRec(Output).Handle)=-1;
+  OutputRedir:=not IsAtty(TextRec(Output).Handle);
 { does the input come from another console or from a file? }
   InputRedir :=
-   (IsAtty(TextRec(Input).Handle)=-1) or
+   not IsAtty(TextRec(Input).Handle) or
    (not OutputRedir and
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
@@ -1611,7 +1611,12 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.17  2004-02-08 16:22:20  michael
+  Revision 1.18  2004-07-08 13:23:21  daniel
+    * gpm now uses a Pascal translation of libgpm instead of linking against
+      it.
+    * isatty result type changed into boolean
+
+  Revision 1.17  2004/02/08 16:22:20  michael
   + Moved CRT interface to common include file
 
   Revision 1.16  2003/11/24 22:27:25  michael

@@ -110,23 +110,23 @@ begin
     end;
 end;
 
-Function TCFlush(fd,qsel:cint):cint;
+Function TCFlush(fd,qsel:cint):boolean;
 begin
   TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
 end;
 
-Function IsATTY (Handle:cint):cint;
+Function IsATTY (Handle:cint):boolean;
 {
   Check if the filehandle described by 'handle' is a TTY (Terminal)
 }
 var
   t : Termios;
 begin
- IsAtty:=TCGetAttr(Handle,t);
+ IsAtty:=TCGetAttr(Handle,t)<>-1;
 end;
 
 
-Function IsATTY(var f: text):cint;
+Function IsATTY(var f: text):boolean;
 {
   Idem as previous, only now for text variables.
 }
@@ -136,7 +136,12 @@ end;
 
 {
    $Log$
-   Revision 1.2  2004-02-05 14:00:45  jonas
+   Revision 1.3  2004-07-08 13:23:21  daniel
+     * gpm now uses a Pascal translation of libgpm instead of linking against
+       it.
+     * isatty result type changed into boolean
+
+   Revision 1.2  2004/02/05 14:00:45  jonas
      + some declarations added from other bsds and /usr/include/sys/termios.h
        to termios.inc and termiosproc.inc (by Karl-Michael Schindler)
      + added crt, mouse (because required by keyboard), keyboard, termio,
