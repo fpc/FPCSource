@@ -1213,7 +1213,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2003-03-29 16:55:56  michael
+  Revision 1.16  2003-04-24 11:46:25  florian
+    * fixed wrong newlines
+
+  Revision 1.15  2003/03/29 16:55:56  michael
   + Patch from Mattias Gaertner for single typeinfo
 
   Revision 1.14  2002/09/07 16:01:22  peter
@@ -1221,5 +1224,4 @@ end.
 
   Revision 1.13  2002/04/04 18:32:59  peter
     * merged getpropinfo fix
-
 }

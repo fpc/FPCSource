@@ -211,7 +211,10 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
 
 {
   $Log$
-  Revision 1.4  2003-04-23 22:47:13  florian
+  Revision 1.5  2003-04-24 11:47:21  florian
+    * fixed wrong newlines
+
+  Revision 1.4  2003/04/23 22:47:13  florian
     * fixed compilation
 
   Revision 1.3  2003/04/23 22:19:21  peter
