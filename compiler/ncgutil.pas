@@ -1383,7 +1383,7 @@ implementation
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset)))); }
 
-            if (not is_void(current_procinfo.procdef.rettype.def)) and
+            if assigned(current_procinfo.procdef.funcretsym) and
                (tvarsym(current_procinfo.procdef.funcretsym).refs>0) then
               begin
                 if tvarsym(current_procinfo.procdef.funcretsym).localloc.loc=LOC_REFERENCE then
@@ -2091,7 +2091,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.212  2004-07-17 13:14:17  jonas
+  Revision 1.213  2004-08-23 11:00:06  michael
+  + Patch from Peter to fix debuginfo in constructor.
+
+  Revision 1.212  2004/07/17 13:14:17  jonas
     * don't finalize typed consts (fixes bug3212, but causes memory leak;
       they should be finalized at the end of the module)
 
