@@ -53,6 +53,13 @@ function WriteStr(str: PChar): LongInt; Inline;
 procedure VWritef(format: PChar; argv: Pointer); Inline;
 
 
+{ * calls with tags workarounds (should be removed later)
+  *********************************************************************
+  * }
+
+function CreateNewProcTags(tags: array of dword): PProcess; Inline;
+
+
 
 implementation
 
@@ -115,13 +122,26 @@ end;
 
 
 
+{ * calls with tags workarounds (should be removed later)
+  *********************************************************************
+  * }
+
+function CreateNewProcTags(tags: array of DWord): PProcess; Inline;
+begin
+  CreateNewProcTags:=CreateNewProc(@tags);
+end;
+
+
 begin
   DosBase:=MOS_DOSBase;
 end.
 
 {
   $Log$
-  Revision 1.3  2004-08-09 12:57:07  karoly
+  Revision 1.4  2004-12-10 12:50:35  karoly
+    * more ugly workarounds until compiler gets updated
+
+  Revision 1.3  2004/08/09 12:57:07  karoly
     + added {$INLINE ON} to fix cycle
 
   Revision 1.2  2004/08/09 00:10:19  karoly

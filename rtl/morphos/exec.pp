@@ -27,7 +27,25 @@ var
 {$include execd.inc}
 {$include execf.inc}
 
+
+function NewGetTaskAttrs(Task    : PTask;
+                         Data    : Pointer;
+                         DataSize: Cardinal;
+                         TType   : Cardinal;
+                         Tags    : array of DWord): Cardinal; Inline;
+
 implementation
+
+
+function NewGetTaskAttrs(Task    : PTask;
+                         Data    : Pointer;
+                         DataSize: Cardinal;
+                         TType   : Cardinal;
+                         Tags    : array of DWord): Cardinal; Inline;
+begin
+  NewGetTaskAttrs:=NewGetTaskAttrsA(Task,Data,DataSize,TType,@Tags);
+end;
+
 
 begin
   ExecBase:=MOS_ExecBase;
@@ -35,7 +53,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-08-03 15:35:23  karoly
+  Revision 1.3  2004-12-10 12:50:34  karoly
+    * more ugly workarounds until compiler gets updated
+
+  Revision 1.2  2004/08/03 15:35:23  karoly
     - removed conflicting calls
 
   Revision 1.1  2004/06/13 22:46:36  karoly
