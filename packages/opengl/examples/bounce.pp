@@ -1,18 +1,24 @@
 {
   $Id$
   Bouncing ball demo.  Color index mode only!
- 
+
   This program is in the public domain
   Brian Paul
- 
+
   Converted to Pascal by Peter Vreman
 }
 program bounce;
 uses
   gl,glut;
-  
-{#define COS(X)   cos( (X) * 3.14159/180.0 )
-#define SIN(X)   sin( (X) * 3.14159/180.0 )}
+
+{$MACRO ON}
+
+{$ifdef win32}
+  {$define extdecl := stdcall;}
+{$endif}
+{$ifdef linux}
+  {$define extdecl := cdecl;}
+{$endif}
 
 const
   RED=1;
@@ -66,18 +72,18 @@ begin
      while (b<=360.0) do
       begin
         if (color) then
-	 begin
-  	   glIndexi(RED);
+         begin
+           glIndexi(RED);
            glColor3f(1, 0, 0);
-	 end
-	else
-	 begin   
-  	   glIndexi(WHITE);
+         end
+        else
+         begin
+           glIndexi(WHITE);
            glColor3f(1, 1, 1);
-	 end;  
+         end;
 
         ar:=a * 3.14159/180.0;
-	br:=b * 3.14159/180.0;
+        br:=b * 3.14159/180.0;
         x := COS(br) * COS(ar);
         y := SIN(br) * COS(ar);
         z := SIN(ar);
@@ -92,7 +98,7 @@ begin
         color := not color;
         b:=b+db;
       end;
- 
+
      glEnd();
      a:=a+da;
    end;
@@ -103,7 +109,7 @@ begin
 end;
 
 
-procedure reshape(width,height:longint);cdecl;
+procedure reshape(width,height:longint);extdecl
 var
   aspect : glFloat;
 begin
@@ -116,7 +122,7 @@ begin
 end;
 
 
-procedure key(k:char;x,y:longint);cdecl;
+procedure key(k:char;x,y:longint);extdecl
 begin
   case k of
     #27 :
@@ -125,7 +131,7 @@ begin
 end;
 
 
-procedure draw;cdecl;
+procedure draw;extdecl
 var
   i : GLint;
 begin
@@ -173,7 +179,7 @@ end;
 
 const
   vel0 : glfloat = -100.0;
-procedure idle;cdecl;
+procedure idle;extdecl
 begin
   Zrot:=Zrot+Zstep;
   Xpos:=Xpos+Xvel;
@@ -202,7 +208,7 @@ begin
 end;
 
 
-procedure visible(vis:longint);cdecl;
+procedure visible(vis:longint);extdecl
 begin
   if (vis=GLUT_VISIBLE) then
     glutIdleFunc(@idle)
