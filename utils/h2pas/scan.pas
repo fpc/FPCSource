@@ -32,7 +32,7 @@ unit scan;
    lexlib,yacclib;
 
     const
-       version = '0.99.15';
+       version = '0.99.16';
 
     type
        Char=system.char;
@@ -149,6 +149,7 @@ unit scan;
        c : char;
        aktspace : string;
        block_type : tblocktype;
+       commentstr: string;
 
     const
        in_define : boolean = false;
@@ -393,14 +394,20 @@ begin
                                    if c='/' then
                                     begin
                                       if not stripcomment then
-                                       writeln(outfile,' }');
+                                       write(outfile,' }');
+                                      c:=get_char;
+                                      if (c=newline) then
+                                      begin
+                                        writeln(outfile);
+                                        unget_char(c); 
+                                      end;
                                       flush(outfile);
                                       exit;
                                     end
                                    else
                                     begin
                                       if not stripcomment then
-                                       write(outfile,' ');
+                                       write(outfile,'*');
                                       unget_char(c)
                                     end;
                                   end;
@@ -411,6 +418,12 @@ begin
                                        writeln(outfile);
                                        write(outfile,aktspace);
                                      end;
+                                  end;
+                                { Don't write this thing out, to 
+                                  avoid nested comments.
+                                }  
+                              '{','}' :
+                                  begin
                                   end;
                                 #0 :
                                   commenteof;
@@ -423,8 +436,15 @@ begin
                         end;
   2:
                         begin
+                          commentstr:='';
+                          if (in_define) and not (stripcomment) then
+                          begin
+                             commentstr:='{';
+                          end
+                          else
                           If not stripcomment then
                             write(outfile,aktspace,'{');
+                            
                           repeat
                             c:=get_char;
                             case c of
@@ -432,15 +452,38 @@ begin
                                 begin
                                   unget_char(c);
                                   if not stripcomment then
-                                   writeln(outfile,' }');
+                                    begin
+                                      if in_define then
+                                        begin
+                                          commentstr:=commentstr+' }';  
+                                        end
+                                      else
+                                        begin
+                                          write(outfile,' }'); 
+                                          writeln(outfile); 
+                                        end;
+                                    end;  
                                   flush(outfile);
                                   exit;
                                 end;
+                              { Don't write this comment out, 
+                                to avoid nested comment problems
+                              }  
+                              '{','}' :
+                                  begin
+                                  end;
                               #0 :
                                 commenteof;
                               else
                                 if not stripcomment then
-                                 write(outfile,c);
+                                  begin
+                                    if in_define then
+                                     begin
+                                       commentstr:=commentstr+c;  
+                                     end
+                                    else
+                                      write(outfile,c);
+                                  end;
                             end;
                           until false;
                           flush(outfile);
@@ -698,6 +741,7 @@ begin
                         end;
   61:
                         begin
+                           commentstr:='';
                            in_define:=true;
                            in_space_define:=1;
                            return(DEFINE);

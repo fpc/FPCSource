@@ -133,10 +133,33 @@ program h2pas;
       end;
 
 
+    { This converts pascal reserved words to
+      the correct syntax.
+    }
     function FixId(const s:string):string;
+    const
+     maxtokens = 14;
+     reservedid: array[1..maxtokens] of string[14] = 
+       (
+         'CLASS',
+         'DISPOSE',
+         'FUNCTION',
+         'FALSE',
+         'LABEL',
+         'NEW',
+         'PROPERTY',
+         'PROCEDURE',
+         'RECORD',
+         'REPEAT',
+         'STRING',
+         'TYPE',
+         'TRUE',
+         'UNTIL'
+       );  
       var
         b : boolean;
         up : string;
+        i: integer;
       begin
         if s='' then
          begin
@@ -145,17 +168,14 @@ program h2pas;
          end;
         b:=false;
         up:=Uppercase(s);
-        case up[1] of
-          'C' : b:=(up='CLASS');
-          'D' : b:=(up='DISPOSE');
-          'F' : b:=(up='FUNCTION') or (up='FALSE');
-          'N' : b:=(up='NEW');
-          'P' : b:=(up='PROPERTY') or (up='PROCEDURE');
-          'R' : b:=(up='RECORD') or (up='REPEAT');
-          'S' : b:=(up='STRING');
-          'T' : b:=(up='TYPE') or (up='TRUE');
-          'U' : b:=(up='UNTIL');
-        end;
+        for i:=1 to maxtokens do
+          begin
+            if up=reservedid[i] then
+               begin
+                  b:=true;
+                  break;
+                end;  
+          end;
         if b then
          FixId:='_'+s
         else
@@ -207,6 +227,7 @@ program h2pas;
          reset(tempfile);
          is_sized:=false;
          flag_index:=0;
+         writeln(outfile);
          writeln(outfile,aktspace,'const');
          shift(3);
          while not eof(tempfile) do
@@ -217,6 +238,7 @@ program h2pas;
                 line:=copy(line,1,ps-1)+ph+'_'+copy(line,ps+1,255);
               writeln(outfile,aktspace,line);
            end;
+         writeln(outfile);  
          close(tempfile);
          rewrite(tempfile);
          popshift;
@@ -1639,7 +1661,7 @@ begin
          end;
          if not assigned(yyv[yysp-1]^.p3) then
          begin
-         writeln(outfile,' : longint;');
+         writeln(outfile,' : longint;',aktspace,commentstr);
          writeln(extfile,' : longint;');
          flush(outfile);
          end
@@ -1647,7 +1669,7 @@ begin
          begin
          write(outfile,' : ');
          write_type_specifier(outfile,yyv[yysp-1]^.p3);
-         writeln(outfile,';');
+         writeln(outfile,';',aktspace,commentstr);
          flush(outfile);
          write(extfile,' : ');
          write_type_specifier(extfile,yyv[yysp-1]^.p3);
@@ -1665,7 +1687,7 @@ begin
   29 : begin
          
          (* DEFINE dname SPACE_DEFINE NEW_LINE *)
-         writeln(outfile,'{$define ',yyv[yysp-2]^.p,'}');
+         writeln(outfile,'{$define ',yyv[yysp-2]^.p,'}',aktspace,commentstr);
          flush(outfile);
          if assigned(yyv[yysp-2])then
          dispose(yyv[yysp-2],done);
@@ -1673,7 +1695,7 @@ begin
        end;
   30 : begin
          
-         writeln(outfile,'{$define ',yyv[yysp-1]^.p,'}');
+         writeln(outfile,'{$define ',yyv[yysp-1]^.p,'}',aktspace,commentstr);
          flush(outfile);
          if assigned(yyv[yysp-1])then
          dispose(yyv[yysp-1],done);
@@ -1697,7 +1719,7 @@ begin
          write(outfile,' = ');
          flush(outfile);
          write_expr(outfile,yyv[yysp-1]^.p1);
-         writeln(outfile,';');
+         writeln(outfile,';',aktspace,commentstr);
          popshift;
          if assigned(yyv[yysp-3]) then
          dispose(yyv[yysp-3],done);
@@ -1727,7 +1749,7 @@ begin
          begin
          write(outfile,' : ');
          write_type_specifier(outfile,yyv[yysp-1]^.p3);
-         writeln(outfile,';');
+         writeln(outfile,';',aktspace,commentstr);
          flush(outfile);
          write(extfile,' : ');
          write_type_specifier(extfile,yyv[yysp-1]^.p3);
@@ -7843,7 +7865,9 @@ begin
      Writeln(outfile,aktspace,'  PDouble   = ^Double;');
      Writeln(outfile);
    end;
+  writeln(outfile,'{$IFDEF FPC}');
   writeln(outfile,'{$PACKRECORDS C}');
+  writeln(outfile,'{$ENDIF}');
   writeln(outfile);
 { Open tempfiles }
   Assign(extfile,'ext.tmp');
@@ -7880,8 +7904,9 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-06-23 14:45:37  peter
-    * regenerated
+  Revision 1.11  2004-08-13 02:35:29  carl
+    + bugfixes with C++ comments, they are now placed above the definition
+    * some bugfixes with the _label reserved word.
 
   Revision 1.7  2004/06/20 17:56:05  marco
    Patch from Christian Iversen. ioresult check when opening for output

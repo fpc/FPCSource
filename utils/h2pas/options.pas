@@ -21,7 +21,7 @@ unit options;
 interface
 
 const
-   version = '0.99.15';
+   version = '0.99.16';
 
 var
    inputfilename, outputfilename : string; { Filenames }
@@ -226,7 +226,11 @@ end;
 end.
 {
    $Log$
-   Revision 1.2  2002-09-07 15:40:34  peter
+   Revision 1.3  2004-08-13 02:35:30  carl
+     + bugfixes with C++ comments, they are now placed above the definition
+     * some bugfixes with the _label reserved word.
+
+   Revision 1.2  2002/09/07 15:40:34  peter
      * old logs removed and tabs fixed
 
 }
