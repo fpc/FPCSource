@@ -30,14 +30,12 @@ interface
 
 uses
   sysutils,
-  typinfo;
+  typinfo,
+  windows;
 
 {$i classesh.inc}
 
 implementation
-
-uses
-  windows;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
@@ -51,7 +49,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:07  peter
+  Revision 1.2  2003-10-07 16:20:21  florian
+    * win32 now uses aliases from the windows unit for types like trect
+
+  Revision 1.1  2003/10/06 21:01:07  peter
     * moved classes unit to rtl
 
   Revision 1.1  2003/10/06 20:33:58  peter
