@@ -110,8 +110,8 @@ implementation
         tdummyarray = packed array[0..7] of byte;
 
       const
-         dummyarray1 : tdummyarray = ($00,$00,$00,$80,$00,$00,$30,$43);
-         dummyarray2 : tdummyarray = ($00,$00,$00,$00,$00,$00,$30,$43);
+         dummyarray1 : tdummyarray = ($43,$30,$00,$00,$80,$00,$00,$00);
+         dummyarray2 : tdummyarray = ($43,$30,$00,$00,$00,$00,$00,$00);
 
       var
         tempconst: trealconstnode;
@@ -377,7 +377,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2002-07-12 22:02:22  florian
+  Revision 1.13  2002-07-13 06:49:39  jonas
+    * fixed fpu constants in second_int_to_real (fpu values are also stored
+      in big endian)
+
+  Revision 1.12  2002/07/12 22:02:22  florian
     * fixed to compile with 1.1
 
   Revision 1.11  2002/07/11 14:41:34  florian
