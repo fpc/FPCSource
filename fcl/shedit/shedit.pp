@@ -260,7 +260,6 @@ type
 
 
 
-
 implementation
 
 uses
@@ -372,15 +371,15 @@ end;
 
 procedure TSHTextEdit.SetCursorX(NewCursorX: Integer);
 begin
-  FCursorX := NewCursorX;
   HideCursor;
+  FCursorX := NewCursorX;
   ShowCursor;
 end;
 
 procedure TSHTextEdit.SetCursorY(NewCursorY: Integer);
 begin
-  FCursorY := NewCursorY;
   HideCursor;
+  FCursorY := NewCursorY;
   ShowCursor;
 end;
 
@@ -402,7 +401,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-12-10 15:01:03  peter
+  Revision 1.6  1999-12-22 22:28:09  peter
+    * updates for cursor setting
+    * button press event works
+
+  Revision 1.5  1999/12/10 15:01:03  peter
     * first things for selection
     * Better Adjusting of range/cursor
 

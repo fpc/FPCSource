@@ -64,7 +64,7 @@ begin
   e.shSymbol     := AddSHStyle('Symbol',        colBrown,       colDefault, fsNormal);
   e.shKeyword    := AddSHStyle('Keyword',       colBlack,       colDefault, fsBold);
   e.shComment    := AddSHStyle('Comment',       colDarkCyan,    colDefault, fsItalics);
-  e.shDirective  := AddSHStyle('Directive',     colDarkYellow,  colDefault, fsItalics);
+  e.shDirective  := AddSHStyle('Directive',     colRed,         colDefault, fsItalics);
   e.shNumbers    := AddSHStyle('Numbers',       colDarkMagenta, colDefault, fsNormal);
   e.shCharacters := AddSHStyle('Characters',    colDarkBlue,    colDefault, fsNormal);
   e.shStrings    := AddSHStyle('Strings',       colBlue,        colDefault, fsNormal);
@@ -135,7 +135,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-12-08 01:03:15  peter
+  Revision 1.6  1999-12-22 22:28:08  peter
+    * updates for cursor setting
+    * button press event works
+
+  Revision 1.5  1999/12/08 01:03:15  peter
     * changes so redrawing and walking with the cursor finally works
       correct
 

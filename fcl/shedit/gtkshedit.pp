@@ -150,7 +150,7 @@ begin
 
   edit.GdkWnd := edit.PaintBox^.window;
   edit.GC := gdk_gc_new(edit.GdkWnd);
-  edit.CurGCColor := 0;		// Reset color, because we have a new GC!
+  edit.CurGCColor := 0;         // Reset color, because we have a new GC!
   gdk_gc_copy(edit.GC, PGtkStyle(edit.PaintBox^.thestyle)^.
     fg_gc[edit.PaintBox^.state]);
 
@@ -182,7 +182,7 @@ begin
     GDK_Shift_L..GDK_Hyper_R :
       begin
         // Don't let modifier keys trough as normal keys
-	// *** This doesn't work reliably! (sg)
+        // *** This doesn't work reliably! (sg)
         exit;
       end;
   else
@@ -190,7 +190,7 @@ begin
   end;
   KeyState:=Event^.State;
 
-//  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
+  WriteLn('KeyCode ', KeyCode,'   keystate ',KeyState);
 
   // Calculate the Key modifiers (shiftstate)
   KeyMods := [];
@@ -211,8 +211,15 @@ end;
 
 
 function TGtkSHEdit_ButtonPressEvent(GtkWidget: PGtkWidget; event: PGdkEventButton ;  edit: TGtkSHEdit): Integer; cdecl;
+var
+  px,py : integer;
 begin
-  Writeln('button press');
+  px:=(round(event^.x)-edit.leftindent) div edit.CharW;
+  py:=(round(event^.y)-edit.leftindent) div edit.CharH;
+//  Writeln('button press ',px,',',py);
+  edit.Edit.CursorX:=px;
+  edit.Edit.CursorY:=py;
+  edit.SetFocus;
   Result := 1;
 end;
 
@@ -273,18 +280,23 @@ begin
   gtk_scrolled_window_add_with_viewport(PGtkScrolledWindow(Widget), PaintBox);
   gtk_widget_show(PaintBox);
 
-  PGtkObject(PaintBox)^.flags := PGtkObject(PaintBox)^.flags or GTK_CAN_FOCUS;
+  gtk_widget_set_flags(PGtkWidget(PaintBox),GTK_CAN_FOCUS);
 
   gtk_signal_connect(PGtkObject(PaintBox), 'expose-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_Expose), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'key-press-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
-  gtk_signal_connect_after(PGtkObject(PaintBox), 'button-press-event',
-    GTK_SIGNAL_FUNC(@TGtkSHEdit_KeyPressed), self);
+    GTK_SIGNAL_FUNC(@TGtkSHEdit_Keypressed), self);
+  gtk_signal_connect(PGtkObject(PaintBox), 'button-press-event',
+    GTK_SIGNAL_FUNC(@TGtkSHEdit_ButtonPressEvent), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-in-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusInEvent), self);
   gtk_signal_connect_after(PGtkObject(PaintBox), 'focus-out-event',
     GTK_SIGNAL_FUNC(@TGtkSHEdit_FocusOutEvent), self);
+
+  gtk_widget_set_events(PGtkWidget(Paintbox),
+    GDK_EXPOSURE_MASK or GDK_KEY_PRESS_MASK or GDK_KEY_RELEASE_MASK or
+    GDK_BUTTON_PRESS_MASK or GDK_ENTER_NOTIFY_MASK or GDK_LEAVE_NOTIFY_MASK);
+
   gtk_widget_show(Widget);
 end;
 
@@ -292,9 +304,9 @@ end;
 procedure TGtkSHEdit.SetEdit(AEdit: TSHTextEdit);
 begin
   Edit := AEdit;
-  shWhitespace      := AddSHStyle('Whitespace', colBlack, colWhite, fsNormal);
-  Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite, fsNormal);
-  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlue, fsNormal);
+  shWhitespace      := AddSHStyle('Whitespace', colBlack, colWhite,    fsNormal);
+  Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite,    fsNormal);
+  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colDarkBlue, fsNormal);
 { Install keys }
   Edit.AddKeyDef(@Edit.CursorUp, selClear, 'Cursor up', GDK_Up, []);
   Edit.AddKeyDef(@Edit.CursorDown, selClear, 'Cursor down', GDK_Down, []);
@@ -320,8 +332,9 @@ begin
 
   Edit.AddKeyDef(@Edit.ToggleOverwriteMode, selNothing, 'Toggle overwrite mode', GDK_Insert, []);
   Edit.AddKeyDef(@Edit.EditDelLeft, selClear, 'Delete char left of cursor', GDK_Backspace, []);
-  Edit.AddKeyDef(@Edit.EditDelRight, selClear, 'Delete char right of cursor', GDK_Delete, []);
+  Edit.AddKeyDef(@Edit.EditDelRight, selClear, 'Delete char right of cursor', GDK_Delete_Key, []);
   Edit.AddKeyDef(@Edit.EditDelLine, selClear, 'Delete current line', Ord('Y'), [ssCtrl]);
+  Edit.AddKeyDef(@Edit.EditDelLine, selClear, 'Delete current line', Ord('y'), [ssCtrl]);
   Edit.AddKeyDef(@Edit.EditUndo, selClear, 'Undo last action', GDK_Backspace, [ssAlt]);
   Edit.AddKeyDef(@Edit.EditRedo, selClear, 'Redo last undone action', GDK_Backspace, [ssShift, ssAlt]);
 end;
@@ -466,8 +479,8 @@ begin
         end;
       ' ': begin
           Inc(s);
-	  Inc(CurX1);
-	end;
+          Inc(CurX1);
+        end;
       else begin
         if (CurX1 >= x1) and (CurX1 <= x2) then begin
           SetGCColor(SHStyles^[RequestedColor].Color);
@@ -582,7 +595,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-12-12 17:50:50  sg
+  Revision 1.8  1999-12-22 22:28:08  peter
+    * updates for cursor setting
+    * button press event works
+
+  Revision 1.7  1999/12/12 17:50:50  sg
   * Fixed drawing of selection
   * Several small corrections (removed superfluous local variables etc.)
 
