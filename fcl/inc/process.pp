@@ -438,10 +438,8 @@ begin
     Result:=Result or startf_USEFILLATTRIBUTE;
 end;
 
+{$ifdef unix}
 Type
-{$ifndef unix}
-  PPChar = ^PChar;
-{$endif}
   TPCharArray = Array[Word] of pchar;
   PPCharArray = ^TPcharArray;
 
@@ -477,6 +475,24 @@ begin
     end;
   FreeMem(List);
 end;
+
+{$else}
+
+Function StringsToPChars(List : TStrings): pointer;
+
+var
+  EnvBlock: string;
+  I: Integer;
+
+begin
+  EnvBlock := '';
+  For I:=0 to List.Count-1 do
+    EnvBlock := EnvBlock + List[i] + #0;
+  EnvBlock := EnvBlock + #0;
+  GetMem(Result, Length(EnvBlock));
+  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock));
+end;
+{$endif}
 
 
 {$ifdef unix}
@@ -670,8 +686,10 @@ Procedure TProcess.Execute;
 Var
 {$ifndef unix}
   PName,PDir,PCommandLine : PChar;
-{$endif}
+  FEnv: pointer;
+{$else}
   FEnv : PPChar;
+{$endif}
   FCreationFlags : Cardinal;
 
 begin
@@ -691,7 +709,11 @@ begin
     PDir:=Pchar(FCurrentDirectory);
 {$endif}
   if FEnvironment.Count<>0 then
+{$ifdef unix}
     FEnv:=StringsToPcharList(FEnvironment)
+{$else}
+    FEnv:=StringsToPChars(FEnvironment)
+{$endif}
   else
     FEnv:=Nil;
   FInheritHandles:=True;
@@ -717,7 +739,11 @@ begin
 {$endif}
   FRunning:=True;
   If FEnv<>Nil then
+{$ifdef unix}
     FreePCharList(FEnv);
+{$else}
+    FreeMem(FEnv);
+{$endif}
   if not (csDesigning in ComponentState) and // This would hang the IDE !
      (poWaitOnExit in FProcessOptions) and
       not (poRunSuspended in FProcessOptions) then
@@ -919,7 +945,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2003-10-30 20:34:47  florian
+  Revision 1.19  2004-02-03 08:12:22  michael
+  + Patch from Vincent Snijders to fix passing environment vars in win32
+
+  Revision 1.18  2003/10/30 20:34:47  florian
     * fixed inherited destroy; call of tprocess
 
   Revision 1.17  2003/09/20 12:38:29  marco
