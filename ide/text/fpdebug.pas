@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal Integrated Development Environment
-    Copyright (c) 1998 by Berczi Gabor
+    Copyright (c) 1998-2000 by Pierre Muller
 
     Debugger call routines for the IDE
 
@@ -341,6 +341,9 @@ implementation
 uses
   Dos,Mouse,Video,
   App,Commands,Strings,
+{$ifdef win32}
+  Windebug,
+{$endif win32}
   Systems,
   FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompile,FPIde,FPHelp,
@@ -652,7 +655,7 @@ end;
 
 function  TDebugController.AllowQuit : boolean;
 begin
-  if ConfirmBox('Really quit editor ?',nil,true)=cmOK then
+  if ConfirmBox('Really quit editor?',nil,true)=cmOK then
     begin
       Message(@IDEApp,evCommand,cmQuit,nil);
     end
@@ -821,18 +824,28 @@ end;
 procedure TDebugController.DoDebuggerScreen;
 begin
   if NoSwitch then
-    PopStatus
+    begin
+      PopStatus;
+    end
   else
     IDEApp.ShowIDEScreen;
+{$ifdef win32}
+   ChangeDebuggeeWindowTitleTo(Stopped_State);
+{$endif win32}
 end;
 
 
 procedure TDebugController.DoUserScreen;
 begin
   if NoSwitch then
-    PushStatus('Executable running in another window..')
+    begin
+      PushStatus('Executable running in another window..');
+    end
   else
     IDEApp.ShowUserScreen;
+{$ifdef win32}
+   ChangeDebuggeeWindowTitleTo(Running_State);
+{$endif win32}
 end;
 
 {****************************************************************************
@@ -3217,7 +3230,10 @@ end.
 
 {
   $Log$
-  Revision 1.53  2000-02-07 12:51:32  pierre
+  Revision 1.54  2000-03-06 11:34:25  pierre
+   + windebug unit for Window Title change when debugging
+
+  Revision 1.53  2000/02/07 12:51:32  pierre
    * typo fix
 
   Revision 1.52  2000/02/07 11:50:30  pierre
