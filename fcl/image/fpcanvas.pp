@@ -43,8 +43,8 @@ type
     procedure NotifyCanvas;
   protected
     // flags 0-15 are reserved for FPCustomCanvas
-    procedure SetFlags (index:integer; AValue:boolean);
-    function GetFlags (index:integer) : boolean;
+    procedure SetFlags (index:integer; AValue:boolean); virtual;
+    function GetFlags (index:integer) : boolean; virtual;
     procedure CheckAllocated (ValueNeeded:boolean);
     procedure SetFixedCanvas (AValue : boolean);
     procedure DoAllocateResources; virtual;
