@@ -1171,7 +1171,13 @@ Unit Ra386int;
                         oper.SetSize(typesize,true);
                     end
                    else
-                    if not oper.SetupVar(tempstr,GotOffset) then
+                    if oper.SetupVar(tempstr,GotOffset) then
+                     begin
+                       { force OPR_LOCAL to be a reference }
+                       if oper.opr.typ=OPR_LOCAL then
+                         oper.opr.localforceref:=true;
+                     end
+                   else
                      Message1(sym_e_unknown_id,tempstr);
                    { record.field ? }
                    if actasmtoken=AS_DOT then
@@ -1520,6 +1526,15 @@ Unit Ra386int;
                   Consume(AS_DOT);
                 end;
            end;
+
+          { Word,Dword,etc shall now be seen as normal (pascal) typename identifiers }
+          case actasmtoken of
+            AS_DWORD,
+            AS_BYTE,
+            AS_WORD,
+            AS_QWORD :
+              actasmtoken:=AS_ID;
+          end;
 
           case actasmtoken of
 
@@ -2045,7 +2060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2005-01-25 18:48:34  peter
+  Revision 1.88  2005-01-31 17:07:50  peter
+    * fix [regpara] in intel assembler
+
+  Revision 1.87  2005/01/25 18:48:34  peter
     * spaces in register names
 
   Revision 1.86  2005/01/20 17:05:53  peter

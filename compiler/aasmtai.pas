@@ -175,7 +175,8 @@ interface
         localsymofs : longint;
         localindexreg : tregister;
         localscale : byte;
-        localgetoffset : boolean
+        localgetoffset,
+        localforceref : boolean
       end;
       plocaloper = ^tlocaloper;
 
@@ -540,7 +541,7 @@ interface
           procedure allocate_oper(opers:longint);
           procedure loadconst(opidx:longint;l:aint);
           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset:boolean);
+          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
           procedure loadref(opidx:longint;const r:treference);
           procedure loadreg(opidx:longint;r:tregister);
           procedure loadoper(opidx:longint;o:toper);
@@ -1847,7 +1848,7 @@ implementation
       end;
 
 
-    procedure tai_cpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset:boolean);
+    procedure tai_cpu_abstract.loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
       begin
         if not assigned(s) then
          internalerror(200204251);
@@ -1866,6 +1867,7 @@ implementation
                localindexreg:=indexreg;
                localscale:=scale;
                localgetoffset:=getoffset;
+               localforceref:=forceref;
              end;
            typ:=top_local;
          end;
@@ -2234,7 +2236,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-11-01 10:34:08  peter
+  Revision 1.93  2005-01-31 17:07:50  peter
+    * fix [regpara] in intel assembler
+
+  Revision 1.92  2004/11/01 10:34:08  peter
     * regalloc bind to instructions need to get real ait_instruction
 
   Revision 1.91  2004/10/15 09:14:16  mazen

@@ -138,6 +138,7 @@ interface
 {$ifdef x86}
           scale : byte;
 {$endif x86}
+          forceref,
           getoffset : boolean;
           indexreg : tregister;
           sofs : longint;
@@ -150,6 +151,7 @@ interface
               scale:=op.localoper^.localscale;
 {$endif x86}
               getoffset:=op.localoper^.localgetoffset;
+              forceref:=op.localoper^.localforceref;
               sym:=tabstractnormalvarsym(pointer(op.localoper^.localsym));
               dispose(op.localoper);
               case sym.localloc.loc of
@@ -185,11 +187,16 @@ interface
                     if getoffset then
                       Message(asmr_e_invalid_reference_syntax);
                     { Subscribed access }
-                    if sofs<>0 then
+                    if forceref or
+                       (sofs<>0) then
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
                         reference_reset_base(op.ref^,sym.localloc.register,sofs);
+                        op.ref^.index:=indexreg;
+{$ifdef x86}
+                        op.ref^.scalefactor:=scale;
+{$endif x86}
                       end
                     else
                       begin
@@ -495,7 +502,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-12-12 12:56:18  peter
+  Revision 1.75  2005-01-31 17:07:50  peter
+    * fix [regpara] in intel assembler
+
+  Revision 1.74  2004/12/12 12:56:18  peter
     * compile fixes for x86_64
 
   Revision 1.73  2004/12/03 16:04:47  peter

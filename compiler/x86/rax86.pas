@@ -677,8 +677,9 @@ begin
        OPR_SYMBOL:
          ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_LOCAL :
-         ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,
-                      operands[i].opr.localscale,operands[i].opr.localgetoffset);
+         with operands[i].opr do
+           ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
+                        localscale,localgetoffset,localforceref);
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
@@ -742,7 +743,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2004-10-31 21:45:04  peter
+  Revision 1.21  2005-01-31 17:07:50  peter
+    * fix [regpara] in intel assembler
+
+  Revision 1.20  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 

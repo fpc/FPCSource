@@ -74,7 +74,7 @@ type
       OPR_CONSTANT  : (val:aint);
       OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
       OPR_REFERENCE : (ref:treference);
-      OPR_LOCAL     : (localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
+      OPR_LOCAL     : (localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
       OPR_REGLIST   : (regset : tcpuregisterset);
@@ -1049,7 +1049,7 @@ end;
                 ai.loadsymbol(i-1,symbol,symofs);
               OPR_LOCAL :
                 ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
-                             localscale,localgetoffset);
+                             localscale,localgetoffset,localforceref);
               OPR_REFERENCE:
                 ai.loadref(i-1,ref);
 {$ifdef ARM}
@@ -1569,7 +1569,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.102  2005-01-20 17:05:53  peter
+  Revision 1.103  2005-01-31 17:07:50  peter
+    * fix [regpara] in intel assembler
+
+  Revision 1.102  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.101  2005/01/19 22:19:41  peter
