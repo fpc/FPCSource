@@ -10,7 +10,7 @@ loaders=prt0 cprt0 func dllprt
 units=system posix objpas strings \
       beos \
       dos \
-      sysutils typinfo math varutils \
+      sysutils classes typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo variants types
 rsts=math varutils typinfo
 
@@ -115,9 +115,13 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) beos$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+
+classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
