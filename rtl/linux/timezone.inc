@@ -72,25 +72,32 @@ var
   info : pttinfo;
   i    : longint;
 begin
+{ reset }
+  TZDaylight:=false;
+  TZSeconds:=0;
+  TZName[false]:=nil;
+  TZName[true]:=nil;
+  leap_correct:=0;
+  leap_hit:=0;
+{ get info }
   info:=find_transition(timer);
+  if not assigned(info) then
+   exit;
   TZDaylight:=info^.isdst;
   TZSeconds:=info^.offset;
   i:=0;
-  while (i<num_types) and (i<2) do
+  while (i<num_types) do
    begin
      tzname[types[i].isdst]:=@zone_names[types[i].idx];
      inc(i);
    end;
   tzname[info^.isdst]:=@zone_names[info^.idx];
-  leap_correct:=0;
-  leap_hit:=0;
   i:=num_leaps;
-  while (i>0) do
-   begin
-     if (timer>leaps[i].transition) then
-      break;
-     dec(i);
-   end;
+  repeat
+    if i=0 then
+     exit;
+    dec(i);
+  until (timer>leaps[i].transition);
   leap_correct:=leaps[i].change;
   if (timer=leaps[i].transition) and
      (((i=0) and (leaps[i].change>0)) or
@@ -246,16 +253,28 @@ end;
 
 procedure DoneLocalTime;
 begin
-  freemem(transitions);
-  freemem(type_idxs);
-  freemem(types);
-  freemem(zone_names);
-  freemem(leaps);
+  if assigned(transitions) then
+   freemem(transitions);
+  if assigned(type_idxs) then
+   freemem(type_idxs);
+  if assigned(types) then
+   freemem(types);
+  if assigned(zone_names) then
+   freemem(zone_names);
+  if assigned(leaps) then
+   freemem(leaps);
+  num_transitions:=0;
+  num_leaps:=0;
+  num_types:=0;
 end;
 
 {
   $Log$
-  Revision 1.1  1999-12-01 22:46:59  peter
+  Revision 1.2  1999-12-02 11:25:31  peter
+    * timezone.inc dep for linux.ppu
+    * fixed sigsegvs with wrong timezone settigns
+
+  Revision 1.1  1999/12/01 22:46:59  peter
     + timezone support
 
 }
