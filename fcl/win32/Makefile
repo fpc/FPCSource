@@ -80,6 +80,10 @@ $(PROGNAMES): %:%.pp
 
 classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES)
 
+
+classes.pp:
+	cp $(INCDIR)/classes.pp .
+
 #
 # Generic install and clean targets
 #
