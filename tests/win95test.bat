@@ -27,7 +27,7 @@ make allwebtbsexec
 make alltsexec
 make alltestexec
 cp log go32v2.log
-cp longlong go32v2.longlog
+cp longlog go32v2.longlog
 if "%1"=="go32v2" goto end
 :win32test
 set LONGLOG=1
@@ -50,5 +50,5 @@ make allwebtbsexec
 make alltestexec
 make alltsexec
 cp log win32.log
-cp longlong win32.longlog
+cp longlog win32.longlog
 :end
