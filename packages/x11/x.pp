@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 unit x;
 
    { Changes to the original conversion marked MVC - Michael Van Canneyt}
@@ -567,3 +570,9 @@ unit x;
   implementation
 
 end.
+{
+  $Log$
+  Revision 1.5  2000-03-06 16:15:43  peter
+    * removed comment warnings
+
+}
