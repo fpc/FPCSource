@@ -438,6 +438,8 @@ unit parser;
             CreateBrowserCol;
 {$endif}
 
+          (* Obsolete code aktprocsym
+             is disposed by the localsymtable disposal (PM)
           { Free last aktprocsym }
             if assigned(aktprocsym) and (aktprocsym^.owner=nil) then
              begin
@@ -445,7 +447,7 @@ unit parser;
                if current_module^.is_unit then
                  aktprocsym^.definition^.forwarddef:=false;
                dispose(aktprocsym,done);
-             end;
+             end; *)
           end;
 
          dec(compile_level);
@@ -460,7 +462,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.72  1999-04-26 13:31:36  peter
+  Revision 1.73  1999-05-18 22:35:52  pierre
+   * double dispose of aktprocsym removed
+
+  Revision 1.72  1999/04/26 13:31:36  peter
     * release storenumber,double_checksum
 
   Revision 1.71  1999/03/26 00:05:33  peter
