@@ -1,3 +1,4 @@
+{ %FAIL }
 { Source provided for Free Pascal Bug Report 2174 }
 { Submitted by "Maarten Bekers" on  2002-10-13 }
 { e-mail: fpc@elesoft.net }
