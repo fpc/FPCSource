@@ -142,7 +142,7 @@ implementation
          { the typ of the case expression }
          casedef : pdef;
 
-      procedure newcaselabel(l,h : longint;first:boolean);
+      procedure newcaselabel(l,h : TConstExprInt;first:boolean);
 
         var
            hcaselabel : pcaserecord;
@@ -1259,7 +1259,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-11-29 00:30:37  florian
+  Revision 1.17  2000-12-16 22:45:55  jonas
+    * fixed case statements with int64 values
+
+  Revision 1.16  2000/11/29 00:30:37  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
