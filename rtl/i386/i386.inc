@@ -548,6 +548,7 @@ procedure runerror(w : word);[alias: 'runerror'];
      errorcode:=w;
      exitcode:=w;
      erroraddr:=pointer(get_addr);
+     DoError := TRUE;
      errorbase:=get_error_bp;
      halt(errorcode);
   end;
@@ -727,7 +728,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1998-07-02 12:19:32  carl
+  Revision 1.16  1998-07-02 12:55:04  carl
+    * Put back DoError, DO NOT TOUCH!
+
+  Revision 1.15  1998/07/02 12:19:32  carl
     + IO-Error and Overflow now print address in hex
 
   Revision 1.14  1998/07/01 15:29:58  peter
