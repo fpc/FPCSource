@@ -101,6 +101,7 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 
 	$(MAKE) man_install $(INSTALLOPTS) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
 	$(MAKE) demo_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
+	$(MAKE) doc_install $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-compiler
 	$(MAKE) -C packages/gtk installexamples $(INSTALLOPTS) DOCINSTALLDIR=$(INSTALL_DIR)/usr/share/doc/fp-units-gtk
 
 	touch install-arch-stamp

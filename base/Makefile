@@ -1083,6 +1083,9 @@ demo_install:
 man_install:
 	$(MAKE) -C man installman
 
+doc_install:
+	$(MAKE) -C doc installdoc
+
 
 #######################################
 # Packaging targets

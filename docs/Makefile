@@ -30,7 +30,7 @@ PREFIXINSTALLDIR=/usr
 endif
 
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
+DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif 
 
 #
@@ -441,7 +441,11 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.32  2000-01-14 12:16:40  peter
+# Revision 1.33  2000-01-23 20:15:16  peter
+#   * rpm/deb target in install dir
+#   * install also faq,readme,news for rpm/deb
+#
+# Revision 1.32  2000/01/14 12:16:40  peter
 #   * package generation fixes
 #
 # Revision 1.31  2000/01/11 09:55:36  peter

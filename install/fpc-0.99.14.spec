@@ -47,6 +47,7 @@ NEWPPUFILES=`pwd`/utils/ppufiles
 	make utils_install PP=${NEWPP} PPUFILES=${NEWPPUFILES}
 
 	make demo_install PP=${NEWPP} DOCINSTALLDIR=%{docdir}
+	make doc_install PP=${NEWPP} DOCINSTALLDIR=%{docdir}
 	make man_install PP=${NEWPP}
 	
 %clean
@@ -102,3 +103,7 @@ ldconfig
 /usr/man/man5/fpcmake.5
 /usr/man/man5/ptop.cfg.5
 %{docdir}/examples
+%{docdir}/README
+%{docdir}/NEWS
+%{docdir}/faq.html
+%{docdir}/faq.txt
