@@ -74,15 +74,16 @@ conflict with this manual, authoritative.
 it supports the following operating systems:
 \begin{itemize}
 \item \dos
-\item \linux
+\item \linux % (Intel and m68k)
 \item \amiga (version 0.99.5 only)
 \item \windows
 \item \ostwo (using the EMX package, so it also works on DOS/Windows)
-\item \freebsd (usable, but still under development).
+\item \freebsd
 \item \beos (under development)
 \item \solaris (under development)
 \item \palmos(under development)
-\item \netbsd (under development)
+\item \netbsd 
+\item \openbsd (under development)
 \end{itemize}
 
 \fpc is designed to be, as much as possible, source compatible with
@@ -252,21 +253,26 @@ for \dos or
 \begin{verbatim}
   SET PATH=%PATH%;C:\PP\BIN\WIN32
 \end{verbatim}
-for \windows
+for \windows and finally
+\begin{verbatim}
+  SET PATH=%PATH%;C:\PP\BIN\OS2
+\end{verbatim}
+for \ostwo.
 (Again, assuming that you installed in the default location).
 
 On \ostwo, \fpc installs some libraries from the EMX package if they
-were not yet installed. They are located in the 
+were not yet installed (the installer will notify you if they should be
+installed). They are located in the 
 \begin{verbatim}
 C:\PP\DLL
 \end{verbatim}
 directory. The name of this directory should be added to the \var{LIBPATH}
 directive in the \file{config.sys} file:
 \begin{verbatim}
-LIBPATH=c:\pp\dll
+LIBPATH=XXX;C:\PP\DLL
 \end{verbatim}
-Obviously, any existing directories in the \var{LIBPATH} directive should be
-preserved.
+Obviously, any existing directories in the \var{LIBPATH} directive
+(indicated by \var{XXX} in the above example) should be preserved.
 
 \subsubsection{Optional Installation: The coprocessor emulation}
 For people who have an older CPU type, without math coprocessor (i387)
