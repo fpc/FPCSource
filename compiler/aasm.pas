@@ -901,7 +901,7 @@ uses
       begin
         if not assigned(altsymbol) then
          begin
-           altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),bind,typ);
+           altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),defbind,typ);
            { also copy the amount of references }
            altsymbol.refs:=refs;
            inc(nextaltnr);
@@ -1160,7 +1160,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2001-08-30 19:43:50  peter
+  Revision 1.19  2001-12-31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.18  2001/08/30 19:43:50  peter
     * detect duplicate labels
 
   Revision 1.17  2001/04/13 01:22:06  peter

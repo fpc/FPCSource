@@ -104,6 +104,7 @@ interface
          procedure createsection(sec:tsection);virtual;
          procedure defaultsection(sec:tsection);
          function  sectionsize(s:tsection):longint;
+         function  currsectionsize:longint;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure alloc(len:longint);
          procedure allocalign(len:longint);
@@ -401,6 +402,15 @@ implementation
       end;
 
 
+    function tobjectdata.currsectionsize:longint;
+      begin
+        if assigned(sects[currsec]) then
+         currsectionsize:=sects[currsec].datasize
+        else
+         currsectionsize:=0;
+      end;
+
+
     procedure tobjectdata.setsectionsizes(var s:tsecsize);
       begin
       end;
@@ -568,7 +578,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-04-13 01:22:10  peter
+  Revision 1.8  2001-12-31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.7  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

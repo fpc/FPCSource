@@ -157,6 +157,9 @@ interface
                      end;
                   ait_instruction :
                      begin
+                       { remove cached insentry, because the new code can
+                         require an other less optimized instruction }
+                       taicpu(hp2).ResetPass1;
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
@@ -279,7 +282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-11-02 22:58:01  peter
+  Revision 1.10  2001-12-31 16:54:14  peter
+    * fixed inline crash with assembler routines
+
+  Revision 1.9  2001/11/02 22:58:01  peter
     * procsym definition rewrite
 
   Revision 1.8  2001/10/25 21:22:35  peter
