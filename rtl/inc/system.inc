@@ -607,7 +607,7 @@ begin
   fpc_cpuinit;
   with InitFinalTable do
    begin
-     for i:=1to TableCount do
+     for i:=1 to TableCount do
       begin
         if assigned(Procs[i].InitProc) then
          Procs[i].InitProc();
@@ -864,7 +864,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  2004-01-11 12:21:06  jonas
+  Revision 1.52  2004-01-22 20:12:37  florian
+    * fixed syscall number
+
+  Revision 1.51  2004/01/11 12:21:06  jonas
     * fixed wrong include filename
 
   Revision 1.50  2004/01/11 11:10:07  jonas

@@ -88,7 +88,7 @@ Const
   syscall_nr_getppid                    =  $900000+64;
   syscall_nr_getpgrp                    =  $900000+65;
   syscall_nr_setsid                     =  $900000+66;
-  syscall_nr_sigaction                  =  $900000+$900000+67;
+  syscall_nr_sigaction                  =  $900000+67;
   syscall_nr_sgetmask                   =  $900000+68;
   syscall_nr_ssetmask                   =  $900000+69;
   syscall_nr_setreuid                   =  $900000+70;
@@ -273,7 +273,10 @@ Const
 
 {
     $Log$
-    Revision 1.2  2004-01-21 01:25:19  florian
+    Revision 1.3  2004-01-22 20:12:37  florian
+      * fixed syscall number
+
+    Revision 1.2  2004/01/21 01:25:19  florian
       * corrected syscall numbers
 
     Revision 1.1  2003/08/28 00:08:29  florian
