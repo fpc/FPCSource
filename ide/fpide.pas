@@ -1114,7 +1114,7 @@ var R,R2: TRect;
     D: PCenterDialog;
     M: PFPMemo;
     VSB: PScrollBar;
-    S: PBufStream;
+    S: PFastBufStream;
 begin
   New(S, Init(ReadmeName, stOpenRead, 4096));
   if S^.Status=stOK then
@@ -1217,7 +1217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  2002-09-07 15:40:43  peter
+  Revision 1.20  2002-09-09 06:58:51  pierre
+   + adapted to FastBufStream.readline method
+
+  Revision 1.19  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
   Revision 1.18  2002/09/03 13:58:05  pierre
