@@ -1274,10 +1274,6 @@ implementation
          end;
 
       begin
-{$IfNDef regallocfix}
-        If delsource then
-           del_reference(source);
-{$EndIf regallocfix}
          if (not loadref) and
             ((size<=8) or
              (not(cs_littlesize in aktglobalswitches ) and (size<=12))) then
@@ -1287,10 +1283,8 @@ implementation
               for i:=1 to helpsize do
                 begin
                    emit_ref_reg(A_MOV,S_L,newreference(source),R_EDI);
-{$ifdef regallocfix}
                    If (size = 4) and delsource then
                      del_reference(source);
-{$endif regallocfix}
                    exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,newreference(dest)));
                    inc(source.offset,4);
                    inc(dest.offset,4);
@@ -1299,10 +1293,8 @@ implementation
               if size>1 then
                 begin
                    emit_ref_reg(A_MOV,S_W,newreference(source),R_DI);
-{$ifdef regallocfix}
                    If (size = 2) and delsource then
                      del_reference(source);
-{$endif regallocfix}
                    exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_W,R_DI,newreference(dest)));
                    inc(source.offset,2);
                    inc(dest.offset,2);
@@ -1345,10 +1337,8 @@ implementation
                        emit_reg_reg(A_MOV,S_L,reg32,R_EDI);
                      end;
                    emit_ref_reg(A_MOV,S_B,newreference(source),reg8);
-{$ifdef regallocfix}
                    If delsource then
                      del_reference(source);
-{$endif regallocfix}
                    exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_B,reg8,newreference(dest)));
                    if swap then
                      begin
@@ -1363,20 +1353,14 @@ implementation
            begin
               getexplicitregister32(R_EDI);
               emit_ref_reg(A_LEA,S_L,newreference(dest),R_EDI);
-{$ifdef regallocfix}
-             {is this ok?? (JM)}
-              del_reference(dest);
-{$endif regallocfix}
               exprasmList.concat(Tairegalloc.Alloc(R_ESI));
               if loadref then
                 emit_ref_reg(A_MOV,S_L,newreference(source),R_ESI)
               else
                 begin
                   emit_ref_reg(A_LEA,S_L,newreference(source),R_ESI);
-{$ifdef regallocfix}
                   if delsource then
                     del_reference(source);
-{$endif regallocfix}
                 end;
 
               exprasmList.concat(Taicpu.Op_none(A_CLD,S_NO));
@@ -2985,7 +2969,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-09-30 21:28:34  peter
+  Revision 1.6  2001-10-14 11:49:51  jonas
+    * finetuned register allocation info for assignments
+
+  Revision 1.5  2001/09/30 21:28:34  peter
     * int64->boolean fixed
 
   Revision 1.4  2001/08/30 20:13:57  peter

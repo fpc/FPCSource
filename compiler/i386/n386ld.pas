@@ -658,10 +658,11 @@ implementation
                                 end;
 
                               concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype.def.size,false,false);
+                                left.location.reference,left.resulttype.def.size,true,false);
                               del_reference(left.location.reference);
+                              { done by concatcopy
                               del_reference(right.location.reference);
-                              ungetiftemp(right.location.reference);
+                              ungetiftemp(right.location.reference); }
                            end;
                       end;
 {$ifdef SUPPORT_MMX}
@@ -1084,7 +1085,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-10-04 14:33:28  jonas
+  Revision 1.24  2001-10-14 11:49:51  jonas
+    * finetuned register allocation info for assignments
+
+  Revision 1.23  2001/10/04 14:33:28  jonas
     * fixed range check errors
 
   Revision 1.22  2001/09/09 08:51:09  jonas
