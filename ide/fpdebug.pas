@@ -389,7 +389,7 @@ uses
     Unix,
   {$endif}
 {$endif Unix}
-  Systems,
+  Systems,Globals,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
   Validate,WEditor,WUtils;
@@ -611,7 +611,7 @@ end;
 procedure TDebugController.SetExe(const exefn:string);
   var f : string;
 begin
-  f := GetShortName(GDBFileName(exefn));
+  f := GDBFileName(GetShortName(exefn));
   if (f<>'') and ExistsFile(exefn) then
     begin
       LoadFile(f);
@@ -659,7 +659,8 @@ begin
         s:=copy(f,1,i-1);
         system.delete(f,1,i);
       end;
-    Command('dir '+s);
+    DefaultReplacements(s);
+    Command('dir '+GDBFileName(GetShortName(s)));
   until i=0;
 end;
 
@@ -4056,7 +4057,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-04-02 15:09:38  pierre
+  Revision 1.15  2002-04-03 06:18:30  pierre
+   * fix some win32 GDB filename problems
+
+  Revision 1.14  2002/04/02 15:09:38  pierre
    * fixed wrong exit without unlock
 
   Revision 1.13  2002/04/02 13:23:54  pierre
