@@ -333,16 +333,16 @@ begin
     DoAfterOpen;
     DoAfterScroll;
   except
-    SetState(dsInactive);
-    DoInternalClose;
+    DoInternalClose(false);
     raise;
   end;
 end;
 
-Procedure TDataset.DoInternalClose;
+Procedure TDataset.DoInternalClose(DoCheck : Boolean);
 
 begin
-  CheckBrowsemode;
+  if DoCheck then
+    CheckBrowsemode;
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(-1);
@@ -665,7 +665,7 @@ begin
     If Value then
       DoInternalOpen
     else
-      DoInternalClose;
+      DoInternalClose(True);
   FActive:=Value;
 end;
 
@@ -701,6 +701,9 @@ begin
 {$endif}
 
   SetBufListSize(ABufferCount);
+{$ifdef dsdebug}
+  Writeln('Getting next buffers');
+{$endif}
   GetNextRecords;
 {$Ifdef dsDebug}
   WriteLn(
@@ -1723,7 +1726,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2004-09-26 16:55:24  michael
+  Revision 1.25  2004-10-10 14:25:21  michael
+  + Small fix for close so it does not check browsemode
+
+  Revision 1.24  2004/09/26 16:55:24  michael
   * big patch from Joost van der Sluis
    bufdataset.inc:
     fix getrecord (prior)

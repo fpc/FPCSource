@@ -829,7 +829,7 @@ type
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Procedure DoInternalClose;
+    Procedure DoInternalClose(DoCheck : Boolean);
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
@@ -1305,7 +1305,7 @@ type
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
   {abstracts, must be overidden by descendents}
     function GetNextRecord(Buffer : pchar) : TGetResult; virtual; abstract;
-    function AllocRecord: PChar; virtual; abstract;
+    function AllocRecord(ExtraSize : integer): PChar; virtual; abstract;
     procedure FreeRecord(var Buffer: PChar); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1572,7 +1572,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-09-26 16:55:24  michael
+  Revision 1.25  2004-10-10 14:25:21  michael
+  + Small fix for close so it does not check browsemode
+
+  Revision 1.24  2004/09/26 16:55:24  michael
   * big patch from Joost van der Sluis
    bufdataset.inc:
     fix getrecord (prior)
