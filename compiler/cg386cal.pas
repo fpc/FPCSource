@@ -684,13 +684,36 @@ implementation
                              { member call, ESI isn't modified }
                              loadesi:=false;
                           end;
-                        emit_reg(A_PUSH,S_L,R_ESI);
-                        { but a con- or destructor here would probably almost }
-                        { always be placed wrong }
-                        if is_con_or_destructor then
+                        { direct call to destructor: don't remove data! }
+                        if procinfo^._class^.is_class then
                           begin
-                             CGMessage(cg_w_member_cd_call_from_method);
-                             push_int(0);
+                             if (p^.procdefinition^.proctypeoption=potype_destructor) then
+                               begin
+                                  emit_const(A_PUSH,S_L,0);
+                                  emit_reg(A_PUSH,S_L,R_ESI);
+                               end
+                             else if (p^.procdefinition^.proctypeoption=potype_constructor) then
+                               emit_const(A_PUSH,S_L,0)
+                             else
+                               emit_reg(A_PUSH,S_L,R_ESI);
+                          end
+                        else
+                          begin
+                             if is_con_or_destructor then
+                               begin
+                                  if (p^.procdefinition^.proctypeoption=potype_constructor) then
+                                    begin
+                                       { it's no bad idea, to insert the VMT }
+                                       emit_sym(A_PUSH,S_L,newasmsymbol(
+                                         pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname));
+                                    end
+                                  { destructors haven't to dispose the instance, if this is }
+                                  { a direct call                                           }
+                                  else
+                                    push_int(0);
+                               end
+                             else
+                               emit_reg(A_PUSH,S_L,R_ESI);
                           end;
                      end;
                 end;
@@ -762,7 +785,10 @@ implementation
                         ((p^.methodpointer=nil) or (p^.methodpointer^.treetype=typen)))
                         or
                         (po_staticmethod in p^.procdefinition^.procoptions) or
-                        (p^.procdefinition^.proctypeoption=potype_constructor) or
+                        ((p^.procdefinition^.proctypeoption=potype_constructor) and
+                        { if we call a constructor from anther constructor }
+                        { esi contains self }
+                         (assigned(p^.methodpointer))) or
                         { ESI is loaded earlier }
                         (po_classmethod in p^.procdefinition^.procoptions) then
                          begin
@@ -1292,7 +1318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2000-01-16 22:17:11  peter
+  Revision 1.118  2000-01-20 12:14:47  florian
+    * bug 793 fixed
+
+  Revision 1.117  2000/01/16 22:17:11  peter
     * renamed call_offset to para_offset
 
   Revision 1.116  2000/01/09 12:35:00  jonas
