@@ -1359,8 +1359,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.32  2004-03-02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
+  Revision 1.33  2004-03-02 00:57:01  olle
+    + adding missing log msg: misc fixes
+
+  Revision 1.32  2004/03/02 00:36:33  olle
 
   Revision 1.31  2004/02/27 10:21:05  florian
     * top_symbol killed
