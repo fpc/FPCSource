@@ -53,15 +53,14 @@ type
      constructor dealloc(r : tregister);
   end;
 
-{$ifdef alignreg}
-       { alignment for operator }
-       pai_align = ^tai_align;
-       tai_align = object(tai_align_abstract)
-          reg       : tregister;
-          constructor init(b:byte);
-          constructor init_op(b: byte; _op: byte);
-       end;
-{$endif alignreg}
+  { alignment for operator }
+  pai_align = ^tai_align;
+  tai_align = object(tai_align_abstract)
+     reg       : tregister;
+     constructor init(b:byte);
+     constructor init_op(b: byte; _op: byte);
+     function getfillbuf:pchar;
+  end;
 
   paicpu = ^taicpu;
   taicpu = object(tai)
@@ -166,27 +165,53 @@ uses
       end;
 
 
-{$ifdef alignreg}
 {****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
 
-     constructor tai_align.init(b: byte);
+    constructor tai_align.init(b: byte);
+      begin
+        inherited init(b);
+        reg := R_ECX;
+      end;
 
-       begin
-          inherited init(b);
-          reg := R_ECX;
-       end;
+
+    constructor tai_align.init_op(b: byte; _op: byte);
+      begin
+        inherited init_op(b,_op);
+        reg := R_NO;
+      end;
 
 
-     constructor tai_align.init_op(b: byte; _op: byte);
-
-       begin
-          inherited init_op(b,_op);
-          reg := R_ECX;
-       end;
-
-{$endif alignreg}
+    function tai_align.getfillbuf:pchar;
+      const
+        alignarray:array[0..5] of string[8]=(
+          #$8D#$B4#$26#$00#$00#$00#$00,
+          #$8D#$B6#$00#$00#$00#$00,
+          #$8D#$74#$26#$00,
+          #$8D#$76#$00,
+          #$89#$F6,
+          #$90
+        );
+      var
+        bufptr : pchar;
+        j : longint;
+      begin
+        if not use_op then
+         begin
+           bufptr:=@buf;
+           while (fillsize>0) do
+            begin
+              for j:=0to 5 do
+               if (fillsize>=length(alignarray[j])) then
+                break;
+              move(alignarray[j][1],bufptr^,length(alignarray[j]));
+              inc(bufptr,length(alignarray[j]));
+              dec(fillsize,length(alignarray[j]));
+            end;
+         end;
+        getfillbuf:=pchar(@buf);
+      end;
 
 
 {*****************************************************************************
@@ -206,6 +231,7 @@ uses
          end;
       end;
 
+
     procedure taicpu.loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
       begin
         if opidx>=ops then
@@ -222,6 +248,7 @@ uses
         if assigned(s) then
          inc(s^.refs);
       end;
+
 
     procedure taicpu.loadref(opidx:longint;p:preference);
       begin
@@ -252,6 +279,7 @@ uses
              end;
          end;
       end;
+
 
     procedure taicpu.loadreg(opidx:longint;r:tregister);
       begin
@@ -299,8 +327,10 @@ uses
          insentry:=nil;
          LastInsOffset:=-1;
          InsOffset:=0;
+         InsSize:=0;
 {$endif}
       end;
+
 
     constructor taicpu.op_none(op : tasmop;_size : topsize);
       begin
@@ -395,6 +425,7 @@ uses
          loadref(1,_op2);
       end;
 
+
     constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
       begin
          inherited init;
@@ -435,7 +466,7 @@ uses
          loadreg(2,_op3);
       end;
 
-     constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
+    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -445,7 +476,8 @@ uses
          loadref(2,_op3);
       end;
 
-     constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
+
+    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -455,7 +487,8 @@ uses
          loadreg(2,_op3);
       end;
 
-     constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+
+    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -513,6 +546,7 @@ uses
          loadref(1,_op2);
       end;
 
+
     destructor taicpu.done;
       var
         i : longint;
@@ -527,6 +561,7 @@ uses
               dispose(oper[i-1].ref);
         inherited done;
       end;
+
 
     function taicpu.getcopy:plinkedlist_item;
       var
@@ -622,26 +657,26 @@ uses
       end;
 
 
-procedure taicpu.SwapOperands;
-var
-  p : TOper;
-begin
-  { Fix the operands which are in AT&T style and we need them in Intel style }
-  case ops of
-    2 : begin
-          { 0,1 -> 1,0 }
-          p:=oper[0];
-          oper[0]:=oper[1];
-          oper[1]:=p;
+    procedure taicpu.SwapOperands;
+      var
+        p : TOper;
+      begin
+        { Fix the operands which are in AT&T style and we need them in Intel style }
+        case ops of
+          2 : begin
+                { 0,1 -> 1,0 }
+                p:=oper[0];
+                oper[0]:=oper[1];
+                oper[1]:=p;
+              end;
+          3 : begin
+                { 0,1,2 -> 2,1,0 }
+                p:=oper[0];
+                oper[0]:=oper[2];
+                oper[2]:=p;
+              end;
         end;
-    3 : begin
-          { 0,1,2 -> 2,1,0 }
-          p:=oper[0];
-          oper[0]:=oper[2];
-          oper[2]:=p;
-        end;
-  end;
-end;
+      end;
 
 
 {*****************************************************************************
@@ -831,7 +866,7 @@ begin
      ((InsEntry^.flags and IF_PASS2)<>0) then
    begin
      InsEntry:=nil;
-     InsSize:=-1;
+     InsSize:=0;
    end;
   LastInsOffset:=-1;
 end;
@@ -1565,7 +1600,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:23  peter
+  Revision 1.10  2000-01-12 10:38:18  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.9  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.8  2000/01/07 00:07:24  peter

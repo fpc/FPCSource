@@ -305,7 +305,7 @@ unit ag386bin;
            hp:=newasmsymbol('Ltext'+ToStr(IncludeCount));
            if currpass=1 then
              begin
-                hp^.typ:=AS_LOCAL;
+                hp^.settyp(AS_LOCAL);
                 hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
              end
            else
@@ -364,7 +364,6 @@ unit ag386bin;
 
     function ti386binasmlist.TreePass0(hp:pai):pai;
       var
-        lastsec : tsection;
         l : longint;
       begin
         while assigned(hp) do
@@ -421,10 +420,7 @@ unit ag386bin;
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
              ait_section:
-               begin
-                 objectalloc^.setsection(pai_section(hp)^.sec);
-                 lastsec:=pai_section(hp)^.sec;
-               end;
+               objectalloc^.setsection(pai_section(hp)^.sec);
              ait_symbol :
                pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
              ait_label :
@@ -439,10 +435,7 @@ unit ag386bin;
                end;
              ait_cut :
                if SmartAsm then
-                begin
-                  objectalloc^.resetsections;
-                  objectalloc^.setsection(lastsec);
-                end;
+                break;
            end;
            hp:=pai(hp^.next);
          end;
@@ -486,7 +479,7 @@ unit ag386bin;
                   begin
                     if pai_datablock(hp)^.is_global then
                      begin
-                       pai_datablock(hp)^.sym^.typ:=AS_EXTERNAL;
+                       pai_datablock(hp)^.sym^.settyp(AS_EXTERNAL);
                        pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
                      end
                     else
@@ -496,7 +489,7 @@ unit ag386bin;
                          objectalloc^.sectionalign(4)
                        else if l>1 then
                          objectalloc^.sectionalign(2);
-                       pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
+                       pai_datablock(hp)^.sym^.settyp(AS_LOCAL);
                        pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,
                          pai_datablock(hp)^.size);
                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
@@ -506,9 +499,9 @@ unit ag386bin;
 {$endif}
                    begin
                      if pai_datablock(hp)^.is_global then
-                      pai_datablock(hp)^.sym^.typ:=AS_GLOBAL
+                      pai_datablock(hp)^.sym^.settyp(AS_GLOBAL)
                      else
-                      pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
+                      pai_datablock(hp)^.sym^.settyp(AS_LOCAL);
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
                        objectalloc^.sectionalign(4)
@@ -565,17 +558,17 @@ unit ag386bin;
              ait_symbol :
                begin
                  if pai_symbol(hp)^.is_global then
-                  pai_symbol(hp)^.sym^.typ:=AS_GLOBAL
+                  pai_symbol(hp)^.sym^.settyp(AS_GLOBAL)
                  else
-                  pai_symbol(hp)^.sym^.typ:=AS_LOCAL;
+                  pai_symbol(hp)^.sym^.settyp(AS_LOCAL);
                  pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
              ait_label :
                begin
                  if pai_label(hp)^.is_global then
-                  pai_label(hp)^.l^.typ:=AS_GLOBAL
+                  pai_label(hp)^.l^.settyp(AS_GLOBAL)
                  else
-                  pai_label(hp)^.l^.typ:=AS_LOCAL;
+                  pai_label(hp)^.l^.settyp(AS_LOCAL);
                  pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
              ait_string :
@@ -595,18 +588,8 @@ unit ag386bin;
 
 
     function ti386binasmlist.TreePass2(hp:pai):pai;
-      const
-        alignarray:array[0..5] of string[8]=(
-          #$8D#$B4#$26#$00#$00#$00#$00,
-          #$8D#$B6#$00#$00#$00#$00,
-          #$8D#$74#$26#$00,
-          #$8D#$76#$00,
-          #$89#$F6,
-          #$90
-        );
       var
-        l,j : longint;
-        alignoparray:array[0..63] of byte;
+        l  : longint;
 {$ifdef I386}
         co : comp;
 {$endif I386}
@@ -619,7 +602,7 @@ unit ag386bin;
            if cs_debuginfo in aktmoduleswitches then
             begin
               if (objectoutput^.currsec<>sec_none) and
-                 not(hp^.typ in  [
+                 not(hp^.typ in [
                      ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
@@ -629,25 +612,7 @@ unit ag386bin;
 {$endif GDB}
            case hp^.typ of
              ait_align :
-               begin
-                 if not pai_align(hp)^.use_op then
-                  begin
-                    l:=pai_align(hp)^.fillsize;
-                    while (l>0) do
-                     begin
-                       for j:=0to 5 do
-                        if (l>=length(alignarray[j])) then
-                         break;
-                       objectoutput^.writebytes(alignarray[j][1],length(alignarray[j]));
-                       dec(l,length(alignarray[j]));
-                     end;
-                  end
-                 else
-                  begin
-                    fillchar(alignoparray,pai_align(hp)^.fillsize,pai_align(hp)^.fillop);
-                    objectoutput^.writebytes(alignoparray,pai_align(hp)^.fillsize);
-                  end;
-               end;
+               objectoutput^.writebytes(pai_align(hp)^.getfillbuf^,pai_align(hp)^.fillsize);
              ait_section :
                begin
                  objectoutput^.defaultsection(pai_section(hp)^.sec);
@@ -741,11 +706,32 @@ unit ag386bin;
       var
         hp : pai;
       begin
-        objectalloc^.setsection(sec_code);
+      { reset the asmsymbol list }
+        ResetAsmsymbolList;
         objectoutput^.defaultsection(sec_code);
+
+{$ifdef MULTIPASS}
+      { Pass 0 }
+        currpass:=0;
+        objectalloc^.setsection(sec_code);
+        { start with list 1 }
+        currlistidx:=1;
+        currlist:=list[currlistidx];
+        hp:=pai(currlist^.first);
+        while assigned(hp) do
+         begin
+           hp:=TreePass0(hp);
+           MaybeNextList(hp);
+         end;
+        { leave if errors have occured }
+        if errorcount>0 then
+         exit;
+{$endif}
 
       { Pass 1 }
         currpass:=1;
+        objectalloc^.resetsections;
+        objectalloc^.setsection(sec_code);
 {$ifdef GDB}
         StartFileLineInfo;
 {$endif GDB}
@@ -786,17 +772,33 @@ unit ag386bin;
     procedure ti386binasmlist.writetreesmart;
       var
         hp : pai;
+        startsec : tsection;
       begin
-        objectalloc^.setsection(sec_code);
-        objectoutput^.defaultsection(sec_code);
+        startsec:=sec_code;
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
         hp:=pai(currlist^.first);
         while assigned(hp) do
          begin
+         { reset the asmsymbol list }
+           ResetAsmsymbolList;
+
+{$ifdef MULTIPASS}
+         { Pass 0 }
+           currpass:=0;
+           objectalloc^.resetsections;
+           objectalloc^.setsection(startsec);
+           TreePass0(hp);
+{$endif}
+           { leave if errors have occured }
+           if errorcount>0 then
+            exit;
+
          { Pass 1 }
            currpass:=1;
+           objectalloc^.resetsections;
+           objectalloc^.setsection(startsec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
@@ -811,37 +813,36 @@ unit ag386bin;
 
          { Pass 2 }
            currpass:=2;
+           objectoutput^.defaultsection(startsec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
            hp:=TreePass2(hp);
-
-           if not MaybeNextList(hp) then
-            break;
-
            { leave if errors have occured }
            if errorcount>0 then
             exit;
-           { write the current objectfile }
+
+           { end of lists? }
+           if not MaybeNextList(hp) then
+            break;
+           { if not end then write the current objectfile }
            objectoutput^.donewriting;
+
+           { save section for next loop }
+           startsec:=objectalloc^.currsec;
 
            { we will start a new objectfile so reset everything }
            if (hp^.typ=ait_cut) then
             objectoutput^.initwriting(pai_cut(hp)^.place)
            else
             objectoutput^.initwriting(cut_normal);
-           objectalloc^.resetsections;
-           ResetAsmsymbolList;
 
            { avoid empty files }
            while assigned(hp^.next) and
                  (pai(hp^.next)^.typ in [ait_marker,ait_comment,ait_section,ait_cut]) do
             begin
               if pai(hp^.next)^.typ=ait_section then
-                begin
-                  objectalloc^.setsection(pai_section(hp^.next)^.sec);
-                  objectoutput^.defaultsection(pai_section(hp^.next)^.sec);
-                end;
+               startsec:=pai_section(hp^.next)^.sec;
               hp:=pai(hp^.next);
             end;
 
@@ -862,13 +863,6 @@ unit ag386bin;
         end;
 
       begin
-{$ifdef MULTIPASS}
-        { Process the codesegment twice so the short jmp instructions can
-          be optimized }
-        currpass:=0;
-        TreePass0(pai(codesegment^.first));
-{$endif}
-
         objectalloc^.resetsections;
         objectalloc^.setsection(sec_code);
 
@@ -932,7 +926,12 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.33  2000-01-07 01:14:18  peter
+  Revision 1.34  2000-01-12 10:38:17  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.33  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.32  1999/12/24 15:22:52  peter

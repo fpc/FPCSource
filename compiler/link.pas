@@ -430,13 +430,14 @@ var
   cnt     : longint;
 begin
   MakeStaticLibrary:=false;
-
+{ remove the library, to be sure that it is rewritten }
+  RemoveFile(current_module^.staticlibfilename^);
+{ Call AR }
   smartpath:=current_module^.outputpath^+FixPath(FixFileName(current_module^.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',current_module^.staticlibfilename^);
   Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module^.asmprefix^+'*'+target_info.objext));
   success:=DoExec(FindUtil(binstr),cmdstr,false,true);
-
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
@@ -521,7 +522,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.80  2000-01-11 09:52:06  peter
+  Revision 1.81  2000-01-12 10:38:18  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.80  2000/01/11 09:52:06  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking

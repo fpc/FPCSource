@@ -775,22 +775,24 @@ unit og386cff;
         { fix all section }
         mempos:=0;
         for sec:=low(tsection) to high(tsection) do
-         if s[sec]>0 then
-          begin
-            if not assigned(sects[sec]) then
+         begin
+           if (s[sec]>0) and (not assigned(sects[sec])) then
              createsection(sec);
-            sects[sec]^.size:=s[sec];
-            sects[sec]^.mempos:=mempos;
-            { calculate the alignment }
-            align:=sects[sec]^.align;
-            sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
-            if sects[sec]^.fillsize=align then
-             sects[sec]^.fillsize:=0;
-            { next section position, not for win32 which uses
-              relative addresses }
-            if not win32 then
-              inc(mempos,sects[sec]^.size+sects[sec]^.fillsize);
-          end;
+           if assigned(sects[sec]) then
+            begin
+              sects[sec]^.size:=s[sec];
+              sects[sec]^.mempos:=mempos;
+              { calculate the alignment }
+              align:=sects[sec]^.align;
+              sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
+              if sects[sec]^.fillsize=align then
+               sects[sec]^.fillsize:=0;
+              { next section position, not for win32 which uses
+                relative addresses }
+              if not win32 then
+                inc(mempos,sects[sec]^.size+sects[sec]^.fillsize);
+            end;
+         end;
       end;
 
 
@@ -982,7 +984,12 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.17  2000-01-07 01:14:27  peter
+  Revision 1.18  2000-01-12 10:38:18  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.17  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.16  1999/12/20 22:29:26  pierre

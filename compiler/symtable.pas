@@ -484,9 +484,7 @@ implementation
 {$ifdef BrowserLog}
      ,browlog
 {$endif BrowserLog}
-{$ifdef alignreg}
      ,cpuasm
-{$endif alignreg}
      ;
 
   var
@@ -2771,7 +2769,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2000-01-09 00:37:56  pierre
+  Revision 1.75  2000-01-12 10:38:18  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.74  2000/01/09 00:37:56  pierre
    * avoid testing object types that are simple aliases for unused privates
 
   Revision 1.73  2000/01/07 01:14:41  peter

@@ -3313,7 +3313,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           exprasmlist^.insert(new(pai_align,init_op(16,$90)))
          else
           if not(cs_littlesize in aktglobalswitches) then
-           exprasmlist^.insert(new(pai_align,init_op(16,$90)));
+           exprasmlist^.insert(new(pai_align,init(16)));
        end;
       exprasmlist:=oldexprasmlist;
   end;
@@ -3660,7 +3660,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.68  2000-01-09 12:35:02  jonas
+  Revision 1.69  2000-01-12 10:38:17  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.68  2000/01/09 12:35:02  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the

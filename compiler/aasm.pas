@@ -87,10 +87,11 @@ unit aasm;
 
   { asm symbol functions }
     type
-       TAsmsymtype=(AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
+       TAsmsymtype=(AS_NONE,AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
 
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamedindexobject)
+         orgtyp,
          typ     : TAsmsymtype;
          proclocal : boolean;
          { this need to be incremented with every symbol loading into the
@@ -107,6 +108,7 @@ unit aasm;
          constructor init(const s:string;_typ:TAsmsymtype);
          procedure reset;
          function  is_used:boolean;
+         procedure settyp(t:tasmsymtype);
          procedure setaddress(sec:tsection;offset,len:longint);
          procedure GenerateAltSymbol;
        end;
@@ -191,19 +193,16 @@ unit aasm;
 
        { alignment for operator }
 
-{$ifndef alignreg}
-       pai_align = ^tai_align;
-       tai_align = object(tai)
-{$else alignreg}
        pai_align_abstract = ^tai_align_abstract;
        tai_align_abstract = object(tai)
-{$endif alignreg}
+          buf       : array[0..63] of char; { buf used for fill }
           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
           fillsize  : byte;   { real size to fill }
           fillop    : byte;   { value to fill with - optional }
           use_op    : boolean;
           constructor init(b:byte);
           constructor init_op(b: byte; _op: byte);
+          function getfillbuf:pchar;
        end;
 
        { Insert a section/segment directive }
@@ -706,12 +705,7 @@ uses
                               TAI_ALIGN
  ****************************************************************************}
 
-{$ifndef alignreg}
-     constructor tai_align.init(b: byte);
-{$else alignreg}
      constructor tai_align_abstract.init(b: byte);
-{$endif alignreg}
-
        begin
           inherited init;
           typ:=ait_align;
@@ -725,12 +719,7 @@ uses
        end;
 
 
-{$ifndef alignreg}
-     constructor tai_align.init_op(b: byte; _op: byte);
-{$else alignreg}
      constructor tai_align_abstract.init_op(b: byte; _op: byte);
-{$endif alignreg}
-
        begin
           inherited init;
           typ:=ait_align;
@@ -741,6 +730,13 @@ uses
           fillsize:=0;
           fillop:=_op;
           use_op:=true;
+          fillchar(buf,sizeof(buf),_op)
+       end;
+
+
+     function tai_align_abstract.getfillbuf:pchar;
+       begin
+         getfillbuf:=@buf;
        end;
 
 {****************************************************************************
@@ -831,6 +827,10 @@ uses
 
     procedure tasmsymbol.reset;
       begin
+        { save the original typ if not done yet }
+        if orgtyp=AS_NONE then
+         orgtyp:=typ;
+        { reset section info }
         section:=sec_none;
         address:=0;
         size:=0;
@@ -846,11 +846,21 @@ uses
         is_used:=(refs>0);
       end;
 
+    procedure tasmsymbol.settyp(t:tasmsymtype);
+      begin
+        typ:=t;
+        orgtyp:=t;
+      end;
+
     procedure tasmsymbol.setaddress(sec:tsection;offset,len:longint);
       begin
         section:=sec;
         address:=offset;
         size:=len;
+        { when the typ was reset to External, set it back to the original
+          type it got when defined }
+        if (typ=AS_EXTERNAL) and (orgtyp<>AS_NONE) then
+         typ:=orgtyp;
       end;
 
 
@@ -917,7 +927,7 @@ uses
         hp:=pasmsymbol(asmsymbollist^.search(s));
         if assigned(hp) then
          begin
-           hp^.typ:=_typ;
+           hp^.settyp(_typ);
            newasmsymboltyp:=hp;
            exit;
          end;
@@ -1028,7 +1038,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.70  2000-01-07 01:14:18  peter
+  Revision 1.71  2000-01-12 10:38:16  peter
+    * smartlinking fixes for binary writer
+    * release alignreg code and moved instruction writing align to cpuasm,
+      but it doesn't use the specified register yet
+
+  Revision 1.70  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.69  1999/12/22 01:01:46  peter
