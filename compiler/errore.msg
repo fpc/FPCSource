@@ -159,7 +159,6 @@ scan_f_cannot_open_input=02012_F_Can't open file $1
 scan_f_cannot_open_includefile=02013_F_Can't open include file $1
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-
 scan_e_too_much_endifs=02014_E_Too many $ENDIFs or $ELSEs
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_w_only_pack_records=02015_W_Records fields can be aligned to 1,2,4,8,16 or 32 bytes only
@@ -848,6 +847,11 @@ parser_e_procname_to_short_for_export=03159_E_Procedure name to short to be expo
 % file correct with a name of length 1.
 parser_e_dlltool_unit_var_problem=03160_E_No DEFFILE entry can be generated for unit global vars
 parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
+% You need to compile this file without the -WD switch on the
+% commandline
+parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
+% You need to use {$mode objfpc} or {$mode delphi} to compile this file.
+% Or use the equivalent commandline switches -S2 or -Sd.
 % \end{description}
 #
 # Type Checking
@@ -986,6 +990,9 @@ type_e_no_assign_to_const=04032_E_Can't assign values to const variable
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
 % changing make the parameter value or var.
+type_e_array_required=04033_E_Array type required
+% If you are accessing a variable using an index '[<x>]' then
+% the type must be an array. In FPC mode also a pointer is allowed.
 % \end{description}
 #
 # Symtable

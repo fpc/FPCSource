@@ -230,6 +230,7 @@ const
   parser_e_procname_to_short_for_export=03159;
   parser_e_dlltool_unit_var_problem=03160;
   parser_e_dlltool_unit_var_problem2=03161;
+  parser_f_need_objfpc_or_delphi_mode=03162;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -263,6 +264,7 @@ const
   type_e_cannot_local_proc_to_procvar=04030;
   type_e_no_assign_to_addr=04031;
   type_e_no_assign_to_const=04032;
+  type_e_array_required=04033;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -537,9 +539,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 30125;
+  MsgTxtSize = 30227;
 
   MsgIdxMax : array[1..20] of longint=(
-    12,57,162,33,41,41,83,14,30,38,
+    12,57,163,34,41,41,83,14,30,38,
     26,1,1,1,1,1,1,1,1,1
   );

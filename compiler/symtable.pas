@@ -492,6 +492,7 @@ implementation
      ,browlog
 {$endif BrowserLog}
      ,cpuasm
+     ,scanner
      ;
 
   var
@@ -658,6 +659,18 @@ implementation
              else
                Message2(sym_h_duplicate_id_where,current_module^.sourcefiles^.get_file_name(fileindex),tostr(line));
            end;
+       end;
+
+
+     procedure identifier_not_found(const s:string);
+       begin
+         Message1(sym_e_id_not_found,s);
+         { show a fatal that you need -S2 or -Sd, but only
+           if we just parsed the a token that has m_class }
+         if not(m_class in aktmodeswitches) and
+            (s=pattern) and
+            (tokeninfo^[idtoken].keyword=m_class) then
+           Message(parser_f_need_objfpc_or_delphi_mode);
        end;
 
 
@@ -1347,7 +1360,7 @@ implementation
            end;
          if notfounderror then
            begin
-              Message1(sym_e_id_not_found,s);
+              identifier_not_found(s);
               srsym:=generrorsym;
            end
          else
@@ -1373,10 +1386,10 @@ implementation
                        if assigned(srsym) then
                          srsymtable:=psymtable(current_module^.localsymtable)
                        else
-                         Message1(sym_e_id_not_found,s);
+                         identifier_not_found(s);
                     end
                   else
-                    Message1(sym_e_id_not_found,s);
+                    identifier_not_found(s);
                end;
            end;
       end;
@@ -2980,7 +2993,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 18:33:54  peter
+  Revision 1.5  2000-08-20 14:58:41  peter
+    * give fatal if objfpc/delphi mode things are found (merged)
+
+  Revision 1.4  2000/08/16 18:33:54  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)
