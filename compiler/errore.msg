@@ -1198,6 +1198,22 @@ cg_e_cannot_call_cons_dest_inside_with=E_Constructors or destructors can not be 
 cg_e_cannot_call_message_direct=E_Cannot call message handler method directly
 % A message method handler method can't be called directly if it contains an
 % explicit self argument
+cg_e_goto_inout_of_exception_block=E_Jump in or outside of an exception block
+% It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
+% \begin{verbatim}
+% label 1;
+%
+% ...
+%
+% try
+%    if not(final) then
+%      goto 1;   // this line will cause an error
+% finally
+%   ...
+% end;
+% 1:
+% ...
+% \end{verbatim}
 % \end{description}
 # EndOfTeX
 

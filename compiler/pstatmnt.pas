@@ -1029,6 +1029,7 @@ unit pstatmnt;
          code : ptree;
          labelnr : pasmlabel;
          filepos : tfileposinfo;
+         sr : plabelsym;
 
       label
          ready;
@@ -1057,6 +1058,7 @@ unit pstatmnt;
                             else
                               begin
                                 code:=genlabelnode(goton,plabelsym(srsym)^.lab);
+                                code^.labsym:=plabelsym(srsym);
                                 { set flag that this label is used }
                                 plabelsym(srsym)^.used:=true;
                               end;
@@ -1107,17 +1109,20 @@ unit pstatmnt;
                      begin
                         consume(token);
                         consume(_COLON);
-                        if plabelsym(srsym)^.defined then
+                        { we must preserve srsym to set code later }
+                        sr:=plabelsym(srsym);
+                        if sr^.defined then
                           Message(sym_e_label_already_defined);
-                        plabelsym(srsym)^.defined:=true;
+                        sr^.defined:=true;
 
                         { statement modifies srsym }
-                        labelnr:=plabelsym(srsym)^.lab;
+                        labelnr:=sr^.lab;
                         lastsymknown:=false;
                         { the pointer to the following instruction }
                         { isn't a very clean way                   }
                         code:=gensinglenode(labeln,statement{$ifndef tp}(){$endif});
                         code^.labelnr:=labelnr;
+                        sr^.code:=code;
                         { sorry, but there is a jump the easiest way }
                         goto ready;
                      end;
@@ -1323,7 +1328,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.115  1999-12-01 22:43:17  peter
+  Revision 1.116  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.115  1999/12/01 22:43:17  peter
     * fixed sigsegv with casedef=nil
 
   Revision 1.114  1999/12/01 12:42:32  peter

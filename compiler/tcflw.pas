@@ -38,6 +38,10 @@ interface
     procedure firsttryfinally(var p : ptree);
     procedure firston(var p : ptree);
 
+var
+   { the block node of the current exception block to check gotos }
+   aktexceptblock : ptree;
+
 
 implementation
 
@@ -378,6 +382,7 @@ implementation
     procedure firstlabel(var p : ptree);
       begin
          cleartempgen;
+         p^.exceptionblock:=aktexceptblock;
          firstpass(p^.left);
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -429,15 +434,24 @@ implementation
 *****************************************************************************}
 
     procedure firsttryexcept(var p : ptree);
+
+      var
+         oldexceptblock : ptree;
+
       begin
          cleartempgen;
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=p^.left;
          firstpass(p^.left);
-
+         aktexceptblock:=oldexceptblock;
          { on statements }
          if assigned(p^.right) then
            begin
               cleartempgen;
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.right;
               firstpass(p^.right);
+              aktexceptblock:=oldexceptblock;
               p^.registers32:=max(p^.registers32,p^.right^.registers32);
               p^.registersfpu:=max(p^.registersfpu,p^.right^.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -447,7 +461,10 @@ implementation
          { else block }
          if assigned(p^.t1) then
            begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.t1;
               firstpass(p^.t1);
+              aktexceptblock:=oldexceptblock;
               p^.registers32:=max(p^.registers32,p^.t1^.registers32);
               p^.registersfpu:=max(p^.registersfpu,p^.t1^.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -462,14 +479,24 @@ implementation
 *****************************************************************************}
 
     procedure firsttryfinally(var p : ptree);
+
+      var
+         oldexceptblock : ptree;
+
       begin
          p^.resulttype:=voiddef;
          cleartempgen;
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=p^.left;
          firstpass(p^.left);
+         aktexceptblock:=oldexceptblock;
          set_varstate(p^.left,true);
 
          cleartempgen;
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=p^.right;
          firstpass(p^.right);
+         aktexceptblock:=oldexceptblock;
          set_varstate(p^.right,true);
          if codegenerror then
            exit;
@@ -482,6 +509,10 @@ implementation
 *****************************************************************************}
 
     procedure firston(var p : ptree);
+
+      var
+         oldexceptblock : ptree;
+
       begin
          { that's really an example procedure for a firstpass :) }
          cleartempgen;
@@ -504,7 +535,10 @@ implementation
          cleartempgen;
          if assigned(p^.right) then
            begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.right;
               firstpass(p^.right);
+              aktexceptblock:=oldexceptblock;
               p^.registers32:=max(p^.registers32,p^.right^.registers32);
               p^.registersfpu:=max(p^.registersfpu,p^.right^.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -517,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-12-13 11:21:24  peter
+  Revision 1.31  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.30  1999/12/13 11:21:24  peter
     * better position for for counter errors
 
   Revision 1.29  1999/12/09 23:18:05  pierre

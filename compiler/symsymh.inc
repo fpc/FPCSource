@@ -60,6 +60,7 @@
           lab     : pasmlabel;
           used,
           defined : boolean;
+          code : pointer; { should be ptree! }
           constructor init(const n : string; l : pasmlabel);
           destructor done;virtual;
           constructor load;
@@ -311,7 +312,10 @@
 
 {
   $Log$
-  Revision 1.42  1999-11-30 10:40:56  peter
+  Revision 1.43  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.42  1999/11/30 10:40:56  peter
     + ttype, tsymlist
 
   Revision 1.41  1999/11/26 00:19:12  peter

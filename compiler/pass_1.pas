@@ -362,6 +362,7 @@ implementation
 
     function do_firstpass(var p : ptree) : boolean;
       begin
+         aktexceptblock:=nil;
          codegenerror:=false;
          firstpass(p);
          do_firstpass:=codegenerror;
@@ -371,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.110  1999-11-30 10:40:44  peter
+  Revision 1.111  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.110  1999/11/30 10:40:44  peter
     + ttype, tsymlist
 
   Revision 1.109  1999/11/18 15:34:47  pierre

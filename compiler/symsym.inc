@@ -213,6 +213,7 @@
          lab:=l;
          used:=false;
          defined:=false;
+         code:=nil;
       end;
 
     constructor tlabelsym.load;
@@ -223,6 +224,7 @@
          { this is all dummy
            it is only used for local browsing }
          lab:=nil;
+         code:=nil;
          used:=false;
          defined:=true;
       end;
@@ -2123,7 +2125,10 @@
 
 {
   $Log$
-  Revision 1.132  1999-12-01 12:42:33  peter
+  Revision 1.133  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.132  1999/12/01 12:42:33  peter
     * fixed bug 698
     * removed some notes about unused vars
 

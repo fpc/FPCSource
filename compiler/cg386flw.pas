@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-99 by Florian Klaempfl
 
     Generate i386 assembler for nodes that influence the flow
 
@@ -40,7 +40,6 @@ interface
     procedure secondon(var p : ptree);
     procedure secondfail(var p : ptree);
 
-
 implementation
 
     uses
@@ -48,7 +47,7 @@ implementation
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
-      cgai386,tgeni386;
+      cgai386,tgeni386,tcflw;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -521,6 +520,8 @@ do_jmp:
 
        begin
          emitjmp(C_None,p^.labelnr);
+         if aktexceptblock<>ptree(p^.labsym^.code)^.exceptionblock then
+           CGMessage(cg_e_goto_inout_of_exception_block);
        end;
 
 
@@ -596,6 +597,7 @@ do_jmp:
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
          lastonlabel : pasmlabel;
+         oldexceptblock : ptree;
 
       begin
          { this can be called recursivly }
@@ -616,7 +618,10 @@ do_jmp:
          emitjmp(C_NE,exceptlabel);
 
          { try code }
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=p^.left;
          secondpass(p^.left);
+         aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
 
@@ -628,7 +633,12 @@ do_jmp:
          emitlab(doexceptlabel);
 
          if assigned(p^.right) then
-           secondpass(p^.right);
+           begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.right;
+              secondpass(p^.right);
+              aktexceptblock:=oldexceptblock;
+           end;
 
          emitlab(lastonlabel);
          { default handling }
@@ -639,8 +649,14 @@ do_jmp:
               }
               push_int (-1);
               emitcall('FPC_CATCHES');
-              maybe_loadesi;
-              secondpass(p^.t1);
+              if assigned(p^.t1) then
+                begin
+                   maybe_loadesi;
+                   oldexceptblock:=aktexceptblock;
+                   aktexceptblock:=p^.t1;
+                   secondpass(p^.t1);
+                   aktexceptblock:=oldexceptblock;
+                end;
               emitcall('FPC_POPOBJECTSTACK');
               maybe_loadesi;
            end
@@ -661,6 +677,7 @@ do_jmp:
       var
          nextonlabel : pasmlabel;
          ref : treference;
+         oldexceptblock : ptree;
 
       begin
          getlabel(nextonlabel);
@@ -683,9 +700,12 @@ do_jmp:
 
          if assigned(p^.right) then
            begin
-             { esi is destroyed by FPC_CATCHES }
-             maybe_loadesi;
-             secondpass(p^.right);
+              { esi is destroyed by FPC_CATCHES }
+              maybe_loadesi;
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.right;
+              secondpass(p^.right);
+              aktexceptblock:=oldexceptblock;
            end;
 
 
@@ -713,6 +733,7 @@ do_jmp:
          finallylabel,noreraiselabel : pasmlabel;
          oldaktexitlabel,exitfinallylabel : pasmlabel;
          oldaktexit2label : pasmlabel;
+         oldexceptblock : ptree;
 
       begin
          { we modify EAX }
@@ -734,14 +755,23 @@ do_jmp:
          emitjmp(C_NE,finallylabel);
 
          { try code }
-         secondpass(p^.left);
-         if codegenerror then
-           exit;
+         if assigned(p^.left) then
+           begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=p^.left;
+              secondpass(p^.left);
+              if codegenerror then
+                exit;
+              aktexceptblock:=oldexceptblock;
+           end;
 
          emitlab(finallylabel);
          emitcall('FPC_POPADDRSTACK');
          { finally code }
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=p^.right;
          secondpass(p^.right);
+         aktexceptblock:=oldexceptblock;
          if codegenerror then
            exit;
          emit_reg(A_POP,S_L,R_EAX);
@@ -776,7 +806,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.60  1999-12-01 12:36:23  peter
+  Revision 1.61  1999-12-14 09:58:41  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.60  1999/12/01 12:36:23  peter
     * fixed selfpointer after destroyexception
 
   Revision 1.59  1999/11/30 10:40:42  peter

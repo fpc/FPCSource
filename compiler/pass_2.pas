@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-99 by Florian Klaempfl
 
     This unit handles the codegeneration pass
 
@@ -45,6 +45,9 @@ implementation
      cobjects,comphook,verbose,globals,files,
      symconst,symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen,cpubase,cpuasm
+{$ifndef newcg}
+     ,tcflw
+{$endif newcg}
 {$ifdef GDB}
      ,gdb
 {$endif}
@@ -430,7 +433,7 @@ implementation
          { clear register count }
          clearregistercount;
          use_esp_stackframe:=false;
-
+         aktexceptblock:=nil;
          if not(do_firstpass(p)) then
            begin
               { max. optimizations     }
@@ -697,7 +700,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-11-30 10:40:44  peter
+  Revision 1.45  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.44  1999/11/30 10:40:44  peter
     + ttype, tsymlist
 
   Revision 1.43  1999/11/18 15:34:47  pierre

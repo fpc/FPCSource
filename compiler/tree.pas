@@ -239,7 +239,7 @@ unit tree;
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
-             labeln,goton : (labelnr : pasmlabel);
+             labeln,goton : (labelnr : pasmlabel;exceptionblock : ptree;labsym : plabelsym);
              withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap,forcevaria,novariaallowed: boolean;constructdef:pdef);
@@ -1233,6 +1233,7 @@ unit tree;
          { for security }
          { nr^.is_used:=true;}
          p^.labelnr:=nr;
+         p^.exceptionblock:=nil;
          genlabelnode:=p;
       end;
 
@@ -1897,7 +1898,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.104  1999-11-30 10:40:59  peter
+  Revision 1.105  1999-12-14 09:58:42  florian
+    + compiler checks now if a goto leaves an exception block
+
+  Revision 1.104  1999/11/30 10:40:59  peter
     + ttype, tsymlist
 
   Revision 1.103  1999/11/18 15:34:51  pierre
