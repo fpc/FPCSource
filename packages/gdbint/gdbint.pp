@@ -1944,7 +1944,9 @@ end;
 procedure tgdbinterface.SelectSourceLine(fn:pchar;line:longint);
 begin
   if assigned(fn) then
-   DoSelectSourceLine(StrPas(fn),line);
+   DoSelectSourceLine(StrPas(fn),line)
+  else
+   DoSelectSourceLine('',line);
 end;
 
 
@@ -2152,7 +2154,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-03-07 10:39:59  pierre
+  Revision 1.6  2000-04-14 05:37:33  pierre
+   * call DoSelectSourceLine even if fn is empty
+
+  Revision 1.5  2000/03/07 10:39:59  pierre
    + inferior_pid moved to interface
 
   Revision 1.4  2000/02/06 22:32:45  pierre
