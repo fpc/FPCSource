@@ -828,7 +828,13 @@ implementation
                    end;
                end;
 
-              if location.reference.index=R_NO then
+              if location.reference.base=R_NO then
+               begin
+                 location.reference.base:=right.location.register;
+                 cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
+                   right.location.register);
+               end
+              else if location.reference.index=R_NO then
                begin
                  location.reference.index:=right.location.register;
                  cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
@@ -836,24 +842,17 @@ implementation
                end
               else
                begin
-                 if location.reference.base=R_NO then
-                   { this wouldn't make sense for the ppc since there are }
-                   { no scalefactors (JM)                                 }
-                   internalerror(2002072901)
-                 else
-                  begin
-                    cg.a_loadaddr_ref_reg(exprasmlist,location.reference,
-                      location.reference.base);
-                    rg.ungetregisterint(exprasmlist,location.reference.index);
-                    { the symbol offset is loaded,             }
-                    { so release the symbol name and set symbol  }
-                    { to nil                                 }
-                    location.reference.symbol:=nil;
-                    location.reference.offset:=0;
-                    cg.a_op_const_reg(exprasmlist,OP_IMUL,
-                      get_mul_size,right.location.register);
-                    location.reference.index:=right.location.register;
-                  end;
+                 cg.a_loadaddr_ref_reg(exprasmlist,location.reference,
+                   location.reference.base);
+                 rg.ungetregisterint(exprasmlist,location.reference.index);
+                 { the symbol offset is loaded,             }
+                 { so release the symbol name and set symbol  }
+                 { to nil                                 }
+                 location.reference.symbol:=nil;
+                 location.reference.offset:=0;
+                 cg.a_op_const_reg(exprasmlist,OP_IMUL,
+                   get_mul_size,right.location.register);
+                 location.reference.index:=right.location.register;
                end;
 
            end;
@@ -876,7 +875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-08-11 06:14:40  florian
+  Revision 1.21  2002-08-11 11:36:57  jonas
+    * always first try to use base and only then index
+
+  Revision 1.20  2002/08/11 06:14:40  florian
     * fixed powerpc compilation problems
 
   Revision 1.19  2002/08/10 14:46:29  carl
