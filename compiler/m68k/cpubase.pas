@@ -21,7 +21,7 @@
 
  ****************************************************************************
 }
-unit m68k;
+unit cpubase;
 
   interface
 
@@ -266,9 +266,9 @@ unit m68k;
           destructor done;virtual;
        end;
 
-       pai68k = ^tai68k;
+       paicpu = ^taicpu;
 
-       tai68k = object(tai)
+       taicpu = object(tai)
       { this isn't a proper style, but not very memory expensive }
       op1,op2,op3 : pointer;
       _operator : tasmop;
@@ -324,8 +324,12 @@ unit m68k;
 
     const
        maxvarregs = 5;
+       maxfpuvarregs = 8;
        varregs : array[1..maxvarregs] of tregister =
         (R_D2,R_D3,R_D4,R_D5,R_D7);
+       fpuvarregs : array[1..maxfpuvarregs] of tregister =
+        (R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
+         R_FP7);
 
 
     { resets all values of ref to defaults }
@@ -943,10 +947,10 @@ unit m68k;
       end;
 
 {****************************************************************************
-                 TAI68k
+                 Taicpu
  ****************************************************************************}
 
-    constructor tai68k.op_none(op : tasmop;_size : topsize);
+    constructor taicpu.op_none(op : tasmop;_size : topsize);
 
       begin
      inherited init;
@@ -963,7 +967,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
+    constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
 
       begin
      inherited init;
@@ -979,7 +983,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_const(op : tasmop;_size : topsize;_op1 : longint);
+    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : longint);
 
  begin
      inherited init;
@@ -997,7 +1001,7 @@ unit m68k;
 
 
 
-    constructor tai68k.op_ref(op : tasmop;_size : topsize;_op1 : preference);
+    constructor taicpu.op_ref(op : tasmop;_size : topsize;_op1 : preference);
 
       begin
      inherited init;
@@ -1022,7 +1026,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_loc(op : tasmop;_size : topsize;_op1 : tlocation);
+    constructor taicpu.op_loc(op : tasmop;_size : topsize;_op1 : tlocation);
 
       begin
      inherited init;
@@ -1052,7 +1056,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
+    constructor taicpu.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
 
       begin
      inherited init;
@@ -1068,7 +1072,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
+    constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
 
       begin
      inherited init;
@@ -1094,7 +1098,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_reg_loc(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tlocation);
+    constructor taicpu.op_reg_loc(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tlocation);
 
       begin
      inherited init;
@@ -1125,7 +1129,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_loc_reg(op : tasmop;_size : topsize;_op1 : tlocation;_op2 : tregister);
+    constructor taicpu.op_loc_reg(op : tasmop;_size : topsize;_op1 : tlocation;_op2 : tregister);
 
       begin
      inherited init;
@@ -1156,7 +1160,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
 
       begin
      inherited init;
@@ -1171,7 +1175,7 @@ unit m68k;
      op3:=pointer(_op3);
       end;
 
-  constructor tai68k.op_reg_const(op: tasmop; _size: topsize; _op1: tregister; _op2: longint);
+  constructor taicpu.op_reg_const(op: tasmop; _size: topsize; _op1: tregister; _op2: longint);
    begin
     inherited init;
     typ := ait_instruction;
@@ -1185,7 +1189,7 @@ unit m68k;
    end;
 
 
-    constructor tai68k.op_reg_reg_reg(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tregister;_op3 : tregister);
+    constructor taicpu.op_reg_reg_reg(op : tasmop;_size : topsize;_op1 : tregister;_op2 : tregister;_op3 : tregister);
 
       begin
      inherited init;
@@ -1200,7 +1204,7 @@ unit m68k;
      op3:=pointer(_op3);
       end;
 
-    constructor tai68k.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
+    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
 
       begin
      inherited init;
@@ -1216,7 +1220,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
+    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
 
       begin
      inherited init;
@@ -1232,7 +1236,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
+    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
 
       begin
      inherited init;
@@ -1258,7 +1262,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_const_loc(op : tasmop;_size : topsize;_op1 : longint;_op2 : tlocation);
+    constructor taicpu.op_const_loc(op : tasmop;_size : topsize;_op1 : longint;_op2 : tlocation);
 
       begin
      inherited init;
@@ -1289,7 +1293,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
+    constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
 
       begin
      inherited init;
@@ -1315,7 +1319,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
+    constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
 
       begin
      inherited init;
@@ -1351,7 +1355,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_csymbol(op : tasmop;_size : topsize;_op1 : pcsymbol);
+    constructor taicpu.op_csymbol(op : tasmop;_size : topsize;_op1 : pcsymbol);
 
       begin
      inherited init;
@@ -1370,7 +1374,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_csymbol_reg(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tregister);
+    constructor taicpu.op_csymbol_reg(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tregister);
 
       begin
      inherited init;
@@ -1386,7 +1390,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_csymbol_ref(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : preference);
+    constructor taicpu.op_csymbol_ref(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : preference);
 
       begin
      inherited init;
@@ -1412,7 +1416,7 @@ unit m68k;
      op3:=nil;
       end;
 
-    constructor tai68k.op_csymbol_loc(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tlocation);
+    constructor taicpu.op_csymbol_loc(op : tasmop;_size : topsize;_op1 : pcsymbol;_op2 : tlocation);
 
       begin
      inherited init;
@@ -1443,7 +1447,7 @@ unit m68k;
      op3:=nil;
       end;
 
-   destructor tai68k.done;
+   destructor taicpu.done;
 
      begin
     if op1t=top_symbol then
@@ -1471,7 +1475,7 @@ unit m68k;
      end;
 
 
-   constructor tai68k.op_ref_reglist(op: tasmop; _size : topsize; _op1: preference;_op2: tregisterlist);
+   constructor taicpu.op_ref_reglist(op: tasmop; _size : topsize; _op1: preference;_op2: tregisterlist);
    Begin
      Inherited Init;
       typ:=ait_instruction;
@@ -1497,7 +1501,7 @@ unit m68k;
    end;
 
 
-   constructor tai68k.op_reglist_ref(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: preference);
+   constructor taicpu.op_reglist_ref(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: preference);
    Begin
      Inherited Init;
       typ:=ait_instruction;
@@ -1537,8 +1541,7 @@ unit m68k;
          _operator:=op;
          _op1:=R_NO;
          lab:=l;
-         lab^.is_used:=true;
-         inc(lab^.refcount);
+         inc(lab^.refs);
       end;
 
     constructor tai_labeled.init_reg(op : tasmop; l : pasmlabel; reg: tregister);
@@ -1549,20 +1552,13 @@ unit m68k;
          _op1:=reg;
          _operator:=op;
          lab:=l;
-         lab^.is_used:=true;
-         inc(lab^.refcount);
+         inc(lab^.refs);
       end;
 
     destructor tai_labeled.done;
 
       begin
-         dec(lab^.refcount);
-         if lab^.refcount=0 then
-           Begin
-             lab^.is_used := False;
-             If Not(lab^.is_set) Then
-               Dispose(lab);
-           End;
+         dec(lab^.refs);
          inherited done;
       end;
 {*****************************************************************************
@@ -1580,7 +1576,10 @@ unit m68k;
 end.
 {
   $Log$
-  Revision 1.12  1999-08-19 13:02:08  pierre
+  Revision 1.1  1999-09-16 23:05:57  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.12  1999/08/19 13:02:08  pierre
     + label faillabel added for _FAIL support
 
   Revision 1.11  1999/06/22 16:24:42  pierre

@@ -44,6 +44,9 @@ implementation
 {$ifdef i386}
       ,tgeni386
 {$endif}
+{$ifdef m68k}
+      ,tgen68k
+{$endif m68k}
       ;
 
 {*****************************************************************************
@@ -1219,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  1999-09-14 07:59:48  florian
+  Revision 1.65  1999-09-16 23:05:56  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.64  1999/09/14 07:59:48  florian
     * finally!? fixed
          with <function with result in temp> do
       My last and also Peter's fix before were wrong :(

@@ -44,18 +44,23 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k;
+      cpubase,cga68k,tgen68k,symconst;
 
 {*****************************************************************************
                              SecondRealConst
 *****************************************************************************}
 
     procedure secondrealconst(var p : ptree);
+      const
+        floattype2ait:array[tfloattype] of tait=
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_none,ait_none);
       var
          hp1 : pai;
-         lastlabel : plabel;
+         lastlabel : pasmlabel;
+         realait : tait;
       begin
          lastlabel:=nil;
+         realait:=floattype2ait[pfloatdef(p^.resulttype)^.typ];
          { const already used ? }
          if not assigned(p^.lab_real) then
            begin
@@ -67,12 +72,15 @@ implementation
                      lastlabel:=pai_label(hp1)^.l
                    else
                      begin
-                        if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
+                        if (hp1^.typ=realait) and (lastlabel<>nil) then
                           begin
-                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.value_real)) or
-                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.value_real)) or
-                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.value_real)) then
-                               begin
+                             if(
+                                ((realait=ait_real_32bit) and (pai_real_32bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_real_64bit) and (pai_real_64bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_real_80bit) and (pai_real_80bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_comp_64bit) and (pai_comp_64bit(hp1)^.value=p^.value_real))
+                               ) then
+                              begin
                                   { found! }
                                   p^.lab_real:=lastlabel;
                                   break;
@@ -90,17 +98,17 @@ implementation
                    if (cs_smartlink in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
-                   case p^.realtyp of
-                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.value_real)));
-                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.value_real)));
-                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.value_real)));
+                   case realait of
+                     ait_real_64bit : consts^.concat(new(pai_real_32bit,init(p^.value_real)));
+                     ait_real_32bit : consts^.concat(new(pai_real_32bit,init(p^.value_real)));
+                     ait_real_80bit : consts^.concat(new(pai_real_32bit,init(p^.value_real)));
                    else
                      internalerror(10120);
                    end;
                 end;
            end;
          clear_reference(p^.location.reference);
-         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_real));
+         p^.location.reference.symbol:=stringdup(p^.lab_real^.name);
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -139,7 +147,7 @@ implementation
       var
          hp1 : pai;
          l1,l2,
-         lastlabel   : plabel;
+         lastlabel   : pasmlabel;
          pc          : pchar;
          same_string : boolean;
          i,mylength  : longint;
@@ -207,7 +215,7 @@ implementation
                                 getdatalabel(l1);
                                 getdatalabel(l2);
                                 consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
+                                consts^.concat(new(pai_const_symbol,init(l1)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
@@ -243,7 +251,7 @@ implementation
                 end;
            end;
          clear_reference(p^.location.reference);
-         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_str));
+         p^.location.reference.symbol:=stringdup(p^.lab_str^.name);
          p^.location.loc:=LOC_MEM;
       end;
 
@@ -255,7 +263,7 @@ implementation
     procedure secondsetconst(var p : ptree);
       var
          hp1         : pai;
-         lastlabel   : plabel;
+         lastlabel   : pasmlabel;
          i           : longint;
          neededtyp   : tait;
       begin
@@ -345,7 +353,7 @@ implementation
                end;
           end;
         clear_reference(p^.location.reference);
-        p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
+        p^.location.reference.symbol:=stringdup(p^.lab_set^.name);
         p^.location.loc:=LOC_MEM;
       end;
 
@@ -364,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-12-11 00:03:01  peter
+  Revision 1.6  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.5  1998/12/11 00:03:01  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.4  1998/11/06 09:47:29  pierre

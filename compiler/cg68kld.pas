@@ -24,7 +24,7 @@ unit cg68kld;
 interface
 
     uses
-      tree,m68k;
+      tree,cpubase;
 
     var
        { this is for open arrays and strings        }
@@ -46,7 +46,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,
+      cobjects,verbose,globals,symconst,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cga68k,tgen68k;
@@ -73,8 +73,6 @@ implementation
                  begin
                     stringdispose(p^.location.reference.symbol);
                     p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                    if p^.symtableentry^.owner^.symtabletype=unitsymtable then
-                      concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                  end;
               varsym :
                  begin
@@ -101,8 +99,8 @@ implementation
                               if (symtabletype=localsymtable) then
                                 p^.location.reference.offset:=-p^.location.reference.offset;
 
-                              if (symtabletype=parasymtable) then
-                                inc(p^.location.reference.offset,p^.symtable^.call_offset);
+                              if (symtabletype in [localsymtable,inlinelocalsymtable]) then
+                                p^.location.reference.offset:=-p^.location.reference.offset;
 
                               if (lexlevel>(p^.symtable^.symtablelevel)) then
                                 begin
@@ -114,7 +112,7 @@ implementation
                                    hp^.offset:=procinfo.framepointer_offset;
                                    hp^.base:=procinfo.framepointer;
 
-                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hregister)));
+                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hregister)));
 
                                    simple_loadn:=false;
                                    i:=lexlevel-1;
@@ -126,7 +124,7 @@ implementation
                                         hp^.offset:=8;
                                         hp^.base:=hregister;
 
-                                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hregister)));
+                                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hregister)));
                                         dec(i);
                                      end;
                                    p^.location.reference.base:=hregister;
@@ -139,16 +137,12 @@ implementation
                               staticsymtable : begin
                                                   stringdispose(p^.location.reference.symbol);
                                                   p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                                                   if symtabletype=unitsymtable then
-                                                     concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                                                end;
                               objectsymtable : begin
-                                                  if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
+                                                  if sp_static in pvarsym(p^.symtableentry)^.symoptions then
                                                     begin
                                                        stringdispose(p^.location.reference.symbol);
                                                        p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                                                        if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
-                                                          concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                                                     end
                                                   else
                                                     begin
@@ -165,7 +159,7 @@ implementation
                                                   hp^.offset:=p^.symtable^.datasize;
                                                   hp^.base:=procinfo.framepointer;
 
-                                                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hregister)));
+                                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hregister)));
 
                                                   p^.location.reference.offset:=
                                                     pvarsym(p^.symtableentry)^.address;
@@ -174,8 +168,10 @@ implementation
 
                          { in case call by reference, then calculate: }
                          if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                            is_open_array(pvarsym(p^.symtableentry)^.definition) or
+                            is_array_of_const(pvarsym(p^.symtableentry)^.definition) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
-                             dont_copy_const_param(pvarsym(p^.symtableentry)^.definition)) then
+                             push_addr_param(pvarsym(p^.symtableentry)^.definition)) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -190,10 +186,10 @@ implementation
                                 begin
                                    highframepointer:=R_A1;
                                    highoffset:=p^.location.reference.offset;
-                                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                                      p^.location.reference.base,R_A1)));
                                 end;
-                              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),
+                              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),
                                 hregister)));
                               { END ADDITION }
                               clear_reference(p^.location.reference);
@@ -206,7 +202,7 @@ implementation
                               simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=getaddressreg;
-                              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),
+                              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),
                                 hregister)));
                               clear_reference(p^.location.reference);
                               p^.location.reference.base:=hregister;
@@ -220,15 +216,11 @@ implementation
                     stringdispose(p^.location.reference.symbol);
                     p^.location.reference.symbol:=
                       stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
-                    if p^.symtable^.symtabletype=unitsymtable then
-                    concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                  end;
               typedconstsym :
                  begin
                     stringdispose(p^.location.reference.symbol);
                     p^.location.reference.symbol:=stringdup(p^.symtableentry^.mangledname);
-                    if p^.symtable^.symtabletype=unitsymtable then
-                    concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
                  end;
               else internalerror(4);
          end;
@@ -244,9 +236,10 @@ implementation
       var
          opsize : topsize;
          withresult : boolean;
-         otlabel,hlabel,oflabel : plabel;
+         otlabel,hlabel,oflabel : pasmlabel;
          hregister : tregister;
          loc : tloc;
+         pushed : boolean;
 
       begin
          otlabel:=truelabel;
@@ -256,32 +249,9 @@ implementation
          withresult:=false;
          { calculate left sides }
          secondpass(p^.left);
-         case p^.left^.location.loc of
-            LOC_REFERENCE : begin
-                              { in case left operator uses too many registers }
-                              { but to few are free then LEA                  }
-                              if (p^.left^.location.reference.base<>R_NO) and
-                                 (p^.left^.location.reference.index<>R_NO) and
-                                 (usableaddress<p^.right^.registers32) then
-                                begin
-                                   del_reference(p^.left^.location.reference);
-                                   hregister:=getaddressreg;
-                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(
-                                     p^.left^.location.reference),
-                                     hregister)));
-                                   clear_reference(p^.left^.location.reference);
-                                   p^.left^.location.reference.base:=hregister;
-                                   p^.left^.location.reference.index:=R_NO;
-                                end;
-                              loc:=LOC_REFERENCE;
-                           end;
-            LOC_CREGISTER : loc:=LOC_CREGISTER;
-            else
-               begin
-                  CGMessage(cg_e_illegal_expression);
-                  exit;
-               end;
-         end;
+         if codegenerror then
+           exit;
+         loc:=p^.left^.location.loc;
          { lets try to optimize this (PM)             }
          { define a dest_loc that is the location      }
          { and a ptree to verify that it is the right }
@@ -295,19 +265,12 @@ implementation
            end;
 {$endif test_dest_loc}
 
-         if (p^.right^.treetype=realconstn) then
-           begin
-              if p^.left^.resulttype^.deftype=floatdef then
-                begin
-                   case pfloatdef(p^.left^.resulttype)^.typ of
-                     s32real : p^.right^.realtyp:=ait_real_32bit;
-                     s64real : p^.right^.realtyp:=ait_real_64bit;
-                     s80real : p^.right^.realtyp:=ait_real_extended;
-                     { what about f32bit and s64bit }
-                     end;
-                end;
-           end;
+         pushed:=maybe_push(p^.right^.registers32,p^.left);
          secondpass(p^.right);
+         if pushed then restore(p^.left);
+
+         if codegenerror then
+           exit;
 {$ifdef test_dest_loc}
          dest_loc_known:=false;
          if in_dest_loc then
@@ -341,14 +304,14 @@ implementation
                                  4 : opsize:=S_L;
                               end;
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                                   newreference(p^.right^.location.reference),
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,opsize,
+                                exprasmlist^.concat(new(paicpu,op_const_ref(A_MOVE,opsize,
                                   p^.right^.location.reference.offset,
                                   newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai68k,op_const_loc(A_MOV,opsize,
+                              {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,opsize,
                                   p^.right^.location.reference.offset,
                                   p^.left^.location)));}
                            end
@@ -369,14 +332,14 @@ implementation
                               end;
                               { simplified with op_reg_loc         }
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,opsize,
+                                exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,opsize,
                                   p^.right^.location.register,
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,opsize,
+                                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,opsize,
                                   p^.right^.location.register,
                                   newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai68k,op_reg_loc(A_MOV,opsize,
+                              {exprasmlist^.concat(new(paicpu,op_reg_loc(A_MOV,opsize,
                                   p^.right^.location.register,
                                   p^.left^.location)));             }
 
@@ -392,35 +355,35 @@ implementation
                               getlabel(hlabel);
                               emitl(A_LABEL,truelabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_B,
+                                exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_B,
                                   1,p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,
+                                exprasmlist^.concat(new(paicpu,op_const_ref(A_MOVE,S_B,
                                   1,newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai68k,op_const_loc(A_MOV,S_B,
+                              {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,S_B,
                                   1,p^.left^.location)));}
                               emitl(A_JMP,hlabel);
                               emitl(A_LABEL,falselabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_B,
+                                exprasmlist^.concat(new(paicpu,op_reg(A_CLR,S_B,
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,
+                                exprasmlist^.concat(new(paicpu,op_const_ref(A_MOVE,S_B,
                                   0,newreference(p^.left^.location.reference))));
                               emitl(A_LABEL,hlabel);
                            end;
             LOC_FLAGS    : begin
                               if loc=LOC_CREGISTER then
                                begin
-                                exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[p^.right^.location.resflags],S_B,
+                                exprasmlist^.concat(new(paicpu,op_reg(flag_2_set[p^.right^.location.resflags],S_B,
                                   p^.left^.location.register)));
-                                exprasmlist^.concat(new(pai68k,op_reg(A_NEG,S_B,p^.left^.location.register)));
+                                exprasmlist^.concat(new(paicpu,op_reg(A_NEG,S_B,p^.left^.location.register)));
                                end
                               else
                                begin
-                                 exprasmlist^.concat(new(pai68k,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
+                                 exprasmlist^.concat(new(paicpu,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
                                     newreference(p^.left^.location.reference))));
-                                 exprasmlist^.concat(new(pai68k,op_ref(A_NEG,S_B,newreference(p^.left^.location.reference))));
+                                 exprasmlist^.concat(new(paicpu,op_ref(A_NEG,S_B,newreference(p^.left^.location.reference))));
                                end;
 
                            end;
@@ -453,7 +416,7 @@ implementation
               hr_valid:=true;
               hp:=new_reference(procinfo.framepointer,
                 procinfo.framepointer_offset);
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hr)));
+              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hr)));
 
               pp:=procinfo.parent;
               { walk up the stack frame }
@@ -461,7 +424,7 @@ implementation
                 begin
                    hp:=new_reference(hr,
                      pp^.framepointer_offset);
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,hr)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hr)));
                    pp:=pp^.parent;
                 end;
               p^.location.reference.base:=hr;
@@ -474,7 +437,7 @@ implementation
               if not hr_valid then
                 { this was wrong !! PM }
                 hr:=getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),hr)));
+              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.location.reference),hr)));
               p^.location.reference.base:=hr;
               p^.location.reference.offset:=0;
            end;
@@ -510,7 +473,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1999-09-16 11:34:54  pierre
+  Revision 1.9  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.8  1999/09/16 11:34:54  pierre
    * typo correction
 
   Revision 1.7  1998/10/19 08:54:55  pierre

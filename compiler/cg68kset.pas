@@ -34,11 +34,11 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,symconst,
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k;
+      cpubase,cga68k,tgen68k;
 
     const
       bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
@@ -88,9 +88,9 @@ implementation
          setparts:array[1..8] of Tsetpart;
          i,numparts:byte;
          {href,href2:Treference;}
-         l,l2 : plabel;
-         hl,hl1 : plabel;
-         hl2, hl3: plabel;
+         l,l2 : pasmlabel;
+         hl,hl1 : pasmlabel;
+         hl2, hl3: pasmlabel;
          opsize : topsize;
 
 
@@ -191,14 +191,14 @@ implementation
                      LOC_REGISTER,LOC_CREGISTER :
                        begin
                          emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,R_D1);
-                         exprasmlist^.concat(new(pai68k,
+                         exprasmlist^.concat(new(paicpu,
                            op_const_reg(A_AND,S_L, 1 shl (p^.left^.value and 31),R_D1)));
                        end;
                    else
                        begin
-                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(
+                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(
                            p^.right^.location.reference),R_D1)));
-                         exprasmlist^.concat(new(pai68k,op_const_reg(
+                         exprasmlist^.concat(new(paicpu,op_const_reg(
                            A_AND,S_L,1 shl (p^.left^.value and 31) ,R_D1)));
                        end;
                    end;
@@ -227,7 +227,7 @@ implementation
                          begin
                             { Small sets are always 32 bit values, there is no  }
                             { way they can be anything else, so no problems here}
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D1)));
                             hr:=R_D1;
                             del_reference(p^.left^.location.reference);
@@ -235,12 +235,12 @@ implementation
                    end;
                    case p^.right^.location.loc of
                       LOC_REGISTER,
-                      LOC_CREGISTER : exprasmlist^.concat(new(pai68k, op_reg_reg(A_BTST,S_L,hr,p^.right^.location.register)));
+                      LOC_CREGISTER : exprasmlist^.concat(new(paicpu, op_reg_reg(A_BTST,S_L,hr,p^.right^.location.register)));
                       else
                          begin
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
                               R_D0)));
-                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_BTST,S_L,hr,R_D0)));
+                            exprasmlist^.concat(new(paicpu,op_reg_reg(A_BTST,S_L,hr,R_D0)));
                             del_reference(p^.right^.location.reference);
                          end;
                    end;
@@ -250,12 +250,12 @@ implementation
                    getlabel(hl);
                    emitl(A_BNE,hl);
                    { leave all bits unchanged except Carry  = 0 }
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_B, $FE, R_CCR)));
+                   exprasmlist^.concat(new(paicpu, op_const_reg(A_AND, S_B, $FE, R_CCR)));
                    getlabel(hl1);
                    emitl(A_BRA,hl1);
                    emitl(A_LABEL, hl);
                    { set carry to 1 }
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_OR, S_B, $01, R_CCR)));
+                   exprasmlist^.concat(new(paicpu, op_const_reg(A_OR, S_B, $01, R_CCR)));
                    emitl(A_LABEL, hl1);
                    { end support carry routines }
                    p^.location.loc:=LOC_FLAGS;
@@ -273,9 +273,9 @@ implementation
                      exit;
                    p^.location.resflags:=F_NE;
                    inc(p^.right^.location.reference.offset,(p^.left^.value div 32)*4);
-                   exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE, S_L,
+                   exprasmlist^.concat(new(paicpu, op_ref_reg(A_MOVE, S_L,
                        newreference(p^.right^.location.reference), R_D1)));
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_L,
+                   exprasmlist^.concat(new(paicpu, op_const_reg(A_AND, S_L,
                        1 shl (p^.left^.value mod 32),R_D1)));
                    del_reference(p^.right^.location.reference);
                 end
@@ -293,7 +293,7 @@ implementation
                       case p^.left^.location.loc of
                         LOC_REGISTER,
                         LOC_CREGISTER :
-                           exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                           exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                              255,p^.left^.location.register)));
                         else
                          Begin
@@ -301,16 +301,16 @@ implementation
                            { value into a register first, all depending on the source      }
                            { size!                                                         }
                            opsize:=S_NO;
-                           case integer(p^.left^.resulttype^.savesize) of
+                           case integer(p^.left^.resulttype^.size) of
                              1 : opsize:=S_B;
                              2 : opsize:=S_W;
                              4 : opsize:=S_L;
                            else
                              internalerror(19);
                            end;
-                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                           exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                              newreference(p^.left^.location.reference),R_D0)));
-                           exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                           exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                              255,R_D0)));
                          end;
                       end;
@@ -339,37 +339,37 @@ implementation
                                     case p^.left^.location.loc of
                                       LOC_REGISTER,
                                       LOC_CREGISTER :
-                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                         exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                            setparts[i].start,p^.left^.location.register)));
                                     else
-                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                         exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                            setparts[i].start,R_D0)));
-{                                         exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+{                                         exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_B,
                                            setparts[i].start,newreference(p^.left^.location.reference))));}
                                     end;
                                   {Result should be in carry flag when ranges are used.}
                                   { Here the m68k does not affect any flag except the  }
                                   { flag which is OR'ed                                }
                                   if ranges then
-                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                     exprasmlist^.concat(new(paicpu,op_const_reg(A_OR,S_B,$01,R_CCR)));
                                   {If found, jump to end.}
                                   emitl(A_BEQ,l);
                                   case p^.left^.location.loc of
                                     LOC_REGISTER,
                                     LOC_CREGISTER :
-                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                      exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                         setparts[i].stop,p^.left^.location.register)));
                                     else
-                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                      exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                         setparts[i].stop,R_D0)));
-{                                      exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+{                                      exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_B,
                                       setparts[i].stop,newreference(p^.left^.location.reference))));}
                                   end;
                                   {Result should be in carry flag when ranges are used.}
                                   { Here the m68k does not affect any flag except the  }
                                   { flag which is OR'ed                                }
                                   if ranges then
-                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                     exprasmlist^.concat(new(paicpu,op_const_reg(A_OR,S_B,$01,R_CCR)));
                                   {If found, jump to end.}
                                   emitl(A_BEQ,l);
                              end
@@ -382,12 +382,12 @@ implementation
                                     case p^.left^.location.loc of
                                       LOC_REGISTER,
                                       LOC_CREGISTER :
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                        exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                         setparts[i].start,p^.left^.location.register)));
                                     else
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                        exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                         setparts[i].start,R_D0)));
-{                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+{                                        exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_B,
                                         setparts[i].start,newreference(p^.left^.location.reference)))); }
                                     end;
                                     {If lower, jump to next check.}
@@ -400,12 +400,12 @@ implementation
                                           case p^.left^.location.loc of
                                             LOC_REGISTER,
                                             LOC_CREGISTER :
-                                              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                                 setparts[i].stop+1,p^.left^.location.register)));
                                           else
-                                              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                                 setparts[i].stop+1,R_D0)));
-{                                              exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+{                                              exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_B,
                                                 setparts[i].stop+1,newreference(p^.left^.location.reference))));}
                                           end; { end case }
                                           {If higher, element is in set.}
@@ -413,7 +413,7 @@ implementation
                                        end
                                      else
                                        begin
-                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                         exprasmlist^.concat(new(paicpu,op_const_reg(A_OR,S_B,$01,R_CCR)));
                                          emitl(A_JMP,l);
                                        end;
                                   end;
@@ -426,23 +426,23 @@ implementation
                                  case p^.left^.location.loc of
                                    LOC_REGISTER,
                                    LOC_CREGISTER :
-                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                     exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                       setparts[i].stop,p^.left^.location.register)));
                                    else
-{                                     exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+{                                     exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_B,
                                      setparts[i].stop,newreference(p^.left^.location.reference))));}
-                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                     exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_W,
                                       setparts[i].stop,R_D0)));
                                    end;
                                  {Result should be in carry flag when ranges are used.}
                                  if ranges then
-                                   exprasmlist^.concat(new(pai68k, op_const_reg(A_OR,S_B,$01,R_CCR)));
+                                   exprasmlist^.concat(new(paicpu, op_const_reg(A_OR,S_B,$01,R_CCR)));
                                    {If found, jump to end.}
                                  emitl(A_BEQ,l);
                                end;
                             if ranges then
                             { clear carry flag }
-                                exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,$FE,R_CCR)));
+                                exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_B,$FE,R_CCR)));
                             {To compensate for not doing a second pass.}
                             stringdispose(p^.right^.location.reference.symbol);
                             {Now place the end label.}
@@ -472,7 +472,7 @@ implementation
                             { d0.b = value to compare with                          }
                             { CARRY SET IF FOUND ON EXIT                            }
                             loadsetelement(p^.left);
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
                               newreference(p^.right^.location.reference),R_A0)));;
 {                            emitpushreferenceaddr(p^.right^.location.reference);}
                             del_reference(p^.right^.location.reference);
@@ -499,7 +499,7 @@ implementation
          hp : ptree;
          { register with case expression }
          hregister : tregister;
-         endlabel,elselabel : plabel;
+         endlabel,elselabel : pasmlabel;
 
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
@@ -507,7 +507,7 @@ implementation
       procedure gentreejmp(p : pcaserecord);
 
         var
-           lesslabel,greaterlabel : plabel;
+           lesslabel,greaterlabel : pasmlabel;
 
       begin
          emitl(A_LABEL,p^._at);
@@ -524,7 +524,7 @@ implementation
          { no range label: }
          if p^._low=p^._high then
            begin
-              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,p^._low,hregister)));
+              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,p^._low,hregister)));
               if greaterlabel=lesslabel then
                 begin
                    emitl(A_BNE,lesslabel);
@@ -538,9 +538,9 @@ implementation
            end
          else
            begin
-              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,p^._low,hregister)));
+              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,p^._low,hregister)));
               emitl(jmp_le,lesslabel);
-              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,p^._high,hregister)));
+              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,p^._high,hregister)));
               emitl(jmp_gt,greaterlabel);
               emitl(A_JMP,p^.statement);
            end;
@@ -564,12 +564,12 @@ implementation
              if t^._low=t^._high then
                begin
                   if (t^._low-last > 0) and (t^._low-last < 9) then
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,opsize,t^._low-last,hregister)))
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBQ,opsize,t^._low-last,hregister)))
                   else
                   if (t^._low-last = 0) then
-                     exprasmlist^.concat(new(pai68k,op_reg(A_TST,opsize,hregister)))
+                     exprasmlist^.concat(new(paicpu,op_reg(A_TST,opsize,hregister)))
                   else
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_SUB,opsize,t^._low-last,hregister)));
                   last:=t^._low;
 
                   emitl(A_BEQ,t^.statement);
@@ -582,12 +582,12 @@ implementation
                   if first then
                     begin
                        if (t^._low-1 > 0) and (t^._low < 9) then
-                          exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,opsize,t^._low-1,hregister)))
+                          exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBQ,opsize,t^._low-1,hregister)))
                        else
                        if t^._low-1=0 then
-                         exprasmlist^.concat(new(pai68k,op_reg(A_TST,opsize,hregister)))
+                         exprasmlist^.concat(new(paicpu,op_reg(A_TST,opsize,hregister)))
                        else
-                         exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,opsize,t^._low-1,hregister)));
+                         exprasmlist^.concat(new(paicpu,op_const_reg(A_SUB,opsize,t^._low-1,hregister)));
                        if t^._low = 0 then
                           emitl(A_BLE,elselabel)
                        else
@@ -600,12 +600,12 @@ implementation
 
                     begin
                        if ((t^._low-last-1) > 0) and ((t^._low-last-1) < 9) then
-                         exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,opsize,t^._low-last-1,hregister)))
+                         exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBQ,opsize,t^._low-last-1,hregister)))
                        else
-                         exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,opsize,t^._low-last-1,hregister)));
+                         exprasmlist^.concat(new(paicpu,op_const_reg(A_SUB,opsize,t^._low-last-1,hregister)));
                        emitl(jmp_lee,elselabel);
                     end;
-                  exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,opsize,t^._high-t^._low+1,hregister)));
+                  exprasmlist^.concat(new(paicpu,op_const_reg(A_SUB,opsize,t^._high-t^._low+1,hregister)));
                   emitl(jmp_lee,t^.statement);
 
                   last:=t^._high;
@@ -633,7 +633,7 @@ implementation
       procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
 
         var
-           table : plabel;
+           table : pasmlabel;
            last : longint;
            hr : preference;
 
@@ -647,11 +647,9 @@ implementation
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
-                 (elselabel)))));
+               datasegment^.concat(new(pai_const_symbol,init(elselabel)));
              for i:=t^._low to t^._high do
-               datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str
-                (t^.statement)))));
+               datasegment^.concat(new(pai_const_symbol,init(t^.statement)));
               last:=t^._high;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -660,10 +658,10 @@ implementation
         begin
            if not(jumptable_no_range) then
              begin
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,min_,hregister)));
+                exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,min_,hregister)));
                 { case expr less than min_ => goto elselabel }
                 emitl(jmp_le,elselabel);
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,max_,hregister)));
+                exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,max_,hregister)));
                 emitl(jmp_gt,elselabel);
              end;
            getlabel(table);
@@ -671,33 +669,33 @@ implementation
            if opsize=S_W then
              begin
                 { word to long - unsigned }
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,$ffff,hregister)));
+                exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ffff,hregister)));
              end
            else if opsize=S_B then
              begin
                 { byte to long - unsigned }
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,$ff,hregister)));
+                exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ff,hregister)));
              end;
            new(hr);
            reset_reference(hr^);
-           hr^.symbol:=stringdup(lab2str(table));
+           hr^.symbol:=stringdup(table^.name);
            hr^.offset:=(-min_)*4;
 
            { add scalefactor *4 to index }
-           exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,2,hregister)));
+           exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,2,hregister)));
 {           hr^.scalefactor:=4; }
            hr^.base:=getaddressreg;
            emit_reg_reg(A_MOVE,S_L,hregister,hr^.base);
-           exprasmlist^.concat(new(pai68k,op_ref(A_JMP,S_NO,hr)));
+           exprasmlist^.concat(new(paicpu,op_ref(A_JMP,S_NO,hr)));
 {          if not(cs_littlesize in aktglobalswitches^ ) then
-             datasegment^.concat(new(pai68k,op_const(A_ALIGN,S_NO,4))); }
+             datasegment^.concat(new(paicpu,op_const(A_ALIGN,S_NO,4))); }
            datasegment^.concat(new(pai_label,init(table)));
              last:=min_;
            genitem(hp);
            if hr^.base <> R_NO then ungetregister(hr^.base);
            { !!!!!!!
            if not(cs_littlesize in aktglobalswitches^ ) then
-             exprasmlist^.concat(new(pai68k,op_const(A_ALIGN,S_NO,4)));
+             exprasmlist^.concat(new(paicpu,op_const(A_ALIGN,S_NO,4)));
            }
         end;
 
@@ -734,7 +732,7 @@ implementation
             LOC_MEM,LOC_REFERENCE : begin
                                        del_reference(p^.left^.location.reference);
                                            hregister:=getregister32;
-                                       exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,newreference(
+                                       exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,newreference(
                                          p^.left^.location.reference),hregister)));
                                     end;
             else internalerror(2002);
@@ -815,7 +813,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-12-11 00:03:08  peter
+  Revision 1.9  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.8  1998/12/11 00:03:08  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.7  1998/10/15 12:41:19  pierre

@@ -213,7 +213,7 @@ uses
   {$endif}
   {$ifdef m68k}
         {$O opts68k}
-        {$O m68k}
+        {$O cpubase}
         {$O cga68k}
         {$O tgen68k}
         {$O cg68kadd}
@@ -280,7 +280,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  1999-09-10 18:48:08  florian
+  Revision 1.49  1999-09-16 23:05:54  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.48  1999/09/10 18:48:08  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

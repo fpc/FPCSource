@@ -47,7 +47,7 @@ implementation
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k;
+      cpubase,cga68k,tgen68k;
 
 
 {*****************************************************************************
@@ -58,7 +58,7 @@ implementation
       begin
          p^.location.loc:=LOC_REGISTER;
          p^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,
+         exprasmlist^.concat(new(paicpu,op_csymbol_reg(A_MOVE,
             S_L,newcsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname,0),
             p^.location.register)));
       end;
@@ -135,7 +135,7 @@ implementation
             LOC_REGISTER,
             LOC_CREGISTER : begin
                                p^.location.reference.base:=getaddressreg;
-                               exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                               exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                                  p^.left^.location.register,
                                  p^.location.reference.base)));
                             end;
@@ -143,7 +143,7 @@ implementation
                             begin
                                del_reference(p^.left^.location.reference);
                                p^.location.reference.base:=getaddressreg;
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
+                               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
                                  p^.location.reference.base)));
                             end;
          end;
@@ -172,7 +172,7 @@ implementation
 
          { push pointer adress }
          case p^.left^.location.loc of
-            LOC_CREGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+            LOC_CREGISTER : exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
               p^.left^.location.register,R_SPPUSH)));
             LOC_REFERENCE:
               emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
@@ -249,14 +249,14 @@ implementation
             (p^.left^.symtableentry^.typ=varsym) and
           (Pvarsym(p^.left^.symtableentry)^.definition^.deftype=
            procvardef) then
-            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
              newreference(p^.left^.location.reference),
              p^.location.register)))
          else
            begin
-            exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+            exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
              newreference(p^.left^.location.reference),R_A0)));
-            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+            exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
              R_A0,p^.location.register)));
            end;
          { for use of other segments }
@@ -277,9 +277,9 @@ implementation
          p^.location.loc:=LOC_REGISTER;
          del_reference(p^.left^.location.reference);
          p^.location.register:=getregister32;
-         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+         exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
           newreference(p^.left^.location.reference),R_A0)));
-         exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+         exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
           R_A0,p^.location.register)));
       end;
 
@@ -318,7 +318,7 @@ implementation
 
                  { ...and reserve one for the pointer }
                  hr:=getaddressreg;
-                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                 exprasmlist^.concat(new(paicpu,op_ref_reg(
                    A_MOVE,S_L,newreference(p^.left^.location.reference),
                    hr)));
                  p^.location.reference.base:=hr;
@@ -343,7 +343,7 @@ implementation
            exit;
          { classes must be dereferenced implicit }
          if (p^.left^.resulttype^.deftype=objectdef) and
-           pobjectdef(p^.left^.resulttype)^.isclass then
+           pobjectdef(p^.left^.resulttype)^.is_class then
            begin
              clear_reference(p^.location.reference);
              case p^.left^.location.loc of
@@ -370,7 +370,7 @@ implementation
 
                      { ... and reserve one for the pointer }
                      hr:=getaddressreg;
-                     exprasmlist^.concat(new(pai68k,op_ref_reg(
+                     exprasmlist^.concat(new(paicpu,op_ref_reg(
                        A_MOVE,S_L,newreference(p^.left^.location.reference),
                        hr)));
                      p^.location.reference.base:=hr;
@@ -408,29 +408,29 @@ implementation
            l1:=p^.resulttype^.size;
            case l1 of
               1     : p^.location.reference.scalefactor:=l1;
-              2 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,1,ind)));
-              4 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,2,ind)));
-              8 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,3,ind)));
+              2 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,1,ind)));
+              4 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,2,ind)));
+              8 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,3,ind)));
            else
              begin
                if ispowerof2(l1,l2) then
-                 exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,l2,ind)))
+                 exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,l2,ind)))
                    else
                  begin
                    { use normal MC68000 signed multiply }
                    if (l1 >= -32768) and (l1 <= 32767) then
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_W,l1,ind)))
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_MULS,S_W,l1,ind)))
                    else
                    { use long MC68020 long multiply }
                    if (aktoptprocessor = MC68020) then
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_L,l1,ind)))
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_MULS,S_L,l1,ind)))
                    else
                    { MC68000 long multiply }
                      begin
-                       exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,l1,R_D0)));
-                       exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,ind,R_D1)));
+                       exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,l1,R_D0)));
+                       exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,ind,R_D1)));
                        emitcall('FPC_LONGMUL',true);
-                       exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,ind)));
+                       exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_D0,ind)));
                      end;
                  end;
              end; { else case }
@@ -441,7 +441,7 @@ implementation
        extraoffset : longint;
          t : ptree;
          hp : preference;
-         tai:pai68k;
+         tai:paicpu;
        reg: tregister;
 
       begin
@@ -542,9 +542,9 @@ implementation
                 LOC_REGISTER : begin
                                  ind:=p^.right^.location.register;
                                  case p^.right^.resulttype^.size of
-                                 1: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                                 1: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                                       $ff,ind)));
-                                 2: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                                 2: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                                       $ffff,ind)));
                                  end;
                                end;
@@ -553,32 +553,32 @@ implementation
                                    ind:=getregister32;
                                    emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,ind);
                                    case p^.right^.resulttype^.size of
-                                   1: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                                   1: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                                       $ff,ind)));
-                                   2: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                                   2: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                                       $ffff,ind)));
                                    end;
                                 end;
                    LOC_FLAGS:
                      begin
                         ind:=getregister32;
-                        exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[p^.right^.location.resflags],S_B,ind)));
-                        exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,$ff,ind)));
+                        exprasmlist^.concat(new(paicpu,op_reg(flag_2_set[p^.right^.location.resflags],S_B,ind)));
+                        exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ff,ind)));
                      end
                 else { else outer case }
                    begin
                       del_reference(p^.right^.location.reference);
                            ind:=getregister32;
 
-                      exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                      exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                         newreference(p^.right^.location.reference),ind)));
 
                            {Booleans are stored in an 8 bit memory location, so
                            the use of MOVL is not correct.}
                       case p^.right^.resulttype^.size of
-                        1: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                        1: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                           $ff,ind)));
-                        2: exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                        2: exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                           $ffff,ind)));
                       end; { end case }
                 end; { end else begin }
@@ -607,7 +607,7 @@ implementation
               if p^.location.reference.base <> R_NO then
                 CGMessage(cg_f_secondvecn_base_defined_twice);
               p^.location.reference.base:=getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_LEA,S_L,newcsymbol(p^.location.reference.symbol^,0),
+              exprasmlist^.concat(new(paicpu,op_csymbol_reg(A_LEA,S_L,newcsymbol(p^.location.reference.symbol^,0),
                 p^.location.reference.base)));
               stringdispose(p^.location.reference.symbol);
            end;
@@ -622,12 +622,12 @@ implementation
               { with correct value.                    }
               if p^.location.reference.offset > 127 then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_ADD,S_L,p^.location.reference.offset,ind)));
+                   exprasmlist^.concat(new(paicpu,op_const_reg(A_ADD,S_L,p^.location.reference.offset,ind)));
                    p^.location.reference.offset := 0;
                 end
               else if p^.location.reference.offset < -128 then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_SUB,S_L,-p^.location.reference.offset,ind)));
+                   exprasmlist^.concat(new(paicpu,op_const_reg(A_SUB,S_L,-p^.location.reference.offset,ind)));
                    p^.location.reference.offset := 0;
                 end;
            end
@@ -635,9 +635,9 @@ implementation
          else if p^.location.reference.base=R_NO then
            begin
               case p^.location.reference.scalefactor of
-                  2 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,1,p^.location.reference.index)));
-                  4 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,2,p^.location.reference.index)));
-                  8 : exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_L,3,p^.location.reference.index)));
+                  2 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,1,p^.location.reference.index)));
+                  4 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,2,p^.location.reference.index)));
+                  8 : exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_L,3,p^.location.reference.index)));
                 end;
               calc_emit_mul;
 
@@ -655,7 +655,7 @@ implementation
          else
            begin
               reg := getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_ref_reg(
+              exprasmlist^.concat(new(paicpu,op_ref_reg(
                 A_LEA,S_L,newreference(p^.location.reference),
                 reg)));
 
@@ -701,9 +701,9 @@ implementation
                secondpass(p^.left);
                ref.symbol:=nil;
                gettempofsizereference(4,ref);
-               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+               exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
                  newreference(p^.left^.location.reference),R_A0)));
-               exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,
+               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,
                  R_A0,newreference(ref))));
                del_reference(p^.left^.location.reference);
                { the offset relative to (%ebp) is only needed here! }
@@ -725,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1999-08-25 11:59:52  jonas
+  Revision 1.13  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.12  1999/08/25 11:59:52  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.11  1998/12/11 10:48:11  pierre

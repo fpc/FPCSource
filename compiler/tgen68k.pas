@@ -25,11 +25,7 @@ unit tgen68k;
   interface
 
     uses
-       cobjects,globals,tree,hcodegen,verbose,files,aasm
-{$ifdef m68k}
-       ,m68k
-{$endif}
-       ;
+       cobjects,globals,tree,hcodegen,verbose,files,aasm,cpubase;
 
     type
        tregisterset = set of tregister;
@@ -119,7 +115,7 @@ unit tgen68k;
                      begin
                         { then save it }
                         { then save it on the stack }
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,r,R_SPPUSH)));
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,r,R_SPPUSH)));
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -143,7 +139,7 @@ unit tgen68k;
          for r:=R_A4 downto R_D2 do
            if pushed[r] then
              begin
-                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SPPULL,r)));
+                exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SPPULL,r)));
                 unused:=unused-[r];
              end;
       end;
@@ -332,7 +328,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-09-01 09:03:48  peter
+  Revision 1.5  1999-09-16 23:05:57  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.4  1998/09/01 09:03:48  peter
     + resetregistercount, resetusableregisters
 
   Revision 1.3  1998/08/31 12:26:35  peter

@@ -25,9 +25,9 @@ unit cga68k;
   interface
 
     uses
-       globtype,cobjects,tree,m68k,aasm,symtable;
+       globtype,cobjects,tree,cpubase,aasm,symtable,symconst;
 
-    procedure emitl(op : tasmop;var l : plabel);
+    procedure emitl(op : tasmop;var l : pasmlabel);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
     procedure emitcall(const routine:string;add_to_externals : boolean);
     procedure emitloadord2reg(location:Tlocation;orddef:Porddef;
@@ -124,9 +124,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {         push_int(len);                     }
          { This speeds up from 116 cycles to 24 cycles on the 68000 }
          { when passing register parameters!                        }
-         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(dref),R_A1)));
-         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(sref),R_A0)));
-         exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,len,R_D0)));
+         exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(dref),R_A1)));
+         exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(sref),R_A0)));
+         exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,len,R_D0)));
          emitcall('FPC_STRCOPY',true);
          maybe_loada5;
          popusedregisters(pushed);
@@ -149,7 +149,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        { load 0 length string            }
                        if (p^.right^.treetype=stringconstn) and
                           (str_length(p^.right)=0) then
-                        exprasmlist^.concat(new(pai68k,op_const_ref(
+                        exprasmlist^.concat(new(paicpu,op_const_ref(
                            A_MOVE,S_B,0,newreference(p^.left^.location.reference))))
                        else
                         copystring(p^.left^.location.reference,p^.right^.location.reference,
@@ -160,7 +160,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         begin
                             { offset 0: length of string }
                             { offset 1: character        }
-                            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_W,1*256+p^.right^.value,
+                            exprasmlist^.concat(new(paicpu,op_const_ref(A_MOVE,S_W,1*256+p^.right^.value,
                               newreference(p^.left^.location.reference))))
                         end
                        else
@@ -168,25 +168,25 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             { not so elegant (goes better with extra register }
                             if (p^.right^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                               begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(
+                                 exprasmlist^.concat(new(paicpu,op_reg_reg(
                                     A_MOVE,S_B,p^.right^.location.register,R_D0)));
                                  ungetregister32(p^.right^.location.register);
                               end
                             else
                               begin
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(
                                     A_MOVE,S_B,newreference(p^.right^.location.reference),R_D0)));
                                  del_reference(p^.right^.location.reference);
                               end;
                             { alignment can cause problems }
                             { add length of string to ref }
-                            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,1,
+                            exprasmlist^.concat(new(paicpu,op_const_ref(A_MOVE,S_B,1,
                                newreference(p^.left^.location.reference))));
 (*                            if abs(p^.left^.location.reference.offset) >= 1 then
                               Begin *)
                               { temporarily decrease offset }
                                 Inc(p^.left^.location.reference.offset);
-                                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_B,R_D0,
+                                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_B,R_D0,
                                   newreference(p^.left^.location.reference))));
                                 Dec(p^.left^.location.reference.offset);
                                 { restore offset }
@@ -218,7 +218,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
             hregister:=getaddressreg;
 
-         exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SPPULL,hregister)));
+         exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SPPULL,hregister)));
          if (p^.location.loc=LOC_REGISTER) or (p^.location.loc=LOC_CREGISTER) then
            begin
               p^.location.register:=hregister;
@@ -242,7 +242,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  (p^.location.loc=LOC_CREGISTER) then
                 begin
                    pushed:=true;
-                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.location.register,R_SPPUSH)));
+                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,p^.location.register,R_SPPUSH)));
                    ungetregister32(p^.location.register);
                 end
                else
@@ -251,9 +251,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                     (p^.location.reference.index<>R_NO)) then
                   begin
                      del_reference(p^.location.reference);
-                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
+                     exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                         R_A0)));
-                     exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A0,R_SPPUSH)));
+                     exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A0,R_SPPUSH)));
                      pushed:=true;
                   end
               else pushed:=false;
@@ -268,21 +268,21 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     { index = index of array to check }
     { memory of range check information for array }
      var
-      hl : plabel;
+      hl : pasmlabel;
      begin
         if (aktoptprocessor = MC68020) then
           begin
-             exprasmlist^.concat(new(pai68k, op_ref_reg(A_CMP2,S_L,newreference(hp),index)));
+             exprasmlist^.concat(new(paicpu, op_ref_reg(A_CMP2,S_L,newreference(hp),index)));
              getlabel(hl);
              emitl(A_BCC, hl);
-             exprasmlist^.concat(new(pai68k, op_const_reg(A_MOVE,S_L,201,R_D0)));
+             exprasmlist^.concat(new(paicpu, op_const_reg(A_MOVE,S_L,201,R_D0)));
              emitcall('FPC_HALT_ERROR',true);
              emitl(A_LABEL, hl);
           end
         else
           begin
-            exprasmlist^.concat(new(pai68k, op_ref_reg(A_LEA,S_L,newreference(hp), R_A1)));
-            exprasmlist^.concat(new(pai68k, op_reg_reg(A_MOVE, S_L, index, R_D0)));
+            exprasmlist^.concat(new(paicpu, op_ref_reg(A_LEA,S_L,newreference(hp), R_A1)));
+            exprasmlist^.concat(new(paicpu, op_reg_reg(A_MOVE, S_L, index, R_D0)));
             emitcall('FPC_RE_BOUNDS_CHECK',true);
           end;
      end;
@@ -322,7 +322,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
      end;
     end;
 
-    procedure emitl(op : tasmop;var l : plabel);
+    procedure emitl(op : tasmop;var l : pasmlabel);
 
       begin
          if op=A_LABEL then
@@ -335,17 +335,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       begin
          if (reg1 <> reg2) or (i <> A_MOVE) then
-           exprasmlist^.concat(new(pai68k,op_reg_reg(i,s,reg1,reg2)));
+           exprasmlist^.concat(new(paicpu,op_reg_reg(i,s,reg1,reg2)));
       end;
 
 
     procedure emitcall(const routine:string;add_to_externals : boolean);
 
      begin
-        exprasmlist^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol(routine,0))));
+        exprasmlist^.concat(new(paicpu,op_csymbol(A_JSR,S_NO,newcsymbol(routine,0))));
+        {!!!!!
         if add_to_externals and
            not (cs_compilesystem in aktmoduleswitches) then
           concat_external(routine,EXT_NEAR);
+        }
      end;
 
 
@@ -367,13 +369,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    case p^.location.loc of
                       LOC_CREGISTER,LOC_REGISTER : begin
-                                        exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,p^.location.register)));
+                                        exprasmlist^.concat(new(paicpu,op_reg(A_TST,S_B,p^.location.register)));
                                         ungetregister32(p^.location.register);
                                         emitl(A_BNE,truelabel);
                                         emitl(A_JMP,falselabel);
                                      end;
                       LOC_MEM,LOC_REFERENCE : begin
-                                        exprasmlist^.concat(new(pai68k,op_ref(
+                                        exprasmlist^.concat(new(paicpu,op_ref(
                                           A_TST,S_B,newreference(p^.location.reference))));
                                         del_reference(p^.location.reference);
                                         emitl(A_BNE,truelabel);
@@ -393,7 +395,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     procedure emitoverflowcheck(p: ptree);
 
       var
-         hl : plabel;
+         hl : pasmlabel;
 
       begin
          if cs_check_overflow in aktlocalswitches  then
@@ -416,18 +418,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          if (l = 0) and (aktoptprocessor = MC68020) then
            begin
-          exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_L,R_D6)));
-              exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+          exprasmlist^.concat(new(paicpu,op_reg(A_CLR,S_L,R_D6)));
+              exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
               R_D6, R_SPPUSH)));
            end
          else
          if not(cs_littlesize in aktglobalswitches) and (l >= -128) and (l <= 127) then
            begin
-           exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVEQ,S_L,l,R_D6)));
-           exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D6,R_SPPUSH)));
+           exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVEQ,S_L,l,R_D6)));
+           exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_D6,R_SPPUSH)));
            end
          else
-           exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,l,R_SPPUSH)));
+           exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,l,R_SPPUSH)));
       end;
 
     procedure emit_push_mem(const ref : treference);
@@ -436,7 +438,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          if ref.isintvalue then
            push_int(ref.offset)
          else
-           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(ref),R_SPPUSH)));
+           exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(ref),R_SPPUSH)));
       end;
 
 
@@ -449,19 +451,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               if (ref.base=R_NO) and (ref.index=R_NO) then
-                list^.concat(new(pai68k,op_ref(A_PEA,S_L,
+                list^.concat(new(paicpu,op_ref(A_PEA,S_L,
                     newreference(ref))))
               else if (ref.base=R_NO) and (ref.index<>R_NO) and
                  (ref.offset=0) and (ref.scalefactor=0) and (ref.symbol=nil) then
-                list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                list^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                     ref.index,R_SPPUSH)))
               else if (ref.base<>R_NO) and (ref.index=R_NO) and
                  (ref.offset=0) and (ref.symbol=nil) then
-                list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,ref.base,R_SPPUSH)))
+                list^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,ref.base,R_SPPUSH)))
               else
                 begin
-                   list^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(ref),R_A1)));
-                   list^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A1,R_SPPUSH)));
+                   list^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(ref),R_A1)));
+                   list^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A1,R_SPPUSH)));
                 end;
            end;
         end;
@@ -492,21 +494,21 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  { This is quite complicated, because of the endian on }
                  { the m68k!                                           }
                  opsize:=S_NO;
-                 case integer(p^.resulttype^.savesize) of
+                 case integer(p^.resulttype^.size) of
                    1 : opsize:=S_B;
                    2 : opsize:=S_W;
                    4 : opsize:=S_L;
                  else
                    internalerror(19);
                  end;
-                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                     newreference(p^.location.reference),R_D0)));
-                 exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                 exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                     255,R_D0)));
 {
-                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                     newreference(p^.location.reference),R_D0)));        }
-{                  exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+{                  exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,
                     $ff,R_D0))); }
                   del_reference(p^.location.reference);
                end;
@@ -541,13 +543,13 @@ var hs:string;
     stab_function_name:Pai_stab_function_name;
 {$endif GDB}
 begin
-    if (aktprocsym^.definition^.options and poproginit<>0) then
+    if potype_proginit=aktprocsym^.definition^.proctypeoption then
         begin
             {Init the stack checking.}
             if (cs_check_stack in aktlocalswitches) and
              (target_info.target=target_m68k_linux) then
                 begin
-                    procinfo.aktentrycode^.insert(new(pai68k,
+                    procinfo.aktentrycode^.insert(new(paicpu,
                      op_csymbol(A_JSR,S_NO,newcsymbol('FPC_INIT_STACK_CHECK',0))));
                 end
             else
@@ -555,11 +557,10 @@ begin
             { with a value of ZERO, and the comparison will directly check!           }
             if (cs_check_stack in aktlocalswitches) then
                 begin
-                  procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+                  procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
                       newcsymbol('FPC_STACKCHECK',0))));
-                  procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
+                  procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
                       0,R_D0)));
-                  concat_external('FPC_STACKCHECK',EXT_NEAR);
                 end;
 
 
@@ -572,8 +573,7 @@ begin
                     { call the unit init code and make it external }
                     if (hp^.u^.flags and uf_init)<>0 then
                         begin
-                           unitinits.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('INIT$$'+hp^.u^.modulename^,0))));
-                           concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
+                           unitinits.concat(new(paicpu,op_csymbol(A_JSR,S_NO,newcsymbol('INIT$$'+hp^.u^.modulename^,0))));
                         end;
                    hp:=pused_unit(hp^.next);
                 end;
@@ -582,22 +582,20 @@ begin
         end;
 
         { a constructor needs a help procedure }
-        if (aktprocsym^.definition^.options and poconstructor)<>0 then
+        if potype_constructor=aktprocsym^.definition^.proctypeoption then
         begin
-           if procinfo._class^.isclass then
+           if procinfo._class^.is_class then
              begin
               procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
-              procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+              procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
               newcsymbol('FPC_NEW_CLASS',0))));
-              concat_external('FPC_NEW_CLASS',EXT_NEAR);
              end
            else
              begin
               procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
-              procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+              procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
               newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-              concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
-              procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
+              procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
              end;
         end;
     { don't load ESI, does the caller }
@@ -612,14 +610,18 @@ begin
         begin
             CGMessage(cg_d_stackframe_omited);
             nostackframe:=true;
-            if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+            if (aktprocsym^.definition^.proctypeoption=potype_unitinit) or
+               (aktprocsym^.definition^.proctypeoption=potype_proginit) or
+               (aktprocsym^.definition^.proctypeoption=potype_unitfinalize) then
                 parasize:=0
             else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset;
         end
     else
         begin
-             if (aktprocsym^.definition^.options and (pounitinit or poproginit or pounitfinalize)<>0) then
+            if (aktprocsym^.definition^.proctypeoption=potype_unitinit) or
+               (aktprocsym^.definition^.proctypeoption=potype_proginit) or
+               (aktprocsym^.definition^.proctypeoption=potype_unitfinalize) then
                 parasize:=0
              else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
@@ -632,19 +634,18 @@ begin
                                (target_info.target<>target_m68k_linux) then
                                 begin
                                   { If only not in main program, do we setup stack checking }
-                                  if (aktprocsym^.definition^.options and poproginit=0) then
+                                  if (aktprocsym^.definition^.proctypeoption<>potype_proginit) then
                                    Begin
-                                       procinfo.aktentrycode^.insert(new(pai68k,
+                                       procinfo.aktentrycode^.insert(new(paicpu,
                                          op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
-                                       procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
-                                       concat_external('FPC_STACKCHECK',EXT_NEAR);
+                                       procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
                                    end;
                                 end;
                             { to allocate stack space }
                             { here we allocate space using link signed 16-bit version }
                             { -ve offset to allocate stack space! }
                             if (stackframe > -32767) and (stackframe < 32769) then
-                              procinfo.aktentrycode^.insert(new(pai68k,op_reg_const(A_LINK,S_W,R_A6,-stackframe)))
+                              procinfo.aktentrycode^.insert(new(paicpu,op_reg_const(A_LINK,S_W,R_A6,-stackframe)))
                             else
                               CGMessage(cg_e_stacklimit_in_local_routine);
                         end
@@ -655,19 +656,18 @@ begin
                           { exceed 32K in size.                                            }
                           if (stackframe > -32767) and (stackframe < 32769) then
                             begin
-                              procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
+                              procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
                               { IF only NOT in main program do we check the stack normally }
-                              if (cs_check_stack in aktlocalswitches)
-                              and (aktprocsym^.definition^.options and poproginit=0) then
+                              if (cs_check_stack in aktlocalswitches) and
+                               (aktprocsym^.definition^.proctypeoption<>potype_proginit) then
                                 begin
-                                  procinfo.aktentrycode^.insert(new(pai68k,
+                                  procinfo.aktentrycode^.insert(new(paicpu,
                                    op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
-                                  procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
+                                  procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
                                     stackframe,R_D0)));
-                                  concat_external('FPC_STACKCHECK',EXT_NEAR);
                                 end;
-                               procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
-                               procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
+                               procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
+                               procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                             end
                           else
                             CGMessage(cg_e_stacklimit_in_local_routine);
@@ -675,13 +675,13 @@ begin
                 end {endif stackframe<>0 }
             else
                begin
-                 procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
-                 procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
+                 procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
+                 procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                end;
         end;
 
 
-    if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+    if po_interrupt in aktprocsym^.definition^.procoptions then
         generate_interrupt_stackframe_entry;
 
     {proc_names.insert(aktprocsym^.definition^.mangledname);}
@@ -701,9 +701,9 @@ begin
     while hs<>'' do
         begin
               if make_global then
-                procinfo.aktentrycode^.insert(new(pai_symbol,init_global(hs)))
+                procinfo.aktentrycode^.insert(new(pai_symbol,initname_global(hs,0)))
               else
-                procinfo.aktentrycode^.insert(new(pai_symbol,init(hs)));
+                procinfo.aktentrycode^.insert(new(pai_symbol,initname(hs,0)));
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) then
              begin
@@ -745,35 +745,32 @@ begin
     procinfo.aktexitcode^.insert(new(pai_label,init(aktexitlabel)));
 
     { call the destructor help procedure }
-    if (aktprocsym^.definition^.options and podestructor)<>0 then
+    if potype_destructor=aktprocsym^.definition^.proctypeoption then
      begin
-       if procinfo._class^.isclass then
+       if procinfo._class^.is_class then
          begin
-           procinfo.aktexitcode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+           procinfo.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
              newcsymbol('FPC_DISPOSE_CLASS',0))));
-           concat_external('FPC_DISPOSE_CLASS',EXT_NEAR);
          end
        else
          begin
-           procinfo.aktexitcode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
+           procinfo.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
              newcsymbol('FPC_HELP_DESTRUCTOR',0))));
-           procinfo.aktexitcode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
-           concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
+           procinfo.aktexitcode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
          end;
      end;
 
     { call __EXIT for main program }
     { ????????? }
-    if ((aktprocsym^.definition^.options and poproginit)<>0) and
+    if (potype_proginit=aktprocsym^.definition^.proctypeoption) and
       (target_info.target<>target_m68k_PalmOS) then
      begin
-       procinfo.aktexitcode^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
-       externals^.concat(new(pai_external,init('FPC_DO_EXIT',EXT_NEAR)));
+       procinfo.aktexitcode^.concat(new(paicpu,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
      end;
 
     { handle return value }
-    if (aktprocsym^.definition^.options and poassembler)=0 then
-        if (aktprocsym^.definition^.options and poconstructor)=0 then
+    if po_assembler in aktprocsym^.definition^.procoptions then
+      if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
             begin
                 if procinfo.retdef<>pdef(voiddef) then
                     begin
@@ -786,23 +783,23 @@ begin
                         if (procinfo.retdef^.deftype in [orddef,enumdef]) then
                             begin
                                 case procinfo.retdef^.size of
-                                 4 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
-                                 2 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
-                                 1 : procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
+                                 4 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
+                                 2 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
+                                 1 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
                                 end;
                             end
                         else
                             if (procinfo.retdef^.deftype in [pointerdef,enumdef,procvardef]) or
                              ((procinfo.retdef^.deftype=setdef) and
                              (psetdef(procinfo.retdef)^.settype=smallset)) then
-                                procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hr,R_D0)))
+                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)))
                             else
                                 if (procinfo.retdef^.deftype=floatdef) then
                                     begin
                                         if pfloatdef(procinfo.retdef)^.typ=f32bit then
                                             begin
                                                 { Isnt this missing ? }
-                                                procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
+                                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
                                             end
                                         else
                                             begin
@@ -811,16 +808,16 @@ begin
                                              { TRUE FPU register (does not apply in emulation mode)     }
                                              if (pfloatdef(procinfo.retdef)^.typ = s32real) then
                                               begin
-                                                procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,
+                                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
                                                   S_L,hr,R_D0)))
                                               end
                                              else
                                               begin
                                                if cs_fp_emulation in aktmoduleswitches then
-                                                 procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_MOVE,
+                                                 procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
                                                     S_L,hr,R_D0)))
                                                else
-                                                 procinfo.aktexitcode^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                                                 procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_FMOVE,
                                                  getfloatsize(pfloatdef(procinfo.retdef)^.typ),hr,R_FP0)));
                                              end;
                                            end;
@@ -835,29 +832,28 @@ begin
                 { and returns self in accumulator              }
                 procinfo.aktexitcode^.concat(new(pai_label,init(quickexitlabel)));
                 { eax must be set to zero if the allocation failed !!! }
-                procinfo.aktexitcode^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_D0)));
+                procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_D0)));
                 { faster then OR on mc68000/mc68020 }
-                procinfo.aktexitcode^.concat(new(pai68k,op_reg(A_TST,S_L,R_D0)));
+                procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_TST,S_L,R_D0)));
             end;
     procinfo.aktexitcode^.concat(new(pai_label,init(aktexit2label)));
     if not(nostackframe) then
-        procinfo.aktexitcode^.concat(new(pai68k,op_reg(A_UNLK,S_NO,R_A6)));
+        procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_UNLK,S_NO,R_A6)));
 
     { at last, the return is generated }
 
-    if (aktprocsym^.definition^.options and pointerrupt)<>0 then
+    if po_interrupt in aktprocsym^.definition^.procoptions then
         generate_interrupt_stackframe_exit
     else
-        if (parasize=0) or ((aktprocsym^.definition^.options and poclearstack)<>0)
-        then
+        if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
             {Routines with the poclearstack flag set use only a ret.}
             { also routines with parasize=0           }
-            procinfo.aktexitcode^.concat(new(pai68k,op_none(A_RTS,S_NO)))
+            procinfo.aktexitcode^.concat(new(paicpu,op_none(A_RTS,S_NO)))
         else
             { return with immediate size possible here }
             { signed!                                  }
             if (aktoptprocessor = MC68020) and (parasize < $7FFF) then
-                procinfo.aktexitcode^.concat(new(pai68k,op_const(
+                procinfo.aktexitcode^.concat(new(paicpu,op_const(
                  A_RTD,S_NO,parasize)))
             { manually restore the stack }
             else
@@ -867,20 +863,20 @@ begin
                     { point to nowhere!                                   }
 
                     { save the PC counter (pop it from the stack)         }
-                    procinfo.aktexitcode^.concat(new(pai68k,op_reg_reg(
+                    procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(
                          A_MOVE,S_L,R_SPPULL,R_A0)));
                     { can we do a quick addition ... }
                     if (parasize > 0) and (parasize < 9) then
-                       procinfo.aktexitcode^.concat(new(pai68k,op_const_reg(
+                       procinfo.aktexitcode^.concat(new(paicpu,op_const_reg(
                          A_ADD,S_L,parasize,R_SP)))
                     else { nope ... }
-                       procinfo.aktexitcode^.concat(new(pai68k,op_const_reg(
+                       procinfo.aktexitcode^.concat(new(paicpu,op_const_reg(
                          A_ADD,S_L,parasize,R_SP)));
                     { endif }
                     { restore the PC counter (push it on the stack)       }
-                    procinfo.aktexitcode^.concat(new(pai68k,op_reg_reg(
+                    procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(
                          A_MOVE,S_L,R_A0,R_SPPUSH)));
-                    procinfo.aktexitcode^.concat(new(pai68k,op_none(
+                    procinfo.aktexitcode^.concat(new(paicpu,op_none(
                       A_RTS,S_NO)))
                end;
 {$ifdef GDB}
@@ -922,8 +918,9 @@ end;
          jregister : tregister;
          hp1 : treference;
          hp2 : treference;
-         hl : plabel;
-         hl2: plabel;
+         hl : pasmlabel;
+         hl2: pasmlabel;
+
       begin
          { this should never occur }
          if size > 65535 then
@@ -939,8 +936,8 @@ end;
               { move a dword x times }
               for i:=1 to helpsize do
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(source),hregister)));
-                   exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,hregister,newreference(dest))));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(source),hregister)));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,hregister,newreference(dest))));
                    inc(source.offset,4);
                    inc(dest.offset,4);
                    dec(size,4);
@@ -948,8 +945,8 @@ end;
               { move a word }
               if size>1 then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,newreference(source),hregister)));
-                   exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_W,hregister,newreference(dest))));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,newreference(source),hregister)));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_W,hregister,newreference(dest))));
                    inc(source.offset,2);
                    inc(dest.offset,2);
                    dec(size,2);
@@ -957,8 +954,8 @@ end;
               { move a single byte }
               if size>0 then
                 begin
-                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,newreference(source),hregister)));
-                  exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_B,hregister,newreference(dest))));
+                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,newreference(source),hregister)));
+                  exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_B,hregister,newreference(dest))));
                 end
 
            end
@@ -991,8 +988,8 @@ end;
               { jregister = destination }
 
 
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(source),iregister)));
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(dest),jregister)));
+              exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(source),iregister)));
+              exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,newreference(dest),jregister)));
 
               { double word move only on 68020+ machines }
               { because of possible alignment problems   }
@@ -1001,32 +998,32 @@ end;
                 begin
                    helpsize := size - size mod 4;
                    size := size mod 4;
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,helpsize div 4,hregister)));
+                   exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,helpsize div 4,hregister)));
                    getlabel(hl2);
                    emitl(A_BRA,hl2);
                    getlabel(hl);
                    emitl(A_LABEL,hl);
-                   exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_L,newreference(hp1),newreference(hp2))));
+                   exprasmlist^.concat(new(paicpu,op_ref_ref(A_MOVE,S_L,newreference(hp1),newreference(hp2))));
                    emitl(A_LABEL,hl2);
                    exprasmlist^.concat(new(pai_labeled, init_reg(A_DBRA,hl,hregister)));
                    if size > 1 then
                      begin
                         dec(size,2);
-                        exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_W,newreference(hp1), newreference(hp2))));
+                        exprasmlist^.concat(new(paicpu,op_ref_ref(A_MOVE,S_W,newreference(hp1), newreference(hp2))));
                      end;
                    if size = 1 then
-                    exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_B,newreference(hp1), newreference(hp2))));
+                    exprasmlist^.concat(new(paicpu,op_ref_ref(A_MOVE,S_B,newreference(hp1), newreference(hp2))));
                 end
               else
                 begin
                    { Fast 68010 loop mode with no possible alignment problems }
                    helpsize := size;
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,helpsize,hregister)));
+                   exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,helpsize,hregister)));
                    getlabel(hl2);
                    emitl(A_BRA,hl2);
                    getlabel(hl);
                    emitl(A_LABEL,hl);
-                   exprasmlist^.concat(new(pai68k,op_ref_ref(A_MOVE,S_B,newreference(hp1),newreference(hp2))));
+                   exprasmlist^.concat(new(paicpu,op_ref_ref(A_MOVE,S_B,newreference(hp1),newreference(hp2))));
                    emitl(A_LABEL,hl2);
                    exprasmlist^.concat(new(pai_labeled, init_reg(A_DBRA,hl,hregister)));
                 end;
@@ -1055,7 +1052,7 @@ end;
 
     {A lot smaller and less bug sensitive than the original unfolded loads.}
 
-    var tai:pai68k;
+    var tai:paicpu;
         r:Preference;
 
     begin
@@ -1064,34 +1061,34 @@ end;
                 begin
                     case orddef^.typ of
                         u8bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
-                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$FF,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_const_reg(A_ANDI,S_L,$FF,destreg)));
                                end;
                         s8bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_B,location.register,destreg)));
                                  if (aktoptprocessor <> MC68020) then
                                   begin
                                  { byte to word }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_W,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_W,destreg)));
                                  { word to long }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_L,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_L,destreg)));
                                   end
                                  else { 68020+ and later only }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXTB,S_L,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXTB,S_L,destreg)));
                                 end;
                         u16bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,location.register,destreg)));
-                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$FFFF,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,location.register,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_const_reg(A_ANDI,S_L,$FFFF,destreg)));
                                 end;
                         s16bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,location.register,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,location.register,destreg)));
                                  { word to long }
-                                 exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_L,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_L,destreg)));
                                 end;
                         u32bit:
-                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,location.register,destreg)));
+                            exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,location.register,destreg)));
                         s32bit:
-                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,location.register,destreg)));
+                            exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,location.register,destreg)));
                     end;
                     if delloc then
                         ungetregister(location.register);
@@ -1101,34 +1098,34 @@ end;
                     r:=newreference(location.reference);
                     case orddef^.typ of
                         u8bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,r,destreg)));
-                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$FF,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,r,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_const_reg(A_ANDI,S_L,$FF,destreg)));
                                end;
                         s8bit:  begin
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,r,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,r,destreg)));
                                  if (aktoptprocessor <> MC68020) then
                                   begin
                                  { byte to word }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_W,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_W,destreg)));
                                  { word to long }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_L,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_L,destreg)));
                                   end
                                  else { 68020+ and later only }
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_EXTB,S_L,destreg)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_EXTB,S_L,destreg)));
                                 end;
                         u16bit: begin
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,r,destreg)));
-                                 exprasmlist^.concat(new(pai68k,op_const_reg(A_ANDI,S_L,$ffff,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,r,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_const_reg(A_ANDI,S_L,$ffff,destreg)));
                                 end;
                         s16bit: begin
-                                       exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,r,destreg)));
+                                       exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,r,destreg)));
                                  { word to long }
-                                 exprasmlist^.concat(new(pai68k,op_reg(A_EXT,S_L,destreg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_EXT,S_L,destreg)));
                                 end;
                         u32bit:
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,destreg)));
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,destreg)));
                         s32bit:
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,destreg)));
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,destreg)));
                     end;
                     if delloc then
                         del_reference(location.reference);
@@ -1156,7 +1153,7 @@ end;
                    reset_reference(hp^);
                    hp^.offset:=procinfo.framepointer_offset;
                    hp^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                    p:=procinfo.parent;
                    for i:=3 to lexlevel-1 do
                      begin
@@ -1164,14 +1161,14 @@ end;
                         reset_reference(hp^);
                         hp^.offset:=p^.framepointer_offset;
                         hp^.base:=R_A5;
-                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
+                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                         p:=p^.parent;
                      end;
                    new(hp);
                    reset_reference(hp^);
                    hp^.offset:=p^.ESI_offset;
                    hp^.base:=R_A5;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                 end
               else
                 begin
@@ -1179,7 +1176,7 @@ end;
                    reset_reference(hp^);
                    hp^.offset:=procinfo.ESI_offset;
                    hp^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                 end;
            end;
       end;
@@ -1214,7 +1211,7 @@ end;
         if not ((cs_fp_emulation) in aktmoduleswitches) then
         begin
             location.fpureg := getfloatreg;
-            exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,s,newreference(ref),location.fpureg)))
+            exprasmlist^.concat(new(paicpu,op_ref_reg(A_FMOVE,s,newreference(ref),location.fpureg)))
         end
         else
         { handle emulation }
@@ -1222,7 +1219,7 @@ end;
           if t = s32real then
           begin
             location.fpureg := getregister32;
-            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(ref),location.fpureg)))
+            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(ref),location.fpureg)))
           end
           else
              { other floating types are not supported in emulation mode }
@@ -1284,12 +1281,12 @@ end;
             if not (location.fpureg in [R_FP0..R_FP7]) then
              Begin
                if s = S_FS then
-                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,location.fpureg,newreference(ref))))
+                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,location.fpureg,newreference(ref))))
                else
                  internalerror(255);
              end
             else
-               exprasmlist^.concat(new(pai68k,op_reg_ref(A_FMOVE,s,location.fpureg,newreference(ref))));
+               exprasmlist^.concat(new(paicpu,op_reg_ref(A_FMOVE,s,location.fpureg,newreference(ref))));
             ungetregister(location.fpureg);
         end
         else
@@ -1297,7 +1294,7 @@ end;
         begin
           if t = s32real then
           begin
-            exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,location.fpureg,newreference(ref))));
+            exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,location.fpureg,newreference(ref))));
             ungetregister32(location.fpureg);
           end
           else
@@ -1348,7 +1345,7 @@ end;
              else
              if (dest_loc.loc=LOC_REFERENCE) or (dest_loc.loc=LOC_MEM) then
                begin
-                 exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,s,reg,newreference(dest_loc.reference))));
+                 exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,s,reg,newreference(dest_loc.reference))));
                  set_location(p^.location,dest_loc);
                  in_dest_loc:=true;
                end
@@ -1370,10 +1367,8 @@ end;
               if is_ansistring(hp^.typ) then
                 begin
                    emitpushreferenceaddr(list,hp^.address);
-                   list^.concat(new(pai68k,
+                   list^.concat(new(paicpu,
                      op_csymbol(A_JSR,S_NO,newcsymbol('FPC_ANSISTR_DECR_REF',0))));
-                   if not (cs_compilesystem in aktmoduleswitches) then
-                     concat_external('FPC_ANSISTR_DECR_REF',EXT_NEAR);
                 end;
               hp:=ptemptodestroy(hp^.next);
            end;
@@ -1396,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-09-16 11:34:54  pierre
+  Revision 1.34  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.33  1999/09/16 11:34:54  pierre
    * typo correction
 
   Revision 1.32  1999/08/25 11:59:54  jonas

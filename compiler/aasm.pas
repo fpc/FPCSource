@@ -64,7 +64,9 @@ unit aasm;
           { the follow is for the DEC Alpha }
           ait_frame,
           ait_ent,
-
+{$ifdef m68k}
+          ait_labeled_instruction,
+{$endif m68k}
           { never used, makes insertation of new ait_ easier to type }
           { lazy guy !!!! ;-) (FK) }
           ait_dummy);
@@ -985,7 +987,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.62  1999-09-15 20:35:37  florian
+  Revision 1.63  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.62  1999/09/15 20:35:37  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

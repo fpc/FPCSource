@@ -35,11 +35,11 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,symconst,
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k;
+      cpubase,cga68k,tgen68k;
 
 {*****************************************************************************
                              SecondModDiv
@@ -51,10 +51,10 @@ implementation
       var
          hreg1 : tregister;
          power : longint;
-         hl : plabel;
+         hl : pasmlabel;
          reg: tregister;
          pushed: boolean;
-         hl1: plabel;
+         hl1: pasmlabel;
       begin
          secondpass(p^.left);
          set_location(p^.location,p^.left^.location);
@@ -74,7 +74,7 @@ implementation
                 begin
                   del_reference(p^.left^.location.reference);
                   hreg1:=getregister32;
-                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
+                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
                     hreg1)));
                 end;
               clear_location(p^.left^.location);
@@ -86,26 +86,26 @@ implementation
          if (p^.treetype=divn) and (p^.right^.treetype=ordconstn) and
             ispowerof2(p^.right^.value,power) then
            begin
-              exprasmlist^.concat(new(pai68k, op_reg(A_TST, S_L, hreg1)));
+              exprasmlist^.concat(new(paicpu, op_reg(A_TST, S_L, hreg1)));
               getlabel(hl);
               emitl(A_BPL,hl);
               if (power = 1) then
-                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,1, hreg1)))
+                 exprasmlist^.concat(new(paicpu, op_const_reg(A_ADDQ, S_L,1, hreg1)))
               else
                Begin
                  { optimize using ADDQ if possible!   }
                  if (p^.right^.value-1) < 9 then
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,p^.right^.value-1, hreg1)))
+                   exprasmlist^.concat(new(paicpu, op_const_reg(A_ADDQ, S_L,p^.right^.value-1, hreg1)))
                  else
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_ADD, S_L,p^.right^.value-1, hreg1)));
+                   exprasmlist^.concat(new(paicpu, op_const_reg(A_ADD, S_L,p^.right^.value-1, hreg1)));
                end;
               emitl(A_LABEL, hl);
               if (power > 0) and (power < 9) then
-                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ASR, S_L,power, hreg1)))
+                 exprasmlist^.concat(new(paicpu, op_const_reg(A_ASR, S_L,power, hreg1)))
               else
                begin
-                  exprasmlist^.concat(new(pai68k, op_const_reg(A_MOVE,S_L,power, R_D0)));
-                  exprasmlist^.concat(new(pai68k, op_reg_reg(A_ASR,S_L,R_D0, hreg1)));
+                  exprasmlist^.concat(new(paicpu, op_const_reg(A_MOVE,S_L,power, R_D0)));
+                  exprasmlist^.concat(new(paicpu, op_reg_reg(A_ASR,S_L,R_D0, hreg1)));
                end;
            end
          else
@@ -119,7 +119,7 @@ implementation
                  begin
                    del_reference(p^.right^.location.reference);
                    p^.left^.location.loc:=LOC_REGISTER;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),R_D1)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),R_D1)));
                 end
              else
               begin
@@ -134,38 +134,38 @@ implementation
                  { Check if divisor is ZERO - if so call HALT_ERROR }
                  { with d0 = 200 (Division by zero!)                }
                  getlabel(hl1);
-                 exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_L,R_D1)));
+                 exprasmlist^.concat(new(paicpu,op_reg(A_TST,S_L,R_D1)));
                  { if not zero then simply continue on }
                  emitl(A_BNE,hl1);
-                 exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,200,R_D0)));
+                 exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,200,R_D0)));
                  emitcall('FPC_HALT_ERROR',true);
                  emitl(A_LABEL,hl1);
                  if (p^.treetype = modn) then
                  Begin
                    reg := getregister32;
-                   exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_L,reg)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_CLR,S_L,reg)));
                    getlabel(hl);
                    { here what we do is prepare the high register with the     }
                    { correct sign. i.e we clear it, check if the low dword reg }
                    { which will participate in the division is signed, if so we}
                    { we extend the sign to the high doword register by inverting }
                    { all the bits.                                             }
-                   exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_L,hreg1)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_TST,S_L,hreg1)));
                    emitl(A_BPL,hl);
-                   exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,reg)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,reg)));
                    emitl(A_LABEL,hl);
                    { reg:hreg1 / d1 }
-                   exprasmlist^.concat(new(pai68k,op_reg_reg_reg(A_DIVSL,S_L,R_D1,reg,hreg1)));
+                   exprasmlist^.concat(new(paicpu,op_reg_reg_reg(A_DIVSL,S_L,R_D1,reg,hreg1)));
                    { hreg1 already contains quotient }
                    { looking for remainder }
-                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,reg,hreg1)));
+                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,reg,hreg1)));
                    ungetregister32(reg);
                  end
                  else
                  { simple division... }
                  Begin
                    { reg:hreg1 / d1 }
-                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_DIVS,S_L,R_D1,hreg1)));
+                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_DIVS,S_L,R_D1,hreg1)));
                  end;
               end
               else { MC68000 operations }
@@ -222,7 +222,7 @@ implementation
                 begin
                    del_reference(p^.left^.location.reference);
                    hregister1:=getregister32;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
                      hregister1)));
                 end;
            end
@@ -238,13 +238,13 @@ implementation
          if (p^.right^.treetype=ordconstn) then
            begin
              if (p^.right^.location.reference.offset and 31 > 0) and (p^.right^.location.reference.offset and 31 < 9) then
-                 exprasmlist^.concat(new(pai68k,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
+                 exprasmlist^.concat(new(paicpu,op_const_reg(op,S_L,p^.right^.location.reference.offset and 31,
                    hregister1)))
              else
                begin
-                 exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,p^.right^.location.reference.offset and 31,
+                 exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,p^.right^.location.reference.offset and 31,
                    R_D6)));
-                 exprasmlist^.concat(new(pai68k,op_reg_reg(op,S_L,R_D6,hregister1)));
+                 exprasmlist^.concat(new(paicpu,op_reg_reg(op,S_L,R_D6,hregister1)));
                end;
               p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister1;
@@ -264,7 +264,7 @@ implementation
                      begin
                         del_reference(p^.right^.location.reference);
                         hregister2:=getregister32;
-                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
+                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(p^.right^.location.reference),
                           hregister2)));
                      end;
                 end
@@ -290,13 +290,13 @@ implementation
          case p^.left^.location.loc of
             LOC_REGISTER : begin
                               p^.location.register:=p^.left^.location.register;
-                              exprasmlist^.concat(new(pai68k,op_reg(A_NEG,S_L,p^.location.register)));
+                              exprasmlist^.concat(new(paicpu,op_reg(A_NEG,S_L,p^.location.register)));
                            end;
             LOC_CREGISTER : begin
                                p^.location.register:=getregister32;
                                emit_reg_reg(A_MOVE,S_L,p^.location.register,
                                  p^.location.register);
-                               exprasmlist^.concat(new(pai68k,op_reg(A_NEG,S_L,p^.location.register)));
+                               exprasmlist^.concat(new(paicpu,op_reg(A_NEG,S_L,p^.location.register)));
                             end;
             LOC_REFERENCE,LOC_MEM :
                            begin
@@ -315,28 +315,28 @@ implementation
                                      p^.left^.location.reference,p^.location);
                                    if (cs_fp_emulation) in aktmoduleswitches then
                                        { if in emulation mode change sign manually }
-                                       exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,
+                                       exprasmlist^.concat(new(paicpu,op_const_reg(A_BCHG,S_L,31,
                                           p^.location.fpureg)))
                                    else
-                                       exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_FX,
+                                       exprasmlist^.concat(new(paicpu,op_reg(A_FNEG,S_FX,
                                           p^.location.fpureg)));
                                 end
                               else
                                 begin
                                    p^.location.register:=getregister32;
-                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                      newreference(p^.left^.location.reference),
                                      p^.location.register)));
-                                   exprasmlist^.concat(new(pai68k,op_reg(A_NEG,S_L,p^.location.register)));
+                                   exprasmlist^.concat(new(paicpu,op_reg(A_NEG,S_L,p^.location.register)));
                                 end;
                            end;
             LOC_FPU : begin
                               p^.location.loc:=LOC_FPU;
                               p^.location.fpureg := p^.left^.location.fpureg;
                               if (cs_fp_emulation) in aktmoduleswitches then
-                                  exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,p^.location.fpureg)))
+                                  exprasmlist^.concat(new(paicpu,op_const_reg(A_BCHG,S_L,31,p^.location.fpureg)))
                               else
-                                 exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_FX,p^.location.fpureg)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_FNEG,S_FX,p^.location.fpureg)));
                            end;
          end;
 {         emitoverflowcheck;}
@@ -355,7 +355,7 @@ implementation
              F_A,F_AE,F_B,F_BE);
 
       var
-         hl : plabel;
+         hl : pasmlabel;
 
       begin
          if (p^.resulttype^.deftype=orddef) and
@@ -379,7 +379,7 @@ implementation
                     LOC_REGISTER : begin
                                       secondpass(p^.left);
                                       p^.location.register:=p^.left^.location.register;
-                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_EOR,S_B,1,p^.location.register)));
+                                      exprasmlist^.concat(new(paicpu,op_const_reg(A_EOR,S_B,1,p^.location.register)));
                                    end;
                     LOC_CREGISTER : begin
                                        secondpass(p^.left);
@@ -387,7 +387,7 @@ implementation
                                        p^.location.register:=getregister32;
                                        emit_reg_reg(A_MOVE,S_B,p^.left^.location.register,
                                          p^.location.register);
-                                       exprasmlist^.concat(new(pai68k,op_const_reg(A_EOR,S_B,1,p^.location.register)));
+                                       exprasmlist^.concat(new(paicpu,op_const_reg(A_EOR,S_B,1,p^.location.register)));
                                     end;
                     LOC_REFERENCE,LOC_MEM : begin
                                               secondpass(p^.left);
@@ -398,10 +398,10 @@ implementation
                                                 emit_reg_reg(A_MOVE,S_B,p^.left^.location.register,
                                                    p^.location.register)
                                               else
-                                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,
                                               newreference(p^.left^.location.reference),
                                                 p^.location.register)));
-                                              exprasmlist^.concat(new(pai68k,op_const_reg(A_EOR,S_B,1,p^.location.register)));
+                                              exprasmlist^.concat(new(paicpu,op_const_reg(A_EOR,S_B,1,p^.location.register)));
                                            end;
                  end;
               end
@@ -413,22 +413,22 @@ implementation
                 case p^.left^.location.loc of
                    LOC_REGISTER : begin
                                      p^.location.register:=p^.left^.location.register;
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.location.register)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.location.register)));
                                   end;
                    LOC_CREGISTER : begin
                                      p^.location.register:=getregister32;
                                      emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,
                                        p^.location.register);
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.location.register)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.location.register)));
                                    end;
                    LOC_REFERENCE,LOC_MEM :
                                   begin
                                      del_reference(p^.left^.location.reference);
                                      p^.location.register:=getregister32;
-                                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                     exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                        newreference(p^.left^.location.reference),
                                        p^.location.register)));
-                                     exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.location.register)));
+                                     exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.location.register)));
                                   end;
                 end;
                 {if  p^.left^.location.loc=loc_register then
@@ -437,11 +437,11 @@ implementation
                   begin
                      del_locref(p^.left^.location);
                      p^.location.register:=getregister32;
-                     exprasmlist^.concat(new(pai68k,op_loc_reg(A_MOV,S_L,
+                     exprasmlist^.concat(new(paicpu,op_loc_reg(A_MOV,S_L,
                        p^.left^.location,
                        p^.location.register)));
                   end;
-                exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.location.register)));}
+                exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.location.register)));}
 
              end;
       end;
@@ -449,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-12-11 00:03:05  peter
+  Revision 1.5  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.4  1998/12/11 00:03:05  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.3  1998/10/13 16:50:10  pierre

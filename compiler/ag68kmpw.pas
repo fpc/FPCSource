@@ -37,7 +37,7 @@ unit ag68kmpw;
 
     uses
       globtype,systems,
-      dos,globals,cobjects,m68k,
+      dos,globals,cobjects,cpubase,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -581,7 +581,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.8  1998-12-11 00:02:42  peter
+  Revision 1.9  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.8  1998/12/11 00:02:42  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.7  1998/11/12 11:19:39  pierre

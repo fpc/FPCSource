@@ -241,7 +241,7 @@ unit pmodules;
 {$ifdef m68k}
          if target_info.target<>target_m68k_PalmOS then
            begin
-              datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
+              datasegment^.concat(new(pai_symbol,initname_global('HEAP_SIZE',0)));
               datasegment^.concat(new(pai_const,init_32bit(heapsize)));
            end;
 {$else m68k}
@@ -301,7 +301,7 @@ unit pmodules;
           target_m68k_Atari :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,init_global('__stklen',4)));
+              datasegment^.concat(new(pai_symbol,initname_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
 {$endif m68k}
@@ -1464,7 +1464,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.154  1999-09-16 14:18:12  pierre
+  Revision 1.155  1999-09-16 23:05:54  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.154  1999/09/16 14:18:12  pierre
    + warning if truncate unit name found
 
   Revision 1.153  1999/09/13 22:56:17  peter

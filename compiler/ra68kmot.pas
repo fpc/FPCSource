@@ -45,7 +45,7 @@ Unit Ra68kMot;
 Interface
 
 Uses
-  globtype,m68k,tree;
+  globtype,cpubase,tree;
 
    function assemble: ptree;
 
@@ -2178,7 +2178,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.8  1999-01-10 15:37:59  peter
+  Revision 1.9  1999-09-16 23:05:56  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.8  1999/01/10 15:37:59  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils

@@ -218,8 +218,8 @@ begin
   s80floatdef:=new(pfloatdef,init(s80real));
 {$endif}
 {$ifdef m68k}
-  s32floatdef:=new(pfloatdef,init(s32real))
-  s64floatdef:=new(pfloatdef,init(s32real));
+  s32floatdef:=new(pfloatdef,init(s32real));
+  s64floatdef:=new(pfloatdef,init(s64real));
   if (cs_fp_emulation in aktmoduleswitches) then
    s80floatdef:=new(pfloatdef,init(s32real))
   else
@@ -238,7 +238,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-08-13 14:24:17  pierre
+  Revision 1.28  1999-09-16 23:05:55  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.27  1999/08/13 14:24:17  pierre
     + stabs for classes and classref working,
       a class still needs an ^ to get that content of it,
       but the class fields inside a class don't result into an

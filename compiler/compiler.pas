@@ -128,11 +128,8 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
-{$ifdef m68k}
-  m68k;
-{$else}
   cpubase;
-{$endif}
+
 var
   CompilerInitedAfterArgs,
   CompilerInited : boolean;
@@ -299,7 +296,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-09-07 15:10:04  pierre
+  Revision 1.34  1999-09-16 23:05:52  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.33  1999/09/07 15:10:04  pierre
    * use do_halt instead of halt
 
   Revision 1.32  1999/09/02 18:47:44  daniel

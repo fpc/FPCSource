@@ -44,11 +44,11 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,symconst,
       cobjects,verbose,globals,
       symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k;
+      cpubase,cga68k,tgen68k;
 
 {*****************************************************************************
                          Second_While_RepeatN
@@ -57,8 +57,8 @@ implementation
     procedure second_while_repeatn(var p : ptree);
 
       var
-         l1,l2,l3,oldclabel,oldblabel : plabel;
-         otlabel,oflabel : plabel;
+         l1,l2,l3,oldclabel,oldblabel : pasmlabel;
+         otlabel,oflabel : pasmlabel;
       begin
          getlabel(l1);
          getlabel(l2);
@@ -127,7 +127,7 @@ implementation
     procedure secondifn(var p : ptree);
 
       var
-         hl,otlabel,oflabel : plabel;
+         hl,otlabel,oflabel : pasmlabel;
 
       begin
          otlabel:=truelabel;
@@ -173,7 +173,7 @@ implementation
     procedure secondfor(var p : ptree);
 
       var
-         l1,l3,oldclabel,oldblabel : plabel;
+         l1,l3,oldclabel,oldblabel : pasmlabel;
          omitfirstcomp,temptovalue : boolean;
          hs : byte;
          temp1 : treference;
@@ -232,7 +232,7 @@ implementation
               if (p^.right^.location.loc=LOC_REGISTER) or
                  (p^.right^.location.loc=LOC_CREGISTER) then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,opsize,p^.right^.location.register,
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,opsize,p^.right^.location.register,
                       newreference(temp1))));
                  end
               else
@@ -244,14 +244,14 @@ implementation
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
                begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_CMP,opsize,newreference(temp1),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_CMP,opsize,newreference(temp1),
                      p^.t2^.location.register)));
                 end
               else
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,newreference(p^.t2^.location.reference),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,newreference(p^.t2^.location.reference),
                      cmpreg)));
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_CMP,opsize,newreference(temp1),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_CMP,opsize,newreference(temp1),
                      cmpreg)));
                 end;
            end
@@ -260,10 +260,10 @@ implementation
               if not(omitfirstcomp) then
                 begin
                    if p^.t2^.location.loc=LOC_CREGISTER then
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,p^.right^.value,
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,p^.right^.value,
                        p^.t2^.location.register)))
                    else
-                     exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,opsize,p^.right^.value,
+                     exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,opsize,p^.right^.value,
                newreference(p^.t2^.location.reference))));
                 end;
            end;
@@ -312,24 +312,24 @@ implementation
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_CMP,opsize,newreference(temp1),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_CMP,opsize,newreference(temp1),
                      p^.t2^.location.register)));
                 end
               else
                 begin
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,newreference(p^.t2^.location.reference),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,newreference(p^.t2^.location.reference),
                      cmpreg)));
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_CMP,opsize,newreference(temp1),
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_CMP,opsize,newreference(temp1),
                      cmpreg)));
                 end;
            end
          else
            begin
               if p^.t2^.location.loc=LOC_CREGISTER then
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,opsize,p^.right^.value,
+                exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,opsize,p^.right^.value,
                   p^.t2^.location.register)))
               else
-                exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,opsize,p^.right^.value,
+                exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,opsize,p^.right^.value,
                   newreference(p^.t2^.location.reference))));
            end;
          if p^.backward then
@@ -350,9 +350,9 @@ implementation
          else hop:=A_ADD;
 
          if p^.t2^.location.loc=LOC_CREGISTER then
-           exprasmlist^.concat(new(pai68k,op_const_reg(hop,opsize,1,p^.t2^.location.register)))
+           exprasmlist^.concat(new(paicpu,op_const_reg(hop,opsize,1,p^.t2^.location.register)))
          else
-            exprasmlist^.concat(new(pai68k,op_const_ref(hop,opsize,1,newreference(p^.t2^.location.reference))));
+            exprasmlist^.concat(new(paicpu,op_const_ref(hop,opsize,1,newreference(p^.t2^.location.reference))));
          emitl(A_JMP,l3);
 
      { this is the break label: }
@@ -380,7 +380,7 @@ implementation
          is_mem : boolean;
          {op : tasmop;
          s : topsize;}
-         otlabel,oflabel : plabel;
+         otlabel,oflabel : pasmlabel;
 
       label
          do_jmp;
@@ -399,15 +399,15 @@ implementation
                  LOC_CREGISTER,
                  LOC_REGISTER : is_mem:=false;
                  LOC_FLAGS : begin
-                                exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_D0)));
-                                exprasmlist^.concat(new(pai68k,op_reg(A_NEG, S_B, R_D0)));
+                                exprasmlist^.concat(new(paicpu,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_D0)));
+                                exprasmlist^.concat(new(paicpu,op_reg(A_NEG, S_B, R_D0)));
                                 goto do_jmp;
                              end;
                  LOC_JUMP : begin
                                emitl(A_LABEL,truelabel);
-                               exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_B,1,R_D0)));
+                               exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_B,1,R_D0)));
                                emitl(A_JMP,aktexit2label);
-                               exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_B,R_D0)));
+                               exprasmlist^.concat(new(paicpu,op_reg(A_CLR,S_B,R_D0)));
                                goto do_jmp;
                             end;
                  else internalerror(2001);
@@ -417,17 +417,17 @@ implementation
               enumdef : begin
                           case procinfo.retdef^.size of
                            4 : if is_mem then
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                    newreference(p^.left^.location.reference),R_D0)))
                                else
                                  emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0);
                            2 : if is_mem then
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,
                                    newreference(p^.left^.location.reference),R_D0)))
                                else
                                  emit_reg_reg(A_MOVE,S_W,p^.left^.location.register,R_D0);
                            1 : if is_mem then
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,
                                    newreference(p^.left^.location.reference),R_D0)))
                                else
                                  emit_reg_reg(A_MOVE,S_B,p^.left^.location.register,R_D0);
@@ -436,10 +436,10 @@ implementation
            pointerdef,
            procvardef : begin
                           if is_mem then
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D0)))
                           else
-                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)));
+                            exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)));
                         end;
              floatdef : begin
                           { floating point return values .... }
@@ -448,7 +448,7 @@ implementation
                              (pfloatdef(procinfo.retdef)^.typ=s32real) then
                            begin
                              if is_mem then
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                  newreference(p^.left^.location.reference),R_D0)))
                              else
                                begin
@@ -460,7 +460,7 @@ implementation
                                       if cs_fp_emulation in aktmoduleswitches then
                                          emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
                                       else
-                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
+                                         exprasmlist^.concat(new(paicpu,op_reg_reg(A_FMOVE,S_FS,
                                             p^.left^.location.fpureg,R_D0)));
                                    end;
                                end;
@@ -471,7 +471,7 @@ implementation
                              { LOC_MEM,LOC_REFERENCE }
                              if is_mem then
                               begin
-                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_FMOVE,
                                   getfloatsize(pfloatdef(procinfo.retdef)^.typ),
                                     newreference(p^.left^.location.reference),R_FP0)));
                               end
@@ -480,7 +480,7 @@ implementation
                               begin
                                 { convert from extended to correct type }
                                 { when storing                          }
-                                exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
+                                exprasmlist^.concat(new(paicpu,op_reg_reg(A_FMOVE,
                                   getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
                               end;
                            end;
@@ -557,7 +557,7 @@ do_jmp:
     procedure secondraise(var p : ptree);
 
       var
-         a : plabel;
+         a : pasmlabel;
 
       begin
          if assigned(p^.left) then
@@ -573,8 +573,8 @@ do_jmp:
                 begin
                    getlabel(a);
                    emitl(A_LABEL,a);
-                   exprasmlist^.concat(new(pai68k,
-                     op_csymbol_reg(A_MOVE,S_L,newcsymbol(lab2str(a),0),R_SPPUSH)));
+                   exprasmlist^.concat(new(paicpu,
+                     op_csymbol_reg(A_MOVE,S_L,newcsymbol(a^.name,0),R_SPPUSH)));
                 end;
               secondpass(p^.left);
               if codegenerror then
@@ -582,7 +582,7 @@ do_jmp:
 
               case p^.left^.location.loc of
                  LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                 LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                 LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                    p^.left^.location.register,R_SPPUSH)));
                  else CGMessage(type_e_mismatch);
               end;
@@ -598,13 +598,13 @@ do_jmp:
 *****************************************************************************}
 
     var
-       endexceptlabel : plabel;
+       endexceptlabel : pasmlabel;
 
     procedure secondtryexcept(var p : ptree);
 
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
-         lastonlabel : plabel;
+         lastonlabel : pasmlabel;
 
       begin
         InternalError(3431243);
@@ -671,7 +671,7 @@ do_jmp:
 
     procedure secondon(var p : ptree);
       var
-         nextonlabel,myendexceptlabel : plabel;
+         nextonlabel,myendexceptlabel : pasmlabel;
          ref : treference;
 
       begin
@@ -715,7 +715,7 @@ do_jmp:
     procedure secondtryfinally(var p : ptree);
 
       var
-         finallylabel,noreraiselabel,endfinallylabel : plabel;
+         finallylabel,noreraiselabel,endfinallylabel : pasmlabel;
 
       begin
 (*         { we modify EAX }
@@ -766,20 +766,23 @@ do_jmp:
       var
         hp : preference;
       begin
-         exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_L,R_A5)));
+         exprasmlist^.concat(new(paicpu,op_reg(A_CLR,S_L,R_A5)));
          { also reset to zero in the stack }
          new(hp);
          reset_reference(hp^);
          hp^.offset:=procinfo.ESI_offset;
          hp^.base:=procinfo.framepointer;
-         exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,R_A5,hp)));
+         exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,R_A5,hp)));
          exprasmlist^.concat(new(pai_labeled,init(A_JMP,quickexitlabel)));
       end;
 
 end.
 {
   $Log$
-  Revision 1.9  1999-08-25 11:59:49  jonas
+  Revision 1.10  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.9  1999/08/25 11:59:49  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.8  1998/12/11 00:03:02  peter

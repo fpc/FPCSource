@@ -761,10 +761,14 @@ begin
     target_i386_Go32v2 :
       linker:=new(plinkergo32v2,Init);
 {$endif i386}
+{$ifdef m68k}
+    target_m68k_palmos:
+      linker:=new(plinker,Init);
+{$endif m68k}
 {$ifdef alpha}
     target_alpha_linux:
       linker:=new(plinker,Init);
-{$endif i386}
+{$endif alpha}
 {$ifdef powerpc}
     target_powerpc_linux:
       linker:=new(plinker,Init);
@@ -785,7 +789,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.71  1999-09-16 11:34:56  pierre
+  Revision 1.72  1999-09-16 23:05:52  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.71  1999/09/16 11:34:56  pierre
    * typo correction
 
   Revision 1.70  1999/09/15 22:09:16  florian

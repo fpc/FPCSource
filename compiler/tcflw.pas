@@ -49,6 +49,9 @@ implementation
 {$ifdef i386}
       ,tgeni386
 {$endif}
+{$ifdef m68k}
+      ,tgen68k
+{$endif m68k}
       ;
 
 {*****************************************************************************
@@ -492,7 +495,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-09-16 10:44:30  pierre
+  Revision 1.19  1999-09-16 23:05:56  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.18  1999/09/16 10:44:30  pierre
    * firstexit must now set procinfo.funcret_is_valid
 
   Revision 1.17  1999/08/23 23:41:45  pierre

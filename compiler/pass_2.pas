@@ -134,6 +134,7 @@ implementation
                 case hp2^.typ of
                   ait_instruction :
                      begin
+{$ifdef i386}
                        { fixup the references }
                        for i:=1 to paicpu(hp2)^.ops do
                         if paicpu(hp2)^.oper[i-1].typ=top_ref then
@@ -147,6 +148,7 @@ implementation
                            end;
                          end;
                        exprasmlist^.concat(hp2);
+{$endif i386}
                      end;
                    ait_marker :
                      begin
@@ -560,7 +562,7 @@ implementation
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
-                                       procinfo.aktentrycode^.concat(new(pai68k,op_ref_reg(A_MOVE,regsize,
+                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif m68k}
                                        unused:=unused - [regvars[i]^.reg];
@@ -622,13 +624,16 @@ implementation
                           begin
                              if assigned(regvars[i]) then
                                begin
-                                  regvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
-                                  { reserve place on the FPU stack }
 {$ifdef i386}
+                                  { reserve place on the FPU stack }
+                                  regvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
                                   procinfo.aktentrycode^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
                                   { ... and clean it up }
                                   procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
 {$endif i386}
+{$ifdef m68k}
+                                  regvars[i]^.reg:=fpuvarregs[i];
+{$endif m68k}
 {$ifdef dummy}
                                   { parameter must be load }
                                   if regvars_para[i] then
@@ -646,7 +651,7 @@ implementation
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
-                                       procinfo.aktentrycode^.concat(new(pai68k,op_ref_reg(A_MOVE,regsize,
+                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif m68k}
                                     end;
@@ -691,7 +696,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  1999-09-15 20:35:41  florian
+  Revision 1.38  1999-09-16 23:05:54  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.37  1999/09/15 20:35:41  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

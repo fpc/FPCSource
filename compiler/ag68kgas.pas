@@ -45,7 +45,7 @@ unit ag68kgas;
 
     uses
       globtype,systems,
-      dos,globals,m68k,
+      dos,globals,cpubase,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -328,7 +328,6 @@ unit ag68kgas;
 {$endif GDB}
 
          case hp^.typ of
-      ait_external : ; { external is ignored }
        ait_comment : Begin
                        AsmWrite(target_asm.comment);
                        AsmWritePChar(pai_asm_comment(hp)^.str);
@@ -344,8 +343,10 @@ unit ag68kgas;
                         begin
                           AsmLn;
                           AsmWrite(ait_section2str(pai_section(hp)^.sec));
+                          {!!!!
                           if pai_section(hp)^.idataidx>0 then
                            AsmWrite('$'+tostr(pai_section(hp)^.idataidx));
+                          }
                           AsmLn;
 {$ifdef GDB}
                           case pai_section(hp)^.sec of
@@ -373,7 +374,7 @@ unit ag68kgas;
                         AsmWrite(#9'.comm'#9)
                        else
                         AsmWrite(#9'.lcomm'#9);
-                       AsmWriteLn(StrPas(pai_datablock(hp)^.name)+','+tostr(pai_datablock(hp)^.size));
+                       AsmWriteLn(pai_datablock(hp)^.sym^.name+','+tostr(pai_datablock(hp)^.size));
                      end;
    ait_const_32bit, { alignment is required for 16/32 bit data! }
    ait_const_16bit:  begin
@@ -411,6 +412,7 @@ unit ag68kgas;
   ait_const_symbol : Begin
                        AsmWriteLn(#9'.long'#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
+  {
   ait_const_symbol_offset :
                      Begin
                        AsmWrite(#9'.long'#9);
@@ -421,14 +423,15 @@ unit ag68kgas;
                          AsmWrite(tostr(pai_const_symbol_offset(hp)^.offset));
                        AsmLn;
                      end;
+  }
     ait_real_64bit : Begin
-                      AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
+                      AsmWriteLn(#9'.double'#9+double2str(pai_real_64bit(hp)^.value));
                      end;
     ait_real_32bit : Begin
-                      AsmWriteLn(#9'.single'#9+double2str(pai_single(hp)^.value));
+                      AsmWriteLn(#9'.single'#9+double2str(pai_real_32bit(hp)^.value));
                      end;
- ait_real_extended : Begin
-                      AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
+ ait_real_80bit : Begin
+                      AsmWriteLn(#9'.extend'#9+double2str(pai_real_80bit(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
 { TO SUPPORT SOONER OR LATER!!!
@@ -478,7 +481,7 @@ unit ag68kgas;
          ait_label : begin
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_symbol_offset,
+                           ait_const_symbol,{ ait_const_symbol_offset, }
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -487,21 +490,21 @@ unit ag68kgas;
                            AsmWriteLn(#9#9'.align 2');
                         end;
                        if (pai_label(hp)^.l^.is_used) then
-                        AsmWriteLn(lab2str(pai_label(hp)^.l)+':');
+                        AsmWriteLn(pai_label(hp)^.l^.name+':');
                      end;
 ait_labeled_instruction : begin
                      { labeled operand }
                        if pai_labeled(hp)^._op1 = R_NO then
-                        AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab))
+                        AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+pai_labeled(hp)^.lab^.name)
                        else
                      { labeled operand with register }
                         begin
                            if target_info.target=target_m68k_PalmOS then
                              AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                               gasPalmOS_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
+                               gasPalmOS_reg2str[pai_labeled(hp)^._op1]+','+pai_labeled(hp)^.lab^.name)
                            else
                              AsmWriteLn(#9+mot_op2str[pai_labeled(hp)^._operator]+#9+
-                               gas_reg2str[pai_labeled(hp)^._op1]+','+lab2str(pai_labeled(hp)^.lab))
+                               gas_reg2str[pai_labeled(hp)^._op1]+','+pai_labeled(hp)^.lab^.name)
                         end;
                      end;
         ait_symbol : begin
@@ -511,7 +514,7 @@ ait_labeled_instruction : begin
                        { ------------------------------------------------------- }
                        if assigned(hp^.next) and (pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                           ait_const_symbol,ait_const_symbol_offset,
+                           ait_const_symbol,{!!! ait_const_symbol_offset, }
                            ait_real_64bit,ait_real_32bit,ait_string]) then
                         begin
                           if not(cs_littlesize in aktglobalswitches) then
@@ -520,51 +523,51 @@ ait_labeled_instruction : begin
                            AsmWriteLn(#9#9'.align 2');
                         end;
                        if pai_symbol(hp)^.is_global then
-                        AsmWriteLn('.globl '+StrPas(pai_symbol(hp)^.name));
-                       AsmWriteLn(StrPas(pai_symbol(hp)^.name)+':');
+                        AsmWriteLn('.globl '+pai_symbol(hp)^.sym^.name);
+                       AsmWriteLn(pai_symbol(hp)^.sym^.name+':');
                      end;
    ait_instruction : begin
                        { old versions of GAS don't like PEA.L and LEA.L }
-                       if (pai68k(hp)^._operator in [
+                       if (paicpu(hp)^._operator in [
                             A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
                             A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
                             A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
                             A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
-                        s:=#9+mot_op2str[pai68k(hp)^._operator]
+                        s:=#9+mot_op2str[paicpu(hp)^._operator]
                        else
                         if target_info.target=target_m68k_PalmOS then
-                          s:=#9+mot_op2str[pai68k(hp)^._operator]+gas_opsize2str[pai68k(hp)^.size]
+                          s:=#9+mot_op2str[paicpu(hp)^._operator]+gas_opsize2str[paicpu(hp)^.size]
                         else
-                          s:=#9+mot_op2str[pai68k(hp)^._operator]+mit_opsize2str[pai68k(hp)^.size];
-                       if pai68k(hp)^.op1t<>top_none then
+                          s:=#9+mot_op2str[paicpu(hp)^._operator]+mit_opsize2str[paicpu(hp)^.size];
+                       if paicpu(hp)^.op1t<>top_none then
                         begin
                         { call and jmp need an extra handling                          }
                         { this code is only callded if jmp isn't a labeled instruction }
-                          if pai68k(hp)^._operator in [A_JSR,A_JMP] then
-                           s:=s+#9+getopstr_jmp(pai68k(hp)^.op1t,pai68k(hp)^.op1)
+                          if paicpu(hp)^._operator in [A_JSR,A_JMP] then
+                           s:=s+#9+getopstr_jmp(paicpu(hp)^.op1t,paicpu(hp)^.op1)
                           else
-                           if pai68k(hp)^.op1t = top_reglist then
-                            s:=s+#9+getopstr(pai68k(hp)^.op1t,@(pai68k(hp)^.reglist))
+                           if paicpu(hp)^.op1t = top_reglist then
+                            s:=s+#9+getopstr(paicpu(hp)^.op1t,@(paicpu(hp)^.reglist))
                            else
-                            s:=s+#9+getopstr(pai68k(hp)^.op1t,pai68k(hp)^.op1);
-                           if pai68k(hp)^.op2t<>top_none then
+                            s:=s+#9+getopstr(paicpu(hp)^.op1t,paicpu(hp)^.op1);
+                           if paicpu(hp)^.op2t<>top_none then
                             begin
-                              if pai68k(hp)^.op2t = top_reglist then
-                               s:=s+','+getopstr(pai68k(hp)^.op2t,@pai68k(hp)^.reglist)
+                              if paicpu(hp)^.op2t = top_reglist then
+                               s:=s+','+getopstr(paicpu(hp)^.op2t,@paicpu(hp)^.reglist)
                               else
-                               s:=s+','+getopstr(pai68k(hp)^.op2t,pai68k(hp)^.op2);
+                               s:=s+','+getopstr(paicpu(hp)^.op2t,paicpu(hp)^.op2);
                             { three operands }
-                              if pai68k(hp)^.op3t<>top_none then
+                              if paicpu(hp)^.op3t<>top_none then
                                begin
-                                   if (pai68k(hp)^._operator = A_DIVSL) or
-                                      (pai68k(hp)^._operator = A_DIVUL) or
-                                      (pai68k(hp)^._operator = A_MULU) or
-                                      (pai68k(hp)^._operator = A_MULS) or
-                                      (pai68k(hp)^._operator = A_DIVS) or
-                                      (pai68k(hp)^._operator = A_DIVU) then
-                                    s:=s+':'+getopstr(pai68k(hp)^.op3t,pai68k(hp)^.op3)
+                                   if (paicpu(hp)^._operator = A_DIVSL) or
+                                      (paicpu(hp)^._operator = A_DIVUL) or
+                                      (paicpu(hp)^._operator = A_MULU) or
+                                      (paicpu(hp)^._operator = A_MULS) or
+                                      (paicpu(hp)^._operator = A_DIVS) or
+                                      (paicpu(hp)^._operator = A_DIVU) then
+                                    s:=s+':'+getopstr(paicpu(hp)^.op3t,paicpu(hp)^.op3)
                                    else
-                                    s:=s+','+getopstr(pai68k(hp)^.op3t,pai68k(hp)^.op3);
+                                    s:=s+','+getopstr(paicpu(hp)^.op3t,paicpu(hp)^.op3);
                                end;
                             end;
                         end;
@@ -602,7 +605,9 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
                           if pai(hp^.next)^.typ=ait_section then
                            begin
                              lastsec:=pai_section(hp^.next)^.sec;
+                             {!!!!!
                              lastsecidx:=pai_section(hp^.next)^.idataidx;
+                             }
 {$ifdef GDB}
                              { this is needed for line info in data }
                              case pai_section(hp^.next)^.sec of
@@ -701,7 +706,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.22  1998-12-23 22:53:44  peter
+  Revision 1.23  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.22  1998/12/23 22:53:44  peter
     * don't count ait_marker for lineinfo
 
   Revision 1.21  1998/12/11 00:02:39  peter

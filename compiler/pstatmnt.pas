@@ -56,7 +56,7 @@ unit pstatmnt;
   {$endif NoRa386Dir}
 {$endif i386}
 {$ifdef m68k}
-       ,m68k,tgen68k
+       ,tgen68k
   {$ifndef NoRa68kMot}
        ,ra68kmot
   {$endif NoRa68kMot}
@@ -1209,7 +1209,7 @@ unit pstatmnt;
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
-                   usedinproc:=usedinproc or ($800 shr word(R_D0))
+                   usedinproc:=usedinproc or ($800 shr word(R_D0));
 
                    if is_64bitint(procinfo.retdef) then
                      usedinproc:=usedinproc or ($800 shr byte(R_D1))
@@ -1317,7 +1317,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.101  1999-09-10 18:48:09  florian
+  Revision 1.102  1999-09-16 23:05:54  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.101  1999/09/10 18:48:09  florian
     * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
     * most things for stored properties fixed
 

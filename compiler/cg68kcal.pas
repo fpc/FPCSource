@@ -39,11 +39,11 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,symconst,
       cobjects,verbose,globals,
       aasm,types,
       hcodegen,temp_gen,pass_2,
-      m68k,cga68k,tgen68k,cg68kld;
+      cpubase,cga68k,tgen68k,cg68kld;
 
 {*****************************************************************************
                              SecondCallParaN
@@ -70,7 +70,7 @@ implementation
                    reset_reference(r^);
                    r^.base:=highframepointer;
                    r^.offset:=highoffset+4;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_SPPUSH)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_SPPUSH)));
                  end
                 else
                  push_int(parraydef(p^.left^.resulttype)^.highrange-parraydef(p^.left^.resulttype)^.lowrange);
@@ -80,7 +80,7 @@ implementation
       var
          size : longint;
          stackref : treference;
-         otlabel,hlabel,oflabel : plabel;
+         otlabel,hlabel,oflabel : pasmlabel;
          { temporary variables: }
          reg : tregister;
          tempdeftype : tdeftype;
@@ -106,7 +106,7 @@ implementation
               if p^.left^.treetype=addrn then
                 begin
                    { allways a register }
-                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_SPPUSH)));
+                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_SPPUSH)));
                    ungetregister32(p^.left^.location.register);
                 end
               else
@@ -137,8 +137,9 @@ implementation
               tempdeftype:=p^.resulttype^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
-              if (defcoll^.paratyp=vs_const) and
-                 dont_copy_const_param(p^.resulttype) then
+              if (assigned(defcoll^.data) and
+                  is_open_array(defcoll^.data)) or
+                 push_addr_param(p^.resulttype) then
                 begin
                    maybe_push_open_array_high;
                    inc(pushedparasize,4);
@@ -155,7 +156,7 @@ implementation
                                    { indicates the parameter size to push, but    }
                                    { that is CERTAINLY NOT TRUE!                  }
                                    { CAN WE USE LIKE LOC_MEM OR LOC_REFERENCE??   }
-                                     case integer(p^.left^.resulttype^.savesize) of
+                                     case integer(p^.left^.resulttype^.size) of
                                      1 : Begin
                                      { A byte sized value normally increments       }
                                      { the SP by 2, BUT because how memory has      }
@@ -165,9 +166,9 @@ implementation
                                      {  PUSH A WORD SHIFTED LEFT 8                  }
                                            reg := getregister32;
                                            emit_reg_reg(A_MOVE, S_B, p^.left^.location.register, reg);
-                                           exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,
+                                           exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_W,
                                              8, reg)));
-                                           exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                           exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,
                                             reg,R_SPPUSH)));
                                            { offset will be TWO greater              }
                                            inc(pushedparasize,2);
@@ -176,20 +177,20 @@ implementation
                                          end;
                                      2 :
                                               Begin
-                                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,
                                                    p^.left^.location.register,R_SPPUSH)));
                                                  inc(pushedparasize,2);
                                                  ungetregister32(p^.left^.location.register);
                                               end;
                                       4 : Begin
-                                             exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                                             exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                                                  p^.left^.location.register,R_SPPUSH)));
                                              inc(pushedparasize,4);
                                              ungetregister32(p^.left^.location.register);
                                           end;
                                       else
                                        Begin
-                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                                         exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,
                                            p^.left^.location.register,R_SPPUSH)));
                                          inc(pushedparasize,4);
                                          ungetregister32(p^.left^.location.register);
@@ -201,9 +202,9 @@ implementation
                                         inc(pushedparasize,size);
                                         { how now how long a FPU is !! }
                                         if (size > 0) and (size < 9) then
-                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,S_L,size,R_SP)))
+                                          exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBQ,S_L,size,R_SP)))
                                         else
-                                          exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBA,
+                                          exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBA,
                                             S_L,size,R_SP)));
                                         new(r);
                                         reset_reference(r^);
@@ -213,12 +214,12 @@ implementation
                                         begin
                                           { when in emulation mode... }
                                           { only single supported!!!  }
-                                          exprasmlist^.concat(new(pai68k,op_reg_ref(A_MOVE,S_L,
+                                          exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,
                                              p^.left^.location.fpureg,r)));
                                         end
                                         else
                                           { convert back from extended to normal type }
-                                          exprasmlist^.concat(new(pai68k,op_reg_ref(A_FMOVE,s,
+                                          exprasmlist^.concat(new(paicpu,op_reg_ref(A_FMOVE,s,
                                              p^.left^.location.fpureg,r)));
                                      end;
                    LOC_REFERENCE,LOC_MEM :
@@ -241,7 +242,7 @@ implementation
                                                           { SWAP OPERANDS:                                 }
                                                           if tempreference.isintvalue then
                                                           Begin
-                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,
+                                                            exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_W,
                                                              tempreference.offset shl 8,R_SPPUSH)));
                                                           end
                                                           else
@@ -253,20 +254,20 @@ implementation
                                                            { by hand instead.                             }
                                                            {  PUSH A WORD SHIFTED LEFT 8                  }
                                                             reg:=getregister32;
-                                                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                                                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,
                                                              newreference(tempreference),reg)));
-                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,
+                                                            exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_W,
                                                              8, reg)));
-                                                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                                            exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,
                                                              reg,R_SPPUSH)));
                                                             ungetregister32(reg);
-{                                                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+{                                                           exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,
                                                              newreference(tempreference),R_SPPUSH))); }
                                                           end;
                                                           inc(pushedparasize,2);
                                                         end;
                                                     2 : begin
-                                                          exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+                                                          exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,
                                                             newreference(tempreference),R_SPPUSH)));
                                                           inc(pushedparasize,2);
                                                         end;
@@ -300,7 +301,7 @@ implementation
                                                                    dec(tempreference.offset,4);
                                                                    emit_push_mem(tempreference);
                                                                    dec(tempreference.offset,2);
-                                                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+                                                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,
                                                                      newreference(tempreference),R_SPPUSH)));
                                                                    inc(pushedparasize,extended_size);}
                                                                 end;
@@ -334,9 +335,9 @@ implementation
                                                         }
                                                         { create stack space }
                                                         if (size > 0) and (size < 9) then
-                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBQ,S_L,size,R_SP)))
+                                                            exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBQ,S_L,size,R_SP)))
                                                         else
-                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_SUBA,
+                                                            exprasmlist^.concat(new(paicpu,op_const_reg(A_SUBA,
                                                               S_L,size,R_SP)));
                                                         inc(pushedparasize,size);
                                                         { create stack reference }
@@ -363,23 +364,23 @@ implementation
                                    getlabel(hlabel);
                                    inc(pushedparasize,2);
                                    emitl(A_LABEL,truelabel);
-                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,1 shl 8,R_SPPUSH)));
+                                   exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_W,1 shl 8,R_SPPUSH)));
                                    emitl(A_JMP,hlabel);
                                    emitl(A_LABEL,falselabel);
-                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,0,R_SPPUSH)));
+                                   exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_W,0,R_SPPUSH)));
                                    emitl(A_LABEL,hlabel);
                                 end;
                  LOC_FLAGS    : begin
-                                   exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[p^.left^.location.resflags],S_B,
+                                   exprasmlist^.concat(new(paicpu,op_reg(flag_2_set[p^.left^.location.resflags],S_B,
                                      R_D0)));
-                                   exprasmlist^.concat(new(pai68k,op_reg(A_NEG, S_B, R_D0)));
-                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_W,$ff, R_D0)));
+                                   exprasmlist^.concat(new(paicpu,op_reg(A_NEG, S_B, R_D0)));
+                                   exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_W,$ff, R_D0)));
                                    inc(pushedparasize,2);
                                    { ----------------- HACK ----------------------- }
                                    { HERE IS THE BYTE SIZED PUSH HACK ONCE AGAIN    }
                                    { SHIFT LEFT THE BYTE TO MAKE IT WORK!           }
-                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,8, R_D0)));
-                                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,R_D0,R_SPPUSH)));
+                                   exprasmlist^.concat(new(paicpu,op_const_reg(A_LSL,S_W,8, R_D0)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_W,R_D0,R_SPPUSH)));
                                 end;
                 end;
            end;
@@ -414,7 +415,7 @@ implementation
          { true if a constructor is called again }
          extended_new : boolean;
          { adress returned from an I/O-error }
-         iolabel : plabel;
+         iolabel : pasmlabel;
          { lexlevel count }
          i : longint;
          { help reference pointer }
@@ -438,15 +439,15 @@ implementation
            exit;
          { only if no proc var }
          if not(assigned(p^.right)) then
-           is_con_or_destructor:=((p^.procdefinition^.options and poconstructor)<>0)
-             or ((p^.procdefinition^.options and podestructor)<>0);
+           is_con_or_destructor:=(potype_constructor=p^.procdefinition^.proctypeoption)
+             or (potype_destructor=p^.procdefinition^.proctypeoption);
          { proc variables destroy all registers }
          if (p^.right=nil) and
          { virtual methods too }
-           ((p^.procdefinition^.options and povirtualmethod)=0) then
+           (po_virtualmethod in p^.procdefinition^.procoptions) then
            begin
-              if ((p^.procdefinition^.options and poiocheck)<>0) and
-                 ((aktprocsym^.definition^.options and poiocheck)=0) and
+              if (po_iocheck in p^.procdefinition^.procoptions) and
+                 not(po_iocheck in aktprocsym^.definition^.procoptions) and
                  (cs_check_io in aktlocalswitches) then
                 begin
                        getlabel(iolabel);
@@ -455,10 +456,10 @@ implementation
               else iolabel:=nil;
 
               { save all used registers }
-              pushusedregisters(pushed,p^.procdefinition^.usedregisters);
+              pushusedregisters(pushed,pprocdef(p^.procdefinition)^.usedregisters);
 
               { give used registers through }
-              usedinproc:=usedinproc or p^.procdefinition^.usedregisters;
+              usedinproc:=usedinproc or pprocdef(p^.procdefinition)^.usedregisters;
            end
          else
            begin
@@ -495,10 +496,10 @@ implementation
               { be found elsewhere }
               if assigned(p^.right) then
                 secondcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0)
+                  (pocall_leftright in p^.procdefinition^.proccalloptions))
               else
                 secondcallparan(p^.left,p^.procdefinition^.para1,
-                  (p^.procdefinition^.options and poleftright)<>0);
+                  (pocall_leftright in p^.procdefinition^.proccalloptions));
            end;
          params:=p^.left;
          p^.left:=nil;
@@ -525,7 +526,7 @@ implementation
                    reset_reference(r^);
                    r^.offset:=p^.symtable^.datasize;
                    r^.base:=procinfo.framepointer;
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_A5)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_A5)));
                 end;
 
               { push self }
@@ -536,91 +537,87 @@ implementation
                    if assigned(p^.methodpointer) then
                      begin
                         case p^.methodpointer^.treetype of
-                           typen : begin
-                                      { direct call to inherited method }
-                                      if (p^.procdefinition^.options and poabstractmethod)<>0 then
-                                        begin
-                                           CGMessage(cg_e_cant_call_abstract_method);
-                                           goto dont_call;
-                                        end;
-                                      { generate no virtual call }
-                                      no_virtual_call:=true;
-                             if (p^.symtableprocentry^.properties and sp_static)<>0 then
+                           typen :
+                             begin
+                                { direct call to inherited method }
+                                if po_abstractmethod in p^.procdefinition^.procoptions then
+                                  begin
+                                     CGMessage(cg_e_cant_call_abstract_method);
+                                     goto dont_call;
+                                  end;
+                                { generate no virtual call }
+                                no_virtual_call:=true;
+                                if (sp_static in p^.symtableprocentry^.symoptions) then
                                  begin
                                     { well lets put the VMT address directly into a5 }
                                     { it is kind of dirty but that is the simplest    }
                                     { way to accept virtual static functions (PM)     }
                                     loada5:=true;
-                                    exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,
+                                    exprasmlist^.concat(new(paicpu,op_csymbol_reg(A_MOVE,S_L,
                                       newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_A5)));
-                                    concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
-                                    exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                                    exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
                                  end
                                else
 
                                   { this is a member call, so A5 isn't modfied }
                                   loada5:=false;
 
-                               if not(is_con_or_destructor and
-                                  pobjectdef(p^.methodpointer^.resulttype)^.isclass and
-                                  assigned(aktprocsym) and
-                                  ((aktprocsym^.definition^.options and
-                                  (poconstructor or podestructor))<>0)) then
-                                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
-                                 { if an inherited con- or destructor should be  }
-                                 { called in a con- or destructor then a warning }
-                                 { will be made                                  }
-                                 { con- and destructors need a pointer to the vmt }
-                                 if is_con_or_destructor and
-                                   ((pobjectdef(p^.methodpointer^.resulttype)^.options and oo_is_class)=0) and
-                                   assigned(aktprocsym) then
-                                   begin
-                                    if not ((aktprocsym^.definition^.options
-                                      and (poconstructor or podestructor))<>0) then
-                                        CGMessage(cg_w_member_cd_call_from_method);
-                                   end;
-                                      { con- and destructors need a pointer to the vmt }
-                                      if is_con_or_destructor then
-                                        begin
-                                           { classes need the mem ! }
-                                           if ((pobjectdef(p^.methodpointer^.resulttype)^.options and
+                                    { a class destructor needs a flag }
+                                    if pobjectdef(p^.methodpointer^.resulttype)^.is_class and
+                                       assigned(aktprocsym) and
+                                       (aktprocsym^.definition^.proctypeoption=potype_destructor) then
+                                      begin
+                                        push_int(0);
+                                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                                      end;
 
-                                            oo_is_class)=0) then
-                                             push_int(0)
-                                           else
-                                               begin
-                                                  exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,
-                                                   S_L,newcsymbol(pobjectdef(p^.methodpointer^.
-                                                   resulttype)^.vmt_mangledname,0))));
-                                                   concat_external(pobjectdef(p^.methodpointer^.resulttype)^.
-                                                  vmt_mangledname,EXT_NEAR);
-                                               end;
-                                        end;
+                                    if not(is_con_or_destructor and
+                                           pobjectdef(p^.methodpointer^.resulttype)^.is_class and
+                                           assigned(aktprocsym) and
+                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])
+                                          ) then
+                                      exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                                    { if an inherited con- or destructor should be  }
+                                    { called in a con- or destructor then a warning }
+                                    { will be made                                }
+                                    { con- and destructors need a pointer to the vmt }
+                                    if is_con_or_destructor and
+                                    not(pobjectdef(p^.methodpointer^.resulttype)^.is_class) and
+                                    assigned(aktprocsym) then
+                                      begin
+                                         if not(aktprocsym^.definition^.proctypeoption in
+                                                [potype_constructor,potype_destructor]) then
+                                          CGMessage(cg_w_member_cd_call_from_method);
+                                      end;
+                                    { class destructors get there flag below }
+                                    if is_con_or_destructor and
+                                        not(pobjectdef(p^.methodpointer^.resulttype)^.is_class and
+                                        assigned(aktprocsym) and
+                                        (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
+                                       push_int(0);
                                    end;
                            hnewn : begin
                                      { extended syntax of new }
                                      { A5 must be zero }
-                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,0,R_A5)));
+                                     exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,0,R_A5)));
                                      emit_reg_reg(A_MOVE,S_L,R_A5, R_SPPUSH);
                                      { insert the vmt }
-                                     exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
+                                     exprasmlist^.concat(new(paicpu,op_csymbol(A_PEA,S_L,
                                        newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
-                                     concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
-                                              extended_new:=true;
+                                     extended_new:=true;
                                   end;
                            hdisposen : begin
                                           secondpass(p^.methodpointer);
 
                                           { destructor with extended syntax called from dispose }
                                           { hdisposen always deliver LOC_REFRENZ }
-                                          exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                                          exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
                                             newreference(p^.methodpointer^.location.reference),R_A5)));
                                           del_reference(p^.methodpointer^.location.reference);
-                                          exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
-                                          exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
+                                          exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                                          exprasmlist^.concat(new(paicpu,op_csymbol(A_PEA,S_L,
                                             newcsymbol(pobjectdef
                                                (p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
-                                          concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
                                        end;
                            else
                              begin
@@ -639,12 +636,12 @@ implementation
                                         else
                                            begin
                                                  if (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                                   pobjectdef(p^.methodpointer^.resulttype)^.isclass then
-                                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                                   pobjectdef(p^.methodpointer^.resulttype)^.is_class then
+                                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_A5)))
                                                  else
                                                   Begin
-                                                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_A5)));
                                                   end;
 
@@ -652,68 +649,78 @@ implementation
                                              end;
                                      end;
                                   end;
-                                    { when calling a class method, we have
-                                      to load ESI with the VMT !
-                                      But that's wrong, if we call a class method via self
-                                    }
-                                    if ((p^.procdefinition^.options and poclassmethod)<>0)
-                                       and not(p^.methodpointer^.treetype=selfn) then
-                                      begin
-                                         { class method needs current VMT }
-                                         new(r);
-                                         reset_reference(r^);
-                                         r^.base:=R_A5;
-                                         r^.offset:= p^.procdefinition^._class^.vmt_offset;
-                                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_A5)));
-                                      end;
+                                { when calling a class method, we have to load ESI with the VMT !
+                                  But, not for a class method via self }
+                                if not(po_containsself in p^.procdefinition^.procoptions) then
+                                  begin
+                                    if (po_classmethod in p^.procdefinition^.procoptions) and
+                                       not(p^.methodpointer^.resulttype^.deftype=classrefdef) then
+                                  begin
+                                     { class method needs current VMT }
+                                     new(r);
+                                     reset_reference(r^);
+                                     r^.base:=R_A5;
+                                     r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
+                                     exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_A5)));
+                                  end;
+                                    { direct call to destructor: don't remove data! }
+                                    if (p^.procdefinition^.proctypeoption=potype_destructor) and
+                                       (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                       (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
+                                      push_int(1);
 
-                                   exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                                    { direct call to class constructor, don't allocate memory }
+                                    if (p^.procdefinition^.proctypeoption=potype_constructor) and
+                                       (p^.methodpointer^.resulttype^.deftype=objectdef) and
+                                       (pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
+                                      push_int(0)
+                                    else
+                                      exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
                                    if is_con_or_destructor then
                                    begin
                                          { classes don't get a VMT pointer pushed }
                                          if (p^.methodpointer^.resulttype^.deftype=objectdef) and
-                                           not(pobjectdef(p^.methodpointer^.resulttype)^.isclass) then
+                                           not(pobjectdef(p^.methodpointer^.resulttype)^.is_class) then
                                            begin
 
-                                            if ((p^.procdefinition^.options and poconstructor)<>0) then
+                                            if (p^.procdefinition^.proctypeoption=potype_constructor) then
                                               begin
                                                { it's no bad idea, to insert the VMT }
-                                                      exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
+                                                      exprasmlist^.concat(new(paicpu,op_csymbol(A_PEA,S_L,
                                                newcsymbol(pobjectdef(
                                                  p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
-                                               concat_external(pobjectdef(
-                                                 p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
                                               end
                                             { destructors haven't to dispose the instance, if this is }
                                             { a direct call                                           }
                                             else
                                               push_int(0);
                                            end;
+                                   end;
                                   end;
                              end;
                         end;
                      end
                    else
                      begin
-                         if ((p^.procdefinition^.options and poclassmethod)<>0) and
+                        if (po_classmethod in p^.procdefinition^.procoptions) and
                           not(
                             assigned(aktprocsym) and
-                            ((aktprocsym^.definition^.options and poclassmethod)<>0)
+                            (po_classmethod in aktprocsym^.definition^.procoptions)
                           ) then
                           begin
                              { class method needs current VMT }
                              new(r);
                              reset_reference(r^);
                              r^.base:=R_A5;
-                             r^.offset:= p^.procdefinition^._class^.vmt_offset;
-                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_A5)));
+                             r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
+                             exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_A5)));
                           end
                         else
                           begin
                              { member call, A5 isn't modified }
                              loada5:=false;
                           end;
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
             { but a con- or destructor here would probably almost }
                         { always be placed wrong }
                         if is_con_or_destructor then
@@ -727,7 +734,7 @@ implementation
 
               { push base pointer ?}
               if (lexlevel>=normal_function_level) and assigned(pprocdef(p^.procdefinition)^.parast) and
-            ((p^.procdefinition^.parast^.symtablelevel)>normal_function_level) then
+            ((pprocdef(p^.procdefinition)^.parast^.symtablelevel)>normal_function_level) then
                     begin
                    { if we call a nested function in a method, we must      }
                    { push also SELF!                                        }
@@ -736,32 +743,32 @@ implementation
                    {
                      begin
                         loadesi:=false;
-                        exprasmlist^.concat(new(pai68k,op_reg(A_PUSH,S_L,R_ESI)));
+                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
                      end;
                    }
-                   if lexlevel=(p^.procdefinition^.parast^.symtablelevel) then
+                   if lexlevel=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         new(r);
                         reset_reference(r^);
                         r^.offset:=procinfo.framepointer_offset;
                         r^.base:=procinfo.framepointer;
-                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_SPPUSH)))
+                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_SPPUSH)))
                      end
                      { this is only true if the difference is one !!
                        but it cannot be more !! }
-                   else if lexlevel=(p^.procdefinition^.parast^.symtablelevel)-1 then
+                   else if lexlevel=(pprocdef(p^.procdefinition)^.parast^.symtablelevel)-1 then
                      begin
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,procinfo.framepointer,R_SPPUSH)))
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,procinfo.framepointer,R_SPPUSH)))
                      end
-                   else if lexlevel>(p^.procdefinition^.parast^.symtablelevel) then
+                   else if lexlevel>(pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         hregister:=getaddressreg;
                         new(r);
                         reset_reference(r^);
                         r^.offset:=procinfo.framepointer_offset;
                         r^.base:=procinfo.framepointer;
-                        exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,hregister)));
-                        for i:=(p^.procdefinition^.parast^.symtablelevel) to lexlevel-1 do
+                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,hregister)));
+                        for i:=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) to lexlevel-1 do
                           begin
                              new(r);
                              reset_reference(r^);
@@ -769,31 +776,30 @@ implementation
                              how can we do this !!! }
                              r^.offset:=procinfo.framepointer_offset;
                              r^.base:=hregister;
-                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,hregister)));
+                             exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,hregister)));
                           end;
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,hregister,R_SPPUSH)));
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,hregister,R_SPPUSH)));
                         ungetregister32(hregister);
                      end
                    else
                      internalerror(25000);
                 end;
 
-              { exported methods should be never called direct }
-              if (p^.procdefinition^.options and poexports)<>0 then
-               CGMessage(cg_e_dont_call_exported_direct);
-
-              if ((p^.procdefinition^.options and povirtualmethod)<>0) and
+              if (po_virtualmethod in p^.procdefinition^.procoptions) and
                  not(no_virtual_call) then
                 begin
                    { static functions contain the vmt_address in ESI }
                    { also class methods                              }
                    if assigned(aktprocsym) then
                      begin
-                       if ((aktprocsym^.properties and sp_static)<>0) or
-                        ((aktprocsym^.definition^.options and poclassmethod)<>0) or
-                        ((p^.procdefinition^.options and postaticmethod)<>0) or
-                        { A5 is already loaded  }
-                        ((p^.procdefinition^.options and poclassmethod)<>0)then
+                       if (((sp_static in aktprocsym^.symoptions) or
+                        (po_classmethod in aktprocsym^.definition^.procoptions)) and
+                        ((p^.methodpointer=nil) or (p^.methodpointer^.treetype=typen)))
+                        or
+                        (po_staticmethod in p^.procdefinition^.procoptions) or
+                        (p^.procdefinition^.proctypeoption=potype_constructor) or
+                        { A5 is loaded earlier }
+                        (po_classmethod in p^.procdefinition^.procoptions) then
                          begin
                             new(r);
                             reset_reference(r^);
@@ -804,8 +810,8 @@ implementation
                             new(r);
                             reset_reference(r^);
                             r^.base:=R_a5;
-                            r^.offset:= p^.procdefinition^._class^.vmt_offset;
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_a0)));
+                            r^.offset:= pprocdef(p^.procdefinition)^._class^.vmt_offset;
+                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_a0)));
                             new(r);
                             reset_reference(r^);
                             r^.base:=R_a0;
@@ -816,14 +822,14 @@ implementation
                        new(r);
                        reset_reference(r^);
                          r^.base:=R_a5;
-                       exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_a0)));
+                       exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_a0)));
                        new(r);
                        reset_reference(r^);
                        r^.base:=R_a0;
                      end;
-                  if p^.procdefinition^.extnumber=-1 then
-                        internalerror($Da);
-                  r^.offset:=p^.procdefinition^.extnumber*4+12;
+                  if pprocdef(p^.procdefinition)^.extnumber=-1 then
+                    internalerror(1609991);
+                  r^.offset:=pprocdef(p^.procdefinition)^.extnumber*4+12;
                   if (cs_check_range in aktlocalswitches) then
                     begin
                      { If the base is already A0, the no instruction will }
@@ -835,32 +841,32 @@ implementation
                    { register a0 and/or a5                                 }
                    { Because doing an indirect call with offset is NOT     }
                    { allowed on the m68k!                                  }
-                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(r^),R_A0)));
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(r^),R_A0)));
                    { clear the reference }
                    reset_reference(r^);
                    r^.base := R_A0;
-                  exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,r)));
+                  exprasmlist^.concat(new(paicpu,op_ref(A_JSR,S_NO,r)));
                 end
-              else if (p^.procdefinition^.options and popalmossyscall)<>0 then
+              else if pocall_palmossyscall in p^.procdefinition^.proccalloptions then
                 begin
-                   exprasmlist^.concat(new(pai68k,op_const(A_TRAP,S_NO,15)));
-                   exprasmlist^.concat(new(pai_const,init_16bit(p^.procdefinition^.extnumber)));
+                   exprasmlist^.concat(new(paicpu,op_const(A_TRAP,S_NO,15)));
+                   exprasmlist^.concat(new(pai_const,init_16bit(pprocdef(p^.procdefinition)^.extnumber)));
                 end
               else
-                emitcall(p^.procdefinition^.mangledname,
+                emitcall(pprocdef(p^.procdefinition)^.mangledname,
                   (p^.symtableproc^.symtabletype=unitsymtable) or
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable))or
                   ((p^.symtableproc^.symtabletype=withsymtable) and
                   (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)));
-              if ((p^.procdefinition^.options and poclearstack)<>0) then
+              if (pocall_clearstack in p^.procdefinition^.proccalloptions) then
                 begin
                    if (pushedparasize > 0) and (pushedparasize < 9) then
                      { restore the stack, to its initial value }
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_ADDQ,S_L,pushedparasize,R_SP)))
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_ADDQ,S_L,pushedparasize,R_SP)))
                    else
                      { restore the stack, to its initial value }
-                     exprasmlist^.concat(new(pai68k,op_const_reg(A_ADDA,S_L,pushedparasize,R_SP)));
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_ADDA,S_L,pushedparasize,R_SP)));
                 end;
            end
          else
@@ -876,7 +882,7 @@ implementation
                                        new(ref);
                                        reset_reference(ref^);
                                        ref^.base := reg;
-                                       exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
+                                       exprasmlist^.concat(new(paicpu,op_ref(A_JSR,S_NO,ref)));
                                        ungetregister(reg);
                                     end
                                    else
@@ -884,7 +890,7 @@ implementation
                                         new(ref);
                                         reset_reference(ref^);
                                         ref^.base := p^.right^.location.register;
-                                        exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
+                                        exprasmlist^.concat(new(paicpu,op_ref(A_JSR,S_NO,ref)));
                                     end;
                                    ungetregister32(p^.right^.location.register);
                                 end
@@ -895,21 +901,21 @@ implementation
                       { problem by loading the address first, and then emitting }
                       { the call.                                              }
                        begin
-                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                            newreference(p^.right^.location.reference),R_A1)));
                          new(ref);
                          reset_reference(ref^);
                          ref^.base := R_A1;
-                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
+                         exprasmlist^.concat(new(paicpu,op_ref(A_JSR,S_NO,ref)));
                        end
                        else
                        begin
-                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                            newreference(p^.right^.location.reference),R_A1)));
                          new(ref);
                          reset_reference(ref^);
                          ref^.base := R_A1;
-                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,ref)));
+                         exprasmlist^.concat(new(paicpu,op_ref(A_JSR,S_NO,ref)));
                        end;
                        del_reference(p^.right^.location.reference);
                     end;
@@ -925,7 +931,7 @@ implementation
 
               { a contructor could be a function with boolean result }
               if (p^.right=nil) and
-                 ((p^.procdefinition^.options and poconstructor)<>0) and
+                 (p^.procdefinition^.proctypeoption=potype_constructor) and
                  { quick'n'dirty check if it is a class or an object }
                  (p^.resulttype^.deftype=orddef) then
                 begin
@@ -952,23 +958,23 @@ implementation
                 end
               else
                 begin
-                   if (p^.resulttype^.deftype=orddef) then
+                   if (p^.resulttype^.deftype in [orddef,enumdef]) then
                      begin
                         p^.location.loc:=LOC_REGISTER;
-                  case porddef(p^.resulttype)^.typ of
-                     s32bit,u32bit :
+                  case p^.resulttype^.size of
+                     4 :
                         begin
                              hregister:=getregister32;
                              emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
                              p^.location.register:=hregister;
                         end;
-                     uchar,u8bit,bool8bit,s8bit :
+                     1 :
                         begin
                             hregister:=getregister32;
                             emit_reg_reg(A_MOVE,S_B,R_D0,hregister);
                             p^.location.register:=hregister;
                         end;
-                     s16bit,u16bit :
+                     2:
                        begin
                            hregister:=getregister32;
                            emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
@@ -992,7 +998,7 @@ implementation
                                    emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
                                    p^.location.fpureg:=hregister;
                                 end;
-                     s64bit,s64real,s80real: begin
+                     s64comp,s64real,s80real: begin
                                               if cs_fp_emulation in aktmoduleswitches then
                                               begin
                                                 p^.location.loc:=LOC_FPU;
@@ -1026,7 +1032,7 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,newcsymbol(lab2str(iolabel),0))));
+              exprasmlist^.concat(new(paicpu,op_csymbol(A_PEA,S_L,newcsymbol(iolabel^.name,0))));
               emitcall('FPC_IOCHECK',true);
            end;
 
@@ -1063,7 +1069,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1999-09-16 11:34:52  pierre
+  Revision 1.19  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.18  1999/09/16 11:34:52  pierre
    * typo correction
 
   Revision 1.17  1998/12/11 00:02:58  peter

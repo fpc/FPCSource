@@ -31,11 +31,11 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,symconst,
       cobjects,verbose,globals,
       symtable,aasm,types,
-      temp_gen,hcodegen,pass_2,
-      m68k,cga68k,tgen68k;
+      temp_gen,hcodegen,pass_2,cpubase,
+      cga68k,tgen68k;
 
 {*****************************************************************************
                                 Helpers
@@ -49,7 +49,7 @@ implementation
        ZERO_FLAG     = $04;
        NEG_FLAG      = $08;
  var
-   label1,label2: plabel;
+   label1,label2: pasmlabel;
  (*************************************************************************)
  (*  Description: This routine handles the conversion of Floating point   *)
  (*  condition codes to normal cpu condition codes.                       *)
@@ -61,12 +61,12 @@ implementation
         equaln,unequaln: begin
                            { not equal clear zero flag }
                            emitl(A_FBEQ,label1);
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND, S_B, NOT ZERO_FLAG, R_CCR)));
                            emitl(A_BRA,label2);
                            emitl(A_LABEL,label1);
                            { equal - set zero flag }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR,S_B, ZERO_FLAG, R_CCR)));
                            emitl(A_LABEL,label2);
                         end;
@@ -74,14 +74,14 @@ implementation
                            emitl(A_FBLT,label1);
                            { not less than       }
                            { clear N and V flags }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND, S_B, NOT (NEG_FLAG OR OVFL_FLAG), R_CCR)));
                            emitl(A_BRA,label2);
                            emitl(A_LABEL,label1);
                            { less than }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR,S_B, NEG_FLAG, R_CCR)));
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND,S_B, NOT OVFL_FLAG, R_CCR)));
                            emitl(A_LABEL,label2);
                         end;
@@ -89,13 +89,13 @@ implementation
                            emitl(A_FBGT,label1);
                            { not greater than }
                            { set Z flag       }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR, S_B, ZERO_FLAG, R_CCR)));
                            emitl(A_BRA,label2);
                            emitl(A_LABEL,label1);
                            { greater than      }
                            { set N and V flags }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR,S_B, NEG_FLAG OR OVFL_FLAG , R_CCR)));
                            emitl(A_LABEL,label2);
                         end;
@@ -103,15 +103,15 @@ implementation
                            emitl(A_FBGE,label1);
                            { not greater or equal }
                            { set N and clear V    }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND, S_B, NOT OVFL_FLAG, R_CCR)));
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR,S_B, NEG_FLAG, R_CCR)));
                            emitl(A_BRA,label2);
                            emitl(A_LABEL,label1);
                            { greater or equal    }
                            { clear V and N flags }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND, S_B, NOT (OVFL_FLAG OR NEG_FLAG), R_CCR)));
                            emitl(A_LABEL,label2);
                         end;
@@ -119,16 +119,16 @@ implementation
                            emitl(A_FBLE,label1);
                            { not less or equal }
                            { clear Z, N and V  }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND, S_B, NOT (ZERO_FLAG OR NEG_FLAG OR OVFL_FLAG), R_CCR)));
                            emitl(A_BRA,label2);
                            emitl(A_LABEL,label1);
                            { less or equal     }
                            { set Z and N       }
                            { and clear V       }
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_OR,S_B, ZERO_FLAG OR NEG_FLAG, R_CCR)));
-                           exprasmlist^.concat(new(pai68k, op_const_reg(
+                           exprasmlist^.concat(new(paicpu, op_const_reg(
                              A_AND,S_B, NOT OVFL_FLAG, R_CCR)));
                            emitl(A_LABEL,label2);
                         end;
@@ -311,10 +311,10 @@ implementation
                                   { else pass 1 would have evaluted   }
                                   { this node                         }
                                   if p^.left^.treetype=stringconstn then
-                                    exprasmlist^.concat(new(pai68k,op_ref(
+                                    exprasmlist^.concat(new(paicpu,op_ref(
                                       A_TST,S_B,newreference(p^.right^.location.reference))))
                                   else
-                                    exprasmlist^.concat(new(pai68k,op_ref(
+                                    exprasmlist^.concat(new(paicpu,op_ref(
                                       A_TST,S_B,newreference(p^.left^.location.reference))));
                                end
                              else
@@ -329,9 +329,9 @@ implementation
                                  {   (best case)                                      }
                                  {   assembler routine: param setup (worst case) = 48 }
 
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(
                                       A_LEA,S_L,newreference(p^.left^.location.reference),R_A0)));
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(
                                       A_LEA,S_L,newreference(p^.right^.location.reference),R_A1)));
                                  {
                                  emitpushreferenceaddr(p^.left^.location.reference);
@@ -484,10 +484,10 @@ implementation
          pushed,mboverflow,cmpop : boolean;
          op : tasmop;
          flags : tresflags;
-         otl,ofl : plabel;
+         otl,ofl : pasmlabel;
          power : longint;
          opsize : topsize;
-         hl4: plabel;
+         hl4: pasmlabel;
          tmpref : treference;
 
 
@@ -626,9 +626,9 @@ implementation
                  (p^.right^.resulttype^.deftype=pointerdef) or
 
                  ((p^.right^.resulttype^.deftype=objectdef) and
-                  pobjectdef(p^.right^.resulttype)^.isclass and
+                  pobjectdef(p^.right^.resulttype)^.is_class and
                  (p^.left^.resulttype^.deftype=objectdef) and
-                  pobjectdef(p^.left^.resulttype)^.isclass
+                  pobjectdef(p^.left^.resulttype)^.is_class
                  ) or
 
                  (p^.left^.resulttype^.deftype=classrefdef) or
@@ -775,14 +775,14 @@ implementation
                              if is_in_dest then
                                begin
                                   hregister:=p^.location.register;
-                                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                                     newreference(p^.left^.location.reference),hregister)));
                                end
                              else
                                begin
                                   hregister:=getregister32;
                                   { first give free, then demand new register }
-                                 exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                                    newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
@@ -809,7 +809,7 @@ implementation
                              if p^.right^.location.loc=LOC_CREGISTER then
                                begin
                                   if extra_not then
-                                    exprasmlist^.concat(new(pai68k,op_reg(A_NOT,opsize,p^.location.register)));
+                                    exprasmlist^.concat(new(paicpu,op_reg(A_NOT,opsize,p^.location.register)));
 
                                   emit_reg_reg(A_MOVE,opsize,p^.right^.location.register,R_D6);
                                   emit_reg_reg(op,opsize,p^.location.register,R_D6);
@@ -818,12 +818,12 @@ implementation
                              else
                                begin
                                   if extra_not then
-                                    exprasmlist^.concat(new(pai68k,op_reg(A_NOT,opsize,p^.location.register)));
+                                    exprasmlist^.concat(new(paicpu,op_reg(A_NOT,opsize,p^.location.register)));
 
-                                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,
                                     newreference(p^.right^.location.reference),R_D6)));
-                                  exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,p^.location.register,R_D6)));
-                                  exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,opsize,R_D6,p^.location.register)));
+                                  exprasmlist^.concat(new(paicpu,op_reg_reg(op,opsize,p^.location.register,R_D6)));
+                                  exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,opsize,R_D6,p^.location.register)));
                                   del_reference(p^.right^.location.reference);
                                end;
                           end
@@ -831,19 +831,19 @@ implementation
                           begin
                              if (p^.right^.treetype=ordconstn) and (op=A_CMP) and
                                 (p^.right^.value=0) then
-                                  exprasmlist^.concat(new(pai68k,op_reg(A_TST,opsize,p^.location.register)))
+                                  exprasmlist^.concat(new(paicpu,op_reg(A_TST,opsize,p^.location.register)))
                              else
                                 if (p^.right^.treetype=ordconstn) and (op=A_MULS) and
                                    (ispowerof2(p^.right^.value,power)) then
                                   begin
                                     if (power <= 8) then
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_ASL,opsize,power,
+                                        exprasmlist^.concat(new(paicpu,op_const_reg(A_ASL,opsize,power,
                                          p^.location.register)))
                                     else
                                       begin
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,power,
+                                        exprasmlist^.concat(new(paicpu,op_const_reg(A_MOVE,S_L,power,
                                          R_D6)));
-                                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_ASL,opsize,R_D6,
+                                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_ASL,opsize,R_D6,
                                           p^.location.register)))
                                       end;
                                   end
@@ -854,7 +854,7 @@ implementation
                                        if extra_not then
                                          begin
                                             emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,R_D6);
-                                            exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,R_D6)));
+                                            exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,R_D6)));
                                             emit_reg_reg(A_AND,S_L,R_D6,
                                               p^.location.register);
                                          end
@@ -881,9 +881,9 @@ implementation
                                     begin
                                        if extra_not then
                                          begin
-                                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(
+                                            exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,newreference(
                                               p^.right^.location.reference),R_D6)));
-                                            exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,R_D6)));
+                                            exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,R_D6)));
                                             emit_reg_reg(A_AND,S_L,R_D6,
                                               p^.location.register);
                                          end
@@ -892,7 +892,7 @@ implementation
                                             if (op=A_MULS) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                                             { Emulation for MC68000 }
                                             begin
-                                              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE, opsize,
+                                              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE, opsize,
                                                  newreference(p^.right^.location.reference),R_D1)));
                                               emit_reg_reg(A_MOVE,opsize,p^.location.register,R_D0);
                                               emitcall('FPC_LONGMUL',true);
@@ -908,13 +908,13 @@ implementation
                                             { on the m68k                                               }
                                             if (op=A_EOR) then
                                               begin
-                                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,opsize,newreference(
+                                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,opsize,newreference(
                                                     p^.right^.location.reference),R_D0)));
-                                                exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,R_D0,
+                                                exprasmlist^.concat(new(paicpu,op_reg_reg(op,opsize,R_D0,
                                                     p^.location.register)));
                                               end
                                             else
-                                              exprasmlist^.concat(new(pai68k,op_ref_reg(op,opsize,newreference(
+                                              exprasmlist^.concat(new(paicpu,op_ref_reg(op,opsize,newreference(
                                                 p^.right^.location.reference),p^.location.register)));
                                          end;
                                        del_reference(p^.right^.location.reference);
@@ -928,9 +928,9 @@ implementation
                         if (p^.treetype=subn) and p^.swaped then
                           begin
                              if extra_not then
-                               exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.location.register)));
+                               exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.location.register)));
 
-                             exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,
+                             exprasmlist^.concat(new(paicpu,op_reg_reg(op,opsize,
                                p^.location.register,p^.right^.location.register)));
                                swap_location(p^.location,p^.right^.location);
 
@@ -941,7 +941,7 @@ implementation
                         else
                           begin
                              if extra_not then
-                                   exprasmlist^.concat(new(pai68k,op_reg(A_NOT,S_L,p^.right^.location.register)));
+                                   exprasmlist^.concat(new(paicpu,op_reg(A_NOT,S_L,p^.right^.location.register)));
 
                              if (op=A_MULS) and (opsize = S_L) and (aktoptprocessor=MC68000) then
                              { Emulation for MC68000 }
@@ -957,7 +957,7 @@ implementation
                               CGMessage(cg_f_32bit_not_supported_in_68000)
                              else
 
-                               exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,
+                               exprasmlist^.concat(new(paicpu,op_reg_reg(op,opsize,
                                p^.right^.location.register,
                                p^.location.register)));
                           end;
@@ -1012,7 +1012,7 @@ implementation
 
                              { first give free then demand new register }
                              hregister:=getregister32;
-                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,newreference(p^.location.reference),
+                             exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,newreference(p^.location.reference),
                                hregister)));
                           end;
                         clear_location(p^.location);
@@ -1039,7 +1039,7 @@ implementation
                           end
                         else
                           begin
-                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_CMP,S_B,newreference(
+                             exprasmlist^.concat(new(paicpu,op_ref_reg(A_CMP,S_B,newreference(
                                 p^.right^.location.reference),p^.location.register)));
                              del_reference(p^.right^.location.reference);
                           end;
@@ -1109,12 +1109,12 @@ implementation
                               begin
                                { fpu_reg = right / D1 }
                                { fpu_reg = right - D1 }
-                                  exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)));
+                                  exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)));
 
 
                                   { load value into D1 }
                                   if p^.right^.location.loc <> LOC_FPU then
-                                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                     exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                        newreference(p^.right^.location.reference),R_D1)))
                                   else
                                      emit_reg_reg(A_MOVE,S_L,p^.right^.location.fpureg,R_D1);
@@ -1128,7 +1128,7 @@ implementation
                                    A_FCMP: emitcall('FPC_SINGLE_CMP',true);
                                   end;
                                   if not cmpop then { only flags are affected with cmpop }
-                                     exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,
+                                     exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_D0,
                                        p^.left^.location.fpureg)));
 
                                   { if this was a reference, then delete as it }
@@ -1140,7 +1140,7 @@ implementation
                               begin
 
                                   if p^.right^.location.loc <> LOC_FPU then
-                                    exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_FMOVE,
                                        getfloatsize(pfloatdef(p^.left^.resulttype)^.typ),
                                       newreference(p^.right^.location.reference),
                                       R_FP1)))
@@ -1149,13 +1149,13 @@ implementation
                                     emit_reg_reg(A_FMOVE,S_FX,p^.right^.location.fpureg,R_FP1);
 
                                   { arithmetic expression performed in extended mode }
-                                  exprasmlist^.concat(new(pai68k,op_reg_reg(op,S_FX,
+                                  exprasmlist^.concat(new(paicpu,op_reg_reg(op,S_FX,
                                       p^.left^.location.fpureg,R_FP1)));
 
                                   { cmpop does not change any floating point register!! }
                                   if not cmpop then
                                        emit_reg_reg(A_FMOVE,S_FX,R_FP1,p^.left^.location.fpureg)
-{                                       exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
+{                                       exprasmlist^.concat(new(paicpu,op_reg_reg(A_FMOVE,
                                        getfloatsize(pfloatdef(p^.left^.resulttype)^.typ),
                                        R_FP1,p^.left^.location.fpureg)))}
                                   else
@@ -1178,7 +1178,7 @@ implementation
 
                              { load value into D7 }
                              if p^.right^.location.loc <> LOC_FPU then
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                  newreference(p^.right^.location.reference),R_D0)))
                              else
                                emit_reg_reg(A_MOVE,S_L,p^.right^.location.fpureg,R_D0);
@@ -1193,7 +1193,7 @@ implementation
                                A_FCMP: emitcall('FPC_SINGLE_CMP',true);
                              end;
                              if not cmpop then { only flags are affected with cmpop }
-                               exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,
+                               exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_D0,
                                  p^.left^.location.fpureg)));
                              { if this was a reference, then delete as it }
                              { it no longer required.                     }
@@ -1203,7 +1203,7 @@ implementation
                            else
                            begin
                              if p^.right^.location.loc <> LOC_FPU then
-                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
+                               exprasmlist^.concat(new(paicpu,op_ref_reg(A_FMOVE,
                                  getfloatsize(pfloatdef(p^.left^.resulttype)^.typ),
                                  newreference(p^.right^.location.reference),R_FP1)))
                              else
@@ -1281,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-09-16 11:34:52  pierre
+  Revision 1.17  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.16  1999/09/16 11:34:52  pierre
    * typo correction
 
   Revision 1.15  1998/12/11 00:02:57  peter

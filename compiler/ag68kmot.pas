@@ -39,7 +39,7 @@ unit ag68kmot;
 
     uses
       globtype,systems,
-      dos,globals,cobjects,m68k,
+      dos,globals,cobjects,cpubase,
       strings,files,verbose
 {$ifdef GDB}
       ,gdb
@@ -542,7 +542,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.17  1999-03-04 13:55:41  pierre
+  Revision 1.18  1999-09-16 23:05:51  florian
+    * m68k compiler is again compilable (only gas writer, no assembler reader)
+
+  Revision 1.17  1999/03/04 13:55:41  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 
