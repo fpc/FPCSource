@@ -102,12 +102,11 @@ implementation
          symdone : boolean;
          { to handle absolute }
          abssym : tabsolutesym;
-         l    : longint;
-         code : integer;
          { c var }
          newtype : ttypesym;
          is_dll,
-         is_gpc_name,is_cdecl,extern_aktvarsym,export_aktvarsym : boolean;
+         is_gpc_name,is_cdecl,
+         extern_aktvarsym,export_aktvarsym : boolean;
          old_current_object_option : tsymoptions;
          dll_name,
          C_name : string;
@@ -209,67 +208,88 @@ implementation
 {$endif fixLeaksOnError}
                 sc.free;
                 { parse the rest }
-                if token=_ID then
+                pt:=expr;
+                if (pt.nodetype=stringconstn) or (is_constcharnode(pt)) then
                  begin
-                   consume_sym(srsym,srsymtable);
-                   { we should check the result type of srsym }
-                   if not (srsym.typ in [varsym,typedconstsym,funcretsym]) then
-                     Message(parser_e_absolute_only_to_var_or_const);
                    storetokenpos:=akttokenpos;
                    akttokenpos:=declarepos;
                    abssym:=tabsolutesym.create(s,tt);
-                   abssym.abstyp:=tovar;
-                   abssym.ref:=tstoredsym(srsym);
+                   if pt.nodetype=stringconstn then
+                     s:=strpas(tstringconstnode(pt).value_str)
+                   else
+                     s:=chr(tordconstnode(pt).value);
+                   consume(token);
+                   abssym.abstyp:=toasm;
+                   abssym.asmname:=stringdup(s);
                    symtablestack.insert(abssym);
                    akttokenpos:=storetokenpos;
+                   symdone:=true;
+                 end;
+                if not symdone then
+                 begin
+                   { variable }
+                   if (pt.nodetype=loadn) then
+                    begin
+                      { we should check the result type of srsym }
+                      if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
+                        Message(parser_e_absolute_only_to_var_or_const);
+                      storetokenpos:=akttokenpos;
+                      akttokenpos:=declarepos;
+                      abssym:=tabsolutesym.create(s,tt);
+                      abssym.abstyp:=tovar;
+                      abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
+                      symtablestack.insert(abssym);
+                      akttokenpos:=storetokenpos;
+                      symdone:=true;
+                    end
+                   { funcret }
+                   else if (pt.nodetype=funcretn) then
+                    begin
+                      storetokenpos:=akttokenpos;
+                      akttokenpos:=declarepos;
+                      abssym:=tabsolutesym.create(s,tt);
+                      abssym.abstyp:=tovar;
+                      abssym.ref:=tstoredsym(tfuncretnode(pt).funcretsym);
+                      symtablestack.insert(abssym);
+                      akttokenpos:=storetokenpos;
+                      symdone:=true;
+                    end;
+                   { address }
+                   if (not symdone) and
+                      ((target_info.target=target_i386_go32v2) or
+                       (m_objfpc in aktmodeswitches) or
+                       (m_delphi in aktmodeswitches)) then
+                    begin
+                      if is_constintnode(pt) then
+                       begin
+                         storetokenpos:=akttokenpos;
+                         akttokenpos:=declarepos;
+                         abssym:=tabsolutesym.create(s,tt);
+                         abssym.abstyp:=toaddr;
+                         abssym.absseg:=false;
+                         abssym.address:=tordconstnode(pt).value;
+                         if (token=_COLON) and
+                            (target_info.target=target_i386_go32v2) then
+                          begin
+                            consume(token);
+                            pt:=expr;
+                            if is_constintnode(pt) then
+                              begin
+                                abssym.address:=abssym.address shl 4+tordconstnode(pt).value;
+                                abssym.absseg:=true;
+                              end
+                            else
+                               Message(parser_e_absolute_only_to_var_or_const);
+                          end;
+                         symtablestack.insert(abssym);
+                         akttokenpos:=storetokenpos;
+                       end
+                      else
+                       Message(parser_e_absolute_only_to_var_or_const);
+                    end;
                  end
                 else
-                 if (token=_CSTRING) or (token=_CCHAR) then
-                  begin
-                    storetokenpos:=akttokenpos;
-                    akttokenpos:=declarepos;
-                    abssym:=tabsolutesym.create(s,tt);
-                    s:=pattern;
-                    consume(token);
-                    abssym.abstyp:=toasm;
-                    abssym.asmname:=stringdup(s);
-                    symtablestack.insert(abssym);
-                    akttokenpos:=storetokenpos;
-                  end
-                else
-                { absolute address ?!? }
-                 if token=_INTCONST then
-                  begin
-                    if (target_info.target=target_i386_go32v2)
-                      or (m_objfpc in aktmodeswitches)
-                      or (m_delphi in aktmodeswitches) then
-                     begin
-                       storetokenpos:=akttokenpos;
-                       akttokenpos:=declarepos;
-                       abssym:=tabsolutesym.create(s,tt);
-                       abssym.abstyp:=toaddr;
-                       abssym.absseg:=false;
-                       s:=pattern;
-                       consume(_INTCONST);
-                       val(s,abssym.address,code);
-                       if (token=_COLON) and
-                         (target_info.target=target_i386_go32v2) then
-                        begin
-                          consume(token);
-                          s:=pattern;
-                          consume(_INTCONST);
-                          val(s,l,code);
-                          abssym.address:=abssym.address shl 4+l;
-                          abssym.absseg:=true;
-                        end;
-                       symtablestack.insert(abssym);
-                       akttokenpos:=storetokenpos;
-                     end
-                    else
-                     Message(parser_e_absolute_only_to_var_or_const);
-                  end
-                else
-                 Message(parser_e_absolute_only_to_var_or_const);
+                  Message(parser_e_absolute_only_to_var_or_const);
                 symdone:=true;
               end;
              { Handling of Delphi typed const = initialized vars ! }
@@ -553,7 +573,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-08-30 20:13:53  peter
+  Revision 1.20  2001-09-30 21:15:48  peter
+    * merged absolute support for constants
+
+  Revision 1.19  2001/08/30 20:13:53  peter
     * rtti/init table updates
     * rttisym for reusable global rtti/init info
     * support published for interfaces
