@@ -185,10 +185,7 @@ function isSimpleMemLoc(const ref: treference): boolean;
 begin
   isSimpleMemLoc :=
     (ref.index = R_NO) and
-    (not(ref.base in (usableregs+[R_EDI])) or
-     (assigned(ref.symbol) and
-      (ref.base = R_NO) and
-      (ref.index = R_NO)));
+    not(ref.base in (usableregs+[R_EDI]));
 end;
 
 {checks whether the current instruction sequence (starting with p) and the
@@ -1314,6 +1311,48 @@ begin
      (p.opcode = A_IDIV));
 end;
 
+function memtoreg(const t: Taicpu; const ref: treference): tregister;
+var
+  hp: tai;
+  p: pTaiprop;
+  regcounter: tregister;
+begin
+  if not getlastinstruction(t,hp) then 
+    begin
+      memtoreg := R_NO;
+      exit;
+    end;
+  p := pTaiprop(hp.optinfo);
+  if isSimpleMemLoc(ref) then
+    begin
+      for regcounter := R_EAX to R_EDI do
+        if (p^.regs[regcounter].typ in [CON_REF,CON_NOREMOVEREF]) and
+           (p^.regs[regcounter].nrofmods = 1) and
+           ((Taicpu(p^.regs[regcounter].startmod).opcode = A_MOV) or
+            (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVZX) or
+            (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVSX)) and
+           (taicpu(p^.regs[regcounter].startmod).oper[0].typ = top_ref) and
+           refsequal(ref,taicpu(p^.regs[regcounter].startmod).oper[0].ref^) then
+          begin
+            if ((t.opsize <> S_B) or
+                (regcounter <> R_EDI)) and
+               sizescompatible(Taicpu(p^.regs[regcounter].startmod).opsize,t.opsize) then
+              begin
+                case t.opsize of
+                  S_B,S_BW,S_BL:
+                    memtoreg := reg32toreg8(regcounter);
+                  S_W,S_WL:
+                    memtoreg := reg32toreg16(regcounter);
+                  S_L: 
+                    memtoreg := regcounter;
+                end;
+                exit;
+              end;
+          end;
+    end;
+  memtoreg := R_NO;
+end;
+
 procedure DoCSE(AsmL: TAAsmOutput; First, Last: Tai; findPrevSeqs, doSubOpts: boolean);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -1594,9 +1633,26 @@ Begin
                               pTaiProp(p.optInfo)^.regs[Taicpu(p).oper[0].reg].startMod,hp1);
                           end
                         else
-                          if (Taicpu(p).oper[1].typ = top_reg) and
-                             not regInOp(Taicpu(p).oper[1].reg,Taicpu(p).oper[0]) then
-                           removePrevNotUsedLoad(p,reg32(Taicpu(p).oper[1].reg),false);
+                          begin
+                            if (Taicpu(p).oper[1].typ = top_reg) and
+                               not regInOp(Taicpu(p).oper[1].reg,Taicpu(p).oper[0]) then
+                             removePrevNotUsedLoad(p,reg32(Taicpu(p).oper[1].reg),false);
+                             if doSubOpts and
+                                (Taicpu(p).opcode <> A_LEA) and
+                                (Taicpu(p).oper[0].typ = top_ref) then
+                              begin
+                                regcounter :=
+                                  memtoreg(taicpu(p),
+                                  Taicpu(p).oper[0].ref^);
+                                if regcounter <> R_NO then
+                                  begin
+                                    Taicpu(p).loadreg(0,regcounter);
+                                    allocregbetween(asml,reg32(regcounter),
+                                      pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                      p);
+                                  end;
+                              end;
+                          end;
                         { at first, only try optimizations of large blocks, because doing }
                         { doing smaller ones may prevent bigger ones from completing in   }
                         { in the next pass                                                }
@@ -1643,6 +1699,52 @@ Begin
               A_STD: If GetLastInstruction(p, hp1) And
                         (PTaiProp(hp1.OptInfo)^.DirFlag = F_Set) Then
                         PTaiProp(Tai(p).OptInfo)^.CanBeRemoved := True;
+              else
+                begin
+                  for cnt := 1 to maxch do
+                    begin
+                      case InsProp[taicpu(p).opcode].Ch[cnt] of
+                        Ch_ROp1:
+                          if (taicpu(p).oper[0].typ = top_ref) and
+                             ((taicpu(p).opcode < A_F2XM1) or
+                              ((taicpu(p).opcode > A_IN) and
+                               (taicpu(p).opcode < A_OUT)) or
+                              (taicpu(p).opcode = A_PUSH) or
+                              (taicpu(p).opcode = A_SUB) or
+                              (taicpu(p).opcode = A_TEST) or
+                              (taicpu(p).opcode = A_XOR))then
+                            begin
+                              regcounter :=
+                                memtoreg(taicpu(p),
+                                Taicpu(p).oper[0].ref^);
+                              if regcounter <> R_NO then
+                                begin
+                                  Taicpu(p).loadreg(0,regcounter);
+                                  allocregbetween(asml,reg32(regcounter),
+                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                    p);
+                                end;
+                            end;
+
+                        Ch_ROp2:
+                          if ((taicpu(p).opcode = A_CMP) or
+                              (taicpu(p).opcode = A_TEST)) and
+                             (taicpu(p).oper[1].typ = top_ref) then
+                            begin
+                              regcounter :=
+                                memtoreg(taicpu(p),
+                                Taicpu(p).oper[1].ref^);
+                              if regcounter <> R_NO then
+                                begin
+                                  Taicpu(p).loadreg(1,regcounter);
+                                  allocregbetween(asml,reg32(regcounter),
+                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                    p);
+                                end;
+                            end;
+                      end;
+                    end;
+                end;
             End
           End;
       End;
@@ -1742,7 +1844,14 @@ End.
 
 {
   $Log$
-  Revision 1.18  2001-09-04 14:01:03  jonas
+  Revision 1.19  2001-10-12 13:58:05  jonas
+    + memory references are now replaced by register reads in "regular"
+      instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
+      if %ebx contains ref1). Previously only complete load sequences were
+      optimized away, but not such small accesses in other instructions than
+      mov/movzx/movsx
+
+  Revision 1.18  2001/09/04 14:01:03  jonas
     * commented out some inactive code in csopt386
     + small improvement: lea is now handled the same as mov/zx/sx
 

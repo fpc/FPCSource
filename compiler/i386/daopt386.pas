@@ -191,6 +191,7 @@ function FindRegDealloc(reg: tregister; p: Tai): boolean;
 
 Function RegsEquivalent(OldReg, NewReg: TRegister; Var RegInfo: TRegInfo; OpAct: TopAction): Boolean;
 Function InstructionsEquivalent(p1, p2: Tai; Var RegInfo: TRegInfo): Boolean;
+function sizescompatible(loadsize,newsize: topsize): boolean;
 Function OpsEqual(const o1,o2:toper): Boolean;
 
 Function DFAPass1(AsmL: TAAsmOutput; BlockStart: Tai): Tai;
@@ -1164,10 +1165,13 @@ var
   lastRemovedWasDealloc, firstRemovedWasAlloc, first: boolean;
 Begin
   If not(reg in usableregs+[R_EDI,R_ESI]) or
-     not(assigned(p1)) Then
+     not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
     exit;
+  { make sure we allocate it for this instruction }
+  if p1 = p2 then
+    getnextinstruction(p2,p2);
   lastRemovedWasDealloc := false;
   firstRemovedWasAlloc := false;
   first := true;
@@ -1433,6 +1437,34 @@ Begin {checks whether the two ops are equal}
     End;
 End;
 
+
+function sizescompatible(loadsize,newsize: topsize): boolean;
+  begin
+    case loadsize of
+      S_B,S_BW,S_BL:
+        sizescompatible := (newsize = loadsize) or (newsize = S_B);
+      S_W,S_WL:
+        sizescompatible := (newsize = loadsize) or (newsize = S_W);
+      else
+        sizescompatible := newsize = S_L;
+    end;
+  end;
+
+
+function opscompatible(p1,p2: Taicpu): boolean;
+begin
+  case p1.opcode of
+    A_MOVZX,A_MOVSX:
+      opscompatible :=
+        ((p2.opcode = p1.opcode) or (p2.opcode = A_MOV)) and
+        sizescompatible(p1.opsize,p2.opsize);
+    else
+      opscompatible :=
+        (p1.opcode = p2.opcode) and
+        (p1.opsize = p2.opsize);
+  end;
+end;
+
 Function InstructionsEquivalent(p1, p2: Tai; Var RegInfo: TRegInfo): Boolean;
 {$ifdef csdebug}
 var
@@ -1442,7 +1474,7 @@ Begin {checks whether two Taicpu instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Tai(p1).typ = ait_instruction) And
      (Tai(p1).typ = ait_instruction) And
-     (Taicpu(p1).opcode = Taicpu(p2).opcode) And
+     opscompatible(Taicpu(p1),Taicpu(p2)) and
      (Taicpu(p1).oper[0].typ = Taicpu(p2).oper[0].typ) And
      (Taicpu(p1).oper[1].typ = Taicpu(p2).oper[1].typ) And
      (Taicpu(p1).oper[2].typ = Taicpu(p2).oper[2].typ)
@@ -1476,7 +1508,8 @@ Begin {checks whether two Taicpu instructions are equal}
                 AddOp2RegInfo(Taicpu(p1).oper[0], RegInfo);
  {the registers from .oper[1] have to be equivalent, but not necessarily equal}
                 InstructionsEquivalent :=
-                  RegsEquivalent(Taicpu(p1).oper[1].reg, Taicpu(p2).oper[1].reg, RegInfo, OpAct_Write);
+                  RegsEquivalent(reg32(Taicpu(p1).oper[1].reg),
+                    reg32(Taicpu(p2).oper[1].reg), RegInfo, OpAct_Write);
               End
  {the registers are loaded with values from different memory locations. If
   this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
@@ -2519,7 +2552,14 @@ End.
 
 {
   $Log$
-  Revision 1.21  2001-09-04 14:01:04  jonas
+  Revision 1.22  2001-10-12 13:58:05  jonas
+    + memory references are now replaced by register reads in "regular"
+      instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
+      if %ebx contains ref1). Previously only complete load sequences were
+      optimized away, but not such small accesses in other instructions than
+      mov/movzx/movsx
+
+  Revision 1.21  2001/09/04 14:01:04  jonas
     * commented out some inactive code in csopt386
     + small improvement: lea is now handled the same as mov/zx/sx
 
