@@ -1795,13 +1795,14 @@ end;
 
     procedure tsinglelist.clear;
       var
-        hp : pnamedindexobject;
+        hp,hp2 : pnamedindexobject;
       begin
         hp:=first;
         while assigned(hp) do
          begin
-           dispose(hp,done);
+           hp2:=hp;
            hp:=hp^.next;
+           dispose(hp2,done);
          end;
         first:=nil;
         last:=nil;
@@ -2483,7 +2484,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-08-12 15:34:22  peter
+  Revision 1.8  2000-08-13 08:41:57  peter
+    * fixed typo in tsinglelist.clear (merged)
+
+  Revision 1.7  2000/08/12 15:34:22  peter
     + usedasmsymbollist to check and reset only the used symbols (merged)
 
   Revision 1.6  2000/08/10 12:20:44  jonas
