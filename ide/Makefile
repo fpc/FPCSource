@@ -265,7 +265,7 @@ endif
 ifeq ($(GDB),1)
 override LIBDIR+=$(GDBLIBDIR)
 else
-override UNITDIR+=fakegdb
+override BUILDFAKEGDB=fakegdbunits
 endif
 override TARGET_DIRS+=compiler fakegdb
 override TARGET_PROGRAMS+=fp
@@ -2066,13 +2066,12 @@ fakegdbclean :
 	$(MAKE) -C fakegdb clean
 fakegdbinfo:
 	@$(ECHO) Using FakeGDB, IDE has no Debugger support
-builddirs: compilerunits fakegdbunits
-buildfp: fpc_all
+buildfp:
+	$(MAKE) compilerunits $(BUILDFAKEGDB)
+	$(MAKE) fpc_all
 gdb:
-	$(MAKE) builddirs
 	$(MAKE) testgdb buildfp postgdbinfo GDB=1
 nogdb:
-	$(MAKE) builddirs
 	$(MAKE) buildfp fakegdbinfo
 all: gdb
 clean: cleanall

@@ -98,7 +98,7 @@ ifeq ($(GDB),1)
 # The gdbint is already included due the gdbint package dependency
 override LIBDIR+=$(GDBLIBDIR)
 else
-override UNITDIR+=fakegdb
+override BUILDFAKEGDB=fakegdbunits
 endif
 
 [rules]
@@ -173,16 +173,14 @@ fakegdbinfo:
 # required because it needs to detect which compiler version
 # to use.
 #
-builddirs: compilerunits fakegdbunits
-
-buildfp: fpc_all
+buildfp:
+        $(MAKE) compilerunits $(BUILDFAKEGDB)
+        $(MAKE) fpc_all
 
 gdb:
-        $(MAKE) builddirs
         $(MAKE) testgdb buildfp postgdbinfo GDB=1
 
 nogdb:
-        $(MAKE) builddirs
         $(MAKE) buildfp fakegdbinfo
 
 #
@@ -225,7 +223,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.22  2004-10-30 12:36:43  peter
+# Revision 1.23  2004-11-02 09:14:09  peter
+#   * fix build with gdb
+#
+# Revision 1.22  2004/10/30 12:36:43  peter
 #   * units are now created in separate directory units/cpu-os/
 #   * distclean uses cleanall rule and removes units dir
 #   * cross compile support fixed, it is now possible to cycle a ppcsparc
