@@ -534,7 +534,11 @@ UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
 .SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT)
 
+ifdef DEFAULTUNITS
+all: units
+else
 all: units exes
+endif
 
 units: $(UNITFILES)
 
@@ -657,18 +661,3 @@ ifdef ASFILES
 	@echo  As  files are $(ASFILES)
 endif
 
-#
-# $Log$
-# Revision 1.4  1998-11-10 17:56:53  peter
-#   * fixes to build correct again
-#
-# Revision 1.3  1998/11/10 15:06:25  peter
-#   + PREFIXINSTALLDIR to allow /usr/local and pwd/debian/tmp
-#
-# Revision 1.2  1998/10/28 00:14:13  peter
-#   * argh.. ifndef winnt -> ifdef winnt  :(
-#
-# Revision 1.1  1998/10/27 14:23:59  peter
-#   + makefiles
-#
-#

@@ -51,6 +51,9 @@ LIBTYPE         can be set to shared or static to set the library type you
                 and turns it off.
                 Example: LIBTYPE=shared LIBNAME=objpas
 
+DEFAULTUNITS    if this is set then a 'make all' will only compile the units
+                and not the exes
+
 
 Location:
 ---------

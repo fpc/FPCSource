@@ -33,6 +33,10 @@ UNITDIR=
 TARGETDIR=
 UNITTARGETDIR=
 
+# As default make only the units
+#DEFAULTUNITS=1
+
+
 #####################################################################
 # Real targets
 #####################################################################
@@ -40,22 +44,22 @@ UNITTARGETDIR=
 UNITOBJECTS=
 EXEOBJECTS=
 
+
 #####################################################################
 # Include default makefile
 #####################################################################
 
 include $(MAKEFILEFPC)
 
+
 #####################################################################
 # Dependencies
 #####################################################################
 
+
 #
 # $Log$
-# Revision 1.2  1998-11-10 17:56:51  peter
-#   * fixes to build correct again
-#
-# Revision 1.1  1998/10/27 14:20:12  peter
-#   + initial versions
+# Revision 1.3  1998-12-12 19:14:42  peter
+#   + DEFAULTUNITS to have a make all only compile the units
 #
 #
