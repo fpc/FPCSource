@@ -97,12 +97,15 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
-   
-   
+
+
    { Memory management routines }
    function AllocMem(size : longint) : Pointer;
    procedure ReAllocMem(var P: Pointer; currentSize: longint; newSize: longint);
 
+  { FileRec/TextRec }
+  {$i filerec.inc}
+  {$i textrec.inc}
 
   { Read internationalization settings }
   {$i sysinth.inc}
@@ -283,7 +286,7 @@ end;
 { ---------------------------------------------------------------------
     Memory handling routines.
   ---------------------------------------------------------------------}
-  
+
 
 function AllocMem(size : longint) : Pointer;
 var
@@ -301,10 +304,10 @@ end;
 3. if P is NOT nil and newSize is NOT zero a new memory block is allocated
    the data is copied from the old block to the new block and the old
    block is disposed of.
-   
+
 if P is NOT nil then currentSize must be the size used to allocate memory
 for P whether it was using AllocMem or ReAllocMem.
-   
+
 This is similar to the functions found in Delphi 1
 The same functions in Dephi 2, 3, and 4 use memory management. When
 I get a chance I might attempt to incorporate that feature.
@@ -341,11 +344,14 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
 Finalization
   OutOfMemory.Free;
-  InValidPointer.Free;  
+  InValidPointer.Free;
 end.
 {
     $Log$
-    Revision 1.28  1999-07-08 19:32:36  michael
+    Revision 1.29  1999-07-27 13:01:12  peter
+      + filerec,textrec declarations
+
+    Revision 1.28  1999/07/08 19:32:36  michael
     + Freed exception classes in finalization code
 
     Revision 1.27  1999/07/02 17:03:24  florian
