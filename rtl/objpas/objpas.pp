@@ -102,7 +102,10 @@ end;
 Procedure CloseFile(Var f:File);
 
 begin
+  { Catch Runtime error/Exception }
+  {$I+}
   System.Close(f);
+  {$I-}
 end;
 
 { Text file support }
@@ -128,7 +131,10 @@ end;
 Procedure CloseFile(Var t:Text);
 
 begin
-  Close(T);
+  { Catch Runtime error/Exception }
+  {$I+}
+  System.Close(T);
+  {$I-}
 end;
 
 { Typed file supoort }
@@ -349,7 +355,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-12-16 15:58:18  jonas
+  Revision 1.6  2001-08-01 21:43:11  peter
+    * generate error for closefile
+
+  Revision 1.5  2000/12/16 15:58:18  jonas
     * removed warnings about possible range check errors
 
   Revision 1.4  2000/11/13 14:41:20  marco
