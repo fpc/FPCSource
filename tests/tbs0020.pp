@@ -1,7 +1,9 @@
 { this program need GPM !! }
 
+{$ifdef linux}
 uses
   Gpm;
+{$endif def linux}
 
 var
   Conn: TGPMConnect;
@@ -25,4 +27,7 @@ begin
     end;
   end;
   GPM_Close;
+{$else def linux}
+begin
+{$endif def linux}
 end.
