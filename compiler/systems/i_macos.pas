@@ -31,7 +31,7 @@ unit i_macos;
           (
             system       : system_powerpc_MACOS;
             name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOSPPC';
+            shortname    : 'MacOS';
             flags        : [];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2002-09-11 19:59:14  florian
+    * renamed target macosppc to macppc
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/20 21:40:44  florian
