@@ -26,8 +26,8 @@ unit func;
 
 {  Automatically converted by H2PAS.EXE from function.h
    Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97 
-   Further improvements by Michael Van Canneyt, April 1998 
+   Improvements made by Mark A. Malakanov 22nd-25th may 97
+   Further improvements by Michael Van Canneyt, April 1998
    define handling and error recovery by Pierre Muller, June 1998 }
 
 
@@ -51,33 +51,33 @@ unit func;
   { C default packing is dword }
 
 {$PACKRECORDS 4}
-  { 
+  {
      Functions.h
-  
+
      Declarations for all the Windows32 API Functions
-  
+
      Copyright (C) 1996, 1997 Free Software Foundation, Inc.
-  
+
      Author: Scott Christley <scottc@net-community.com>
-  
+
      This file is part of the Windows32 API Library.
-  
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
-     
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
-  
+
      If you are interested in a warranty or support for this source code,
      contact Scott Christley <scottc@net-community.com> for more information.
-     
+
      You should have received a copy of the GNU Library General Public
      License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation, 
+     If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 {$ifndef _GNU_H_WINDOWS32_FUNCTIONS}
@@ -923,12 +923,12 @@ unit func;
   function AbortSystemShutdown(_para1:LPTSTR):WINBOOL;
 {$endif windows_include_files}
 
-  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET; 
+  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;
              PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL;
 
 {$ifndef windows_include_files}
-  function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
+  function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR;
+             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL;
              pfGenerateOnClose:LPBOOL):WINBOOL;
 {$endif windows_include_files}
 
@@ -944,17 +944,17 @@ unit func;
 
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
-  function WinMain(hInstance:HINSTANCE; hPrevInstance:HINSTANCE; lpCmdLine:LPSTR; nShowCmd:longint):longint;
+  function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint;
 {$endif Unknown_functions}
 
 
-  function FreeLibrary(hLibModule:HINSTANCE):WINBOOL;
+  function FreeLibrary(hLibModule:HINST):WINBOOL;
 
   procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD);
 
   function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL;
 
-  function GetProcAddress(hModule:HINSTANCE; lpProcName:LPCSTR):FARPROC;
+  function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC;
 
   function GetVersion:DWORD;
 
@@ -1064,7 +1064,7 @@ unit func;
 
   function GetCurrentProcessId:DWORD;
 
-(* error 
+(* error
 STDCALL
 ExitProcess(
  in declarator_list
@@ -1092,10 +1092,10 @@ ExitProcess(
       LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter
       );
    }
-  function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD; 
+  function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD;
              lpThreadId:LPDWORD):HANDLE;
 
-  function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; 
+  function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
              dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE;
 
   function GetCurrentThread:HANDLE;
@@ -1176,9 +1176,9 @@ ExitProcess(
 
   procedure Sleep(dwMilliseconds:DWORD);
 
-  function LoadResource(hModule:HINSTANCE; hResInfo:HRSRC):HGLOBAL;
+  function LoadResource(hModule:HINST; hResInfo:HRSRC):HGLOBAL;
 
-  function SizeofResource(hModule:HINSTANCE; hResInfo:HRSRC):DWORD;
+  function SizeofResource(hModule:HINST; hResInfo:HRSRC):DWORD;
 
   function GlobalDeleteAtom(nAtom:ATOM):ATOM;
 
@@ -1194,7 +1194,7 @@ ExitProcess(
 
   function UnlockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD):WINBOOL;
 
-  function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD; 
+  function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD;
              lpOverlapped:LPOVERLAPPED):WINBOOL;
 
   function UnlockFileEx(hFile:HANDLE; dwReserved:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
@@ -1215,7 +1215,7 @@ ExitProcess(
 
   function FlushFileBuffers(hFile:HANDLE):WINBOOL;
 
-  function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; 
+  function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID;
              nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
   function SetEndOfFile(hFile:HANDLE):WINBOOL;
@@ -1233,7 +1233,7 @@ ExitProcess(
 
   function CloseHandle(hObject:HANDLE):WINBOOL;
 
-  function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD; 
+  function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD;
              bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL;
 
   function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL;
@@ -1280,7 +1280,7 @@ ExitProcess(
 
   function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
-  function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD; 
+  function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;
              bImmediate:WINBOOL):DWORD;
 
   function GetTapePosition(hDevice:HANDLE; dwPositionType:DWORD; lpdwPartition:LPDWORD; lpdwOffsetLow:LPDWORD; lpdwOffsetHigh:LPDWORD):DWORD;
@@ -1394,10 +1394,10 @@ ExitProcess(
 
   function GetNamedPipeInfo(hNamedPipe:HANDLE; lpFlags:LPDWORD; lpOutBufferSize:LPDWORD; lpInBufferSize:LPDWORD; lpMaxInstances:LPDWORD):WINBOOL;
 
-  function PeekNamedPipe(hNamedPipe:HANDLE; lpBuffer:LPVOID; nBufferSize:DWORD; lpBytesRead:LPDWORD; lpTotalBytesAvail:LPDWORD; 
+  function PeekNamedPipe(hNamedPipe:HANDLE; lpBuffer:LPVOID; nBufferSize:DWORD; lpBytesRead:LPDWORD; lpTotalBytesAvail:LPDWORD;
              lpBytesLeftThisMessage:LPDWORD):WINBOOL;
 
-  function TransactNamedPipe(hNamedPipe:HANDLE; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
+  function TransactNamedPipe(hNamedPipe:HANDLE; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD;
              lpBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL;
 
   function GetMailslotInfo(hMailslot:HANDLE; lpMaxMessageSize:LPDWORD; lpNextSize:LPDWORD; lpMessageCount:LPDWORD; lpReadTimeout:LPDWORD):WINBOOL;
@@ -1450,13 +1450,13 @@ ExitProcess(
 
   function WriteFileEx(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL;
 
-  function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL; 
+  function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL;
              bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL;
 
-  function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWORD; lpdwLowByteSeeked:LPDWORD; lpdwHighByteSeeked:LPDWORD; 
+  function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWORD; lpdwLowByteSeeked:LPDWORD; lpdwHighByteSeeked:LPDWORD;
              var lpContext:LPVOID):WINBOOL;
 
-  function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL; 
+  function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL;
              bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL;
 
   function SetProcessShutdownParameters(dwLevel:DWORD; dwFlags:DWORD):WINBOOL;
@@ -1504,10 +1504,10 @@ ExitProcess(
 
   function SetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD):WINBOOL;
 
-  function AdjustTokenPrivileges(TokenHandle:HANDLE; DisableAllPrivileges:WINBOOL; NewState:PTOKEN_PRIVILEGES; BufferLength:DWORD; PreviousState:PTOKEN_PRIVILEGES; 
+  function AdjustTokenPrivileges(TokenHandle:HANDLE; DisableAllPrivileges:WINBOOL; NewState:PTOKEN_PRIVILEGES; BufferLength:DWORD; PreviousState:PTOKEN_PRIVILEGES;
              ReturnLength:PDWORD):WINBOOL;
 
-  function AdjustTokenGroups(TokenHandle:HANDLE; ResetToDefault:WINBOOL; NewState:PTOKEN_GROUPS; BufferLength:DWORD; PreviousState:PTOKEN_GROUPS; 
+  function AdjustTokenGroups(TokenHandle:HANDLE; ResetToDefault:WINBOOL; NewState:PTOKEN_GROUPS; BufferLength:DWORD; PreviousState:PTOKEN_GROUPS;
              ReturnLength:PDWORD):WINBOOL;
 
   function PrivilegeCheck(ClientToken:HANDLE; RequiredPrivileges:PPRIVILEGE_SET; pfResult:LPBOOL):WINBOOL;
@@ -1520,8 +1520,8 @@ ExitProcess(
 
   function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD;
 
-  function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD; 
-             nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD; 
+  function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD;
+             nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;
              var pSid:PSID):WINBOOL;
 
   function FreeSid(pSid:PSID):PVOID;
@@ -1562,7 +1562,7 @@ ExitProcess(
 
   function AddAccessDeniedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL;
 
-  function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL; 
+  function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL;
              bAuditFailure:WINBOOL):WINBOOL;
 
   function FindFirstFreeAce(pAcl:PACL; var pAce:LPVOID):WINBOOL;
@@ -1591,7 +1591,7 @@ ExitProcess(
 
   function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL;
 
-  function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE; 
+  function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE;
              GenericMapping:PGENERIC_MAPPING):WINBOOL;
 
   function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;
@@ -1602,8 +1602,8 @@ ExitProcess(
 
   function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwBufferLength:LPDWORD):WINBOOL;
 
-  function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD; 
-             pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID; 
+  function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD;
+             pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID;
              lpdwPrimaryGroupSize:LPDWORD):WINBOOL;
 
   function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL;
@@ -1616,7 +1616,7 @@ ExitProcess(
 
   function VirtualUnlock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL;
 
-  function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD; 
+  function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD;
              lpBaseAddress:LPVOID):LPVOID;
 
   function SetPriorityClass(hProcess:HANDLE; dwPriorityClass:DWORD):WINBOOL;
@@ -1764,10 +1764,10 @@ ExitProcess(
 
   function CloseWindow(hWnd:HWND):WINBOOL;
 
-  function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint; 
+  function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint;
              bRepaint:WINBOOL):WINBOOL;
 
-  function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint; 
+  function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint;
              cy:longint; uFlags:UINT):WINBOOL;
 
   function GetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL;
@@ -1777,7 +1777,7 @@ ExitProcess(
 
   function BeginDeferWindowPos(nNumWindows:longint):HDWP;
 
-  function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint; 
+  function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;
              cx:longint; cy:longint; uFlags:UINT):HDWP;
 
   function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL;
@@ -1867,10 +1867,10 @@ ExitProcess(
 
   function ToAscii(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT):longint;
 
-  function ToAsciiEx(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT; 
+  function ToAsciiEx(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT;
              dwhkl:HKL):longint;
 
-  function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
+  function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint;
              wFlags:UINT):longint;
 
   function OemKeyScan(wOemChar:WORD):DWORD;
@@ -1942,7 +1942,7 @@ ExitProcess(
   function GetMenuCheckMarkDimensions:LONG;
 
 (* Const before type ignored *)
-  function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint; 
+  function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;
              hWnd:HWND; var prcRect:RECT):WINBOOL;
 
   function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT;
@@ -2015,12 +2015,12 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT; 
+  function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT;
              hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT; 
+  function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT;
              hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint;
 
   function SetScrollPos(hWnd:HWND; nBar:longint; nPos:longint; bRedraw:WINBOOL):longint;
@@ -2185,7 +2185,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function CreateCursor(hInst:HINSTANCE; xHotSpot:longint; yHotSpot:longint; nWidth:longint; nHeight:longint; 
+  function CreateCursor(hInst:HINST; xHotSpot:longint; yHotSpot:longint; nWidth:longint; nHeight:longint;
              pvANDPlane:pointer; pvXORPlane:pointer):HCURSOR;
 
   function DestroyCursor(hCursor:HCURSOR):WINBOOL;
@@ -2194,7 +2194,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function CreateIcon(hInstance:HINSTANCE; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE; 
+  function CreateIcon(hInstance:HINST; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE;
              var lpbANDbits:BYTE; var lpbXORbits:BYTE):HICON;
 
   function DestroyIcon(hIcon:HICON):WINBOOL;
@@ -2205,7 +2205,7 @@ ExitProcess(
 
   function CreateIconFromResource(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD):HICON;
 
-  function CreateIconFromResourceEx(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD; cxDesired:longint; 
+  function CreateIconFromResourceEx(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD; cxDesired:longint;
              cyDesired:longint; Flags:UINT):HICON;
 
   function CopyImage(_para1:HANDLE; _para2:UINT; _para3:longint; _para4:longint; _para5:UINT):HICON;
@@ -2249,26 +2249,26 @@ ExitProcess(
 (* Const before type ignored *)
   function DrawAnimatedRects(hwnd:HWND; idAni:longint; var lprcFrom:RECT; var lprcTo:RECT):WINBOOL;
 
-  function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND; 
+  function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;
              _para6:LPTPMPARAMS):WINBOOL;
 
   function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND;
 
-  function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint; 
+  function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;
              cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL;
 
 (* Const before type ignored *)
   function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL;
 
-  function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL;
 
-  function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL;
 
   function CancelDC(_para1:HDC):WINBOOL;
 
-  function Chord(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Chord(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL;
 
   function CloseMetaFile(_para1:HDC):HMETAFILE;
@@ -2327,7 +2327,7 @@ ExitProcess(
 (* Const before type ignored *)
   function CreateRectRgnIndirect(var _para1:RECT):HRGN;
 
-  function CreateRoundRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function CreateRoundRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint):HRGN;
 
   function CreateSolidBrush(_para1:COLORREF):HBRUSH;
@@ -2348,7 +2348,7 @@ ExitProcess(
 
   function Escape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:LPVOID):longint;
 
-  function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint; 
+  function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint;
              _para6:LPSTR):longint;
 
   function ExcludeClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint;
@@ -2393,7 +2393,7 @@ ExitProcess(
 
   function GetDeviceCaps(_para1:HDC; _para2:longint):longint;
 
-  function GetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:LPVOID; 
+  function GetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:LPVOID;
              _para6:LPBITMAPINFO; _para7:UINT):longint;
 
   function GetFontData(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:LPVOID; _para5:DWORD):DWORD;
@@ -2458,27 +2458,27 @@ ExitProcess(
 
   function InvertRgn(_para1:HDC; _para2:HRGN):WINBOOL;
 
-  function LineDDA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:LINEDDAPROC; 
+  function LineDDA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:LINEDDAPROC;
              _para6:LPARAM):WINBOOL;
 
   function LineTo(_para1:HDC; _para2:longint; _para3:longint):WINBOOL;
 
-  function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint; 
+  function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint;
              _para11:longint; _para12:DWORD):WINBOOL;
 
 (* Const before type ignored *)
-  function PlgBlt(_para1:HDC; var _para2:POINT; _para3:HDC; _para4:longint; _para5:longint; 
+  function PlgBlt(_para1:HDC; var _para2:POINT; _para3:HDC; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:HBITMAP; _para9:longint; _para10:longint):WINBOOL;
 
   function OffsetClipRgn(_para1:HDC; _para2:longint; _para3:longint):longint;
 
   function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint;
 
-  function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:DWORD):WINBOOL;
 
-  function Pie(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Pie(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL;
 
   function PlayMetaFile(_para1:HDC; _para2:HMETAFILE):WINBOOL;
@@ -2505,7 +2505,7 @@ ExitProcess(
 
   function RealizePalette(_para1:HDC):UINT;
 
-  function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint):WINBOOL;
 
   function ResizePalette(_para1:HPALETTE; _para2:UINT):WINBOOL;
@@ -2539,7 +2539,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD; 
+  function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;
              _para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;
              var _para11:BITMAPINFO; _para12:UINT):longint;
 
@@ -2561,15 +2561,15 @@ ExitProcess(
 
   function SetPolyFillMode(_para1:HDC; _para2:longint):longint;
 
-  function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint; 
+  function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;
              _para11:DWORD):WINBOOL;
 
   function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;
              var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint;
 
@@ -2622,7 +2622,7 @@ ExitProcess(
 (* Const before type ignored *)
   function GdiComment(_para1:HDC; _para2:UINT; var _para3:BYTE):WINBOOL;
 
-  function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT; 
+  function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT;
              _para6:FLOAT):WINBOOL;
 
 (* Const before type ignored *)
@@ -2642,7 +2642,7 @@ ExitProcess(
   function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL;
 
 (* Const before type ignored *)
-  function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE; 
+  function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE;
              _para6:DWORD):HBITMAP;
 
   function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT;
@@ -2669,7 +2669,7 @@ ExitProcess(
 
 (*  function AbortPath(_para1:HDC):WINBOOL; already above *)
 
-  function ArcTo(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ArcTo(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL;
 
   function BeginPath(_para1:HDC):WINBOOL;
@@ -2746,10 +2746,10 @@ ExitProcess(
 
   function OffsetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL;
 
-  function ScaleViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ScaleViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:LPSIZE):WINBOOL;
 
-  function ScaleWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ScaleWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:LPSIZE):WINBOOL;
 
   function SetBitmapDimensionEx(_para1:HBITMAP; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL;
@@ -2809,14 +2809,14 @@ ExitProcess(
 
   function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL;
 
-  function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
+  function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;
              fStyle:UINT):WINBOOL;
 
   function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL;
 
   function ImageList_AddMasked(himl:HIMAGELIST; hbmImage:HBITMAP; crMask:COLORREF):longint;
 
-  function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
+  function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;
              dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL;
 
   function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL;
@@ -2845,16 +2845,16 @@ ExitProcess(
 
   function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL;
 
-  function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint; 
+  function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;
              dy:longint):HIMAGELIST;
 
-  function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINSTANCE; 
-             wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint; 
+  function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;
+             wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;
              dxBitmap:longint; dyBitmap:longint; uStructSize:UINT):HWND;
 
-  function CreateMappedBitmap(hInstance:HINSTANCE; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP;
+  function CreateMappedBitmap(hInstance:HINST; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP;
 
-  procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINSTANCE; 
+  procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINST;
               hwndStatus:HWND; var lpwIDs:UINT);
 
   function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL;
@@ -2867,15 +2867,15 @@ ExitProcess(
 
   function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint;
 
-  function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint; 
-             hParent:HWND; nID:longint; hInst:HINSTANCE; hBuddy:HWND; nUpper:longint; 
+  function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint;
+             hParent:HWND; nID:longint; hInst:HINST; hBuddy:HWND; nUpper:longint;
              nLower:longint; nPos:longint):HWND;
 
   function CommDlgExtendedError:DWORD;
 
   { Animation controls  }
   { was #define dname(params) def_expr }
-  function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINSTANCE):HWND;
+  function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
 
   { was #define dname(params) def_expr }
   function Animate_Open(hwnd : HWND;szName : LPTSTR) : LRESULT;
@@ -3035,7 +3035,7 @@ ExitProcess(
 #define ListView_GetItemRect(hwnd, i, prc, code) \
 SendMessage(hwnd, LVM_GETITEMRECT, (WPARAM)(int)i, \
            ((prc) ? (((RECT *)(prc))->left = (code), \
-		     (LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)NULL))
+                     (LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)NULL))
 in define line 6717 }
     { was #define dname(params) def_expr }
     function ListView_GetItemSpacing(hwndLV:HWND;fSmall : longint) : LRESULT;
@@ -3050,7 +3050,7 @@ in define line 6717 }
   _gnu_lvi.cchTextMax = cchTextMax_;\
   _gnu_lvi.pszText = pszText_;\
   SendMessage((hwndLV), LVM_GETITEMTEXT, (WPARAM)i, \
-	      (LPARAM)(LV_ITEM *)&_gnu_lvi);\
+              (LPARAM)(LV_ITEM *)&_gnu_lvi);\
 
 in declaration at line 6725 }
 
@@ -3124,15 +3124,15 @@ inserted manually PM }
     { was #define dname(params) def_expr }
     function ListView_SetItemPosition(hwndLV:HWND;i,x,y : longint) : LRESULT;
 
-(* error 
-	    MAKELPARAM((x), (y)))
+(* error
+            MAKELPARAM((x), (y)))
 
 in declaration at line 6803 *)
-(* error 
+(* error
 #define ListView_SetItemPosition32(hwndLV, i, x, y) \
-{ POINT ptNewPos = {x,y}; \
+{ POINT ptNewPos = x,y; \
     SendMessage((hwndLV), LVM_SETITEMPOSITION32, (WPARAM)(int)(i), \
-		(LPARAM)&ptNewPos); \
+                (LPARAM)&ptNewPos); \
 }
  inserted by hand PM *)
     { was #define dname(params) def_expr }
@@ -3144,7 +3144,7 @@ in declaration at line 6803 *)
   _gnu_lvi.stateMask = mask;\
   _gnu_lvi.state = data;\
   SendMessage((hwndLV), LVM_SETITEMSTATE, (WPARAM)i, \
-	      (LPARAM)(LV_ITEM * )&_gnu_lvi);\
+              (LPARAM)(LV_ITEM * )&_gnu_lvi);\
 }
 in declaration at line 6817
  error *)
@@ -3156,14 +3156,14 @@ in declaration at line 6817
   _gnu_lvi.iSubItem = iSubItem_;\
   _gnu_lvi.pszText = pszText_;\
   SendMessage((hwndLV), LVM_SETITEMTEXT, (WPARAM)i, \
-	      (LPARAM)(LV_ITEM * )&_gnu_lvi);\
+              (LPARAM)(LV_ITEM * )&_gnu_lvi);\
 }
 in define line 6826 *)
     function ListView_SetItemText(hwndLV:HWND; i, iSubItem_:longint;pszText_ : LPTSTR) : LRESULT;
 
     { also eaten by errors !! }
     function ListView_SetTextBkColor(hwnd:HWND;clrTextBk : COLORREF) : LRESULT;
-    
+
     { was #define dname(params) def_expr }
     function ListView_SetTextColor(hwnd:HWND;clrText : COLORREF) : LRESULT;
 
@@ -3186,7 +3186,7 @@ in define line 6826 *)
     { was #define dname(params) def_expr }
     function TreeView_Expand(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
 
-(* error 
+(* error
 SendMessage((hwnd), TVM_EXPAND, (WPARAM)code, (LPARAM)(HTREEITEM)(hitem))
 
 in define line 6852 *)
@@ -3422,10 +3422,10 @@ in define line 6852 *)
 
     function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL;
 
-    function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR; 
+    function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR;
                cchWideChar:longint):longint;
 
-    function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR; 
+    function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR;
                cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint;
 
     function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL;
@@ -3598,7 +3598,7 @@ in define line 6852 *)
 
     procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL);
 
-    function DuplicateIcon(_para1:HINSTANCE; _para2:HICON):HICON;
+    function DuplicateIcon(_para1:HINST; _para2:HICON):HICON;
 
     { end of stuff from shellapi.h in old Cygnus headers  }
     { --------------------------------------------------  }
@@ -3623,13 +3623,13 @@ in define line 6852 *)
 
     function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint;
 
-    function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ; 
+    function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;
                _para6:UINT; _para7:UINT):HDDEDATA;
 
     { end of stuff from ddeml.h in old Cygnus headers  }
     { -----------------------------------------------  }
 {$ifdef Unknown_functions}
-    function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD; 
+    function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD;
                _para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD;
 
     function NetApiBufferFree(_para1:LPVOID):DWORD;
@@ -3638,10 +3638,10 @@ in define line 6852 *)
 
     function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD;
 
-    function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
+    function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;
                _para6:LPDWORD; _para7:LPDWORD):DWORD;
 
-    function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
+    function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;
                _para6:LPDWORD; _para7:LPDWORD):DWORD;
 {$endif Unknown_functions}
 
@@ -3658,7 +3658,7 @@ in define line 6852 *)
     { Define when SHELLFOLDER is defined.
     HRESULT WINAPI
     SHGetDataFromIDList (LPSHELLFOLDER, LPCITEMIDLIST, int, PVOID, int);
-    
+
     HRESULT WINAPI
     SHGetDesktopFolder (LPSHELLFOLDER);
      }
@@ -3720,12 +3720,12 @@ in define line 6852 *)
   function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external 'advapi32' name 'AbortSystemShutdownA';
 {$endif windows_include_files}
 
-  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET; 
+  function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;
              PrivilegeSetLength:LPDWORD; GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
 
 {$ifndef windows_include_files}
-  function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
+  function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR;
+             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL;
              pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
 {$endif windows_include_files}
 
@@ -3741,17 +3741,17 @@ in define line 6852 *)
 
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
-  function WinMain(hInstance:HINSTANCE; hPrevInstance:HINSTANCE; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
+  function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
 {$endif Unknown_functions}
 
 
-  function FreeLibrary(hLibModule:HINSTANCE):WINBOOL; external 'kernel32' name 'FreeLibrary';
+  function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
 
   procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32' name 'FreeLibraryAndExitThread';
 
   function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32' name 'DisableThreadLibraryCalls';
 
-  function GetProcAddress(hModule:HINSTANCE; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
+  function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
 
   function GetVersion:DWORD; external 'kernel32' name 'GetVersion';
 
@@ -3881,10 +3881,10 @@ in define line 6852 *)
 
   function UnhandledExceptionFilter(var ExceptionInfo:emptyrecord):LONG; external 'kernel32' name 'UnhandledExceptionFilter';
 
-  function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD; 
+  function CreateThread(lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; dwCreationFlags:DWORD;
              lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateThread';
 
-  function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID; 
+  function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRIBUTES; dwStackSize:DWORD; lpStartAddress:LPTHREAD_START_ROUTINE; lpParameter:LPVOID;
              dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
 
   function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
@@ -3963,9 +3963,9 @@ in define line 6852 *)
 
   procedure Sleep(dwMilliseconds:DWORD); external 'kernel32' name 'Sleep';
 
-  function LoadResource(hModule:HINSTANCE; hResInfo:HRSRC):HGLOBAL; external 'kernel32' name 'LoadResource';
+  function LoadResource(hModule:HINST; hResInfo:HRSRC):HGLOBAL; external 'kernel32' name 'LoadResource';
 
-  function SizeofResource(hModule:HINSTANCE; hResInfo:HRSRC):DWORD; external 'kernel32' name 'SizeofResource';
+  function SizeofResource(hModule:HINST; hResInfo:HRSRC):DWORD; external 'kernel32' name 'SizeofResource';
 
   function GlobalDeleteAtom(nAtom:ATOM):ATOM; external 'kernel32' name 'GlobalDeleteAtom';
 
@@ -3981,7 +3981,7 @@ in define line 6852 *)
 
   function UnlockFile(hFile:HANDLE; dwFileOffsetLow:DWORD; dwFileOffsetHigh:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD):WINBOOL; external 'kernel32' name 'UnlockFile';
 
-  function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD; 
+  function LockFileEx(hFile:HANDLE; dwFlags:DWORD; dwReserved:DWORD; nNumberOfBytesToLockLow:DWORD; nNumberOfBytesToLockHigh:DWORD;
              lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'LockFileEx';
 
   function UnlockFileEx(hFile:HANDLE; dwReserved:DWORD; nNumberOfBytesToUnlockLow:DWORD; nNumberOfBytesToUnlockHigh:DWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'UnlockFileEx';
@@ -4002,7 +4002,7 @@ in define line 6852 *)
 
   function FlushFileBuffers(hFile:HANDLE):WINBOOL; external 'kernel32' name 'FlushFileBuffers';
 
-  function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; 
+  function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID;
              nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'DeviceIoControl';
 
   function SetEndOfFile(hFile:HANDLE):WINBOOL; external 'kernel32' name 'SetEndOfFile';
@@ -4017,7 +4017,7 @@ in define line 6852 *)
 
   function CloseHandle(hObject:HANDLE):WINBOOL; external 'kernel32' name 'CloseHandle';
 
-  function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD; 
+  function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD;
              bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL; external 'kernel32' name 'DuplicateHandle';
 
   function GetHandleInformation(hObject:HANDLE; lpdwFlags:LPDWORD):WINBOOL; external 'kernel32' name 'GetHandleInformation';
@@ -4064,7 +4064,7 @@ in define line 6852 *)
 
   function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'WaitCommEvent';
 
-  function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD; 
+  function SetTapePosition(hDevice:HANDLE; dwPositionMethod:DWORD; dwPartition:DWORD; dwOffsetLow:DWORD; dwOffsetHigh:DWORD;
              bImmediate:WINBOOL):DWORD; external 'kernel32' name 'SetTapePosition';
 
   function GetTapePosition(hDevice:HANDLE; dwPositionType:DWORD; lpdwPartition:LPDWORD; lpdwOffsetLow:LPDWORD; lpdwOffsetHigh:LPDWORD):DWORD; external 'kernel32' name 'GetTapePosition';
@@ -4169,10 +4169,10 @@ in define line 6852 *)
 
   function GetNamedPipeInfo(hNamedPipe:HANDLE; lpFlags:LPDWORD; lpOutBufferSize:LPDWORD; lpInBufferSize:LPDWORD; lpMaxInstances:LPDWORD):WINBOOL; external 'kernel32' name 'GetNamedPipeInfo';
 
-  function PeekNamedPipe(hNamedPipe:HANDLE; lpBuffer:LPVOID; nBufferSize:DWORD; lpBytesRead:LPDWORD; lpTotalBytesAvail:LPDWORD; 
+  function PeekNamedPipe(hNamedPipe:HANDLE; lpBuffer:LPVOID; nBufferSize:DWORD; lpBytesRead:LPDWORD; lpTotalBytesAvail:LPDWORD;
              lpBytesLeftThisMessage:LPDWORD):WINBOOL; external 'kernel32' name 'PeekNamedPipe';
 
-  function TransactNamedPipe(hNamedPipe:HANDLE; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
+  function TransactNamedPipe(hNamedPipe:HANDLE; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD;
              lpBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external 'kernel32' name 'TransactNamedPipe';
 
   function GetMailslotInfo(hMailslot:HANDLE; lpMaxMessageSize:LPDWORD; lpNextSize:LPDWORD; lpMessageCount:LPDWORD; lpReadTimeout:LPDWORD):WINBOOL; external 'kernel32' name 'GetMailslotInfo';
@@ -4223,13 +4223,13 @@ in define line 6852 *)
 
   function WriteFileEx(hFile:HANDLE; lpBuffer:LPCVOID; nNumberOfBytesToWrite:DWORD; lpOverlapped:LPOVERLAPPED; lpCompletionRoutine:LPOVERLAPPED_COMPLETION_ROUTINE):WINBOOL; external 'kernel32' name 'WriteFileEx';
 
-  function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL; 
+  function BackupRead(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; bAbort:WINBOOL;
              bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32' name 'BackupRead';
 
-  function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWORD; lpdwLowByteSeeked:LPDWORD; lpdwHighByteSeeked:LPDWORD; 
+  function BackupSeek(hFile:HANDLE; dwLowBytesToSeek:DWORD; dwHighBytesToSeek:DWORD; lpdwLowByteSeeked:LPDWORD; lpdwHighByteSeeked:LPDWORD;
              var lpContext:LPVOID):WINBOOL; external 'kernel32' name 'BackupSeek';
 
-  function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL; 
+  function BackupWrite(hFile:HANDLE; lpBuffer:LPBYTE; nNumberOfBytesToWrite:DWORD; lpNumberOfBytesWritten:LPDWORD; bAbort:WINBOOL;
              bProcessSecurity:WINBOOL; var lpContext:LPVOID):WINBOOL; external 'kernel32' name 'BackupWrite';
 
   function SetProcessShutdownParameters(dwLevel:DWORD; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'SetProcessShutdownParameters';
@@ -4278,10 +4278,10 @@ in define line 6852 *)
 
   function SetTokenInformation(TokenHandle:HANDLE; TokenInformationClass:TOKEN_INFORMATION_CLASS; TokenInformation:LPVOID; TokenInformationLength:DWORD):WINBOOL; external 'advapi32' name 'SetTokenInformation';
 
-  function AdjustTokenPrivileges(TokenHandle:HANDLE; DisableAllPrivileges:WINBOOL; NewState:PTOKEN_PRIVILEGES; BufferLength:DWORD; PreviousState:PTOKEN_PRIVILEGES; 
+  function AdjustTokenPrivileges(TokenHandle:HANDLE; DisableAllPrivileges:WINBOOL; NewState:PTOKEN_PRIVILEGES; BufferLength:DWORD; PreviousState:PTOKEN_PRIVILEGES;
              ReturnLength:PDWORD):WINBOOL; external 'advapi32' name 'AdjustTokenPrivileges';
 
-  function AdjustTokenGroups(TokenHandle:HANDLE; ResetToDefault:WINBOOL; NewState:PTOKEN_GROUPS; BufferLength:DWORD; PreviousState:PTOKEN_GROUPS; 
+  function AdjustTokenGroups(TokenHandle:HANDLE; ResetToDefault:WINBOOL; NewState:PTOKEN_GROUPS; BufferLength:DWORD; PreviousState:PTOKEN_GROUPS;
              ReturnLength:PDWORD):WINBOOL; external 'advapi32' name 'AdjustTokenGroups';
 
   function PrivilegeCheck(ClientToken:HANDLE; RequiredPrivileges:PPRIVILEGE_SET; pfResult:LPBOOL):WINBOOL; external 'advapi32' name 'PrivilegeCheck';
@@ -4294,8 +4294,8 @@ in define line 6852 *)
 
   function GetSidLengthRequired(nSubAuthorityCount:UCHAR):DWORD; external 'advapi32' name 'GetSidLengthRequired';
 
-  function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD; 
-             nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD; 
+  function AllocateAndInitializeSid(pIdentifierAuthority:PSID_IDENTIFIER_AUTHORITY; nSubAuthorityCount:BYTE; nSubAuthority0:DWORD; nSubAuthority1:DWORD; nSubAuthority2:DWORD;
+             nSubAuthority3:DWORD; nSubAuthority4:DWORD; nSubAuthority5:DWORD; nSubAuthority6:DWORD; nSubAuthority7:DWORD;
              var pSid:PSID):WINBOOL; external 'advapi32' name 'AllocateAndInitializeSid';
 
   function FreeSid(pSid:PSID):PVOID; external 'advapi32' name 'FreeSid';
@@ -4336,7 +4336,7 @@ in define line 6852 *)
 
   function AddAccessDeniedAce(pAcl:PACL; dwAceRevision:DWORD; AccessMask:DWORD; pSid:PSID):WINBOOL; external 'advapi32' name 'AddAccessDeniedAce';
 
-  function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL; 
+  function AddAuditAccessAce(pAcl:PACL; dwAceRevision:DWORD; dwAccessMask:DWORD; pSid:PSID; bAuditSuccess:WINBOOL;
              bAuditFailure:WINBOOL):WINBOOL; external 'advapi32' name 'AddAuditAccessAce';
 
   function FindFirstFreeAce(pAcl:PACL; var pAce:LPVOID):WINBOOL; external 'advapi32' name 'FindFirstFreeAce';
@@ -4365,7 +4365,7 @@ in define line 6852 *)
 
   function GetSecurityDescriptorGroup(pSecurityDescriptor:PSECURITY_DESCRIPTOR; var pGroup:PSID; lpbGroupDefaulted:LPBOOL):WINBOOL; external 'advapi32' name 'GetSecurityDescriptorGroup';
 
-  function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE; 
+  function CreatePrivateObjectSecurity(ParentDescriptor:PSECURITY_DESCRIPTOR; CreatorDescriptor:PSECURITY_DESCRIPTOR; var NewDescriptor:PSECURITY_DESCRIPTOR; IsDirectoryObject:WINBOOL; Token:HANDLE;
              GenericMapping:PGENERIC_MAPPING):WINBOOL; external 'advapi32' name 'CreatePrivateObjectSecurity';
 
   function SetPrivateObjectSecurity(SecurityInformation:SECURITY_INFORMATION; ModificationDescriptor:PSECURITY_DESCRIPTOR; var ObjectsSecurityDescriptor:PSECURITY_DESCRIPTOR; GenericMapping:PGENERIC_MAPPING; Token:HANDLE):WINBOOL;
@@ -4378,8 +4378,8 @@ in define line 6852 *)
 
   function MakeSelfRelativeSD(pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwBufferLength:LPDWORD):WINBOOL; external 'advapi32' name 'MakeSelfRelativeSD';
 
-  function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD; 
-             pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID; 
+  function MakeAbsoluteSD(pSelfRelativeSecurityDescriptor:PSECURITY_DESCRIPTOR; pAbsoluteSecurityDescriptor:PSECURITY_DESCRIPTOR; lpdwAbsoluteSecurityDescriptorSize:LPDWORD; pDacl:PACL; lpdwDaclSize:LPDWORD;
+             pSacl:PACL; lpdwSaclSize:LPDWORD; pOwner:PSID; lpdwOwnerSize:LPDWORD; pPrimaryGroup:PSID;
              lpdwPrimaryGroupSize:LPDWORD):WINBOOL; external 'advapi32' name 'MakeAbsoluteSD';
 
   function SetKernelObjectSecurity(Handle:HANDLE; SecurityInformation:SECURITY_INFORMATION; SecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL; external 'advapi32' name 'SetKernelObjectSecurity';
@@ -4392,7 +4392,7 @@ in define line 6852 *)
 
   function VirtualUnlock(lpAddress:LPVOID; dwSize:DWORD):WINBOOL; external 'kernel32' name 'VirtualUnlock';
 
-  function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD; 
+  function MapViewOfFileEx(hFileMappingObject:HANDLE; dwDesiredAccess:DWORD; dwFileOffsetHigh:DWORD; dwFileOffsetLow:DWORD; dwNumberOfBytesToMap:DWORD;
              lpBaseAddress:LPVOID):LPVOID; external 'kernel32' name 'MapViewOfFileEx';
 
   function SetPriorityClass(hProcess:HANDLE; dwPriorityClass:DWORD):WINBOOL; external 'kernel32' name 'SetPriorityClass';
@@ -4451,9 +4451,9 @@ in define line 6852 *)
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   procedure ZeroMemory(var p;c : longint);
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        fillchar(p,c,#0);
     end; *)
@@ -4470,7 +4470,7 @@ in define line 6852 *)
 
 
 { Not in my user32 !!! PM
-  function ToUnicodeEx(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
+  function ToUnicodeEx(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint;
              wFlags:UINT; dwhkl:HKL):longint; external 'user32' name 'ToUnicodeEx';
 }
 
@@ -4560,10 +4560,10 @@ in define line 6852 *)
 
   function CloseWindow(hWnd:HWND):WINBOOL; external 'user32' name 'CloseWindow';
 
-  function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint; 
+  function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint;
              bRepaint:WINBOOL):WINBOOL; external 'user32' name 'MoveWindow';
 
-  function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint; 
+  function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint;
              cy:longint; uFlags:UINT):WINBOOL; external 'user32' name 'SetWindowPos';
 
   function GetWindowPlacement(hWnd:HWND; var lpwndpl:WINDOWPLACEMENT):WINBOOL; external 'user32' name 'GetWindowPlacement';
@@ -4572,7 +4572,7 @@ in define line 6852 *)
 
   function BeginDeferWindowPos(nNumWindows:longint):HDWP; external 'user32' name 'BeginDeferWindowPos';
 
-  function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint; 
+  function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;
              cx:longint; cy:longint; uFlags:UINT):HDWP; external 'user32' name 'DeferWindowPos';
 
   function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external 'user32' name 'EndDeferWindowPos';
@@ -4661,10 +4661,10 @@ in define line 6852 *)
 
   function ToAscii(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT):longint; external 'user32' name 'ToAscii';
 
-  function ToAsciiEx(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT; 
+  function ToAsciiEx(uVirtKey:UINT; uScanCode:UINT; lpKeyState:PBYTE; lpChar:LPWORD; uFlags:UINT;
              dwhkl:HKL):longint; external 'user32' name 'ToAsciiEx';
 
-  function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint; 
+  function ToUnicode(wVirtKey:UINT; wScanCode:UINT; lpKeyState:PBYTE; pwszBuff:LPWSTR; cchBuff:longint;
              wFlags:UINT):longint; external 'user32' name 'ToUnicode';
 
   function OemKeyScan(wOemChar:WORD):DWORD; external 'user32' name 'OemKeyScan';
@@ -4735,7 +4735,7 @@ in define line 6852 *)
 
   function GetMenuCheckMarkDimensions:LONG; external 'user32' name 'GetMenuCheckMarkDimensions';
 
-  function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint; 
+  function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;
              hWnd:HWND; var prcRect:RECT):WINBOOL; external 'user32' name 'TrackPopupMenu';
 
   function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT; external 'user32' name 'GetMenuDefaultItem';
@@ -4800,10 +4800,10 @@ in define line 6852 *)
 
   function ScrollWindow(hWnd:HWND; XAmount:longint; YAmount:longint; var lpRect:RECT; var lpClipRect:RECT):WINBOOL; external 'user32' name 'ScrollWindow';
 
-  function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT; 
+  function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT;
              hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL; external 'user32' name 'ScrollDC';
 
-  function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT; 
+  function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT;
              hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint; external 'user32' name 'ScrollWindowEx';
 
   function SetScrollPos(hWnd:HWND; nBar:longint; nPos:longint; bRedraw:WINBOOL):longint; external 'user32' name 'SetScrollPos';
@@ -4948,14 +4948,14 @@ in define line 6852 *)
 
   function CheckMenuRadioItem(_para1:HMENU; _para2:UINT; _para3:UINT; _para4:UINT; _para5:UINT):WINBOOL; external 'user32' name 'CheckMenuRadioItem';
 
-  function CreateCursor(hInst:HINSTANCE; xHotSpot:longint; yHotSpot:longint; nWidth:longint; nHeight:longint; 
+  function CreateCursor(hInst:HINST; xHotSpot:longint; yHotSpot:longint; nWidth:longint; nHeight:longint;
              pvANDPlane:pointer; pvXORPlane:pointer):HCURSOR; external 'user32' name 'CreateCursor';
 
   function DestroyCursor(hCursor:HCURSOR):WINBOOL; external 'user32' name 'DestroyCursor';
 
   function SetSystemCursor(hcur:HCURSOR; anID:DWORD):WINBOOL; external 'user32' name 'SetSystemCursor';
 
-  function CreateIcon(hInstance:HINSTANCE; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE; 
+  function CreateIcon(hInstance:HINST; nWidth:longint; nHeight:longint; cPlanes:BYTE; cBitsPixel:BYTE;
              var lpbANDbits:BYTE; var lpbXORbits:BYTE):HICON; external 'user32' name 'CreateIcon';
 
   function DestroyIcon(hIcon:HICON):WINBOOL; external 'user32' name 'DestroyIcon';
@@ -4966,7 +4966,7 @@ in define line 6852 *)
 
   function CreateIconFromResource(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD):HICON; external 'user32' name 'CreateIconFromResource';
 
-  function CreateIconFromResourceEx(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD; cxDesired:longint; 
+  function CreateIconFromResourceEx(presbits:PBYTE; dwResSize:DWORD; fIcon:WINBOOL; dwVer:DWORD; cxDesired:longint;
              cyDesired:longint; Flags:UINT):HICON; external 'user32' name 'CreateIconFromResourceEx';
 
   function CopyImage(_para1:HANDLE; _para2:UINT; _para3:longint; _para4:longint; _para5:UINT):HICON; external 'user32' name 'CopyImage';
@@ -5003,25 +5003,25 @@ in define line 6852 *)
 
   function DrawAnimatedRects(hwnd:HWND; idAni:longint; var lprcFrom:RECT; var lprcTo:RECT):WINBOOL; external 'user32' name 'DrawAnimatedRects';
 
-  function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND; 
+  function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;
              _para6:LPTPMPARAMS):WINBOOL; external 'user32' name 'TrackPopupMenuEx';
 
   function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
 
-  function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint; 
+  function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;
              cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32' name 'DrawIconEx';
 
   function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32' name 'AnimatePalette';
 
-  function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Arc';
 
-  function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external 'gdi32' name 'BitBlt';
 
   function CancelDC(_para1:HDC):WINBOOL; external 'gdi32' name 'CancelDC';
 
-  function Chord(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Chord(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Chord';
 
   function CloseMetaFile(_para1:HDC):HMETAFILE; external 'gdi32' name 'CloseMetaFile';
@@ -5067,7 +5067,7 @@ in define line 6852 *)
 
   function CreateRectRgnIndirect(var _para1:RECT):HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
 
-  function CreateRoundRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function CreateRoundRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint):HRGN; external 'gdi32' name 'CreateRoundRectRgn';
 
   function CreateSolidBrush(_para1:COLORREF):HBRUSH; external 'gdi32' name 'CreateSolidBrush';
@@ -5088,7 +5088,7 @@ in define line 6852 *)
 
   function Escape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:LPVOID):longint; external 'gdi32' name 'Escape';
 
-  function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint; 
+  function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint;
              _para6:LPSTR):longint; external 'gdi32' name 'ExtEscape';
 
   function ExcludeClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external 'gdi32' name 'ExcludeClipRect';
@@ -5131,7 +5131,7 @@ in define line 6852 *)
 
   function GetDeviceCaps(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'GetDeviceCaps';
 
-  function GetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:LPVOID; 
+  function GetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:LPVOID;
              _para6:LPBITMAPINFO; _para7:UINT):longint; external 'gdi32' name 'GetDIBits';
 
   function GetFontData(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:LPVOID; _para5:DWORD):DWORD; external 'gdi32' name 'GetFontData';
@@ -5196,26 +5196,26 @@ in define line 6852 *)
 
   function InvertRgn(_para1:HDC; _para2:HRGN):WINBOOL; external 'gdi32' name 'InvertRgn';
 
-  function LineDDA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:LINEDDAPROC; 
+  function LineDDA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:LINEDDAPROC;
              _para6:LPARAM):WINBOOL; external 'gdi32' name 'LineDDA';
 
   function LineTo(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external 'gdi32' name 'LineTo';
 
-  function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint; 
+  function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint;
              _para11:longint; _para12:DWORD):WINBOOL; external 'gdi32' name 'MaskBlt';
 
-  function PlgBlt(_para1:HDC; var _para2:POINT; _para3:HDC; _para4:longint; _para5:longint; 
+  function PlgBlt(_para1:HDC; var _para2:POINT; _para3:HDC; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:HBITMAP; _para9:longint; _para10:longint):WINBOOL; external 'gdi32' name 'PlgBlt';
 
   function OffsetClipRgn(_para1:HDC; _para2:longint; _para3:longint):longint; external 'gdi32' name 'OffsetClipRgn';
 
   function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint; external 'gdi32' name 'OffsetRgn';
 
-  function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:DWORD):WINBOOL; external 'gdi32' name 'PatBlt';
 
-  function Pie(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function Pie(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Pie';
 
   function PlayMetaFile(_para1:HDC; _para2:HMETAFILE):WINBOOL; external 'gdi32' name 'PlayMetaFile';
@@ -5238,7 +5238,7 @@ in define line 6852 *)
 
   function RealizePalette(_para1:HDC):UINT; external 'gdi32' name 'RealizePalette';
 
-  function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint):WINBOOL; external 'gdi32' name 'RoundRect';
 
   function ResizePalette(_para1:HPALETTE; _para2:UINT):WINBOOL; external 'gdi32' name 'ResizePalette';
@@ -5266,7 +5266,7 @@ in define line 6852 *)
   function SetDIBits(_para1:HDC; _para2:HBITMAP; _para3:UINT; _para4:UINT; _para5:pointer;
              var _para6:BITMAPINFO; _para7:UINT):longint; external 'gdi32' name 'SetDIBits';
 
-  function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD; 
+  function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;
              _para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;
              var _para11:BITMAPINFO; _para12:UINT):longint; external 'gdi32' name 'SetDIBitsToDevice';
 
@@ -5286,13 +5286,13 @@ in define line 6852 *)
 
   function SetPolyFillMode(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetPolyFillMode';
 
-  function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint; 
+  function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;
              _para11:DWORD):WINBOOL; external 'gdi32' name 'StretchBlt';
 
   function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external 'gdi32' name 'SetRectRgn';
 
-  function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;
              var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint; external 'gdi32' name 'StretchDIBits';
 
@@ -5338,7 +5338,7 @@ in define line 6852 *)
 
   function GdiComment(_para1:HDC; _para2:UINT; var _para3:BYTE):WINBOOL; external 'gdi32' name 'GdiComment';
 
-  function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT; 
+  function AngleArc(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:FLOAT;
              _para6:FLOAT):WINBOOL; external 'gdi32' name 'AngleArc';
 
   function PolyPolyline(_para1:HDC; var _para2:POINT; var _para3:DWORD; _para4:DWORD):WINBOOL; external 'gdi32' name 'PolyPolyline';
@@ -5351,7 +5351,7 @@ in define line 6852 *)
 
   function CombineTransform(_para1:LPXFORM; var _para2:XFORM; var _para3:XFORM):WINBOOL; external 'gdi32' name 'CombineTransform';
 
-  function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE; 
+  function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE;
              _para6:DWORD):HBITMAP; external 'gdi32' name 'CreateDIBSection';
 
   function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external 'gdi32' name 'GetDIBColorTable';
@@ -5377,7 +5377,7 @@ in define line 6852 *)
 (*  function AbortPath(_para1:HDC):WINBOOL; external 'gdi32' name 'AbortPath';
 *)
 
-  function ArcTo(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ArcTo(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'ArcTo';
 
   function BeginPath(_para1:HDC):WINBOOL; external 'gdi32' name 'BeginPath';
@@ -5444,10 +5444,10 @@ in define line 6852 *)
 
   function OffsetWindowOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32' name 'OffsetWindowOrgEx';
 
-  function ScaleViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ScaleViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:LPSIZE):WINBOOL; external 'gdi32' name 'ScaleViewportExtEx';
 
-  function ScaleWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
+  function ScaleWindowExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
              _para6:LPSIZE):WINBOOL; external 'gdi32' name 'ScaleWindowExtEx';
 
   function SetBitmapDimensionEx(_para1:HBITMAP; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'SetBitmapDimensionEx';
@@ -5510,14 +5510,14 @@ in define line 6852 *)
 
   function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external 'comctl32' name 'ImageList_SetOverlayImage';
 
-  function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
+  function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;
              fStyle:UINT):WINBOOL; external 'comctl32' name 'ImageList_Draw';
 
   function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external 'comctl32' name 'ImageList_Replace';
 
   function ImageList_AddMasked(himl:HIMAGELIST; hbmImage:HBITMAP; crMask:COLORREF):longint; external 'comctl32' name 'ImageList_AddMasked';
 
-  function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint; 
+  function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;
              dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL; external 'comctl32' name 'ImageList_DrawEx';
 
   function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL; external 'comctl32' name 'ImageList_Remove';
@@ -5546,16 +5546,16 @@ in define line 6852 *)
 
   function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external 'comctl32' name 'ImageList_GetImageInfo';
 
-  function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint; 
+  function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;
              dy:longint):HIMAGELIST; external 'comctl32' name 'ImageList_Merge';
 
-  function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINSTANCE; 
-             wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint; 
+  function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;
+             wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;
              dxBitmap:longint; dyBitmap:longint; uStructSize:UINT):HWND; external 'comctl32' name 'CreateToolbarEx';
 
-  function CreateMappedBitmap(hInstance:HINSTANCE; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32' name 'CreateMappedBitmap';
+  function CreateMappedBitmap(hInstance:HINST; idBitmap:longint; wFlags:UINT; lpColorMap:LPCOLORMAP; iNumMaps:longint):HBITMAP; external 'comctl32' name 'CreateMappedBitmap';
 
-  procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINSTANCE; 
+  procedure MenuHelp(uMsg:UINT; wParam:WPARAM; lParam:LPARAM; hMainMenu:HMENU; hInst:HINST;
               hwndStatus:HWND; var lpwIDs:UINT); external 'comctl32' name 'MenuHelp';
 
   function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL; external 'comctl32' name 'ShowHideMenuCtl';
@@ -5568,23 +5568,23 @@ in define line 6852 *)
 
   function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
 
-  function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint; 
-             hParent:HWND; nID:longint; hInst:HINSTANCE; hBuddy:HWND; nUpper:longint; 
+  function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint;
+             hParent:HWND; nID:longint; hInst:HINST; hBuddy:HWND; nUpper:longint;
              nLower:longint; nPos:longint):HWND; external 'comctl32' name 'CreateUpDownControl';
 
   function CommDlgExtendedError:DWORD; external 'comdlg32' name 'CommDlgExtendedError';
 
   { was #define dname(params) def_expr }
-  function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINSTANCE):HWND;
+  function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
     begin
        Animate_Create:=CreateWindow(LPCSTR(@ANIMATE_CLASS),NULL,dwStyle,0,0,0,0,hwndP,id,hInstance,NULL);
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function Animate_Open(hwnd : HWND;szName : LPTSTR) : LRESULT;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        Animate_Open:=SendMessage(hwnd,ACM_OPEN,0,LPARAM(szName));
     end;
@@ -5675,7 +5675,7 @@ in define line 6852 *)
 
   { was #define dname(params) def_expr }
   function PropSheet_RemovePage(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE; index : longint) : LRESULT;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        PropSheet_RemovePage:=SendMessage(hPropSheetDlg,PSM_REMOVEPAGE,WPARAM(index),LPARAM(hpage));
     end;
@@ -5891,7 +5891,7 @@ in define line 6852 *)
     begin
        ListView_GetNextItem:=SendMessage(hwnd, LVM_GETNEXTITEM, WPARAM(iStart), LPARAM(flags));
     end;
-    
+
     { was #define dname(params) def_expr }
     function ListView_GetOrigin(hwndLV:HWND;var pt : POINT) : LRESULT;
       begin
@@ -6008,9 +6008,9 @@ in define line 6852 *)
 
     { was #define dname(params) def_expr }
     { argument types are unknown }
-    { return type might be wrong }   
+    { return type might be wrong }
     function ListView_SetItemPosition(hwndLV:HWND;i,x,y : longint) : LRESULT;
-      { return type might be wrong }   
+      { return type might be wrong }
       begin
          ListView_SetItemPosition:=SendMessage(hwndLV,LVM_SETITEMPOSITION,WPARAM(i),MAKELPARAM(x,y));
       end;
@@ -6029,7 +6029,7 @@ in define line 6852 *)
          _gnu_lvi.stateMask:=mask;
          _gnu_lvi.state:=data;
          ListView_SetItemState:=SendMessage(hwndLV, LVM_SETITEMSTATE, WPARAM(i),
-	      LPARAM(@_gnu_lvi));
+              LPARAM(@_gnu_lvi));
       end;
 
 (* error
@@ -6038,7 +6038,7 @@ in define line 6852 *)
   _gnu_lvi.stateMask = mask;\
   _gnu_lvi.state = data;\
   SendMessage((hwndLV), LVM_SETITEMSTATE, (WPARAM)i, \
-	      (LPARAM)(LV_ITEM * )&_gnu_lvi);\
+              (LPARAM)(LV_ITEM * )&_gnu_lvi);\
 }
 in declaration at line 6817
  error *)
@@ -6049,7 +6049,7 @@ in declaration at line 6817
         _gnu_lvi.iSubItem:=iSubItem_;
         _gnu_lvi.pszText:=pszText_;
          ListView_SetItemText:=SendMessage(hwndLV, LVM_SETITEMTEXT, WPARAM(i),
-	      LPARAM(@_gnu_lvi));
+              LPARAM(@_gnu_lvi));
       end;
 (* error
 #define ListView_SetItemText(hwndLV, i, iSubItem_, pszText_) \
@@ -6057,7 +6057,7 @@ in declaration at line 6817
   _gnu_lvi.iSubItem = iSubItem_;\
   _gnu_lvi.pszText = pszText_;\
   SendMessage((hwndLV), LVM_SETITEMTEXT, (WPARAM)i, \
-	      (LPARAM)(LV_ITEM * )&_gnu_lvi);\
+              (LPARAM)(LV_ITEM * )&_gnu_lvi);\
 }
 in define line 6826 *)
 
@@ -6438,7 +6438,7 @@ in define line 6826 *)
     begin
        SNDMSG:=SendMessage(hWnd,Msg,wParam,lParam);
     end;
-    
+
     { was #define dname(params) def_expr }
     function CommDlg_OpenSave_GetSpecA(_hdlg:HWND;_psz:LPSTR;_cbmax : longint) : LRESULT;
       begin
@@ -6557,10 +6557,10 @@ in define line 6826 *)
 
     function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external 'kernel32' name 'IsDBCSLeadByteEx';
 
-    function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR; 
+    function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR;
                cchWideChar:longint):longint; external 'kernel32' name 'MultiByteToWideChar';
 
-    function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR; 
+    function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR;
                cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint; external 'kernel32' name 'WideCharToMultiByte';
 
     function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'IsValidLocale';
@@ -6708,7 +6708,7 @@ in define line 6826 *)
 
     procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL); external 'shell32' name 'DragAcceptFiles';
 
-    function DuplicateIcon(_para1:HINSTANCE; _para2:HICON):HICON; external 'shell32' name 'DuplicateIcon';
+    function DuplicateIcon(_para1:HINST; _para2:HICON):HICON; external 'shell32' name 'DuplicateIcon';
 
     function DdeConnect(_para1:DWORD; _para2:HSZ; _para3:HSZ; var _para4:CONVCONTEXT):HCONV; external 'user32' name 'DdeConnect';
 
@@ -6730,11 +6730,11 @@ in define line 6826 *)
 
     function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
 
-    function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ; 
+    function DdeCreateDataHandle(_para1:DWORD; _para2:LPBYTE; _para3:DWORD; _para4:DWORD; _para5:HSZ;
                _para6:UINT; _para7:UINT):HDDEDATA; external 'user32' name 'DdeCreateDataHandle';
 
 {$ifdef Unknown_functions}
-    function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD; 
+    function NetUserEnum(_para1:LPWSTR; _para2:DWORD; _para3:DWORD; var _para4:LPBYTE; _para5:DWORD;
                _para6:LPDWORD; _para7:LPDWORD; _para8:LPDWORD):DWORD; external 'netapi32' name 'NetUserEnum';
 
     function NetApiBufferFree(_para1:LPVOID):DWORD; external 'netapi32' name 'NetApiBufferFree';
@@ -6743,10 +6743,10 @@ in define line 6826 *)
 
     function NetGetDCName(_para1:LPWSTR; _para2:LPWSTR; var _para3:LPBYTE):DWORD; external 'netapi32' name 'NetGetDCName';
 
-    function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
+    function NetGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;
                _para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetGroupEnum';
 
-    function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD; 
+    function NetLocalGroupEnum(_para1:LPWSTR; _para2:DWORD; var _para3:LPBYTE; _para4:DWORD; _para5:LPDWORD;
                _para6:LPDWORD; _para7:LPDWORD):DWORD; external 'netapi32' name 'NetLocalGroupEnum';
 {$endif Unknown_functions}
 
@@ -6773,7 +6773,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  1998-09-04 17:17:33  pierre
+  Revision 1.6  1998-10-27 11:17:14  peter
+    * type HINSTANCE -> HINST
+
+  Revision 1.5  1998/09/04 17:17:33  pierre
     + all unknown function ifdef with
       conditionnal unknown_functions
       testwin works now, but windowcreate still fails !!

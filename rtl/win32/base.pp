@@ -26,8 +26,8 @@ unit base;
 
 {  Automatically converted by H2PAS.EXE from base.h
    Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97 
-   Further improvements by Michael Van Canneyt, April 1998 
+   Improvements made by Mark A. Malakanov 22nd-25th may 97
+   Further improvements by Michael Van Canneyt, April 1998
    define handling and error recovery by Pierre Muller, June 1998 }
 
 
@@ -40,33 +40,33 @@ unit base;
   { C default packing is dword }
 
 {$PACKRECORDS 4}
-  { 
+  {
      Base.h
-  
+
      Base definitions
-  
+
      Copyright (C) 1996, 1997 Free Software Foundation, Inc.
-  
+
      Author: Scott Christley <scottc@net-community.com>
-  
+
      This file is part of the Windows32 API Library.
-  
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
-     
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
-  
+
      If you are interested in a warranty or support for this source code,
      contact Scott Christley <scottc@net-community.com> for more information.
-     
+
      You should have received a copy of the GNU Library General Public
      License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation, 
+     If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 
@@ -101,13 +101,10 @@ unit base;
   type
 
      ATOM = word;
-  { Changed from BOOL to WINBOOL to avoid Objective-C conflict  }
 
      WINBOOL = longbool;
-  {  Not convertable by H2PAS
-  typedef unsigned char BOOLEAN;
-  typedef unsigned char BYTE;
-   }
+
+     BOOL = WINBOOL;
 
      CALTYPE = cardinal;
 
@@ -157,9 +154,9 @@ unit base;
   { typedef GLOBALHANDLE;  }
 
   {   HANDLE = pointer;
-    need to be compatible 
+    need to be compatible
     with longint for Delphi !! }
-     HANDLE = longint;{ or should it be cardinal ?? PM }
+     HANDLE = longint; { or should it be cardinal ?? PM }
 
      HACCEL = HANDLE;
 
@@ -207,7 +204,9 @@ unit base;
 
      HIMAGELIST = HANDLE;
 
-     HINSTANCE = HANDLE;
+     { Not HINSTANCE, that will create prolems with the var hInstance
+       and in delphi its also called HINST (PFV) }
+     HINST = HANDLE;
 
      HKEY = HANDLE;
 
@@ -263,31 +262,26 @@ unit base;
      LPBOOL = ^WINBOOL;
 
      LPBYTE = ^BYTE;
-(* Const before type ignored *)
 
      LPCCH = ^CHAR;
 
      LPCH = ^CHAR;
 
      LPCOLORREF = ^COLORREF;
-(* Const before type ignored *)
 
      LPCSTR = ^char;
 {$ifdef UNICODE}
-(* Const before type ignored *)
 
   type
 
      LPCTSTR = ^word;
 {$else}
-(* Const before type ignored *)
 
   type
 
      LPCTSTR = ^char;
 {$endif}
   { UNICODE  }
-(* Const before type ignored *)
 
   type
 
@@ -491,7 +485,7 @@ unit base;
   #define WINAPI      STDCALL
   #define APIENTRY    STDCALL
   #define WINGDIAPI
-  
+
   #define _export
       }
   {
@@ -571,7 +565,7 @@ unit base;
   {  Not convertable by H2PAS
   #define FORWARD_WM_NOTIFY(hwnd, idFrom, pnmhdr, fn) \
       (void)(fn)((hwnd), WM_NOTIFY, (WPARAM)(int)(id), \
-      (LPARAM)(NMHDR FAR )(pnmhdr)) 
+      (LPARAM)(NMHDR FAR )(pnmhdr))
    }
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -591,7 +585,7 @@ unit base;
 
   {  Not convertable by H2PAS
   #define HANDLE_WM_NOTIFY(hwnd, wParam, lParam, fn) \
-      (fn)((hwnd), (int)(wParam), (NMHDR FAR )(lParam)) 
+      (fn)((hwnd), (int)(wParam), (NMHDR FAR )(lParam))
    }
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -620,15 +614,15 @@ unit base;
   { original Cygnus headers also had the following defined:  }
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function SEXT_HIWORD(l : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ZEXT_HIWORD(l : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -636,15 +630,15 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function INDEXTOOVERLAYMASK(i : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function INDEXTOSTATEIMAGEMASK(i : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -656,9 +650,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function MAKELANGID(p,s : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -666,9 +660,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function SUBLANGID(lgid : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -691,7 +685,7 @@ unit base;
   function MAKELRESULT(l,h : longint) : LRESULT;
 
   {  Not convertable by H2PAS
-  #define MAKEPOINTS(l)   ( ((POINTS FAR  ) & (l))) 
+  #define MAKEPOINTS(l)   ( ((POINTS FAR  ) & (l)))
    }
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -704,17 +698,17 @@ unit base;
 {$ifndef max}
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function max(a,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
 {$endif}
 {$ifndef min}
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function min(a,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
 {$endif}
   { was #define dname(params) def_expr }
@@ -723,23 +717,23 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function PALETTERGB(r,g,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
 
   (*  Not convertable by H2PAS
   #define POINTSTOPOINT(pt, pts) {(pt).x = (SHORT) LOWORD(pts); \
-        (pt).y = (SHORT) HIWORD(pts);} 
+        (pt).y = (SHORT) HIWORD(pts);}
   #define POINTTOPOINTS(pt) \
-      (MAKELONG((short) ((pt).x), (short) ((pt).y))) 
+      (MAKELONG((short) ((pt).x), (short) ((pt).y)))
    *)
   { already declared before
   #define INDEXTOOVERLAYMASK(i) ((i) << 8)
-  #define INDEXTOSTATEIMAGEMASK(i) ((i) << 12)  
+  #define INDEXTOSTATEIMAGEMASK(i) ((i) << 12)
    }
   {  Not convertable by H2PAS
   #ifdef UNICODE
-  #define TEXT(quote) L##quote 
+  #define TEXT(quote) L##quote
   #else
   #define TEXT(quote) quote
   #endif
@@ -781,7 +775,7 @@ unit base;
 
      WNDPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;
 
-     FARPROC = function :longint;
+     FARPROC = pointer; {function :longint;}
 
      PROC = FARPROC;
 
@@ -1025,18 +1019,18 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function SEXT_HIWORD(l : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        SEXT_HIWORD:=(longint(l)) shr 16;
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function ZEXT_HIWORD(l : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        ZEXT_HIWORD:=(cardinal(l)) shr 16;
     end;
@@ -1050,18 +1044,18 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function INDEXTOOVERLAYMASK(i : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        INDEXTOOVERLAYMASK:=i shl 8;
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function INDEXTOSTATEIMAGEMASK(i : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        INDEXTOSTATEIMAGEMASK:=i shl 12;
     end;
@@ -1082,9 +1076,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function MAKELANGID(p,s : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        MAKELANGID:=((WORD(s)) shl 10) or (WORD(p));
     end;
@@ -1100,9 +1094,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function SUBLANGID(lgid : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        SUBLANGID:=(WORD(lgid)) shr 10;
     end;
@@ -1158,9 +1152,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function max(a,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     var
        if_local1 : longint;
     (* result types are not known *)
@@ -1174,9 +1168,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function min(a,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     var
        if_local1 : longint;
     (* result types are not known *)
@@ -1197,9 +1191,9 @@ unit base;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function PALETTERGB(r,g,b : longint) : longint;
-    { return type might be wrong }   
+    { return type might be wrong }
     begin
        PALETTERGB:=$02000000 or (RGB(r,g,b));
     end;
@@ -1213,7 +1207,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-09-08 14:30:03  pierre
+  Revision 1.8  1998-10-27 11:17:11  peter
+    * type HINSTANCE -> HINST
+
+  Revision 1.7  1998/09/08 14:30:03  pierre
     * WINBOOL changed from longint to longbool
 
   Revision 1.6  1998/09/04 17:17:32  pierre

@@ -26,8 +26,8 @@ unit unifun;
 
 {  Automatically converted by H2PAS.EXE from unicfun.h
    Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97 
-   Further improvements by Michael Van Canneyt, April 1998 
+   Improvements made by Mark A. Malakanov 22nd-25th may 97
+   Further improvements by Michael Van Canneyt, April 1998
    define handling and error recovery by Pierre Muller, June 1998 }
 
 
@@ -43,34 +43,34 @@ unit unifun;
   { C default packing is dword }
 
 {$PACKRECORDS 4}
-  { 
+  {
      UnicodeFunctions.h
-  
+
      Declarations for all the Windows32 API Unicode Functions
-  
+
      Copyright (C) 1996 Free Software Foundation, Inc.
-  
+
      Author:  Scott Christley <scottc@net-community.com>
      Date: 1996
-     
+
      This file is part of the Windows32 API Library.
-  
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
-     
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
-  
+
      If you are interested in a warranty or support for this source code,
      contact Scott Christley <scottc@net-community.com> for more information.
-     
+
      You should have received a copy of the GNU Library General Public
      License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation, 
+     If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 {$ifndef _GNU_H_WINDOWS32_UNICODEFUNCTIONS}
@@ -86,7 +86,7 @@ unit unifun;
 
   function FreeEnvironmentStringsW(_para1:LPWSTR):WINBOOL;
 
-  function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR; 
+  function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;
              nSize:DWORD; var Arguments:va_list):DWORD;
 
   function CreateMailslotW(lpName:LPCWSTR; nMaxMessageSize:DWORD; lReadTimeout:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE;
@@ -115,18 +115,18 @@ unit unifun;
 
   function OpenSemaphoreW(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCWSTR):HANDLE;
 
-  function CreateFileMappingW(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD; 
+  function CreateFileMappingW(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD;
              lpName:LPCWSTR):HANDLE;
 
   function OpenFileMappingW(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCWSTR):HANDLE;
 
   function GetLogicalDriveStringsW(nBufferLength:DWORD; lpBuffer:LPWSTR):DWORD;
 
-  function LoadLibraryW(lpLibFileName:LPCWSTR):HINSTANCE;
+  function LoadLibraryW(lpLibFileName:LPCWSTR):HINST;
 
-  function LoadLibraryExW(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINSTANCE;
+  function LoadLibraryExW(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINST;
 
-  function GetModuleFileNameW(hModule:HINSTANCE; lpFilename:LPWSTR; nSize:DWORD):DWORD;
+  function GetModuleFileNameW(hModule:HINST; lpFilename:LPWSTR; nSize:DWORD):DWORD;
 
   function GetModuleHandleW(lpModuleName:LPCWSTR):HMODULE;
 
@@ -142,19 +142,19 @@ unit unifun;
 
   procedure OutputDebugStringW(lpOutputString:LPCWSTR);
 
-  function FindResourceW(hModule:HINSTANCE; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC;
+  function FindResourceW(hModule:HINST; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC;
 
-  function FindResourceExW(hModule:HINSTANCE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC;
+  function FindResourceExW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC;
 
-  function EnumResourceTypesW(hModule:HINSTANCE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL;
+  function EnumResourceTypesW(hModule:HINST; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL;
 
-  function EnumResourceNamesW(hModule:HINSTANCE; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL;
+  function EnumResourceNamesW(hModule:HINST; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL;
 
-  function EnumResourceLanguagesW(hModule:HINSTANCE; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL;
+  function EnumResourceLanguagesW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL;
 
   function BeginUpdateResourceW(pFileName:LPCWSTR; bDeleteExistingResources:WINBOOL):HANDLE;
 
-  function UpdateResourceW(hUpdate:HANDLE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD; lpData:LPVOID; 
+  function UpdateResourceW(hUpdate:HANDLE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD; lpData:LPVOID;
              cbData:DWORD):WINBOOL;
 
   function EndUpdateResourceW(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL;
@@ -183,7 +183,7 @@ unit unifun;
 
   function GetPrivateProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:INT; lpFileName:LPCWSTR):UINT;
 
-  function GetPrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD; 
+  function GetPrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD;
              lpFileName:LPCWSTR):DWORD;
 
   function WritePrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpString:LPCWSTR; lpFileName:LPCWSTR):WINBOOL;
@@ -220,7 +220,7 @@ unit unifun;
 
   function QueryDosDeviceW(lpDeviceName:LPCWSTR; lpTargetPath:LPWSTR; ucchMax:DWORD):DWORD;
 
-  function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD; 
+  function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;
              dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE;
 
   function SetFileAttributesW(lpFileName:LPCWSTR; dwFileAttributes:DWORD):WINBOOL;
@@ -231,7 +231,7 @@ unit unifun;
 
   function DeleteFileW(lpFileName:LPCWSTR):WINBOOL;
 
-  function SearchPathW(lpPath:LPCWSTR; lpFileName:LPCWSTR; lpExtension:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR; 
+  function SearchPathW(lpPath:LPCWSTR; lpFileName:LPCWSTR; lpExtension:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR;
              var lpFilePart:LPWSTR):DWORD;
 
   function CopyFileW(lpExistingFileName:LPCWSTR; lpNewFileName:LPCWSTR; bFailIfExists:WINBOOL):WINBOOL;
@@ -240,20 +240,20 @@ unit unifun;
 
   function MoveFileExW(lpExistingFileName:LPCWSTR; lpNewFileName:LPCWSTR; dwFlags:DWORD):WINBOOL;
 
-  function CreateNamedPipeW(lpName:LPCWSTR; dwOpenMode:DWORD; dwPipeMode:DWORD; nMaxInstances:DWORD; nOutBufferSize:DWORD; 
+  function CreateNamedPipeW(lpName:LPCWSTR; dwOpenMode:DWORD; dwPipeMode:DWORD; nMaxInstances:DWORD; nOutBufferSize:DWORD;
              nInBufferSize:DWORD; nDefaultTimeOut:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE;
 
-  function GetNamedPipeHandleStateW(hNamedPipe:HANDLE; lpState:LPDWORD; lpCurInstances:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD; 
+  function GetNamedPipeHandleStateW(hNamedPipe:HANDLE; lpState:LPDWORD; lpCurInstances:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD;
              lpUserName:LPWSTR; nMaxUserNameSize:DWORD):WINBOOL;
 
-  function CallNamedPipeW(lpNamedPipeName:LPCWSTR; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
+  function CallNamedPipeW(lpNamedPipeName:LPCWSTR; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD;
              lpBytesRead:LPDWORD; nTimeOut:DWORD):WINBOOL;
 
   function WaitNamedPipeW(lpNamedPipeName:LPCWSTR; nTimeOut:DWORD):WINBOOL;
 
   function SetVolumeLabelW(lpRootPathName:LPCWSTR; lpVolumeName:LPCWSTR):WINBOOL;
 
-  function GetVolumeInformationW(lpRootPathName:LPCWSTR; lpVolumeNameBuffer:LPWSTR; nVolumeNameSize:DWORD; lpVolumeSerialNumber:LPDWORD; lpMaximumComponentLength:LPDWORD; 
+  function GetVolumeInformationW(lpRootPathName:LPCWSTR; lpVolumeNameBuffer:LPWSTR; nVolumeNameSize:DWORD; lpVolumeSerialNumber:LPDWORD; lpMaximumComponentLength:LPDWORD;
              lpFileSystemFlags:LPDWORD; lpFileSystemNameBuffer:LPWSTR; nFileSystemNameSize:DWORD):WINBOOL;
 
   function ClearEventLogW(hEventLog:HANDLE; lpBackupFileName:LPCWSTR):WINBOOL;
@@ -266,21 +266,21 @@ unit unifun;
 
   function OpenBackupEventLogW(lpUNCServerName:LPCWSTR; lpFileName:LPCWSTR):HANDLE;
 
-  function ReadEventLogW(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; 
+  function ReadEventLogW(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD;
              var pnBytesRead:DWORD; var pnMinNumberOfBytesNeeded:DWORD):WINBOOL;
 
-  function ReportEventW(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID; 
+  function ReportEventW(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID;
              wNumStrings:WORD; dwDataSize:DWORD; var lpStrings:LPCWSTR; lpRawData:LPVOID):WINBOOL;
 
-  function AccessCheckAndAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
+  function AccessCheckAndAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR;
+             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL;
              pfGenerateOnClose:LPBOOL):WINBOOL;
 
-  function ObjectOpenAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD; Privileges:PPRIVILEGE_SET; ObjectCreation:WINBOOL; 
+  function ObjectOpenAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR;
+             ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD; Privileges:PPRIVILEGE_SET; ObjectCreation:WINBOOL;
              AccessGranted:WINBOOL; GenerateOnClose:LPBOOL):WINBOOL;
 
-  function ObjectPrivilegeAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ClientToken:HANDLE; DesiredAccess:DWORD; Privileges:PPRIVILEGE_SET; 
+  function ObjectPrivilegeAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ClientToken:HANDLE; DesiredAccess:DWORD; Privileges:PPRIVILEGE_SET;
              AccessGranted:WINBOOL):WINBOOL;
 
   function ObjectCloseAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; GenerateOnClose:WINBOOL):WINBOOL;
@@ -295,10 +295,10 @@ unit unifun;
 
   function IsBadStringPtrW(lpsz:LPCWSTR; ucchMax:UINT):WINBOOL;
 
-  function LookupAccountSidW(lpSystemName:LPCWSTR; Sid:PSID; Name:LPWSTR; cbName:LPDWORD; ReferencedDomainName:LPWSTR; 
+  function LookupAccountSidW(lpSystemName:LPCWSTR; Sid:PSID; Name:LPWSTR; cbName:LPDWORD; ReferencedDomainName:LPWSTR;
              cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL;
 
-  function LookupAccountNameW(lpSystemName:LPCWSTR; lpAccountName:LPCWSTR; Sid:PSID; cbSid:LPDWORD; ReferencedDomainName:LPWSTR; 
+  function LookupAccountNameW(lpSystemName:LPCWSTR; lpAccountName:LPCWSTR; Sid:PSID; cbSid:LPDWORD; ReferencedDomainName:LPWSTR;
              cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL;
 
   function LookupPrivilegeValueW(lpSystemName:LPCWSTR; lpName:LPCWSTR; lpLuid:PLUID):WINBOOL;
@@ -332,7 +332,7 @@ unit unifun;
 
   function GetKeyboardLayoutNameW(pwszKLID:LPWSTR):WINBOOL;
 
-  function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD; 
+  function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD;
              lpsa:LPSECURITY_ATTRIBUTES):HDESK;
 
   function OpenDesktopW(lpszDesktop:LPWSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK;
@@ -360,12 +360,12 @@ unit unifun;
 
   function SendMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 
-  function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT; 
+  function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;
              uTimeout:UINT; lpdwResult:LPDWORD):LRESULT;
 
   function SendNotifyMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL;
 
-  function SendMessageCallbackW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC; 
+  function SendMessageCallbackW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;
              dwData:DWORD):WINBOOL;
 
   function PostMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL;
@@ -379,26 +379,26 @@ unit unifun;
 (* Const before type ignored *)
   function RegisterClassW(var lpWndClass:WNDCLASS):ATOM;
 
-  function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINSTANCE):WINBOOL;
+  function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL;
 
-  function GetClassInfoW(hInstance:HINSTANCE; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL;
+  function GetClassInfoW(hInstance:HINST; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL;
 
 (* Const before type ignored *)
   function RegisterClassExW(var _para1:WNDCLASSEX):ATOM;
 
-  function GetClassInfoExW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL;
+  function GetClassInfoExW(_para1:HINST; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL;
 
-  function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint; 
-             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU; 
-             hInstance:HINSTANCE; lpParam:LPVOID):HWND;
+  function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
+             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
+             hInstance:HINST; lpParam:LPVOID):HWND;
 
-  function CreateDialogParamW(hInstance:HINSTANCE; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
+  function CreateDialogParamW(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
 
-  function CreateDialogIndirectParamW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
+  function CreateDialogIndirectParamW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
 
-  function DialogBoxParamW(hInstance:HINSTANCE; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
+  function DialogBoxParamW(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
 
-  function DialogBoxIndirectParamW(hInstance:HINSTANCE; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
+  function DialogBoxIndirectParamW(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
 
   function SetDlgItemTextW(hDlg:HWND; nIDDlgItem:longint; lpString:LPCWSTR):WINBOOL;
 
@@ -452,7 +452,7 @@ unit unifun;
 
   function MapVirtualKeyExW(uCode:UINT; uMapType:UINT; dwhkl:HKL):UINT;
 
-  function LoadAcceleratorsW(hInstance:HINSTANCE; lpTableName:LPCWSTR):HACCEL;
+  function LoadAcceleratorsW(hInstance:HINST; lpTableName:LPCWSTR):HACCEL;
 
   function CreateAcceleratorTableW(_para1:LPACCEL; _para2:longint):HACCEL;
 
@@ -460,7 +460,7 @@ unit unifun;
 
   function TranslateAcceleratorW(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint;
 
-  function LoadMenuW(hInstance:HINSTANCE; lpMenuName:LPCWSTR):HMENU;
+  function LoadMenuW(hInstance:HINST; lpMenuName:LPCWSTR):HMENU;
 
 (* Const before type ignored *)
   function LoadMenuIndirectW(var lpMenuTemplate:MENUTEMPLATE):HMENU;
@@ -483,16 +483,16 @@ unit unifun;
 
   function DrawTextW(hDC:HDC; lpString:LPCWSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint;
 
-  function DrawTextExW(_para1:HDC; _para2:LPWSTR; _para3:longint; _para4:LPRECT; _para5:UINT; 
+  function DrawTextExW(_para1:HDC; _para2:LPWSTR; _para3:longint; _para4:LPRECT; _para5:UINT;
              _para6:LPDRAWTEXTPARAMS):longint;
 
-  function GrayStringW(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint; 
+  function GrayStringW(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint;
              X:longint; Y:longint; nWidth:longint; nHeight:longint):WINBOOL;
 
-  function DrawStateW(_para1:HDC; _para2:HBRUSH; _para3:DRAWSTATEPROC; _para4:LPARAM; _para5:WPARAM; 
+  function DrawStateW(_para1:HDC; _para2:HBRUSH; _para3:DRAWSTATEPROC; _para4:LPARAM; _para5:WPARAM;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:UINT):WINBOOL;
 
-  function TabbedTextOutW(hDC:HDC; X:longint; Y:longint; lpString:LPCWSTR; nCount:longint; 
+  function TabbedTextOutW(hDC:HDC; X:longint; Y:longint; lpString:LPCWSTR; nCount:longint;
              nTabPositions:longint; lpnTabStopPositions:LPINT; nTabOrigin:longint):LONG;
 
   function GetTabbedTextExtentW(hDC:HDC; lpString:LPCWSTR; nCount:longint; nTabPositions:longint; lpnTabStopPositions:LPINT):DWORD;
@@ -533,20 +533,20 @@ unit unifun;
 
   function GetClassNameW(hWnd:HWND; lpClassName:LPWSTR; nMaxCount:longint):longint;
 
-  function SetWindowsHookExW(idHook:longint; lpfn:HOOKPROC; hmod:HINSTANCE; dwThreadId:DWORD):HHOOK;
+  function SetWindowsHookExW(idHook:longint; lpfn:HOOKPROC; hmod:HINST; dwThreadId:DWORD):HHOOK;
 
-  function LoadBitmapW(hInstance:HINSTANCE; lpBitmapName:LPCWSTR):HBITMAP;
+  function LoadBitmapW(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP;
 
-  function LoadCursorW(hInstance:HINSTANCE; lpCursorName:LPCWSTR):HCURSOR;
+  function LoadCursorW(hInstance:HINST; lpCursorName:LPCWSTR):HCURSOR;
 
   function LoadCursorFromFileW(lpFileName:LPCWSTR):HCURSOR;
 
-  function LoadIconW(hInstance:HINSTANCE; lpIconName:LPCWSTR):HICON;
+  function LoadIconW(hInstance:HINST; lpIconName:LPCWSTR):HICON;
 
-  function LoadImageW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint; 
+  function LoadImageW(_para1:HINST; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint;
              _para6:UINT):HANDLE;
 
-  function LoadStringW(hInstance:HINSTANCE; uID:UINT; lpBuffer:LPWSTR; nBufferMax:longint):longint;
+  function LoadStringW(hInstance:HINST; uID:UINT; lpBuffer:LPWSTR; nBufferMax:longint):longint;
 
   function IsDialogMessageW(hDlg:HWND; lpMsg:LPMSG):WINBOOL;
 
@@ -562,8 +562,8 @@ unit unifun;
 
   function DefMDIChildProcW(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 
-  function CreateMDIWindowW(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint; 
-             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINSTANCE; lParam:LPARAM):HWND;
+  function CreateMDIWindowW(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint;
+             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINST; lParam:LPARAM):HWND;
 
   function WinHelpW(hWndMain:HWND; lpszHelp:LPCWSTR; uCommand:UINT; dwData:DWORD):WINBOOL;
 
@@ -580,8 +580,8 @@ unit unifun;
 (* Const before type ignored *)
   function CreateFontIndirectW(var _para1:LOGFONT):HFONT;
 
-  function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD; 
+  function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
              _para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
 
 (* Const before type ignored *)
@@ -611,7 +611,7 @@ unit unifun;
   function GetCharABCWidthsFloatW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL;
 
 (* Const before type ignored *)
-  function GetGlyphOutlineW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD; 
+  function GetGlyphOutlineW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD;
              _para6:LPVOID; var _para7:MAT2):DWORD;
 
   function GetMetaFileW(_para1:LPCWSTR):HMETAFILE;
@@ -622,10 +622,10 @@ unit unifun;
 
   function GetTextExtentPoint32W(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 
-  function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT; 
+  function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT;
              _para6:LPINT; _para7:LPSIZE):WINBOOL;
 
-  function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS; 
+  function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS;
              _para6:DWORD):DWORD;
 
 (* Const before type ignored *)
@@ -653,7 +653,7 @@ unit unifun;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ExtTextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT; 
+  function ExtTextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT;
              _para6:LPCWSTR; _para7:UINT; var _para8:INT):WINBOOL;
 
 (* Const before type ignored *)
@@ -679,7 +679,7 @@ unit unifun;
 
   function PropertySheetW(lppsph:LPCPROPSHEETHEADER):longint;
 
-  function ImageList_LoadImageW(hi:HINSTANCE; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF; 
+  function ImageList_LoadImageW(hi:HINST; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF;
              uType:UINT; uFlags:UINT):HIMAGELIST;
 
   function CreateStatusWindowW(style:LONG; lpszText:LPCWSTR; hwndParent:HWND; wID:UINT):HWND;
@@ -704,7 +704,7 @@ unit unifun;
 
   function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL;
 
-  function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL; 
+  function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;
              dwCreationFlags:DWORD; lpEnvironment:LPVOID; lpCurrentDirectory:LPCWSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL;
 
   procedure GetStartupInfoW(lpStartupInfo:LPSTARTUPINFO);
@@ -717,29 +717,29 @@ unit unifun;
 
   { was #define dname(params) def_expr }
   function CreateWindowW(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
-             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU; 
-             hInstance:HINSTANCE; lpParam:LPVOID):HWND;
+             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
+             hInstance:HINST; lpParam:LPVOID):HWND;
 
   { was #define dname(params) def_expr }
-  function CreateDialogW(hInstance:HINSTANCE; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+  function CreateDialogW(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 
   { was #define dname(params) def_expr }
-  function CreateDialogIndirectW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+  function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 
   { was #define dname(params) def_expr }
-  function DialogBoxW(hInstance:HINSTANCE; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
+  function DialogBoxW(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
   { was #define dname(params) def_expr }
-  function DialogBoxIndirectW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
+  function DialogBoxIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
 
 (* Const before type ignored *)
   function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC;
 
-  function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD; 
+  function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
              _para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT;
 
-  function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR; 
+  function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR;
              szCurDir:LPWSTR; szTmpFile:LPWSTR; lpuTmpFileLen:PUINT):DWORD;
 
   function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD;
@@ -751,11 +751,11 @@ unit unifun;
 (* Const before type ignored *)
   function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL;
 
-  function VerFindFileW(uFlags:DWORD; szFileName:LPWSTR; szWinDir:LPWSTR; szAppDir:LPWSTR; szCurDir:LPWSTR; 
+  function VerFindFileW(uFlags:DWORD; szFileName:LPWSTR; szWinDir:LPWSTR; szAppDir:LPWSTR; szCurDir:LPWSTR;
              lpuCurDirLen:PUINT; szDestDir:LPWSTR; lpuDestDirLen:PUINT):DWORD;
 
 (* Const before type ignored *)
-  function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE; 
+  function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE;
              cbData:DWORD):LONG;
 
   function RegUnLoadKeyW(hKey:HKEY; lpSubKey:LPCWSTR):LONG;
@@ -774,7 +774,7 @@ unit unifun;
 
   function RegQueryMultipleValuesW(hKey:HKEY; val_list:PVALENT; num_vals:DWORD; lpValueBuf:LPWSTR; ldwTotsize:LPDWORD):LONG;
 
-  function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE; 
+  function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE;
              lpcbData:LPDWORD):LONG;
 
   function RegReplaceKeyW(hKey:HKEY; lpSubKey:LPCWSTR; lpNewFile:LPCWSTR; lpOldFile:LPCWSTR):LONG;
@@ -783,7 +783,7 @@ unit unifun;
 
   function RegCreateKeyW(hKey:HKEY; lpSubKey:LPCWSTR; phkResult:PHKEY):LONG;
 
-  function RegCreateKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD; 
+  function RegCreateKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD;
              samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG;
 
   function RegDeleteKeyW(hKey:HKEY; lpSubKey:LPCWSTR):LONG;
@@ -792,10 +792,10 @@ unit unifun;
 
   function RegEnumKeyW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; cbName:DWORD):LONG;
 
-  function RegEnumKeyExW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD; 
+  function RegEnumKeyExW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD;
              lpClass:LPWSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG;
 
-  function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD; 
+  function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;
              lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG;
 
   function RegLoadKeyW(hKey:HKEY; lpSubKey:LPCWSTR; lpFile:LPCWSTR):LONG;
@@ -804,14 +804,14 @@ unit unifun;
 
   function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG;
 
-  function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD; 
-             lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD; 
+  function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
+             lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
              lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG;
 
-  function CompareStringW(Locale:LCID; dwCmpFlags:DWORD; lpString1:LPCWSTR; cchCount1:longint; lpString2:LPCWSTR; 
+  function CompareStringW(Locale:LCID; dwCmpFlags:DWORD; lpString1:LPCWSTR; cchCount1:longint; lpString2:LPCWSTR;
              cchCount2:longint):longint;
 
-  function LCMapStringW(Locale:LCID; dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestStr:LPWSTR; 
+  function LCMapStringW(Locale:LCID; dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestStr:LPWSTR;
              cchDest:longint):longint;
 
   function GetLocaleInfoW(Locale:LCID; LCType:LCTYPE; lpLCData:LPWSTR; cchData:longint):longint;
@@ -819,19 +819,19 @@ unit unifun;
   function SetLocaleInfoW(Locale:LCID; LCType:LCTYPE; lpLCData:LPCWSTR):WINBOOL;
 
 (* Const before type ignored *)
-  function GetTimeFormatW(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR; 
+  function GetTimeFormatW(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR;
              cchTime:longint):longint;
 
 (* Const before type ignored *)
-  function GetDateFormatW(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCWSTR; lpDateStr:LPWSTR; 
+  function GetDateFormatW(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCWSTR; lpDateStr:LPWSTR;
              cchDate:longint):longint;
 
 (* Const before type ignored *)
-  function GetNumberFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPWSTR; 
+  function GetNumberFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPWSTR;
              cchNumber:longint):longint;
 
 (* Const before type ignored *)
-  function GetCurrencyFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPWSTR; 
+  function GetCurrencyFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPWSTR;
              cchCurrency:longint):longint;
 
   function EnumCalendarInfoW(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL;
@@ -894,7 +894,7 @@ unit unifun;
 
   function WNetGetConnectionW(lpLocalName:LPCWSTR; lpRemoteName:LPWSTR; lpnLength:LPDWORD):DWORD;
 
-  function WNetUseConnectionW(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpUserID:LPCWSTR; lpPassword:LPCWSTR; dwFlags:DWORD; 
+  function WNetUseConnectionW(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpUserID:LPCWSTR; lpPassword:LPCWSTR; dwFlags:DWORD;
              lpAccessName:LPWSTR; lpBufferSize:LPDWORD; lpResult:LPDWORD):DWORD;
 
   function WNetSetConnectionW(lpName:LPCWSTR; dwProperties:DWORD; pvValues:LPVOID):DWORD;
@@ -919,18 +919,18 @@ unit unifun;
 
   function MultinetGetConnectionPerformanceW(lpNetResource:LPNETRESOURCE; lpNetConnectInfoStruct:LPNETCONNECTINFOSTRUCT):DWORD;
 
-  function ChangeServiceConfigW(hService:SC_HANDLE; dwServiceType:DWORD; dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; 
-             lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR; 
+  function ChangeServiceConfigW(hService:SC_HANDLE; dwServiceType:DWORD; dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR;
+             lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR;
              lpDisplayName:LPCWSTR):WINBOOL;
 
-  function CreateServiceW(hSCManager:SC_HANDLE; lpServiceName:LPCWSTR; lpDisplayName:LPCWSTR; dwDesiredAccess:DWORD; dwServiceType:DWORD; 
-             dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; 
+  function CreateServiceW(hSCManager:SC_HANDLE; lpServiceName:LPCWSTR; lpDisplayName:LPCWSTR; dwDesiredAccess:DWORD; dwServiceType:DWORD;
+             dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD;
              lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR):SC_HANDLE;
 
-  function EnumDependentServicesW(hService:SC_HANDLE; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD; 
+  function EnumDependentServicesW(hService:SC_HANDLE; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD;
              lpServicesReturned:LPDWORD):WINBOOL;
 
-  function EnumServicesStatusW(hSCManager:SC_HANDLE; dwServiceType:DWORD; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; 
+  function EnumServicesStatusW(hSCManager:SC_HANDLE; dwServiceType:DWORD; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD;
              pcbBytesNeeded:LPDWORD; lpServicesReturned:LPDWORD; lpResumeHandle:LPDWORD):WINBOOL;
 
   function GetServiceKeyNameW(hSCManager:SC_HANDLE; lpDisplayName:LPCWSTR; lpServiceName:LPWSTR; lpcchBuffer:LPDWORD):WINBOOL;
@@ -954,21 +954,21 @@ unit unifun;
   { Extensions to OpenGL  }
   function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL;
 
-  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT; 
+  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
              _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL;
 
   { -------------------------------------  }
   { From shellapi.h in old Cygnus headers  }
   function DragQueryFileW(_para1:HDROP; _para2:cardinal; _para3:LPCWSTR; _para4:cardinal):cardinal;
 
-  function ExtractAssociatedIconW(_para1:HINSTANCE; _para2:LPCWSTR; var _para3:WORD):HICON;
+  function ExtractAssociatedIconW(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON;
 
 (* Const before type ignored *)
-  function ExtractIconW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:cardinal):HICON;
+  function ExtractIconW(_para1:HINST; _para2:LPCWSTR; _para3:cardinal):HICON;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINSTANCE;
+  function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINST;
 
 (* Const before type ignored *)
 (* Const before type ignored *)
@@ -977,8 +977,8 @@ unit unifun;
 (* Const before type ignored *)
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR; 
-             _para6:longint):HINSTANCE;
+  function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR;
+             _para6:longint):HINST;
 
   { end of stuff from shellapi.h in old Cygnus headers  }
   { --------------------------------------------------  }
@@ -991,11 +991,11 @@ unit unifun;
 
   { end of stuff from ddeml.h in old Cygnus headers  }
   { -----------------------------------------------  }
-  function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD; 
+  function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL;
 
-  function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES; 
-             _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR; var _para10:STARTUPINFO; 
+  function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES;
+             _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR; var _para10:STARTUPINFO;
              var _para11:PROCESS_INFORMATION):WINBOOL;
 
 { C++ end of extern C conditionnal removed }
@@ -1022,7 +1022,7 @@ unit unifun;
 
   function FreeEnvironmentStringsW(_para1:LPWSTR):WINBOOL; external 'kernel32' name 'FreeEnvironmentStringsW';
 
-  function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR; 
+  function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;
              nSize:DWORD; var Arguments:va_list):DWORD; external 'kernel32' name 'FormatMessageW';
 
   function CreateMailslotW(lpName:LPCWSTR; nMaxMessageSize:DWORD; lReadTimeout:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32' name 'CreateMailslotW';
@@ -1051,18 +1051,18 @@ unit unifun;
 
   function OpenSemaphoreW(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCWSTR):HANDLE; external 'kernel32' name 'OpenSemaphoreW';
 
-  function CreateFileMappingW(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD; 
+  function CreateFileMappingW(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD;
              lpName:LPCWSTR):HANDLE; external 'kernel32' name 'CreateFileMappingW';
 
   function OpenFileMappingW(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; lpName:LPCWSTR):HANDLE; external 'kernel32' name 'OpenFileMappingW';
 
   function GetLogicalDriveStringsW(nBufferLength:DWORD; lpBuffer:LPWSTR):DWORD; external 'kernel32' name 'GetLogicalDriveStringsW';
 
-  function LoadLibraryW(lpLibFileName:LPCWSTR):HINSTANCE; external 'kernel32' name 'LoadLibraryW';
+  function LoadLibraryW(lpLibFileName:LPCWSTR):HINST; external 'kernel32' name 'LoadLibraryW';
 
-  function LoadLibraryExW(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINSTANCE; external 'kernel32' name 'LoadLibraryExW';
+  function LoadLibraryExW(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINST; external 'kernel32' name 'LoadLibraryExW';
 
-  function GetModuleFileNameW(hModule:HINSTANCE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetModuleFileNameW';
+  function GetModuleFileNameW(hModule:HINST; lpFilename:LPWSTR; nSize:DWORD):DWORD; external 'kernel32' name 'GetModuleFileNameW';
 
   function GetModuleHandleW(lpModuleName:LPCWSTR):HMODULE; external 'kernel32' name 'GetModuleHandleW';
 
@@ -1078,19 +1078,19 @@ unit unifun;
 
   procedure OutputDebugStringW(lpOutputString:LPCWSTR); external 'kernel32' name 'OutputDebugStringW';
 
-  function FindResourceW(hModule:HINSTANCE; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC; external 'kernel32' name 'FindResourceW';
+  function FindResourceW(hModule:HINST; lpName:LPCWSTR; lpType:LPCWSTR):HRSRC; external 'kernel32' name 'FindResourceW';
 
-  function FindResourceExW(hModule:HINSTANCE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExW';
+  function FindResourceExW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD):HRSRC; external 'kernel32' name 'FindResourceExW';
 
-  function EnumResourceTypesW(hModule:HINSTANCE; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceTypesW';
+  function EnumResourceTypesW(hModule:HINST; lpEnumFunc:ENUMRESTYPEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceTypesW';
 
-  function EnumResourceNamesW(hModule:HINSTANCE; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceNamesW';
+  function EnumResourceNamesW(hModule:HINST; lpType:LPCWSTR; lpEnumFunc:ENUMRESNAMEPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceNamesW';
 
-  function EnumResourceLanguagesW(hModule:HINSTANCE; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesW';
+  function EnumResourceLanguagesW(hModule:HINST; lpType:LPCWSTR; lpName:LPCWSTR; lpEnumFunc:ENUMRESLANGPROC; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceLanguagesW';
 
   function BeginUpdateResourceW(pFileName:LPCWSTR; bDeleteExistingResources:WINBOOL):HANDLE; external 'kernel32' name 'BeginUpdateResourceW';
 
-  function UpdateResourceW(hUpdate:HANDLE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD; lpData:LPVOID; 
+  function UpdateResourceW(hUpdate:HANDLE; lpType:LPCWSTR; lpName:LPCWSTR; wLanguage:WORD; lpData:LPVOID;
              cbData:DWORD):WINBOOL; external 'kernel32' name 'UpdateResourceW';
 
   function EndUpdateResourceW(hUpdate:HANDLE; fDiscard:WINBOOL):WINBOOL; external 'kernel32' name 'EndUpdateResourceW';
@@ -1119,7 +1119,7 @@ unit unifun;
 
   function GetPrivateProfileIntW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; nDefault:INT; lpFileName:LPCWSTR):UINT; external 'kernel32' name 'GetPrivateProfileIntW';
 
-  function GetPrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD; 
+  function GetPrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpDefault:LPCWSTR; lpReturnedString:LPWSTR; nSize:DWORD;
              lpFileName:LPCWSTR):DWORD; external 'kernel32' name 'GetPrivateProfileStringW';
 
   function WritePrivateProfileStringW(lpAppName:LPCWSTR; lpKeyName:LPCWSTR; lpString:LPCWSTR; lpFileName:LPCWSTR):WINBOOL; external 'kernel32' name 'WritePrivateProfileStringW';
@@ -1156,7 +1156,7 @@ unit unifun;
 
   function QueryDosDeviceW(lpDeviceName:LPCWSTR; lpTargetPath:LPWSTR; ucchMax:DWORD):DWORD; external 'kernel32' name 'QueryDosDeviceW';
 
-  function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD; 
+  function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;
              dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external 'kernel32' name 'CreateFileW';
 
   function SetFileAttributesW(lpFileName:LPCWSTR; dwFileAttributes:DWORD):WINBOOL; external 'kernel32' name 'SetFileAttributesW';
@@ -1167,7 +1167,7 @@ unit unifun;
 
   function DeleteFileW(lpFileName:LPCWSTR):WINBOOL; external 'kernel32' name 'DeleteFileW';
 
-  function SearchPathW(lpPath:LPCWSTR; lpFileName:LPCWSTR; lpExtension:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR; 
+  function SearchPathW(lpPath:LPCWSTR; lpFileName:LPCWSTR; lpExtension:LPCWSTR; nBufferLength:DWORD; lpBuffer:LPWSTR;
              var lpFilePart:LPWSTR):DWORD; external 'kernel32' name 'SearchPathW';
 
   function CopyFileW(lpExistingFileName:LPCWSTR; lpNewFileName:LPCWSTR; bFailIfExists:WINBOOL):WINBOOL; external 'kernel32' name 'CopyFileW';
@@ -1176,20 +1176,20 @@ unit unifun;
 
   function MoveFileExW(lpExistingFileName:LPCWSTR; lpNewFileName:LPCWSTR; dwFlags:DWORD):WINBOOL; external 'kernel32' name 'MoveFileExW';
 
-  function CreateNamedPipeW(lpName:LPCWSTR; dwOpenMode:DWORD; dwPipeMode:DWORD; nMaxInstances:DWORD; nOutBufferSize:DWORD; 
+  function CreateNamedPipeW(lpName:LPCWSTR; dwOpenMode:DWORD; dwPipeMode:DWORD; nMaxInstances:DWORD; nOutBufferSize:DWORD;
              nInBufferSize:DWORD; nDefaultTimeOut:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):HANDLE; external 'kernel32' name 'CreateNamedPipeW';
 
-  function GetNamedPipeHandleStateW(hNamedPipe:HANDLE; lpState:LPDWORD; lpCurInstances:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD; 
+  function GetNamedPipeHandleStateW(hNamedPipe:HANDLE; lpState:LPDWORD; lpCurInstances:LPDWORD; lpMaxCollectionCount:LPDWORD; lpCollectDataTimeout:LPDWORD;
              lpUserName:LPWSTR; nMaxUserNameSize:DWORD):WINBOOL; external 'kernel32' name 'GetNamedPipeHandleStateW';
 
-  function CallNamedPipeW(lpNamedPipeName:LPCWSTR; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD; 
+  function CallNamedPipeW(lpNamedPipeName:LPCWSTR; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID; nOutBufferSize:DWORD;
              lpBytesRead:LPDWORD; nTimeOut:DWORD):WINBOOL; external 'kernel32' name 'CallNamedPipeW';
 
   function WaitNamedPipeW(lpNamedPipeName:LPCWSTR; nTimeOut:DWORD):WINBOOL; external 'kernel32' name 'WaitNamedPipeW';
 
   function SetVolumeLabelW(lpRootPathName:LPCWSTR; lpVolumeName:LPCWSTR):WINBOOL; external 'kernel32' name 'SetVolumeLabelW';
 
-  function GetVolumeInformationW(lpRootPathName:LPCWSTR; lpVolumeNameBuffer:LPWSTR; nVolumeNameSize:DWORD; lpVolumeSerialNumber:LPDWORD; lpMaximumComponentLength:LPDWORD; 
+  function GetVolumeInformationW(lpRootPathName:LPCWSTR; lpVolumeNameBuffer:LPWSTR; nVolumeNameSize:DWORD; lpVolumeSerialNumber:LPDWORD; lpMaximumComponentLength:LPDWORD;
              lpFileSystemFlags:LPDWORD; lpFileSystemNameBuffer:LPWSTR; nFileSystemNameSize:DWORD):WINBOOL; external 'kernel32' name 'GetVolumeInformationW';
 
   function ClearEventLogW(hEventLog:HANDLE; lpBackupFileName:LPCWSTR):WINBOOL; external 'advapi32' name 'ClearEventLogW';
@@ -1202,21 +1202,21 @@ unit unifun;
 
   function OpenBackupEventLogW(lpUNCServerName:LPCWSTR; lpFileName:LPCWSTR):HANDLE; external 'advapi32' name 'OpenBackupEventLogW';
 
-  function ReadEventLogW(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; 
+  function ReadEventLogW(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD;
              var pnBytesRead:DWORD; var pnMinNumberOfBytesNeeded:DWORD):WINBOOL; external 'advapi32' name 'ReadEventLogW';
 
-  function ReportEventW(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID; 
+  function ReportEventW(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID;
              wNumStrings:WORD; dwDataSize:DWORD; var lpStrings:LPCWSTR; lpRawData:LPVOID):WINBOOL; external 'advapi32' name 'ReportEventW';
 
-  function AccessCheckAndAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
+  function AccessCheckAndAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR;
+             DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL;
              pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmW';
 
-  function ObjectOpenAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR; 
-             ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD; Privileges:PPRIVILEGE_SET; ObjectCreation:WINBOOL; 
+  function ObjectOpenAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ObjectTypeName:LPWSTR; ObjectName:LPWSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR;
+             ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD; Privileges:PPRIVILEGE_SET; ObjectCreation:WINBOOL;
              AccessGranted:WINBOOL; GenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'ObjectOpenAuditAlarmW';
 
-  function ObjectPrivilegeAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ClientToken:HANDLE; DesiredAccess:DWORD; Privileges:PPRIVILEGE_SET; 
+  function ObjectPrivilegeAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; ClientToken:HANDLE; DesiredAccess:DWORD; Privileges:PPRIVILEGE_SET;
              AccessGranted:WINBOOL):WINBOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmW';
 
   function ObjectCloseAuditAlarmW(SubsystemName:LPCWSTR; HandleId:LPVOID; GenerateOnClose:WINBOOL):WINBOOL; external 'advapi32' name 'ObjectCloseAuditAlarmW';
@@ -1231,10 +1231,10 @@ unit unifun;
 
   function IsBadStringPtrW(lpsz:LPCWSTR; ucchMax:UINT):WINBOOL; external 'kernel32' name 'IsBadStringPtrW';
 
-  function LookupAccountSidW(lpSystemName:LPCWSTR; Sid:PSID; Name:LPWSTR; cbName:LPDWORD; ReferencedDomainName:LPWSTR; 
+  function LookupAccountSidW(lpSystemName:LPCWSTR; Sid:PSID; Name:LPWSTR; cbName:LPDWORD; ReferencedDomainName:LPWSTR;
              cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32' name 'LookupAccountSidW';
 
-  function LookupAccountNameW(lpSystemName:LPCWSTR; lpAccountName:LPCWSTR; Sid:PSID; cbSid:LPDWORD; ReferencedDomainName:LPWSTR; 
+  function LookupAccountNameW(lpSystemName:LPCWSTR; lpAccountName:LPCWSTR; Sid:PSID; cbSid:LPDWORD; ReferencedDomainName:LPWSTR;
              cbReferencedDomainName:LPDWORD; peUse:PSID_NAME_USE):WINBOOL; external 'advapi32' name 'LookupAccountNameW';
 
   function LookupPrivilegeValueW(lpSystemName:LPCWSTR; lpName:LPCWSTR; lpLuid:PLUID):WINBOOL; external 'advapi32' name 'LookupPrivilegeValueW';
@@ -1267,7 +1267,7 @@ unit unifun;
 
   function GetKeyboardLayoutNameW(pwszKLID:LPWSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameW';
 
-  function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD; 
+  function CreateDesktopW(lpszDesktop:LPWSTR; lpszDevice:LPWSTR; pDevmode:LPDEVMODE; dwFlags:DWORD; dwDesiredAccess:DWORD;
              lpsa:LPSECURITY_ATTRIBUTES):HDESK; external 'user32' name 'CreateDesktopW';
 
   function OpenDesktopW(lpszDesktop:LPWSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesiredAccess:DWORD):HDESK; external 'user32' name 'OpenDesktopW';
@@ -1294,12 +1294,12 @@ unit unifun;
 
   function SendMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageW';
 
-  function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT; 
+  function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;
              uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external 'user32' name 'SendMessageTimeoutW';
 
   function SendNotifyMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'SendNotifyMessageW';
 
-  function SendMessageCallbackW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC; 
+  function SendMessageCallbackW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;
              dwData:DWORD):WINBOOL; external 'user32' name 'SendMessageCallbackW';
 
   function PostMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostMessageW';
@@ -1312,25 +1312,25 @@ unit unifun;
 
   function RegisterClassW(var lpWndClass:WNDCLASS):ATOM; external 'user32' name 'RegisterClassW';
 
-  function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINSTANCE):WINBOOL; external 'user32' name 'UnregisterClassW';
+  function UnregisterClassW(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL; external 'user32' name 'UnregisterClassW';
 
-  function GetClassInfoW(hInstance:HINSTANCE; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoW';
+  function GetClassInfoW(hInstance:HINST; lpClassName:LPCWSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoW';
 
   function RegisterClassExW(var _para1:WNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExW';
 
-  function GetClassInfoExW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExW';
+  function GetClassInfoExW(_para1:HINST; _para2:LPCWSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExW';
 
-  function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint; 
-             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU; 
-             hInstance:HINSTANCE; lpParam:LPVOID):HWND; external 'user32' name 'CreateWindowExW';
+  function CreateWindowExW(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
+             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
+             hInstance:HINST; lpParam:LPVOID):HWND; external 'user32' name 'CreateWindowExW';
 
-  function CreateDialogParamW(hInstance:HINSTANCE; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogParamW';
+  function CreateDialogParamW(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogParamW';
 
-  function CreateDialogIndirectParamW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogIndirectParamW';
+  function CreateDialogIndirectParamW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogIndirectParamW';
 
-  function DialogBoxParamW(hInstance:HINSTANCE; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxParamW';
+  function DialogBoxParamW(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxParamW';
 
-  function DialogBoxIndirectParamW(hInstance:HINSTANCE; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxIndirectParamW';
+  function DialogBoxIndirectParamW(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external 'user32' name 'DialogBoxIndirectParamW';
 
   function SetDlgItemTextW(hDlg:HWND; nIDDlgItem:longint; lpString:LPCWSTR):WINBOOL; external 'user32' name 'SetDlgItemTextW';
 
@@ -1384,7 +1384,7 @@ unit unifun;
 
   function MapVirtualKeyExW(uCode:UINT; uMapType:UINT; dwhkl:HKL):UINT; external 'user32' name 'MapVirtualKeyExW';
 
-  function LoadAcceleratorsW(hInstance:HINSTANCE; lpTableName:LPCWSTR):HACCEL; external 'user32' name 'LoadAcceleratorsW';
+  function LoadAcceleratorsW(hInstance:HINST; lpTableName:LPCWSTR):HACCEL; external 'user32' name 'LoadAcceleratorsW';
 
   function CreateAcceleratorTableW(_para1:LPACCEL; _para2:longint):HACCEL; external 'user32' name 'CreateAcceleratorTableW';
 
@@ -1392,7 +1392,7 @@ unit unifun;
 
   function TranslateAcceleratorW(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external 'user32' name 'TranslateAcceleratorW';
 
-  function LoadMenuW(hInstance:HINSTANCE; lpMenuName:LPCWSTR):HMENU; external 'user32' name 'LoadMenuW';
+  function LoadMenuW(hInstance:HINST; lpMenuName:LPCWSTR):HMENU; external 'user32' name 'LoadMenuW';
 
   function LoadMenuIndirectW(var lpMenuTemplate:MENUTEMPLATE):HMENU; external 'user32' name 'LoadMenuIndirectW';
 
@@ -1414,16 +1414,16 @@ unit unifun;
 
   function DrawTextW(hDC:HDC; lpString:LPCWSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint; external 'user32' name 'DrawTextW';
 
-  function DrawTextExW(_para1:HDC; _para2:LPWSTR; _para3:longint; _para4:LPRECT; _para5:UINT; 
+  function DrawTextExW(_para1:HDC; _para2:LPWSTR; _para3:longint; _para4:LPRECT; _para5:UINT;
              _para6:LPDRAWTEXTPARAMS):longint; external 'user32' name 'DrawTextExW';
 
-  function GrayStringW(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint; 
+  function GrayStringW(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint;
              X:longint; Y:longint; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'GrayStringW';
 
-  function DrawStateW(_para1:HDC; _para2:HBRUSH; _para3:DRAWSTATEPROC; _para4:LPARAM; _para5:WPARAM; 
+  function DrawStateW(_para1:HDC; _para2:HBRUSH; _para3:DRAWSTATEPROC; _para4:LPARAM; _para5:WPARAM;
              _para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:UINT):WINBOOL; external 'user32' name 'DrawStateW';
 
-  function TabbedTextOutW(hDC:HDC; X:longint; Y:longint; lpString:LPCWSTR; nCount:longint; 
+  function TabbedTextOutW(hDC:HDC; X:longint; Y:longint; lpString:LPCWSTR; nCount:longint;
              nTabPositions:longint; lpnTabStopPositions:LPINT; nTabOrigin:longint):LONG; external 'user32' name 'TabbedTextOutW';
 
   function GetTabbedTextExtentW(hDC:HDC; lpString:LPCWSTR; nCount:longint; nTabPositions:longint; lpnTabStopPositions:LPINT):DWORD; external 'user32' name 'GetTabbedTextExtentW';
@@ -1464,20 +1464,20 @@ unit unifun;
 
   function GetClassNameW(hWnd:HWND; lpClassName:LPWSTR; nMaxCount:longint):longint; external 'user32' name 'GetClassNameW';
 
-  function SetWindowsHookExW(idHook:longint; lpfn:HOOKPROC; hmod:HINSTANCE; dwThreadId:DWORD):HHOOK; external 'user32' name 'SetWindowsHookExW';
+  function SetWindowsHookExW(idHook:longint; lpfn:HOOKPROC; hmod:HINST; dwThreadId:DWORD):HHOOK; external 'user32' name 'SetWindowsHookExW';
 
-  function LoadBitmapW(hInstance:HINSTANCE; lpBitmapName:LPCWSTR):HBITMAP; external 'user32' name 'LoadBitmapW';
+  function LoadBitmapW(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP; external 'user32' name 'LoadBitmapW';
 
-  function LoadCursorW(hInstance:HINSTANCE; lpCursorName:LPCWSTR):HCURSOR; external 'user32' name 'LoadCursorW';
+  function LoadCursorW(hInstance:HINST; lpCursorName:LPCWSTR):HCURSOR; external 'user32' name 'LoadCursorW';
 
   function LoadCursorFromFileW(lpFileName:LPCWSTR):HCURSOR; external 'user32' name 'LoadCursorFromFileW';
 
-  function LoadIconW(hInstance:HINSTANCE; lpIconName:LPCWSTR):HICON; external 'user32' name 'LoadIconW';
+  function LoadIconW(hInstance:HINST; lpIconName:LPCWSTR):HICON; external 'user32' name 'LoadIconW';
 
-  function LoadImageW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint; 
+  function LoadImageW(_para1:HINST; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint;
              _para6:UINT):HANDLE; external 'user32' name 'LoadImageW';
 
-  function LoadStringW(hInstance:HINSTANCE; uID:UINT; lpBuffer:LPWSTR; nBufferMax:longint):longint; external 'user32' name 'LoadStringW';
+  function LoadStringW(hInstance:HINST; uID:UINT; lpBuffer:LPWSTR; nBufferMax:longint):longint; external 'user32' name 'LoadStringW';
 
   function IsDialogMessageW(hDlg:HWND; lpMsg:LPMSG):WINBOOL; external 'user32' name 'IsDialogMessageW';
 
@@ -1493,8 +1493,8 @@ unit unifun;
 
   function DefMDIChildProcW(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefMDIChildProcW';
 
-  function CreateMDIWindowW(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint; 
-             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINSTANCE; lParam:LPARAM):HWND; external 'user32' name 'CreateMDIWindowW';
+  function CreateMDIWindowW(lpClassName:LPWSTR; lpWindowName:LPWSTR; dwStyle:DWORD; X:longint; Y:longint;
+             nWidth:longint; nHeight:longint; hWndParent:HWND; hInstance:HINST; lParam:LPARAM):HWND; external 'user32' name 'CreateMDIWindowW';
 
   function WinHelpW(hWndMain:HWND; lpszHelp:LPCWSTR; uCommand:UINT; dwData:DWORD):WINBOOL; external 'user32' name 'WinHelpW';
 
@@ -1510,8 +1510,8 @@ unit unifun;
 
   function CreateFontIndirectW(var _para1:LOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
 
-  function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD; 
+  function CreateFontW(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
              _para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT; external 'gdi32' name 'CreateFontW';
 
   function CreateICW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateICW';
@@ -1538,7 +1538,7 @@ unit unifun;
 
   function GetCharABCWidthsFloatW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABCFLOAT):WINBOOL; external 'gdi32' name 'GetCharABCWidthsFloatW';
 
-  function GetGlyphOutlineW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD; 
+  function GetGlyphOutlineW(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPGLYPHMETRICS; _para5:DWORD;
              _para6:LPVOID; var _para7:MAT2):DWORD; external 'gdi32' name 'GetGlyphOutlineW';
 
   function GetMetaFileW(_para1:LPCWSTR):HMETAFILE; external 'gdi32' name 'GetMetaFileW';
@@ -1549,10 +1549,10 @@ unit unifun;
 
   function GetTextExtentPoint32W(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentPoint32W';
 
-  function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT; 
+  function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT;
              _para6:LPINT; _para7:LPSIZE):WINBOOL; external 'gdi32' name 'GetTextExtentExPointW';
 
-  function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS; 
+  function GetCharacterPlacementW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPGCP_RESULTS;
              _para6:DWORD):DWORD; external 'gdi32' name 'GetCharacterPlacementW';
 
   function ResetDCW(_para1:HDC; var _para2:DEVMODE):HDC; external 'gdi32' name 'ResetDCW';
@@ -1575,7 +1575,7 @@ unit unifun;
 
   function TextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCWSTR; _para5:longint):WINBOOL; external 'gdi32' name 'TextOutW';
 
-  function ExtTextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT; 
+  function ExtTextOutW(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; var _para5:RECT;
              _para6:LPCWSTR; _para7:UINT; var _para8:INT):WINBOOL; external 'gdi32' name 'ExtTextOutW';
 
   function PolyTextOutW(_para1:HDC; var _para2:POLYTEXT; _para3:longint):WINBOOL; external 'gdi32' name 'PolyTextOutW';
@@ -1600,7 +1600,7 @@ unit unifun;
 
   function PropertySheetW(lppsph:LPCPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetW';
 
-  function ImageList_LoadImageW(hi:HINSTANCE; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF; 
+  function ImageList_LoadImageW(hi:HINST; lpbmp:LPCWSTR; cx:longint; cGrow:longint; crMask:COLORREF;
              uType:UINT; uFlags:UINT):HIMAGELIST; external 'comctl32' name 'ImageList_LoadImageW';
 
   function CreateStatusWindowW(style:LONG; lpszText:LPCWSTR; hwndParent:HWND; wID:UINT):HWND; external 'comctl32' name 'CreateStatusWindowW';
@@ -1625,7 +1625,7 @@ unit unifun;
 
   function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 'PageSetupDlgW';
 
-  function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL; 
+  function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;
              dwCreationFlags:DWORD; lpEnvironment:LPVOID; lpCurrentDirectory:LPCWSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessW';
 
   procedure GetStartupInfoW(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoW';
@@ -1638,43 +1638,43 @@ unit unifun;
 
   { was #define dname(params) def_expr }
   function CreateWindowW(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;
-             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU; 
-             hInstance:HINSTANCE; lpParam:LPVOID):HWND;
+             Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;
+             hInstance:HINST; lpParam:LPVOID):HWND;
     begin
        CreateWindowW:=CreateWindowExW(0,lpClassName,lpWindowName,dwStyle,x,y,nWidth,nHeight,hWndParent,hMenu,hInstance,lpParam);
     end;
 
   { was #define dname(params) def_expr }
-  function CreateDialogW(hInstance:HINSTANCE; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+  function CreateDialogW(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
     begin
        CreateDialogW:=CreateDialogParamW(hInstance,lpName,hWndParent,lpDialogFunc,0);
     end;
 
   { was #define dname(params) def_expr }
-  function CreateDialogIndirectW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+  function CreateDialogIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
     begin
        CreateDialogIndirectW:=CreateDialogIndirectParamW(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
     end;
 
   { was #define dname(params) def_expr }
-  function DialogBoxW(hInstance:HINSTANCE; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
+  function DialogBoxW(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
     begin
        DialogBoxW:=DialogBoxParamW(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
     end;
 
   { was #define dname(params) def_expr }
-  function DialogBoxIndirectW(hInstance:HINSTANCE; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
+  function DialogBoxIndirectW(hInstance:HINST; lpTemplate:LPCDLGTEMPLATE; hWndParent:HWND; lpDialogFunc:DLGPROC):longint;
     begin
        DialogBoxIndirectW:=DialogBoxIndirectParamW(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
     end;
 
   function CreateDCW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; var _para4:DEVMODE):HDC; external 'gdi32' name 'CreateDCW';
 
-  function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint; 
-             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD; 
+  function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;
+             _para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;
              _para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT; external 'gdi32' name 'CreateFontA';
 
-  function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR; 
+  function VerInstallFileW(uFlags:DWORD; szSrcFileName:LPWSTR; szDestFileName:LPWSTR; szSrcDir:LPWSTR; szDestDir:LPWSTR;
              szCurDir:LPWSTR; szTmpFile:LPWSTR; lpuTmpFileLen:PUINT):DWORD; external 'version' name 'VerInstallFileW';
 
   function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external 'version' name 'GetFileVersionInfoSizeW';
@@ -1685,10 +1685,10 @@ unit unifun;
 
   function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; var lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external 'version' name 'VerQueryValueW';
 
-  function VerFindFileW(uFlags:DWORD; szFileName:LPWSTR; szWinDir:LPWSTR; szAppDir:LPWSTR; szCurDir:LPWSTR; 
+  function VerFindFileW(uFlags:DWORD; szFileName:LPWSTR; szWinDir:LPWSTR; szAppDir:LPWSTR; szCurDir:LPWSTR;
              lpuCurDirLen:PUINT; szDestDir:LPWSTR; lpuDestDirLen:PUINT):DWORD; external 'version' name 'VerFindFileW';
 
-  function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE; 
+  function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; var lpData:BYTE;
              cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExW';
 
   function RegUnLoadKeyW(hKey:HKEY; lpSubKey:LPCWSTR):LONG; external 'advapi32' name 'RegUnLoadKeyW';
@@ -1707,7 +1707,7 @@ unit unifun;
 
   function RegQueryMultipleValuesW(hKey:HKEY; val_list:PVALENT; num_vals:DWORD; lpValueBuf:LPWSTR; ldwTotsize:LPDWORD):LONG; external 'advapi32' name 'RegQueryMultipleValuesW';
 
-  function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE; 
+  function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE;
              lpcbData:LPDWORD):LONG; external 'advapi32' name 'RegQueryValueExW';
 
   function RegReplaceKeyW(hKey:HKEY; lpSubKey:LPCWSTR; lpNewFile:LPCWSTR; lpOldFile:LPCWSTR):LONG; external 'advapi32' name 'RegReplaceKeyW';
@@ -1716,7 +1716,7 @@ unit unifun;
 
   function RegCreateKeyW(hKey:HKEY; lpSubKey:LPCWSTR; phkResult:PHKEY):LONG; external 'advapi32' name 'RegCreateKeyW';
 
-  function RegCreateKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD; 
+  function RegCreateKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD;
              samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG; external 'advapi32' name 'RegCreateKeyExW';
 
   function RegDeleteKeyW(hKey:HKEY; lpSubKey:LPCWSTR):LONG; external 'advapi32' name 'RegDeleteKeyW';
@@ -1725,10 +1725,10 @@ unit unifun;
 
   function RegEnumKeyW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; cbName:DWORD):LONG; external 'advapi32' name 'RegEnumKeyW';
 
-  function RegEnumKeyExW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD; 
+  function RegEnumKeyExW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD;
              lpClass:LPWSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32' name 'RegEnumKeyExW';
 
-  function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD; 
+  function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;
              lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG; external 'advapi32' name 'RegEnumValueW';
 
   function RegLoadKeyW(hKey:HKEY; lpSubKey:LPCWSTR; lpFile:LPCWSTR):LONG; external 'advapi32' name 'RegLoadKeyW';
@@ -1737,30 +1737,30 @@ unit unifun;
 
   function RegOpenKeyExW(hKey:HKEY; lpSubKey:LPCWSTR; ulOptions:DWORD; samDesired:REGSAM; phkResult:PHKEY):LONG; external 'advapi32' name 'RegOpenKeyExW';
 
-  function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD; 
-             lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD; 
+  function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;
+             lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD; lpcbMaxValueLen:LPDWORD;
              lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external 'advapi32' name 'RegQueryInfoKeyW';
 
-  function CompareStringW(Locale:LCID; dwCmpFlags:DWORD; lpString1:LPCWSTR; cchCount1:longint; lpString2:LPCWSTR; 
+  function CompareStringW(Locale:LCID; dwCmpFlags:DWORD; lpString1:LPCWSTR; cchCount1:longint; lpString2:LPCWSTR;
              cchCount2:longint):longint; external 'kernel32' name 'CompareStringW';
 
-  function LCMapStringW(Locale:LCID; dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestStr:LPWSTR; 
+  function LCMapStringW(Locale:LCID; dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestStr:LPWSTR;
              cchDest:longint):longint; external 'kernel32' name 'LCMapStringW';
 
   function GetLocaleInfoW(Locale:LCID; LCType:LCTYPE; lpLCData:LPWSTR; cchData:longint):longint; external 'kernel32' name 'GetLocaleInfoW';
 
   function SetLocaleInfoW(Locale:LCID; LCType:LCTYPE; lpLCData:LPCWSTR):WINBOOL; external 'kernel32' name 'SetLocaleInfoW';
 
-  function GetTimeFormatW(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR; 
+  function GetTimeFormatW(Locale:LCID; dwFlags:DWORD; var lpTime:SYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR;
              cchTime:longint):longint; external 'kernel32' name 'GetTimeFormatW';
 
-  function GetDateFormatW(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCWSTR; lpDateStr:LPWSTR; 
+  function GetDateFormatW(Locale:LCID; dwFlags:DWORD; var lpDate:SYSTEMTIME; lpFormat:LPCWSTR; lpDateStr:LPWSTR;
              cchDate:longint):longint; external 'kernel32' name 'GetDateFormatW';
 
-  function GetNumberFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPWSTR; 
+  function GetNumberFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:NUMBERFMT; lpNumberStr:LPWSTR;
              cchNumber:longint):longint; external 'kernel32' name 'GetNumberFormatW';
 
-  function GetCurrencyFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPWSTR; 
+  function GetCurrencyFormatW(Locale:LCID; dwFlags:DWORD; lpValue:LPCWSTR; var lpFormat:CURRENCYFMT; lpCurrencyStr:LPWSTR;
              cchCurrency:longint):longint; external 'kernel32' name 'GetCurrencyFormatW';
 
   function EnumCalendarInfoW(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external 'kernel32' name 'EnumCalendarInfoW';
@@ -1817,7 +1817,7 @@ unit unifun;
 
   function WNetGetConnectionW(lpLocalName:LPCWSTR; lpRemoteName:LPWSTR; lpnLength:LPDWORD):DWORD; external 'mpr' name 'WNetGetConnectionW';
 
-  function WNetUseConnectionW(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpUserID:LPCWSTR; lpPassword:LPCWSTR; dwFlags:DWORD; 
+  function WNetUseConnectionW(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpUserID:LPCWSTR; lpPassword:LPCWSTR; dwFlags:DWORD;
              lpAccessName:LPWSTR; lpBufferSize:LPDWORD; lpResult:LPDWORD):DWORD; external 'mpr' name 'WNetUseConnectionW';
 
   function WNetSetConnectionW(lpName:LPCWSTR; dwProperties:DWORD; pvValues:LPVOID):DWORD; external 'mpr' name 'WNetSetConnectionW';
@@ -1842,18 +1842,18 @@ unit unifun;
 
   function MultinetGetConnectionPerformanceW(lpNetResource:LPNETRESOURCE; lpNetConnectInfoStruct:LPNETCONNECTINFOSTRUCT):DWORD; external 'mpr' name 'MultinetGetConnectionPerformanceW';
 
-  function ChangeServiceConfigW(hService:SC_HANDLE; dwServiceType:DWORD; dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; 
-             lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR; 
+  function ChangeServiceConfigW(hService:SC_HANDLE; dwServiceType:DWORD; dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR;
+             lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR;
              lpDisplayName:LPCWSTR):WINBOOL; external 'advapi32' name 'ChangeServiceConfigW';
 
-  function CreateServiceW(hSCManager:SC_HANDLE; lpServiceName:LPCWSTR; lpDisplayName:LPCWSTR; dwDesiredAccess:DWORD; dwServiceType:DWORD; 
-             dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD; 
+  function CreateServiceW(hSCManager:SC_HANDLE; lpServiceName:LPCWSTR; lpDisplayName:LPCWSTR; dwDesiredAccess:DWORD; dwServiceType:DWORD;
+             dwStartType:DWORD; dwErrorControl:DWORD; lpBinaryPathName:LPCWSTR; lpLoadOrderGroup:LPCWSTR; lpdwTagId:LPDWORD;
              lpDependencies:LPCWSTR; lpServiceStartName:LPCWSTR; lpPassword:LPCWSTR):SC_HANDLE; external 'advapi32' name 'CreateServiceW';
 
-  function EnumDependentServicesW(hService:SC_HANDLE; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD; 
+  function EnumDependentServicesW(hService:SC_HANDLE; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; pcbBytesNeeded:LPDWORD;
              lpServicesReturned:LPDWORD):WINBOOL; external 'advapi32' name 'EnumDependentServicesW';
 
-  function EnumServicesStatusW(hSCManager:SC_HANDLE; dwServiceType:DWORD; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD; 
+  function EnumServicesStatusW(hSCManager:SC_HANDLE; dwServiceType:DWORD; dwServiceState:DWORD; lpServices:LPENUM_SERVICE_STATUS; cbBufSize:DWORD;
              pcbBytesNeeded:LPDWORD; lpServicesReturned:LPDWORD; lpResumeHandle:LPDWORD):WINBOOL; external 'advapi32' name 'EnumServicesStatusW';
 
   function GetServiceKeyNameW(hSCManager:SC_HANDLE; lpDisplayName:LPCWSTR; lpServiceName:LPWSTR; lpcchBuffer:LPDWORD):WINBOOL; external 'advapi32' name 'GetServiceKeyNameW';
@@ -1876,21 +1876,21 @@ unit unifun;
 
   function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsW';
 
-  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT; 
+  function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:FLOAT;
              _para6:FLOAT; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
 
   function DragQueryFileW(_para1:HDROP; _para2:cardinal; _para3:LPCWSTR; _para4:cardinal):cardinal; external 'shell32' name 'DragQueryFileW';
 
-  function ExtractAssociatedIconW(_para1:HINSTANCE; _para2:LPCWSTR; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconW';
+  function ExtractAssociatedIconW(_para1:HINST; _para2:LPCWSTR; var _para3:WORD):HICON; external 'shell32' name 'ExtractAssociatedIconW';
 
-  function ExtractIconW(_para1:HINSTANCE; _para2:LPCWSTR; _para3:cardinal):HICON; external 'shell32' name 'ExtractIconW';
+  function ExtractIconW(_para1:HINST; _para2:LPCWSTR; _para3:cardinal):HICON; external 'shell32' name 'ExtractIconW';
 
-  function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINSTANCE; external 'shell32' name 'FindExecutableW';
+  function FindExecutableW(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR):HINST; external 'shell32' name 'FindExecutableW';
 
   function ShellAboutW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:HICON):longint; external 'shell32' name 'ShellAboutW';
 
-  function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR; 
-             _para6:longint):HINSTANCE; external 'shell32' name 'ShellExecuteW';
+  function ShellExecuteW(_para1:HWND; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR; _para5:LPCWSTR;
+             _para6:longint):HINST; external 'shell32' name 'ShellExecuteW';
 
   function DdeCreateStringHandleW(_para1:DWORD; _para2:LPCWSTR; _para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleW';
 
@@ -1898,11 +1898,11 @@ unit unifun;
 
   function DdeQueryStringW(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringW';
 
-  function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD; 
+  function LogonUserW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:DWORD; _para5:DWORD;
              var _para6:HANDLE):WINBOOL; external 'advapi32' name 'LogonUserW';
 
-  function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES; 
-             _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR; var _para10:STARTUPINFO; 
+  function CreateProcessAsUserW(_para1:HANDLE; _para2:LPCWSTR; _para3:LPWSTR; var _para4:SECURITY_ATTRIBUTES; var _para5:SECURITY_ATTRIBUTES;
+             _para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCWSTR; var _para10:STARTUPINFO;
              var _para11:PROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserW';
 
 
@@ -1913,7 +1913,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.4  1998-09-04 17:17:40  pierre
+  Revision 1.5  1998-10-27 11:17:20  peter
+    * type HINSTANCE -> HINST
+
+  Revision 1.4  1998/09/04 17:17:40  pierre
     + all unknown function ifdef with
       conditionnal unknown_functions
       testwin works now, but windowcreate still fails !!

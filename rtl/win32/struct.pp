@@ -26,8 +26,8 @@ unit struct;
 
 {  Automatically converted by H2PAS.EXE from structures.h
    Utility made by Florian Klaempfl 25th-28th september 96
-   Improvements made by Mark A. Malakanov 22nd-25th may 97 
-   Further improvements by Michael Van Canneyt, April 1998 
+   Improvements made by Mark A. Malakanov 22nd-25th may 97
+   Further improvements by Michael Van Canneyt, April 1998
    define handling and error recovery by Pierre Muller, June 1998 }
 
 
@@ -43,34 +43,34 @@ unit struct;
   { C default packing is dword }
 
 {$PACKRECORDS 4}
-  { 
+  {
      Structures.h
-  
+
      Declarations for all the Windows32 API Structures
-  
+
      Copyright (C) 1996 Free Software Foundation, Inc.
-  
+
      Author:  Scott Christley <scottc@net-community.com>
      Date: 1996
-     
+
      This file is part of the Windows32 API Library.
-  
+
      This library is free software; you can redistribute it and/or
      modify it under the terms of the GNU Library General Public
      License as published by the Free Software Foundation; either
      version 2 of the License, or (at your option) any later version.
-     
+
      This library is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      Library General Public License for more details.
-  
+
      If you are interested in a warranty or support for this source code,
      contact Scott Christley <scottc@net-community.com> for more information.
-     
+
      You should have received a copy of the GNU Library General Public
      License along with this library; see the file COPYING.LIB.
-     If not, write to the Free Software Foundation, 
+     If not, write to the Free Software Foundation,
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 {$ifndef _GNU_H_WINDOWS32_STRUCTURES}
@@ -315,9 +315,9 @@ unit struct;
      LPBITMAPCOREINFO = ^BITMAPCOREINFO;
 
      _BITMAPCOREINFO = BITMAPCOREINFO;
-(* error 
-  WORD    bfReserved1; 
-  WORD    bfReserved2; 
+(* error
+  WORD    bfReserved1;
+  WORD    bfReserved2;
  in declarator_list *)
 
      BITMAPINFOHEADER = record
@@ -550,7 +550,7 @@ unit struct;
 
      CREATESTRUCT = record
           lpCreateParams : LPVOID;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           hMenu : HMENU;
           hwndParent : HWND;
           cy : longint;
@@ -689,7 +689,7 @@ unit struct;
           lCustData : LPARAM;
           lpfnHook : LPCFHOOKPROC;
           lpTemplateName : LPCTSTR;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           lpszStyle : LPTSTR;
           nFontType : WORD;
           ___MISSING_ALIGNMENT__ : WORD;
@@ -1311,12 +1311,12 @@ unit struct;
   } SOCKET_ADDRESS,  PSOCKET_ADDRESS,  LPSOCKET_ADDRESS;
    }
   {
-  typedef struct _CSADDR_INFO { 
-    SOCKET_ADDRESS  LocalAddr; 
-    SOCKET_ADDRESS  RemoteAddr; 
-    INT             iSocketType; 
-    INT             iProtocol; 
-  } CSADDR_INFO; 
+  typedef struct _CSADDR_INFO {
+    SOCKET_ADDRESS  LocalAddr;
+    SOCKET_ADDRESS  RemoteAddr;
+    INT             iSocketType;
+    INT             iProtocol;
+  } CSADDR_INFO;
     *)
 
      CURRENCYFMT = record
@@ -3068,15 +3068,15 @@ unit struct;
 
      tagENUMLOGFONTEX = ENUMLOGFONTEX;
   {
-    Then follow: 
-    
-    TCHAR SourceName[] 
-    TCHAR Computername[] 
-    SID   UserSid 
-    TCHAR Strings[] 
-    BYTE  Data[] 
-    CHAR  Pad[] 
-    DWORD Length; 
+    Then follow:
+
+    TCHAR SourceName[]
+    TCHAR Computername[]
+    SID   UserSid
+    TCHAR Strings[]
+    BYTE  Data[]
+    CHAR  Pad[]
+    DWORD Length;
    }
 
      EVENTLOGRECORD = record
@@ -3164,7 +3164,7 @@ unit struct;
      FINDREPLACE = record
           lStructSize : DWORD;
           hwndOwner : HWND;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           Flags : DWORD;
           lpstrFindWhat : LPTSTR;
           lpstrReplaceWith : LPTSTR;
@@ -4134,7 +4134,7 @@ unit struct;
      MSGBOXPARAMS = record
           cbSize : UINT;
           hwndOwner : HWND;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           lpszText : LPCSTR;
           lpszCaption : LPCSTR;
           dwStyle : DWORD;
@@ -4444,7 +4444,7 @@ unit struct;
      OPENFILENAME = record
           lStructSize : DWORD;
           hwndOwner : HWND;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           lpstrFilter : LPCTSTR;
           lpstrCustomFilter : LPTSTR;
           nMaxCustFilter : DWORD;
@@ -4581,7 +4581,7 @@ unit struct;
           ptPaperSize : POINT;
           rtMinMargin : RECT;
           rtMargin : RECT;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           lCustData : LPARAM;
           lpfnPageSetupHook : LPPAGESETUPHOOK;
           lpfnPagePaintHook : LPPAGEPAINTHOOK;
@@ -4739,7 +4739,7 @@ unit struct;
           nMinPage : WORD;
           nMaxPage : WORD;
           nCopies : WORD;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           lCustData : DWORD;
           lpfnPrintHook : LPPRINTHOOKPROC;
           lpfnSetupHook : LPSETUPHOOKPROC;
@@ -4924,7 +4924,7 @@ unit struct;
      PROPSHEETPAGE = record
           dwSize : DWORD;
           dwFlags : DWORD;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           u1 : record
               case longint of
                  0 : ( pszTemplate : LPCTSTR );
@@ -4957,7 +4957,7 @@ unit struct;
           dwSize : DWORD;
           dwFlags : DWORD;
           hwndParent : HWND;
-          hInstance : HINSTANCE;
+          hInstance : HINST;
           u1 : record
               case longint of
                  0 : ( hIcon : HICON );
@@ -5164,18 +5164,18 @@ unit struct;
      _REMOTE_NAME_INFO = REMOTE_NAME_INFO;
   (*
    TODO: OLE
-  typedef struct _reobject { 
-    DWORD  cbStruct;           
-    LONG   cp;                 
-    CLSID  clsid;              
-    LPOLEOBJECT      poleobj;  
-    LPSTORAGE        pstg;     
-    LPOLECLIENTSITE  polesite; 
-    SIZEL  sizel;              
-    DWORD  dvaspect;           
-    DWORD  dwFlags;            
-    DWORD  dwUser;             
-  } REOBJECT; 
+  typedef struct _reobject {
+    DWORD  cbStruct;
+    LONG   cp;
+    CLSID  clsid;
+    LPOLEOBJECT      poleobj;
+    LPSTORAGE        pstg;
+    LPOLECLIENTSITE  polesite;
+    SIZEL  sizel;
+    DWORD  dvaspect;
+    DWORD  dwFlags;
+    DWORD  dwUser;
+  } REOBJECT;
    *)
 
      REPASTESPECIAL = record
@@ -5591,7 +5591,7 @@ unit struct;
      _TAPE_WRITE_MARKS = TAPE_WRITE_MARKS;
 
      TBADDBITMAP = record
-          hInst : HINSTANCE;
+          hInst : HINST;
           nID : UINT;
        end;
 
@@ -5780,7 +5780,7 @@ unit struct;
           hwnd : HWND;
           uId : UINT;
           rect : RECT;
-          hinst : HINSTANCE;
+          hinst : HINST;
           lpszText : LPTSTR;
        end;
 
@@ -5792,7 +5792,7 @@ unit struct;
           hdr : NMHDR;
           lpszText : LPTSTR;
           szText : array[0..79] of char;
-          hinst : HINSTANCE;
+          hinst : HINST;
           uFlags : UINT;
        end;
 
@@ -6813,7 +6813,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.4  1998-08-31 11:53:59  pierre
+  Revision 1.5  1998-10-27 11:17:17  peter
+    * type HINSTANCE -> HINST
+
+  Revision 1.4  1998/08/31 11:53:59  pierre
     * compilable windows.pp file
       still to do :
        - findout problems
