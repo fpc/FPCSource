@@ -1257,7 +1257,8 @@ implementation
                    po_iocheck,po_varargs];
          if (m_delphi in aktmodeswitches) then
            exclude(po_comp,po_varargs);
-         if ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
+         if (def1.proccalloption=def2.proccalloption) and
+            ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
             equal_defs(def1.rettype.def,def2.rettype.def) then
           begin
             { return equal type based on the parameters, but a proc->procvar
@@ -1273,7 +1274,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2004-02-24 16:12:39  peter
+  Revision 1.48  2004-03-03 22:02:16  peter
+    * also compare calling convention in proc_to_procvar_equal
+
+  Revision 1.47  2004/02/24 16:12:39  peter
     * operator overload chooses rewrite
     * overload choosing is now generic and moved to htypechk
 
