@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for Free Pascal libzvt 1.x Bindings
+#
+
+[package]
+name=zvt
+version=1.0.6
+
+[require]
+libc=y
+packages=gtk imlib
+
+[target]
+units=libzvt
+exampledirs=examples
+
+[compiler]
+sourcedir=zvt
+targetdir=.
+
+[libs]
+libname=libfpzvt.so
+libversion=1.0
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

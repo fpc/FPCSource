@@ -90,7 +90,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../..
+override DEFAULT_FPCDIR=../../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -212,9 +212,9 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override TARGET_DIRS+=gnome gconf zvt
+override TARGET_PROGRAMS+=testzvt
+override CLEAN_UNITS+=testzvt
 override INSTALL_FPCPACKAGE=y
-override INSTALL_FPCSUBDIR=packages
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -407,6 +407,20 @@ endif
 endif
 else
 CROSSBINDIR=
+endif
+ifdef inUnix
+ifndef GCCLIBDIR
+GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
+endif
+ifeq ($(OS_TARGET),linux)
+ifndef OTHERLIBDIR
+OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
+endif
+endif
+ifeq ($(OS_TARGET),netbsd)
+OTHERLIBDIR+=/usr/pkg/lib
+endif
+export GCCLIBDIR OTHERLIB
 endif
 LOADEREXT=.as
 EXEEXT=.exe
@@ -765,6 +779,305 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
+override REQUIRE_PACKAGES=rtl gtk gnome1/zvt gnome1/gnome
+ifeq ($(OS_TARGET),linux)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),go32v2)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),win32)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),os2)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),freebsd)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),beos)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),netbsd)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),amiga)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),atari)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),sunos)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),qnx)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),netware)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),openbsd)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_X11=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifeq ($(OS_TARGET),wdosx)
+REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_GTK=1
+REQUIRE_PACKAGES_IMLIB=1
+REQUIRE_PACKAGES_GNOME1/ZVT=1
+REQUIRE_PACKAGES_GNOME1/GNOME=1
+REQUIRE_PACKAGES_OPENGL=1
+endif
+ifdef REQUIRE_PACKAGES_RTL
+PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/$(OS_TARGET)/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_RTL),)
+ifneq ($(wildcard $(PACKAGEDIR_RTL)/$(OS_TARGET)),)
+UNITDIR_RTL=$(PACKAGEDIR_RTL)/$(OS_TARGET)
+else
+UNITDIR_RTL=$(PACKAGEDIR_RTL)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_RTL)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_RTL) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_RTL)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_RTL=
+UNITDIR_RTL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /rtl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_RTL),)
+UNITDIR_RTL:=$(firstword $(UNITDIR_RTL))
+else
+UNITDIR_RTL=
+endif
+endif
+ifdef UNITDIR_RTL
+override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_GTK
+PACKAGEDIR_GTK:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /gtk/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_GTK),)
+ifneq ($(wildcard $(PACKAGEDIR_GTK)/$(OS_TARGET)),)
+UNITDIR_GTK=$(PACKAGEDIR_GTK)/$(OS_TARGET)
+else
+UNITDIR_GTK=$(PACKAGEDIR_GTK)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_GTK)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_GTK) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_GTK)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_GTK=
+UNITDIR_GTK:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /gtk/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_GTK),)
+UNITDIR_GTK:=$(firstword $(UNITDIR_GTK))
+else
+UNITDIR_GTK=
+endif
+endif
+ifdef UNITDIR_GTK
+override COMPILER_UNITDIR+=$(UNITDIR_GTK)
+endif
+endif
+ifdef REQUIRE_PACKAGES_IMLIB
+PACKAGEDIR_IMLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /imlib/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_IMLIB),)
+ifneq ($(wildcard $(PACKAGEDIR_IMLIB)/$(OS_TARGET)),)
+UNITDIR_IMLIB=$(PACKAGEDIR_IMLIB)/$(OS_TARGET)
+else
+UNITDIR_IMLIB=$(PACKAGEDIR_IMLIB)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_IMLIB)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_IMLIB) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_IMLIB)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_IMLIB=
+UNITDIR_IMLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /imlib/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_IMLIB),)
+UNITDIR_IMLIB:=$(firstword $(UNITDIR_IMLIB))
+else
+UNITDIR_IMLIB=
+endif
+endif
+ifdef UNITDIR_IMLIB
+override COMPILER_UNITDIR+=$(UNITDIR_IMLIB)
+endif
+endif
+ifdef REQUIRE_PACKAGES_GNOME1/ZVT
+PACKAGEDIR_GNOME1/ZVT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /gnome1/zvt/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_GNOME1/ZVT),)
+ifneq ($(wildcard $(PACKAGEDIR_GNOME1/ZVT)/$(OS_TARGET)),)
+UNITDIR_GNOME1/ZVT=$(PACKAGEDIR_GNOME1/ZVT)/$(OS_TARGET)
+else
+UNITDIR_GNOME1/ZVT=$(PACKAGEDIR_GNOME1/ZVT)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_GNOME1/ZVT)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_GNOME1/ZVT) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_GNOME1/ZVT)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_GNOME1/ZVT=
+UNITDIR_GNOME1/ZVT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /gnome1/zvt/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_GNOME1/ZVT),)
+UNITDIR_GNOME1/ZVT:=$(firstword $(UNITDIR_GNOME1/ZVT))
+else
+UNITDIR_GNOME1/ZVT=
+endif
+endif
+ifdef UNITDIR_GNOME1/ZVT
+override COMPILER_UNITDIR+=$(UNITDIR_GNOME1/ZVT)
+endif
+endif
+ifdef REQUIRE_PACKAGES_GNOME1/GNOME
+PACKAGEDIR_GNOME1/GNOME:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /gnome1/gnome/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_GNOME1/GNOME),)
+ifneq ($(wildcard $(PACKAGEDIR_GNOME1/GNOME)/$(OS_TARGET)),)
+UNITDIR_GNOME1/GNOME=$(PACKAGEDIR_GNOME1/GNOME)/$(OS_TARGET)
+else
+UNITDIR_GNOME1/GNOME=$(PACKAGEDIR_GNOME1/GNOME)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_GNOME1/GNOME)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_GNOME1/GNOME) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_GNOME1/GNOME)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_GNOME1/GNOME=
+UNITDIR_GNOME1/GNOME:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /gnome1/gnome/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_GNOME1/GNOME),)
+UNITDIR_GNOME1/GNOME:=$(firstword $(UNITDIR_GNOME1/GNOME))
+else
+UNITDIR_GNOME1/GNOME=
+endif
+endif
+ifdef UNITDIR_GNOME1/GNOME
+override COMPILER_UNITDIR+=$(UNITDIR_GNOME1/GNOME)
+endif
+endif
+ifdef REQUIRE_PACKAGES_X11
+PACKAGEDIR_X11:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /x11/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_X11),)
+ifneq ($(wildcard $(PACKAGEDIR_X11)/$(OS_TARGET)),)
+UNITDIR_X11=$(PACKAGEDIR_X11)/$(OS_TARGET)
+else
+UNITDIR_X11=$(PACKAGEDIR_X11)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_X11)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_X11) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_X11)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_X11=
+UNITDIR_X11:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /x11/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_X11),)
+UNITDIR_X11:=$(firstword $(UNITDIR_X11))
+else
+UNITDIR_X11=
+endif
+endif
+ifdef UNITDIR_X11
+override COMPILER_UNITDIR+=$(UNITDIR_X11)
+endif
+endif
+ifdef REQUIRE_PACKAGES_OPENGL
+PACKAGEDIR_OPENGL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /opengl/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_OPENGL),)
+ifneq ($(wildcard $(PACKAGEDIR_OPENGL)/$(OS_TARGET)),)
+UNITDIR_OPENGL=$(PACKAGEDIR_OPENGL)/$(OS_TARGET)
+else
+UNITDIR_OPENGL=$(PACKAGEDIR_OPENGL)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_OPENGL)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_OPENGL) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_OPENGL)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_OPENGL=
+UNITDIR_OPENGL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /opengl/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_OPENGL),)
+UNITDIR_OPENGL:=$(firstword $(UNITDIR_OPENGL))
+else
+UNITDIR_OPENGL=
+endif
+endif
+ifdef UNITDIR_OPENGL
+override COMPILER_UNITDIR+=$(UNITDIR_OPENGL)
+endif
+endif
 ifndef NOCPUDEF
 override FPCOPTDEF=$(CPU_TARGET)
 endif
@@ -855,6 +1168,12 @@ override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
 endif
 endif
+ifdef GCCLIBDIR
+override FPCOPT+=-Fl$(GCCLIBDIR)
+endif
+ifdef OTHERLIBDIR
+override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
+endif
 ifdef OPT
 override FPCOPT+=$(OPT)
 endif
@@ -877,9 +1196,115 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 EXECPPAS:=@$(PPAS)
 endif
 endif
+.PHONY: fpc_exes
+ifdef TARGET_PROGRAMS
+override EXEFILES=$(addsuffix $(EXEEXT),$(TARGET_PROGRAMS))
+override EXEOFILES:=$(addsuffix $(OEXT),$(TARGET_PROGRAMS)) $(addprefix $(STATICLIBPREFIX),$(addsuffix $(STATICLIBEXT),$(TARGET_PROGRAMS)))
+override ALLTARGET+=fpc_exes
+override INSTALLEXEFILES+=$(EXEFILES)
+override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
+ifeq ($(OS_TARGET),os2)
+override CLEANEXEFILES+=$(addsuffix $(AOUTEXT),$(TARGET_PROGRAMS))
+endif
+endif
+fpc_exes: $(EXEFILES)
 ifdef TARGET_RSTS
 override RSTFILES=$(addsuffix $(RSTEXT),$(TARGET_RSTS))
 override CLEANRSTFILES+=$(RSTFILES)
+endif
+.PHONY: fpc_all fpc_smart fpc_debug fpc_release
+$(FPCMADE): $(ALLDEPENDENCIES) $(ALLTARGET)
+	@$(ECHOREDIR) Compiled > $(FPCMADE)
+fpc_all: $(FPCMADE)
+fpc_smart:
+	$(MAKE) all LINKSMART=1 CREATESMART=1
+fpc_debug:
+	$(MAKE) all DEBUG=1
+fpc_release:
+	$(MAKE) all RELEASE=1
+.SUFFIXES: $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp .rc .res
+%$(PPUEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(PPUEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pp
+	$(COMPILER) $<
+	$(EXECPPAS)
+%$(EXEEXT): %.pas
+	$(COMPILER) $<
+	$(EXECPPAS)
+%.res: %.rc
+	windres -i $< -o $@
+vpath %.pp $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %.pas $(COMPILER_SOURCEDIR) $(COMPILER_INCLUDEDIR)
+vpath %$(PPUEXT) $(COMPILER_UNITTARGETDIR)
+.PHONY: fpc_install fpc_sourceinstall fpc_exampleinstall
+ifdef INSTALL_UNITS
+override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(INSTALL_UNITS))
+endif
+ifdef INSTALL_BUILDUNIT
+override INSTALLPPUFILES:=$(filter-out $(INSTALL_BUILDUNIT)$(PPUEXT),$(INSTALLPPUFILES))
+endif
+ifdef INSTALLPPUFILES
+override INSTALLPPULINKFILES:=$(subst $(PPUEXT),$(OEXT),$(INSTALLPPUFILES)) $(addprefix $(STATICLIBPREFIX),$(subst $(PPUEXT),$(STATICLIBEXT),$(INSTALLPPUFILES)))
+override INSTALLPPUFILES:=$(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPUFILES))
+override INSTALLPPULINKFILES:=$(wildcard $(addprefix $(UNITTARGETDIRPREFIX),$(INSTALLPPULINKFILES)))
+override INSTALL_CREATEPACKAGEFPC=1
+endif
+ifdef INSTALLEXEFILES
+override INSTALLEXEFILES:=$(addprefix $(TARGETDIRPREFIX),$(INSTALLEXEFILES))
+endif
+fpc_install: all $(INSTALLTARGET)
+ifdef INSTALLEXEFILES
+	$(MKDIR) $(INSTALL_BINDIR)
+ifdef UPXPROG
+	-$(UPXPROG) $(INSTALLEXEFILES)
+endif
+	$(INSTALLEXE) $(INSTALLEXEFILES) $(INSTALL_BINDIR)
+endif
+ifdef INSTALL_CREATEPACKAGEFPC
+ifdef FPCMAKE
+ifdef PACKAGE_VERSION
+ifneq ($(wildcard Makefile.fpc),)
+	$(FPCMAKE) -p -T$(OS_TARGET) Makefile.fpc
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) Package.fpc $(INSTALL_UNITDIR)
+endif
+endif
+endif
+endif
+ifdef INSTALLPPUFILES
+	$(MKDIR) $(INSTALL_UNITDIR)
+	$(INSTALL) $(INSTALLPPUFILES) $(INSTALL_UNITDIR)
+ifneq ($(INSTALLPPULINKFILES),)
+	$(INSTALL) $(INSTALLPPULINKFILES) $(INSTALL_UNITDIR)
+endif
+ifneq ($(wildcard $(LIB_FULLNAME)),)
+	$(MKDIR) $(INSTALL_LIBDIR)
+	$(INSTALL) $(LIB_FULLNAME) $(INSTALL_LIBDIR)
+ifdef inUnix
+	ln -sf $(LIB_FULLNAME) $(INSTALL_LIBDIR)/$(LIB_NAME)
+endif
+endif
+endif
+ifdef INSTALL_FILES
+	$(MKDIR) $(INSTALL_DATADIR)
+	$(INSTALL) $(INSTALL_FILES) $(INSTALL_DATADIR)
+endif
+fpc_sourceinstall: distclean
+	$(MKDIR) $(INSTALL_SOURCEDIR)
+	$(COPYTREE) $(BASEDIR)/* $(INSTALL_SOURCEDIR)
+fpc_exampleinstall: $(addsuffix _distclean,$(TARGET_EXAMPLEDIRS))
+ifdef HASEXAMPLES
+	$(MKDIR) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef EXAMPLESOURCEFILES
+	$(COPY) $(EXAMPLESOURCEFILES) $(INSTALL_EXAMPLEDIR)
+endif
+ifdef TARGET_EXAMPLEDIRS
+	$(COPYTREE) $(addsuffix /*,$(TARGET_EXAMPLEDIRS)) $(INSTALL_EXAMPLEDIR)
 endif
 .PHONY: fpc_clean fpc_cleanall fpc_distclean
 ifdef EXEFILES
@@ -1029,157 +1454,25 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-TARGET_DIRS_GNOME=1
-TARGET_DIRS_GCONF=1
-TARGET_DIRS_ZVT=1
-ifdef TARGET_DIRS_GNOME
-gnome_all:
-	$(MAKE) -C gnome all
-gnome_debug:
-	$(MAKE) -C gnome debug
-gnome_smart:
-	$(MAKE) -C gnome smart
-gnome_release:
-	$(MAKE) -C gnome release
-gnome_examples:
-	$(MAKE) -C gnome examples
-gnome_shared:
-	$(MAKE) -C gnome shared
-gnome_install:
-	$(MAKE) -C gnome install
-gnome_sourceinstall:
-	$(MAKE) -C gnome sourceinstall
-gnome_exampleinstall:
-	$(MAKE) -C gnome exampleinstall
-gnome_distinstall:
-	$(MAKE) -C gnome distinstall
-gnome_zipinstall:
-	$(MAKE) -C gnome zipinstall
-gnome_zipsourceinstall:
-	$(MAKE) -C gnome zipsourceinstall
-gnome_zipexampleinstall:
-	$(MAKE) -C gnome zipexampleinstall
-gnome_zipdistinstall:
-	$(MAKE) -C gnome zipdistinstall
-gnome_clean:
-	$(MAKE) -C gnome clean
-gnome_distclean:
-	$(MAKE) -C gnome distclean
-gnome_cleanall:
-	$(MAKE) -C gnome cleanall
-gnome_info:
-	$(MAKE) -C gnome info
-gnome_makefiles:
-	$(MAKE) -C gnome makefiles
-gnome:
-	$(MAKE) -C gnome all
-.PHONY: gnome_all gnome_debug gnome_smart gnome_release gnome_examples gnome_shared gnome_install gnome_sourceinstall gnome_exampleinstall gnome_distinstall gnome_zipinstall gnome_zipsourceinstall gnome_zipexampleinstall gnome_zipdistinstall gnome_clean gnome_distclean gnome_cleanall gnome_info gnome_makefiles gnome
-endif
-ifdef TARGET_DIRS_GCONF
-gconf_all:
-	$(MAKE) -C gconf all
-gconf_debug:
-	$(MAKE) -C gconf debug
-gconf_smart:
-	$(MAKE) -C gconf smart
-gconf_release:
-	$(MAKE) -C gconf release
-gconf_examples:
-	$(MAKE) -C gconf examples
-gconf_shared:
-	$(MAKE) -C gconf shared
-gconf_install:
-	$(MAKE) -C gconf install
-gconf_sourceinstall:
-	$(MAKE) -C gconf sourceinstall
-gconf_exampleinstall:
-	$(MAKE) -C gconf exampleinstall
-gconf_distinstall:
-	$(MAKE) -C gconf distinstall
-gconf_zipinstall:
-	$(MAKE) -C gconf zipinstall
-gconf_zipsourceinstall:
-	$(MAKE) -C gconf zipsourceinstall
-gconf_zipexampleinstall:
-	$(MAKE) -C gconf zipexampleinstall
-gconf_zipdistinstall:
-	$(MAKE) -C gconf zipdistinstall
-gconf_clean:
-	$(MAKE) -C gconf clean
-gconf_distclean:
-	$(MAKE) -C gconf distclean
-gconf_cleanall:
-	$(MAKE) -C gconf cleanall
-gconf_info:
-	$(MAKE) -C gconf info
-gconf_makefiles:
-	$(MAKE) -C gconf makefiles
-gconf:
-	$(MAKE) -C gconf all
-.PHONY: gconf_all gconf_debug gconf_smart gconf_release gconf_examples gconf_shared gconf_install gconf_sourceinstall gconf_exampleinstall gconf_distinstall gconf_zipinstall gconf_zipsourceinstall gconf_zipexampleinstall gconf_zipdistinstall gconf_clean gconf_distclean gconf_cleanall gconf_info gconf_makefiles gconf
-endif
-ifdef TARGET_DIRS_ZVT
-zvt_all:
-	$(MAKE) -C zvt all
-zvt_debug:
-	$(MAKE) -C zvt debug
-zvt_smart:
-	$(MAKE) -C zvt smart
-zvt_release:
-	$(MAKE) -C zvt release
-zvt_examples:
-	$(MAKE) -C zvt examples
-zvt_shared:
-	$(MAKE) -C zvt shared
-zvt_install:
-	$(MAKE) -C zvt install
-zvt_sourceinstall:
-	$(MAKE) -C zvt sourceinstall
-zvt_exampleinstall:
-	$(MAKE) -C zvt exampleinstall
-zvt_distinstall:
-	$(MAKE) -C zvt distinstall
-zvt_zipinstall:
-	$(MAKE) -C zvt zipinstall
-zvt_zipsourceinstall:
-	$(MAKE) -C zvt zipsourceinstall
-zvt_zipexampleinstall:
-	$(MAKE) -C zvt zipexampleinstall
-zvt_zipdistinstall:
-	$(MAKE) -C zvt zipdistinstall
-zvt_clean:
-	$(MAKE) -C zvt clean
-zvt_distclean:
-	$(MAKE) -C zvt distclean
-zvt_cleanall:
-	$(MAKE) -C zvt cleanall
-zvt_info:
-	$(MAKE) -C zvt info
-zvt_makefiles:
-	$(MAKE) -C zvt makefiles
-zvt:
-	$(MAKE) -C zvt all
-.PHONY: zvt_all zvt_debug zvt_smart zvt_release zvt_examples zvt_shared zvt_install zvt_sourceinstall zvt_exampleinstall zvt_distinstall zvt_zipinstall zvt_zipsourceinstall zvt_zipexampleinstall zvt_zipdistinstall zvt_clean zvt_distclean zvt_cleanall zvt_info zvt_makefiles zvt
-endif
-all: $(addsuffix _all,$(TARGET_DIRS))
-debug: $(addsuffix _debug,$(TARGET_DIRS))
-smart: $(addsuffix _smart,$(TARGET_DIRS))
-release: $(addsuffix _release,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: $(addsuffix _shared,$(TARGET_DIRS))
-install: $(addsuffix _install,$(TARGET_DIRS))
-sourceinstall: $(addsuffix _sourceinstall,$(TARGET_DIRS))
-exampleinstall: $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
-zipinstall: $(addsuffix _zipinstall,$(TARGET_DIRS))
-zipsourceinstall: $(addsuffix _zipsourceinstall,$(TARGET_DIRS))
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: $(addsuffix _clean,$(TARGET_DIRS))
-distclean: $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: $(addsuffix _cleanall,$(TARGET_DIRS))
+all: fpc_all
+debug: fpc_debug
+smart: fpc_smart
+release: fpc_release
+examples:
+shared:
+install: fpc_install
+sourceinstall: fpc_sourceinstall
+exampleinstall: fpc_exampleinstall
+distinstall:
+zipinstall:
+zipsourceinstall:
+zipexampleinstall:
+zipdistinstall:
+clean: fpc_clean
+distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
-makefiles: fpc_makefiles $(addsuffix _makefiles,$(TARGET_DIRS))
+makefiles: fpc_makefiles
 .PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
