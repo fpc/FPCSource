@@ -783,7 +783,7 @@ begin
      if not NextChar(f,s) then
       exit;
      { EOF? }
-     if (TextRec(f).BufPos<TextRec(f).BufEnd) then
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
       break;
    end;
   IgnoreSpaces:=true;
@@ -1266,7 +1266,11 @@ end;
 
 {
   $Log$
-  Revision 1.19  2002-11-29 15:50:27  peter
+  Revision 1.20  2002-11-29 16:26:52  peter
+    * fixed ignorespaces which was broken by the previous commit
+      when a line started with spaces
+
+  Revision 1.19  2002/11/29 15:50:27  peter
     * fix for tw1896
 
   Revision 1.18  2002/09/07 15:07:46  peter
