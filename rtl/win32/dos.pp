@@ -415,6 +415,7 @@ end;
 procedure getcbreak(var breakvalue : boolean);
 begin
 { !! No Win32 Function !! }
+  breakvalue := true;
 end;
 
 
@@ -427,6 +428,7 @@ end;
 procedure getverify(var verify : boolean);
 begin
 { !! No Win32 Function !! }
+ verify := true;
 end;
 
 
@@ -1009,7 +1011,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-06-13 22:21:53  hajny
+  Revision 1.10  2001-11-23 00:36:26  carl
+  * updated behavior of some routines to conform to docs
+
+  Revision 1.9  2001/06/13 22:21:53  hajny
     + platform specific information
 
   Revision 1.8  2001/03/16 20:09:58  hajny
