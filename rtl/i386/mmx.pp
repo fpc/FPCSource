@@ -54,6 +54,7 @@ unit mmx;
       (use this after mmx usage)
     }
     procedure emms;
+    procedure femms;
 
   implementation
 
@@ -62,8 +63,7 @@ unit mmx;
 
   {$ASMMODE ATT}
 
-    { return base type of processor: 0 - is Unknown, 10 - is AMD
-(AuthenticAMD), }
+    { return base type of processor: 0 - is Unknown, 10 - is AMD (AuthenticAMD), }
     {                                20 - is Intel (GenuineIntel) }
     function getdevel:byte;
 
@@ -80,10 +80,8 @@ unit mmx;
                 movl %ecx,_ecx
                 movl %edx,_edx
             end;
-            if ((_ebx=$68747541) and (_ecx=$444D4163) and (_edx=$69746E65))
-then getdevel:=10;
-            if ((_ebx=$756E6547) and (_ecx=$6C65746E) and (_edx=$49656E69))
-then getdevel:=20;
+            if ((_ebx=$68747541) and (_ecx=$444D4163) and (_edx=$69746E65)) then getdevel:=10;
+            if ((_ebx=$756E6547) and (_ecx=$6C65746E) and (_edx=$49656E69)) then getdevel:=20;
         end
     end;
 
@@ -215,6 +213,13 @@ then getdevel:=20;
          emms
       end;
 
+    procedure femms;assembler;
+
+      asm
+         femms
+      end;
+
+
    var
       oldexitproc : pointer;
 
@@ -222,16 +227,13 @@ then getdevel:=20;
 
      begin
         exitproc:=oldexitproc;
-        emms;
+        if is_amd_3d_cpu then femms else emms;
      end;
 
 begin
    if mmx_support then
      begin
         is_mmx_cpu:=true;
-        { the exit code sets the fpu stack to empty }
-        oldexitproc:=exitproc;
-        exitproc:=@mmxexitproc;
         if amd_3d_support then
           begin
              is_amd_3d_cpu:=true;
@@ -243,11 +245,17 @@ begin
             is_sse_cpu:=sse_support;
             is_sse2_cpu:=sse2_support;
           end;
+        { the exit code sets the fpu stack to empty }
+        oldexitproc:=exitproc;
+        exitproc:=@mmxexitproc;
      end;
 end.
 {
   $Log$
-  Revision 1.4  2002-03-16 11:51:50  peter
+  Revision 1.5  2002-03-16 12:01:24  peter
+    * femms added
+
+  Revision 1.4  2002/03/16 11:51:50  peter
     * sse and 3dnow extensions from Michail added
 
   Revision 1.3  2000/12/16 15:58:18  jonas
