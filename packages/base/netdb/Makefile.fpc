@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for netdb implementation
+#
+
+[package]
+name=netdb
+version=1.0.6
+
+[target]
+units=netdb
+examples=testdns testhst testsvc testnet
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
