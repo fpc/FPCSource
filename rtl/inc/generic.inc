@@ -496,7 +496,7 @@ begin
        exit
      else
        vmt:=pvmt(vmt)^.parent;
-   RunError(220);
+   RunError(219);
 end;
 
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
@@ -941,7 +941,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.40  2002-10-10 16:08:50  florian
+  Revision 1.41  2002-10-12 20:32:41  carl
+    * RunError 220 -> RunError 219 to be more consistent with as operator
+
+  Revision 1.40  2002/10/10 16:08:50  florian
     + several widestring/pwidechar related helpers added
 
   Revision 1.39  2002/10/05 14:20:16  peter
