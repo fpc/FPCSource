@@ -337,7 +337,7 @@ begin
   end;
 end;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:THandle):boolean;
 begin
   do_isdevice:=false;
   InOutRes:=0;
@@ -550,7 +550,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-09-03 19:25:32  olle
+  Revision 1.16  2004-09-18 11:18:44  hajny
+    * handle type changed to thandle in do_isdevice
+
+  Revision 1.15  2004/09/03 19:25:32  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
