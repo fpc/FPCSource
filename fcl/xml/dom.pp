@@ -281,16 +281,16 @@ type
   TDOMNamedNodeMap = class(TList)
   protected
     OwnerDocument: TDOMDocument;
-    function  GetItem(index: LongWord): TDOMNode;
+    function GetItem(index: LongWord): TDOMNode;
     procedure SetItem(index: LongWord; AItem: TDOMNode);
-    function  GetLength: LongInt;
+    function GetLength: LongInt;
 
     constructor Create(AOwner: TDOMDocument);
   public
     function GetNamedItem(const name: DOMString): TDOMNode;
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
-    property Item[index: LongWord]: TDOMNode read GetItem write SetItem;
+    property Item[index: LongWord]: TDOMNode read GetItem write SetItem; default;
     property Length: LongInt read GetLength;
   end;
 
@@ -303,9 +303,9 @@ type
   protected
     function  GetLength: LongInt;
   public
-    property  Data: DOMString read FNodeValue;
-    property  Length: LongInt read GetLength;
-    function  SubstringData(offset, count: LongWord): DOMString;
+    property Data: DOMString read FNodeValue;
+    property Length: LongInt read GetLength;
+    function SubstringData(offset, count: LongWord): DOMString;
     procedure AppendData(const arg: DOMString);
     procedure InsertData(offset: LongWord; const arg: DOMString);
     procedure DeleteData(offset, count: LongWord);
@@ -428,6 +428,9 @@ type
     // Free NodeList with TDOMNodeList.Release!
     function  GetElementsByTagName(const name: DOMString): TDOMNodeList;
     procedure Normalize;
+
+    property AttribStrings[const Name: DOMString]: DOMString
+      read GetAttribute write SetAttribute; default;
   end;
 
 
@@ -1238,7 +1241,7 @@ begin
   {As the attributes are _not_ childs of the element node, we have to free
    them manually here:}
   for i := 0 to FAttributes.Count - 1 do
-    FAttributes.Item[i].Free;
+    FAttributes[i].Free;
   FAttributes.Free;
   inherited Destroy;
 end;
@@ -1250,7 +1253,7 @@ begin
   Result := TDOMElement.Create(ACloneOwner);
   Result.FNodeName := FNodeName;
   for i := 0 to FAttributes.Count - 1 do
-    TDOMElement(Result).FAttributes.Add(FAttributes.Item[i].CloneNode(True, ACloneOwner));
+    TDOMElement(Result).FAttributes.Add(FAttributes[i].CloneNode(True, ACloneOwner));
   if deep then
     CloneChildren(Result, ACloneOwner);
 end;
@@ -1265,9 +1268,9 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then
+    if FAttributes[i].NodeName = name then
     begin
-      Result := FAttributes.Item[i].NodeValue;
+      Result := FAttributes[i].NodeValue;
       exit;
     end;
   SetLength(Result, 0);
@@ -1279,9 +1282,9 @@ var
   attr: TDOMAttr;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then
+    if FAttributes[i].NodeName = name then
     begin
-      FAttributes.Item[i].NodeValue := value;
+      FAttributes[i].NodeValue := value;
       exit;
     end;
   attr := TDOMAttr.Create(FOwnerDocument);
@@ -1295,10 +1298,10 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then
+    if FAttributes[i].NodeName = name then
     begin
+      FAttributes[i].Free;
       FAttributes.Delete(i);
-      FAttributes.Item[i].Free;
       exit;
     end;
 end;
@@ -1308,8 +1311,11 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then
-      exit(TDOMAttr(FAttributes.Item[i]));
+    if FAttributes[i].NodeName = name then
+    begin
+      Result := TDOMAttr(FAttributes[i]);
+      exit;
+    end;
   Result := nil;
 end;
 
@@ -1318,9 +1324,10 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = NewAttr.NodeName then begin
-      FAttributes.Item[i].Free;
-      FAttributes.Item[i] := NewAttr;
+    if FAttributes[i].NodeName = NewAttr.NodeName then
+    begin
+      FAttributes[i].Free;
+      FAttributes[i] := NewAttr;
       exit;
     end;
 end;
@@ -1332,10 +1339,12 @@ var
 begin
   for i := 0 to FAttributes.Count - 1 do
   begin
-    node := FAttributes.Item[i];
-    if node = OldAttr then begin
+    node := FAttributes[i];
+    if node = OldAttr then
+    begin
       FAttributes.Delete(i);
-      exit(TDOMAttr(node));
+      Result := TDOMAttr(node);
+      exit;
     end;
   end;
 end;
@@ -1347,6 +1356,7 @@ end;
 
 procedure TDOMElement.Normalize;
 begin
+  // !!!: Not implemented
 end;
 
 
@@ -1489,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-05-04 18:24:22  sg
+  Revision 1.15  2000-06-29 08:45:05  sg
+  * RemoveAttributeNode bugfix
+
+  Revision 1.14  2000/05/04 18:24:22  sg
   * Bugfixes: In some cases the DOM node tree was invalid
   * Simplifications
   * Minor optical improvements
