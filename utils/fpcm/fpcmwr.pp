@@ -734,11 +734,11 @@ implementation
            if CheckVariable('require_target') then
             Add('override OS_TARGET='+FInput.GetVariable('require_target',false))
            else if CheckVariable('default_target') then
-            Add('OS_TARGET='+FInput.GetVariable('default_target',false));
+            Add('override OS_TARGET_DEFAULT='+FInput.GetVariable('default_target',false));
            if CheckVariable('require_cpu') then
             Add('override CPU_TARGET='+FInput.GetVariable('require_cpu',false))
            else if CheckVariable('default_cpu') then
-            Add('CPU_TARGET='+FInput.GetVariable('default_cpu',false));
+            Add('override CPU_TARGET_DEFAULT='+FInput.GetVariable('default_cpu',false));
            { FPC Detection }
            AddVariable('default_fpcdir');
            AddIniSection('fpcdetect');
@@ -867,7 +867,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-09-07 15:40:32  peter
+  Revision 1.25  2002-09-27 06:54:54  pierre
+   * translate default_cpu/os into CPU/OS_TARGET_DEFAULT
+
+  Revision 1.24  2002/09/07 15:40:32  peter
     * old logs removed and tabs fixed
 
   Revision 1.23  2002/03/19 19:37:09  peter
