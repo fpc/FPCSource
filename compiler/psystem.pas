@@ -253,6 +253,10 @@ begin
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
 {$endif x86}
+{$ifdef sparc}
+  s32floattype.setdef(tfloatdef.create(s32real));
+  s64floattype.setdef(tfloatdef.create(s64real));
+{$endif sparc}
   s64currencytype.setdef(tfloatdef.create(s64currency));
 {$ifdef m68k}
   s32floattype.setdef(tfloatdef.create(s32real));
@@ -280,7 +284,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2002-07-04 20:43:02  florian
+  Revision 1.29  2002-07-06 20:18:47  carl
+  + more SPARC patches from Mazen
+
+  Revision 1.28  2002/07/04 20:43:02  florian
     * first x86-64 patches
 
   Revision 1.27  2002/07/01 16:23:54  peter
