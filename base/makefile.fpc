@@ -393,11 +393,7 @@ endif
 
 # Where the .msg files will be stored
 ifndef MSGINSTALLDIR
-ifdef inlinux
 MSGINSTALLDIR=$(BASEINSTALLDIR)/msg
-else
-MSGINSTALLDIR=$(BININSTALLDIR)
-endif
 endif
 
 # Where the .msg files will be stored
@@ -675,7 +671,7 @@ UNITAFILES=$(addsuffix $(STATICLIBEXT),$(UNITOBJECTS))
 	 fpc_info fpc_cfginfo fpc_objectinfo fpc_installinfo fpc_filesinfo\
 	 fpc_dirinfo
 
-.SUFFIXES : $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp 
+.SUFFIXES : $(EXEEXT) $(PPUEXT) $(OEXT) .pas .pp
 
 
 #####################################################################
@@ -732,11 +728,11 @@ fpc_sharedlib:
 ifdef inlinux
 ifndef LIBNAME
 	$(ECHO) LIBNAME not set
-else	
+else
 	$(MAKE) libsclean
 	$(MAKE) all
 	$(PPUMOVE) $(SHAREDLIBUNITOBJECTS) -o$(LIBNAME)
-endif	
+endif
 else
 	@$(ECHO) Shared Libraries not supported
 endif
@@ -1029,8 +1025,14 @@ endif
 
 #
 # $Log$
-# Revision 1.32  1999-06-11 13:31:14  hajny
+# Revision 1.33  1999-06-13 22:43:23  peter
+#   * merged from fixes
+#
+# Revision 1.32  1999/06/11 13:31:14  hajny
 #   * fixes for OS/2
+#
+# Revision 1.31.2.1  1999/06/13 22:36:38  peter
+#   * install msg files in msg/ instead of bin for not linux
 #
 # Revision 1.31  1999/06/10 15:02:08  peter
 #   * last fixes for 0.99.12 release

@@ -124,12 +124,11 @@ implementation
          firstpass(p^.left);
          if codegenerror then
            exit;
-         if not((p^.left^.resulttype^.deftype=orddef) and
-            (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
-            begin
-               CGMessage(type_e_mismatch);
-               exit;
-            end;
+         if not is_boolean(p^.left^.resulttype) then
+          begin
+            Comment(V_Error,'Expected boolean type but got "'+p^.left^.resulttype^.typename+'"');
+            exit;
+          end;
 
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
@@ -496,7 +495,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1999-05-27 19:45:18  peter
+  Revision 1.11  1999-06-13 22:41:07  peter
+    * merged from fixes
+
+  Revision 1.10.2.1  1999/06/13 22:38:54  peter
+    * better error message when type is wrong with if statement
+
+  Revision 1.10  1999/05/27 19:45:18  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
