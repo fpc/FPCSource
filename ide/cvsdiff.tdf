@@ -1,0 +1,56 @@
+[Main]
+Title="CVS Commit"
+Size=(56,15)
+CommandLine="diff %c% %revision% %filename%"
+Default="filename"
+
+[filename]
+Type=InputLine
+Origin=(2,3)
+Size=(52,1)
+Value=$EDNAME
+
+[label1]
+Type=Label
+Origin=(2,2)
+Size=(52,1)
+Text="~F~ile(s) to diff"
+Link="filename"
+
+[revision]
+Type=InputLine
+Origin=(2,5)
+Size=(52,1)
+Value=
+
+[label2]
+Type=Label
+Origin=(2,4)
+Size=(52,1)
+Text="to specific ~r~evision"
+Link="revision"
+
+[c]
+Type=CheckBox
+Name="~C~ontext diff"
+Origin=(2,6)
+Size=(25,1)
+Default=On
+On="-c"
+
+[b]
+Type=CheckBox
+Name="~I~gnore blank changes"
+Origin=(2,7)
+Size=(25,1)
+Default=On
+On="-b"
+
+[u]
+Type=CheckBox
+Name="~U~nified diff"
+Origin=(2,8)
+Size=(25,1)
+Default=Off
+On="-u"
+
