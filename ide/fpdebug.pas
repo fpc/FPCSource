@@ -16,6 +16,8 @@
 unit FPDebug;
 interface
 
+{$i globdir.inc}
+
 uses
 {$ifdef win32}
   Windows,
@@ -385,6 +387,9 @@ uses
 {$ifdef fpc}
   Video,
 {$endif fpc}
+{$ifdef DOS}
+  fpusrscr,
+{$endif DOS}
   App,Strings,
 {$ifdef FVISION}
   FVConsts,
@@ -4060,6 +4065,10 @@ begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
   Debugger:=nil;
+{$ifdef DOS}
+  If assigned(UserScreen) then
+    PDosScreen(UserScreen)^.FreeGraphBuffer;
+{$endif DOS}
 {$ifdef DEBUG}
   If Use_gdb_file then
     begin
@@ -4213,7 +4222,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2002-09-17 21:58:45  pierre
+  Revision 1.33  2002-09-21 22:23:49  pierre
+   * restore text mode on reset for Dos apps
+
+  Revision 1.32  2002/09/17 21:58:45  pierre
    * correct last fpu patch so 'info all' is called only once
 
   Revision 1.31  2002/09/17 21:48:41  pierre
