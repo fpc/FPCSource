@@ -33,7 +33,7 @@ unit cpupi;
 
     type
        ti386procinfo = class(tcgprocinfo)
-          procedure allocate_interrupt_stackframe;override;
+          procedure allocate_interrupt_parameter;override;
           procedure allocate_framepointer;override;
        end;
 
@@ -41,9 +41,9 @@ unit cpupi;
   implementation
 
     uses
-      cgbase;
+      cgbase, cpubase, rgobj;
 
-    procedure ti386procinfo.allocate_interrupt_stackframe;
+    procedure ti386procinfo.allocate_interrupt_parameter;
       begin
          { we push Flags and CS as long
            to cope with the IRETD
@@ -69,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-06-12 16:43:07  peter
+  Revision 1.7  2003-06-12 18:12:49  jonas
+    * fixed compilation problems
+
+  Revision 1.6  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.5  2003/05/25 10:26:15  peter
