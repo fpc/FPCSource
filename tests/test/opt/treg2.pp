@@ -1,7 +1,7 @@
 { %OPT=-Or}
 {$maxfpuregisters 3}
 uses
-   dotest;
+   erroru;
 
 var
    t : text;
@@ -35,7 +35,7 @@ procedure p;
   end;
 
 begin
-   assign(t,'testreg2.dat');
+   assign(t,'treg2.dat');
    reset(t);
    p;
    close(t);
