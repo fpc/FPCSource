@@ -1,3 +1,4 @@
+{ %cpu=i386 }
 {$ifdef fpc}{$mode delphi}{$endif}
 
 uses SysUtils;
