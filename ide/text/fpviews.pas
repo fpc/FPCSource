@@ -281,6 +281,7 @@ function  ConfirmBox(S: string; Params: pointer; CanCancel: boolean): word;
 function IsThereAnyEditor: boolean;
 function IsThereAnyWindow: boolean;
 function FirstEditorWindow: PSourceWindow;
+function EditorWindowFile(const Name : String): PSourceWindow;
 
 function  SearchMenuItem(Menu: PMenu; Cmd: word): PMenuItem;
 procedure SetMenuItemParam(Menu: PMenuItem; Param: string);
@@ -331,7 +332,7 @@ implementation
 
 uses
   Keyboard,Memory,MsgBox,Validate,
-  Tokens,FPSwitch,
+  Tokens,FPSwitch,FPSymbol,
   FPVars,FPUtils,FPHelp,FPCompile;
 
 const
@@ -367,6 +368,16 @@ begin
 end;
 begin
   FirstEditorWindow:=pointer(Desktop^.FirstThat(@EditorWindow));
+end;
+
+function EditorWindowFile(const Name : String): PSourceWindow;
+function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
+begin
+  EditorWindow:=(TypeOf(P^)=TypeOf(TSourceWindow)) and
+                 (PSourceWindow(P)^.Editor^.FileName=Name);
+end;
+begin
+  EditorWindowFile:=pointer(Desktop^.FirstThat(@EditorWindow));
 end;
 
 procedure InsertButtons(ADialog: PDialog);
@@ -735,6 +746,11 @@ begin
               P:=CurPos; Inc(P.X); Inc(P.Y);
               LocalMenu(P);
             end;
+          cmBrowseAtCursor:
+            begin
+              S:=LowerCaseStr(GetEditorCurWord(@Self));
+              OpenOneSymbolBrowser(S);
+            end;
           cmOpenAtCursor :
             begin
               S:=LowerCaseStr(GetEditorCurWord(@Self));
@@ -801,7 +817,7 @@ begin
   Editor^.GrowMode:=gfGrowHiX+gfGrowHiY;
   if LoadFile then
     if Editor^.LoadFile=false then
-       ErrorBox('Error reading file.',nil);
+       ErrorBox(#3'Error reading file.',nil);
   Insert(Editor);
   UpdateTitle;
 end;
@@ -2971,6 +2987,7 @@ begin
     if CheckDir('.'+DirSep,N,NewExt) then OK:=true;
   CheckExt:=OK;
 end;
+
 function TryToOpen(const DD : dirstr): PSourceWindow;
 var Found: boolean;
     W : PSourceWindow;
@@ -3044,8 +3061,11 @@ begin
              break;
            DrStr:=Copy(DrStr,pos(';',DrStr)+1,255);
         End;
-      W:=TryToOpen(DrStr);
+      if not assigned(W) then
+        W:=TryToOpen(DrStr);
       NewEditorOpened:=W<>nil;
+      if assigned(W) then
+        W^.Editor^.SetCurPtr(CurX,CurY);
     end;
   TryToOpenFile:=W;
 end;
@@ -3054,7 +3074,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-02-04 13:32:11  pierre
+  Revision 1.8  1999-02-04 17:45:23  pierre
+    + BrowserAtCursor started
+    * bug in TryToOpenFile removed
+
+  Revision 1.7  1999/02/04 13:32:11  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
