@@ -146,6 +146,15 @@ uses
       RS_R13        = $0e;      {R13}
       RS_R14        = $0f;      {R14}
       RS_R15        = $10;      {R15}
+      { create aliases to allow code sharing between x86-64 and i386 }
+      RS_EAX        = RS_RAX;
+      RS_EBX        = RS_RBX;
+      RS_ECX        = RS_RCX;
+      RS_EDX        = RS_RDX;
+      RS_ESI        = RS_RSI;
+      RS_EDI        = RS_RDI;
+      RS_EBP        = RS_RBP;
+      RS_ESP        = RS_RSP;
 {$else x86_64}
       RS_SPECIAL    = $00;      {Special register}
       RS_EAX        = $01;      {EAX}
@@ -698,7 +707,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-04-25 16:12:09  florian
+  Revision 1.3  2002-04-25 20:15:40  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.2  2002/04/25 16:12:09  florian
     * fixed more problems with cpubase and x86-64
 
   Revision 1.1  2003/04/25 11:12:09  florian
