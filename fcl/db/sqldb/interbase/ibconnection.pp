@@ -5,7 +5,7 @@ unit IBConnection;
 interface
 
 uses
-  Classes, SysUtils, IBase60, sqldb, db;
+  Classes, SysUtils, IBase60, sqldb, db, math, dbconst;
   
 type
   TAccessMode = (amReadWrite, amReadOnly);
@@ -19,7 +19,7 @@ type
     protected
     Status               : array [0..19] of ISC_STATUS;
     Statement            : pointer;
-    FSQLDAAllocated      : integer;
+    FFieldFlag           : array [0..1023] of shortint;
     SQLDA                : PXSQLDA;
   end;
 
@@ -38,16 +38,15 @@ type
   private
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
-    FFieldFlag           : array [0..1023] of shortint;
     FDialect             : integer;
     procedure SetDBDialect;
     procedure AllocSQLDA(Cursor : TIBCursor;Count : integer);
-    procedure TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
+    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
       var TrType : TFieldType; var TrLen : word);
     procedure SetTPB(trans : TIBtrans);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
-    procedure GetFloat(CurrBuff, Buffer : pointer; Field : TField);
+    procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
     procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
   protected
     procedure DoInternalConnect; override;
@@ -61,11 +60,9 @@ type
     procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
-    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
-    function GetFieldSizes(cursor : TSQLHandle) : integer; override;
+    procedure AddFieldDefs(cursor: TSQLHandle;FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
-    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
+    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -111,6 +108,7 @@ begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
     p := @Status;
+    msg := '';
     while isc_interprete(Buf, @p) > 0 do
       Msg := Msg + #10' -' + StrPas(Buf);
     DatabaseError(ProcName + ': ' + Msg,self);
@@ -286,24 +284,27 @@ procedure TIBConnection.AllocSQLDA(Cursor : TIBcursor;Count : integer);
 begin
   with cursor as TIBCursor do
     begin
-    if FSQLDAAllocated > 0 then
-      FreeMem(SQLDA);
-    GetMem(SQLDA, XSQLDA_Length(Count));
+    reAllocMem(SQLDA, XSQLDA_Length(Count));
     { Zero out the memory block to avoid problems with exceptions within the
       constructor of this class. }
     FillChar(SQLDA^, XSQLDA_Length(Count), 0);
-    FSQLDAAllocated := Count;
     SQLDA^.Version := sqlda_version1;
     SQLDA^.SQLN := Count;
     end;
 end;
 
-procedure TIBConnection.TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
+procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
   var TrType : TFieldType; var TrLen : word);
 begin
   LensSet := False;
 
-  case (SQLType and not 1) of
+  if SQLScale in [-4..-1] then
+    begin
+    LensSet := True;
+    TrLen := SQLScale;
+    TrType := ftBCD
+    end
+  else case (SQLType and not 1) of
     SQL_VARYING :
       begin
         LensSet := True;
@@ -317,7 +318,7 @@ begin
         TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-        TrType := ftDateTime;
+      TrType := ftDateTime;
     SQL_TYPE_TIME :
         TrType := ftDateTime;
     SQL_TIMESTAMP :
@@ -329,15 +330,11 @@ begin
       begin
       end;
     SQL_SHORT :
-      begin
-        LensSet := True;
-        TrLen := SQLLen;
         TrType := ftInteger;
-      end;
     SQL_LONG :
       begin
         LensSet := True;
-        TrLen := SQLLen;
+        TrLen := 0;
         TrType := ftInteger;
       end;
     SQL_INT64 :
@@ -345,13 +342,13 @@ begin
     SQL_DOUBLE :
       begin
         LensSet := True;
-        TrLen := SQLLen;
+        TrLen := 0;
         TrType := ftFloat;
       end;
     SQL_FLOAT :
       begin
         LensSet := True;
-        TrLen := SQLLen;
+        TrLen := 0;
         TrType := ftFloat;
       end;
   end;
@@ -363,6 +360,8 @@ var curs : TIBCursor;
 
 begin
   curs := TIBCursor.create;
+  curs.sqlda := nil;
+  curs.statement := nil;
   AllocSQLDA(curs,10);
   result := curs;
 end;
@@ -426,13 +425,7 @@ begin
   {$R-}
   with cursor as TIBCursor do
     for x := 0 to SQLDA^.SQLD - 1 do
-      begin
-      if SQLDA^.SQLVar[x].SQLData <> nil then
-        begin
-        FreeMem(SQLDA^.SQLVar[x].SQLData);
-        SQLDA^.SQLVar[x].SQLData := nil;
-        end;
-      end;
+      if SQLDA^.SQLVar[x].SQLData <> nil then reAllocMem(SQLDA^.SQLVar[x].SQLData,0);
   {$R+}
 end;
 
@@ -446,7 +439,7 @@ begin
       CheckError('Execute', Status);
 end;
 
-procedure TIBConnection.AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs);
+procedure TIBConnection.AddFieldDefs(cursor: TSQLHandle;FieldDefs : TfieldDefs);
 var
   x         : integer;
   lenset    : boolean;
@@ -459,27 +452,28 @@ begin
     begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
-      TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, lenset,
-        TransType, TransLen);
+      TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
+       lenset, TransType, TransLen);
       TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
-        TransLen, False, (x + 1));
+        TransLen, False, (x + 1)).precision := SQLDA^.SQLVar[x].SQLLen
       end;
     end;
   {$R+}
 end;
 
-function TIBConnection.GetFieldSizes(cursor : TSQLHandle) : integer;
+{function TIBConnection.GetFieldSizes(cursor : TSQLHandle) : integer;
 var
   x,recsize : integer;
 begin
-  recsize := 0;
-  {$R-}
+  recsize := sizeof(longint); // size of the NullMask
   with cursor as TIBCursor do
     for x := 0 to SQLDA^.SQLD - 1 do
-      Inc(recsize, SQLDA^.SQLVar[x].SQLLen);
-  {$R+}
+      if (SQLDA^.SQLVar[x].SQLType and not 1) in [SQL_VARYING,SQL_TEXT] then
+        Inc(recsize, SQLDA^.SQLVar[x].SQLLen+1)
+      else
+        Inc(recsize, SQLDA^.SQLVar[x].SQLLen);
   result := recsize;
-end;
+end;}
 
 function TIBConnection.GetHandle: pointer;
 begin
@@ -499,65 +493,67 @@ begin
   Result := (retcode <> 100);
 end;
 
-procedure TIBConnection.LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar);
+function TIBConnection.LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean;
+
 var
   x          : integer;
   VarcharLen : word;
-begin
-  {$R-}
-  with cursor as TIBCursor do for x := 0 to SQLDA^.SQLD - 1 do
-    begin
-    with SQLDA^.SQLVar[x] do
-      begin
-      if ((SQLType and not 1) = SQL_VARYING) then
-        begin
-        Move(SQLData^, VarcharLen, 2);
-        Move((SQLData + 2)^, Buffer^, VarcharLen);
-        PChar(Buffer + VarcharLen)^ := #0;
-        end
-      else Move(SQLData^, Buffer^, SQLLen);
-      Inc(Buffer, SQLLen);
-      end;
-    end;
-  {$R+}
-end;
+  CurrBuff     : pchar;
+  b            : longint;
+  c            : currency;
 
-function TIBConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
-var
-  x : longint;
-  b : longint;
 begin
-  Result := False;
-
-  with cursor as TIBCursor do for x := 0 to SQLDA^.SQLD - 1 do
+  with cursor as TIBCursor do
     begin
-    {$R-}
-    if (Field.FieldName = SQLDA^.SQLVar[x].SQLName) then
+{$R-}
+    for x := 0 to SQLDA^.SQLD - 1 do
+      if SQLDA^.SQLVar[x].SQLName = FieldDef.Name then break;
+
+    if SQLDA^.SQLVar[x].SQLName <> FieldDef.Name then
+      DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
+
+    if SQLDA^.SQLVar[x].SQLInd^ = -1 then
+      result := false
+    else
       begin
-      case Field.DataType of
+      
+      with SQLDA^.SQLVar[x] do
+        if ((SQLType and not 1) = SQL_VARYING) then
+          begin
+          Move(SQLData^, VarcharLen, 2);
+          CurrBuff := SQLData + 2;
+          PChar(CurrBuff + Varcharlen)^ := #0;
+          end
+        else CurrBuff := SQLData;
+
+      Result := true;
+      case FieldDef.DataType of
+        ftBCD :
+          begin
+            c := 0;
+            Move(CurrBuff^, c, SQLDA^.SQLVar[x].SQLLen);
+            c := c*intpower(10,4+SQLDA^.SQLVar[x].SQLScale);
+            Move(c, buffer^ , sizeof(c));
+          end;
         ftInteger :
           begin
             b := 0;
             Move(b, Buffer^, 4);
-            Move(CurrBuff^, Buffer^, Field.Size);
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftDate, ftTime, ftDateTime:
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
         ftString  :
           begin
-            Move(CurrBuff^, Buffer^, Field.Size);
-            PChar(Buffer + Field.Size)^ := #0;
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            PChar(Buffer + SQLDA^.SQLVar[x].SQLLen)^ := #0;
           end;
         ftFloat   :
-          GetFloat(CurrBuff, Buffer, Field);
+          GetFloat(CurrBuff, Buffer, FieldDef)
+      else result := false;
       end;
-
-      Result := True;
-
-      Break;
-      end
-    else Inc(CurrBuff, SQLDA^.SQLVar[x].SQLLen);
-    {$R+}
+      end;
+{$R+}
     end;
 end;
 
@@ -575,6 +571,7 @@ begin
     SQL_TIMESTAMP :
       isc_decode_timestamp(PISC_TIMESTAMP(CurrBuff), @CTime);
   end;
+
   STime.Year        := CTime.tm_year + 1900;
   STime.Month       := CTime.tm_mon + 1;
   STime.Day         := CTime.tm_mday;
@@ -587,7 +584,7 @@ begin
   Move(PTime, Buffer^, SizeOf(PTime));
 end;
 
-procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TField);
+procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
 var
   Ext : extended;
   Dbl : double;
@@ -606,7 +603,7 @@ begin
     10:
       begin
         Move(CurrBuff^, Ext, 10);
-        Dbl := Ext;
+        Dbl := double(Ext);
       end;
   end;
   Move(Dbl, Buffer^, 8);
