@@ -1135,6 +1135,12 @@ begin
   { default on next round }
   def_symbol('FPC_USE_CPREFIX');
 {$endif FPC_USE_CPREFIX}
+{$ifdef cardinalmulfix}
+{ for the compiler }
+  def_symbol('CARDINALMULFIX');
+{ for the RTL }
+  def_symbol('CARDINALMULFIXED');
+{$endif cardinalmulfix}
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1332,7 +1338,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  1999-12-10 10:03:54  peter
+  Revision 1.42  1999-12-11 18:53:31  jonas
+    * fixed type conversions of results of operations with cardinals
+      (between -dcardinalmulfix)
+
+  Revision 1.41  1999/12/10 10:03:54  peter
     * fixed parameter orderning
 
   Revision 1.40  1999/12/08 10:40:01  pierre

@@ -544,9 +544,17 @@ implementation
               if (porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit) then
                begin
                  { convert constants to u32bit }
+{$ifndef cardinalmulfix}
                  if (porddef(ld)^.typ<>u32bit) then
                   begin
                     { s32bit will be used for when the other is also s32bit }
+
+  { the following line doesn't make any sense: it's the same as        }
+  {  if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) and   }
+  {      (porddef(ld)^.typ<>u32bit) and (porddef(rd)^.typ=s32bit) then }
+  { which can be simplified to                                         }
+  {  if ((porddef(rd)^.typ=u32bit) and (porddef(rd)^.typ=s32bit) then  }
+  { which can never be true (JM)                                       }
                     if (porddef(rd)^.typ=s32bit) and (lt<>ordconstn) then
                      p^.left:=gentypeconvnode(p^.left,s32bitdef)
                     else
@@ -562,6 +570,31 @@ implementation
                      p^.right:=gentypeconvnode(p^.right,u32bitdef);
                     firstpass(p^.right);
                   end;
+{$else cardinalmulfix}
+                 { only do a conversion if the nodes have different signs }
+                 if (porddef(rd)^.typ=u32bit) xor (porddef(ld)^.typ=u32bit) then
+                   if (porddef(rd)^.typ=u32bit) then
+                     begin
+                     { can we make them both unsigned? }
+                       if is_constintnode(p^.left) and
+                          ((p^.treetype <> subn) and
+                           (p^.left^.value > 0)) then
+                         p^.left:=gentypeconvnode(p^.left,u32bitdef)
+                       else
+                         p^.left:=gentypeconvnode(p^.left,s32bitdef);
+                       firstpass(p^.left);
+                     end
+                   else {if (porddef(ld)^.typ=u32bit) then}
+                     begin
+                     { can we make them both unsigned? }
+                       if is_constintnode(p^.right) and
+                          (p^.right^.value > 0) then
+                         p^.right:=gentypeconvnode(p^.right,u32bitdef)
+                       else
+                         p^.right:=gentypeconvnode(p^.right,s32bitdef);
+                       firstpass(p^.right);
+                     end;
+{$endif cardinalmulfix}
                  calcregisters(p,1,0,0);
                  { for unsigned mul we need an extra register }
 {                 p^.registers32:=p^.left^.registers32+p^.right^.registers32; }
@@ -1176,11 +1209,40 @@ implementation
                  begin
                  { for strings, return is always a 255 char string }
                    if is_shortstring(p^.left^.resulttype) then
-                    p^.resulttype:=cshortstringdef
+                     p^.resulttype:=cshortstringdef
                    else
                     p^.resulttype:=p^.left^.resulttype;
                  end;
               end;
+{$ifdef cardinalmulfix}
+            muln:
+  { if we multiply an unsigned with a signed number, the result is signed  }
+  { in the other cases, the result remains signed or unsigned depending on }
+  { the multiplication factors (JM)                                        }
+              if (p^.left^.resulttype^.deftype = orddef) and
+                 (p^.right^.resulttype^.deftype = orddef) and
+                 is_signed(p^.right^.resulttype) then
+                p^.resulttype := p^.right^.resulttype
+              else p^.resulttype := p^.left^.resulttype;
+(*
+            subn:
+ { if we substract a u32bit from a positive constant, the result becomes }
+ { s32bit as well (JM)                                                   }
+              begin
+                if (p^.right^.resulttype^.deftype = orddef) and
+                   (p^.left^.resulttype^.deftype = orddef) and
+                   (porddef(p^.right^.resulttype)^.typ = u32bit) and
+                   is_constintnode(p^.left) and
+{                   (porddef(p^.left^.resulttype)^.typ <> u32bit) and}
+                   (p^.left^.value > 0) then
+                  begin
+                    p^.left := gentypeconvnode(p^.left,u32bitdef);
+                    firstpass(p^.left);
+                  end;
+                p^.resulttype:=p^.left^.resulttype;
+              end;
+*)
+{$endif cardinalmulfix}
             else
               p^.resulttype:=p^.left^.resulttype;
          end;
@@ -1190,7 +1252,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-12-09 23:18:04  pierre
+  Revision 1.61  1999-12-11 18:53:31  jonas
+    * fixed type conversions of results of operations with cardinals
+      (between -dcardinalmulfix)
+
+  Revision 1.60  1999/12/09 23:18:04  pierre
    * no_fast_exit if procedure contains implicit termination code
 
   Revision 1.59  1999/12/01 12:42:33  peter

@@ -848,13 +848,18 @@ implementation
           do_normal:
                    mboverflow:=false;
                    cmpop:=false;
-                   if (p^.left^.resulttype^.deftype=pointerdef) or
-                      (p^.right^.resulttype^.deftype=pointerdef) or
-                      ((p^.left^.resulttype^.deftype=orddef) and
-                       (porddef(p^.left^.resulttype)^.typ=u32bit)) or
-                      ((p^.right^.resulttype^.deftype=orddef) and
-                       (porddef(p^.right^.resulttype)^.typ=u32bit)) then
-                     unsigned:=true;
+{$ifndef cardinalmulfix}
+                   unsigned :=
+                     (p^.left^.resulttype^.deftype=pointerdef) or
+                     (p^.right^.resulttype^.deftype=pointerdef) or
+                     ((p^.left^.resulttype^.deftype=orddef) and
+                      (porddef(p^.left^.resulttype)^.typ=u32bit)) or
+                     ((p^.right^.resulttype^.deftype=orddef) and
+                      (porddef(p^.right^.resulttype)^.typ=u32bit));
+{$else cardinalmulfix}
+                   unsigned := not(is_signed(p^.left^.resulttype)) or
+                               not(is_signed(p^.right^.resulttype));
+{$endif cardinalmulfix}
                    case p^.treetype of
                       addn : begin
                                if is_set then
@@ -2131,7 +2136,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-11-06 14:34:17  peter
+  Revision 1.83  1999-12-11 18:53:31  jonas
+    * fixed type conversions of results of operations with cardinals
+      (between -dcardinalmulfix)
+
+  Revision 1.82  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.81  1999/09/28 19:43:45  florian

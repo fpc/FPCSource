@@ -132,6 +132,31 @@ implementation
               firstpass(p^.left);
               firstpass(p^.right);
 
+{$ifdef cardinalmulfix}
+{ if we divide a u32bit by a positive constant, the result is also u32bit (JM) }
+              if (p^.left^.resulttype^.deftype = orddef) and
+                 (p^.left^.resulttype^.deftype = orddef) then
+                begin
+                  if (porddef(p^.left^.resulttype)^.typ = u32bit) and
+                     is_constintnode(p^.right) and
+{                     (porddef(p^.right^.resulttype)^.typ <> u32bit) and}
+                     (p^.right^.value > 0) then
+                    begin
+                      p^.right := gentypeconvnode(p^.right,u32bitdef);
+                      firstpass(p^.right);
+                    end;
+{ adjust also the left resulttype if necessary }
+                  if (porddef(p^.right^.resulttype)^.typ = u32bit) and
+                     is_constintnode(p^.left) and
+    {                 (porddef(p^.left^.resulttype)^.typ <> u32bit) and}
+                     (p^.left^.value > 0) then
+                    begin
+                      p^.left := gentypeconvnode(p^.left,u32bitdef);
+                      firstpass(p^.left);
+                    end;
+                end;
+{$endif cardinalmulfix}
+
               { the resulttype depends on the right side, because the left becomes }
               { always 64 bit                                                      }
               p^.resulttype:=p^.right^.resulttype;
@@ -422,7 +447,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-11-30 10:40:58  peter
+  Revision 1.26  1999-12-11 18:53:31  jonas
+    * fixed type conversions of results of operations with cardinals
+      (between -dcardinalmulfix)
+
+  Revision 1.25  1999/11/30 10:40:58  peter
     + ttype, tsymlist
 
   Revision 1.24  1999/11/26 13:51:29  pierre
