@@ -325,7 +325,7 @@ implementation
                      if isreal then
                       CGMessage(type_e_mismatch)
                      else
-                      hp:=genordinalconstnode((vl2 shl 16) or vl,voidpointerdef);
+                      hp:=genordinalconstnode((vl2 shl 4)+vl,voidfarpointerdef);
                    end;
                  in_const_sqrt :
                    begin
@@ -1495,7 +1495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-11-11 15:59:07  jonas
+  Revision 1.16  2000-11-11 16:18:35  peter
+    * ptr returns farpointer
+
+  Revision 1.15  2000/11/11 15:59:07  jonas
     * convert inc/dec to add/sub when range/overflow checking is on
 
   Revision 1.14  2000/11/09 17:46:54  florian
