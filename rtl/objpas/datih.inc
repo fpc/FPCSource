@@ -69,8 +69,6 @@ type
       Hour, Minute, Second, MilliSecond: word;
    end ;
 
-   TDateTime = double;
-
    TTimeStamp = record
       Time: integer;   { Number of milliseconds since midnight }
       Date: integer;   { One plus number of days since 1/1/0001 }
@@ -108,7 +106,10 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.3  2000-08-20 15:46:46  peter
+  Revision 1.4  2001-11-14 23:00:17  michael
+  + First working variant support
+
+  Revision 1.3  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 
 }

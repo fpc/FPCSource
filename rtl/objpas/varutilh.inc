@@ -13,10 +13,18 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+
  **********************************************************************}
-{$ifdef HASVARIANT}
+
 
 Type
+
+  EVarianterror = Class(Exception)
+    ErrCode : longint;
+    Constructor CreateCode(Code : Longint);
+  end;
+
+{$ifndef HASVARIANT}
 
   // Types needed to make this work. These should be moved to the system unit.
 
@@ -35,10 +43,6 @@ Type
   PWordBool           = ^WordBool;
   PByte               = ^Byte;
 
-  EVarianterror = Class(Exception)
-    ErrCode : longint;
-    Constructor CreateCode(Code : Longint);
-  end;
 
   TVarArrayBound = packed record
     ElementCount: Longint;
@@ -92,7 +96,9 @@ Type
   end;
   Variant = TVarData;
   PVariant = ^Variant;
+{$endif}
 
+{$ifdef hasvariant}
 { Variant functions }
 
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
@@ -128,12 +134,20 @@ function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;
 
 Function VariantToSmallInt(Const VargSrc : TVarData) : SmallInt;
 Function VariantToLongint(Const VargSrc : TVarData) : Longint;
+Function VariantToShortint(Const VargSrc : TVarData) : ShortInt;
+Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
 Function VariantToSingle(Const VargSrc : TVarData) : Single;
 Function VariantToDouble(Const VargSrc : TVarData) : Double;
 Function VariantToCurrency(Const VargSrc : TVarData) : Currency;
 Function VariantToDate(Const VargSrc : TVarData) : TDateTime;
 Function VariantToBoolean(Const VargSrc : TVarData) : Boolean;
 Function VariantToByte(Const VargSrc : TVarData) : Byte;
+Function VariantToInt64(Const VargSrc : TVarData ) : Int64;
+Function VariantToQWord(Const VargSrc : TVarData ) : Qword;
+
+{Debug routines }
+Procedure DumpVariant(Const VArgSrc : TVarData);
+Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
 
 
 // Names match the ones in Borland varutils unit.
@@ -162,7 +176,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2001-08-19 21:02:02  florian
+  Revision 1.3  2001-11-14 23:00:17  michael
+  + First working variant support
+
+  Revision 1.2  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 

@@ -63,6 +63,7 @@ begin
   With VargSrc do
     Case (VType and VarTypeMask) of
       VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
       VarInteger : Result:=VInteger;
       VarSingle  : Result:=Round(VSingle);
       VarDouble  : Result:=Round(VDouble);
@@ -71,6 +72,34 @@ begin
       VarOleStr  : NoWideStrings;
       VarBoolean : Result:=SmallInt(VBoolean);
       VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
+  else
+    VariantTypeMismatch;
+  end;
+end;
+
+Function VariantToShortInt(Const VargSrc : TVarData) : ShortInt;
+
+begin
+  With VargSrc do
+    Case (VType and VarTypeMask) of
+      VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
+      VarInteger : Result:=VInteger;
+      VarSingle  : Result:=Round(VSingle);
+      VarDouble  : Result:=Round(VDouble);
+      VarCurrency: Result:=Round(VCurrency);
+      VarDate    : Result:=Round(VDate);
+      VarOleStr  : NoWideStrings;
+      VarBoolean : Result:=SmallInt(VBoolean);
+      VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
   else
     VariantTypeMismatch;
   end;
@@ -82,6 +111,7 @@ begin
   With VargSrc do
     Case (VType and VarTypeMask) of
       VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
       VarInteger : Result:=VInteger;
       VarSingle  : Result:=Round(VSingle);
       VarDouble  : Result:=Round(VDouble);
@@ -90,6 +120,34 @@ begin
       VarOleStr  : NoWideStrings;
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
+  else
+    VariantTypeMismatch;
+  end;
+end;
+
+Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
+
+begin
+  With VargSrc do
+    Case (VType and VarTypeMask) of
+      VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
+      VarInteger : Result:=VInteger;
+      VarSingle  : Result:=Round(VSingle);
+      VarDouble  : Result:=Round(VDouble);
+      VarCurrency: Result:=Round(VCurrency);
+      VarDate    : Result:=Round(VDate);
+      VarOleStr  : NoWideStrings;
+      VarBoolean : Result:=Longint(VBoolean);
+      VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
   else
     VariantTypeMismatch;
   end;
@@ -101,6 +159,7 @@ begin
   With VargSrc do
     Case (VType and VarTypeMask) of
       VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
       VarInteger : Result:=VInteger;
       VarSingle  : Result:=VSingle;
       VarDouble  : Result:=VDouble;
@@ -109,6 +168,10 @@ begin
       VarOleStr  : NoWideStrings;
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
   else
     VariantTypeMismatch;
   end;
@@ -120,6 +183,7 @@ begin
   With VargSrc do
     Case (VType and VarTypeMask)  of
       VarSmallInt: Result:=VSmallInt;
+      VarShortInt: Result:=VShortInt;
       VarInteger : Result:=VInteger;
       VarSingle  : Result:=VSingle;
       VarDouble  : Result:=VDouble;
@@ -128,6 +192,10 @@ begin
       VarOleStr  : NoWideStrings;
       VarBoolean : Result:=Longint(VBoolean);
       VarByte    : Result:=VByte;
+      VarWord    : Result:=VWord;
+      VarLongWord   : Result:=VLongWord;
+      VarInt64   : Result:=VInt64;
+      VarQword   : Result:=VQWord;
   else
     VariantTypeMismatch;
   end;
@@ -140,6 +208,7 @@ begin
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=FloatToCurr(VSingle);
         VarDouble  : Result:=FloatToCurr(VDouble);
@@ -148,6 +217,10 @@ begin
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
     else
       VariantTypeMismatch;
     end;
@@ -159,6 +232,7 @@ begin
   end;
 end;
 
+
 Function VariantToDate(Const VargSrc : TVarData) : TDateTime;
 
 begin
@@ -166,6 +240,7 @@ begin
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=FloatToDateTime(VSmallInt);
+        VarShortInt: Result:=FloatToDateTime(VShortInt);
         VarInteger : Result:=FloatToDateTime(VInteger);
         VarSingle  : Result:=FloatToDateTime(VSingle);
         VarDouble  : Result:=FloatToDateTime(VDouble);
@@ -174,6 +249,10 @@ begin
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=FloatToDateTime(Longint(VBoolean));
         VarByte    : Result:=FloatToDateTime(VByte);
+        VarWord    : Result:=FloatToDateTime(VWord);
+        VarLongWord    : Result:=FloatToDateTime(VLongWord);
+        VarInt64   : Result:=FloatToDateTime(VInt64);
+        VarQWord   : Result:=FloatToDateTime(VQword);
     else
       VariantTypeMismatch;
     end;
@@ -191,6 +270,7 @@ begin
   With VargSrc do
     Case (VType and VarTypeMask) of
       VarSmallInt: Result:=VSmallInt<>0;
+      VarShortInt: Result:=VShortInt<>0;
       VarInteger : Result:=VInteger<>0;
       VarSingle  : Result:=VSingle<>0;
       VarDouble  : Result:=VDouble<>0;
@@ -199,6 +279,10 @@ begin
       VarOleStr  : NoWideStrings;
       VarBoolean : Result:=VBoolean;
       VarByte    : Result:=VByte<>0;
+      VarWord    : Result:=VWord<>0;
+      VarLongWord   : Result:=VLongWord<>0;
+      VarInt64   : Result:=Vint64<>0;
+      VarQword   : Result:=VQWord<>0;
   else
     VariantTypeMismatch;
   end;
@@ -211,6 +295,7 @@ begin
     With VargSrc do
       Case (VType and VarTypeMask) of
         VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
         VarInteger : Result:=VInteger;
         VarSingle  : Result:=Round(VSingle);
         VarDouble  : Result:=Round(VDouble);
@@ -219,6 +304,72 @@ begin
         VarOleStr  : NoWideStrings;
         VarBoolean : Result:=Longint(VBoolean);
         VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=Vint64;
+        VarQword   : Result:=VQWord;
+    else
+      VariantTypeMismatch;
+    end;
+  except
+    On EConvertError do
+      VariantTypeMismatch;
+    else
+      Raise;
+  end;
+end;
+
+Function VariantToInt64(Const VargSrc : TVarData) : Int64;
+
+begin
+  Try
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt: Result:=VSmallInt;
+        VarShortInt: Result:=VShortInt;
+        VarInteger : Result:=VInteger;
+        VarSingle  : Result:=FloatToCurr(VSingle);
+        VarDouble  : Result:=FloatToCurr(VDouble);
+        VarCurrency: Result:=VCurrency;
+        VarDate    : Result:=FloatToCurr(VDate);
+        VarOleStr  : NoWideStrings;
+        VarBoolean : Result:=Longint(VBoolean);
+        VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
+    else
+      VariantTypeMismatch;
+    end;
+  except
+    On EConvertError do
+      VariantTypeMismatch;
+    else
+      Raise;
+  end;
+end;
+
+Function VariantToQWord(Const VargSrc : TVarData) : QWord;
+
+begin
+  Try
+    With VargSrc do
+      Case (VType and VarTypeMask) of
+        VarSmallInt: Result:=VSmallint;
+        VarShortInt: Result:=VShortInt;
+        VarInteger : Result:=VInteger;
+        VarSingle  : Result:=FloatToCurr(VSingle);
+        VarDouble  : Result:=FloatToCurr(VDouble);
+        VarCurrency: Result:=VCurrency;
+        VarDate    : Result:=FloatToCurr(VDate);
+        VarOleStr  : NoWideStrings;
+        VarBoolean : Result:=Longint(VBoolean);
+        VarByte    : Result:=VByte;
+        VarWord    : Result:=VWord;
+        VarLongWord   : Result:=VLongWord;
+        VarInt64   : Result:=VInt64;
+        VarQword   : Result:=VQWord;
     else
       VariantTypeMismatch;
     end;
@@ -233,7 +384,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.2  2001-08-19 21:02:02  florian
+  Revision 1.3  2001-11-14 23:00:17  michael
+  + First working variant support
+
+  Revision 1.2  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 

@@ -63,48 +63,55 @@ procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
 operator :=(const source : byte) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,1);
 end;
 
 
 operator :=(const source : shortint) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,-1);
 end;
 
 
 operator :=(const source : word) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,2);
 end;
 
 
 operator :=(const source : smallint) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,-2);
 end;
 
 
 operator :=(const source : dword) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,4);
 end;
 
 
 operator :=(const source : longint) dest : variant;
 
 begin
-  Variantmanager.varfromInt(Dest,Source);
+//  Variant_Init(Dest);
+  Variantmanager.varfromInt(Dest,Source,-4);
 end;
 
 
 operator :=(const source : qword) dest : variant;
 
 begin
+  Variant_Init(Dest);
   Variantmanager.varfromWord64(Dest,Source);
 end;
 
@@ -112,6 +119,7 @@ end;
 operator :=(const source : int64) dest : variant;
 
 begin
+  Variant_Init(Dest);
   Variantmanager.varfromInt64(Dest,Source);
 end;
 
@@ -120,6 +128,7 @@ end;
 operator :=(const source : boolean) dest : variant;
 
 begin
+  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Source);
 end;
 
@@ -127,6 +136,7 @@ end;
 operator :=(const source : wordbool) dest : variant;
 
 begin
+  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
@@ -134,6 +144,7 @@ end;
 operator :=(const source : longbool) dest : variant;
 
 begin
+  Variant_Init(Dest);
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
@@ -143,6 +154,7 @@ end;
 operator :=(const source : char) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
@@ -150,6 +162,7 @@ end;
 operator :=(const source : widechar) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromWStr(Dest,Source);
 end;
 
@@ -158,6 +171,7 @@ end;
 operator :=(const source : shortstring) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
@@ -165,6 +179,7 @@ end;
 operator :=(const source : ansistring) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromLStr(Dest,Source);
 end;
 
@@ -172,6 +187,7 @@ end;
 operator :=(const source : widestring) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromWStr(Dest,Source);
 end;
 
@@ -180,6 +196,7 @@ end;
 operator :=(const source : single) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 
@@ -187,6 +204,7 @@ end;
 operator :=(const source : double) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 
@@ -194,12 +212,14 @@ end;
 operator :=(const source : extended) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 
 Operator :=(const source : comp) dest : variant;
 
 begin
+  Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
 
@@ -437,7 +457,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.3  2001-11-08 20:59:10  michael
+  Revision 1.4  2001-11-14 23:00:16  michael
+  + First working variant support
+
+  Revision 1.3  2001/11/08 20:59:10  michael
   + System unit implementation of variants
 
   Revision 1.2  2001/11/08 16:17:30  florian

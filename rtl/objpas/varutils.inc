@@ -47,14 +47,17 @@ end;
 function VariantClear(var Varg: TVarData): HRESULT;stdcall;
 begin
   With Varg do
-    if (VType and varArray) <> 0 then
+    if (VType and varArray)=varArray then
+      begin
       Exit(SafeArrayDestroy(VArray))
+      end
     else
       begin
       if (VType and varByRef) = 0 then
         case VType of
           varEmpty, varNull, varSmallint, varInteger, varSingle, varDouble,
-          varCurrency, varDate, varError, varBoolean, varByte:;
+          varCurrency, varDate, varError, varBoolean, varByte,VarShortInt,
+          varInt64, VarLongWord,VarQWord:;
           varOleStr:
             NoWideStrings;
           varDispatch,
@@ -86,7 +89,8 @@ begin
         case (VType and varTypeMask) of
           varEmpty, varNull:;
           varSmallint, varInteger, varSingle, varDouble, varCurrency,
-          varDate, varError, varBoolean, varByte:
+          varDate, varError, varBoolean, varByte,VarShortInt,
+          varInt64, VarLongWord,VarQWord:
             Move(VBytes, VargDest.VBytes, SizeOf(VargDest.VBytes));
           varOleStr:
             NoWideStrings; // We should copy here...
@@ -121,8 +125,11 @@ begin
       varBoolean  : VargDest.VBoolean:=PWordBool(VPointer)^;
       varError    : VargDest.VError:=PError(VPointer)^;
       varByte     : VargDest.VByte:=PByte(VPointer)^;
-      varVariant  : // Variant(VargDest):=PVariant(VPointer)^
-        ;
+      VarShortInt : VargDest.VShortInt:=PShortInt(VPointer)^;
+      VarInt64    : VargDest.VInt64:=PInt64(VPointer)^;
+      VarLongWord : VargDest.VLongWord:=PCardinal(VPointer)^;
+      VarQWord    : VargDest.VQWord:=PQWord(VPointer)^;
+      varVariant  : Variant(VargDest):=Variant(PVarData(VPointer)^);
       varOleStr   : NoWideStrings;
       varDispatch,
       varUnknown  : NoInterfaces;
@@ -165,6 +172,10 @@ begin
           varUnknown  : Result:=VAR_TYPEMISMATCH;
           varBoolean  : VargDest.VBoolean:=VariantToBoolean(Tmp);
           varByte     : VargDest.VByte:=VariantToByte(Tmp);
+          VarShortInt : VargDest.VShortInt:=VariantToShortInt(Tmp);
+          VarInt64    : VargDest.Vint64:=VariantToInt64(Tmp);
+          VarLongWord : VargDest.VLongWord:=VariantToCardinal(Tmp);
+          VarQWord    : VargDest.VQWord:=VariantToQword(tmp);
        else
           Result:=VAR_BADVARTYPE;
        end;
@@ -686,10 +697,125 @@ begin
     Result:=psa^.ElementSize;
 end;
 
+{ ---------------------------------------------------------------------
+    Some debug routines
+  ---------------------------------------------------------------------}
+  
+
+Procedure DumpVariant(Const VArgSrc : TVarData);
+
+begin
+  DumpVariant(Output,VArgSrc);
+end;
+
+(*
+   tvardata = packed record
+      vtype : tvartype;
+      case integer of
+         0:(res1 : word;
+            case integer of
+               0:
+                 (res2,res3 : word;
+                  case word of
+                     varsmallint : (vsmallint : smallint);
+                     varinteger : (vinteger : longint);
+                     varsingle : (vsingle : single);
+                     vardouble : (vdouble : double);
+                     varcurrency : (vcurrency : currency);
+                     vardate : (vdate : tdatetime);
+                     varolestr : (volestr : pwidechar);
+                     vardispatch : (vdispatch : pointer);
+                     varerror : (verror : dword);
+                     varboolean : (vboolean : wordbool);
+                     varunknown : (vunknown : pointer);
+                     // vardecimal : ( : );
+                     varshortint : (vshortint : shortint);
+                     varbyte : (vbyte : byte);
+                     varword : (vword : word);
+                     varlongword : (vlongword : dword);
+                     varint64 : (vint64 : int64);
+                     varqword : (vqword : qword);
+                     varword64 : (vword64 : qword);
+                     varstring : (vstring : pointer);
+                     varany :  (vany : pointer);
+                     vararray : (varray : pvararray);
+                     varbyref : (vpointer : pointer);
+                 );
+               1:
+                 (vlongs : array[0..2] of longint);
+           );
+         1:(vwords : array[0..6] of word);
+         2:(vbytes : array[0..13] of byte);
+      end;
+
+*)
+
+Const 
+
+  VarTypeStrings : Array [varEmpty..varqword] of string = (
+  'empty',  'null',  'smallint',  'integer',  'single',  'double',
+  'currency',  'date',  'olestr',  'dispatch',  'error',  'boolean',
+  'variant',  'unknown',  'unknown','decimal',  'shortint',  'byte',  'word',
+  'longword',  'int64',  'qword');
+
+
+Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
+
+begin
+  If VArgSrc.vType in [varEmpty..varqword] then
+    Writeln(F,'Variant has type : ',VarTypeStrings[VArgSrc.vType])
+  else if (VArgSrc.vType=VarArray) Then
+    begin
+    Write(F,'Variant is array.');
+    exit;
+    end
+  else if (VargSrc.vType=VarByRef) then
+    begin
+    Writeln(F,'Variant is by reference.');
+    exit;
+    end
+  else
+    begin
+    Writeln(F,'Variant has unknown type: ', VargSrc.vType);
+    Exit;
+    end;
+  If VArgSrc.vType<>varEmpty then  
+    With VArgSrc do
+      begin
+      Write(F,'Value is: ') ;
+      Case vtype of 
+        varnull : Write(F,'Null');
+        varsmallint : Write(F,vsmallint);
+        varinteger : Write(F,vinteger);
+        varsingle : Write(F,vsingle);
+        vardouble : Write(F,vdouble);
+        varcurrency : Write(F,vcurrency) ;
+        vardate : Write(F,vdate) ;
+        varolestr : Write(F,'Not supported') ;
+        vardispatch : Write(F,'Not suppordted') ;
+        varerror : Write(F,'Error') ;
+        varboolean : Write(F,vboolean) ;
+        varvariant : Write(F,'Unsupported') ;
+        varunknown : Write(F,'Unsupported') ;
+        vardecimal : Write(F,'Unsupported') ;
+        varshortint : Write(F,vshortint) ;
+        varbyte : Write(F,vbyte) ;
+        varword : Write(F,vword) ;
+        varlongword : Write(F,vlongword) ;
+        varint64 : Write(F,vint64) ;
+        varqword : Write(F,vqword) ;
+      end;
+      Writeln(f); 
+      end;
+end;
+
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.4  2001-08-19 21:02:02  florian
+  Revision 1.5  2001-11-14 23:00:17  michael
+  + First working variant support
+
+  Revision 1.4  2001/08/19 21:02:02  florian
     * fixed and added a lot of stuff to get the Jedi DX( headers
       compiled
 

@@ -110,7 +110,8 @@ type
          1:(vwords : array[0..6] of word);
          2:(vbytes : array[0..13] of byte);
       end;
-
+   pvardata = ^tvardata;
+   
    pcalldesc = ^tcalldesc;
    tcalldesc = packed record
       calltype,argcount,namedargcount : byte;
@@ -141,7 +142,7 @@ type
          typeinfo : pointer);
 
       varfrombool : procedure(var dest : variant;const source : Boolean);
-      varfromint : procedure(var dest : variant;const source : longint);
+      varfromint : procedure(var dest : variant;const source,Range : longint);
       varfromint64 : procedure(var dest : variant;const source : int64);
       varfromword64 : procedure(var dest : variant;const source : qword);
       varfromreal : procedure(var dest : variant;const source : extended);
@@ -255,7 +256,10 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.3  2001-11-08 20:59:10  michael
+  Revision 1.4  2001-11-14 23:00:17  michael
+  + First working variant support
+
+  Revision 1.3  2001/11/08 20:59:10  michael
   + System unit implementation of variants
 
   Revision 1.2  2001/11/08 16:17:30  florian
