@@ -936,7 +936,7 @@ implementation
         t : tsuperregister;
         n,o : cardinal;
         decrement : boolean;
-    
+
     label l1;
 
     begin
@@ -1410,7 +1410,8 @@ implementation
                 while assigned(p) and
                       assigned(p.previous) and
                       (tai(p.previous).typ=ait_regalloc) and
-                      tai_regalloc(p.previous).allocation do
+                      tai_regalloc(p.previous).allocation and
+                      (tai_regalloc(p.previous).reg<>r) do
                   p:=tai(p.previous);
                 list.insertbefore(Tai_regalloc.dealloc(r),p);
               end
@@ -1672,7 +1673,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-12-16 09:41:44  daniel
+  Revision 1.105  2003-12-17 21:59:05  peter
+    * don't insert dealloc before alloc of the same register
+
+  Revision 1.104  2003/12/16 09:41:44  daniel
     * Automatic conversion from integer constants to pointer constants is no
       longer done except in Delphi mode
 
