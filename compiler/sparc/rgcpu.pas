@@ -38,7 +38,6 @@ interface
       trgcpu=class(trgobj)
         function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
         procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
-        procedure ClearTempGen;override;
       end;
 
 
@@ -103,19 +102,13 @@ implementation
         list.concat(tai_regalloc.dealloc(reg));
       end;
 
-
-    procedure trgcpu.cleartempgen;
-      begin
-        inherited cleartempgen;
-      end;
-
-begin
-  { Only use %o and %l }
-  rg := trgcpu.create(16);
 end.
 {
   $Log$
-  Revision 1.17  2003-09-03 15:55:01  peter
+  Revision 1.18  2003-09-14 19:19:05  peter
+    * updates for new ra
+
+  Revision 1.17  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.16.2.2  2003/09/02 17:49:17  peter

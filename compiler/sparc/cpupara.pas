@@ -36,9 +36,7 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
-        procedure freeintparaloc(list: taasmoutput; nr : longint); override;
-        {Creates location information related to the parameter of the function}
+        function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
         procedure allocparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure freeparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);override;
@@ -81,7 +79,7 @@ implementation
       end;
 
 
-    function TSparcParaManager.GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;
+    function TSparcParaManager.GetIntParaLoc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
         if nr<1 then
           InternalError(2002100806);
@@ -94,7 +92,6 @@ implementation
             begin
               loc:=LOC_REGISTER;
               register:=newreg(R_INTREGISTER,(RS_O0+nr),R_SUBWHOLE);
-              rg.getexplicitregisterint(list,register);
             end
            else
            { The other parameters are passed on the stack }
@@ -105,23 +102,6 @@ implementation
             end;
            size:=OS_INT;
          end;
-      end;
-
-
-    procedure tsparcparamanager.freeintparaloc(list: taasmoutput; nr : longint);
-
-      var
-        hreg : tregister;
-
-      begin
-        if nr<1 then
-          internalerror(2003060401);
-        Dec(nr);
-        if nr<6 then
-          begin
-            hreg:=newreg(R_INTREGISTER,RS_O0+nr,R_SUBWHOLE);
-            rg.ungetregisterint(list,hreg);
-          end;
       end;
 
 
@@ -291,7 +271,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-09-03 15:55:01  peter
+  Revision 1.29  2003-09-14 19:19:05  peter
+    * updates for new ra
+
+  Revision 1.28  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.27.2.1  2003/08/31 21:08:16  peter

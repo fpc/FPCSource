@@ -37,6 +37,8 @@ interface
       protected
         function IsSimpleRef(const ref:treference):boolean;
      public
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
         { sparc special, needed by cg64 }
         procedure handle_load_store(list:taasmoutput;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:taasmoutput;op:Tasmop;src:tregister;a:aword;dst:tregister);
@@ -217,6 +219,21 @@ implementation
 {****************************************************************************
                               Assembler code
 ****************************************************************************}
+
+    procedure Tcgsparc.init_register_allocators;
+      begin
+        rg:=Trgcpu.create(15,chr(RS_O0)+chr(RS_O1)+chr(RS_O2)+chr(RS_O3)+
+                             chr(RS_O4)+chr(RS_O5)+chr(RS_O7)+
+                             chr(RS_L0)+chr(RS_L1)+chr(RS_L2)+chr(RS_L3)+
+                             chr(RS_L4)+chr(RS_L5)+chr(RS_L6)+chr(RS_L7));
+      end;
+
+
+    procedure Tcgsparc.done_register_allocators;
+      begin
+        rg.free;
+      end;
+
 
     function TCgSparc.reg_cgsize(const reg:tregister):tcgsize;
       begin
@@ -1090,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-09-03 15:55:01  peter
+  Revision 1.67  2003-09-14 19:19:04  peter
+    * updates for new ra
+
+  Revision 1.66  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.65.2.1  2003/09/01 21:02:55  peter

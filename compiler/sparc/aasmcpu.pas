@@ -218,7 +218,13 @@ implementation
 
     function taicpu.is_nop:boolean;
       begin
-        result:=(opcode=A_NOP);
+        { Note: This should not check for A_NOP, because that is
+          used for the delay slots }
+        result:=(opcode=A_MOV) and
+                (ops=2) and
+                (oper[0].typ=top_reg) and
+                (oper[1].typ=top_reg) and
+                (oper[0].reg=oper[1].reg);
       end;
 
 
@@ -291,7 +297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-09-03 15:55:01  peter
+  Revision 1.33  2003-09-14 19:19:04  peter
+    * updates for new ra
+
+  Revision 1.32  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.31.2.1  2003/08/31 21:08:16  peter

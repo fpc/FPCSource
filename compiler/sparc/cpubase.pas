@@ -73,8 +73,8 @@ uses
 
       { Integer Super registers first and last }
 {$warning Supreg shall be $00-$1f}
-      first_int_supreg = RS_O0;
-      last_int_supreg = RS_L7;
+      first_int_supreg = $00;
+      last_int_supreg = $1f;
 
       first_int_imreg = $20;
       last_int_imreg = $fe;
@@ -626,7 +626,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-09-03 16:29:37  peter
+  Revision 1.50  2003-09-14 19:19:05  peter
+    * updates for new ra
+
+  Revision 1.49  2003/09/03 16:29:37  peter
     * superregisters also from .dat file
 
   Revision 1.48  2003/09/03 15:55:01  peter
