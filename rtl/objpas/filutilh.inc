@@ -58,9 +58,13 @@ Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 Function FileSearch (Const Name, DirList : String) : String;
 
+
 {
   $Log$
-  Revision 1.1  1998-10-11 12:21:01  michael
+  Revision 1.2  1998-10-11 13:47:45  michael
+  + Added disk functions
+
+  Revision 1.1  1998/10/11 12:21:01  michael
   Added file calls. Implemented for linux only
 
 }
