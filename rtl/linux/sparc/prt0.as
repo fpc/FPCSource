@@ -19,9 +19,6 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include <sysdep.h>
-
-
 	.section ".text"
 	.align 4
 	.global _start
@@ -55,6 +52,18 @@ _start:
   /* Call the user program entry point.  */
   call	PASCALMAIN
   nop
+  
+  .globl  _haltproc
+  .type   _haltproc,@function
+_haltproc:
+	mov	1, %g1			/* "exit" system call */
+  sethi	%hi(U_SYSTEM_EXITCODE),%o0
+	or	%o0,%lo(U_SYSTEM_EXITCODE),%o0
+	ld	[%o0], %o0			/* give exit status to parent process*/
+	ta	0x10			/* dot the system call */
+  nop				/* delay slot */
+/* and what if it goes wrong? just retry! */
+  call	_haltproc
 
   /* Die very horribly if exit returns.  */
 	unimp
@@ -62,7 +71,10 @@ _start:
 	.size _start, .-_start
 
 # $Log$
-# Revision 1.4  2003-06-02 22:03:37  mazen
+# Revision 1.5  2004-03-16 10:19:11  mazen
+# + _haltproc definition for linux/sparc
+#
+# Revision 1.4  2003/06/02 22:03:37  mazen
 # *making init and fini symbols compatible FPC code by
 #  changing  _init ==> fpc_initialize
 #  and _fini ==> fpc_finalize
