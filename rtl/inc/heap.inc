@@ -570,6 +570,10 @@ begin
          before_heapend_block := pcurr;
        break;
      end;
+    { the size of this block can never be 0. when it is 0 we'll get in
+      an infinite loop, so we throw a RTE instead (PFV) }
+    if (hp^.size and sizemask)=0 then
+      HandleError(204);
     { get next block }
     hp:=pfreerecord(pointer(hp)+(hp^.size and sizemask));
     { when we're at heapptr then we can stop and set heapptr to pcurr }
@@ -1330,7 +1334,11 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-01-29 22:45:25  jonas
+  Revision 1.27  2004-03-15 20:42:39  peter
+    * exit with rte 204 instead of looping infinite when a heap record
+      size is overwritten with 0
+
+  Revision 1.26  2004/01/29 22:45:25  jonas
     * improved beforeheapend inheritance (remove flag again when possible,
       sometimes resulting in more opportunities for TryConcatFreeRecord)
 
