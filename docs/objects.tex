@@ -980,28 +980,115 @@ In case of an error, \var{Status} is set to \var{StWriteError}, and
 \end{procedure}
 
 \section{TMemoryStream}
-\section{se:TMemoryStream}
+\label{se:TMemoryStream}
 
+The \var{TMemoryStream} object implements a stream that stores it's data
+in memory. The data is stored on the heap, with the possibility to specify
+the maximum amout of data, and the the size of the memory blocks being used.
+ 
 \begin{verbatim}
 TYPE
    TMemoryStream = OBJECT (TStream)
-         BlkCount: Sw_Word;                           { Number of segments }
-         BlkSize : Word;                              { Memory block size }
-         MemSize : LongInt;                           { Memory alloc size }
-         BlkList : PPointerArray;                     { Memory block list }
+         BlkCount: Sw_Word;       { Number of segments }
+         BlkSize : Word;          { Memory block size  }
+         MemSize : LongInt;       { Memory alloc size  }
+         BlkList : PPointerArray; { Memory block list  }
       CONSTRUCTOR Init (ALimit: Longint; ABlockSize: Word);
       DESTRUCTOR Done;                                               Virtual;
       PROCEDURE Truncate;                                            Virtual;
       PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
       PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
-      PRIVATE
-      FUNCTION ChangeListSize (ALimit: Sw_Word): Boolean;
    END;
    PMemoryStream = ^TMemoryStream;
 \end{verbatim}
 
+\begin{procedure}{TMemoryStream.Init}
+\Declaration
+Constructor TMemoryStream.Init (ALimit: Longint; ABlockSize: Word);
+\Description
+\var{Init} instantiates a new \var{TMemoryStream} object. The
+memorystreamobject will initially allocate at least \var{ALimit} bytes memory, 
+divided into memory blocks of size \var{ABlockSize}. 
+The number of blocks needed to get to \var{ALimit} bytes is rounded up.
+
+By default, the number of blocks is 1, and the size of a block is 8192. This
+is selected if you specify 0 as the blocksize.
+\Errors
+If the stream cannot allocate the initial memory needed for the memory blocks, then
+the stream's status is set to \var{stInitError}.
+\SeeAlso
+\seepl{Done}{TMemoryStream.Done}
+\end{procedure}
+
+\begin{procedure}{TMemoryStream.Done}
+\Declaration
+Destructor TMemoryStream.Done; Virtual;
+\Description
+\var{Done} releases the memory blocks used by the stream, and then cleans up
+the memory used by the stream object itself.
+\Errors
+None.
+\SeeAlso
+\seepl{Init}{TMemoryStream.Init}
+\end{procedure}
+
+\begin{procedure}{TMemoryStream.Truncate}
+\Declaration
+Procedure TMemoryStream.Truncate; Virtual;
+\Description
+\var{Truncate} sets the size of the memory stream equal to the current
+position. It de-allocates any memory-blocks that are no longer needed, so
+that the new size of the stream is the current position in the stream,
+rounded up to the first multiple of the stream blocksize.
+\Errors 
+If an error occurs during memory de-allocation, the stream's status is set
+to \var{stError}
+\SeeAlso
+\seep{TStream.Truncate}
+\end{procedure}
+
+\begin{procedure}{TMemoryStream.Read}
+\Declaration
+Procedure Read (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+\var{Read} reads \var{Count} bytes from the stream to \var{Buf}. It updates
+the position of the stream.
+\Errors
+If there is not enough data available, no data is read, and the stream's
+status is set to \var{stReadError}.
+\SeeAlso
+\var{TStream.Read}, \seepl{Write}{TMemoryStream.Write}
+\end{procedure}
+
+\begin{procedure}{TMemoryStream.Write}
+\Declaration
+Procedure Write (Var Buf; Count: Sw\_Word); Virtual;
+\Description
+\var{Write} copies \var{Count} bytes from \var{Buf} to the stream. It
+updates the position of the stream. 
+
+If not enough memory is available to hold the extra \var{Count} bytes, 
+then the stream will try to expand, by allocating as much blocks with 
+size \var{BlkSize} (as specified in the constuctor call
+\seepl{Init}{TMemoryStream.Init}) as needed. 
+\Errors
+If the stream cannot allocate more memory, then the status is set to
+\var{stWriteError}
+\SeeAlso
+\seep{TStream.Write}, \seepl{Read}{TMemoryStream.Read}
+\end{procedure}
+
 \section{TCollection}
 \label{se:TCollection}
+
+The \var{TCollection} object manages a collection of pointers or objects. 
+It also provides a series of methods to manipulate these pointers or 
+objects.
+
+Whether or not objects are used depends on the kind of calls you use.
+ALl kinds come in 2 flavors, one for objects, one for pointers.
+
+This is the full declaration of the \var{TCollection} object:
 
 \begin{verbatim}
 TYPE
@@ -1013,33 +1100,372 @@ TYPE
          Count: Sw_Integer; { Item count }
          Limit: Sw_Integer; { Item limit count }
          Delta: Sw_Integer; { Inc delta size }
-      CONSTRUCTOR Init (ALimit, ADelta: Sw_Integer);
-      CONSTRUCTOR Load (Var S: TStream);
-      DESTRUCTOR Done; Virtual;
-      FUNCTION At (Index: Sw_Integer): Pointer;
-      FUNCTION IndexOf (Item: Pointer): Sw_Integer; Virtual;
-      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
-      FUNCTION LastThat (Test: Pointer): Pointer;
-      FUNCTION FirstThat (Test: Pointer): Pointer;
-      PROCEDURE Pack;
-      PROCEDURE FreeAll;
-      PROCEDURE DeleteAll;
-      PROCEDURE Free (Item: Pointer);
-      PROCEDURE Insert (Item: Pointer); Virtual;
-      PROCEDURE Delete (Item: Pointer);
-      PROCEDURE AtFree (Index: Sw_Integer);
-      PROCEDURE FreeItem (Item: Pointer); Virtual;
-      PROCEDURE AtDelete (Index: Sw_Integer);
-      PROCEDURE ForEach (Action: Pointer);
-      PROCEDURE SetLimit (ALimit: Sw_Integer); Virtual;
-      PROCEDURE Error (Code, Info: Integer); Virtual;
-      PROCEDURE AtPut (Index: Sw_Integer; Item: Pointer);
-      PROCEDURE AtInsert (Index: Sw_Integer; Item: Pointer);
-      PROCEDURE Store (Var S: TStream);
-      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+      Constructor Init (ALimit, ADelta: Sw_Integer);
+      Constructor Load (Var S: TStream);
+      Destructor Done; Virtual;
+      Function At (Index: Sw_Integer): Pointer;
+      Function IndexOf (Item: Pointer): Sw_Integer; Virtual;
+      Function GetItem (Var S: TStream): Pointer; Virtual;
+      Function LastThat (Test: Pointer): Pointer;
+      Function FirstThat (Test: Pointer): Pointer;
+      Procedure Pack;
+      Procedure FreeAll;
+      Procedure DeleteAll;
+      Procedure Free (Item: Pointer);
+      Procedure Insert (Item: Pointer); Virtual;
+      Procedure Delete (Item: Pointer);
+      Procedure AtFree (Index: Sw_Integer);
+      Procedure FreeItem (Item: Pointer); Virtual;
+      Procedure AtDelete (Index: Sw_Integer);
+      Procedure ForEach (Action: Pointer);
+      Procedure SetLimit (ALimit: Sw_Integer); Virtual;
+      Procedure Error (Code, Info: Integer); Virtual;
+      Procedure AtPut (Index: Sw_Integer; Item: Pointer);
+      Procedure AtInsert (Index: Sw_Integer; Item: Pointer);
+      Procedure Store (Var S: TStream);
+      Procedure PutItem (Var S: TStream; Item: Pointer); Virtual;
    END;
    PCollection = ^TCollection;
 \end{verbatim}
+
+\begin{procedure}{TCollection.Init}
+\Declaration
+Constructor TCollection.Init (ALimit, ADelta: Sw\_Integer);
+\Description
+\var{Init} initializes a new instance of a collection. It sets the (initial) maximum number
+of items in the collection to \var{ALimit}. \var{ADelta} is the increase
+size : The number of memory places that will be allocatiod in case \var{ALimit} is reached, 
+and another element is added to the collection.
+\Errors
+None. 
+\SeeAlso
+\seepl{Load}{TCollection.Load}, \seepl{Done}{TCollection.Done}
+\end{procedure}
+
+\begin{procedure}{TCollection.Load}
+\Declaration
+Constructor TCollection.Load (Var S: TStream);
+\Description
+\var{Load} initializes a new instance of a collection. It reads from stream
+\var{S} the item count, the item limit count, and the increase size. After
+that, it reads the specified number of items from the stream. 
+
+% Do not call this method if you intend to use only pointers in your collection.
+\Errors
+Errors returned can be those of \seefl{GetItem}{TCollection.GetItem}.
+\SeeAlso
+\seepl{Init}{TCollection.Init}, \seefl{GetItem}{TCollection.GetItem},
+\seepl{TCollection.Done}.
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Done}
+\Declaration
+Destructor TCollection.Done; Virtual;
+\Description
+\var{Done} frees all objects in the collection, and then releases all memory
+occupied by the instance.
+
+% Do not call this method if you intend to use only pointers in your collection.
+\Errors
+None.
+\SeeAlso
+\seepl{Init}{TCollection.Init}, \seepl{FreeAll}{TCollection.FreeAll}
+\end{procedure}
+
+
+\begin{function}{TCollection.At}
+\Declaration
+Function TCollection.At (Index: Sw\_Integer): Pointer;
+\Description
+\var{At} returns the item at position \var{Index}.
+\Errors
+If \var{Index} is less than zero or larger than the number of items
+in the collection, seepl{Error}{TCollection.Error} is called with
+\var{coIndexError} and \var{Index} as arguments, resulting in a run-time
+error.
+\SeeAlso
+\seepl{Insert}{TCollection.Insert}
+\end{function}
+
+
+\begin{function}{TCollection.IndexOf}
+\Declaration
+Function TCollection.IndexOf (Item: Pointer): Sw\_Integer; Virtual;
+\Description
+\var{IndexOf} returns the index of \var{Item} in the collection. 
+If \var{Item} isn't present in the collection, -1 is returned.
+\Errors
+\SeeAlso
+\end{function}
+
+
+\begin{function}{TCollection.GetItem}
+\Declaration
+Function TCollection.GetItem (Var S: TStream): Pointer; Virtual;
+\Description
+\var{GetItem} reads a single item off the stream \var{S}, and
+returns a pointer to this item.
+\Errors
+Possible errors are the ones from \seef{TStream.Get}.
+\SeeAlso
+\seef{TStream.get}, seepl{Store}{TCollection.Store}
+\end{function}
+
+
+\begin{function}{TCollection.LastThat}
+\Declaration
+Function TCollection.LastThat (Test: Pointer): Pointer;
+\Description
+This function returns the last item in the collection for which \var{Test}
+returns a non-nil result. \var{Test} is a function that accepts 1 argument:
+a pointer to an object, and that returns a pointer as a result.
+\Errors
+None.
+\SeeAlso
+\seefl{FirstThat}{TCollection.FirstThat}
+\end{function}
+
+
+\begin{function}{TCollection.FirstThat}
+\Declaration
+Function TCollection.FirstThat (Test: Pointer): Pointer;
+\Description
+This function returns the first item in the collection for which \var{Test}
+returns a non-nil result. \var{Test} is a function that accepts 1 argument:
+a pointer to an object, and that returns a pointer as a result.
+\Errors
+None.
+\SeeAlso
+\seefl{LastThat}{TCollection.LastThat}
+\end{function}
+
+
+\begin{procedure}{TCollection.Pack}
+\Declaration
+Procedure TCollection.Pack;
+\Description
+\var{Pack} removes all \var{Nil} pointers from the collection, and adjusts
+\var{Count} to reflect this change. No memory is freed as a result of this
+call. In order to free any memory, you can call \var{SetLimit} with an
+argument of \var{Count} after a call to \var{Pack}.
+\Errors
+None.
+\SeeAlso
+\seepl{SetLimit}{TCollection.SetLimit}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.FreeAll}
+\Declaration
+Procedure TCollection.FreeAll;
+\Description
+\var{FreeAll} calls the destructor of each object in the collection.
+It doesn't release any memory occumpied by the collection itself, but it
+does set \var{Count} to zero.
+\Errors
+\SeeAlso
+\seepl{DeleteAll}{TCollection.DeleteAll}, \seepl{FreeItem}{TCollection.FreeItem}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.DeleteAll}
+\Declaration
+Procedure TCollection.DeleteAll;
+\Description
+\var{DeleteAll} deletes all elements from the collection. It just sets 
+the \var{Count} variable to zero. Contrary to
+\seepl{FreeAll}{TCollection.FreeAll}, \var{DeletAll} doesn't call the
+destructor of the objects.
+\Errors
+None.
+\SeeAlso
+\seepl{FreeAll}{TCollection.FreeAll}, \seepl{Delete}{TCollection.Delete}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Free}
+\Declaration
+Procedure TCollection.Free (Item: Pointer);
+\Description
+\var{Free} Deletes \var{Item} from the collection, and calls the destructor
+\var{Done} of the object.
+\Errors
+If the \var{Item} is not in the collection, \var{Error} will be called with
+\var{coIndexError}.
+\SeeAlso
+\seepl{FreeItem}{TCollection.FreeItem},
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Insert}
+\Declaration
+Procedure TCollection.Insert (Item: Pointer); Virtual;
+\Description
+\var{Insert} inserts \var{Item} in the collection. \var{TCollection}
+inserts this item at the end, but descendent objects may insert it at
+another place.
+\Errors
+None.
+\SeeAlso
+\seepl{AtInsert}{TCollection.AtInsert}, \seepl{AtPut}{TCollection.AtPut},
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Delete}
+\Declaration
+Procedure TCollection.Delete (Item: Pointer);
+\Description
+\var{Delete} deletes \var{Item} from the collection. It doesn't call the
+item's destructor, though. For this the \seepl{Free}{TCollection.Free}
+call is provided.
+\Errors
+If the \var{Item} is not in the collection, \var{Error} will be called with
+\var{coIndexError}.
+\SeeAlso
+\seepl{AtDelete}{TCollection.AtDelete},\seepl{Free}{TCollection.Free}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.AtFree}
+\Declaration
+Procedure TCollection.AtFree (Index: Sw\_Integer);
+\Description
+\var{AtFree} deletes the item at position \var{Index} in the collection,
+and calls the item's destructor if it is not \var{Nil}. 
+\Errors
+If \var{Index} isn't valid then \seepl{Error}{TCollection.Error} is called
+with \var{CoIndexError}.
+\SeeAlso
+\seepl{Free}{TCollection.Free}, \seepl{AtDelete}{TCollection.AtDelete}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.FreeItem}
+\Declaration
+Procedure TCollection.FreeItem (Item: Pointer); Virtual;
+\Description
+\var{FreeItem} calls the destructor of \var{Item} if it is not nil.
+\Errors
+None.
+\SeeAlso
+\seepl{Free}{TCollection.AtFree}, seepl{AtFree}{TCollection.AtFree}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.AtDelete}
+\Declaration
+Procedure TCollection.AtDelete (Index: Sw\_Integer);
+\Description
+\var{AtDelete} deletes the pointer at position \var{Index} in the
+collection. It doesn't call the object's destructor.
+\Errors
+If \var{Index} isn't valid then \seepl{Error}{TCollection.Error} is called
+with \var{CoIndexError}.
+\SeeAlso
+\seepl{Delete}{TCollection.Delete}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.ForEach}
+\Declaration
+Procedure TCollection.ForEach (Action: Pointer);
+\Description
+\var{ForEach} calls \var{Action} for each element in the collection,
+and passes the element as an argument to \var{Action}.
+
+\var{Action} is a procedural type variable that accepts a pointer as an 
+argument.
+\Errors
+None.
+\SeeAlso
+\seepl{FirstThat}{TCollection.FirstThat}, \seepl{LastThat}{TCollection.LastThat}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.SetLimit}
+\Declaration
+Procedure TCollection.SetLimit (ALimit: Sw\_Integer); Virtual;
+\Description
+\var{SetLimit} sets the maximum number of elements in the collection.
+\var{ALimit} must not be less than \var{Count}, and should not be larger
+than \var{MaxCollectionSize}
+\Errors
+None.
+\SeeAlso
+\seepl{Init}{TCollection.Init}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Error}
+\Declaration
+Procedure TCollection.Error (Code, Info: Integer); Virtual;
+\Description
+\var{Error} is called by the various \var{TCollection} methods
+in case of an error condition. The default behaviour is to make
+a call to \var{RunError} with an error of \var{212-Code}.
+\Errors
+\SeeAlso
+\end{procedure}
+
+
+\begin{procedure}{TCollection.AtPut}
+\Declaration
+Procedure TCollection.AtPut (Index: Sw\_Integer; Item: Pointer);
+\Description
+\var{AtPut} sets the element at position \var{Index} in the collection
+to \var{Item}. Any previous value is overwritten.
+\Errors
+If \var{Index} isn't valid then \seepl{Error}{TCollection.Error} is called
+with \var{CoIndexError}.
+\SeeAlso
+\end{procedure}
+
+
+\begin{procedure}{TCollection.AtInsert}
+\Declaration
+Procedure TCollection.AtInsert (Index: Sw\_Integer; Item: Pointer);
+\Description
+\var{AtInsert} inserts \var{Item} in the collection at position \var{Index},
+shifting all elements by one position. In case the current limit is reached,
+the collection will try to expand with a call to \var{SetLimit}
+\Errors
+If \var{Index} isn't valid then \seepl{Error}{TCollection.Error} is called
+with \var{CoIndexError}. If the collection fails to expand, then
+\var{coOverFlow} is passd to \var{Error}.
+\SeeAlso
+\seepl{Insert}{TCollection.Insert}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.Store}
+\Declaration
+Procedure TCollection.Store (Var S: TStream);
+\Description
+\var{Store} writes the collection to the stream \var{S}. It does
+this by writeing the current \var{Count}, \var{Limit} and \var{Delta}
+to the stream, and then writing each item to the stream.
+
+The contents of the stream are then suitable for instantiating another
+collection with \seepl{Load}{TCollection.Load}.
+\Errors
+Errors returned are those by \seep{TStream.Put}.
+\SeeAlso
+\seepl{Load}{TCollection.Load}, \seepl{PutItem}{TCollection.PutItem}
+\end{procedure}
+
+
+\begin{procedure}{TCollection.PutItem}
+\Declaration
+Procedure TCollection.PutItem (Var S: TStream; Item: Pointer); Virtual;
+\Description
+\var{PutItem} writes \var{Item} to stream \var{S}. 
+\Errors
+Errors are those returned by \seep{TStream.Put}.
+\SeeAlso
+\seepl{Store}{TCollection.Store}, \seefl{GetItem}{TCollection.GetItem}.
+\end{procedure}
+
 
 \section{TSortedCollection}
 \label{se:TSortedCollection}
@@ -1048,14 +1474,14 @@ TYPE
 TYPE
    TSortedCollection = OBJECT (TCollection)
          Duplicates: Boolean; { Duplicates flag }
-      CONSTRUCTOR Init (ALimit, ADelta: Sw_Integer);
-      CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION KeyOf (Item: Pointer): Pointer; Virtual;
-      FUNCTION IndexOf (Item: Pointer): Sw_Integer; Virtual;
-      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
-      FUNCTION Search (Key: Pointer; Var Index: Sw_Integer): Boolean;Virtual;
-      PROCEDURE Insert (Item: Pointer); Virtual;
-      PROCEDURE Store (Var S: TStream);
+      Constructor Init (ALimit, ADelta: Sw_Integer);
+      Constructor Load (Var S: TStream);
+      Function KeyOf (Item: Pointer): Pointer; Virtual;
+      Function IndexOf (Item: Pointer): Sw_Integer; Virtual;
+      Function Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      Function Search (Key: Pointer; Var Index: Sw_Integer): Boolean;Virtual;
+      Procedure Insert (Item: Pointer); Virtual;
+      Procedure Store (Var S: TStream);
    END;
    PSortedCollection = ^TSortedCollection;
 \end{verbatim}
@@ -1066,10 +1492,10 @@ TYPE
 \begin{verbatim}
 TYPE
    TStringCollection = OBJECT (TSortedCollection)
-      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
-      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
-      PROCEDURE FreeItem (Item: Pointer); Virtual;
-      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+      Function GetItem (Var S: TStream): Pointer; Virtual;
+      Function Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      Procedure FreeItem (Item: Pointer); Virtual;
+      Procedure PutItem (Var S: TStream; Item: Pointer); Virtual;
    END;
    PStringCollection = ^TStringCollection;
 \end{verbatim}
@@ -1080,10 +1506,10 @@ TYPE
 \begin{verbatim}
 TYPE
    TStrCollection = OBJECT (TSortedCollection)
-      FUNCTION Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
-      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
-      PROCEDURE FreeItem (Item: Pointer); Virtual;
-      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+      Function Compare (Key1, Key2: Pointer): Sw_Integer; Virtual;
+      Function GetItem (Var S: TStream): Pointer; Virtual;
+      Procedure FreeItem (Item: Pointer); Virtual;
+      Procedure PutItem (Var S: TStream; Item: Pointer); Virtual;
    END;
    PStrCollection = ^TStrCollection;
 \end{verbatim}
@@ -1095,7 +1521,7 @@ TYPE
 \begin{verbatim}
 TYPE
    TUnSortedStrCollection = OBJECT (TStringCollection)
-      PROCEDURE Insert (Item: Pointer); Virtual;
+      Procedure Insert (Item: Pointer); Virtual;
    END;
    PUnSortedStrCollection = ^TUnSortedStrCollection;
 \end{verbatim}
@@ -1106,10 +1532,10 @@ TYPE
 \begin{verbatim}
 TYPE
    TResourceCollection = OBJECT (TStringCollection)
-      FUNCTION KeyOf (Item: Pointer): Pointer; Virtual;
-      FUNCTION GetItem (Var S: TStream): Pointer; Virtual;
-      PROCEDURE FreeItem (Item: Pointer); Virtual;
-      PROCEDURE PutItem (Var S: TStream; Item: Pointer); Virtual;
+      Function KeyOf (Item: Pointer): Pointer; Virtual;
+      Function GetItem (Var S: TStream): Pointer; Virtual;
+      Procedure FreeItem (Item: Pointer); Virtual;
+      Procedure PutItem (Var S: TStream; Item: Pointer); Virtual;
    END;
    PResourceCollection = ^TResourceCollection;
 \end{verbatim}
@@ -1122,15 +1548,15 @@ TYPE
    TResourceFile = OBJECT (TObject)
          Stream  : PStream; { File as a stream }
          Modified: Boolean; { Modified flag }
-      CONSTRUCTOR Init (AStream: PStream);
-      DESTRUCTOR Done; Virtual;
-      FUNCTION Count: Sw_Integer;
-      FUNCTION KeyAt (I: Sw_Integer): String;
-      FUNCTION Get (Key: String): PObject;
-      FUNCTION SwitchTo (AStream: PStream; Pack: Boolean): PStream;
-      PROCEDURE Flush;
-      PROCEDURE Delete (Key: String);
-      PROCEDURE Put (Item: PObject; Key: String);
+      Constructor Init (AStream: PStream);
+      Destructor Done; Virtual;
+      Function Count: Sw_Integer;
+      Function KeyAt (I: Sw_Integer): String;
+      Function Get (Key: String): PObject;
+      Function SwitchTo (AStream: PStream; Pack: Boolean): PStream;
+      Procedure Flush;
+      Procedure Delete (Key: String);
+      Procedure Put (Item: PObject; Key: String);
    END;
    PResourceFile = ^TResourceFile;
 \end{verbatim}
@@ -1148,9 +1574,9 @@ TYPE
    PStrIndex = ^TStrIndex;
 
    TStringList = OBJECT (TObject)
-      CONSTRUCTOR Load (Var S: TStream);
-      DESTRUCTOR Done; Virtual;
-      FUNCTION Get (Key: Sw_Word): String;
+      Constructor Load (Var S: TStream);
+      Destructor Done; Virtual;
+      Function Get (Key: Sw_Word): String;
    END;
    PStringList = ^TStringList;
 \end{verbatim}
@@ -1161,27 +1587,27 @@ TYPE
 \begin{verbatim}
 TYPE
    TStrListMaker = OBJECT (TObject)
-      CONSTRUCTOR Init (AStrSize, AIndexSize: Sw_Word);
-      DESTRUCTOR Done; Virtual;
-      PROCEDURE Put (Key: Sw_Word; S: String);
-      PROCEDURE Store (Var S: TStream);
+      Constructor Init (AStrSize, AIndexSize: Sw_Word);
+      Destructor Done; Virtual;
+      Procedure Put (Key: Sw_Word; S: String);
+      Procedure Store (Var S: TStream);
    END;
    PStrListMaker = ^TStrListMaker;
 \end{verbatim}
 
 \begin{verbatim}
-FUNCTION NewStr (Const S: String): PString;
-PROCEDURE DisposeStr (P: PString);
-PROCEDURE Abstract;
-PROCEDURE RegisterObjects;
+Function NewStr (Const S: String): PString;
+Procedure DisposeStr (P: PString);
+Procedure Abstract;
+Procedure RegisterObjects;
 \end{verbatim}
 \begin{procedure}{RegisterType}
 \Declaration
-PROCEDURE RegisterType (Var S: TStreamRec);
+Procedure RegisterType (Var S: TStreamRec);
 \end{procedure}
 \begin{verbatim}
-FUNCTION LongMul (X, Y: Integer): LongInt;
-FUNCTION LongDiv (X: Longint; Y: Integer): Integer;
+Function LongMul (X, Y: Integer): LongInt;
+Function LongDiv (X: Longint; Y: Integer): Integer;
 
 CONST
    StreamError: Pointer = Nil;                        { Stream error ptr }
