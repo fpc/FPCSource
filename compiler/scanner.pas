@@ -44,6 +44,8 @@ unit scanner;
 
 
     type
+       tcommentstyle = (comment_none,comment_tp,comment_oldtp,comment_delphi,comment_c);
+
        pmacrobuffer = ^tmacrobuffer;
        tmacrobuffer = array[0..maxmacrolen-1] of char;
 
@@ -125,7 +127,7 @@ unit scanner;
         orgpattern,
         pattern        : string;
         current_scanner : pscannerfile;
-
+        aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
 
 implementation
 
@@ -736,12 +738,26 @@ implementation
         i:=0;
         repeat
           case c of
-           '}' : begin
+           '}' :
+             if aktcommentstyle=comment_tp then
+              begin
+                readchar;
+                dec_comment_level;
+                break;
+              end;
+           '*' :
+             if aktcommentstyle=comment_oldtp then
+              begin
+                readchar;
+                if c=')' then
+                 begin
                    readchar;
                    dec_comment_level;
                    break;
                  end;
-           #26 : Message(scan_f_end_of_file);
+              end;
+           #26 :
+              Message(scan_f_end_of_file);
           else
             begin
               if (i<255) then
@@ -839,8 +855,29 @@ implementation
                  if found=1 then
                   found:=2;
                end;
+             '''' :
+               if (m_tp in aktmodeswitches) or
+                  (m_delphi in aktmodeswitches) then
+                begin
+                  repeat
+                    readchar;
+                    case c of
+                      #26 :
+                        Message(scan_f_end_of_file);
+                      newline :
+                        break;
+                      '''' :
+                        begin
+                          readchar;
+                          if c<>'''' then
+                           break;
+                        end;
+                    end;
+                  until false;
+                end;
              '(' :
-               if (m_tp in aktmodeswitches) then
+               if (m_tp in aktmodeswitches) or
+                  (m_delphi in aktmodeswitches) then
                 begin
                   readchar;
                   if c='*' then
@@ -873,6 +910,7 @@ implementation
 
     procedure tscannerfile.skipcomment;
       begin
+        aktcommentstyle:=comment_tp;
         readchar;
         inc_comment_level;
       { handle compiler switches }
@@ -897,11 +935,13 @@ implementation
             #13 : linebreak;
            end;
          end;
+        aktcommentstyle:=comment_none;
       end;
 
 
     procedure tscannerfile.skipdelphicomment;
       begin
+        aktcommentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
       { this is currently not supported }
@@ -915,6 +955,7 @@ implementation
            readchar;
          end;
         dec_comment_level;
+        aktcommentstyle:=comment_none;
       end;
 
 
@@ -922,11 +963,12 @@ implementation
       var
         found : longint;
       begin
+        aktcommentstyle:=comment_oldtp;
         inc_comment_level;
         readchar;
       { this is currently not supported }
-        if c='$' then
-         Message(scan_e_wrong_styled_switch);
+        if (c='$') then
+         handledirectives;
       { skip comment }
         while (comment_level>0) do
          begin
@@ -969,6 +1011,7 @@ implementation
              end;
            until (found=2);
          end;
+        aktcommentstyle:=comment_none;
       end;
 
 
@@ -976,6 +1019,7 @@ implementation
       var
         found : longint;
       begin
+        aktcommentstyle:=comment_c;
         inc_comment_level;
         readchar;
       { this is currently not supported }
@@ -1023,6 +1067,7 @@ implementation
              end;
            until (found=2);
          end;
+        aktcommentstyle:=comment_none;
       end;
 
 
@@ -1673,7 +1718,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  1999-07-18 10:20:02  florian
+  Revision 1.88  1999-07-24 11:20:59  peter
+    * directives are allowed in (* *)
+    * fixed parsing of (* between conditional code
+
+  Revision 1.87  1999/07/18 10:20:02  florian
     * made it compilable with Dlephi 4 again
     + fixed problem with large stack allocations on win32
 
