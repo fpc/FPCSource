@@ -78,6 +78,8 @@ implementation
       pass_1;
 
   function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
+    var
+      i: longint;
     begin
       result := false;
       if not assigned(n) then
@@ -114,7 +116,12 @@ implementation
         raisen:
           result := foreachnode(traisenode(n).frametree,f,arg) or result;
         casen:
-          result := foreachnode(tcasenode(n). elseblock,f,arg) or result;
+          begin
+            for i := 0 to tcasenode(n).blocks.count-1 do
+              if assigned(tcasenode(n).blocks[i]) then
+                result := foreachnode(pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
+            result := foreachnode(tcasenode(n).elseblock,f,arg) or result;
+          end;
       end;
       if n.inheritsfrom(tbinarynode) then
         begin
@@ -127,6 +134,8 @@ implementation
 
 
   function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
+    var
+      i: longint;
     begin
       result := false;
       if not assigned(n) then
@@ -162,7 +171,12 @@ implementation
         raisen:
           result := foreachnodestatic(traisenode(n).frametree,f,arg) or result;
         casen:
-          result := foreachnodestatic(tcasenode(n). elseblock,f,arg) or result;
+          begin
+            for i := 0 to tcasenode(n).blocks.count-1 do
+              if assigned(tcasenode(n).blocks[i]) then
+                result := foreachnodestatic(pcaseblock(tcasenode(n).blocks[i])^.statement,f,arg) or result;
+            result := foreachnodestatic(tcasenode(n).elseblock,f,arg) or result;
+          end;
       end;
       if n.inheritsfrom(tbinarynode) then
         begin
@@ -531,7 +545,11 @@ end.
 
 {
   $Log$
-  Revision 1.25  2004-12-10 13:16:31  jonas
+  Revision 1.26  2004-12-15 15:27:03  jonas
+    * fixed foreachnode(static) for case nodes (fixes inlining of case
+      statements)
+
+  Revision 1.25  2004/12/10 13:16:31  jonas
     * certain type conversions have no cost (also fixes problem of
       inc(int64) with regvars turned on on non-64bit platforms)
 
