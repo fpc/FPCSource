@@ -484,7 +484,8 @@ Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 
 var i,j : longint;
     e : boolean;
-    s,se : Pointer;
+    S : AnsiString;
+    se : Pointer;
 
 begin
  i := 0;
@@ -494,14 +495,13 @@ begin
  while (e) and (i <= length (Source) - length (substr)) do
    begin
    inc (i);
-   S:=Pointer(copy(Source,i,length(Substr)));
-   Se:=pointer(substr);
-    if AnsiCompare(se,S)=0 then
+   S:=copy(Source,i,length(Substr));
+   Se:=pointer(SubStr);
+    if AnsiCompare(se,Pointer(S))=0 then
      begin
      j := i;
      e := false;
      end;
-   // DisposeAnsiString(S);
    end;
  pos := j;
 end;
@@ -741,7 +741,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-02-04 10:49:21  florian
+  Revision 1.11  1999-02-04 14:55:42  michael
+  * Fixed pos
+
+  Revision 1.10  1999/02/04 10:49:21  florian
     + routines for range checking added
 
   Revision 1.9  1999/02/02 11:37:34  peter
