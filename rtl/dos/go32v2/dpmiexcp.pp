@@ -298,12 +298,20 @@ begin
   signal:=temp;
 end;
 
+{$ifndef VER0_99_5}
+{$ifndef VER0_99_6}
+
 { C counter part }
 function c_signal(sig : longint;func : SignalHandler) : SignalHandler;
             cdecl;[public,alias : '_signal'];
+var
+  temp : SignalHandler;
   begin
-     c_signal:=signal(sig,func);
+     temp:=signal(sig,func);
+     c_signal:=temp;
   end;
+{$endif VER0_99_5}
+{$endif VER0_99_6}
 
 const signames : array [0..14] of string[4] = (
    'ABRT','FPE ','ILL ','SEGV','TERM','ALRM','HUP ',
@@ -930,7 +938,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-08-19 10:56:33  pierre
+  Revision 1.9  1998-08-20 08:08:36  pierre
+    * dpmiexcp did not compile with older versions
+      due to the proc to procvar bug
+    * makefile separator problem fixed
+
+  Revision 1.8  1998/08/19 10:56:33  pierre
     + added some special code for C interface
       to avoid loading of crt1.o or dpmiexcp.o from the libc.a
 

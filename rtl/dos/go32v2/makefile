@@ -277,15 +277,15 @@ sharedlib:
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-        $(INSTALLEXE) fpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-        $(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) fpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
 
 libinstall: staticlibinstall
 
 libsclean : clean
-        -$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 #####################################################################
 # Default targets
@@ -295,7 +295,12 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.13  1998-08-19 10:05:01  peter
+# Revision 1.14  1998-08-20 08:08:37  pierre
+#   * dpmiexcp did not compile with older versions
+#     due to the proc to procvar bug
+#   * makefile separator problem fixed
+#
+# Revision 1.13  1998/08/19 10:05:01  peter
 #   * fixed for go32v2 staticlib
 #
 # Revision 1.12  1998/08/05 10:31:05  pierre
