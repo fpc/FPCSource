@@ -47,6 +47,8 @@ Implementation
        { pass 1 }
        nbas,
        { parser }
+       rgobj,
+       { register allocator }
        scanner,
        rautils,ra386,ag386int,
        { codegen }
@@ -1553,7 +1555,7 @@ Begin
                begin
                  l:=opr.val;
                  opr.typ:=OPR_REFERENCE;
-                 Fillchar(opr.ref,sizeof(treference),0);
+                 reference_reset(opr.ref);
                  opr.Ref.Offset:=l;
                end;
               BuildReference;
@@ -1980,7 +1982,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2003-02-19 22:00:16  daniel
+  Revision 1.41  2003-02-26 22:57:44  daniel
+    * Changed no longer correct fillchar of reference into location_reset
+
+  Revision 1.40  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
