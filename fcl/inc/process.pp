@@ -65,13 +65,6 @@ Const
 
 Type
 
-  PRect = ^TRect;
-  TRect = packed record
-    case Integer of
-      0: (Left, Top, Right, Bottom: Longint);
-      1: (TopLeft, BottomRight: TPoint);
-  end;
-
   DWord = Longword;
   THandle = Integer;
 
@@ -910,7 +903,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-12-13 18:34:59  michael
+  Revision 1.10  2001-12-14 07:53:32  michael
+    - Removed trect as well.
+
+  Revision 1.9  2001/12/13 18:34:59  michael
     * Removed TPoint declaration, it conflicts with classes definition
 
   Revision 1.8  2001/12/11 11:15:15  marco
