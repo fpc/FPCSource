@@ -36,7 +36,7 @@ Procedure IOSock(var F:text);
 begin
   case textrec(f).mode of
    fmoutput : {$ifdef unix}fpWrite{$else}fdwrite{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
-    fminput : textrec(f).BufEnd:={$ifdef Unix}fpRead{$else}fpread{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
+    fminput : textrec(f).BufEnd:={$ifdef Unix}fpRead{$else}fdread{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
 end;
@@ -167,7 +167,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2003-09-15 07:51:09  marco
+  Revision 1.6  2003-09-15 07:55:29  marco
+   * fixed typo
+
+  Revision 1.5  2003/09/15 07:51:09  marco
    * fix
 
   Revision 1.4  2003/09/14 20:15:01  marco
