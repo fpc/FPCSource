@@ -203,7 +203,7 @@ function htons( host : word):word; {$ifndef VER1_0} inline; {$ENDIF}
 
 begin
 {$ifdef FPC_BIG_ENDIAN}
-  htonl:=host;
+  htons:=host;
 {$else}
   htons:=swap(host);
 {$endif}
@@ -221,7 +221,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-11-01 16:23:15  marco
+  Revision 1.13  2004-11-01 17:29:47  marco
+   * inline problems fixed
+
+  Revision 1.12  2004/11/01 16:23:15  marco
    * htons etc
 
   Revision 1.11  2003/11/23 10:57:15  michael
