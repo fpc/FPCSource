@@ -96,71 +96,17 @@
          count_leading_zeros:=r;
       end;
 
+
+{$ifndef FPC_SYSTEM_HAS_DIV_QWORD}
     function fpc_div_qword(n,z : qword) : qword;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
          shift,lzz,lzn : longint;
-         { one : qword; }
 
       begin
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
-{$ifdef i386}
-         { the following piece of code is taken from the     }
-         { AMD Athlon Processor x86 Code Optimization manual }
-         asm
-            movl n+4,%ecx
-            movl n,%ebx
-            movl z+4,%edx
-            movl z,%eax
-            testl %ecx,%ecx
-            jnz .Lqworddivbigdivisor
-            cmpl %ebx,%edx
-            jae .Lqworddivtwo_divs
-            divl %ebx
-            movl %ecx,%edx
-            leave
-            ret $16
-
-         .Lqworddivtwo_divs:
-            movl %eax,%ecx
-            movl %edx,%eax
-            xorl %edx,%edx
-            divl %ebx
-            xchgl %ecx,%eax
-            divl %ebx
-            movl %ecx,%edx
-            leave
-            ret $16
-
-         .Lqworddivbigdivisor:
-            movl %ecx,%edi
-            shrl $1,%edx
-            rcrl $1,%eax
-            rorl $1,%edi
-            rcrl $1,%ebx
-            bsrl %ecx,%ecx
-            shrdl %cl,%edi,%ebx
-            shrdl %cl,%edx,%eax
-            shrl %cl,%edx
-            roll $1,%edi
-            divl %ebx
-            movl z,%ebx
-            movl %eax,%ecx
-            imull %eax,%edi
-            mull n
-            addl %edi,%edx
-            subl %eax,%ebx
-            movl %ecx,%eax
-            movl z+4,%ecx
-            sbbl %edx,%ecx
-            sbbl $0,%eax
-            xorl %edx,%edx
-            leave
-            ret $16
-         end;
-{$else i386}
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -179,9 +125,11 @@
            dec(shift);
            n:=n shr 1;
          until shift<0;
-{$endif i386}
       end;
+{$endif FPC_SYSTEM_HAS_DIV_QWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_MOD_QWORD}
     function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
@@ -191,66 +139,6 @@
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
-{$ifdef i386_not_working_correct}
-         { the following piece of code is taken from the     }
-         { AMD Athlon Processor x86 Code Optimization manual }
-         asm
-            movl n+4,%ecx
-            movl n,%ebx
-            movl z+4,%edx
-            movl z,%eax
-            testl %ecx,%ecx
-            jnz .Lqwordmodr_big_divisior
-            cmpl %ebx,%edx
-            jae .Lqwordmodr_two_divs
-            divl %ebx
-            movl %edx,%eax
-            movl %ecx,%edx
-            leave
-            ret $16
-
-         .Lqwordmodr_two_divs:
-            movl %eax,%ecx
-            movl %edx,%eax
-            xorl %edx,%edx
-            divl %ebx
-            movl %ecx,%eax
-            divl %ebx
-            movl %edx,%eax
-            xorl %edx,%edx
-            leave
-            ret $16
-
-         .Lqwordmodr_big_divisior:
-            movl %ecx,%edi
-            shrl $1,%edx
-            rcrl $1,%eax
-            rorl $1,%edi
-            rcrl $1,%ebx
-            bsrl %ecx,%ecx
-            shrdl %cl,%edi,%ebx
-            shrdl %cl,%edx,%eax
-            shrl %cl,%edx
-            rorl $1,%edi
-            divl %ebx
-            movl z,%ebx
-            movl %eax,%ecx
-            imull %eax,%edi
-            mull n
-            addl %edi,%edx
-            subl %eax,%ebx
-            movl z+4,%ecx
-            movl n,%eax
-            sbbl %edx,%ecx
-            sbbl %edx,%edx
-            andl %edx,%eax
-            andl n+4,%edx
-            addl %ebx,%eax
-            adcl %ecx,%edx
-            leave
-            ret $16
-         end;
-{$else i386}
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -270,9 +158,11 @@
            n:=n shr 1;
          until shift<0;
          fpc_mod_qword:=z;
-{$endif i386}
       end;
+{$endif FPC_SYSTEM_HAS_MOD_QWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_DIV_INT64}
     function fpc_div_int64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
@@ -307,7 +197,10 @@
                 fpc_div_int64:=q1 div q2;
            end;
       end;
+{$endif FPC_SYSTEM_HAS_DIV_INT64}
 
+
+{$ifndef FPC_SYSTEM_HAS_MOD_INT64}
     function fpc_mod_int64(n,z : int64) : int64;[public,alias: 'FPC_MOD_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
@@ -340,7 +233,10 @@
          else
            fpc_mod_int64:=r;
       end;
+{$endif FPC_SYSTEM_HAS_MOD_INT64}
 
+
+{$ifndef FPC_SYSTEM_HAS_MUL_QWORD}
     { multiplies two qwords
       the longbool for checkoverflow avoids a misaligned stack
     }
@@ -350,40 +246,7 @@
          _f1,bitpos : qword;
          l : longint;
 
-{$ifdef i386}
-         r : qword;
-{$endif i386}
-
       begin
-{$ifdef i386}
-         if not(checkoverflow) then
-           begin
-              { the following piece of code is taken from the     }
-              { AMD Athlon Processor x86 Code Optimization manual }
-              asm
-                 movl f1+4,%edx
-                 movl f2+4,%ecx
-                 orl %ecx,%edx
-                 movl f2,%edx
-                 movl f1,%eax
-                 jnz .Lqwordmultwomul
-                 mull %edx
-                 jmp .Lqwordmulready
-              .Lqwordmultwomul:
-                 imul f1+4,%edx
-                 imul %eax,%ecx
-                 addl %edx,%ecx
-                 mull f2
-                 add %ecx,%edx
-              .Lqwordmulready:
-                 movl %eax,r
-                 movl %edx,r+4
-              end;
-              fpc_mul_qword:=r;
-           end
-         else
-{$endif i386}
-           begin
               fpc_mul_qword:=0;
               bitpos:=1;
 
@@ -404,9 +267,11 @@
               if checkoverflow and (_f1 <> 0) and (f2 <>0) and
                  ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
                 HandleErrorFrame(215,get_frame);
-           end;
       end;
+{$endif FPC_SYSTEM_HAS_MUL_QWORD}
 
+
+{$ifndef FPC_SYSTEM_HAS_MUL_INT64}
     function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64;[public,alias: 'FPC_MUL_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
@@ -448,6 +313,8 @@
                 fpc_mul_int64:=q3;
            end;
       end;
+{$endif FPC_SYSTEM_HAS_MUL_INT64}
+
 
     procedure qword_str(value : qword;var s : string);
 
@@ -462,6 +329,7 @@
          until value=0;
          s:=hs;
       end;
+
 
     procedure int64_str(value : int64;var s : string);
 
@@ -479,6 +347,7 @@
          else
            qword_str(qword(value),s);
       end;
+
 
   procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
@@ -641,7 +510,11 @@
 
 {
   $Log$
-  Revision 1.21  2003-09-03 14:09:37  florian
+  Revision 1.22  2003-09-14 11:34:13  peter
+    * moved int64 asm code to int64p.inc
+    * save ebx,esi
+
+  Revision 1.21  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...

@@ -31,54 +31,54 @@ asm
         movl    dest,%edi
         movl    source,%esi
         movl    %edi,%eax
-        movl    count,%ebx
+        movl    count,%edx
 { check for zero or negative count }
-        cmpl    $0,%ebx
+        cmpl    $0,%edx
         jle     .LMoveEnd
 { Check for back or forward }
         sub     %esi,%eax
         jz      .LMoveEnd               { Do nothing when source=dest }
         jc      .LFMove                 { Do forward, dest<source }
-        cmp     %ebx,%eax
+        cmp     %edx,%eax
         jb      .LBMove                 { Dest is in range of move, do backward }
 { Forward Copy }
 .LFMove:
         cld
-        cmpl    $15,%ebx
+        cmpl    $15,%edx
         jl      .LFMove1
         movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
-        subl    %ecx,%ebx
+        subl    %ecx,%edx
         rep
         movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
+        movl    %edx,%ecx
+        andl    $3,%edx
         shrl    $2,%ecx
         rep
         movsl
 .LFMove1:
-        movl    %ebx,%ecx
+        movl    %edx,%ecx
         rep
         movsb
         jmp .LMoveEnd
 { Backward Copy }
 .LBMove:
         std
-        addl    %ebx,%esi
-        addl    %ebx,%edi
+        addl    %edx,%esi
+        addl    %edx,%edi
         movl    %edi,%ecx
         decl    %esi
         decl    %edi
-        cmpl    $15,%ebx
+        cmpl    $15,%edx
         jl      .LBMove1
         negl    %ecx            { Align on 32bits }
         andl    $3,%ecx
-        subl    %ecx,%ebx
+        subl    %ecx,%edx
         rep
         movsb
-        movl    %ebx,%ecx
-        andl    $3,%ebx
+        movl    %edx,%ecx
+        andl    $3,%edx
         shrl    $2,%ecx
         subl    $3,%esi
         subl    $3,%edi
@@ -87,7 +87,7 @@ asm
         addl    $3,%esi
         addl    $3,%edi
 .LBMove1:
-        movl    %ebx,%ecx
+        movl    %edx,%ecx
         rep
         movsb
         cld
@@ -113,10 +113,10 @@ asm
         cmpl    $7,%ecx
         jl      .LFill1
         movb    %al,%ah
-        movl    %eax,%ebx
+        movl    %eax,%edx
         shll    $16,%eax
+        movw    %dx,%ax
         movl    %ecx,%edx
-        movw    %bx,%ax
         movl    %edi,%ecx       { Align on 32bits }
         negl    %ecx
         andl    $3,%ecx
@@ -1313,7 +1313,11 @@ end;
 
 {
   $Log$
-  Revision 1.46  2003-09-08 18:21:37  peter
+  Revision 1.47  2003-09-14 11:34:13  peter
+    * moved int64 asm code to int64p.inc
+    * save ebx,esi
+
+  Revision 1.46  2003/09/08 18:21:37  peter
     * save edi,esi,ebx
 
   Revision 1.45  2003/06/01 14:50:17  jonas

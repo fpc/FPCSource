@@ -245,6 +245,7 @@ end;
 {$i sstrings.inc}
 
 { requires sstrings.inc for initval }
+{$I int64p.inc}
 {$I int64.inc}
 
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
@@ -767,7 +768,11 @@ end;
 
 {
   $Log$
-  Revision 1.42  2003-09-03 14:09:37  florian
+  Revision 1.43  2003-09-14 11:34:13  peter
+    * moved int64 asm code to int64p.inc
+    * save ebx,esi
+
+  Revision 1.42  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
