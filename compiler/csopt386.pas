@@ -172,6 +172,7 @@ Begin {CheckSequence}
 { be used anymore after the sequence, are still used nevertheless (when     }
 { range checking is on for instance, because this is not "normal" generated }
 { code, but more or less manually inserted)                                 }
+(*
 {$ifndef fpc}
   If TmpResult Then
 {$else fpc}
@@ -210,6 +211,7 @@ Begin {CheckSequence}
               Exclude(RegInfo.RegsLoadedForRef,RegCounter);
             End;
         End;
+*)
 {$ifndef fpc}
   CheckSequence := TmpResult;
 {$endif fpc}
@@ -543,69 +545,6 @@ begin
     end;
 end;
 
-function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
-{ assumes hp doesn't modify registers implicitely (like div) }
-{ and that reg is a 32bit register                           }
-var p: paicpu;
-    opCount: byte;
-begin
-  RegReadByInstruction := false;
-  p := paicpu(hp);
-  if hp^.typ <> ait_instruction then
-    exit;
-  case p^.opcode of
-    A_IMUL:
-      case p^.ops of
-        1: regReadByInstruction := (reg = R_EAX) or reginOp(reg,p^.oper[0]);
-        2,3:
-          regReadByInstruction := regInOp(reg,p^.oper[0]) or
-            regInOp(reg,p^.oper[1]);
-      end;
-{    A_IDIV,A_DIV,A_IMUL:
-      begin
-        regReadByInstruction :=
-          regInOp(reg,p^.oper[0]) or
-          (((p^.opcode = A_IDIV) or
-            (p^.opcode = A_DIV)) and
-           (reg = R_EAX));
-      end;}
-    else
-      begin
-        for opCount := 0 to 2 do
-          if (p^.oper[opCount].typ = top_ref) and
-             RegInRef(reg,p^.oper[opCount].ref^) then
-            begin
-              RegReadByInstruction := true;
-              exit
-            end;
-        for opCount := 1 to MaxCh do
-          case InsProp[p^.opcode].Ch[opCount] of
-            Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
-              if (p^.oper[0].typ = top_reg) and
-                 (reg32(p^.oper[0].reg) = reg) then
-                begin
-                  RegReadByInstruction := true;
-                  exit
-                end;
-            Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
-              if (p^.oper[1].typ = top_reg) and
-                 (reg32(p^.oper[1].reg) = reg) then
-                begin
-                  RegReadByInstruction := true;
-                  exit
-                end;
-            Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
-              if (p^.oper[2].typ = top_reg) and
-                 (reg32(p^.oper[2].reg) = reg) then
-                begin
-                  RegReadByInstruction := true;
-                  exit
-                end;
-          end;
-      end;
-  end;
-end;
-
 procedure DoReplaceReadReg(orgReg,newReg: tregister; p: paicpu);
 var opCount: byte;
 begin
@@ -653,7 +592,7 @@ function ReplaceReg(asmL: PaasmOutput; orgReg, newReg: TRegister; p: pai;
 { false otherwise. If successful, the contents of newReg are set to c,   }
 { which should hold the contents of newReg before the current sequence   }
 { started                                                                }
-{ if the functino returns true, returnEndP holds the lat instruction     }
+{ if the function returns true, returnEndP holds the last instruction    }
 { where newReg was replaced by orgReg                                    }
 var endP, hp: Pai;
     removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
@@ -878,7 +817,7 @@ Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
-Var Cnt, Cnt2: Longint;
+Var Cnt, Cnt2, Cnt3: Longint;
     p, hp1, hp2: Pai;
     hp3, hp4: pai;
 {$ifdef replacereg}
@@ -916,9 +855,14 @@ Begin
                           Begin
                             If (p = StartMod) And
                                GetLastInstruction (p, hp1) And
-                               (hp1^.typ <> ait_marker)
-                              Then
+                               (hp1^.typ <> ait_marker) Then
 {so we don't try to check a sequence when p is the first instruction of the block}
+                              begin
+{$ifdef csdebug}
+                               hp5 := new(pai_asm_comment,init(strpnew(
+                                 'cse checking '+att_reg2str[Reg32(Paicpu(p)^.oper[1].reg)])));
+                               insertLLItem(asml,p,p^.next,hp5);
+{$endif csdebug}
                                If CheckSequence(p, Paicpu(p)^.oper[1].reg, Cnt, RegInfo) And
                                   (Cnt > 0) Then
                                  Begin
@@ -943,16 +887,31 @@ Begin
                                    While Cnt2 <= Cnt Do
                                      Begin
                                        If (hp1 = nil) And
-                                          Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
-                                              RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p)) And
-                                          Not((p^.typ = ait_instruction) And
-                                              (paicpu(p)^.OpCode = A_MOV) And
-                                              (paicpu(p)^.Oper[0].typ = top_ref) And
-                                              (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
-                                                 <= (Cnt - Cnt2 + 1)))
-                                         Then hp1 := p;
+                                          Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p)) And
+                                          ((p^.typ = ait_instruction) And
+                                           ((paicpu(p)^.OpCode = A_MOV)  or
+                                            (paicpu(p)^.opcode = A_MOVZX) or
+                                            (paicpu(p)^.opcode = A_MOVSX)) And
+                                           (paicpu(p)^.Oper[0].typ = top_ref)) Then
+                                          if (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
+                                               <= (Cnt - Cnt2 + 1)) and
+                                             (Reg32(paicpu(p)^.Oper[1].reg) in regInfo.regsLoadedForRef) then
+                                            begin
+                                              hp3 := p;
+                                              for Cnt3 := PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
+                                                  downto 1 do
+                                                begin
 {$ifndef noremove}
-                                       PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
+                                                  if regInInstruction(paicpu(p)^.Oper[1].reg,hp3) then
+                                                    PPaiProp(hp3^.OptInfo)^.CanBeRemoved := True;
+{$endif noremove}
+                                                  getNextInstruction(hp3,hp3);
+                                                end
+                                            end
+                                          else hp1 := p;
+{$ifndef noremove}
+                                       if regInInstruction(Paicpu(hp2)^.oper[1].reg,p) then
+                                         PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
 {$endif noremove}
                                        Inc(Cnt2);
                                        GetNextInstruction(p, p);
@@ -1072,7 +1031,8 @@ Begin
                                        End;
                                    hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
                                    InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
-                                   If hp1 <> nil Then p := hp1;
+                                   If hp1 <> nil Then
+                                     p := hp1;
                                    Continue;
                                  End
                                Else
@@ -1085,14 +1045,14 @@ Begin
                                      Cnt2 := 1;
                                      While Cnt2 <= Cnt Do
                                        Begin
-                                         If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
-                                            RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p) Then
+                                         If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Then
                                            PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
                                          Inc(Cnt2);
                                          GetNextInstruction(p, p);
                                        End;
                                      Continue;
                                    End;
+                              End;
                           End;
                       End;
 {$ifdef replacereg}
@@ -1216,7 +1176,14 @@ End.
 
 {
  $Log$
- Revision 1.56  2000-03-25 19:05:47  jonas
+ Revision 1.57  2000-04-10 12:45:57  jonas
+   * fixed a serious bug in the CSE which (I think) only showed with
+     -dnewoptimizations when using multi-dimensional arrays with
+     elements of a size different from 1, 2 or 4 (especially strings).
+   * made the DFA/CSE more robust (much less dependent on specifics of the
+     code generator)
+
+ Revision 1.56  2000/03/25 19:05:47  jonas
    * fixed some things for -Or. Make cycle now works with -OG2p3r if
      you use -Aas. There still a bug in popt386.pas that causes a
      problem with the binary writer, but I haven't found it yet

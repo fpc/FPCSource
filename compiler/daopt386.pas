@@ -64,11 +64,10 @@ Function RefsEquivalent(Const R1, R2: TReference; Var RegInfo: TRegInfo; OpAct: 
 Function RefsEqual(Const R1, R2: TReference): Boolean;
 Function IsGP32Reg(Reg: TRegister): Boolean;
 Function RegInRef(Reg: TRegister; Const Ref: TReference): Boolean;
-Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
-{$ifdef newOptimizations}
-Function RegInOp(Reg: TRegister; const o:toper): Boolean;
-{$endif newOptimizations}
-Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
+function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
+function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
+function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
+function RegInOp(Reg: TRegister; const o:toper): Boolean;
 
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
@@ -771,52 +770,138 @@ Begin {checks whether Ref contains a reference to Reg}
   RegInRef := (Ref.Base = Reg) Or (Ref.Index = Reg)
 End;
 
-Function RegInInstruction(Reg: TRegister; p1: Pai): Boolean;
-{checks if Reg is used by the instruction p1}
-Var Counter: Longint;
-    TmpResult: Boolean;
-Begin
-  TmpResult := False;
-  If (Pai(p1)^.typ = ait_instruction) Then
-    Begin
-      Reg := Reg32(Reg);
-      Counter := 0;
-      Repeat
-        Case Paicpu(p1)^.oper[Counter].typ Of
-          Top_Reg: TmpResult := Reg = Reg32(Paicpu(p1)^.oper[Counter].reg);
-          Top_Ref: TmpResult := RegInRef(Reg, Paicpu(p1)^.oper[Counter].ref^);
-        End;
-        Inc(Counter)
-      Until (Counter = 3) or TmpResult;
-    End;
-  RegInInstruction := TmpResult
-End;
+function RegReadByInstruction(reg: TRegister; hp: pai): boolean;
+var p: paicpu;
+    opCount: byte;
+begin
+  RegReadByInstruction := false;
+  reg := reg32(reg);
+  p := paicpu(hp);
+  if hp^.typ <> ait_instruction then
+    exit;
+  case p^.opcode of
+    A_IMUL:
+      case p^.ops of
+        1: regReadByInstruction := (reg = R_EAX) or reginOp(reg,p^.oper[0]);
+        2,3:
+          regReadByInstruction := regInOp(reg,p^.oper[0]) or
+            regInOp(reg,p^.oper[1]);
+      end;
+    A_IDIV,A_DIV,A_MUL:
+      begin
+        regReadByInstruction :=
+          regInOp(reg,p^.oper[0]) or (reg = R_EAX);
+      end;
+    else
+      begin
+        for opCount := 0 to 2 do
+          if (p^.oper[opCount].typ = top_ref) and
+             RegInRef(reg,p^.oper[opCount].ref^) then
+            begin
+              RegReadByInstruction := true;
+              exit
+            end;
+        for opCount := 1 to MaxCh do
+          case InsProp[p^.opcode].Ch[opCount] of
+            Ch_REAX..CH_REDI,CH_RWEAX..Ch_MEDI:
+              if reg = TCh2Reg(InsProp[p^.opcode].Ch[opCount]) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+            Ch_RWOp1,Ch_ROp1{$ifdef arithopt},Ch_MOp1{$endif}:
+              if (p^.oper[0].typ = top_reg) and
+                 (reg32(p^.oper[0].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+            Ch_RWOp2,Ch_ROp2{$ifdef arithopt},Ch_MOp2{$endif}:
+              if (p^.oper[1].typ = top_reg) and
+                 (reg32(p^.oper[1].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+            Ch_RWOp3,Ch_ROp3{$ifdef arithopt},Ch_MOp3{$endif}:
+              if (p^.oper[2].typ = top_reg) and
+                 (reg32(p^.oper[2].reg) = reg) then
+                begin
+                  RegReadByInstruction := true;
+                  exit
+                end;
+          end;
+      end;
+  end;
+end;
 
-{$ifdef newOptimizations}
+function regInInstruction(Reg: TRegister; p1: Pai): Boolean;
+{ Checks if Reg is used by the instruction p1                              }
+{ Difference with "regReadBysinstruction() or regModifiedByInstruction()": }
+{ this one ignores CH_ALL opcodes, while regModifiedByInstruction doesn't  }
+var p: paicpu;
+    opCount: byte;
+begin
+  reg := reg32(reg);
+  regInInstruction := false;
+  p := paicpu(p1);
+  if p1^.typ <> ait_instruction then
+    exit;
+  case p^.opcode of
+    A_IMUL:
+      case p^.ops of
+        1: regInInstruction := (reg = R_EAX) or reginOp(reg,p^.oper[0]);
+        2,3:
+          regInInstruction := regInOp(reg,p^.oper[0]) or
+            regInOp(reg,p^.oper[1]) or regInOp(reg,p^.oper[2]);
+      end;
+    A_IDIV,A_DIV,A_MUL:
+      regInInstruction :=
+        regInOp(reg,p^.oper[0]) or
+         (reg = R_EAX) or (reg = R_EDX)
+    else
+      begin
+        for opCount := 1 to MaxCh do
+          case InsProp[p^.opcode].Ch[opCount] of
+            CH_REAX..CH_MEDI:
+              if tch2reg(InsProp[p^.opcode].Ch[opCount]) = reg then
+                begin
+                  regInInstruction := true;
+                  exit;
+                end;
+            Ch_ROp1..Ch_MOp1:
+              if regInOp(reg,p^.oper[0]) then
+                begin
+                  regInInstruction := true;
+                  exit
+                end;
+            Ch_ROp2..Ch_MOp2:
+              if regInOp(reg,p^.oper[1]) then
+                begin
+                  regInInstruction := true;
+                  exit
+                end;
+            Ch_ROp3..Ch_MOp3:
+              if regInOp(reg,p^.oper[2]) then
+                begin
+                  regInInstruction := true;
+                  exit
+                end;
+          end;
+      end;
+  end;
+end;
+
 Function RegInOp(Reg: TRegister; const o:toper): Boolean;
 Begin
   RegInOp := False;
+  reg := reg32(reg);
   Case o.typ Of
-    top_reg: RegInOp := Reg = o.reg;
+    top_reg: RegInOp := Reg = reg32(o.reg);
     top_ref: RegInOp := (Reg = o.ref^.Base) Or
                         (Reg = o.ref^.Index);
   End;
 End;
-{$endif newOptimizations}
-(*
-Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
-{returns true if Reg is modified by the instruction p1. P1 is assumed to be
- of the type ait_instruction}
-Var hp: Pai;
-Begin
-  If GetLastInstruction(p1, hp)
-    Then
-      RegModifiedByInstruction :=
-        PPAiProp(p1^.OptInfo)^.Regs[Reg].WState <>
-          PPAiProp(hp^.OptInfo)^.Regs[Reg].WState
-    Else RegModifiedByInstruction := True;
-End;
-*)
 
 Function RegModifiedByInstruction(Reg: TRegister; p1: Pai): Boolean;
 Var InstrProp: TInsProp;
@@ -830,7 +915,7 @@ Begin
       A_IMUL:
         With paicpu(p1)^ Do
           TmpResult :=
-            ((ops = 1) and (reg = R_EAX)) or
+            ((ops = 1) and (reg in [R_EAX,R_EDX])) or
             ((ops = 2) and (Reg32(oper[1].reg) = reg)) or
             ((ops = 3) and (Reg32(oper[2].reg) = reg));
       A_DIV, A_IDIV, A_MUL:
@@ -1098,10 +1183,11 @@ Begin
     Else s := 0
 End;
 
-Function RegInSequence(Reg: TRegister; Const Content: TContent): Boolean;
-{checks the whole sequence of Content (so StartMod and and the next NrOfMods
- Pai objects) to see whether Reg is used somewhere, without it being loaded
- with something else first}
+Function sequenceDependsonReg(Const Content: TContent; seqReg, Reg: TRegister): Boolean;
+{ Content is the sequence of instructions that describes the contents of   }
+{ seqReg. Reg is being overwritten by the current instruction. If the      }
+{ content of seqReg depends on reg (ie. because of a                       }
+{ "movl (seqreg,reg), seqReg" instruction), this function returns true     }
 Var p: Pai;
     Counter: Byte;
     TmpResult: Boolean;
@@ -1117,35 +1203,30 @@ Begin
       If (p^.typ = ait_instruction) and
          ((Paicpu(p)^.opcode = A_MOV) or
           (Paicpu(p)^.opcode = A_MOVZX) or
-          (Paicpu(p)^.opcode = A_MOVSX))
-        Then
-          Begin
-            If (Paicpu(p)^.oper[0].typ = top_ref) Then
-              With Paicpu(p)^.oper[0].ref^ Do
-                If (Base = procinfo^.FramePointer) And
-                   (Index = R_NO)
-                  Then
-                    Begin
-                      RegsChecked := RegsChecked + [Reg32(Paicpu(p)^.oper[1].reg)];
-                      If Reg = Reg32(Paicpu(p)^.oper[1].reg) Then
-                        Break;
-                    End
-                  Else
-                    Begin
-                      If (Base = Reg) And
-                         Not(Base In RegsChecked)
-                        Then TmpResult := True;
-                      If Not(TmpResult) And
-                         (Index = Reg) And
-                           Not(Index In RegsChecked)
-                        Then TmpResult := True;
-                    End
-          End
-        Else TmpResult := RegInInstruction(Reg, p);
+          (Paicpu(p)^.opcode = A_MOVSX) or
+          (paicpu(p)^.opcode = A_LEA)) and
+         (Paicpu(p)^.oper[0].typ = top_ref) Then
+        With Paicpu(p)^.oper[0].ref^ Do
+          If ((Base = procinfo^.FramePointer) or
+              (assigned(symbol) and (base = R_NO))) And
+             (Index = R_NO) Then
+            Begin
+              RegsChecked := RegsChecked + [Reg32(Paicpu(p)^.oper[1].reg)];
+              If Reg = Reg32(Paicpu(p)^.oper[1].reg) Then
+                Break;
+            End
+          Else
+            tmpResult :=
+              regReadByInstruction(reg,p) and
+              regModifiedByInstruction(seqReg,p)
+      Else
+        tmpResult :=
+          regReadByInstruction(reg,p) and
+          regModifiedByInstruction(seqReg,p);
       Inc(Counter);
       GetNextInstruction(p,p)
     End;
-  RegInSequence := TmpResult
+  sequenceDependsonReg := TmpResult
 End;
 
 Procedure DestroyReg(p1: PPaiProp; Reg: TRegister; doIncState:Boolean);
@@ -1173,20 +1254,19 @@ Begin
             WState := TmpWState;
             RState := TmpRState;
           End;
-        For Counter := R_EAX to R_EDI Do
-          With p1^.Regs[Counter] Do
+        For counter := R_EAX to R_EDI Do
+          With p1^.Regs[counter] Do
             If (Typ = Con_Ref) And
-               RegInSequence(Reg, p1^.Regs[Counter])
-              Then
-                Begin
-                  if doIncState then
-                    IncState(WState);
-                  TmpWState := WState;
-                  TmpRState := RState;
-                  FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
-                  WState := TmpWState;
-                  RState := TmpRState;
-                End;
+               sequenceDependsOnReg(p1^.Regs[counter],counter,reg) Then
+              Begin
+                if doIncState then
+                  IncState(WState);
+                TmpWState := WState;
+                TmpRState := RState;
+                FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
+                WState := TmpWState;
+                RState := TmpRState;
+              End;
        End;
 End;
 
@@ -1561,9 +1641,24 @@ Begin {initializes/desrtoys all registers}
 End;
 
 Procedure DestroyOp(PaiObj: Pai; const o:Toper);
+{$ifdef statedebug}
+var hp: pai;
+{$endif statedebug}
+
 Begin
   Case o.typ Of
-    top_reg: DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg, true);
+    top_reg:
+      begin
+{$ifdef statedebug}
+        hp := new(pai_asm_comment,init(strpnew('destroying '+att_reg2str[o.reg])));
+        hp^.next := paiobj^.next;
+        hp^.previous := paiobj;
+        paiobj^.next := hp;
+        if assigned(hp^.next) then
+          hp^.next^.previous := hp;
+{$endif statedebug}
+        DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg, true);
+      end;
     top_ref:
       Begin
         ReadRef(PPaiProp(PaiObj^.OptInfo), o.ref);
@@ -1610,6 +1705,10 @@ Begin
         End
       Else
         Begin
+{$ifdef statedebug}
+          hp := new(pai_asm_comment,init(strpnew('destroying '+att_reg2str[reg])));
+          insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
           DestroyReg(PPaiProp(p^.optinfo), Reg, true);
 {$ifdef StateDebug}
           hp := new(pai_asm_comment,init(strpnew(att_reg2str[reg]+': '+tostr(PPaiProp(p^.optinfo)^.Regs[reg].WState))));
@@ -1890,6 +1989,11 @@ Begin
                       Case Paicpu(p)^.oper[1].typ Of
                         Top_Reg:
                           Begin
+{$ifdef statedebug}
+                            hp := new(pai_asm_comment,init(strpnew('destroying '+
+                              att_reg2str[Paicpu(p)^.oper[1].reg])));
+                            insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                             DestroyReg(CurProp, Paicpu(p)^.oper[1].reg, true);
                             ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
 {                            CurProp^.Regs[Paicpu(p)^.oper[1].reg] :=
@@ -1908,7 +2012,6 @@ Begin
                     Top_Ref:
                       Begin {destination is always a register in this case}
                         ReadRef(CurProp, Paicpu(p)^.oper[0].ref);
-                        ReadReg(CurProp, Paicpu(p)^.oper[1].reg);
                         TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
                         If RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^) And
                            (CurProp^.Regs[TmpReg].Typ = Con_Ref)
@@ -1927,6 +2030,10 @@ Begin
                             End
                           Else
                             Begin
+{$ifdef statedebug}
+                              hp := new(pai_asm_comment,init(strpnew('destroying & initing '+att_reg2str[tmpreg])));
+                              insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                               DestroyReg(CurProp, TmpReg, true);
                               If Not(RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^)) Then
                                 With CurProp^.Regs[TmpReg] Do
@@ -1948,6 +2055,10 @@ Begin
                           Top_Reg:
                             Begin
                               TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
+{$ifdef statedebug}
+          hp := new(pai_asm_comment,init(strpnew('destroying '+att_reg2str[tmpreg])));
+          insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
                                   DestroyReg(CurProp, TmpReg, true);
@@ -1971,6 +2082,10 @@ Begin
                   If (Paicpu(p)^.OpCode = A_IDIV) or
                      (Paicpu(p)^.OpCode = A_DIV) Then
                     ReadReg(CurProp,R_EDX);
+{$ifdef statedebug}
+                  hp := new(pai_asm_comment,init(strpnew('destroying eax and edx')));
+                  insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                   DestroyReg(CurProp, R_EAX, true);
                   DestroyReg(CurProp, R_EDX, true)
                 End;
@@ -1982,18 +2097,25 @@ Begin
                     If (Paicpu(p)^.oper[1].typ = top_none) Then
                       Begin
                         ReadReg(CurProp,R_EAX);
+{$ifdef statedebug}
+                        hp := new(pai_asm_comment,init(strpnew('destroying eax and edx')));
+                        insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                         DestroyReg(CurProp, R_EAX, true);
                         DestroyReg(CurProp, R_EDX, true)
                       End
                     Else
             {$ifdef arithopt}
-                      AddInstr2OpContents(Paicpu(p), Paicpu(p)^.oper[1])
+                      AddInstr2OpContents(
+                        {$ifdef statedebug}asml,{$endif}
+                          Paicpu(p), Paicpu(p)^.oper[1])
             {$else arithopt}
                       DestroyOp(p, Paicpu(p)^.oper[1])
             {$endif arithopt}
                   Else
             {$ifdef arithopt}
-                    AddInstr2OpContents(Paicpu(p), Paicpu(p)^.oper[2]);
+                    AddInstr2OpContents({$ifdef statedebug}asml,{$endif}
+                      Paicpu(p), Paicpu(p)^.oper[2]);
             {$else arithopt}
                     DestroyOp(p, Paicpu(p)^.oper[2]);
             {$endif arithopt}
@@ -2003,8 +2125,17 @@ Begin
                 begin
                   readop(curprop,paicpu(p)^.oper[0]);
                   if reginref(paicpu(p)^.oper[1].reg,paicpu(p)^.oper[0].ref^) then
-                    AddInstr2RegContents(paicpu(p), paicpu(p)^.oper[1].reg)
-                  else destroyreg(curprop,paicpu(p)^.oper[1].reg,true);
+                    AddInstr2RegContents({$ifdef statedebug}asml,{$endif}
+                      paicpu(p), paicpu(p)^.oper[1].reg)
+                  else
+                    begin
+{$ifdef statedebug}
+                      hp := new(pai_asm_comment,init(strpnew('destroying '+
+                        att_reg2str[paicpu(p)^.oper[1].reg])));
+                      insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
+                      destroyreg(curprop,paicpu(p)^.oper[1].reg,true);
+                    end;
                 end;
 {$endif arithopt}
               Else
@@ -2019,13 +2150,17 @@ Begin
                           Begin
                             If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
                               ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
+{$ifdef statedebug}
+                            hp := new(pai_asm_comment,init(strpnew('destroying '+
+                              att_reg2str[TCh2Reg(InstrProp.Ch[Cnt])])));
+                            insertllitem(asml,p,p^.next,hp);
+{$endif statedebug}
                             DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]), true);
                           End;
 {$ifdef arithopt}
                         Ch_MEAX..Ch_MEDI:
-                          AddInstr2RegContents({$ifdef statedebug} asml, {$endif}
-                                               Paicpu(p),
-                                               TCh2Reg(InstrProp.Ch[Cnt]));
+                          AddInstr2RegContents({$ifdef statedebug} asml,{$endif}
+                                               Paicpu(p),TCh2Reg(InstrProp.Ch[Cnt]));
 {$endif arithopt}
                         Ch_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         Ch_SDirFlag: CurProp^.DirFlag := F_Set;
@@ -2075,6 +2210,11 @@ Begin
                         Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU:
                         Else
                           Begin
+{$ifdef statedebug}
+                            hp := new(pai_asm_comment,init(strpnew(
+                              'destroying all regs for prev instruction')));
+                            insertllitem(asml,p, p^.next,hp);
+{$endif statedebug}
                             DestroyAllRegs(CurProp);
                           End;
                       End;
@@ -2086,6 +2226,11 @@ Begin
           End
         Else
           Begin
+{$ifdef statedebug}
+            hp := new(pai_asm_comment,init(strpnew(
+              'destroying all regs: unknown pai: '+tostr(ord(p^.typ)))));
+            insertllitem(asml,p, p^.next,hp);
+{$endif statedebug}
             DestroyAllRegs(CurProp);
           End;
       End;
@@ -2190,7 +2335,14 @@ End.
 
 {
  $Log$
- Revision 1.85  2000-03-25 18:58:00  jonas
+ Revision 1.86  2000-04-10 12:45:56  jonas
+   * fixed a serious bug in the CSE which (I think) only showed with
+     -dnewoptimizations when using multi-dimensional arrays with
+     elements of a size different from 1, 2 or 4 (especially strings).
+   * made the DFA/CSE more robust (much less dependent on specifics of the
+     code generator)
+
+ Revision 1.85  2000/03/25 18:58:00  jonas
    * moved AllocRegBetween() from csopt386 to this unit because it's now
      also used by popt386
 
