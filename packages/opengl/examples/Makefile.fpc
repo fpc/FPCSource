@@ -3,7 +3,7 @@
 #
 
 [targets]
-programs=glutdemo morph3d
+programs=glutdemo morph3d bounce
 
 [require]
 packages=opengl

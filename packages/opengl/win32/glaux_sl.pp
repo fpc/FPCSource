@@ -504,10 +504,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-09-03 22:17:18  peter
-    * merged
+  Revision 1.3  2000-10-01 22:17:59  peter
+    * new bounce demo
 
-  Revision 1.1.2.1  2000/09/03 22:14:41  peter
-    * regenerated
+  Revision 1.1.2.2  2000/10/01 22:12:28  peter
+    * new demo
 
 }

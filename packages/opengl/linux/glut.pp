@@ -199,6 +199,7 @@ type
   TGlutTimerFunc = procedure(value: Integer); extdecl
   TGlutKeyboardFunc = procedure(key: char;x,y:Integer); extdecl
   TGlutIdleFunc = procedure; extdecl
+  TGlutVisibilityFunc = procedure(state:Integer); extdecl
 
 // GLUT game mode sub-API
 {$ifdef GLUT_GAME}
@@ -215,7 +216,7 @@ const
 
 var
 // GLUT initialization sub-API
-  glutInit: procedure(var argcp: Integer; var argv: PChar); cdecl;
+  glutInit: procedure(argcp: PInteger; argv: PPChar); cdecl;
   glutInitDisplayMode: procedure(mode: LongWord); cdecl;
   glutInitDisplayString: procedure(AString: PChar); cdecl;
   glutInitWindowPosition: procedure(x, y: Integer); cdecl;
@@ -255,7 +256,7 @@ var
   glutTimerFunc: procedure(millis: LongWord; func: TGlutTimerFunc; value: longint); cdecl;
   glutKeyboardFunc : procedure(func: TGlutKeyboardFunc); cdecl;
   glutIdleFunc : procedure(func: TGlutIdleFunc); cdecl;
-
+  glutVisibilityFunc : procedure(func: TGlutVisibilityFunc); cdecl;
 
 // GLUTAPI void APIENTRY glutDisplayFunc(void (GLUTCALLBACK * func)(void));
 // GLUTAPI void APIENTRY glutReshapeFunc(void (GLUTCALLBACK * func)(int width, int height));
@@ -380,6 +381,7 @@ begin
   glutTimerFunc := GetProc(libglut, 'glutTimerFunc');
   glutKeyboardFunc := GetProc(libglut, 'glutKeyboardFunc');
   glutIdleFunc := GetProc(libglut, 'glutIdleFunc');
+  glutVisibilityFunc := GetProc(libglut, 'glutVisibilityFunc');
 // GLUTAPI void APIENTRY glutDisplayFunc(void (GLUTCALLBACK * func)(void));
 // GLUTAPI void APIENTRY glutReshapeFunc(void (GLUTCALLBACK * func)(int width, int height));
 // GLUTAPI void APIENTRY glutKeyboardFunc(void (GLUTCALLBACK * func)(unsigned char key, int x, int y));
@@ -449,10 +451,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-09-03 21:25:45  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.5  2000-10-01 22:17:59  peter
+    * new bounce demo
+
+  Revision 1.4.2.1  2000/10/01 22:12:28  peter
+    * new demo
 
 }

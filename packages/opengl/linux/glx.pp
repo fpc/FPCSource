@@ -246,11 +246,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:45  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.2  2000-10-01 22:17:59  peter
+    * new bounce demo
+
+  Revision 1.1.2.1  2000/10/01 22:12:28  peter
+    * new demo
 
   Revision 1.1  2000/07/13 06:34:18  michael
   + Initial import
@@ -263,10 +263,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-09-03 21:25:45  peter
-    * new updated version
-    * gtkglarea unit and demo
-    * win32 opengl headers
-    * morph3d demo
+  Revision 1.2  2000-10-01 22:17:59  peter
+    * new bounce demo
+
+  Revision 1.1.2.1  2000/10/01 22:12:28  peter
+    * new demo
 
 }

@@ -188,6 +188,7 @@ type
   TGlutTimerFunc = procedure(value: Integer); extdecl
   TGlutKeyboardFunc = procedure(key: char;x,y:Integer); extdecl
   TGlutIdleFunc = procedure; extdecl
+  TGlutVisibilityFunc = procedure(state:Integer); extdecl
 
 // GLUT game mode sub-API
 {$ifdef GLUT_GAME}
@@ -203,7 +204,7 @@ const
 {$endif GLUT_GAME}
 
 // GLUT initialization sub-API
-procedure glutInit(var argcp: Integer; var argv: PChar); glut_dll;
+procedure glutInit(argcp: PInteger; argv: PPChar); glut_dll;
 procedure glutInitDisplayMode(mode: LongWord); glut_dll;
 procedure glutInitDisplayString(AString: PChar); glut_dll;
 procedure glutInitWindowPosition(x, y: Integer); glut_dll;
@@ -243,7 +244,7 @@ procedure glutReshapeFunc(func: TGlutReshapeFunc); glut_dll;
 procedure glutTimerFunc(millis: LongWord; func: TGlutTimerFunc; value: longint); glut_dll;
 procedure glutKeyboardFunc(func: TGlutKeyboardFunc); glut_dll;
 procedure glutIdleFunc(func: TGlutIdleFunc); glut_dll;
-
+procedure glutVisibilityFunc(func: TGlutVisibilityFunc); glut_dll;
 
 // GLUTAPI void APIENTRY glutDisplayFunc(void (GLUTCALLBACK * func)(void));
 // GLUTAPI void APIENTRY glutReshapeFunc(void (GLUTCALLBACK * func)(int width, int height));
@@ -312,10 +313,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-09-03 22:17:18  peter
-    * merged
+  Revision 1.3  2000-10-01 22:17:59  peter
+    * new bounce demo
 
-  Revision 1.1.2.1  2000/09/03 22:14:41  peter
-    * regenerated
+  Revision 1.1.2.2  2000/10/01 22:12:28  peter
+    * new demo
 
 }
