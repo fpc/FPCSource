@@ -1,9 +1,9 @@
-fpc (1.0.5-0) unstable; urgency=low
+fpc (1.0.6-0) unstable; urgency=low
 
-  * Snapshot release
+  * New upstream version.
 
- -- Peter Vreman <peter@freepascal.org>  Tue,  2 Jan 2001 11:01:50 +0100
- 
+ -- Peter Vreman <peter@freepascal.org>  Tue,  1 Mrt 2002 11:01:50 +0100
+
 fpc (1.0.4-1) unstable; urgency=low
 
   * New upstream version.
