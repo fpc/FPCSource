@@ -1456,14 +1456,16 @@ Begin
                      (Pai386(p)^.oper[1].typ = top_reg) And
                      GetNextInstruction(p, hp1) And
                      (hp1^.typ = ait_Instruction) And
-                     (Pai386(hp1)^.opcode = A_MOV) And
+                     ((Pai386(hp1)^.opcode = A_MOV) or
+                      (Pai386(hp1)^.opcode = A_MOVZX) or
+                      (Pai386(hp1)^.opcode = A_MOVSX)) And
                      (Pai386(hp1)^.oper[0].typ = top_ref) And
                      (Pai386(hp1)^.oper[1].typ = top_reg) And
                      ((Pai386(hp1)^.oper[0].ref^.Base = Pai386(p)^.oper[1].reg) Or
                       (Pai386(hp1)^.oper[0].ref^.Index = Pai386(p)^.oper[1].reg)) And
                      (Pai386(hp1)^.oper[1].reg = Pai386(p)^.oper[1].reg) Then
               {mov reg1, reg2
-               mov (reg2, ..), reg2      to   mov (reg1, ..), reg2}
+               mov/zx/sx (reg2, ..), reg2      to   mov/zx/sx (reg1, ..), reg2}
                     Begin
                       If (Pai386(hp1)^.oper[0].ref^.Base = Pai386(p)^.oper[1].reg) Then
                         Pai386(hp1)^.oper[0].ref^.Base := Pai386(p)^.oper[0].reg;
@@ -1533,7 +1535,11 @@ End.
 
 {
  $Log$
- Revision 1.56  1999-06-23 12:33:52  jonas
+ Revision 1.57  1999-07-01 18:12:16  jonas
+   * enabled "mov reg1,reg2;mov (reg2,..), reg2" also if the second mov is
+     a movzx or movsx
+
+ Revision 1.56  1999/06/23 12:33:52  jonas
    * merged
 
  Revision 1.54.2.2  1999/06/23 11:55:08  jonas
