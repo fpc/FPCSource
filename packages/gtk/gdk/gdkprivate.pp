@@ -222,10 +222,7 @@ function  gdk_window_xid_at(base:TWindow; bx:gint; by:gint; x:gint; y:gint; excl
 function  gdk_window_xid_at_coords(x:gint; y:gint; excludes:PGList; excl_child:gboolean):TWindow;cdecl;external gdkdll name 'gdk_window_xid_at_coords';
 
     var
-       gdk_debug_level : gint;external gdkdll name 'gdk_debug_level';
-       gdk_show_events : gint;external gdkdll name  'gdk_show_events';
        gdk_use_xshm : gint;external gdkdll name 'gdk_use_xshm';
-       gdk_stack_trace : gint;external gdkdll name 'gdk_stack_trace';
        gdk_display_name : Pgchar;external gdkdll name 'gdk_display_name';
        gdk_display : PDisplay;external gdkdll name 'gdk_display';
        gdk_screen : gint;external gdkdll name 'gdk_screen';
@@ -318,7 +315,11 @@ function  GDK_font_lookup(xid : longint) : PGdkFont;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:33  peter
+  Revision 1.2  2000-02-20 14:02:45  sg
+  * Removed the following functions which don't exist anymore:
+      gdk_debug_level, gdk_show_events, gdk_stack_trace
+
+  Revision 1.1  1999/11/24 23:36:33  peter
     * moved to packages dir
 
   Revision 1.8  1999/10/21 14:35:23  peter
