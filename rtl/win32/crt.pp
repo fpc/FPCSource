@@ -598,6 +598,8 @@ begin
   CharInfo.UnicodeChar := 32;
   CharInfo.Attributes := TextAttr;
 
+  Y := WinMinY + (Y - 1);
+
   SrcRect.Top := Y - 01;
   SrcRect.Left := WinMinX - 1;
   SrcRect.Right := WinMaxX - 1;
@@ -920,7 +922,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.9  1999-07-06 22:44:11  florian
+  Revision 1.10  1999-08-24 13:15:44  peter
+    * Removeline fixed
+
+  Revision 1.9  1999/07/06 22:44:11  florian
     * some fixes to compile ddraw units from the jedi project
 
   Revision 1.8  1999/06/09 16:46:11  peter
