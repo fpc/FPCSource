@@ -13,7 +13,7 @@ begin
        halt(1);
      end;
    str(d:11,s);
-   if s<>' 5.170E+006' then
+   if s<>' 5.169E+006' then
      begin
        writeln(s);
        halt(1);
