@@ -1787,7 +1787,10 @@
     function tsetdef.gettypename : string;
 
       begin
-         gettypename:='Set Of '+elementtype.def^.typename;
+         if assigned(elementtype.def) then
+          gettypename:='Set Of '+elementtype.def^.typename
+         else
+          gettypename:='Empty Set';
       end;
 
 
@@ -4127,7 +4130,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.202  2000-06-22 20:01:57  peter
+  Revision 1.203  2000-06-25 09:25:29  peter
+    * setdef.typename, show Empty Set if elementtype is not set
+
+  Revision 1.202  2000/06/22 20:01:57  peter
     * int64,qword rtti support
 
   Revision 1.201  2000/06/18 18:11:32  peter
