@@ -61,7 +61,7 @@ Type
 
    tfputype =
      (no_fpuprocessor,
-      fpu_sse2
+      fpu_sse64
      );
 
 Const
@@ -98,16 +98,23 @@ Const
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
-     'SSE2'
+     'SSE64'
    );
 
+   sse_singlescalar : set of tfputype = [fpu_sse64];
+   sse_doublescalar : set of tfputype = [fpu_sse64];
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.9  2003-12-22 19:00:17  florian
+  Revision 1.10  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.9  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.8  2003/12/20 12:38:51  florian

@@ -313,8 +313,8 @@ uses
 
     const
       { declare aliases }
-      LOC_MMREGISTER = LOC_SSEREGISTER;
-      LOC_CMMREGISTER = LOC_CSSEREGISTER;
+      LOC_SSEREGISTER = LOC_MMREGISTER;
+      LOC_CSSEREGISTER = LOC_CMMREGISTER;
 
       max_operands = 3;
 
@@ -421,6 +421,8 @@ implementation
             cgsize2subreg:=R_SUBQ;
           OS_M64:
             cgsize2subreg:=R_SUBNONE;
+          OS_F32,OS_F64:
+            cgsize2subreg:=R_SUBWHOLE;
           else
             internalerror(200301231);
         end;
@@ -532,7 +534,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-12-19 22:08:44  daniel
+  Revision 1.33  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.32  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.31  2003/12/15 21:25:49  peter

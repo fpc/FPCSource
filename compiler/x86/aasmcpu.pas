@@ -1531,7 +1531,9 @@ implementation
             202,
             209,
             210,
-            217,218,219 : ;
+            217,218: ;
+            219 :
+              inc(len);
             216 :
               begin
                 inc(codes);
@@ -1825,10 +1827,15 @@ implementation
             202,
             209,
             210,
-            217,218,219 :
+            217,218 :
               begin
                 { these are dissambler hints or 32 bit prefixes which
                   are not needed }
+              end;
+            219 :
+              begin
+                bytes[0]:=$f3;
+                sec.writebytes(bytes,1);
               end;
             31,
             48,49,50,
@@ -2344,7 +2351,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2003-12-15 21:25:49  peter
+  Revision 1.41  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.40  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -160,6 +160,9 @@ interface
     {# Returns true, if def is a single type }
     function is_single(def : tdef) : boolean;
 
+    {# Returns true, if def is a double type }
+    function is_double(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
@@ -215,11 +218,19 @@ implementation
       end;
 
 
-    { returns true, if def is a currency type }
+    { returns true, if def is a single type }
     function is_single(def : tdef) : boolean;
       begin
         result:=(def.deftype=floatdef) and
           (tfloatdef(def).typ=s32real);
+      end;
+
+
+    { returns true, if def is a double type }
+    function is_double(def : tdef) : boolean;
+      begin
+        result:=(def.deftype=floatdef) and
+          (tfloatdef(def).typ=s64real);
       end;
 
 
@@ -833,7 +844,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2003-11-10 18:05:16  florian
+  Revision 1.8  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.7  2003/11/10 18:05:16  florian
     + is_single added
 
   Revision 1.6  2003/10/01 20:34:48  peter

@@ -48,8 +48,6 @@ interface
          LOC_MMXREGISTER,  { MMX register }
          { MMX register variable }
          LOC_CMMXREGISTER,
-         LOC_SSEREGISTER,
-         LOC_CSSEREGISTER,
          { multimedia register }
          LOC_MMREGISTER,
          { Constant multimedia reg which shouldn't be modified }
@@ -254,8 +252,6 @@ interface
             'LOC_CFPUREG',
             'LOC_MMXREG',
             'LOC_CMMXREG',
-            'LOC_SSEREG',
-            'LOC_CSSEREG',
             'LOC_MMREG',
             'LOC_CMMREG');
 
@@ -587,7 +583,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.82  2003-12-22 23:10:21  peter
+  Revision 1.83  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.82  2003/12/22 23:10:21  peter
     * use low(longint) instead of $8000000
 
   Revision 1.81  2003/12/21 19:42:42  florian

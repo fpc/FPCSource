@@ -1721,7 +1721,7 @@ implementation
         initoptprocessor:=ClassAthlon64;
         initspecificoptprocessor:=ClassAthlon64;
 
-        initfputype:=fpu_sse2;
+        initfputype:=fpu_sse64;
 
         initpackenum:=4;
         {$IFDEF testvarsets}
@@ -1744,7 +1744,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.117  2003-12-20 12:38:51  florian
+  Revision 1.118  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.117  2003/12/20 12:38:51  florian
     * some x86-64 compilation fixe
 
   Revision 1.116  2003/11/30 19:35:29  florian

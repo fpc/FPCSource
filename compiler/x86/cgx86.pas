@@ -755,25 +755,36 @@ unit cgx86;
              else
                internalerror(200312202);
            end
+         else if shufflescalar(shuffle) then
+           list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2))
          else
-           begin
-             if shufflescalar(shuffle) then
-               list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2))
-             else
-               internalerror(200312201);
-           end;
+           internalerror(200312201);
        end;
 
 
     procedure tcgx86.a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
        begin
-         list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,ref,reg));
+         if shuffle=nil then
+           begin
+             list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,ref,reg));
+           end
+         else if shufflescalar(shuffle) then
+           list.concat(taicpu.op_ref_reg(get_scalar_mm_op(fromsize,tosize),S_NO,ref,reg))
+         else
+           internalerror(200312252);
        end;
 
 
     procedure tcgx86.a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle);
        begin
-         list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
+         if shuffle=nil then
+           begin
+             list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,ref,reg));
+           end
+         else if shufflescalar(shuffle) then
+           list.concat(taicpu.op_reg_ref(get_scalar_mm_op(fromsize,tosize),S_NO,reg,ref))
+         else
+           internalerror(200312252);
        end;
 
 
@@ -792,7 +803,7 @@ unit cgx86;
      var
        l : tlocation;
      begin
-       l.loc:=LOC_REGISTER;
+       l.loc:=LOC_MMREGISTER;
        l.register:=src;
        l.size:=size;
        opmm_loc_reg(list,op,size,l,dst,shuffle);
@@ -804,7 +815,7 @@ unit cgx86;
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
           ( { scalar }
             ( { OS_F32 }
-              A_NOP,A_ADDSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+              A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
             ),
           { Intel did again a "nice" job: they added packed double operations (*PD) to SSE2 but
             no scalar ones (*SD)
@@ -1908,7 +1919,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.95  2003-12-24 01:47:23  florian
+  Revision 1.96  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.95  2003/12/24 01:47:23  florian
     * first fixes to compile the x86-64 system unit
 
   Revision 1.94  2003/12/24 00:10:03  florian

@@ -35,7 +35,6 @@ interface
          protected
           function  first_addstring : tnode; override;
          private
-          procedure pass_left_and_right(var pushedfpu:boolean);
           function  getresflags(unsigned : boolean) : tresflags;
           procedure left_must_be_reg(opsize:TOpSize;noswap:boolean);
           procedure emit_op_right_left(op:TAsmOp;opsize:TOpSize);
@@ -43,7 +42,6 @@ interface
           procedure set_result_location(cmpop,unsigned:boolean);
           procedure second_addstring;
           procedure second_addboolean;
-          procedure second_addfloat;
           procedure second_addsmallset;
           procedure second_addmmxset;
           procedure second_mul;
@@ -70,25 +68,6 @@ interface
 
       const
          opsize_2_cgsize : array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
-
-    procedure ti386addnode.pass_left_and_right(var pushedfpu:boolean);
-      begin
-        { calculate the operator which is more difficult }
-        firstcomplex(self);
-
-        { in case of constant put it to the left }
-        if (left.nodetype=ordconstn) then
-         swapleftright;
-        secondpass(left);
-
-        { are too few registers free? }
-        if location.loc=LOC_FPUREGISTER then
-          pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
-        else
-          pushedfpu:=false;
-        secondpass(right);
-      end;
-
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
       begin
@@ -536,145 +515,6 @@ interface
              else
                internalerror(2003042213);
            end;
-         end;
-      end;
-
-
-{*****************************************************************************
-                                AddFloat
-*****************************************************************************}
-
-    procedure ti386addnode.second_addfloat;
-      var
-        op         : TAsmOp;
-        resflags   : tresflags;
-        pushedfpu,
-        cmpop      : boolean;
-      begin
-        pass_left_and_right(pushedfpu);
-
-        cmpop:=false;
-        case nodetype of
-          addn :
-            op:=A_FADDP;
-          muln :
-            op:=A_FMULP;
-          subn :
-            op:=A_FSUBP;
-          slashn :
-            op:=A_FDIVP;
-          ltn,lten,gtn,gten,
-          equaln,unequaln :
-            begin
-              op:=A_FCOMPP;
-              cmpop:=true;
-            end;
-          else
-            internalerror(2003042214);
-        end;
-
-        if (right.location.loc<>LOC_FPUREGISTER) then
-         begin
-           cg.a_loadfpu_loc_reg(exprasmlist,right.location,NR_ST);
-           if (right.location.loc <> LOC_CFPUREGISTER) and
-              pushedfpu then
-             location_freetemp(exprasmlist,left.location);
-           if (left.location.loc<>LOC_FPUREGISTER) then
-            begin
-              cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-              if (left.location.loc <> LOC_CFPUREGISTER) and
-                 pushedfpu then
-                location_freetemp(exprasmlist,left.location);
-            end
-           else
-            begin
-              { left was on the stack => swap }
-              toggleflag(nf_swaped);
-            end;
-
-           { releases the right reference }
-           location_release(exprasmlist,right.location);
-         end
-        { the nominator in st0 }
-        else if (left.location.loc<>LOC_FPUREGISTER) then
-         begin
-           cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-           if (left.location.loc <> LOC_CFPUREGISTER) and
-              pushedfpu then
-             location_freetemp(exprasmlist,left.location);
-         end
-        else
-         begin
-           { fpu operands are always in the wrong order on the stack }
-           toggleflag(nf_swaped);
-         end;
-
-        { releases the left reference }
-        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-          location_release(exprasmlist,left.location);
-
-        { if we swaped the tree nodes, then use the reverse operator }
-        if nf_swaped in flags then
-          begin
-             if (nodetype=slashn) then
-               op:=A_FDIVRP
-             else if (nodetype=subn) then
-               op:=A_FSUBRP;
-          end;
-        { to avoid the pentium bug
-        if (op=FDIVP) and (opt_processors=pentium) then
-          cg.a_call_name(exprasmlist,'EMUL_FDIVP')
-        else
-        }
-        { the Intel assemblers want operands }
-        if op<>A_FCOMPP then
-          begin
-             emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
-             tcgx86(cg).dec_fpu_stack;
-          end
-        else
-          begin
-             emit_none(op,S_NO);
-             tcgx86(cg).dec_fpu_stack;
-             tcgx86(cg).dec_fpu_stack;
-          end;
-
-        { on comparison load flags }
-        if cmpop then
-         begin
-           cg.getexplicitregister(exprasmlist,NR_AX);
-           emit_reg(A_FNSTSW,S_NO,NR_AX);
-           emit_none(A_SAHF,S_NO);
-           cg.ungetregister(exprasmlist,NR_AX);
-           if nf_swaped in flags then
-            begin
-              case nodetype of
-                  equaln : resflags:=F_E;
-                unequaln : resflags:=F_NE;
-                     ltn : resflags:=F_A;
-                    lten : resflags:=F_AE;
-                     gtn : resflags:=F_B;
-                    gten : resflags:=F_BE;
-              end;
-            end
-           else
-            begin
-              case nodetype of
-                  equaln : resflags:=F_E;
-                unequaln : resflags:=F_NE;
-                     ltn : resflags:=F_B;
-                    lten : resflags:=F_BE;
-                     gtn : resflags:=F_A;
-                    gten : resflags:=F_AE;
-              end;
-            end;
-           location_reset(location,LOC_FLAGS,OS_NO);
-           location.resflags:=resflags;
-         end
-        else
-         begin
-           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-           location.register:=NR_ST;
          end;
       end;
 
@@ -1588,7 +1428,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-12-24 00:10:02  florian
+  Revision 1.92  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.91  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.90  2003/12/23 22:13:41  peter

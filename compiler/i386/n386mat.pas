@@ -470,6 +470,14 @@ implementation
                location.register:=NR_ST;
                emit_none(A_FCHS,S_NO);
             end;
+          {
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+            end;
+          }
+          else
+            internalerror(200312241);
         end;
       end;
 
@@ -579,7 +587,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-12-10 17:28:41  peter
+  Revision 1.67  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.66  2003/12/10 17:28:41  peter
     * int64 shl/shr > 63 returns 0
 
   Revision 1.65  2003/10/10 17:48:14  peter

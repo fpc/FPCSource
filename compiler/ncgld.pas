@@ -591,6 +591,21 @@ implementation
                     cg.a_loadmm_reg_ref(exprasmlist,right.location.register,left.location.reference);
                 end;
 {$endif SUPPORT_MMX}
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER:
+                begin
+                  if left.resulttype.def.deftype=arraydef then
+                    begin
+                    end
+                  else
+                    begin
+                      cgsize:=def_cgsize(left.resulttype.def);
+                      if left.location.loc=LOC_CMMREGISTER then
+                        cg.a_loadmm_reg_reg(exprasmlist,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar)
+                      else
+                        cg.a_loadmm_reg_ref(exprasmlist,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                    end;
+                end;
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
@@ -657,7 +672,6 @@ implementation
                 end;
 {$endif cpuflags}
             end;
-
          end;
 
         if releaseright then
@@ -892,7 +906,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-12-24 00:10:02  florian
+  Revision 1.104  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.103  2003/12/24 00:10:02  florian
     - delete parameter in cg64 methods removed
 
   Revision 1.102  2003/12/06 01:15:22  florian

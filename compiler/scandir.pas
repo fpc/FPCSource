@@ -291,6 +291,9 @@ implementation
 
     procedure dir_fputype;
       begin
+        current_scanner.skipspace;
+        if not(SetFPUType(upper(current_scanner.readcomment),false)) then
+          comment(V_Error,'Illegal FPU type');
       end;
 
     procedure dir_goto;
@@ -922,6 +925,7 @@ implementation
         AddDirective('EXTENDEDSYNTAX',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_externalsym);
         AddDirective('FATAL',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_fatal);
+        AddDirective('FPUTYPE',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_fputype);
         AddDirective('GOTO',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_goto);
         AddDirective('HINT',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_hint);
         AddDirective('HINTS',directive_all, {$ifdef FPCPROCVAR}@{$endif}dir_hints);
@@ -988,7 +992,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-11-12 16:05:39  florian
+  Revision 1.29  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.28  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

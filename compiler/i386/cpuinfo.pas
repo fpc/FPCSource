@@ -65,7 +65,8 @@ Type
       fpu_soft,
       fpu_x87,
       fpu_sse,
-      fpu_sse2
+      fpu_sse2,
+      fpu_sse3
      );
 
 
@@ -112,15 +113,24 @@ Const
      'SOFT',
      'X87',
      'SSE',
-     'SSE2'
+     'SSE2',
+     'SSE3'
    );
+
+   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
+   sse_doublescalar : set of tfputype = [];
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.20  2003-12-01 18:43:31  peter
+  Revision 1.21  2003-12-25 01:07:09  florian
+    + $fputype directive support
+    + single data type operations with sse unit
+    * fixed more x86-64 stuff
+
+  Revision 1.20  2003/12/01 18:43:31  peter
     * s128real type is not compatible with s80real
 
   Revision 1.19  2003/11/12 16:05:39  florian
