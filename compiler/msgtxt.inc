@@ -698,7 +698,7 @@ const msgtxt : array[0..000157,1..240] of char=(
   '11038_D_Undefining symbol $1'#000+
   '11039_E_Unknown code page'#000+
   '11023_Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU'#010+
-  'Copyright (c) 1993-2004 by Florian Klaempfl'#000+
+  'Copyright (c) 1993-2005 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compiler Date      : ','$FPCDATE'#010+
