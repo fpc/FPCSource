@@ -965,6 +965,11 @@ procedure read_qword(len : longint;var t : textrec;q : qword);[public,alias:'FPC
 begin
   { !!!!!!!!!!!!! }
 end;
+
+procedure read_int64(len : longint;var t : textrec;q : int64);[public,alias:'FPC_READ_TEXT_INT64'];
+begin
+  { !!!!!!!!!!!!! }
+end;
 {$endif INT64}
 
 
@@ -994,7 +999,10 @@ end;
 
 {
   $Log$
-  Revision 1.60  1999-11-06 14:35:39  peter
+  Revision 1.61  1999-12-02 17:40:06  peter
+    * read_int64 dummy added
+
+  Revision 1.60  1999/11/06 14:35:39  peter
     * truncated log
 
   Revision 1.59  1999/10/26 12:25:19  peter
