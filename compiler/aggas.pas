@@ -57,6 +57,11 @@ interface
         procedure WriteInstruction(hp: tai);  virtual; abstract;
       end;
 
+    const
+      regname_count=45;
+      regname_count_bsstart=32;   {Largest power of 2 out of regname_count.}
+
+
 implementation
 
     uses
@@ -75,8 +80,10 @@ implementation
   {$endif}
       ,gdb
 {$endif GDB}
+{$ifdef i386}
+      ,itx86att
+{$endif}
       ;
-
 
     const
       line_length = 70;
@@ -388,10 +395,10 @@ var
                if (cs_asm_regalloc in aktglobalswitches) then
                  begin
                    if Tai_Regalloc(hp).reg.enum=R_INTREGISTER then
-                     AsmWriteLn(target_asm.comment+'Register reg'+tostr(byte(tai_regalloc(hp).reg.number shr 8)-1)+
+                     AsmWriteLn(#9+target_asm.comment+'Register '+gas_regname(Tai_regalloc(hp).reg.number)+
                        allocstr[tai_regalloc(hp).allocation])
                    else
-                     AsmWriteLn(target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
+                     AsmWriteLn(#9+target_asm.comment+'Register '+std_reg2str[tai_regalloc(hp).reg.enum]+
                        allocstr[tai_regalloc(hp).allocation]);
                  end;
              end;
@@ -822,7 +829,10 @@ var
 end.
 {
   $Log$
-  Revision 1.27  2003-08-17 21:11:00  daniel
+  Revision 1.28  2003-08-18 11:49:47  daniel
+    * Made ATT asm writer work with -sr
+
+  Revision 1.27  2003/08/17 21:11:00  daniel
     * Now -sr works...
 
   Revision 1.26  2003/08/17 20:47:47  daniel

@@ -144,11 +144,12 @@ interface
 {$endif x86_64}
 
      function gas_regnum_search(const s:string):Tnewregister;
+     function gas_regname(const r:Tnewregister):string;
 
 
 implementation
 
-     uses cutils;
+     uses cutils,verbose;
 
      function gas_regnum_search(const s:string):Tnewregister;
 
@@ -173,10 +174,46 @@ implementation
           gas_regnum_search:=NR_NO;
      end;
 
+    function gas_regname(const r:Tnewregister):string;
+
+    var i:byte;
+        nr:string[3];
+        sub:char;
+
+    begin
+      gas_regname:='';
+      for i:=0 to regname_count-1 do
+        if r=gas_regname2regnum[i].number then
+            gas_regname:=gas_regname2regnum[i].name;
+      {If not found, generate a systematic name.}
+      if gas_regname='' then
+        begin
+          str(r shr 8,nr);
+          case r and $ff of
+            R_SUBL:
+              sub:='l';
+            R_SUBH:
+              sub:='h';
+            R_SUBW:
+              sub:='w';
+            R_SUBD:
+              sub:='d';
+            R_SUBQ:
+              sub:='q';
+          else
+            internalerror(200303081);
+          end;
+          gas_regname:='%reg'+nr+sub;
+        end;
+    end;
+
 end.
 {
   $Log$
-  Revision 1.2  2003-07-06 15:31:21  daniel
+  Revision 1.3  2003-08-18 11:49:47  daniel
+    * Made ATT asm writer work with -sr
+
+  Revision 1.2  2003/07/06 15:31:21  daniel
     * Fixed register allocator. *Lots* of fixes.
 
   Revision 1.1  2003/05/22 21:33:08  peter

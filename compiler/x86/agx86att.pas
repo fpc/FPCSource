@@ -58,24 +58,27 @@ interface
  ****************************************************************************}
 
     procedure Tx86AttAssembler.WriteReference(var ref : treference);
+
+    var i,b,s:boolean;
+
       begin
         with ref do
          begin
            inc(offset,offsetfixup);
            offsetfixup:=0;
-           if segment.enum>lastreg then
-             internalerror(200301081);
-           if base.enum>lastreg then
-             internalerror(200301081);
-           if index.enum>lastreg then
-             internalerror(200301081);
+           s:=(segment.enum=R_NO) or ((segment.enum=R_INTREGISTER) and (segment.number=NR_NO));
+           b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
+           i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
 
            { have we a segment prefix ? }
            { These are probably not correctly handled under GAS }
            { should be replaced by coding the segment override  }
            { directly! - DJGPP FAQ                              }
-           if segment.enum<>R_NO then
-            AsmWrite(gas_reg2str[segment.enum]+':');
+           if not s then
+            if segment.enum=R_INTREGISTER then
+              asmwrite(gas_regname(segment.number)+':')
+            else
+              AsmWrite(gas_reg2str[segment.enum]+':');
            if assigned(symbol) then
              AsmWrite(symbol.name);
            if offset<0 then
@@ -88,23 +91,33 @@ interface
                else
                 AsmWrite(tostr(offset));
              end
-           else if (index.enum=R_NO) and (base.enum=R_NO) and not assigned(symbol) then
+           else if i and b and not assigned(symbol) then
              AsmWrite('0');
-           if (index.enum<>R_NO) and (base.enum=R_NO) then
+           if (not i) and (b) then
             begin
-              AsmWrite('(,'+gas_reg2str[index.enum]);
+              if index.enum=R_INTREGISTER then
+                AsmWrite('(,'+gas_regname(index.number))
+              else
+                AsmWrite('(,'+gas_reg2str[index.enum]);
               if scalefactor<>0 then
                AsmWrite(','+tostr(scalefactor)+')')
               else
                AsmWrite(')');
             end
            else
-            if (index.enum=R_NO) and (base.enum<>R_NO) then
-             AsmWrite('('+gas_reg2str[base.enum]+')')
+            if i and not b then
+             if base.enum=R_INTREGISTER then
+               AsmWrite('('+gas_regname(base.number)+')')
+             else
+               AsmWrite('('+gas_reg2str[base.enum]+')')
             else
-             if (index.enum<>R_NO) and (base.enum<>R_NO) then
+             if (not i) and (not b) then
               begin
-                AsmWrite('('+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]);
+                if base.enum=R_INTREGISTER then
+                  {Assume if base is new notation, index is also.}
+                  AsmWrite('('+gas_regname(base.number)+','+gas_regname(index.number))
+                else
+                  AsmWrite('('+gas_reg2str[base.enum]+','+gas_reg2str[index.enum]);
                 if scalefactor<>0 then
                  AsmWrite(','+tostr(scalefactor));
                 AsmWrite(')');
@@ -118,9 +131,10 @@ interface
         case o.typ of
           top_reg :
             begin
-              if o.reg.enum>lastreg then
-                internalerror(200301081);
-              AsmWrite(gas_reg2str[o.reg.enum]);
+              if o.reg.enum=R_INTREGISTER then
+                AsmWrite(gas_regname(o.reg.number))
+              else
+                AsmWrite(gas_reg2str[o.reg.enum]);
             end;
           top_ref :
             WriteReference(o.ref^);
@@ -151,9 +165,10 @@ interface
         case o.typ of
           top_reg :
             begin
-              if o.reg.enum>lastreg then
-                internalerror(200301081);
-              AsmWrite('*'+gas_reg2str[o.reg.enum]);
+              if o.reg.enum=R_INTREGISTER then
+                AsmWrite('*'+gas_regname(o.reg.number))
+              else
+                AsmWrite('*'+gas_reg2str[o.reg.enum]);
             end;
           top_ref :
             begin
@@ -192,9 +207,9 @@ interface
         AsmWrite(#9+gas_op2str[op]+cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
-        if (Taicpu(hp).oper[0].typ=top_reg) and
+{        if (Taicpu(hp).oper[0].typ=top_reg) and
             (Taicpu(hp).oper[0].reg.enum>lastreg) then
-          internalerror(200301081);
+          internalerror(200301081);}
 
         if (not calljmp) and
             (gas_needsuffix[op]<>AttSufNONE) and
@@ -227,30 +242,6 @@ interface
           end;
         AsmLn;
       end;
-
-
-     function gas_regnum_search(const s:string):Tnewregister;
-
-     {Searches the register number that belongs to the register in s.
-      s must be in uppercase!.}
-
-     var i,p:byte;
-
-     begin
-        {Binary search.}
-        p:=0;
-        i:=regname_count_bsstart;
-        while i<>0 do
-          begin
-            if (p+i<regname_count) and (upper(gas_regname2regnum[p+i].name)<=s) then
-              p:=p+i;
-            i:=i shr 1;
-          end;
-        if upper(gas_regname2regnum[p].name)=s then
-          gas_regnum_search:=gas_regname2regnum[p].number
-        else
-          gas_regnum_search:=NR_NO;
-     end;
 
 {*****************************************************************************
                                   Initialize
@@ -348,7 +339,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-05-28 23:18:31  florian
+  Revision 1.4  2003-08-18 11:49:47  daniel
+    * Made ATT asm writer work with -sr
+
+  Revision 1.3  2003/05/28 23:18:31  florian
     * started to fix and clean up the sparc port
 
   Revision 1.2  2003/05/22 21:33:31  peter
