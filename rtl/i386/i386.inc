@@ -278,9 +278,7 @@ end;
 procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
         { destroy class ? }
-        movl    8(%ebp),%edi
-        { save self }
-        movl    %esi,8(%ebp)
+        movl    12(%ebp),%edi
         orl     %edi,%edi
         jz      .LDISPOSE_CLASS1
         { no inherited call }
@@ -290,8 +288,6 @@ asm
         { call freeinstance }
         call    *20(%edi)
 .LDISPOSE_CLASS1:
-        { load self }
-        movl    8(%ebp),%esi
 end;
 
 {$ASMMODE ATT}
@@ -699,7 +695,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  1998-12-21 14:28:20  pierre
+  Revision 1.38  1999-02-02 11:04:27  florian
+    * class destructor helper routine for the new calling copnventions fixed
+
+  Revision 1.37  1998/12/21 14:28:20  pierre
     * HandleError -> HandleErrorFrame to avoid problem in
       assembler code in i386.inc
       (call to overloaded function in assembler block !)
