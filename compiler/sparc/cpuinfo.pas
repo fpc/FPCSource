@@ -56,13 +56,17 @@ const
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
 {$warning jmp_buf_size not set!}
-  jmp_buf_size = 0;
+  JMP_BUF_SIZE = 4; // 4 is used temporary to remove AllocTemp warning
 
-IMPLEMENTATION
-END.
+implementation
+
+end.
 {
   $Log$
-  Revision 1.7  2003-05-23 22:33:48  florian
+  Revision 1.8  2003-06-17 16:35:42  peter
+    * JMP_BUF_SIZE changed to 4 to remove Alloctemp warnings
+
+  Revision 1.7  2003/05/23 22:33:48  florian
     * fix some small flaws which prevent sparc linux system unit from compiling
     * some reformatting done
 
