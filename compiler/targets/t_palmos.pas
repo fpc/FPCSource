@@ -213,7 +213,7 @@ end;
             name         : 'PalmOS';
             shortname    : 'palmos';
             flags        : [tf_code_small,tf_static_a5_based];
-            cpu          : m68k;
+            cpu          : cpu_m68k;
             short_name   : 'PALMOS';
             unit_env     : 'PALMUNITS';
             extradefines : '';
@@ -247,9 +247,7 @@ end;
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 4;
-            size_of_longint : 4;
             heapsize     : 128*1024;
-            maxheapsize  : 32768*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -264,7 +262,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2002-04-15 19:16:57  carl
+  Revision 1.8  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.7  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.6  2001/09/17 21:29:16  peter

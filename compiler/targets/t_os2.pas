@@ -472,12 +472,13 @@ begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$HEAPMB',tostr((maxheapsize+1048575) shr 20));
+        { Is this really required? Not anymore according to my EMX docs }
+        Replace(cmdstr,'$HEAPMB',tostr((heapsize+1048575) shr 20));
         {Size of the stack when an EMX program runs in OS/2.}
         Replace(cmdstr,'$STACKKB',tostr((stacksize+1023) shr 10));
         {When an EMX program runs in DOS, the heap and stack share the
          same memory pool. The heap grows upwards, the stack grows downwards.}
-        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
+        Replace(cmdstr,'$DOSHEAPKB',tostr((stacksize+heapsize+1023) shr 10));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$RES',outputexedir+Info.ResName);
@@ -523,7 +524,7 @@ end;
             name         : 'OS/2 via EMX';
             shortname    : 'OS2';
             flags        : [tf_need_export];
-            cpu          : i386;
+            cpu          : cpu_i386;
             unit_env     : 'OS2UNITS';
             extradefines : '';
             sourceext    : '.pas';
@@ -574,9 +575,8 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_longint : 4;
+            first_parm_offset : 8;
             heapsize     : 256*1024;
-            maxheapsize  : 32768*1024;
             stacksize    : 256*1024;
             DllScanSupported:true;
             use_bound_instruction : false;
@@ -592,7 +592,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2002-04-15 19:16:57  carl
+  Revision 1.17  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.16  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.15  2002/04/04 19:06:13  peter

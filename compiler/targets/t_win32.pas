@@ -1563,7 +1563,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
             flags        : [];
-            cpu          : i386;
+            cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS';
             sourceext    : '.pp';
@@ -1614,9 +1614,8 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
                 recordalignmax  : 2;
                 maxCrecordalign : 16
               );
-            size_of_longint : 4;
+            first_parm_offset : 8;
             heapsize     : 256*1024;
-            maxheapsize  : 32*1024*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:true;
             use_bound_instruction : false;
@@ -1635,7 +1634,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-04-15 19:16:57  carl
+  Revision 1.29  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.28  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.27  2002/04/05 17:49:09  carl

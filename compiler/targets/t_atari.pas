@@ -46,7 +46,7 @@ implementation
             name         : 'Atari ST/STE';
             shortname    : 'atari';
             flags        : [];
-            cpu          : m68k;
+            cpu          : cpu_m68k;
             short_name   : 'ATARI';
             unit_env     : '';
             extradefines : '';
@@ -80,9 +80,7 @@ implementation
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 4;
-            size_of_longint : 4;
             heapsize     : 16*1024;
-            maxheapsize  : 32768*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -95,7 +93,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-04-15 19:16:57  carl
+  Revision 1.7  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.6  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.5  2001/09/17 21:29:15  peter

@@ -47,7 +47,7 @@ implementation
             name         : 'Macintosh m68k';
             shortname    : 'mac';
             flags        : [];
-            cpu          : m68k;
+            cpu          : cpu_m68k;
             short_name   : 'MACOS';
             unit_env     : '';
             extradefines : '';
@@ -83,7 +83,6 @@ implementation
             maxCrecordalignment : 4;
             size_of_longint : 4;
             heapsize     : 128*1024;
-            maxheapsize  : 32768*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -99,7 +98,7 @@ implementation
             name         : 'MacOs (PowerPC)';
             shortname    : 'MacOs/PPC';
             flags        : [];
-            cpu          : powerpc;
+            cpu          : cpu_powerpc;
             short_name   : 'MACOS';
             unit_env     : '';
             extradefines : '';
@@ -133,7 +132,6 @@ implementation
             maxCrecordalignment : 32;
             size_of_longint : 4;
             heapsize     : 256*1024;
-            maxheapsize  : 32768*1024;
             stacksize    : 8192;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -152,7 +150,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-04-15 19:16:57  carl
+  Revision 1.7  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.6  2002/04/15 19:16:57  carl
   - remove size_of_pointer field
 
   Revision 1.5  2001/09/17 21:29:16  peter

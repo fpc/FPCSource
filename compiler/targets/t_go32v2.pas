@@ -362,7 +362,7 @@ end;
             name         : 'GO32 V2 DOS extender';
             shortname    : 'Go32v2';
             flags        : [];
-            cpu          : i386;
+            cpu          : cpu_i386;
             unit_env     : 'GO32V2UNITS';
             extradefines : 'DPMI';
             sourceext    : '.pp';
@@ -413,10 +413,9 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_longint : 4;
+            first_parm_offset : 8;
             heapsize     : 2048*1024;
-            maxheapsize  : 32*1024*1024;
-            stacksize    : 32*1024*1024;
+            stacksize    : 262144;
             DllScanSupported : false;
             use_bound_instruction : false;
             use_function_relative_addresses : true
@@ -429,7 +428,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-04-15 19:44:23  peter
+  Revision 1.18  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.17  2002/04/15 19:44:23  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

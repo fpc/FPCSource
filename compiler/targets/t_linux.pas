@@ -486,7 +486,7 @@ end;
             name         : 'Linux for i386';
             shortname    : 'Linux';
             flags        : [];
-            cpu          : i386;
+            cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
             sourceext    : '.pp';
@@ -537,10 +537,9 @@ end;
                 recordalignmax  : 2;
                 maxCrecordalign : 4
               );
-            size_of_longint : 4;
+            first_parm_offset : 8;
             heapsize     : 256*1024;
-            maxheapsize  : 32*1024*1024;
-            stacksize    : 32*1024*1024;
+            stacksize    : 262144;
             DllScanSupported:false;
             use_bound_instruction : false;
             use_function_relative_addresses : true
@@ -554,7 +553,7 @@ end;
             name         : 'Linux for m68k';
             shortname    : 'linux';
             flags        : [];
-            cpu          : m68k;
+            cpu          : cpu_m68k;
             short_name   : 'LINUX';
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
@@ -592,9 +591,7 @@ end;
             endian       : endian_big;
             stackalignment : 2;
             maxCrecordalignment : 32;
-            size_of_longint : 4;
             heapsize     : 128*1024;
-            maxheapsize  : 32*1024*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -609,7 +606,7 @@ end;
             name         : 'Linux for PowerPC';
             shortname    : 'linuxppc';
             flags        : [];
-            cpu          : powerpc;
+            cpu          : cpu_powerpc;
             short_name   : 'LINUX';
             unit_env     : '';
             extradefines : 'UNIX';
@@ -645,9 +642,7 @@ end;
             endian       : endian_big;
             stackalignment : 8;
             maxCrecordalignment : 32;
-            size_of_longint : 4;
             heapsize     : 256*1024;
-            maxheapsize  : 32*1024*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -662,7 +657,7 @@ end;
             name         : 'Linux for Alpha';
             shortname    : 'axplinux';
             flags        : [];
-            cpu          : alpha;
+            cpu          : cpu_alpha;
             short_name   : 'LINUX';
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX';
@@ -702,7 +697,6 @@ end;
             maxCrecordalignment : 32;
             size_of_longint : 4;
             heapsize     : 256*1024;
-            maxheapsize  : 32*1024*1024;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_bound_instruction : false;
@@ -739,7 +733,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2002-04-19 15:46:05  peter
+  Revision 1.20  2002-04-20 21:43:18  carl
+  * fix stack size for some targets
+  + add offset to parameters from frame pointer info.
+  - remove some unused stuff
+
+  Revision 1.19  2002/04/19 15:46:05  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of
