@@ -3972,8 +3972,8 @@ Const local_symtable_index : longint = $8001;
 
       begin
          classtablelist.init;
-         getlabel(fieldtable);
-         getlabel(classtable);
+         getdatalabel(fieldtable);
+         getdatalabel(classtable);
          count:=0;
          tablecount:=0;
          symtable^.foreach({$ifdef FPC}@{$endif}count_published_fields);
@@ -4130,7 +4130,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.204  2000-06-29 08:42:47  sg
+  Revision 1.205  2000-06-30 22:11:29  peter
+    * fixed some getlabel to getdatalabel
+
+  Revision 1.204  2000/06/29 08:42:47  sg
   * Fix for class field table writing
 
   Revision 1.203  2000/06/25 09:25:29  peter

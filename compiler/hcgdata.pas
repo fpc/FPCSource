@@ -360,7 +360,7 @@ implementation
               hp:=pprocsym(p)^.definition;
               if assigned(hp^.nextoverloaded) then
                 internalerror(1209992);
-              getlabel(l);
+              getdatalabel(l);
 
               consts^.concat(new(pai_label,init(l)));
               consts^.concat(new(pai_const,init_8bit(length(p^.name))));
@@ -381,7 +381,7 @@ implementation
          _class^.symtable^.foreach({$ifndef TP}@{$endif}do_count);
          if count>0 then
            begin
-              getlabel(l);
+              getdatalabel(l);
               datasegment^.concat(new(pai_label,init(l)));
               datasegment^.concat(new(pai_const,init_32bit(count)));
               _class^.symtable^.foreach({$ifndef TP}@{$endif}genpubmethodtableentry);
@@ -731,7 +731,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2000-06-20 12:47:52  pierre
+  Revision 1.30  2000-06-30 22:11:28  peter
+    * fixed some getlabel to getdatalabel
+
+  Revision 1.29  2000/06/20 12:47:52  pierre
     * equal_paras and convertable_paras changed by transforming third parameter
       into an enum with three possible values:
       cp_none, cp_value_equal_const and cp_all.
