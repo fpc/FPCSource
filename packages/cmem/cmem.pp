@@ -57,6 +57,7 @@ Function CReAllocMem (var p:pointer;Size:longint):Pointer;
 
 begin
   Result:=realloc(p,size);
+  P:=Result;
 end;
 
 Function CMemSize (p:pointer): Longint;
@@ -107,8 +108,4 @@ Initialization
   
 Finalization
   SetMemoryManager (OldMemoryManager);
-end.  $Log$
-end.  Revision 1.2  2000-07-13 11:33:10  michael
-end.  + removed logs
-end. 
-}
+end.
