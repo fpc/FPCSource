@@ -38,15 +38,25 @@ Function CAlloc (unitSize,UnitCount : Longint) : pointer; {$ifdef win32}stdcall{
 
 implementation
 
+type
+  plongint = ^longint;
+
 Function CGetMem  (Size : Longint) : Pointer;
 
 begin
-  result:=Malloc(Size);
+  result:=Malloc(Size+sizeof(longint));
+  if (result <> nil) then
+    begin
+      plongint(result)^ := size;
+      inc(result,sizeof(longint));
+    end;
 end;
 
 Function CFreeMem ({$ifdef VER1_0}var{$endif} P : pointer) : Longint;
 
 begin
+  if (p <> nil) then
+    dec(p,sizeof(longint));
   Free(P);
   Result:=0;
 end;
@@ -54,26 +64,46 @@ end;
 Function CFreeMemSize({$ifdef VER1_0}var{$endif} p:pointer;Size:Longint):Longint;
 
 begin
+  if (p <> nil) then
+    begin
+      if (size <> plongint(p-sizeof(longint))^) then
+        runerror(204);
+    end;
   Result:=CFreeMem(P);
 end;
 
 Function CAllocMem(Size : Longint) : Pointer;
 
 begin
-  Result:=calloc(Size,1);
+  Result:=calloc(Size+sizeof(longint),1);
+  if (result <> nil) then
+    begin
+      plongint(result)^ := size;
+      inc(result,sizeof(longint));
+    end;
 end;
 
 Function CReAllocMem (var p:pointer;Size:longint):Pointer;
 
 begin
+  if (size <> 0) then
+    inc(size,sizeof(longint));
+  if (p <> nil) then
+    dec(p,sizeof(longint));
   p := realloc(p,size);
+  if (size <> 0) and
+     (p <> nil) then
+    begin
+      plongint(p)^ := size-sizeof(longint);
+      inc(p,sizeof(longint));
+    end;
   Result:=p;
 end;
 
 Function CMemSize (p:pointer): Longint;
 
 begin
-  Result:=0;
+  Result:=plongint(p-sizeof(longint))^;
 end;
 
 Function CMemAvail : Longint;
@@ -125,7 +155,10 @@ end.
 
 {
  $Log$
- Revision 1.8  2003-03-17 15:40:05  armin
+ Revision 1.9  2004-03-12 13:08:08  jonas
+   + added memsize() support (needed to use cmem with the compiler)
+
+ Revision 1.8  2003/03/17 15:40:05  armin
  + LibName for netware
 
  Revision 1.7  2002/11/01 17:56:39  peter
