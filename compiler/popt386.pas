@@ -808,27 +808,39 @@ Begin
                                               Dispose(hp2,Done);
                                             End
                                           Else
+                                            If (Pai386(p)^.oper[1].reg <> Pai386(hp2)^.oper[1].reg) And 
+                                               not(RegInRef(Pai386(p)^.oper[1].reg,Pai386(p)^.oper[0].ref^)) And
+                                               not(RegInRef(Pai386(hp2)^.oper[1].reg,Pai386(hp2)^.oper[0].ref^))
+                                              Then
                                  {   mov mem1, reg1         mov mem1, reg1
                                      mov reg1, mem2         mov reg1, mem2
                                      mov mem2, reg2         mov mem2, reg1
                                   to:                    to:
                                      mov mem1, reg1         mov mem1, reg1
                                      mov mem1, reg2         mov reg1, mem2
-                                     mov reg1, mem2}
-                                            Begin
-                                              If (Pai386(p)^.oper[1].reg <> Pai386(hp2)^.oper[1].reg) Then
-                                                Begin
-                                                  Pai386(hp1)^.LoadRef(0,newreference(Pai386(p)^.oper[0].ref^));
-                                                  Pai386(hp1)^.LoadReg(1,Pai386(hp2)^.oper[1].reg);
-                                                End
+                                     mov reg1, mem2
+
+                               or (if mem1 depends on reg1
+                                   and/or if mem2 depends on reg2)
+                                  to:
+                                     mov mem1, reg1
+                                     mov reg1, mem2
+                                     mov reg1, reg2
+                               }
+                                              Begin
+                                                Pai386(hp1)^.LoadRef(0,newreference(Pai386(p)^.oper[0].ref^));
+                                                Pai386(hp1)^.LoadReg(1,Pai386(hp2)^.oper[1].reg);
+                                                Pai386(hp2)^.LoadRef(1,newreference(Pai386(hp2)^.oper[0].ref^));
+                                                Pai386(hp2)^.LoadReg(0,Pai386(p)^.oper[1].reg);
+                                              End
+                                            Else
+                                              If (Pai386(hp1)^.Oper[0].reg <> Pai386(hp2)^.Oper[1].reg) Then
+                                                Pai386(hp2)^.LoadReg(0,Pai386(hp1)^.Oper[0].reg)
                                               Else
                                                 Begin
-                                                  AsmL^.Remove(hp1);
-                                                  Dispose(hp1, Done)
-                                                End;
-                                              Pai386(hp2)^.LoadRef(1,newreference(Pai386(hp2)^.oper[0].ref^));
-                                              Pai386(hp2)^.LoadReg(0,Pai386(p)^.oper[1].reg);
-                                            End;
+                                                  AsmL^.Remove(hp2);
+                                                  Dispose(hp2, Done);
+                                                End
                                   End;
                             End
                           Else
@@ -1521,7 +1533,10 @@ End.
 
 {
  $Log$
- Revision 1.54.2.1  1999-06-18 09:52:40  peter
+ Revision 1.54.2.2  1999-06-23 11:55:08  jonas
+   * fixed bug in "mov mem1,reg1;mov reg1,mem2;mov mem2,reg2" optimization
+
+ Revision 1.54.2.1  1999/06/18 09:52:40  peter
    * pop;push -> mov (esp),reg always instead of being removed
 
  Revision 1.54  1999/05/27 19:44:49  peter
