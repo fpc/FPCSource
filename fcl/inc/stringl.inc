@@ -89,10 +89,21 @@ end;
 
 
 
-Procedure TStrings.ReadData(Reader: TReader);
-
+procedure TStrings.ReadData(Reader: TReader);
 begin
+  Reader.ReadListBegin;
+  BeginUpdate;
+  try
+    Clear;
+    while not Reader.EndOfList do
+      Add(Reader.ReadString);
+  finally
+    EndUpdate;
+  end;
+  Reader.ReadListEnd;
 end;
+
+
 
 Function GetQuotedString (Var P : Pchar) : AnsiString;
 
@@ -189,16 +200,31 @@ end;
 
 
 
-Procedure TStrings.WriteData(Writer: TWriter);
-
+procedure TStrings.WriteData(Writer: TWriter);
+var
+  i: Integer;
 begin
+  Writer.WriteListBegin;
+  for i := 0 to Count - 1 do
+    Writer.WriteString(Strings[i]);
+  Writer.WriteListEnd;
 end;
 
 
 
-Procedure TStrings.DefineProperties(Filer: TFiler);
-
+procedure TStrings.DefineProperties(Filer: TFiler);
+var
+  HasData: Boolean;
 begin
+  if Assigned(Filer.Ancestor) then
+    // Only serialize if string list is different from ancestor
+    if Filer.Ancestor.InheritsFrom(TStrings) then
+      HasData := not Equals(TStrings(Filer.Ancestor))
+    else
+      HasData := True
+  else
+    HasData := Count > 0;
+  Filer.DefineProperty('Strings', @ReadData, @WriteData, HasData);
 end;
 
 
@@ -980,7 +1006,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.2  2000-12-03 22:32:27  sg
+  Revision 1.1.2.3  2001-01-10 16:58:25  sg
+  * Implemented streaming support
+
+  Revision 1.1.2.2  2000/12/03 22:32:27  sg
   * Applied patch by Markus Kaemmerer:
     - Added support for TStringList.CustomSort
 
