@@ -131,6 +131,8 @@ begin
   if not force then
    begin
      asm
+        pushl   %esi
+        pushl   %edi
         movl    VideoBuf,%esi
         movl    OldVideoBuf,%edi
         movl    VideoBufSize,%ecx
@@ -138,6 +140,8 @@ begin
         repe
         cmpsl
         setne   force
+        popl    %edi
+        popl    %esi
      end;
    end;
   if Force then

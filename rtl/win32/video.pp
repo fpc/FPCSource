@@ -285,6 +285,8 @@ begin
   else
    begin
      asm
+        pushl   %esi
+        pushl   %edi
         movl    VideoBuf,%esi
         movl    OldVideoBuf,%edi
         movl    VideoBufSize,%ecx
@@ -292,6 +294,8 @@ begin
         repe
         cmpsl
         setne   smallforce
+        popl    %edi
+        popl    %esi
      end;
    end;
   if SmallForce then
@@ -443,7 +447,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-09-15 18:59:40  hajny
+  Revision 1.15  2004-10-03 20:16:43  armin
+  * SysUpdateScreen modified esi and edi
+
+  Revision 1.14  2004/09/15 18:59:40  hajny
     + resolution switching fully works now
 
   Revision 1.13  2004/09/13 20:58:57  hajny

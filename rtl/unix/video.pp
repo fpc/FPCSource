@@ -774,6 +774,8 @@ begin
    begin
 {$ifdef cpui386}
      asm
+	  pushl   %esi
+	  pushl   %edi
           movl    VideoBuf,%esi
           movl    OldVideoBuf,%edi
           movl    VideoBufSize,%ecx
@@ -781,6 +783,8 @@ begin
           repe
           cmpsl
           setne   DoUpdate
+	  popl    %edi
+          popl    %esi
      end;
 {$else not cpui386}
      p1:=plongint(VideoBuf);
@@ -899,7 +903,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2004-07-09 19:03:35  peter
+  Revision 1.24  2004-10-03 20:16:43  armin
+  * SysUpdateScreen modified esi and edi
+
+  Revision 1.23  2004/07/09 19:03:35  peter
     * isatty return cint again
 
   Revision 1.21  2004/07/03 13:29:23  daniel
