@@ -170,7 +170,7 @@ End;
      if ( (( aSign xor flag( z < 0 )) <> 0) AND  (z<>0) ) then
      Begin
   invalid:
-        RunError(207);
+        HandleError(207);
         exit;
     End;
     float64_to_int32_round_to_zero := z;
@@ -213,11 +213,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
           Begin
             if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
               Begin
-                RunError(207);
+                HandleError(207);
                 exit;
               end;
           End;
-        RunError(207);
+        HandleError(207);
         exit;
       End
     else
@@ -244,7 +244,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
      { otherwise in fpu mode, it is equal to a double  }
      { extended is not supported yet. }
      if sizeof(D) > 8 then
-        RunError(255);
+        HandleError(255);
      if sizeof(D)=8 then
        begin
          move(d,f64,sizeof(f64));
@@ -482,7 +482,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
        if( d <= 0.0 ) then
        begin
            if( d < 0.0 ) then
-               RunError(207);
+               HandleError(207);
            sqrt := 0.0;
        end
      else
@@ -563,11 +563,11 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
         px, qx, xx : Real;
     begin
       if( d > MAXLOG) then
-          RunError(205)
+          HandleError(205)
       else
       if( d < MINLOG ) then
       begin
-        Runerror(205);
+        HandleError(205);
       end
       else
       begin
@@ -692,7 +692,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     Label Ldone;
     begin
        if( d <= 0.0 ) then
-          RunError(207);
+          HandleError(207);
        d := frexp( d, e );
 
     { logarithm using log(x) = z + z**3 P(z)/Q(z),
@@ -1112,7 +1112,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.15  2003-09-03 14:09:37  florian
+  Revision 1.16  2003-12-08 19:44:11  jonas
+    * use HandleError instead of RunError so exception catching works
+
+  Revision 1.15  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
