@@ -492,10 +492,10 @@ interface
             begin
               if (right.location.loc = LOC_CONSTANT) then
                 cg.a_op_const_reg_reg(exprasmlist,op,location.size,right.location.value,
-                  left.location.register,location.register,checkoverflow,ovloc)
+                  left.location.register,location.register)
               else
                 cg.a_op_reg_reg_reg(exprasmlist,op,location.size,right.location.register,
-                  left.location.register,location.register,checkoverflow,ovloc);
+                  left.location.register,location.register);
             end;
           subn:
             begin
@@ -777,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2005-01-27 20:32:51  florian
+  Revision 1.40  2005-01-29 00:40:18  peter
+    * fixed x86_64 compile
+
+  Revision 1.39  2005/01/27 20:32:51  florian
     + implemented overflow checking for 64 bit types on sparc
 
   Revision 1.38  2005/01/20 21:28:52  florian
