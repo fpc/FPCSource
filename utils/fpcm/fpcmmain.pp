@@ -3,7 +3,7 @@
     Copyright (c) 2001 by Peter Vreman
 
     FPCMake - Main module
- 
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -30,7 +30,7 @@ interface
 {$endif}
       sysutils,classes,
       fpcmdic;
-      
+
 {$ifdef BEOS}
 {$define NO_UNIX_UNIT}
 {$endif}
@@ -148,7 +148,8 @@ interface
         function  GetTargetRequires(t:TTarget):TStringList;
         function  CheckLibcRequire:boolean;
         procedure CreateExportSection;
-        procedure AddDefaultVariables;
+        procedure AddFPCDefaultVariables;
+        procedure AddLCLDefaultVariables;
         function  SubstVariables(const s:string):string;
         function  GetVariable(const inivar:string;dosubst:boolean):string;
         function  SetVariable(const inivar,value:string;add:boolean):string;
@@ -594,12 +595,21 @@ implementation
 
 
     procedure TFPCMake.LoadMakefileFPC;
+      var
+        s : string;
       begin
         LoadSections;
         { Parse all sections }
         FSections.Foreach(@ParseSec);
         { Add some default variables like FPCDIR, UNITSDIR }
-        AddDefaultVariables;
+        AddFPCDefaultVariables;
+        { Load LCL code ? }
+        s:=GetVariable('require_packages',true);
+        if pos('lcl',s)>0 then
+         AddLCLDefaultVariables;
+        { Show globals }
+        Verbose(FPCMakeDebug,s_globals);
+        Variables.Foreach(@PrintDic);
         { Load package section }
         LoadPackageSection;
         LoadRequireSection;
@@ -979,7 +989,7 @@ implementation
       end;
 
 
-    procedure TFPCMake.AddDefaultVariables;
+    procedure TFPCMake.AddFPCDefaultVariables;
       var
         hs,s : string;
       begin
@@ -1063,9 +1073,61 @@ implementation
         { UNITSDIR }
         if GetVariable('UNITSDIR',false)='' then
          SetVariable('UNITSDIR','$(FPCDIR)/units/$(TARGET)',false);
+        { BASEDIR }
+        SetVariable('BASEDIR',GetCurrentDir,false);
+      end;
 
-        Verbose(FPCMakeDebug,s_globals);
-        Variables.Foreach(@PrintDic);
+
+    procedure TFPCMake.AddLCLDefaultVariables;
+      var
+        hs,s : string;
+      begin
+        { LCL Platform }
+        s:=GetVariable('lcl_platform',true);
+        if s='' then
+         SetVariable('lcl_platform','gtk',false);
+        { Already set LCLDIR }
+        hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+        { Load from environment }
+        if hs='' then
+         begin
+           SetVariable('LCLDIR',GetEnv('LCLDIR'),false);
+           hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+         end;
+        { default_lcldir }
+        if hs='' then
+         begin
+           s:=GetVariable('default_lcldir',true);
+           { add the current subdir to relative paths }
+           if s<>'' then
+            begin
+{$ifdef UNIX}
+              if (s[1]<>'/') then
+{$else}
+              if (length(s)>2) and (s[2]<>':') then
+{$endif}
+               s:=ExtractFilePath(FFileName)+s;
+              SetVariable('LCLDIR',s,false);
+              hs:=SubstVariables('$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM))');
+            end
+         end;
+        { OS defaults }
+{$ifdef UNIX}
+        if hs='' then
+         begin
+           hs:=SubstVariables('$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard $(addsuffix /units/$(LCL_PLATFORM),$(BASEDIR)/lcl $(BASEDIR)))))');
+           if hs<>'' then
+            SetVariable('LCLDIR',hs,false);
+         end;
+        if hs='' then
+         begin
+           hs:=SubstVariables('$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard $(addsuffix /lib/lazarus/units/$(LCL_PLATFORM),/usr/local /usr))))');
+           if hs<>'' then
+            SetVariable('LCLDIR',hs,false);
+         end;
+{$endif UNIX}
+        { Add components to PACKAGESDIR }
+        SetVariable('PACKAGESDIR',SubstVariables('$(wildcard $(LCLDIR)/.. $(LCLDIR)/../components $(LCLDIR)/components)'),true);
       end;
 
 
@@ -1188,6 +1250,22 @@ implementation
                 Expect(s,')');
                 Result:=GetToken(s1,' ');
               end
+             { $(subst <oldpat>,<newpat>,<string>) }
+             else if Func='subst' then
+              begin
+                Delete(s,1,6);
+                s1:=GetVar(s,',');
+                if Expect(s,',') then
+                 begin
+                   s2:=GetVar(s,',');
+                   if Expect(s,',') then
+                    begin
+                      s3:=GetVar(s,')');
+                      Expect(s,')');
+                    end;
+                 end;
+                Result:=StringReplace(s3,s1,s2,[rfReplaceAll]);
+              end;
            end
           else
            begin
@@ -1341,7 +1419,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-12-15 04:16:57  carl
+  Revision 1.18  2001-12-26 21:02:00  peter
+    * little support for lcl and lazarus, but not yet working
+
+  Revision 1.17  2001/12/15 04:16:57  carl
   + clean support for QNX / BeOS and SunOS targets
 
   Revision 1.16  2001/12/11 23:01:56  carl
