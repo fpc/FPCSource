@@ -179,6 +179,8 @@ begin
   Writeln('FSearch ls: ',FSearch('ls.exe',test));
 {$endif not noexesuffix}
 
+  Writeln('Empty FSearch (should return empty string):',FSearch('',test));
+
   write('Press Enter');
   Readln;
 end;
@@ -195,7 +197,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-06-01 19:08:52  marco
+  Revision 1.5  2002-07-06 11:46:08  carl
+  + fsearch testing added
+
+  Revision 1.4  2002/06/01 19:08:52  marco
    * Renamefest
 
   Revision 1.3  2001/12/10 02:25:08  carl
