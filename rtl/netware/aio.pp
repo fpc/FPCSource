@@ -19,7 +19,7 @@ unit aio;
 interface
 
 const
-  External_library='aio.nlm';
+  aionlm='aio.nlm';
 
 
 {$PACKRECORDS C}
@@ -438,40 +438,64 @@ type
       Definition of AIO functions.
  ---------------------------------------------------------------------------- }
 
-{function with var params to be added... }
 
-function AIOAcquirePort(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint):longint;cdecl;external External_library name 'AIOAcquirePort';
-function AIOAcquirePortWithRTag(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint; RTag:longint):longint;cdecl;external External_library name 'AIOAcquirePortWithRTag';
+function AIOAcquirePort(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint):longint;cdecl;external aionlm name 'AIOAcquirePort';
+function AIOAcquirePort(var hardwareType,boardNumber,portNumber,portHandle:longint):longint;cdecl;external aionlm name 'AIOAcquirePort';
+
+function AIOAcquirePortWithRTag(hardwareType:Plongint; boardNumber:Plongint; portNumber:Plongint; portHandle:Plongint; RTag:longint):longint;cdecl;external aionlm name 'AIOAcquirePortWithRTag';
+function AIOAcquirePortWithRTag(var hardwareType,boardNumber,portNumber,portHandle:longint; RTag:longint):longint;cdecl;external aionlm name 'AIOAcquirePortWithRTag';
+
 function AIOConfigurePort(portHandle:longint; bitRate:byte; dataBits:byte; stopBits:byte; parityMode:byte;
-           flowCtrlMode:byte):longint;cdecl;external External_library name 'AIOConfigurePort';
-function AIOFlushBuffers(portHandle:longint; flushFlag:WORD):longint;cdecl;external External_library name 'AIOFlushBuffers';
-function AIOGetBoardList(hardwareType:longint; boardIndex:longint; pBoardList:PAIOBOARDLIST):longint;cdecl;external External_library name 'AIOGetBoardList';
-function AIOGetDriverList(lastHardwareType:longint; pDriverList:PAIODRIVERLIST):longint;cdecl;external External_library name 'AIOGetDriverList';
-function AIOGetExternalStatus(portHandle:longint; extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external External_library name 'AIOGetExternalStatus';
+           flowCtrlMode:byte):longint;cdecl;external aionlm name 'AIOConfigurePort';
+function AIOFlushBuffers(portHandle:longint; flushFlag:WORD):longint;cdecl;external aionlm name 'AIOFlushBuffers';
+function AIOGetBoardList(hardwareType:longint; boardIndex:longint; pBoardList:PAIOBOARDLIST):longint;cdecl;external aionlm name 'AIOGetBoardList';
+function AIOGetDriverList(lastHardwareType:longint; pDriverList:PAIODRIVERLIST):longint;cdecl;external aionlm name 'AIOGetDriverList';
+function AIOGetExternalStatus(portHandle:longint; extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external aionlm name 'AIOGetExternalStatus';
+function AIOGetExternalStatus(portHandle:longint; var extStatus,chgdExtStatus:Longint):longint;cdecl;external aionlm name 'AIOGetExternalStatus';
+
 function AIOGetFirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
-           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetFirstPortInfo';
-function AIOGetNextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetNextPortInfo';
+           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetFirstPortInfo';
+function AIOGetNextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetNextPortInfo';
 function AIOGetName_FirstPortInfo(hardwareType:longint; boardNumber:longint; portNumber:longint; portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO;
-           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetName_FirstPortInfo';
-function AIOGetName_NextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external External_library name 'AIOGetName_NextPortInfo';
-function AIOGetPortCapability(portHandle:longint; pCapabilities:PAIOPORTCAPABILITIES; pDvrCapabilities:PAIODVRCAPABILITIES):longint;cdecl;external External_library name 'AIOGetPortCapability';
-function AIOGetPortConfiguration(portHandle:longint; pPortConfig:PAIOPORTCONFIG; pDvrConfig:PAIODVRCONFIG):longint;cdecl;external External_library name 'AIOGetPortConfiguration';
+           capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetName_FirstPortInfo';
+function AIOGetName_NextPortInfo(portSearchP:PAIOPORTSEARCH; portInfoP:PAIOPORTINFO; capabilitiesP:PAIOPORTCAPABILITIES; dvrCapabilitiesP:PAIODVRCAPABILITIES; NLMModuleNameP:Pchar):longint;cdecl;external aionlm name 'AIOGetName_NextPortInfo';
+function AIOGetPortCapability(portHandle:longint; pCapabilities:PAIOPORTCAPABILITIES; pDvrCapabilities:PAIODVRCAPABILITIES):longint;cdecl;external aionlm name 'AIOGetPortCapability';
+function AIOGetPortConfiguration(portHandle:longint; pPortConfig:PAIOPORTCONFIG; pDvrConfig:PAIODVRCONFIG):longint;cdecl;external aionlm name 'AIOGetPortConfiguration';
 function AIOGetPortStatus(portHandle:longint; writeCount:PLongint; writeState:PWORD; readCount:PLongint; readState:PWORD;
-           extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external External_library name 'AIOGetPortStatus';
-function AIOGetReadBufferSize(portHandle:longint; readSize:PLongint):longint;cdecl;external External_library name 'AIOGetReadBufferSize';
-function AIOGetPortStatistics(portHandle:longint; pPortStatistics:PAIOPORTSTATISTICS; pDvrStatistics:PAIODVRSTATISTICS):longint;cdecl;external External_library name 'AIOGetPortStatistics';
-function AIOGetWriteBufferSize(portHandle:longint; writeSize:PLongint):longint;cdecl;external External_library name 'AIOGetWriteBufferSize';
-function AIOReadData(portHandle:longint; buffer:Pchar; length:longint; numberBytesRead:PLongint):longint;cdecl;external External_library name 'AIOReadData';
-function AIOReadStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external External_library name 'AIOReadStatus';
-function AIOReleasePort(portHandle:longint):longint;cdecl;external External_library name 'AIOReleasePort';
-function AIOSetControlData(portHandle:longint; requestType:longint; requestStructValue:PAIOCONTROLDATA):longint;cdecl;external External_library name 'AIOSetControlData';
-function AIOSetExternalControl(portHandle:longint; requestType:longint; requestValue:longint):longint;cdecl;external External_library name 'AIOSetExternalControl';
-function AIOSetFlowControl(portHandle:longint; flowCtrlMode:longint):longint;cdecl;external External_library name 'AIOSetFlowControl';
-function AIOSetFlowControlCharacters(portHandle:longint; transmitXon:byte; transmitXoff:byte; receiveXon:byte; receiveXoff:byte):longint;cdecl;external External_library name 'AIOSetFlowControlCharacters';
-function AIOSetReadBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external External_library name 'AIOSetReadBufferSize';
-function AIOSetWriteBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external External_library name 'AIOSetWriteBufferSize';
-function AIOWriteData(portHandle:longint; buffer:Pchar; length:longint; numberBytesWritten:PLongint):longint;cdecl;external External_library name 'AIOWriteData';
-function AIOWriteStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external External_library name 'AIOWriteStatus';
+           extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external aionlm name 'AIOGetPortStatus';
+function AIOGetPortStatus(portHandle:longint; var writeCount:Longint; var writeState:WORD; var readCount:Longint; var readState:WORD;
+           var extStatus,chgdExtStatus:Longint):longint;cdecl;external aionlm name 'AIOGetPortStatus';	   
+	   
+function AIOGetReadBufferSize(portHandle:longint; readSize:PLongint):longint;cdecl;external aionlm name 'AIOGetReadBufferSize';
+function AIOGetReadBufferSize(portHandle:longint; var readSize:Longint):longint;cdecl;external aionlm name 'AIOGetReadBufferSize';
+
+function AIOGetPortStatistics(portHandle:longint; pPortStatistics:PAIOPORTSTATISTICS; pDvrStatistics:PAIODVRSTATISTICS):longint;cdecl;external aionlm name 'AIOGetPortStatistics';
+function AIOGetPortStatistics(portHandle:longint; var pPortStatistics:TAIOPORTSTATISTICS; var pDvrStatistics:TAIODVRSTATISTICS):longint;cdecl;external aionlm name 'AIOGetPortStatistics';
+
+function AIOGetWriteBufferSize(portHandle:longint; writeSize:PLongint):longint;cdecl;external aionlm name 'AIOGetWriteBufferSize';
+function AIOGetWriteBufferSize(portHandle:longint; var writeSize:Longint):longint;cdecl;external aionlm name 'AIOGetWriteBufferSize';
+
+function AIOReadData(portHandle:longint; buffer:Pchar; length:longint; numberBytesRead:PLongint):longint;cdecl;external aionlm name 'AIOReadData';
+function AIOReadData(portHandle:longint; var buffer; length:longint; var numberBytesRead:Longint):longint;cdecl;external aionlm name 'AIOReadData';
+
+function AIOReadStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external aionlm name 'AIOReadStatus';
+function AIOReadStatus(portHandle:longint; var count:Longint; var state:WORD):longint;cdecl;external aionlm name 'AIOReadStatus';
+
+function AIOReleasePort(portHandle:longint):longint;cdecl;external aionlm name 'AIOReleasePort';
+function AIOSetControlData(portHandle:longint; requestType:longint; requestStructValue:PAIOCONTROLDATA):longint;cdecl;external aionlm name 'AIOSetControlData';
+function AIOSetControlData(portHandle:longint; requestType:longint; var requestStructValue:TAIOCONTROLDATA):longint;cdecl;external aionlm name 'AIOSetControlData';
+
+function AIOSetExternalControl(portHandle:longint; requestType:longint; requestValue:longint):longint;cdecl;external aionlm name 'AIOSetExternalControl';
+function AIOSetFlowControl(portHandle:longint; flowCtrlMode:longint):longint;cdecl;external aionlm name 'AIOSetFlowControl';
+function AIOSetFlowControlCharacters(portHandle:longint; transmitXon:byte; transmitXoff:byte; receiveXon:byte; receiveXoff:byte):longint;cdecl;external aionlm name 'AIOSetFlowControlCharacters';
+function AIOSetReadBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external aionlm name 'AIOSetReadBufferSize';
+function AIOSetWriteBufferSize(portHandle:longint; bufferSize:longint):longint;cdecl;external aionlm name 'AIOSetWriteBufferSize';
+
+function AIOWriteData(portHandle:longint; buffer:Pchar; length:longint; numberBytesWritten:PLongint):longint;cdecl;external aionlm name 'AIOWriteData';
+function AIOWriteData(portHandle:longint; var buffer; length:longint; var numberBytesWritten:Longint):longint;cdecl;external aionlm name 'AIOWriteData';
+
+function AIOWriteStatus(portHandle:longint; count:PLongint; state:PWORD):longint;cdecl;external aionlm name 'AIOWriteStatus';
+function AIOWriteStatus(portHandle:longint; var count:Longint; var state:WORD):longint;cdecl;external aionlm name 'AIOWriteStatus';
 
 
 implementation
@@ -482,7 +506,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:20  peter
+  Revision 1.3  2003-05-10 21:38:22  armin
+  * added declarations with var parameters
+
+  Revision 1.2  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/03/19 19:33:36  armin
