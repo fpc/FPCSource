@@ -25,7 +25,7 @@ const
   filerecnamelength = 255;
 type
   FileRec = Packed Record
-    Handle,
+    Handle    : THandle;
     Mode,
     RecSize   : longint;
     _private  : array[1..32] of byte;
@@ -35,7 +35,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:07:45  peter
+  Revision 1.4  2003-11-03 09:42:27  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.3  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

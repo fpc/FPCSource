@@ -551,12 +551,12 @@ End;
 {$S-}
 procedure fpc_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_STACKCHECK'];
 var
-  c : cardinal;
+  c : Pointer;
 begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  c := cardinal(Sptr) - stack_size - STACK_MARGIN;
+  c := Sptr - (stack_size + STACK_MARGIN);
   if (c <= StackBottom) then
    begin
      StackError:=true;
@@ -853,7 +853,10 @@ end;
 
 {
   $Log$
-  Revision 1.46  2003-10-29 18:23:45  jonas
+  Revision 1.47  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.46  2003/10/29 18:23:45  jonas
     * hack to allow repeatable random sequences using the new random number
       generator
     * fixed range warning/error

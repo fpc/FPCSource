@@ -155,7 +155,9 @@ type
    FNameStr = String;
 const
    MaxReadBytes = $7fffffff;
-   invalidhandle = -1;
+
+var 
+   invalidhandle : THandle;
 
 
 {---------------------------------------------------------------------------}
@@ -289,8 +291,8 @@ TYPE
       PROCEDURE WriteStr (P: PString);
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Error (Code, Info: Integer);                         Virtual;
-      PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
-      PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+      PROCEDURE Read (Var Buf; Count: LongInt);                      Virtual;
+      PROCEDURE Write (Var Buf; Count: LongInt);                     Virtual;
       PROCEDURE CopyFrom (Var S: TStream; Count: Longint);
    END;
    PStream = ^TStream;
@@ -315,8 +317,8 @@ TYPE
       PROCEDURE Truncate;                                            Virtual;
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Open (OpenMode: Word);                               Virtual;
-      PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
-      PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+      PROCEDURE Read (Var Buf; Count: Longint);                      Virtual;
+      PROCEDURE Write (Var Buf; Count: Longint);                     Virtual;
    private
       FileInfo : File;
    END;
@@ -335,9 +337,9 @@ TYPE
 TYPE
    TBufStream = OBJECT (TDosStream)
          LastMode: Byte;                              { Last buffer mode }
-         BufSize : Sw_Word;                           { Buffer size }
-         BufPtr  : Sw_Word;                           { Buffer start }
-         BufEnd  : Sw_Word;                           { Buffer end }
+         BufSize : Longint;                           { Buffer size }
+         BufPtr  : Longint;                           { Buffer start }
+         BufEnd  : Longint;                           { Buffer end }
          Buffer  : PByteArray;                        { Buffer allocated }
       CONSTRUCTOR Init (FileName: FNameStr; Mode, Size: Word);
       DESTRUCTOR Done;                                               Virtual;
@@ -346,8 +348,8 @@ TYPE
       PROCEDURE Truncate;                                            Virtual;
       PROCEDURE Seek (Pos: LongInt);                                 Virtual;
       PROCEDURE Open (OpenMode: Word);                               Virtual;
-      PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
-      PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+      PROCEDURE Read (Var Buf; Count: Longint);                      Virtual;
+      PROCEDURE Write (Var Buf; Count: Longint);                     Virtual;
    END;
    PBufStream = ^TBufStream;
 
@@ -363,17 +365,17 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TMemoryStream = OBJECT (TStream)
-         BlkCount: Sw_Word;                           { Number of segments }
+         BlkCount: Longint;                           { Number of segments }
          BlkSize : Word;                              { Memory block size }
          MemSize : LongInt;                           { Memory alloc size }
          BlkList : PPointerArray;                     { Memory block list }
       CONSTRUCTOR Init (ALimit: Longint; ABlockSize: Word);
       DESTRUCTOR Done;                                               Virtual;
       PROCEDURE Truncate;                                            Virtual;
-      PROCEDURE Read (Var Buf; Count: Sw_Word);                      Virtual;
-      PROCEDURE Write (Var Buf; Count: Sw_Word);                     Virtual;
+      PROCEDURE Read (Var Buf; Count: Longint);                      Virtual;
+      PROCEDURE Write (Var Buf; Count: Longint);                     Virtual;
       PRIVATE
-      FUNCTION ChangeListSize (ALimit: Sw_Word): Boolean;
+      FUNCTION ChangeListSize (ALimit: Longint): Boolean;
    END;
    PMemoryStream = ^TMemoryStream;
 
@@ -516,7 +518,8 @@ TYPE
 
 TYPE
    TStrIndexRec = Packed RECORD
-      Key, Count, Offset: Word;
+      Key : Sw_word;
+      Count, Offset: Word;
    END;
 
    TStrIndex = Array [0..9999] Of TStrIndexRec;
@@ -532,9 +535,9 @@ TYPE
       PRIVATE
          Stream   : PStream;
          BasePos  : Longint;
-         IndexSize: Sw_Word;
+         IndexSize: Longint;
          Index    : PStrIndex;
-      PROCEDURE ReadStr (Var S: String; Offset, Skip: Sw_Word);
+      PROCEDURE ReadStr (Var S: String; Offset, Skip: Longint);
    END;
    PStringList = ^TStringList;
 
@@ -1206,7 +1209,7 @@ END;
 {--TStream------------------------------------------------------------------}
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TStream.Read (Var Buf; Count: Sw_Word);
+PROCEDURE TStream.Read (Var Buf; Count: Longint);
 BEGIN
    Abstract;                                          { Abstract error }
 END;
@@ -1214,7 +1217,7 @@ END;
 {--TStream------------------------------------------------------------------}
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 10May96 LdB                }
 {---------------------------------------------------------------------------}
-PROCEDURE TStream.Write (Var Buf; Count: Sw_Word);
+PROCEDURE TStream.Write (Var Buf; Count: Longint);
 BEGIN
    Abstract;                                          { Abstract error }
 END;
@@ -1411,8 +1414,8 @@ END;
 {--TDosStream---------------------------------------------------------------}
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TDosStream.Read (Var Buf; Count: Sw_Word);
-VAR BytesMoved: Sw_Word;
+PROCEDURE TDosStream.Read (Var Buf; Count: Longint);
+VAR BytesMoved: Longint;
     DosStreamError : Word;
 BEGIN
    If Status = StOK then
@@ -1443,8 +1446,8 @@ END;
 {--TDosStream---------------------------------------------------------------}
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                }
 {---------------------------------------------------------------------------}
-PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
-VAR BytesMoved: Sw_Word;
+PROCEDURE TDosStream.Write (Var Buf; Count: Longint);
+VAR BytesMoved: Longint;
     DosStreamError : Word;
 BEGIN
    { If status is not OK, simply exit }
@@ -1507,7 +1510,7 @@ END;
 {  Flush -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TBufStream.Flush;
-VAR W: Sw_Word;
+VAR W: Longint;
     DosStreamError : Word;
 BEGIN
    If Status <> StOK then
@@ -1564,8 +1567,8 @@ END;
 {--TBufStream---------------------------------------------------------------}
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TBufStream.Read (Var Buf; Count: Sw_Word);
-VAR Success: Integer; W, Bw: Sw_Word; P: PByteArray;
+PROCEDURE TBufStream.Read (Var Buf; Count: Longint);
+VAR Success: Integer; W, Bw: Longint; P: PByteArray;
     DosStreamError : Word;
 BEGIN
    If Status <> StOk then
@@ -1601,7 +1604,7 @@ BEGIN
        Move(Buffer^[BufPtr], P^, W);                  { Data from buffer }
        Dec(Count, W);                                 { Reduce count }
        Inc(BufPtr, W);                                { Advance buffer ptr }
-       P := Pointer(LongInt(P) + W);                  { Transfer address }
+       Inc(P, W);                                     { Transfer address }
        Inc(Position, W);                              { Advance position }
      End;
    End;
@@ -1612,8 +1615,10 @@ END;
 {--TBufStream---------------------------------------------------------------}
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 17May96 LdB                }
 {---------------------------------------------------------------------------}
-PROCEDURE TBufStream.Write (Var Buf; Count: Sw_Word);
-VAR Success: Integer; W: Sw_Word; P: PByteArray;
+PROCEDURE TBufStream.Write (Var Buf; Count: Longint);
+VAR Success: Integer;
+    W: Longint;
+    P: PByteArray;
     DosStreamError : Word;
 BEGIN
    if Status <> StOK then exit;                       { Exit if error     }
@@ -1636,7 +1641,7 @@ BEGIN
        Move(P^, Buffer^[BufPtr], W);                  { Data to buffer }
        Dec(Count, W);                                 { Reduce count }
        Inc(BufPtr, W);                                { Advance buffer ptr }
-       P := Pointer(LongInt(P) + W);                  { Transfer address }
+       Inc(P,W);                                      { Transfer address }
        Inc(Position, W);                              { Advance position }
        If (Position > StreamSize) Then                { File has expanded }
          StreamSize := Position;                      { Update new size }
@@ -1694,7 +1699,7 @@ END;
 {--TMemoryStream------------------------------------------------------------}
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 19May96 LdB                 }
 {---------------------------------------------------------------------------}
-PROCEDURE TMemoryStream.Read (Var Buf; Count: Sw_Word);
+PROCEDURE TMemoryStream.Read (Var Buf; Count: Longint);
 VAR W, CurBlock, BlockPos: Word; Li: LongInt; P, Q: PByteArray;
 BEGIN
    If (Position + Count > StreamSize) Then            { Insufficient data }
@@ -1722,8 +1727,11 @@ END;
 {--TMemoryStream------------------------------------------------------------}
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 19May96 LdB                }
 {---------------------------------------------------------------------------}
-PROCEDURE TMemoryStream.Write (Var Buf; Count: Sw_Word);
-VAR W, CurBlock, BlockPos: Word; Li: LongInt; P, Q: PByteArray;
+PROCEDURE TMemoryStream.Write (Var Buf; Count: Longint);
+VAR
+  W, CurBlock, BlockPos: Word;
+  Li: LongInt;
+  P, Q: PByteArray;
 BEGIN
    If (Position + Count > MemSize) Then Begin         { Expansion needed }
      If (Position + Count = 0) Then W := 1 Else       { At least 1 block }
@@ -1759,9 +1767,12 @@ END;
 {--TMemoryStream------------------------------------------------------------}
 {  ChangeListSize -> Platforms DOS/DPMI/WIN/OS2 - Checked 19May96 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION TMemoryStream.ChangeListSize (ALimit: Sw_Word): Boolean;
-VAR I, W: Word; Li: LongInt; P: PPointerArray;
-    OldVal : Boolean;
+FUNCTION TMemoryStream.ChangeListSize (ALimit: Longint): Boolean;
+VAR
+  I, W: Longint;
+  Li: LongInt;
+  P: PPointerArray;
+  OldVal : Boolean;
 BEGIN
    If (ALimit <> BlkCount) Then Begin                 { Change is needed }
      ChangeListSize := False;                         { Preset failure }
@@ -2743,7 +2754,7 @@ END;
 {--TStringLis---------------------------------------------------------------}
 {  ReadStr -> Platforms DOS/DPMI/WIN/OS2 - Checked 30Jun97 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TStringList.ReadStr (Var S: String; Offset, Skip: Sw_Word);
+PROCEDURE TStringList.ReadStr (Var S: String; Offset, Skip: Longint);
 BEGIN
    Stream^.Seek(BasePos + Offset);                    { Seek to position }
    Inc(Skip);                                         { Adjust skip }
@@ -2919,10 +2930,15 @@ BEGIN
 END;
 
 
+BEGIN
+  invalidhandle:=UnusedHandle;
 END.
 {
   $Log$
-  Revision 1.23  2003-10-25 23:43:59  hajny
+  Revision 1.24  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.23  2003/10/25 23:43:59  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.22  2003/09/16 15:57:33  peter

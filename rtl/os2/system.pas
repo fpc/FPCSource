@@ -1122,7 +1122,7 @@ begin
     (* Initialize the amount of file handles *)
     FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
-    StackBottom := cardinal (TIB^.Stack);
+    StackBottom := TIB^.Stack;
     Environment := pointer (PIB^.Env);
     ApplicationType := PIB^.ProcType;
     IsConsole := ApplicationType <> 3;
@@ -1153,7 +1153,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-11-02 00:51:17  hajny
+  Revision 1.56  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.55  2003/11/02 00:51:17  hajny
     * corrections for do_open and os_mode back
 
   Revision 1.54  2003/10/28 14:57:31  yuri

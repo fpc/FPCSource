@@ -19,7 +19,7 @@ const
   errKbdNotImplemented          = errKbdBase + 1;
 
 type
-  TKeyEvent = Longint;
+  TKeyEvent = Cardinal;
   TKeyRecord = packed record
     KeyCode : Word;
     ShiftState, Flags : Byte;
@@ -193,7 +193,10 @@ Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:45  peter
+  Revision 1.5  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.4  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

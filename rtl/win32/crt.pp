@@ -63,10 +63,10 @@ var
   WindMin: Word;          { Window upper left coordinates }
   WindMax: Word;          { Window lower right coordinates }
   { FPC Specific for large screen support }
-  WindMinX : Longint;
-  WindMaxX : Longint;
-  WindMinY : Longint;
-  WindMaxY : Longint;
+  WindMinX : DWord;
+  WindMaxX : DWord;
+  WindMinY : DWord;
+  WindMaxY : DWord	;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
@@ -127,7 +127,7 @@ begin
   end; { if }
 end; { proc. TurnMouseOff }
 
-function GetScreenHeight : longint;
+function GetScreenHeight : DWord;
 var
   ConsoleInfo: TConsoleScreenBufferinfo;
 begin
@@ -142,7 +142,7 @@ begin
     GetScreenHeight := ConsoleInfo.dwSize.Y;
 end; { func. GetScreenHeight }
 
-function GetScreenWidth : longint;
+function GetScreenWidth : DWord;
 var
   ConsoleInfo: TConsoleScreenBufferInfo;
 begin
@@ -158,7 +158,7 @@ begin
 end; { func. GetScreenWidth }
 
 
-procedure GetScreenCursor(var x : longint; var y : longint);
+procedure GetScreenCursor(var x : DWord; var y : DWord);
 var
   ConsoleInfo : TConsoleScreenBufferInfo;
 begin
@@ -168,7 +168,7 @@ begin
   Y := ConsoleInfo.dwCursorPosition.Y + 1;
 end;
 
-procedure SetScreenCursor(x,y : longint);
+procedure SetScreenCursor(x,y : DWord);
 var
   CurInfo: TCoord;
 begin
@@ -274,7 +274,7 @@ var
   Temp: DWord;
   CharInfo: Char;
   Coord: TCoord;
-  X,Y: Longint;
+  X,Y: DWord;
 begin
   GetScreenCursor(x, y);
 
@@ -293,7 +293,7 @@ Function WhereX: DWord;
   Return current X-position of cursor.
 }
 var
-  x,y : longint;
+  x,y : DWord;
 Begin
   GetScreenCursor(x, y);
   WhereX:= x - WindMinX +1;
@@ -304,7 +304,7 @@ Function WhereY: DWord;
   Return current Y-position of cursor.
 }
 var
-  x, y : longint;
+  x, y : DWord;
 Begin
   GetScreenCursor(x, y);
   WhereY:= y - WindMinY + 1;
@@ -540,7 +540,7 @@ end;
 {****************************************************************************
                           HighLevel Crt Functions
 ****************************************************************************}
-procedure removeline(y : longint);
+procedure removeline(y : DWord);
 var
   ClipRect: TSmallRect;
   SrcRect: TSmallRect;
@@ -580,7 +580,7 @@ var
   SrcRect: TSmallRect;
   DestCoor: TCoord;
   CharInfo: TCharInfo;
-  X,Y: Longint;
+  X,Y: DWord;
 begin
   GetScreenCursor(X, Y);
 
@@ -640,7 +640,7 @@ end;
 *****************************************************************************}
 
 var
-  CurrX, CurrY : longint;
+  CurrX, CurrY : DWord;
 
 procedure WriteChar(c : char);
 var
@@ -861,7 +861,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.19  2002-12-15 20:23:30  peter
+  Revision 1.20  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.19  2002/12/15 20:23:30  peter
     * fix empty string in readln when not at end of string
     * fix alt-xyz in readkey
 

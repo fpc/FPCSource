@@ -199,7 +199,7 @@ begin
            if (TranslationTable[I].Min <= ScanCode) and (ScanCode <= TranslationTable[I].Max) then
             begin
               DefaultTranslateKeyEvent := $02000000 + (KeyEvent and $00FF0000) +
-                (ScanCode - TranslationTable[I].Min) + TranslationTable[I].Offset;
+                Byte(ScanCode - TranslationTable[I].Min) + TranslationTable[I].Offset;
               exit;
             end;
          end;
@@ -295,7 +295,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:07:45  peter
+  Revision 1.8  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.7  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

@@ -1440,8 +1440,8 @@ function TTYName(Handle:Longint):string;
   returns empty string in case of an error.
 }
 var
-  mydev,
-  myino     : longint;
+  mydev     : dev_t;
+  myino     : ino_t;
   st        : stat;
 
   function mysearch(n:string): boolean;
@@ -1475,7 +1475,7 @@ var
                 exit;
               end;
            end
-          else if (d^.d_fileno=myino) and (st.st_dev=mydev) then
+          else if (ino_t(d^.d_fileno)=myino) and (st.st_dev=mydev) then
            begin
              fpclosedir(dirstream^);
              ttyname:=name;
@@ -1715,7 +1715,10 @@ End.
 
 {
   $Log$
-  Revision 1.42  2003-10-30 16:42:58  marco
+  Revision 1.43  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.42  2003/10/30 16:42:58  marco
    * fixes for old syscall() convention removing
 
   Revision 1.41  2003/10/12 19:40:43  marco

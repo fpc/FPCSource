@@ -27,7 +27,7 @@ const
 type
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
-    Handle,
+    Handle    : THandle;
     Mode,
     bufsize,
     _private,
@@ -45,7 +45,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:07:46  peter
+  Revision 1.4  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.3  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }

@@ -3,7 +3,7 @@ unit unixutil;
 interface
 
 var
-  Tzseconds : Cardinal;
+  Tzseconds : Longint;
 
 Type
   ComStr  = String[255];
@@ -302,7 +302,7 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 }  
 Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
-                (LongInt(Hour)*3600)+(Minute*60)+Second-TZSeconds;
+                (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
 End;
 
 

@@ -57,7 +57,7 @@ const
    STD_ERROR_HANDLE = $fffffff4;
 
 
-procedure UpdateStdHandle(var t:TextRec;var stdHandle:longint;newHandle:longint);
+procedure UpdateStdHandle(var t:TextRec;var stdHandle:Thandle;newHandle:Thandle);
 { Check if the stdHandle is the same as the one in the TextRec, then
   also update the TextRec }
 begin
@@ -105,7 +105,10 @@ if setjmp(exitjmpbuf)=0 then
 end.
 {
   $Log$
-  Revision 1.8  2003-09-08 18:25:45  peter
+  Revision 1.9  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.8  2003/09/08 18:25:45  peter
     * popstack to cdecl
 
   Revision 1.7  2002/09/07 16:01:28  peter

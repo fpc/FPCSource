@@ -1146,7 +1146,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %esp,%eax
 end;
@@ -1163,7 +1163,7 @@ var
   isneg  : byte;
 begin
   { Workaround: }
-  if l=$80000000 then
+  if l=longint($80000000) then
    begin
      s:='-2147483648';
      exit;
@@ -1177,7 +1177,7 @@ begin
         orl     %eax,%eax       // Sign ?
         jns     .LM2
         movb    $1,isneg
-        neg     %eax
+        negl    %eax
 .LM2:
         cltd
         idivl   %esi
@@ -1330,7 +1330,10 @@ end;
 
 {
   $Log$
-  Revision 1.51  2003-10-27 09:16:57  marco
+  Revision 1.52  2003-11-03 09:42:27  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.51  2003/10/27 09:16:57  marco
    * fix from peter i386.inc to circumvent ebx destroying
 
   Revision 1.50  2003/10/23 17:01:27  peter

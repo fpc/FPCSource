@@ -32,7 +32,7 @@ Const
 function ThreadSelf:TThread;
 var
   hp : PThreadRec;
-  sp : longint;
+  sp : Pointer;
 begin
   sp:=SPtr;
   hp:=ThreadRoot;
@@ -175,11 +175,11 @@ begin
   Flags := CLONE_VM + CLONE_FS + CLONE_FILES + CLONE_SIGHAND + SIGCHLD;
   { Setup 16k of stack }
   FStackSize:=16384;
-  Getmem(pointer(FStackPointer),FStackSize);
+  Getmem(FStackPointer,FStackSize);
   inc(FStackPointer,FStackSize);
   FCallExitProcess:=false;
   { Clone }
-  FHandle:= Clone(@ThreadProc,pointer(FStackPointer),Flags,self);
+  FHandle:= Clone(@ThreadProc,FStackPointer,Flags,self);
   if FSuspended then Suspend;
   FThreadID := FHandle;
   IsMultiThread := TRUE;
@@ -197,7 +197,7 @@ begin
   if FHandle <> -1 then
     {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
-  Freemem(pointer(FStackPointer),FStackSize);
+  Freemem(FStackPointer);
   FFatalException.Free;
   FFatalException := nil;
   inherited Destroy;
@@ -302,7 +302,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.9  2003/10/06 17:06:55  florian

@@ -90,7 +90,7 @@
        tinterfaceentry = packed record
          IID: pguid; { if assigned(IID) then Com else Corba}
          VTable: Pointer;
-         IOffset: LongInt;
+         IOffset: DWord;
          IIDStr: pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
        end;
 
@@ -293,7 +293,10 @@
 
 {
   $Log$
-  Revision 1.17  2003-10-06 15:59:20  florian
+  Revision 1.18  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.17  2003/10/06 15:59:20  florian
     + applied patch for ref. counted exceptions by Johannes Berg
 
   Revision 1.16  2003/03/17 20:55:58  peter

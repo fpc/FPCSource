@@ -808,7 +808,7 @@ end;
 
 
 var
-  __stkbottom : longint;external name '__stkbottom';
+  __stkbottom : pointer;external name '__stkbottom';
 
 
 
@@ -1513,7 +1513,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.27  2003-10-16 15:43:13  peter
+  Revision 1.28  2003-11-03 09:42:27  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.27  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.26  2003/10/03 21:46:25  peter

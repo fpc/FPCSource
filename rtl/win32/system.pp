@@ -59,10 +59,10 @@ type
 
 const
 { Default filehandles }
-  UnusedHandle    : Longint = -1;
-  StdInputHandle  : Longint = 0;
-  StdOutputHandle : Longint = 0;
-  StdErrorHandle  : Longint = 0;
+  UnusedHandle    : THandle = -1;
+  StdInputHandle  : THandle = 0;
+  StdOutputHandle : THandle = 0;
+  StdErrorHandle  : THandle = 0;
 
   FileNameCaseSensitive : boolean = true;
 
@@ -553,14 +553,14 @@ begin
 { append mode }
   if ((flags and $100)<>0) and
      (filerec(f).handle<>0) and
-     (filerec(f).handle<>-1) then
+     (filerec(f).handle<>UnusedHandle) then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
 { get errors }
   { handle -1 is returned sometimes !! (PM) }
-  if (filerec(f).handle=0) or (filerec(f).handle=-1) then
+  if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -926,7 +926,7 @@ end;
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
-  _SS : longint;
+  _SS : Cardinal;
 
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
   begin
@@ -1539,7 +1539,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-10-17 22:15:10  olle
+  Revision 1.48  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.47  2003/10/17 22:15:10  olle
     * changed i386 to cpui386
 
   Revision 1.46  2003/10/16 15:43:13  peter

@@ -1006,7 +1006,7 @@ begin
   if fmtlen > 0 then
     Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
-  If Length(S)<Buflen then
+  If Cardinal(Length(S))<Buflen then
     Result:=Length(S)
   else
     Result:=Buflen;
@@ -2012,7 +2012,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2003-10-07 12:02:47  marco
+  Revision 1.3  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.2  2003/10/07 12:02:47  marco
    * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
 
   Revision 1.1  2003/10/06 21:01:06  peter

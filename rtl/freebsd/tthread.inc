@@ -32,7 +32,7 @@ Const
 function ThreadSelf:TThread;
 var
   hp : PThreadRec;
-  sp : longint;
+  sp : Pointer;
 begin
   sp:=SPtr;
   hp:=ThreadRoot;
@@ -296,7 +296,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-10-27 17:12:45  marco
+  Revision 1.4  2003-11-03 09:42:27  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.3  2003/10/27 17:12:45  marco
    * fixes for signal handling.
 
   Revision 1.2  2003/10/09 10:55:20  marco

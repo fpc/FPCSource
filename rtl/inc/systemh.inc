@@ -344,7 +344,7 @@ Var
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
-  StackBottom,
+  StackBottom : Pointer;
   StackLength : Cardinal;
 
 {****************************************************************************
@@ -617,7 +617,7 @@ function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$
 function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-Function Sptr:Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 
 {*****************************************************************************
@@ -693,7 +693,10 @@ const
 
 {
   $Log$
-  Revision 1.76  2003-10-17 20:52:12  olle
+  Revision 1.77  2003-11-03 09:42:28  marco
+   * Peter's Cardinal<->Longint fixes patch
+
+  Revision 1.76  2003/10/17 20:52:12  olle
     * Changed m68k to cpum68k, i386 to cpui386
 
   Revision 1.75  2003/10/16 15:43:13  peter
