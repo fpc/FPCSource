@@ -145,6 +145,8 @@ interface
     { same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : pdef) : boolean;
 
+    function equal_constsym(sym1,sym2:pconstsym):boolean;
+
     { true, if two parameter lists are equal        }
     { if acp is cp_none, all have to match exactly  }
     { if acp is cp_value_equal_const call by value  }
@@ -219,6 +221,49 @@ implementation
          needs_prop_entry:=(sp_published in psym(sym)^.symoptions) and
          (sym^.typ in [propertysym,varsym]);
       end;
+
+
+    function equal_constsym(sym1,sym2:pconstsym):boolean;
+      var
+        p1,p2,pend : pchar;
+      begin
+        equal_constsym:=false;
+        if sym1^.consttyp<>sym2^.consttyp then
+         exit;
+        case sym1^.consttyp of
+           constint,
+           constbool,
+           constchar,
+           constpointer,
+           constord :
+             equal_constsym:=(sym1^.value=sym2^.value);
+           conststring,constresourcestring :
+             begin
+               if sym1^.len=sym2^.len then
+                begin
+                  p1:=pchar(sym1^.value);
+                  p2:=pchar(sym2^.value);
+                  pend:=p1+sym1^.len;
+                  while (p1<pend) do
+                   begin
+                     if p1<>p2 then
+                      break;
+                     inc(p1);
+                     inc(p2);
+                   end;
+                  if (p1=pend) then
+                   equal_constsym:=true;
+                end;
+             end;
+           constreal :
+             equal_constsym:=(pbestreal(sym1^.value)^=pbestreal(sym2^.value)^);
+           constset :
+             equal_constsym:=(pnormalset(sym1^.value)^=pnormalset(sym2^.value)^);
+           constnil :
+             equal_constsym:=true;
+        end;
+      end;
+
 
     {  compare_type = ( cp_none, cp_value_equal_const, cp_all); }
 
@@ -1085,7 +1130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-08-08 19:26:41  peter
+    * equal_constsym() needed for default para
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:53  michael
