@@ -1,5 +1,6 @@
 {
     $Id$
+    This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
     Borland Pascal 7 Compatible CRT Unit for Go32V2
@@ -350,7 +351,7 @@ var
 Begin
   GetScreenCursor(x,y);
   fil:=32 or (textattr shl 8);
-  if x<WinMaxX then
+  if x<=WinMaxX then
    DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
 End;
 
@@ -830,7 +831,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:18  peter
+  Revision 1.7  2002-09-10 10:38:04  pierre
+   * merged from fixes: fix bug report 1974
+
+  Revision 1.6  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
 }
