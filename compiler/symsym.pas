@@ -792,7 +792,9 @@ implementation
          pdlistfirst:=nil;
          pdlistlast:=nil;
          owner:=nil;
+{$ifdef GDB}
          is_global:=false;
+{$endif GDB}
          overloadchecked:=false;
          overloadcount:=0;
          procdef_count:=0;
@@ -814,7 +816,9 @@ implementation
             break;
            addprocdef(pd);
          until false;
+{$ifdef GDB}
          is_global:=false;
+{$endif GDB}
          overloadchecked:=false;
          overloadcount:=$ffff; { invalid, not used anymore }
       end;
@@ -2609,7 +2613,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-06-02 22:59:17  florian
+  Revision 1.108  2003-06-05 17:53:30  peter
+    * fix to compile without gdb
+
+  Revision 1.107  2003/06/02 22:59:17  florian
     * absolutesyms aren't fpuregable either
 
   Revision 1.106  2003/05/30 18:48:17  jonas
