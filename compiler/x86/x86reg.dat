@@ -108,7 +108,7 @@ NR_ST5,$02000005,st(5),%st(5),st(5),st5,17,OT_FPUREG,5
 NR_ST6,$02000006,st(6),%st(6),st(6),st6,18,OT_FPUREG,6
 NR_ST7,$02000007,st(7),%st(7),st(7),st7,19,OT_FPUREG,7
 ; Special code to that will map to %st(0)
-NR_ST,$02000008,st,%st,st,st,12,OT_FPU0,0
+NR_ST,$02000008,st,%st,st,st0,12,OT_FPU0,0
 
 NR_MM0,$03000000,mm0,%mm0,mm0,mm0,29,OT_MMXREG,0
 NR_MM1,$03000001,mm1,%mm1,mm1,mm1,30,OT_MMXREG,1
@@ -138,7 +138,10 @@ NR_XMM15,$0400000f,xmm15,%xmm15,xmm15,xmm15,-1,OT_XMMREG,7,64
 
 ;
 ; $Log$
-; Revision 1.3  2003-09-24 17:12:36  florian
+; Revision 1.4  2003-09-25 15:00:12  peter
+;   * %st is st0 in nasm
+;
+; Revision 1.3  2003/09/24 17:12:36  florian
 ;   * x86-64 adaptions
 ;
 ; Revision 1.2  2003/09/03 15:55:02  peter
