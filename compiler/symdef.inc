@@ -217,7 +217,7 @@
                    is_in_current:=true;
                    exit;
                 end
-              else if p^.symtabletype in [{localsymtable,parasymtable,}objectsymtable] then
+              else if p^.symtabletype in [localsymtable,parasymtable,objectsymtable] then
                 begin
                   if assigned(p^.defowner) then
                     p:=pobjectdef(p^.defowner)^.owner
@@ -2569,12 +2569,14 @@ Const local_symtable_index : longint = $8001;
              pdo:=_class;
              st:=aktlocalsymtable;
              new(parast,loadas(parasymtable));
+             parast^.defowner:=@self;
              aktlocalsymtable:=parast;
              parast^.deref;
              parast^.next:=owner;
              parast^.load_browser;
              aktlocalsymtable:=st;
              new(localst,loadas(localsymtable));
+             localst^.defowner:=@self;
              aktlocalsymtable:=localst;
              localst^.deref;
              localst^.next:=parast;
@@ -2642,6 +2644,7 @@ Const local_symtable_index : longint = $8001;
                PPU files are then easier to read PM }
              if not assigned(parast) then
                parast:=new(psymtable,init(parasymtable));
+             parast^.defowner:=@self;
              st:=aktlocalsymtable;
              aktlocalsymtable:=parast;
              parast^.writeas;
@@ -2650,6 +2653,7 @@ Const local_symtable_index : longint = $8001;
              parast^.write_browser;
              if not assigned(localst) then
                localst:=new(psymtable,init(localsymtable));
+             localst^.defowner:=@self;
              aktlocalsymtable:=localst;
              localst^.writeas;
              localst^.unitid:=local_symtable_index;
@@ -3811,7 +3815,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.174  1999-11-06 14:34:26  peter
+  Revision 1.175  1999-11-07 23:57:36  pierre
+   + higher level browser
+
+  Revision 1.174  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
 
   Revision 1.173  1999/11/05 17:18:02  pierre
