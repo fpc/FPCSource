@@ -94,7 +94,7 @@ begin
    is_jmp:=false;
    opcode:=op;
    ops:=0;
-   condition:=c_none;
+   fillchar(condition,sizeof(condition),0);
    fillchar(oper,sizeof(oper),0);
 end;
 
@@ -246,7 +246,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-08-26 14:52:59  jonas
+  Revision 1.4  1999-09-03 13:10:11  jonas
+    * condition is now zeroed using fillchar\n    because on powerpc it's a record now
+
+  Revision 1.3  1999/08/26 14:52:59  jonas
     * added segprefix field for i386 in tainstruction object
 
   Revision 1.2  1999/08/06 16:38:37  jonas
