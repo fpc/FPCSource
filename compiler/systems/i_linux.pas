@@ -218,8 +218,7 @@ unit i_linux;
             stacksize    : 32*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
-            { abi_powerpc_sysv doesn't work yet }
-            abi : abi_powerpc_aix;
+            abi : abi_powerpc_sysv;
           );
 
        system_alpha_linux_info : tsysteminfo =
@@ -522,7 +521,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2003-09-03 11:18:37  florian
+  Revision 1.12  2003-09-06 10:46:56  olle
+    * linux on powerpc now uses sysv abi
+
+  Revision 1.11  2003/09/03 11:18:37  florian
     * fixed arm concatcopy
     + arm support in the common compiler sources added
     * moved some generic cg code around
