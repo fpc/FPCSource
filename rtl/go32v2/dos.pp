@@ -817,7 +817,7 @@ var
   newdir : pathstr;
 begin
 { check if the file specified exists }
-  findfirst(path,anyfile,s);
+  findfirst(path,anyfile and not(directory),s);
   if doserror=0 then
    begin
      findclose(s);
@@ -846,7 +846,7 @@ begin
           end;
          if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
           newdir:=newdir+'\';
-         findfirst(newdir+path,anyfile,s);
+         findfirst(newdir+path,anyfile and not(directory),s);
          if doserror=0 then
           newdir:=newdir+path
          else
@@ -1047,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.16  2003-10-03 21:46:25  peter
+  Revision 1.17  2004-01-06 00:58:35  florian
+    * fixed fsearch
+
+  Revision 1.16  2003/10/03 21:46:25  peter
     * stdcall fixes
 
   Revision 1.15  2002/09/07 16:01:18  peter

@@ -612,7 +612,8 @@ end;
 
 procedure FindMatch(var f:searchrec);
 begin
-{ Find file with correct attribute }
+  { Find file with correct attribute }
+  F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
   While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
    begin
      if not FindNextFile (F.FindHandle,F.W32FindData) then
@@ -623,7 +624,8 @@ begin
         exit;
       end;
    end;
-{ Convert some attributes back }
+   
+  { Convert some attributes back }  
   f.size:=F.W32FindData.NFileSizeLow;
   f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
   WinToDosTime(F.W32FindData.ftLastWriteTime,f.Time);
@@ -633,14 +635,18 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 begin
-{ no error }
+  { no error }
   doserror:=0;
   F.Name:=Path;
   F.Attr:=attr;
   F.ExcludeAttr:=(not Attr) and ($1e); {hidden,sys,dir,volume}
   StringToPchar(f.name);
-{ FindFirstFile is a Win32 Call }
+  
+  { FindFirstFile is a Win32 Call }
+  F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
   F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
+  f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
+  
   If longint(F.FindHandle)=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
@@ -648,7 +654,7 @@ begin
       DosError:=18;
      exit;
    end;
-{ Find file with correct attribute }
+  { Find file with correct attribute }
   FindMatch(f);
 end;
 
@@ -759,92 +765,51 @@ function FExpand (const Path: PathStr): PathStr;
 {$UNDEF FPC_FEXPAND_DRIVES}
 {$UNDEF FPC_FEXPAND_UNC}
 
-
-  function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
-    var lpFilePart : PChar) : Longint; stdcall; external 'kernel32' name 'SearchPathA';
-
 Function FSearch(path: pathstr; dirlist: string): pathstr;
-var temp        : PChar;
-    value       : Array [0..255] of char;
-    i           : Longint;
-    dir,dir2    : dirstr;
-    lastchar    : char;
-    name        : namestr;
-    ext         : extstr;
-    s           : SearchRec;
-    found       : boolean;
+var
+  i,p1   : longint;
+  s      : searchrec;
+  newdir : pathstr;
 begin
-{ check if the file specified exists }
-  findfirst(path,anyfile,s);
-  found:=(doserror=0);
-  findclose(s);
-  if found then
+  { check if the file specified exists }
+  findfirst(path,anyfile and not(directory),s);
+  if doserror=0 then
    begin
+     findclose(s);
      fsearch:=path;
      exit;
    end;
-{ search the path }
-  fsearch:='';
-
-  for i:=1 to length(path) do
-   if path[i]='/' then
-    path[i]:='\';
-  fsplit(path,dir,name,ext);
-  for i:=1 to length(dirlist) do
-   if dirlist[i]='/' then
-    dirlist[i]:='\';
-  { bugfix here : Win98SE returns a path, when the name is NULL! }
-  { so if the name of the file to search is '' then simply exit  }
-  { immediately (WinNT behavior is correct).                     }
-  if name='' then
-    exit;
-
-  { allow slash as backslash }
-  StringToPchar(name);
-  StringToPchar(ext);
-
-  StringToPchar(dir);
-  if SearchPath(@dir, @name, @ext, 255, @value, temp)>0 then
-    begin
-      fsearch := strpas(value);
-      exit;
-    end;
-  PCharToString(dir);
-
-  repeat
-    i:=pos(';',dirlist);
-    while i=1 do
-      begin
-        delete(dirlist,1,1);
-        i:=pos(';',dirlist);
-      end;
-    if i=0 then
-      begin
-        dir2:=dirlist;
-        dirlist:='';
-      end
-    else
-      begin
-        dir2:=Copy(dirlist,1,i-1);
-        dirlist:=Copy(dirlist,i+1,255);
-      end;
-  { don't add anything if dir2 is empty string }
-  if dir2<>'' then
-    lastchar:=dir2[length(dir2)]
+  { No wildcards allowed in these things }
+  if (pos('?',path)<>0) or (pos('*',path)<>0) then
+    fsearch:=''
   else
-    lastchar:='\';
-  if (lastchar<>'\') and (lastchar<>':') then
-    dir2:=dir2+'\'+dir
-  else
-    dir2:=dir2+dir;
-  StringToPchar(dir2);
-  if SearchPath(@dir2, @name, @ext, 255, @value, temp)>0 then
     begin
-      fsearch := strpas(value);
-      exit;
+       { allow slash as backslash }
+       for i:=1 to length(dirlist) do
+         if dirlist[i]='/' then dirlist[i]:='\';
+       repeat
+         p1:=pos(';',dirlist);
+         if p1<>0 then
+          begin
+            newdir:=copy(dirlist,1,p1-1);
+            delete(dirlist,1,p1);
+          end
+         else
+          begin
+            newdir:=dirlist;
+            dirlist:='';
+          end;
+         if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+          newdir:=newdir+'\';
+         findfirst(newdir+path,anyfile and not(directory),s);
+         if doserror=0 then
+          newdir:=newdir+path
+         else
+          newdir:='';
+       until (dirlist='') or (newdir<>'');
+       fsearch:=newdir;
     end;
-  until dirlist='';
-
+  findclose(s);
 end;
 
 { </immobilizer> }
@@ -902,7 +867,7 @@ begin
   else
    if SetFileAttributes(filerec(f).name,attr) then
     doserror:=0
-  else 
+  else
     doserror:=getlasterror;
 end;
 
@@ -1090,7 +1055,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-10-27 15:27:47  peter
+  Revision 1.22  2004-01-06 00:58:35  florian
+    * fixed fsearch
+
+  Revision 1.21  2003/10/27 15:27:47  peter
     * fixed setfattr with volumeid
 
   Revision 1.20  2003/09/17 15:06:36  peter
