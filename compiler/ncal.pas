@@ -182,7 +182,7 @@ implementation
       verbose,globals,
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,cpubase,
-      nbas,ncnv,nld,ninl,nadd,ncon,
+      nbas,ncnv,nld,ninl,nadd,ncon,nmem,
       rgobj,cgbase
       ;
 
@@ -1758,9 +1758,13 @@ type
                              (symtableprocentry.procdef_count=1) then
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
-                              if (symtableprocentry.owner.symtabletype=objectsymtable) and
-                                 assigned(methodpointer) then
-                                tloadnode(hpt).set_mp(methodpointer.getcopy);
+                              if (symtableprocentry.owner.symtabletype=objectsymtable) then
+                               begin
+                                 if assigned(methodpointer) then
+                                   tloadnode(hpt).set_mp(methodpointer.getcopy)
+                                 else
+                                   tloadnode(hpt).set_mp(cselfnode.create(tobjectdef(symtableprocentry.owner.defowner)));
+                               end;
                               resulttypepass(hpt);
                               result:=hpt;
                             end
@@ -2395,7 +2399,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2003-03-17 16:54:41  peter
+  Revision 1.131  2003-03-17 18:54:23  peter
+    * fix missing self setting for method to procvar conversion in
+      tp_procvar mode
+
+  Revision 1.130  2003/03/17 16:54:41  peter
     * support DefaultHandler and anonymous inheritance fixed
       for message methods
 

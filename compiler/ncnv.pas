@@ -1119,9 +1119,13 @@ implementation
                         currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
                         hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
                             currprocdef,tcallnode(left).symtableproc);
-                        if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
-                           assigned(tcallnode(left).methodpointer) then
-                          tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
+                        if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
+                         begin
+                           if assigned(tcallnode(left).methodpointer) then
+                             tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
+                           else
+                             tloadnode(hp).set_mp(cselfnode.create(tobjectdef(tcallnode(left).symtableprocentry.owner.defowner)));
+                         end;
                       end;
                      resulttypepass(hp);
                      left.free;
@@ -1385,7 +1389,7 @@ implementation
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_'+typname
             else
-{$warning generic conversion from int to float does not support unsigned integers}            
+{$warning generic conversion from int to float does not support unsigned integers}
               fname := 'fpc_int64_to_'+typname;
             result := ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
@@ -1396,7 +1400,7 @@ implementation
         else
           { other integers are supposed to be 32 bit }
           begin
-{$warning generic conversion from int to float does not support unsigned integers}            
+{$warning generic conversion from int to float does not support unsigned integers}
             if is_signed(left.resulttype.def) then
               fname := 'fpc_longint_to_'+typname
             else
@@ -2027,7 +2031,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2003-02-15 22:15:57  carl
+  Revision 1.103  2003-03-17 18:54:23  peter
+    * fix missing self setting for method to procvar conversion in
+      tp_procvar mode
+
+  Revision 1.102  2003/02/15 22:15:57  carl
    * generic conversaion routines only work on signed types
 
   Revision 1.101  2003/01/16 22:13:52  peter
