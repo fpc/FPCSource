@@ -499,7 +499,8 @@ unit ag386nsm;
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,pai386(hp)^.ops,(i=2));
+                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,
+                                  pai386(hp)^.ops,(i=2));
                               end;
                            end;
                         end;
@@ -602,7 +603,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.46  1999-07-22 09:37:33  florian
+  Revision 1.47  1999-08-01 18:28:10  florian
+    * modifications for the new code generator
+
+  Revision 1.46  1999/07/22 09:37:33  florian
     + resourcestring implemented
     + start of longstring support
 

@@ -236,7 +236,6 @@ implementation
          old_t_times:=t_times;
          if not(cs_littlesize in aktglobalswitches) then
            t_times:=t_times*8;
-
          cleartempgen;
          if assigned(p^.t1) then
           begin
@@ -244,7 +243,6 @@ implementation
             if codegenerror then
              exit;
           end;
-
          { save counter var }
          p^.t2:=getcopy(p^.left^.left);
 
@@ -495,7 +493,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1999-06-30 22:16:25  florian
+  Revision 1.13  1999-08-01 18:28:15  florian
+    * modifications for the new code generator
+
+  Revision 1.12  1999/06/30 22:16:25  florian
     * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
     * small qword problems fixed
 

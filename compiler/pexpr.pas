@@ -48,7 +48,10 @@ unit pexpr;
     uses
        globtype,systems,tokens,
        cobjects,globals,scanner,aasm,pass_1,
-       hcodegen,types,verbose,strings,tccal
+       hcodegen,types,verbose,strings
+{$ifndef newcg}
+       ,tccal
+{$endif newcg}
        { parser specific stuff }
        ,pbase,pdecl
        { processor specific stuff }
@@ -125,7 +128,7 @@ unit pexpr;
                { support if procvar then for tp7 and many other expression like this }
                Store_valid:=Must_be_valid;
                Must_be_valid:=false;
-               firstpass(p);
+               do_firstpass(p);
                Must_be_valid:=Store_valid;
                if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
@@ -2061,7 +2064,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.126  1999-07-30 12:28:40  peter
+  Revision 1.127  1999-08-01 18:28:13  florian
+    * modifications for the new code generator
+
+  Revision 1.126  1999/07/30 12:28:40  peter
     * fixed crash with unknown id and colon parameter in write
 
   Revision 1.125  1999/07/27 23:42:14  peter

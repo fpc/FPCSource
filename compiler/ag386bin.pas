@@ -501,7 +501,8 @@ unit ag386bin;
                        else if l>1 then
                          objectalloc^.sectionalign(2);
                        pai_datablock(hp)^.sym^.typ:=AS_LOCAL;
-                       pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
+                       pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,
+                         pai_datablock(hp)^.size);
                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
                      end;
                    end
@@ -905,7 +906,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.20  1999-07-31 12:33:11  peter
+  Revision 1.21  1999-08-01 18:28:09  florian
+    * modifications for the new code generator
+
+  Revision 1.20  1999/07/31 12:33:11  peter
     * fixed smartlinking
 
   Revision 1.19  1999/07/22 09:37:30  florian

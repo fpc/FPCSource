@@ -57,7 +57,10 @@ unit pdecl;
 
     uses
        cobjects,scanner,aasm,tree,pass_1,strings,
-       files,types,verbose,systems,import,tccnv
+       files,types,verbose,systems,import
+{$ifndef newcg}
+       ,tccnv
+{$endif newcg}
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -1129,7 +1132,10 @@ unit pdecl;
                      do_firstpass(pt);
                      if p^.proptype^.deftype=setdef then
                        begin
+{$ifndef newcg}
+                         {!!!!!!!!!!}
                          arrayconstructor_to_set(pt);
+{$endif newcg}
                          do_firstpass(pt);
                        end;
                      pt:=gentypeconvnode(pt,p^.proptype);
@@ -1439,7 +1445,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       parse_proc_dec;
+{$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
+{$endif newcg}
                       if (aktprocsym^.definition^.options and pomsgint)<>0 then
                                 aktclass^.options:=aktclass^.options or oo_hasmsgint;
                       if (aktprocsym^.definition^.options and pomsgstr)<>0 then
@@ -1454,7 +1462,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       constructor_head;
+{$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
+{$endif newcg}
                       if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
                         aktclass^.options:=aktclass^.options or oo_hasvirtual;
                       parse_only:=oldparse_only;
@@ -1468,7 +1478,9 @@ unit pdecl;
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       destructor_head;
+{$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
+{$endif newcg}
                       if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
                         aktclass^.options:=aktclass^.options or oo_hasvirtual;
                       parse_only:=oldparse_only;
@@ -2291,7 +2303,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.137  1999-07-29 20:54:02  peter
+  Revision 1.138  1999-08-01 18:28:11  florian
+    * modifications for the new code generator
+
+  Revision 1.137  1999/07/29 20:54:02  peter
     * write .size also
 
   Revision 1.136  1999/07/27 23:42:11  peter
