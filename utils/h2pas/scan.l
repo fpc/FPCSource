@@ -443,7 +443,7 @@ D [0-9]
                           return(CSTRING)
                         else
                           return(256);
-{D}*[Uu]?[Ll]?          begin
+{D}+[Uu]?[Ll]?          begin
                            while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
                            return(NUMBER);
