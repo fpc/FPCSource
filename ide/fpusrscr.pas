@@ -88,11 +88,11 @@ type
       VIDEBuffer   : PByteArray;
       IDEVideoInfo : TDOSVideoInfo;
       ctrl_c_state : boolean;
-{$ifdef TEST_GRAPH_SWITCH}
+{$ifdef USE_GRAPH_SWITCH}
       GraphImageSize : longint;
       GraphBuffer : pointer;
       ConsoleGraphDriver, ConsoleGraphMode : word;
-{$endif TEST_GRAPH_SWITCH}
+{$endif USE_GRAPH_SWITCH}
       function    GetLineStartOfs(Line: integer): word;
       procedure   GetBuffer(Size: word);
       procedure   FreeBuffer;
@@ -183,13 +183,13 @@ uses
     {$endif}
   {$endif}
     ,Drivers,App
-  {$ifdef TEST_GRAPH_SWITCH}
+  {$ifdef USE_GRAPH_SWITCH}
     ,Graph,VESA
-  {$else not TEST_GRAPH_SWITCH}
+  {$else not USE_GRAPH_SWITCH}
   {$ifdef VESA}
     ,VESA
   {$endif VESA}
-  {$endif not TEST_GRAPH_SWITCH}
+  {$endif not USE_GRAPH_SWITCH}
   ;
 
 function TScreen.GetWidth: integer;
@@ -283,21 +283,29 @@ end;
 
 
 procedure TDOSScreen.GetLine(Line: integer; var Text, Attr: string);
-var X: integer;
-    W: word;
+var
+  X: integer;
+  W: word;
 begin
   Text:=''; Attr:='';
-  if Line<GetHeight then
-  begin
-    W:=GetLineStartOfs(Line);
-    for X:=0 to GetWidth-1 do
-     begin
-       {Text:=Text+chr(VBuffer^[W+X*2]);
-       Attr:=Attr+chr(VBuffer^[W+X*2+1]);}
-       System.Insert(chr(VBuffer^[W+X*2]),Text,Length(Text)+1);
-       System.Insert(chr(VBuffer^[W+X*2+1]),Attr,Length(Attr)+1);
-     end;
+  { VBuffer remains empty if in graph mode ... PM }
+  if (Line<GetHeight) and assigned(VBuffer) then
+    begin
+      W:=GetLineStartOfs(Line);
+      for X:=0 to GetWidth-1 do
+        begin
+          {Text:=Text+chr(VBuffer^[W+X*2]);
+          Attr:=Attr+chr(VBuffer^[W+X*2+1]);}
+          System.Insert(chr(VBuffer^[W+X*2]),Text,Length(Text)+1);
+          System.Insert(chr(VBuffer^[W+X*2+1]),Attr,Length(Attr)+1);
+        end;
+{$ifdef USE_GRAPH_SWITCH}
+    end
+  else if assigned(GraphBuffer) and (Line=0) then
+    Text:='Console in graph mode, use Alt+F5';
+{$else not USE_GRAPH_SWITCH}
   end;
+{$endif USE_GRAPH_SWITCH}
 end;
 
 
@@ -340,13 +348,13 @@ end;
 procedure TDosScreen.SaveConsoleScreen;
 var
   VSeg,SOfs: word;
-{$ifdef TEST_GRAPH_SWITCH}
+{$ifdef USE_GRAPH_SWITCH}
   saved : boolean;
   GraphDriver,GraphMode : integer;
-{$endif TEST_GRAPH_SWITCH}
+{$endif USE_GRAPH_SWITCH}
 begin
   GetVideoMode(ConsoleVideoInfo);
-{$ifdef TEST_GRAPH_SWITCH}
+{$ifdef USE_GRAPH_SWITCH}
   saved:=false;
   if assigned(GraphBuffer) then
     begin
@@ -391,6 +399,9 @@ begin
               GetMem(GraphBuffer,GraphImageSize);
               FillChar(GraphBuffer^,GraphImageSize,#0);
               GetImage(0,0,Graph.GetmaxX,Graph.GetMaxY,GraphBuffer^);
+              ConsoleVideoInfo.Rows:=Graph.GetMaxY div 8;
+              ConsoleVideoInfo.Cols:=Graph.GetMaxX div 8;
+              FreeBuffer;
               saved:=true;
             end
 {$ifdef DEBUG}
@@ -402,7 +413,7 @@ begin
     end;
   { mode < $100 so use standard Save code }
   if not saved then
-{$endif TEST_GRAPH_SWITCH}
+{$endif USE_GRAPH_SWITCH}
   begin
     GetBuffer(ConsoleVideoInfo.ScreenSize);
     if ConsoleVideoInfo.Mode=7 then
@@ -421,13 +432,13 @@ end;
 procedure TDOSScreen.SwitchToConsoleScreen;
 var
   VSeg,SOfs: word;
-{$ifdef TEST_GRAPH_SWITCH}
+{$ifdef USE_GRAPH_SWITCH}
   restored : boolean;
   GraphDriver,GraphMode : integer;
-{$endif TEST_GRAPH_SWITCH}
+{$endif USE_GRAPH_SWITCH}
 begin
   SetVideoMode(ConsoleVideoInfo);
-{$ifdef TEST_GRAPH_SWITCH}
+{$ifdef USE_GRAPH_SWITCH}
   restored:=false;
   if assigned(GraphBuffer) then
     begin
@@ -466,7 +477,7 @@ begin
     end;
   { mode < $100 so use standard Save code }
   if not restored then
-{$endif TEST_GRAPH_SWITCH}
+{$endif USE_GRAPH_SWITCH}
     begin
       if ConsoleVideoInfo.Mode=7 then
         VSeg:=SegB000
@@ -1226,7 +1237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2002-09-13 08:15:06  pierre
+  Revision 1.21  2002-09-13 22:27:07  pierre
+   * fix several problems with go32v2 graphic support
+
+  Revision 1.20  2002/09/13 08:15:06  pierre
    * fix cursor position for linux vcsa support
 
   Revision 1.19  2002/09/13 07:17:33  pierre
