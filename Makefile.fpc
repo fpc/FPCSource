@@ -623,6 +623,10 @@ rpmcopy: distclean
         rm -rf $(RPMSRCDIR)
         # Create fpc.spec, include our own builddir
         echo "%define _topdir $(RPMDIR)" > $(RPMSPECFILE)
+	echo "%define _sourcedir $(RPMDIR)/SOURCES" >> $(RPMSPECFILE)
+	echo "%define _builddir $(RPMDIR)/BUILD" >> $(RPMSPECFILE)
+	echo "%define _rpmdir $(RPMDIR)/RPMS" >> $(RPMSPECFILE)
+	echo "%define _srcrpmdir $(RPMDIR)/SRPMS" >> $(RPMSPECFILE)
         cat $(CVSINSTALL)/fpc.spec >> $(RPMSPECFILE)
 ifndef NODOCS
         cat $(CVSINSTALL)/fpcdoc.spec >> $(RPMSPECFILE)
