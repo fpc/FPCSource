@@ -28,7 +28,7 @@ interface
 
 {$PACKRECORDS 1}
 
-uses    strings;
+uses    Strings, DosCalls;
 
 const   {Bit masks for CPU flags.}
         fcarry      = $0001;
@@ -65,7 +65,8 @@ type    {Some string types:}
         searchrec=record
             case boolean of
              false: (handle:longint;     {Used in os_OS2 mode}
-                     fill2:array[1..21-SizeOf(longint)] of byte;
+                     FStat:PFileFindBuf3;
+                     fill2:array[1..21-SizeOf(longint)-SizeOf(pointer)] of byte;
                      attr2:byte;
                      time2:longint;
                      size2:longint;
@@ -177,8 +178,6 @@ function envstr(index:longint) : string;
 function getenv(const envvar:string): string;
 
 implementation
-
-uses    DosCalls;
 
 var     LastSR: SearchRec;
         envc: longint; external name '_envc';
@@ -772,7 +771,7 @@ begin
     end;
 end;
 
-procedure DosSearchRec2SearchRec (var F: SearchRec; FStat: PFileFindBuf3);
+procedure DosSearchRec2SearchRec (var F: SearchRec);
 
 const NameSize=255;
 
@@ -823,9 +822,6 @@ procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
         end;
     end;
 
-const
-    FStat: PFileFindBuf3 = nil;
-
 var path0: array[0..255] of char;
     Count: longint;
 
@@ -834,24 +830,22 @@ begin
     DosError := 0;
     if os_mode = osOS2 then
     begin
-        New (FStat);
+        New (F.FStat);
         F.Handle := $FFFFFFFF;
         Count := 1;
-        DosError := DosFindFirst (Path, F.Handle, Attr, FStat,
-                                           SizeOf (FStat^), Count, ilStandard);
+        DosError := DosFindFirst (Path, F.Handle, Attr, F.FStat,
+                                         SizeOf (F.FStat^), Count, ilStandard);
         if (DosError = 0) and (Count = 0) then DosError := 18;
     end else
     begin
         strPcopy(path0,path);
         _findfirst(path0,attr,f);
     end;
-    DosSearchRec2SearchRec (F, FStat);
-    if os_mode = osOS2 then Dispose (FStat);
+    DosSearchRec2SearchRec (F);
 end;
 
 procedure FindNext (var F: SearchRec);
-var FStat: PFileFindBuf3;
-    Count: longint;
+var Count: longint;
 
     procedure _findnext(var f : searchrec);
 
@@ -872,13 +866,11 @@ begin
     SearchRec2DosSearchRec (F);
     if os_mode = osOS2 then
     begin
-        New (FStat);
         Count := 1;
-        DosError := DosFindNext (F.Handle, FStat, SizeOf (FStat), Count);
+        DosError := DosFindNext (F.Handle, F.FStat, SizeOf (F.FStat^), Count);
         if (DosError = 0) and (Count = 0) then DosError := 18;
     end else _findnext (F);
-    DosSearchRec2SearchRec (F, FStat);
-    if os_mode = osOS2 then Dispose (FStat);
+    DosSearchRec2SearchRec (F);
 end;
 
 procedure FindClose (var F: SearchRec);
@@ -886,6 +878,7 @@ begin
     if os_mode = osOS2 then
     begin
         DosError := DosFindClose (F.Handle);
+        Dispose (F.FStat);
     end;
 end;
 
@@ -1067,7 +1060,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-03-10 09:57:51  hajny
+  Revision 1.9  2001-03-11 18:58:42  hajny
+    * another Find* problem :-(
+
+  Revision 1.8  2001/03/10 09:57:51  hajny
     * FExpand without IOResult change, remaining direct asm removed
 
   Revision 1.7  2001/02/04 01:57:52  hajny
