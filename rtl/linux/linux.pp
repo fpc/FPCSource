@@ -519,8 +519,8 @@ Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
 Function  UnLink(Path:pathstr):boolean;
 Function  UnLink(Path:pchar):Boolean;
-Function  ReName (OldName,NewName : Pchar) : Boolean;
-Function  ReName (OldName,NewName : String) : Boolean;
+Function  FReName (OldName,NewName : Pchar) : Boolean;
+Function  FReName (OldName,NewName : String) : Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimebuf):boolean;
@@ -1652,20 +1652,20 @@ begin
 end;
 
 
-Function  ReName (OldName,NewName : Pchar) : Boolean;
+Function  FRename (OldName,NewName : Pchar) : Boolean;
 
 begin
-  Rename:=Sys_rename(OldName,NewName)=0;
+  FRename:=Sys_rename(OldName,NewName)=0;
   LinuxError:=Errno;
 end;
 
 
-Function  ReName (OldName,NewName : String) : Boolean;
+Function  FRename (OldName,NewName : String) : Boolean;
 
 begin
   OldName:=OldName+#0;
   NewName:=NewName+#0;
-  Rename:=Rename (@OldName[1],@NewName[1]);
+  FRename:=FRename (@OldName[1],@NewName[1]);
 end;
 
 Function Umask(Mask:Integer):integer;
@@ -3515,7 +3515,10 @@ End.
 
 {
   $Log$
-  Revision 1.23  1998-10-30 15:47:11  peter
+  Revision 1.24  1998-11-10 14:57:53  peter
+    * renamed rename -> FRename
+
+  Revision 1.23  1998/10/30 15:47:11  peter
     * fixed glob, which did not reset  the root
 
   Revision 1.22  1998/10/23 00:05:32  peter

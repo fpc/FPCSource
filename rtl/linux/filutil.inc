@@ -222,7 +222,7 @@ Function RenameFile (Const OldName, NewName : String) : Boolean;
 Var P1,P2 : String;
 
 begin
-  RenameFile:=Linux.Rename(OldNAme,NewName);
+  RenameFile:=Linux.FRename(OldNAme,NewName);
 end;
 
 
@@ -235,7 +235,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-10-13 10:20:07  peter
+  Revision 1.3  1998-11-10 14:57:55  peter
+    * renamed rename -> FRename
+
+  Revision 1.2  1998/10/13 10:20:07  peter
     * fix for 0.99.8 which has no auto pchar-string ;)
 
   Revision 1.1  1998/10/11 12:21:01  michael
