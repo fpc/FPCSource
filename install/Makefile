@@ -137,7 +137,7 @@ basego32:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 	$(COPY) bingo32/* $(BININSTALLDIR)
 # source (base)
@@ -149,10 +149,11 @@ basego32:
 	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
 	make -C $(CVSBASE)/rtl/go32v2 install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 # rtl go32v2 libs
-	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
-	make -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
+#	make -C $(CVSBASE)/rtl/go32v2 clean OS_TARGET=go32v2
+#	make -C $(CVSBASE)/rtl/go32v2 libinstall OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 # utils
 	make -C $(CVSBASE)/utils clean OS_TARGET=go32v2
+	make -C $(CVSBASE)/utils all OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 	make -C $(CVSBASE)/utils install OS_TARGET=go32v2 RELEASE=1 PP=$(PPNEW)
 
 basego32.zip:
@@ -172,7 +173,7 @@ basew32:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # source (base)
 	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # readme.txt & whatsnew.txt
@@ -185,8 +186,8 @@ basew32:
 	make -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
 	make -C $(CVSBASE)/rtl/win32 install OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
 # rtl libs
-	make -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
-	make -C $(CVSBASE)/rtl/win32 libinstall OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
+#	make -C $(CVSBASE)/rtl/win32 clean OS_TARGET=win32
+#	make -C $(CVSBASE)/rtl/win32 libinstall OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
 # utils
 	make -C $(CVSBASE)/utils clean OS_TARGET=win32
 	make -C $(CVSBASE)/utils install OS_TARGET=win32 RELEASE=1 PP=$(PPNEW)
@@ -212,7 +213,7 @@ baseemx:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/copying* $(DOCINSTALLDIR)
 # source (base)
 	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # compiler
@@ -235,14 +236,16 @@ baseemx.zip:
 
 #
 # $Log$
-# Revision 1.5  1999-06-11 13:58:35  peter
+# Revision 1.6  1999-07-22 16:18:07  peter
+#   * 0.99.12b release updates
+#
+# Revision 1.5	1999/06/11 13:58:35  peter
 #   * moved .txt to doc/
 #
-# Revision 1.4  1999/06/11 13:03:51  peter
+# Revision 1.4	1999/06/11 13:03:51  peter
 #   * os2 update, readme,whatsnew in doc/ dir
-# C
 #
-# Revision 1.3  1999/05/30 11:34:33  peter
+# Revision 1.3	1999/05/30 11:34:33  peter
 #   * updates to generate the installer
 #
 # Revision 1.2	1999/05/03 18:04:37  peter
