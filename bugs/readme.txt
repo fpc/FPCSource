@@ -68,6 +68,7 @@ Fixed bugs:
   bug0049.pp    shows an error while defining subrange types         OK 0.99.7 (PFV)
   bug0050.pp    can't set a function result in a nested procedure of a function OK 0.99.7 (PM)
   bug0051.pp    Graph, shows a problem with putpixel                 OK 0.99.9 (PM)
+  bug0052.pp    Graph, collects missing graph unit routines          OK 0.99.9 (PM)
   bug0053.pp    shows a problem with open arrays                     OK 0.99.1 (FK)
                 (crashes a win95-DOS box :) )
   bug0054.pp    wordbool and longbool types are missed               OK 0.99.6 (PFV)
@@ -194,7 +195,11 @@ Fixed bugs:
   bug0166.pp   forward type used in declaration crashes instead of error OK 0.99.9 (PFV)
   bug0167.pp   crash when declaring a procedure with same name as object OK 0.99.9 (PFV)
   bug0168.pp   set:=set+element is allowed (should be: set:=set+[element]) OK 0.99.9 (PFV)
+<<<<<<< readme.txt
+  bug0169.pp   missing new(type) support for not object/class             OK 0.99.9 (PM)
+=======
   bug0169.pp   missing new(type) support for not object/class        OK 0.99.9 (PM)
+>>>>>>> 1.86
   bug0170.pp   Asm, {$ifdef} is seen as a separator                  OK 0.99.9 (PFV)
   bug0172.pp   with with absolute seg:ofs should not be possible OK 0.99.9 (PM)
   bug0173.pp   secondbug is parsed as asm, but should be normal pascalcode OK 0.99.9 (PFV)
@@ -234,10 +239,6 @@ bug0155.pp   Asm, Missing string return for asm functions
 
 Unfixed bugs:
 -------------
-bug0052.pp   Graph, collects missing graph unit routines
-             (partial fix : works for this example but fillpoly is
-	      still not really implemented 0.99.9 (PM))
- 
 bug0123.pp   Asm, problem with intel assembler (shrd)
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
 bug0175.pp   Asm, mov word,%eax should not be allowed without casting
@@ -257,3 +258,4 @@ bug0191.pp   missing vecn constant evaluation
 bug0192.pp   can't compare boolean result with true/false, because the
              boolean result is already in the flags
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
+bug0194.pp   @procedure var returns value in it instead of address !!
