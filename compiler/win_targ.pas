@@ -131,6 +131,15 @@ unit win_targ;
           { DataDirectory : array[0..(IMAGE_NUMBEROF_DIRECTORY_ENTRIES)-1] of IMAGE_DATA_DIRECTORY; }
        end;
 
+    function DllName(Const Name : string) : string;
+      var n : string;
+      begin
+         n:=Upper(SplitExtension(Name));
+         if (n='.DLL') or (n='.DRV') or (n='.EXE') then
+           DllName:=Name
+         else
+           DllName:=Name+target_os.sharedlibext;
+      end;
     procedure timportlibwin32.preparelib(const s : string);
 
       begin
@@ -144,7 +153,9 @@ unit win_targ;
          hp2 : pimported_item;
          hs  : string;
       begin
-         hs:=SplitName(module);
+         { that IS wrong for DRV files
+         hs:=SplitName(module); }
+         hs:=DDLName(module);
          { search for the module }
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
@@ -170,7 +181,7 @@ unit win_targ;
          hp2 : pimported_item;
          hs  : string;
       begin
-         hs:=SplitName(module);
+         hs:=DllName(module);
          { search for the module }
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
@@ -240,7 +251,7 @@ unit win_targ;
               { dllname }
               importssection^.concat(new(pai_section,init(sec_idata7)));
               importssection^.concat(new(pai_label,init(lname)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+target_os.sharedlibext+#0)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+{target_os.sharedlibext+}#0)));
 
               { create procedures }
               hp2:=pimported_item(hp1^.imported_items^.first);
@@ -403,7 +414,7 @@ unit win_targ;
               { create import dll name }
               importssection^.concat(new(pai_section,init(sec_idata7)));
               importssection^.concat(new(pai_label,init(l1)));
-              importssection^.concat(new(pai_string,init(hp1^.dllname^+target_os.sharedlibext+#0)));
+              importssection^.concat(new(pai_string,init(hp1^.dllname^+{target_os.sharedlibext+}#0)));
 
               hp1:=pimportlist(hp1^.next);
            end;
@@ -699,7 +710,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.21  1999-02-25 21:02:59  peter
+  Revision 1.22  1999-04-07 14:04:40  pierre
+    * adds .dll as library suffix only if
+      the name does not end with .dll .drv or .exe !
+
+  Revision 1.21  1999/02/25 21:02:59  peter
     * ag386bin updates
     + coff writer
 
