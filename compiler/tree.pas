@@ -149,7 +149,8 @@ unit tree;
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,
                       tc_proc2procvar,tc_cchar_charpointer,tc_load_smallset,
-                      tc_ansistring_2_pchar,tc_pchar_2_string);
+                      tc_ansistring_2_pchar,tc_pchar_2_string,
+                      tc_arrayconstructor_2_set);
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
@@ -1569,7 +1570,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.41  1998-09-23 09:58:55  peter
+  Revision 1.42  1998-09-23 12:03:59  peter
+    * overloading fix for array of const
+
+  Revision 1.41  1998/09/23 09:58:55  peter
     * first working array of const things
 
   Revision 1.40  1998/09/22 15:34:07  peter

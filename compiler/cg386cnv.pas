@@ -1151,7 +1151,8 @@ implementation
            second_nothing,
            second_load_smallset,
            second_ansistring_to_pchar,
-           second_pchar_to_string);
+           second_pchar_to_string,
+           second_nothing);
 
       begin
          { this isn't good coding, I think tc_bool_2_int, shouldn't be }
@@ -1281,7 +1282,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-09-22 15:34:09  peter
+  Revision 1.23  1998-09-23 12:03:51  peter
+    * overloading fix for array of const
+
+  Revision 1.22  1998/09/22 15:34:09  peter
     + pchar -> string conversion
 
   Revision 1.21  1998/09/20 17:46:47  florian

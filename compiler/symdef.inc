@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1993-98 by Florian Klaempfl, Pierre Muller
 
-    Symbol table implementation for the defenitions
+    Symbol table implementation for the definitions
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1410,6 +1410,8 @@
          highrange:=h;
          rangedef:=rd;
          definition:=nil;
+         IsVariant:=false;
+         IsConstructor:=false;
          IsArrayOfConst:=false;
          rangenr:=0;
       end;
@@ -1425,6 +1427,8 @@
          lowrange:=readlong;
          highrange:=readlong;
          IsArrayOfConst:=boolean(readbyte);
+         IsVariant:=false;
+         IsConstructor:=false;
          rangenr:=0;
       end;
 
@@ -3020,7 +3024,10 @@
 
 {
   $Log$
-  Revision 1.48  1998-09-22 15:37:23  peter
+  Revision 1.49  1998-09-23 12:03:55  peter
+    * overloading fix for array of const
+
+  Revision 1.48  1998/09/22 15:37:23  peter
     + array of const start
 
   Revision 1.47  1998/09/21 15:46:01  michael

@@ -319,6 +319,7 @@ unit pass_1;
         pd : pdef;
         hp : ptree;
         len : longint;
+        varia : boolean;
       begin
       { are we allowing array constructor? Then convert it to a set }
         if not allow_array_constructor then
@@ -330,6 +331,7 @@ unit pass_1;
       { only pass left tree, right tree contains next construct if any }
         pd:=nil;
         len:=0;
+        varia:=false;
         if assigned(p^.left) then
          begin
            hp:=p;
@@ -339,7 +341,11 @@ unit pass_1;
               if (pd=nil) then
                pd:=hp^.left^.resulttype
               else
-               Comment(V_Warning,'Variant type found !!');
+               if (not varia) and (not is_equal(pd,hp^.left^.resulttype)) then
+                begin
+                  varia:=true;
+                  Comment(V_Warning,'Variant type found !!');
+                end;
               inc(len);
               hp:=hp^.right;
             end;
@@ -348,6 +354,8 @@ unit pass_1;
          end;
         calcregisters(p,0,0,0);
         p^.resulttype:=new(parraydef,init(0,len,pd));
+        parraydef(p^.resulttype)^.IsConstructor:=true;
+        parraydef(p^.resulttype)^.IsVariant:=varia;
         p^.location.loc:=LOC_REFERENCE;
       end;
 
@@ -434,12 +442,14 @@ unit pass_1;
          b : boolean;
          hd1,hd2 : pdef;
       begin
-         b:=false;
-         if (not assigned(def_from)) or (not assigned(def_to)) then
+       { safety check }
+         if not(assigned(def_from) and assigned(def_to)) then
           begin
             isconvertable:=false;
             exit;
           end;
+
+         b:=false;
 
         { handle ord to ord first }
          if (def_from^.deftype=orddef) and (def_to^.deftype=orddef) then
@@ -525,6 +535,14 @@ unit pass_1;
            begin
               doconv:=tc_array_to_pointer;
               b:=true;
+           end
+         else
+
+          if (def_from^.deftype=arraydef) and (def_to^.deftype=setdef) and
+             (parraydef(def_from)^.IsConstructor) then
+           begin
+             doconv:=tc_arrayconstructor_2_set;
+             b:=true;
            end
          else
 
@@ -2708,6 +2726,22 @@ unit pass_1;
            p^.registers32:=1;
       end;
 
+
+    procedure first_arrayconstructor_to_set(var p:ptree);
+      var
+        hp : ptree;
+      begin
+        if p^.left^.treetype<>arrayconstructn then
+         internalerror(5546);
+      { remove typeconv node }
+        hp:=p;
+        p:=p^.left;
+        putnode(hp);
+      { create a set constructor tree }
+        arrayconstructor_to_set(p);
+      end;
+
+
     function is_procsym_load(p:Ptree):boolean;
 
       begin
@@ -2786,7 +2820,8 @@ unit pass_1;
                            first_cchar_charpointer,
                            first_load_smallset,
                            first_ansistring_to_pchar,
-                           first_pchar_to_ansistring);
+                           first_pchar_to_ansistring,
+                           first_arrayconstructor_to_set);
 
     begin
        aprocdef:=nil;
@@ -2855,6 +2890,7 @@ unit pass_1;
             firstpass(p);
             exit;
          end;
+
        if (not(isconvertable(p^.left^.resulttype,p^.resulttype,
            p^.convtyp,p^.left^.treetype,p^.explizit))) then
          begin
@@ -3161,7 +3197,7 @@ unit pass_1;
                     { only process typeconvn, else it will break other trees }
                     old_array_constructor:=allow_array_constructor;
                     allow_array_constructor:=true;
-{                    if (p^.left^.treetype=typeconvn) then }
+                    if (p^.left^.treetype=typeconvn) then
                       firstpass(p^.left);
                     allow_array_constructor:=old_array_constructor;
                     must_be_valid:=store_valid;
@@ -3271,16 +3307,28 @@ unit pass_1;
       function is_equal(def1,def2 : pdef) : boolean;
 
         begin
+           { safety check }
+           if not (assigned(def1) or assigned(def2)) then
+            begin
+              is_equal:=false;
+              exit;
+            end;
            { all types can be passed to a formaldef }
            is_equal:=(def1^.deftype=formaldef) or
-             (assigned(def2) and types.is_equal(def1,def2))
+             (types.is_equal(def1,def2))
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal        }
            { when searching the correct overloaded procedure   }
              or
-             (assigned(def1) and assigned(def2) and
+             (
               (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
               (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ)
+             )
+           { set can also be a not yet converted array constructor }
+             or
+             (
+              (def1^.deftype=setdef) and (def2^.deftype=arraydef) and
+              (parraydef(def2)^.IsConstructor) and not(parraydef(def2)^.IsVariant)
              )
              ;
         end;
@@ -5733,7 +5781,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.90  1998-09-23 09:58:49  peter
+  Revision 1.91  1998-09-23 12:03:53  peter
+    * overloading fix for array of const
+
+  Revision 1.90  1998/09/23 09:58:49  peter
     * first working array of const things
 
   Revision 1.89  1998/09/22 15:34:10  peter
