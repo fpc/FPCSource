@@ -557,7 +557,8 @@ implementation
                         r^.base:=procinfo^.framepointer;
                      end; }
                    r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
-                   if (not pwithsymtable(p^.symtable)^.direct_with) or
+                   if ((not ptree(pwithsymtable(p^.symtable)^.withnode)^.islocal) and
+                       (not pwithsymtable(p^.symtable)^.direct_with)) or
                       pobjectdef(p^.methodpointer^.resulttype)^.is_class then
                      emit_ref_reg(A_MOV,S_L,r,R_ESI)
                    else
@@ -1588,7 +1589,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-10 20:18:06  peter
+  Revision 1.9  2000-09-16 12:21:56  peter
+    * fixed for with and local object loading
+
+  Revision 1.8  2000/09/10 20:18:06  peter
     * fixed open array with cdecl
     * fixed finalize call with unused function return
 
