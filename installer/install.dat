@@ -76,9 +76,14 @@ idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*emx.zip
 package=baseemx.zip,~B~asic system for EMX (required)
-package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
+package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
+package=utilemx.zip,~E~xtra Utilities
+package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
-package=utilemx.zip,GNU ~U~tilities (for makefiles)
+package=ufclemx.zip,~F~ree Component Libary (FCL)
+package=ubasemx.zip,Ba~s~ic units (needed by FCL)
+package=unetemx.zip,~N~etworking units
+package=umisemx.zip,~M~iscellaneous units
 
 
 #
@@ -108,7 +113,7 @@ package=docsrc.zip,~D~ocumentation sources (LaTeX)
 
 defaultcfg=
 #
-# Example fpc.cfg for Free Pascal Compiler Version 1.0.2
+# Example fpc.cfg for Free Pascal Compiler Version 1.0.4
 #
 
 # ----------------------

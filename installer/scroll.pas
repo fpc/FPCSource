@@ -223,7 +223,8 @@ end;
 
 procedure TScrollBox.AfterDelete(P: PView);
 begin
-  UpdateLimits;
+  { UpdateLimits;
+    removed because it creates GPF PM }
 end;
 
 procedure TScrollBox.Draw;
@@ -250,9 +251,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-09-22 23:13:37  pierre
-     * add emulation for go32v2 and display currently extraced file
-     and changes by Gabor for scrolling support (merged)
+  Revision 1.1  2002-01-29 17:59:15  peter
+    * moved installer
+
+  Revision 1.1.2.2  2001/05/02 16:22:44  pierre
+   + Shorten file names to comply with Dos 8+3 limitation
 
   Revision 1.1.2.1  2000/09/21 10:51:33  pierre
    new file from Gabor

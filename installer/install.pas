@@ -1,10 +1,10 @@
 {
     $Id$
-    This file is part of Free Pascal
-    Copyright (c) 1993-2000 by Florian Klaempfl
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993-98 by Florian Klaempfl
     member of the Free Pascal development team
 
-    This is the install program for Free Pascal
+    This is the install program for the DOS and OS/2 versions of Free Pascal
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,6 +17,9 @@
 program install;
 
 {$DEFINE FV}         (* TH - added to make use of the original Turbo Vision possible. *)
+{$ifdef FVISION}
+{$undef FV}
+{$endif}
 { $DEFINE DLL}       (* TH - if defined, UNZIP32.DLL library is used to unpack. *)
 { $DEFINE DOSSTUB}   (* TH - should _not_ be defined unless creating a bound DOS and OS/2 installer!!! *)
 (* Defining DOSSTUB causes adding a small piece of code    *)
@@ -44,6 +47,21 @@ program install;
  {$UNDEF DOSSTUB}
 {$ENDIF}
 
+{$ifdef go32v2}
+{$define MAYBE_LFN}
+{$endif}
+
+{$ifdef debug}
+{$ifdef win32}
+{$define MAYBE_LFN}
+{$endif win32}
+{$endif debug}
+
+{$ifdef TP}
+{$define MAYBE_LFN}
+{$endif}
+
+
   uses
 {$IFDEF OS2}
  {$IFDEF FPC}
@@ -57,7 +75,7 @@ program install;
  {$ENDIF FPC}
 {$ENDIF OS2}
 {$IFDEF GO32V2}
-     emu387,
+     { emu387, not needed anymore PM }
 {$ENDIF}
 {$ifdef HEAPTRC}
      heaptrc,
@@ -66,19 +84,16 @@ program install;
 {$IFDEF FV}
      commands,
 {$ENDIF}
+     unzip,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     unzip,ziptypes,
-     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr,scroll,
+     app,dialogs,views,menus,msgbox,colortxt,tabs,scroll,
      HelpCtx,WHTMLScn;
 
-
   const
-     installerversion='1.0.2';
+     installerversion='1.0.4';
 
-
-     {$ifdef TP}lfnsupport=false;{$endif}
 
      maxpacks=10;
      maxpackages=20;
@@ -94,27 +109,11 @@ program install;
      haside : boolean = false;
      hashtmlhelp : boolean = false;
 
-{$IFDEF LINUX}
+{$ifdef linux}
      DirSep='/';
-{$ELSE}
- {$IFDEF UNIX}
-     DirSep='/';
- {$ELSE}
+{$else}
      DirSep='\';
- {$ENDIF}
-{$ENDIF}
-
-{$IFNDEF GO32V2}
- {$IFDEF GO32V1}
-     LFNSupport = false;
- {$ELSE}
-  {$IFDEF TP}
-     LFNSupport = false;
-  {$ELSE}
-     LFNSupport = true;
-  {$ENDIF}
- {$ENDIF}
-{$ENDIF}
+{$endif}
 
   type
      tpackage=record
@@ -126,6 +125,7 @@ program install;
        name     : string[12];
        binsub   : string[40];
        ppc386   : string[20];
+       targetname : string[20];
        defidecfgfile,
        defideinifile,
        defcfgfile : string[12];
@@ -140,7 +140,6 @@ program install;
      cfgrec=record
        title    : string[80];
        version  : string[20];
-       language : string[30];
        helpidx,
        docsub,
        basepath : DirStr;
@@ -178,11 +177,6 @@ program install;
         constructor init;
      end;
 
-     planguagedialog = ^tlanguagedialog;
-     tlanguagedialog = object(tdialog)
-        constructor init;
-     end;
-
      PFPHTMLFileLinkScanner = ^TFPHTMLFileLinkScanner;
      TFPHTMLFileLinkScanner = object(THTMLFileLinkScanner)
         function    CheckURL(const URL: string): boolean; virtual;
@@ -200,7 +194,6 @@ program install;
          procedure initmenubar;virtual;
          procedure handleevent(var event : tevent);virtual;
          procedure do_installdialog;
-         procedure do_languagedialog;
          procedure readcfg(const fn:string);
          procedure checkavailpack;
      end;
@@ -242,7 +235,6 @@ program install;
      UnzDlg      : punzipdialog;
      log         : text;
      createlog   : boolean;
-     msgfile     : string;
 {$IFNDEF DLL}
 
   const
@@ -280,18 +272,16 @@ program install;
     end;
 
 
-  function Replace(var s:string;const s1,s2:string) : boolean;
+  procedure Replace(var s:string;const s1,s2:string);
     var
        i  : longint;
     begin
-      Replace:=false;
       repeat
         i:=pos(s1,s);
         if i>0 then
          begin
            Delete(s,i,length(s1));
            Insert(s2,s,i);
-           Replace:=true;
          end;
       until i=0;
     end;
@@ -363,7 +353,7 @@ program install;
       s : string;
     begin
       uncompressed:=DiskSpaceN (zipfile);
-      if Uncompressed = -1 then DiskSpace := str_invalid else
+      if Uncompressed = -1 then DiskSpace := ' [INVALID]' else
       begin
        str(uncompressed,s);
        diskspace:=' ('+s+' KB)';
@@ -384,11 +374,13 @@ program install;
          begin
             if Dir.Attr and Directory = 0 then
               begin
-                messagebox(msg_problems_create_dir,nil,
+                messagebox('A file with the name chosen as the installation '+
+                'directory exists already. Cannot create this directory!',nil,
                 mferror+mfokbutton);
                 createinstalldir:=false;
               end else
-                createinstalldir:=messagebox(msg_install_dir_exists,nil,
+                createinstalldir:=messagebox('The installation directory exists already. '+
+                'Do you want to continue ?',nil,
                 mferror+mfyesbutton+mfnobutton)=cmYes;
             exit;
          end;
@@ -396,7 +388,7 @@ program install;
        if err then
          begin
             params[0]:=@s;
-            messagebox(msg_install_cant_be_created,
+            messagebox('The installation directory %s couldn''t be created',
               @params,mferror+mfokbutton);
             createinstalldir:=false;
             exit;
@@ -539,7 +531,8 @@ program install;
        r.assign(10,10,70,15);
        indexdlg:=new(phtmlindexdialog,init(r,'Creating HTML index file, please wait ...'));
        desktop^.insert(indexdlg);
-       New(LS, Init);
+{$warning FIXME !!!! }
+       New(LS, Init(''));
        LS^.ProcessDocument(FileName,[soSubDocsOnly]);
        if LS^.GetDocumentCount=0 then
          begin
@@ -590,7 +583,7 @@ program install;
                           Writing of fpc.cfg
 *****************************************************************************}
 
-  procedure writedefcfg(const fn:string;const cfgdata : tcfgarray;count : longint);
+  procedure writedefcfg(const fn:string;const cfgdata : tcfgarray;count : longint;const targetname : string);
     var
       t      : text;
       i      : longint;
@@ -606,7 +599,7 @@ program install;
       if doserror=0 then
        begin
          params[0]:=@fn;
-         if MessageBox(msg_overwrite_cfg,@params,
+         if MessageBox('Config %s already exists, continue writing default config?',@params,
                        mfinformation+mfyesbutton+mfnobutton)=cmNo then
            exit;
        end;
@@ -621,7 +614,7 @@ program install;
       if ioresult<>0 then
        begin
          params[0]:=@fn;
-         MessageBox(msg_problems_writing_cfg,@params,mfinformation+mfokbutton);
+         MessageBox(#3'A config not written.'#13#3'%s'#13#3'couldn''t be created',@params,mfinformation+mfokbutton);
          exit;
        end;
       for i:=1 to count do
@@ -629,21 +622,11 @@ program install;
          begin
            s:=cfgdata[i]^;
            Replace(s,'$1',data.basepath);
-
-           { error msg file entry? }
-           if Replace(s,'$L',msgfile) then
-             begin
-                { if we've to set an error msg file, we }
-                { write it else we discard the line     }
-                if msgfile<>'' then
-                  writeln(t,s);
-             end
-           else
-             writeln(t,s);
+           Replace(s,'$target',targetname);
+           writeln(t,s);
          end
        else
          writeln(t,'');
-
       close(t);
     end;
 
@@ -685,7 +668,8 @@ program install;
           DrawView;
          end;
         end;
-     file_failure: UnzipErr := RetCode;
+     file_failure:
+       UnzipErr := RetCode;
      file_unzipping:
         begin
          with UnzDlg^.FileText^ do
@@ -705,16 +689,14 @@ program install;
       again : boolean;
       fn,dir,wild : string;
       Cnt: integer;
-      params : array[0..0] of pointer;
-
     begin
        Disposestr(filetext^.text);
-       filetext^.Text:=NewStr(#3+str_file+s+ #13#3' ');
+       filetext^.Text:=NewStr(#3'File: '+s + #13#3' ');
        filetext^.drawview;
        if not(file_exists(s,startpath)) then
          begin
-            params[0]:=@s;
-            messagebox(msg_file_missing,@params,mferror+mfokbutton);
+            messagebox('File "'+s+'" missing for the selected installation. '+
+                       'Installation hasn''t been completed.',nil,mferror+mfokbutton);
             errorhalt;
          end;
 {$IFNDEF DLL}
@@ -733,8 +715,8 @@ program install;
          if (UnzipErr <> 0) then
            begin
               Str(UnzipErr,s);
-              params[0]:=@s;
-              if messagebox(msg_extraction_error,@params,mferror+mfyesbutton+mfnobutton)=cmNo then
+              if messagebox('Error (' + S + ') while extracting. Disk full?'#13+
+                            #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
               else
                again:=true;
@@ -802,13 +784,13 @@ program install;
 {$ENDIF}
 
       R.Assign(6, 6, 74, YB);
-      inherited init(r,dialog_enddialog_title);
+      inherited init(r,'Installation Successfull');
 
 {$IFNDEF LINUX}
       if WPath then
        begin
          R.Assign(2, 3, 64, 5);
-         P:=new(pstatictext,init(r,str_extend_path+''''+S+''''));
+         P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
          insert(P);
        end;
 
@@ -816,9 +798,9 @@ program install;
       if WLibPath then
        begin
          if WPath then
-          S := str_libpath+'''' + S + '\'+str_dll+''''
+          S := 'and your LIBPATH with ''' + S + '\dll'''
          else
-          S := str_extend_libpath+'''' + S + '\'+str_dll+'''';
+          S := 'Extend your LIBPATH with ''' + S + '\dll''';
          R.Assign (2, YB - 14, 64, YB - 12);
          P := New (PStaticText, Init (R, S));
          Insert (P);
@@ -827,18 +809,18 @@ program install;
 {$ENDIF}
 
       R.Assign(2, YB - 13, 64, YB - 12);
-      P:=new(pstatictext,init(r,str_to_compile+''''+cfg.pack[1].ppc386+str_file2+''''));
+      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.pack[1].ppc386+' [file]'''));
       insert(P);
 
       if haside then
         begin
            R.Assign(2, YB - 12, 64, YB - 10);
-           P:=new(pstatictext,init(r,str_start_ide));
+           P:=new(pstatictext,init(r,'To start the IDE (Integrated Development Environment) type ''fp'' at a command line prompt'));
            insert(P);
         end;
 
       R.Assign (29, YB - 9, 39, YB - 7);
-      Control := New (PButton, Init (R,str_ok, cmOK, bfDefault));
+      Control := New (PButton, Init (R,'~O~k', cmOK, bfDefault));
       Insert (Control);
     end;
 
@@ -846,14 +828,11 @@ program install;
 {*****************************************************************************
                                TInstallDialog
 *****************************************************************************}
-
+{$ifdef MAYBE_LFN}
   var
      islfn : boolean;
 
   procedure lfnreport( Retcode : longint;Rec : pReportRec );
-{$IFDEF TP}
-                                                             far;
-{$ENDIF}
 
     var
        p : pathstr;
@@ -862,7 +841,7 @@ program install;
 
     begin
        fsplit(strpas(rec^.Filename),p,n,e);
-       if length(n)>8 then
+       if (length(n)>8) or (length(e)>4) then
          islfn:=true;
     end;
 
@@ -881,47 +860,7 @@ program install;
 {$endif FPC}
        haslfn:=islfn;
     end;
-
-  constructor tlanguagedialog.init;
-    const
-       languages = 8;
-       width = 40;
-       height = languages+6;
-       x1 = (79-width) div 2;
-       y1 = (23-height) div 2;
-       x2 = x1+width;
-       y2 = y1+height;
-    var
-       r : trect;
-       okbut : pbutton;
-       line : longint;
-       rb : PRadioButtons;
-
-    begin
-       r.assign(x1,y1,x2,y2);
-       inherited init(r,dialog_language_title);
-       GetExtent(R);
-       R.Grow(-2,-1);
-       line:=r.a.y+1;
-       r.assign((width div 2)-15,line,(width div 2)+15,line+languages);
-       New(rb, Init(r,
-          NewSItem(dialog_language_english,
-          NewSItem(dialog_language_dutch,
-          NewSItem(dialog_language_french,
-          NewSItem(dialog_language_russian,
-          NewSItem(dialog_language_hungarian,
-          NewSItem(dialog_language_spanish,
-          NewSItem(dialog_language_german,
-          NewSItem(dialog_language_russian_win,
-          nil))))))))));
-       insert(rb);
-       inc(line,languages);
-       inc(line,1);
-       r.assign((width div 2)-5,line,(width div 2)+5,line+2);
-       new(okbut,init(r,str_ok,cmok,bfdefault));
-
-      Insert(OkBut);
-    end;
+{$endif MAYBE_LFN}
 
   constructor tinstalldialog.init;
     const
@@ -964,7 +903,7 @@ program install;
             begin
               if file_exists(package[i].zip,startpath) then
                begin
-{$ifdef go32v2}
+{$ifdef MAYBE_LFN}
                  if not(lfnsupport) then
                    begin
                       if not(haslfn(package[i].zip,startpath)) then
@@ -973,17 +912,19 @@ program install;
                            packmask[j]:=packmask[j] or packagemask(i);
                            firstitem[j]:=i;
                            if createlog then
-                             writeln(log,str_checking_lfn,startpath+DirSep+package[i].zip,' ... no lfn');
+                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... no lfn');
                         end
                       else
                         begin
-                           items[j]:=newsitem(package[i].name+str_requires_lfn,items[j]);
+                           items[j]:=newsitem(package[i].name+' (requires LFN support)',items[j]);
+                           packmask[j]:=packmask[j] or packagemask(i);
+                           firstitem[j]:=i;
                            if createlog then
-                             writeln(log,str_checking_lfn,startpath+DirSep+package[i].zip,' ... uses lfn');
+                             writeln(log,'Checking lfn usage for ',startpath+DirSep+package[i].zip,' ... uses lfn');
                         end;
                    end
                  else
-{$endif go32v2}
+{$endif MAYBE_LFN}
                    begin
                       items[j]:=newsitem(package[i].name+diskspace(startpath+DirSep+package[i].zip),items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
@@ -1002,7 +943,7 @@ program install;
          found:=true;
        if not found then
         begin
-          messagebox(msg_no_components_found,nil,mferror+mfokbutton);
+          messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);
           errorhalt;
         end;
 
@@ -1025,7 +966,7 @@ program install;
 
        r.move(0,2);
        r.b.x:=r.a.x+40;
-       new(labpath,init(r,dialog_install_basepath,f));
+       new(labpath,init(r,'~B~ase path',f));
        r.move(0,1);
        r.b.x:=r.a.x+40;
        r.b.y:=r.a.y+1;
@@ -1033,11 +974,11 @@ program install;
 
        r.move(0,2);
        r.b.x:=r.a.x+40;
-       new(labcfg,init(r,dialog_install_config,f));
+       new(labcfg,init(r,'Con~f~ig',f));
        r.move(0,1);
        r.b.x:=r.a.x+40;
        r.b.y:=r.a.y+1;
-       new(cfgcb,init(r,newsitem(dialog_install_createppc386cfg,nil)));
+       new(cfgcb,init(r,newsitem('create fpc.cfg',nil)));
        data.cfgval:=1;
 
        {-------- Pack Sheets ----------}
@@ -1078,7 +1019,7 @@ program install;
        end;
 
        New(Tab, Init(TabR,
-         NewTabDef(dialog_install_general,IlPath,
+         NewTabDef('~G~eneral',IlPath,
            NewTabItem(TitleText,
            NewTabItem(LabPath,
            NewTabItem(ILPath,
@@ -1093,74 +1034,16 @@ program install;
 
        line:=tabr.b.y;
        r.assign((width div 2)-18,line,(width div 2)-4,line+2);
-       new(okbut,init(r,str_continue,cmok,bfdefault));
+       new(okbut,init(r,'~C~ontinue',cmok,bfdefault));
        Insert(OkBut);
 
        r.assign((width div 2)+4,line,(width div 2)+14,line+2);
-       new(cancelbut,init(r,str_quit,cmcancel,bfnormal));
+       new(cancelbut,init(r,'~Q~uit',cmcancel,bfnormal));
        Insert(CancelBut);
 
        Tab^.Select;
     end;
 
-
-{*****************************************************************************
-                               TUnZipDialog
-*****************************************************************************}
-
-  procedure tapp.do_languagedialog;
-
-    var
-       p : planguagedialog;
-       langdata : longint;
-       c : word;
-
-    begin
-       { select components }
-       new(p,init);
-       langdata:=0;
-       c:=executedialog(p,@langdata);
-       writeln(langdata);
-       if c=cmok then
-         begin
-            case langdata of
-               0:
-                 cfg.language:='English';
-               1:
-                 begin
-                    cfg.language:='Dutch';
-                    msgfile:='errorn.msg';
-                 end;
-               2:
-                 begin
-                    cfg.language:='French';
-                    msgfile:='errorf.msg';
-                 end;
-               3:
-                 begin
-                    cfg.language:='Russian';
-                    msgfile:='errorr.msg';
-                 end;
-               4:
-                 cfg.language:='Hungarian';
-               5:
-                 begin
-                    cfg.language:='Spanish';
-                    msgfile:='errors.msg';
-                 end;
-               6:
-                 begin
-                    cfg.language:='German';
-                    msgfile:='errord.msg';
-                 end;
-               7:
-                 begin
-                    cfg.language:='RussianWin';
-                    msgfile:='errorrw.msg';
-                 end;
-            end;
-         end;
-    end;
 
 {*****************************************************************************
                                 TApp
@@ -1178,7 +1061,6 @@ program install;
        c    : word;
        i,j  : longint;
        found : boolean;
-       params : array[0..0] of pointer;
 {$ifndef linux}
        DSize,Space,ASpace : longint;
        S: DirStr;
@@ -1192,15 +1074,15 @@ program install;
       begin
          for i:=1 to cfg.packs do
            if cfg.pack[i].defcfgfile<>'' then
-             writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile,cfg.defcfg,cfg.defcfgs);
+             writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile,cfg.defcfg,cfg.defcfgs,cfg.pack[i].targetname);
          if haside then
            begin
               for i:=1 to cfg.packs do
                 if cfg.pack[i].defidecfgfile<>'' then
-                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defidecfgfile,cfg.defidecfg,cfg.defidecfgs);
+                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defidecfgfile,cfg.defidecfg,cfg.defidecfgs,cfg.pack[i].targetname);
               for i:=1 to cfg.packs do
                 if cfg.pack[i].defideinifile<>'' then
-                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defideinifile,cfg.defideini,cfg.defideinis);
+                 writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defideinifile,cfg.defideini,cfg.defideinis,cfg.pack[i].targetname);
               if hashtmlhelp then
                 writehlpindex(data.basepath+DirSep+cfg.DocSub+DirSep+cfg.helpidx);
            end;
@@ -1219,7 +1101,7 @@ program install;
         if (c=cmok) then
           begin
             if Data.BasePath = '' then
-              messagebox(msg_select_dir,nil,mferror+mfokbutton)
+              messagebox('Please, choose the directory for installation first.',nil,mferror+mfokbutton)
             else
              begin
                found:=false;
@@ -1240,12 +1122,10 @@ program install;
                          begin
                           ASpace := DiskSpaceN (package[i].zip);
                           if ASpace = -1 then
-                            begin
-                                params[0]:=@package[i].zip;
-                                MessageBox (msg_corrupt_zip,
-                                            @params,mferror + mfokbutton);
-                            end
-                          else Inc (DSize, ASpace);
+                              MessageBox ('File ' + package[i].zip +
+                                            ' is probably corrupted!', nil,
+                                                        mferror + mfokbutton)
+                              else Inc (DSize, ASpace);
                          end;
                        end;
                     end;
@@ -1255,15 +1135,16 @@ program install;
                   Space := DiskFree (byte (Upcase(S [1])) - 64) shr 10;
 
                   if Space < DSize then
-                   S := str_is_not
+                   S := 'is not'
                   else
                    S := '';
                   if (Space < DSize + 500) then
                    begin
                      if S = '' then
-                      S := str_might_not_be;
-                     params[0]:=@s;
-                     if messagebox(msg_space_warning,@params,
+                      S := 'might not be';
+                     if messagebox('There ' + S + ' enough space on the target ' +
+                                   'drive for all the selected components. Do you ' +
+                                   'want to change the installation path?',nil,
                                    mferror+mfyesbutton+mfnobutton) = cmYes then
                       Continue;
                    end;
@@ -1276,7 +1157,7 @@ program install;
                   { maybe only config }
                   if (data.cfgval and 1)<>0 then
                    begin
-                     result:=messagebox(msg_no_components_selected,nil,
+                     result:=messagebox('No components selected.'#13#13'Create a configfile ?',nil,
                                                 mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
                        doconfigwrite;
@@ -1284,7 +1165,7 @@ program install;
                    end
                   else
                    begin
-                     result:=messagebox(msg_nocomponents,nil,
+                     result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
                                                mferror+mfyesbutton+mfnobutton);
                      if result=cmYes then
                       exit;
@@ -1301,7 +1182,7 @@ program install;
        with cfg.pack[j] do
         begin
           r.assign(10,7,70,18);
-          UnzDlg:=new(punzipdialog,init(r,dialog_unzipdialog_title));
+          UnzDlg:=new(punzipdialog,init(r,'Extracting Packages'));
           desktop^.insert(UnzDlg);
           for i:=1 to packages do
            begin
@@ -1376,7 +1257,7 @@ program install;
          if ioresult<>0 then
           begin
             params[0]:=@fn;
-            messagebox(msg_file_not_found,@params,mferror+mfokbutton);
+            messagebox('File %s not found!',@params,mferror+mfokbutton);
             errorhalt;
           end;
        end;
@@ -1397,9 +1278,6 @@ program install;
                else
                 if item='TITLE' then
                  cfg.title:=s
-               else
-                if item='LANGUAGE' then
-                 cfg.language:=s
                else
                 if item='BASEPATH' then
                  cfg.basepath:=s
@@ -1521,6 +1399,16 @@ program install;
                    cfg.pack[cfg.packs].filechk:=s;
                  end
                else
+                if item='TARGETNAME' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].targetname:=s;
+                 end
+               else
                 if item='PACKAGE' then
                  begin
                    if cfg.packs=0 then
@@ -1581,7 +1469,7 @@ program install;
        getextent(r);
        r.b.y:=r.a.y+1;
        menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu(menu_install,hcnocontext,newmenu(nil
+          newsubmenu('Free Pascal Installer',hcnocontext,newmenu(nil
           ),
        nil))));
     end;
@@ -1710,11 +1598,18 @@ begin
      begin
         if paramstr(i)='-l' then
           createlog:=true
+{$ifdef MAYBE_LFN}
+        else if paramstr(i)='--nolfn' then
+          lfnsupport:=false
+{$endif MAYBE_LFN}
         else if paramstr(i)='-h' then
           begin
-             writeln('FPC Installer Copyright (c) 1993-2000 Florian Klaempfl');
+             writeln('FPC Installer Copyright (c) 1993-2001 Florian Klaempfl');
              writeln('Command line options:');
              writeln('  -l   create log file');
+{$ifdef MAYBE_LFN}
+             writeln('  --nolfn   force installation with short file names');
+{$endif MAYBE_LFN}
              writeln;
              writeln('  -h   displays this help');
              halt(0);
@@ -1729,8 +1624,10 @@ begin
      begin
         assign(log,'install.log');
         rewrite(log);
+{$ifdef GO32V2}
         if not(lfnsupport) then
           writeln(log,'OS doesn''t have LFN support');
+{$endif}
      end;
    getdir(0,startpath);
    successfull:=false;
@@ -1738,22 +1635,18 @@ begin
    fillchar(cfg, SizeOf(cfg), 0);
    fillchar(data, SizeOf(data), 0);
 
-   { set a default language }
-   cfg.language:='English';
-
-   { don't use a message file by default }
-   msgfile:='';
-
    installapp.init;
 
    FSplit (FExpand (ParamStr (0)), DStr, CfgName, EStr);
 
    installapp.readcfg(CfgName + CfgExt);
    installapp.checkavailpack;
-   installapp.do_languagedialog;
 {   installapp.readcfg(startpath+dirsep+cfgfile);}
+{$ifdef GO32V2}
    if not(lfnsupport) then
-     MessageBox(msg_no_lfn,nil,mfinformation or mfokbutton);
+     MessageBox('The operating system doesn''t support LFN (long file names),'+
+       ' so some packages will get shorten filenames when installed',nil,mfinformation or mfokbutton);
+{$endif}
    installapp.do_installdialog;
    installapp.done;
    if createlog then
@@ -1761,45 +1654,169 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-11-24 14:34:10  carl
+  Revision 1.1  2002-01-29 17:59:15  peter
+    * moved installer
+
+  Revision 1.2.2.16  2001/11/24 14:29:54  carl
   * ppc386.cfg -> fpc.cfg
 
-  Revision 1.12  2000/11/26 19:00:44  hajny
+  Revision 1.2.2.15  2001/05/02 16:22:43  pierre
+   + Shorten file names to comply with Dos 8+3 limitation
+
+  Revision 1.2.2.14  2001/04/19 15:50:24  pierre
+   * remove use of reals so emu387 is not needed anymore
+
+  Revision 1.2.2.13  2001/01/02 09:43:12  florian
+    * vresion fixed
+
+  Revision 1.2.2.12  2001/01/02 09:35:50  florian
+    * targetname is now read from the .dat file too
+
+  Revision 1.2.2.11  2000/11/26 19:02:58  hajny
     * English correction
 
-  Revision 1.11  2000/10/11 17:16:01  peter
-    * fixed a typo and the setting of haside and hashtmlhelp (merged)
+  Revision 1.2.2.10  2000/11/26 16:49:57  hajny
+    * removed unneeded OS/2 conditionals
 
-  Revision 1.10  2000/10/11 15:57:47  peter
-    * merged ide additions
+  Revision 1.2.2.9  2000/11/09 22:02:33  florian
+    * fixed bug 1226: wrong target for the win32 IDE
 
-  Revision 1.9  2000/10/08 18:43:17  hajny
-    * the language dialog repaired
+  Revision 1.2.2.8  2000/10/11 18:08:45  peter
+    * lfnsupport is only for go32v2
 
-  Revision 1.8  2000/09/24 10:52:36  peter
-    * smaller window
+  Revision 1.2.2.7  2000/10/11 16:49:02  florian
+    + fixed a typo and the setting of haside and hashtmlhelp
 
-  Revision 1.7  2000/09/22 23:13:37  pierre
-     * add emulation for go32v2 and display currently extraced file
-     and changes by Gabor for scrolling support (merged)
+  Revision 1.2.2.6  2000/10/11 13:10:20  florian
+    + added preconfiguratioh of help files
 
-  Revision 1.6  2000/09/22 12:15:49  florian
-    + support of Russian (Windows)
+  Revision 1.2.2.5  2000/10/10 22:12:10  florian
+    + added a message how to start the IDE
 
-  Revision 1.5  2000/09/22 11:07:51  florian
-    + all language dependend strings are now resource strings
-    + the -Fr switch is now set in the ppc386.cfg
+  Revision 1.2.2.4  2000/10/10 16:36:12  florian
+    + creation of IDE configuration files added
 
-  Revision 1.4  2000/09/21 22:09:23  florian
-    + start of multilanguage support
+  Revision 1.2.2.3  2000/09/24 10:52:14  peter
+    * window can now also be smaller again
 
-  Revision 1.3  2000/09/17 14:44:12  hajny
-    * compilable with TP again
+  Revision 1.2.2.2  2000/09/22 08:41:36  pierre
+   * add emulation for go32v2 and display currently extraced file
+
+  Revision 1.2.2.1  2000/09/21 10:57:11  pierre
+   changes by Gabor for scrolling support
 
   Revision 1.2  2000/07/21 10:43:01  florian
     + added for lfn support
 
   Revision 1.1  2000/07/13 06:30:21  michael
   + Initial import
+
+  Revision 1.20  2000/07/09 12:55:45  hajny
+    * updated for version 1.0
+
+  Revision 1.19  2000/06/18 18:27:32  hajny
+    + archive validity checking, progress indicator, better error checking
+
+  Revision 1.18  2000/02/24 17:47:47  peter
+    * last fixes for 0.99.14a release
+
+  Revision 1.17  2000/02/23 17:17:56  peter
+    * write ppc386.cfg for all found targets
+
+  Revision 1.16  2000/02/06 12:59:39  peter
+    * change upper -> upcase
+    * fixed stupid debugging leftover with diskspace check
+
+  Revision 1.15  2000/02/02 17:19:10  pierre
+   * avoid diskfree problem and get mouse visible
+
+  Revision 1.14  2000/02/02 15:21:31  peter
+    * show errorcode in message when error in unzipping
+
+  Revision 1.13  2000/01/26 21:49:33  peter
+    * install.pas compilable by FPC again
+    * removed some notes from unzip.pas
+    * support installer creation under linux (install has name conflict)
+
+  Revision 1.12  2000/01/26 21:15:59  hajny
+    * compilable with TP again (lines < 127install.pas, ifdef around findclose)
+
+  Revision 1.11  2000/01/24 22:21:48  peter
+    * new install version (keys not wrong correct yet)
+
+  Revision 1.10  2000/01/18 00:22:48  peter
+    * fixed uninited local var
+
+  Revision 1.9  1999/08/03 20:21:53  peter
+    * fixed sources mask which was not set correctly
+
+  Revision 1.7  1999/07/01 07:56:58  hajny
+    * installation to root fixed
+
+  Revision 1.6  1999/06/29 22:20:19  peter
+    * updated to use tab pages
+
+  Revision 1.5  1999/06/25 07:06:30  hajny
+    + searching for installation script updated
+
+  Revision 1.4  1999/06/10 20:01:23  peter
+    + fcl,fv,gtk support
+
+  Revision 1.3  1999/06/10 15:00:14  peter
+    * fixed to compile for not os2
+    * update install.dat
+
+  Revision 1.2  1999/06/10 07:28:27  hajny
+    * compilable with TP again
+
+  Revision 1.1  1999/02/19 16:45:26  peter
+    * moved to fpinst/ directory
+    + makefile
+
+  Revision 1.15  1999/02/17 22:34:08  peter
+    * updates from TH for OS2
+
+  Revision 1.14  1998/12/22 22:47:34  peter
+    * updates for OS2
+    * small fixes
+
+  Revision 1.13  1998/12/21 13:11:39  peter
+    * updates for 0.99.10
+
+  Revision 1.12  1998/12/16 00:25:34  peter
+    * updated for 0.99.10
+    * new end dialogbox
+
+  Revision 1.11  1998/11/01 20:32:25  peter
+    * packed record
+
+  Revision 1.10  1998/10/25 23:38:35  peter
+    * removed warnings
+
+  Revision 1.9  1998/10/23 16:57:40  pierre
+   * compiles without -So option
+   * the main dialog init was buggy !!
+
+  Revision 1.8  1998/09/22 21:10:31  jonas
+    * initialize cfg and data with 0 at startup
+
+  Revision 1.7  1998/09/16 16:46:37  peter
+    + updates
+
+  Revision 1.6  1998/09/15 13:11:14  pierre
+  small fix to cleanup if no package
+
+  Revision 1.5  1998/09/15 12:06:06  peter
+    * install updated to support w32 and dos and config file
+
+  Revision 1.4  1998/09/10 10:50:49  florian
+    * DOS install program updated
+
+  Revision 1.3  1998/09/09 13:39:58  peter
+    + internal unzip
+    * dialog is showed automaticly
+
+  Revision 1.2  1998/04/07 22:47:57  florian
+    + version/release/patch numbers as string added
 
 }

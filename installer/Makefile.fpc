@@ -4,7 +4,7 @@
 
 [package]
 name=fpinst
-version=1.0.5
+version=1.0.6
 
 [target]
 programs_go32v2=install
@@ -13,15 +13,13 @@ programs_os2=install
 programs_linux=installer
 
 [clean]
-units=ziptypes unzip
-units_os2=unzipdll
 files_linux=installer.pas
 
 [require]
-packages=fv
+packages=fv unzip
 
 [compiler]
-unitdir=../ide/text
+unitdir=../ide
 
 [install]
 fpcpackage=y
@@ -33,3 +31,7 @@ fpcdir=..
 [rules]
 installer.pas: install.pas
         $(COPY) install.pas installer.pas
+
+install$(EXEEXT) : install.pas scroll$(PPUEXT)
+
+installer$(EXEEXT) : installer.pas scroll$(PPUEXT)
