@@ -129,7 +129,7 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 
 
 dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-  $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
 
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\

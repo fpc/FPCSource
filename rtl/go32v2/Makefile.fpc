@@ -13,8 +13,10 @@ units=system objpas strings \
       sysutils classes math typinfo \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
-      video mouse keyboard variants vesamode types sysconst
-rsts=math varutils typinfo classes variants sysconst
+      video mouse keyboard variants vesamode types \
+      sysconst runerrors
+
+rsts=math varutils typinfo classes variants sysconst runerrors
 
 [require]
 nortl=y
@@ -185,6 +187,8 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
+
+runerrors$(PPUEXT) : $(INC)/runerrors.pp system$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
