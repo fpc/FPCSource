@@ -790,7 +790,10 @@ end;
 
 end.
   $Log$
-  Revision 1.2  2000-07-13 11:32:56  michael
+  Revision 1.1  2001-01-24 22:19:04  peter
+    * mysql units moved to mysql/ dir
+
+  Revision 1.2  2000/07/13 11:32:56  michael
   + removed logs
  
 }
