@@ -1,6 +1,8 @@
 { %VERSION=1.1 }
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode objfpc}
+{$endif}
 
 uses
    erroru;
@@ -13,34 +15,24 @@ type
 procedure p1(out b : byte);
 
   begin
-     if b<>0 then
-       do_error(1001);
      b:=$aa;
   end;
 
 procedure p2(out w : word);
 
   begin
-     if w<>0 then
-       do_error(1002);
      w:=$aaaa;
   end;
 
-procedure p3(out d : dword);
+procedure p3(out d : cardinal);
 
   begin
-     if d<>0 then
-       do_error(1003);
      d:=$aaaaaaaa;
   end;
 
 procedure p4(out r : tr1);
 
   begin
-     if r.l1<>0 then
-       do_error(1004);
-     if r.l2<>0 then
-       do_error(1005);
      r.l1:=$aaaaaaaa;
      r.l2:=$aaaaaaaa;
   end;
@@ -56,7 +48,7 @@ procedure p5(out a : ansistring);
 var
    b : byte;
    w : word;
-   d : dword;
+   d : cardinal;
    r1 : tr1;
    a : ansistring;
 

@@ -18,6 +18,9 @@
 
 Program tneg;
 
+var
+  Err : boolean;
+
 type
        { DO NOT CHANGE THE VALUES OF THESE ENUMERATIONS! }
        tsmallenum = (dA,dB,dC,dd,de,df,dg,dh,di,dj,dk,dl,dm,dn,dop,dp,dq,dr);
@@ -116,6 +119,16 @@ const
    );
 
 
+ procedure CheckPassed(passed:boolean);
+ begin
+   if passed then
+     WriteLn('Success.')
+   else
+     begin
+       WriteLn('Failure.');
+       Err:=true;
+     end;
+ end;
 
  procedure SetTestEqual;
  { FPC_SET_COMP_SETS }
@@ -136,10 +149,7 @@ const
      passed := false;
    if not (constset1[1] = [A_MOVE,A_FTST,A_CPSAVE]) then
      passed := false;
-   if passed then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+    CheckPassed(passed);
   end;
 
  procedure SetTestNotEqual;
@@ -165,10 +175,7 @@ const
      passed := false; }
    if (constset1[1] <> [A_MOVE,A_FTST,A_CPSAVE]) then
      passed := false;
-   if passed then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+    CheckPassed(passed);
   end;
 
   procedure SetTestLt;
@@ -188,10 +195,7 @@ const
     oplist := [A_MOVE,A_CPRESTORE..A_CPSAVE];
     if oplist <= op2list then
      passed := false;
-    if passed then
-       WriteLn('Success.')
-    else
-       WriteLn('Failure.');
+    CheckPassed(passed);
    end;
 
   Procedure SetTestAddOne;
@@ -205,14 +209,7 @@ const
     op:=A_LABEL;
     oplist:=[];
     oplist:=oplist+[op];
-    if oplist = [A_LABEL] then
-      Begin
-        WriteLn('Success.');
-      end
-    else
-      Begin
-        WriteLn('Failure.');
-      end;
+    CheckPassed(oplist = [A_LABEL]);
   end;
 
 Procedure SetTestAddTwo;
@@ -227,14 +224,7 @@ Begin
  oplist:=[A_MOVE]+[A_JSR];
  op2list:=[A_LABEL];
  oplist:=op2list+oplist;
- if oplist = [A_MOVE,A_JSR,A_LABEL] then
-   Begin
-      WriteLn('Success.');
-   end
- else
-    Begin
-      WriteLn('Failure.');
-    end;
+ CheckPassed(oplist = [A_MOVE,A_JSR,A_LABEL]);
 end;
 
 
@@ -265,10 +255,7 @@ Begin
  oplist:=op2list-oplist;
  if oplist <> [] then
    passed := false;
- if passed then
-   WriteLn('Success.')
- else
-   WriteLn('Failure.');
+ CheckPassed(passed);
 end;
 
 Procedure SetTestSubTwo;
@@ -298,10 +285,7 @@ Begin
  oplist := oplist - [b];
  if oplist <> [] then
    passed := false;
- if not passed then
-   WriteLn('Failure.')
- else
-   WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 
@@ -326,10 +310,7 @@ Begin
  oplist := oplist * op2list;
  if oplist <> [A_MOVE,A_FTST] then
    passed := false;
- if passed then
-   WriteLn('Success.')
- else
-   WriteLn('Failure.');
+ CheckPassed(passed);
 end;
 
 procedure SetTestRange;
@@ -348,10 +329,7 @@ begin
  oplist := [op1..op2];
  if oplist <> constset1[2] then
    passed := false;
- if not passed then
-  WriteLn('Failure,')
- else
-  WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 procedure SetTestByte;
@@ -369,10 +347,7 @@ begin
  oplist := [A_MOVE,op,A_JSR];
  if oplist <> [A_MOVE,A_LABEL,A_JSR] then
    passed := false;
-  if not passed then
-    WriteLn('Failure,')
-  else
-    WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 
@@ -395,10 +370,7 @@ end;
      passed := false;
    if not (constset3[1] = [DA,DD,DM]) then
      passed := false;
-   if passed then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+ CheckPassed(passed);
   end;
 
  procedure SmallSetTestNotEqual;
@@ -423,10 +395,7 @@ end;
      passed := false; }
    if (constset3[1] <> [DA,DD,DM]) then
      passed := false;
-   if passed then
-     WriteLn('Success.')
-   else
-     WriteLn('Failure.');
+ CheckPassed(passed);
   end;
 
   procedure SmallSetTestLt;
@@ -446,10 +415,7 @@ end;
     oplist := [DC,DF..DM];
     if oplist <= op2list then
      passed := false;
-    if passed then
-       WriteLn('Success.')
-    else
-       WriteLn('Failure.');
+ CheckPassed(passed);
    end;
 
   Procedure SmallSetTestAddOne;
@@ -461,14 +427,7 @@ end;
     op:=DG;
     oplist:=[];
     oplist:=oplist+[op];
-    if oplist = [DG] then
-      Begin
-        WriteLn('Success.');
-      end
-    else
-      Begin
-        WriteLn('Failure.');
-      end;
+    CheckPassed( oplist = [DG] );
   end;
 
 Procedure SmallSetTestAddTwo;
@@ -482,14 +441,7 @@ Begin
  oplist:=[DG]+[DI];
  op2list:=[DM];
  oplist:=op2list+oplist;
- if oplist = [DG,DI,DM] then
-   Begin
-      WriteLn('Success.');
-   end
- else
-    Begin
-      WriteLn('Failure.');
-    end;
+ CheckPassed( oplist = [DG,DI,DM] );
 end;
 
 
@@ -516,10 +468,7 @@ Begin
  oplist:=op2list-oplist;
  if oplist <> [] then
    passed := false;
- if passed then
-   WriteLn('Success.')
- else
-   WriteLn('Failure.');
+ CheckPassed(passed);
 end;
 
 Procedure SmallSetTestSubTwo;
@@ -548,10 +497,7 @@ Begin
  oplist := oplist - [b];
  if oplist <> [] then
    passed := false;
- if not passed then
-   WriteLn('Failure.')
- else
-   WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 
@@ -575,10 +521,7 @@ Begin
  oplist := oplist * op2list;
  if oplist <> [DG,DK] then
    passed := false;
- if passed then
-   WriteLn('Success.')
- else
-   WriteLn('Failure.');
+ CheckPassed(passed);
 end;
 
 procedure SmallSetTestRange;
@@ -597,10 +540,7 @@ begin
  oplist := [op1..op2];
  if oplist <> constset3[2] then
    passed := false;
- if not passed then
-  WriteLn('Failure,')
- else
-  WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 procedure SmallSetTestByte;
@@ -618,10 +558,7 @@ begin
  oplist := [DG,op,DI];
  if oplist <> [DG,DD,DI] then
    passed := false;
-  if not passed then
-    WriteLn('Failure,')
-  else
-    WriteLn('Success.');
+ CheckPassed(passed);
 end;
 
 (*
@@ -695,11 +632,17 @@ Begin
   SmallSetTestRange;
   SmallSetTestLt;
   SmallSetTestByte;
+
+  if Err then
+   Halt(1);
 end.
 
 {
   $Log$
-  Revision 1.3  2001-06-24 22:30:19  carl
+  Revision 1.4  2001-10-20 17:26:13  peter
+    * several fixes to run also with kylix
+
+  Revision 1.3  2001/06/24 22:30:19  carl
   + completed small set tests
 
   Revision 1.2  2001/06/22 02:24:40  carl

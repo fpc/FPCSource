@@ -1,10 +1,11 @@
+{$J+}
 unit erroru;
 interface
 
   procedure do_error(l : longint);
-  
+
   procedure error;
-  
+
   procedure accept_error(num : longint);
 
   procedure require_error(num : longint);
@@ -80,6 +81,7 @@ begin
 end;
 
 
+initialization
 finalization
   error_unit_exit;
 end.

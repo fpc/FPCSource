@@ -1,7 +1,16 @@
 { %VERSION=1.1 }
 
-{$mode objfpc}
-uses sysutils;
+{$ifdef fpc}
+  {$mode objfpc}
+{$endif}
+
+uses SysUtils;
+
+{$ifndef fpc}
+type
+  qword=int64;
+  dword=cardinal;
+{$endif}
 
 var
   error: boolean;
@@ -88,12 +97,11 @@ begin
   writeln(i);
   if not testlongint_int64(i,true) then
     writeln('test3 failed');
-  longint(i) := $80000000;
+  i := $ffffffff80000000;
   writeln(i);
   if not testlongint_int64(i,false) then
     writeln('test4 failed');
-  i := 0;
-  longint(i) := $80000000;
+  i := $80000000;
   writeln(i);
   if not testlongint_int64(i,true) then
     writeln('test5 failed');
@@ -101,8 +109,7 @@ begin
   writeln(i);
   if not testlongint_int64(i,false) then
     writeln('test6 failed');
-  i := 0;
-  longint(i) := $ffffffff;
+  i := $ffffffff;
   writeln(i);
   if not testlongint_int64(i,true) then
     writeln('test7 failed');
@@ -126,12 +133,11 @@ begin
   writeln(q);
   if not testlongint_qword(q,true) then
     writeln('test3 failed');
-  longint(q) := $80000000;
+  q := $ffffffff80000000;
   writeln(q);
   if not testlongint_qword(q,true) then
     writeln('test4 failed');
-  q := 0;
-  longint(q) := $80000000;
+  q := $80000000;
   writeln(q);
   if not testlongint_qword(q,true) then
     writeln('test5 failed');
@@ -139,8 +145,7 @@ begin
   writeln(q);
   if not testlongint_qword(q,false) then
     writeln('test6 failed');
-  q := 0;
-  longint(q) := $ffffffff;
+  q := $ffffffff;
   writeln(q);
   if not testlongint_qword(q,true) then
     writeln('test7 failed');
@@ -164,12 +169,11 @@ begin
   writeln(i);
   if not testdword_int64(i,true) then
     writeln('test3 failed');
-  longint(i) := $80000000;
+  i := $ffffffff80000000;
   writeln(i);
   if not testdword_int64(i,true) then
     writeln('test4 failed');
-  i := 0;
-  longint(i) := $80000000;
+  i := $80000000;
   writeln(i);
   if not testdword_int64(i,false) then
     writeln('test5 failed');
@@ -177,8 +181,7 @@ begin
   writeln(i);
   if not testdword_int64(i,false) then
     writeln('test6 failed');
-  i := 0;
-  longint(i) := $ffffffff;
+  i := $ffffffff;
   writeln(i);
   if not testdword_int64(i,false) then
     writeln('test7 failed');
@@ -202,12 +205,11 @@ begin
   writeln(q);
   if not testdword_qword(q,true) then
     writeln('test3 failed');
-  longint(q) := $80000000;
+  q := $ffffffff80000000;
   writeln(q);
   if not testdword_qword(q,true) then
     writeln('test4 failed');
-  q := 0;
-  longint(q) := $80000000;
+  q := $80000000;
   writeln(q);
   if not testdword_qword(q,false) then
     writeln('test5 failed');
@@ -215,8 +217,7 @@ begin
   writeln(q);
   if not testdword_qword(q,false) then
     writeln('test6 failed');
-  q := 0;
-  longint(q) := $ffffffff;
+  q := $ffffffff;
   writeln(q);
   if not testdword_qword(q,false) then
     writeln('test7 failed');
