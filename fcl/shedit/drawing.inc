@@ -1,0 +1,222 @@
+{
+  $Id$
+
+  "shedit" - Text editor with syntax highlighting
+  Copyright (C) 1999  Sebastian Guenther (sguenther@gmx.de)
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+}
+
+
+// Drawing code of TSHTextEdit (renderer for syntax highlighting engine);
+// also handles cursor drawing
+
+
+procedure TSHTextEdit.DoHighlighting(var flags: Byte; source, dest: PChar);
+begin
+  StrCopy(dest, source);
+end;
+
+function TSHTextEdit.CalcSHFlags(FlagsIn: Byte; source: String): Byte;
+var
+  s: PChar;
+  flags: Byte;
+begin
+  GetMem(s, Length(source) * 3 + 4);
+  flags := FlagsIn;
+  DoHighlighting(flags, PChar(source), s);
+  FreeMem(s, Length(source) * 3 + 4);
+  Result := flags;
+end;
+
+procedure TSHTextEdit.HideCursor;
+begin
+  Dec(CursorVisible);
+  if CursorVisible >= 0 then
+    Renderer.HideCursor(CursorX, CursorY);
+end;
+
+procedure TSHTextEdit.ShowCursor;
+begin
+  Inc(CursorVisible);
+  if CursorVisible = 1 then
+    Renderer.ShowCursor(CursorX, CursorY);
+end;
+
+
+procedure TSHTextEdit.ChangeInLine(line: Integer);
+var
+  CurLine: Integer;
+  OldFlags, NewFlags: Byte;
+begin
+  // Determine how many lines must be redrawn
+
+  CurLine := line;
+  if CurLine = 0 then
+    NewFlags := 0
+  else
+    NewFlags := FDoc.LineFlags[CurLine - 1];
+
+  while CurLine < FDoc.LineCount - 1 do begin
+    NewFlags := CalcSHFlags(NewFlags, FDoc.LineText[CurLine]);
+    OldFlags := FDoc.LineFlags[CurLine + 1] and not LF_SH_Valid;
+    FDoc.LineFlags[CurLine + 1] := NewFlags or LF_SH_Valid;
+    if OldFlags = (NewFlags and not LF_SH_Valid) then break;
+    Inc(CurLine);
+  end;
+
+  // Redraw all lines with changed SH flags
+  Renderer.InvalidateLines(line, CurLine);
+end;
+
+
+procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
+
+  procedure PostprocessOutput(py: Integer);
+  begin
+    // Erase free space below the text area
+    if py < y2 then
+      Renderer.ClearRect(0, py, x2, y2);
+  end;
+
+var
+  i, j, py, LineNumber, CheckLine: Integer;
+  OrigStr, sh, s, s2: PChar;
+  i, spos, x: Integer;
+  flags: Byte;
+  r: TRect;
+  InSel: Boolean;
+
+  RequestedColor, LastCol: Char;
+
+begin
+
+  if (FDoc = nil) or (FDoc.LineCount <= y1) then begin
+    PostprocessOutput(y1);
+    exit;
+  end;
+
+  LineNumber := y1;
+  py := LineNumber;
+
+  // Check if syntax highlighting flags are valid:
+  if (FDoc.LineFlags[LineNumber] and LF_SH_Valid) <> 0 then
+    flags := FDoc.LineFlags[LineNumber] and not LF_SH_Valid
+  else begin
+    // search for last valid line before the first line to be drawn
+    CheckLine := LineNumber;
+    while (CheckLine >= 0) and
+      ((FDoc.LineFlags[CheckLine] and LF_SH_Valid) = 0) do Dec(CheckLine);
+    if CheckLine >= 0 then begin
+      flags := FDoc.LineFlags[CheckLine] and not LF_SH_Valid;
+      // Recalc SH flags for all lines between last valid and first visible line
+      while (CheckLine < LineNumber) do begin
+        flags := CalcSHFlags(flags, FDoc.LineText[CheckLine]);
+        FDoc.LineFlags[CheckLine] := flags or LF_SH_Valid;
+        Inc(CheckLine);
+      end;
+    end else
+      flags := 0;
+  end;
+
+
+  while (LineNumber < FDoc.LineCount) and (py <= y2) do begin
+    i := 0;
+
+    // Call syntax highlighter for this line
+    GetMem(sh, FDoc.LineLen[LineNumber] * 3 + 8);
+    s := sh;
+    FDoc.LineFlags[LineNumber] := flags or LF_SH_Valid;
+    OrigStr := PChar(FDoc.LineText[LineNumber]);
+    DoHighlighting(flags, OrigStr, s);
+
+    // Handle current selection
+    if FSel.IsValid then
+      if (LineNumber > FSel.OStartY) and (LineNumber < FSel.OEndY) then begin
+        s[0] := LF_Escape;
+        s[1] := Chr(shSelected);
+        StrCopy(@s[2], OrigStr);
+      end else if OrigStr[0] = #0 then begin
+        if LineNumber = FSel.OStartY then begin
+          s[0] := LF_Escape;
+          s[1] := Chr(shSelected);
+          s[2] := #0;
+        end;
+      end else if (LineNumber = FSel.OStartY) or
+        (LineNumber = FSel.OEndY) then begin
+        s2 := StrNew(s);
+        spos := 0;
+        i := 0;
+        x := 0;
+        if LineNumber > FSel.OStartY then begin
+          s[0] := LF_Escape;
+          s[1] := Chr(shSelected);
+          InSel := True;
+          spos := 2;
+        end else
+          InSel := False;
+        LastCol := Chr(shDefault);
+        while True do begin
+          if s2[i] = LF_Escape then begin
+            LastCol := s2[i + 1];
+            if not InSel then begin
+              s[spos] := LF_Escape;
+              s[spos + 1] := LastCol;
+              Inc(spos, 2);
+            end;
+            Inc(i, 2);
+          end else begin
+            if InSel then begin
+              if (LineNumber = FSel.OEndY) and (x = FSel.OEndX) then begin
+                s[spos] := LF_Escape;
+                s[spos + 1] := LastCol;
+                Inc(spos, 2);
+                InSel := False;
+              end;
+            end else
+              if (LineNumber = FSel.OStartY) and (x = FSel.OStartX) then begin
+                s[spos] := LF_Escape;
+                s[spos + 1] := Chr(shSelected);
+                Inc(spos, 2);
+                InSel := True;
+              end;
+            if s2[i] = #0 then break;    // only exit of 'while' loop!
+            s[spos] := s2[i];
+            Inc(spos);
+            Inc(i);
+            Inc(x);
+          end;
+        end;
+        s[spos] := #0;
+        StrDispose(s2);
+      end;
+
+    Renderer.DrawTextLine(x1, x2, py, s);
+
+    FreeMem(sh, FDoc.LineLen[LineNumber] * 3 + 8);
+    Inc(LineNumber);
+    Inc(py);
+  end;
+
+  PostprocessOutput(py);
+end;
+
+
+{
+  $Log$
+  Revision 1.1  1999-10-29 15:59:04  peter
+    * inserted in fcl
+
+}

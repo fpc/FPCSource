@@ -1,0 +1,383 @@
+{$MODE objfpc}
+{$H+}
+
+program GTKDemo;
+uses SysUtils, GDK, GTK, doc_text, SHEdit, sh_pas, sh_xml;
+
+
+const
+  colBlack       = $000000;
+  colDarkBlue    = $000080;
+  colBlue        = $0000ff;
+  colDarkGreen   = $008000;
+  colGreen       = $00ff00;
+  colDarkCyan    = $008080;
+  colCyan        = $00ffff;
+  colBrown       = $800000;
+  colRed         = $ff0000;
+  colDarkMagenta = $800080;
+  colMagenta     = $ff00ff;
+  colDarkYellow  = $808000;
+  colYellow      = $ffff00;
+  colGray        = $808080;
+  colGrey        = colGray;
+  colLightGray   = $c0c0c0;
+  colLightGrey   = colLightGray;
+  colWhite       = $ffffff;
+  colInvalid     = $ff000000;
+  colDefault     = $ffffffff;
+type
+
+  TSHFontStyle = (fsNormal, fsBold, fsItalics, fsBoldItalics);
+
+  TSHStyle = record
+    Name: String[32];
+    Color, Background: LongWord;
+    FontStyle: TSHFontStyle;
+  end;
+
+  TSHStyleArray = array[1..1] of TSHStyle;  // Notice the 1!
+  PSHStyleArray = ^TSHStyleArray;
+
+
+  {This class is a kind of widget class which implements the ISHRenderer
+   interface for drawing syntax highlighted text}
+
+  TGtkSHEdit = class(ISHRenderer)
+  protected
+    SHStyles: PSHStyleArray;
+    SHStyleCount: Integer;              // # of currently registered styles
+    shWhitespace: Integer;
+    CurGCColor: LongWord;
+
+    hadj, vadj: PGtkAdjustment;
+    PaintBox: PGtkWidget;
+    Edit: TSHTextEdit;
+    CharW, CharH: Integer;
+    Font: array[TSHFontStyle] of PGdkFont; // Fonts for content drawing
+    gc: PGdkGC;
+    GdkWnd: PGdkWindow;
+
+    constructor Create;
+    procedure SetEdit(AEdit: TSHTextEdit);
+    procedure SetGCColor(AColor: LongWord);
+
+    // ISHRenderer Implemenation:
+
+    //procedure InvalidateLines(y1, y2: Integer); override;
+
+    // Drawing
+    procedure ClearRect(x1, y1, x2, y2: Integer); override;
+    procedure DrawTextLine(x1, x2, y: Integer; s: PChar); override;
+
+    // Cursor
+    //procedure ShowCursor(x, y: Integer); override;
+    //procedure HideCursor(x, y: Integer); override;
+
+    // Scrolling support
+    //function  GetVertPos: Integer; override;
+    //procedure SetVertPos(y: Integer); override;
+    //function  GetPageHeight: Integer; override;
+    procedure SetLineCount(count: Integer); override;
+
+    // Clipboard support
+    //function  GetClipboard: String; override;
+    //procedure SetClipboard(Content: String); override;
+
+  public
+    Widget: PGtkWidget;  // this is the outer editor widget
+
+    function  AddSHStyle(AName: String; AColor, ABackground: LongWord;
+      AStyle: TSHFontStyle): Integer;
+  end;
+
+  TGtkSHTextEdit = class(TGtkSHEdit)
+  public
+    constructor Create(ADoc: TTextDoc);
+  end;
+
+  TGtkSHPasEdit = class(TGtkSHEdit)
+  public
+    constructor Create(ADoc: TTextDoc);
+  end;
+
+  TGtkSHXMLEdit = class(TGtkSHEdit)
+  public
+    constructor Create(ADoc: TTextDoc);
+  end;
+
+
+procedure TGtkSHEdit_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose;
+  edit: TGtkSHTextEdit); cdecl;
+var
+  x1, y1, x2, y2: Integer;
+begin
+  x1 := event^.area.x div edit.CharW;
+  y1 := event^.area.y div edit.CharH;
+  x2 := (event^.area.x + event^.area.width - 1) div edit.CharW;
+  y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
+  {WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));}
+
+  edit.GdkWnd := edit.PaintBox^.window;
+  edit.GC := gdk_gc_new(edit.GdkWnd);
+  gdk_gc_copy(edit.GC, PGtkStyle(edit.PaintBox^.thestyle)^.
+    fg_gc[edit.PaintBox^.state]);
+
+  edit.Edit.DrawContent(x1, y1, x2, y2);
+end;
+
+constructor TGtkSHEdit.Create;
+var
+  lfd: String;    // Logical font descriptor
+  i: Integer;
+begin
+  inherited Create;
+
+  // Create fonts
+  for i := 0 to 3 do begin
+    lfd := '-*-courier-';
+    if (i and 1) <> 0 then lfd := lfd + 'bold'
+    else lfd := lfd + 'medium';
+    lfd := lfd + '-';
+    if (i and 2) <> 0 then lfd := lfd + 'i'
+    else lfd := lfd + 'r';
+    lfd := lfd + '-normal--14-*-*-*-*-*-iso8859-1';
+    Font[TSHFontStyle(i)] := gdk_font_load(PChar(lfd));
+  end;
+
+  CharW := gdk_char_width(Font[fsBold], ' ');
+  CharH := 14 {=FontHeight} + 3;   // *** find better way to determine max. cell height
+  Edit := nil;
+
+
+  // Create scrolled window and drawing area
+
+  hadj := PGtkAdjustment(gtk_adjustment_new(0, 0, 200, 1, 10, 100));
+  vadj := PGtkAdjustment(gtk_adjustment_new(0, 0, 200, 1, 10, 100));
+  Widget := gtk_scrolled_window_new(hadj, vadj);
+
+  PaintBox := gtk_drawing_area_new;
+
+  gtk_scrolled_window_add_with_viewport(PGtkScrolledWindow(Widget), PaintBox);
+  gtk_widget_show(PaintBox);
+
+  gtk_signal_connect_after(PGtkObject(PaintBox), 'expose-event',
+    GTK_SIGNAL_FUNC(@TGtkSHEdit_Expose), self);
+  gtk_widget_show(Widget);
+end;
+
+procedure TGtkSHEdit.SetEdit(AEdit: TSHTextEdit);
+begin
+  Edit := AEdit;
+  shWhitespace      := AddSHStyle('Whitespace', colBlack, colWhite, fsNormal);
+  Edit.shDefault    := AddSHStyle('Default',    colBlack, colWhite, fsNormal);
+  Edit.shSelected   := AddSHStyle('Selected',   colWhite, colBlack, fsNormal);
+end;
+
+function TGtkSHEdit.AddSHStyle(AName: String; AColor, ABackground: LongWord;
+  AStyle: TSHFontStyle): Integer;
+var
+  NewStyles: PSHStyleArray;
+begin
+  GetMem(NewStyles, SizeOf(TSHStyle) * (SHStyleCount + 1));
+  Move(SHStyles^, NewStyles^, SizeOf(TSHStyle) * SHStyleCount);
+  FreeMem(SHStyles);
+  SHStyles := NewStyles;
+  Inc(SHStyleCount);
+  SHStyles^[SHStyleCount].Name       := AName;
+  SHStyles^[SHStyleCount].Color      := AColor;
+  SHStyles^[SHStyleCount].Background := ABackground;
+  SHStyles^[SHStyleCount].FontStyle  := AStyle;
+  Result := SHStyleCount;
+end;
+
+procedure TGtkSHEdit.SetGCColor(AColor: LongWord);
+var
+  c: TGdkColor;
+begin
+  if AColor <> CurGCColor then begin
+    c.pixel := 0;
+    c.red   := (((AColor shr 16) and 255) * 65535) div 255;
+    c.green := (((AColor shr 8) and 255) * 65535) div 255;
+    c.blue  := ((AColor and 255) * 65535) div 255;
+    gdk_colormap_alloc_color(gdk_colormap_get_system, @c, False, True);
+    gdk_gc_set_foreground(gc, @c);
+    CurGCColor := AColor;
+  end;
+end;
+
+procedure TGtkSHEdit.ClearRect(x1, y1, x2, y2: Integer);
+begin
+  SetGCColor(SHStyles^[shWhitespace].Background);
+  gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
+    x1 * CharW, y1 * CharH, (x2 - x1 + 1) * CharW, (y2 - y1 + 1) * CharH);
+end;
+
+procedure TGtkSHEdit.DrawTextLine(x1, x2, y: Integer; s: PChar);
+var
+  CurColor: LongWord;
+  rx1, rx2: Integer;
+
+  procedure DoErase;
+  begin
+    SetGCColor(CurColor);
+    gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
+      rx1 * CharW, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
+  end;
+
+var
+  RequestedColor: Char;
+  i, j, px: Integer;
+  NewColor: LongWord;
+begin
+  {WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));}
+
+  // Erase the (potentially multi-coloured) background
+
+  rx1 := 0;
+  rx2 := px;
+  j := 0;
+  CurColor := SHStyles^[shWhitespace].Background;
+
+  while (s[j] <> #0) and (rx2 <= x2) do begin
+    if s[j] = LF_Escape then begin
+      NewColor := SHStyles^[Ord(s[j + 1])].Background;
+      if NewColor = colDefault then
+        NewColor := SHStyles^[1].Background;
+      if NewColor <> CurColor then begin
+        DoErase;
+        CurColor := NewColor;
+      end;
+      Inc(j, 2);
+    end else begin
+      Inc(rx2);
+      Inc(j);
+    end;
+  end;
+  rx2 := x2;
+  DoErase;
+
+  // Draw text line
+  RequestedColor := #1;
+  CurGCColor := colInvalid;
+  i := 0;
+  px := 0;
+  while s[0] <> #0 do begin
+    if s[0] = LF_Escape then begin
+      RequestedColor := s[1];
+      Inc(s, 2);
+    end else if s[0] = #9 then begin
+      repeat
+        Inc(px, CharW);
+        Inc(i);
+      until (i and 7) = 0;
+      Inc(s);
+    end else begin
+      if (px >= x1) and (px <= x2) then begin
+        SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
+        gdk_draw_text(PGdkDrawable(GdkWnd),
+          Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC, px * CharW,
+          (y + 1) * CharH, s, 1);
+      end;
+      Inc(s);
+      Inc(i);
+      Inc(px);
+    end;
+  end;
+end;
+
+procedure TGtkSHEdit.SetLineCount(count: Integer);
+begin
+  vadj^.upper := (count + 1) * 16;
+  gtk_adjustment_changed(vadj);
+  gtk_widget_set_usize(PaintBox, Trunc(hadj^.upper), Trunc(vadj^.upper));
+end;
+
+
+constructor TGtkSHTextEdit.Create(ADoc: TTextDoc);
+var
+  e: TSHTextEdit;
+begin
+  inherited Create;
+  e := TSHTextEdit.Create(ADoc, Self);
+  SetEdit(e);
+end;
+
+constructor TGtkSHPasEdit.Create(ADoc: TTextDoc);
+var
+  e: TSHPasEdit;
+begin
+  inherited Create;
+  e := TSHPasEdit.Create(ADoc, Self);
+  SetEdit(e);
+
+  e.shSymbol     := AddSHStyle('Symbol',        colBrown,       colDefault, fsNormal);
+  e.shKeyword    := AddSHStyle('Keyword',       colBlack,       colDefault, fsBold);
+  e.shComment    := AddSHStyle('Comment',       colDarkCyan,    colDefault, fsItalics);
+  e.shDirective  := AddSHStyle('Directive',     colDarkYellow,  colDefault, fsItalics);
+  e.shNumbers    := AddSHStyle('Numbers',       colDarkMagenta, colDefault, fsNormal);
+  e.shCharacters := AddSHStyle('Characters',    colDarkBlue,    colDefault, fsNormal);
+  e.shStrings    := AddSHStyle('Strings',       colBlue,        colDefault, fsNormal);
+  e.shAssembler  := AddSHStyle('Assembler',     colDarkGreen,   colDefault, fsNormal);
+end;
+
+constructor TGtkSHXMLEdit.Create(ADoc: TTextDoc);
+var
+  e: TSHXMLEdit;
+begin
+  inherited Create;
+  e := TSHXMLEdit.Create(ADoc, Self);
+  SetEdit(e);
+
+  e.shTag        := AddSHStyle('Tag',           colBlack,       colDefault, fsBold);
+  e.shTagName    := AddSHStyle('Tag Name',      colBlack,       colDefault, fsBold);
+  e.shDefTagName := AddSHStyle('Definition Tag Name', colDarkGreen, colDefault, fsBold);
+  e.shArgName    := AddSHStyle('Argument Name', colBrown,       colDefault, fsNormal);
+  e.shString     := AddSHStyle('String',        colBlue,        colDefault, fsNormal);
+  e.shReference  := AddSHStyle('Reference',     colDarkMagenta, colDefault, fsNormal);
+  e.shInvalid    := AddSHStyle('Invalid',       colRed,         colDefault, fsNormal);
+  e.shComment    := AddSHStyle('Comment',       colDarkCyan,    colDefault, fsItalics);
+  e.shCDATA      := AddSHStyle('CDATA',         colDarkGreen,   colDefault, fsNormal);
+end;
+
+
+
+var
+  MainWindow, Notebook: PGtkWidget;
+  Pages: array[0..2] of TGtkSHEdit;
+  PasDoc, XMLDoc: TTextDoc;
+
+procedure OnMainWindowDestroyed; cdecl;
+begin
+  gtk_main_quit;
+end;
+
+begin
+
+  gtk_init(@argc, @argv);
+
+  // Create main window
+  MainWindow := gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_widget_set_usize(MainWindow, 600, 400);
+  gtk_window_set_title(PGtkWindow(MainWindow), 'FPC SHEdit GTK Demo');
+  gtk_signal_connect(PGtkObject(MainWindow), 'destroy', GTK_SIGNAL_FUNC(@OnMainWindowDestroyed), nil);
+
+  // Set up documents
+  PasDoc := TTextDoc.Create; PasDoc.LoadFromFile('gtkdemo.pp');
+  XMLDoc := TTextDoc.Create; XMLDoc.LoadFromFile('gtkdemo.pp');
+
+  // Create notebook pages (editor widgets)
+  Pages[0] := TGtkSHPasEdit.Create(PasDoc);
+  Pages[1] := TGtkSHXMLEdit.Create(XMLDoc);
+  Pages[2] := TGtkSHTextEdit.Create(PasDoc);
+
+  // Create notebook
+  Notebook := gtk_notebook_new;
+  gtk_notebook_append_page(PGtkNotebook(Notebook), Pages[0].Widget, gtk_label_new('Pascal'));
+  gtk_notebook_append_page(PGtkNotebook(Notebook), Pages[1].Widget, gtk_label_new('XML'));
+  gtk_notebook_append_page(PGtkNotebook(Notebook), Pages[2].Widget, gtk_label_new('Text'));
+  gtk_container_add(PGtkContainer(MainWindow), Notebook);
+  gtk_widget_show(Notebook);
+  gtk_widget_show(MainWindow);
+  gtk_main;
+end.
