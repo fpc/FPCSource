@@ -214,7 +214,7 @@ const
   gestaltOSAttr        = 'os  ';            {  o/s attributes  }
   gestaltSysZoneGrowable    = 0;              {  system heap is growable  }
   gestaltLaunchCanReturn    = 1;              {  can return from launch  }
-  gestaltLaunchFullFileSpec  = 2;              {  can launch from full file spec  }
+  gestaltLaunchFullFileSpec  = 2;              {  can launch from full file var spec  }
   gestaltLaunchControl    = 3;              {  launch control support available  }
   gestaltTempMemSupport    = 4;              {  temp memory support  }
   gestaltRealTempMemory    = 5;              {  temp memory handles are real  }
@@ -683,31 +683,31 @@ external 'InterfaceLib';
 FUNCTION GetVol(volName: StringPtr; VAR vRefNum: INTEGER): OSErr;
 external 'InterfaceLib';
 
-function FSpOpenDF(spec: FSSpec; permission: SignedByte;
+function FSpOpenDF(var spec: FSSpec; permission: SignedByte;
   var refNum: Integer): OSErr;
 external 'InterfaceLib';
 
-function FSpCreate(spec: FSSpec; creator, fileType: OSType;
+function FSpCreate(var spec: FSSpec; creator, fileType: OSType;
   scriptTag: ScriptCode): OSErr;
 external 'InterfaceLib';
 
-function FSpDirCreate(spec: FSSpec; scriptTag: ScriptCode;
+function FSpDirCreate(var spec: FSSpec; scriptTag: ScriptCode;
   var createdDirID: Longint): OSErr;
 external 'InterfaceLib';
 
-function FSpDelete(spec: FSSpec): OSErr;
+function FSpDelete(var spec: FSSpec): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpGetFInfo(const spec: FSSpec; VAR fndrInfo: FInfo): OSErr;
+FUNCTION FSpGetFInfo(var spec: FSSpec; VAR fndrInfo: FInfo): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpSetFInfo(const spec: FSSpec; const fndrInfo: FInfo): OSErr;
+FUNCTION FSpSetFInfo(var spec: FSSpec; var fndrInfo: FInfo): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpSetFLock(const spec: FSSpec): OSErr;
+FUNCTION FSpSetFLock(var spec: FSSpec): OSErr;
 external 'InterfaceLib';
 
-FUNCTION FSpRstFLock(const spec: FSSpec): OSErr;
+FUNCTION FSpRstFLock(var spec: FSSpec): OSErr;
 external 'InterfaceLib';
 
 function FSClose(refNum: Integer): OSErr;
@@ -1021,7 +1021,8 @@ type
 PROCEDURE GetTime(var d: DateTimeRec);
 external 'InterfaceLib';
 
-PROCEDURE SetTime(const d: DateTimeRec);
+PROCEDURE SetTime(var d: DateTimeRec);
+//PROCEDURE SetTime(const d: DateTimeRec);
 external 'InterfaceLib';
 
 PROCEDURE DateToSeconds({CONST}VAR d: DateTimeRec; VAR secs: UInt32);
@@ -1201,14 +1202,15 @@ FUNCTION AECreateDesc(typeCode: DescType; dataPtr: Mac_Ptr; dataSize: Size; VAR 
 external 'InterfaceLib';
 FUNCTION AEDisposeDesc(VAR theAEDesc: AEDesc): OSErr;
 external 'InterfaceLib';
-FUNCTION AEDuplicateDesc(const theAEDesc: AEDesc; VAR result: AEDesc): OSErr;
+FUNCTION AEDuplicateDesc(var theAEDesc: AEDesc; VAR result: AEDesc): OSErr;
 external 'InterfaceLib';
 
-FUNCTION AECreateAppleEvent(theAEEventClass: AEEventClass; theAEEventID: AEEventID; const target: AEAddressDesc; returnID: AEReturnID; transactionID: AETransactionID; VAR result: AppleEvent): OSErr;
+FUNCTION AECreateAppleEvent(theAEEventClass: AEEventClass; theAEEventID: AEEventID; var target: AEAddressDesc;
+    returnID: AEReturnID; transactionID: AETransactionID; VAR result: AppleEvent): OSErr;
 external 'InterfaceLib';
 FUNCTION AEPutParamPtr(VAR theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; typeCode: DescType; dataPtr: Mac_Ptr; dataSize: Size): OSErr;
 external 'InterfaceLib';
-FUNCTION AEGetParamDesc(const theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; desiredType: DescType; VAR result: AEDesc): OSErr;
+FUNCTION AEGetParamDesc(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; desiredType: DescType; VAR result: AEDesc): OSErr;
 external 'InterfaceLib';
 
 {************** from AEInteraction ***************}
@@ -1217,7 +1219,8 @@ type
   AEIdleUPP = ^LONGINT; { an opaque UPP }
   AEFilterUPP = ^LONGINT; { an opaque UPP }
 
-FUNCTION AESend(const theAppleEvent: AppleEvent; VAR reply: AppleEvent; sendMode: AESendMode; sendPriority: AESendPriority; timeOutInTicks: LONGINT; idleProc: AEIdleUPP; filterProc: AEFilterUPP): OSErr;
+FUNCTION AESend(var theAppleEvent: AppleEvent; VAR reply: AppleEvent; sendMode: AESendMode; sendPriority: AESendPriority;
+    timeOutInTicks: LONGINT; idleProc: AEIdleUPP; filterProc: AEFilterUPP): OSErr;
 external 'InterfaceLib';
 
 {************** from others ***************}
