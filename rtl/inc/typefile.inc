@@ -48,18 +48,21 @@ end;
 
 Procedure Int_Typed_Reset(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: 'RESET_TYPED'];
 Begin
+  If InOutRes <> 0 then exit;
   Reset(UnTypedFile(f),Size);
 End;
 
 
 Procedure Int_Typed_Rewrite(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias: 'REWRITE_TYPED'];
 Begin
+  If InOutRes <> 0 then exit;
   Rewrite(UnTypedFile(f),Size);
 End;
 
 
 Procedure Int_Typed_Write(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias : 'TYPED_WRITE'];
 Begin
+  If InOutRes <> 0 then exit;
   Do_Write(FileRec(f).Handle,Longint(@Buf),TypeSize);
 End;
 
@@ -68,6 +71,7 @@ Procedure Int_Typed_Read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck,
 var
   Result : Longint;
 Begin
+  If InOutRes <> 0 then exit;
   Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),TypeSize);
   If Result<TypeSize Then
    InOutRes:=100;
@@ -75,7 +79,10 @@ End;
 
 {
   $Log$
-  Revision 1.3  1998-05-21 19:31:02  peter
+  Revision 1.4  1998-07-02 12:16:28  carl
+    * IoCheck routines now check for InOutRes before executing, just like TP
+
+  Revision 1.3  1998/05/21 19:31:02  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array
