@@ -232,8 +232,9 @@ interface
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
+              '.text','.data','.section .bss',
+              '.section .idata$2','.section .idata$4','.section .idata$5',
+                '.section .idata$6','.section .idata$7','.section .edata',
               '.stab','.stabstr','COMMON')
           );
 {$else x86_64}
@@ -251,8 +252,9 @@ interface
             labelprefix : '.L';
             comment : '# ';
             secnames : ('',
-              '.text','.data','.bss',
-              '','','','','','',
+              '.text','.data','.section .bss',
+              '.section .idata$2','.section .idata$4','.section .idata$5',
+                '.section .idata$6','.section .idata$7','.section .edata',
               '.stab','.stabstr','COMMON')
           );
 
@@ -275,26 +277,6 @@ interface
               '','','','','','',
               '.stab','.stabstr','COMMON')
           );
-
-       as_i386_asw_info : tasminfo =
-          (
-            id           : as_i386_asw;
-            idtxt  : 'ASW';
-            asmbin : 'asw';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : system_i386_win32;
-            outputbinary: false;
-            allowdirect : true;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.section .bss',
-              '.section .idata$2','.section .idata$4','.section .idata$5',
-                '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr','COMMON')
-          );
 {$endif x86_64}
 
 initialization
@@ -303,12 +285,14 @@ initialization
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86ATTAssembler);
-  RegisterAssembler(as_i386_asw_info,Tx86ATTAssembler);
 {$endif x86_64}
 end.
 {
   $Log$
-  Revision 1.7  2003-10-01 20:34:50  peter
+  Revision 1.8  2003-10-02 21:18:06  peter
+    * remove asw
+
+  Revision 1.7  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
