@@ -1197,7 +1197,7 @@ begin
      regs.realeax := $3d00 + (flags and $ff)      { For now, map to Open API }
    else
      regs.realeax := $6c00;                   { Use Extended Open/Create API }
-  if regs.realah = $3d then
+  if byte(regs.realeax shr 8) = $3d then
     begin  { Using the older Open or Create API's }
       if (action and $00f0) <> 0 then
         regs.realeax := $3c00;                   { Map to Create/Replace API }
@@ -1226,7 +1226,7 @@ begin
               regs.realeax := $3d00+(flags and $ff) {For now, map to Open API}
             else
               regs.realeax := $6c00;            {Use Extended Open/Create API}
-          if regs.realah = $3d then
+          if byte(regs.realeax shr 8) = $3d then
             begin  { Using the older Open or Create API's }
               if (action and $00f0) <> 0 then
                 regs.realeax := $3c00;             {Map to Create/Replace API}
@@ -1538,7 +1538,10 @@ END.
 
 {
   $Log$
-  Revision 1.10  2004-01-11 22:54:44  hajny
+  Revision 1.11  2004-01-11 23:08:39  hajny
+    * merged Jonas fix from GO32v2
+
+  Revision 1.10  2004/01/11 22:54:44  hajny
     * 'conservative' version of the do_open patch by Joe da Silva
 
   Revision 1.9  2003/12/15 15:57:48  peter
