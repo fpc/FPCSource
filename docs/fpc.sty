@@ -109,7 +109,7 @@
 \newcommand{\seevarl}[2]{\textsf{#1} (\pageref{var:#2})}
 \newcommand{\seec}[1]{chapter \ref{ch:#1}, page \pageref{ch:#1}\xspace}
 \newcommand{\sees}[1]{section \ref{se:#1}, page \pageref{se:#1}\xspace}
-\newcommand{\seeo}[1]{See \ref{option:#1}\xspace}
+\newcommand{\seeo}[1]{\var{-#1}, (see page \ref{option:#1})\xspace}
 \newcommand{\seet}[1]{table (\ref{tab:#1})\xspace}
 %
 % Function/procedure environments
@@ -210,6 +210,8 @@
   \pdfcompresslevel=9
   \pdfpagewidth=210mm
   \pdfpageheight=297mm
+\else
+  \usepackage[dvips,bookmarks=true,colorlinks=true,linkcolor=blue]{hyperref}
 \fi
 \usepackage{html}
 \usepackage{htmllist}
