@@ -75,6 +75,7 @@ const
   { allows to add custom info in heap_mem_info }
   extra_info_size : longint = 0;
   exact_info_size : longint = 0;
+  EntryMemUsed    : longint = 0;
   { function to fill this info up }
   fill_extra_info : FillExtraInfoType = nil;
   error_in_heap : boolean = false;
@@ -553,6 +554,11 @@ var
 {$ifdef win32}
 var
    StartUpHeapEnd : pointer;
+   { I found no symbol for start of text section :(
+     so we usee the _mainCRTStartup which should be
+     in wprt0.ow or wdllprt0.ow PM }
+   text_begin : cardinal;external name '_mainCRTStartup';
+   data_end : cardinal;external name '__data_end__';
 {$endif}
 
 procedure CheckPointer(p : pointer);[public, alias : 'FPC_CHECKPOINTER'];
@@ -598,7 +604,10 @@ begin
   if (cardinal(p)>=$40000) and (p<=HeapOrg) then
     goto _exit;
   { inside stack ? }
-  if (cardinal(startupheapend)<Win32StackTop) and (cardinal(p)>cardinal(startupheapend)) and
+  asm
+     movl %ebp,get_ebp
+  end;
+  if (cardinal(p)>get_ebp) and
      (cardinal(p)<Win32StackTop) then
     goto _exit;
 {$endif win32}
@@ -681,16 +690,23 @@ procedure dumpheap;
 var
   pp : pheap_mem_info;
   i : longint;
+  ExpectedMemAvail : longint;
 begin
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
   Writeln(ptext^,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(ptext^,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
-  Writeln(ptext^,'True heap size : ',system.HeapSize);
+  Write(ptext^,'True heap size : ',system.HeapSize);
+  if EntryMemUsed > 0 then
+    Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
+  else
+    Writeln(ptext^);
   Writeln(ptext^,'True free heap : ',MemAvail);
-  Writeln(ptext^,'Should be : ',system.HeapSize-(getmem8_size-freemem8_size)-
-    (getmem_cnt-freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size));
+  ExpectedMemAvail:=system.HeapSize-(getmem8_size-freemem8_size)-
+    (getmem_cnt-freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size)-EntryMemUsed;
+  If ExpectedMemAvail<>MemAvail then
+    Writeln(ptext^,'Should be : ',ExpectedMemAvail);
   i:=getmem_cnt-freemem_cnt;
   while pp<>nil do
    begin
@@ -836,9 +852,9 @@ begin
   pheap_mem_info(p)^.previous:=heap_mem_root;
   pheap_mem_info(p)^.next:=nil;
 {$ifdef EXTRA}
-  pheap_mem_info(p)^.next_valid:=nil;
+  pheap_mem_info(p)^.prev_valid:=nil;
   if assigned(heap_valid_last) then
-    heap_valid_last^.next_valid:=pheap_mem_info(p);
+    heap_valid_last^.prev_valid:=pheap_mem_info(p);
   heap_valid_last:=pheap_mem_info(p);
   if not assigned(heap_valid_first) then
     heap_valid_first:=pheap_mem_info(p);
@@ -958,6 +974,7 @@ procedure SetExtraInfo( size : longint;func : fillextrainfotype);
   end;
 
 Initialization
+  EntryMemUsed:=System.HeapSize-MemAvail;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
   ptext:=@stderr;
@@ -977,7 +994,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2000-02-10 13:59:35  peter
+  Revision 1.42  2000-04-27 15:35:50  pierre
+   * fix for bug report 929
+
+  Revision 1.41  2000/02/10 13:59:35  peter
     * fixed bug with reallocmem to use the wrong size when copying the
       data to the new allocated pointer
 
