@@ -2734,9 +2734,6 @@ function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
 implementation
 {***************************************************************************}
 
-{$L code2.oo2}
-{$L code3.oo2}
-
 function DosCreateThread(var TID:longint;Address:TThreadEntry;
                           aParam:pointer;Flags:longint;
                           StackSize:longint):longint; cdecl;
@@ -3877,15 +3874,48 @@ external 'DOSCALLS' index 211;
 function DosTrueGetMessage(MsgSeg:pointer;Table:PInsertTable;
                            TableSize:longint;Buf:PChar;BufSize,
                            MsgNumber:longint;FileName:PChar;
-                           var MsgSize:longint):longint; {cdecl;}
+                           var MsgSize:longint):longint; cdecl;
 
 external 'MSG' index 6;
 
+function DosIQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+                           var InfoSize:longint;MesSeg:pointer):longint; cdecl;
+
+external 'MSG' index 8;
+
+procedure MagicHeaderEnd; assembler; forward;
+
+{$ASMMODE INTEL}
+
+{start of _MSGSEG32 segment}
+procedure MagicHeaderStart; assembler;               
+asm
+  db $0FF
+  db $4D,$53,$47,$53,$45,$47,$33,$32, 0       //'MSGSEG32'
+  dd $8001
+  dd MAGICHEADEREND
+end;
+    
 function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
                        BufSize,MsgNumber:longint;FileName:PChar;
                        var MsgSize:longint):longint;
+begin
+    DosGetMessage := DosTrueGetMessage(@MagicHeaderStart,Table,TableSize,
+                                 Buf,BufSize,msgnumber,filename,msgsize);
+end;
 
-external name 'DosGetMessage';  {Procedure is in code2.so2.}
+function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
+                            var InfoSize:longint):longint;
+begin
+    DosQueryMessageCP := DosIQueryMessageCP(Buf, BufSize, FileName, InfoSize,
+                                                            @MagicHeaderStart);
+end;
+
+procedure MagicHeaderEnd; assembler;
+asm
+  dd $0FFFF0000
+end;
+{$ASMMODE DEFAULT}
 
 (*function DosGetMessage(const Table:array of PString;var Buf:openstring;
                         MsgNumber:longint;const FileName:string):longint;
@@ -3947,6 +3977,16 @@ end;*)
                        BufSize,MsgNumber:longint;const FileName:string;
                        MsgSize:longint):longint;}
 
+function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
+                           var InfoSize:longint):longint;
+
+var T:array[0..255] of char;
+
+begin
+    StrPCopy(@T,FileName);
+    DosQueryMessageCP:=DosQueryMessageCP(Buf,BufSize,@T,InfoSize);
+end;
+
 function DosInsertMessage(Table:PInsertTable;TableSize:longint;
                           Message:PChar;SrcMessageSize:longint;
                           Buf:PChar;BufSize:longint;
@@ -3971,26 +4011,6 @@ function DosPutMessage(Handle:longint;const Buf:string):longint;
 
 begin
     DosPutMessage:=DosPutMessage(Handle,Length(Buf),@Buf[1]);
-end;
-
-function DosIQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
-                           var InfoSize:longint;MesSeg:pointer):longint; {cdecl;}
-
-external 'MSG' index 8;
-
-function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
-                           var InfoSize:longint):longint;
-
-external name 'DosQueryMessageCP';
-
-function DosQueryMessageCP(var Buf;BufSize:longint;const FileName:string;
-                           var InfoSize:longint):longint;
-
-var T:array[0..255] of char;
-
-begin
-    StrPCopy(@T,FileName);
-    DosQueryMessageCP:=DosQueryMessageCP(Buf,BufSize,@T,InfoSize);
 end;
 
 function DosStartSession(const AStartData:TStartData;
@@ -4216,7 +4236,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.13  2002-09-22 18:44:13  hajny
+  Revision 1.14  2002-10-05 19:09:57  hajny
+    * code2.as + code3.as not needed any more
+
+  Revision 1.13  2002/09/22 18:44:13  hajny
     * Compatibilty mode for DateTime fields
 
   Revision 1.12  2002/09/07 16:01:24  peter
