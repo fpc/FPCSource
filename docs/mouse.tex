@@ -65,7 +65,8 @@ For two-button mice, checking the status of the middle button seems to give
 and clear the stats of the right button.
 }{None.}{\seef{GetLastButtonRelease}}
 
-\input {mouseex/mouse5.tex}
+\latex{\inputlisting{mouseex/mouse5.pp}}
+\html{\input{mouseex/mouse5.tex}}
 
 \function{GetLastButtonRelease}{(Button: Longint; Var x,y:Longint)}{Longint}{
 \var{GetLastButtonRelease}
@@ -94,7 +95,8 @@ necessary information from it.
 \seep{SetMousePos}}
 
 
-\input {mouseex/mouse3.tex}
+\latex{\inputlisting{mouseex/mouse3.pp}}
+\html{\input{mouseex/mouse3.tex}}
 
 \Procedure{HideMouse}{
 \var{HideMouse} makes the mouse cursor invisible.
@@ -115,7 +117,8 @@ You should never have to call it, unless you want to reset everything to
 its default values.
 }{None.}{\var{MouseFound} variable.}
 
-\input {mouseex/mouse1.tex}
+\latex{\inputlisting{mouseex/mouse1.pp}}
+\html{\input{mouseex/mouse1.tex}}
 
 \Function{LPressed}{Boolean}{
 
@@ -153,7 +156,8 @@ and background colors stay the same and that the Ascii code you enter is the
 character that you will get on screen; there's no XOR'ing.
 }{None}{\seep{SetMouseShape}}
 
-\input {mouseex/mouse8.tex}
+\latex{\inputlisting{mouseex/mouse8.pp}}
+\html{\input{mouseex/mouse8.tex}}
 
 
 
@@ -173,7 +177,8 @@ only the lower 16 bits are used.
 }{None.}{\seep{ShowMouse}, \seep{HideMouse}}
 
 
-\input{mouseex/mouse1.tex}
+\latex{nputlisting{mouseex/mouse1.pp}}
+\html{\input{mouseex/mouse1.tex}}
 
 \procedure{SetMousePos}{(x,y:Longint)}{
 \var{SetMosusePos} sets the position of the mouse cursor on the screen.
@@ -184,7 +189,8 @@ While \var{x} and \var{y} are longints, only the lower 16 bits are used.
 }{None.}{\seep{GetMouseState}}
 
 
-\input {mouseex/mouse4.tex}
+\latex{\inputlisting{mouseex/mouse4.pp}}
+\html{\input{mouseex/mouse4.tex}}
 
 \procedure{SetMouseShape}{(ForeColor,BackColor,Ascii: Byte)}{
 \var{SetMouseShape}
@@ -196,7 +202,8 @@ screen are XOR'ed with resp. \var{ForeColor}, \var{BackColor} and
 }{None.}{\seep{SetMouseAscii}}
 
 
-\input {mouseex/mouse7.tex}
+\latex{\inputlisting{mouseex/mouse7.pp}}
+\html{\input{mouseex/mouse7.tex}}
 
 \procedure{SetMouseSpeed}{(Horizontal, Vertical: Longint)}{
 \var{SetMouseSpeed} sets the mouse speed in mickeys per 8 pixels.
@@ -210,7 +217,8 @@ While this procedure accepts longint parameters, only the low 16 bits are
 actually used.
 }{None.}{}
 
-\input {mouseex/mouse10.tex}
+\latex{\inputlisting{mouseex/mouse10.pp}}
+\html{\input{mouseex/mouse10.tex}}
 
 \procedure{SetMouseWindow}{(xmin,ymin,xmax,ymax: Longint)}{
 
@@ -237,7 +245,8 @@ While \var{Min} and \var{Max} are Longint parameters, only the lower 16 bits
 are used.
 }{None.}{\seep{SetMouseYRange}, \seep{SetMouseWindow}}
 
-\input {mouseex/mouse6.tex}
+\latex{\inputlisting{mouseex/mouse6.pp}}
+\html{\input{mouseex/mouse6.tex}}
 
 \procedure{SetMouseYRange}{(Min, Max: Longint)}{
 \var{SetMouseYRange}
@@ -256,5 +265,6 @@ For an example, see \seep{SetMouseXRange}.
 At the start of your progam, the mouse is invisible.
 }{None.}{\seep{HideMouse},\seep{SetMouseHideWindow}}
 
-\input{mouseex/mouse2.tex}
+\latex{\inputlisting{mouseex/mouse2.pp}}
+\html{\input{mouseex/mouse2.tex}}
 

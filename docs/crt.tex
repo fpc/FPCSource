@@ -116,7 +116,8 @@ to the window instead.
 }
 {None.}{\seep{Window}}
 
-\input{crtex/ex1.tex}
+\latex{\inputlisting{crtex/ex1.pp}}
+ \html{\input{crtex/ex1.tex}}
 
 \Procedure{BigCursor}{Makes the cursor a big rectangle. 
 
@@ -128,7 +129,8 @@ Not implemented on \linux.}
 end of the window. The cursor doesn't move}
 {None.}{\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}}
 
-\input{crtex/ex9.tex}
+\latex{\inputlisting{crtex/ex9.pp}}
+ \html{\input{crtex/ex9.tex}}
 
 \procedure {ClrScr}{}
 { ClrScr clears the current window (using the current colors), 
@@ -136,7 +138,8 @@ and sets the cursor in the top left
 corner of the current window.}
 {None.}{ \seep{Window} }
 
-\input{crtex/ex8.tex}
+\latex{\inputlisting{crtex/ex8.pp}}
+ \html{\input{crtex/ex8.tex}}
 
 \Procedure{CursorOff}{Switches the cursor off (i.e. the cursor is no
 longer visible). 
@@ -154,7 +157,8 @@ Not implemented on \linux.}
 seconds is an approximation, and may be off a lot, if system load is high.}
 {None}{\seep{Sound}, \seep{NoSound}}
 
-\input{crtex/ex15.tex}
+\latex{\inputlisting{crtex/ex15.pp}}
+ \html{\input{crtex/ex15.tex}}
 
 \Procedure {DelLine}
 { DelLine removes the current line. Lines following the current line are 
@@ -162,7 +166,8 @@ scrolled 1 line up, and an empty line is inserted at the bottom of the
 current window. The cursor doesn't move.}
 {None.}{\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}}
 
-\input{crtex/ex11.tex}
+\latex{\inputlisting{crtex/ex11.pp}}
+ \html{\input{crtex/ex11.tex}}
 
 \procedure {GotoXY}{(X: Byte; Y: Byte)}
 { Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
@@ -171,7 +176,8 @@ is located at \var{(1,1)}, the upper-left corner of the window.
 }
 {None.}{ \seef{WhereX}, \seef{WhereY}, \seep{Window} }
 
-\input{crtex/ex6.tex}
+\latex{\inputlisting{crtex/ex6.pp}}
+ \html{\input{crtex/ex6.tex}}
 
 \procedure {HighVideo}{}
 { HighVideo switches the output to highlighted text. (It sets the high
@@ -180,7 +186,8 @@ intensity bit of the video attribute)
 {None.}{ \seep{TextColor}, \seep{TextBackground}, \seep{LowVideo},
 \seep{NormVideo}}
 
-\input{crtex/ex14.tex}
+\latex{\inputlisting{crtex/ex14.pp}}
+ \html{\input{crtex/ex14.tex}}
 
 \procedure {InsLine}{}
 { InsLine inserts an empty line at the current cursor position. 
@@ -189,7 +196,8 @@ causing the last line to disappear from the window.
 The cursor doesn't move.}
 {None.}{\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}}
 
-\input{crtex/ex10.tex}
+\latex{\inputlisting{crtex/ex10.pp}}
+ \html{\input{crtex/ex10.tex}}
 
 \Function {KeyPressed}{Boolean}
 { The Keypressed function scans the keyboard buffer and sees if a key has
@@ -200,7 +208,8 @@ the KeyPressed function has been called.
 }
 {None.}{\seef{ReadKey}}
 
-\input{crtex/ex2.tex}
+\latex{\inputlisting{crtex/ex2.pp}}
+ \html{\input{crtex/ex2.tex}}
 
 \Procedure {LowVideo}
 { LowVideo switches the output to non-highlighted text. (It clears the high
@@ -225,7 +234,8 @@ Stops the speaker sound.
 
 This is not supported in \linux}{None.}{\seep{Sound}}
 
-\input{crtex/ex16.tex}
+\latex{\inputlisting{crtex/ex16.pp}}
+ \html{\input{crtex/ex16.tex}}
 
 \Function  {ReadKey}{Char}
 {
@@ -239,7 +249,8 @@ reported by ReadKey, so caution is needed when using ReadKey.
 }
 {None.}{\seef{KeyPressed}}
 
-\input{crtex/ex3.tex}
+\latex{\inputlisting{crtex/ex3.pp}}
+ \html{\input{crtex/ex3.tex}}
 
 
 \procedure{Sound}{(hz : word)}
@@ -255,7 +266,8 @@ predefined color constants.
 {None.}{ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
 \seep{NormVideo}}
 
-\input{crtex/ex13.tex}
+\latex{\inputlisting{crtex/ex13.pp}}
+ \html{\input{crtex/ex13.tex}}
 
 \procedure {TextColor}{(CL: Byte)}
 {
@@ -265,7 +277,8 @@ predefined color constants.
 {None.}{ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
 \seep{NormVideo}}
 
-\input{crtex/ex12.tex}
+\latex{\inputlisting{crtex/ex12.pp}}
+ \html{\input{crtex/ex12.tex}}
 
 \Function  {WhereX}{Byte}
 {
@@ -276,7 +289,8 @@ window.
 {None.}{ \seep{GotoXY}, \seef{WhereY}, \seep{Window} }
 
 
-\input{crtex/ex7.tex}
+\latex{\inputlisting{crtex/ex7.pp}}
+ \html{\input{crtex/ex7.tex}}
 
 \Function  {WhereY}{Byte}
 {
@@ -286,7 +300,8 @@ window.
 }
 {None.}{ \seep{GotoXY}, \seef{WhereX}, \seep{Window} }
 
-\input{crtex/ex7.tex}
+\latex{\inputlisting{crtex/ex7.pp}}
+ \html{\input{crtex/ex7.tex}}
 
 \procedure {Window}{(X1, Y1, X2, Y2: Byte)}
 { Window creates a window on the screen, to which output will be sent.
@@ -300,7 +315,8 @@ are relative to the window's top left corner.
 }
 {None.}{\seep{GotoXY}, \seef{WhereX}, \seef{WhereY}, \seep{ClrScr}}
 
-\input{crtex/ex5.tex}
+\latex{\inputlisting{crtex/ex5.pp}}
+\html{\input{crtex/ex5.tex}}
 
 
 %\procedure {ScrollWindow}{(X1,Y1,X2,Y2 : Byte; Count : Longint)}

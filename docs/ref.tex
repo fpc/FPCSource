@@ -26,6 +26,8 @@
 \usepackage{makeidx}
 \usepackage{html}
 \latex{\usepackage{fpc}}
+\latex{\usepackage{listings}\blankstringtrue%
+\selectlisting{tp}\stringstyle{\ttfamily}}
 \html{\input{fpc-html.tex}}
 \usepackage{fancyheadings}
 \pagestyle{fancy}
@@ -1878,7 +1880,8 @@ type.}
 {None.}
 {\seef{Round}}
 
-\input{refex/ex1.tex}
+\latex{\inputlisting{refex/ex1.pp}}
+\html{\input{refex/ex1.tex}}
 
 \function{Addr}{(X : Any type)}{Pointer}
 {\var{Addr} returns a pointer to its argument, which can be any type, or a
@@ -1888,7 +1891,8 @@ typed pointer (\progref). }
 {None}
 {\seef{SizeOf}}
 
-\input{refex/ex2.tex}
+\latex{\inputlisting{refex/ex2.pp}}
+\html{\input{refex/ex2.tex}}
 
 \procedure{Append}{(Var F : Text)}
 {\var{Append} opens an existing file in append mode. Any data written to
@@ -1902,13 +1906,15 @@ Only text files can be opened in append mode.
 {If the file can't be created, a run-time error will be generated.}
 {\seep{Rewrite},\seep{Append}, \seep{Reset}}
 
-\input{refex/ex3.tex}
+\latex{\inputlisting{refex/ex3.pp}}
+\html{\input{refex/ex3.tex}}
 
 \function{Arctan}{(X : Real)}{Real}
 {\var{Arctan} returns the Arctangent of \var{X}, which can be any real type.
 The resulting angle is in radial units.}{None}{\seef{Sin}, \seef{Cos}}
 
-\input{refex/ex4.tex}
+\latex{\inputlisting{refex/ex4.pp}}
+\html{\input{refex/ex4.tex}}
 
 \procedure{Assign}{(Var F; Name : String)}
 {\var{Assign} assigns a name to \var{F}, which can be any file type.
@@ -1917,7 +1923,8 @@ and marks the file as closed.}
 {None.}
 {\seep{Reset}, \seep{Rewrite}, \seep{Append}}
 
-\input{refex/ex5.tex}
+\latex{\inputlisting{refex/ex5.pp}}
+\html{\input{refex/ex5.tex}}
 
 \procedure{Blockread}{(Var F : File; Var Buffer; Var Count : Longint [; var
 Result : Longint])}
@@ -1933,7 +1940,8 @@ read, a run-time error is generated. This behavior can be controlled by the
 than \var{count} records were read.}
 {\seep{Blockwrite},\seep{Reset}, \seep{Assign}}
 
-\input{refex/ex6.tex}
+\latex{\inputlisting{refex/ex6.pp}}
+\html{\input{refex/ex6.tex}}
 
 \procedure{Blockwrite}{(Var F : File; Var Buffer; Var Count : Longint)}
 {\var{Blockread} writes \var{count} records from \var{buffer} to the file
@@ -1952,14 +1960,16 @@ For the example, see \seep{Blockread}.
 {If the directory \var{S} doesn't exist, a run-time error is generated.}
 {\seep{Mkdir}, \seep{Rmdir}}
 
-\input{refex/ex7.tex}
+\latex{\inputlisting{refex/ex7.pp}}
+\html{\input{refex/ex7.tex}}
 
 \function{Chr}{(X : byte)}{Char}
 {\var{Chr} returns the character which has ASCII value \var{X}.}
 {None.}
 {\seef{Ord},\seep{Str}}
 
-\input{refex/ex8.tex}
+\latex{\inputlisting{refex/ex8.pp}}
+\html{\input{refex/ex8.tex}}
 
 \procedure{Close}{(Var F : Anyfiletype)}
 {\var{Close} flushes the buffer of the file \var{F} and closes \var{F}.
@@ -1970,7 +1980,8 @@ To reopen a file closed with \var{Close}, it isn't necessary to assign the
 file again. A call to \seep{Reset} or \seep{Rewrite} is sufficient.}
 {None.}{\seep{Assign}, \seep{Reset}, \seep{Rewrite}}
 
-\input{refex/ex9.tex}
+\latex{\inputlisting{refex/ex9.pp}}
+\html{\input{refex/ex9.tex}}
 
 \function{Concat}{(S1,S2 [,S3, ... ,Sn])}{String}
 {\var{Concat} concatenates the strings \var{S1},\var{S2} etc. to one long
@@ -1980,7 +1991,8 @@ The same operation can be performed with the \var{+} operation.}
 {None.}
 {\seef{Copy}, \seep{Delete}, \seep{Insert}, \seef{Pos}, \seef{Length}}
 
-\input{refex/ex10.tex}
+\latex{\inputlisting{refex/ex10.pp}}
+\html{\input{refex/ex10.tex}}
 
 \function{Copy}{(Const S : String;Index : Integer;Count : Byte)}{String}
 {\var{Copy} returns a string which is a copy if the \var{Count} characters
@@ -1992,14 +2004,16 @@ empty string is returned.}
 {None.}
 {\seep{Delete}, \seep{Insert}, \seef{Pos}}
 
-\input{refex/ex11.tex}
+\latex{\inputlisting{refex/ex11.pp}}
+\html{\input{refex/ex11.tex}}
 
 \function{Cos}{(X : real)}{Real}
 {\var{Cos} returns the cosine of \var{X}, where X is an angle, in radians.}
 {None.}
 {\seef{Arctan}, \seef{Sin}}
 
-\input{refex/ex12.tex}
+\latex{\inputlisting{refex/ex12.pp}}
+\html{\input{refex/ex12.tex}}
 
 \Function{CSeg}{Word}
 {\var{CSeg} returns the Code segment register. In \fpc, it returns always a
@@ -2007,7 +2021,8 @@ zero, since \fpc is a 32 bit compiler.}
 {None.}
 {\seef{DSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
 
-\input{refex/ex13.tex}
+\latex{\inputlisting{refex/ex13.pp}}
+\html{\input{refex/ex13.tex}}
 
 \procedure{Dec}{(Var X : Any ordinal type[; Decrement : Longint])}
 {\var{Dec} decreases the value of \var{X} with \var{Decrement}.
@@ -2016,7 +2031,8 @@ If \var{Decrement} isn't specified, then 1 is taken as a default.}
 below its minimum value.}
 {\seep{Inc}}
 
-\input{refex/ex14.tex}
+\latex{\inputlisting{refex/ex14.pp}}
+\html{\input{refex/ex14.tex}}
 
 \procedure{Delete}{(var S : string;Index : Integer;Count : Integer)}
 {\var{Delete} removes \var{Count} characters from string \var{S}, starting
@@ -2026,7 +2042,8 @@ positions to the left, and the length of the string is adjusted.
 {None.}
 {\seef{Copy},\seef{Pos},\seep{Insert}}
 
-\input{refex/ex15.tex}
+\latex{\inputlisting{refex/ex15.pp}}
+\html{\input{refex/ex15.tex}}
 
 \procedure{Dispose}{(P : pointer)}
 {\var{Dispose} releases the memory allocated with a call to \seep{New}.
@@ -2036,7 +2053,8 @@ heap.}
 heap.}
 {\seep{New}, \seep{Getmem}, \seep{Freemem}}
 
-\input{refex/ex16.tex}
+\latex{\inputlisting{refex/ex16.pp}}
+\html{\input{refex/ex16.tex}}
 
 \Function{DSeg}{Word}
 {\var{DSeg} returns the data segment register. In \fpc, it returns always a
@@ -2044,7 +2062,8 @@ zero, since \fpc is a 32 bit compiler.}
 {None.}
 {\seef{CSeg}, \seef{Seg}, \seef{Ofs}, \seef{Ptr}}
 
-\input{refex/ex17.tex}
+\latex{\inputlisting{refex/ex17.pp}}
+\html{\input{refex/ex17.tex}}
 
 \function{Eof}{[(F : Any file type)]}{Boolean}
 {\var{Eof} returns \var{True} if the file-pointer has reached the end of the
@@ -2055,7 +2074,8 @@ If no file \var{F} is specified, standard input is assumed.}
 {None.}
 {\seef{Eoln}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}}
 
-\input{refex/ex18.tex}
+\latex{\inputlisting{refex/ex18.pp}}
+\html{\input{refex/ex18.tex}}
 
 \function{Eoln}{[(F : Text)]}{Boolean}
 {\var{Eof} returns \var{True} if the file pointer has reached the end of a
@@ -2068,7 +2088,8 @@ It can only be used on files of type \var{Text}.}
 {None.}
 {\seef{Eof}, \seep{Assign}, \seep{Reset}, \seep{Rewrite}}
 
-\input{refex/ex19.tex}
+\latex{\inputlisting{refex/ex19.pp}}
+\html{\input{refex/ex19.tex}}
 
 \procedure{Erase}{(Var F : Any file type)}
 {\var{Erase} removes an unopened file from disk. The file should be
@@ -2076,7 +2097,8 @@ assigned with \var{Assign}, but not opened with \var{Reset} or \var{Rewrite}}
 {A run-time error will be generated if the specified file doesn't exist.}
 {\seep{Assign}}
 
-\input{refex/ex20.tex}
+\latex{\inputlisting{refex/ex20.pp}}
+\html{\input{refex/ex20.tex}}
 
 \procedure{Exit}{([Var X : return type )]}
 {\var{Exit} exits the current subroutine, and returns control to the calling
@@ -2088,14 +2110,16 @@ equal to \var{X}.}
 {None.}
 {\seep{Halt}}
 
-\input{refex/ex21.tex}
+\latex{\inputlisting{refex/ex21.pp}}
+\html{\input{refex/ex21.tex}}
 
 \function{Exp}{(Var X : real)}{Real}
 {\var{Exp} returns the exponent of \var{X}, i.e. the number \var{e} to the
 power \var{X}.}
 {None.}{\seef{Ln}, \seef{Power}}
 
-\input{refex/ex22.tex}
+\latex{\inputlisting{refex/ex22.pp}}
+\html{\input{refex/ex22.tex}}
 
 \function{Filepos}{(Var F : Any file type)}{Longint}
 {\var{Filepos} returns the current record position of the file-pointer in file
@@ -2103,7 +2127,8 @@ power \var{X}.}
 {None.}
 {\seef{Filesize}}
 
-\input{refex/ex23.tex}
+\latex{\inputlisting{refex/ex23.pp}}
+\html{\input{refex/ex23.tex}}
 
 \function{Filesize}{(Var F : Any file type)}{Longint}
 {\var{Filepos} returns the total number of records in file \var{F}. 
@@ -2115,7 +2140,8 @@ If \var{F} is empty, 0 is returned.
 {None.}
 {\seef{Filepos}}
 
-\input{refex/ex24.tex}
+\latex{\inputlisting{refex/ex24.pp}}
+\html{\input{refex/ex24.tex}}
 
 \procedure{Fillchar}{(Var X;Count : Longint;Value : char or byte);}
 {\var{Fillchar} fills the memory starting at \var{X} with \var{Count} bytes
@@ -2124,7 +2150,8 @@ or characters with value equal to \var{Value}.
 {No checking on the size of \var{X} is done.}
 {\seep{Fillword}, \seep{Move}}
 
-\input{refex/ex25.tex}
+\latex{\inputlisting{refex/ex25.pp}}
+\html{\input{refex/ex25.tex}}
 
 \procedure{Fillword}{(Var X;Count : Longint;Value : Word);}
 {\var{Fillword} fills the memory starting at \var{X} with \var{Count} words
@@ -2133,7 +2160,8 @@ with value equal to \var{Value}.
 {No checking on the size of \var{X} is done.}
 {\seep{Fillword}, \seep{Move}}
 
-\input{refex/ex76.tex}
+\latex{\inputlisting{refex/ex76.pp}}
+\html{\input{refex/ex76.tex}}
 
 \procedure{Flush}{(Var F : Text)}
 {\var{Flush} empties the internal buffer of file \var{F} and writes the
@@ -2141,14 +2169,16 @@ contents to disk. The file is \textit{not} closed as a result of this call.}
 {If the disk is full, a run-time error will be generated.}
 {\seep{Close}}
 
-\input{refex/ex26.tex}
+\latex{\inputlisting{refex/ex26.pp}}
+\html{\input{refex/ex26.tex}}
 
 \function{Frac}{(X : real)}{Real}
 {\var{Frac} returns the non-integer part of \var{X}.}
 {None.}
 {\seef{Round}, \seef{Int}}
 
-\input{refex/ex27.tex}
+\latex{\inputlisting{refex/ex27.pp}}
+\html{\input{refex/ex27.tex}}
 
 \procedure{Freemem}{(Var P : pointer; Count : longint)}
 {\var{Freemem} releases the memory occupied by the pointer \var{P}, of size
@@ -2157,7 +2187,8 @@ allocated to a dynamical variable.}
 {An error will occur when \var{P} doesn't point to the heap.}
 {\seep{Getmem}, \seep{New}, \seep{Dispose}}
 
-\input{refex/ex28.tex}
+\latex{\inputlisting{refex/ex28.pp}}
+\html{\input{refex/ex28.tex}}
 
 \procedure{Getdir}{(drivenr : byte;var dir : string)}
 {\var{Getdir} returns in \var{dir} the current directory on the drive
@@ -2168,7 +2199,8 @@ On \linux, \var{drivenr} is ignored, as there is only one directory tree.}
 {An error is returned under \dos, if the drive requested isn't ready.}
 {\seep{Chdir}}
 
-\input{refex/ex29.tex}
+\latex{\inputlisting{refex/ex29.pp}}
+\html{\input{refex/ex29.tex}}
 
 \procedure{Getmem}{(var p : pointer;size : longint)}
 {\var{Getmem} reserves \var{Size} bytes memory on the heap, and returns a
@@ -2186,7 +2218,8 @@ omitted, zero is returned.}
 {None.}
 {\seep{Exit}}
 
-\input{refex/ex30.tex}
+\latex{\inputlisting{refex/ex30.pp}}
+\html{\input{refex/ex30.tex}}
 
 \function{Hi}{(X : Ordinal type)}{Word or byte}
 {\var{Hi} returns the high byte or word from \var{X}, depending on the size
@@ -2196,7 +2229,8 @@ of X. If the size of X is 4, then the high word is returned. If the size is
 {None}
 {\seef{Lo}}
 
-\input{refex/ex31.tex}
+\latex{\inputlisting{refex/ex31.pp}}
+\html{\input{refex/ex31.tex}}
 
 \procedure{Inc}{(Var X : Any ordinal type[; Increment : Longint])}
 {\var{Inc} increases the value of \var{X} with \var{Increment}.
@@ -2205,7 +2239,8 @@ If \var{Increment} isn't specified, then 1 is taken as a default.}
 over its maximum value.}
 {\seep{Dec}}
 
-\input{refex/ex32.tex}
+\latex{\inputlisting{refex/ex32.pp}}
+\html{\input{refex/ex32.tex}}
 
 \procedure{Insert}{(Var Source : String;var S : String;Index : integer)}
 {\var{Insert} inserts string \var{S} in string \var{Source}, at position
@@ -2214,14 +2249,16 @@ resulting string is truncated at 255 characters, if needed.}
 {None.}
 {\seep{Delete}, \seef{Copy}, \seef{Pos}}
 
-\input{refex/ex33.tex}
+\latex{\inputlisting{refex/ex33.pp}}
+\html{\input{refex/ex33.tex}}
 
 \function{Int}{(X : real)}{Real}
 {\var{Int} returns the integer part of any real \var{X}, as a real.}
 {None.}
 {\seef{Frac}, \seef{Round}}
 
-\input{refex/ex34.tex}
+\latex{\inputlisting{refex/ex34.pp}}
+\html{\input{refex/ex34.tex}}
 
 \Function{IOresult}{Word}
 {IOresult contains the result of any input/output call, when the
@@ -2278,7 +2315,8 @@ Fatal errors :
 {None.}
 {All I/O functions.}
 
-\input{refex/ex35.tex}
+\latex{\inputlisting{refex/ex35.pp}}
+\html{\input{refex/ex35.tex}}
 
 \function{Length}{(S : String)}{Byte}
 {\var{Length} returns the length of the string \var{S},
@@ -2289,7 +2327,8 @@ which is limited to 255. If the strings \var{S} is empty, 0 is returned.
 {None.}
 {\seef{Pos}}
 
-\input{refex/ex36.tex}
+\latex{\inputlisting{refex/ex36.pp}}
+\html{\input{refex/ex36.tex}}
 
 \function{Ln}{(X : real)}{Real}
 {
@@ -2299,7 +2338,8 @@ which is limited to 255. If the strings \var{S} is empty, 0 is returned.
 {An run-time error will occur when \var{X} is negative.}
 {\seef{Exp}, \seef{Power}}
 
-\input{refex/ex37.tex}
+\latex{\inputlisting{refex/ex37.pp}}
+\html{\input{refex/ex37.tex}}
 
 \function{Lo}{(O : Word or Longint)}{Byte or Word}
 {\var{Lo} returns the low byte of its argument if this is of type
@@ -2309,7 +2349,8 @@ which is limited to 255. If the strings \var{S} is empty, 0 is returned.
 {None.}
 {\seef{Ord}, \seef{Chr}}
 
-\input{refex/ex38.tex}
+\latex{\inputlisting{refex/ex38.pp}}
+\html{\input{refex/ex38.tex}}
 
 \procedure{LongJmp}{(Var env : Jmp\_Buf; Value : longint)}
 {
@@ -2335,14 +2376,16 @@ argument.}
 {None.}
 {\seef{Upcase}}
 
-\input{refex/ex73.tex}
+\latex{\inputlisting{refex/ex73.pp}}
+\html{\input{refex/ex73.tex}}
 
 \procedure{Mark}{(Var P : Pointer)}
 {\var{Mark} copies the current heap-pointer to \var{P}.}
 {None.}
 {\seep{Getmem}, \seep{Freemem}, \seep{New}, \seep{Dispose}, \seef{Maxavail}}
 
-\input{refex/ex39.tex}
+\latex{\inputlisting{refex/ex39.pp}}
+\html{\input{refex/ex39.tex}}
 
 \Function{Maxavail}{Longint}
 {\var{Maxavail} returns the size, in bytes, of the biggest free memory block in
@@ -2353,7 +2396,8 @@ available.}
 {None.}
 {\seep{Release}, \seef{Memavail},\seep{Freemem}, \seep{Getmem}}
 
-\input{refex/ex40.tex}
+\latex{\inputlisting{refex/ex40.pp}}
+\html{\input{refex/ex40.tex}}
 
 \Function{Memavail}{Longint}
 {\var{Memavail} returns the size, in bytes, of the free heap memory.
@@ -2363,7 +2407,8 @@ available.}
 {None.}
 {\seef{Maxavail},\seep{Freemem}, \seep{Getmem}}
 
-\input{refex/ex41.tex}
+\latex{\inputlisting{refex/ex41.pp}}
+\html{\input{refex/ex41.tex}}
 
 \procedure{Mkdir}{(const S : string)}
 {\var{Chdir} creates a new  directory \var{S}.}
@@ -2379,7 +2424,8 @@ the process, then a run-time error will be generated. With older versions of
 the compiler, a segmentation-fault will occur. }
 {\seep{Fillword}, \seep{Fillchar}}
 
-\input{refex/ex42.tex}
+\latex{\inputlisting{refex/ex42.pp}}
+\html{\input{refex/ex42.tex}}
 
 
 \procedure{New}{(Var P : Pointer[, Constructor])}
@@ -2400,7 +2446,8 @@ For an example, see \seep{Dispose}.
 {\seef{Abs}, \seef{Ord}}
 
 
-\input{refex/ex43.tex}
+\latex{\inputlisting{refex/ex43.pp}}
+\html{\input{refex/ex43.tex}}
 
 \function{Ofs}{Var X}{Longint}
 {\var{Ofs} returns the offset of the address of a variable. 
@@ -2413,7 +2460,8 @@ compiler.
 {\seef{DSeg}, \seef{CSeg}, \seef{Seg}, \seef{Ptr}}
 
 
-\input{refex/ex44.tex}
+\latex{\inputlisting{refex/ex44.pp}}
+\html{\input{refex/ex44.tex}}
 
 
 \function{Ord}{(X : Ordinal type)}{Byte}
@@ -2422,7 +2470,8 @@ compiler.
 {\seef{Chr}}
 
 
-\input{refex/ex45.tex}
+\latex{\inputlisting{refex/ex45.pp}}
+\html{\input{refex/ex45.tex}}
 
 \Function{Paramcount}{Longint}
 {\var{Paramcount} returns the number of command-line arguments. If no
@@ -2432,7 +2481,8 @@ arguments were given to the running program, \var{0} is returned.
 {\seef{Paramstr}}
 
 
-\input{refex/ex46.tex}
+\latex{\inputlisting{refex/ex46.pp}}
+\html{\input{refex/ex46.tex}}
 
 \function{Paramstr}{(L : Longint)}{String}
 {\var{Paramstr} returns the \var{L}-th command-line argument. \var{L} must
@@ -2453,7 +2503,8 @@ For an example, see \seef{Paramcount}.
 {\seef{Cos}, \seef{Sin}}
 
 
-\input{refex/ex47.tex}
+\latex{\inputlisting{refex/ex47.pp}}
+\html{\input{refex/ex47.tex}}
 
 \function{Pos}{(Const Substr : String;Const S : String)}{Byte}
 {\var{Pos} returns the index of \var{Substr} in \var{S}, if \var{S} contains
@@ -2465,7 +2516,8 @@ The search is case-sensitive.
 {\seef{Length}, \seef{Copy}, \seep{Delete}, \seep{Insert}}
 
 
-\input{refex/ex48.tex}
+\latex{\inputlisting{refex/ex48.pp}}
+\html{\input{refex/ex48.tex}}
 
 \function{Power}{(base,expon : Real)}{Real}
 {
@@ -2476,7 +2528,8 @@ result will also be a longint.
 The function actually returns \var{Exp(expon*Ln(base))}
 }{None.}{\seef{Exp}, \seef{Ln}}
 
-\input{refex/ex78.tex}
+\latex{\inputlisting{refex/ex78.pp}}
+\html{\input{refex/ex78.tex}}
 
 \function{Ptr}{(Sel,Off : Longint)}{Pointer}
 {
@@ -2494,7 +2547,8 @@ following : \var{ptr:=pointer(\$e0000000+sel shl 4+off)} under \dos, or
 {None.}
 {\seef{Addr}}
 
-\input{refex/ex59.tex}
+\latex{\inputlisting{refex/ex59.pp}}
+\html{\input{refex/ex59.tex}}
 
 \function{Random}{[(L : longint)]}{Longint or Real}
 {\var{Random} returns a random number larger or equal to \var{0} and
@@ -2506,7 +2560,8 @@ If the argument \var{L} is omitted, a real number between 0 and 1 is returned.
 {\seep{Randomize}}
 
 
-\input{refex/ex49.tex}
+\latex{\inputlisting{refex/ex49.pp}}
+\html{\input{refex/ex49.tex}}
 
 \Procedure{Randomize}
 {\var{Randomize} initializes the random number generator of \fpc, by giving
@@ -2533,7 +2588,8 @@ be controlled with the \var{\{\$i\}} compiler switch.}
 {\seep{Readln}, \seep{Blockread}, \seep{Write}, \seep{Blockwrite}}
 
 
-\input{refex/ex50.tex}
+\latex{\inputlisting{refex/ex50.pp}}
+\html{\input{refex/ex50.tex}}
 
 \procedure{Readln}{[Var F : Text], V1 [, V2, ... , Vn])}
 {\var{Read} reads one or more values from a file \var{F}, and stores the
@@ -2568,7 +2624,8 @@ must be assigned, but not opened.}
 or doesn't exist.}
 {\seep{Erase}}
 
-\input{refex/ex77.tex}
+\latex{\inputlisting{refex/ex77.pp}}
+\html{\input{refex/ex77.tex}}
 
 \procedure{Reset}{(Var F : Any File Type[; L : longint])}
 {\var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
@@ -2580,7 +2637,8 @@ generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.}
 {\seep{Rewrite}, \seep{Assign}, \seep{Close}}
 
 
-\input{refex/ex51.tex}
+\latex{\inputlisting{refex/ex51.pp}}
+\html{\input{refex/ex51.tex}}
 
 \procedure{Rewrite}{(Var F : Any File Type[; L : longint])}
 {\var{Rewrite} opens a file \var{F} for writing. \var{F} can be any file type.
@@ -2597,7 +2655,8 @@ generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.}
 {\seep{Reset}, \seep{Assign}, \seep{Close}}
 
 
-\input{refex/ex52.tex}
+\latex{\inputlisting{refex/ex52.pp}}
+\html{\input{refex/ex52.tex}}
 
 \procedure{Rmdir}{(const S : string)}
 {\var{Rmdir} removes the  directory \var{S}.}
@@ -2605,7 +2664,8 @@ generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.}
 }
 {\seep{Chdir}, \seep{Rmdir}}
 
-\input{refex/ex53.tex}
+\latex{\inputlisting{refex/ex53.pp}}
+\html{\input{refex/ex53.tex}}
 
 \function{Round}{(X : real)}{Longint}
 {\var{Round} rounds \var{X} to the closest integer, which may be bigger or
@@ -2613,7 +2673,8 @@ smaller than \var{X}.}
 {None.}
 {\seef{Frac}, \seef{Int}, \seef{Trunc}}
 
-\input{refex/ex54.tex}
+\latex{\inputlisting{refex/ex54.pp}}
+\html{\input{refex/ex54.tex}}
 
 \procedure{Runerror}{(ErrorCode : Word)}
 {\var{Runerror} stops the execution of the program, and generates a
@@ -2621,7 +2682,8 @@ run-time error \var{ErrorCode}.}
 {None.}
 {\seep{Exit}, \seep{Halt}}
 
-\input{refex/ex55.tex}
+\latex{\inputlisting{refex/ex55.pp}}
+\html{\input{refex/ex55.tex}}
 
 \procedure{Seek}{(Var F; Count : Longint)}
 {\var{Seek} sets the file-pointer for file \var{F} to record Nr. \var{Count}.
@@ -2632,7 +2694,8 @@ is assumed.}
 the file, or the file isn't opened.}
 {\seef{Eof}, \seef{SeekEof}, \seef{SeekEoln}}
 
-\input{refex/ex56.tex}
+\latex{\inputlisting{refex/ex56.pp}}
+\html{\input{refex/ex56.tex}}
 
 \function{SeekEof}{[(Var F : text)]}{Boolean}
 {\var{SeekEof} returns \var{True} is the file-pointer is at the end of the
@@ -2649,7 +2712,8 @@ If the parameter \var{F} is omitted, standard \var{Input} is assumed.
 {A run-time error is generated if the file \var{F} isn't opened.}
 {\seef{Eof}, \seef{SeekEoln}, \seep{Seek}}
 
-\input{refex/ex57.tex}
+\latex{\inputlisting{refex/ex57.pp}}
+\html{\input{refex/ex57.tex}}
 
 \function{SeekEoln}{[(Var F : text)]}{Boolean}
 {\var{SeekEoln} returns \var{True} is the file-pointer is at the end of the
@@ -2667,7 +2731,8 @@ If the parameter \var{F} is omitted, standard \var{Input} is assumed.}
 {A run-time error is generated if the file \var{F} isn't opened.}
 {\seef{Eof}, \seef{SeekEof}, \seep{Seek}}
 
-\input{refex/ex58.tex}
+\latex{\inputlisting{refex/ex58.pp}}
+\html{\input{refex/ex58.tex}}
 
 \function{Seg}{Var X}{Longint}
 {\var{Seg} returns the segment of the address of a variable. 
@@ -2678,7 +2743,8 @@ returns always 0, since \fpc is a 32 bit compiler, segments have no meaning.
 {None.}
 {\seef{DSeg}, \seef{CSeg}, \seef{Ofs}, \seef{Ptr}}
 
-\input{refex/ex60.tex}
+\latex{\inputlisting{refex/ex60.pp}}
+\html{\input{refex/ex60.tex}}
 
 \function{SetJmp}{(Var Env : Jmp\_Buf)}{longint}
 {
@@ -2689,7 +2755,8 @@ If the function returns nonzero, then it means that a call to \seep{LongJmp}
 with \var{env} as an argument was made somewhere in the program.
 }{None.}{\seep{LongJmp}}
 
-\input{refex/ex79.tex}
+\latex{\inputlisting{refex/ex79.pp}}
+\html{\input{refex/ex79.tex}}
 
 
 \procedure{SetTextBuf}{(Var f : Text; Var Buf[; Size : Word])}
@@ -2719,7 +2786,8 @@ occur.
 {No checking on \var{Size} is done.}
 {\seep{Assign}, \seep{Reset}, \seep{Rewrite}, \seep{Append}}
 
-\input{refex/ex61.tex}
+\latex{\inputlisting{refex/ex61.pp}}
+\html{\input{refex/ex61.tex}}
 
 \function{Sin}{(X : real)}{Real}
 {\var{Sin} returns the sine of its argument \var{X}, where \var{X} is an
@@ -2727,7 +2795,8 @@ angle in radians.}
 {None.}
 {\seef{Cos}, \seef{Pi}, \seef{Exp}}
 
-\input{refex/ex62.tex}
+\latex{\inputlisting{refex/ex62.pp}}
+\html{\input{refex/ex62.tex}}
 
 \function{SizeOf}{(X : Any Type)}{Longint}
 {\var{SizeOf} Returns the size, in bytes, of any variable or type-identifier.
@@ -2737,20 +2806,23 @@ compile-time, and hard-coded in your executable.}
 {None.}
 {\seef{Addr}}
 
-\input{refex/ex63.tex}
+\latex{\inputlisting{refex/ex63.pp}}
+\html{\input{refex/ex63.tex}}
 
 \Function{Sptr}{Pointer}
 {\var{Sptr} returns the current stack pointer.
 }{None.}{}
 
-\input{refex/ex64.tex}
+\latex{\inputlisting{refex/ex64.pp}}
+\html{\input{refex/ex64.tex}}
 
 \function{Sqr}{(X : Real)}{Real}
 {\var{Sqr} returns the square of its argument \var{X}.}
 {None.}
 {\seef{Sqrt}, \seef{Ln}, \seef{Exp}}
 
-\input{refex/ex65.tex}
+\latex{\inputlisting{refex/ex65.pp}}
+\html{\input{refex/ex65.tex}}
 
 \function{Sqrt}{(X : Real)}{Real}
 {\var{Sqrt} returns the square root of its argument \var{X}, which must be
@@ -2758,7 +2830,8 @@ positive.}
 {If \var{X} is negative, then a run-time error is generated.}
 {\seef{Sqr}, \seef{Ln}, \seef{Exp}}
 
-\input{refex/ex66.tex}
+\latex{\inputlisting{refex/ex66.pp}}
+\html{\input{refex/ex66.tex}}
 
 \Function{SSeg}{Longint}
 { \var{SSeg} returns the Stack Segment. This function is only 
@@ -2766,7 +2839,8 @@ positive.}
 correct contents of the stackpointer.}
 {None.}{\seef{Sptr}}
 
-\input{refex/ex67.tex}
+\latex{\inputlisting{refex/ex67.pp}}
+\html{\input{refex/ex67.tex}}
 
 
 \procedure{Str}{(Var X[:NumPlaces[:Decimals]]; Var S : String)}
@@ -2778,7 +2852,8 @@ formatting of the string.}
 {None.}
 {\seep{Val}}
 
-\input{refex/ex68.tex}
+\latex{\inputlisting{refex/ex68.pp}}
+\html{\input{refex/ex68.tex}}
 
 \function{Swap}{(X)}{Type of X}
 {\var{Swap} swaps the high and low order bytes of \var{X} if \var{X} is of
@@ -2788,7 +2863,8 @@ type \var{Word} or \var{Integer}, or swaps the high and low order words of
 The return type is the type of \var{X}}
 {None.}{\seef{Lo}, \seef{Hi}}
 
-\input{refex/ex69.tex}
+\latex{\inputlisting{refex/ex69.pp}}
+\html{\input{refex/ex69.tex}}
 
 \function{Trunc}{(X : real)}{Longint}
 {\var{Trunc} returns the integer part of \var{X}, 
@@ -2796,7 +2872,8 @@ which is always smaller than (or equal to)  \var{X}.}
 {None.}
 {\seef{Frac}, \seef{Int}, \seef{Trunc}}
 
-\input{refex/ex70.tex}
+\latex{\inputlisting{refex/ex70.pp}}
+\html{\input{refex/ex70.tex}}
 
 \procedure{Truncate}{(Var F : file)}
 {\var{Truncate} truncates the (opened) file \var{F} at the current file
@@ -2804,7 +2881,8 @@ position.
 }{Errors are reported by IOresult.}{\seep{Append}, \seef{Filepos},
 \seep{Seek}}
 
-\input{refex/ex71.tex}
+\latex{\inputlisting{refex/ex71.pp}}
+\html{\input{refex/ex71.tex}}
 
 \function{Upcase}{(C : Char or string)}{Char or String}
 {\var{Upcase} returns the uppercase version of its argument \var{C}.
@@ -2814,7 +2892,8 @@ argument.}
 {None.}
 {\seef{Lowercase}}
 
-\input{refex/ex72.tex}
+\latex{\inputlisting{refex/ex72.pp}}
+\html{\input{refex/ex72.tex}}
 
 \procedure{Val}{(const S : string;var V;var Code : word)}
 {\var{Val} converts the value represented in the string \var{S} to a numerical
@@ -2829,7 +2908,8 @@ The string \var{S} isn't allow to contain spaces.}
 position where the conversion went wrong.}
 {\seep{Str}}
 
-\input{refex/ex74.tex}
+\latex{\inputlisting{refex/ex74.pp}}
+\html{\input{refex/ex74.tex}}
 
 \procedure{Write}{([Var F : Any filetype;] V1 [; V2; ... , Vn)]}
 {\var{Write} writes the contents of the variables \var{V1}, \var{V2} etc. to
@@ -2884,7 +2964,8 @@ customary in Unix environments.
 controlled with the \var{\{\$i\}} switch. }
 {\seep{Write}, \seep{Read}, \seep{Readln}, \seep{Blockwrite}}
 
-\input{refex/ex75.tex}
+\latex{\inputlisting{refex/ex75.pp}}
+\html{\input{refex/ex75.tex}}
 
 %
 % The index.

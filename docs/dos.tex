@@ -240,7 +240,8 @@ These settings can be coded in \var{dos.pp}, in the initialization part.
 }{-1 when a failure occurs, or an invalid \var{drivenr} is given.}  
 {\seef{DiskSize}, \seep{AddDisk}}
 
-\input{dosex/ex6.tex}
+\latex{\inputlisting{dosex/ex6.pp}}
+\html{\input{dosex/ex6.tex}}
 
 \function{DiskSize}{(Drive: byte)}{longint}{
 \var{DiskSize} returns the total size (in bytes) of a disk. The parameter
@@ -272,14 +273,16 @@ For an example, see \seef{DiskFree}.
 \var{DosExitCode} contains (in the low byte) the exit-code of a program 
 executed with the \var{Exec} call.}{None.}{\seep{Exec}}
 
-\input{dosex/ex5.tex}
+\latex{\inputlisting{dosex/ex5.pp}}
+\html{\input{dosex/ex5.tex}}
 
 \Function{DosVersion}{Word}
 {\var{DosVersion} returns the \dos version number. On \linux systems, it
 returns the Linux version (The first 2 numbers, e.g Linux version 2.1.76 will
 give you DosVersion 2.1)}{None.}{}
 
-\input{dosex/ex1.tex}
+\latex{\inputlisting{dosex/ex1.pp}}
+\html{\input{dosex/ex1.tex}}
 
 \Function{EnvCount}{longint}{
 \var{EnvCount} returns the number of environment variables.}
@@ -292,7 +295,8 @@ The index of the first pair is zero.}
 {The length is limited to 255 characters. This may cause problems under
 \linux. The \linux unit solves this problem.}{\seef{EnvCount}, \seef{GetEnv}}
 
-\input{dosex/ex13.tex}
+\latex{\inputlisting{dosex/ex13.pp}}
+\html{\input{dosex/ex13.tex}}
 
 \procedure{Exec}{(const Path: pathstr; const ComLine: comstr)}{
 \var{Exec} executes the program in \var{Path}, with the options given by
@@ -312,7 +316,8 @@ The resulting name is converted to uppercase on \dos systems. Under \linux,
 the name is left as it is. (filenames are case sensitive under Unix)
 }{\seep{FSplit}}
 
-\input{dosex/ex5.tex}
+\latex{\inputlisting{dosex/ex5.pp}}
+\html{\input{dosex/ex5.tex}}
 
 \procedure{FindClose}{(Var F: SearchRec)}{
 \textbf{\linux only}
@@ -349,7 +354,8 @@ If \var{DosError} is different from zero, no file(s) matching the criteria
 was(were) found.}{Errors are reported in DosError.}{\seep{FindNext},
 \seep{FindClose}}
 
-\input{dosex/ex7.tex}
+\latex{\inputlisting{dosex/ex7.pp}}
+\html{\input{dosex/ex7.tex}}
 
 \procedure{FindNext}{(var f: searchRec)}{
 \var{FindNext} takes as an argument a \var{SearchRec} from a previous
@@ -372,7 +378,8 @@ colons under \linux).
 When no file is found, an empty string is returned.
 }{None.}{\seefl{FExpand}{Dos:FExpand}}
 
-\input{dosex/ex10.tex}
+\latex{\inputlisting{dosex/ex10.pp}}
+\html{\input{dosex/ex10.tex}}
 
 
  
@@ -385,7 +392,8 @@ Under \linux, the extension is taken to be all letters after the last dot
 (.).
 }{None.}{\seefl{FSearch}{Dos:FSearch}}
 
-\input{dosex/ex12.tex}
+\latex{\inputlisting{dosex/ex12.pp}}
+\html{\input{dosex/ex12.tex}}
 
 \procedure{GetCBreak}{(var breakvalue: boolean)}{
 \var{GetCBreak} gets the status of CTRL-Break checking under \dos.
@@ -400,7 +408,8 @@ not implemented, i.e. the call does nothing.}{\seep{SetCBreak}}
 \var{wday} is the day of the week, starting with Sunday as day 0.}
 {None.}{\seepl{GetTime}{Dos:GetTime},\seep{SetDate}}
 
-\input{dosex/ex2.tex}
+\latex{\inputlisting{dosex/ex2.pp}}
+\html{\input{dosex/ex2.tex}}
 
 \functionl{GetEnv}{Dos:GetEnv}{(EnvVar: String)}{String}{
 \var{Getenv} returns the value of the environment variable \var{EnvVar}.
@@ -409,7 +418,8 @@ Under \linux, case is important when looking for \var{EnvVar}.
 When there is no environment variable \var{EnvVar} defined, an empty
 string is returned.}{None.}{\seef{EnvCount}, \seef{EnvStr}}
 
-\input{dosex/ex14.tex}
+\latex{\inputlisting{dosex/ex14.pp}}
+\html{\input{dosex/ex14.tex}}
 
 \procedure{GetFAttr}{(var F; var Attr: word)}{
 \var{GetFAttr} returns the file attributes of the file-variable \var{f}.
@@ -433,7 +443,8 @@ Under \linux, supported attributes are:
 \end{itemize}
 }{Errors are reported in \var{DosError}}{\seep{SetFAttr}}
 
-\input{dosex/ex8.tex}
+\latex{\inputlisting{dosex/ex8.pp}}
+\html{\input{dosex/ex8.tex}}
 
 \procedure{GetFTime}{(var F; var Time: longint)}{
 \var{GetFTime} returns the modification time of a file.
@@ -442,7 +453,8 @@ This time is encoded and must be decoded with \var{UnPackTime}.
 opened.}{Errors are reported in \var{DosError}}
 {\seep{SetFTime}, \seep{PackTime},\seep{UnPackTime}}
 
-\input{dosex/ex9.tex}
+\latex{\inputlisting{dosex/ex9.pp}}
+\html{\input{dosex/ex9.tex}}
 
 \procedure{GetIntVec}{(IntNo: byte; var Vector: pointer)}{
 \var{GetIntVec} returns the address of interrupt vector
@@ -455,7 +467,8 @@ scale. \var{sec100} is in hundredth of a
 second.}{None.}{\seepl{GetDate}{Dos:GetDate},
 \seep{SetTime}}
 
-\input{dosex/ex3.tex}
+\latex{\inputlisting{dosex/ex3.pp}}
+\html{\input{dosex/ex3.tex}}
 
 \procedure{GetVerify}{(var verify: boolean)}{
 \var{GetVerify} returns the status of the verify flag under \dos. When
@@ -489,7 +502,8 @@ to a packed-time format which can be fed to \var{SetFTime}.}
 {None.}
 {\seep{SetFTime}, \seep{FindFirst}, \seep{FindNext}, \seep{UnPackTime}}
 
-\input{dosex/ex4.tex}
+\latex{\inputlisting{dosex/ex4.pp}}
+\html{\input{dosex/ex4.tex}}
 
 \procedure{SetCBreak}{(breakvalue: boolean)}{
 \var{SetCBreak} sets the status of CTRL-Break checking under \dos.

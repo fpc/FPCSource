@@ -272,13 +272,13 @@ www-install: psdist htmldist htm
 
 psdist: $(PS)
 	tar -cvzf fpcdocps.tar.gz $(PS)
-	zip fpcdocps $(PS)
+	zip docs-ps $(PS)
 
 pdfdist: pdf
-	zip fpcdocpdf $(PDF)
+	zip docs-pdf $(PDF)
 
 dvidist: dvi
-	zip fpcdocdvi $(DVI)
+	zip docs-dvi $(DVI)
 
 htmldist: html
 	find . -name '*.html' >htmllist
@@ -286,8 +286,15 @@ htmldist: html
 	tar -czf fpcdoc.tar.gz --files-from=htmllist
 	rm -f htmllist
 
+htm: html
+	makehtm `find . -name '*.html'`
+	zip -q doc-htm `find . -name '*.htm'` `find . -name '*.gif'`
+	rm `find -name '*.htm'`
+	
+htmdist: htm
+
 txtdist: txt
-	zip fpcdoctxt $(TXT)
+	zip docs-txt $(TXT)
 
 alldist: dvidist psdist txtdist pdfdist htmldist htmdist
 
@@ -317,7 +324,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.11  1998-09-11 12:08:07  michael
+# Revision 1.12  1998-09-13 12:42:05  michael
+# Added error messages and used listings package for program examples
+#
+# Revision 1.11  1998/09/11 12:08:07  michael
 # Additional cleans
 #
 # Revision 1.10  1998/09/11 11:01:10  peter

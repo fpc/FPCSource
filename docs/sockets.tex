@@ -121,7 +121,8 @@ operation.
 }
 {\seef{Listen}, \seef{Connect}}
 
-\input{sockex/sock_svr.tex}
+\latex{\inputlisting{sockex/sock_svr.pp}}
+\html{\input{sockex/sock_svr.tex}}
 
 \functionl{Accept}{AltAAccept}{(Sock:longint;var addr:string;var SockIn,SockOut:text)}{Boolean}
 { This is an alternate form of the \seef{Accept} command. It is equivalent
@@ -197,7 +198,8 @@ make, but is generally one of \var{TSockAddr} or \var{TUnixSockAddr}.
 {Errors are reported in \var{SocketError}.}
 {\seef{Listen}, \seef{Bind},\seef{Accept}}
 
-\input{sockex/sock_cli.tex}
+\latex{\inputlisting{sockex/sock_cli.pp}}
+\html{\input{sockex/sock_cli.tex}}
 
 \functionl{Connect}{AltAConnect}{(Sock:longint;const addr:string;var SockIn,SockOut:text)}{Boolean}
 { This is an alternate form of the \seef{Connect} command. 
@@ -231,7 +233,8 @@ The function returns \var{True} if successfull, \var{False} otherwise.
 }{The errors are those of \seef{Connect}.}
 {\seef{Connect}}
 
-\input{sockex/pfinger.tex}
+\latex{\inputlisting{sockex/pfinger.pp}}
+\html{\input{sockex/pfinger.tex}}
 
 \function{GetPeerName}{(Sock:Longint;Var Addr;Var Addrlen:Longint)}{Longint}
 {\var{GetPeerName} returns the name of the entity connected to the 

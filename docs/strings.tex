@@ -43,7 +43,8 @@ Attaches \var{Source} to \var{Dest} and returns \var{Dest}.
 {No length checking is performed.}
 {\seem{Concat}{}}
 
-\input{stringex/ex11.tex}
+\latex{\inputlisting{stringex/ex11.pp}}
+\html{\input{stringex/ex11.tex}}
 
 \function{StrComp}{(S1,S2 : PChar)}{Longint}
 {
@@ -68,7 +69,8 @@ returns a pointer to \var{Dest}. \var{Dest} needs enough room to contain
 }
 {No length checking is performed.}{ \seef{StrPCopy}, \seef{StrLCopy}, \seef{StrECopy}}
 
-\input{stringex/ex4.tex}
+\latex{\inputlisting{stringex/ex4.pp}}
+\html{\input{stringex/ex4.tex}}
 
 \procedure{StrDispose}{(P : PChar)}
 {
@@ -76,7 +78,8 @@ Removes the string in \var{P} from the heap and releases the memory.
 }
 {None.}{\seem{Dispose}{}, \seef{StrNew}}
 
-\input{stringex/ex17.tex}
+\latex{\inputlisting{stringex/ex17.pp}}
+\html{\input{stringex/ex17.tex}}
 
 \function{StrECopy}{(Dest,Source : PChar)}{PChar}
 {
@@ -87,7 +90,8 @@ copied string.
 {No length checking is performed.}
 {\seef{StrLCopy}, \seef{StrCopy}}
 
-\input{stringex/ex6.tex}
+\latex{\inputlisting{stringex/ex6.pp}}
+\html{\input{stringex/ex6.tex}}
 
 \function{StrEnd}{(P : PChar)}{PChar}
 {
@@ -96,7 +100,8 @@ null-character.
 }
 {None.}{\seef{StrLen}}
 
-\input{stringex/ex7.tex}
+\latex{\inputlisting{stringex/ex7.pp}}
+\html{\input{stringex/ex7.tex}}
 
 \function{StrIComp}{(S1,S2 : PChar)}{Longint}
 {
@@ -111,7 +116,8 @@ The result is
 }
 {None.}{\seef{StrLComp}, \seef{StrComp}, \seef{StrLIComp}}
 
-\input{stringex/ex8.tex}
+\latex{\inputlisting{stringex/ex8.pp}}
+\html{\input{stringex/ex8.tex}}
 
 \function{StrLCat}{(Dest,Source : PChar; MaxLen : Longint)}{PChar}
 {
@@ -120,7 +126,8 @@ terminating null-character. Returns \var{Dest}.
 }
 {None.}{\seef{StrCat}}
 
-\input{stringex/ex12.tex}
+\latex{\inputlisting{stringex/ex12.pp}}
+\html{\input{stringex/ex12.tex}}
 
 \function{StrLComp}{(S1,S2 : PChar; L : Longint)}{Longint}
 {
@@ -136,7 +143,8 @@ The result is
 }
 {None.}{\seef{StrComp}, \seef{StrIComp}, \seef{StrLIComp}}
 
-\input{stringex/ex8.tex}
+\latex{\inputlisting{stringex/ex8.pp}}
+\html{\input{stringex/ex8.tex}}
 
 \function{StrLCopy}{(Dest,Source : PChar; MaxLen : Longint)}{PChar}
 {
@@ -146,7 +154,8 @@ Copies \var{MaxLen} characters from \var{Source} to \var{Dest}, and makes
 {No length checking is performed.}
 {\seef{StrCopy}, \seef{StrECopy}}
  
-\input{stringex/ex5.tex}
+\latex{\inputlisting{stringex/ex5.pp}}
+\html{\input{stringex/ex5.tex}}
 
 \function{StrLen}{(p : PChar)}{Longint}
 {
@@ -154,7 +163,8 @@ Returns the length of the null-terminated string \var{P}.
 }
 {None.}{\seem{Length}{}}
 
-\input{stringex/ex1.tex}
+\latex{\inputlisting{stringex/ex1.pp}}
+\html{\input{stringex/ex1.tex}}
 
 \function{StrLIComp}{(S1,S2 : PChar; L : Longint)}{Longint}
 {
@@ -178,7 +188,8 @@ Converts \var{P} to an all-lowercase string. Returns \var{P}.
 }
 {None.}{\seem{Upcase}{}, \seef{StrUpper}}
 
-\input{stringex/ex14.tex}
+\latex{\inputlisting{stringex/ex14.pp}}
+\html{\input{stringex/ex14.tex}}
 
 \function{StrMove}{(Dest,Source : PChar; MaxLen : Longint)}{PChar}
 {
@@ -188,7 +199,8 @@ Returns \var {Dest}.
 }
 {None.}{\seef{StrLCopy}, \seef{StrCopy}}
 
-\input{stringex/ex10.tex}
+\latex{\inputlisting{stringex/ex10.pp}}
+\html{\input{stringex/ex10.tex}}
 
 \function{StrNew}{(P : PChar)}{PChar}
 {
@@ -197,7 +209,8 @@ Copies \var{P} to the Heap, and returns a pointer to the copy.
 {Returns \var{Nil} if no memory was available for the copy.}
 {\seem{New}{}, \seef{StrCopy}, \seep{StrDispose}}
 
-\input{stringex/ex16.tex}
+\latex{\inputlisting{stringex/ex16.pp}}
+\html{\input{stringex/ex16.tex}}
 
 \function {StrPas}{(P : PChar)}{String}
 {
@@ -206,7 +219,8 @@ this string. The string is truncated at 255 characters.
 }
 {None.}{ \seef{StrPCopy}}
 
-\input{stringex/ex3.tex}
+\latex{\inputlisting{stringex/ex3.pp}}
+\html{\input{stringex/ex3.tex}}
 
 \function{StrPCopy}{(Dest : PChar; Const Source : String)}{PChar}
 {
@@ -216,7 +230,8 @@ the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
 }
 {No length checking is performed.}{ \seef{StrPas}}
 
-\input{stringex/ex2.tex}
+\latex{\inputlisting{stringex/ex2.pp}}
+\html{\input{stringex/ex2.tex}}
 
 \function{StrPos}{(S1,S2 : PChar)}{PChar}
 {
@@ -225,7 +240,8 @@ If \var{S2} does not occur in \var{S1}, returns \var{Nil}.
 }
 {None.}{\seem{Pos}{}, \seef{StrScan}, \seef{StrRScan}}
 
-\input{stringex/ex15.tex}
+\latex{\inputlisting{stringex/ex15.pp}}
+\html{\input{stringex/ex15.tex}}
 
 \function{StrRScan}{(P : PChar; C : Char)}{PChar}
 {
@@ -245,7 +261,8 @@ null-terminated string \var{P}. If \var{C} does not occur, returns
 }
 {None.}{\seem{Pos}{}, \seef{StrRScan}, \seef{StrPos}}
 
-\input{stringex/ex13.tex}
+\latex{\inputlisting{stringex/ex13.pp}}
+\html{\input{stringex/ex13.tex}}
 
 \function{StrUpper}{(P : PChar)}{PChar}
 {

@@ -427,7 +427,8 @@ dangling symbolic link.
 }
 {\seef{Chown}, \seef{Chmod}, \seem{Access}{2} }
 
-\input{linuxex/ex26.tex}
+\latex{\inputlisting{linuxex/ex26.pp}}
+\html{\input{linuxex/ex26.tex}}
 
 \procedure{AssignPipe}{(Pipe\_in, Pipe\_out : Text)}
 {\var{AssignePipe} creates a pipe, i.e. two file objects, one for input, one for output.
@@ -443,7 +444,8 @@ Reading and writing happens through the usual \var{Readln(Pipe\_in,...)} and
 }
 {\seep{POpen}, \seef{MkFifo}, \seem{pipe}{2}}
 
-\input{linuxex/ex36.tex}
+\latex{\inputlisting{linuxex/ex36.pp}}
+\html{\input{linuxex/ex36.tex}}
 
 \procedure{AssignStream}{(StreamIn,StreamOut : Text; Const prog : String)}
 {\var{AssignStream} creates a 2 pipes, i.e. two file objects, one for input, one for
@@ -465,7 +467,8 @@ Other errors include the ones by the fork and exec programs
 }
 {\seep{AssignPipe}, \seep{POpen},\seem{pipe}{2}}
 
-\input{linuxex/ex38.tex}
+\latex{\inputlisting{linuxex/ex38.pp}}
+\html{\input{linuxex/ex38.tex}}
 
 \function{BaseName}{(Const Path;Suf : Pathstr)}{Pathstr}
 {Returns the filename part of \var{Path}, stripping off \var{Suf} if it
@@ -480,7 +483,8 @@ root directory.
 {None.}
 {\seef{DirName}, \seef{FExpand}, \seem{Basename}{1}}
 
-\input{linuxex/ex48.tex}
+\latex{\inputlisting{linuxex/ex48.pp}}
+\html{\input{linuxex/ex48.tex}}
 
 \procedure{CFMakeRaw}{(var Tios:TermIOS)}
 { \var{CFMakeRaw}
@@ -534,7 +538,8 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 }
 {\seef{Chmod}, \seef{Access}, \seem{Chown}(2)}
 
-\input{linuxex/ex24.tex}
+\latex{\inputlisting{linuxex/ex24.pp}}
+\html{\input{linuxex/ex24.tex}}
 
 \function{Chmod}{(Path : Pathstr;NewMode : Longint)}{Boolean}
 { \var{Chmod}
@@ -577,7 +582,8 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 }
 {\seef{Chown}, \seef{Access}, \seem{Chmod}(2)}
 
-\input{linuxex/ex23.tex}
+\latex{\inputlisting{linuxex/ex23.pp}}
+\html{\input{linuxex/ex23.tex}}
 
 \function{CloseDir}{(p:pdir)}{integer}
 { \var{CloseDir} closes the directory pointed to by \var{p}.
@@ -600,7 +606,8 @@ root directory.
 {None.}
 {\seef{BaseName}, \seef{FExpand}, \seem{Dirname}{1}}
 
-\input{linuxex/ex47.tex}
+\latex{\inputlisting{linuxex/ex47.pp}}
+\html{\input{linuxex/ex47.tex}}
 
 \procedure{Dup}{(Var OldFile, NewFile : Text)}
 {
@@ -620,7 +627,8 @@ fileposition in both files.
 }
 {\seep{Dup2}, \seem{Dup}{2} }
 
-\input{linuxex/ex31.tex}
+\latex{\inputlisting{linuxex/ex31.pp}}
+\html{\input{linuxex/ex31.tex}}
 
 \procedure{Dup2}{(Var OldFile, NewFile : Text)}
 {
@@ -642,7 +650,8 @@ fileposition in both files.
 }
 { \seep{Dup}, \seem{Dup2}{2} }
 
-\input{linuxex/ex32.tex}
+\latex{\inputlisting{linuxex/ex32.pp}}
+\html{\input{linuxex/ex32.tex}}
 
 \procedure{EpochToLocal}
 {(Epoch : Longint; var Year,Month,Day,Hour,Minute,Second : Word)}
@@ -653,7 +662,8 @@ Converts the epoch time (=Number of seconds since 00:00:00 , January 1,
 {None}
 {\seef{GetEpochTime}, \seef{LocalToEpoch}, \seep{GetTime},\seep{GetDate} }
 
-\input{linuxex/ex3.tex}
+\latex{\inputlisting{linuxex/ex3.pp}}
+\html{\input{linuxex/ex3.tex}}
 
 \procedure{Execl}
 {(Path : pathstr)}
@@ -680,7 +690,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execv}, \seep{Execvp}, \seep{Execle},
  \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} }
 
-\input{linuxex/ex10.tex}
+\latex{\inputlisting{linuxex/ex10.pp}}
+\html{\input{linuxex/ex10.tex}}
 
 \procedure{Execle}
 {(Path : pathstr, Ep : ppchar)}
@@ -708,7 +719,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execv}, \seep{Execvp},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} }
 
-\input{linuxex/ex11.tex}
+\latex{\inputlisting{linuxex/ex11.pp}}
+\html{\input{linuxex/ex11.tex}}
 
 \procedure{Execlp}
 {(Path : pathstr)}
@@ -736,7 +748,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execv}, \seep{Execvp}, \seep{Execle},
 \seep{Execl}, \seef {Fork}, \seem{execvp}{3} }
 
-\input{linuxex/ex12.tex}
+\latex{\inputlisting{linuxex/ex12.pp}}
+\html{\input{linuxex/ex12.tex}}
 
 \procedure{Execv}
 {(Path : pathstr; args : ppchar)}
@@ -765,7 +778,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execvp}, \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execv}{3} }
 
-\input{linuxex/ex8.tex}
+\latex{\inputlisting{linuxex/ex8.pp}}
+\html{\input{linuxex/ex8.tex}}
 
 \procedure{Execve}
 {(Path : pathstr; args,ep : ppchar)}
@@ -793,7 +807,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execv}, \seep{Execvp} \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execve}{2} }
 
-\input{linuxex/ex7.tex}
+\latex{\inputlisting{linuxex/ex7.pp}}
+\html{\input{linuxex/ex7.tex}}
 
 \procedure{Execvp}
 {(Path : pathstr; args : ppchar)}
@@ -822,7 +837,8 @@ A compononent of the path has no search permission.
 {\seep{Execve}, \seep{Execv}, \seep{Execle},
 \seep{Execl}, \seep{Execlp}, \seef {Fork}, \seem{execvp}{3} }
 
-\input{linuxex/ex9.tex}
+\latex{\inputlisting{linuxex/ex9.pp}}
+\html{\input{linuxex/ex9.tex}}
 
 
 \procedurel{FD\_Clear}{FDClear}{(var fds:fdSet)}
@@ -914,7 +930,8 @@ For an example, see \seef{fdRead}.
 {\seef{fdClose}, \seef{fdRead}, \seef{fdWrite},\seef{fdTruncate},
 \seef{fdFlush}, \seef{fdSeek}}
 
-\input{linuxex/ex19.tex}
+\latex{\inputlisting{linuxex/ex19.pp}}
+\html{\input{linuxex/ex19.tex}}
 
 \function{fdRead}{(fd:longint;var buf;size:longint}{longint}
 { \var{fdRead} reads at most \var{size} bytes from the file descriptor
@@ -929,7 +946,8 @@ No checking on the length of \var{buf} is done.
 {\seef{fdOpen}, \seef{fdClose}, \seef{fdWrite},\seef{fdTruncate},
 \seef{fdFlush}, \seef{fdSeek}}
 
-\input{linuxex/ex20.tex}
+\latex{\inputlisting{linuxex/ex20.pp}}
+\html{\input{linuxex/ex20.tex}}
 
 \function{fdSeek}{(fd,Pos,SeekType:longint}{longint}  
 {\var{fdSeek} sets the current fileposition of file \var{fd} to
@@ -978,7 +996,8 @@ eliminating directory references such as . and .. from the result.
 {None}
 {\seef{BaseName},\seef{DirName} }
 
-\input{linuxex/ex45.tex}
+\latex{\inputlisting{linuxex/ex45.pp}}
+\html{\input{linuxex/ex45.tex}}
 
 \procedure{FLock}{(Var F; Mode : longint)}
 {\var{FLock} implements file locking. it sets or removes a lock on the file
@@ -1017,7 +1036,8 @@ failed.
 }
 {\seef{FStat}, \seef{LStat}, \seem{statfs}{2}}
 
-\input{linuxex/ex30.tex}
+\latex{\inputlisting{linuxex/ex30.pp}}
+\html{\input{linuxex/ex30.tex}}
 
 \function{FSearch}{(Path : pathstr;DirList : string)}{Pathstr}
 { Searches in \var{DirList}, a colon separated list of directories,
@@ -1025,7 +1045,8 @@ for a file named \var{Path}. It then returns a path to the found file.}
 {An empty string if no such file was found.}
 {\seef{BaseName}, \seef{DirName}, \seef{FExpand} }
 
-\input{linuxex/ex46.tex}
+\latex{\inputlisting{linuxex/ex46.pp}}
+\html{\input{linuxex/ex46.tex}}
 
 \function{FStat}{(Path : Pathstr; Var Info : stat)}{Boolean}
 {
@@ -1042,7 +1063,8 @@ failed.
 }
 {\seef{FSStat}, \seef{LStat}, \seem{stat}{2}}
 
-\input{linuxex/ex28.tex}
+\latex{\inputlisting{linuxex/ex28.pp}}
+\html{\input{linuxex/ex28.tex}}
 
 \function{Fcntl}{(Fd :  text, Cmd : Integer)}{Integer}
 {
@@ -1105,7 +1127,8 @@ process. (you can get the parent's PID with \seef{GetPPid}).
 }
 {\seep{Execve}, \seem{fork}{2}}
 
-\input{linuxex/ex14.tex}
+\latex{\inputlisting{linuxex/ex14.pp}}
+\html{\input{linuxex/ex14.tex}}
 
 \procedure{GetDate}
 { (Var Year, Month, Day : Word) }
@@ -1115,7 +1138,8 @@ Returns the current day.
 {None}
 {\seef{GetEpochTime}, \seep{GetTime}, \seep{EpochToLocal} }
 
-\input{linuxex/ex6.tex}
+\latex{\inputlisting{linuxex/ex6.pp}}
+\html{\input{linuxex/ex6.tex}}
 
 \function{GetDomainName}{}{String}
 {
@@ -1125,21 +1149,24 @@ An empty string is returned if the domain is not set.
 {None.}
 { \seef{GetHostName},seem{Getdomainname}{2} }
 
-\input{linuxex/ex39.tex}
+\latex{\inputlisting{linuxex/ex39.pp}}
+\html{\input{linuxex/ex39.tex}}
 
 \function{GetEGid}{}{Longint}
 { Get the effective group ID of the currently running process.}
 {None.}
 {\seef{GetGid}, \seem{getegid}{2} }
 
-\input{linuxex/ex18.tex}
+\latex{\inputlisting{linuxex/ex18.pp}}
+\html{\input{linuxex/ex18.tex}}
 
 \function{GetEUid}{}{Longint}
 { Get the effective user ID of the currently running process.}
 {None.}
 {\seef{GetEUid}, \seem{geteuid}{2} }
 
-\input{linuxex/ex17.tex}
+\latex{\inputlisting{linuxex/ex17.pp}}
+\html{\input{linuxex/ex17.tex}}
 
 \function{GetEnv}{(P : String)}{PChar}
 {Returns the value of the environment variable in \var{P}. If the variable is
@@ -1152,7 +1179,8 @@ A PChar is returned to accomodate for strings longer than 255 bytes,
 {None.}
 {\seem{sh}{1}, \seem{csh}{1} }
 
-\input{linuxex/ex41.tex}
+\latex{\inputlisting{linuxex/ex41.pp}}
+\html{\input{linuxex/ex41.tex}}
 
 \function{GetEpochTime}{}{longint}
 {
@@ -1162,7 +1190,8 @@ it is adjusted to the local time zone, but not to DST.
 {no errors}
 {\seep{EpochToLocal}, \seep{GetTime}, \seem{time}{2}}
 
-\input{linuxex/ex1.tex}
+\latex{\inputlisting{linuxex/ex1.pp}}
+\html{\input{linuxex/ex1.tex}}
 \function{GetFS}{(Var F : Any File Type)}{Longint}
 {\var{GetFS} returns the file selector that the kernel provided for your
 file. In principle you don' need this file selector. Only for some calls
@@ -1170,14 +1199,16 @@ it is needed, such as the \seef{Select} call or so.}
 {In case the file was not opened, then -1 is returned.}
 {\seef{Select}}
 
-\input{linuxex/ex34.tex}
+\latex{\inputlisting{linuxex/ex34.pp}}
+\html{\input{linuxex/ex34.tex}}
 
 \function{GetGid}{}{Longint}
 { Get the real group ID of the currently running process.}
 {None.}
 {\seef{GetEGid}, \seem{getgid}{2} }
 
-\input{linuxex/ex18.tex}
+\latex{\inputlisting{linuxex/ex18.pp}}
+\html{\input{linuxex/ex18.tex}}
 \function{GetHostName}{}{String}
 {
 Get the hostname of the machine on which the process is running.
@@ -1186,14 +1217,16 @@ An empty string is returned if hostname is not set.
 {None.}
 { \seef{GetDomainName},seem{Gethostname}{2} }
 
-\input{linuxex/ex40.tex}
+\latex{\inputlisting{linuxex/ex40.pp}}
+\html{\input{linuxex/ex40.tex}}
 
 \function{GetPid}{}{Longint}
 { Get the Process ID of the currently running process.}
 {None.}
 {\seef{GetPPid}, \seem{getpid}{2}}
 
-\input{linuxex/ex16.tex}
+\latex{\inputlisting{linuxex/ex16.pp}}
+\html{\input{linuxex/ex16.tex}}
 
 
 \function{GetPPid}{}{Longint}
@@ -1201,7 +1234,8 @@ An empty string is returned if hostname is not set.
 {None.}
 {\seef{GetPid}, \seem{getppid}{2}}
 
-\input{linuxex/ex16.tex}
+\latex{\inputlisting{linuxex/ex16.pp}}
+\html{\input{linuxex/ex16.tex}}
 
 \function{GetPriority}{(Which,Who : Integer)}{Integer}
 {
@@ -1231,14 +1265,16 @@ Returns the current time of the day.
 {None}
 {\seef{GetEpochTime}, \seep{GetDate}, \seep{EpochToLocal} }
 
-\input{linuxex/ex5.tex}
+\latex{\inputlisting{linuxex/ex5.pp}}
+\html{\input{linuxex/ex5.tex}}
 
 \function{GetUid}{}{Longint}
 { Get the real user ID of the currently running process.}
 {None.}
 {\seef{GetEUid}, \seem{getuid}{2} }
 
-\input{linuxex/ex17.tex}
+\latex{\inputlisting{linuxex/ex17.pp}}
+\html{\input{linuxex/ex17.tex}}
 
 \function{Glob}{(Const Path : Pathstr)}{PGlob}
 {
@@ -1256,7 +1292,8 @@ usual meaning.
 }
 {\seep{GlobFree}, \seem{Glob}{3} }
 
-\input{linuxex/ex49.tex}
+\latex{\inputlisting{linuxex/ex49.pp}}
+\html{\input{linuxex/ex49.tex}}
 
  \procedure{GlobFree}{(Var P : Pglob)}
  {Releases the memory, occupied by a pglob structure. \var{P} is set to nil.}{None}
@@ -1281,7 +1318,8 @@ function, that's why we don't list them here
 }
 {\seem{ioctl}{2}}
 
-\input{linuxex/ex54.tex}
+\latex{\inputlisting{linuxex/ex54.pp}}
+\html{\input{linuxex/ex54.tex}}
 
 \function{IOperm}{(From,Num : Cadinal; Value : Longint)}{boolean}
 {\var{IOperm}
@@ -1387,7 +1425,8 @@ symbolic link. If so it returns \var{True}
  \seefl{S\_ISSOCK}{ISSOCK}
 }
 
-\input{linuxex/ex53.tex}
+\latex{\inputlisting{linuxex/ex53.pp}}
+\html{\input{linuxex/ex53.tex}}
 
 
 \functionl{S\_ISREG}{ISREG}{(m:integer)}{boolean}
@@ -1457,7 +1496,8 @@ failed.
 }
 {\seef{FStat}, \seef{FSStat}, \seem{stat}{2}}
 
-\input{linuxex/ex29.tex}
+\latex{\inputlisting{linuxex/ex29.pp}}
+\html{\input{linuxex/ex29.tex}}
 
 \function{Link}{(OldPath,NewPath : pathstr)}{Boolean}
 {\var{Link} makes \var{NewPath} point to the same file als \var{OldPath}. The two files
@@ -1492,7 +1532,8 @@ entry.
 }
 {\seef{SymLink}, \seef{UnLink}, \seem{Link}{2} }
 
-\input{linuxex/ex21.tex}
+\latex{\inputlisting{linuxex/ex21.pp}}
+\html{\input{linuxex/ex21.tex}}
 
 
 
@@ -1504,7 +1545,8 @@ Converts the Local time to epoch time (=Number of seconds since 00:00:00 , Janua
 {None}
 {\seef{GetEpochTime}, \seep{EpochToLocal}, \seep{GetTime},\seep{GetDate} }
 
-\input{linuxex/ex4.tex}
+\latex{\inputlisting{linuxex/ex4.pp}}
+\html{\input{linuxex/ex4.tex}}
 
 \function{MkFifo}{(PathName: String; Mode : Longint)}{Boolean}
 {\var{MkFifo} creates named a named pipe in the filesystem, with name
@@ -1532,7 +1574,8 @@ do a priority increase.
 \end{description}
 }{\seef{GetPriority}, \seef{SetPriority}, \seem{Nice}{2}}
 
-\input{linuxex/ex15.tex}
+\latex{\inputlisting{linuxex/ex15.pp}}
+\html{\input{linuxex/ex15.tex}}
 
 \function{OpenDir}{(f:pchar)}{pdir}
 { \var{OpenDir} opens the directory  \var{f}, and returns a \var{pdir}
@@ -1542,7 +1585,8 @@ structure. If the directory cannot be opened, \var{nil} is returned.}
 {\seef{CloseDir}, \seef{ReadDir}, \seep{SeekDir}, \seef{TellDir},
 \seem{opendir}{3}}
 
-\input{linuxex/ex35.tex}
+\latex{\inputlisting{linuxex/ex35.pp}}
+\html{\input{linuxex/ex35.tex}}
 
 \function{PClose}{(Var F : FileType)}{longint}
 { \var{PClose} closes a file opened with \var{POpen}. It waits for the
@@ -1573,7 +1617,8 @@ Execve, Dup and AssignPipe commands.
 }
 {\seep{AssignPipe}, \seem{popen}{3}, \seef{PClose}}
 
-\input{linuxex/ex37.tex}
+\latex{\inputlisting{linuxex/ex37.pp}}
+\html{\input{linuxex/ex37.tex}}
 
 \function{ReadDir}{(p:pdir)}{pdirent}
 {\var{ReadDir} reads the next entry in the directory pointed to by \var{p}.
@@ -1648,7 +1693,8 @@ On error, -1 is returned.}
 \seepl{FD\_Set}{FDSet}, 
 \seefl{FD\_IsSet}{FDIsSet}}
 
-\input{linuxex/ex33.tex}
+\latex{\inputlisting{linuxex/ex33.pp}}
+\html{\input{linuxex/ex33.tex}}
 
 \function{SelectText}{( var T : Text; TimeOut :PTime)}{Longint}
 {\var{SelectText} executes the \seef{Select} call on a file of type
@@ -1697,7 +1743,8 @@ or \seep{Execve} calls.
 {Errors are reported in LinuxError.}
 {\seep{POpen}, \seef{Fork}, \seep{Execve}, \seem{system}{3}}
 
-\input{linuxex/ex56.tex}
+\latex{\inputlisting{linuxex/ex56.pp}}
+\html{\input{linuxex/ex56.tex}}
 
 \procedure{SigAction}{(Signum : Integer; Var Act,OldAct : PSigActionRec)}
 { Changes the action to take upon receipt of a signal. \var{Act} and
@@ -1740,7 +1787,8 @@ from within its own signal handler.
 \seem{Sigaction}{2}
 }
 
-\input{linuxex/ex57.tex}
+\latex{\inputlisting{linuxex/ex57.pp}}
+\html{\input{linuxex/ex57.tex}}
 
 \function{SigPending}{}{SigSet}
 {
@@ -1796,7 +1844,8 @@ The return value for Signal is the old signal handler, or nil on error.
 }
 {\seep{SigAction},\seef{Kill}, \seem{Signal}{2} }
 
-\input{linuxex/ex58.tex}
+\latex{\inputlisting{linuxex/ex58.pp}}
+\html{\input{linuxex/ex58.tex}}
 
 \function{SymLink}{(OldPath,NewPath : pathstr)}{Boolean}
 {\var{SymLink} makes \var{Newpath} point to the file in \var{OldPath}, which doesn't
@@ -1831,7 +1880,8 @@ entry.
 }
 {\seef{Link}, \seef{UnLink}, \seem{Symlink}{2} }
 
-\input{linuxex/ex22.tex}
+\latex{\inputlisting{linuxex/ex22.pp}}
+\html{\input{linuxex/ex22.tex}}
 
 \function{TCDrain}{(Fd:longint)}{Boolean}
 { \var{TCDrain}
@@ -1890,7 +1940,8 @@ otherwise.
 {Errors are reported in LinuxError}
 {\seef{TCSetAttr}, \seem{termios}{2} }
 
-\input{linuxex/ex55.tex}
+\latex{\inputlisting{linuxex/ex55.pp}}
+\html{\input{linuxex/ex55.tex}}
 
 \function{TCGetPGrp}{(Fd:longint;var Id:longint)}{boolean}
 { \var{TCGetPGrp}
@@ -1975,7 +2026,8 @@ current mask is returned.
 {None}
 {\seef{Chmod}, \seem{Umask}{2}}
 
-\input{linuxex/ex27.tex}
+\latex{\inputlisting{linuxex/ex27.pp}}
+\html{\input{linuxex/ex27.tex}}
 
 \procedure{Uname}{(var unamerec:utsname)}
 {\var{Uname} gets the name and configuration of the current \linux kernel,
@@ -2034,7 +2086,8 @@ Other errors may occur, but aren't documented.
 }
 {\seef{GetEpochTime}, \seef{Chown}, \seef{Access}, \seem{utime}(2)}
 
-\input{linuxex/ex25.tex}
+\latex{\inputlisting{linuxex/ex25.pp}}
+\html{\input{linuxex/ex25.tex}}
 
 \function{WaitPid}{(Pid : longint; Status : pointer; Options : Integer)}{Longint}
 { \var{WaitPid} waits for a child process with process ID \var{Pid} to exit. The

@@ -207,7 +207,8 @@ second controller).
 
 The following example shows how to redirect the keyboard interrupt.
 
-\input{go32ex/keyclick.tex}
+\latex{\inputlisting{go32ex/keyclick.pp}}
+\html{\input{go32ex/keyclick.tex}}
 
 \subsection{Software interrupts}
 
@@ -228,9 +229,11 @@ See also \seefl{set\_rm\_interrupt}{setrminterrupt},
 
 The following examples illustrate the use of software interrupts.
 
-\input{go32ex/softint.tex}
+\latex{\inputlisting{go32ex/softint.pp}}
+\html{\input{go32ex/softint.tex}}
 
-\input{go32ex/rmpm_int.tex}
+\latex{\inputlisting{go32ex/rmpm_int.pp}}
+\html{\input{go32ex/rmpm_int.tex}}
 
 \subsection{Real mode callbacks}
 
@@ -454,7 +457,8 @@ Check int31error variable
 \seefl{set\_segment\_base\_address}{setsegmentbaseaddress} 
 }
 
-\input{go32ex/sel_des.tex}
+\latex{\inputlisting{go32ex/sel_des.pp}}
+\html{\input{go32ex/sel_des.tex}}
 
 \functionl{free\_ldt\_descriptor}{freeldtdescriptor}{(des : Word)}{boolean}
 {
@@ -713,7 +717,8 @@ obtained with the \seefl{get\_page\_size}{getpagesize}  function.
 {Check the int31error variable}
 {\seefl{get\_page\_size}{getpagesize} }
 
-\input{go32ex/meminfo.tex}
+\latex{\inputlisting{go32ex/meminfo.pp}}
+\html{\input{go32ex/meminfo.tex}}
 
 \functionl{allocate\_memory\_block}{allocatememoryblock}
 {(size:Longint)}{Longint}{
@@ -820,7 +825,8 @@ should only be freed by a \seefl{global\_dos\_free}{globaldosfree}  call.
 }{ Check int31error variable}
 { \seefl{global\_dos\_free}{globaldosfree} }
 
-\input{go32ex/buffer.tex}
+\latex{\inputlisting{go32ex/buffer.pp}}
+\html{\input{go32ex/buffer.tex}}
 
 \functionl{global\_dos\_free}{globaldosfree}{(selector :
 Word)}{boolean}{
@@ -950,7 +956,8 @@ Notes: No range check is performed.
 \seepl{seg\_fillchar}{segfillchar},
 \seepl{seg\_fillword}{segfillword} }
 
-\input{go32ex/textmess.tex}
+\latex{\inputlisting{go32ex/textmess.pp}}
+\html{\input{go32ex/textmess.tex}}
 
 \procedure{dosmemfillword}{(seg,ofs : Word; count : Longint; w : Word)}
 {
@@ -1066,7 +1073,8 @@ address.
 \seefl{set\_rm\_interrupt}{setrminterrupt},
 \seefl{get\_rm\_interrupt}{getrminterrupt} }
 
-\input{go32ex/int_pm.tex}
+\latex{\inputlisting{go32ex/int_pm.pp}}
+\html{\input{go32ex/int_pm.tex}}
 
 \Procedure{disable}{
 
@@ -1111,7 +1119,8 @@ executing an IRET.
 }{}
 
 %For an example, see \seefl{global\_dos\_alloc}{globaldosalloc}.
-\input{go32ex/flags.tex}
+\latex{\inputlisting{go32ex/flags.pp}}
+\html{\input{go32ex/flags.tex}}
 
 \functionl{get\_rm\_callback}{getrmcallback}
 {(pm\_func : pointer; const reg : trealregs; var rmcb: tseginfo)}{boolean}
@@ -1138,7 +1147,8 @@ but only at the time of the actual callback.
 }{Check int31error variable}
 {\seefl{free\_rm\_callback}{freermcallback} }
 
-\input{go32ex/callback.tex}
+\latex{\inputlisting{go32ex/callback.pp}}
+\html{\input{go32ex/callback.tex}}
 
 \functionl{free\_rm\_callback}{freermcallback}{(var intaddr : tseginfo)}{boolean}
 {
@@ -1361,7 +1371,8 @@ Notes: No range check is done in any way.
 \seepl{dosmemput}{dosmemput},
 \seepl{dosmemmove}{dosmemmove} }
 
-\input{go32ex/vgasel.tex}
+\latex{\inputlisting{go32ex/vgasel.pp}}
+\html{\input{go32ex/vgasel.tex}}
 
 \procedurel{seg\_fillword}{segfillword}
 {(seg : Word; ofs : Longint; count : Longint; w :Word)}
@@ -1522,4 +1533,5 @@ Return values: One of the constants used by this function
 {none }
 { constants returned by \seefl{get\_run\_mode}{getrunmode}  }
 
-\input{go32ex/getrunmd.tex}
+\latex{\inputlisting{go32ex/getrunmd.pp}}
+\html{\input{go32ex/getrunmd.tex}}
