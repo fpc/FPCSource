@@ -1,200 +1,213 @@
 $Id$
 
+The Free Pascal *BSD port.
+
 Comments, mistakes and suggestions to Marco@freepascal.org
 
-1 FreeBSD status and notes. (kept on CVS because I work on several places)
+Since the last update to this document, I added the Net and OpenBSD ports,
+so now it is a *BSD port. I don't own BSDi or a Mac OS X, or even accounts
+on an intel system so that'll have to wait.  (the Mac OS X/Darwin port
+will definitely take off if the PPC codegenerator is fully working)
+
+In 1.1.x branch, the tree RTLs will be merged into one, for easier
+maintaining, this will hopefully increase the Open and NetBSD ports
+somewhat. 
+
+I'm actively searching for test accounts on Open and NetBSD/i386 (and
+in the future also for other processors).
+Requirements: minimal:   some MBs account, permanent connection, 100 MHz+
+			  (speed not that important)
+	      cool   :   100 MB + 100MB tempspace, low latency connection
+			 fast machine that allows swift cycling.
+
+1 *BSD status and notes. (kept on CVS because I work on several places)
 -----------------------------------------------------------------------------
 
-Please read these before running a FreeBSD snapshot.
+Please read these before running a *BSD snapshot/release
 
-- Supported are FreeBSD 3.x (3.2, 3.4 and 4.0-release (quickly) tested. I never
-   tested on 3.0).  NON-ELF (2.x) versions are not supported.
+1.1  Supported OS versions.
+---
 
-- This is alpha software. I didn't have data-loss using it, but you
-	use this on your own responsability. Use a scratch, or well backup'ed
-	system.
+   FREEBSD
+            4.x    : Used to develop and maintain port. Should work, all
+			 versions. Best *BSD platform.
 
-- The FreeBSD/FPC port is now in its second stage. Some more stuff then what
-    is required to recompile is now implemented (Clone, Sockets, Signals).
-    Plans to create an (Alpha) release distribution are being made.
-    (linking to external libs worked in the 16 april version already, even
-    though the bsdport.txt of that date said it didn't)
-    
+            3.x    : _not_ supported,  (3.2, 3.4, 3.6 would probably work
+   		     with some very minor changes to the signalhandling. The
+   		     syscall numbers changed)
+
+  (NON-ELF) 2.x    : _not_ supported, but it might be doable. (the
+   		     OpenBSD port works on a.out)
+   
+            5.0DP1 : simple testing seemed to work without changes. Nearly
+		      no package tests tried though.
+
+   NetBSD   1.5.x  : Most stuff should work.
+	    Rest   : status unknown, though some NetBSD developper said
+		     he didn't expect problems for 1.6.x
+  
+   OpenBSD  3.1    : This version should work somewhat. Needs an assembler
+		      from the ports tree (devel/binutils) to function
+		      properly. Linker of the ports tree is easier,
+		      but that one doesn't want to make shared files.
+
+The IDE also is starting to work quite nicely on FreeBSD, so it is included
+in the releases since 1.0.6. I didn't check the fixes for *BSD on the other
+two OSes yet.
+
+1.2 Known bugs
+---
+
+The FreeBSD/FPC port is now more or less a tested distro. There are several
+ known bugs, but I can now only remember one:
+
+-  Recover from Delphi exceptions that originate as processor exceptions
+    will go wrong. (see texception4 in the test suite)
+
+   (recovering from several processor
+   exceptions in one proc will have unpredictable results (breakable hang
+   probably))
+
+1.3 Possible issues.
+
+Some things are not really bugs, but status is unknown, or there is
+something dodgy about the implementation:
+
+- The NetBSD and OpenBSD ports are barely tested, they build on the stable
+   FreeBSD base though. Most packages (and the FCL) have been tested with
+   FreeBSD, quite some with NetBSD, nearly none with OpenBSD.
+
 -  IMPORTANT:
      !!! An explicite warning: Not all procedures and structures in Linux are
    checked, so even if they are not commented out, they can be not implemented!!!
    This specially applies to linux specific stuff. In case of doubt, use a
    scratch system, view the source, or mail the maintainer.
+   I fixed a bug in truncate just a few months ago, that had gone unnoticed
+   for the near two years that the port works now.!!! 
 
-- The pre alpha version's READDIR problem is fixed with a "hack", which
-    means that searchpath (-Fx) and FindFirst/FindNext are more or less 
-    working.
-  I don't know how  good that hack is,I hope to replace it later this week 
-     by a port of freebsd's libc opendir/readdir/closedir/telldir/seekdir code,
-     just to make sure.( Libc does some complex scanning and sorting for
-     duplicate names, but I don't know if that is something archaic or not.
-     Probably related to hardlinks, so don't use findfirst in /dev for now)
+- The absence of kernel READDIR support has been fixed with a "hack", which
+    means that searchpath (-Fx) and FindFirst/FindNext are more or less
+    working.     This "hacked" readdir implementation is now 1/2 year
+    bugfree now (and no anomolies detected), and works on the other two BSDs
+    too. Be careful with usage on "special" filesystems and files though. 
+    (devfs, tmpfs hardlinks)
+   Together with Sebastian I developped a port of the libc routines, but
+    they don't work yet (NOTE to self: retest, am a lot better with debugger
+    now)
 
-These packages have more or less been tested with ncurses:
-- RTL, (NOT the Crt unit. Use ncrt for now!)
-- compiler can rebuild (see below)
-- packages/inet,
-- packages/zlib
-- packages/x11
-- fcl/
-- ncurses/panel.
-- (reported by somebody else) XForms.
-- fpgui's "hello world" demo (the other ones needed a FPC 1.1 compiler, I
-        only tested 1.0.1 with FreeBSD)
-
-2 Syscalls.
------------
-
-The bulk of the linux syscalls are implemented.
-
-Some that aren't implemented:
-
-NI           = not implemented yet
-req          = required for compiler
-noreq?       = not required, but not checked.
-Ever? (y/n)
-
-syscall   status  Ever?  comment
-------------------------------------------------------------------------
-Readdir   I req         implemented from scratch, working. (this
-                        call doesn't exist on FreeBSD and FindFirst is
-                        based on it)
-
-ioperm   NI noreq  n    IO via port access impossible under FreeBSD
-                           (so: no ports unit, port[] support)
-                        (got some reports that port access is possible under
-                        FreeBSD. Probably the same way it slipped into Linux;
-                        dos emulation)
-
-ipc      NI       ?     The IPC is System V thingy, and only supported
-                          under FreeBSD with certain kernel parameters.
-
-Clone()  I  noreq       Not implemented as syscall, based on linuxthread
-                         assembler routine. Untested. Somebody has a good
-                         test program? Or that tests the FCL threading
-                         routines based on it?
-
-sysinfo  NI noreq       Not supported under BSD, not even by emulator
-uname    NI noreq       "        "       "    "   "   "    "   "
-                        (procedures based on this call are also commented
-                         (get* procs))
-
-signal   I   noreq      A *lot* of emulation code.
-alarm    NI  noreq?     Could be possible to port. (crt.delay?)
-pause    NI  noreq?     Also possible I think. Uses process information
-                        in linux-emu, that is why I didn't port directly.
-
-3 How to build a FreeBSD compiler/RTL ?
+3 How to build a *BSD compiler/RTL ?
 -----------------------------------------------------------------------------
 
-(You'll probably need CVS sources dated after April 16th for basic support, or
-after the major updates on 10 september for signals and sockets.)
+To rebuild the compiler, you need a starting compiler which is either the
+last releaseversion, or the release you are building itself (but e.g. on
+other OS)
 
-To rebuild the compiler, you need a starting compiler.
-- Start compiler on other OS? (tested is Linux) -> check 3a
-- Already a 1.0.x startcompiler on FreeBSD (e.g. from a snapshot) -> 3b is much
+Preparation:
+- make sure your tree is up to date and cleaned of stale object and unit files.
+- I assume ppc386 is the name of your compiler. Append PP=<compilername> and
+   replace ppc386 with your compilername if it is different on your system.
+- I'll assume we are building openbsd on one of the other systems.
+
+- Start compiler on other OS? (tested is Linux) -> check 3.1
+   (crosscompiling)
+- Already a suitable 1.0.x startcompiler on *BSD  -> 3.2 is much
     easier.
 
-3a How to build a FreeBSD system starting on Linux or using the Linux emu of
-   FreeBSD? (Bootstrapping)
+Trying to build with snapshot compiler binaries is no problem mosttimes, but
+release compilers _ought_ to work.
 
-The FreeBSD port is experimental atm, though valid native binaries can be
-obtained.
+3.1 How to build a *BSD system starting on (another *BSD, Linux, or Linux
+    emu on any of them).
+---
 
-The procedure here is verbose, and for the most akward case.
-If you have linux support on on your FreeBSD machine, or operate on NFS or Samba
-share (so that copying and using the sources in two systems is easier)
-some steps can be omitted or simplified. Just play with it.
+The procedure here is verbose, and for the most akward case. If you have
+linux support on on your FreeBSD machine, or operate on NFS or Samba share
+(so that copying and using the sources in two systems is easier) some steps
+can be omitted or simplified. Just play with it.
 
-STEP A: create the RTL assembler files.
+create the RTL:
 
-1. Copy all linux files to a new directory. (here called BSDBUILD), and
-2. Copy all bsd files over them.
-2b. Run fpcmake if you can. This will eliminate problems with Makefile being
-    out of sync or containing dos lfns.
-3. Execute  make OPT='-Tlinux -dBSD -a -s -OG3p3' (with any i386 FPC
-    compiler) in directory BSDBUILD. This failed with some go32v2 versions
-    (which wanted to assemble anyway), but worked with several win32 and
-    linux' snapshots. On go32v2 you can try to add -Aas.
+1. go to the target RTL directory. (if you want to build for OpenBSD, to
+	rtl/openbsd).
+2. If your binary format is the same (both are ELF), simply run 
+     (g)make OS_TARGET=openbsd  
 
-You now have .ppu's and .s  's for the RTL hopefully. Don't forget
-    i386/prt0.as (which is in fact a .s file)!
+  this will be called "case A" from now on.
+  Otherwise we need to build via assembler files; (CASE B) and you'll
+    need to execute:
+ 
+    (g)make OS_TARGET=openbsd OPT='-a'
 
-STEP B: Create the compiler assembler (.s) sources;
+compile the compiler:
 
-4. Compile with
-   ./bsdcompile -Fu/full_path_to_BSDBUILD -a -s
+3. Go to the compiler/ directory
+   Case A:
+ 
+   make OS_TARGET=openbsd OPT='-Fu../rtl/openbsd -kdontlink'
 
-(steps 5 and 6 are only needed for the very first FreeBSD snapshot, which
-is no longer available)
+   Case B:
 
-STEP C: Building the binary
+   make OS_TARGET=openbsd OPT='-Fu../rtl/openbsd -kdontlink -a'
 
-7. Copy all necessary files
-    (- all *.s *.ppu files, both from compiler and BSDBUILD dir,
-     - compiler/link.res and
-     - compiler/ppas.sh
-     - Cut and paste of the DO_S script at the end of this document to file
-     - rtl/bsd/i386/*.as files.
-     )
-     to a directory on the BSD machine.
-8a. Change to the directory on the BSD machine, and run the script DO_S to
-    assemble all .s files to .o files.
-8b. Assemble the stub with as prt0.as -o prt0.o
-9. Adapt link.res so that all paths are right.
-    (remove all paths in front of all .o files, remove the -l lines and their
-      parentheses)
-10a. Edit ppas.sh, and keep only #!/bin/sh and the line starting with ld.
-  b  Remove any -l=ld-linux.so.1 (or similar) option from the ld line.
-  c  run ppas.sh to build the compiler
+4 Collect all necessary files, put them in one directory on the target
+   computer. 
 
-11. Have fun :-) The compiler is called "pp"
+   Case A:  - all *.o and *.ppu files in compiler/ and rtl/openbsd/
+	    - compiler/link.res and 
+	    - compiler/ppas.sh
 
-12. If you have a heavy machine (pentium 100 and 32MB+) execute 3b to make
-    sure everything is up to date.
+   Case B:  - All *.s and *.ppu files in compiler/ and rtl/openbsd/
+	    - the prt0.as file in rtl/openbsd/i386, rename this file to prt0.s
+	    - compiler/link.res and compiler/ppas.sh
 
-------------
+Creating the final compiler:
 
-3b How to update FPC compiler on FreeBSD from fresh CVS sources with a snapshot
-installed.
+5 edit link.res, and fix all paths (it will include ../rtl/openbsd, simply
+   remove all paths in the INPUT() section, so filenames only)
+  Remove "dontlink" from the commandline of the linker in the ppas.sh file,
+  and make the ppas.sh file executable with chmod.
 
-(To create a compiler for the 1.0 branch, you need a 1.0.x compiler, and to
-create a 1.1 (development branch) compiler you need a 1.1.x snapshot.
-You can check the version of your snapshot with ppc386 -i)
+6 Make sure you are in the right dir.
+  Case A: run ppas.sh
+  Case B: run the do_s script in the appendix (which will assembler all *.s
+           files to *.o on the target system), THEN run ppas.sh
 
-(assuming ppc386 in the PATH, and a rtl/ and compiler/ directory obtained
- from snapshot zips, with non mangled makefiles)
+7 Test your compiler with pp -?, brandelf if necessary. (NetBSD ident code is
+   already in the prt0.s file. Will be for ELF OpenBSD too)
 
-1a  Rename the rtl/linux to something else. (here: rtl/linuxorg)
-1b  create a new rtl/linux dir
-1c  copy rtl/linuxorg/* to rtl/linux
-1d  copy rtl/bsd/* to rtl/linux  RECURSIVELY
-1e  (optionally) Run fpcmake if you have it installed. This is a good
-    habit!
-2   switch to compiler/
-3   gmake cycle OPT='-OG3p3 -dBSD' will generate a new compiler.
+Rebuild everything (compiler+RTL+FCL+pkgs) on the host system: 
 
-Be patient! FreeBSD has slower disk-io than Linux :-)
+8 Go to the toplevel directory fpc/
 
-Rest is like Linux, except that I strongly advise to create the fpc
-directory always in /usr/local/lib/ instead of /usr/lib.
-This habit is still fashionable on FreeBSD.
+9 Enter:
+   gmake all
+ 
+Install the system
 
-The same with other packages. Like Linux :-)
+10 gmake install   
+   (will install into $PREFIX=/usr/local)
 
-4 Linking to external libraries
------------------------------------------------------------------------------
 
-Same as on Linux, except use the
+
+3.2 How to build a *BSD system if you have a suitable compiler on the
+targetsystem.
+---
+
+Rebuild everything (compiler+RTL+FCL+pkgs) on the host system: 
+
+1 Go to the toplevel directory fpc/
+
+2 Enter:
+   gmake all
+ 
+Install the system
+
+3 gmake install   
+   (will install into $PREFIX=/usr/local)
 
 
 ------------------
-The DO_S script. (C) El Znorro
+Appendix A:   The DO_S script. (C) El Znorro
 ------------------
 #!/bin/sh
 
@@ -207,7 +220,10 @@ for i in *.s; do
 
 {
 $Log$
-Revision 1.2  2000-09-18 13:42:35  marco
+Revision 1.3  2002-08-08 20:39:26  marco
+ * Practically rewritten in first update in 2 years or so.
+
+Revision 1.2  2000/09/18 13:42:35  marco
  * FreeBSD support into 1.1
 
 Revision 1.3  2000/09/11 14:38:09  marco
