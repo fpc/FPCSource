@@ -646,7 +646,7 @@ implementation
                                       begin
                                         if tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class) and
                                            (not(pdoverload or hasoverloads) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
                                          begin
                                            if is_visible then
                                              procdefcoll^.hidden:=true;
@@ -664,7 +664,7 @@ implementation
                                          begin
                                            { we start a new virtual tree, hide the old }
                                            if (not(pdoverload or hasoverloads) or
-                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) and
+                                               (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) and
                                               (tstoredsym(procdefcoll^.data.procsym).is_visible_for_object(pd._class)) then
                                             begin
                                               if is_visible then
@@ -680,7 +680,7 @@ implementation
                                            { do nothing, the error will follow when adding the entry }
                                          end
                                         { same parameters }
-                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal) then
+                                        else if (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal) then
                                          begin
                                            { overload is inherited }
                                            if (po_overload in procdefcoll^.data.procoptions) then
@@ -746,7 +746,7 @@ implementation
                                           if the new defintion has not the overload directive }
                                         if is_visible and
                                            ((not(pdoverload or hasoverloads)) or
-                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
+                                            (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
                                           procdefcoll^.hidden:=true;
                                       end;
                                    end
@@ -756,7 +756,7 @@ implementation
                                        has not the overload directive }
                                      if is_visible and
                                         ((not pdoverload) or
-                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_value_equal_const,[])>=te_equal)) then
+                                         (compare_paras(procdefcoll^.data.para,pd.para,cp_all,[])>=te_equal)) then
                                        procdefcoll^.hidden:=true;
                                    end;
                                 end; { not hidden }
@@ -1380,7 +1380,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.65  2004-03-02 00:36:33  olle
+  Revision 1.66  2004-03-04 17:23:50  peter
+    * fix compare of parameters, they need to match exact
+
+  Revision 1.65  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.64  2004/02/27 10:21:05  florian
