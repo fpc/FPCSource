@@ -497,7 +497,7 @@ Function S_ISSOCK(m:word):boolean;
 
 Implementation
 
-Uses Strings;
+Uses Strings,baseunix;
 
 
 { Get the definitions of textrec and filerec }
@@ -521,7 +521,7 @@ begin
   repeat
     s:=$7F00;
     r:=WaitPid(Pid,@s,0);
-  until (r<>-1) or (LinuxError<>Sys_EINTR);
+  until (r<>-1) or (LinuxError<>ESysEINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error
   else
@@ -619,7 +619,7 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=Sys_enoent
+   linuxerror:=ESysenoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
@@ -654,7 +654,7 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=Sys_enoent
+   linuxerror:=ESysenoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
@@ -1012,7 +1012,7 @@ end;
 Function fdOpen(pathname:string;flags:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=Sys_Open(@pathname[1],flags,438);
+  fdOpen:=FpOpen(@pathname[1],flags,438);
   LinuxError:=Errno;
 end;
 
@@ -1020,7 +1020,7 @@ end;
 Function fdOpen(pathname:string;flags,mode:longint):longint;
 begin
   pathname:=pathname+#0;
-  fdOpen:=Sys_Open(@pathname[1],flags,mode);
+  fdOpen:=FpOpen(@pathname[1],flags,mode);
   LinuxError:=Errno;
 end;
 
@@ -1028,7 +1028,7 @@ end;
 
 Function  fdOpen(pathname:pchar;flags:longint):longint;
 begin
-  fdOpen:=Sys_Open(pathname,flags,0);
+  fdOpen:=FpOpen(pathname,flags,0);
   LinuxError:=Errno;
 end;
 
@@ -1036,7 +1036,7 @@ end;
 
 Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 begin
-  fdOpen:=Sys_Open(pathname,flags,mode);
+  fdOpen:=FpOpen(pathname,flags,mode);
   LinuxError:=Errno;
 end;
 
@@ -1044,7 +1044,7 @@ end;
 
 Function fdClose(fd:longint):boolean;
 begin
-  fdClose:=(Sys_Close(fd)=0);
+  fdClose:=(FpClose(fd)=0);
   LinuxError:=Errno;
 end;
 
@@ -1052,7 +1052,7 @@ end;
 
 Function fdRead(fd:longint;var buf;size:longint):longint;
 begin
-  fdRead:=Sys_Read(fd,pchar(@buf),size);
+  fdRead:=FpRead(fd,pchar(@buf),size);
   LinuxError:=Errno;
 end;
 
@@ -1060,7 +1060,7 @@ end;
 
 Function fdWrite(fd:longint;const buf;size:longint):longint;
 begin
-  fdWrite:=Sys_Write(fd,pchar(@buf),size);
+  fdWrite:=FpWrite(fd,pchar(@buf),size);
   LinuxError:=Errno;
 end;
 
@@ -1073,7 +1073,7 @@ Function  fdSeek (fd,pos,seektype :longint): longint;
 
 }
 begin
-   fdseek:=Sys_LSeek (fd,pos,seektype);
+   fdseek:=FpLSeek (fd,pos,seektype);
    LinuxError:=Errno;
 end;
 
@@ -1084,13 +1084,13 @@ Function Fcntl(Fd:longint;Cmd:longint):longint;
   Possible values for Cmd are :
     F_GetFd,F_GetFl,F_GetOwn
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  If Cmd is different from the allowed values, linuxerror=ESyseninval.
 }
 
 begin
   if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
    begin
-     Linuxerror:=sys_fcntl(fd,cmd,0);
+     Linuxerror:=fdfcntl(fd,cmd,0);
      if linuxerror=-1 then
       begin
         linuxerror:=errno;
@@ -1104,7 +1104,7 @@ begin
    end
   else
    begin
-     linuxerror:=Sys_einval;
+     linuxerror:=ESyseinval;
      Fcntl:=0;
    end;
 end;
@@ -1122,11 +1122,11 @@ Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
 begin
   if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
    begin
-     sys_fcntl(fd,cmd,arg);
+     fpfcntl(fd,cmd,arg);
      LinuxError:=ErrNo;
    end
   else
-   linuxerror:=Sys_einval;
+   linuxerror:=ESyseinval;
 end;
 {$endif}
 
@@ -1361,7 +1361,7 @@ Var
 begin
   if textrec(t).mode=fmclosed then
    begin
-     LinuxError:=Sys_EBADF;
+     LinuxError:=ESysEBadf;
      exit(-1);
    end;
   FD_Zero(f);
@@ -1406,7 +1406,7 @@ procedure SeekDir(p:pdir;off:longint);
 begin
   if p=nil then
    begin
-     errno:=Sys_EBADF;
+     errno:=ESysEBadf;
      exit;
    end;
  {$ifndef bsd}                          {Should be ifdef Linux, but can't because
@@ -1424,7 +1424,7 @@ function TellDir(p:pdir):longint;
 begin
   if p=nil then
    begin
-     errno:=Sys_EBADF;
+     errno:=ESysEBadf;
      telldir:=-1;
      exit;
    end;
@@ -1590,7 +1590,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=Sys_enoent;
+     LinuxError:=ESysENOENT;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -1669,7 +1669,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=Sys_enoent;
+     LinuxError:=ESysENOENT;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -2011,7 +2011,7 @@ begin
   {$endif}
   else
    begin
-     ErrNo:=Sys_EINVAL;
+     ErrNo:=ESysEINVAL;
      TCSetAttr:=false;
      exit;
    end;
@@ -2275,7 +2275,7 @@ begin
   StringToPPChar:=p;
   if p=nil then
    begin
-     LinuxError:=sys_enomem;
+     LinuxError:=ESysENOMEM;
      exit;
    end;
   buf:=s;
@@ -2586,7 +2586,7 @@ begin
         end;
        if current=nil then
         begin
-          linuxerror:=Sys_ENOMEM;
+          linuxerror:=ESysENOMEM;
           globfree(root);
           break;
         end;
@@ -2594,7 +2594,7 @@ begin
        getmem(current^.name,length(temp2)+1);
        if current^.name=nil then
         begin
-          linuxerror:=Sys_ENOMEM;
+          linuxerror:=ESysENOMEM;
           globfree(root);
           break;
         end;
@@ -3032,7 +3032,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  2002-09-13 13:03:27  jonas
+  Revision 1.25  2002-12-18 16:50:39  marco
+   * Unix RTL generic parts. Linux working, *BSD will follow shortly
+
+  Revision 1.24  2002/09/13 13:03:27  jonas
     * fixed buffer overflow error in StringToPPChar(), detected using
       DIOTA (http://www.elis/rug.ac.be/~ronsse/diota) (which I also work on :)
       (merged)

@@ -515,7 +515,7 @@ begin
   repeat
     s:=$7F00;
     r:=WaitPid(Pid,@s,0);
-  until (r<>-1) or (LinuxError<>Sys_EINTR);
+  until (r<>-1) or (LinuxError<>ESysEINTR);
   if (r=-1) or (r=0) then // 0 is not a valid return and should never occur (it means status invalid when using WNOHANG)
     WaitProcess:=-1 // return -1 to indicate an error
   else
@@ -613,7 +613,7 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=Sys_enoent
+   linuxerror:=ESysEnoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
@@ -648,7 +648,7 @@ begin
   else
    Path:='';
   if Path='' then
-   linuxerror:=Sys_enoent
+   linuxerror:=ESysEnoent
   else
    Execve(Path,args,ep);{On error linuxerror will get set there}
 end;
@@ -1116,7 +1116,7 @@ Function Fcntl(Fd:longint;Cmd:longint):longint;
   Possible values for Cmd are :
     F_GetFd,F_GetFl,F_GetOwn
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  If Cmd is different from the allowed values, linuxerror=ESysEninval.
 }
 
 begin
@@ -1136,7 +1136,7 @@ begin
    end
   else
    begin
-     linuxerror:=Sys_einval;
+     linuxerror:=ESysEinval;
      Fcntl:=0;
    end;
 end;
@@ -1148,7 +1148,7 @@ Procedure Fcntl(Fd:longint;Cmd:longint;Arg:Longint);
   Possible values for Cmd are :
     F_setFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkW,F_SetOwn;
   Errors are reported in Linuxerror;
-  If Cmd is different from the allowed values, linuxerror=Sys_eninval.
+  If Cmd is different from the allowed values, linuxerror=ESysEninval.
   F_DupFD is not allowed, due to the structure of Files in Pascal.
 }
 begin
@@ -1158,7 +1158,7 @@ begin
      LinuxError:=ErrNo;
    end
   else
-   linuxerror:=Sys_einval;
+   linuxerror:=ESysEinval;
 end;
 {$endif}
 
@@ -1394,7 +1394,7 @@ Var
 begin
   if textrec(t).mode=fmclosed then
    begin
-     LinuxError:=Sys_EBADF;
+     LinuxError:=ESysEBADF;
      exit(-1);
    end;
   FD_Zero(f);
@@ -1439,7 +1439,7 @@ procedure SeekDir(p:pdir;off:longint);
 begin
   if p=nil then
    begin
-     errno:=Sys_EBADF;
+     errno:=ESysEBADF;
      exit;
    end;
  {$ifndef bsd}
@@ -1454,7 +1454,7 @@ function TellDir(p:pdir):longint;
 begin
   if p=nil then
    begin
-     errno:=Sys_EBADF;
+     errno:=ESysEBADF;
      telldir:=-1;
      exit;
    end;
@@ -1620,7 +1620,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=Sys_enoent;
+     LinuxError:=ESysEnoent;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -1699,7 +1699,7 @@ begin
   rw:=upcase(rw);
   if not (rw in ['R','W']) then
    begin
-     LinuxError:=Sys_enoent;
+     LinuxError:=ESysEnoent;
      exit;
    end;
   AssignPipe(pipi,pipo);
@@ -2041,7 +2041,7 @@ begin
   {$endif}
   else
    begin
-     ErrNo:=Sys_EINVAL;
+     ErrNo:=ESysEINVAL;
      TCSetAttr:=false;
      exit;
    end;
@@ -2305,7 +2305,7 @@ begin
   StringToPPChar:=p;
   if p=nil then
    begin
-     LinuxError:=sys_enomem;
+     LinuxError:=ESysEnomem;
      exit;
    end;
   buf:=s;
@@ -2612,7 +2612,7 @@ begin
         end;
        if current=nil then
         begin
-          linuxerror:=Sys_ENOMEM;
+          linuxerror:=ESysENOMEM;
           globfree(root);
           break;
         end;
@@ -2620,7 +2620,7 @@ begin
        getmem(current^.name,length(temp2)+1);
        if current^.name=nil then
         begin
-          linuxerror:=Sys_ENOMEM;
+          linuxerror:=ESysENOMEM;
           globfree(root);
           break;
         end;
@@ -3058,7 +3058,10 @@ End.
 
 {
   $Log$
-  Revision 1.24  2002-09-07 16:01:28  peter
+  Revision 1.25  2002-12-18 16:50:39  marco
+   * Unix RTL generic parts. Linux working, *BSD will follow shortly
+
+  Revision 1.24  2002/09/07 16:01:28  peter
     * old logs removed and tabs fixed
 
   Revision 1.23  2002/08/06 13:30:46  sg
