@@ -234,10 +234,10 @@ echo Done.
 echo
 
 # Install the documentation. Optional.
-if [ -f fpcdoc.tar.gz ]; then
+if [ -f doc-pdf.tar.gz ]; then
   if yesno "Install documentation"; then
     echo Installing documentation in $DOCDIR ...
-    unztar fpcdoc.tar.gz $DOCDIR
+    unztar doc-pdf.tar.gz $DOCDIR
     echo Done.
   fi
 fi

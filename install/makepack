@@ -89,9 +89,9 @@ fi
 
 # First check for fpcdoc.tar.gz before building anything
 if [ "$CROSS" = "" ]; then
-  if [ ! -f fpcdoc.tar.gz ]; then
+  if [ ! -f doc-pdf.tar.gz ]; then
     if [ "$MAKEDOCS" != "yes" ]; then
-      echo "No documentation available. Please copy the file fpcdoc.tar.gz to this directory."
+      echo "No documentation available. Please copy the file doc-pdf.tar.gz to this directory."
       exit 1
     else
       ${MAKE} makepackdocs
@@ -150,7 +150,7 @@ RELFILES="$RELFILES $BINARYTAR"
 if [ "$CROSS" = "" ]; then
   # no cross packing
   # demo, docs
-  RELFILES="$RELFILES demo.tar.gz fpcdoc.tar.gz"
+  RELFILES="$RELFILES demo.tar.gz doc-pdf.tar.gz"
 else
   # cross packing
   # add cross binutils 
