@@ -163,7 +163,7 @@ type
     FLock: TRTLCriticalSection;
   public
     constructor Create;
-    destructor Destroy; override;
+    destructor Destroy; { override; }
     procedure Add(Item: Pointer);
     procedure Clear;
     function  LockList: TList;
@@ -838,7 +838,7 @@ type
     property Terminated: Boolean read FTerminated;
   public
     constructor Create(CreateSuspended: Boolean);
-    destructor Destroy; override;
+    destructor Destroy; { override; }
     procedure Resume;
     procedure Suspend;
     procedure Terminate;
@@ -977,7 +977,7 @@ var
   RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass) = nil;
   RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
     AxRegType: TActiveXRegType) = nil;
-  CurrentGroup: Integer = -1; 
+  CurrentGroup: Integer = -1;
   CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
 }
 
@@ -1065,7 +1065,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.11  1999-04-09 12:13:30  michael
+  Revision 1.12  1999-05-14 17:52:53  peter
+    * removed wrong destroy overrides (gave errors with the new compiler)
+
+  Revision 1.11  1999/04/09 12:13:30  michael
   + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
 
   Revision 1.10  1998/10/30 14:52:49  michael
