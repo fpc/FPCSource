@@ -215,14 +215,20 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
 ifeq ($(CPU_TARGET),i386)
+ifneq ($(OS_TARGET),win32)
+INSTALL_UNITS+=Dbf_Wtil
+CLEAN_UNITS+=Dbf_Wtil
+endif
+endif
+ifeq ($(CPU_TARGET),i386)
 override TARGET_UNITS+=Dbf
 endif
 ifeq ($(CPU_TARGET),i386)
 override TARGET_EXAMPLES+=testdbf
 endif
-override CLEAN_UNITS+=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
+override CLEAN_UNITS+=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
 ifeq ($(CPU_TARGET),i386)
-override INSTALL_UNITS+=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
+override INSTALL_UNITS+=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
 endif
 override INSTALL_FPCPACKAGE=y
 override COMPILER_OPTIONS+=-S2 -Sh

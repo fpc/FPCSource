@@ -13,16 +13,26 @@ examples_i386=testdbf
 options=-S2 -Sh
 targetdir=../../$(OS_TARGET)
 
+[default]
+fpcdir=../../..
+
 [install]
 fpcpackage=y
 units_i386=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
       Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
-      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
-
-[default]
-fpcdir=../../..
+      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
 
 [clean]
 units=Dbf_Common Dbf_Cursor Dbf_DbfFile Dbf_Fields Dbf_IdxCur \
       Dbf_IdxFile Dbf_Lang Dbf_Memo Dbf_Parser Dbf_PgFile \
-      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str Dbf_Wtil
+      Dbf_PrsCore Dbf_PrsDef Dbf_PrsSupp Dbf_Str
+
+[prerules]
+# Dbf_Wtil is needed on all targets except win32
+ifeq ($(CPU_TARGET),i386)
+ifneq ($(OS_TARGET),win32)
+INSTALL_UNITS+=Dbf_Wtil
+CLEAN_UNITS+=Dbf_Wtil
+endif
+endif
+
