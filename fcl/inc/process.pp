@@ -102,6 +102,8 @@ Type
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
     Property ThreadHandle : THandle Read FThreadHandle;
+    Property ProcessID : Integer Read FProcessID;
+    Property ThreadID : Integer Read FThreadID;
     Property Input  : TOutPutPipeStream Read FInPutStream;
     Property OutPut : TInputPipeStream  Read FOutPutStream;
     Property StdErr : TinputPipeStream  Read FStdErrStream;
@@ -307,7 +309,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2004-09-09 13:47:38  michael
+  Revision 1.24  2004-09-11 22:26:40  michael
+  * Added ThreadID, ProcessID properties
+
+  Revision 1.23  2004/09/09 13:47:38  michael
   + Patch from Vincent Snijders to correctly handle PeekExitStatus
 
   Revision 1.22  2004/09/08 18:17:23  michael
