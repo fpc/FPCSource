@@ -1,3 +1,4 @@
+{ %KNOWNRUNERROR=2 v1.0 does not support class DefaultHandler message }
 {$ifdef fpc}
  {$mode delphi}
 {$endif}
@@ -48,7 +49,11 @@ begin
  C.Destroy;
  if counter<>3 then
   begin
-    writeln('Error!');
+    writeln('Error in class DefaultHandler for messages!');
+{$ifdef VER1_0}
+    halt(2);
+{$else not VER1_0}
     halt(1);
+{$endif not VER1_0}
   end;
 end.
