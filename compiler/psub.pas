@@ -724,7 +724,6 @@ implementation
               procinfo.allocate_interrupt_stackframe;
 {$endif i386}
 
-            procinfo.set_result_offset;
             procinfo.after_header;
 
             { set _FAIL as keyword if constructor }
@@ -887,7 +886,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-04-25 20:59:34  peter
+  Revision 1.105  2003-04-26 00:31:42  peter
+    * set return_offset moved to after_header
+
+  Revision 1.104  2003/04/25 20:59:34  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

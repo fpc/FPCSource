@@ -171,9 +171,6 @@ unit cgbase;
             Here the address fix ups to generate code for the body must be done.
           }
           procedure after_pass1;virtual;
-
-          { sets the offset for a temp used by the result }
-          procedure set_result_offset;virtual;
        end;
 
        pregvarinfo = ^tregvarinfo;
@@ -442,7 +439,7 @@ implementation
       end;
 
 
-    procedure tprocinfo.set_result_offset;
+    procedure tprocinfo.after_header;
       begin
         if assigned(procdef.funcretsym) then
          begin
@@ -451,11 +448,6 @@ implementation
            if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
             procinfo.return_offset:=tg.direction*procinfo.return_offset;
          end;
-      end;
-
-
-    procedure tprocinfo.after_header;
-      begin
       end;
 
     procedure tprocinfo.after_pass1;
@@ -674,7 +666,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-04-25 20:59:33  peter
+  Revision 1.43  2003-04-26 00:31:42  peter
+    * set return_offset moved to after_header
+
+  Revision 1.42  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter
