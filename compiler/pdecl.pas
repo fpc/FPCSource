@@ -631,7 +631,8 @@ unit pdecl;
                    id_type:=generrordef;
                    exit;
                 end;
-              testforward_type(srsym);
+              if not forwardsallowed then
+                testforward_type(srsym);
            end;
          lasttypesym:=ptypesym(srsym);
          id_type:=ptypesym(srsym)^.definition;
@@ -2058,7 +2059,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.64  1998-10-05 21:33:24  peter
+  Revision 1.65  1998-10-05 22:43:35  peter
+    * commited the wrong file :(
+
+  Revision 1.64  1998/10/05 21:33:24  peter
     * fixed 161,165,166,167,168
 
   Revision 1.63  1998/10/05 13:57:13  peter
