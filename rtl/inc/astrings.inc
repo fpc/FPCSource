@@ -751,26 +751,23 @@ end;
 
 
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
+
 Var
   LS : Longint;
+
 begin
-  If Length(S)=0 then
-   exit;
-  if index<=0 then
-   exit;
-  LS:=PAnsiRec(Pointer(S)-FirstOff)^.Len;
-  if (Index<=LS) and (Size>0) then
-   begin
-     UniqueString (S);
-     if Size+Index>LS then
-      Size:=LS-Index+1;
-     if Index+Size<=LS then
-      begin
-        Dec(Index);
-        Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index+1);
-      end;
-     Setlength(s,LS-Size);
-   end;
+  ls:=Length(S);
+  If (Index>LS) or (Index<=0) or (Size<=0) then
+    exit;
+  UniqueString (S);
+  If (Size>LS-Index) then   // Size+Index gives overflow ??
+     Size:=LS-Index+1;
+  If (Size<=LS-Index) then
+    begin
+    Dec(Index);
+    Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index-Size+1);
+    end;
+  Setlength(S,LS-Size);
 end;
 
 
@@ -841,10 +838,17 @@ end;
 
 {
   $Log$
-  Revision 1.34  2002-12-07 14:34:30  carl
+  Revision 1.35  2002-12-09 08:33:31  michael
+  + Fixed range check error and others in Delete
+
+  Revision 1.34  2002/12/07 14:34:30  carl
     - avoid warnings (add typecast)
 
   Revision 1.33  2002/10/21 19:52:47  jonas
+  Revision 1.1.2.17  2002/12/09 08:32:34  michael
+  + Fixed range check error and others in Delete
+
+  Revision 1.1.2.16  2002/10/21 19:30:57  jonas
     * fixed some buffer overflow errors in SetString (both short and
       ansistring versions) (merged)
 
