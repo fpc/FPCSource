@@ -627,12 +627,15 @@ Function StringOfChar(c : char;l : longint) : AnsiString;
 
   begin
      SetLength(StringOfChar,l);
-     FillChar(StringOfChar,Length(StringOfChar),c);
+     FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
   end;
 
 {
   $Log$
-  Revision 1.32  1999-10-27 14:17:20  florian
+  Revision 1.33  1999-10-27 14:27:49  florian
+    * StringOfChar fixed, how can be a bug in two lines of code ?????
+
+  Revision 1.32  1999/10/27 14:17:20  florian
     + StringOfChar
 
   Revision 1.31  1999/10/04 20:48:18  peter
