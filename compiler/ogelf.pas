@@ -386,43 +386,26 @@ implementation
          begin
            { real address of the symbol }
            symaddr:=p.address;
-           { no symbol relocation need inside a section }
-           if p.section=currsec then
+           { Local symbols can be resolved already or need a section reloc }
+           if (p.currbind=AB_LOCAL) then
              begin
-               case relative of
-                 RELOC_ABSOLUTE :
-                   begin
-                     currsec.addsectionreloc(currsec.datasize,currsec,RELOC_ABSOLUTE);
-                     inc(data,symaddr);
-                   end;
-                 RELOC_RELATIVE :
-                   begin
-                     inc(data,symaddr-len-currsec.datasize);
-                   end;
-                 RELOC_RVA :
-                   internalerror(3219583);
-               end;
+               { For a relative relocation in the same section the
+	         value can be calculated }
+               if (p.section=currsec) and
+	          (relative=RELOC_RELATIVE) then
+                 inc(data,symaddr-len-currsec.datasize)
+	       else  
+	         begin
+                   currsec.addsectionreloc(currsec.datasize,p.section,relative);
+                   inc(data,symaddr);
+	         end;	 
              end
            else
              begin
                writesymbol(p);
-               { For common (global .bss) symbols a reloc by sym is required }
-               if assigned(p.section) and
-                  (p.currbind<>AB_COMMON) and
-                  (relative<>RELOC_RELATIVE) then
-                begin
-                  currsec.addsectionreloc(currsec.datasize,p.section,relative);
-                  inc(data,symaddr);
-                end
-               else
-                currsec.addsymreloc(currsec.datasize,p,relative);
+               currsec.addsymreloc(currsec.datasize,p,relative);
                if relative=RELOC_RELATIVE then
-                begin
-                  if p.currbind=AB_EXTERNAL then
-                   dec(data,len)
-                  else
-                   dec(data,len+currsec.datasize);
-                end;
+                 dec(data,len);
             end;
          end;
         currsec.write(data,len);
@@ -918,7 +901,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2004-10-15 09:14:17  mazen
+  Revision 1.24  2005-01-10 15:54:59  peter
+    * Cleanup of writing of relocations to symbols
+    * Only local symbols will now use a constant value or section relocation
+
+  Revision 1.23  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
