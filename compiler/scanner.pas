@@ -379,7 +379,7 @@ implementation
             Close;
            ofm:=filemode;
            filemode:=0;
-           Assign(f,inputfile^.path^+inputfile^.name^);
+           Assign(f,path^+name^);
            {$I-}
             reset(f,1);
            {$I+}
@@ -410,7 +410,7 @@ implementation
          begin
            if is_macro then
             begin
-              Freemem(inputbuffer,InputFileBufSize);
+              Freemem(inputbuffer,inputbufsize);
               is_macro:=false;
               inputbuffer:=nil;
               inputpointer:=nil;
@@ -423,7 +423,7 @@ implementation
                system.close(f);
               {$I+}
               i:=ioresult;
-              Freemem(inputbuffer,InputFileBufSize);
+              Freemem(inputbuffer,inputbufsize);
               inputbuffer:=nil;
               inputpointer:=nil;
               closed:=true;
@@ -447,7 +447,7 @@ implementation
                system.close(f);
               {$I+}
               i:=ioresult;
-              Freemem(inputbuffer,InputFileBufSize);
+              Freemem(inputbuffer,inputbufsize);
               inputbuffer:=nil;
               inputpointer:=nil;
               closed:=true;
@@ -472,7 +472,7 @@ implementation
             exit;
            ofm:=filemode;
            filemode:=0;
-           Assign(f,inputfile^.path^+inputfile^.name^);
+           Assign(f,path^+name^);
            {$I-}
             reset(f,1);
            {$I+}
@@ -1619,7 +1619,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.45  1998-08-26 15:35:35  peter
+  Revision 1.46  1998-08-29 13:49:00  peter
+    * fixed freemem calls which had the wrong size sometimes
+
+  Revision 1.45  1998/08/26 15:35:35  peter
     * fixed scannerfiles for macros
     + $I %<environment>%
 
