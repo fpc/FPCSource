@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for WinUnits
+#
+
+[package]
+name=winunits
+version=1.9.8
+
+[target]
+units=winver mmsystem comobj  ole2 activex shellapi shlobj
+examples=examples
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
