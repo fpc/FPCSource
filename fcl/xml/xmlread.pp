@@ -339,8 +339,8 @@ var
   checkbuf: array[0..3] of char;
 begin
   if CheckFor('<?') then begin
-    StrLCopy(checkbuf, buf, 3);
-    if UpperCase(StrPas(checkbuf)) = 'XML' then
+    StrLCopy(checkbuf, buf, 4);
+    if UpperCase(StrPas(checkbuf)) = 'XML ' then
       RaiseExc('"<?xml" processing instruction not allowed here');
     ExpectName;
     if SkipWhitespace then
@@ -1226,7 +1226,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-01-15 21:59:55  sg
+  Revision 1.9  2003-11-04 20:00:46  michael
+  + Fixed processing instruction parsing. <?xml is not allowed but <?xml-XXX is
+
+  Revision 1.8  2003/01/15 21:59:55  sg
   * the units DOM, XMLRead and XMLWrite now compile with Delphi without
     modifications as well
 
