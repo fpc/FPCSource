@@ -181,6 +181,7 @@ uses
            Message(unit_u_ppu_invalid_target);
            exit;
          end;
+{$ifdef cpufpemu}
        { check if floating point emulation is on?}
         if ((ppufile.header.flags and uf_fpu_emulation)<>0) and
             (cs_fp_emulation in aktmoduleswitches) then
@@ -190,6 +191,7 @@ uses
            Message(unit_u_ppu_invalid_fpumode);
            exit;
          end;
+{$endif cpufpemu}
 
       { Load values to be access easier }
         flags:=ppufile.header.flags;
@@ -860,8 +862,10 @@ uses
           flags:=flags or uf_local_browser;
          if do_release then
           flags:=flags or uf_release;
+{$ifdef cpufpemu}
          if (cs_fp_emulation in aktmoduleswitches) then
            flags:=flags or uf_fpu_emulation;
+{$endif cpufpemu}
 {$ifdef Test_Double_checksum_write}
          Assign(CRCFile,s+'.IMP');
          Rewrite(CRCFile);
@@ -1325,7 +1329,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  2002-11-20 12:36:24  mazen
+  Revision 1.28  2002-12-06 16:56:57  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.27  2002/11/20 12:36:24  mazen
   * $UNITPATH directive is now working
 
   Revision 1.26  2002/11/15 01:58:46  peter

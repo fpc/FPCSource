@@ -52,9 +52,19 @@
   {$define cpu64bit}
   {$undef cpuflags}
 {$endif alpha}
+
+{ FPU Emulator support }
+{$ifdef m68k}
+  {$define cpufpemu}
+{$endif m68k}
+
 {
   $Log$
-  Revision 1.13  2002-10-16 19:01:43  peter
+  Revision 1.14  2002-12-06 16:56:57  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.13  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility

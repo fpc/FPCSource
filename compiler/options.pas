@@ -474,13 +474,15 @@ begin
                           IllegalPara(opt);
                          break;
                        end;
+{$ifdef cpufpemu}
                     'e' :
                        begin
                          If UnsetBool(More, j) then
                            exclude(initmoduleswitches,cs_fp_emulation)
                          Else
                            include(initmoduleswitches,cs_fp_emulation);
-                       end; 
+                       end;
+{$endif cpufpemu}
                     'h' :
                        begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1887,7 +1889,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.90  2002-11-30 23:14:55  carl
+  Revision 1.91  2002-12-06 16:56:58  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.90  2002/11/30 23:14:55  carl
     - removed cs_fp_emulation checking for m68k, its now controled
       by a global switch
     + added powerpc/sparc/vis message options support

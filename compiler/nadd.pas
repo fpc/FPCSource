@@ -45,6 +45,7 @@ interface
           { only implements "muln" nodes, the rest always has to be done in }
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
+{$ifdef cpufpemu}
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -52,6 +53,7 @@ interface
             the code generation phase.
           }
           function first_addfloat : tnode; virtual;
+{$endif cpufpemu}
        end;
        taddnodeclass = class of taddnode;
 
@@ -1523,6 +1525,7 @@ implementation
       end;
 
 
+{$ifdef cpufpemu}
     function taddnode.first_addfloat: tnode;
       var
         procname: string[31];
@@ -1576,6 +1579,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
+{$endif cpufpemu}
 
 
     function taddnode.pass_1 : tnode;
@@ -1601,9 +1605,11 @@ implementation
          { int/int gives real/real! }
          if nodetype=slashn then
            begin
+{$ifdef cpufpemu}
              result := first_addfloat;
              if assigned(result) then
                exit;
+{$endif cpufpemu}
              location.loc:=LOC_FPUREGISTER;
              { maybe we need an integer register to save }
              { a reference                               }
@@ -1781,9 +1787,11 @@ implementation
          { is one a real float ? }
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
+{$ifdef cpufpemu}
               result := first_addfloat;
               if assigned(result) then
                 exit;
+{$endif cpufpemu}
               location.loc:=LOC_FPUREGISTER;
               calcregisters(self,0,1,0);
               { an add node always first loads both the left and the    }
@@ -1914,7 +1922,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-11-30 21:32:24  carl
+  Revision 1.77  2002-12-06 16:56:57  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.76  2002/11/30 21:32:24  carl
     + Add loading of softfpu in emulation mode
     + Correct routine call for softfpu
     * Extended type must also be defined even with softfpu

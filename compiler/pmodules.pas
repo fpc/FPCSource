@@ -441,6 +441,7 @@ implementation
         make_ref:=false;
         readconstdefs;
         make_ref:=true;
+{$ifdef cpufpemu}
       { Floating point emulation unit? }
         if (cs_fp_emulation in aktmoduleswitches) then
          begin
@@ -453,6 +454,7 @@ implementation
            inc(unitsym.refs);
            refsymtable.insert(unitsym);
          end;
+{$endif cpufpemu}
       { Thread support unit? }
         if (cs_threading in aktmoduleswitches) then
          begin
@@ -1453,7 +1455,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-11-30 21:32:24  carl
+  Revision 1.86  2002-12-06 16:56:58  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.85  2002/11/30 21:32:24  carl
     + Add loading of softfpu in emulation mode
     + Correct routine call for softfpu
     * Extended type must also be defined even with softfpu

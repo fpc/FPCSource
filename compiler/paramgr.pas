@@ -301,9 +301,11 @@ unit paramgr;
            floatdef :
              begin
                result.loc := LOC_FPUREGISTER;
+{$ifdef cpufpemu}
                if cs_fp_emulation in aktmoduleswitches then
                   result.register := accumulator
                else
+{$endif cpufpemu}
                   result.register := FPU_RESULT_REG;
              end;
           else
@@ -412,7 +414,11 @@ end.
 
 {
    $Log$
-   Revision 1.26  2002-11-27 20:04:09  peter
+   Revision 1.27  2002-12-06 16:56:58  peter
+     * only compile cs_fp_emulation support when cpufpuemu is defined
+     * define cpufpuemu for m68k only
+
+   Revision 1.26  2002/11/27 20:04:09  peter
      * tvarsym.get_push_size replaced by paramanager.push_size
 
    Revision 1.25  2002/11/27 02:33:19  peter

@@ -125,6 +125,7 @@ implementation
         vmtarraytype : ttype;
         vmtsymtable  : tsymtable;
       begin
+{$ifdef cpufpemu}
         { Normal types }
         if (cs_fp_emulation in aktmoduleswitches) then
           begin
@@ -136,6 +137,7 @@ implementation
             addtype('Extended',pbestrealtype^);
           end
         else
+{$endif cpufpemu}
           begin
             addtype('Single',s32floattype);
             addtype('Double',s64floattype);
@@ -477,7 +479,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-11-30 21:32:26  carl
+  Revision 1.44  2002-12-06 16:56:59  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.43  2002/11/30 21:32:26  carl
     + Add loading of softfpu in emulation mode
     + Correct routine call for softfpu
     * Extended type must also be defined even with softfpu

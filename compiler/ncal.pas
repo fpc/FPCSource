@@ -2526,15 +2526,17 @@ type
                    floatdef :
                      begin
                        location.loc:=LOC_FPUREGISTER;
-{$ifdef m68k}
-                       if (cs_fp_emulation in aktmoduleswitches) or
-                          (tfloatdef(resulttype.def).typ=s32real) then
+{$ifdef cpufpemu}
+                       if (cs_fp_emulation in aktmoduleswitches) then
                          registers32:=1
                        else
+{$endif cpufpemu}
+{$ifdef m68k}
+                        if (tfloatdef(resulttype.def).typ=s32real) then
+                         registers32:=1
+                       else
+{$endif m68k}
                          registersfpu:=1;
-{$else not m68k}
-                        registersfpu:=1;
-{$endif not m68k}
                      end;
                    else
                      begin
@@ -2838,7 +2840,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.113  2002-11-27 20:04:38  peter
+  Revision 1.114  2002-12-06 16:56:58  peter
+    * only compile cs_fp_emulation support when cpufpuemu is defined
+    * define cpufpuemu for m68k only
+
+  Revision 1.113  2002/11/27 20:04:38  peter
     * cdecl array of const fixes
 
   Revision 1.112  2002/11/27 15:33:46  peter
