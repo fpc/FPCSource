@@ -349,7 +349,8 @@ implementation
       begin
          rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
          if (resulttype.def.deftype=classrefdef) or
-            is_class(resulttype.def) then
+            (is_class(resulttype.def) or
+             (po_staticmethod in aktprocdef.procoptions)) then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
             location.register.enum:=SELF_POINTER_REG;
@@ -924,7 +925,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-01-08 18:43:56  daniel
+  Revision 1.41  2003-01-30 21:46:57  peter
+    * self fixes for static methods (merged)
+
+  Revision 1.40  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.39  2002/12/20 18:13:19  peter

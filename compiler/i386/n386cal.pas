@@ -712,7 +712,7 @@ implementation
                                     { extended syntax of new }
                                     { ESI must be zero }
                                     r.enum:=self_pointer_reg;
-                                    rg.getexplicitregisterint(exprasmlist,R_ESI);
+                                    rg.getexplicitregisterint(exprasmlist,r.enum);
                                     cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r);
                                     cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
                                     { insert the vmt }
@@ -764,15 +764,22 @@ implementation
                                       But, not for a class method via self }
                                     if not(po_containsself in procdefinition.procoptions) then
                                       begin
-                                        if (po_classmethod in procdefinition.procoptions) and
-                                           not(methodpointer.resulttype.def.deftype=classrefdef) then
+                                        if (po_staticmethod in procdefinition.procoptions) or
+                                           ((po_classmethod in procdefinition.procoptions) and
+                                            not(methodpointer.resulttype.def.deftype=classrefdef)) then
                                           begin
-                                             { class method needs current VMT }
-                                             r.enum:=self_pointer_reg;
-                                             rg.getexplicitregisterint(exprasmlist,R_ESI);
-                                             reference_reset_base(href,r,tprocdef(procdefinition)._class.vmt_offset);
-                                             cg.g_maybe_testself(exprasmlist);
-                                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
+                                            r.enum:=self_pointer_reg;
+                                            rg.getexplicitregisterint(exprasmlist,r.enum);
+                                            if not(oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                                              cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r)
+                                            else
+                                              begin
+                                                { class method and static methods needs current VMT }
+                                                cg.g_maybe_testself(exprasmlist,r);
+                                                reference_reset_base(href,r,tprocdef(procdefinition)._class.vmt_offset);
+                                                cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
+                                                cg.g_maybe_testvmt(exprasmlist,r,tprocdef(procdefinition)._class);
+                                              end;
                                           end;
 
                                         { direct call to destructor: remove data }
@@ -823,18 +830,29 @@ implementation
                      end
                    else
                      begin
-                        if (po_classmethod in procdefinition.procoptions) and
-                          not(
-                            assigned(aktprocdef) and
-                            (po_classmethod in aktprocdef.procoptions)
-                          ) then
+                        if (
+                            (po_classmethod in procdefinition.procoptions) and
+                            not(assigned(aktprocdef) and
+                                (po_classmethod in aktprocdef.procoptions))
+                           ) or
+                           (
+                            (po_staticmethod in procdefinition.procoptions) and
+                             not(assigned(aktprocdef) and
+                                 (po_staticmethod in aktprocdef.procoptions))
+                           ) then
                           begin
-                             { class method needs current VMT }
-                             rg.getexplicitregisterint(exprasmlist,R_ESI);
-                             r.enum:=R_ESI;
-                             reference_reset_base(href,r,tprocdef(procdefinition)._class.vmt_offset);
-                             cg.g_maybe_testself(exprasmlist);
-                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
+                            r.enum:=self_pointer_reg;
+                            rg.getexplicitregisterint(exprasmlist,r.enum);
+                            if not(oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                             cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r)
+                            else
+                             begin
+                               { class method and static methods needs current VMT }
+                               cg.g_maybe_testself(exprasmlist,r);
+                               reference_reset_base(href,r,tprocdef(procdefinition)._class.vmt_offset);
+                               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
+                               cg.g_maybe_testvmt(exprasmlist,r,tprocdef(procdefinition)._class);
+                             end;
                           end
                         else
                           begin
@@ -983,9 +1001,9 @@ implementation
                          end
                        else
                          begin
+                            cg.g_maybe_testself(exprasmlist,r);
                             { this is one point where we need vmt_offset (PM) }
                             reference_reset_base(href,r,tprocdef(procdefinition)._class.vmt_offset);
-                            cg.g_maybe_testself(exprasmlist);
                             tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,tmpreg);
                             reference_reset_base(href,tmpreg,0);
@@ -1002,20 +1020,7 @@ implementation
                    href.offset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
                    if not(is_interface(tprocdef(procdefinition)._class)) and
                       not(is_cppclass(tprocdef(procdefinition)._class)) then
-                     begin
-                        if (cs_check_object in aktlocalswitches) then
-                          begin
-                             reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(tprocdef(procdefinition)._class.vmt_mangledname),0);
-                             cg.a_paramaddr_ref(exprasmlist,hrefvmt,paramanager.getintparaloc(2));
-                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,paramanager.getintparaloc(1));
-                             cg.a_call_name(exprasmlist,'FPC_CHECK_OBJECT_EXT');
-                          end
-                        else if (cs_check_range in aktlocalswitches) then
-                          begin
-                             cg.a_param_reg(exprasmlist,OS_ADDR,href.base,paramanager.getintparaloc(1));
-                             cg.a_call_name(exprasmlist,'FPC_CHECK_OBJECT');
-                          end;
-                     end;
+                     cg.g_maybe_testvmt(exprasmlist,href.base,tprocdef(procdefinition)._class);
                    cg.a_call_ref(exprasmlist,href);
                    if release_tmpreg then
                      cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -1277,7 +1282,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2003-01-13 18:37:44  daniel
+  Revision 1.81  2003-01-30 21:46:57  peter
+    * self fixes for static methods (merged)
+
+  Revision 1.80  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.79  2003/01/08 18:43:57  daniel

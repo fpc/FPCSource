@@ -911,7 +911,8 @@ implementation
       begin
          result:=nil;
          if (resulttype.def.deftype=classrefdef) or
-           is_class(resulttype.def) then
+            is_class(resulttype.def) or
+            (po_staticmethod in aktprocdef.procoptions) then
            location.loc:=LOC_CREGISTER
          else
            location.loc:=LOC_REFERENCE;
@@ -1054,7 +1055,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-01-09 21:52:37  peter
+  Revision 1.46  2003-01-30 21:46:57  peter
+    * self fixes for static methods (merged)
+
+  Revision 1.45  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

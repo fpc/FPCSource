@@ -315,7 +315,9 @@ implementation
               consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
-              if p1.resulttype.def.deftype=objectdef then
+              if (p1.resulttype.def.deftype = objectdef) or
+                 ((p1.resulttype.def.deftype = classrefdef) and
+                  (p1.nodetype in [selfn,loadvmtn])) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -2324,7 +2326,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-01-16 22:12:22  peter
+  Revision 1.102  2003-01-30 21:46:57  peter
+    * self fixes for static methods (merged)
+
+  Revision 1.101  2003/01/16 22:12:22  peter
     * Find the correct procvar to load when using @ in fpc mode
 
   Revision 1.100  2003/01/15 01:44:32  peter

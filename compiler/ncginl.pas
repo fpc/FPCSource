@@ -54,7 +54,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
-      symconst,symdef,defutil,
+      symconst,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
       cpubase,paramgr,
@@ -220,7 +220,8 @@ implementation
     { second_handle_ the sizeof and typeof routines }
     procedure tcginlinenode.second_SizeOfTypeOf;
       var
-         href : treference;
+         href,
+         hrefvmt   : treference;
          hregister : tregister;
       begin
         location_reset(location,LOC_REGISTER,OS_ADDR);
@@ -236,6 +237,45 @@ implementation
             secondpass(left);
             location_release(exprasmlist,left.location);
             hregister:=rg.getaddressregister(exprasmlist);
+
+            { handle self inside a method of a class }
+            case left.location.loc of
+              LOC_CREGISTER,
+              LOC_REGISTER :
+                begin
+                  if (left.resulttype.def.deftype=classrefdef) or
+                     (po_staticmethod in aktprocdef.procoptions) then
+                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,hregister)
+                  else
+                   begin
+                     { load VMT pointer }
+                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,hrefvmt,hregister);
+                   end
+                end;
+              LOC_REFERENCE,
+              LOC_CREFERENCE :
+                begin
+                  if is_class(left.resulttype.def) then
+                   begin
+                     { deref class }
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
+                     { load VMT pointer }
+                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resulttype.def).vmt_offset);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,hrefvmt,hregister);
+                   end
+                  else
+                   begin
+                     { load VMT pointer, but not for classrefdefs }
+                     if (left.resulttype.def.deftype=objectdef) then
+                       inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
+                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
+                   end;
+                end;
+              else
+                internalerror(200301301);
+            end;
+
             { load VMT pointer }
             inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
@@ -612,7 +652,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2003-01-08 18:43:56  daniel
+  Revision 1.19  2003-01-30 21:46:57  peter
+    * self fixes for static methods (merged)
+
+  Revision 1.18  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.17  2002/11/25 17:43:18  peter
