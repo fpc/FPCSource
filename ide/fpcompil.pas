@@ -840,7 +840,14 @@ procedure DoCompile(Mode: TCompileMode);
     { following suggestion by Harsha Senanayake }
     IsExitEvent:=(E.What=evKeyDown);
   end;
-
+  function GetTargetExeExt : string;
+    begin
+{$ifdef COMPILER_1_0}
+        GetTargetExeExt:=target_os.exeext;
+{$else COMPILER_1_0}
+        GetTargetExeExt:=target_info.exeext;
+{$endif COMPILER_1_0}
+     end;
 var
   s,FileName: string;
   ErrFile : Text;
@@ -888,9 +895,9 @@ begin
 {  MainFile:=FixFileName(FExpand(FileName));}
   SetStatus('Preparing to compile...'+NameOf(MainFile));
   If GetEXEPath<>'' then
-    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+ExeExt)
+    EXEFile:=FixFileName(GetEXEPath+NameOf(MainFile)+GetTargetExeExt)
   else
-    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+ExeExt;
+    EXEFile:=DirOf(MainFile)+NameOf(MainFile)+GetTargetExeExt;
 { Reset }
   CtrlBreakHit:=false;
 { Create Compiler Status Dialog }
@@ -954,7 +961,7 @@ begin
 {$ifdef HasSignal}
   StopJmpValid:=true;
   JmpRet:=SetJmp(StopJmp);
-{$else}  
+{$else}
   JmpRet:=0;
 {$endif HasSignal}
   if JmpRet=0 then
@@ -1308,7 +1315,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2002-10-23 19:19:40  hajny
+  Revision 1.17  2002-11-20 17:35:00  pierre
+   * use target_os.ExeExt for compiled executable
+
+  Revision 1.16  2002/10/23 19:19:40  hajny
     * another bunch of missing HasSignal conditionals
 
   Revision 1.15  2002/09/26 15:00:35  pierre
