@@ -48,10 +48,11 @@ OS_TARGET=go32v2
 CPU=i386
 
 # Where are the include files
-CFG=../../cfg
-INC=../../inc
-PROCINC=../../$(CPU)
-OBJPASDIR=../../objpas
+RTL=../..
+CFG=$(RTL)/cfg
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
+OBJPASDIR=$(RTL)/objpas
 # Where are the .ppi files.
 PPI=../ppi
 
@@ -269,7 +270,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-09-16 16:47:27  peter
+# Revision 1.4  1998-10-02 09:26:00  peter
+#   * fixed rtl path
+#
+# Revision 1.3  1998/09/16 16:47:27  peter
 #   * merged fixes
 #
 # Revision 1.1.2.2  1998/09/16 16:17:50  peter

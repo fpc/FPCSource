@@ -99,11 +99,12 @@ ifeq ($(LINK_TO_C),YES)
 override OPT+=-dCRTLIB
 endif
 
-# Where are the include files ?
-INC=../inc
-PROCINC=../$(CPU)
-CFG=../cfg
-OBJPASDIR=../objpas
+# Where are the include files
+RTL=..
+CFG=$(RTL)/cfg
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
+OBJPASDIR=$(RTL)/objpas
 
 # Get some defaults for Programs and OSes.
 # This will set the following variables :
@@ -321,7 +322,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-09-15 12:09:10  peter
+# Revision 1.4  1998-10-02 09:26:01  peter
+#   * fixed rtl path
+#
+# Revision 1.3  1998/09/15 12:09:10  peter
 #   * merged updates
 #
 # Revision 1.2  1998/09/11 13:14:01  michael

@@ -83,11 +83,12 @@ endif
 # System independent
 #####################################################################
 
-# Where are the include files ?
-INC=../inc
-PROCINC=../$(CPU)
-CFG=../cfg
-OBJPASDIR=../objpas
+# Where are the include files
+RTL=..
+CFG=$(RTL)/cfg
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
+OBJPASDIR=$(RTL)/objpas
 
 # Get some defaults for Programs and OSes.
 # This will set the following variables :
@@ -245,7 +246,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:15:51  peter
+# Revision 1.2  1998-10-02 09:26:03  peter
+#   * fixed rtl path
+#
+# Revision 1.1  1998/09/10 14:15:51  peter
 #   - renamed makefile to Makefile
 #
 #

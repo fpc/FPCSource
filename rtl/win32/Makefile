@@ -47,11 +47,12 @@ endif
 override OS_TARGET=win32
 override CPU=i386
 
-# Where are the include files ?
-INC=../inc
-PROCINC=../$(CPU)
-CFG=../cfg
-OBJPASDIR=../objpas
+# Where are the include files
+RTL=..
+CFG=$(RTL)/cfg
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
+OBJPASDIR=$(RTL)/objpas
 
 
 #####################################################################
@@ -366,7 +367,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-09-16 16:47:35  peter
+# Revision 1.5  1998-10-02 09:26:05  peter
+#   * fixed rtl path
+#
+# Revision 1.4  1998/09/16 16:47:35  peter
 #   * merged fixes
 #
 # Revision 1.1.2.2  1998/09/16 16:17:55  peter

@@ -17,10 +17,12 @@
 # Defaults
 #####################################################################
 
-# Where are the include files ?
-CFG=../cfg
-INC=../inc
-PROCINC=../$(CPU)
+# Where are the include files
+RTL=..
+CFG=$(RTL)/cfg
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
+OBJPASDIR=.
 
 # Libname is always objpas
 override LIBNAME=objpas
@@ -120,7 +122,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-09-16 16:47:29  peter
+# Revision 1.5  1998-10-02 09:26:02  peter
+#   * fixed rtl path
+#
+# Revision 1.4  1998/09/16 16:47:29  peter
 #   * merged fixes
 #
 # Revision 1.3  1998/09/15 12:09:12  peter
