@@ -29,7 +29,7 @@ asm
         movl    source,%esi
         movl    %edi,%eax
         movl    count,%ebx
-{ check for zero or negative count }        
+{ check for zero or negative count }
         cmpl    $0,%ebx
         jle     .LMoveEnd
 { Check for back or forward }
@@ -102,7 +102,7 @@ asm
         movl    x,%edi
         movb    value,%al
         movl    count,%ecx
-{ check for zero or negative count }        
+{ check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillEnd
         cmpl    $7,%ecx
@@ -127,7 +127,7 @@ asm
 .LFill1:
         rep
         stosb
-.LFillEnd:        
+.LFillEnd:
 end;
 
 
@@ -136,7 +136,7 @@ procedure fillword(var x;count : longint;value : word);assembler;
 asm
         movl    x,%edi
         movl    count,%ecx
-{ check for zero or negative count }        
+{ check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillWordEnd
         movzwl  value,%eax
@@ -152,7 +152,7 @@ asm
         andl    $1,%ecx
         rep
         stosw
-.LFillWordEnd:        
+.LFillWordEnd:
 end ['EAX','ECX','EDX','EDI'];
 
 
@@ -161,20 +161,21 @@ procedure filldword(var x;count : longint;value : dword);assembler;
 asm
         movl    x,%edi
         movl    count,%ecx
-{ check for zero or negative count }        
+{ check for zero or negative count }
         cmpl    $0,%ecx
         jle     .LFillDWordEnd
         movl    value,%eax
         cld
         rep
         stosl
-.LFillDWordEnd:        
+.LFillDWordEnd:
 end ['EAX','ECX','EDX','EDI'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:longint;b:byte):longint; assembler;
 asm
+        xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
@@ -198,6 +199,7 @@ end ['EAX','EBX','ECX','EDI'];
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function Indexword(Const buf;len:longint;b:word):longint; assembler;
 asm
+        xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
@@ -221,6 +223,7 @@ end ['EAX','EBX','ECX','EDI'];
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(Const buf;len:longint;b:DWord):longint; assembler;
 asm
+        xorl    %eax,%eax
         movl    Len,%ecx       // Load len
         movl    Buf,%edi       // Load String
         testl   %ecx,%ecx
@@ -1210,7 +1213,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2002-10-20 11:50:57  carl
+  Revision 1.36  2002-12-15 22:32:25  peter
+    * fixed return value when len=0 for indexchar,indexword
+
+  Revision 1.35  2002/10/20 11:50:57  carl
    * avoid crashes with negative len counts on fills/moves
 
   Revision 1.34  2002/10/15 19:24:47  carl
