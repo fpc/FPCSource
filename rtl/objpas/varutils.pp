@@ -165,6 +165,45 @@ const
 
 Implementation
 
+Resourcestring
+
+  SNoWidestrings = 'No widestrings supported';
+  SNoInterfaces  = 'No interfaces supported';
+
+Procedure NoWidestrings;
+
+begin
+  Raise Exception.Create(SNoWideStrings);
+end;
+
+Procedure NoInterfaces;
+
+begin
+  Raise Exception.Create(SNoInterfaces);
+end;
+
+Constructor EVariantError.CreateCode (Code : longint);
+
+begin
+  ErrCode:=Code;
+end;
+  
+Procedure VariantTypeMismatch;
+  
+begin
+  Raise EVariantError.CreateCode(VAR_TYPEMISMATCH);
+end;
+
+Function ExceptionToVariantError (E : Exception): HResult;
+
+begin
+  If E is EoutOfMemory then
+    Result:=VAR_OUTOFMEMORY
+  else
+    Result:=VAR_EXCEPTION;
+end;
+
+
 {$i varutils.inc}
 
 { ---------------------------------------------------------------------

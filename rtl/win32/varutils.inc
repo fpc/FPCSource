@@ -30,7 +30,7 @@ function VariantInit(var Varg: TVarData): HRESULT; stdcall;external oleaut;
 
 {  Variant array functions }
 
-function SafeArrayAccessData(psa: PVarArray; var Data: Pointer): HRESULT; stdcall;external oleaut;
+function SafeArrayAccessData(psa: PVarArray; var ppvData: Pointer): HRESULT; stdcall;external oleaut;
 function SafeArrayAllocData(psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayAllocDescriptor(DimCount: Integer; var psa: PVarArray): HRESULT; stdcall;external oleaut;
 function SafeArrayCopy(psa: PVarArray; var psaOut: PVarArray): HRESULT; stdcall;external oleaut;
@@ -53,7 +53,10 @@ function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;external oleaut;
 
 {
   $Log$
-  Revision 1.1  2000-08-29 08:23:14  michael
+  Revision 1.2  2000-08-29 17:35:55  michael
+  + Compiles on win32 also now
+
+  Revision 1.1  2000/08/29 08:23:14  michael
   + Initial implementation of varutils
 
 }
