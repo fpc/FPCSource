@@ -13,10 +13,9 @@
 
  **********************************************************************}
 unit GdbInt;
+interface
 
 {$smartlink off}
-
-interface
 
 { this is not needed (PM) $output_format as}
 
@@ -24,55 +23,104 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
+
+{ V4.18 is default for now }
+{ set when starting v5 support PM }
+{$ifndef GDB_V5}
+  {$ifndef GDB_V416}
+    {$define GDB_V418}
+  {$endif GDB_V416}
+{$endif GDB_V5}
+
 {$ifdef go32v2}
- {$undef NotImplemented}
- { ifdef GDB_V418 changed to ifndef GDB_V416}
-{$ifdef USE_GDB_OBJS}
-  {$include gdbobjs.inc}
-{$else USE_GDB_OBJS}
-  {$LINKLIB gdb}
-{$endif ndef USE_GDB_OBJS}
+  {$undef NotImplemented}
+  { ifdef GDB_V418 changed to ifndef GDB_V416}
+  {$ifdef USE_GDB_OBJS}
+    {$include gdbobjs.inc}
+  {$else USE_GDB_OBJS}
+    {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+    {$endif GDB_V5}
+  {$endif ndef USE_GDB_OBJS}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
 
 {$ifdef linux}
- {$undef NotImplemented}
- {$LINKLIB ncurses}
- {$LINKLIB gdb}
- {$LINKLIB c}
- {$LINKLIB gcc}
+  {$undef NotImplemented}
+ {$ifndef GDB_V5}
+  {$LINKLIB ncurses}
+ {$endif not GDB_V5}
+  {$LINKLIB gdb}
+    {$ifdef GDB_V5}
+      {$LINKLIB bfd}
+      {$LINKLIB intl}
+      {$LINKLIB readline}
+      {$LINKLIB opcodes}
+      {$LINKLIB history}
+      {$LINKLIB iberty}
+      {$LINKLIB ncurses}
+      {$LINKLIB m}
+      {$LINKLIB intl}
+      {$LINKLIB iberty}
+    {$endif GDB_V5}
+  {$LINKLIB c}
+  {$LINKLIB gcc}
 {$endif linux}
 
 {$ifdef win32}
- {$undef NotImplemented}
- {$LINKLIB cygwin}
- {$LINKLIB gdb}
- {$ifdef USE_TERMCAP}
-   {$LINKLIB termcap}
- {$else not USE_TERMCAP}
-   {$LINKLIB ncurses}
- {$endif not USE_TERMCAP}
- {$LINKLIB gcc}
- {$LINKLIB c}
- {$LINKLIB cygwin}
- { all those are maybe not necessary
-   but at least user32 is required
-   because of clipboard handling PM }
- {$LINKLIB kernel32}
- {$LINKLIB user32}
+  {$undef NotImplemented}
+{$ifndef GDB_V5}
+  {$LINKLIB cygwin}
+  {$LINKLIB gdb}
+  {$ifdef USE_TERMCAP}
+    {$LINKLIB termcap}
+  {$else not USE_TERMCAP}
+    {$LINKLIB ncurses}
+  {$endif not USE_TERMCAP}
+  {$LINKLIB gcc}
+  {$LINKLIB c}
+  {$LINKLIB cygwin}
+  { all those are maybe not necessary
+    but at least user32 is required
+    because of clipboard handling PM }
+  {$LINKLIB kernel32}
+  {$LINKLIB user32}
+{$else GDB_V5}
+  {$LINKLIB gdb}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB intl}
+  {$LINKLIB iberty}
+  {$LINKLIB termcap}
+  {$LINKLIB gcc}
+  {$LINKLIB cygwin} { alias of libm.a and libc.a }
+  {$LINKLIB iberty}
+  {$LINKLIB imagehlp}
+  {$LINKLIB kernel32}
+  {$LINKLIB user32}
+{$endif GDB_V5}
+
 {$endif win32}
 
 {$ifdef go32v2}
- {$define supportexceptions}
+  {$define supportexceptions}
 {$endif go32v2}
 {$ifdef linux}
- {$define supportexceptions}
+  {$define supportexceptions}
 {$endif linux}
 
 {$ifdef NotImplemented}
-{$fatal This OS is not yet supported !!!}
+  {$fatal This OS is not yet supported !!!}
 {$endif NotImplemented}
+
+{$packrecords C}
 
 type
   psyminfo=^tsyminfo;
@@ -103,12 +151,15 @@ type
 { needed for handles }
 {not anymore I textrec.inc}
 
-{ GDB_FILE type }
+
 type
   streamtype = (afile,astring);
   C_FILE     = longint; { at least under DJGPP }
   P_C_FILE   = ^C_FILE;
 
+{$ifdef GDB_V418}
+{ GDB_FILE type }
+type
   PGDB_FILE = ^TGDB_FILE;
   TGDB_FILE = record
               ts_streamtype : streamtype;
@@ -116,7 +167,53 @@ type
               ts_strbuf : pchar;
               ts_buflen : longint;
               end;
+{$endif GDB_V418}
+
+{$ifdef GDB_V5}
+type
+
+  pui_file = ^ui_file;
+
+  ui_file_flush_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_write_ftype = procedure(stream : pui_file;buf : pchar;len : longint);cdecl;
+  ui_file_fputs_ftype = procedure(buf : pchar; stream : pui_file);cdecl;
+  ui_file_delete_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_isatty_ftype = function(stream : pui_file) : longbool;cdecl;
+  ui_file_rewind_ftype = procedure(stream : pui_file);cdecl;
+  ui_file_put_method_ftype = procedure(var _object; buffer : pchar;length_buffer : longint);cdecl;
+  ui_file_put_ftype = procedure(stream : pui_file;method : ui_file_put_method_ftype;var context);cdecl;
+
+  plongint = ^longint;
+
+  ui_file = record
+      magic : plongint;
+      to_flush  : ui_file_flush_ftype;
+      to_write  : ui_file_write_ftype;
+      to_fputs  : ui_file_fputs_ftype;
+      to_delete : ui_file_delete_ftype;
+      to_isatty : ui_file_isatty_ftype;
+      to_rewind : ui_file_rewind_ftype;
+      to_put    : ui_file_put_ftype;
+      to_data   : pointer;
+    end;
+
+  { used to delete stdio_ui_file  gdb_stdout and gdb_stderr }
+  procedure ui_file_delete(stream : pui_file);cdecl;external;
+
+  { used to recreate gdb_stdout and gdb_stderr as memory streams }
+  function mem_fileopen : pui_file;cdecl;external;
+
+  { used to change the write procvar to ours }
+
+  procedure set_ui_file_write(stream : pui_file;write : ui_file_write_ftype);cdecl;external;
+
+
+{$endif GDB_V5}
+
+
 {$ifdef win32}
+
+type
   { from sys/reent.h
     real structure is bigger but only std.. are wanted here PM }
   REENT = record
@@ -128,20 +225,26 @@ type
 var _impure_ptr : PREENT;cvar;external;
 
 {$endif win32}
+
 {$endif not GDB_V416}
+
 type
   tgdbbuffer=object
     buf   : pchar;
     size,
     idx   : longint;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
     link  : pgdb_file;
-{$endif not GDB_V416}
+{$endif not GDB_V418}
+{$ifdef GDB_V5}
+    gdb_file  : pui_file;
+{$endif not GDB_V5}
     constructor Init;
     destructor  Done;
     procedure Reset;
     procedure Resize(nsize : longint);
     procedure Append(p:pchar);
+    procedure lappend(p:pchar;len : longint);
   end;
 
   pgdbinterface=^tgdbinterface;
@@ -271,6 +374,19 @@ type
 
 {$endif}
 {$ifdef win32}
+type
+  jmp_buf = record
+  case byte of
+    0 :
+    { greatest value found in cygwin machine/setjmp.h for i386 }
+    (unknown_field : array [1..13] of longint;);
+    1 :
+    (eax,ebx,ecx,edx : longint;
+    esi,edi,ebp,esp,eip : longint;);
+  end;
+
+  pjmp_buf = ^jmp_buf;
+
   function setjmp(var rec : jmp_buf) : longint;cdecl;external;
 
   procedure longjmp(var rec : jmp_buf;return_value : longint);cdecl;external;
@@ -399,7 +515,7 @@ type
      value : record
        case integer of
       (* The fact that this is a long not a LONGEST mainly limits the
-         range of a LOC_CONST.  Since LOC_CONST_BYTES exists, I'm not
+         range of a LOC_CONST.  Since LOC_CONST_BYTES exists, I am not
          sure that is a big deal.  *)
        0 : (ivalue : longint;);
 
@@ -440,7 +556,7 @@ type
   (* Which section is this symbol in?  This is an index into
      section_offsets for this objfile.  Negative means that the symbol
      does not get relocated relative to a section.
-     Disclaimer: currently this is just used for xcoff, so don't
+     Disclaimer: currently this is just used for xcoff, so do not
      expect all symbol-reading code to set it correctly (the ELF code
      also tries to set it correctly).  *)
 
@@ -477,7 +593,7 @@ type
   namespace_enum = (
   (* UNDEF_NAMESPACE is used when a namespace has not been discovered or
      none of the following apply.  This usually indicates an error either
-     in the symbol information or in gdb's handling of symbols. *)
+     in the symbol information or in gdbs handling of symbols. *)
   UNDEF_NAMESPACE,
 
   (* VAR_NAMESPACE is the usual namespace.  In C, this contains variables,
@@ -522,7 +638,7 @@ type
   (* Value is in register.  SYMBOL_VALUE is the register number.  *)
   LOC_REGISTER,
 
-  (* It's an argument; the value is at SYMBOL_VALUE offset in arglist.  *)
+  (* It is an argument; the value is at SYMBOL_VALUE offset in arglist.  *)
   LOC_ARG,
 
   (* Value address is at SYMBOL_VALUE offset in arglist.  *)
@@ -827,8 +943,8 @@ type
 
 var
 { external variables }
-  error_return : jmp_buf;cvar;external;
-  quit_return  : jmp_buf;cvar;external;
+  error_return : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
+  quit_return  : jmp_buf;cvar;{$ifndef GDB_V5}external;{$endif}
   create_breakpoint_hook : pointer;cvar;external;
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
@@ -851,9 +967,18 @@ var
 { Whether dbx commands will be handled }
   dbx_commands : longint;cvar;public;
 
+{$ifndef GDB_V5}
 var
   gdb_stdout : PGDB_FILE;cvar;public;
   gdb_stderr : PGDB_FILE;cvar;public;
+{$else GDB_V5}
+var
+  gdb_stdout : pui_file;cvar;public;
+  gdb_stderr : pui_file;cvar;public;
+  gdb_stdlog : pui_file;cvar;public;
+  gdb_stdtarg : pui_file;cvar;public;
+  event_loop_p : longint;cvar;public;
+{$endif GDB_V5}
 
 { used for gdb_stdout and gdb_stderr }
 function xmalloc(size : longint) : pointer;cdecl;external;
@@ -927,9 +1052,12 @@ const
 constructor tgdbbuffer.init;
 begin
   Buf:=nil;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   link:=nil;
-{$endif not GDB_V416}
+{$endif GDB_V418}
+{$ifdef GDB_V5}
+  gdb_file:=nil;
+{$endif GDB_V5}
   Size:=0;
   Resize(blocksize);
   Reset;
@@ -940,14 +1068,14 @@ destructor tgdbbuffer.done;
 begin
   if assigned(buf) then
     freemem(buf,size);
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(link) then
     begin
       link^.ts_streamtype:=afile;
       link^.ts_strbuf:=nil;
       link^.ts_buflen:=0;
     end;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
 
@@ -974,6 +1102,18 @@ begin
 end;
 
 
+procedure tgdbbuffer.lappend(p:pchar;len : longint);
+begin
+  if not assigned(p) then
+   exit;
+  if len+idx>size then
+   Resize(len+idx);
+  Move(p^,buf[idx],len);
+  inc(idx,len);
+  buf[idx]:=#0;
+end;
+
+
 procedure tgdbbuffer.resize(nsize : longint);
 var
   np    : pchar;
@@ -987,13 +1127,13 @@ begin
     end;
   buf:=np;
   size:=nsize;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(link) then
     begin
       link^.ts_strbuf:=buf;
       link^.ts_buflen:=size;
     end;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
 
@@ -1176,6 +1316,14 @@ procedure breakpoints_changed;cdecl;public;
 begin
 {$ifdef Debug}
   Debug('|breakpoints_changed|');
+{$endif}
+end;
+
+{ only from version 5.0 }
+procedure annotate_ignore_count_change;cdecl;public;
+begin
+{$ifdef Debug}
+  Debug('|annotate_ignore_count_change()|');
 {$endif}
 end;
 
@@ -1661,24 +1809,53 @@ procedure _initialize_annotate;cdecl;public;
 begin
 end;
 
-
+{$ifndef GDB_V5}
 procedure fputs_unfiltered(linebuffer:pchar;stream:pointer);cdecl;public;
 begin
   with curr_gdb^ do
-{$ifndef gdb_v416}
+{$ifdef gdb_v418}
   if stream = gdb_stderr then
      gdberrorbuf.append(linebuffer)
   else
-{$endif not gdb_v416}
+{$endif gdb_v418}
      gdboutputbuf.append(linebuffer);
 end;
+{$else GDB_V5}
+
+procedure gdbint_ui_file_write(stream : pui_file; p : pchar; len : longint);cdecl;
+begin
+  with curr_gdb^ do
+    if stream = gdb_stderr then
+       gdberrorbuf.lappend(p,len)
+    else if stream = gdb_stdout then
+       gdboutputbuf.lappend(p,len)
+    else
+      begin
+       gdberrorbuf.append('Unknown gdb ui_file');
+       gdberrorbuf.lappend(p,len);
+      end;
+end;
+{$endif GDB_V5}
 
 
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
 var
   sym : symtab_and_line;
+
+{ this procedure is only here to avoid the problems
+  with different version of gcc having different stack
+  handling:
+  on older versions find_pc_line uses just "ret"
+  while on newer gcc version "ret $4" is used
+  if this call is within the CreateBreakPointHook function
+  it changes %esp and thus the registers are
+  not restored correctly PM }
+  procedure get_pc_line;
+    begin
+      sym:=find_pc_line(b.address,0);
+    end;
 begin
-  sym:=find_pc_line(b.address,0);
+  get_pc_line;
   with curr_gdb^ do
    begin
      last_breakpoint_number:=b.number;
@@ -1704,7 +1881,7 @@ begin
   gdboutputbuf.init;
   gdberrorbuf.init;
   record_frames:=true;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
 (* GDB_FILE *
   gdb_file_init_astring (n)
     int n;
@@ -1720,7 +1897,11 @@ begin
   gdb_stderr^.ts_strbuf := gdberrorbuf.buf;
   gdb_stderr^.ts_buflen := gdberrorbuf.size;
   gdberrorbuf.link:=gdb_stderr;
-{$endif not GDB_V416}
+{$endif GDB_V418}
+
+{$ifdef GDB_V5}
+
+{$endif GDB_V5}
 
   gdb__init;
   curr_gdb:=@self;
@@ -1782,9 +1963,23 @@ end;
 var
    top_level_val : longint;
 
+{$ifdef GDB_V5}
+function catch_errors(func : pointer; command : pchar; from_tty,mask : longint) : longint;cdecl;external;
+
+function gdbint_execute_command(command : pchar; from_tty,mask : longint) : longint;cdecl;
+begin
+  gdbint_execute_command:=1;
+  execute_command(command,from_tty);
+  gdbint_execute_command:=0;
+end;
+{$endif GDB_V5}
+
 procedure tgdbinterface.gdb_command(const s:string);
 var
   command          : array[0..256] of char;
+{$ifdef GDB_V5}
+  mask : longint;
+{$endif GDB_V5}
   s2 : string;
   old_quit_return,
   old_error_return : jmp_buf;
@@ -1826,7 +2021,12 @@ begin
   if top_level_val=0 then
    begin
      quit_return:=error_return;
+{$ifdef GDB_V5}
+     mask:=$ffffffff;
+     catch_errors(@gdbint_execute_command,@command,0,mask);
+{$else not  GDB_V5}
      execute_command(@command,0);
+{$endif not  GDB_V5}
 {$ifdef go32v2}
      reload_fs;
 {$endif go32v2}
@@ -2042,8 +2242,16 @@ begin
   AllowQuit:=true;
 end;
 
+{$ifdef GDB_V5}
+var
+  version : array[0..0] of char;cvar;external;
+
+procedure error_init;cdecl;external;
+
+{$else}
 var
   version : pchar;cvar;
+{$endif}
 
 function  GDBVersion : string;
 begin
@@ -2055,17 +2263,24 @@ const next_exit : pointer = nil;
 procedure DoneLibGDB;
 begin
   exitproc:=next_exit;
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   if assigned(gdb_stdout) then
     dispose(gdb_stdout);
   gdb_stdout:=nil;
   if assigned(gdb_stderr) then
     dispose(gdb_stderr);
   gdb_stderr:=nil;
-{$endif not GDB_V416}
+{$endif GDB_V418}
 end;
 
-{$ifndef GDB_V416}
+{$ifdef go32v2}
+var
+  c_environ : ppchar;external name '_environ';
+  c_argc : longint;external name '___crt0_argc';
+  c_argv : ppchar;external name '___crt0_argv';
+{$endif def go32v2}
+
+{$ifdef GDB_V418}
 {$ifndef go32v2}
 {$ifndef win32}
 var
@@ -2081,7 +2296,7 @@ var
    __dj_stdout : c_file;cvar;external;
    __dj_stderr : c_file;cvar;external;
 {$endif go32v2}
-{$endif not GDB_V416}
+{$endif not GDB_V418}
 
 procedure InitLibGDB;
 {$ifdef supportexceptions}
@@ -2089,6 +2304,11 @@ var
   OldSigInt : SignalHandler;
 {$endif supportexceptions}
 begin
+{$ifdef go32v2}
+  c_environ:=system.envp;
+  c_argc:=system.argc;
+  c_argv:=system.argv;
+{$endif def go32v2}
 {$ifdef supportexceptions}
 {$ifdef go32v2}
   OldSigInt:=Signal(SIGINT,SignalHandler(@SIG_DFL));
@@ -2097,7 +2317,7 @@ begin
 {$endif}
 {$endif supportexceptions}
 
-{$ifndef GDB_V416}
+{$ifdef GDB_V418}
   new(gdb_stdout);
 
   gdb_stdout^.ts_streamtype := afile;
@@ -2126,7 +2346,21 @@ begin
 {$endif go32v2}
   gdb_stderr^.ts_strbuf := nil;
   gdb_stderr^.ts_buflen := 0;
-{$endif not GDB_V416}
+{$endif  GDB_V418}
+
+{$ifdef GDB_V5}
+  if assigned(gdb_stderr) then
+    ui_file_delete(gdb_stderr);
+  if assigned(gdb_stdout) then
+    ui_file_delete(gdb_stdout);
+  gdb_stderr:=mem_fileopen;
+  gdb_stdout:=mem_fileopen;
+  gdb_stdlog:=gdb_stderr;
+  gdb_stdtarg:=gdb_stderr;
+  set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
+  set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
+  error_init;
+{$endif GDB_V5}
 
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
@@ -2157,7 +2391,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:15  michael
+  Revision 1.3  2000-10-08 10:07:22  peter
+    * merged fixes from Pierre
+
+  Revision 1.2  2000/07/13 11:33:15  michael
   + removed logs
- 
 }
