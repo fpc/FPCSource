@@ -9,20 +9,20 @@ Free Pascal for MPW is still considered beta quality and a lot of things
 are still missing. However ordinary programs should be able to compile. And
 the compiler can compile itself.
 
-Things which is not included: IDE, GDB, unitlity programs, demos, FPCMake 
+Things which is not included: unit SysUtils and its dependants
+IDE, GDB, FPCMake 
 
-For documentation, please download separatelly.
+For documentation, please download separate.
 
 How to install:
 ---------------
 
-1. If  yo do not have MPW, please install MPW first.
+1. If you do not have MPW, please install MPW first.
    MPW can be downloaded for free from Apple, see web page:
      http://developer.apple.com/tools/mpw-tools/
    download at:
      ftp://ftp.apple.com/developer/Tool_Chest/Core_Mac_OS_Tools/MPW_etc./
    It is then recommended that you upgrade to MPW Shell 3.6b1.
-
 
 2. Double click the file "INSTALL". This will launch an
    install script (via the ToolServer application, which is
@@ -83,7 +83,9 @@ Tips
 
 * Use mac style search path's.
 
-* Debugging is not available.
+* Limited debugging with Power Mac Debugger can be done. To enable this,
+  compile the program with the -g switch. Then debugging at source level,
+  with stepping etc, can be done. However variables cannot be inspected.
 
 Inner workings
 --------------
