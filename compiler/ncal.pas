@@ -199,15 +199,33 @@ implementation
 {$endif def extdebug}
          if assigned(right) then
            begin
-              if defcoll=nil then
-                tcallparanode(right).insert_typeconv(nil,do_count)
-              else
-                tcallparanode(right).insert_typeconv(tparaitem(defcoll.next),do_count);
+             { if we are a para that belongs to varargs then keep
+               the current defcoll }
+             if (nf_varargs_para in flags) then
+              tcallparanode(right).insert_typeconv(defcoll,do_count)
+             else
+              tcallparanode(right).insert_typeconv(tparaitem(defcoll.next),do_count);
            end;
 
          { Be sure to have the resulttype }
          if not assigned(left.resulttype.def) then
            resulttypepass(left);
+
+         { Handle varargs directly, no typeconvs or typechecking needed }
+         if (nf_varargs_para in flags) then
+          begin
+            { convert pascal to C types }
+            case left.resulttype.def.deftype of
+              stringdef :
+                inserttypeconv(left,charpointertype);
+              floatdef :
+                inserttypeconv(left,s64floattype);
+            end;
+            set_varstate(left,true);
+            resulttype:=left.resulttype;
+            dec(parsing_para_level);
+            exit;
+          end;
 
          { Do we need arrayconstructor -> set conversion, then insert
            it here before the arrayconstructor node breaks the tree
@@ -235,45 +253,18 @@ implementation
              end;
           end;
 
-         if do_count then
-          begin
-            { not completly proper, but avoids some warnings }
-            if (defcoll.paratyp in [vs_var,vs_out]) then
-              set_funcret_is_valid(left);
-
-            { protected has nothing to do with read/write
-            if (defcoll.paratyp in [vs_var,vs_out]) then
-              test_protected(left);
-            }
-            { set_varstate(left,defcoll.paratyp<>vs_var);
-              must only be done after typeconv PM }
-            { only process typeconvn and arrayconstructn, else it will
-              break other trees }
-            { But this is need to get correct varstate !! PM }
-            {old_array_constructor:=allow_array_constructor;
-            old_get_para_resulttype:=get_para_resulttype;
-            allow_array_constructor:=true;
-            get_para_resulttype:=false;
-            if (left.nodetype in [arrayconstructorn,typeconvn]) then
-              firstpass(left);
-            if not assigned(resulttype.def) then
-              resulttype:=left.resulttype;
-            get_para_resulttype:=old_get_para_resulttype;
-            allow_array_constructor:=old_array_constructor; }
-          end;
          { check if local proc/func is assigned to procvar }
          if left.resulttype.def.deftype=procvardef then
            test_local_to_procvar(tprocvardef(left.resulttype.def),defcoll.paratype.def);
-         { property is not allowed as var parameter }
-         if (defcoll.paratyp in [vs_out,vs_var]) and
-            (nf_isproperty in left.flags) then
-           CGMessagePos(left.fileinfo,type_e_argument_cant_be_assigned);
+
          { generate the high() value tree }
          if not(assigned(aktcallprocsym) and
                 (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym.definition.proccalloptions)<>[]) and
                 (po_external in aktcallprocsym.definition.procoptions)) and
             push_high_param(defcoll.paratype.def) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
+
+         { test conversions }
          if not(is_shortstring(left.resulttype.def) and
                 is_shortstring(defcoll.paratype.def)) and
                 (defcoll.paratype.def.deftype<>formaldef) then
@@ -334,6 +325,7 @@ implementation
                    exit;
                 end;
            end;
+
          { check var strings }
          if (cs_strict_var_strings in aktlocalswitches) and
             is_shortstring(left.resulttype.def) and
@@ -346,28 +338,28 @@ implementation
                CGMessage(type_e_strict_var_string_violation);
             end;
 
-         { variabls for call by reference may not be copied }
-         { into a register }
-         { is this usefull here ? }
-         { this was missing in formal parameter list   }
+         { Handle formal parameters separate }
          if (defcoll.paratype.def.deftype=formaldef) then
            begin
-             if defcoll.paratyp in [vs_var,vs_out] then
-               begin
-                 if not valid_for_formal_var(left) then
-                   begin
-                      aktfilepos:=left.fileinfo;
-                      CGMessage(parser_e_illegal_parameter_list);
-                   end;
-               end;
-             if defcoll.paratyp=vs_const then
-               begin
-                 if not valid_for_formal_const(left) then
-                   begin
-                      aktfilepos:=left.fileinfo;
-                      CGMessage(parser_e_illegal_parameter_list);
-                   end;
-               end;
+             case defcoll.paratyp of
+               vs_var,
+               vs_out :
+                 begin
+                   if not valid_for_formal_var(left) then
+                    CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                 end;
+               vs_const :
+                 begin
+                   if not valid_for_formal_const(left) then
+                    CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
+                 end;
+             end;
+           end
+         else
+           begin
+             { check if the argument is allowed }
+             if (defcoll.paratyp in [vs_out,vs_var]) then
+               valid_for_var(left);
            end;
 
          if defcoll.paratyp in [vs_var,vs_const] then
@@ -385,7 +377,12 @@ implementation
            make_not_regable(left);
 
          if do_count then
-           set_varstate(left,not(defcoll.paratyp in [vs_var,vs_out]));
+          begin
+            { not completly proper, but avoids some warnings }
+            if (defcoll.paratyp in [vs_var,vs_out]) then
+             set_funcret_is_valid(left);
+            set_varstate(left,not(defcoll.paratyp in [vs_var,vs_out]));
+          end;
          { must only be done after typeconv PM }
          resulttype:=defcoll.paratype;
          dec(parsing_para_level);
@@ -760,16 +757,21 @@ implementation
                      begin
                         { only when the # of parameter are supported by the
                           procedure }
-                        if (paralength>=pd.minparacount) and (paralength<=pd.maxparacount) then
+                        if (paralength>=pd.minparacount) and
+                           ((po_varargs in pd.procoptions) or { varargs }
+                            (paralength<=pd.maxparacount)) then
                           begin
                              new(hp);
                              hp^.data:=pd;
                              hp^.next:=procs;
                              hp^.firstpara:=tparaitem(pd.Para.first);
-                             { if not all parameters are given, then skip the
-                               default parameters }
-                             for i:=1 to pd.maxparacount-paralength do
-                              hp^.firstpara:=tparaitem(hp^.firstPara.next);
+                             if not(po_varargs in pd.procoptions) then
+                              begin
+                                { if not all parameters are given, then skip the
+                                  default parameters }
+                                for i:=1 to pd.maxparacount-paralength do
+                                 hp^.firstpara:=tparaitem(hp^.firstPara.next);
+                              end;
                              hp^.nextpara:=hp^.firstpara;
                              procs:=hp;
                           end;
@@ -823,27 +825,37 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             if is_equal(pt,hp^.nextPara.paratype.def) then
-                               begin
-                                  if hp^.nextPara.paratype.def=pt.resulttype.def then
+                             { varargs are always equal, but not exact }
+                             if (po_varargs in hp^.data.procoptions) and
+                                (lastpara>hp^.data.minparacount) then
+                              begin
+                                hp^.nextPara.argconvtyp:=act_equal;
+                                exactmatch:=true;
+                              end
+                             else
+                              begin
+                                if is_equal(pt,hp^.nextPara.paratype.def) then
+                                 begin
+                                   if hp^.nextPara.paratype.def=pt.resulttype.def then
                                     begin
                                        include(pt.callparaflags,cpf_exact_match_found);
                                        hp^.nextPara.argconvtyp:=act_exact;
                                     end
-                                  else
+                                   else
                                     hp^.nextPara.argconvtyp:=act_equal;
-                                  exactmatch:=true;
-                               end
-                             else
-                               begin
-                                 hp^.nextPara.argconvtyp:=act_convertable;
-                                 hp^.nextPara.convertlevel:=isconvertable(pt.resulttype.def,hp^.nextPara.paratype.def,
-                                     hcvt,pt.left.nodetype,false);
-                                 case hp^.nextPara.convertlevel of
-                                  1 : include(pt.callparaflags,cpf_convlevel1found);
-                                  2 : include(pt.callparaflags,cpf_convlevel2found);
+                                   exactmatch:=true;
+                                 end
+                                else
+                                 begin
+                                   hp^.nextPara.argconvtyp:=act_convertable;
+                                   hp^.nextPara.convertlevel:=isconvertable(pt.resulttype.def,hp^.nextPara.paratype.def,
+                                       hcvt,pt.left.nodetype,false);
+                                   case hp^.nextPara.convertlevel of
+                                    1 : include(pt.callparaflags,cpf_convlevel1found);
+                                    2 : include(pt.callparaflags,cpf_convlevel2found);
+                                   end;
                                  end;
-                               end;
+                              end;
 
                              hp:=hp^.next;
                           end;
@@ -895,7 +907,11 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             hp^.nextpara:=tparaitem(hp^.nextPara.next);
+                             { only goto next para if we're out of the
+                               varargs }
+                             if (not(po_varargs in hp^.data.procoptions) and
+                                 (lastpara<=hp^.data.minparacount)) then
+                               hp^.nextpara:=tparaitem(hp^.nextPara.next);
                              hp:=hp^.next;
                           end;
                         { load next parameter or quit loop if no procs left }
@@ -1243,32 +1259,32 @@ implementation
                end;
            end;
 
-              { handle predefined procedures }
-              is_const:=(pocall_internconst in procdefinition.proccalloptions) and
-                        ((block_type in [bt_const,bt_type]) or
-                         (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
-              if (pocall_internproc in procdefinition.proccalloptions) or is_const then
-                begin
-                   if assigned(left) then
-                     begin
-                     { ptr and settextbuf needs two args }
-                       if assigned(tcallparanode(left).right) then
-                        begin
-                          hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);
-                          left:=nil;
-                        end
-                       else
-                        begin
-                          hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,tcallparanode(left).left);
-                          tcallparanode(left).left:=nil;
-                        end;
-                     end
-                   else
-                     hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,nil);
-                   resulttypepass(hpt);
-                   result:=hpt;
-                   goto errorexit;
-                end;
+          { handle predefined procedures }
+          is_const:=(pocall_internconst in procdefinition.proccalloptions) and
+                    ((block_type in [bt_const,bt_type]) or
+                     (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
+          if (pocall_internproc in procdefinition.proccalloptions) or is_const then
+           begin
+             if assigned(left) then
+              begin
+                { ptr and settextbuf needs two args }
+                if assigned(tcallparanode(left).right) then
+                 begin
+                   hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);
+                   left:=nil;
+                 end
+                else
+                 begin
+                   hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,tcallparanode(left).left);
+                   tcallparanode(left).left:=nil;
+                 end;
+              end
+             else
+              hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,nil);
+             resulttypepass(hpt);
+             result:=hpt;
+             goto errorexit;
+           end;
 
          { Calling a message method directly ? }
          if assigned(procdefinition) and
@@ -1303,6 +1319,19 @@ implementation
                 (methodpointer.resulttype.def.deftype=classrefdef) then
                resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
            end;
+
+         { flag all callparanodes that belong to the varargs }
+         if (po_varargs in procdefinition.procoptions) then
+          begin
+            pt:=tcallparanode(left);
+            i:=paralength;
+            while (i>procdefinition.minparacount) do
+             begin
+               include(tcallparanode(pt).flags,nf_varargs_para);
+               pt:=tcallparanode(pt.right);
+               dec(i);
+             end;
+          end;
 
          { insert type conversions }
          if assigned(left) then
@@ -1622,7 +1651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2001-05-20 12:09:31  peter
+  Revision 1.34  2001-06-04 11:48:02  peter
+    * better const to var checking
+
+  Revision 1.33  2001/05/20 12:09:31  peter
     * fixed exit with ansistring return from function call, no_fast_exit
       should be set in det_resulttype instead of pass_1
 

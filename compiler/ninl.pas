@@ -648,7 +648,7 @@ implementation
                              ppn:=tcallparanode(ppn.right);
                           end;
                         { last param must be var }
-                        valid_for_assign(ppn.left,false);
+                        valid_for_var(ppn.left);
                         set_varstate(ppn.left,false);
                         { first param must be a string or dynamic array ...}
                         if not((ppn.left.resulttype.def.deftype=stringdef) or
@@ -683,7 +683,7 @@ implementation
                    if assigned(left) and assigned(tcallparanode(left).left) then
                      begin
                         { first param must be var }
-                        valid_for_assign(tcallparanode(left).left,false);
+                        valid_for_var(tcallparanode(left).left);
                         set_varstate(tcallparanode(left).left,true);
 
                         { two parameters?, the last parameter must be a longint }
@@ -704,7 +704,7 @@ implementation
                        if codegenerror then
                         exit;
                        { first param must be var }
-                       valid_for_assign(tcallparanode(left).left,false);
+                       valid_for_var(tcallparanode(left).left);
 
                        if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                           is_ordinal(left.resulttype.def) then
@@ -940,7 +940,7 @@ implementation
                  (tcallparanode(hp).right=nil) then
                 CGMessage(cg_e_illegal_expression);
               { we need a var parameter }
-              valid_for_assign(tcallparanode(hp).left,false);
+              valid_for_var(tcallparanode(hp).left);
               { generate the high() value for the shortstring }
               if is_shortstring(tcallparanode(hp).left.resulttype.def) then
                 tcallparanode(hp).gen_high_tree(true);
@@ -1027,7 +1027,7 @@ implementation
                     exit;
                    tcallparanode(left).right := hp;
                    { code has to be a var parameter }
-                   if valid_for_assign(tcallparanode(left).left,false) then
+                   if valid_for_var(tcallparanode(left).left) then
                     begin
                       if (tcallparanode(left).left.resulttype.def.deftype <> orddef) or
                          not(torddef(tcallparanode(left).left.resulttype.def).typ in [u16bit,s16bit,u32bit,s32bit]) then
@@ -1049,7 +1049,7 @@ implementation
               { remove warning when result is passed }
               set_funcret_is_valid(tcallparanode(hpp).left);
               tcallparanode(hpp).right := hp;
-              if valid_for_assign(tcallparanode(hpp).left,false) then
+              if valid_for_var(tcallparanode(hpp).left) then
                begin
                  If Not((tcallparanode(hpp).left.resulttype.def.deftype = floatdef) or
                         is_integer(tcallparanode(hpp).left.resulttype.def)) then
@@ -1073,7 +1073,7 @@ implementation
                        { remove warning when result is passed }
                        set_funcret_is_valid(tcallparanode(left).left);
                        { first param must be var }
-                       valid_for_assign(tcallparanode(left).left,false);
+                       valid_for_var(tcallparanode(left).left);
                        { check type }
                        if assigned(left.resulttype.def) and
                           (left.resulttype.def.deftype=setdef) then
@@ -1750,7 +1750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2001-06-03 20:12:53  peter
+  Revision 1.42  2001-06-04 11:48:01  peter
+    * better const to var checking
+
+  Revision 1.41  2001/06/03 20:12:53  peter
     * changed int64($ffffffff) that is buggy under 1.0.x to expression
       with a shl
 

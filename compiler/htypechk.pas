@@ -96,18 +96,9 @@ interface
     { subroutine handling }
     procedure test_protected_sym(sym : tsym);
     procedure test_protected(p : tnode);
-    function  valid_for_formal_var(p : tnode) : boolean;
-    function  valid_for_formal_const(p : tnode) : boolean;
     function  is_procsym_load(p:tnode):boolean;
     function  is_procsym_call(p:tnode):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
-    function  valid_for_assign(p:tnode;allowprop:boolean):boolean;
-    { sets the callunique flag, if the node is a vecn, }
-    { takes care of type casts etc.                 }
-    procedure set_unique(p : tnode);
-
-    { sets funcret_is_valid to true, if p contains a funcref node }
-    procedure set_funcret_is_valid(p : tnode);
 
     {
     type
@@ -117,6 +108,18 @@ interface
     { sets varsym varstate field correctly }
     procedure unset_varstate(p : tnode);
     procedure set_varstate(p : tnode;must_be_valid : boolean);
+
+    { sets the callunique flag, if the node is a vecn, }
+    { takes care of type casts etc.                 }
+    procedure set_unique(p : tnode);
+
+    { sets funcret_is_valid to true, if p contains a funcref node }
+    procedure set_funcret_is_valid(p : tnode);
+
+    function  valid_for_formal_var(p : tnode) : boolean;
+    function  valid_for_formal_const(p : tnode) : boolean;
+    function  valid_for_var(p:tnode):boolean;
+    function  valid_for_assignment(p:tnode):boolean;
 
 
 implementation
@@ -134,6 +137,11 @@ implementation
        hcodegen
 {$endif}
        ;
+
+    type
+      TValidAssign=(Valid_Property,Valid_Void);
+      TValidAssigns=set of TValidAssign;
+
 
     { ld is the left type definition
       rd the right type definition
@@ -496,61 +504,6 @@ implementation
         end;
       end;
 
-   function  valid_for_formal_var(p : tnode) : boolean;
-     var
-        v : boolean;
-     begin
-        case p.nodetype of
-         loadn :
-           v:=(tloadnode(p).symtableentry.typ in [typedconstsym,varsym]);
-         typeconvn :
-           v:=valid_for_formal_var(ttypeconvnode(p).left);
-         derefn,
-         subscriptn,
-         vecn,
-         funcretn,
-         selfn :
-           v:=true;
-         calln : { procvars are callnodes first }
-           v:=assigned(tcallnode(p).right) and not assigned(tcallnode(p).left);
-         addrn :
-           begin
-             { addrn is not allowed as this generate a constant value,
-               but a tp procvar are allowed (PFV) }
-             if nf_procvarload in p.flags then
-              v:=true
-             else
-              v:=false;
-           end;
-         else
-           v:=false;
-        end;
-        valid_for_formal_var:=v;
-     end;
-
-   function  valid_for_formal_const(p : tnode) : boolean;
-     var
-        v : boolean;
-     begin
-        { p must have been firstpass'd before }
-        { accept about anything but not a statement ! }
-        case p.nodetype of
-          calln,
-          statementn,
-          addrn :
-           begin
-             { addrn is not allowed as this generate a constant value,
-               but a tp procvar are allowed (PFV) }
-             if nf_procvarload in p.flags then
-              v:=true
-             else
-              v:=false;
-           end;
-          else
-            v:=true;
-        end;
-        valid_for_formal_const:=v;
-     end;
 
     function is_procsym_load(p:tnode):boolean;
       begin
@@ -558,6 +511,7 @@ implementation
                           ((p.nodetype=addrn) and (taddrnode(p).left.nodetype=loadn)
                           and (tloadnode(taddrnode(p).left).symtableentry.typ=procsym)) ;
       end;
+
 
    { change a proc call to a procload for assignment to a procvar }
    { this can only happen for proc/function without arguments }
@@ -574,172 +528,6 @@ implementation
       begin
          if (from_def.symtablelevel>1) and (to_def.deftype=procvardef) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
-      end;
-
-
-    function valid_for_assign(p:tnode;allowprop:boolean):boolean;
-      var
-        hp : tnode;
-        gotwith,
-        gotsubscript,
-        gotpointer,
-        gotclass,
-        gotderef : boolean;
-      begin
-        valid_for_assign:=false;
-        gotsubscript:=false;
-        gotderef:=false;
-        gotclass:=false;
-        gotpointer:=false;
-        gotwith:=false;
-        hp:=p;
-        if is_void(hp.resulttype.def) then
-         begin
-           CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
-           exit;
-         end;
-        while assigned(hp) do
-         begin
-           { property allowed? calln has a property check itself }
-           if (not allowprop) and
-              (nf_isproperty in hp.flags) and
-              (hp.nodetype<>calln) then
-            begin
-              CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
-              exit;
-            end;
-           case hp.nodetype of
-             derefn :
-               begin
-                 gotderef:=true;
-                 hp:=tderefnode(hp).left;
-               end;
-             typeconvn :
-               begin
-                 case hp.resulttype.def.deftype of
-                   pointerdef :
-                     gotpointer:=true;
-                   objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype.def);
-                   classrefdef :
-                     gotclass:=true;
-                   arraydef :
-                     begin
-                       { pointer -> array conversion is done then we need to see it
-                         as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resulttype.def.deftype=pointerdef) then
-                        gotderef:=true;
-                     end;
-                 end;
-                 hp:=ttypeconvnode(hp).left;
-               end;
-             vecn,
-             asn :
-               hp:=tunarynode(hp).left;
-             subscriptn :
-               begin
-                 gotsubscript:=true;
-                 { a class/interface access is an implicit }
-                 { dereferencing                           }
-                 hp:=tsubscriptnode(hp).left;
-                 if is_class_or_interface(hp.resulttype.def) then
-                   gotderef:=true;
-               end;
-             subn,
-             addn :
-               begin
-                 { Allow add/sub operators on a pointer, or an integer
-                   and a pointer typecast and deref has been found }
-                 if (hp.resulttype.def.deftype=pointerdef) or
-                    (is_integer(hp.resulttype.def) and gotpointer and gotderef) then
-                  valid_for_assign:=true
-                 else
-                  CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
-                 exit;
-               end;
-             addrn :
-               begin
-                 if not(gotderef) and
-                    not(nf_procvarload in hp.flags) then
-                  CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
-                 exit;
-               end;
-             selfn,
-             funcretn :
-               begin
-                 valid_for_assign:=true;
-                 exit;
-               end;
-             calln :
-               begin
-                 { check return type }
-                 case hp.resulttype.def.deftype of
-                   pointerdef :
-                     gotpointer:=true;
-                   objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype.def);
-                   recorddef, { handle record like class it needs a subscription }
-                   classrefdef :
-                     gotclass:=true;
-                 end;
-                 { 1. if it returns a pointer and we've found a deref,
-                   2. if it returns a class or record and a subscription or with is found,
-                   3. property is allowed }
-                 if (gotpointer and gotderef) or
-                    (gotclass and (gotsubscript or gotwith)) or
-                    ((nf_isproperty in hp.flags) and allowprop) then
-                  valid_for_assign:=true
-                 else
-                  CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
-                 exit;
-               end;
-             loadn :
-               begin
-                 case tloadnode(hp).symtableentry.typ of
-                   absolutesym,
-                   varsym :
-                     begin
-                       if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
-                        begin
-                          { allow p^:= constructions with p is const parameter }
-                          if gotderef then
-                           valid_for_assign:=true
-                          else
-                           CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
-                          exit;
-                        end;
-                       { Are we at a with symtable, then we need to process the
-                         withrefnode also to check for maybe a const load }
-                       if (tloadnode(hp).symtable.symtabletype=withsymtable) then
-                        begin
-                          { continue with processing the withref node }
-                          hp:=tnode(twithsymtable(tloadnode(hp).symtable).withrefnode);
-                          gotwith:=true;
-                        end
-                       else
-                        begin
-                          { set the assigned flag for varsyms }
-                          if (tvarsym(tloadnode(hp).symtableentry).varstate=vs_declared) then
-                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_assigned;
-                          valid_for_assign:=true;
-                          exit;
-                        end;
-                     end;
-                   funcretsym,
-                   typedconstsym :
-                     begin
-                       valid_for_assign:=true;
-                       exit;
-                     end;
-                 end;
-               end;
-             else
-               begin
-                 CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
-                 exit;
-               end;
-            end;
-         end;
       end;
 
 
@@ -917,10 +705,223 @@ implementation
          end;
       end;
 
+
+    function  valid_for_assign(p:tnode;opts:TValidAssigns):boolean;
+      var
+        hp : tnode;
+        gotwith,
+        gotsubscript,
+        gotpointer,
+        gotclass,
+        gotderef : boolean;
+      begin
+        valid_for_assign:=false;
+        gotsubscript:=false;
+        gotderef:=false;
+        gotclass:=false;
+        gotpointer:=false;
+        gotwith:=false;
+        hp:=p;
+        if not(valid_void in opts) and
+           is_void(hp.resulttype.def) then
+         begin
+           CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+           exit;
+         end;
+        while assigned(hp) do
+         begin
+           { property allowed? calln has a property check itself }
+           if not(valid_property in opts) and
+              (nf_isproperty in hp.flags) and
+              (hp.nodetype<>calln) then
+            begin
+              CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+              exit;
+            end;
+           case hp.nodetype of
+             derefn :
+               begin
+                 gotderef:=true;
+                 hp:=tderefnode(hp).left;
+               end;
+             typeconvn :
+               begin
+                 case hp.resulttype.def.deftype of
+                   pointerdef :
+                     gotpointer:=true;
+                   objectdef :
+                     gotclass:=is_class_or_interface(hp.resulttype.def);
+                   classrefdef :
+                     gotclass:=true;
+                   arraydef :
+                     begin
+                       { pointer -> array conversion is done then we need to see it
+                         as a deref, because a ^ is then not required anymore }
+                       if (ttypeconvnode(hp).left.resulttype.def.deftype=pointerdef) then
+                        gotderef:=true;
+                     end;
+                 end;
+                 hp:=ttypeconvnode(hp).left;
+               end;
+             vecn,
+             asn :
+               hp:=tunarynode(hp).left;
+             subscriptn :
+               begin
+                 gotsubscript:=true;
+                 { a class/interface access is an implicit }
+                 { dereferencing                           }
+                 hp:=tsubscriptnode(hp).left;
+                 if is_class_or_interface(hp.resulttype.def) then
+                   gotderef:=true;
+               end;
+             subn,
+             addn :
+               begin
+                 { Allow add/sub operators on a pointer, or an integer
+                   and a pointer typecast and deref has been found }
+                 if (hp.resulttype.def.deftype=pointerdef) or
+                    (is_integer(hp.resulttype.def) and gotpointer and gotderef) then
+                  valid_for_assign:=true
+                 else
+                  CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 exit;
+               end;
+             addrn :
+               begin
+                 if not(gotderef) and
+                    not(nf_procvarload in hp.flags) then
+                  CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                 exit;
+               end;
+             selfn,
+             funcretn :
+               begin
+                 valid_for_assign:=true;
+                 exit;
+               end;
+             calln :
+               begin
+                 { check return type }
+                 case hp.resulttype.def.deftype of
+                   pointerdef :
+                     gotpointer:=true;
+                   objectdef :
+                     gotclass:=is_class_or_interface(hp.resulttype.def);
+                   recorddef, { handle record like class it needs a subscription }
+                   classrefdef :
+                     gotclass:=true;
+                 end;
+                 { 1. if it returns a pointer and we've found a deref,
+                   2. if it returns a class or record and a subscription or with is found,
+                   3. property is allowed }
+                 if (gotpointer and gotderef) or
+                    (gotclass and (gotsubscript or gotwith)) or
+                    ((nf_isproperty in hp.flags) and (valid_property in opts)) then
+                  valid_for_assign:=true
+                 else
+                  CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
+                 exit;
+               end;
+             loadn :
+               begin
+                 case tloadnode(hp).symtableentry.typ of
+                   absolutesym,
+                   varsym :
+                     begin
+                       if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
+                        begin
+                          { allow p^:= constructions with p is const parameter }
+                          if gotderef then
+                           valid_for_assign:=true
+                          else
+                           CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
+                          exit;
+                        end;
+                       { Are we at a with symtable, then we need to process the
+                         withrefnode also to check for maybe a const load }
+                       if (tloadnode(hp).symtable.symtabletype=withsymtable) then
+                        begin
+                          { continue with processing the withref node }
+                          hp:=tnode(twithsymtable(tloadnode(hp).symtable).withrefnode);
+                          gotwith:=true;
+                        end
+                       else
+                        begin
+                          { set the assigned flag for varsyms }
+                          if (tvarsym(tloadnode(hp).symtableentry).varstate=vs_declared) then
+                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_assigned;
+                          valid_for_assign:=true;
+                          exit;
+                        end;
+                     end;
+                   funcretsym,
+                   typedconstsym :
+                     begin
+                       valid_for_assign:=true;
+                       exit;
+                     end;
+                 end;
+               end;
+             else
+               begin
+                 CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 exit;
+               end;
+            end;
+         end;
+      end;
+
+
+    function  valid_for_var(p:tnode):boolean;
+      begin
+        valid_for_var:=valid_for_assign(p,[]);
+      end;
+
+
+    function  valid_for_formal_var(p : tnode) : boolean;
+      begin
+        valid_for_formal_var:=valid_for_assign(p,[valid_void]);
+      end;
+
+
+    function  valid_for_formal_const(p : tnode) : boolean;
+      var
+        v : boolean;
+      begin
+        { p must have been firstpass'd before }
+        { accept about anything but not a statement ! }
+        case p.nodetype of
+          calln,
+          statementn,
+          addrn :
+           begin
+             { addrn is not allowed as this generate a constant value,
+               but a tp procvar are allowed (PFV) }
+             if nf_procvarload in p.flags then
+              v:=true
+             else
+              v:=false;
+           end;
+          else
+            v:=true;
+        end;
+        valid_for_formal_const:=v;
+      end;
+
+
+    function  valid_for_assignment(p:tnode):boolean;
+      begin
+        valid_for_assignment:=valid_for_assign(p,[valid_property]);
+      end;
+
 end.
 {
   $Log$
-  Revision 1.27  2001-05-18 22:57:08  peter
+  Revision 1.28  2001-06-04 11:48:02  peter
+    * better const to var checking
+
+  Revision 1.27  2001/05/18 22:57:08  peter
     * replace constant by cpu dependent value (merged)
 
   Revision 1.26  2001/05/08 08:52:05  jonas

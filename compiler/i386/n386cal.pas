@@ -98,15 +98,34 @@ implementation
 
          { push from left to right if specified }
          if push_from_left_to_right and assigned(right) then
-           tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
-             inlined,is_cdecl,para_alignment,para_offset);
+          begin
+            if (nf_varargs_para in flags) then
+              tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
+                                                   inlined,is_cdecl,para_alignment,para_offset)
+            else
+              tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
+                                                   inlined,is_cdecl,para_alignment,para_offset);
+          end;
+
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
          secondpass(left);
+         { handle varargs first, because defcoll is not valid }
+         if (nf_varargs_para in flags) then
+           begin
+             if push_addr_param(left.resulttype.def) then
+               begin
+                 inc(pushedparasize,4);
+                 emitpushreferenceaddr(left.location.reference);
+                 del_reference(left.location.reference);
+               end
+             else
+               push_value_para(left,inlined,is_cdecl,para_offset,para_alignment);
+           end
          { filter array constructor with c styled args }
-         if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
+         else if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
            begin
              { nothing, everything is already pushed }
            end
@@ -155,7 +174,7 @@ implementation
          else if (defcoll.paratyp in [vs_var,vs_out]) then
            begin
               if (left.location.loc<>LOC_REFERENCE) then
-                CGMessage(cg_e_var_must_be_reference);
+                internalerror(200106041);
               maybe_push_high;
               if (defcoll.paratyp=vs_out) and
                  assigned(defcoll.paratype.def) and
@@ -218,8 +237,14 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(right) then
-           tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
-             inlined,is_cdecl,para_alignment,para_offset);
+          begin
+            if (nf_varargs_para in flags) then
+              tcallparanode(right).secondcallparan(defcoll,push_from_left_to_right,
+                                                   inlined,is_cdecl,para_alignment,para_offset)
+            else
+              tcallparanode(right).secondcallparan(TParaItem(defcoll.next),push_from_left_to_right,
+                                                   inlined,is_cdecl,para_alignment,para_offset);
+          end;
       end;
 
 
@@ -1551,7 +1576,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-05-19 21:22:53  peter
+  Revision 1.25  2001-06-04 11:48:02  peter
+    * better const to var checking
+
+  Revision 1.24  2001/05/19 21:22:53  peter
     * function returning int64 inlining fixed
 
   Revision 1.23  2001/05/16 15:11:42  jonas

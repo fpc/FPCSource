@@ -388,7 +388,7 @@ implementation
          inserttypeconv(right,left.resulttype);
 
         { test if node can be assigned, properties are allowed }
-        valid_for_assign(left,true);
+        valid_for_assignment(left);
 
         { check if local proc/func is assigned to procvar }
         if right.resulttype.def.deftype=procvardef then
@@ -757,7 +757,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-05-19 21:19:57  peter
+  Revision 1.18  2001-06-04 11:48:01  peter
+    * better const to var checking
+
+  Revision 1.17  2001/05/19 21:19:57  peter
     * remove unused typenode for procvars to prevent error
     * typenode.allowed flag to allow a typenode
 
