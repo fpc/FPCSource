@@ -117,6 +117,13 @@
      WriteLn(r);
    end;
 
+   { only check assembler code }
+   { cannot be called directly }
+   { because will crash system }
+   procedure testint; interrupt;
+    begin
+    end;
+
 
 
 { ***************************************************************** }
@@ -191,6 +198,103 @@
          testretansi := 'HELLO WORLD';
       end;
 
+
+{$ifdef fpc}
+
+   function testretbyteinline: byte; inline;
+     begin
+       Write('(byte) : Value should be 126...');
+       testretbyteinline:= 126;
+     end;
+
+   function testretwordinline: word; inline;
+     begin
+       Write('(word) : Value should be 43689...');
+       testretwordinline := 43689;
+     end;
+
+    function testretint64inline : int64;inline;
+      begin
+        Write('(int64) : Value should be -128...');
+        testretint64inline := -128;
+      end;
+
+    function testretrealinline : real; inline;
+      begin
+        Write('(real) : Value should be 110.110...');
+        testretrealinline := 110.110;
+      end;
+
+    function testretdoubleinline : double; inline;
+      begin
+        Write('(double) : Value should be 130.130...');
+        testretdoubleinline := 130.130;
+      end;
+
+
+   function testretbyteregs: byte; saveregisters;
+     begin
+       Write('(byte) : Value should be 125...');
+       testretbyteregs:= 125;
+     end;
+
+   function testretwordregs: word; saveregisters;
+     begin
+       Write('(word) : Value should be 43688...');
+       testretwordregs := 43688;
+     end;
+
+    function testretint64regs : int64;saveregisters;
+      begin
+        Write('(int64) : Value should be -130...');
+        testretint64regs := -130;
+      end;
+
+    function testretrealregs : real; saveregisters;
+      begin
+        Write('(real) : Value should be -55.55...');
+        testretrealregs := -55.55;
+      end;
+
+    function testretdoubleregs : double; saveregisters;
+      begin
+        Write('(double) : Value should be -77.14...');
+        testretdoubleregs := -77.14;
+      end;
+
+   function testretbytecdecl: byte; cdecl;
+     begin
+       Write('(byte) : Value should be 125...');
+       testretbytecdecl:= 125;
+     end;
+
+   function testretwordcdecl: word; cdecl;
+     begin
+       Write('(word) : Value should be 43688...');
+       testretwordcdecl := 43688;
+     end;
+
+    function testretint64cdecl : int64; cdecl;
+      begin
+        Write('(int64) : Value should be -130...');
+        testretint64cdecl := -130;
+      end;
+
+    function testretrealcdecl : real; cdecl;
+      begin
+        Write('(real) : Value should be -55.55...');
+        testretrealcdecl := -55.55;
+      end;
+
+    function testretdoublecdecl : double; cdecl;
+      begin
+        Write('(double) : Value should be -77.14...');
+        testretdoublecdecl := -77.14;
+      end;
+
+{$endif}
+
+
 {$endif}
 
 var
@@ -205,6 +309,7 @@ begin
   WriteLn('------------------------------------------------------');
   WriteLN('           TESTING NON-COMPLEX PARAMETERS             ');
   WriteLn('------------------------------------------------------');
+{  testint;}
   { check value parameters }
   Write('(byte value param) : Value should be 85...');
   testvaluebyte($55);
@@ -255,6 +360,7 @@ begin
   WriteLn('------------------------------------------------------');
   WriteLN('              TESTING FUNCTION RESULTS                ');
   WriteLn('------------------------------------------------------');
+  WriteLn('----------------------- NORMAL -----------------------');
   WriteLn(testretbyte);
   WriteLn(testretword);
   WriteLn(testretlong);
@@ -266,12 +372,33 @@ begin
 {$ifdef fpc}
   WriteLn(testretint64);
   WriteLn(testretansi);
+  WriteLn('----------------------- INLINE -----------------------');
+  WriteLn(testretbyteinline);
+  WriteLn(testretwordinline);
+  WriteLn(testretint64inline);
+  WriteLn(testretrealinline);
+  WriteLn(testretdoubleinline);
+  WriteLn('---------------------- SAVEREGS ----------------------');
+  WriteLn(testretbyteregs);
+  WriteLn(testretwordregs);
+  WriteLn(testretint64regs);
+  WriteLn(testretrealregs);
+  WriteLn(testretdoubleregs);
+  WriteLn('------------------------ CDECL -----------------------');
+  WriteLn(testretbytecdecl);
+  WriteLn(testretwordcdecl);
+  WriteLn(testretint64cdecl);
+  WriteLn(testretrealcdecl);
+  WriteLn(testretdoublecdecl);
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.1  2001-05-16 15:29:00  carl
+  Revision 1.2  2001-05-18 18:20:07  carl
+  + add more tests
+
+  Revision 1.1  2001/05/16 15:29:00  carl
   + initial version secondload testing.
 
 }
