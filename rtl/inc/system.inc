@@ -420,7 +420,7 @@ var
   addr : longint;
 begin
   addr:=get_caller_addr(frame);
-  If ErrorProc<>Nil then
+  If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,pointer(addr));
   errorcode:=Errno;
   exitcode:=Errno;
@@ -552,7 +552,7 @@ End;
 
 procedure AbstractError;[public,alias : 'FPC_ABSTRACTERROR'];
 begin
-  If AbstractErrorProc<>nil then
+  If pointer(AbstractErrorProc)<>nil then
     AbstractErrorProc();
   HandleErrorFrame(211,get_frame);
 end;
@@ -560,7 +560,7 @@ end;
 
 Procedure int_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [{$ifdef HASSAVEREGISTERS}SaveRegisters,{$endif}Public,Alias : 'FPC_ASSERT'];
 begin
-  if AssertErrorProc<>nil then
+  if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
   else
     HandleErrorFrame(227,get_frame);
@@ -593,7 +593,10 @@ end;
 
 {
   $Log$
-  Revision 1.76  1999-12-18 14:54:34  florian
+  Revision 1.77  1999-12-21 11:10:22  pierre
+   * allow v09912 to compile system
+
+  Revision 1.76  1999/12/18 14:54:34  florian
     * very basic widestring support
 
   Revision 1.75  1999/12/12 13:29:34  jonas
