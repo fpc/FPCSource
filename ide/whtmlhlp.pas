@@ -931,7 +931,7 @@ begin
   if Entered then
     begin
       if assigned(CurrentTable^.LastLine) and Assigned(CurrentTable^.LastLine^.LastEl) and
-         (CurrentTable^.LastLine^.LastEl^.TextEnd=-1) then
+         (CurrentTable^.LastLine^.LastEl^.TextEnd=sw_word(-1)) then
         begin
           NewEl:=CurrentTable^.LastLine^.LastEl;
           NewEl^.TextEnd:=TextPtr;
@@ -942,7 +942,7 @@ begin
       New(NewEl,Init(PAlignEl));
       CurrentTable^.AddElement(NewEl);
       NewEl^.TextBegin:=TextPtr;
-      NewEl^.TextEnd:=-1;
+      NewEl^.TextEnd:=sw_word(-1);
       { AddText(' - ');}
     end
   else
@@ -1267,7 +1267,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2003-03-27 14:37:52  pierre
+  Revision 1.8  2003-03-28 09:52:03  armin
+  * changed -1 to sw_word(-1) for textend to compile with 1.1
+
+  Revision 1.7  2003/03/27 14:37:52  pierre
    * try to enhance dispaly of new html docs
 
   Revision 1.6  2002/09/07 15:40:49  peter
