@@ -70,6 +70,7 @@ var
   cmdshow     : longint;
   IsLibrary,IsMultiThreaded,IsConsole : boolean;
   DLLreason,DLLparam:longint;
+  Win32StackTop : Dword;
 
 implementation
 
@@ -737,6 +738,12 @@ end;
 *****************************************************************************}
 Procedure system_exit;
 begin
+  if not IsConsole then
+   begin
+     Close(stderr);
+     Close(stdout);
+     { what about Input and Output ?? PM }
+   end;
 end;
 
 {$ifdef dummy}
@@ -761,6 +768,7 @@ end;
   procedure PascalMain;external name 'PASCALMAIN';
   procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 
+
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
@@ -777,6 +785,8 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      asm
         pushl %ebp
         xorl %ebp,%ebp
+        movl %esp,%eax
+        movl %eax,Win32StackTop
         movw %ss,%bp
         movl %ebp,_SS
         xorl %ebp,%ebp
@@ -795,6 +805,8 @@ procedure Dll_entry;[public, alias : '_FPC_DLL_Entry'];
        1,2 :
          begin
            asm
+             movl %esp,%eax
+             movl %eax,Win32StackTop
              xorl %edi,%edi
              movw %ss,%di
              movl %edi,_SS
@@ -976,8 +988,10 @@ var
 function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
    external 'user32' name 'MessageBoxA';
 
+const
+  ErrorBufferLength = 1024;
 var
-  ErrorBuf : array[0..1024] of char;
+  ErrorBuf : array[0..ErrorBufferLength] of char;
   ErrorLen : longint;
 
 Function ErrorWrite(Var F: TextRec): Integer;
@@ -990,25 +1004,31 @@ var
 Begin
   if F.BufPos>0 then
    begin
-     Move(F.BufPtr^,ErrorBuf[ErrorLen],F.BufPos);
-     inc(ErrorLen,F.BufPos);
+     if F.BufPos+ErrorLen>ErrorBufferLength then
+       i:=ErrorBufferLength-ErrorLen
+     else
+       i:=F.BufPos;
+     Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
+     inc(ErrorLen,i);
      ErrorBuf[ErrorLen]:=#0;
    end;
   if ErrorLen>3 then
    begin
      p:=@ErrorBuf[ErrorLen];
-     for i:=1to 4 do
+     for i:=1 to 4 do
       begin
         dec(p);
         if not(p^ in [#10,#13]) then
          break;
       end;
-     if (i=4) then
-      begin
-        MessageBox(0,@ErrorBuf,pchar('Error'),0);
-        ErrorLen:=0;
-      end;
    end;
+   if ErrorLen=ErrorBufferLength then
+     i:=4;
+   if (i=4) then
+    begin
+      MessageBox(0,@ErrorBuf,pchar('Error'),0);
+      ErrorLen:=0;
+    end;
   F.BufPos:=0;
   ErrorWrite:=0;
 End;
@@ -1090,12 +1110,16 @@ begin
 { Reset IO Error }
   InOutRes:=0;
 { Reset internal error variable }
-  errno := 0;
+  errno:=0;
 end.
 
 {
   $Log$
-  Revision 1.47  1999-10-26 12:25:51  peter
+  Revision 1.48  1999-11-09 22:34:00  pierre
+    * Check ErrorBuf at exit
+    + Win32StackTop
+
+  Revision 1.47  1999/10/26 12:25:51  peter
     * report stderr,stdout to message box for errors
     * close input,output when GUI app is made
 
