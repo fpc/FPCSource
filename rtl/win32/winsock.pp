@@ -303,8 +303,8 @@ unit winsock;
        taken from the BSD file sys/socket.h.
     }
     const
-       INVALID_SOCKET = not(1);
-       SOCKET_ERROR = $ffffffff;
+       INVALID_SOCKET = longint(not(1));
+       SOCKET_ERROR = -1;
        SOCK_STREAM = 1;
        SOCK_DGRAM = 2;
        SOCK_RAW = 3;
@@ -951,7 +951,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.5  2001-06-06 21:58:24  peter
+  Revision 1.6  2001-10-15 15:09:51  jonas
+    * error constants must be longints, not cardinals
+
+  Revision 1.5  2001/06/06 21:58:24  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.4  2001/04/10 21:26:00  peter
