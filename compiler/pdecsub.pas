@@ -1682,7 +1682,8 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if (pdflags * [pd_procvar,pd_object])=[] then
+            if ((pdflags * [pd_procvar,pd_object])=[]) and
+               not(idtoken=_PROPERTY) then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
          end;
@@ -2267,7 +2268,10 @@ const
 end.
 {
   $Log$
-  Revision 1.195  2004-10-24 11:44:28  peter
+  Revision 1.196  2004-10-24 13:48:50  peter
+    * don't give warning for property as unknwon proc directive
+
+  Revision 1.195  2004/10/24 11:44:28  peter
     * small regvar fixes
     * loadref parameter removed from concatcopy,incrrefcount,etc
 
