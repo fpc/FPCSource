@@ -54,8 +54,9 @@ to either SIOW or, in case of MPWTOOL, to MPW }
 var
   {emulated working directory}
   workingDirectorySpec: FSSpec; cvar;
-  {Also declared in macutils.pp as external. Declared here to be available
-   to macutils.inc and below in this file.}
+
+  {The above variable is also declared in macutils.pp as external. Declared }
+  {here to be available to macutils.inc and below in this file.}
 
 {$I macutils.inc}
 
@@ -130,27 +131,6 @@ begin
   InOutRes:= MacOSErr2RTEerr(err);
 end;
 
-function FSpLocationFromFullPath(fullPathLength: Integer;
-  fullPath: Mac_Ptr; var spec: FSSpec ):OSErr;
-
-var
-  alias: AliasHandle;
-  res: OSErr;
-  wasChanged: Boolean;
-  nullString: Str32;
-
-begin
-  nullString:= '';
-  res:= NewAliasMinimalFromFullPath(fullPathLength,
-             fullPath, nullString, nullString, alias);
-  if res = noErr then
-    begin
-      res:= ResolveAlias(nil, alias, spec, wasChanged);
-      DisposeHandle(Mac_Handle(alias));
-    end;
-  FSpLocationFromFullPath:= res;
-end;
-
 {*****************************************************************************
                               MacOS specific functions
 *****************************************************************************}
@@ -184,7 +164,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-07 21:30:12  peter
+   Revision 1.2  2005-03-20 19:35:24  olle
+     - removed FSpLocationFromFullPath
+
+   Revision 1.1  2005/02/07 21:30:12  peter
      * system unit updated
 
    Revision 1.1  2005/02/06 16:57:18  peter
