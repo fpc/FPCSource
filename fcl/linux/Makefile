@@ -7,7 +7,8 @@
 #
 
 # What Compiler should we use ?
-PP=/home/michael/fpk/compiler/ppc386
+# PP=/home/michael/fpk/compiler/ppc386
+PP=ppc386
 
 # Where are the Free Pascal units ? (Optional)
 UNITDIR = /home/michael/fpk/rtl/linux
@@ -21,7 +22,7 @@ CPU=i386
 OPT=
 
 # Where to install the units ?
-UNITINSTALLDIR=/usr/lib/fpc/0.99.6/fcl
+UNITINSTALLDIR=/usr/lib/fpc/0.99.11/fcl
 
 # Where to install the programs ?
 BININSTALLDIR=/usr/local/bin
@@ -50,7 +51,7 @@ INCFILENAMES=$(addprefix $(INCDIR)/,$(INCNAMES))
 # If nothing special needs doing, then just fill in the names here.
 # The rest should be automatic.
 UNITNAMES=classes
-#PROGNAMES=
+PROGNAMES=tests
 UNITOBJECTS=$(addsuffix .o, $(UNITNAMES))
 UNITFILES=$(addsuffix .ppu, $(UNITNAMES))
 PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
@@ -79,8 +80,7 @@ progs: $(PROGNAMES)
 $(PROGNAMES): %:%.pp
 	$(PP) $(OPT) $<
 
-classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES) osfile.inc \
-             oscalls.inc
+classes.ppu: classes.pp $(INCFILENAMES) $(PROCFILENAMES) \
 
 #
 # Generic install and clean targets
