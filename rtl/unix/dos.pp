@@ -537,6 +537,7 @@ Procedure FindFirst(Const Path: PathStr; Attr: Word; Var f: SearchRec);
   opens dir and calls FindWorkProc
 }
 Begin
+  fillchar(f,sizeof(f),0);
   if Path='' then
    begin
      DosError:=3;
@@ -832,7 +833,10 @@ End.
 
 {
   $Log$
-  Revision 1.31  2004-03-04 22:15:16  marco
+  Revision 1.32  2004-03-14 18:42:39  peter
+    * reset searchrec info in findfirst
+
+  Revision 1.31  2004/03/04 22:15:16  marco
    * UnixType changes. Please report problems to me.
 
   Revision 1.30  2004/02/18 22:00:45  peter

@@ -540,6 +540,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 begin
+  fillchar(f,sizeof(f),0);
   { no error }
   doserror:=0;
   F.Name:=Path;
@@ -960,7 +961,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-02-17 17:37:26  daniel
+  Revision 1.27  2004-03-14 18:43:21  peter
+    * reset searchrec info in findfirst
+
+  Revision 1.26  2004/02/17 17:37:26  daniel
     * Enable threadvars again
 
   Revision 1.25  2004/02/16 22:18:44  hajny
