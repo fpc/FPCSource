@@ -1938,6 +1938,11 @@ implementation
                            (po_staticmethod in current_procinfo.procdef.procoptions) then
                           htype.setdef(tclassrefdef.create(htype));
                         p1:=ctypenode.create(htype);
+                      end
+                     else
+                      begin
+                        Message(parser_e_methode_id_expected);
+                        p1:=cerrornode.create;
                       end;
                      do_member_read(classh,false,sym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
@@ -2527,7 +2532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2005-02-14 17:13:07  peter
+  Revision 1.182  2005-03-03 19:58:14  jonas
+    * fixed web bug 3738
+
+  Revision 1.181  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.180  2005/02/06 20:29:12  florian
