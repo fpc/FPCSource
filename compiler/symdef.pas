@@ -2975,6 +2975,9 @@ implementation
          else
            rttiList.concat(Tai_const.Create_8bit(tkarray));
          write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          { size of elements }
          rttiList.concat(Tai_const.Create_32bit(elesize));
          { count of elements, prevent overflow for 0..maxlongint }
@@ -6197,7 +6200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.259  2004-10-15 09:14:17  mazen
+  Revision 1.260  2004-10-26 15:02:33  peter
+    * align arraydef rtti
+
+  Revision 1.259  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
