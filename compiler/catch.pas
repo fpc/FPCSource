@@ -25,19 +25,23 @@ Unit catch;
 interface
 uses
 {$ifdef linux}
+{$define has_signal}
   linux,
 {$endif}
 {$ifdef go32v2}
+{$define has_signal}
   dpmiexcp,
 {$endif}
   verbose;
 
+{$ifdef has_signal}
 Var
   NewSignal,OldSigSegm,OldSigInt : SignalHandler;
 
 
 Implementation
 
+{$ifdef has_signal}
 {$ifdef linux}
 Procedure CatchSignal(Sig : Integer);cdecl;
 {$else}
@@ -59,23 +63,27 @@ begin
   CatchSignal:=0;
 {$endif}
 end;
+{$endif def has_signal}
 
 
 begin
-{$ifdef linux}
-  NewSignal:=@CatchSignal;
+{$ifdef has_signal}
+{$ifndef TP}
+  NewSignal:=SignalHandler(@CatchSignal);
+{$else TP}
+  NewSignal:=SignalHandler(CatchSignal);
+{$endif TP}
   OldSigSegm:=Signal (SIGSEGV,NewSignal);
   OldSigInt:=Signal (SIGINT,NewSignal);
-{$else}
-  NewSignal:=SignalHandler(@CatchSignal);
-  Signal (SIGSEGV,NewSignal);
-  Signal (SIGINT,NewSignal);
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.2  1998-09-08 13:01:09  michael
+  Revision 1.3  1999-01-27 13:20:37  pierre
+   * slightly rewritten code
+
+  Revision 1.2  1998/09/08 13:01:09  michael
   Adapted to changed Signal call
 
   Revision 1.1.1.1  1998/03/25 11:18:12  root
