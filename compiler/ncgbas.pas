@@ -170,7 +170,9 @@ interface
                         reference_reset_base(op.ref^,sym.localloc.reference.index,
                             sym.localloc.reference.offset+sofs);
                         op.ref^.index:=indexreg;
+{$ifdef i386}
                         op.ref^.scalefactor:=scale;
+{$endif i386}
                       end;
                   end;
                 LOC_REGISTER :
@@ -402,7 +404,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-10-30 19:59:00  peter
+  Revision 1.49  2003-11-02 13:30:05  jonas
+    * fixed ppc compilation
+
+  Revision 1.48  2003/10/30 19:59:00  peter
     * support scalefactor for opr_local
     * support reference with opr_local set, fixes tw2631
 
