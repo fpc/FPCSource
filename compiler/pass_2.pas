@@ -58,10 +58,7 @@ implementation
      aasmbase,aasmtai,
      pass_1,cpubase,cgbase,
      procinfo,
-{$ifdef EXTDEBUG}
-     cgobj,
-{$endif EXTDEBUG}
-     regvars,nflw,rgobj;
+     regvars,nflw,rgobj,cgobj;
 
 {*****************************************************************************
                               SecondPass
@@ -175,12 +172,6 @@ implementation
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
             oldpos:=aktfilepos;
-{$ifdef TEMPREGDEBUG}
-            testregisters32;
-            prevp:=curptree;
-            curptree:=@p;
-            p^.usableregs:=usablereg32;
-{$endif TEMPREGDEBUG}
             aktfilepos:=p.fileinfo;
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
@@ -206,9 +197,11 @@ implementation
              end;
 
 {$ifdef i386}
-            if rg.unusedregsint*([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
-                                ([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
+{
+            if cg.rgint.unusedregsint*([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
+                                      ([first_int_supreg..last_int_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
               internalerror(200306171);
+}
 {$endif i386}
 {$endif EXTDEBUG}
             if codegenerror then
@@ -258,12 +251,11 @@ implementation
          flowcontrol:=[];
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
-           rg.t_times:=1
+           cg.t_times:=1
          else
            { reference for repetition is 100 }
-           rg.t_times:=100;
+           cg.t_times:=100;
          { clear register count }
-         rg.clearregistercount;
          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs,nil);
          { firstpass everything }
@@ -281,23 +273,25 @@ implementation
 
               { process register variable stuff (JM) }
               assign_regvars(p);
-//              load_regvars(current_procinfo.aktentrycode,p);
+{              load_regvars(current_procinfo.aktentrycode,p);}
 
               { for the i386 it must be done in genexitcode because it has  }
               { to add 'fstp' instructions when using fpu regvars and those }
               { must come after the "exitlabel" (JM)                        }
 {$ifndef i386}
-//              cleanup_regvars(current_procinfo.aktexitcode);
+{              cleanup_regvars(current_procinfo.aktexitcode);}
 {$endif i386}
 
-              current_procinfo.allocate_framepointer_reg;
+{              current_procinfo.allocate_framepointer_reg;}
 
               do_secondpass(p);
 
 {$ifdef EXTDEBUG}
+{
               for sr:=first_int_imreg to last_int_imreg do
                 if not(sr in rg.unusedregsint) then
                   Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBNONE))+' not released');
+}
 {$endif EXTDEBUG}
 
               if assigned(current_procinfo.procdef) then
@@ -310,7 +304,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-10-01 20:34:49  peter
+  Revision 1.68  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.67  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

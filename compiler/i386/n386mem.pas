@@ -107,7 +107,7 @@ implementation
           end
          else
           begin
-            rg.ungetregisterint(exprasmlist,location.reference.base);
+            cg.ungetregister(exprasmlist,location.reference.base);
             cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
             reference_reset_base(location.reference,location.reference.index,0);
           end;
@@ -142,7 +142,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-10-01 20:34:49  peter
+  Revision 1.57  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.56  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

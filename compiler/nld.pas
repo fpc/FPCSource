@@ -145,9 +145,8 @@ implementation
       cutils,verbose,globtype,globals,systems,
       symtable,symnot,
       defutil,defcmp,
-      htypechk,pass_1,
-      ncon,ninl,ncnv,nmem,ncal,
-      paramgr,cpubase,rgobj,cgbase,procinfo
+      htypechk,pass_1,procinfo,paramgr,rgobj,
+      ncon,ninl,ncnv,nmem,ncal,cpubase,cgobj,cgbase
       ;
 
 {*****************************************************************************
@@ -491,8 +490,8 @@ implementation
                 else
                   Tvarsym(symtableentry).trigger_notifications(vn_onread);
                 { count variable references }
-                if rg.t_times>1 then
-                  inc(tvarsym(symtableentry).refs,rg.t_times-1);
+                if cg.t_times>1 then
+                  inc(tvarsym(symtableentry).refs,cg.t_times-1);
               end;
             typedconstsym :
                 ;
@@ -1246,7 +1245,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.110  2003-10-08 19:19:45  peter
+  Revision 1.111  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.110  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.109  2003/10/05 21:21:52  peter

@@ -67,7 +67,7 @@ implementation
       cgbase,pass_2,
       ncon,ncal,ncnv,
       cpubase,
-      cgobj,cga,tgobj,rgobj,rgcpu,ncgutil;
+      cgobj,cga,cgx86,tgobj,rgobj,rgcpu,ncgutil;
 
 
     function ti386typeconvnode.first_int_to_real : tnode;
@@ -112,7 +112,7 @@ implementation
                    hregister:=left.location.register;
                  else
                    begin
-                     hregister:=rg.getregisterint(exprasmlist,OS_32);
+                     hregister:=cg.getintregister(exprasmlist,OS_32);
                      freereg:=true;
                      cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
                    end;
@@ -121,7 +121,7 @@ implementation
            LOC_REFERENCE,
            LOC_CREFERENCE :
              begin
-               hregister:=rg.getregisterint(exprasmlist,OS_INT);
+               hregister:=cg.getintregister(exprasmlist,OS_INT);
                freereg:=true;
                if left.location.size in [OS_64,OS_S64] then
                 begin
@@ -143,7 +143,7 @@ implementation
          { for 64 bit integers, the high dword is already pushed }
          exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,hregister));
          if freereg then
-           rg.ungetregisterint(exprasmlist,hregister);
+           cg.ungetregister(exprasmlist,hregister);
          reference_reset_base(href,NR_ESP,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
@@ -164,12 +164,12 @@ implementation
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
                 inc(href.offset,4);
-                hregister:=rg.getregisterint(exprasmlist,OS_32);
+                hregister:=cg.getintregister(exprasmlist,OS_32);
                 cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
                 reference_reset_base(href,NR_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
                 emit_const_reg(A_TEST,S_L,longint($80000000),hregister);
-                rg.ungetregisterint(exprasmlist,hregister);
+                cg.ungetregister(exprasmlist,hregister);
                 reference_reset_base(href,NR_ESP,0);
                 emit_ref(A_FILD,S_IQ,href);
                 objectlibrary.getdatalabel(l1);
@@ -187,12 +187,12 @@ implementation
            else
              begin
                 emit_ref(A_FILD,S_IL,href);
-                hregister:=rg.getregisterint(exprasmlist,OS_32);
+                hregister:=cg.getintregister(exprasmlist,OS_32);
                 emit_reg(A_POP,S_L,hregister);
-                rg.ungetregisterint(exprasmlist,hregister);
+                cg.ungetregister(exprasmlist,hregister);
              end;
          end;
-         inc(trgcpu(rg).fpuvaroffset);
+         tcgx86(cg).inc_fpu_stack;
          location.register:=NR_ST;
       end;
 
@@ -209,7 +209,7 @@ implementation
           r^.base:=p^.location.register
          else
            begin
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
+              cg.getexplicitregister(exprasmlist,R_EDI);
               emit_mov_loc_reg(p^.location,R_EDI);
               r^.base:=R_EDI;
            end;
@@ -332,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2003-10-01 20:34:49  peter
+  Revision 1.66  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.65  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

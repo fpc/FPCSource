@@ -187,8 +187,8 @@ implementation
       symconst,paramgr,defutil,defcmp,
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,
-      rgobj,
-      cgbase,procinfo
+      nutils,procinfo,
+      tgobj,cgbase
       ;
 
 type
@@ -2365,7 +2365,6 @@ type
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
                 include(current_procinfo.flags,pi_do_call);
-              rg.incrementotherregisterpushed(all_otherregisters);
            end
          else
          { not a procedure variable }
@@ -2399,8 +2398,6 @@ type
                     include(current_procinfo.flags,pi_do_call);
                 end;
 
-             { It doesn't hurt to calculate it already though :) (JM) }
-             rg.incrementotherregisterpushed(tprocdef(procdefinition).usedotherregisters);
            end;
 
          { get a register for the return value }
@@ -2615,7 +2612,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.194  2003-10-09 15:00:13  florian
+  Revision 1.195  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.194  2003/10/09 15:00:13  florian
     * fixed constructor call in class methods
 
   Revision 1.193  2003/10/08 19:19:45  peter

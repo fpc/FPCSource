@@ -207,10 +207,11 @@ implementation
                       else
                         siz:=OS_32;
 
+                      {$warning fixme regvars}
                       { allocate a register for this regvar }
-                      regvarinfo^.regvars[i].localloc.register:=rg.getregisterint(exprasmlist,siz);
+{                      regvarinfo^.regvars[i].localloc.register:=rg.getregisterint(exprasmlist,siz);}
                       { and make sure it can't be freed }
-                      rg.makeregvarint(getsupreg(regvarinfo^.regvars[i].localloc.register));
+{                      rg.makeregvarint(getsupreg(regvarinfo^.regvars[i].localloc.register));}
                     end
                   else
                     begin
@@ -262,13 +263,14 @@ implementation
                      begin
 {$ifdef i386}
                        { reserve place on the FPU stack }
-                       regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i);
+                       {$warning fixme regvars}
+{                       regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i);}
 {$else i386}
 {$ifdef x86_64}
 {$endif x86_64}
                        begin
                          regvarinfo^.fpuregvars[i].localloc.register:=fpuvarregs[i];
-                         rg.makeregvarother(regvarinfo^.fpuregvars[i].localloc.register);
+{                         rg.makeregvarother(regvarinfo^.fpuregvars[i].localloc.register);}
                        end;
 {$endif i386}
                      end;
@@ -301,7 +303,8 @@ implementation
             if assigned(regvarinfo^.regvars[i]) and
                (getsupreg(regvarinfo^.regvars[i].localloc.register)=supreg) then
               begin
-                if supreg in rg.regvar_loaded_int then
+                {$warning fixme regvar_loaded_int}
+(*                if supreg in rg.regvar_loaded_int then
                   begin
                     vsym := tvarsym(regvarinfo^.regvars[i]);
                     { we only have to store the regvar back to memory if it's }
@@ -316,6 +319,7 @@ implementation
                     asml.concat(tai_regalloc.dealloc(vsym.localloc.register));
                     exclude(rg.regvar_loaded_int,supreg);
                   end;
+*)
                 break;
               end;
         end
@@ -324,6 +328,8 @@ implementation
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) then
               begin
+                {$warning fixme regvars}
+(*
                 r:=rg.makeregsize(regvarinfo^.regvars[i].localloc.register,OS_INT);
                 if (r = reg) then
                   begin
@@ -345,6 +351,7 @@ implementation
                       end;
                     break;
                   end;
+*)
               end;
         end;
 {$endif i386}
@@ -362,8 +369,11 @@ implementation
       exit;
 {$endif i386}
       reg:=vsym.localloc.register;
+      {$warning fixme regvars}
+(*
       if getregtype(reg)=R_INTREGISTER then
         begin
+
           if not(getsupreg(reg) in rg.regvar_loaded_int) then
             begin
               asml.concat(tai_regalloc.alloc(reg));
@@ -394,6 +404,7 @@ implementation
               rg.regvar_loaded_other[regidx] := true;
             end;
         end;
+*)
     end;
 
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
@@ -416,10 +427,10 @@ implementation
         end
       else
         begin
-          reg_spare := rg.makeregsize(reg,OS_INT);
+          reg_spare := cg.makeregsize(reg,OS_INT);
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) and
-               (rg.makeregsize(regvarinfo^.regvars[i].localloc.register,OS_INT) = reg_spare) then
+               (cg.makeregsize(regvarinfo^.regvars[i].localloc.register,OS_INT) = reg_spare) then
               load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
         end;
     end;
@@ -457,7 +468,10 @@ implementation
                 begin
 {$ifdef i386}
                   { reserve place on the FPU stack }
+                  {$warning fixme fpustack}
+(*
                   regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i-1);
+*)
                   asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
                 end;
@@ -492,6 +506,7 @@ implementation
     var
       counter: tregisterindex;
     begin
+(*
       for counter := low(rg.regvar_loaded_other) to high(rg.regvar_loaded_other) do
         begin
            rg.regvar_loaded_other[counter] := regvarsloaded1[counter] and
@@ -502,6 +517,7 @@ implementation
              else
                load_regvar_reg(list1,counter);
         end;
+*)
     end;
 
 
@@ -556,10 +572,13 @@ implementation
                     end
                   else
                     begin
-                      reg:=rg.makeregsize(reg,OS_INT);
+                      reg:=cg.makeregsize(reg,OS_INT);
                       regidx:=findreg_by_number(reg);
+                      {$warning fixme regvar dealloc}
+(*
                       if (rg.regvar_loaded_other[regidx]) then
                        asml.concat(tai_regalloc.dealloc(reg));
+*)
                     end;
                 end;
              end;
@@ -578,9 +597,12 @@ implementation
             if assigned(regvars[i]) { and
               (regvars[i] <> tvarsym(current_procinfo.procdef.funcretsym))} then
               begin
+                {$warning fixme regvarexclude}
                 { make sure the unget isn't just a nop }
+(*
                 exclude(rg.is_reg_var_int,getsupreg(regvars[i].localloc.register));
-                rg.ungetregisterint(list,regvars[i].localloc.register);
+*)
+                cg.ungetregister(list,regvars[i].localloc.register);
               end;
       end;
 
@@ -612,7 +634,10 @@ end.
 
 {
   $Log$
-  Revision 1.68  2003-10-01 20:34:49  peter
+  Revision 1.69  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.68  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

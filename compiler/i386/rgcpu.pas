@@ -35,21 +35,23 @@ unit rgcpu;
       cclasses,globtype,cgbase,rgobj;
 
     type
-       trgcpu = class(trgobj)
+       Tregisterallocatorcpu = class(Tregisterallocator)
+          procedure add_constraints(reg:Tregister);override;
+       end;
+
+
+       Trgcpu = class(Trgobj)
           fpuvaroffset : byte;
 
-          { to keep the same allocation order as with the old routines }
-          procedure add_constraints(reg:Tregister);override;
-
           function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister;size:TCGSize); override;
+          procedure ungetregisterfpu(list: taasmoutput; r : tregister); override;
 
           {# Returns a subset register of the register r with the specified size.
              WARNING: There is no clearing of the upper parts of the register,
              if a 8-bit / 16-bit register is converted to a 32-bit register.
              It is up to the code generator to correctly zero fill the register
           }
-          function makeregsize(reg: tregister; size: tcgsize): tregister; override;
+{          function makeregsize(reg: tregister; size: tcgsize): tregister; override;}
 
           { pushes and restores registers }
 {$ifdef SUPPORT_MMX}
@@ -74,18 +76,17 @@ unit rgcpu;
          function correct_fpuregister(r : tregister;ofs : byte) : tregister;
        end;
 
-
   implementation
 
     uses
        systems,
        globals,verbose;
 
-{************************************************************************}
-{                               trgcpu                                   }
-{************************************************************************}
+{************************************************************************
+                          tregisterallocatorcpu
+*************************************************************************}
 
-    procedure Trgcpu.add_constraints(reg:Tregister);
+    procedure Tregisterallocatorcpu.add_constraints(reg:Tregister);
     var
       supreg : tsuperregister;
     begin
@@ -100,6 +101,10 @@ unit rgcpu;
     end;
 
 
+{************************************************************************
+                                   trgcpu
+*************************************************************************}
+
     function trgcpu.getregisterfpu(list: taasmoutput;size: TCGSize) : tregister;
 
       begin
@@ -109,7 +114,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister;size:TCGSize);
+    procedure trgcpu.ungetregisterfpu(list : taasmoutput; r : tregister);
 
       begin
         { nothing to do, fpu stack management is handled by the load/ }
@@ -226,7 +231,7 @@ unit rgcpu;
         setsupreg(correct_fpuregister,ofs);
      end;
 
-
+(*
     function trgcpu.makeregsize(reg: tregister; size: tcgsize): tregister;
       var
         subreg : tsubregister;
@@ -238,11 +243,14 @@ unit rgcpu;
         setsubreg(result,subreg);
         add_constraints(result);
       end;
-
+*)
 end.
 {
   $Log$
-  Revision 1.36  2003-10-01 20:34:49  peter
+  Revision 1.37  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.36  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -139,7 +139,7 @@ implementation
           instr:=Taicpu.op_reg_reg(i,s,reg1,reg2);
           exprasmlist.concat(instr);
           if i=A_MOV then
-            rg.add_move_instruction(instr);
+            cg.add_move_instruction(instr);
         end;
     end;
 
@@ -161,7 +161,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-10-01 20:34:50  peter
+  Revision 1.6  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.5  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -101,7 +101,7 @@ unit procinfo;
 
           { Allocate framepointer so it can not be used by the
             register allocator }
-          procedure allocate_framepointer_reg;virtual;
+{          procedure allocate_framepointer_reg;virtual;}
 
           procedure allocate_push_parasize(size:longint);virtual;
 
@@ -177,7 +177,7 @@ implementation
          aktlocaldata.free;
       end;
 
-
+(*
     procedure tprocinfo.allocate_framepointer_reg;
       begin
         if framepointer=NR_FRAME_POINTER_REG then
@@ -188,7 +188,7 @@ implementation
             exclude(rg.unusedregsint,RS_FRAME_POINTER_REG);
           end;
       end;
-
+*)
 
     procedure tprocinfo.allocate_push_parasize(size:longint);
       begin
@@ -217,7 +217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2003-10-05 21:21:52  peter
+  Revision 1.4  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.3  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 

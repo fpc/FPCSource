@@ -359,7 +359,7 @@ implementation
 {$endif x86_64}
 
       subreg2type:array[tsubregister] of longint = (
-        OT_NONE,OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64
+        OT_NONE,OT_REG8,OT_REG8,OT_REG16,OT_REG32,OT_REG64,OT_NONE
       );
 
 {****************************************************************************
@@ -2318,7 +2318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2003-10-01 20:34:50  peter
+  Revision 1.31  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.30  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -180,7 +180,7 @@ interface
            end;
 
          { Allocate registers used in the assembler block }
-         rg.allocexplicitregistersint(exprasmlist,used_regs_int);
+         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,used_regs_int);
 
          if (current_procinfo.procdef.proccalloption=pocall_inline) then
            begin
@@ -265,7 +265,7 @@ interface
            end;
 
          { Release register used in the assembler block }
-         rg.deallocexplicitregistersint(exprasmlist,used_regs_int);
+         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,used_regs_int);
        end;
 
 
@@ -372,7 +372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-10-07 18:18:16  peter
+  Revision 1.43  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.42  2003/10/07 18:18:16  peter
     * fix register calling for assembler procedures
     * fix result loading for assembler procedures
 

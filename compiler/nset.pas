@@ -118,7 +118,7 @@ implementation
       verbose,
       symconst,symdef,symsym,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,nld,rgobj,cgbase;
+      nbas,ncnv,ncon,nld,cgobj,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -584,12 +584,12 @@ implementation
          { walk through all instructions }
 
          {   estimates the repeat of each instruction }
-         old_t_times:=rg.t_times;
+         old_t_times:=cg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
            begin
-              rg.t_times:=rg.t_times div case_count_labels(nodes);
-              if rg.t_times<1 then
-                rg.t_times:=1;
+              cg.t_times:=cg.t_times div case_count_labels(nodes);
+              if cg.t_times<1 then
+                cg.t_times:=1;
            end;
          { first case }
          hp:=tstatementnode(right);
@@ -625,7 +625,7 @@ implementation
                 registersmmx:=elseblock.registersmmx;
 {$endif SUPPORT_MMX}
            end;
-         rg.t_times:=old_t_times;
+         cg.t_times:=old_t_times;
 
          { there is one register required for the case expression    }
          { for 64 bit ints we cheat: the high dword is stored in EDI }
@@ -686,7 +686,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2003-10-08 19:19:45  peter
+  Revision 1.47  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.46  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.45  2003/10/01 20:34:49  peter

@@ -252,7 +252,7 @@ implementation
          { location is always LOC_JUMP }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
          { allocate a register for the result }
-         location.register := rg.getregisterint(exprasmlist,location.size);
+         location.register := cg.getintregister(exprasmlist,location.size);
 
          if genjumps then
           begin
@@ -269,7 +269,7 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_INT);
+                   pleftreg:=cg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> OS_INT then
                      cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
@@ -279,7 +279,7 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_8);
+                   pleftreg:=cg.makeregsize(left.location.register,OS_8);
                    opsize := OS_8;
                  end;
              end
@@ -287,7 +287,7 @@ implementation
              begin
                { load the value in a register }
                opsize := OS_INT;
-               pleftreg:=rg.getregisterint(exprasmlist,opsize);
+               pleftreg:=cg.getintregister(exprasmlist,opsize);
                cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),opsize,left.location.reference,pleftreg);
              end;
 
@@ -314,7 +314,7 @@ implementation
                       if (left.location.loc = LOC_CREGISTER) and
                          (hr<>pleftreg) then
                         begin
-                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                           opsize := OS_INT;
@@ -362,13 +362,13 @@ implementation
              cg.a_label(exprasmlist,l3);
              case left.location.loc of
                LOC_CREGISTER :
-                 rg.ungetregisterint(exprasmlist,pleftreg);
+                 cg.ungetregister(exprasmlist,pleftreg);
                LOC_REGISTER :
-                 rg.ungetregisterint(exprasmlist,pleftreg);
+                 cg.ungetregister(exprasmlist,pleftreg);
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
-                   rg.ungetregisterint(exprasmlist,pleftreg);
+                   cg.ungetregister(exprasmlist,pleftreg);
                  end;
              end;
           end
@@ -388,7 +388,7 @@ implementation
                  { then SHR the register }
                  cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,
                    tordconstnode(left).value and 31,right.location.register,location.register);
-                 rg.ungetregisterint(exprasmlist,right.location.register);
+                 cg.ungetregister(exprasmlist,right.location.register);
                  { then extract the lowest bit }
                  cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
                 end
@@ -398,14 +398,14 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr3:=rg.makeregsize(left.location.register,OS_INT);
+                          hr3:=cg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
-                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
                        end;
                   else
                     begin
-                      hr:=rg.getregisterint(exprasmlist,OS_INT);
+                      hr:=cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),OS_INT,
                          left.location.reference,hr);
                       location_release(exprasmlist,left.location);
@@ -416,9 +416,9 @@ implementation
                   { emit bit test operation }
                   emit_bit_test_reg_reg(exprasmlist,hr,right.location.register,location.register);
                   { free the resources }
-                  rg.ungetregisterint(exprasmlist,right.location.register);
+                  cg.ungetregister(exprasmlist,right.location.register);
                   { free bitnumber register }
-                  rg.ungetregisterint(exprasmlist,hr);
+                  cg.ungetregister(exprasmlist,hr);
                 end;
              end
             else
@@ -436,7 +436,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=rg.makeregsize(left.location.register,OS_INT);
+                          hr:=cg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                           cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_BE,31,hr,l);
                         { reset of result register is done in routine entry }
@@ -444,7 +444,7 @@ implementation
                           cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr2:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
                      LOC_REFERENCE,
@@ -454,11 +454,11 @@ implementation
                           cg.a_jmp_always(exprasmlist,l2);
                           cg.a_label(exprasmlist,l);
                           location_release(exprasmlist,left.location);
-                          hr:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hr);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr2:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
                      else
@@ -466,9 +466,9 @@ implementation
                   end;
                   { emit bit test operation }
                   emit_bit_test_reg_reg(exprasmlist,hr,hr2,location.register);
-                  rg.ungetregisterint(exprasmlist,hr2);
+                  cg.ungetregister(exprasmlist,hr2);
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    rg.ungetregisterint(exprasmlist,hr);
+                    cg.ungetregister(exprasmlist,hr);
                   cg.a_label(exprasmlist,l2);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
@@ -493,7 +493,7 @@ implementation
                   pleftreg := left.location.register;
 
                   location_freetemp(exprasmlist,left.location);
-                  hr := rg.getaddressregister(exprasmlist);
+                  hr := cg.getaddressregister(exprasmlist);
                   cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,5,pleftreg,hr);
                   cg.a_op_const_reg(exprasmlist,OP_SHL,OS_32,2,hr);
 
@@ -505,18 +505,18 @@ implementation
                   else
                     begin
                       reference_release(exprasmlist,href);
-                      hr2 := rg.getaddressregister(exprasmlist);
+                      hr2 := cg.getaddressregister(exprasmlist);
                       cg.a_loadaddr_ref_reg(exprasmlist,href, hr2);
                       reference_reset_base(href,hr2,0);
                       href.index := hr;
                     end;
                   reference_release(exprasmlist,href);
                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,location.register);
-                  rg.ungetregisterint(exprasmlist,pleftreg);
-                  hr := rg.getregisterint(exprasmlist,OS_32);
+                  cg.ungetregister(exprasmlist,pleftreg);
+                  hr := cg.getintregister(exprasmlist,OS_32);
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_32,31,pleftreg,hr);
                   cg.a_op_reg_reg(exprasmlist,OP_SHR,OS_32,hr,location.register);
-                  rg.ungetregisterint(exprasmlist,hr);
+                  cg.ungetregister(exprasmlist,hr);
                   cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,1,location.register);
                 end;
              end;
@@ -621,9 +621,9 @@ implementation
            begin
               last:=0;
               first:=true;
-              scratch_reg:=rg.getregisterint(exprasmlist,opsize);
+              scratch_reg:=cg.getintregister(exprasmlist,opsize);
               genitem(hp);
-              rg.ungetregisterint(exprasmlist,scratch_reg);
+              cg.ungetregister(exprasmlist,scratch_reg);
               cg.a_jmp_always(exprasmlist,elselabel);
            end;
       end;
@@ -956,7 +956,7 @@ implementation
                 genlinearlist(nodes);
            end;
 
-         rg.ungetregisterint(exprasmlist,hregister);
+         cg.ungetregister(exprasmlist,hregister);
 
          { now generate the instructions }
          hp:=tstatementnode(right);
@@ -1003,7 +1003,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-10-01 20:34:48  peter
+  Revision 1.50  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.49  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

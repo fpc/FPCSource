@@ -226,7 +226,9 @@ uses
 *****************************************************************************}
 
     type
-      TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE,F_S,F_NS);
+      TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,
+                   F_A,F_AE,F_B,F_BE,
+                   F_S,F_NS,F_O,F_NO);
 
 {*****************************************************************************
                                 Reference
@@ -427,7 +429,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_D);
+          (S_NO,S_B,S_B,S_W,S_L,S_D,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -475,7 +477,9 @@ implementation
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A,F_NS,F_S);
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
+           F_BE,F_B,F_AE,F_A,
+           F_NS,F_S,F_NO,F_O);
       begin
         f:=inv_flags[f];
       end;
@@ -484,7 +488,7 @@ implementation
     function flags_to_cond(const f: TResFlags) : TAsmCond;
       const
         flags_2_cond : array[TResFlags] of TAsmCond =
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS);
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE,C_S,C_NS,C_O,C_NO);
       begin
         result := flags_2_cond[f];
       end;
@@ -559,7 +563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-10-03 22:00:33  peter
+  Revision 1.24  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.23  2003/10/03 22:00:33  peter
     * parameter alignment fixes
 
   Revision 1.22  2003/10/01 20:34:51  peter

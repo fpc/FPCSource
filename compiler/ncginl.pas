@@ -211,9 +211,9 @@ implementation
        paramanager.freeparaloc(exprasmlist,paraloc2);
        paramanager.freeparaloc(exprasmlist,paraloc3);
        paramanager.freeparaloc(exprasmlist,paraloc4);
-       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
-       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -235,7 +235,7 @@ implementation
         { for both cases load vmt }
         if left.nodetype=typen then
           begin
-            hregister:=rg.getaddressregister(exprasmlist);
+            hregister:=cg.getaddressregister(exprasmlist);
             reference_reset_symbol(href,objectlibrary.newasmsymboldata(tobjectdef(left.resulttype.def).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
           end
@@ -243,7 +243,7 @@ implementation
           begin
             secondpass(left);
             location_release(exprasmlist,left.location);
-            hregister:=rg.getaddressregister(exprasmlist);
+            hregister:=cg.getaddressregister(exprasmlist);
 
             { handle self inside a method of a class }
             case left.location.loc of
@@ -288,8 +288,8 @@ implementation
         if inlinenumber=in_sizeof_x then
            begin
              reference_reset_base(href,hregister,0);
-             rg.ungetaddressregister(exprasmlist,hregister);
-             hregister:=rg.getregisterint(exprasmlist,OS_INT);
+             cg.ungetregister(exprasmlist,hregister);
+             hregister:=cg.getintregister(exprasmlist,OS_INT);
              cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
            end;
         location.register:=hregister;
@@ -366,7 +366,7 @@ implementation
        const
          addsubop:array[in_inc_x..in_dec_x] of TOpCG=(OP_ADD,OP_SUB);
         var
-         addvalue : longint;
+         addvalue : TConstExprInt;
          addconstant : boolean;
          hregisterhi,
          hregister : tregister;
@@ -447,7 +447,7 @@ implementation
          href : treference;
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=rg.getaddressregister(exprasmlist);
+          location.register:=cg.getaddressregister(exprasmlist);
           reference_reset_symbol(href,tstoreddef(left.resulttype.def).get_rtti_label(fullrtti),0);
           cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
         end;
@@ -509,8 +509,8 @@ implementation
               secondpass(tcallparanode(tcallparanode(left).right).left);
 
               { bitnumber - which must be loaded into register }
-              hregister:=rg.getregisterint(exprasmlist,OS_INT);
-              hregister2 := rg.getregisterint(exprasmlist,OS_INT);
+              hregister:=cg.getintregister(exprasmlist,OS_INT);
+              hregister2:=cg.getintregister(exprasmlist,OS_INT);
 
               case tcallparanode(tcallparanode(left).right).left.location.loc of
                  LOC_CREGISTER,
@@ -572,7 +572,7 @@ implementation
 
                   cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_32, 5, hregister,hregister2);
                   cg.a_op_const_reg(exprasmlist, OP_SHL, OS_32, 2, hregister2);
-                  addrreg:=rg.getaddressregister(exprasmlist);
+                  addrreg:=cg.getaddressregister(exprasmlist);
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister2, addrreg);
@@ -594,10 +594,10 @@ implementation
                          cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, hregister2);
                          cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
                        end;
-                  rg.ungetregisterint(exprasmlist,addrreg);
+                  cg.ungetregister(exprasmlist,addrreg);
                 end;
-                rg.ungetregisterint(exprasmlist,hregister);
-                rg.ungetregisterint(exprasmlist,hregister2);
+                cg.ungetregister(exprasmlist,hregister);
+                cg.ungetregister(exprasmlist,hregister2);
             end;
         end;
 
@@ -656,7 +656,10 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-10-08 19:19:45  peter
+  Revision 1.46  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.45  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.44  2003/10/05 21:21:52  peter

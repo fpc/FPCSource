@@ -108,7 +108,7 @@ implementation
                   comp.compilers (JM) }
                 begin
                   { no jumps, but more operations }
-                  hreg2:=rg.getregisterint(exprasmlist,OS_INT);
+                  hreg2:=cg.getintregister(exprasmlist,OS_INT);
                   emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
                   {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
                   emit_const_reg(A_SAR,S_L,31,hreg2);
@@ -117,7 +117,7 @@ implementation
                   { add to the left value }
                   emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                   { release EDX if we used it }
-                  rg.ungetregisterint(exprasmlist,hreg2);
+                  cg.ungetregister(exprasmlist,hreg2);
                   { do the shift }
                   emit_const_reg(A_SAR,S_L,power,hreg1);
                 end
@@ -142,10 +142,10 @@ implementation
       else
         begin
           {Bring denominator to a register.}
-          rg.ungetregisterint(exprasmlist,hreg1);
-          rg.getexplicitregisterint(exprasmlist,NR_EAX);
+          cg.ungetregister(exprasmlist,hreg1);
+          cg.getexplicitregister(exprasmlist,NR_EAX);
           emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
-          rg.getexplicitregisterint(exprasmlist,NR_EDX);
+          cg.getexplicitregister(exprasmlist,NR_EDX);
           {Sign extension depends on the left type.}
           if torddef(left.resulttype.def).typ=u32bit then
             emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
@@ -164,9 +164,9 @@ implementation
             emit_reg(op,S_L,right.location.register)
           else
             begin
-              hreg1:=rg.getregisterint(exprasmlist,right.location.size);
+              hreg1:=cg.getintregister(exprasmlist,right.location.size);
               cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hreg1);
-              rg.ungetregisterint(exprasmlist,hreg1);
+              cg.ungetregister(exprasmlist,hreg1);
               emit_reg(op,S_L,hreg1);
             end;
           location_release(exprasmlist,right.location);
@@ -174,16 +174,16 @@ implementation
           {Copy the result into a new register. Release EAX & EDX.}
           if nodetype=divn then
             begin
-              rg.ungetregisterint(exprasmlist,NR_EDX);
-              rg.ungetregisterint(exprasmlist,NR_EAX);
-              location.register:=rg.getregisterint(exprasmlist,OS_INT);
+              cg.ungetregister(exprasmlist,NR_EDX);
+              cg.ungetregister(exprasmlist,NR_EAX);
+              location.register:=cg.getintregister(exprasmlist,OS_INT);
               emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
             end
           else
             begin
-              rg.ungetregisterint(exprasmlist,NR_EAX);
-              rg.ungetregisterint(exprasmlist,NR_EDX);
-              location.register:=rg.getregisterint(exprasmlist,OS_INT);
+              cg.ungetregister(exprasmlist,NR_EAX);
+              cg.ungetregister(exprasmlist,NR_EDX);
+              location.register:=cg.getintregister(exprasmlist,OS_INT);
               emit_reg_reg(A_MOV,S_L,NR_EDX,location.register);
             end;
         end;
@@ -203,7 +203,7 @@ implementation
 
     procedure ti386shlshrnode.pass_2;
 
-    var hregister2,hregisterhigh,hregisterlow:Tregister;
+    var hregisterhigh,hregisterlow:Tregister;
         op:Tasmop;
         l1,l2,l3:Tasmlabel;
 
@@ -272,8 +272,8 @@ implementation
           else
             begin
               { load right operators in a register }
-              hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hregister2);
+              cg.getexplicitregister(exprasmlist,NR_ECX);
+              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,NR_ECX);
               if right.location.loc<>LOC_CREGISTER then
                 location_release(exprasmlist,right.location);
 
@@ -286,15 +286,15 @@ implementation
               objectlibrary.getlabel(l1);
               objectlibrary.getlabel(l2);
               objectlibrary.getlabel(l3);
-              emit_const_reg(A_CMP,S_L,64,hregister2);
+              emit_const_reg(A_CMP,S_L,64,NR_ECX);
               cg.a_jmp_flags(exprasmlist,F_L,l1);
               emit_reg_reg(A_XOR,S_L,hregisterlow,hregisterlow);
               emit_reg_reg(A_XOR,S_L,hregisterhigh,hregisterhigh);
               cg.a_jmp_always(exprasmlist,l3);
               cg.a_label(exprasmlist,l1);
-              emit_const_reg(A_CMP,S_L,32,hregister2);
+              emit_const_reg(A_CMP,S_L,32,NR_ECX);
               cg.a_jmp_flags(exprasmlist,F_L,l2);
-              emit_const_reg(A_SUB,S_L,32,hregister2);
+              emit_const_reg(A_SUB,S_L,32,NR_ECX);
               if nodetype=shln then
                 begin
                   emit_reg_reg(A_SHL,S_L,NR_CL,hregisterlow);
@@ -317,7 +317,7 @@ implementation
                 end;
               cg.a_label(exprasmlist,l3);
 
-              rg.ungetregisterint(exprasmlist,hregister2);
+              cg.ungetregister(exprasmlist,NR_ECX);
               location.registerlow:=hregisterlow;
               location.registerhigh:=hregisterhigh;
             end;
@@ -337,12 +337,12 @@ implementation
               { load right operators in a ECX }
               if right.location.loc<>LOC_CREGISTER then
                 location_release(exprasmlist,right.location);
-              hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
-              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hregister2);
+              cg.getexplicitregister(exprasmlist,NR_ECX);
+              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,NR_ECX);
 
               { right operand is in ECX }
+              cg.ungetregister(exprasmlist,NR_ECX);
               emit_reg_reg(op,S_L,NR_CL,location.register);
-              rg.ungetregisterint(exprasmlist,hregister2);
             end;
         end;
     end;
@@ -388,6 +388,7 @@ implementation
       var
         op : tasmop;
       begin
+      (*
         secondpass(left);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
         case left.location.loc of
@@ -435,6 +436,7 @@ implementation
           end;
         emit_reg_reg(op,S_NO,location.register,NR_MM7);
         emit_reg_reg(A_MOVQ,S_NO,NR_MM7,location.register);
+        *)
       end;
 {$endif SUPPORT_MMX}
 
@@ -528,9 +530,10 @@ implementation
     var r:Tregister;
 
     begin
+    (*
       secondpass(left);
       location_reset(location,LOC_MMXREGISTER,OS_NO);
-      r:=rg.getregisterint(exprasmlist,OS_INT);
+      r:=cg.getintregister(exprasmlist,OS_INT);
       emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
       { load operand }
       case left.location.loc of
@@ -558,6 +561,7 @@ implementation
       emit_const_reg(A_PSLLQ,S_NO,32,NR_MM7);
       { higher 32 bit }
       emit_reg_reg(A_PXOR,S_D,NR_MM7,location.register);
+      *)
     end;
 {$endif SUPPORT_MMX}
 
@@ -569,7 +573,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-10-01 20:34:49  peter
+  Revision 1.64  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.63  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

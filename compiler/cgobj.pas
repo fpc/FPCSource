@@ -60,14 +60,41 @@ unit cgobj;
        }
        tcg = class
           alignment : talignment;
+          t_times:cardinal;
           {************************************************}
           {                 basic routines                 }
           constructor create;
 
+          {# Initialize the register allocators needed for the codegenerator.}
           procedure init_register_allocators;virtual;abstract;
+          {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;virtual;abstract;
 
-          { returns the tcgsize corresponding with the size of reg }
+          {# Gets a register suitable to do integer operations on.}
+          function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          {# Gets a register suitable to do integer operations on.}
+          function getaddressregister(list:Taasmoutput):Tregister;virtual;abstract;
+          function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          {Does the generic cg need SIMD registers, like getmmxregister? Or should
+           the cpu specific child cg object have such a method?}
+          procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+          procedure ungetreference(list:Taasmoutput;const r:Treference);virtual;abstract;
+
+          procedure add_move_instruction(instr:Taicpu);virtual;abstract;
+
+          {# Get a specific register.}
+          procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;abstract;
+          {# Get multiple registers specified.}
+          procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);virtual;abstract;
+          {# Free multiple registers specified.}
+          procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);virtual;abstract;
+
+          procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;abstract;
+
+          function makeregsize(reg:Tregister;size:Tcgsize):Tregister;
+
+          {# Returns the tcgsize corresponding with the size of reg.}
           class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
 
           {# Emit a label to the instruction stream. }
@@ -392,14 +419,14 @@ unit cgobj;
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_save_standard_registers(list:Taasmoutput;usedinproc:Tsuperregisterset);virtual;abstract;
+          procedure g_save_standard_registers(list:Taasmoutput);virtual;abstract;
           {# This routine is called when generating the code for the exit point
              of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsuperregisterset);virtual;abstract;
+          procedure g_restore_standard_registers(list:Taasmoutput);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);virtual;abstract;
        end;
@@ -492,8 +519,18 @@ implementation
 
     constructor tcg.create;
 
-      begin
-      end;
+    begin
+    end;
+
+    function Tcg.makeregsize(reg:Tregister;size:Tcgsize):Tregister;
+
+    var subreg:Tsubregister;
+
+    begin
+      subreg:=cgsize2subreg(size);
+      result:=reg;
+      setsubreg(result,subreg);
+    end;
 
     procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
 
@@ -543,20 +580,20 @@ implementation
          hr : tregister;
 
       begin
-         hr:=rg.getregisterint(list,size);
+         hr:=getintregister(list,size);
          a_load_const_reg(list,size,a,hr);
          a_param_reg(list,size,hr,locpara);
-         rg.ungetregisterint(list,hr);
+         ungetregister(list,hr);
       end;
 
     procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
       var
          hr : tregister;
       begin
-         hr:=rg.getregisterint(list,size);
+         hr:=getintregister(list,size);
          a_load_ref_reg(list,size,size,r,hr);
          a_param_reg(list,size,hr,locpara);
-         rg.ungetregisterint(list,hr);
+         ungetregister(list,hr);
       end;
 
 
@@ -581,10 +618,10 @@ implementation
       var
          hr : tregister;
       begin
-         hr:=rg.getaddressregister(list);
+         hr:=getaddressregister(list);
          a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,locpara);
-         rg.ungetregisterint(list,hr);
+         ungetregister(list,hr);
       end;
 
 
@@ -595,7 +632,7 @@ implementation
          if not(locpara.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            internalerror(2003010901);
          reference_reset_base(ref,locpara.reference.index,locpara.reference.offset);
-         cg.g_concatcopy(list,r,ref,size,false,false);
+         g_concatcopy(list,r,ref,size,false,false);
       end;
 
 
@@ -608,25 +645,25 @@ implementation
               if (locpara.size in [OS_S64,OS_64]) then
                 begin
 {$ifdef cpu64bit}
-                  rg.ungetregisterint(list,locpara.register64);
+                  ungetregisterint(list,locpara.register64);
 {$else cpu64bit}
-                  rg.getexplicitregisterint(list,locpara.registerlow);
-                  rg.getexplicitregisterint(list,locpara.registerhigh);
-                  rg.ungetregisterint(list,locpara.registerlow);
-                  rg.ungetregisterint(list,locpara.registerhigh);
+                  getexplicitregister(list,locpara.registerlow);
+                  getexplicitregister(list,locpara.registerhigh);
+                  ungetregister(list,locpara.registerlow);
+                  ungetregister(list,locpara.registerhigh);
 {$endif cpu64bit}
                   cg64.a_load64_reg_ref(list,locpara.register64,ref)
                 end
               else
                 begin
-                  rg.getexplicitregisterint(list,locpara.register);
-                  rg.ungetregisterint(list,locpara.register);
-                  cg.a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                  a_load_reg_ref(list,locpara.size,locpara.size,locpara.register,ref);
                 end;
             end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
-            cg.a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
+            a_loadfpu_reg_ref(list,locpara.size,locpara.register,ref);
           else
             internalerror(2002081302);
         end;
@@ -643,23 +680,23 @@ implementation
             begin
               if not(locpara.size in [OS_S64,OS_64]) then
                 begin
-                  rg.getexplicitregisterint(list,locpara.register);
-                  rg.ungetregisterint(list,locpara.register);
-                  rg.getexplicitregisterint(list,reg);
-                  cg.a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
+                  getexplicitregister(list,locpara.register);
+                  ungetregister(list,locpara.register);
+                  getexplicitregister(list,reg);
+                  a_load_reg_reg(list,locpara.size,locpara.size,locpara.register,reg)
                 end
               else
                 internalerror(2003053011);
             end;
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
-            cg.a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
+            a_loadfpu_reg_reg(list,locpara.size,locpara.register,reg);
           LOC_REFERENCE,
           LOC_CREFERENCE:
             begin
               reference_reset_base(href,locpara.reference.index,locpara.reference.offset);
-              rg.getexplicitregisterint(list,reg);
-              cg.a_load_ref_reg(list,locpara.size,locpara.size,href,reg);
+              getexplicitregister(list,reg);
+              a_load_ref_reg(list,locpara.size,locpara.size,href,reg);
             end;
           else
             internalerror(2003053010);
@@ -678,10 +715,10 @@ implementation
         { verify if we have the same reference }
         if references_equal(sref,dref) then
           exit;
-        tmpreg:=rg.getregisterint(list,tosize);
+        tmpreg:=getintregister(list,tosize);
         a_load_ref_reg(list,fromsize,tosize,sref,tmpreg);
         a_load_reg_ref(list,tosize,tosize,tmpreg,dref);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
 
@@ -689,10 +726,10 @@ implementation
       var
         tmpreg: tregister;
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         a_load_const_reg(list,size,a,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
 
@@ -856,10 +893,10 @@ implementation
       var
          hr : tregister;
       begin
-         hr:=rg.getregisterfpu(list,size);
+         hr:=getfpuregister(list,size);
          a_loadfpu_ref_reg(list,size,ref,hr);
          a_paramfpu_reg(list,size,hr,locpara);
-         rg.ungetregisterfpu(list,hr,size);
+         ungetregister(list,hr);
       end;
 
 
@@ -869,11 +906,11 @@ implementation
         tmpreg: tregister;
 
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_op_const_reg(list,op,size,a,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
 
@@ -897,11 +934,11 @@ implementation
         tmpreg: tregister;
 
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_op_reg_reg(list,op,size,reg,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
 
@@ -920,10 +957,10 @@ implementation
             end;
           else
             begin
-              tmpreg:=rg.getregisterint(list,size);
+              tmpreg:=getintregister(list,size);
               a_load_ref_reg(list,size,size,ref,tmpreg);
               a_op_reg_reg(list,op,size,tmpreg,reg);
-              rg.ungetregisterint(list,tmpreg);
+              ungetregister(list,tmpreg);
             end;
         end;
       end;
@@ -954,22 +991,23 @@ implementation
             a_op_ref_reg(list,op,loc.size,ref,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              tmpreg:=rg.getregisterint(list,loc.size);
+              tmpreg:=getintregister(list,loc.size);
               a_load_ref_reg(list,loc.size,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
-              rg.ungetregisterint(list,tmpreg);
+              ungetregister(list,tmpreg);
             end;
           else
             internalerror(200109061);
         end;
       end;
 
-    procedure tcg.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-        size: tcgsize; a: aword; src, dst: tregister);
-      begin
-        a_load_reg_reg(list,size,size,src,dst);
-        a_op_const_reg(list,op,size,a,dst);
-      end;
+    procedure Tcg.a_op_const_reg_reg(list:Taasmoutput;op:Topcg;size:Tcgsize;
+                                     a:aword;src,dst:Tregister);
+
+    begin
+      a_load_reg_reg(list,size,size,src,dst);
+      a_op_const_reg(list,op,size,a,dst);
+    end;
 
     procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
         size: tcgsize; src1, src2, dst: tregister);
@@ -983,11 +1021,11 @@ implementation
           end
         else
           begin
-            tmpreg := rg.getregisterint(list,size);
+            tmpreg:=cg.getintregister(list,size);
             a_load_reg_reg(list,size,size,src2,tmpreg);
             a_op_reg_reg(list,op,size,src1,tmpreg);
             a_load_reg_reg(list,size,size,tmpreg,dst);
-            rg.ungetregisterint(list,tmpreg);
+            ungetregister(list,tmpreg);
           end;
       end;
 
@@ -1000,10 +1038,10 @@ implementation
         tmpreg: tregister;
 
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
     procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const loc : tlocation;
@@ -1026,10 +1064,10 @@ implementation
         tmpreg: tregister;
 
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
     procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
@@ -1061,10 +1099,10 @@ implementation
             a_cmp_ref_reg_label(list,size,cmp_op,ref,loc.register,l);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              tmpreg := rg.getregisterint(list,size);
+              tmpreg:=getintregister(list,size);
               a_load_ref_reg(list,size,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
-              rg.ungetregisterint(list,tmpreg);
+              ungetregister(list,tmpreg);
             end
           else
             internalerror(200109061);
@@ -1102,9 +1140,9 @@ implementation
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
-        rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
-        rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
       end;
 
 
@@ -1135,9 +1173,9 @@ implementation
             paramanager.allocparaloc(list,paraloc1);
             a_param_ref(list,OS_ADDR,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
-            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,incrfunc);
-            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end
          else
           begin
@@ -1151,9 +1189,9 @@ implementation
               a_paramaddr_ref(list,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             paramanager.freeparaloc(list,paraloc2);
-            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_ADDREF');
-            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          end;
       end;
 
@@ -1198,9 +1236,9 @@ implementation
             paramanager.freeparaloc(list,paraloc1);
             if needrtti then
               paramanager.freeparaloc(list,paraloc2);
-            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,decrfunc);
-            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end
          else
           begin
@@ -1214,9 +1252,9 @@ implementation
               a_paramaddr_ref(list,ref,paraloc1);
             paramanager.freeparaloc(list,paraloc1);
             paramanager.freeparaloc(list,paraloc2);
-            rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,'FPC_DECREF');
-            rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+            deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          end;
       end;
 
@@ -1244,9 +1282,9 @@ implementation
                 a_paramaddr_ref(list,ref,paraloc1);
               paramanager.freeparaloc(list,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
-              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+              allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_INITIALIZE');
-              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+              deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
       end;
 
@@ -1274,9 +1312,9 @@ implementation
                 a_paramaddr_ref(list,ref,paraloc1);
               paramanager.freeparaloc(list,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
-              rg.allocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+              allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               a_call_name(list,'FPC_FINALIZE');
-              rg.deallocexplicitregistersint(list,paramanager.get_volatile_registers_int(pocall_default));
+              deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
       end;
 
@@ -1379,13 +1417,13 @@ implementation
               if lto < 0 then
                 lto := 0;
             end;
-        hreg:=rg.getregisterint(list,OS_INT);
+        hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
         a_op_const_reg(list,OP_SUB,OS_INT,aword(lto),hreg);
         objectlibrary.getlabel(neglabel);
         a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
         { !!! should happen right after the compare (JM) }
-        rg.ungetregisterint(list,hreg);
+        ungetregister(list,hreg);
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;
@@ -1409,10 +1447,10 @@ implementation
       var
         tmpreg : tregister;
       begin
-        tmpreg:=rg.getregisterint(list,size);
+        tmpreg:=getintregister(list,size);
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
-        rg.ungetregisterint(list,tmpreg);
+        ungetregister(list,tmpreg);
       end;
 
 
@@ -1526,7 +1564,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.126  2003-10-01 20:34:48  peter
+  Revision 1.127  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.126  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

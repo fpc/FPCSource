@@ -115,7 +115,7 @@ implementation
                   { DLL variable }
                   else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                     begin
-                       hregister:=rg.getaddressregister(exprasmlist);
+                       hregister:=cg.getaddressregister(exprasmlist);
                        location.reference.symbol:=objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,location.reference,hregister);
                        reference_reset_base(location.reference,hregister,0);
@@ -142,25 +142,25 @@ implementation
                        objectlibrary.getlabel(endrelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1:=paramanager.getintparaloc(pocall_default,1);
-                       hregister:=rg.getaddressregister(exprasmlist);
+                       hregister:=cg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata('FPC_THREADVAR_RELOCATE'),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                       rg.ungetregisterint(exprasmlist,hregister);
+                       cg.ungetregister(exprasmlist,hregister);
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
-                       r:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                       rg.ungetregisterint(exprasmlist,r);
+                       r:=cg.getabtregister(exprasmlist,OS_ADDR);
+                       cg.ungetregister(exprasmlist,r);
                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister,r);
-                       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_reg(exprasmlist,r);
-                       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
-                       r:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
-                       rg.ungetregisterint(exprasmlist,r);
-                       hregister:=rg.getaddressregister(exprasmlist);
+                       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.getexplicitregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                       cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                       hregister:=cg.getaddressregister(exprasmlist);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
                        cg.a_jmp_always(exprasmlist,endrelocatelab);
                        cg.a_label(exprasmlist,norelocatelab);
@@ -188,8 +188,9 @@ implementation
                   { normal variable }
                   else
                     begin
+                       {$warning fixme regvars}
                        { in case it is a register variable: }
-                       if tvarsym(symtableentry).localloc.loc=LOC_REGISTER then
+{                       if tvarsym(symtableentry).localloc.loc=LOC_REGISTER then
                          begin
                             case getregtype(tvarsym(symtableentry).localloc.register) of
                               R_FPUREGISTER :
@@ -212,7 +213,7 @@ implementation
                                 internalerror(200301172);
                             end;
                          end
-                       else
+                       else}
                          begin
                            case symtabletype of
                               localsymtable,
@@ -250,7 +251,7 @@ implementation
                      paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption) then
                     begin
                       if hregister=NR_NO then
-                        hregister:=rg.getaddressregister(exprasmlist);
+                        hregister:=cg.getaddressregister(exprasmlist);
                       { we need to load only an address }
                       location.size:=OS_ADDR;
                       cg.a_load_loc_reg(exprasmlist,location.size,location,hregister);
@@ -292,7 +293,7 @@ implementation
                          LOC_REFERENCE:
                            begin
                               location_release(exprasmlist,left.location);
-                              hregister:=rg.getaddressregister(exprasmlist);
+                              hregister:=cg.getaddressregister(exprasmlist);
                               if is_class_or_interface(left.resulttype.def) then
                                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister)
                               else
@@ -314,7 +315,7 @@ implementation
                           { load vmt pointer }
                           reference_reset_base(href,hregister,0);
                           reference_release(exprasmlist,href);
-                          hregister:=rg.getaddressregister(exprasmlist);
+                          hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
 
 
@@ -323,22 +324,22 @@ implementation
                           reference_release(exprasmlist,href);
 
                           { load method address }
-                          hregister:=rg.getaddressregister(exprasmlist);
+                          hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                           { ... and store it }
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                          rg.ungetaddressregister(exprasmlist,hregister);
+                          cg.ungetregister(exprasmlist,hregister);
                         end
                       else
                         begin
                           { we don't use the hregister }
-                          rg.ungetregisterint(exprasmlist,hregister);
+                          cg.ungetregister(exprasmlist,hregister);
                           { load address of the function }
                           reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname),0);
-                          hregister:=rg.getaddressregister(exprasmlist);
+                          hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                          rg.ungetregisterint(exprasmlist,hregister);
+                          cg.ungetregister(exprasmlist,hregister);
                         end;
                     end
                   else
@@ -506,7 +507,7 @@ implementation
                       LOC_REGISTER,
                       LOC_CREGISTER :
                         begin
-                          r:=rg.makeregsize(right.location.register,OS_8);
+                          r:=cg.makeregsize(right.location.register,OS_8);
                           cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,r,href);
                         end;
                       LOC_REFERENCE,
@@ -816,9 +817,9 @@ implementation
                   begin
                     location_force_mem(exprasmlist,hp.left.location);
                     location_release(exprasmlist,hp.left.location);
-                    tmpreg:=rg.getaddressregister(exprasmlist);
+                    tmpreg:=cg.getaddressregister(exprasmlist);
                     cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                    rg.ungetregisterint(exprasmlist,tmpreg);
+                    cg.ungetregister(exprasmlist,tmpreg);
                     cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
                     if freetemp then
                       location_freetemp(exprasmlist,hp.left.location);
@@ -883,7 +884,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-10-07 15:17:07  peter
+  Revision 1.92  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.91  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

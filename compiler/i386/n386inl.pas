@@ -67,7 +67,7 @@ implementation
       cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgobj,ncgutil,cgobj,rgobj,rgcpu;
+      cga,cgx86,tgobj,ncgutil,cgobj,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -164,7 +164,7 @@ implementation
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          emit_none(A_FLDPI,S_NO);
-         inc(trgcpu(rg).fpuvaroffset);
+         tcgx86(cg).inc_fpu_stack;
          location.register:=NR_FPU_RESULT_REG;
        end;
 
@@ -301,11 +301,11 @@ implementation
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
                 begin
-                  hregister:=rg.makeregsize(Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
+                  hregister:=cg.makeregsize(Tcallparanode(Tcallparanode(left).right).left.location.register,OS_INT);
                 end
               else
                 begin
-                  hregister:=rg.getregisterint(exprasmlist,OS_INT);
+                  hregister:=cg.getintregister(exprasmlist,OS_INT);
                 end;
               location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
               cg.a_load_loc_reg(exprasmlist,OS_INT,tcallparanode(tcallparanode(left).right).left.location,hregister);
@@ -313,7 +313,7 @@ implementation
                 emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
               else
                 emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
-              rg.ungetregisterint(exprasmlist,hregister);
+              cg.ungetregister(exprasmlist,hregister);
               location_release(exprasmlist,Tcallparanode(left).left.location);
             end;
         end;
@@ -324,7 +324,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-10-01 20:34:49  peter
+  Revision 1.69  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.68  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

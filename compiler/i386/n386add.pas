@@ -61,7 +61,7 @@ interface
       aasmbase,aasmtai,aasmcpu,defutil,htypechk,
       cgbase,pass_2,regvars,
       ncon,nset,
-      cga,ncgutil,tgobj,rgobj,cgobj,cg64f32,rgcpu;
+      cga,cgx86,ncgutil,tgobj,rgobj,cgobj,cg64f32,rgcpu;
 
 {*****************************************************************************
                                   Helpers
@@ -222,11 +222,11 @@ interface
             begin
               if extra_not then
                 emit_reg(A_NOT,opsize,left.location.register);
-              r:=rg.getregisterint(exprasmlist,OS_INT);
+              r:=cg.getintregister(exprasmlist,OS_INT);
               cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
               emit_reg_reg(op,opsize,left.location.register,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register);
-              rg.ungetregisterint(exprasmlist,r);
+              cg.ungetregister(exprasmlist,r);
             end
            else
             begin
@@ -266,11 +266,11 @@ interface
                  begin
                    if extra_not then
                      begin
-                        r:=rg.getregisterint(exprasmlist,OS_INT);
+                        r:=cg.getintregister(exprasmlist,OS_INT);
                         cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,r);
                         emit_reg(A_NOT,S_L,r);
                         emit_reg_reg(A_AND,S_L,r,left.location.register);
-                        rg.ungetregisterint(exprasmlist,r);
+                        cg.ungetregister(exprasmlist,r);
                      end
                    else
                      begin
@@ -292,7 +292,7 @@ interface
               if unsigned then
                 cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else
-                cg.a_jmp_flags(exprasmlist,F_GE,hl4);
+                cg.a_jmp_flags(exprasmlist,F_NO,hl4);
               cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
               cg.a_label(exprasmlist,hl4);
             end;
@@ -352,7 +352,7 @@ interface
                        location_release(exprasmlist,left.location);
                        if paraloc2.loc=LOC_REGISTER then
                          begin
-                           hregister2:=rg.getaddressregister(exprasmlist);
+                           hregister2:=cg.getaddressregister(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,hregister2);
                          end
                        else
@@ -364,7 +364,7 @@ interface
                        location_release(exprasmlist,right.location);
                        if paraloc1.loc=LOC_REGISTER then
                          begin
-                           hregister1:=rg.getaddressregister(exprasmlist);
+                           hregister1:=cg.getaddressregister(exprasmlist);
                            cg.a_loadaddr_ref_reg(exprasmlist,right.location.reference,hregister1);
                          end
                        else
@@ -375,21 +375,21 @@ interface
                        { push parameters }
                        if paraloc1.loc=LOC_REGISTER then
                          begin
-                           rg.ungetregisterint(exprasmlist,hregister2);
+                           cg.ungetregister(exprasmlist,hregister2);
                            paramanager.allocparaloc(exprasmlist,paraloc2);
                            cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
                          end;
                        if paraloc2.loc=LOC_REGISTER then
                          begin
-                           rg.ungetregisterint(exprasmlist,hregister1);
+                           cg.ungetregister(exprasmlist,hregister1);
                            paramanager.allocparaloc(exprasmlist,paraloc1);
                            cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1);
                          end;
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc2);
-                       rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                      end;
@@ -631,21 +631,22 @@ interface
         if op<>A_FCOMPP then
           begin
              emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
-             dec(trgcpu(rg).fpuvaroffset);
+             tcgx86(cg).dec_fpu_stack;
           end
         else
           begin
              emit_none(op,S_NO);
-             dec(trgcpu(rg).fpuvaroffset,2);
+             tcgx86(cg).dec_fpu_stack;
+             tcgx86(cg).dec_fpu_stack;
           end;
 
         { on comparison load flags }
         if cmpop then
          begin
-           r:=rg.getexplicitregisterint(exprasmlist,NR_AX);
-           emit_reg(A_FNSTSW,S_NO,r);
+           cg.getexplicitregister(exprasmlist,NR_AX);
+           emit_reg(A_FNSTSW,S_NO,NR_AX);
            emit_none(A_SAHF,S_NO);
-           rg.ungetregisterint(exprasmlist,r);
+           cg.ungetregister(exprasmlist,NR_AX);
            if nf_swaped in flags then
             begin
               case nodetype of
@@ -930,8 +931,8 @@ interface
               if not((left.location.loc=LOC_CREGISTER) and cmpop) then
                begin
                  delete:=left.location.loc<>LOC_CREGISTER;
-                 hregister:=rg.getregisterint(exprasmlist,OS_INT);
-                 hregister2:=rg.getregisterint(exprasmlist,OS_INT);
+                 hregister:=cg.getintregister(exprasmlist,OS_INT);
+                 hregister2:=cg.getintregister(exprasmlist,OS_INT);
                  cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2),delete);
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.registerlow:=hregister;
@@ -977,7 +978,7 @@ interface
            { right.location<>LOC_REGISTER }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
-              r:=rg.getregisterint(exprasmlist,OS_INT);
+              r:=cg.getintregister(exprasmlist,OS_INT);
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op1,opsize,left.location.registerlow,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerlow);
@@ -985,7 +986,7 @@ interface
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.registerhigh,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
-              rg.ungetregisterint(exprasmlist,r);
+              cg.ungetregister(exprasmlist,r);
               if right.location.loc<>LOC_CREGISTER then
                begin
                  location_freetemp(exprasmlist,right.location);
@@ -1057,7 +1058,7 @@ interface
               if unsigned then
                cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else
-               cg.a_jmp_flags(exprasmlist,F_GE,hl4);
+               cg.a_jmp_flags(exprasmlist,F_NO,hl4);
               cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
               cg.a_label(exprasmlist,hl4);
             end;
@@ -1084,6 +1085,7 @@ interface
         mmxbase    : tmmxtype;
         r,hregister  : tregister;
       begin
+      (*
         pass_left_and_right(pushedfpu);
 
         cmpop:=false;
@@ -1252,6 +1254,7 @@ interface
            location_release(exprasmlist,left.location);
          end;
         set_result_location(cmpop,true);
+        *)
       end;
 {$endif SUPPORT_MMX}
 
@@ -1268,25 +1271,25 @@ interface
       location_reset(location,LOC_REGISTER,OS_INT);
       {Get a temp register and load the left value into it
        and free the location.}
-      r:=rg.getregisterint(exprasmlist,OS_INT);
+      r:=cg.getintregister(exprasmlist,OS_INT);
       cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
       location_release(exprasmlist,left.location);
       {Allocate EAX.}
-      rg.getexplicitregisterint(exprasmlist,NR_EAX);
+      cg.getexplicitregister(exprasmlist,NR_EAX);
       {Load the right value.}
       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_EAX);
       location_release(exprasmlist,right.location);
       {The mul instruction frees register r.}
-      rg.ungetregisterint(exprasmlist,r);
+      cg.ungetregister(exprasmlist,r);
       {Also allocate EDX, since it is also modified by a mul (JM).}
-      rg.getexplicitregisterint(exprasmlist,NR_EDX);
+      cg.getexplicitregister(exprasmlist,NR_EDX);
       emit_reg(A_MUL,S_L,r);
       {Free EDX}
-      rg.ungetregisterint(exprasmlist,NR_EDX);
+      cg.ungetregister(exprasmlist,NR_EDX);
       {Free EAX}
-      rg.ungetregisterint(exprasmlist,NR_EAX);
+      cg.ungetregister(exprasmlist,NR_EAX);
       {Allocate a new register and store the result in EAX in it.}
-      location.register:=rg.getregisterint(exprasmlist,OS_INT);
+      location.register:=cg.getintregister(exprasmlist,OS_INT);
       emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
@@ -1489,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-10-08 09:13:16  florian
+  Revision 1.82  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.81  2003/10/08 09:13:16  florian
     * fixed full bool evalution and bool xor, if the left or right side have LOC_JUMP
 
   Revision 1.80  2003/10/01 20:34:49  peter

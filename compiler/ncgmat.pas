@@ -153,7 +153,7 @@ implementation
         else
         if _size <> OS_F32 then
            internalerror(20020814);
-        hreg := rg.getregisterint(exprasmlist,OS_32);
+        hreg := cg.getintregister(exprasmlist,OS_32);
         { load value }
         cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,href,hreg);
         { bitwise complement copied value }
@@ -162,7 +162,7 @@ implementation
         cg.a_op_const_reg(exprasmlist,OP_AND,OS_32,aword($80000000),hreg);
         { or with value in reference memory }
         cg.a_op_reg_ref(exprasmlist,OP_OR,OS_32,hreg,href);
-        rg.ungetregisterint(exprasmlist,hreg);
+        cg.ungetregister(exprasmlist,hreg);
         { store the floating point value in the temporary memory area }
         if _size = OS_F64 then
           begin
@@ -196,7 +196,7 @@ implementation
           LOC_CREFERENCE :
             begin
               reference_release(exprasmlist,left.location.reference);
-              location.register:=rg.getregisterfpu(exprasmlist,location.size);
+              location.register:=cg.getfpuregister(exprasmlist,location.size);
               cg.a_loadfpu_ref_reg(exprasmlist,
                  def_cgsize(left.resulttype.def),
                  left.location.reference,location.register);
@@ -209,7 +209,7 @@ implementation
             end;
           LOC_CFPUREGISTER:
             begin
-               location.register:=rg.getregisterfpu(exprasmlist,location.size);
+               location.register:=cg.getfpuregister(exprasmlist,location.size);
                cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,left.location.register,location.register);
                emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
             end;
@@ -321,7 +321,7 @@ implementation
                   { hdenom is always free, it's }
                   { only used for temporary }
                   { purposes                }
-                  hdenom := rg.getregisterint(exprasmlist,OS_INT);
+                  hdenom := cg.getintregister(exprasmlist,OS_INT);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hdenom);
@@ -431,7 +431,7 @@ implementation
                 begin
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
-                  hcountreg:=rg.getregisterint(exprasmlist,OS_INT);
+                  hcountreg:=cg.getintregister(exprasmlist,OS_INT);
                   freescratch := true;
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
                 end
@@ -439,7 +439,7 @@ implementation
                 hcountreg:=right.location.register;
               cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
               if freescratch then
-                rg.ungetregisterint(exprasmlist,hcountreg);
+                cg.ungetregister(exprasmlist,hcountreg);
            end;
       end;
 
@@ -502,7 +502,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-10-01 20:34:48  peter
+  Revision 1.20  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.19  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

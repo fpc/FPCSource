@@ -286,18 +286,18 @@ implementation
 {$ifndef cpu64bit}
                   if (loc.size in [OS_64,OS_S64,OS_F64]) then
                     begin
-                      rg.getexplicitregisterint(list,loc.registerhigh);
-                      rg.getexplicitregisterint(list,loc.registerlow);
+                      cg.getexplicitregister(list,loc.registerhigh);
+                      cg.getexplicitregister(list,loc.registerlow);
                     end
                   else
 {$endif cpu64bit}
-                    rg.getexplicitregisterint(list,loc.register);
+                    cg.getexplicitregister(list,loc.register);
                 end;
             end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
             begin
               if loc.register<>NR_NO then
-                rg.getexplicitregisterfpu(list,loc.register);
+                cg.getexplicitregister(list,loc.register);
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
@@ -315,15 +315,15 @@ implementation
 {$ifndef cpu64bit}
               if (loc.size in [OS_64,OS_S64,OS_F64]) then
                 begin
-                  rg.ungetregisterint(list,loc.registerhigh);
-                  rg.ungetregisterint(list,loc.registerlow);
+                  cg.ungetregister(list,loc.registerhigh);
+                  cg.ungetregister(list,loc.registerlow);
                 end
               else
 {$endif cpu64bit}
-                rg.ungetregisterint(list,loc.register);
+                cg.ungetregister(list,loc.register);
             end;
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            rg.ungetregisterfpu(list,loc.register,loc.size);
+            cg.ungetregister(list,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             { do nothing by default, most of the time it's the framepointer }
           else
@@ -369,12 +369,12 @@ implementation
 {$ifndef cpu64bit}
         if locpara.size in [OS_64,OS_S64] then
           begin
-            locpara.registerlow:=rg.getregisterint(list,OS_32);
-            locpara.registerhigh:=rg.getregisterint(list,OS_32);
+            locpara.registerlow:=cg.getintregister(list,OS_32);
+            locpara.registerhigh:=cg.getintregister(list,OS_32);
           end
         else
 {$endif cpu64bit}
-          locpara.register:=rg.getregisterint(list,locpara.size);
+          locpara.register:=cg.getintregister(list,locpara.size);
       end;
 
 
@@ -424,7 +424,10 @@ end.
 
 {
    $Log$
-   Revision 1.60  2003-10-05 21:21:52  peter
+   Revision 1.61  2003-10-09 21:31:37  daniel
+     * Register allocator splitted, ans abstract now
+
+   Revision 1.60  2003/10/05 21:21:52  peter
      * c style array of const generates callparanodes
      * varargs paraloc fixes
 

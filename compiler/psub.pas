@@ -602,7 +602,7 @@ implementation
           exit;
 
         { The RA and Tempgen shall not be available yet }
-        if assigned(rg) or assigned(tg) then
+        if assigned(tg) then
           internalerror(200309201);
 
         oldprocinfo:=current_procinfo;
@@ -653,8 +653,9 @@ implementation
 {$ifdef i386}
         if (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            rg.used_in_proc_int:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
-            rg.used_in_proc_other:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
+            {$warning Fixme}
+{            Tcgx86(cg).rgint.used_in_proc:=paramanager.get_volatile_registers_int(pocall_oldfpccall);
+            Tcgx86(cg).rgother.used_in_proc:=paramanager.get_volatile_registers_int(pocall_oldfpccall);}
           end;
 {$endif i386}
 
@@ -729,39 +730,7 @@ implementation
           allocate the registers }
         if not(cs_no_regalloc in aktglobalswitches) then
           begin
-            {Do register allocation.}
-            spillingcounter:=0;
-            repeat
-{$ifdef ra_debug}
-              if aktfilepos.line=1206 then
-                rg.writegraph(spillingcounter);
-{$endif ra_debug}
-              rg.prepare_colouring;
-              rg.colour_registers;
-              rg.epilogue_colouring;
-              fastspill:=true;
-              if rg.spillednodes<>'' then
-                begin
-                  inc(spillingcounter);
-                  if spillingcounter>20 then
-{$ifdef ra_debug}
-                    break;
-{$else ra_debug}
-                    internalerror(200309041);
-{$endif ra_debug}
-
-{$ifdef ra_debug}
-                  if aktfilepos.line=1207 then
-                    begin
-                      writeln('Spilling registers:');
-                      for i:=1 to length(rg.spillednodes) do
-                        writeln(ord(rg.spillednodes[i]));
-                    end;
-{$endif ra_debug}
-                  fastspill:=rg.spill_registers(aktproccode,headertai,rg.spillednodes);
-                end;
-            until (rg.spillednodes='') or not fastspill;
-            aktproccode.translate_registers(rg.colour);
+            cg.do_register_allocation(aktproccode,headertai);
 (*
 {$ifndef NoOpt}
             if (cs_optimize in aktglobalswitches) and
@@ -772,7 +741,8 @@ implementation
 *)
           end;
 
-        translate_regvars(aktproccode,rg.colour);
+        {$warning fixme translate_regvars}
+{        translate_regvars(aktproccode,rg.colour);}
         { Add save and restore of used registers }
         aktfilepos:=entrypos;
         gen_save_used_regs(templist);
@@ -819,7 +789,6 @@ implementation
         tg.free;
         cg.done_register_allocators;
         tg:=nil;
-        rg:=nil;
 
         { restore symtablestack }
         remove_from_symtablestack;
@@ -1308,7 +1277,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2003-10-09 15:20:56  peter
+  Revision 1.161  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.160  2003/10/09 15:20:56  peter
     * self is not a token anymore. It is handled special when found
       in a code block and when parsing an method
 

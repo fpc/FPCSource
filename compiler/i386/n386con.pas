@@ -41,7 +41,7 @@ implementation
       systems,globtype,globals,
       defutil,
       cpubase,
-      cga,cgbase,rgobj,rgcpu;
+      cga,cgx86,cgobj,cgbase,rgobj,rgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -69,14 +69,14 @@ implementation
                   emit_none(A_FLD1,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                   location.register:=NR_ST;
-                  inc(trgcpu(rg).fpuvaroffset);
+                  tcgx86(cg).inc_fpu_stack;
                end
              else if (value_real=0.0) then
                begin
                   emit_none(A_FLDZ,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                   location.register:=NR_ST;
-                  inc(trgcpu(rg).fpuvaroffset);
+                  tcgx86(cg).inc_fpu_stack;
                end
             else
               inherited pass_2;
@@ -91,7 +91,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-10-01 20:34:49  peter
+  Revision 1.23  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.22  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

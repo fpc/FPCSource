@@ -124,7 +124,8 @@ interface
         R_SUBH,    { = 2; 8 bits, Like AH }
         R_SUBW,    { = 3; 16 bits, Like AX }
         R_SUBD,    { = 4; 32 bits, Like EAX }
-        R_SUBQ     { = 5; 64 bits, Like RAX }
+        R_SUBQ,    { = 5; 64 bits, Like RAX }
+        R_SUBF64   { = 6; 64 bits float that allocates 2 FPU registers }
       );
 
       TSuperRegister = type byte;
@@ -370,7 +371,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2003-10-01 20:34:48  peter
+  Revision 1.68  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.67  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

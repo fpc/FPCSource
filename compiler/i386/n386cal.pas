@@ -136,9 +136,9 @@ implementation
         { better than an add on all processors }
         if pop_size=4 then
           begin
-            hreg:=rg.getregisterint(exprasmlist,OS_INT);
+            hreg:=cg.getintregister(exprasmlist,OS_INT);
             exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-            rg.ungetregisterint(exprasmlist,hreg);
+            cg.ungetregister(exprasmlist,hreg);
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
@@ -147,12 +147,12 @@ implementation
              not(cs_littlesize in aktglobalswitches) and
              (aktoptprocessor=ClassP5) then
             begin
-               hreg:=rg.getregisterint(exprasmlist,OS_INT);
+               hreg:=cg.getintregister(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               rg.ungetregisterint(exprasmlist,hreg);
-               hreg:=rg.getregisterint(exprasmlist,OS_INT);
+               cg.ungetregister(exprasmlist,hreg);
+               hreg:=cg.getintregister(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               rg.ungetregisterint(exprasmlist,hreg);
+               cg.ungetregister(exprasmlist,hreg);
             end
         else
           if pop_size<>0 then
@@ -170,7 +170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2003-10-01 20:34:49  peter
+  Revision 1.97  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.96  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

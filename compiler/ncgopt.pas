@@ -120,7 +120,7 @@ begin
         { free the registers of right }
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
-        hreg := rg.getregisterint(exprasmlist,OS_8);
+        hreg := cg.getintregister(exprasmlist,OS_8);
         cg.a_load_ref_reg(exprasmlist,OS_8,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
         tg.ungetiftemp(exprasmlist,right.location.reference);
@@ -128,7 +128,7 @@ begin
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := rg.getregisterint(exprasmlist,OS_INT);
+  lengthreg := cg.getintregister(exprasmlist,OS_INT);
   cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
@@ -181,15 +181,15 @@ begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
       cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,hreg,href2);
-      rg.ungetregisterint(exprasmlist,hreg);
+      cg.ungetregister(exprasmlist,hreg);
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
-  lengthreg:=rg.makeregsize(lengthreg,OS_8);
+  lengthreg:=cg.makeregsize(lengthreg,OS_8);
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
-  rg.ungetregisterint(exprasmlist,lengthreg);
+  cg.ungetregister(exprasmlist,lengthreg);
   if checklength then
     cg.a_label(exprasmlist,l);
   location_copy(location,left.location);
@@ -201,7 +201,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-10-01 20:34:48  peter
+  Revision 1.10  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.9  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

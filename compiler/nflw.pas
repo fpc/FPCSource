@@ -216,7 +216,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtable,paramgr,defutil,htypechk,pass_1,
-      ncal,nadd,ncon,nmem,nld,ncnv,nbas,rgobj,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -397,11 +397,11 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         old_t_times:=rg.t_times;
+         old_t_times:=cg.t_times;
 
          { calc register weight }
          if not(cs_littlesize in aktglobalswitches ) then
-           rg.t_times:=rg.t_times*8;
+           cg.t_times:=cg.t_times*8;
 
          firstpass(left);
          if codegenerror then
@@ -429,7 +429,7 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
-         rg.t_times:=old_t_times;
+         cg.t_times:=old_t_times;
       end;
 
 {$ifdef state_tracking}
@@ -559,7 +559,7 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         old_t_times:=rg.t_times;
+         old_t_times:=cg.t_times;
          firstpass(left);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -569,9 +569,9 @@ implementation
 
          { determines registers weigths }
          if not(cs_littlesize in aktglobalswitches) then
-           rg.t_times:=rg.t_times div 2;
-         if rg.t_times=0 then
-           rg.t_times:=1;
+           cg.t_times:=cg.t_times div 2;
+         if cg.t_times=0 then
+           cg.t_times:=1;
 
          { if path }
          if assigned(right) then
@@ -633,7 +633,7 @@ implementation
                 end;
            end;
 
-         rg.t_times:=old_t_times;
+         cg.t_times:=old_t_times;
       end;
 
 
@@ -764,9 +764,9 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          { Calc register weight }
-         old_t_times:=rg.t_times;
+         old_t_times:=cg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
-           rg.t_times:=rg.t_times*8;
+           cg.t_times:=cg.t_times*8;
 
          firstpass(left);
 
@@ -827,7 +827,7 @@ implementation
          { we need at least one register for comparisons PM }
          if registers32=0 then
            inc(registers32);
-         rg.t_times:=old_t_times;
+         cg.t_times:=old_t_times;
       end;
 
 
@@ -1431,7 +1431,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-10-08 19:19:45  peter
+  Revision 1.83  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.82  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.81  2003/10/05 11:53:57  florian

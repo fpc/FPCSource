@@ -214,7 +214,7 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_INT);
+                   pleftreg:=cg.makeregsize(left.location.register,OS_INT);
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize<>OS_INT then
                      cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
@@ -224,14 +224,14 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_8);
+                   pleftreg:=cg.makeregsize(left.location.register,OS_8);
                    opsize := OS_8;
                  end;
              end
             else
              begin
                { load the value in a register }
-               pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
+               pleftreg:=cg.getintregister(exprasmlist,OS_INT);
                opsize:=OS_INT;
                cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,pleftreg);
                location_release(exprasmlist,left.location);
@@ -269,8 +269,8 @@ implementation
                       { move and substract in one instruction with LEA)    }
                       if (left.location.loc = LOC_CREGISTER) then
                         begin
-                          rg.ungetregister(exprasmlist,pleftreg);
-                          r:=rg.getregisterint(exprasmlist,OS_INT);
+                          cg.ungetregister(exprasmlist,pleftreg);
+                          r:=cg.getintregister(exprasmlist,OS_INT);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
                           cg.a_loadaddr_ref_reg(exprasmlist,href,r);
                           { only now change pleftreg since previous value is }
@@ -322,9 +322,9 @@ implementation
              right.location.reference.symbol:=nil;
              { Now place the end label }
              cg.a_label(exprasmlist,l);
-             rg.ungetregisterint(exprasmlist,pleftreg);
+             cg.ungetregister(exprasmlist,pleftreg);
              if r<>NR_NO then
-              rg.ungetregisterint(exprasmlist,r);
+              cg.ungetregister(exprasmlist,r);
           end
          else
           begin
@@ -361,7 +361,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=rg.makeregsize(left.location.register,OS_INT);
+                          hr:=cg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                        end;
                   else
@@ -369,7 +369,7 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-                      hr:=rg.getregisterint(exprasmlist,OS_INT);
+                      hr:=cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,hr);
                       location_release(exprasmlist,left.location);
                     end;
@@ -381,16 +381,16 @@ implementation
                           begin
                             emit_reg_reg(A_BT,S_L,hr,
                               right.location.register);
-                            rg.ungetregisterint(exprasmlist,right.location.register);
+                            cg.ungetregister(exprasmlist,right.location.register);
                           end;
                    LOC_CONSTANT :
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                         hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                         hr2:=cg.getintregister(exprasmlist,OS_INT);
                          cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
-                         rg.ungetregisterint(exprasmlist,hr2);
+                         cg.ungetregister(exprasmlist,hr2);
                        end;
                    LOC_CREFERENCE,
                    LOC_REFERENCE :
@@ -402,7 +402,7 @@ implementation
                        internalerror(2002032210);
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
-                  rg.ungetregisterint(exprasmlist,hr);
+                  cg.ungetregister(exprasmlist,hr);
                   location.resflags:=F_C;
                 end;
              end
@@ -422,7 +422,7 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hr:=rg.makeregsize(left.location.register,OS_INT);
+                          hr:=cg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr);
                           cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_BE,31,hr,l);
                         { reset carry flag }
@@ -431,10 +431,10 @@ implementation
                           cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                          hr2:=cg.getintregister(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
-                          rg.ungetregisterint(exprasmlist,hr2);
+                          cg.ungetregister(exprasmlist,hr2);
                        end;
                   else
                     begin
@@ -456,14 +456,14 @@ implementation
                        cg.a_jmp_always(exprasmlist,l2);
                        cg.a_label(exprasmlist,l);
                        location_release(exprasmlist,left.location);
-                       hr:=rg.getregisterint(exprasmlist,OS_INT);
+                       hr:=cg.getintregister(exprasmlist,OS_INT);
                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hr);
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                       hr2:=rg.getregisterint(exprasmlist,OS_INT);
+                       hr2:=cg.getintregister(exprasmlist,OS_INT);
                        cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
-                       rg.ungetregisterint(exprasmlist,hr2);
+                       cg.ungetregister(exprasmlist,hr2);
                     end;
                   end;
                   cg.a_label(exprasmlist,l2);
@@ -480,14 +480,14 @@ implementation
                else
                 begin
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    pleftreg:=rg.makeregsize(left.location.register,OS_INT)
+                    pleftreg:=cg.makeregsize(left.location.register,OS_INT)
                   else
-                    pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
+                    pleftreg:=cg.getintregister(exprasmlist,OS_INT);
                   cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                  rg.ungetregisterint(exprasmlist,pleftreg);
+                  cg.ungetregister(exprasmlist,pleftreg);
                   location_release(exprasmlist,right.location);
                   { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
                   location.resflags:=F_C;
@@ -559,7 +559,7 @@ implementation
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
-        indexreg:=rg.makeregsize(hregister,OS_INT);
+        indexreg:=cg.makeregsize(hregister,OS_INT);
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
@@ -672,7 +672,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-10-01 20:34:49  peter
+  Revision 1.68  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.67  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

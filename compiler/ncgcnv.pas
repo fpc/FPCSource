@@ -127,7 +127,7 @@ interface
            st_shortstring :
              begin
                inc(left.location.reference.offset);
-               location.register:=rg.getaddressregister(exprasmlist);
+               location.register:=cg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
            st_ansistring :
@@ -137,12 +137,12 @@ interface
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
-                  location.register:=rg.getaddressregister(exprasmlist);
+                  location.register:=cg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  location.register:=rg.getaddressregister(exprasmlist);
+                  location.register:=cg.getaddressregister(exprasmlist);
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                 end;
              end;
@@ -158,12 +158,12 @@ interface
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymboldata('FPC_EMPTYCHAR');
-                  location.register:=rg.getaddressregister(exprasmlist);
+                  location.register:=cg.getaddressregister(exprasmlist);
                   cg.a_loadaddr_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                  location.register:=cg.getintregister(exprasmlist,OS_INT);
 {$ifdef fpc}
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
 {$endif}
@@ -203,7 +203,7 @@ interface
       begin
          location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getaddressregister(exprasmlist);
+         location.register:=cg.getaddressregister(exprasmlist);
          cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
       end;
 
@@ -215,7 +215,8 @@ interface
         case left.location.loc of
           LOC_REGISTER :
             begin
-              if not rg.isaddressregister(left.location.register) then
+            {$ifdef cpu_uses_separate_address_registers}
+              if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                 begin
                   location_release(exprasmlist,left.location);
                   location.reference.base:=rg.getaddressregister(exprasmlist);
@@ -223,11 +224,12 @@ interface
                           left.location.register,location.reference.base);
                 end
               else
+            {$endif}
                 location.reference.base := left.location.register;
             end;
           LOC_CREGISTER :
             begin
-              location.reference.base:=rg.getaddressregister(exprasmlist);
+              location.reference.base:=cg.getaddressregister(exprasmlist);
               cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                 location.reference.base);
             end;
@@ -235,7 +237,7 @@ interface
           LOC_CREFERENCE :
             begin
               location_release(exprasmlist,left.location);
-              location.reference.base:=rg.getaddressregister(exprasmlist);
+              location.reference.base:=cg.getaddressregister(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,
                 location.reference.base);
               location_freetemp(exprasmlist,left.location);
@@ -274,13 +276,13 @@ interface
               begin
                 location_copy(location,left.location);
                 location.size:=def_cgsize(resulttype.def);
-                exit;
+                exit
               end;
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.register:=rg.getregisterfpu(exprasmlist,left.location.size);
+                 location.register:=cg.getfpuregister(exprasmlist,left.location.size);
                  cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
                  location_freetemp(exprasmlist,left.location);
               end;
@@ -311,7 +313,7 @@ interface
           begin
              location_release(exprasmlist,left.location);
              location_reset(location,LOC_REGISTER,OS_ADDR);
-             location.register:=rg.getaddressregister(exprasmlist);
+             location.register:=cg.getaddressregister(exprasmlist);
              cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
           end;
       end;
@@ -364,20 +366,22 @@ interface
          case left.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
               begin
-                 if not rg.isaddressregister(left.location.register) then
+               {$ifdef cpu_uses_separate_address_registers}
+                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                    begin
                      location_release(exprasmlist,left.location);
-                     location.register:=rg.getaddressregister(exprasmlist);
+                     location.register:=cg.getaddressregister(exprasmlist);
                      cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                               left.location.register,location.register);
                    end
                  else
+               {$endif}
                     location.register := left.location.register;
               end;
             LOC_CREFERENCE,LOC_REFERENCE:
               begin
                 location_release(exprasmlist,left.location);
-                location.register:=rg.getaddressregister(exprasmlist);
+                location.register:=cg.getaddressregister(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                 location_freetemp(exprasmlist,left.location);
               end;
@@ -403,13 +407,13 @@ interface
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.register:=rg.getaddressregister(exprasmlist);
+                 location.register:=cg.getaddressregister(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                  location_freetemp(exprasmlist,left.location);
               end;
             LOC_CREGISTER:
               begin
-                 location.register:=rg.getaddressregister(exprasmlist);
+                 location.register:=cg.getaddressregister(exprasmlist);
                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,location.register);
               end;
             LOC_REGISTER:
@@ -511,7 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2003-10-01 20:34:48  peter
+  Revision 1.48  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.47  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

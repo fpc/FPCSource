@@ -89,7 +89,7 @@ implementation
       cpuinfo,aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,
 {$ifdef x86}
-      cga,
+      cga,cgx86,
 {$endif x86}
       ncgutil,cgobj,tgobj,
       rgobj,rgcpu,
@@ -428,7 +428,7 @@ implementation
             is_widestring(resulttype.def) then
           begin
             { the FUNCTION_RESULT_REG is already allocated }
-            rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
+            cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
             if not assigned(funcretnode) then
               begin
                 location_reset(location,LOC_CREFERENCE,OS_ADDR);
@@ -437,7 +437,7 @@ implementation
               end
             else
               begin
-                hregister := rg.getaddressregister(exprasmlist);
+                hregister := cg.getaddressregister(exprasmlist);
                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
                 { in case of a regular funcretnode with ret_in_param, the }
                 { original funcretnode isn't touched -> make sure it's    }
@@ -448,7 +448,7 @@ implementation
                 tempnode.free;
                 cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference, false);
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                rg.ungetregisterint(exprasmlist,hregister);
+                cg.ungetregister(exprasmlist,hregister);
              end;
           end
         else
@@ -465,9 +465,9 @@ implementation
 {$endif cpufpemu}
                   location.register:=NR_FPU_RESULT_REG;
 {$ifdef x86}
-                inc(trgcpu(rg).fpuvaroffset);
+                tcgx86(cg).inc_fpu_stack;
 {$else x86}
-                hregister := rg.getregisterfpu(exprasmlist,location.size);
+                hregister := cg.getfputregister(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                 location.register := hregister;
 {$endif x86}
@@ -485,11 +485,11 @@ implementation
                         FUNCTION_RESULT_REG/FUNCTION_RESULTHIGH_REG, so no move is necessary.}
                       { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
                         are already allocated }
-                      rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                      location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                      location.registerlow:=cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_LOW_REG,location.registerlow);
-                      rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
-                      location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
+                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                      location.registerhigh:=cg.getintregister(exprasmlist,OS_INT);
                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,NR_FUNCTION_RESULT64_HIGH_REG,location.registerhigh);
                     end
                    else
@@ -498,11 +498,11 @@ implementation
                       {Move the function result to a free register, preferably the
                        FUNCTION_RESULT_REG, so no move is necessary.}
                       { the FUNCTION_RESULT_REG is already allocated }
-                      rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
+                      cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                       { change register size after the unget because the
                       getregister was done for the full register }
-                      location.register:=rg.getregisterint(exprasmlist,cgsize);
-                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,rg.makeregsize(NR_FUNCTION_RESULT_REG,cgsize),location.register);
+                      location.register:=cg.getintregister(exprasmlist,cgsize);
+                      cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,cg.makeregsize(NR_FUNCTION_RESULT_REG,cgsize),location.register);
                     end;
                  end
                 else
@@ -524,12 +524,12 @@ implementation
 {$ifndef cpu64bit}
               if cgsize in [OS_64,OS_S64] then
                 begin
-                  rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
-                  rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
+                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG);
+                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT64_HIGH_REG);
                 end
               else
 {$endif cpu64bit}
-                rg.ungetregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
+                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
             location_reset(location,LOC_VOID,OS_NO);
           end;
       end;
@@ -572,7 +572,6 @@ implementation
     procedure tcgcallnode.normal_pass_2;
       var
          regs_to_push_other : totherregisterset;
-         unusedstate: pointer;
          regs_to_alloc,regs_to_free:Tsuperregisterset;
          pushedother : tpushedsavedother;
          oldpushedparasize : longint;
@@ -651,8 +650,6 @@ implementation
          if assigned(varargsparas) then
            paramanager.create_varargs_paraloc_info(procdefinition,varargsparas);
 
-         rg.saveunusedstate(unusedstate);
-
          if not assigned(funcretnode) then
            begin
              { if we allocate the temp. location for ansi- or widestrings }
@@ -692,7 +689,8 @@ implementation
           end;
 
          { Save registers destroyed by the call }
-         rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
+         {$warning fime saveusedotherregisters.}
+{         cg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);}
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -731,8 +729,8 @@ implementation
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
                    cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
                end;
-
-              rg.saveotherregvars(exprasmlist,regs_to_push_other);
+               {$warning fixme regvars}
+{              rg.saveotherregvars(exprasmlist,regs_to_push_other);}
 
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
@@ -740,8 +738,8 @@ implementation
                    vmtreg:=methodpointer.location.register;
 
                    { release self }
-                   rg.ungetaddressregister(exprasmlist,vmtreg);
-                   pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
+                   cg.ungetregister(exprasmlist,vmtreg);
+                   pvreg:=cg.getabtregister(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
@@ -752,12 +750,12 @@ implementation
                      pushparas;
 
                    { Release register containing procvar }
-                   rg.ungetregisterint(exprasmlist,pvreg);
+                   cg.ungetregister(exprasmlist,pvreg);
 
                    { free the resources allocated for the parameters }
                    freeparas;
 
-                   rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
+                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
 
                    { call method }
                    cg.a_call_reg(exprasmlist,pvreg);
@@ -772,7 +770,7 @@ implementation
                   { free the resources allocated for the parameters }
                   freeparas;
 
-                  rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
+                  cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
                   { Calling interrupt from the same code requires some
                     extra code }
                   if (po_interrupt in procdefinition.procoptions) then
@@ -786,7 +784,7 @@ implementation
               secondpass(right);
 
               location_release(exprasmlist,right.location);
-              pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
+              pvreg:=cg.getabtregister(exprasmlist,OS_ADDR);
               { Only load OS_ADDR from the reference }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
@@ -800,19 +798,19 @@ implementation
                 pushparas;
 
               { Release register containing procvar }
-              rg.ungetregisterint(exprasmlist,pvreg);
+              cg.ungetregister(exprasmlist,pvreg);
 
               { free the resources allocated for the parameters }
               freeparas;
 
-              rg.allocexplicitregistersint(exprasmlist,regs_to_alloc);
+              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
 
               { Calling interrupt from the same code requires some
                 extra code }
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
-
-              rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);
+              {$warning fixme regvars.}
+{              rg.saveotherregvars(exprasmlist,ALL_OTHERREGISTERS);}
               cg.a_call_reg(exprasmlist,pvreg);
            end;
 
@@ -836,10 +834,6 @@ implementation
 
          { Restore }
          pushedparasize:=oldpushedparasize;
-         rg.restoreunusedstate(unusedstate);
-{$ifdef TEMPREGDEBUG}
-         testregisters32;
-{$endif TEMPREGDEBUG}
 
          { Release registers, but not the registers that contain the
            function result }
@@ -861,7 +855,7 @@ implementation
                  end;
              end;
            end;
-         rg.deallocexplicitregistersint(exprasmlist,regs_to_free);
+         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -877,13 +871,14 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { restore registers }
-         rg.restoreusedotherregisters(exprasmlist,pushedother);
+         {$warnig fixme restoreusedotherregisters}
+{         rg.restoreusedotherregisters(exprasmlist,pushedother);}
 
          { release temps of paras }
          release_para_temps;
@@ -904,10 +899,6 @@ implementation
 {$ifdef x86}
                   { release FPU stack }
                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-                  {
-                    dec(trgcpu(rg).fpuvaroffset);
-                    do NOT decrement as the increment before
-                    is not called for unused results PM }
 {$endif x86}
                 end;
            end;
@@ -977,8 +968,6 @@ implementation
            end;
 {$endif GDB}
 
-         rg.saveunusedstate(unusedstate);
-
          { if we allocate the temp. location for ansi- or widestrings }
          { already here, we avoid later a push/pop                    }
          if is_widestring(resulttype.def) then
@@ -1039,9 +1028,9 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { release temps of paras }
@@ -1064,10 +1053,6 @@ implementation
 {$ifdef x86}
                   { release FPU stack }
                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-                  {
-                    dec(trgcpu(rg).fpuvaroffset);
-                    do NOT decrement as the increment before
-                    is not called for unused results PM }
 {$endif x86}
                 end;
            end;
@@ -1099,12 +1084,6 @@ implementation
          { restore }
          current_procinfo:=oldprocinfo;
          inlining_procedure:=oldinlining_procedure;
-
-         { reallocate the registers used for the current procedure's regvars, }
-         { since they may have been used and then deallocated in the inlined  }
-         { procedure (JM)                                                     }
-//         if assigned(current_procinfo.procdef.regvarinfo) then
-//           rg.restoreStateAfterInline(oldregstate);
       end;
 
 
@@ -1123,7 +1102,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2003-10-07 15:17:07  peter
+  Revision 1.127  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.126  2003/10/07 15:17:07  peter
     * inline supported again, LOC_REFERENCEs are used to pass the
       parameters
     * inlineparasymtable,inlinelocalsymtable removed

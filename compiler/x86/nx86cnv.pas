@@ -102,11 +102,11 @@ implementation
                 if left.location.size in [OS_64,OS_S64] then
                  begin
                    location_release(exprasmlist,left.location);
-                   hregister:=rg.getregisterint(exprasmlist,OS_INT);
+                   hregister:=cg.getintregister(exprasmlist,OS_INT);
                    cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   rg.ungetregisterint(exprasmlist,hregister);
+                   cg.ungetregister(exprasmlist,hregister);
                    cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
                  end
                 else
@@ -126,9 +126,9 @@ implementation
 {$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=rg.getregisterint(exprasmlist,OS_32);
+                   hregister:=cg.getintregister(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   rg.ungetregisterint(exprasmlist,hregister);
+                   cg.ungetregister(exprasmlist,hregister);
                    location_release(exprasmlist,left.location);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                  end
@@ -141,7 +141,7 @@ implementation
               end;
             LOC_JUMP :
               begin
-                hregister:=rg.getregisterint(exprasmlist,OS_INT);
+                hregister:=cg.getintregister(exprasmlist,OS_INT);
                 objectlibrary.getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
@@ -149,7 +149,7 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
-                rg.ungetregisterint(exprasmlist,hregister);
+                cg.ungetregister(exprasmlist,hregister);
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
               end;
             else
@@ -157,7 +157,7 @@ implementation
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location.register:=rg.getregisterint(exprasmlist,location.size);
+         location.register:=cg.getintregister(exprasmlist,location.size);
          cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
@@ -166,7 +166,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-10-01 20:34:51  peter
+  Revision 1.6  2003-10-09 21:31:38  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.5  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -173,7 +173,7 @@ unit cg64f32;
         tmpref := ref;
         if (tmpref.base=reg.reglo) then
          begin
-           tmpreg:=rg.getaddressregister(list);
+           tmpreg:=cg.getaddressregister(list);
            got_scratch:=true;
            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
            tmpref.base:=tmpreg;
@@ -184,7 +184,7 @@ unit cg64f32;
          { implementation FK                                              }
          if (tmpref.index=reg.reglo) then
           begin
-            tmpreg:=rg.getaddressregister(list);
+            tmpreg:=cg.getaddressregister(list);
             got_scratch:=true;
             cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
@@ -198,7 +198,7 @@ unit cg64f32;
           end;
         cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
         if got_scratch then
-          rg.ungetregisterint(list,tmpreg);
+          cg.ungetregister(list,tmpreg);
       end;
 
 
@@ -206,10 +206,10 @@ unit cg64f32;
 
       begin
         if delete then
-          rg.ungetregisterint(list,regsrc.reglo);
+          cg.ungetregister(list,regsrc.reglo);
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
         if delete then
-          rg.ungetregisterint(list,regsrc.reghi);
+          cg.ungetregister(list,regsrc.reghi);
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reghi,regdst.reghi);
       end;
 
@@ -415,12 +415,12 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=rg.getregisterint(list,OS_INT);
-        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_INT);
+        tempreg.reglo:=cg.getintregister(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg,false);
         a_op64_reg_reg(list,op,tempreg,reg);
-        rg.ungetregisterint(list,tempreg.reglo);
-        rg.ungetregisterint(list,tempreg.reghi);
+        cg.ungetregister(list,tempreg.reglo);
+        cg.ungetregister(list,tempreg.reghi);
       end;
 
 
@@ -428,13 +428,13 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=rg.getregisterint(list,OS_INT);
-        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_INT);
+        tempreg.reglo:=cg.getintregister(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg,false);
         a_op64_reg_reg(list,op,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
-        rg.ungetregisterint(list,tempreg.reglo);
-        rg.ungetregisterint(list,tempreg.reghi);
+        cg.ungetregister(list,tempreg.reglo);
+        cg.ungetregister(list,tempreg.reghi);
       end;
 
 
@@ -442,13 +442,13 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi:=rg.getregisterint(list,OS_INT);
-        tempreg.reglo:=rg.getregisterint(list,OS_INT);
+        tempreg.reghi:=cg.getintregister(list,OS_INT);
+        tempreg.reglo:=cg.getintregister(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg,false);
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
-        rg.ungetregisterint(list,tempreg.reglo);
-        rg.ungetregisterint(list,tempreg.reghi);
+        cg.ungetregister(list,tempreg.reglo);
+        cg.ungetregister(list,tempreg.reghi);
       end;
 
 
@@ -537,7 +537,7 @@ unit cg64f32;
                end
              else
                begin
-                 hreg:=rg.getregisterint(list,OS_INT);
+                 hreg:=cg.getintregister(list,OS_INT);
                  got_scratch := true;
                  a_load64high_ref_reg(list,l.reference,hreg);
                end;
@@ -554,7 +554,7 @@ unit cg64f32;
                end;
              { !!! freeing of register should happen directly after compare! (JM) }
              if got_scratch then
-               rg.ungetregisterint(list,hreg);
+               cg.ungetregister(list,hreg);
              { For all other values we have a range check error }
              cg.a_call_name(list,'FPC_RANGEERROR');
 
@@ -583,7 +583,7 @@ unit cg64f32;
                    end
                  else
                    begin
-                     hreg:=rg.getregisterint(list,OS_INT);
+                     hreg:=cg.getintregister(list,OS_INT);
                      got_scratch := true;
                      a_load64low_ref_reg(list,l.reference,hreg);
                    end;
@@ -592,7 +592,7 @@ unit cg64f32;
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
                  { !!! freeing of register should happen directly after compare! (JM) }
                  if got_scratch then
-                   rg.ungetregisterint(list,hreg);
+                   cg.ungetregister(list,hreg);
 
                  cg.a_call_name(list,'FPC_RANGEERROR');
 
@@ -636,7 +636,7 @@ unit cg64f32;
                  end
                else
                  begin
-                   hreg:=rg.getregisterint(list,OS_INT);
+                   hreg:=cg.getintregister(list,OS_INT);
                    got_scratch := true;
 
                    opsize := def_cgsize(fromdef);
@@ -650,7 +650,7 @@ unit cg64f32;
 
                { !!! freeing of register should happen directly after compare! (JM) }
                if got_scratch then
-                 rg.ungetregisterint(list,hreg);
+                 cg.ungetregister(list,hreg);
                cg.a_call_name(list,'FPC_RANGEERROR');
                cg.a_label(list,poslabel);
              end;
@@ -761,7 +761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-10-01 20:34:48  peter
+  Revision 1.51  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.50  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -119,7 +119,7 @@ implementation
                   LOC_REFERENCE:
                     begin
                        location_release(exprasmlist,left.location);
-                       reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                       reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,href.base);
                     end;
                   else
@@ -131,13 +131,15 @@ implementation
                case left.location.loc of
                   LOC_REGISTER:
                     begin
-                      if not rg.isaddressregister(left.location.register) then
+                    {$ifdef cpu_uses_separate_address_registers}
+                      if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                         begin
                           location_release(exprasmlist,left.location);
-                          reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                          reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                           cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,href.base);
                         end
                       else
+                    {$endif}
                         reference_reset_base(href,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
                     end;
                   LOC_CREGISTER,
@@ -145,7 +147,7 @@ implementation
                   LOC_REFERENCE:
                     begin
                        location_release(exprasmlist,left.location);
-                       reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                       reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                        cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,href.base);
                     end;
                   else
@@ -153,7 +155,7 @@ implementation
                end;
              end;
             reference_release(exprasmlist,href);
-            location.register:=rg.getaddressregister(exprasmlist);
+            location.register:=cg.getaddressregister(exprasmlist);
             cg.g_maybe_testself(exprasmlist,href.base);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
           end
@@ -161,7 +163,7 @@ implementation
           begin
             reference_reset_symbol(href,
               objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
-            location.register:=rg.getaddressregister(exprasmlist);
+            location.register:=cg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
           end;
       end;
@@ -186,7 +188,7 @@ implementation
           begin
             currpi:=current_procinfo;
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=rg.getaddressregister(exprasmlist);
+            location.register:=cg.getaddressregister(exprasmlist);
             { load framepointer of current proc }
             hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
             if not assigned(hsym) then
@@ -234,7 +236,7 @@ implementation
 
          location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getaddressregister(exprasmlist);
+         location.register:=cg.getaddressregister(exprasmlist);
          { @ on a procvar means returning an address to the procedure that
            is stored in it }
          if (m_tp_procvar in aktmodeswitches) and
@@ -261,14 +263,16 @@ implementation
          case left.location.loc of
             LOC_REGISTER:
               begin
-                if not rg.isaddressregister(left.location.register) then
+              {$ifdef cpu_uses_separate_address_registers}
+                if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
                     location_release(exprasmlist,left.location);
-                    location.reference.base := rg.getaddressregister(exprasmlist);
+                    location.reference.base := cg.getaddressregister(exprasmlist);
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
                 else
+              {$endif}
                   location.reference.base := left.location.register;
               end;
             LOC_CREGISTER,
@@ -276,7 +280,7 @@ implementation
             LOC_REFERENCE:
               begin
                  location_release(exprasmlist,left.location);
-                 location.reference.base:=rg.getaddressregister(exprasmlist);
+                 location.reference.base:=cg.getaddressregister(exprasmlist);
                  cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
               end;
          end;
@@ -314,7 +318,8 @@ implementation
                 LOC_CREGISTER,
                 LOC_REGISTER:
                   begin
-                    if not rg.isaddressregister(left.location.register) then
+                  {$ifdef cpu_uses_separate_address_registers}
+                    if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                       begin
                         location_release(exprasmlist,left.location);
                         location.reference.base:=rg.getaddressregister(exprasmlist);
@@ -322,13 +327,14 @@ implementation
                           left.location.register,location.reference.base);
                       end
                     else
+                  {$endif}
                       location.reference.base := left.location.register;
                   end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE:
                   begin
                      location_release(exprasmlist,left.location);
-                     location.reference.base:=rg.getaddressregister(exprasmlist);
+                     location.reference.base:=cg.getaddressregister(exprasmlist);
                      cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
                   end;
              end;
@@ -478,8 +484,8 @@ implementation
           end
          else
           begin
-            rg.ungetreference(exprasmlist,location.reference);
-            hreg := rg.getaddressregister(exprasmlist);
+            cg.ungetreference(exprasmlist,location.reference);
+            hreg := cg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
             { insert new index register }
@@ -526,7 +532,7 @@ implementation
                  hreg:=right.location.register
                else
                  begin
-                   hreg:=rg.getregisterint(exprasmlist,OS_INT);
+                   hreg:=cg.getintregister(exprasmlist,OS_INT);
                    freereg:=true;
                    cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
                  end;
@@ -536,7 +542,7 @@ implementation
                location_release(exprasmlist,hightree.location);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
                if freereg then
-                 rg.ungetregisterint(exprasmlist,hreg);
+                 cg.ungetregister(exprasmlist,hreg);
                cg.a_label(exprasmlist,poslabel);
                cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
                cg.a_label(exprasmlist,neglabel);
@@ -555,9 +561,9 @@ implementation
                cg.a_param_loc(exprasmlist,left.location,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc2);
-               rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
@@ -600,7 +606,7 @@ implementation
                 LOC_REFERENCE :
                   begin
                     location_release(exprasmlist,left.location);
-                    location.reference.base:=rg.getaddressregister(exprasmlist);
+                    location.reference.base:=cg.getaddressregister(exprasmlist);
                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
                   end;
                 else
@@ -615,9 +621,9 @@ implementation
                    paramanager.allocparaloc(exprasmlist,paraloc1);
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(exprasmlist,paraloc1);
-                   rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -636,7 +642,7 @@ implementation
                 LOC_CREFERENCE :
                   begin
                      location_release(exprasmlist,left.location);
-                     location.reference.base:=rg.getaddressregister(exprasmlist);
+                     location.reference.base:=cg.getaddressregister(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,
                       left.location.reference,location.reference.base);
                   end;
@@ -700,9 +706,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                            end;
 
                          st_shortstring:
@@ -834,9 +840,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                            end;
                          st_shortstring:
                            begin
@@ -870,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2003-10-01 20:34:48  peter
+  Revision 1.78  2003-10-09 21:31:37  daniel
+    * Register allocator splitted, ans abstract now
+
+  Revision 1.77  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
