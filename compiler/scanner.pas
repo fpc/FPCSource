@@ -647,13 +647,18 @@ implementation
            break;
           end;
         until false;
-{$ifopt H+}
-        setlength(orgpattern,i);
-        setlength(pattern,i);
-{$else}
-        orgpattern[0]:=chr(i);
-        pattern[0]:=chr(i);
-{$endif}
+        {$ifndef TP}
+          {$ifopt H+}
+            setlength(orgpattern,i);
+            setlength(pattern,i);
+          {$else}
+            orgpattern[0]:=chr(i);
+            pattern[0]:=chr(i);
+          {$endif}
+        {$else}
+          orgpattern[0]:=chr(i);
+          pattern[0]:=chr(i);
+        {$endif}
       end;
 
 
@@ -700,11 +705,15 @@ implementation
       { was the next char a linebreak ? }
         if c in [#10,#13] then
          linebreak;
-{$ifopt H+}
-        setlength(pattern,i);
-{$else}
-        pattern[0]:=chr(i);
-{$endif}
+        {$ifndef TP}
+          {$ifopt H+}
+            setlength(pattern,i);
+          {$else}
+            pattern[0]:=chr(i);
+          {$endif}
+        {$else}
+          pattern[0]:=chr(i);
+        {$endif}
       end;
 
 
@@ -756,11 +765,15 @@ implementation
           if c in [#10,#13] then
            linebreak;
         until false;
-{$ifopt H+}
-        setlength(readcomment,i);
-{$else}
-        readcomment[0]:=chr(i);
-{$endif}
+        {$ifndef TP}
+          {$ifopt H+}
+            setlength(readcomment,i);
+          {$else}
+            readcomment[0]:=chr(i);
+          {$endif}
+        {$else}
+          readcomment[0]:=chr(i);
+        {$endif}
       end;
 
 
@@ -1535,7 +1548,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  1998-11-16 12:18:06  peter
+  Revision 1.68  1998-11-16 15:41:44  peter
+    * tp7 didn't like my ifopt H+ :(
+
+  Revision 1.67  1998/11/16 12:18:06  peter
     * H+ fixes
 
   Revision 1.66  1998/11/05 23:48:29  peter

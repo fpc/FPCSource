@@ -914,8 +914,12 @@ begin
     upper[i]:=char(byte(s[i])-32)
    else
     upper[i]:=s[i];
-{$ifopt H+}
-  SetLength(upper,length(s));
+{$ifndef TP}
+  {$ifopt H+}
+    SetLength(upper,length(s));
+  {$else}
+    upper[0]:=s[0];
+  {$endif}
 {$else}
   upper[0]:=s[0];
 {$endif}
@@ -1178,7 +1182,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  1998-11-16 10:17:09  peter
+  Revision 1.50  1998-11-16 15:41:45  peter
+    * tp7 didn't like my ifopt H+ :(
+
+  Revision 1.49  1998/11/16 10:17:09  peter
     * fixed for H+ compilation
 
   Revision 1.48  1998/10/26 14:19:30  pierre

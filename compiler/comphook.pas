@@ -111,11 +111,15 @@ begin
       gccfilename[i]:=s[i];
      end;
    end;
-{$ifopt H+}
-  setlength(gccfilename,length(s));
-{$else}
-  gccfilename[0]:=s[0];
-{$endif}
+  {$ifndef TP}
+    {$ifopt H+}
+      setlength(gccfilename,length(s));
+    {$else}
+      gccfilename[0]:=s[0];
+    {$endif}
+  {$else}
+    gccfilename[0]:=s[0];
+  {$endif}
 end;
 
 
@@ -258,7 +262,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-11-16 12:17:59  peter
+  Revision 1.12  1998-11-16 15:41:39  peter
+    * tp7 didn't like my ifopt H+ :(
+
+  Revision 1.11  1998/11/16 12:17:59  peter
     * H+ fixes
 
   Revision 1.10  1998/10/27 13:45:25  pierre

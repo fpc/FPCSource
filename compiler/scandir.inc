@@ -140,11 +140,15 @@ const
                                end
                              else
                                len:=mac^.buflen;
-{$ifopt H+}
-                             setlength(hs,len);
-{$else}
-                             hs[0]:=char(len);
-{$endif}
+                             {$ifndef TP}
+                               {$ifopt H+}
+                                 setlength(hs,len);
+                               {$else}
+                                 hs[0]:=char(len);
+                               {$endif}
+                             {$else}
+                               hs[0]:=char(len);
+                             {$endif}
                              move(mac^.buftext^,hs[1],len);
                           end
                         else
@@ -520,11 +524,7 @@ const
         i:=length(hs);
         while (i>0) and (hs[i]=' ') do
          dec(i);
-{$ifopt H+}
-        setlength(hs,i);
-{$else}
-        hs[0]:=chr(i);
-{$endif}
+        Delete(hs,i+1,length(hs)-i);
         if hs='' then
          exit;
         if (hs[1]='%') then
@@ -985,7 +985,10 @@ const
 
 {
   $Log$
-  Revision 1.42  1998-11-16 12:18:04  peter
+  Revision 1.43  1998-11-16 15:41:43  peter
+    * tp7 didn't like my ifopt H+ :(
+
+  Revision 1.42  1998/11/16 12:18:04  peter
     * H+ fixes
 
   Revision 1.41  1998/10/22 17:54:08  florian

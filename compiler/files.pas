@@ -478,11 +478,15 @@ unit files;
              getlinestr[i]:=c;
              inc(longint(p));
            until (i=255);
-{$ifopt H+}
-           setlength(getlinestr,i);
-{$else}
-           getlinestr[0]:=chr(i);
-{$endif}
+           {$ifndef TP}
+             {$ifopt H+}
+               setlength(getlinestr,i);
+             {$else}
+               getlinestr[0]:=chr(i);
+             {$endif}
+           {$else}
+             getlinestr[0]:=chr(i);
+           {$endif}
          end;
       end;
 
@@ -1046,7 +1050,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.74  1998-11-16 12:18:01  peter
+  Revision 1.75  1998-11-16 15:41:40  peter
+    * tp7 didn't like my ifopt H+ :(
+
+  Revision 1.74  1998/11/16 12:18:01  peter
     * H+ fixes
 
   Revision 1.73  1998/11/16 11:28:58  pierre
