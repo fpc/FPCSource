@@ -40,7 +40,7 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       import,export,link,cgobj,i_win32;
+       import,export,link,cgobj,i_win32,classes;
 
 
   const
@@ -71,10 +71,12 @@ interface
 
     texportlibwin32=class(texportlib)
       st : string;
-      last_index : longint;
+      EList_indexed:tList;
+      EList_nonindexed:tList;
       procedure preparelib(const s:string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
+      procedure exportfromlist(hp : texported_item);
       procedure generatelib;override;
       procedure generatenasmlib;virtual;
     end;
@@ -570,7 +572,8 @@ const
       begin
          if not(assigned(exportssection)) then
            exportssection:=TAAsmoutput.create;
-         last_index:=0;
+         EList_indexed:=tList.Create;
+         EList_nonindexed:=tList.Create;
          objectlibrary.getdatalabel(edatalabel);
       end;
 
@@ -582,39 +585,44 @@ const
          exportprocedure(hp);
       end;
 
+    var
+      Gl_DoubleIndex:boolean;
+      Gl_DoubleIndexValue:longint;
+
+    function IdxCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1:texported_item absolute Item1;
+        I2:texported_item absolute Item2;
+      begin
+        Result:=I1.index-I2.index;
+        if(Result=0)and(Item1<>Item2)then
+         begin
+          Gl_DoubleIndex:=true;
+          Gl_DoubleIndexValue:=I1.index;
+         end;
+      end;
+
 
     procedure texportlibwin32.exportprocedure(hp : texported_item);
+      begin
+        if ((hp.options and eo_index)<>0)and((hp.index<=0) or (hp.index>$ffff)) then
+          begin
+           message1(parser_e_export_invalid_index,tostr(hp.index));
+           exit;
+          end;
+        if hp.options and eo_index=eo_index then
+          EList_indexed.Add(hp)
+        else
+          EList_nonindexed.Add(hp);
+      end;
+
+
+    procedure texportlibwin32.exportfromlist(hp : texported_item);
+      //formerly texportlibwin32.exportprocedure
       { must be ordered at least for win32 !! }
       var
         hp2 : texported_item;
       begin
-        { first test the index value }
-        if (hp.options and eo_index)<>0 then
-          begin
-             if (hp.index<=0) or (hp.index>$ffff) then
-               begin
-                 message1(parser_e_export_invalid_index,tostr(hp.index));
-                 exit;
-               end;
-             if (hp.index<=last_index) then
-               begin
-                 message1(parser_e_export_ordinal_double,tostr(hp.index));
-                 { disregard index value }
-                 inc(last_index);
-                 hp.index:=last_index;
-                 exit;
-               end
-             else
-               begin
-                 last_index:=hp.index;
-               end;
-          end
-        else
-          begin
-             inc(last_index);
-             hp.index:=last_index;
-          end;
-        { now place in correct order }
         hp2:=texported_item(current_module._exports.first);
         while assigned(hp2) and
            (hp.name^>hp2.name^) do
@@ -646,7 +654,49 @@ const
          temtexport : TLinkedList;
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
+         i,autoindex,ni_high : longint;
+         hole : boolean;
+
       begin
+         Gl_DoubleIndex:=false;
+         ELIst_indexed.Sort(@IdxCompare);
+
+         if Gl_DoubleIndex then
+           begin
+             message1(parser_e_export_ordinal_double,tostr(Gl_DoubleIndexValue));
+             EList_indexed.Free;
+             EList_nonindexed.Free;
+             exit;
+           end;
+
+         autoindex:=1;
+         while EList_nonindexed.Count>0 do
+          begin
+           hole:=(EList_indexed.Count>0)and(texported_item(EList_indexed.Items[0]).index>1);
+           if not hole then
+            for i:=autoindex to pred(EList_indexed.Count)do
+             if texported_item(EList_indexed.Items[i]).index-texported_item(EList_indexed.Items[pred(i)]).index>1 then
+              begin
+               autoindex:=succ(texported_item(EList_indexed.Items[pred(i)]).index);
+               hole:=true;
+               break;
+              end;
+           ni_high:=pred(EList_nonindexed.Count);
+           if not hole then
+            begin
+             autoindex:=succ(EList_indexed.Count);
+             EList_indexed.Add(EList_nonindexed.Items[ni_high]);
+            end
+           else
+            EList_indexed.Insert(pred(AutoIndex),EList_nonindexed.Items[ni_high]);
+           EList_nonindexed.Delete(ni_high);
+           texported_item(EList_indexed.Items[pred(AutoIndex)]).index:=autoindex;
+          end;
+         EList_nonindexed.Free;
+         for i:=0 to pred(EList_indexed.Count)do
+          exportfromlist(texported_item(EList_indexed.Items[i]));
+         EList_indexed.Free;
+
          if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
@@ -1606,7 +1656,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2004-03-18 11:44:07  olle
+  Revision 1.31  2004-04-24 17:32:05  peter
+  index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
+
+  Revision 1.30  2004/03/18 11:44:07  olle
     * change AT_FUNCTION to AT_DATA where appropriate
 
   Revision 1.29  2004/03/02 00:36:33  olle
