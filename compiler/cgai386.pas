@@ -2378,7 +2378,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              begin
                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
                ecxpushed:=true;
-             end;
+             end
+           else getexplicitregister32(R_ECX);
          end;
 
       begin
@@ -2425,10 +2426,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    { and now look for an 8 bit register }
                    swap:=false;
-                   if R_EAX in unused then reg8:=R_AL
-                   else if R_EBX in unused then reg8:=R_BL
-                   else if R_ECX in unused then reg8:=R_CL
-                   else if R_EDX in unused then reg8:=R_DL
+                   if R_EAX in unused then reg8:=reg32toreg8(getexplicitregister32(R_EAX))
+                   else if R_EDX in unused then reg8:=reg32toreg8(getexplicitregister32(R_EDX))
+                   else if R_EBX in unused then reg8:=reg32toreg8(getexplicitregister32(R_EBX))
+                   else if R_ECX in unused then reg8:=reg32toreg8(getexplicitregister32(R_ECX))
                    else
                       begin
                          swap:=true;
@@ -2470,7 +2471,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$ifndef noAllocEdi}
                        ungetregister32(R_EDI);
 {$endif noAllocEdi}
-                     end;
+                     end
+                   else
+                     ungetregister(reg8);
                 end;
            end
          else
@@ -2531,9 +2534,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(pairegalloc,dealloc(R_ESI)));
 {$endif noAllocEdi}
               if ecxpushed then
-                begin
-                  exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
-                end;
+                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)))
+              else
+                ungetregister32(R_ECX);
 
               { loading SELF-reference again }
               maybe_loadesi;
@@ -4022,7 +4025,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.5  2000-07-27 09:25:05  jonas
+  Revision 1.6  2000-08-02 08:05:04  jonas
+    * fixed web bug1087
+    * allocate R_ECX explicitely if it's used
+    (merged from fixes branch)
+
+  Revision 1.5  2000/07/27 09:25:05  jonas
     * moved locflags2reg() procedure from cg386add to cgai386
     + added locjump2reg() procedure to cgai386
     * fixed internalerror(2002) when the result of a case expression has
