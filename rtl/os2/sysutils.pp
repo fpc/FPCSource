@@ -242,6 +242,14 @@ type
  end;
  PStartData=^TStartData;
 
+ TResultCodes=record
+  TerminateReason,        {0 = Normal termionation.
+                           1 = Critical error.
+                           2 = Trapped. (GPE, etc.)
+                           3 = Killed by DosKillProcess.}
+  ExitCode:cardinal;      {Exit code of child.}
+ end;
+
 const
  ilStandard      = 1;
  ilQueryEAsize   = 2;
@@ -407,6 +415,10 @@ function DosStartSession (var AStartData: TStartData;
 
 function DosFreeMem(P:pointer):cardinal; cdecl; external 'DOSCALLS' index 304;
 
+function DosExecPgm (ObjName: PChar; ObjLen: longint; ExecFlag: cardinal;
+                     Args, Env: PByteArray; var Res: TResultCodes;
+                     FileName:PChar): cardinal; cdecl;
+                                                 external 'DOSCALLS' index 283;
 
 type
   TDT=packed record
@@ -884,41 +896,92 @@ var
  Prio: byte;
  E: EOSError;
  CommandLine: ansistring;
+ Args: PByteArray;
+ ObjNameBuf: PChar;
+ ArgSize: word;
+ Res: TResultCodes;
+ ObjName: shortstring;
+
+const
+ MaxArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
+ ObjBufSize = 512;
 
 begin
- FillChar (SD, SizeOf (SD), 0);
- SD.Length := 24;
- SD.Related := ssf_Related_Child;
- SD.PgmName := PChar (Path);
- SD.PgmInputs := PChar (ComLine);
- Str (ProcessID, SPID);
- Str (ThreadID, STID);
- QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
- SD.TermQ := @QName [1];
- Result := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
+ ObjName := '';
+ GetMem (ObjNameBuf, ObjBufSize);
+ FillChar (ObjNameBuf, ObjBufSize, 0);
+ if ComLine = '' then
+  Args := nil
+ else
+  begin
+   GetMem (Args, MaxArgsSize);
+   ArgSize := 0;
+   Move (Path [1], Args^ [ArgSize], Length (Path));
+   Inc (ArgSize, Length (Path));
+   Args^ [ArgSize] := 0;
+   Inc (ArgSize);
+   {Now do the real arguments.}
+   Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
+   Inc (ArgSize, Length (ComLine));
+   Args^ [ArgSize] := 0;
+   Inc (ArgSize);
+   Args^ [ArgSize] := 0;
+  end;
+ Result := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res, PChar (Path));
+ if Args <> nil then
+  FreeMem (Args, MaxArgsSize);
  if Result = 0 then
   begin
-   Result := DosStartSession (SD, SID, PID);
-   if (Result = 0) or (Result = 457) then
+   Result := Res.ExitCode;
+   FreeMem (ObjNameBuf, ObjBufSize);
+  end
+ else
+  begin
+   if (Result = 190) or (Result = 191) then
     begin
-     Result := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+     FillChar (SD, SizeOf (SD), 0);
+     SD.Length := 24;
+     SD.Related := ssf_Related_Child;
+     SD.PgmName := PChar (Path);
+     if ComLine <> '' then
+      SD.PgmInputs := PChar (ComLine);
+     SD.InheritOpt := ssf_InhertOpt_Parent;
+     Str (GetProcessID, SPID);
+     Str (ThreadID, STID);
+     QName := '\QUEUES\FPC_ExecuteProcess_p' + SPID + 't' + STID + '.QUE'#0;
+     SD.TermQ := @QName [1];
+     Result := DosCreateQueue (HQ, quFIFO or quConvert_Address, @QName [1]);
      if Result = 0 then
       begin
-       Result := PCI^.Return;
+       Result := DosStartSession (SD, SID, PID);
+       if (Result = 0) or (Result = 457) then
+        begin
+         Result := DosReadQueue (HQ, RD, CISize, PCI, 0, 0, Prio, 0);
+         if Result = 0 then
+          begin
+           Result := PCI^.Return;
+           DosCloseQueue (HQ);
+           DosFreeMem (PCI);
+           Exit;
+          end;
+        end;
        DosCloseQueue (HQ);
-       DosFreeMem (PCI);
-       Exit;
       end;
-    end;
-   DosCloseQueue (HQ);
+    end
+   else
+    ObjName := StrPas (ObjNameBuf);
+   FreeMem (ObjNameBuf, ObjBufSize);
+   if ComLine = '' then
+    CommandLine := Path
+   else
+    CommandLine := Path + ' ' + ComLine;
+   if ObjName = '' then
+    E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, Result])
+   else
+    E := EOSError.CreateFmt (SExecuteProcessFailed + '(' + ObjName + ')', [CommandLine, Result]);
+   E.ErrorCode := Result;
+   raise E;
   end;
- if ComLine = '' then
-  CommandLine := Path
- else
-  CommandLine := Path + ' ' + ComLine;
- E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, Result]);
- E.ErrorCode := Result;
- raise E;
 end;
 
 
@@ -954,7 +1017,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2004-02-22 15:01:49  hajny
+  Revision 1.44  2004-12-05 19:33:08  hajny
+    * ExecuteProcess update - run VIO apps in the same window
+
+  Revision 1.43  2004/02/22 15:01:49  hajny
     * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
 
   Revision 1.42  2004/02/15 21:36:10  hajny
