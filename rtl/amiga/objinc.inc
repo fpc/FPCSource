@@ -77,6 +77,7 @@ var
  oflags : longint;
  AHandle : THandle;
 begin
+  AHandle:=0;
   { On opening reset error code }
   DosStreamError := 0;
   if Mode=stCreate then
@@ -296,8 +297,8 @@ END;
 
 {
   $Log$
-  Revision 1.2  1998-07-09 11:55:49  carl
-    + working revision
+  Revision 1.3  1998-07-13 12:31:40  carl
+    * bugfix of FileOpen, on error would not return zero
 
 
 }
