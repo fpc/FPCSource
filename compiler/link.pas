@@ -266,7 +266,7 @@ Var
   LinkResponse : Text;
   i            : longint;
   prtobj,s,s2  : string;
-  found,
+  found,linux_link_c,
   linklibc     : boolean;
 
   procedure WriteRes(const s:string);
@@ -277,6 +277,7 @@ Var
 
 begin
   WriteResponseFile:=False;
+  linux_link_c:=false;
 { set special options for some targets }
   linklibc:=SharedLibFiles.Find('c');
   prtobj:='prt0';
@@ -305,6 +306,8 @@ begin
           if linklibc then
            prtobj:='cprt0';
         end;
+       if linklibc then
+         linux_link_c:=true;
      end;
   end;
 
@@ -338,7 +341,7 @@ begin
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    WriteRes(FindObjectFile(prtobj));
-  if linklibc then
+  if {linklibc this is only for linux }linux_link_c then
    begin
      WriteRes(search('crti.o',librarysearchpath,found)+'crti.o');
      WriteRes(search('crtbegin.o',librarysearchpath,found)+'crtbegin.o');
@@ -349,7 +352,7 @@ begin
      if s<>'' then
       WriteRes(s);
    end;
-  if linklibc then
+  if linux_link_c then
    begin
      WriteRes(search('crtend.o',librarysearchpath,found)+'crtend.o');
      WriteRes(search('crtn.o',librarysearchpath,found)+'crtn.o');
@@ -370,8 +373,13 @@ begin
       linklibc:=true;
    end;
   { be sure that libc is the last lib }
+  { arghhhh  this is wrong for DJGPP !!!
+    DJGPP need gcc after c lib (umod...) (PM) }
   if linklibc then
    WriteRes(target_link.libprefix+'c');
+  { add libgcc after ! }
+  if linklibc and (target_info.target=target_i386_go32v2) then
+   WriteRes(target_link.libprefix+'gcc');
   WriteRes(target_link.inputend);
 
   { Write staticlibraries }
@@ -539,7 +547,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.43  1999-01-25 15:02:13  peter
+  Revision 1.44  1999-01-27 13:07:58  pierre
+   * problem related with libc : go32v2 and linux differences
+
+  Revision 1.43  1999/01/25 15:02:13  peter
     * link libc always as last
 
   Revision 1.42  1998/12/11 00:03:19  peter
