@@ -1997,6 +1997,7 @@ option_help_pages=11025_[
 3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
 3*1T<x>_Target operating system:
 3*2TGO32V2_version 2 of DJ Delorie DOS extender
+3*2TWDOSX DOS 32 Bit Extender
 3*2TLINUX_Linux
 3*2Tnetware_Novell Netware Module (experimental)
 3*2TOS2_OS/2 2.x
