@@ -88,8 +88,7 @@ implementation
          location_copy(location,left.location);
 
          { put numerator in register }
-         location_force_reg(exprasmlist,left.location,
-           def_cgsize(left.resulttype.def),true);
+         location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
          location_copy(location,left.location);
          numerator := location.register;
          resultreg := location.register;
@@ -141,27 +140,24 @@ implementation
              { the overflow flag (JM)                                       }
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
-             exprasmlist.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,
-               divider));
+             exprasmlist.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
 
-           if (nodetype = modn) then
-             begin
-               exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,
-                 divider,resultreg));
+             if (nodetype = modn) then
+               begin
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
+                 rg.UnGetRegisterInt(exprasmlist,divider);
+                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,numerator,resultreg));
+  {$ifdef newra}
+                 rg.ungetregisterint(exprasmlist,resultreg);
+  {$else}
+                 cg.free_scratch_reg(exprasmlist,resultreg);
+  {$endif}
+                 resultreg := location.register;
+               end
+             else
                rg.UnGetRegisterInt(exprasmlist,divider);
-               exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
-                 numerator,resultreg));
-{$ifdef newra}
-               rg.ungetregisterint(exprasmlist,resultreg);
-{$else}
-               cg.free_scratch_reg(exprasmlist,resultreg);
-{$endif}
-               resultreg := location.register;
-             end
-           else
-             rg.UnGetRegisterInt(exprasmlist,divider);
            end;
-       { free used registers }
+        { free used registers }
         if numerator.number <> resultreg.number then
           rg.ungetregisterint(exprasmlist,numerator);
         { set result location }
@@ -357,7 +353,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-06-12 16:43:07  peter
+  Revision 1.12  2003-07-06 22:09:32  peter
+    * shr and div fixed
+
+  Revision 1.11  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.10  2003/06/04 20:59:37  mazen
