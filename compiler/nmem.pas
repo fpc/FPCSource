@@ -658,8 +658,7 @@ implementation
                   is_pwidechar(left.resulttype.def) then
                 begin
                   { convert pointer to array }
-                  htype.setdef(tarraydef.create(0,$7fffffff,s32bittype));
-                  tarraydef(htype.def).setelementtype(tpointerdef(left.resulttype.def).pointertype);
+                  htype.setdef(tarraydef.create_from_pointer(tpointerdef(left.resulttype.def).pointertype));
                   inserttypeconv(left,htype);
 
                   resulttype:=tarraydef(htype.def).elementtype;
@@ -925,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-10-31 18:44:18  peter
+  Revision 1.71  2003-11-05 14:18:03  marco
+   * fix from Peter arraysize warning (nav Newsgroup msg)
+
+  Revision 1.70  2003/10/31 18:44:18  peter
     * don't search for compatible procvars when the proc is not
       overloaded
 

@@ -365,6 +365,7 @@ interface
           lowrange,
           highrange  : longint;
           rangetype  : ttype;
+          IsConvertedPointer,
           IsDynamicArray,
           IsVariant,
           IsConstructor,
@@ -373,6 +374,7 @@ interface
           _elementtype : ttype;
        public
           function elesize : longint;
+          constructor create_from_pointer(const elemt : ttype);
           constructor create(l,h : longint;const t : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -2703,9 +2705,18 @@ implementation
          IsConstructor:=false;
          IsArrayOfConst:=false;
          IsDynamicArray:=false;
+         IsConvertedPointer:=false;
       end;
 
 
+    constructor tarraydef.create_from_pointer(const elemt : ttype);
+      begin
+         self.create(0,$7fffffff,s32bittype);
+         IsConvertedPointer:=true;
+         setelementtype(elemt);
+      end;
+      
+      
     constructor tarraydef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuloaddef(ppufile);
@@ -2780,53 +2791,46 @@ implementation
 
     function tarraydef.size : longint;
       var
-        _resultsize,
-        newsize,
-        cachedsize: TConstExprInt;
+        newsize : TConstExprInt;
       begin
         if IsDynamicArray then
           begin
             size:=POINTER_SIZE;
             exit;
           end;
-        cachedsize := elesize;
         {Tarraydef.size may never be called for an open array!}
         if highrange<lowrange then
             internalerror(99080501);
-        newsize:=(int64(highrange)-int64(lowrange)+1)*cachedsize;
-        if (cachedsize>0) and
-            (
-             (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
-             { () are needed around elesize-1 to avoid a possible
-               integer overflow for elesize=1 !! PM }
-             (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
-            ) Then
-          begin
-             Message(sym_e_segment_too_large);
-             _resultsize := 4
-          end
+        newsize:=(int64(highrange)-int64(lowrange)+1)*elesize;
+        { prevent an overflow }
+        if newsize>high(longint) then
+          result:=high(longint)
         else
-          begin
-            { prevent an overflow }
-            if newsize>high(longint) then
-              _resultsize:=high(longint)
-            else
-              _resultsize:=newsize;
-          end;
-
-        size := _resultsize;
+          result:=newsize;
       end;
 
 
-     procedure tarraydef.setelementtype(t: ttype);
-       begin
-         _elementtype:=t;
-         If IsDynamicArray then
-            exit;
-         if (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) then
+    procedure tarraydef.setelementtype(t: ttype);
+      var
+        cachedsize : TConstExprInt;
+      begin
+        _elementtype:=t;
+       if not(IsDynamicArray or
+              IsConvertedPointer or
+              (highrange<lowrange)) then
+         begin
+           { cache element size for performance on multidimensional arrays }
+           cachedsize := elesize;
+           if (cachedsize>0) and
+               (
+                (TConstExprInt(highrange)-TConstExprInt(lowrange) > $7fffffff) or
+                { () are needed around cachedsize-1 to avoid a possible
+                  integer overflow for cachedsize=1 !! PM }
+                (($7fffffff div cachedsize + (cachedsize -1)) < (int64(highrange) - int64(lowrange)))
+               ) Then
              Message(sym_e_segment_too_large);
-       end;
-
+         end;    
+      end;
 
 
     function tarraydef.alignment : longint;
@@ -6108,7 +6112,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.187  2003-11-01 15:50:03  peter
+  Revision 1.188  2003-11-05 14:18:03  marco
+   * fix from Peter arraysize warning (nav Newsgroup msg)
+
+  Revision 1.187  2003/11/01 15:50:03  peter
     * fix check for valid procdef in property rtti
 
   Revision 1.186  2003/10/29 21:56:28  peter
