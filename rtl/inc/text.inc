@@ -501,10 +501,10 @@ Begin
         p:=pchar(@s);
         { can't use StrLen, since that one could try to read past the end }
         { of the heap (JM)                                                }
-        ArrayLen:=IndexByte(p,sizeof(s),0);
+        ArrayLen:=IndexByte(p,high(s)+1,0);
         { IndexByte returns -1 if not found (JM) }
         if ArrayLen = -1 then
-          ArrayLen := sizeof(s);
+          ArrayLen := high(s)+1;
         If Len>ArrayLen Then
           WriteBlanks(f,Len-ArrayLen);
         WriteBuffer(f,p^,ArrayLen);
@@ -1099,7 +1099,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-07-08 21:00:18  peter
+  Revision 1.10  2001-07-16 13:53:21  jonas
+    * correctly fixed potential buffer overrun in write_array
+
+  Revision 1.9  2001/07/08 21:00:18  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 
