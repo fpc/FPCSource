@@ -55,6 +55,7 @@ implementation
       procedure maybe_push_open_array_high;
         var
            r : preference;
+           len : longint;
         begin
            { open array ? }
            { defcoll^.data can be nil for read/write }
@@ -77,16 +78,17 @@ implementation
                   end
                 else
                   begin
+                    if p^.left^.resulttype^.deftype=arraydef then
+                     len:=parraydef(p^.left^.resulttype)^.highrange-parraydef(p^.left^.resulttype)^.lowrange
+                    else
+                     len:=0;
                     if inlined then
                       begin
                          r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                         exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-                           parraydef(p^.left^.resulttype)^.highrange-
-                           parraydef(p^.left^.resulttype)^.lowrange,r)));
+                         exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,len,r)));
                       end
                     else
-                      push_int(parraydef(p^.left^.resulttype)^.highrange-
-                           parraydef(p^.left^.resulttype)^.lowrange);
+                      push_int(len);
                   end;
              end;
         end;
@@ -1394,7 +1396,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1998-09-21 08:45:06  pierre
+  Revision 1.27  1998-09-24 09:02:13  peter
+    * rewritten isconvertable to use case
+    * array of .. and single variable are compatible
+
+  Revision 1.26  1998/09/21 08:45:06  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :

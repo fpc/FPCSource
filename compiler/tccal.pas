@@ -134,7 +134,11 @@ implementation
                         (defcoll^.data^.deftype=objectdef) and
                         pobjectdef(p^.left^.resulttype)^.isrelated(pobjectdef(defcoll^.data))
                         ) and
-
+                   { passing a single element to a openarray of the same type }
+                     not(
+                        (is_open_array(defcoll^.data) and
+                        is_equal(parraydef(defcoll^.data)^.definition,p^.left^.resulttype))
+                        ) and
                    { an implicit file conversion is also allowed }
                    { from a typed file to an untyped one           }
                      not(
@@ -895,7 +899,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-09-24 09:02:16  peter
+    * rewritten isconvertable to use case
+    * array of .. and single variable are compatible
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }
