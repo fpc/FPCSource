@@ -245,61 +245,63 @@ WriteLn('***********************************************');
 									 end;
 								 else
 									 internalerror(2002071002);
-							end;
-							hp:=tparaitem(hp.previous);
-					 end;
-			end;
-
-		function tSparcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
-			begin
-				 case p.rettype.def.deftype of
-						orddef,
-						enumdef:
-							begin
-								getfuncretparaloc.loc:=LOC_REGISTER;
-								getfuncretparaloc.register:=R_O0;
-								getfuncretparaloc.size:=def_cgsize(p.rettype.def);
-								if getfuncretparaloc.size in [OS_S64,OS_64] then
-									getfuncretparaloc.registerhigh:=R_O1;
-							end;
-						floatdef:
-							begin
-								getfuncretparaloc.loc:=LOC_FPUREGISTER;
-								getfuncretparaloc.register:=R_F1;
-								getfuncretparaloc.size:=def_cgsize(p.rettype.def);
-							end;
+				end;
+			hp:=TParaItem(hp.previous);
+		end;
+	end;
+function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
+	begin
+		case p.rettype.def.deftype of
+			orddef,enumdef:
+				begin
+					WriteLn('Allocating i0 as return register');
+					GetFuncRetParaLoc.loc:=LOC_REGISTER;
+					GetFuncRetParaLoc.register:=R_i0;
+					GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
+					if GetFuncRetParaLoc.size in [OS_S64,OS_64]
+					then
+						GetFuncRetParaLoc.RegisterHigh:=R_O1;
+				end;
+			floatdef:
+				begin
+					GetFuncRetParaLoc.loc:=LOC_FPUREGISTER;
+					GetFuncRetParaLoc.register:=R_F1;
+					GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
+				end;
 						{ smallsets are OS_INT in R3, others are OS_ADDR in R3 -> the same }
 						{ ugly, I know :) (JM)                                             }
-						setdef,
-						variantdef,
-						pointerdef,
-						formaldef,
-						classrefdef,
-						recorddef,
-						objectdef,
-						stringdef,
-						procvardef,
-						filedef,
-						arraydef,
-						errordef:
-							begin
-								getfuncretparaloc.loc:=LOC_REGISTER;
-								getfuncretparaloc.register:=R_O0;
-								getfuncretparaloc.size:=OS_ADDR;
-							end;
-						else
-							internalerror(2002090903);
+			setdef,
+			variantdef,
+			pointerdef,
+			formaldef,
+			classrefdef,
+			recorddef,
+			objectdef,
+			stringdef,
+			procvardef,
+			filedef,
+			arraydef,
+			errordef:
+				begin
+					GetFuncRetParaLoc.loc:=LOC_REGISTER;
+					GetFuncRetParaLoc.register:=R_O0;
+					GetFuncRetParaLoc.size:=OS_ADDR;
 				end;
-			end;
-
+			else
+				internalerror(2002090903);
+		end;
+	end;
 begin
 	 ParaManager:=TSparcParaManager.create;
 end.
 {
 	$Log$
-	Revision 1.4  2002-10-08 21:02:22  mazen
-	* debugging register allocation
+	Revision 1.5  2002-10-09 13:52:19  mazen
+	just incase some one wolud help me debugging that\!
 
+	Revision 1.4  2002/10/08 21:02:22  mazen
+	* debugging register allocation
+	
 	Revision 1.3  2002/10/07 20:33:05  mazen
 	word alignement modified in g_stack_frame
 
