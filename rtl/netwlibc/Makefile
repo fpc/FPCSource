@@ -1475,7 +1475,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 copyimpfiles:
 	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
 nwplibc$(OEXT) :
-	cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc.$(OEXT)
+	cp pre/libcpre.gcc.o $(UNITTARGETDIRPREFIX)nwplibc$(OEXT)
 nwl_main$(OEXT) : nwl_main.as
 	$(AS) -o $(UNITTARGETDIRPREFIX)nwl_main$(OEXT) nwl_main.as
 nwl_dlle$(OEXT) : nwl_dlle.as
