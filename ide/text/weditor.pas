@@ -385,6 +385,13 @@ const
      cmCopyWin = 240;
      cmPasteWin = 241;
 
+     { History ID }
+     FileId        = 101;
+     TextFindId    = 105;
+     TextReplaceID = 106;
+     GotoID        = 107;
+     TextGrepId    = 108;
+
      DontConsiderShiftState: boolean  = false;
      ToClipCmds         : TCommandSet = ([cmCut,cmCopy,cmCopyWin]);
      FromClipCmds       : TCommandSet = ([cmPaste,cmPasteWin]);
@@ -4088,6 +4095,7 @@ function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
     D: PDialog;
     IL1: PInputLine;
+    Control : PView;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
 begin
@@ -4097,11 +4105,15 @@ begin
   begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2);
-    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1;
+    R2.Copy(R); R2.B.X:=R2.B.X-3;R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
     New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
     Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+    R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
+    Control := New(PHistory, Init(R1, IL1, TextFindId));
+    Insert(Control);
 
     R1.Copy(R); Inc(R1.A.Y,2); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+2;
@@ -4151,6 +4163,7 @@ end;
 function CreateReplaceDialog: PDialog;
 var R,R1,R2: TRect;
     D: PDialog;
+    Control : PView;
     IL1,IL2: PInputLine;
     CB1: PCheckBoxes;
     RB1,RB2,RB3: PRadioButtons;
@@ -4161,18 +4174,26 @@ begin
   begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2);
-    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1; R2.Copy(R); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    R1.Copy(R); R1.B.X:=17; R1.B.Y:=R1.A.Y+1;
+    R2.Copy(R); R2.B.X:=R2.B.X-3;R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
     New(IL1, Init(R2, FindStrSize));
     IL1^.Data^:=FindStr;
     Insert(IL1);
     Insert(New(PLabel, Init(R1, '~T~ext to find', IL1)));
+    R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
+    Control := New(PHistory, Init(R1, IL1, TextFindId));
+    Insert(Control);
 
     R1.Copy(R); R1.Move(0,2); R1.B.X:=17; R1.B.Y:=R1.A.Y+1;
-    R2.Copy(R); R2.Move(0,2); R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
+    R2.Copy(R); R2.Move(0,2);R2.B.X:=R2.B.X-3;
+    R2.A.X:=17; R2.B.Y:=R2.A.Y+1;
     New(IL2, Init(R2, FindStrSize));
     IL2^.Data^:=ReplaceStr;
     Insert(IL2);
     Insert(New(PLabel, Init(R1, '    ~N~ew text', IL2)));
+    R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
+    Control := New(PHistory, Init(R1, IL2, TextReplaceId));
+    Insert(Control);
 
     R1.Copy(R); Inc(R1.A.Y,4); R1.B.Y:=R1.A.Y+1; R1.B.X:=R1.A.X+(R1.B.X-R1.A.X) div 2-1;
     R2.Copy(R1); R2.Move(0,1); R2.B.Y:=R2.A.Y+3;
@@ -4225,6 +4246,7 @@ end;
 function CreateGotoLineDialog(Info: pointer): PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
+    Control : PView;
     IL: PInputLine;
 begin
   R.Assign(0,0,40,7);
@@ -4233,12 +4255,16 @@ begin
   begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+1;
-    R1.Copy(R); R1.B.X:=27; R2.Copy(R); R2.A.X:=27;
+    R1.Copy(R); R1.B.X:=27; R2.Copy(R);
+    R2.B.X:=R2.B.X-3;R2.A.X:=27;
     New(IL, Init(R2,5));
     with TGotoLineDialogRec(Info^) do
     IL^.SetValidator(New(PRangeValidator, Init(1, Lines)));
     Insert(IL);
     Insert(New(PLabel, Init(R1, 'Enter new line ~n~umber', IL)));
+    R1.Assign(R2.B.X, R2.A.Y, R2.B.X+3, R2.B.Y);
+    Control := New(PHistory, Init(R1, IL, GotoId));
+    Insert(Control);
 
     GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
     Insert(New(PButton, Init(R, 'O~K', cmOK, bfDefault)));
@@ -4315,7 +4341,7 @@ begin
         else begin Title:='???'; DefExt:=''; end;
         end;
         Re:=Application^.ExecuteDialog(New(PFileDialog, Init(DefExt,
-          Title, '~N~ame', fdOkButton, 101)), @Name);
+          Title, '~N~ame', fdOkButton, FileId)), @Name);
         case Dialog of
           edSaveAs     : AskOW:=(Name<>PString(Info)^);
           edWriteBlock : AskOW:=true;
@@ -4395,7 +4421,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.47  1999-09-21 17:08:59  pierre
+  Revision 1.48  1999-09-22 16:16:26  pierre
+   + added HistLists for several dialogs
+
+  Revision 1.47  1999/09/21 17:08:59  pierre
    + Windows clipboard for win32
 
   Revision 1.46  1999/09/13 16:24:44  peter
@@ -4640,3 +4669,4 @@ END.
     + find and replace routines
 
 }
+   
