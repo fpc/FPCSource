@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 program dotest;
 uses
   dos,
@@ -547,7 +550,7 @@ begin
         Res:=GetCompilerVersion;
         if CompilerVersion<Config.NeedVersion then
          begin
-           Verbose(V_Abort,'Compiler version to low '+CompilerVersion+' < '+Config.NeedVersion);
+           Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.NeedVersion);
            Res:=false;
          end;
       end;
@@ -601,7 +604,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-06-02 00:41:36  peter
+  Revision 1.9  2001-07-04 11:23:39  florian
+    * spelling mistake fixed
+
+  Revision 1.8  2001/06/02 00:41:36  peter
     * write exitcode for all executed programs in debug mode
 
   Revision 1.7  2000/12/09 16:01:10  peter
@@ -614,5 +620,4 @@ end.
 
   Revision 1.5  2000/12/03 22:59:10  florian
     * some problems for go32v2 fixed
-
 }
