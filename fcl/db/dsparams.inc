@@ -426,7 +426,7 @@ end;
 
 constructor TParam.Create(ACollection: TCollection);
 begin
-  inherited Create(Collection);
+  inherited Create(ACollection);
   ParamType:=ptUnknown;
   DataType:=ftUnknown;
   FValue:=Unassigned;
@@ -700,7 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:12  peter
+  Revision 1.5  2005-03-24 20:54:53  michael
+  + Fix in params from Luk Vandelaer
+
+  Revision 1.4  2005/02/14 17:13:12  peter
     * truncate log
 
   Revision 1.3  2005/02/01 09:05:52  marco
