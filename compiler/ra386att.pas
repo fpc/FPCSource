@@ -1058,14 +1058,19 @@ var
     Begin
        CheckAndSetOpsize:=true;
        { operandtype for constant get a default value for size }
-       if (op.operandtype<>OPR_CONSTANT) and (op.size<>S_NO) and (op.size<>size) then
+       { only claim for op.size in S_B, S_W or S_L :
+         if the var is a float it will be accessed as 2 longs !! }
+       if (op.operandtype<>OPR_CONSTANT) and (op.size in [S_B,S_W,S_L]) and
+          (op.size<>size) then
          begin
-            CheckAndSetOpsize:=false;
             if (cs_compilesystem in aktmoduleswitches) or
                not (cs_check_range in aktlocalswitches) then
               Message(assem_w_size_suffix_and_dest_dont_match)
             else
-              Message(assem_e_size_suffix_and_dest_dont_match);
+              Begin
+                 Message(assem_e_size_suffix_and_dest_dont_match);
+                 CheckAndSetOpsize:=false;
+              End;
          end;
        op.size:=size;
     End;
@@ -3702,7 +3707,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  1999-01-28 14:12:59  pierre
+  Revision 1.31  1999-01-29 11:24:02  pierre
+   * incompatible size warning or error suppressed for sizes > 4
+
+  Revision 1.30  1999/01/28 14:12:59  pierre
    * bug0175 solved give error on $R+ and warning otherwise
 
   Revision 1.29  1999/01/10 15:37:54  peter
