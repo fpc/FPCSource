@@ -2,8 +2,7 @@
     $Id$
     Copyright (c) 2001-2002 by Peter Vreman
 
-    This unit implements support import,export,link routines
-    for the (i386) Amiga target
+    This unit implements support import,export,link routines for MacOS.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +100,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-10-02 21:50:19  florian
+  Revision 1.3  2002-10-16 20:18:33  olle
+    * header comment updated
+
+  Revision 1.2  2002/10/02 21:50:19  florian
     * importing via external is now possible for macos
 
   Revision 1.1  2002/09/06 15:03:50  carl
