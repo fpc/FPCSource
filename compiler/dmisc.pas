@@ -352,7 +352,9 @@ begin
    begin
      DosError:=Last2DosError(GetLastError);
      exit;
-   end;
+   end
+  else
+   DosError:=0;
   Proc:=PI.hProcess;
   CloseHandle(PI.hThread);
   if WaitForSingleObject(Proc, Infinite) <> $ffffffff then
@@ -854,7 +856,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.8  2000-05-11 09:56:20  pierre
+  Revision 1.9  2000-05-12 05:51:43  pierre
+   * Reset DosError in Exec reported by Kovacs Attila Zoltan
+
+  Revision 1.8  2000/05/11 09:56:20  pierre
     * fixed several compare problems between longints and
       const > $80000000 that are treated as int64 constanst
       by Delphi reported by Kovacs Attila Zoltan
