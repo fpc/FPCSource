@@ -44,7 +44,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  cpubase,cpuasm,DAOpt386;
+  cpubase,cpuasm,DAOpt386,tgeni386;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -860,6 +860,9 @@ Begin
                    {we have "mov %reg1, %reg2; test/or %reg2, %reg2"}
                                 Begin
                                   TmpUsedRegs := UsedRegs;
+                                  { reg1 will be used after the first instruction, }
+                                  { so update the allocation info                  }
+                                  allocRegBetween(asmL,paicpu(p)^.oper[0].reg,p,hp1);
                                   If GetNextInstruction(hp1, hp2) And
                                      (hp2^.typ = ait_instruction) And
                                      paicpu(hp2)^.is_jmp and
@@ -917,10 +920,12 @@ Begin
                                     (Paicpu(p)^.opsize = Paicpu(hp1)^.opsize) And
                                     (Paicpu(hp1)^.opcode = A_CMP) And
                                     (Paicpu(hp1)^.oper[1].typ = top_ref) And
-                                    RefsEqual(Paicpu(p)^.oper[1].ref^, Paicpu(hp1)^.oper[1].ref^)
-                                   Then
-            {change "mov reg, mem1; cmp x, mem1" to "mov reg, mem1; cmp x, reg1"}
-                                    Paicpu(hp1)^.loadreg(1,Paicpu(p)^.oper[0].reg);
+                                    RefsEqual(Paicpu(p)^.oper[1].ref^, Paicpu(hp1)^.oper[1].ref^) Then
+            {change "mov reg1, mem1; cmp x, mem1" to "mov reg, mem1; cmp x, reg1"}
+                                   begin
+                                     Paicpu(hp1)^.loadreg(1,Paicpu(p)^.oper[0].reg);
+                                     allocRegBetween(asmL,paicpu(p)^.oper[0].reg,p,hp1);
+                                   end;
                 { Next instruction is also a MOV ? }
                   If GetNextInstruction(p, hp1) And
                      (pai(hp1)^.typ = ait_instruction) and
@@ -1031,10 +1036,18 @@ Begin
                                           Paicpu(hp1)^.LoadReg(1,Paicpu(hp2)^.oper[1].reg);
                                           Paicpu(hp2)^.LoadRef(1,newreference(Paicpu(hp2)^.oper[0].ref^));
                                           Paicpu(hp2)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
+                                          allocRegBetween(asmL,paicpu(p)^.oper[1].reg,p,hp2);
+                                          if (paicpu(p)^.oper[0].ref^.base in (usableregs+[R_EDI])) then
+                                            allocRegBetween(asmL,paicpu(p)^.oper[0].ref^.base,p,hp2);
+                                          if (paicpu(p)^.oper[0].ref^.index in (usableregs+[R_EDI])) then
+                                            allocRegBetween(asmL,paicpu(p)^.oper[0].ref^.index,p,hp2);
                                         End
                                       Else
                                         If (Paicpu(hp1)^.Oper[0].reg <> Paicpu(hp2)^.Oper[1].reg) Then
-                                          Paicpu(hp2)^.LoadReg(0,Paicpu(hp1)^.Oper[0].reg)
+                                          begin
+                                            Paicpu(hp2)^.LoadReg(0,Paicpu(hp1)^.Oper[0].reg);
+                                            allocRegBetween(asmL,paicpu(p)^.oper[1].reg,p,hp2);
+                                          end
                                         Else
                                           Begin
                                             AsmL^.Remove(hp2);
@@ -1893,7 +1906,11 @@ End.
 
 {
  $Log$
- Revision 1.89  2000-03-26 08:46:52  jonas
+ Revision 1.90  2000-03-26 10:58:47  jonas
+   * some more allocRegBetween fixes (-al didn't function previously
+     if the compiler was compiled with -OG2p3r)
+
+ Revision 1.89  2000/03/26 08:46:52  jonas
    * fixed bug in regUsedAfterInstruction (it didn't convert the reg
      to 32bit before checking)
    * result: make cycle now works with -OG3p3r!!!!
