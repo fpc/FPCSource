@@ -1089,7 +1089,7 @@ implementation
     function  valid_for_formal_const(p : tnode) : boolean;
       begin
         valid_for_formal_const:=is_constnode(p) or is_procsym_load(p) or (p.resulttype.def.deftype=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const]);
+          valid_for_assign(p,[valid_void,valid_const,valid_property]);
       end;
 
 
@@ -1904,7 +1904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2004-05-24 21:04:31  florian
+  Revision 1.91  2004-05-24 21:24:40  florian
+    * properties are allowed as formal const parameters as well
+
+  Revision 1.90  2004/05/24 21:04:31  florian
     * fixed more formal const problems
 
   Revision 1.89  2004/05/24 20:39:41  florian
