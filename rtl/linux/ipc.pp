@@ -189,7 +189,7 @@ const
   SEMVMX = 32767;
 
 type
-  PSEMid_ds = ^PSEMid_ds;
+  PSEMid_ds = ^TSEMid_ds;
   TSEMid_ds = record
     sem_perm : tipc_perm;
     sem_otime : longint;
