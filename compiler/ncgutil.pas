@@ -1795,6 +1795,9 @@ implementation
         { insert cut for smartlinking or alignment }
         maybe_new_object_file(curconstSegment);
         new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
+{$ifdef GDB}
+        sym.concatstabto(curconstSegment);
+{$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
            (assigned(current_procinfo) and
@@ -1820,6 +1823,9 @@ implementation
         varalign:=var_align(l);
         maybe_new_object_file(bssSegment);
         new_section(bssSegment,sec_bss,lower(sym.mangledname),varalign);
+{$ifdef GDB}
+        sym.concatstabto(bssSegment);
+{$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
            DLLSource or
@@ -1931,11 +1937,7 @@ implementation
                                   if not(cs_create_pic in aktmoduleswitches) and
                                      not(vo_is_dll_var in varoptions) and
                                      not(vo_is_thread_var in varoptions) then
-{$ifndef macos}
-                                    reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_NONE),0);
-{$else}
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
-{$endif macos}
                                 end;
                               else
                                 internalerror(200410103);
@@ -2207,7 +2209,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.234  2004-10-31 21:45:03  peter
+  Revision 1.235  2004-11-04 17:09:54  peter
+  fixed debuginfo for variables in staticsymtable
+
+  Revision 1.234  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

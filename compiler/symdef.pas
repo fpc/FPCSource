@@ -4219,12 +4219,12 @@ implementation
         asmList.concat(Tai_stabs.Create(stabstring));
         if not(po_external in procoptions) then
           begin
-            tstoredsymtable(parast).concatstabto(asmlist);
+            tparasymtable(parast).concatstabto(asmlist);
             { local type defs and vars should not be written
               inside the main proc stab }
             if assigned(localst) and
-               (localst.symtablelevel>main_program_level) then
-              tstoredsymtable(localst).concatstabto(asmlist);
+               (localst.symtabletype=localsymtable) then
+              tlocalsymtable(localst).concatstabto(asmlist);
           end;
         stab_state:=stab_state_written;
       end;
@@ -6218,7 +6218,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.264  2004-11-03 09:46:34  florian
+  Revision 1.265  2004-11-04 17:09:54  peter
+  fixed debuginfo for variables in staticsymtable
+
+  Revision 1.264  2004/11/03 09:46:34  florian
     * fixed writing of para locations for procedures with explicit locations for parameters
 
   Revision 1.263  2004/11/01 23:30:11  peter

@@ -625,14 +625,17 @@ implementation
           end
         else
           debugList.concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
-        { first write all global/local symbols to a temp list. This will flag
-          all required tdefs. Afterwards this list will be added }
+        { first write all global/local symbols again to a temp list. This will flag
+          all required tdefs. After that the temp list can be removed since the debuginfo is already
+          written to the stabs when the variables/consts were written }
+{$warning Hack to get all needed types}
         vardebuglist:=taasmoutput.create;
         new_section(vardebuglist,sec_data,'',0);
         if assigned(current_module.globalsymtable) then
           tglobalsymtable(current_module.globalsymtable).concatstabto(vardebuglist);
         if assigned(current_module.localsymtable) then
           tstaticsymtable(current_module.localsymtable).concatstabto(vardebuglist);
+        vardebuglist.free;
         { reset unit type info flag }
         reset_unit_type_info;
         { write used types from the used units }
@@ -642,10 +645,6 @@ implementation
           tglobalsymtable(current_module.globalsymtable).concattypestabto(debuglist);
         if assigned(current_module.localsymtable) then
           tstaticsymtable(current_module.localsymtable).concattypestabto(debuglist);
-        { now all defs have a type in the debuglist, we now can add the vardebuglist since
-          all references to defs can be solved }
-        debuglist.concatlist(vardebuglist);
-        vardebuglist.free;
         { include files }
         if (cs_gdb_dbx in aktglobalswitches) then
           begin
@@ -1512,7 +1511,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2004-10-31 15:29:39  olle
+  Revision 1.170  2004-11-04 17:09:54  peter
+  fixed debuginfo for variables in staticsymtable
+
+  Revision 1.169  2004/10/31 15:29:39  olle
     + All sections get names in macos
 
   Revision 1.168  2004/10/26 15:11:01  peter

@@ -36,7 +36,7 @@ interface
        ppu,
        cclasses,symnot,
        { aasm }
-       aasmbase,
+       aasmbase,aasmtai,
        cpuinfo,cpubase,cgbase,cgutils,parabase
        ;
 
@@ -52,6 +52,7 @@ interface
 {$ifdef GDB}
           function  get_var_value(const s:string):string;
           function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
+          procedure concatstabto(asmlist : taasmoutput);
 {$endif GDB}
           function  mangledname : string;
           procedure generate_mangledname;virtual;abstract;
@@ -305,7 +306,6 @@ interface
 implementation
 
     uses
-//       strings,
        { global }
        verbose,
        { target }
@@ -315,7 +315,9 @@ implementation
        { tree }
        node,
        { aasm }
-//       aasmcpu,
+{$ifdef gdb}
+       gdb,
+{$endif gdb}
        { codegen }
        paramgr,cresstr,
        procinfo
@@ -393,7 +395,18 @@ implementation
     begin
       stabstr_evaluate:=string_evaluate(s,@get_var_value,vars);
     end;
+
+
+    procedure tstoredsym.concatstabto(asmlist : taasmoutput);
+      var
+        stabstr : Pchar;
+      begin
+        stabstr:=stabstring;
+        if stabstr<>nil then
+          asmlist.concat(Tai_stabs.create(stabstr));
+      end;
 {$endif GDB}
+
 
     function tstoredsym.mangledname : string;
 
@@ -2251,7 +2264,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.189  2004-10-31 21:45:03  peter
+  Revision 1.190  2004-11-04 17:09:54  peter
+  fixed debuginfo for variables in staticsymtable
+
+  Revision 1.189  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
