@@ -30,6 +30,12 @@ type
   procedure getheapstatus(var status:THeapStatus);
 {$endif HASGETHEAPSTATUS}
 
+{$ifndef HASGETFPCHEAPSTATUS}
+    type
+      TFPCHeapStatus = THeapStatus;
+    function GetFPCHeapStatus:TFPCHeapStatus;
+{$endif HASGETFPCHEAPSTATUS}
+
 function DoMem (Var StartMem : sizeint): sizeint;
 
 
@@ -114,6 +120,15 @@ end;
   end;
 {$endif HASGETHEAPSTATUS}
 
+{$ifndef HASGETFPCHEAPSTATUS}
+    function GetFPCHeapStatus:TFPCHeapStatus;
+    begin
+      GetHeapStatus(GetFPCHeapStatus);
+    end;
+{$endif HASGETFPCHEAPSTATUS}
+
+
+
 
 function DoMem (Var StartMem : sizeint): sizeint;
 
@@ -132,9 +147,9 @@ function DoMem (Var StartMem : sizeint): sizeint;
   end;
 
 var
-  hstatus : THeapstatus;
+  hstatus : TFPCHeapstatus;
 begin
-  GetHeapStatus(hstatus);
+  hstatus:=GetFPCHeapStatus;
   if StartMem=0 then
     begin
       Writeln ('[HEAP] Size: ',getsize(hstatus.CurrHeapSize),',   Used: ',getsize(hstatus.CurrHeapUsed));
