@@ -1231,7 +1231,7 @@ begin
        if StrOfpaths = '' then StrOfPaths := GetPathString;
        GetEnv := StrofPaths;
    end else begin
-      move(envvar,strbuffer,length(envvar));
+      move(envvar[1],strbuffer,length(envvar));
       strbuffer[length(envvar)] := #0;
       temp := GetVar(strbuffer,bufarr,255,$100);
       if temp = -1 then
@@ -1317,7 +1317,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2004-08-03 15:59:41  karoly
+  Revision 1.8  2004-10-27 01:31:40  karoly
+    * GetEnv fixed
+
+  Revision 1.7  2004/08/03 15:59:41  karoly
     * more cleanup & more includes
 
   Revision 1.6  2004/06/26 20:48:24  karoly
