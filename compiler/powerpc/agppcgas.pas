@@ -93,7 +93,7 @@ unit agppcgas;
          'mcrfs','mcrxr','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
          'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
          'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
-         'mulhw.','mulhwu','mulhwu.','mulli','mullh','mullw.','mullwo',
+         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
          'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
          'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
          'rlwinm', 'tlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
@@ -337,7 +337,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-09 19:45:01  jonas
+  Revision 1.3  2002-07-11 07:34:55  jonas
+    * fixed mullw entry in instruction list
+
+  Revision 1.2  2002/07/09 19:45:01  jonas
     * unarynminus and shlshr node fixed for 32bit and smaller ordinals
     * small fixes in the assembler writer
     * changed scratch registers, because they were used by the linker (r11
