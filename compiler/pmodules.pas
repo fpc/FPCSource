@@ -170,8 +170,8 @@ implementation
           begin
             oldaktfilepos:=aktfilepos;
             aktfilepos.line:=0;
-            debugList.insert(Tai_symbol.Createname('gcc2_compiled',AT_FUNCTION,0));
-            debugList.insert(Tai_symbol.Createname('fpc_compiled',AT_FUNCTION,0));
+            debugList.insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
+            debugList.insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
             fixseg(debuglist,sec_code);
             aktfilepos:=oldaktfilepos;
           end;
@@ -1452,7 +1452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-03-14 20:10:14  peter
+  Revision 1.147  2004-03-18 11:43:57  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.146  2004/03/14 20:10:14  peter
     * fix stabs lineno for fpc_compiled
 
   Revision 1.145  2004/03/10 22:52:57  peter

@@ -434,9 +434,9 @@ implementation
                                 curconstSegment.concat(Tai_const_symbol.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
                             end;
                           varsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname(tvarsym(srsym).mangledname,AT_FUNCTION,offset));
+                            curconstSegment.concat(Tai_const_symbol.Createname(tvarsym(srsym).mangledname,AT_DATA,offset));
                           typedconstsym :
-                            curconstSegment.concat(Tai_const_symbol.Createname(ttypedconstsym(srsym).mangledname,AT_FUNCTION,offset));
+                            curconstSegment.concat(Tai_const_symbol.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           else
                             Message(type_e_variable_id_expected);
                         end;
@@ -452,7 +452,7 @@ implementation
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         curconstSegment.concat(Tai_const_symbol.createname(
-                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_FUNCTION,0));
+                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_DATA,0));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -971,7 +971,7 @@ implementation
                                    begin
                                      for i:=1 to vmt_offset-aktpos do
                                        curconstsegment.concat(tai_const.create_8bit(0));
-                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname,AT_FUNCTION,0));
+                                     curconstsegment.concat(tai_const_symbol.createname(vmt_mangledname,AT_DATA,0));
                                      { this is more general }
                                      aktpos:=vmt_offset + pointer_size;
                                    end;
@@ -998,7 +998,7 @@ implementation
                      begin
                        for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                          curconstsegment.concat(tai_const.create_8bit(0));
-                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname,AT_FUNCTION,0));
+                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
                        { this is more general }
                        aktpos:=tobjectdef(t.def).vmt_offset + pointer_size;
                      end;
@@ -1025,7 +1025,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-03-17 22:27:41  florian
+  Revision 1.82  2004-03-18 11:43:57  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.81  2004/03/17 22:27:41  florian
     * fixed handling of doubles in a native arm compiler
     * fixed handling of typed double constants on arm
 

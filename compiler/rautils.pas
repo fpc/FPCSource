@@ -1538,7 +1538,7 @@ end;
 
   Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;l:longint);
   begin
-    p.concat(Tai_const_symbol.Createname(sym,AT_FUNCTION,l));
+    p.concat(Tai_const_symbol.Createname(sym,AT_DATA,l));
   end;
 
 
@@ -1632,7 +1632,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.83  2004-03-17 22:27:41  florian
+  Revision 1.84  2004-03-18 11:43:57  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.83  2004/03/17 22:27:41  florian
     * fixed handling of doubles in a native arm compiler
     * fixed handling of typed double constants on arm
 

@@ -532,7 +532,7 @@ const
                     end
                    else
                     begin
-                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0));
+                      importsSection.concat(Tai_symbol.Createname_global(hp2.func^,AT_DATA,0));
                     end;
                    importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
                    hp2:=twin32imported_item(hp2.next);
@@ -1606,7 +1606,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2004-03-02 00:36:33  olle
+  Revision 1.30  2004-03-18 11:44:07  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.29  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.28  2004/02/27 10:21:05  florian

@@ -854,9 +854,9 @@ implementation
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
         if (cs_create_smart in aktmoduleswitches) then
-         rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_FUNCTION,0))
+         rawdata.concat(Tai_symbol.Createname_global(gintfgetvtbllabelname(intfindex),AT_DATA ,0))
         else
-         rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),AT_FUNCTION,0));
+         rawdata.concat(Tai_symbol.Createname(gintfgetvtbllabelname(intfindex),AT_DATA,0));
         proccount:=implintf.implproccount(intfindex);
         for i:=1 to proccount do
           begin
@@ -900,7 +900,7 @@ implementation
             dataSegment.concat(Tai_const.Create_ptr(0)); { nil }
           end;
         { VTable }
-        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex),AT_FUNCTION,0));
+        dataSegment.concat(Tai_const_symbol.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
         { IOffset field }
         dataSegment.concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)^));
         { IIDStr }
@@ -1155,7 +1155,7 @@ implementation
         begin
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
-          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),AT_FUNCTION,0));
+          dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),AT_DATA,0));
           dataSegment.concat(Tai_const.Create_32bit(_class.iidguid^.D1));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
@@ -1164,7 +1164,7 @@ implementation
         end;
       if (cs_create_smart in aktmoduleswitches) then
         dataSegment.concat(Tai_cut.Create);
-      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),AT_FUNCTION,0));
+      dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IIDSTR',_class.owner,_class.objname^),AT_DATA,0));
       dataSegment.concat(Tai_const.Create_8bit(length(_class.iidstr^)));
       dataSegment.concat(Tai_string.Create(_class.iidstr^));
     end;
@@ -1251,6 +1251,7 @@ implementation
             dataSegment.concat(Tai_label.Create(classnamelabel));
             dataSegment.concat(Tai_const.Create_8bit(length(_class.objrealname^)));
             dataSegment.concat(Tai_string.Create(_class.objrealname^));
+
             { generate message and dynamic tables }
             if (oo_has_msgstr in _class.objectoptions) then
               strmessagetable:=genstrmsgtab;
@@ -1290,7 +1291,7 @@ implementation
          { it is not written for parents that don't have any vmt !! }
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
-           dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname,AT_FUNCTION,0))
+           dataSegment.concat(Tai_const_symbol.Createname(_class.childof.vmt_mangledname,AT_DATA,0))
          else
            dataSegment.concat(Tai_const.Create_ptr(0));
 
@@ -1380,7 +1381,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.67  2004-03-08 22:07:46  peter
+  Revision 1.68  2004-03-18 11:43:57  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.67  2004/03/08 22:07:46  peter
     * stabs updates to write stabs for def for all implictly used
       units
 

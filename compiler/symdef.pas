@@ -5360,7 +5360,7 @@ implementation
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label),AT_FUNCTION,0));
+                   rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label),AT_DATA,0));
                    rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
                    rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
                    { per default stored }
@@ -5534,7 +5534,7 @@ implementation
          hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname,AT_FUNCTION,0));
+              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname,AT_DATA,0));
               hp:=tclasslistitem(hp.next);
            end;
 
@@ -5593,7 +5593,7 @@ implementation
              begin
                if (oo_has_vmt in objectoptions) and
                   not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
-                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname,AT_FUNCTION,0))
+                 rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname,AT_DATA,0))
                else
                  rttiList.concat(Tai_const.Create_ptr(0));
 
@@ -6061,7 +6061,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.231  2004-03-14 22:51:46  peter
+  Revision 1.232  2004-03-18 11:43:57  olle
+    * change AT_FUNCTION to AT_DATA where appropriate
+
+  Revision 1.231  2004/03/14 22:51:46  peter
     * valgrind doesn't like nested procedure info in stabs
 
   Revision 1.230  2004/03/14 20:06:40  peter
