@@ -928,6 +928,7 @@ implementation
     function ttypeconvnode.resulttype_dynarray_to_variant : tnode;
 
       begin
+        result:=nil;
       end;
 
 
@@ -1131,7 +1132,7 @@ implementation
 
                  { check if the result could be in a register }
                  if not(tstoreddef(resulttype.def).is_intregable) and
-                   not(tstoreddef(resulttype.def).is_fpuregable) then
+                    not(tstoreddef(resulttype.def).is_fpuregable) then
                    make_not_regable(left);
 
                  { class to class or object to object, with checkobject support }
@@ -1159,34 +1160,29 @@ implementation
                       end;
                    end
 
-                  { only if the same size or formal def }
-                  { why do we allow typecasting of voiddef ?? (PM) }
                   else
                    begin
+                     { only if the same size or formal def }
                      if not(
-                        (left.resulttype.def.deftype=formaldef) or
-                        (not(is_open_array(left.resulttype.def)) and
-                         (left.resulttype.def.size=resulttype.def.size)) or
-                        (is_void(left.resulttype.def)  and
-                         (left.nodetype=derefn))
-                        ) then
+                            (left.resulttype.def.deftype=formaldef) or
+                            (
+                             not(is_open_array(left.resulttype.def)) and
+                             (left.resulttype.def.size=resulttype.def.size)
+                            ) or
+                            (
+                             is_void(left.resulttype.def)  and
+                             (left.nodetype=derefn)
+                            )
+                           ) or
+                        (left.resulttype.def.deftype=classrefdef) then
                        CGMessage(cg_e_illegal_type_conversion);
+
                      if ((left.resulttype.def.deftype=orddef) and
                          (resulttype.def.deftype=pointerdef)) or
                          ((resulttype.def.deftype=orddef) and
                           (left.resulttype.def.deftype=pointerdef)) then
                        CGMessage(cg_h_pointer_to_longint_conv_not_portable);
                    end;
-
-                  { the conversion into a strutured type is only }
-                  { possible, if the source is not a register    }
-                  if (
-                      (resulttype.def.deftype in [recorddef,stringdef,arraydef]) or
-                      ((resulttype.def.deftype=objectdef) and
-                       not(is_class(resulttype.def)))
-                     ) and
-                     (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    CGMessage(cg_e_illegal_type_conversion);
                end
               else
                CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
@@ -1877,8 +1873,6 @@ implementation
     function tasnode.det_resulttype:tnode;
       var
         hp : tnode;
-        b : boolean;
-        o : tobjectdef;
       begin
          result:=nil;
          resulttypepass(right);
@@ -2021,7 +2015,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2002-12-05 14:27:26  florian
+  Revision 1.95  2002-12-20 16:01:26  peter
+    * don't allow class(classref) conversion
+
+  Revision 1.94  2002/12/05 14:27:26  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.93  2002/11/30 10:45:14  carl
