@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2005 by Florian Klaempfl
     Member of the Free Pascal development team
 
     This unit implements the basic code generator object
@@ -451,6 +451,8 @@ unit cgobj;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
         procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);virtual;
         procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);virtual;
+        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
 
         procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
         procedure a_param64_const(list : taasmoutput;value : int64;const loc : TCGPara);virtual;abstract;
@@ -2051,6 +2053,22 @@ implementation
             a_op64_reg_reg(list,op,regsrc1,regdst);
           end;
       end;
+
+
+    procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+      begin
+        a_op64_const_reg_reg(list,op,value,regsrc,regdst);
+        ovloc.loc:=LOC_VOID;
+      end;
+
+
+    procedure tcg64.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+      begin
+        a_op64_reg_reg_reg(list,op,regsrc1,regsrc2,regdst);
+        ovloc.loc:=LOC_VOID;
+      end;
+
+
 {$endif cpu64bit}
 
 
@@ -2065,7 +2083,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.191  2005-01-24 22:08:32  peter
+  Revision 1.192  2005-01-27 20:32:51  florian
+    + implemented overflow checking for 64 bit types on sparc
+
+  Revision 1.191  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 

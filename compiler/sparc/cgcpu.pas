@@ -94,7 +94,7 @@ interface
 
       TCg64Sparc=class(tcg64f32)
       private
-        procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
+        procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp;checkoverflow : boolean);
       public
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
@@ -103,6 +103,8 @@ interface
         procedure a_op64_const_reg(list:TAasmOutput;op:TOpCG;value:int64;regdst:TRegister64);override;
         procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64);override;
         procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);override;
+        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
 
     const
@@ -1346,18 +1348,24 @@ implementation
       end;
 
 
-    procedure TCg64Sparc.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
+    procedure TCg64Sparc.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp;checkoverflow : boolean);
       begin
         case op of
           OP_ADD :
             begin
               op1:=A_ADDCC;
-              op2:=A_ADDX;
+              if checkoverflow then
+                op2:=A_ADDXCC
+              else
+                op2:=A_ADDX;
             end;
           OP_SUB :
             begin
               op1:=A_SUBCC;
-              op2:=A_SUBX;
+              if checkoverflow then
+                op2:=A_SUBXCC
+              else
+                op2:=A_SUBX;
             end;
           OP_XOR :
             begin
@@ -1399,7 +1407,7 @@ implementation
               exit;
             end;
         end;
-        get_64bit_ops(op,op1,op2);
+        get_64bit_ops(op,op1,op2,false);
         list.concat(taicpu.op_reg_reg_reg(op1,regdst.reglo,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(op2,regdst.reghi,regsrc.reghi,regdst.reghi));
       end;
@@ -1414,7 +1422,7 @@ implementation
           OP_NOT :
             internalerror(200306017);
         end;
-        get_64bit_ops(op,op1,op2);
+        get_64bit_ops(op,op1,op2,false);
         tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reglo,aint(lo(value)),regdst.reglo);
         tcgsparc(cg).handle_reg_const_reg(list,op2,regdst.reghi,aint(hi(value)),regdst.reghi);
       end;
@@ -1422,20 +1430,21 @@ implementation
 
     procedure tcg64sparc.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : int64; regsrc,regdst : tregister64);
       var
-        op1,op2:TAsmOp;
+        l : tlocation;
       begin
-        case op of
-          OP_NEG,
-          OP_NOT :
-            internalerror(200306017);
-        end;
-        get_64bit_ops(op,op1,op2);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,aint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,aint(hi(value)),regdst.reghi);
+        a_op64_const_reg_reg_checkoverflow(list,op,value,regsrc,regdst,false,l);
       end;
 
 
     procedure tcg64sparc.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+      var
+        l : tlocation;
+      begin
+        a_op64_reg_reg_reg_checkoverflow(list,op,regsrc1,regsrc2,regdst,false,l);
+      end;
+
+
+    procedure tcg64sparc.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       var
         op1,op2:TAsmOp;
       begin
@@ -1444,7 +1453,22 @@ implementation
           OP_NOT :
             internalerror(200306017);
         end;
-        get_64bit_ops(op,op1,op2);
+        get_64bit_ops(op,op1,op2,setflags);
+        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,aint(lo(value)),regdst.reglo);
+        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,aint(hi(value)),regdst.reghi);
+      end;
+
+
+    procedure tcg64sparc.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+      var
+        op1,op2:TAsmOp;
+      begin
+        case op of
+          OP_NEG,
+          OP_NOT :
+            internalerror(200306017);
+        end;
+        get_64bit_ops(op,op1,op2,setflags);
         list.concat(taicpu.op_reg_reg_reg(op1,regsrc2.reglo,regsrc1.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg_reg(op2,regsrc2.reghi,regsrc1.reghi,regdst.reghi));
       end;
@@ -1456,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2005-01-25 20:58:30  florian
+  Revision 1.105  2005-01-27 20:32:51  florian
+    + implemented overflow checking for 64 bit types on sparc
+
+  Revision 1.104  2005/01/25 20:58:30  florian
     * fixed load64 which shouldn't do a make_simple_ref
 
   Revision 1.103  2005/01/24 22:08:32  peter

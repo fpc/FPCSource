@@ -451,6 +451,7 @@ interface
       var
         op         : TOpCG;
         checkoverflow : boolean;
+        ovloc : tlocation;
       begin
         pass_left_right;
         force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
@@ -491,10 +492,10 @@ interface
             begin
               if (right.location.loc = LOC_CONSTANT) then
                 cg.a_op_const_reg_reg(exprasmlist,op,location.size,right.location.value,
-                  left.location.register,location.register)
+                  left.location.register,location.register,checkoverflow,ovloc)
               else
                 cg.a_op_reg_reg_reg(exprasmlist,op,location.size,right.location.register,
-                  left.location.register,location.register);
+                  left.location.register,location.register,checkoverflow,ovloc);
             end;
           subn:
             begin
@@ -505,19 +506,19 @@ interface
                 begin
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
-                    cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
-                      right.location.register,left.location.register,location.register)
+                    cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
+                      right.location.register,left.location.register,location.register,checkoverflow,ovloc)
                   else
                     // reg64 - const64
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SUB,location.size,
-                      right.location.value,left.location.register,location.register);
+                    cg.a_op_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
+                      right.location.value,left.location.register,location.register,checkoverflow,ovloc);
                 end
               else
                 begin
                   // const64 - reg64
                   location_force_reg(exprasmlist,left.location,left.location.size,true);
-                  cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
-                    right.location.register,left.location.register,location.register);
+                  cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
+                    right.location.register,left.location.register,location.register,checkoverflow,ovloc);
                 end;
             end;
           else
@@ -528,11 +529,11 @@ interface
           xorn,orn,andn,addn:
             begin
               if (right.location.loc = LOC_CONSTANT) then
-                cg64.a_op64_const_reg_reg(exprasmlist,op,right.location.value64,
-                  left.location.register64,location.register64)
+                cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,op,right.location.value64,
+                  left.location.register64,location.register64,checkoverflow,ovloc)
               else
-                cg64.a_op64_reg_reg_reg(exprasmlist,op,right.location.register64,
-                  left.location.register64,location.register64);
+                cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,op,right.location.register64,
+                  left.location.register64,location.register64,checkoverflow,ovloc);
             end;
           subn:
             begin
@@ -543,22 +544,22 @@ interface
                 begin
                   if right.location.loc <> LOC_CONSTANT then
                     // reg64 - reg64
-                    cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                    cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,
                       right.location.register64,left.location.register64,
-                      location.register64)
+                      location.register64,checkoverflow,ovloc)
                   else
                     // reg64 - const64
-                    cg64.a_op64_const_reg_reg(exprasmlist,OP_SUB,
+                    cg64.a_op64_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,
                       right.location.value64,left.location.register64,
-                      location.register64)
+                      location.register64,checkoverflow,ovloc)
                 end
               else
                 begin
                   // const64 - reg64
                   location_force_reg(exprasmlist,left.location,left.location.size,true);
-                  cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
+                  cg64.a_op64_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,
                     right.location.register64,left.location.register64,
-                    location.register64);
+                    location.register64,checkoverflow,ovloc);
                 end;
             end;
           else
@@ -776,7 +777,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2005-01-20 21:28:52  florian
+  Revision 1.39  2005-01-27 20:32:51  florian
+    + implemented overflow checking for 64 bit types on sparc
+
+  Revision 1.38  2005/01/20 21:28:52  florian
     * optimized register usage for non-x86 e.g. 3 operand cpus
 
   Revision 1.37  2005/01/01 14:32:53  florian
