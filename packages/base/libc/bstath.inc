@@ -13,7 +13,7 @@ const
 type
    P_stat = ^_stat;
    PStat = ^_stat;
-   _stat = record
+   _stat = packed record
         st_dev : __dev_t;
         __pad1 : word;
         st_ino : __ino_t;
