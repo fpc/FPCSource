@@ -647,8 +647,15 @@ implementation
 
 
     function is_condreg(r : tregister):boolean;
+      var
+        supreg: tsuperregister;
       begin
-        result:=(r>=NR_CR0) and (r<=NR_CR0);
+        result := false;
+        if (getregtype(r) = R_SPECIALREGISTER) then
+          begin
+             supreg := getsupreg(r);
+             result := (supreg >= RS_CR0) and (supreg <= RS_CR7);
+          end;
       end;
 
 
@@ -685,7 +692,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2003-11-15 19:00:10  florian
+  Revision 1.78  2003-11-23 20:00:39  jonas
+  * fixed is_condreg
+  * fixed branch condition parsing in assembler reader
+
+  Revision 1.77  2003/11/15 19:00:10  florian
     * fixed ppc assembler reader
 
   Revision 1.76  2003/11/12 16:05:40  florian

@@ -485,21 +485,24 @@ Unit rappcgas;
               tempreg:=actasmregister;
               Consume(AS_REGISTER);
               if (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
-                Begin
-                  if is_condreg(tempreg) then
-                    begin
-                      { it isn't a real operand, everything is stored in the condition }
-                      oper.opr.typ:=OPR_NONE;
-                      { !!!! }
-                    end
-                  else
-                    begin
-                      if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
-                        Message(asmr_e_invalid_operand_type);
-                      oper.opr.typ:=OPR_REGISTER;
-                      oper.opr.reg:=tempreg;
-                    end;
-                end
+                if is_condreg(tempreg) and
+                   ((actopcode = A_BC) or
+                    (actopcode = A_BCCTR) or
+                    (actopcode = A_BCLR) or
+                    (actopcode = A_TW) or
+                    (actopcode = A_TWI)) then
+                  begin
+                    { it isn't a real operand, everything is stored in the condition }
+                    oper.opr.typ:=OPR_NONE;
+                    actcondition.cr := getsupreg(tempreg);
+                  end
+                else
+                  begin
+                    if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
+                      Message(asmr_e_invalid_operand_type);
+                    oper.opr.typ:=OPR_REGISTER;
+                    oper.opr.reg:=tempreg;
+                  end
               else if is_condreg(tempreg) then
                 begin
                   if not(actcondition.cond in [C_T..C_DZF]) then
@@ -517,13 +520,13 @@ Unit rappcgas;
                                 begin
                                   oper.opr.typ:=OPR_NONE;
                                   if actasmpattern='LT' then
-                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4
+                                    actcondition.crbit:=(getsupreg(tempreg)-(RS_CR0))*4
                                   else if actasmpattern='GT' then
-                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+1
+                                    actcondition.crbit:=(getsupreg(tempreg)-(RS_CR0))*4+1
                                   else if actasmpattern='EQ' then
-                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+2
+                                    actcondition.crbit:=(getsupreg(tempreg)-(RS_CR0))*4+2
                                   else if actasmpattern='SO' then
-                                    actcondition.crbit:=(ord(tempreg)-ord(NR_CR0))*4+3
+                                    actcondition.crbit:=(getsupreg(tempreg)-(RS_CR0))*4+3
                                   else
                                     Message(asmr_e_syn_operand);
                                   consume(AS_ID);
@@ -663,6 +666,8 @@ Unit rappcgas;
                   actopcode:=A_BC;
                   actcondition.simple:=true;
                   actcondition.cond:=cond;
+                  if (cond in [C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU]) then
+                    actcondition.cr := RS_CR0;
                   actasmtoken:=AS_OPCODE;
                   is_asmopcode:=true;
                   exit;
@@ -675,6 +680,7 @@ Unit rappcgas;
                     actcondition.simple:=false;
                     actcondition.bo:=AsmCondFlag2BOLT_NU[cond];
                     actcondition.bo:=AsmCondFlag2BI[cond];
+                    actcondition.cr := RS_CR0;
                     actasmtoken:=AS_OPCODE;
                     is_asmopcode:=true;
                     exit;
@@ -707,6 +713,7 @@ Unit rappcgas;
       begin
         instr:=TPPCInstruction.Create(TPPCOperand);
         BuildOpcode(instr);
+        instr.condition := actcondition;
         if is_calljmp(instr.opcode) then
           ConvertCalljmp(instr);
         {
@@ -744,7 +751,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-11-23 18:32:42  florian
+  Revision 1.6  2003-11-23 20:00:39  jonas
+  * fixed is_condreg
+  * fixed branch condition parsing in assembler reader
+
+  Revision 1.5  2003/11/23 18:32:42  florian
     + skeleton for bXX crX,<label>
 
   Revision 1.4  2003/11/23 17:33:24  jonas
