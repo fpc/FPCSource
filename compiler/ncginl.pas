@@ -491,13 +491,13 @@ implementation
                 begin
                   inc(tcallparanode(left).left.location.reference.offset,
                     (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
-                  cg.a_op_const_ref(exprasmlist,cgop,OS_INT,l,tcallparanode(left).left.location.reference);
+                  cg.a_op_const_ref(exprasmlist,cgop,OS_INT,aword(l),tcallparanode(left).left.location.reference);
                   location_release(exprasmlist,tcallparanode(left).left.location);
                 end
               else
                 { LOC_CREGISTER }
                 begin
-                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
+                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,aword(l),tcallparanode(left).left.location.register);
                 end;
             end
           else
@@ -686,7 +686,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2003-06-13 21:19:30  peter
+  Revision 1.38  2003-07-05 20:07:24  jonas
+    * fixed range check errors
+
+  Revision 1.37  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.36  2003/06/07 18:57:04  jonas
