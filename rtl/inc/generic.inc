@@ -954,7 +954,7 @@ var
      negative := false;
      s:='';
      { Workaround: }
-     if l=$80000000 then
+     if l=longint($80000000) then
        begin
          s:='-2147483648';
          exit;
@@ -1014,7 +1014,10 @@ end;
 
 {
   $Log$
-  Revision 1.61  2003-09-03 14:09:37  florian
+  Revision 1.62  2003-12-06 13:25:30  jonas
+    * fixed longint/cardinal comparison in int_str
+
+  Revision 1.61  2003/09/03 14:09:37  florian
     * arm fixes to the common rtl code
     * some generic math code fixed
     * ...
