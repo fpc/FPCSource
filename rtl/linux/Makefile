@@ -2193,8 +2193,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 unxconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
 		 unxfunc.inc
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : errno.inc ptypes.inc ctypes.inc \
+unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
+baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   $(UNIXINC)/bunxh.inc \
   bunxsysc.inc $(CPU_TARGET)/syscallh.inc $(CPU_TARGET)/sysnr.inc \
   ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
