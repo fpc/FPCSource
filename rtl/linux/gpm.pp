@@ -36,6 +36,7 @@ uses
 {$endif}
 
 {$inline on}
+{$goto on}
 
 const
   _PATH_VARRUN = '/var/run/';
@@ -954,7 +955,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2005-01-30 18:00:28  peter
+  Revision 1.5  2005-01-30 18:35:42  peter
+    * goto on
+
+  Revision 1.4  2005/01/30 18:00:28  peter
     * move gpm.pp to linux
 
   Revision 1.14  2004/11/21 11:28:21  peter
