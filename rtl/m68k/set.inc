@@ -13,16 +13,11 @@
 
  **********************************************************************}
 {*************************************************************************}
-{  set.inc                                                                }
 {  Converted by Carl Eric Codere                                          }
 {*************************************************************************}
 {  This inc. implements low-level set operations for the motorola         }
 {  68000 familiy of processors.                                           }
-{*************************************************************************}
 {  Based on original code bt Florian Kl„mpfl  for the 80x86.              }
-{                                                                         }
-{  22nd november 1997                                                     }
-{   * bugfix of btst with long sizes. (CEC)                               }
 {*************************************************************************}
 
 
@@ -230,16 +225,16 @@
            move.l #32,d6
 
        @LSUBSETS1:
-
            move.b  (a0)+,d0
-           not.b   d0
-           and.b   (a1)+,d0
+           move.b  (a1)+,d1
+           not.b   d1
+           and.b   d1,d0
            move.b  d0,(a2)+
            sub.b   #1,d6
            bne     @LSUBSETS1
            { restore register }
            move.l  a2,(sp)+
-        end ['d0','d6','a0','a1'];
+        end ['d0','d1','d6','a0','a1'];
      end;
 
    { compare both sets }
@@ -427,7 +422,10 @@
 
 {
   $Log$
-  Revision 1.5  1998-07-01 14:27:13  carl
+  Revision 1.6  1998-07-30 12:16:29  carl
+    * set_sub_sets bugfix, was not using correct operation
+
+  Revision 1.5  1998/07/01 14:27:13  carl
     * set_set and set_in bugfix
 
   Revision 1.2  1998/03/27 23:47:35  carl
