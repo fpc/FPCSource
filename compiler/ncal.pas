@@ -2243,6 +2243,7 @@ type
                 curpara.left := ctemprefnode.create(temp);
                 if take_addr then
                   curpara.left := ctypeconvnode.create_explicit(cderefnode.create(curpara.left),orgtype^);
+                firstpass(curpara.left);
               end;
             curpara := tcallparanode(curpara.right);
             curparaitem := tparaitem(curparaitem.previous);
@@ -2726,7 +2727,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2003-05-23 14:27:35  peter
+  Revision 1.159  2003-05-24 17:16:37  jonas
+    * added missing firstpass for callparatemp code
+
+  Revision 1.158  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
