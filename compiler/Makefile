@@ -40,6 +40,11 @@ ifndef RTLOPTS
 RTLOPTS=
 endif
 
+# Path to libgcc.a
+ifndef GCCLIBPATH
+GCCLIBPATH=/usr/lib/gcc-lib/i486-linux/2.7.2.3
+endif
+
 export RTLOPTS
 
 #####################################################################
@@ -266,7 +271,8 @@ ifdef inlinux
 	$(MKDIR) $(LIBINSTALLDIR)
 	$(INSTALLEXE) ppc386 $(LIBINSTALLDIR)
 	ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
-	-makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
+	chmod 755 makecfg
+	makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
 else
 	$(MKDIR) $(BININSTALLDIR)
 	$(INSTALLEXE) ppc386$(EXEEXT) $(BININSTALLDIR)
@@ -318,7 +324,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.6  1998-09-23 15:41:42  pierre
+# Revision 1.7  1998-09-29 18:34:45  peter
+#   + chmod 755 makecfg
+#
+# Revision 1.6  1998/09/23 15:41:42  pierre
 #  export for RTLOPTS (useful for $(MAKE)) !!
 #
 # Revision 1.5  1998/09/22 13:09:24  pierre
