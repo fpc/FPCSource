@@ -727,7 +727,7 @@ End;
                  A_MOV:
                    Begin
                      If (Pai386(p)^.op2t = top_reg) And
-                        (TRegister(Pai386(p)^.op2) In [R_EAX{, R_EBX, R_EDX, R_EDI}]) And
+                        (TRegister(Pai386(p)^.op2) In [{R_EAX, R_EBX, R_EDX, }R_EDI]) And
 {                        Assigned(p^.next) And}
                         GetNextInstruction(p, hp1) And
                         (Pai(hp1)^.typ = ait_instruction) And
@@ -948,7 +948,7 @@ End;
                                         mov esi, mem2}
                                                Begin
                                                  Pai386(hp1)^.opxt := top_ref + top_reg shl 4;
-                                                 Pai386(hp1)^.op1 := Pai386(p)^.op2;
+                                                 Pai386(hp1)^.op1 := Pai386(p)^.op1;
                                                  TReference(Pai386(hp1)^.op1^) := TReference(Pai386(p)^.op1^);
                                                  Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
                                                  Pai386(hp2)^.opxt := top_reg + top_ref shl 4;
@@ -1621,7 +1621,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.11  1998-05-23 01:21:00  peter
+  Revision 1.12  1998-05-24 15:20:59  jonas
+    * 2 bugs fixed in mov peepholeoptimizes
+
+  Revision 1.11  1998/05/23 01:21:00  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
