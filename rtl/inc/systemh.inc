@@ -289,7 +289,10 @@ Function  Random: extended;
 Procedure Randomize;
 
 Function abs(l:Longint):Longint;
+Function abs(l:Int64):Int64;
 Function sqr(l:Longint):Longint;
+Function sqr(l:Int64):Int64;
+Function sqr(l:QWord):QWord;
 Function odd(l:Longint):Boolean;
 Function odd(l:Cardinal):Boolean;
 Function odd(l:Int64):Boolean;
@@ -555,7 +558,22 @@ const
 
 {
   $Log$
-  Revision 1.39  2001-11-14 22:59:11  michael
+  Revision 1.40  2002-01-24 12:33:53  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.39  2001/11/14 22:59:11  michael
   + Initial variant support
 
   Revision 1.38  2001/11/07 14:59:20  michael

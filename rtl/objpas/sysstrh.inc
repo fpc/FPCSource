@@ -73,6 +73,7 @@ function AdjustLineBreaks(const S: string): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
 function IntToStr(Value: Int64): string;
+function IntToStr(Value: QWord): string;
 function IntToHex(Value: integer; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function StrToInt(const s: string): integer;
@@ -109,7 +110,22 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.9  2001-09-20 14:42:34  michael
+  Revision 1.10  2002-01-24 12:33:54  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.9  2001/09/20 14:42:34  michael
   + Implemented missing StringReplace function
 
   Revision 1.6  2000/12/09 10:39:50  florian

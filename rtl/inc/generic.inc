@@ -795,6 +795,38 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_SQR_LONGINT}
 
 
+{$ifndef FPC_SYSTEM_HAS_ABS_INT64}
+
+function abs(l: Int64): Int64;
+begin
+  if l < 0 then
+    abs := -l
+  else
+    abs := l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_ABS_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_SQR_INT64}
+
+function sqr(l: Int64): Int64;
+begin
+  sqr := l*l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
+
+
+{$ifndef FPC_SYSTEM_HAS_SQR_QWORD}
+
+function sqr(l: QWord): QWord;
+begin
+  sqr := l*l;
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
+
 {$ifndef FPC_SYSTEM_HAS_SPTR}
 {$error Sptr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
@@ -891,7 +923,22 @@ end;
 
 {
   $Log$
-  Revision 1.21  2001-09-03 13:27:43  jonas
+  Revision 1.22  2002-01-24 12:33:53  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.21  2001/09/03 13:27:43  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

@@ -247,7 +247,7 @@ unit cg64f32;
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              a_label(list,poslabel);
-             hdef:=torddef.create(u32bit,0,longint($ffffffff));
+             hdef:=torddef.create(u32bit,0,cardinal($ffffffff));
              { the real p.resulttype.def is already saved in fromdef }
              p.resulttype.def := hdef;
              { no use in calling just "g_rangecheck" since that one will }
@@ -358,8 +358,27 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-12-30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+  Revision 1.3  2002-01-24 12:33:52  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.2  2001/12/30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in
+    cg64f32) and should work correctly again (it needed some changes after
+    the changes of the low and high of tordef's to int64)
+  * maketojumpbool() is now processor independent (in ncgutil)
+  * getregister32 is now called getregisterint
 
   Revision 1.1  2001/12/29 15:29:58  jonas
     * powerpc/cgcpu.pas compiles :)

@@ -40,7 +40,8 @@ implementation
 uses
   globals,
   symconst,symtype,symsym,symdef,symtable,
-  ninl;
+  ninl,
+  cpuinfo;
 
 procedure insertinternsyms(p : tsymtable);
 {
@@ -229,10 +230,10 @@ begin
   voidtype.setdef(torddef.create(uvoid,0,0));
   u8bittype.setdef(torddef.create(u8bit,0,255));
   u16bittype.setdef(torddef.create(u16bit,0,65535));
-  u32bittype.setdef(torddef.create(u32bit,0,longint($ffffffff)));
-  s32bittype.setdef(torddef.create(s32bit,longint($80000000),$7fffffff));
-  cu64bittype.setdef(torddef.create(u64bit,0,0));
-  cs64bittype.setdef(torddef.create(s64bit,0,0));
+  u32bittype.setdef(torddef.create(u32bit,0,high(cardinal)));
+  s32bittype.setdef(torddef.create(s32bit,low(longint),high(longint)));
+  cu64bittype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
+  cs64bittype.setdef(torddef.create(s64bit,low(int64),high(int64)));
   booltype.setdef(torddef.create(bool8bit,0,1));
   cchartype.setdef(torddef.create(uchar,0,255));
   cwidechartype.setdef(torddef.create(uwidechar,0,65535));
@@ -276,7 +277,22 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2001-11-18 18:43:14  peter
+  Revision 1.22  2002-01-24 12:33:53  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.21  2001/11/18 18:43:14  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

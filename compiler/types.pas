@@ -74,6 +74,10 @@ interface
     { returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : tdef) : boolean;
 
+    { returns whether def_from's range is comprised in def_to's if both are }
+    { orddefs, false otherwise                                              }
+    function is_in_limit(def_from,def_to : tdef) : boolean;
+
 {*****************************************************************************
                               Array helper functions
  *****************************************************************************}
@@ -628,6 +632,27 @@ implementation
            else
              is_signed:=false;
          end;
+      end;
+
+
+    function is_in_limit(def_from,def_to : tdef) : boolean;
+
+      var
+        fromqword, toqword: boolean;
+
+      begin
+         if (def_from.deftype <> orddef) or
+            (def_to.deftype <> orddef) then
+           begin
+             is_in_limit := false;
+             exit;
+           end;
+         fromqword := torddef(def_from).typ = u64bit;
+         toqword := torddef(def_to).typ = u64bit;
+         is_in_limit:=((not(fromqword xor toqword) and
+                        (torddef(def_from).low>=torddef(def_to).low) and
+                        (torddef(def_from).high<=torddef(def_to).high)) or
+                       (toqword and not is_signed(def_from)));
       end;
 
 
@@ -1407,7 +1432,12 @@ implementation
                         ((doconv=tc_bool_2_int) and
                          (not explicit) and
                          (not is_boolean(def_to))) then
-                       b:=0;
+                       b:=0
+                     else
+                       { "punish" bad type conversions :) (JM) }
+                       if not is_in_limit(def_from,def_to) and
+                          (def_from.size > def_to.size) then
+                         b := 2;
                    end;
                  enumdef :
                    begin
@@ -1923,7 +1953,22 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2002-01-06 21:50:44  peter
+  Revision 1.63  2002-01-24 12:33:53  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.62  2002/01/06 21:50:44  peter
     * proc_to_procvar_equal fixed for procvar-procvar
 
   Revision 1.61  2002/01/06 12:08:16  peter

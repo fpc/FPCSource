@@ -777,14 +777,6 @@ implementation
              ;
         end;
 
-      function is_in_limit(def_from,def_to : tdef) : boolean;
-
-        begin
-           is_in_limit:=(def_from.deftype = orddef) and
-                        (def_to.deftype = orddef) and
-                        (torddef(def_from).low>torddef(def_to).low) and
-                        (torddef(def_from).high<torddef(def_to).high);
-        end;
 
       var
         i : longint;
@@ -1114,6 +1106,9 @@ implementation
                                          begin
                                             exactmatch:=true;
                                             conv_to:=def_to;
+                                            { there's no use in continuing the search, it will }
+                                            { only result in conv_to being overwritten         }
+                                            break;
                                          end;
                                     end;
                                   hp:=hp^.next;
@@ -1133,7 +1128,8 @@ implementation
                                   hp:=procs;
                                   while (assigned(hp)) and assigned(hp^.next) do
                                     begin
-                                       if not(is_in_limit(def_from,hp^.next^.nextPara.paratype.def)) then
+                                       def_to:=hp^.next^.nextPara.paratype.def;
+                                       if not(is_in_limit(def_from,def_to)) then
                                          begin
                                             hp2:=hp^.next^.next;
                                             dispose(hp^.next);
@@ -1141,18 +1137,36 @@ implementation
                                          end
                                        else
                                          begin
-                                           def_to:=hp^.next^.nextPara.paratype.def;
+                                           { did we possibly find a better match? }
                                            if (conv_to.size>def_to.size) or
-                                              ((torddef(conv_to).low<torddef(def_to).low) and
-                                              (torddef(conv_to).high>torddef(def_to).high)) then
+                                              is_in_limit(def_to,conv_to) then
                                              begin
-                                                hp2:=procs;
-                                                procs:=hp;
-                                                conv_to:=def_to;
-                                                dispose(hp2);
+                                                { is it the same as the previous best? }
+                                                if not types.is_equal(def_to,conv_to) then
+                                                  begin
+                                                    { no -> remove all previous best matches }
+                                                    hp := hp^.next;
+                                                    while procs <> hp do
+                                                      begin
+                                                        hp2 := procs;
+                                                        procs := procs^.next;
+                                                        dispose(hp2);
+                                                      end;
+                                                    { set new match type }
+                                                    conv_to:=def_to;
+                                                  end
+                                                { the new one matches just as well as the }
+                                                { old one -> keep both                    }
+                                                else
+                                                  hp := hp^.next;
                                              end
+                                           { not a better match -> remove }
                                            else
-                                             hp:=hp^.next;
+                                             begin
+                                               hp2 := hp^.next^.next;
+                                               dispose(hp^.next);
+                                               hp^.next:=hp2;
+                                             end;
                                          end;
                                     end;
                                end;
@@ -1782,7 +1796,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-01-19 11:57:05  peter
+  Revision 1.63  2002-01-24 12:33:52  jonas
+    * adapted ranges of native types to int64 (e.g. high cardinal is no
+      longer longint($ffffffff), but just $fffffff in psystem)
+    * small additional fix in 64bit rangecheck code generation for 32 bit
+      processors
+    * adaption of ranges required the matching talgorithm used for selecting
+      which overloaded procedure to call to be adapted. It should now always
+      select the closest match for ordinal parameters.
+    + inttostr(qword) in sysstr.inc/sysstrh.inc
+    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
+      fixes were required to be able to add them)
+    * is_in_limit() moved from ncal to types unit, should always be used
+      instead of direct comparisons of low/high values of orddefs because
+      qword is a special case
+
+  Revision 1.62  2002/01/19 11:57:05  peter
     * fixed path appending for lib
 
   Revision 1.61  2001/12/31 16:59:41  peter
