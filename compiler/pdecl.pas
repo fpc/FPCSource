@@ -134,7 +134,7 @@ unit pdecl;
                    consume(COLON);
                    ignore_equal:=true;
                    def:=read_type('');
-                   block_type:=bt_type;
+                   block_type:=bt_general;
                    ignore_equal:=false;
                    symtablestack^.insert(new(ptypedconstsym,init(name,def)));
                    consume(EQUAL);
@@ -1689,7 +1689,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-08 10:26:09  florian
+  Revision 1.5  1998-04-08 14:59:20  florian
+    * problem with new expr_type solved
+
+  Revision 1.4  1998/04/08 10:26:09  florian
     * correct error handling of virtual constructors
     * problem with new type declaration handling fixed
 
