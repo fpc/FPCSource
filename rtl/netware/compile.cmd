@@ -32,6 +32,7 @@ ppc386 %OPT% %INC% video.pp
 ppc386 %OPT% %INC% sockets.pp
 ppc386 %OPT% %INC% netware.pp
 ppc386 %OPT% %INC% winsock2.pp
+ppc386 %OPT% %INC% aio.pp
 
 copy *.on %DEST%
 copy *.ppn %DEST%

@@ -14,7 +14,7 @@ PRELUDE=prelude
 OBJEXT=on
 PPUEXT=ppn
 ASMEXT=s
-OBJS = $(SYSUNIT).$(OBJEXT) $(NWPRE).$(OBJEXT) $(PRELUDE).$(OBJEXT) ../inc/os_types.$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT) winsock2.$(OBJEXT)
+OBJS = $(SYSUNIT).$(OBJEXT) $(NWPRE).$(OBJEXT) $(PRELUDE).$(OBJEXT) ../inc/os_types.$(OBJEXT) ../inc/strings.$(OBJEXT) dos.$(OBJEXT) ../objpas/objpas.$(OBJEXT) sysutils.$(OBJEXT) crt.$(OBJEXT) sockets.$(OBJEXT) mouse.$(OBJEXT) netware.$(OBJEXT) video.$(OBJEXT) keyboard.$(OBJEXT) ../objpas/math.$(OBJEXT) ../objpas/typinfo.$(OBJEXT) ../inc/objects.$(OBJEXT) ../inc/getopts.$(OBJEXT) ../inc/heaptrc.$(OBJEXT) varutils.$(OBJEXT) ../i386/cpu.$(OBJEXT) ../i386/mmx.$(OBJEXT) winsock2.$(OBJEXT) aio.$(OBJEXT)
 
 
 all:	$(OBJS)
@@ -76,6 +76,8 @@ install: $(OBJS)
 	cp -f os_types.$(PPUEXT) $(UNITDIR)
 	cp -f winsock2.$(OBJEXT) $(UNITDIR)
 	cp -f winsock2.$(PPUEXT) $(UNITDIR)
+	cp -f aio.$(OBJEXT) $(UNITDIR)
+	cp -f aio.$(PPUEXT) $(UNITDIR)
 	cp -f nwimp/*.imp $(UNITDIR)
 
 clean:
