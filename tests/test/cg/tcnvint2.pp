@@ -15,6 +15,10 @@
 {****************************************************************}
 program tcnvint2;
 
+{$ifdef VER70}
+  {$define tp}
+{$endif}
+
 var
   failed   : boolean;
 
@@ -33,7 +37,7 @@ var
        getlongint := $10000000;
      end;
 
-{$ifdef fpc}
+{$ifndef tp}
    function getint64: int64;
      begin
        getint64 := $10000000;
@@ -51,7 +55,7 @@ var
  frombyte : byte;
  fromword : word;
  fromlong : longint;
-{$ifdef fpc}
+{$ifndef tp}
  fromint64 : int64;
 {$endif}
  b   : boolean;
@@ -99,7 +103,7 @@ begin
  fromlong := $00000100;
  lb1 := longbool(fromlong);
  Test('longint -> longbool : Value should be TRUE...',lb1);
-{$ifdef fpc}
+{$ifndef tp}
  fromint64 := $10000000;
  lb1 := longbool(fromint64);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
@@ -136,7 +140,7 @@ begin
  fromlong := $00000100;
  lb1 := longbool(getlongint);
  Test('longint -> longbool : Value should be TRUE...',lb1);
-{$ifdef fpc}
+{$ifndef tp}
  fromint64 := $10000000;
  lb1 := longbool(getint64);
  Test('int64 -> longbool : Value should be TRUE...',lb1);
@@ -164,7 +168,7 @@ begin
  fromlong := $0100;
  lb1 := longbool(fromlong > fromword);
  Test('Value should be FALSE...',lb1);
-{$ifdef fpc}
+{$ifndef tp}
  fromint64 := $10000000;
  fromlong := $02;
  lb1 := longbool(fromint64 > fromlong);
@@ -180,7 +184,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2002-03-29 12:36:03  peter
+   Revision 1.3  2002-05-13 13:45:38  peter
+     * updated to compile tests with kylix
+
+   Revision 1.2  2002/03/29 12:36:03  peter
      * add check if tests are successfull or not
 
    Revision 1.1  2001/08/31 23:56:45  carl

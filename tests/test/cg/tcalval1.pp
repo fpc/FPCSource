@@ -26,6 +26,9 @@ program tcalval1;
 {$R+}
 {$P-}
 
+{$ifdef VER70}
+  {$define tp}
+{$endif}
 
 
  { REAL should map to single or double }
@@ -36,11 +39,16 @@ program tcalval1;
 
  const
 { should be defined depending on CPU target }
-{$ifdef cpu68k}
-  BIG_INDEX = 8000;
-  SMALL_INDEX  = 13;
-{$endif}
-{$ifdef cpu86}
+{$ifdef fpc}
+  {$ifdef cpu68k}
+    BIG_INDEX = 8000;
+    SMALL_INDEX  = 13;
+  {$endif}
+  {$ifdef cpui386}
+    BIG_INDEX = 33000;
+    SMALL_INDEX = 13;     { value should not be aligned! }
+  {$endif}
+{$else}
   BIG_INDEX = 33000;
   SMALL_INDEX = 13;     { value should not be aligned! }
 {$endif}
@@ -58,40 +66,40 @@ program tcalval1;
   RESULT_SMALLSTRING = 'H';
   RESULT_CHAR = 'I';
   RESULT_BOOLEAN = TRUE;
-  
+
 type
-{$ifdef fpc}
+{$ifndef tp}
   tclass1 = class
   end;
 {$else}
   shortstring = string;
 {$endif}
-  
+
   tprocedure = procedure;
-  
+
   tsmallrecord = packed record
     b: byte;
     w: word;
   end;
-  
+
   tlargerecord = packed record
     b: array[1..BIG_INDEX] of byte;
   end;
-  
+
   tsmallarray = packed array[1..SMALL_INDEX] of byte;
-  
-  tsmallsetenum = 
+
+  tsmallsetenum =
   (A_A,A_B,A_C,A_D);
-  
+
   tsmallset = set of tsmallsetenum;
   tlargeset = set of char;
-  
+
   tsmallstring = string[2];
-  
-  
-  
-  
-  
+
+
+
+
+
 var
  global_u8bit : byte;
  global_u16bit : word;
@@ -103,7 +111,7 @@ var
  global_bigstring : shortstring;
  global_boolean : boolean;
  global_char : char;
-{$ifdef fpc}
+{$ifndef tp}
  global_class : tclass1;
  global_s64bit : int64;
  value_s64bit : int64;
@@ -125,14 +133,14 @@ var
  value_smallarray : tsmallarray;
  value_boolean : boolean;
  value_char : char;
- 
+
     procedure fail;
     begin
       WriteLn('Failure.');
       halt(1);
     end;
-    
-    
+
+
     procedure clear_globals;
      begin
       global_u8bit := 0;
@@ -145,13 +153,13 @@ var
       global_bigstring := '';
       global_boolean := false;
       global_char := #0;
-{$ifdef fpc}
+{$ifndef tp}
       global_s64bit := 0;
       global_class := nil;
 {$endif}
      end;
-     
-     
+
+
     procedure clear_values;
      begin
       value_u8bit := 0;
@@ -170,37 +178,37 @@ var
       fillchar(value_smallarray, sizeof(value_smallarray), #0);
       value_boolean := false;
       value_char:=#0;
-{$ifdef fpc}
+{$ifndef tp}
       value_s64bit := 0;
       value_class := nil;
 {$endif}
      end;
 
-   
+
   procedure testprocedure;
    begin
    end;
- 
+
    function getu8bit : byte;
     begin
       getu8bit:=RESULT_U8BIT;
     end;
-    
+
    function getu16bit: word;
      begin
        getu16bit:=RESULT_U16BIT;
      end;
-     
+
    function gets32bit: longint;
     begin
       gets32bit:=RESULT_S32BIT;
     end;
-    
+
    function gets64bit: longint;
     begin
       gets64bit:=RESULT_S32BIT;
     end;
- 
+
 
    function gets32real: single;
     begin
@@ -234,8 +242,8 @@ var
    end;
 
 
-   
-   
+
+
   procedure proc_value_bool8bit(v: boolean);
    begin
      { boolean should be 8-bit always! }
@@ -260,13 +268,13 @@ var
    begin
      global_s32real := v;
    end;
-   
+
   procedure proc_value_s64real(v: double);
    begin
      global_s64real:= v;
    end;
-   
-   
+
+
   procedure proc_value_pointerdef(p : pchar);
    begin
      global_ptr:=p;
@@ -277,23 +285,23 @@ var
    begin
      global_proc:=p;
    end;
-   
-   
 
-   
+
+
+
   procedure proc_value_smallrecord(smallrec : tsmallrecord);
    begin
      if (smallrec.b = RESULT_U8BIT) and (smallrec.w = RESULT_U16BIT) then
        global_u8bit := RESULT_U8BIT;
    end;
-   
+
 
   procedure proc_value_largerecord(largerec : tlargerecord);
    begin
      if (largerec.b[1] = RESULT_U8BIT) and (largerec.b[2] = RESULT_U8BIT) then
        global_u8bit := RESULT_U8BIT;
    end;
-   
+
   procedure proc_value_smallset(smallset : tsmallset);
    begin
      if A_D in smallset then
@@ -306,13 +314,13 @@ var
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
    end;
-   
+
   procedure proc_value_smallstring(s:tsmallstring);
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
    end;
-    
+
 
   procedure proc_value_bigstring(s:shortstring);
    begin
@@ -326,7 +334,7 @@ var
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
   end;
-  
+
   procedure proc_value_smallarray_open(arr : array of byte);
   begin
     { form 0 to N-1 indexes in open arrays }
@@ -334,7 +342,7 @@ var
       global_u8bit := RESULT_U8BIT;
   end;
 
-{$ifdef fpc}
+{$ifndef tp}
   procedure proc_value_classrefdef(obj : tclass1);
    begin
      global_class:=obj;
@@ -347,11 +355,11 @@ var
   begin
     for i:=0 to high(arr) do
      begin
-       case arr[i].vtype of 
+       case arr[i].vtype of
         vtInteger : global_u8bit := arr[i].vinteger and $ff;
         vtBoolean : global_boolean := arr[i].vboolean;
         vtChar : global_char := arr[i].vchar;
-        vtExtended : global_s64real := arr[i].VExtended^; 
+        vtExtended : global_s64real := arr[i].VExtended^;
         vtString :  global_bigstring := arr[i].VString^;
         vtPointer : ;
         vtPChar : global_ptr := arr[i].VPchar;
@@ -364,7 +372,7 @@ var
        end;
      end; {endfor}
   end;
-  
+
 
   procedure proc_value_smallarray_const_2(arr : array of const);
   var
@@ -381,7 +389,7 @@ var
 {$endif}
 
  {********************************* MIXED PARAMETERS *************************}
- 
+
   procedure proc_value_u8bit_mixed(b1 : byte; v: byte; b2: byte);
    begin
      global_u8bit := v;
@@ -401,10 +409,10 @@ var
      global_s32bit := v;
      value_u8bit := b2;
    end;
-   
 
-   
-   
+
+
+
   procedure proc_value_bool8bit_mixed(b1: byte; v: boolean; b2: byte);
    begin
      { boolean should be 8-bit always! }
@@ -433,14 +441,14 @@ var
      global_s32real := v;
      value_u8bit := b2;
    end;
-   
+
   procedure proc_value_s64real_mixed(b1: byte; v: double; b2: byte);
    begin
      global_s64real:= v;
      value_u8bit := b2;
    end;
-   
-   
+
+
   procedure proc_value_pointerdef_mixed(b1: byte; p : pchar; b2: byte);
    begin
      global_ptr:=p;
@@ -453,8 +461,8 @@ var
      global_proc:=p;
      value_u8bit := b2;
    end;
-   
-   
+
+
 
 
   procedure proc_value_smallrecord_mixed(b1: byte; smallrec : tsmallrecord; b2: byte);
@@ -463,7 +471,7 @@ var
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
-   
+
 
   procedure proc_value_largerecord_mixed(b1: byte; largerec : tlargerecord; b2: byte);
    begin
@@ -471,14 +479,14 @@ var
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
-   
+
   procedure proc_value_smallset_mixed(b1: byte; smallset : tsmallset; b2: byte);
    begin
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
-   
+
 
   procedure proc_value_largeset_mixed(b1: byte; largeset : tlargeset; b2: byte);
    begin
@@ -486,14 +494,14 @@ var
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
    end;
-   
+
   procedure proc_value_smallstring_mixed(b1: byte; s:tsmallstring; b2: byte);
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
      value_u8bit := b2;
    end;
-    
+
 
   procedure proc_value_bigstring_mixed(b1: byte; s:shortstring; b2: byte);
    begin
@@ -501,7 +509,7 @@ var
        global_u8bit := RESULT_u8BIT;
      value_u8bit := b2;
    end;
-   
+
 
   procedure proc_value_smallarray_mixed(b1: byte; arr : tsmallarray; b2: byte);
   begin
@@ -509,7 +517,7 @@ var
       global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
   end;
-  
+
   procedure proc_value_smallarray_open_mixed(b1: byte; arr : array of byte; b2: byte);
   begin
     { form 0 to N-1 indexes in open arrays }
@@ -518,7 +526,7 @@ var
      value_u8bit := b2;
   end;
 
-{$ifdef fpc}
+{$ifndef tp}
   procedure proc_value_classrefdef_mixed(b1: byte; obj : tclass1; b2: byte);
    begin
      global_class:=obj;
@@ -532,18 +540,18 @@ var
      value_u8bit := b2;
    end;
 
-  
+
   procedure proc_value_smallarray_const_1_mixed(b1: byte; arr : array of const; b2: byte);
   var
    i: integer;
   begin
     for i:=0 to high(arr) do
      begin
-       case arr[i].vtype of 
+       case arr[i].vtype of
         vtInteger : global_u8bit := arr[i].vinteger and $ff;
         vtBoolean : global_boolean := arr[i].vboolean;
         vtChar : global_char := arr[i].vchar;
-        vtExtended : global_s64real := arr[i].VExtended^; 
+        vtExtended : global_s64real := arr[i].VExtended^;
         vtString :  global_bigstring := arr[i].VString^;
         vtPointer : ;
         vtPChar : global_ptr := arr[i].VPchar;
@@ -557,7 +565,7 @@ var
      end; {endfor}
      value_u8bit := b2;
   end;
-  
+
 
   procedure proc_value_smallarray_const_2_mixed(b1: byte; arr : array of const; b2: byte);
   var
@@ -575,9 +583,9 @@ Begin
   {***************************** NORMAL TESTS *******************************}
   clear_globals;
   clear_values;
-  
+
   failed:=false;
-  
+
   { LOC_REGISTER }
   write('Value parameter test (src : LOC_REGISTER)...');
   proc_value_u8bit(getu8bit);
@@ -589,7 +597,7 @@ Begin
   proc_value_s32bit(gets32bit);
   if global_s32bit <> RESULT_S32BIT then
     failed:=true;
-{$ifdef fpc}
+{$ifndef tp}
   proc_value_s64bit(gets64bit);
   if global_s64bit <> RESULT_S64BIT then
     failed:=true;
@@ -598,9 +606,9 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
-    
-  { LOC_FPUREGISTER }  
+
+
+  { LOC_FPUREGISTER }
   clear_globals;
   clear_values;
   failed:=false;
@@ -615,22 +623,22 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
 
-  { LOC_MEM, LOC_REFERENCE orddef } 
+
+  { LOC_MEM, LOC_REFERENCE orddef }
   clear_globals;
   clear_values;
   value_u8bit := RESULT_U8BIT;
   value_u16bit := RESULT_U16BIT;
   value_s32bit := RESULT_S32BIT;
-{$ifdef fpc}
+{$ifndef tp}
   value_s64bit := RESULT_S64BIT;
 {$endif}
   value_s32real := RESULT_S32REAL;
   value_s64real  := RESULT_S64REAL;
 
   failed:=false;
-  
+
   { LOC_REFERENCE }
   write('Value parameter test (src : LOC_REFERENCE (orddef/enumdef)))...');
   proc_value_u8bit(value_u8bit);
@@ -642,7 +650,7 @@ Begin
   proc_value_s32bit(value_s32bit);
   if global_s32bit <> RESULT_S32BIT then
     failed:=true;
-{$ifdef fpc}
+{$ifndef tp}
   proc_value_s64bit(value_s64bit);
   if global_s64bit <> RESULT_S64BIT then
     failed:=true;
@@ -651,9 +659,9 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
-    
-  { LOC_REFERENCE }  
+
+
+  { LOC_REFERENCE }
   clear_globals;
   failed:=false;
   write('Value parameter test (src : LOC_REFERENCE (floatdef))...');
@@ -667,7 +675,7 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
+
 
 
   write('Value parameter test (src : LOC_REFERENCE (pointer))...');
@@ -680,12 +688,12 @@ Begin
     failed := true;
 
 
-  value_proc := {$ifdef fpc}@{$endif}testprocedure;
+  value_proc := {$ifndef tp}@{$endif}testprocedure;
   proc_value_procvardef(value_proc);
   if {$ifndef fpc}@{$endif}value_proc <> {$ifndef fpc}@{$endif}global_proc then
     failed := true;
 
-{$ifdef fpc}
+{$ifndef tp}
   value_class := tclass1.create;
   proc_value_classrefdef(value_class);
   if value_class <> global_class then
@@ -709,7 +717,7 @@ Begin
   proc_value_bool8bit(value_u8bit = 0);
   if global_u8bit <> RESULT_BOOL8BIT then
     failed:=true;
-{* IMPOSSIBLE TO GENERATE LOC_FLAGS WITH SIZE <> S_B ON VERSION 1.0.x 
+{* IMPOSSIBLE TO GENERATE LOC_FLAGS WITH SIZE <> S_B ON VERSION 1.0.x
   proc_value_bool16bit(value_s64bit < 0);
   if global_u16bit <> RESULT_BOOL16BIT then
     failed:=true;
@@ -723,7 +731,7 @@ Begin
 
 
 
-{$ifdef fpc}
+{$ifndef tp}
   clear_globals;
   clear_values;
   failed:=false;
@@ -731,7 +739,7 @@ Begin
   proc_value_bool8bit(value_s64bit = 0);
   if global_u8bit <> RESULT_BOOL8BIT then
     failed:=true;
-{* IMPOSSIBLE TO GENERATE LOC_JUMP WITH SIZE <> S_B ON VERSION 1.0.x 
+{* IMPOSSIBLE TO GENERATE LOC_JUMP WITH SIZE <> S_B ON VERSION 1.0.x
   proc_value_bool16bit(value_s64bit < 0);
   if global_u16bit <> RESULT_BOOL16BIT then
     failed:=true;
@@ -767,38 +775,38 @@ Begin
   proc_value_largerecord(value_largerec);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Passed!');
 
-    
-    
+
+
   write('Value parameter test (src : LOC_REFERENCE (setdef)))...');
   clear_globals;
   clear_values;
   failed := false;
-  
+
   value_smallset := [A_A,A_D];
   proc_value_smallset(value_smallset);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_largeset := ['I'];
   proc_value_largeset(value_largeset);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Passed!');
 
 
-    
+
 
 
   write('Value parameter test (src : LOC_REFERENCE (stringdef)))...');
@@ -810,14 +818,14 @@ Begin
   proc_value_smallstring(value_smallstring);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_bigstring := RESULT_BIGSTRING;
   proc_value_bigstring(value_bigstring);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
@@ -827,14 +835,14 @@ Begin
 
   { open array by value with cdecl modifier!!!!!!!!!!!!!!!!!!!!!!!!!!!}
   { DON'T KNOW WHY/HOW TO TEST!!!!!                                   }
-  
-  
+
+
   write('Value parameter test (src : LOC_REFERENCE (arraydef)))...');
-  
+
   clear_globals;
   clear_values;
   failed:=false;
-  
+
   fillchar(value_smallarray,sizeof(value_smallarray),#0);
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_value_smallarray(value_smallarray);
@@ -850,7 +858,7 @@ Begin
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
 
-{$ifdef fpc}
+{$ifndef tp}
   clear_globals;
   clear_values;
 
@@ -864,10 +872,10 @@ Begin
   value_s64real:=RESULT_S64REAL;
   proc_value_smallarray_const_1([value_u8bit,value_ptr,value_s64bit,value_char,value_smallstring,value_s64real,
     value_boolean,value_class]);
-  
+
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if global_char <> RESULT_CHAR then
     failed := true;
   if global_boolean <> RESULT_BOOLEAN then
@@ -899,9 +907,9 @@ Begin
   {***************************** MIXED  TESTS *******************************}
   clear_globals;
   clear_values;
-  
+
   failed:=false;
-  
+
   { LOC_REGISTER }
   write('Mixed value parameter test (src : LOC_REGISTER)...');
   proc_value_u8bit_mixed(byte(NOT RESULT_U8BIT),getu8bit,RESULT_U8BIT);
@@ -919,7 +927,7 @@ Begin
     failed:=true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-{$ifdef fpc}
+{$ifndef tp}
   proc_value_s64bit_mixed(byte(NOT RESULT_U8BIT),gets64bit,RESULT_U8BIT);
   if global_s64bit <> RESULT_S64BIT then
     failed:=true;
@@ -931,9 +939,9 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
-    
-  { LOC_FPUREGISTER }  
+
+
+  { LOC_FPUREGISTER }
   clear_globals;
   clear_values;
   failed:=false;
@@ -952,22 +960,22 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
 
-  { LOC_MEM, LOC_REFERENCE orddef } 
+
+  { LOC_MEM, LOC_REFERENCE orddef }
   clear_globals;
   clear_values;
   value_u8bit := RESULT_U8BIT;
   value_u16bit := RESULT_U16BIT;
   value_s32bit := RESULT_S32BIT;
-{$ifdef fpc}
+{$ifndef tp}
   value_s64bit := RESULT_S64BIT;
 {$endif}
   value_s32real := RESULT_S32REAL;
   value_s64real  := RESULT_S64REAL;
 
   failed:=false;
-  
+
   { LOC_REFERENCE }
   write('Mixed value parameter test (src : LOC_REFERENCE (orddef/enumdef)))...');
   proc_value_u8bit_mixed(byte(NOT RESULT_U8BIT),value_u8bit, RESULT_U8BIT);
@@ -985,7 +993,7 @@ Begin
     failed:=true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-{$ifdef fpc}
+{$ifndef tp}
   proc_value_s64bit_mixed(byte(NOT RESULT_U8BIT), value_s64bit, RESULT_U8BIT);
   if global_s64bit <> RESULT_S64BIT then
     failed:=true;
@@ -997,9 +1005,9 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
-    
-  { LOC_REFERENCE }  
+
+
+  { LOC_REFERENCE }
   clear_globals;
   failed:=false;
   write('Mixed value parameter test (src : LOC_REFERENCE (floatdef))...');
@@ -1018,7 +1026,7 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
+
 
 
   write('Mixed value parameter test (src : LOC_REFERENCE (pointer))...');
@@ -1033,12 +1041,12 @@ Begin
     failed := true;
 
 
-  value_proc := {$ifdef fpc}@{$endif}testprocedure;
+  value_proc := {$ifndef tp}@{$endif}testprocedure;
   proc_value_procvardef_mixed(byte(NOT RESULT_U8BIT), value_proc, RESULT_U8BIT);
   if {$ifndef fpc}@{$endif}value_proc <> {$ifndef fpc}@{$endif}global_proc then
     failed := true;
 
-{$ifdef fpc}
+{$ifndef tp}
   value_class := tclass1.create;
   proc_value_classrefdef_mixed(byte(NOT RESULT_U8BIT), value_class, RESULT_U8BIT);
   if value_class <> global_class then
@@ -1066,7 +1074,7 @@ Begin
     failed:=true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-{* IMPOSSIBLE TO GENERATE LOC_FLAGS WITH SIZE <> S_B ON VERSION 1.0.x 
+{* IMPOSSIBLE TO GENERATE LOC_FLAGS WITH SIZE <> S_B ON VERSION 1.0.x
   proc_value_bool16bit(value_s64bit < 0);
   if global_u16bit <> RESULT_BOOL16BIT then
     failed:=true;
@@ -1079,8 +1087,8 @@ Begin
     WriteLn('Passed!');
 
 
-    
-{$ifdef fpc}
+
+{$ifndef tp}
   clear_globals;
   clear_values;
   failed:=false;
@@ -1090,7 +1098,7 @@ Begin
     failed:=true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-{* IMPOSSIBLE TO GENERATE LOC_JUMP WITH SIZE <> S_B ON VERSION 1.0.x 
+{* IMPOSSIBLE TO GENERATE LOC_JUMP WITH SIZE <> S_B ON VERSION 1.0.x
   proc_value_bool16bit(value_s64bit < 0);
   if global_u16bit <> RESULT_BOOL16BIT then
     failed:=true;
@@ -1102,7 +1110,7 @@ Begin
   else
     WriteLn('Passed!');
 {$endif}
-     
+
   { arraydef,
     recorddef,
     objectdef,
@@ -1130,26 +1138,26 @@ Begin
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Passed!');
 
-    
-    
+
+
   write('Mixed value parameter test (src : LOC_REFERENCE (setdef)))...');
   clear_globals;
   clear_values;
   failed := false;
-  
+
   value_smallset := [A_A,A_D];
   proc_value_smallset_mixed(byte(NOT RESULT_U8BIT), value_smallset, RESULT_U8BIT);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_largeset := ['I'];
@@ -1158,14 +1166,14 @@ Begin
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
     WriteLn('Passed!');
 
 
-    
+
 
 
   write('Mixed value parameter test (src : LOC_REFERENCE (stringdef)))...');
@@ -1179,7 +1187,7 @@ Begin
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_bigstring := RESULT_BIGSTRING;
@@ -1188,7 +1196,7 @@ Begin
     failed := true;
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
@@ -1198,14 +1206,14 @@ Begin
 
   { open array by value with cdecl modifier!!!!!!!!!!!!!!!!!!!!!!!!!!!}
   { DON'T KNOW WHY/HOW TO TEST!!!!!                                   }
-  
-  
+
+
   write('Mixed value parameter test (src : LOC_REFERENCE (arraydef)))...');
-  
+
   clear_globals;
   clear_values;
   failed:=false;
-  
+
   fillchar(value_smallarray,sizeof(value_smallarray),#0);
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_value_smallarray_mixed(byte(NOT RESULT_U8BIT), value_smallarray, RESULT_U8BIT);
@@ -1225,7 +1233,7 @@ Begin
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
 
-{$ifdef fpc}
+{$ifndef tp}
   clear_globals;
   clear_values;
 
@@ -1242,10 +1250,10 @@ Begin
      RESULT_U8BIT);
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
-  
+
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if global_char <> RESULT_CHAR then
     failed := true;
   if global_boolean <> RESULT_BOOLEAN then
@@ -1255,7 +1263,7 @@ Begin
   if global_bigstring <> RESULT_SMALLSTRING then
      failed := true;
   if global_ptr <> value_ptr then
-     failed := true; 
+     failed := true;
 {  if value_class <> global_class then
      failed := true;!!!!!!!!!!!!!!!!!!!!}
   if global_s64bit <> RESULT_S64BIT then
@@ -1275,13 +1283,16 @@ Begin
     fail
   else
     WriteLn('Passed!');
-    
+
 end.
 
 
 {
   $Log$
-  Revision 1.1  2002-04-10 16:33:18  carl
+  Revision 1.2  2002-05-13 13:45:37  peter
+    * updated to compile tests with kylix
+
+  Revision 1.1  2002/04/10 16:33:18  carl
   + first tries at first calln testing
 
 }

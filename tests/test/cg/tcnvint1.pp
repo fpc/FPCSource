@@ -14,12 +14,15 @@
 {****************************************************************}
 program tcnvint1;
 
+{$ifdef VER70}
+  {$define tp}
+{$endif}
 
 var
  tobyte : byte;
  toword : word;
  tolong : longint;
-{$ifdef fpc}
+{$ifndef tp}
  toint64 : int64;
 {$endif}
  bb1 : bytebool;
@@ -68,7 +71,7 @@ begin
  wb1 := FALSE;
  tolong := longint(wb1);
  WriteLn('wordbool->longint : value should be 0...',tolong);
-{$ifdef fpc}
+{$ifndef tp}
  bb1 := TRUE;
  toint64 :=int64(bb1);
  WriteLn('boolean->int64 : value should be 1...',toint64);
@@ -147,7 +150,7 @@ begin
  tobyte := 1;
  tolong:=longint(toword > tobyte);
  WriteLn('value should be 1...',tolong);
-{$ifdef fpc}
+{$ifndef tp}
  toword := 0;
  tobyte := 1;
  toint64:=int64(toword > tobyte);
@@ -204,7 +207,10 @@ end.
 
 {
    $Log$
-   Revision 1.2  2001-07-31 01:55:47  carl
+   Revision 1.3  2002-05-13 13:45:38  peter
+     * updated to compile tests with kylix
+
+   Revision 1.2  2001/07/31 01:55:47  carl
    * corrected small spelling mistake
 
    Revision 1.1  2001/07/27 02:56:10  carl

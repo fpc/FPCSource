@@ -15,9 +15,13 @@
 {****************************************************************}
 program tcnvint3;
 
+{$ifdef VER70}
+  {$define tp}
+{$endif}
+
 {$R-}
 
-{$ifndef fpc}
+{$ifdef tp}
 type
   smallint = integer;
 {$endif}
@@ -32,7 +36,7 @@ end;
 const
  ABSOLUTE_GETS8BIT_RESULT    = 63;
  GETS8BIT_RESULT             = -63;
- GETU8BIT_RESULT             = $55; 
+ GETU8BIT_RESULT             = $55;
  ABSOLUTE_GETS16BIT_RESULT   = 16384;
  GETS16BIT_RESULT            = -16384;
  GETU16BIT_RESULT            = 32767;
@@ -40,7 +44,7 @@ const
  GETU32BIT_RESULT            =  2000000;
 
 
-{$ifdef fpc}
+{$ifndef tp}
    function gets64bit : int64;
     begin
       gets64bit := 12;
@@ -49,33 +53,33 @@ const
 
    function gets32bit : longint;
     begin
-      gets32bit := GETS32BIT_RESULT;    
+      gets32bit := GETS32BIT_RESULT;
     end;
-    
-  
+
+
   { return an 8-bit signed value }
   function gets8bit : shortint;
     begin
       gets8bit := GETS8BIT_RESULT;
     end;
-   
+
   { return an 8-bit unsigned value }
   function getu8bit : byte;
    begin
      getu8bit := GETU8BIT_RESULT;
    end;
-   
-   
+
+
   function gets16bit : smallint;
     begin
       gets16bit := GETS16BIT_RESULT;
     end;
-    
+
   function getu16bit : word;
     begin
       getu16bit := GETU16BIT_RESULT;
     end;
-  
+
 
    function getu32bit : longint;
     begin
@@ -89,7 +93,7 @@ var
  u16bit : word;
  u8bit : byte;
  failed : boolean;
-{$ifdef fpc}
+{$ifndef tp}
  s64bit : int64;
  u32bit : cardinal;
 {$endif}
@@ -102,7 +106,7 @@ begin
   { dst : LOC_REGISTER }
   writeln('type conversion src_size > dst_size');
   writeln('dst : LOC_REGISTER src : LOC_REGISTER ');
-{$ifdef fpc}
+{$ifndef tp}
   write('Testing dst : s32bit src : s64bit...');
   { s64bit -> s32bit  }
   s32bit:=gets64bit;
@@ -130,7 +134,7 @@ begin
   { of different memory sizes cases.                                    }
   { src : LOC_REFERENCE }
   { dst : LOC_REGISTER  }
-{$ifdef fpc}
+{$ifndef tp}
   writeln('dst : LOC_REGISTER src : LOC_REFERENCE ');
   write('Testing dst : s32bit src : s64bit...');
   s64bit:=$FF0000;
@@ -162,7 +166,7 @@ begin
     Fail
   else
     WriteLn('Passed.');
-{$ifdef fpc}
+{$ifndef tp}
   write('Testing dst : u16bit src : u32bit...');
   u32bit:=$F001;
   u16bit := u32bit;
@@ -178,10 +182,10 @@ begin
     Fail
   else
     WriteLn('Passed.');
-    
+
   { That was the easy part... now : dst_size > src_size    }
   { here we must take care of sign extension               }
-  
+
   { src : LOC_REGISTER }
   { dst : LOC_REGISTER }
   writeln('type conversion dst_size > src_size');
@@ -200,7 +204,7 @@ begin
   else
     WriteLn('Passed.');
 
-{$ifdef fpc}
+{$ifndef tp}
   failed := false;
   write('Testing dst : u32bit  src : s8bit, u8bit, s16bit, u16bit... ');
   u32bit:=gets8bit;
@@ -235,7 +239,7 @@ begin
     Fail
   else
     WriteLn('Passed.');
-  
+
 
   failed := false;
   write('Testing dst : s32bit  src : s8bit, u8bit. s16bit, u16bit...');
@@ -256,8 +260,8 @@ begin
     Fail
   else
     WriteLn('Passed.');
-  
-{$ifdef fpc}
+
+{$ifndef tp}
   failed := false;
   write('Testing dst : s64bit  src : s8bit, u8bit. s16bit, u16bit, s32bit, u32bit...');
 
@@ -304,7 +308,7 @@ begin
   else
     WriteLn('Passed.');
 
-{$ifdef fpc}
+{$ifndef tp}
   failed := false;
   write('Testing dst : u32bit  src : s8bit, u8bit, s16bit, u16bit... ');
   s8bit := GETS8BIT_RESULT;
@@ -348,7 +352,7 @@ begin
 
   failed := false;
   write('Testing dst : s32bit  src : s8bit, u8bit. s16bit, u16bit...');
-  
+
   s8bit := GETS8BIT_RESULT;
   s32bit := s8bit;
   if s32bit <> GETS8BIT_RESULT then
@@ -371,10 +375,10 @@ begin
     WriteLn('Passed.');
 
 
-{$ifdef fpc}
+{$ifndef tp}
   failed := false;
   write('Testing dst : s64bit  src : s8bit, u8bit. s16bit, u16bit, s32bit, u32bit...');
-  
+
   s8bit := GETS8BIT_RESULT;
   s64bit := s8bit;
   if s64bit <> GETS8BIT_RESULT then
@@ -409,7 +413,10 @@ end.
 {
 
  $Log$
- Revision 1.1  2002-03-18 20:20:13  carl
+ Revision 1.2  2002-05-13 13:45:38  peter
+   * updated to compile tests with kylix
+
+ Revision 1.1  2002/03/18 20:20:13  carl
  + int_int type conversion tests
 
 }

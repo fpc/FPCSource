@@ -2178,7 +2178,7 @@ begin
    begin
      quit_return:=error_return;
 {$ifdef GDB_V5}
-     mask:=$ffffffff;
+     mask:=longint($ffffffff);
      catch_errors(@gdbint_execute_command,@command,0,mask);
 {$else not  GDB_V5}
      execute_command(@command,0);
@@ -2561,7 +2561,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-03-26 16:24:49  pierre
+  Revision 1.5  2002-05-13 13:45:35  peter
+    * updated to compile tests with kylix
+
+  Revision 1.4  2002/03/26 16:24:49  pierre
    * set signal names to nil at start
 
   Revision 1.3  2002/02/06 14:42:45  pierre

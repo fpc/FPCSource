@@ -18,11 +18,15 @@
 {          (const parameters)                                    }
 {****************************************************************}
 program tcalcst2;
-{$mode objfpc}
-{$INLINE ON}
+{$ifdef fpc}
+  {$mode objfpc}
+  {$INLINE ON}
+{$endif}
 {$R+}
 
-
+{$ifdef VER70}
+  {$define tp}
+{$endif}
 
  { REAL should map to single or double }
  { so it is not checked, since single  }
@@ -32,11 +36,16 @@ program tcalcst2;
 
  const
 { should be defined depending on CPU target }
-{$ifdef cpu68k}
-  BIG_INDEX = 8000;
-  SMALL_INDEX  = 13;
-{$endif}
-{$ifdef cpui386}
+{$ifdef fpc}
+  {$ifdef cpu68k}
+    BIG_INDEX = 8000;
+    SMALL_INDEX  = 13;
+  {$endif}
+  {$ifdef cpui386}
+    BIG_INDEX = 33000;
+    SMALL_INDEX = 13;     { value should not be aligned! }
+  {$endif}
+{$else}
   BIG_INDEX = 33000;
   SMALL_INDEX = 13;     { value should not be aligned! }
 {$endif}
@@ -54,36 +63,36 @@ program tcalcst2;
   RESULT_SMALLSTRING = 'H';
   RESULT_CHAR = 'I';
   RESULT_BOOLEAN = TRUE;
-  
-type 
+
+type
   tclass1 = class
   end;
-  
+
   tprocedure = procedure;
-  
+
   tsmallrecord = packed record
     b: byte;
     w: word;
   end;
-  
+
   tlargerecord = packed record
     b: array[1..BIG_INDEX] of byte;
   end;
-  
+
   tsmallarray = packed array[1..SMALL_INDEX] of byte;
-  
-  tsmallsetenum = 
+
+  tsmallsetenum =
   (A_A,A_B,A_C,A_D);
-  
+
   tsmallset = set of tsmallsetenum;
   tlargeset = set of char;
-  
+
   tsmallstring = string[2];
-  
-  
-  
-  
-  
+
+
+
+
+
 var
  global_u8bit : byte;
  global_u16bit : word;
@@ -115,14 +124,14 @@ var
  value_smallarray : tsmallarray;
  value_boolean : boolean;
  value_char : char;
- 
+
     procedure fail;
     begin
       WriteLn('Failure.');
       halt(1);
     end;
-    
-    
+
+
     procedure clear_globals;
      begin
       global_u8bit := 0;
@@ -138,8 +147,8 @@ var
       global_boolean := false;
       global_char := #0;
      end;
-     
-     
+
+
     procedure clear_values;
      begin
       value_u8bit := 0;
@@ -161,8 +170,8 @@ var
       value_boolean := false;
       value_char:=#0;
      end;
-     
-   
+
+
   procedure testprocedure;
    begin
    end;
@@ -171,22 +180,22 @@ var
     begin
       getu8bit:=RESULT_U8BIT;
     end;
-    
+
    function getu16bit: word;
      begin
        getu16bit:=RESULT_U16BIT;
      end;
-     
+
    function gets32bit: longint;
     begin
       gets32bit:=RESULT_S32BIT;
     end;
-    
+
    function gets64bit: longint;
     begin
       gets64bit:=RESULT_S32BIT;
     end;
- 
+
 
    function gets32real: single;
     begin
@@ -198,7 +207,7 @@ var
       gets64real:=RESULT_S64REAL;
     end;
 
-   
+
   {************************************************************************}
   {                      CONST PARAMETERS (INLINE)                         }
   {************************************************************************}
@@ -221,43 +230,43 @@ var
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
    end;
-   
-   
+
+
   procedure proc_const_largeset_inline(const largeset : tlargeset);inline;
    begin
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
    end;
-   
+
 
   procedure proc_const_smallstring_inline(const s:tsmallstring);inline;
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
    end;
-    
+
 
   procedure proc_const_bigstring_inline(const s:shortstring);inline;
    begin
      if s = RESULT_BIGSTRING then
        global_u8bit := RESULT_u8BIT;
    end;
-   
+
 
   procedure proc_const_smallarray_inline(const arr : tsmallarray);inline;
   begin
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
   end;
-  
+
   procedure proc_const_smallarray_open_inline(const arr : array of byte);inline;
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[SMALL_INDEX-1] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
   end;
-  
-  
+
+
   procedure proc_const_smallarray_const_1_inline(const arr : array of const);inline;
   var
    i: integer;
@@ -267,17 +276,17 @@ var
         global_s64bit := arr[2].vInt64^;
         global_char := arr[3].vchar;
         global_bigstring := arr[4].VString^;
-        global_s64real := arr[5].VExtended^; 
-        
+        global_s64real := arr[5].VExtended^;
+
         global_boolean := arr[6].vboolean;
 (*
     for i:=0 to high(arr) do
      begin
-       case arr[i].vtype of 
+       case arr[i].vtype of
         vtInteger : global_u8bit := arr[i].vinteger and $ff;
         vtBoolean : global_boolean := arr[i].vboolean;
         vtChar : global_char := arr[i].vchar;
-        vtExtended : global_s64real := arr[i].VExtended^; 
+        vtExtended : global_s64real := arr[i].VExtended^;
         vtString :  global_bigstring := arr[i].VString^;
         vtPointer : ;
         vtPChar : global_ptr := arr[i].VPchar;
@@ -289,9 +298,9 @@ var
           RunError(255);
        end;
      end; {endfor}
-*)     
+*)
   end;
-  
+
 
   procedure proc_const_smallarray_const_2_inline(const arr : array of const);inline;
   var
@@ -304,11 +313,11 @@ var
 
   procedure proc_const_formaldef_array_inline(const buf);inline;
   var
-   p: ^byte;
+   p: pchar;
   begin
     { array is indexed from 1 }
     p := @buf;
-    global_u8bit := p[SMALL_INDEX-1];
+    global_u8bit := byte(p[SMALL_INDEX-1]);
   end;
 
 var
@@ -326,14 +335,14 @@ begin
   proc_const_smallrecord_inline(value_smallrec);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   fillchar(value_largerec,sizeof(value_largerec),RESULT_U8BIT);
   proc_const_largerecord_inline(value_largerec);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
@@ -348,14 +357,14 @@ begin
   proc_const_smallset_inline(value_smallset);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_largeset := ['I'];
   proc_const_largeset_inline(value_largeset);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
@@ -370,14 +379,14 @@ begin
   proc_const_smallstring_inline(value_smallstring);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
   value_bigstring := RESULT_BIGSTRING;
   proc_const_bigstring_inline(value_bigstring);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if failed then
     fail
   else
@@ -387,7 +396,7 @@ begin
   clear_globals;
   clear_values;
   failed:=false;
-  
+
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_const_formaldef_array_inline(value_smallarray);
   if global_u8bit <> RESULT_U8BIT then
@@ -401,11 +410,11 @@ begin
 
 
   write('Inline const parameter test (src : LOC_REFERENCE (arraydef)))...');
-  
+
   clear_globals;
   clear_values;
   failed:=false;
-  
+
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_const_smallarray_inline(value_smallarray);
   if global_u8bit <> RESULT_U8BIT then
@@ -418,10 +427,10 @@ begin
   proc_const_smallarray_open_inline(value_smallarray);
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_globals;
   clear_values;
-  
+
   value_u8bit := RESULT_U8BIT;
   value_ptr := RESULT_PCHAR;
   value_s64bit := RESULT_S64BIT;
@@ -431,10 +440,10 @@ begin
   value_char := RESULT_CHAR;
   value_s64real:=RESULT_S64REAL;
   proc_const_smallarray_const_1_inline([value_u8bit,value_ptr,value_s64bit,value_char,value_smallstring,value_s64real,value_boolean,value_class]);
-  
+
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   if global_char <> RESULT_CHAR then
     failed := true;
   if global_boolean <> RESULT_BOOLEAN then
@@ -444,7 +453,7 @@ begin
   if global_bigstring <> RESULT_SMALLSTRING then
      failed := true;
   if global_ptr <> value_ptr then
-     failed := true; 
+     failed := true;
 {  if value_class <> global_class then
      failed := true;!!!!!!!!!!!!!!!!!!!!}
   if global_s64bit <> RESULT_S64BIT then
@@ -462,12 +471,15 @@ begin
     fail
   else
     WriteLn('Passed!');
-    
+
 end.
 
 {
   $Log$
-  Revision 1.1  2002-04-10 16:34:30  carl
+  Revision 1.2  2002-05-13 13:45:36  peter
+    * updated to compile tests with kylix
+
+  Revision 1.1  2002/04/10 16:34:30  carl
   + first tries at first calln testing
 
   Revision 1.1  2002/04/01 18:05:39  carl
