@@ -259,8 +259,8 @@ unit cgobj;
           { are any processors that support it (JM)                         }
           procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); virtual;
           procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
-          procedure a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean); virtual;
-          procedure a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean); virtual;
+          procedure a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
+          procedure a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
 
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
@@ -386,7 +386,8 @@ unit cgobj;
           procedure g_rangecheck(list: taasmoutput; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }
-          procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
+          procedure g_overflowcheck(list: taasmoutput; const Loc:tlocation; def:tdef); virtual;abstract;
+          procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
           procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aint);virtual;
           procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
@@ -1269,15 +1270,17 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);
+    procedure tcg.a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       begin
         a_op_const_reg_reg(list,op,size,a,src,dst);
+        ovloc.loc:=LOC_VOID;
       end;
 
 
-    procedure tcg.a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);
+    procedure tcg.a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
       begin
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+        ovloc.loc:=LOC_VOID;
       end;
 
 
@@ -1947,6 +1950,12 @@ implementation
       end;
 
 
+    procedure tcg.g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);
+      begin
+        g_overflowCheck(list,loc,def);
+      end;
+
+
     procedure tcg.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference);
 
       var
@@ -2217,7 +2226,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.172  2004-09-26 21:04:35  florian
+  Revision 1.173  2004-09-29 18:55:40  florian
+    * fixed more sparc overflow stuff
+    * fixed some op64 stuff for sparc
+
+  Revision 1.172  2004/09/26 21:04:35  florian
     + partial overflow checking on sparc; multiplication still missing
 
   Revision 1.171  2004/09/26 17:45:30  peter

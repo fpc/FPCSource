@@ -61,8 +61,8 @@ interface
         procedure a_op_reg_reg(list:TAasmOutput;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
         procedure a_op_const_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);override;
         procedure a_op_reg_reg_reg(list:TAasmOutput;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);override;
-        procedure a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);override;
-        procedure a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);override;
+        procedure a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
+        procedure a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);override;
         { move instructions }
         procedure a_load_const_reg(list:TAasmOutput;size:tcgsize;a:aint;reg:tregister);override;
         procedure a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aint;const ref:TReference);override;
@@ -83,6 +83,7 @@ interface
         procedure a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);override;
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
         procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
+        procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);override;
         procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
         procedure g_restore_all_registers(list:TAasmOutput;const funcretparaloc:TCGPara);override;
@@ -782,10 +783,12 @@ implementation
       end;
 
 
-    procedure tcgsparc.a_op_const_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean);
+    procedure tcgsparc.a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       var
         power : longInt;
+        tmpreg1,tmpreg2 : tregister;
       begin
+        ovloc.loc:=LOC_VOID;
         case op of
           OP_SUB,
           OP_ADD :
@@ -798,16 +801,63 @@ implementation
             end;
         end;
         if setflags then
-          handle_reg_const_reg(list,TOpCG2AsmOpWithFlags[op],src,a,dst)
+          begin
+            handle_reg_const_reg(list,TOpCG2AsmOpWithFlags[op],src,a,dst);
+            case op of
+              OP_MUL:
+                begin
+                  tmpreg1:=GetIntRegister(list,OS_INT);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
+                  list.concat(taicpu.op_reg_reg(A_CMP,NR_G0,tmpreg1));
+                  ovloc.loc:=LOC_FLAGS;
+                  ovloc.resflags:=F_NE;
+                end;
+              OP_IMUL:
+                begin
+                  tmpreg1:=GetIntRegister(list,OS_INT);
+                  tmpreg2:=GetIntRegister(list,OS_INT);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
+                  list.concat(taicpu.op_reg_const_reg(A_SRL,dst,31,tmpreg2));
+                  list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
+                  ovloc.loc:=LOC_FLAGS;
+                  ovloc.resflags:=F_NE;
+                end;
+            end;
+          end
         else
           handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst)
       end;
 
 
-    procedure tcgsparc.a_op_reg_reg_reg_setflags(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean);
+    procedure tcgsparc.a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
+      var
+        tmpreg1,tmpreg2 : tregister;
       begin
+        ovloc.loc:=LOC_VOID;
         if setflags then
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpWithFlags[op],src2,src1,dst))
+          begin
+            list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpWithFlags[op],src2,src1,dst));
+            case op of
+              OP_MUL:
+                begin
+                  tmpreg1:=GetIntRegister(list,OS_INT);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
+                  list.concat(taicpu.op_reg_reg(A_CMP,NR_G0,tmpreg1));
+                  ovloc.loc:=LOC_FLAGS;
+                  ovloc.resflags:=F_NE;
+                end;
+              OP_IMUL:
+                begin
+                  tmpreg1:=GetIntRegister(list,OS_INT);
+                  tmpreg2:=GetIntRegister(list,OS_INT);
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_Y,tmpreg1));
+                  list.concat(taicpu.op_reg_const_reg(A_SRL,dst,31,tmpreg2));
+                  list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
+                  ovloc.loc:=LOC_FLAGS;
+                  ovloc.resflags:=F_NE;
+                end;
+            end;
+          end
         else
           list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst))
       end;
@@ -890,26 +940,49 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
+    procedure tcgsparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_VOID;
+        g_overflowCheck_loc(list,loc,def,l);
+      end;
+
+
+    procedure TCgSparc.g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);
       var
         hl : tasmlabel;
         ai:TAiCpu;
+        hflags : tresflags;
       begin
         if not(cs_check_overflow in aktlocalswitches) then
           exit;
         objectlibrary.getlabel(hl);
-        if not((def.deftype=pointerdef) or
-              ((def.deftype=orddef) and
-               (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
-          begin
-            ai:=TAiCpu.Op_sym(A_Bxx,hl);
-            ai.SetCondition(C_NO);
-            list.Concat(ai);
-            { Delay slot }
-            list.Concat(TAiCpu.Op_none(A_NOP));
-          end
-        else
-          a_jmp_cond(list,OC_AE,hl);
+        case ovloc.loc of
+          LOC_VOID:
+            begin
+              if not((def.deftype=pointerdef) or
+                    ((def.deftype=orddef) and
+                     (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+                begin
+                  ai:=TAiCpu.Op_sym(A_Bxx,hl);
+                  ai.SetCondition(C_NO);
+                  list.Concat(ai);
+                  { Delay slot }
+                  list.Concat(TAiCpu.Op_none(A_NOP));
+                end
+              else
+                a_jmp_cond(list,OC_AE,hl);
+            end;
+          LOC_FLAGS:
+            begin
+              hflags:=ovloc.resflags;
+              inverse_flags(hflags);
+              cg.a_jmp_flags(list,hflags,hl);
+            end;
+          else
+            internalerror(200409281);
+        end;
 
         a_call_name(list,'FPC_OVERFLOW');
         a_label(list,hl);
@@ -1196,7 +1269,7 @@ implementation
         end;
         get_64bit_ops(op,op1,op2);
         tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reglo,aint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regdst.reghi,aint(hi(value)),regdst.reghi);
+        tcgsparc(cg).handle_reg_const_reg(list,op2,regdst.reghi,aint(hi(value)),regdst.reghi);
       end;
 
 
@@ -1211,7 +1284,7 @@ implementation
         end;
         get_64bit_ops(op,op1,op2);
         tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reglo,aint(lo(value)),regdst.reglo);
-        tcgsparc(cg).handle_reg_const_reg(list,op1,regsrc.reghi,aint(hi(value)),regdst.reghi);
+        tcgsparc(cg).handle_reg_const_reg(list,op2,regsrc.reghi,aint(hi(value)),regdst.reghi);
       end;
 
 
@@ -1236,7 +1309,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2004-09-27 21:24:17  peter
+  Revision 1.93  2004-09-29 18:55:40  florian
+    * fixed more sparc overflow stuff
+    * fixed some op64 stuff for sparc
+
+  Revision 1.92  2004/09/27 21:24:17  peter
     * fixed passing of flaot parameters. The general size is still float,
       only the size of the locations is now OS_32
 

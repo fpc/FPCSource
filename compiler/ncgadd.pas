@@ -460,12 +460,12 @@ interface
           addn :
              begin
                 op:=OP_ADD;
-                checkoverflow := true;
+                checkoverflow:=true;
              end;
           subn :
              begin
                 op:=OP_SUB;
-                checkoverflow := true;
+                checkoverflow:=true;
              end;
           xorn:
             op:=OP_XOR;
@@ -617,6 +617,7 @@ interface
         checkoverflow : boolean;
         cgop   : topcg;
         tmpreg : tregister;
+        ovloc : tlocation;
       begin
         pass_left_right;
         force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
@@ -666,13 +667,13 @@ interface
        if nodetype<>subn then
         begin
           if (right.location.loc >LOC_CONSTANT) then
-            cg.a_op_reg_reg_reg_setflags(exprasmlist,cgop,location.size,
+            cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,cgop,location.size,
                left.location.register,right.location.register,
-               location.register,checkoverflow)
+               location.register,checkoverflow,ovloc)
           else
-            cg.a_op_const_reg_reg_setflags(exprasmlist,cgop,location.size,
+            cg.a_op_const_reg_reg_checkoverflow(exprasmlist,cgop,location.size,
                right.location.value,left.location.register,
-               location.register,checkoverflow);
+               location.register,checkoverflow,ovloc);
         end
       else  { subtract is a special case since its not commutative }
         begin
@@ -681,27 +682,27 @@ interface
           if left.location.loc<>LOC_CONSTANT then
             begin
               if right.location.loc<>LOC_CONSTANT then
-                cg.a_op_reg_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
+                cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                     right.location.register,left.location.register,
-                    location.register,checkoverflow)
+                    location.register,checkoverflow,ovloc)
               else
-                cg.a_op_const_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
+                cg.a_op_const_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                   aword(right.location.value),left.location.register,
-                  location.register,checkoverflow);
+                  location.register,checkoverflow,ovloc);
             end
           else
             begin
               tmpreg:=cg.getintregister(exprasmlist,location.size);
               cg.a_load_const_reg(exprasmlist,location.size,
                 aword(left.location.value),tmpreg);
-              cg.a_op_reg_reg_reg_setflags(exprasmlist,OP_SUB,location.size,
-                right.location.register,tmpreg,location.register,checkoverflow);
+              cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
+                right.location.register,tmpreg,location.register,checkoverflow,ovloc);
             end;
         end;
 
         { emit overflow check if required }
         if checkoverflow then
-          cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
+          cg.g_overflowcheck_loc(exprasmlist,Location,ResultType.Def,ovloc);
       end;
 
 
@@ -777,7 +778,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2004-09-26 21:04:35  florian
+  Revision 1.34  2004-09-29 18:55:40  florian
+    * fixed more sparc overflow stuff
+    * fixed some op64 stuff for sparc
+
+  Revision 1.33  2004/09/26 21:04:35  florian
     + partial overflow checking on sparc; multiplication still missing
 
   Revision 1.32  2004/09/25 14:23:54  peter
