@@ -4425,24 +4425,40 @@ and what targets it defines. After that, some settings in the resulting
 \file {fpcmake} reads a \file{Makefile.fpc} and converts it to a 
 \file{Makefile} suitable for reading by \gnu \file{make}
 to compile your projects. It is similar in functionality to GNU 
-\file{configure} or \var{Imake} for making X projects.
+\file{configure} or \file{Imake} for making X projects.
 
 \file{fpcmake} accepts filenames of makefile description files
 as it's command-line arguments. For each of these files it will
 create a \file{Makefile} in the same directory where the file is
-located, overwriting any other existing file.
+located, overwriting any existing file with that name.
 
 If no options are given, it just attempts to read the file 
 \file{Makefile.fpc} in the current directory and tries to
 construct a \file{Makefile} from it. any previously existing
 \file{Makefile} will be erased. 
 
+% Makefile.fpc format.
 \section{Format of the \file{Makefile.fpc} configuration file}
 This section describes the rules that can be present in the file
 that is fed to \file{fpcmake}.
 
-\file{Makefile.fpc} is a plain ASCII file that contains a number
-of sections as in a \windows \file{.ini}-file.
+The file \file{Makefile.fpc} is a plain ASCII file that contains 
+a number of pre-defined sections as in a \windows \file{.ini}-file,
+or a Samba configuration file.
+
+They look more or less as follows:
+\begin{verbatim}
+[targets]
+units=mysql_com mysql_version mysql
+examples=testdb
+
+[dirs]
+fpcdir=../..
+
+[rules]
+mysql$(PPUEXT): mysql$(PASEXT) mysql_com$(PPUEXT)
+testdb$(EXEEXT): testdb$(PASEXT) mysql$(PPUEXT)
+\end{verbatim}
 
 The following sections are recognized (in alphabetical order):
 
@@ -4458,11 +4474,86 @@ Don't specify extensions, the makefile will append these by itself.
 \subsection{Defaults}
 The \var{defaults} section contains some default settings. The following keywords
 are recognized:
+\begin{description}
+\item[defaultdir]
+\item[defaultbuilddir]
+\item[defaultinstalldir]
+\item[defaultzipinstalldir]
+\item[defaultcleandir]
+\item[defaultrule] Specifies the default rule to execute. \file{fpcmake} 
+will make sure that this rule is executed if make is executed without 
+arguments, i.e., without an explicit target.
+\item[defaulttarget]
+Specifies the default operating system target for which the \file{Makefile}
+should compile the units and programs. By default this is determined from
+the default compiler target.
+\item[defaultcpu]
+Specifies the default target processor for which the \file{Makefile}
+should compile the units and programs. By default this is determined from
+the default compiler processor.
+\end{description}
 
 \subsection{Dirs}
+In this section you can specify the location of several directories 
+which the \file{Makefile} could need for compiling other packages or for finding
+the units. 
+
+The following keywords are recognised:
+\begin{description}
+\item[fpcdir]
+Specifies the directory where all the \fpc source trees reside. Below this
+directory the \file{Makefile} expects to find the \file{rtl}, \file{fcl} and
+\file{packages} directory trees.
+\item[packagedir]
+Specifies the directory where all the package source directories are. By
+default this equals \mvar{FPCDIR}\var{/packages}.
+\item[toolkitdir]
+Specifies the directory where toolkit source directories are. 
+\item[componentdir]
+Specifies the directory where component source directories are. 
+\item[unitdir]
+A colon-separated list of directories that must be added to the unit 
+search path of the compiler.
+\item[libdir]
+A colon-separated list of directories that must be added to the library 
+search path of the compiler.
+\item[objdir]
+A colon-separated list of directories that must be added to the object file
+search path of the compiler.
+\item[targetdir]
+Specifies the directory where the compiled programs should go.
+\item[sourcesdir]
+A space separated list of directories where sources can reside. 
+This will be used for the \var{vpath} setting of \gnu \file{make}.
+\item[unittargetdir]
+Specifies the directory where the compiled units should go.
+\item[incdir]
+A colon-separated list of directories that must be added to the include file
+search path of the compiler.
+\end{description}
 
 \subsection{Info}
-
+This section can be used to customize the information generating 
+targets that \file{fpcmake} generates. It is simply a series of boolean
+values that specify whether a certain part of the \var{info} target will be
+generated. The following keywords are recognised:
+\begin{description}
+\item[infoconfig]
+Specifies whether configuration info should be shown. By default this is
+\var{True}.
+\item[infodirs]
+Specifies whether a list of subdirectories to be treated will be shown. By
+degault this is \var{False}.
+\item[infotools]
+Specifies whether a list of tools that are used by the makefile will be
+shown. By default this is \var{False}.
+\item[infoinstall]
+Specifies whether the installation rules will be shown. By default this is
+\var{True}.
+\item[infoobjects]
+Specifies whether the \file{Makefile} objects will be shown, i.e. a list of
+all units and programs that will be built by \file{make}.
+\end{description}
 \subsection{Install}
 Contains instructions for installation of your units and programs. The
 following keywods are recognized:
