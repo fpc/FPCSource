@@ -40,7 +40,7 @@ unit cpupara;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           // procedure freeintparaloc(list: taasmoutput; nr : longint); override;
-
+          procedure alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);override;
           function  create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
        end;
 
@@ -230,12 +230,12 @@ unit cpupara;
           begin
              if (hp.paratyp in [vs_var,vs_out]) then
                begin
-                 paradef := voidpointertype.def;
-                 loc := LOC_REGISTER;
+                 paradef:=voidpointertype.def;
+                 loc:=LOC_REGISTER;
                end
              else
                begin
-                 paradef := hp.paratype.def;
+                 paradef:=hp.paratype.def;
                  loc:=getparaloc(p.proccalloption,paradef);
                end;
              { make sure all alignment bytes are 0 as well }
@@ -248,28 +248,28 @@ unit cpupara;
                      if paraloc.size = OS_NO then
                        paraloc.size := OS_ADDR;
                      is_64bit := paraloc.size in [OS_64,OS_S64,OS_F64];
+                     { this is not abi compliant }
                      if nextintreg<=(RS_R3-ord(is_64bit)) then
                        begin
-                          paraloc.loc:=LOC_REGISTER;
-                          { big endian }
-		          if is_64bit then
-                            begin
-                              paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                              inc(nextintreg);
-                            end;
-                          paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
-                          inc(nextintreg);
+                         paraloc.loc:=LOC_REGISTER;
+                         paraloc.registerlow:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+                         inc(nextintreg);
+                         if is_64bit then
+                          begin
+                            paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
+                            inc(nextintreg);
+                          end;
                        end
                      else
                         begin
-                           nextintreg:=RS_R4;
-                           paraloc.loc:=LOC_REFERENCE;
-                           paraloc.reference.index:=NR_STACK_POINTER_REG;
-                           paraloc.reference.offset:=stack_offset;
-                           if not is_64bit then
-                             inc(stack_offset,4)
-                           else
-                             inc(stack_offset,8);
+                          nextintreg:=RS_R4;
+                          paraloc.loc:=LOC_REFERENCE;
+                          paraloc.reference.index:=NR_STACK_POINTER_REG;
+                          paraloc.reference.offset:=stack_offset;
+                          if not is_64bit then
+                            inc(stack_offset,4)
+                          else
+                            inc(stack_offset,8);
                        end;
                   end;
                 LOC_FPUREGISTER:
@@ -346,12 +346,32 @@ unit cpupara;
        p.funcret_paraloc[side]:=paraloc;
      end;
 
+
+   procedure tarmparamanager.alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);
+     var
+       href : treference;
+     begin
+       if (paraitem.paratyp in [vs_var,vs_out]) then
+         locpara.loc:=LOC_REGISTER
+       else
+         locpara.loc:=getparaloc(calloption,paraitem.paratype.def);
+
+       if locpara.loc=LOC_REFERENCE then
+         inherited alloctempparaloc(list,calloption,paraitem,locpara)
+       else
+         alloctempregs(list,locpara);
+     end;
+
+
 begin
    paramanager:=tarmparamanager.create;
 end.
 {
   $Log$
-  Revision 1.13  2004-01-24 01:32:49  florian
+  Revision 1.14  2004-02-09 22:48:45  florian
+    * several fixes to parameter handling on arm
+
+  Revision 1.13  2004/01/24 01:32:49  florian
     * genintparaloc fixed
 
   Revision 1.12  2004/01/20 23:18:00  florian

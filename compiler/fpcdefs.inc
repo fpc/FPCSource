@@ -81,6 +81,7 @@
 
 {$ifdef arm}
   {$define cpuneedsdiv32helper}
+  {$define cputargethasfixedstack}
   {$define noopt}
   {$define oldset}
 {$endif arm}
@@ -93,7 +94,10 @@
 
 {
   $Log$
-  Revision 1.31  2004-01-28 16:47:45  peter
+  Revision 1.32  2004-02-09 22:48:45  florian
+    * several fixes to parameter handling on arm
+
+  Revision 1.31  2004/01/28 16:47:45  peter
   Stacksize force to 1mb
 
   Revision 1.30  2003/12/14 22:41:46  peter

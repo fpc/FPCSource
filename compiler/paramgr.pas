@@ -121,6 +121,7 @@ unit paramgr;
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
 
           procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
+          procedure alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);virtual;
        end;
 
 
@@ -132,7 +133,7 @@ implementation
 
     uses
        cpuinfo,systems,
-       cgobj,
+       cgobj,tgobj,
        defutil,verbose;
 
     { true if uses a parameter as return value }
@@ -339,17 +340,32 @@ implementation
 
 
     procedure tparamanager.freeparaloc(list: taasmoutput; const loc: tparalocation);
+      var
+        href : treference;
       begin
         case loc.loc of
-          LOC_REGISTER,
-          LOC_CREGISTER,
-          LOC_FPUREGISTER,
-          LOC_CFPUREGISTER,
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER :
+          LOC_REGISTER, LOC_CREGISTER:
+            begin
+{$ifndef cpu64bit}
+              if (loc.size in [OS_64,OS_S64,OS_F64]) then
+                begin
+                  cg.ungetregister(list,loc.registerhigh);
+                  cg.ungetregister(list,loc.registerlow);
+                end
+              else
+{$endif cpu64bit}
+                cg.ungetregister(list,loc.register);
+            end;
+          LOC_MMREGISTER, LOC_CMMREGISTER,
+          LOC_FPUREGISTER, LOC_CFPUREGISTER:
             cg.ungetregister(list,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
-            { do nothing by default, most of the time it's the framepointer }
+            begin
+{$ifdef cputargethasfixedstack}
+              reference_reset_base(href,loc.reference.index,loc.reference.offset);
+              tg.ungettemp(list,href);
+{$endif cputargethasfixedstack}
+            end;
           else
             internalerror(200306091);
         end;
@@ -458,6 +474,17 @@ implementation
       end;
 
 
+   procedure tparamanager.alloctempparaloc(list: taasmoutput;calloption : tproccalloption;paraitem : tparaitem;var locpara:tparalocation);
+     var
+       href : treference;
+     begin
+       tg.gettemp(list,paraitem.paratype.def.size,tt_persistent,href);
+       locpara.loc:=LOC_REFERENCE;
+       locpara.reference.index:=href.base;
+       locpara.reference.offset:=href.offset;
+     end;
+
+
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
       var
         hp : tparaitem;
@@ -504,7 +531,10 @@ end.
 
 {
    $Log$
-   Revision 1.69  2004-02-09 22:14:17  peter
+   Revision 1.70  2004-02-09 22:48:45  florian
+     * several fixes to parameter handling on arm
+
+   Revision 1.69  2004/02/09 22:14:17  peter
      * more x86_64 parameter fixes
      * tparalocation.lochigh is now used to indicate if registerhigh
        is used and what the type is

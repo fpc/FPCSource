@@ -296,8 +296,9 @@ implementation
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
         { allow the register allocator to remove unnecessary moves }
-        result:=((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                ((opcode=A_MVF) and (regtype = R_FPUREGISTER)) and
+        result:=(((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
+                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER))
+                ) and
                 (condition=C_None) and
                 (ops=2) and
                 (oper[0]^.typ=top_reg) and
@@ -422,7 +423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2004-02-08 23:10:21  jonas
+  Revision 1.28  2004-02-09 22:48:45  florian
+    * several fixes to parameter handling on arm
+
+  Revision 1.27  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it

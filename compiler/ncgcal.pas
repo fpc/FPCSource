@@ -104,8 +104,18 @@ implementation
       begin
          { Allocate (temporary) paralocation }
          tempparaloc:=paraitem.paraloc[callerside];
-         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
-           paramanager.alloctempregs(exprasmlist,tempparaloc)
+         case tempparaloc.loc of
+           LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER:
+             paramanager.alloctempregs(exprasmlist,tempparaloc);
+{$ifdef cputargethasfixedstack}
+           LOC_REFERENCE:
+             begin
+               { currently, we copy the value always to a secure location }
+               if true then
+                 paramanager.alloctempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempparaloc);
+             end;
+{$endif cputargethasfixedstack}
+         end;
       end;
 
 
@@ -286,7 +296,6 @@ implementation
            end;
          end;
       end;
-
 
 
     procedure tcgcallparanode.secondcallparan;
@@ -602,7 +611,7 @@ implementation
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          { help reference pointer }
-         href : treference;
+         href,href2 : treference;
          pop_size : longint;
          pvreg,
          vmtreg : tregister;
@@ -616,52 +625,94 @@ implementation
            ppn:=tcgcallparanode(left);
            while assigned(ppn) do
              begin
-               case ppn.tempparaloc.loc of
-                 LOC_REGISTER:
-                   begin
-                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+               if (ppn.left.nodetype<>nothingn) then
+                 begin
+                   { better check for the real location of the parameter here, when stack passed parameters
+                     are saved temporary in registers, checking for the tempparaloc.loc is wrong
+                   }
+                   case ppn.paraitem.paraloc[callerside].loc of
+                     LOC_REGISTER:
+                       begin
+                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
 {$ifdef sparc}
-                     case ppn.tempparaloc.size of
-                       OS_F32 :
-                         ppn.tempparaloc.size:=OS_32;
-                       OS_F64 :
-                         ppn.tempparaloc.size:=OS_64;
-                     end;
+                         case ppn.tempparaloc.size of
+                           OS_F32 :
+                             ppn.tempparaloc.size:=OS_32;
+                           OS_F64 :
+                             ppn.tempparaloc.size:=OS_64;
+                         end;
 {$endif sparc}
 {$ifndef cpu64bit}
-                     if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                       begin
-                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
-                            ppn.paraitem.paraloc[callerside].registerlow);
-                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
-                            ppn.paraitem.paraloc[callerside].registerhigh);
-                       end
-                     else
+                         if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                           begin
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
+                                ppn.paraitem.paraloc[callerside].registerlow);
+                             cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
+                                ppn.paraitem.paraloc[callerside].registerhigh);
+                           end
+                         else
 {$endif cpu64bit}
-                       cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
+                           cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
+                               ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                       end;
+                     LOC_FPUREGISTER:
+                       begin
+                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
                            ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                   end;
-                 LOC_FPUREGISTER:
-                   begin
-                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                     cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                       ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                   end;
-                 LOC_MMREGISTER:
-                   begin
+                       end;
+                     LOC_MMREGISTER:
+                       begin
 {
-                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
-                     cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
-                       ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register, shuffle???);
+                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
+                           ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register, shuffle???);
 }
-                     internalerror(2003102910);
+                         internalerror(2003102910);
+                       end;
+                     LOC_REFERENCE:
+                       begin
+{$ifdef cputargethasfixedstack}
+                         { copy parameters in case they were moved to a temp. location because we've a fixed stack }
+                         paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                         paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                         case ppn.tempparaloc.loc of
+                           LOC_REFERENCE:
+                             begin
+                               reference_reset_base(href,ppn.tempparaloc.reference.index,ppn.tempparaloc.reference.offset);
+                               reference_reset_base(href2,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset);
+                               cg.g_concatcopy(exprasmlist,href,href2,ppn.paraitem.paratype.def.size,false,false);
+                             end;
+                           LOC_REGISTER:
+                             if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                               begin
+                                 reference_reset_base(href,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset);
+                                 cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
+                                    href);
+                                 { we don't use a c64.load here because later (when fixed ;)) one dword could be on the stack and the
+                                   other in a cpu register }
+                                 reference_reset_base(href,ppn.paraitem.paraloc[callerside].reference.index,ppn.paraitem.paraloc[callerside].reference.offset+4);
+                                 cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
+                                    href);
+                               end
+                             else
+                               cg.a_param_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
+                           LOC_FPUREGISTER:
+                             cg.a_paramfpu_reg(exprasmlist,ppn.paraitem.paraloc[callerside].size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside]);
+                           else
+                             internalerror(200402081);
+                         end;
+{$endif cputargethasfixedstack}
+                       end;
+                     else
+                       internalerror(200402091);
                    end;
-               end;
+                 end;
                ppn:=tcgcallparanode(ppn.right);
              end;
          end;
@@ -1157,7 +1208,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2004-01-31 17:45:17  peter
+  Revision 1.153  2004-02-09 22:48:45  florian
+    * several fixes to parameter handling on arm
+
+  Revision 1.152  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 
