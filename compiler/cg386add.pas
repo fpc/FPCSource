@@ -189,35 +189,72 @@ implementation
                    equaln,unequaln:
                      begin
                         cmpop:=true;
-                        secondpass(p^.left);
-                        pushed:=maybe_push(p^.right^.registers32,p^.left,false);
-                        secondpass(p^.right);
-                        if pushed then
-                          restore(p^.left,false);
-                        { release used registers }
-                        del_location(p^.right^.location);
-                        del_location(p^.left^.location);
-                        { push the still used registers }
-                        pushusedregisters(pushedregs,$ff);
-                        { push data }
-                        case p^.right^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            emit_push_mem(p^.right^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            emit_reg(A_PUSH,S_L,p^.right^.location.register);
-                        end;
-                        case p^.left^.location.loc of
-                          LOC_REFERENCE,LOC_MEM:
-                            emit_push_mem(p^.left^.location.reference);
-                          LOC_REGISTER,LOC_CREGISTER:
-                            emit_reg(A_PUSH,S_L,p^.left^.location.register);
-                        end;
-                        emitcall('FPC_ANSISTR_COMPARE');
-                        emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
-                        popusedregisters(pushedregs);
-                        maybe_loadesi;
-                        ungetiftempansi(p^.left^.location.reference);
-                        ungetiftempansi(p^.right^.location.reference);
+                        if (p^.treetype in [equaln,unequaln]) and
+                           (p^.left^.treetype=stringconstn) and
+                           (p^.left^.length=0) then
+                          begin
+                             secondpass(p^.right);
+                             { release used registers }
+                             del_location(p^.right^.location);
+                             del_location(p^.left^.location);
+                             case p^.right^.location.loc of
+                               LOC_REFERENCE,LOC_MEM:
+                                 emit_const_ref(A_CMP,S_L,0,newreference(p^.right^.location.reference));
+                               LOC_REGISTER,LOC_CREGISTER:
+                                 emit_const_reg(A_CMP,S_L,0,p^.right^.location.register);
+                             end;
+                             ungetiftempansi(p^.left^.location.reference);
+                             ungetiftempansi(p^.right^.location.reference);
+                          end
+                        else if (p^.treetype in [equaln,unequaln]) and
+                          (p^.right^.treetype=stringconstn) and
+                          (p^.right^.length=0) then
+                          begin
+                             secondpass(p^.left);
+                             { release used registers }
+                             del_location(p^.right^.location);
+                             del_location(p^.left^.location);
+                             case p^.right^.location.loc of
+                               LOC_REFERENCE,LOC_MEM:
+                                 emit_const_ref(A_CMP,S_L,0,newreference(p^.left^.location.reference));
+                               LOC_REGISTER,LOC_CREGISTER:
+                                 emit_const_reg(A_CMP,S_L,0,p^.left^.location.register);
+                             end;
+                             ungetiftempansi(p^.left^.location.reference);
+                             ungetiftempansi(p^.right^.location.reference);
+                          end
+                        else
+                          begin
+                             secondpass(p^.left);
+                             pushed:=maybe_push(p^.right^.registers32,p^.left,false);
+                             secondpass(p^.right);
+                             if pushed then
+                               restore(p^.left,false);
+                             { release used registers }
+                             del_location(p^.right^.location);
+                             del_location(p^.left^.location);
+                             { push the still used registers }
+                             pushusedregisters(pushedregs,$ff);
+                             { push data }
+                             case p^.right^.location.loc of
+                               LOC_REFERENCE,LOC_MEM:
+                                 emit_push_mem(p^.right^.location.reference);
+                               LOC_REGISTER,LOC_CREGISTER:
+                                 emit_reg(A_PUSH,S_L,p^.right^.location.register);
+                             end;
+                             case p^.left^.location.loc of
+                               LOC_REFERENCE,LOC_MEM:
+                                 emit_push_mem(p^.left^.location.reference);
+                               LOC_REGISTER,LOC_CREGISTER:
+                                 emit_reg(A_PUSH,S_L,p^.left^.location.register);
+                             end;
+                             emitcall('FPC_ANSISTR_COMPARE');
+                             emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
+                             popusedregisters(pushedregs);
+                             maybe_loadesi;
+                             ungetiftempansi(p^.left^.location.reference);
+                             ungetiftempansi(p^.right^.location.reference);
+                          end;
                      end;
                 end;
                { the result of ansicompare is signed }
@@ -2240,7 +2277,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2000-02-14 22:34:28  florian
+  Revision 1.95  2000-02-18 16:13:28  florian
+    * optimized ansistring compare with ''
+    * fixed 852
+
+  Revision 1.94  2000/02/14 22:34:28  florian
     * fixed another internalerror
 
   Revision 1.93  2000/02/09 13:22:45  peter

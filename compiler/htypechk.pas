@@ -63,7 +63,7 @@ implementation
        globtype,systems,tokens,
        cobjects,verbose,globals,
        symconst,
-       types,pass_1,
+       types,pass_1,cpubase,
 {$ifdef newcg}
        cgbase
 {$else}
@@ -595,6 +595,18 @@ implementation
               if (abs(p^.left^.registersmmx-p^.right^.registersmmx)<mmx) then
                inc(p^.registersmmx,mmx);
 {$endif SUPPORT_MMX}
+              { the following is a little bit guessing but I think }
+              { it's the only way to solve same internalerrors:    }
+              { if the left and right node both uses registers     }
+              { and return a mem location, but the current node    }
+              { doesn't use an integer register we get probably    }
+              { trouble when restoring a node                      }
+              if (p^.left^.registers32=p^.right^.registers32) and
+                 (p^.registers32=p^.left^.registers32) and
+                 (p^.registers32>0) and
+                (p^.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
+                (p^.right^.location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                inc(p^.registers32);
             end
            else
             begin
@@ -889,7 +901,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2000-02-09 13:22:53  peter
+  Revision 1.59  2000-02-18 16:13:29  florian
+    * optimized ansistring compare with ''
+    * fixed 852
+
+  Revision 1.58  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.57  2000/02/05 12:11:50  peter
