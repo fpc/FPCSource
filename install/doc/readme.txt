@@ -107,7 +107,7 @@ All standard packages contain a part that is specific for the target platform
 and a few files which are target independent. All files are also available
 as separate files to reduce file size if the default file is too big.
 
-dos100.zip specific:
+dos102.zip specific:
 ----------------------
   basego32.zip    contains a DOS (Go32V2) compiler, runtime library and
                   additional files
@@ -129,7 +129,7 @@ dos100.zip specific:
       UPX 1.01
   gdbgo32.zip     contains the GNU Debugger 4.18 with pascal support for Go32V2
 
-w32100.zip specific:
+w32102.zip specific:
 ----------------------
   basew32.zip     contains a Win32 compiler, runtime library and
                   additional files
@@ -154,7 +154,7 @@ w32100.zip specific:
       UPX 1.01
   gdbw32.zip      contains the GNU Debugger 4.18 with pascal support for Win32
 
-os2100.zip specific:
+os2102.zip specific:
 ----------------------
   baseemx.zip     contains an EMX (OS/2 and DOS) compiler, runtime library and
                   additional files
@@ -183,7 +183,7 @@ os2100.zip specific:
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX,
                   PMGDB (Presentation Manager add-on for GDB) and GPROF 2.9.1
 
-common files in dos100.zip, w32100.zip and os2100.zip:
+common files in dos102.zip, w32102.zip and os2102.zip:
 ------------------------------------------------------------
   demo.zip        contains some demo files
   doc-pdf.zip     contains the documentation in PDF format
@@ -192,7 +192,7 @@ common files in dos100.zip, w32100.zip and os2100.zip:
   readme.txt      this readme file
   whatsnew.txt    what's been changed
 
-Optional source package src100.zip:
+Optional source package src102.zip:
 -------------------------------------
   basesrc.zip     contains the basic Makefiles needed for the source tree
   compsrc.zip     contains the compiler sources
