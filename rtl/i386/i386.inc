@@ -454,7 +454,11 @@ asm
         ret
 .LHC_7:
       { set zero inside the object }
-        pushal
+{        pushal - crashes the 386 CPU }
+        pushl   %eax
+        pushl   %edi
+        pushl   %ecx
+
         cld
         movl    (%eax),%ecx
         movl    %esi,%edi
@@ -467,7 +471,9 @@ asm
         movl    %ebx,%ecx
         rep
         stosb
-        popal
+        popl    %ecx
+        popl    %edi
+        popl    %eax
       { set the VMT address for the new created object }
       { the offset is in %edi since the calling and has not been changed !! }
         movl    %eax,(%esi,%edi,1)
@@ -1110,7 +1116,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.9  2001-04-08 13:19:28  jonas
+  Revision 1.10  2001-04-16 11:22:53  peter
+    * merged popal fix
+
+  Revision 1.9  2001/04/08 13:19:28  jonas
     * optimized FPC_HELP_CONSTRUCTOR a bit
 
   Revision 1.8  2001/03/05 17:10:04  jonas
