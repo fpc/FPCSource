@@ -217,10 +217,10 @@ type
     _FINALIZATION,
     _DISPINTERFACE,
     _SAVEREGISTERS,
+    _UNIMPLEMENTED,
     _IMPLEMENTATION,
     _INITIALIZATION,
-    _RESOURCESTRING,
-    _UNIMPLEMENTED
+    _RESOURCESTRING
   );
 
 const
@@ -440,10 +440,10 @@ const
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN),
-      (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN)
+      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN)
   );
 
 var
@@ -504,7 +504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2003-08-10 17:25:23  peter
+  Revision 1.23  2003-09-04 21:58:16  olle
+    + bugfix, put token UNIMPLEMENTED in right order
+
+  Revision 1.22  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.21  2003/03/26 12:50:54  armin
