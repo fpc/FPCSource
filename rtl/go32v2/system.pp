@@ -1237,7 +1237,7 @@ end;
 
 procedure mkdir(const s : string);[IOCheck];
 begin
-  If InOutRes <> 0 then
+  If (s='') or (InOutRes <> 0) then
    exit;
   DosDir($39,s);
 end;
@@ -1245,7 +1245,7 @@ end;
 
 procedure rmdir(const s : string);[IOCheck];
 begin
-  If InOutRes <> 0 then
+  If (s='') or (InOutRes <> 0) then
    exit;
   DosDir($3a,s);
 end;
@@ -1255,7 +1255,7 @@ procedure chdir(const s : string);[IOCheck];
 var
   regs : trealregs;
 begin
-  If InOutRes <> 0 then
+  If (s='') or (InOutRes <> 0) then
    exit;
 { First handle Drive changes }
   if (length(s)>=2) and (s[2]=':') then
@@ -1417,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.3  2000-08-13 19:23:26  peter
+  Revision 1.4  2001-02-20 21:31:12  peter
+    * chdir,mkdir,rmdir with empty string fixed
+
+  Revision 1.3  2000/08/13 19:23:26  peter
     * fixed double declared ___exit() (merged)
 
   Revision 1.2  2000/07/13 11:33:40  michael

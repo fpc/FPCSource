@@ -689,7 +689,8 @@ end;
 procedure MkDir (const S: string);
 
 begin
-    if InOutRes = 0 then
+    If (s='') or (InOutRes <> 0) then
+     exit;
         DosDir ($39, S);
 end;
 
@@ -697,7 +698,8 @@ end;
 procedure rmdir(const s : string);
 
 begin
-    if InOutRes = 0 then
+    If (s='') or (InOutRes <> 0) then
+     exit;
         DosDir ($3A, S);
 end;
 
@@ -709,8 +711,8 @@ var RC: longint;
     Buffer: array [0..255] of char;
 
 begin
-    if InOutRes = 0 then
-        begin
+    If (s='') or (InOutRes <> 0) then
+     exit;
 (* According to EMX documentation, EMX has only one current directory
    for all processes, so we'll use native calls under OS/2. *)
             if os_Mode = osOS2 then
@@ -765,7 +767,6 @@ begin
                     end
                 else
                     DosDir ($3B, S);
-        end;
 end;
 
 {$ASMMODE ATT}
@@ -948,7 +949,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-02-04 01:57:52  hajny
+  Revision 1.8  2001-02-20 21:31:12  peter
+    * chdir,mkdir,rmdir with empty string fixed
+
+  Revision 1.7  2001/02/04 01:57:52  hajny
     * direct asm removing
 
   Revision 1.6  2001/02/01 21:30:01  hajny

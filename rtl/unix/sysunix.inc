@@ -447,7 +447,8 @@ Procedure MkDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
-  If InOutRes <> 0 then exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
   sys_mkdir(@buffer, 511);
@@ -459,7 +460,8 @@ Procedure RmDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
-  If InOutRes <> 0 then exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
   sys_rmdir(@buffer);
@@ -471,7 +473,8 @@ Procedure ChDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
-  If InOutRes <> 0 then exit;
+  If (s='') or (InOutRes <> 0) then
+   exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
   sys_chdir(@buffer);
@@ -743,7 +746,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-12-17 14:00:57  peter
+  Revision 1.5  2001-02-20 21:31:12  peter
+    * chdir,mkdir,rmdir with empty string fixed
+
+  Revision 1.4  2000/12/17 14:00:57  peter
     * removed debug writelns
 
   Revision 1.3  2000/10/09 16:35:51  marco

@@ -615,27 +615,30 @@ begin
 end;
 
 function CreateDirectoryTrunc(name:pointer):word;
- begin
+begin
   CreateDirectoryTrunc:=CreateDirectory(name,nil);
- end;
+end;
 
 procedure mkdir(const s:string);[IOCHECK];
- begin
-  If InOutRes <> 0 then exit;
+begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
   dirfn(TDirFnType(@CreateDirectoryTrunc),s);
- end;
+end;
 
 procedure rmdir(const s:string);[IOCHECK];
- begin
-  If InOutRes <> 0 then exit;
+begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
   dirfn(TDirFnType(@RemoveDirectory),s);
- end;
+end;
 
 procedure chdir(const s:string);[IOCHECK];
- begin
-  If InOutRes <> 0 then exit;
+begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
   dirfn(TDirFnType(@SetCurrentDirectory),s);
- end;
+end;
 
 procedure getdir(drivenr:byte;var dir:shortstring);
 const
@@ -1423,7 +1426,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-01-26 16:38:03  florian
+  Revision 1.6  2001-02-20 21:31:12  peter
+    * chdir,mkdir,rmdir with empty string fixed
+
+  Revision 1.5  2001/01/26 16:38:03  florian
   *** empty log message ***
 
   Revision 1.4  2001/01/24 21:47:38  florian
