@@ -1982,18 +1982,19 @@ otherwise.
 {Errors are reported in LinuxError.}
 {\seem{termios}{2}}
 
-\function{FLock}{(Var F; Mode : longint)}
+\procedure{FLock}{(Var F; Mode : longint)}
 {\var{FLock} implements file locking. it sets or removes a lock on the file
 \var{F}. F can be of type \var{Text} or \var{File}, or it can be a \linux
 filedescriptor (a longint)
 
 \var{Mode} can be one of the following constants :
 \begin{description}
-\item [LOCK_SH] \ sets a shared lock.
-\item [LOCK_EX] \ sets an exclusive lock.
-\item [LOCK_UN] \ unlocks the file.
-\item [LOCK_NB] \ This can be OR-ed together with the other. If this is done
+\item [LOCK\_SH] \ sets a shared lock.
+\item [LOCK\_EX] \ sets an exclusive lock.
+\item [LOCK\_UN] \ unlocks the file.
+\item [LOCK\_NB] \ This can be OR-ed together with the other. If this is done
 the application doesn't block when locking.
 \end{description}
 }
-{Errors are reported in \var{LinuxError}.}{\seef{Fcntl}, \seem{flock}{2}}
+{Errors are reported in \var{LinuxError}.}
+{\seef{Fcntl}, \seem{flock}{2}}
