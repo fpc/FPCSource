@@ -1075,7 +1075,7 @@ begin
      if userini.libname<>'' then
       Add('LIBNAME='+userini.libname);
      if userini.libunits<>'' then
-      Add('SHAREDLIBOBJECTUNITS='+userini.libunits);
+      Add('SHAREDLIBUNITOBJECTS='+userini.libunits);
      if userini.libgcc then
       Add('override NEEDGCCLIB=1');
      if userini.libother then
@@ -1300,7 +1300,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2000-01-28 12:10:46  peter
+  Revision 1.30  2000-02-02 11:30:00  peter
+    * fixed sharedlibunitobjects typo
+
+  Revision 1.29  2000/01/28 12:10:46  peter
     * reinserted lost diff of rev 1.30
     * distclean target
 
