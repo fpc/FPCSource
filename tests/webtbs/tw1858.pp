@@ -4,7 +4,7 @@
 { e-mail: nc-gaertnma@netcologne.de }
 { expanded for more testing... }
 { Should be tested on systems which detect reads of nil pointers }
-unit test1;
+unit tw1858;
 
 
 interface
@@ -23,7 +23,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-03-07 21:40:56  carl
+  Revision 1.2  2002-03-07 21:46:41  carl
+  + fix unit name
+
+  Revision 1.1  2002/03/07 21:40:56  carl
   * bug #1858 testing
 
 }  
