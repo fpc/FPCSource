@@ -1155,7 +1155,7 @@ cg_e_cant_choose_overload_function=06008_E_Kann mich bestimmen, welche Åberladen
 cg_e_parasize_too_big=06009_E_Grîsse der Parameterliste Åbersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_illegal_type_conversion=06010_E_UnzulÑssige Typumwandlung
+cg_e_illegal_type_conversion=06010_E_UnzulÑssige Typumwandlung: "$1" in "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
 cg_d_pointer_to_longint_conv_not_portable=06011_D_Umwandlung zwischen ganzen Zahlen und Pointern ist zwischen verschiedenen Plattformen nicht portabel

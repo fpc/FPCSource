@@ -1305,7 +1305,7 @@ cg_e_cant_choose_overload_function=06008_E_Can't determine which overloaded func
 cg_e_parasize_too_big=06009_E_Parameter list size exceeds 65535 bytes
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_illegal_type_conversion=06010_E_Illegal type conversion
+cg_e_illegal_type_conversion=06010_E_Illegal type conversion: "$1" to "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
 cg_h_pointer_to_longint_conv_not_portable=06011_H_Conversion between ordinals and pointers are not portable

@@ -1335,7 +1335,7 @@ implementation
                              (left.nodetype=derefn)
                             )
                            ) then
-                       CGMessage(cg_e_illegal_type_conversion);
+                       CGMessage2(cg_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
                    end;
                end
               else
@@ -2379,7 +2379,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.140  2004-02-20 21:55:59  peter
+  Revision 1.141  2004-02-21 16:03:10  florian
+    * message about illegal type conversion reports now the types
+
+  Revision 1.140  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.139  2004/02/13 15:42:21  peter
