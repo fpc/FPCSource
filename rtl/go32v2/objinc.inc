@@ -90,7 +90,7 @@ BEGIN
          sysrealintr($21,regs);
          if (regs.realflags and 1) <> 0 then
            begin
-             InOutRes:=lo(regs.realeax);
+             DosStreamError:=lo(regs.realeax);
              FileOpen:=$0;
              exit;
            end
@@ -135,9 +135,15 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION FileRead (Handle: THandle; Var Buf; Count: Sw_Word;
 Var Actual: Sw_Word): Word;
+Var
+  StoreInOutRes : word;
 BEGIN
+  StoreInOutRes:=InOutRes;
+  InOutRes:=0;
   Actual:=system.do_read(longint(Handle),longint(@Buf),Count);
-  FileRead:=InOutRes;
+  DosStreamError:=InOutRes;
+  InOutRes:=StoreInOutRes;
+  FileRead:=DosStreamError;
 End;
 
 
@@ -145,10 +151,16 @@ End;
 {  FileWrite -> Platforms DOS              - Checked 05May1998 CEC          }
 {---------------------------------------------------------------------------}
 FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
+Var
+  StoreInOutRes : word;
 BEGIN
+  StoreInOutRes:=InOutRes;
+  InOutRes:=0;
  system.do_write(longint(Handle),longint(@Buf),Count);
  Actual:=Count;
- FileWrite:=InOutRes;
+ DosStreamError:=InOutRes;
+ InOutRes:=StoreInOutRes;
+ FileWrite:=DosStreamError;
 End;
 
 
@@ -181,7 +193,31 @@ END;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:40  michael
-  + removed logs
- 
+  Revision 1.3  2002-05-09 08:42:24  carl
+  * Merges from Fixes branch
+
+  Revision 1.1.2.1  2002/04/12 08:08:08  pierre
+   * avoid that objects unit is sensitive to or changes system.InOutRes value
+
+  Revision 1.1  2000/07/13 06:30:39  michael
+  + Initial import
+
+  Revision 1.7  2000/06/30 22:16:19  peter
+    * fixed truncate
+
+  Revision 1.6  2000/05/30 06:45:53  marco
+   * fixed in line 164 pointer(@buf) to buf
+
+  Revision 1.5  2000/03/20 19:19:44  pierre
+   * LFN support in streams
+
+  Revision 1.4  2000/02/09 16:59:29  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:32  daniel
+    * copyright 2000
+
+  Revision 1.2  2000/01/07 16:32:23  daniel
+    * copyright 2000 added
+
 }

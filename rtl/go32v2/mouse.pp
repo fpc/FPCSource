@@ -50,6 +50,7 @@ var
   v2prt0_ds_alias : word;external name '___v2prt0_ds_alias';
 const
   MousePresent : boolean = false;
+  First_try    : boolean = true;
 {$ifdef DEBUG}
   MouseError   : longint = 0;
   CallCounter  : longint = 0;
@@ -465,7 +466,11 @@ begin
     begin
       if DetectMouse=0 then
         begin
-          Writeln('No mouse driver found ');
+          if First_try then
+            begin
+              Writeln('No mouse driver found ');
+              First_try:=false;
+            end;
           exit;
         end
       else
@@ -770,17 +775,20 @@ Begin
 end.
 {
   $Log$
-  Revision 1.5  2002-01-19 11:57:55  peter
-    * merged fixes
+  Revision 1.6  2002-05-09 08:42:24  carl
+  * Merges from Fixes branch
 
-  Revision 1.4  2001/12/26 21:20:47  peter
-    * more xp fixes
+  Revision 1.1.2.6  2002/04/12 12:01:48  pierre
+   * fix bug report 1701
 
-  Revision 1.3  2001/12/26 21:03:56  peter
-    * merged fixes from 1.0.x
+  Revision 1.1.2.5  2002/01/08 16:34:52  pierre
+   a working callback for XP
 
-  Revision 1.2  2001/09/22 00:01:42  michael
-  + Merged driver support for mouse from fixbranch
+  Revision 1.1.2.4  2001/12/20 08:36:07  pierre
+   * one more try to fix mouse for XP
+
+  Revision 1.1.2.3  2001/12/17 15:21:17  pierre
+   * resotre all registers in NT realmode callback for XP
 
   Revision 1.1.2.2  2001/09/21 23:53:48  michael
   + Added mouse driver support.

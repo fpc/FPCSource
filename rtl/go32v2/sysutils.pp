@@ -691,9 +691,25 @@ end;
 ****************************************************************************}
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
-
+var
+  hp      : ppchar;
+  lenvvar,hs    : string;
+  eqpos : longint;
 begin
-  Result:=getenv(EnvVar);
+  lenvvar:=upcase(envvar);
+  hp:=envp;
+  Result:='';
+  while assigned(hp^) do
+   begin
+     hs:=strpas(hp^);
+     eqpos:=pos('=',hs);
+     if upcase(copy(hs,1,eqpos-1))=lenvvar then
+      begin
+        Result:=copy(hs,eqpos+1,length(hs)-eqpos);
+        exit;
+      end;
+     inc(hp);
+   end;
 end;
 
 {****************************************************************************
@@ -708,7 +724,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.8  2002-01-25 16:23:03  peter
+  Revision 1.9  2002-05-09 08:42:24  carl
+  * Merges from Fixes branch
+
+  Revision 1.8  2002/01/25 16:23:03  peter
     * merged filesearch() fix
 
   Revision 1.7  2002/01/19 11:57:55  peter
