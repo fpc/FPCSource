@@ -508,9 +508,11 @@ implementation
                       { the FUNCTION_RESULT_LOW_REG/FUNCTION_RESULT_HIGH_REG
                         are already allocated }
                       rg.ungetregisterint(exprasmlist,r);
-                      rg.ungetregisterint(exprasmlist,hregister);
                       location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                      cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,r,location.registerlow);
+                      rg.ungetregisterint(exprasmlist,hregister);
                       location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
+                      cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,hregister,location.registerhigh);
 {$else newra}
                       if RS_FUNCTION_RESULT64_LOW_REG in rg.unusedregsint then
                         location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT64_LOW_REG)
@@ -526,9 +528,9 @@ implementation
                         location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
                       if location.registerhigh.number=NR_NO then
                         location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
-{$endif newra}
                       cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
                           location.register64{$ifdef newra},false{$endif});
+{$endif newra}
                     end
                    else
 {$endif cpu64bit}
@@ -1529,7 +1531,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2003-07-08 21:24:59  peter
+  Revision 1.102  2003-07-21 13:51:50  jonas
+    * fixed 64bit int results with -dnewra (you can't free both registers and
+      then allocate two new ones, because then the registers could be reversed
+      afterwards -> you get something like "movl %eax, %edx; movl %edx,%eax")
+
+  Revision 1.101  2003/07/08 21:24:59  peter
     * sparc fixes
 
   Revision 1.100  2003/07/06 21:50:33  jonas
