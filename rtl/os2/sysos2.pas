@@ -418,6 +418,7 @@ procedure do_truncate(handle,pos:longint);
 
 begin
     asm
+(* DOS function 40h isn't safe for this according to EMX documentation
         movl $0x4200,%eax
         movl 8(%ebp),%ebx
         movl 12(%ebp),%edx
@@ -429,6 +430,19 @@ begin
         xorl %ecx,%ecx
         movb $0x40,%ah
         call syscall
+*)
+        movl $0x7F25,%eax
+        movl Handle,%ebx
+        movl Pos,%edx
+        call syscall
+        inc %eax
+        movl %ecx, %eax
+        jnz .LTruncate1
+(* File position is undefined after truncation, move to the end. *)
+        movl $0x4202,%eax
+        movl Handle,%ebx
+        movl $0,%edx
+        call syscall
         jnc .LTruncate2
         .LTruncate1:
         movw %ax,inoutres;
@@ -436,6 +450,31 @@ begin
         leave
         ret $8
     end;
+end;
+
+const
+    FileHandleCount: longint = 20;
+
+function Increase_File_Handle_Count: boolean;
+var Err: word;
+begin
+    Inc (FileHandleCount, 10);
+    Err := 0;
+    asm
+        movl $0x6700, %eax
+        movl FileHandleCount, %ebx
+        call syscall
+        jnc .LIncFHandles
+        movw %ax, Err
+.LIncFHandles:
+    end;
+    if Err <> 0 then
+        begin
+            Increase_File_Handle_Count := false;
+            Dec (FileHandleCount, 10);
+        end
+    else
+        Increase_File_Handle_Count := true;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -448,7 +487,9 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
-var oflags:byte;
+(* var oflags:byte;
+*)
+var Action: longint;
 
 begin
     allowslash(p);
@@ -466,19 +507,19 @@ begin
             end;
        end;
     { reset file handle }
-    filerec(f).handle:=high(word);
-    oflags:=2;
+    filerec(f).handle := UnusedHandle;
+    Action := 0;
+(*    oflags:=2;
+*)
     { convert filemode to filerec modes }
     case (flags and 3) of
-        0 : begin
-            filerec(f).mode:=fminput;
-            oflags:=0;
-        end;
+        0 : filerec(f).mode:=fminput;
         1 : filerec(f).mode:=fmoutput;
         2 : filerec(f).mode:=fminout;
     end;
     if (flags and $1000)<>0 then
-        begin
+        Action := $500; (* Create / replace *)
+(*        begin
             filerec(f).mode:=fmoutput;
             oflags:=2;
         end
@@ -488,6 +529,7 @@ begin
                 filerec(f).mode:=fmoutput;
                 oflags:=2;
             end;
+*)
     { empty name is special }
     if p[0]=#0 then
         begin
@@ -505,6 +547,35 @@ begin
             end;
             exit;
         end;
+    Action := Action or (Flags and $FF);
+    asm
+        movl $0x7f2b, %eax
+        movl Action, %ecx
+        movl p, %edx
+        call syscall
+        jnc .LOPEN1
+        movw %ax, InOutRes;
+        movw UnusedHandle, %ax
+.LOPEN1:
+        movl f,%edx
+        movw %ax,(%edx)
+    end;
+    if (os_mode <> osOS2) and (InOutRes = 4) and Increase_File_Handle_Count
+                                                                           then
+(* Trying again after increasing amount of file handles *)
+        asm
+            movl $0x7f2b, %eax
+            movl Action, %ecx
+            movl p, %edx
+            call syscall
+            jnc .LOPEN2
+            movw %ax, InOutRes;
+            movw UnusedHandle, %ax
+.LOPEN2:
+            movl f,%edx
+            movw %ax,(%edx)
+        end;
+(*
     if (flags and $1000)<>0 then
         {Use create function.}
         asm
@@ -533,8 +604,15 @@ begin
             movl f,%edx
             movw %ax,(%edx)
         end;
+*)
+      { for systems that have more then 20 by default ! }
+    if FileRec (F).Handle > FileHandleCount then
+        FileHandleCount := FileRec (F).Handle;
     if (flags and $100)<>0 then
-        do_seekend(filerec(f).handle);
+        begin
+            do_seekend(filerec(f).handle);
+            FileRec (F).Mode := fmOutput; {fool fmappend}
+        end;
 end;
 
 {$ASMMODE INTEL}
@@ -555,7 +633,7 @@ asm
     mov eax, 1
     jc @IsDevEnd
     test edx, 80h
-    jnz IsDevEnd
+    jnz @IsDevEnd
     dec eax
 @IsDevEnd:
 end;
@@ -772,7 +850,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2000-05-28 18:17:39  hajny
+  Revision 1.30  2000-06-04 14:14:01  hajny
+    * do_truncate corrected, do_open might work under W9x now
+
+  Revision 1.29  2000/05/28 18:17:39  hajny
     do_isdevice corrected
 
   Revision 1.28  2000/05/21 15:58:50  hajny
