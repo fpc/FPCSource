@@ -115,9 +115,7 @@
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
-{$ifdef DONOTCHAINOPERATORS}
           procedure order_overloaded;
-{$endif DONOTCHAINOPERATORS}
           procedure write;virtual;
           procedure deref;virtual;
           procedure load_references;virtual;
@@ -319,7 +317,11 @@
 
 {
   $Log$
-  Revision 1.47  2000-04-26 08:54:19  pierre
+  Revision 1.48  2000-04-27 10:06:04  pierre
+    * fix for snapshot failue
+    * order_overloaded reintrocduced and adapted to operators
+
+  Revision 1.47  2000/04/26 08:54:19  pierre
     * More changes for operator bug
       Order_overloaded method removed because it conflicted with
       new implementation where the defs are ordered

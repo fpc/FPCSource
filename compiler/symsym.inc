@@ -410,7 +410,7 @@
                 end;
               pd:=pd^.nextoverloaded;
               { do not check defs of operators in other units }
-              if pd^.procsym<>@self then
+              if assigned(pd) and (pd^.procsym<>@self) then
                 pd:=nil;
            end;
       end;
@@ -451,20 +451,22 @@
 {$endif DONOTCHAINOPERATORS}
       end;
 
-{$ifdef DONOTCHAINOPERATORS}
     procedure tprocsym.order_overloaded;
-      var firstdef,currdef,lastdef : pprocdef;
+      var firstdef,currdef,lastdef,nextopdef : pprocdef;
       begin
+         if not assigned(definition) then
+           exit;
          firstdef:=definition;
          currdef:=definition;
-         while assigned(currdef) do
+         while assigned(currdef) and (currdef^.owner=firstdef^.owner) do
            begin
              currdef^.count:=false;
              currdef:=currdef^.nextoverloaded;
            end;
+         nextopdef:=currdef;
          definition:=definition^.nextoverloaded;
          firstdef^.nextoverloaded:=nil;
-         while assigned(definition) do
+         while (definition<>nextopdef) do
            begin
              currdef:=firstdef;
              lastdef:=definition;
@@ -488,10 +490,11 @@
          while assigned(currdef) do
            begin
              currdef^.count:=true;
+             lastdef:=currdef;
              currdef:=currdef^.nextoverloaded;
            end;
+         lastdef^.nextoverloaded:=nextopdef;
       end;
-{$endif DONOTCHAINOPERATORS}
 
     procedure tprocsym.write;
       begin
@@ -2144,7 +2147,11 @@
 
 {
   $Log$
-  Revision 1.143  2000-04-26 08:54:19  pierre
+  Revision 1.144  2000-04-27 10:06:04  pierre
+    * fix for snapshot failue
+    * order_overloaded reintrocduced and adapted to operators
+
+  Revision 1.143  2000/04/26 08:54:19  pierre
     * More changes for operator bug
       Order_overloaded method removed because it conflicted with
       new implementation where the defs are ordered
