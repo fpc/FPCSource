@@ -561,6 +561,9 @@ Begin
                 End;
               A_LEA:
                 Begin
+                {removes seg register prefixes from LEA operations, as they
+                 don't do anything}
+                 Pai386(p)^.oper[0].ref^.Segment := R_DEFAULT_SEG;
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
                   If (Pai386(p)^.oper[0].ref^.Base In [R_EAX..R_EDI]) And
                      (Pai386(p)^.oper[0].ref^.Index = R_NO) And
@@ -1511,7 +1514,10 @@ End.
 
 {
  $Log$
- Revision 1.51  1999-05-05 10:05:54  florian
+ Revision 1.52  1999-05-05 16:19:04  jonas
+   + remove the segment prefixes from LEA instructions
+
+ Revision 1.51  1999/05/05 10:05:54  florian
    * a delphi compiled compiler recompiles ppc
 
  Revision 1.50  1999/05/02 21:33:55  florian
