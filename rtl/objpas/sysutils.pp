@@ -45,6 +45,8 @@ type
 
    tfilename = string;
 
+   tsyscharset = set of char;
+
    longrec = packed record
       lo,hi : word;
    end;
@@ -306,7 +308,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.45  2000-04-24 13:34:29  peter
+    Revision 1.46  2000-06-11 07:07:23  peter
+      + TSysCharSet
+
+    Revision 1.45  2000/04/24 13:34:29  peter
       * added enhancedraise define
 
     Revision 1.43  2000/03/30 13:54:15  pierre
