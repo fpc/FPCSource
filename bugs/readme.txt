@@ -331,3 +331,4 @@ bug0237.pp   Can't have sub procedures with names defined in interface
 bug0242.pp   Crash when passing a procedure to formal parameter
 bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
+bug0244.pp   nested procedures can't have same name as global ones
