@@ -190,12 +190,13 @@ CONST
 TYPE
   { enumeration for registers, don't change the order }
   { it's used by the register size conversions        }
-  ToldRegister=({$INCLUDE registers.inc});
+  TCpuRegister=({$INCLUDE cpuregs.inc});
+  TOldRegister=TCpuRegister;
   Tnewregister=word;
   Tsuperregister=byte;
   Tsubregister=byte;
   Tregister=record
-    enum:Toldregister;
+    enum:TCpuRegister;
     number:Tnewregister;
   end;
   TRegister64=PACKED RECORD
@@ -203,17 +204,17 @@ TYPE
      RegLo,RegHi:TRegister;
   END;
   treg64=tregister64;{alias for compact code}
-  TRegisterSet=SET OF ToldRegister;
+  TRegisterSet=SET OF TCpuRegister;
   Tsupregset=set of Tsuperregister;
-CONST
+const
   R_NO=R_NONE;
   firstreg = Succ(R_NONE);
   lastreg  = Pred(R_INTREGISTER);
-
 {General registers.}
 
 const
-  NR_NO=$0000;
+  NR_NONE=$0000;
+  NR_NO=NR_NONE;
   NR_G0=$0001;
   NR_G1=$0002;
   NR_G2=$0003;
@@ -246,6 +247,114 @@ const
   NR_I5=$1600;
   NR_I6=$1700;
   NR_I7=$1800;
+{Floating point}
+  NR_F0=$2000;
+  NR_F1=$2000;
+  NR_F2=$2000;
+  NR_F3=$2000;
+  NR_F4=$2000;
+  NR_F5=$2000;
+  NR_F6=$2000;
+  NR_F7=$2000;
+  NR_F8=$2000;
+  NR_F9=$2000;
+  NR_F10=$2000;
+  NR_F11=$2000;
+  NR_F12=$2000;
+  NR_F13=$2000;
+  NR_F14=$2000;
+  NR_F15=$2000;
+  NR_F16=$2000;
+  NR_F17=$2000;
+  NR_F18=$2000;
+  NR_F19=$2000;
+  NR_F20=$2000;
+  NR_F21=$2000;
+  NR_F22=$2000;
+  NR_F23=$2000;
+  NR_F24=$2000;
+  NR_F25=$2000;
+  NR_F26=$2000;
+  NR_F27=$2000;
+  NR_F28=$2000;
+  NR_F29=$2000;
+  NR_F30=$2000;
+  NR_F31=$2000;
+{Coprocessor point}
+  NR_C0=$3000;
+  NR_C1=$3000;
+  NR_C2=$3000;
+  NR_C3=$3000;
+  NR_C4=$3000;
+  NR_C5=$3000;
+  NR_C6=$3000;
+  NR_C7=$3000;
+  NR_C8=$3000;
+  NR_C9=$3000;
+  NR_C10=$3000;
+  NR_C11=$3000;
+  NR_C12=$3000;
+  NR_C13=$3000;
+  NR_C14=$3000;
+  NR_C15=$3000;
+  NR_C16=$3000;
+  NR_C17=$3000;
+  NR_C18=$3000;
+  NR_C19=$3000;
+  NR_C20=$3000;
+  NR_C21=$3000;
+  NR_C22=$3000;
+  NR_C23=$3000;
+  NR_C24=$3000;
+  NR_C25=$3000;
+  NR_C26=$3000;
+  NR_C27=$3000;
+  NR_C28=$3000;
+  NR_C29=$3000;
+  NR_C30=$3000;
+  NR_C31=$3000;
+{ASR}
+  NR_ASR0=$4000;
+  NR_ASR1=$4000;
+  NR_ASR2=$4000;
+  NR_ASR3=$4000;
+  NR_ASR4=$4000;
+  NR_ASR5=$4000;
+  NR_ASR6=$4000;
+  NR_ASR7=$4000;
+  NR_ASR8=$4000;
+  NR_ASR9=$4000;
+  NR_ASR10=$4000;
+  NR_ASR11=$4000;
+  NR_ASR12=$4000;
+  NR_ASR13=$4000;
+  NR_ASR14=$4000;
+  NR_ASR15=$4000;
+  NR_ASR16=$4000;
+  NR_ASR17=$4000;
+  NR_ASR18=$4000;
+  NR_ASR19=$4000;
+  NR_ASR20=$4000;
+  NR_ASR21=$4000;
+  NR_ASR22=$4000;
+  NR_ASR23=$4000;
+  NR_ASR24=$4000;
+  NR_ASR25=$4000;
+  NR_ASR26=$4000;
+  NR_ASR27=$4000;
+  NR_ASR28=$4000;
+  NR_ASR29=$4000;
+  NR_ASR30=$4000;
+  NR_ASR31=$4000;
+{Floating point status/"front of queue" registers}
+  NR_FSR=$5000;
+  NR_FQ=$50001;
+  NR_CSR=$5000;
+  NR_CQ=$5000;
+  NR_PSR=$5000;
+  NR_TBR=$5000;
+  NR_WIM=$5000;
+  NR_Y=$5000;
 
 {Superregisters.}
 
@@ -286,10 +395,11 @@ const
   R_SUBL=$00;
 
 type
-  reg2strtable=ARRAY[TOldRegister] OF STRING[7];
-
+  reg2strtable=ARRAY[TCpuRegister] OF STRING[7];
+  TCpuReg=array[TCpuRegister]of TRegister;
 const
   std_reg2str:reg2strtable=({$INCLUDE strregs.inc});
+  CpuReg:TCpuReg=({$INCLUDE registers.inc});
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
@@ -469,7 +579,7 @@ const
   {# Register indexes for stabs information, when some parameters or variables
   are stored in registers.
   Taken from rs6000.h (DBX_REGISTER_NUMBER) from GCC 3.x source code.}
-  stab_regindex:ARRAY[TOldRegister]OF ShortInt=({$INCLUDE stabregi.inc});
+  stab_regindex:ARRAY[TCpuRegister]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
   stack_pointer_reg   = R_O6;
   NR_STACK_POINTER_REG = NR_O6;
@@ -568,7 +678,7 @@ VAR
 *****************************************************************************}
 const
   maxvarregs=30;
-  VarRegs:ARRAY[1..maxvarregs]OF ToldRegister=(
+  VarRegs:ARRAY[1..maxvarregs]OF TCpuRegister=(
              R_G0,R_G1,R_G2,R_G3,R_G4,R_G5,R_G6,R_G7,
              R_O0,R_O1,R_O2,R_O3,R_O4,R_O5,{R_R14=R_SP}R_O7,
              R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7,
@@ -663,7 +773,12 @@ END.
 
 {
   $Log$
-  Revision 1.28  2003-04-28 09:46:30  mazen
+  Revision 1.29  2003-04-29 12:03:52  mazen
+  * TOldRegister isnow just an alias for TCpuRegister
+  * TCpuRegister is used to define cpu register set physically available
+  + CpuRegs array to easially create correspondence between TCpuRegister and TRegister
+
+  Revision 1.28  2003/04/28 09:46:30  mazen
   + max_scratch_regs variable added because requested by common compiler code
 
   Revision 1.27  2003/04/23 13:35:39  peter
@@ -673,70 +788,4 @@ END.
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...
-
-  Revision 1.25  2003/03/10 21:59:54  mazen
-  * fixing index overflow in handling new registers arrays.
-
-  Revision 1.24  2003/02/26 22:06:27  mazen
-  * FirstReg <-- R_G0 instead of Low(TOldRegister)=R_NONE
-  * LastReg <-- R_L7 instead of High(R_ASR31)=High(TOldRegister)
-  * FirstReg..LastReg rplaced by TOldRegister in several arrays declarions
-
-  Revision 1.23  2003/02/19 22:00:17  daniel
-    * Code generator converted to new register notation
-    - Horribily outdated todo.txt removed
-
-  Revision 1.22  2003/02/02 19:25:54  carl
-    * Several bugfixes for m68k target (register alloc., opcode emission)
-    + VIS target
-    + Generic add more complete (still not verified)
-
-  Revision 1.21  2003/01/20 22:21:36  mazen
-  * many stuff related to RTL fixed
-
-  Revision 1.20  2003/01/09 20:41:00  daniel
-    * Converted some code in cgx86.pas to new register numbering
-
-  Revision 1.19  2003/01/09 15:49:56  daniel
-    * Added register conversion
-
-  Revision 1.18  2003/01/08 18:43:58  daniel
-   * Tregister changed into a record
-
-  Revision 1.17  2003/01/05 20:39:53  mazen
-  * warnings about FreeTemp already free fixed with appropriate registers handling
-
-  Revision 1.16  2002/10/28 20:59:17  mazen
-  * TOpSize values changed S_L --> S_SW
-
-  Revision 1.15  2002/10/28 20:37:44  mazen
-  * TOpSize values changed S_L --> S_SW
-
-  Revision 1.14  2002/10/20 19:01:38  mazen
-  + op_raddr_reg and op_caddr_reg added to fix functions prologue
-
-  Revision 1.13  2002/10/19 20:35:07  mazen
-  * carl's patch applied
-
-  Revision 1.12  2002/10/11 13:35:14  mazen
-  *** empty log message ***
-
-  Revision 1.11  2002/10/10 19:57:51  mazen
-  * Just to update repsitory
-
-  Revision 1.10  2002/10/02 22:20:28  mazen
-  + out registers allocator for the first 6 scalar parameters which must be passed into %o0..%o5
-
-  Revision 1.9  2002/10/01 21:06:29  mazen
-  attinst.inc --> strinst.inc
-
-  Revision 1.8  2002/09/30 19:12:14  mazen
-  * function prologue fixed
-
-  Revision 1.7  2002/09/27 04:30:53  mazen
-  * cleanup made
-
-  Revision 1.6  2002/09/24 03:57:53  mazen
-  * some cleanup  was made
-
 }
