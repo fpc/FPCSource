@@ -174,6 +174,9 @@ CONST
 {  The process cannot access the file because         }
 {  it is being used by another process.               }
     ERROR_SHARING_VIOLATION      =   32;
+{   A pipe has been closed on the other end }
+{   Removing that error allows eof to works as on other OSes }
+    ERROR_BROKEN_PIPE = 109;
 
 {$IFDEF MT}
 threadvar
@@ -424,7 +427,10 @@ begin
   if readfile(h,pointer(addr),len,_result,nil)=0 then
     Begin
       errno:=GetLastError;
-      Errno2InoutRes;
+      if errno=ERROR_BROKEN_PIPE then
+        errno:=0
+      else
+        Errno2InoutRes;
     end;
   do_read:=_result;
 end;
@@ -1567,7 +1573,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2002-07-28 20:43:49  florian
+  Revision 1.30  2002-08-26 13:49:18  pierre
+   * fix bug report 2086
+
+  Revision 1.29  2002/07/28 20:43:49  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 
