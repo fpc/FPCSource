@@ -491,7 +491,7 @@ asm
                 li      r3,-1
                 ble     LIndexDWordDone
 LIndexDWordLoop:
-                lwzu    r9,4(r30)
+                lwzu    r9,4(r10)
                 cmplw   r9,r5
                 bdnzf   cr0*4+eq, LIndexDWordLoop
                 { r3 still contains -1 here }
@@ -854,8 +854,8 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:longint;assembler;
 asm
-    {$warning FIX ME!}
-    //    !!!!!!! depends on ABI !!!!!!!!
+  { all abi's I know use r1 as stack pointer }
+  mr r3, r1
 end ['R3'];
 
 
@@ -948,7 +948,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.29  2003-01-09 20:14:35  florian
+  Revision 1.30  2003-03-12 19:21:29  jonas
+    + implemented get_frame()
+    * fixed bug in IndexDWord()
+
+  Revision 1.29  2003/01/09 20:14:35  florian
     * fixed helper declarations
 
   Revision 1.28  2003/01/09 13:38:56  florian
