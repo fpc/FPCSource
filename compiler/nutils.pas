@@ -454,10 +454,8 @@ implementation
                   else
                     inc(result,5);
                   if (result >= NODE_COMPLEXITY_INF) then
-                    begin
-                      result := NODE_COMPLEXITY_INF;
-                      exit;
-                    end;
+                    result := NODE_COMPLEXITY_INF;
+                  exit;
                 end;
               subscriptn:
                 p := tunarynode(p).left;
@@ -495,7 +493,11 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-07-15 19:55:40  jonas
+  Revision 1.17  2004-07-15 20:59:58  jonas
+    * fixed complexity function so it doesn't always return infinity when a
+      load node is encountered
+
+  Revision 1.16  2004/07/15 19:55:40  jonas
     + (incomplete) node_complexity function to assess the complexity of a
       tree
     + support for inlining value and const parameters at the node level
