@@ -101,7 +101,7 @@ uses
   cutils,
   CpuGas;
 const
-  _size=S_L;{To be removed soon}
+  _size=S_SW;{To be removed soon}
 {****************************************************************************
                           TAI_ALIGN
  ****************************************************************************}
@@ -219,7 +219,7 @@ constructor taicpu.op_const_reg(op:tasmop;_op1:aword;_op2:tregister);
 constructor taicpu.op_ref_reg(op:tasmop;const _op1:treference;_op2:tregister);
 	begin
 		inherited create(op);
-		init(S_L);
+		init(S_SW);
 		ops:=2;
 		loadref(0,_op1);
 		loadreg(1,_op2);
@@ -321,7 +321,7 @@ constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1of
 constructor taicpu.op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegister);
   begin
     inherited create(op);
-    init(S_L);
+    init(S_SW);
     ops:=2;
         WriteLn(1,std_reg2str[rgb]);
     loadcaddr(0,rgb,cnst);
@@ -331,7 +331,7 @@ constructor taicpu.op_caddr_reg(op:TAsmOp;rgb:TRegister;cnst:Integer;reg:TRegist
 constructor taicpu.op_raddr_reg(op:TAsmOp;rg1,rg2,reg:TRegister);
   begin
     inherited create(op);
-    init(S_L);
+    init(S_SW);
     ops:=2;
     loadraddr(0,rg1,rg2);
     loadreg(1,reg);
@@ -763,7 +763,7 @@ begin
              else if (insentry^.flags and IF_SD)<>0 then
                begin
                  if opsize=S_NO then
-                   opsize:=S_L;
+                   opsize:=S_SW;
                end;
            end;
        end;
@@ -1138,7 +1138,10 @@ procedure InitAsm;
 end.
 {
     $Log$
-    Revision 1.8  2002-10-22 13:43:01  mazen
+    Revision 1.9  2002-10-28 20:59:17  mazen
+    * TOpSize values changed S_L --> S_SW
+
+    Revision 1.8  2002/10/22 13:43:01  mazen
     - cga.pas redueced to an empty unit
 
     Revision 1.7  2002/10/20 19:01:38  mazen

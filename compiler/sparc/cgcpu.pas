@@ -103,7 +103,7 @@ specific processor ABI. It is overriden for each CPU target.
 CONST
   TOpCG2AsmOp:ARRAY[topcg]OF TAsmOp=(A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL, A_SMUL, A_NEG,A_NOT,A_OR,A_not,A_not,A_not,A_SUB,A_XOR);
   TOpCmp2AsmCond:ARRAY[topcmp]OF TAsmCond=(C_NONE,C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
-  TCGSize2OpSize:ARRAY[tcgsize]OF TOpSize=(S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,S_FS,S_FL,S_FX,S_IQ,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+  TCGSize2OpSize:ARRAY[tcgsize]OF TOpSize=(S_NO,S_B,S_W,S_SW,S_SW,S_B,S_W,S_SW,S_SW,S_FS,S_FD,S_FQ,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 IMPLEMENTATION
 USES
   globtype,globals,verbose,systems,cutils,
@@ -121,7 +121,7 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
 			  LOC_REGISTER:
     			if r<>Register
 					then
-						Concat(taicpu.op_Reg_Reg_Reg(A_OR,S_L,r,R_G0,Register));
+						Concat(taicpu.op_Reg_Reg_Reg(A_OR,S_SW,r,R_G0,Register));
 				else
 				  InternalError(2002101002);
 			end;
@@ -184,7 +184,7 @@ procedure tcgSPARC.a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST Loc
       CGMessage(cg_e_cant_use_far_pointer_there);
     IF(r.base=R_NO)AND(r.index=R_NO)
     THEN
-      list.concat(Taicpu.Op_sym_ofs(A_LD,S_L,r.symbol,r.offset))
+      list.concat(Taicpu.Op_sym_ofs(A_LD,S_SW,r.symbol,r.offset))
     ELSE IF(r.base=R_NO)AND(r.index<>R_NO)AND
            (r.offset=0)AND(r.scalefactor=0)AND(r.symbol=nil)
     THEN
@@ -205,7 +205,7 @@ procedure tcgSPARC.a_call_name(list:TAasmOutput;CONST s:string);
   BEGIN
     WITH List,objectlibrary DO
       BEGIN
-        concat(taicpu.op_sym(A_CALL,S_L,newasmsymbol(s)));
+        concat(taicpu.op_sym(A_CALL,S_SW,newasmsymbol(s)));
         concat(taicpu.op_none(A_NOP));
       END;
   END;
@@ -252,7 +252,7 @@ procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TRefer
     op:tasmop;
     s:topsize;
   begin
-    sizes2load(size,S_L,op,s);
+    sizes2load(size,S_SW,op,s);
     list.concat(taicpu.op_ref_reg(op,ref,reg));
   end;
 procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
@@ -277,7 +277,7 @@ procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
           OS_S16:
             InternalError(2002100803);{concat(taicpu.op_reg_reg(A_EXTSH,reg2,reg1));}
           OS_32,OS_S32:
-            concat(taicpu.op_reg_reg_reg(A_OR,S_L,R_G0,reg1,reg2));
+            concat(taicpu.op_reg_reg_reg(A_OR,S_SW,R_G0,reg1,reg2));
           else internalerror(2002090901);
         end;
   end;
@@ -342,7 +342,7 @@ procedure tcgSPARC.a_parammm_reg(list:TAasmOutput;reg:tregister);
   VAR
     href:TReference;
   BEGIN
-//    list.concat(taicpu.op_const_reg(A_SUB,S_L,8,R_RSP));
+//    list.concat(taicpu.op_const_reg(A_SUB,S_SW,8,R_RSP));
 //    reference_reset_base(href,R_ESP,0);
 //    list.concat(taicpu.op_reg_ref(A_NONEQ,S_NO,reg,href));
   END;
@@ -364,7 +364,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                     OP_IDIV:
                       opcode := A_SAR;
                   end;
-                  list.concat(taicpu.op_const_reg(opcode,S_L,power,
+                  list.concat(taicpu.op_const_reg(opcode,S_SW,power,
                     reg));
                   exit;
                 end;
@@ -377,12 +377,12 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 begin
-                  list.concat(taicpu.op_const_reg(A_SHL,S_L,power,
+                  list.concat(taicpu.op_const_reg(A_SHL,S_SW,power,
                     reg));
                   exit;
                 end;
               if op = OP_IMUL then
-                list.concat(taicpu.op_const_reg(A_IMUL,S_L,
+                list.concat(taicpu.op_const_reg(A_IMUL,S_SW,
                   a,reg))
               else
                 { OP_MUL should be handled specifically in the code        }
@@ -394,14 +394,14 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,S_L,reg))
+                list.concat(taicpu.op_reg(A_INC,S_SW,reg))
               else
-                list.concat(taicpu.op_reg(A_DEC,S_L,reg))
+                list.concat(taicpu.op_reg(A_DEC,S_SW,reg))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                list.concat(taicpu.op_const_reg(A_NONE,S_L,0,reg))
+                list.concat(taicpu.op_const_reg(A_NONE,S_SW,0,reg))
             else if (a = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -409,19 +409,19 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_reg(A_NONE,S_L,high(aword),reg));
+                         list.concat(taicpu.op_const_reg(A_NONE,S_SW,high(aword),reg));
                        OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,S_L,reg));
+                         list.concat(taicpu.op_reg(A_NOT,S_SW,reg));
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],S_L,
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],S_SW,
                 a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_const_reg(
-                  TOpCG2AsmOp[op],S_L,a and 31,reg));
+                  TOpCG2AsmOp[op],S_SW,a and 31,reg));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -542,7 +542,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                 { is ecx, save it to a temp for now                         }
                 if dst in [R_ECX,R_CX,R_CL] then
                   begin
-                    case S_L of
+                    case S_SW of
                       S_B:regloadsize := OS_8;
                       S_W:regloadsize := OS_16;
                       else regloadsize := OS_32;
@@ -560,7 +560,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                             { allocate ecx                                }
                             (rg.getexplicitregisterint(list,R_ECX) = R_ECX))) then
                       begin
-                        list.concat(taicpu.op_reg(A_NONE,S_L,R_ECX));
+                        list.concat(taicpu.op_reg(A_NONE,S_SW,R_ECX));
                         popecx := true;
                       end;
                     a_load_reg_reg(list,OS_8,OS_8,(src),R_CL);
@@ -573,20 +573,20 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                     R_CL,dst))
                 else
                   begin
-                    list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],S_L,
+                    list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],S_SW,
                       R_CL,tmpreg));
                     { move result back to the destination }
                     a_load_reg_reg(list,OS_32,OS_32,tmpreg,R_ECX);
                     free_scratch_reg(list,tmpreg);
                   end;
                 if popecx then
-                  list.concat(taicpu.op_reg(A_POP,S_L,R_ECX))
+                  list.concat(taicpu.op_reg(A_POP,S_SW,R_ECX))
                 else if not (dst in [R_ECX,R_CX,R_CL]) then
                   rg.ungetregisterint(list,R_ECX);
               end;
             else
               begin
-                if S_L <> dstsize then
+                if S_SW <> dstsize then
                   internalerror(200109226);
                 list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
                   src,dst));
@@ -657,8 +657,8 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
         power:LongInt;
         opsize:topsize;
       begin
-        opsize := S_L;
-        if (opsize <> S_L) or
+        opsize := S_SW;
+        if (opsize <> S_SW) or
            not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_const_reg_reg(list,op,size,a,src,dst);
@@ -676,7 +676,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
                  ispowerof2(a,power) then
                 { can be done with a shift }
                 inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-              list.concat(taicpu.op_reg_const_reg(A_SMUL,S_L,src,a,dst));
+              list.concat(taicpu.op_reg_const_reg(A_SMUL,S_SW,src,a,dst));
             end;
           OP_ADD, OP_SUB:
             if (a = 0) then
@@ -700,9 +700,9 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
         tmpref:TReference;
         opsize:topsize;
       begin
-        opsize := S_L;
-        if (opsize <> S_L) or
-           (S_L <> S_L) or
+        opsize := S_SW;
+        if (opsize <> S_SW) or
+           (S_SW <> S_SW) or
            not (size in [OS_32,OS_S32]) then
           begin
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
@@ -715,7 +715,7 @@ procedure tcgSPARC.a_op_const_reg(list:TAasmOutput;Op:TOpCG;a:AWord;reg:TRegiste
             { can't do anything special for these }
             inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
           OP_IMUL:
-            list.concat(taicpu.op_reg_reg_reg(A_SMUL,S_L,src1,src2,dst));
+            list.concat(taicpu.op_reg_reg_reg(A_SMUL,S_SW,src1,src2,dst));
           OP_ADD:
             begin
               reference_reset(tmpref);
@@ -755,7 +755,7 @@ procedure tcgSPARC.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:to
         reg1,reg2:tregister;l:tasmlabel);
 
         begin
- {         if regsize(reg1) <> S_L then
+ {         if regsize(reg1) <> S_SW then
             internalerror(200109226);
           list.concat(taicpu.op_reg_reg(A_CMP,regsize(reg1),reg1,reg2));
           a_jmp_cond(list,cmp_op,l);}
@@ -842,7 +842,7 @@ frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state before
 execution of the SAVE instrucion so it is the caller %i6, when the %i6 after
 execution of that instrucion is the called function stack pointer}
     with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
+      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_SW,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
   end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
   begin
@@ -867,13 +867,13 @@ If no inversion we can use just
         concat(Taicpu.Op_caddr_reg(A_JMPL,R_I7,8,R_G0));
 {We use trivial restore in the delay slot of the JMPL instruction, as we
 already set result onto %i0}
-        concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
+        concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_SW,R_G0,0,R_G0));
       end
   end;
 procedure tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
 
        begin
-//         list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
+//         list.concat(taicpu.op_ref_reg(A_LEA,S_SW,ref,r));
        end;
 { ************* 64bit operations ************ }
     procedure TCg64fSPARC.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
@@ -978,7 +978,7 @@ procedure TCg64fSPARC.a_op64_const_ref(list:TAasmOutput;op:TOpCG;value:qWord;con
 {              list.concat(taicpu.op_const_ref(op1,Lo(Value),ref));
               tempref:=ref;
               inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(op2,S_L,Hi(Value),tempref));}
+              list.concat(taicpu.op_const_ref(op2,S_SW,Hi(Value),tempref));}
               InternalError(2002102101);
             end;
           else
@@ -1073,8 +1073,8 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             { easy to notice in the generated assembler                     }
             inc(dst.offset,8);
             inc(src.offset,8);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_L,src.base,8,src.base));
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_L,dst.base,8,dst.base));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,src.base,8,src.base));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,dst.base,8,dst.base));
             countreg := get_scratch_reg_int(list);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
@@ -1082,7 +1082,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             a_reg_alloc(list,R_F0);
             objectlibrary.getlabel(lab);
             a_label(list, lab);
-            list.concat(taicpu.op_reg_const_reg(A_SUB,S_L,countreg,1,countreg));
+            list.concat(taicpu.op_reg_const_reg(A_SUB,S_SW,countreg,1,countreg));
             list.concat(taicpu.op_reg_ref(A_LDF,R_F0,src));
             list.concat(taicpu.op_reg_ref(A_STD,R_F0,dst));
             //a_jmp(list,A_BC,C_NE,0,lab);
@@ -1144,11 +1144,9 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
          free_scratch_reg(list,dst.base);
       end;
 function tcgSPARC.reg_cgsize(CONST reg:tregister):tcgsize;
-      CONST
-        regsize_2_cgsize:array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
-      begin
-        result := regsize_2_cgsize[S_L];
-      end;
+  begin
+    result:=OS_32;
+  end;
 
 
 {***************** This is private property, keep out! :) *****************}
@@ -1176,26 +1174,26 @@ procedure tcgSPARC.sizes2load(s1:tcgsize;s2:topsize;var op:tasmop;var s3:topsize
       S_W:
         case s1 of
           OS_8,OS_S8:
-            s3 := S_BW;
+            s3 := S_B;
           OS_16,OS_S16:
-            s3 := S_W;
+            s3 := S_H;
         else
           internalerror(200109222);
         end;
-      S_L:
+      S_SW:
         case s1 of
           OS_8,OS_S8:
-            s3 := S_BL;
+            s3 := S_B;
           OS_16,OS_S16:
-            s3 := S_WL;
+            s3 := S_H;
           OS_32,OS_S32:
-            s3 := S_L;
+            s3 := S_W;
           else
             internalerror(200109223);
         end;
       else internalerror(200109227);
     end;
-    if s3 in [S_B,S_W,S_L]
+    if s3 in [S_B,S_W,S_SW]
     then
       op := A_LD
 {    else if s3=S_DW
@@ -1276,7 +1274,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.18  2002-10-22 13:43:01  mazen
+  Revision 1.19  2002-10-28 20:59:17  mazen
+  * TOpSize values changed S_L --> S_SW
+
+  Revision 1.18  2002/10/22 13:43:01  mazen
   - cga.pas redueced to an empty unit
 
   Revision 1.17  2002/10/20 19:01:38  mazen

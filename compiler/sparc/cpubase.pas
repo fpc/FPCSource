@@ -145,14 +145,17 @@ TYPE
            S_B,{Byte}
            S_H,{Half word}
            S_W,{Word}
+           S_L:=S_W,
            S_D,{Double Word}
            S_Q,{Quad word}
+           S_IQ:=S_Q,
            S_SB,{Signed byte}
            S_SH,{Signed half word}
            S_SW,{Signed word}
            S_SD,{Signed double word}
            S_SQ,{Signed quad word}
-           S_FW,{Float word}
+           S_FS,{Float single word}
+           S_FX:=S_FS,
            S_FD,{Float double word}
            S_FQ,{Float quad word}
            S_NEAR,
@@ -520,7 +523,10 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.15  2002-10-28 20:37:44  mazen
+  Revision 1.16  2002-10-28 20:59:17  mazen
+  * TOpSize values changed S_L --> S_SW
+
+  Revision 1.15  2002/10/28 20:37:44  mazen
   * TOpSize values changed S_L --> S_SW
 
   Revision 1.14  2002/10/20 19:01:38  mazen
