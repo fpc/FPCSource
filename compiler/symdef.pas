@@ -310,7 +310,7 @@ interface
           function  vmt_mangledname : string;
           function  rtti_name : string;
           procedure check_forwards;
-          function  is_related(d : tobjectdef) : boolean;
+          function  is_related(d : tdef) : boolean;override;
           function  next_free_name_index : longint;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
@@ -5173,7 +5173,7 @@ implementation
 
 
    { true, if self inherits from d (or if they are equal) }
-   function tobjectdef.is_related(d : tobjectdef) : boolean;
+   function tobjectdef.is_related(d : tdef) : boolean;
      var
         hp : tobjectdef;
      begin
@@ -6394,7 +6394,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.298  2005-02-26 15:43:09  florian
+  Revision 1.299  2005-03-07 17:58:27  peter
+    * fix protected checking
+
+  Revision 1.298  2005/02/26 15:43:09  florian
     * userdata in file/textrecs now 32 bytes
 
   Revision 1.297  2005/02/14 17:13:07  peter

@@ -86,6 +86,7 @@ interface
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
+         function  is_related(def:tdef):boolean;virtual;
       end;
 
 {************************************************
@@ -226,7 +227,6 @@ implementation
     uses
        verbose,
        fmodule
-//       symdef
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -288,8 +288,14 @@ implementation
 
     function tdef.getsymtable(t:tgetsymtable):tsymtable;
       begin
-        getsymtable:=nil;
+        result:=nil;
       end;
+
+
+   function  tdef.is_related(def:tdef):boolean;
+     begin
+       result:=false;
+     end;
 
 
 {****************************************************************************
@@ -492,8 +498,10 @@ implementation
              (not owner.defowner.owner.iscurrentunit)
             ) and
             not(
-                assigned(currobjdef) {and
-                Tobjectdef(currobjdef).is_related(tobjectdef(owner.defowner))}
+                assigned(currobjdef) and
+                (currobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                (currobjdef.owner.iscurrentunit) and
+                currobjdef.is_related(tdef(owner.defowner))
                )
            ) then
           exit;
@@ -1454,7 +1462,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2005-02-14 17:13:09  peter
+  Revision 1.52  2005-03-07 17:58:27  peter
+    * fix protected checking
+
+  Revision 1.51  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.50  2005/01/19 22:19:41  peter
@@ -1462,7 +1473,3 @@ end.
     * new derefmap added
 
 }
-
-
-
-end.
