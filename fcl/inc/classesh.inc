@@ -237,7 +237,7 @@ type
     procedure SetIndex(Value: Integer); virtual;
     procedure SetDisplayName(const Value: string); virtual;
   public
-    constructor Create(Collection: TCollection); virtual;
+    constructor Create(ACollection: TCollection); virtual;
     destructor Destroy; override;
     property Collection: TCollection read FCollection write SetCollection;
     property ID: Integer read FID;
@@ -271,7 +271,7 @@ type
     procedure Update(Item: TCollectionItem); virtual;
     property PropName: string read GetPropName write FPropName;
   public
-    constructor Create(ItemClass: TCollectionItemClass);
+    constructor Create(AItemClass: TCollectionItemClass);
     destructor Destroy; override;
     function Add: TCollectionItem;
     procedure Assign(Source: TPersistent); override;
@@ -330,13 +330,13 @@ type
     function Add(const S: string): Integer; virtual;
     function AddObject(const S: string; AObject: TObject): Integer; virtual;
     procedure Append(const S: string);
-    procedure AddStrings(Strings: TStrings); virtual;
+    procedure AddStrings(TheStrings: TStrings); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
     procedure Clear; virtual; abstract;
     procedure Delete(Index: Integer); virtual; abstract;
     procedure EndUpdate;
-    function Equals(Strings: TStrings): Boolean;
+    function Equals(TheStrings: TStrings): Boolean;
     procedure Exchange(Index1, Index2: Integer); virtual;
     function GetText: PChar; virtual;
     function IndexOf(const S: string): Integer; virtual;
@@ -350,7 +350,7 @@ type
     procedure Move(CurIndex, NewIndex: Integer); virtual;
     procedure SaveToFile(const FileName: string); virtual;
     procedure SaveToStream(Stream: TStream); virtual;
-    procedure SetText(Text: PChar); virtual;
+    procedure SetText(TheText: PChar); virtual;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property CommaText: string read GetCommaText write SetCommaText;
     property Count: Integer read GetCount;
@@ -864,7 +864,7 @@ type
     FDesignInfo: Longint;
     FVCLComObject: Pointer;
     FComponentState: TComponentState;
-    function GetComObject: IUnknown;
+    // function GetComObject: IUnknown;
     function GetComponent(AIndex: Integer): TComponent;
     function GetComponentCount: Integer;
     function GetComponentIndex: Integer;
@@ -927,7 +927,7 @@ type
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
       ExceptAddr: Pointer): Integer; override;
-    property ComObject: IUnknown read GetComObject;
+    // property ComObject: IUnknown read GetComObject;
     property Components[Index: Integer]: TComponent read GetComponent;
     property ComponentCount: Integer read GetComponentCount;
     property ComponentIndex: Integer read GetComponentIndex write SetComponentIndex;
@@ -1043,7 +1043,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.1  1998-05-04 12:16:01  florian
+  Revision 1.2  1998-05-04 14:30:11  michael
+  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+
+  Revision 1.1  1998/05/04 12:16:01  florian
     + Initial revisions after making a new directory structure
 
 }
