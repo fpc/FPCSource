@@ -631,18 +631,27 @@ unit pexpr;
 
       begin
          paras:=nil;
-         { property parameters? }
-         if token=_LECKKLAMMER then
+         { property parameters? read them only if the property really }
+         { has parameters                                             }
+         if ppo_hasparameters in ppropertysym(sym)^.propoptions then
            begin
+              { property parameters?
+              if token=_LECKKLAMMER then
+                begin
+                   consume(_LECKKLAMMER);
+                   paras:=parse_paras(false,true);
+                   consume(_RECKKLAMMER);
+                end;
+              }
               consume(_LECKKLAMMER);
               paras:=parse_paras(false,true);
               consume(_RECKKLAMMER);
-           end;
-         { indexed property }
-         if (ppo_indexed in ppropertysym(sym)^.propoptions) then
-           begin
-              p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
-              paras:=gencallparanode(p2,paras);
+              { indexed property }
+              if (ppo_indexed in ppropertysym(sym)^.propoptions) then
+                begin
+                   p2:=genordinalconstnode(ppropertysym(sym)^.index,s32bitdef);
+                   paras:=gencallparanode(p2,paras);
+                end;
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
@@ -2109,7 +2118,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.154  1999-11-06 14:34:21  peter
+  Revision 1.155  1999-11-07 23:16:49  florian
+    * finally bug 517 solved ...
+
+  Revision 1.154  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.153  1999/11/05 00:10:30  peter

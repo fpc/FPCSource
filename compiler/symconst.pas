@@ -142,7 +142,8 @@ type
   tpropertyoption=(ppo_none,
     ppo_indexed,
     ppo_defaultproperty,
-    ppo_stored
+    ppo_stored,
+    ppo_hasparameters
   );
   tpropertyoptions=set of tpropertyoption;
 
@@ -180,7 +181,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1999-10-26 12:30:45  peter
+  Revision 1.5  1999-11-07 23:16:49  florian
+    * finally bug 517 solved ...
+
+  Revision 1.4  1999/10/26 12:30:45  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes

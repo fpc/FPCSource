@@ -463,6 +463,9 @@ uses
                           propertyparas^.insert(hp2);
                           disposetree(pt);
                        end;
+                     { the parser need to know if a property has parameters }
+                     if not(propertyparas^.empty) then
+                       p^.propoptions:=p^.propoptions+[ppo_hasparameters];
                   end
                 else
                   begin
@@ -488,7 +491,6 @@ uses
                           message(parser_e_no_property_found_to_override);
                        end;
                   end;
-
                 if (sp_published in current_object_option) and
                    not(p^.proptype^.is_publishable) then
                   Message(parser_e_cant_publish_that_property);
@@ -1598,7 +1600,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.5  1999-10-27 16:04:06  peter
+  Revision 1.6  1999-11-07 23:16:49  florian
+    * finally bug 517 solved ...
+
+  Revision 1.5  1999/10/27 16:04:06  peter
     * fixed property reading
 
   Revision 1.4  1999/10/27 14:17:08  florian
