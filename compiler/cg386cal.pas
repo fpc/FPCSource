@@ -786,7 +786,7 @@ implementation
                    if (cs_check_range in aktlocalswitches) then
                      begin
                         exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                          newasmsymbol(p^.procdefinition^._class^.vmt_mangledname,0))));
+                          newasmsymbol(p^.procdefinition^._class^.vmt_mangledname))));
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
                         emitcall('FPC_CHECK_OBJECT_EXT',true);
                      end;
@@ -1215,7 +1215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-04-19 09:45:46  pierre
+  Revision 1.76  1999-04-25 22:33:19  pierre
+   * fix for TESTOBJEXT code
+
+  Revision 1.75  1999/04/19 09:45:46  pierre
     +  cdecl or stdcall push all args with longint size
     *  tempansi stuff cleaned up
 
