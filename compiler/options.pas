@@ -1437,6 +1437,14 @@ begin
       end;
   end;
 
+  { endian define }
+  case target_info.endian of
+    endian_little :
+      def_symbol('ENDIAN_LITTLE');
+    endian_big :
+      def_symbol('ENDIAN_BIG');
+  end;
+
 { write logo if set }
   if option.DoWriteLogo then
    option.WriteLogo;
@@ -1553,7 +1561,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2001-05-12 12:11:31  peter
+  Revision 1.42  2001-05-18 22:28:59  peter
+    * endian define
+
+  Revision 1.41  2001/05/12 12:11:31  peter
     * simplify_ppu is now the default, a recompile of the compiler now
       only compiles pp.pas
 

@@ -389,7 +389,7 @@ begin
   blockread(f,header,sizeof(tppuheader),i);
   { The header is always stored in little endian order }
   { therefore swap if on a big endian machine          }
-{$IFDEF SOURCE_BIG_ENDIAN}
+{$IFDEF ENDIAN_BIG}
   header.compiler := SwapWord(header.compiler);
   header.cpu := SwapWord(header.cpu);
   header.target := SwapWord(header.target);
@@ -401,7 +401,7 @@ begin
   { the PPU DATA is stored in native order }
   if (header.flags and uf_big_endian) = uf_big_endian then
    Begin
-{$IFDEF SOURCE_LITTLE_ENDIAN}
+{$IFDEF ENDIAN_LITTLE}
      change_endian := TRUE;
 {$ELSE}
      change_endian := FALSE;
@@ -409,7 +409,7 @@ begin
    End
   else if (header.flags and uf_little_endian) = uf_little_endian then
    Begin
-{$IFDEF SOURCE_BIG_ENDIAN}
+{$IFDEF ENDIAN_BIG}
      change_endian := TRUE;
 {$ELSE}
      change_endian := FALSE;
@@ -956,7 +956,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-05-06 14:49:17  peter
+  Revision 1.9  2001-05-18 22:28:59  peter
+    * endian define
+
+  Revision 1.8  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 
