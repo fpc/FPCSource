@@ -1057,9 +1057,9 @@ begin
 end;
 
 {$ifdef win32}
-   function GetEnvironmentStrings : pchar;
+   function GetEnvironmentStrings : pchar; stdcall;
      external 'kernel32' name 'GetEnvironmentStringsA';
-   function FreeEnvironmentStrings(p : pchar) : longbool;
+   function FreeEnvironmentStrings(p : pchar) : longbool; stdcall;
      external 'kernel32' name 'FreeEnvironmentStringsA';
 Function  GetEnv(envvar: string): string;
 var
@@ -1124,7 +1124,7 @@ end;
 procedure LoadEnvironment;
 var
   i,j : longint;
-  s,hs : string;
+  s   : string;
 begin
   s:=Getenv('HEAPTRC');
   if pos('keepreleased',s)>0 then
@@ -1156,7 +1156,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2004-02-06 20:17:12  daniel
+  Revision 1.26  2004-03-15 14:22:39  michael
+  + Fix from peter for win32 SIGTRAp signal
+
+  Revision 1.25  2004/02/06 20:17:12  daniel
     * Use $ for hex numbers instead of alien 0x
 
   Revision 1.24  2003/09/11 15:54:27  peter
