@@ -322,20 +322,17 @@ begin
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif newcg}
 {$endif EXTDEBUG}
-{$ifdef fixLeaksOnError}
- {$ifdef tp}
-  do_stop;
- {$else tp}
-  do_stop();
- {$endif tp}
-{$endif fixLeaksOnError}
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.43  2000-01-11 16:53:24  jonas
+  Revision 1.44  2000-01-11 16:56:22  jonas
+    - removed call to do_stop at the end of compile() since it obviously breaks the
+      automatic compiling of units. Make cycle worked though! 8)
+
+  Revision 1.43  2000/01/11 16:53:24  jonas
     + call do_stop at the end of compile()
 
   Revision 1.42  2000/01/07 01:14:23  peter
