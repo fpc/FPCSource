@@ -405,6 +405,7 @@ implementation
              vs.free;
             consume(_ID);
           until not try_to_consume(_COMMA);
+          locationstr:='';
           { read type declaration, force reading for value and const paras }
           if (token=_COLON) or (varspez=vs_value) then
            begin
@@ -464,11 +465,11 @@ implementation
                         consume(_CSTRING);
                       end
                     else
-		      begin
+		             begin
                         if explicit_paraloc then
                           Message(parser_e_paraloc_all_paras);
-			locationstr:='';
-		      end;
+      			        locationstr:='';
+       		         end;
                   end
                 else
                   locationstr:='';
@@ -2193,7 +2194,10 @@ const
 end.
 {
   $Log$
-  Revision 1.168  2004-04-28 15:19:03  florian
+  Revision 1.169  2004-04-29 21:10:13  florian
+    + locationstr always reset
+
+  Revision 1.168  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.167  2004/04/28 00:20:43  karoly
