@@ -949,9 +949,9 @@ procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
+  when (flags and $100)   the file will be append
+  when (flags and $1000)  the file will be truncate/rewritten
+  when (flags and $10000) there is no check for close (needed for textfiles)
 }
 var
   regs   : trealregs;
@@ -959,7 +959,7 @@ var
 begin
   AllowSlash(p);
 { close first if opened }
-  if ((flags and $1000)=0) then
+  if ((flags and $10000)=0) then
    begin
      case filerec(f).mode of
       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -980,7 +980,7 @@ begin
    1 : filerec(f).mode:=fmoutput;
    2 : filerec(f).mode:=fminout;
   end;
-  if (flags and $100)<>0 then
+  if (flags and $1000)<>0 then
    begin
      filerec(f).mode:=fmoutput;
      action:=$12; {create file function}
@@ -1034,7 +1034,7 @@ begin
     end;
 {$endif SYSTEMDEBUG}
 { append mode }
-  if (flags and $10)<>0 then
+  if (flags and $100)<>0 then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
@@ -1274,7 +1274,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.16  1999-09-08 16:09:18  peter
+  Revision 1.17  1999-09-10 15:40:33  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.16  1999/09/08 16:09:18  peter
     * do_isdevice not called if already error
 
   Revision 1.15  1999/08/19 14:03:16  pierre

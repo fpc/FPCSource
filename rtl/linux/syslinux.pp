@@ -433,9 +433,9 @@ Procedure Do_Open(var f;p:pchar;flags:longint);
 {
   FileRec and textrec have both Handle and mode as the first items so
   they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
+  when (flags and $100)   the file will be append
+  when (flags and $1000)  the file will be truncate/rewritten
+  when (flags and $10000) there is no check for close (needed for textfiles)
 }
 var
 {$ifndef crtlib}
@@ -443,7 +443,7 @@ var
 {$endif}
 Begin
 { close first if opened }
-  if ((flags and $1000)=0) then
+  if ((flags and $10000)=0) then
    begin
      case FileRec(f).mode of
       fminput,fmoutput,fminout : Do_Close(FileRec(f).Handle);
@@ -472,10 +472,10 @@ Begin
          FileRec(f).mode:=fminout;
        end;
   end;
-  if (flags and $100)=$100 then
+  if (flags and $1000)=$1000 then
    oflags:=oflags or (Open_CREAT or Open_TRUNC)
   else
-   if (flags and $10)=$10 then
+   if (flags and $100)=$100 then
     oflags:=oflags or (Open_APPEND);
 { empty name is special }
   if p[0]=#0 then
@@ -504,7 +504,6 @@ Begin
      Oflags:=Oflags and not(Open_RDWR);
      FileRec(f).Handle:=sys_open(p,oflags,438);
    end;
-
   Errno2Inoutres;
 {$endif}
 End;
@@ -676,9 +675,11 @@ end;
 {*****************************************************************************
                          System Dependent Exit code
 *****************************************************************************}
+
 Procedure system_exit;
 begin
 end;
+
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -724,7 +725,10 @@ End.
 
 {
   $Log$
-  Revision 1.26  1999-09-08 16:14:43  peter
+  Revision 1.27  1999-09-10 15:40:35  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.26  1999/09/08 16:14:43  peter
     * pointer fixes
 
   Revision 1.25  1999/07/28 23:18:36  peter

@@ -69,7 +69,7 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PChar(@FileRec(f).Name),$101);
+     Do_Open(f,PChar(@FileRec(f).Name),$1001);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -415,7 +415,10 @@ End;
 
 {
   $Log$
-  Revision 1.12  1999-09-08 16:12:24  peter
+  Revision 1.13  1999-09-10 15:40:33  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.12  1999/09/08 16:12:24  peter
     * fixed inoutres for diskfull
 
   Revision 1.11  1999/09/07 15:54:18  hajny

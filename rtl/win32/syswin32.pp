@@ -435,9 +435,9 @@ procedure do_open(var f;p : pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
+  when (flags and $100)   the file will be append
+  when (flags and $1000)  the file will be truncate/rewritten
+  when (flags and $10000) there is no check for close (needed for textfiles)
 }
 Const
   file_Share_Read  = $00000001;
@@ -453,7 +453,7 @@ Var
 begin
   AllowSlash(p);
 { close first if opened }
-  if ((flags and $1000)=0) then
+  if ((flags and $10000)=0) then
    begin
      case filerec(f).mode of
        fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -499,11 +499,11 @@ begin
 { standard is opening and existing file }
   cd:=OPEN_EXISTING;
 { create it ? }
-  if (flags and $100)<>0 then
+  if (flags and $1000)<>0 then
    cd:=CREATE_ALWAYS
 { or append ? }
   else
-   if (flags and $10)<>0 then
+   if (flags and $100)<>0 then
     cd:=OPEN_ALWAYS;
 { empty name is special }
   if p[0]=#0 then
@@ -520,7 +520,7 @@ begin
    end;
   filerec(f).handle:=CreateFile(p,oflags,shflags,nil,cd,FILE_ATTRIBUTE_NORMAL,0);
 { append mode }
-  if (flags and $10)<>0 then
+  if (flags and $100)<>0 then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
@@ -677,7 +677,7 @@ begin
   count:=0;
   cmdline:=getcommandfile;
   Arglen:=0;
-  while (cmdline[Arglen]<>#0) do 
+  while (cmdline[Arglen]<>#0) do
     Inc(ArgLen);
   getmem(argsbuf[count],arglen);
   move(cmdline^,argsbuf[count]^,arglen);
@@ -1009,7 +1009,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  1999-07-07 10:04:43  michael
+  Revision 1.44  1999-09-10 15:40:35  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.43  1999/07/07 10:04:43  michael
   + Small edit in paramstr
 
   Revision 1.42  1999/07/07 09:43:16  michael

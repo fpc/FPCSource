@@ -56,9 +56,9 @@ var
   Flags : Longint;
 Begin
   Case t.mode Of
-    fmInput : Flags:=$1000;
-   fmOutput : Flags:=$1101;
-   fmAppend : Flags:=$1011;
+    fmInput : Flags:=$10000;
+   fmOutput : Flags:=$11001;
+   fmAppend : Flags:=$10101;
   else
    begin
      InOutRes:=102;
@@ -952,7 +952,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  1999-09-08 16:12:24  peter
+  Revision 1.56  1999-09-10 15:40:33  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.55  1999/09/08 16:12:24  peter
     * fixed inoutres for diskfull
 
   Revision 1.54  1999/09/07 07:44:58  peter

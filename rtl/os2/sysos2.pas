@@ -439,9 +439,9 @@ procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
+  when (flags and $100)   the file will be append
+  when (flags and $1000)  the file will be truncate/rewritten
+  when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
 var oflags:byte;
@@ -449,7 +449,7 @@ var oflags:byte;
 begin
     allowslash(p);
     { close first if opened }
-    if ((flags and $1000)=0) then
+    if ((flags and $10000)=0) then
         begin
             case filerec(f).mode of
                 fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -473,13 +473,13 @@ begin
         1 : filerec(f).mode:=fmoutput;
         2 : filerec(f).mode:=fminout;
     end;
-    if (flags and $100)<>0 then
+    if (flags and $1000)<>0 then
         begin
             filerec(f).mode:=fmoutput;
             oflags:=2;
         end
     else
-        if (flags and $10)<>0 then
+        if (flags and $100)<>0 then
             begin
                 filerec(f).mode:=fmoutput;
                 oflags:=2;
@@ -496,7 +496,7 @@ begin
             end;
             exit;
         end;
-    if (flags and $100)<>0 then
+    if (flags and $1000)<>0 then
         {Use create function.}
         asm
             movb $0x3c,%ah
@@ -524,7 +524,7 @@ begin
             movl f,%edx
             movw %ax,(%edx)
         end;
-    if (flags and $10)<>0 then
+    if (flags and $100)<>0 then
         do_seekend(filerec(f).handle);
 end;
 
@@ -750,7 +750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-06-01 13:23:16  peter
+  Revision 1.17  1999-09-10 15:40:35  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.16  1999/06/01 13:23:16  peter
     * fixes to work with the new makefile
     * os2 compiles now correct under linux
 

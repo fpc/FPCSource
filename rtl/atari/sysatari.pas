@@ -472,9 +472,9 @@ procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
-  when (flags and $10)   the file will be append
-  when (flags and $100)  the file will be truncate/rewritten
-  when (flags and $1000) there is no check for close (needed for textfiles)
+  when (flags and $100)   the file will be append
+  when (flags and $1000)  the file will be truncate/rewritten
+  when (flags and $10000) there is no check for close (needed for textfiles)
 }
 var
   i : word;
@@ -482,7 +482,7 @@ var
 begin
   AllowSlash(p);
  { close first if opened }
-  if ((flags and $1000)=0) then
+  if ((flags and $10000)=0) then
    begin
      case filerec(f).mode of
       fminput,fmoutput,fminout : Do_Close(filerec(f).handle);
@@ -506,13 +506,13 @@ begin
    1 : filerec(f).mode:=fmoutput;
    2 : filerec(f).mode:=fminout;
   end;
-  if (flags and $100)<>0 then
+  if (flags and $1000)<>0 then
    begin
      filerec(f).mode:=fmoutput;
      oflags:=$04;  { read/write with create }
    end
   else
-   if (flags and $10)<>0 then
+   if (flags and $100)<>0 then
     begin
       filerec(f).mode:=fmoutput;
       oflags:=$02;  { read/write             }
@@ -569,7 +569,7 @@ begin
   if errno <> 0 then
      Error2InOut;
   filerec(f).handle:=i;
-  if (flags and $10)<>0 then
+  if (flags and $100)<>0 then
    do_seekend(filerec(f).handle);
 end;
 
@@ -739,7 +739,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  1999-01-18 10:05:48  pierre
+  Revision 1.12  1999-09-10 15:40:33  peter
+    * fixed do_open flags to be > $100, becuase filemode can be upto 255
+
+  Revision 1.11  1999/01/18 10:05:48  pierre
    + system_exit procedure added
 
   Revision 1.10  1998/12/28 15:50:43  peter
