@@ -74,15 +74,17 @@ unit aasm;
        tcpuflags = (cf_64bitaddr);
        tcpuflagset = set of tcpuflags;
 
-{$ifdef newcg}
+{ ait_* types which don't result in executable code or which don't influence   }
+{ the way the program runs/behaves, but which may be encountered by the        }
+{ optimizer (= if it's sometimes added to the exprasm list). Update if you add }
+{ a new ait type!                                                              }
     const
-      SkipInstr = [ait_comment, ait_symbol
+      SkipInstr = [ait_comment, ait_symbol,ait_force_line,ait_section
 {$ifdef GDB}
                    ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
                    ,ait_regalloc, ait_tempalloc
   ];
-{$endif newcg}
 
 
   { asm symbol functions }
@@ -1044,7 +1046,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.74  2000-01-23 16:31:38  peter
+  Revision 1.75  2000-01-28 15:15:31  jonas
+     * moved skipinstr from daopt386 to aasm
+     * fixed crashing bug with -dreplacereg in csopt386.pas
+
+  Revision 1.74  2000/01/23 16:31:38  peter
     * fixed uninited asmsymbol.typ var
 
   Revision 1.73  2000/01/19 22:53:57  florian

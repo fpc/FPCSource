@@ -96,16 +96,6 @@ Function FindLabel(L: PasmLabel; Var hp: Pai): Boolean;
 
 Const
 
-{ait_* types which don't result in executable code or which don't influence
- the way the program runs/behaves}
-
-  SkipInstr = [ait_comment, ait_symbol
-{$ifdef GDB}
-  ,ait_stabs, ait_stabn, ait_stab_function_name
-{$endif GDB}
-  ,ait_regalloc, ait_tempalloc
-  ];
-
 {Possible register content types}
   con_Unknown = 0;
   con_ref = 1;
@@ -2131,7 +2121,11 @@ End.
 
 {
  $Log$
- Revision 1.79  2000-01-22 16:08:06  jonas
+ Revision 1.80  2000-01-28 15:15:31  jonas
+    * moved skipinstr from daopt386 to aasm
+    * fixed crashing bug with -dreplacereg in csopt386.pas
+
+ Revision 1.79  2000/01/22 16:08:06  jonas
    * better handling of exit(func_result) (no release of register that
      holds the function result added)
    * several other small improvements for reg allocation fixes

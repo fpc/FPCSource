@@ -691,7 +691,8 @@ begin
   while tmpResult and not sequenceEnd do
     begin
       tmpResult :=
-        getNextInstruction(endP,endP);
+        getNextInstruction(endP,endP) and
+        (endP^.typ = ait_instruction);
       if tmpresult and not assigned(endP^.optInfo) then
         begin
           hp := new(pai_asm_comment,init(strpnew('next no optinfo')));
@@ -1170,7 +1171,11 @@ End.
 
 {
  $Log$
- Revision 1.41  2000-01-23 11:11:37  michael
+ Revision 1.42  2000-01-28 15:15:31  jonas
+    * moved skipinstr from daopt386 to aasm
+    * fixed crashing bug with -dreplacereg in csopt386.pas
+
+ Revision 1.41  2000/01/23 11:11:37  michael
  + Fixes from Jonas.
 
  Revision 1.40  2000/01/22 16:10:06  jonas
