@@ -1039,15 +1039,17 @@ begin
                   if CheckArg(vtPChar,false) then
                     hs:=Args[doarg].VPChar
                 else
+{$ifndef VER1_0}
                   if CheckArg(vtPWideChar,false) then
-                    hs:=Args[doarg].VPWideChar
+                    hs:=WideString(Args[doarg].VPWideChar)
                 else
                   if CheckArg(vtWideChar,false) then
-                    hs:=Args[doarg].VWideChar
+                    hs:=WideString(Args[doarg].VWideChar)
                 else
                   if CheckArg(vtWidestring,false) then
                     hs:=WideString(Args[doarg].VWideString)
                 else
+{$endif VER1_0}
                   if CheckArg(vtAnsiString,true) then
                     hs:=ansistring(Args[doarg].VAnsiString);
                 Index:=Length(hs);
@@ -2234,7 +2236,10 @@ const
 
 {
   $Log$
-  Revision 1.21  2004-11-30 20:56:27  michael
+  Revision 1.22  2004-12-01 10:34:46  michael
+  + Patch from Pete: Dont support widestrings when compiled with 1.0.x and  Add additional typecasts to Widestring for widechar/pwidechar
+
+  Revision 1.21  2004/11/30 20:56:27  michael
   + Fix from Alexey Barkovoy for bug 3302
 
   Revision 1.20  2004/11/22 05:53:44  marco
