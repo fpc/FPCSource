@@ -14,8 +14,8 @@
 
  **********************************************************************}
 
-(* May be we need to compare a prefixes of option_help_pages too? *)
-(* Currently this is not performed *)
+{ May be we need to compare a prefixes of option_help_pages too?
+  Currently this is not performed }
 
 Program messagedif;
 
@@ -47,6 +47,7 @@ Var
 const
   NewFileName = 'new.msg';
   Is_interactive : boolean = false;
+  Auto_verbosity : boolean = false;
 
 Procedure GetTranslation( p : PMsg);
 var
@@ -135,9 +136,16 @@ end;
 Procedure Usage;
 
 begin
-  Writeln ('Usage : msgdif [-i] orgfile diffile');
-  Writeln(' optional -i option allows to enter translated messages interactivly');
-  Writeln('Generates ',NewFileName,' with updated messages');
+  Writeln('Usage : msgdif [options] <org-file> <dif-file>');
+  Writeln('Options:');
+  Writeln('   -i    allow to enter translated messages interactively');
+  Writeln('   -y1   use <org-file> verbosity (do not query acknowledge)');
+  Writeln('');
+  Writeln('Generates "',NewFileName,'" that contain the messages from <dif-file>');
+  Writeln('with a new messages from <org-file>');
+  Writeln('');
+  Writeln('Example:');
+  Writeln('  msgdif errore.msg errorr.msg');
   halt(1)
 end;
 
@@ -145,22 +153,36 @@ Procedure ProcessOptions;
 var
   i,count : longint;
 begin
-  count:=paramcount;
-  if (count>0) and (UpCase(Paramstr(1))='-I') then
-    begin
-      dec(count);
-      i:=1;
-      Is_interactive:=true;
-    end
-  else
-    begin
-      i:=0;
-      Is_interactive:=false;
-    end;
-  If Count<>2 then
+  Is_interactive:=false;
+  Auto_verbosity:=false;
+
+  count:=paramcount; i:=1;
+  while (count>0) and (Paramstr(i)[1]='-') do
+   case UpCase(Paramstr(i)[2]) of
+     'I': begin
+            Is_interactive:=true;
+            dec(count); Inc(i);
+          end;
+     'Y': case Paramstr(i)[3] of
+            '1': begin
+                   Auto_verbosity:=true;
+                   dec(count); Inc(i);
+                 end;
+          else
+            Writeln ('Error: unknown option ', Paramstr(i));
+            Usage;
+          end;
+   else
+     Writeln ('Error: unknown option ', Paramstr(i));
+     Usage;
+   end;
+  If Count<>2 then begin
+    Writeln ('Error: there must be exactly two message files');
     Usage;
-  OrgfileName:=Paramstr(i+1);
-  DiffFileName:=Paramstr(i+2);
+  end;
+
+  OrgfileName:=Paramstr(i);
+  DiffFileName:=Paramstr(i+1);
   if (OrgFileName=NewFileName) or (DiffFileName=NewFileName) then
     begin
       Writeln('The file names must be different from ',NewFileName);
@@ -308,6 +330,49 @@ begin
    Writeln(diffcount,' messages only in ',DiffFileName);
 end;
 
+type TArgSet = set of 0..31;
+
+function MsgToSet(const Msg, FileName: string; var R: TArgSet): Boolean;
+  var
+    i, j, num : integer;
+    code : word;
+  begin
+    R:=[];
+    MsgToSet:=false;
+    for i:=1 to Length(Msg) do
+      if Msg[i]='$' then
+      begin
+        j:=i+1;
+        while Msg[j] in ['0'..'9'] do Inc(j);
+        if j > i+1 then
+        begin
+          val(copy(Msg,i+1,j-i-1),num,code);
+          if num > high(TArgSet) then begin
+            WriteLn('Error in ', FileName,': ', Msg);
+            WriteLn(' number at position ', i);
+            WriteLn(' must be LE ', high(TArgSet));
+            Exit;
+          end;
+          R:=R+[num];
+        end;
+      end;
+      MsgToSet:=true;
+  end;
+
+
+procedure CheckParm(const s1, s2: string);
+  var
+    R1, R2: TArgSet;
+  begin
+    if MsgToSet(s1,OrgFileName, R1) <> true then Exit;
+    if MsgToSet(s2,DiffFileName,R2) <> true then Exit;
+    if R1<>R2 then begin
+      WriteLn('Error: set of arguments is different');
+      WriteLn(' ',s1);
+      WriteLn(' ',s2);
+    end;
+  end;
+
 procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
   var t,t2,t3 : text;
       i,ntcount : longint;
@@ -375,17 +440,26 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
              if (length(s3)<12) and (s2<>s3) then
                begin
                  Writeln('Warning: different options for ',orgnext^.enum);
-                 Writeln('in ',orgFileName,' : ',s2);
-                 Writeln('in ',diffFileName,' : ',s3);
+                 Writeln(' ',orgnext^.text);
+                 Writeln(' ',orgnext^.equivalent^.text);
+                 s:='N';
+                 if Auto_verbosity then
+                   s:='Y'
+                 else
                  If Is_interactive then
                    begin
-                     Write('Use ',OrgFileName,' verbosity ? [y/n] ');
+                     Write('Use ',s2,' verbosity ? [y/n] ');
                      Readln(s);
-                     if UpCase(s)<>'N' then
-                       orgnext^.equivalent^.text:=s2+copy(orgnext^.equivalent^.text,
-                         length(s3)+1,Length(orgnext^.equivalent^.text));
+                   end;
+                 if UpCase(s[1])='Y' then
+                   begin
+                     orgnext^.equivalent^.text:=s2+copy(orgnext^.equivalent^.text,
+                       length(s3)+1,Length(orgnext^.equivalent^.text));
+                     WriteLn(' Using ', s2);
                    end;
                end;
+
+             CheckParm(orgnext^.text, orgnext^.equivalent^.text);
 
              Writeln(t,orgnext^.enum,'=',orgnext^.equivalent^.text);
              Dec(i); Inc(i,orgnext^.equivalent^.ctxt);
@@ -430,14 +504,17 @@ begin
   ProcessOptions;
   ProcessFile(OrgFileName,orgroot,orgfirst);
   ProcessFile(DiffFileName,diffRoot,difffirst);
-  PrintList('Org.lst',OrgRoot);
-  PrintList('Diff.lst',DiffRoot);
+  PrintList('org.lst',OrgRoot);
+  PrintList('diff.lst',DiffRoot);
   ShowDiff (OrgRoot,DiffRoot);
   WriteReorderedFile(NewFileName,orgfirst,difffirst);
 end.
 {
   $Log$
-  Revision 1.4  2001-03-05 21:44:16  peter
+  Revision 1.5  2001-03-10 12:58:08  peter
+    * test arguments patch from Sergey applied.
+
+  Revision 1.4  2001/03/05 21:44:16  peter
     * small diffs from Sergey applied
 
   Revision 1.3  2001/02/09 23:04:56  peter
