@@ -385,6 +385,7 @@ Begin {CheckSequence}
                (hp3.typ = ait_instruction) and
                ((Taicpu(hp3).opcode = A_MOV) or
                 (Taicpu(hp3).opcode = A_MOVZX) or
+                (Taicpu(hp3).opcode = A_LEA) or
                 (Taicpu(hp3).opcode = A_MOVSX)) and
                (Taicpu(hp3).oper[1].typ = top_reg) and
                not(regInOp(Taicpu(hp3).oper[1].reg,
@@ -1291,7 +1292,8 @@ begin
             (startmod.typ = ait_instruction) and
             ((Taicpu(startmod).opcode = A_MOV) or
              (Taicpu(startmod).opcode = A_MOVZX) or
-             (Taicpu(startmod).opcode = A_MOVSX)) and
+             (Taicpu(startmod).opcode = A_MOVSX) or
+             (Taicpu(startmod).opcode = A_LEA)) and
             (Taicpu(startmod).oper[0].typ = top_ref) and
             (Taicpu(startmod).oper[0].ref^.base = stack_pointer)) or
            not(reg in pTaiprop(hp1.optInfo)^.usedRegs) or
@@ -1340,7 +1342,7 @@ Begin
               A_CLD: If GetLastInstruction(p, hp1) And
                         (PTaiProp(hp1.OptInfo)^.DirFlag = F_NotSet) Then
                        PTaiProp(Tai(p).OptInfo)^.CanBeRemoved := True;
-              A_MOV, A_MOVZX, A_MOVSX:
+              A_LEA, A_MOV, A_MOVZX, A_MOVSX:
                 Begin
                   hp2 := p;
                   Case Taicpu(p).oper[0].typ Of
@@ -1366,6 +1368,7 @@ Begin
                                If CheckSequence(p,prevSeq,Taicpu(p).oper[1].reg, Cnt, RegInfo, findPrevSeqs) And
                                   (Cnt > 0) Then
                                  Begin
+(*
                                    hp1 := nil;
 { although it's perfectly ok to remove an instruction which doesn't contain }
 { the register that we've just checked (CheckSequence takes care of that),  }
@@ -1382,6 +1385,11 @@ Begin
 {   movl 16(%ebp), %eax                                                     }
 {   movl 8(%edx), %edx                                                      }
 {   movl 4(%eax), eax                                                       }
+*)
+
+{ not anymore: if the start of a new sequence is found while checking (e.g. }
+{ above that of eax while checking edx, this new sequence is automatically  }
+{ also checked                                                              }
                                    Cnt2 := 1;
                                    While Cnt2 <= Cnt Do
                                      Begin
@@ -1522,10 +1530,13 @@ Begin
                                                hp2,hp3);
                                            End;
                                        End;
+(*
                                    If hp1 <> nil Then
                                      p := hp1;
+*)
                                    Continue;
                                  End
+(*
                                Else
                                  If (PTaiProp(p.OptInfo)^.
                                       regs[reg32(Taicpu(p).oper[1].reg)].typ
@@ -1561,6 +1572,7 @@ Begin
                                          PTaiProp(hp4.optInfo)^.Regs[regCounter],
                                          p,hp3);
                                      end;
+*)
                               End;
                           End;
                       { try to replace the new reg with the old reg }
@@ -1730,7 +1742,11 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-08-29 14:07:43  jonas
+  Revision 1.18  2001-09-04 14:01:03  jonas
+    * commented out some inactive code in csopt386
+    + small improvement: lea is now handled the same as mov/zx/sx
+
+  Revision 1.17  2001/08/29 14:07:43  jonas
     * the optimizer now keeps track of flags register usage. This fixes some
       optimizer bugs with int64 calculations (because of the carry flag usage)
     * fixed another bug which caused wrong optimizations with complex

@@ -1451,7 +1451,8 @@ Begin {checks whether two Taicpu instructions are equal}
   "<operator> <operand of type1>, <operand of type 2>"}
       If ((Taicpu(p1).opcode = A_MOV) or
           (Taicpu(p1).opcode = A_MOVZX) or
-          (Taicpu(p1).opcode = A_MOVSX)) And
+          (Taicpu(p1).opcode = A_MOVSX)  or
+          (Taicpu(p1).opcode = A_LEA)) And
          (Taicpu(p1).oper[0].typ = top_ref) {then .oper[1]t = top_reg} Then
         If Not(RegInRef(Taicpu(p1).oper[1].reg, Taicpu(p1).oper[0].ref^)) Then
  {the "old" instruction is a load of a register with a new value, not with
@@ -2309,11 +2310,17 @@ Begin
                   else
                     begin
 {$ifdef statedebug}
-                      hp := Tai_asm_comment.Create(strpnew('destroying '+
+                      hp := Tai_asm_comment.Create(strpnew('destroying & initing'+
                         att_reg2str[Taicpu(p).oper[1].reg])));
                       insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                       destroyreg(curprop,Taicpu(p).oper[1].reg,true);
+                      with curprop^.regs[Taicpu(p).oper[1].reg] Do
+                         begin
+                           typ := con_ref;
+                           startmod := p;
+                           nrOfMods := 1;
+                         end
                     end;
                 end;
               Else
@@ -2512,7 +2519,11 @@ End.
 
 {
   $Log$
-  Revision 1.20  2001-08-29 14:07:43  jonas
+  Revision 1.21  2001-09-04 14:01:04  jonas
+    * commented out some inactive code in csopt386
+    + small improvement: lea is now handled the same as mov/zx/sx
+
+  Revision 1.20  2001/08/29 14:07:43  jonas
     * the optimizer now keeps track of flags register usage. This fixes some
       optimizer bugs with int64 calculations (because of the carry flag usage)
     * fixed another bug which caused wrong optimizations with complex
