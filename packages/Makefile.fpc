@@ -3,10 +3,11 @@
 #
 
 [targets]
-dirs=ibase mysql uncgi paszlib
-dirs_linux=gtk opengl gdbint utmp inet postgres ncurses x11 forms svgalib ggi zlib
-dirs_win32=gtk opengl gdbint
-dirs_go32v2=gdbint
+dirs=paszlib
+dirs_linux=uncgi gtk opengl gdbint ibase mysql zlib \
+           utmp inet postgres ncurses x11 forms svgalib ggi
+dirs_win32=uncgi gtk opengl gdbint ibase mysql zlib
+dirs_go32v2=uncgi gdbint
 
 [sections]
 none=1
