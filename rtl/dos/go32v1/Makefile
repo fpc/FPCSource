@@ -109,7 +109,7 @@ PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 	 libs libsclean \
 	 diffs diffclean \
 
-all : $(OBJLOADERS) $(PPUOBJECTS) objpas
+all : $(OBJLOADERS) $(PPUOBJECTS)
 
 install : all
 	$(MKDIR) $(UNITINSTALLDIR)
@@ -264,7 +264,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.7  1998-10-11 13:45:04  michael
+# Revision 1.8  1998-10-12 08:36:29  pierre
+#  * wrong 'objpas' target in all removed
+#
+# Revision 1.7  1998/10/11 13:45:04  michael
 # + Added disk.inc to sysutils dependencies
 #
 # Revision 1.6  1998/10/11 12:21:47  michael
