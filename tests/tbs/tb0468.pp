@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { %OPT=-Sg }
 program tb0468;
 
