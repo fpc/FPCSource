@@ -16,6 +16,11 @@
 unit heaptrc;
 interface
 
+{ 1.0.x doesn't have good rangechecking for cardinals }
+{$ifdef VER1_0}
+  {$R-}
+{$endif}
+
 Procedure DumpHeap;
 Procedure MarkHeap;
 
@@ -44,6 +49,9 @@ const
 {$else EXTRA}
   tracesize = 8;
 {$endif EXTRA}
+  { install heaptrc memorymanager }
+  useheaptrace : boolean=true;
+  { less checking }
   quicktrace : boolean=true;
   { calls halt() on error by default !! }
   HaltOnError : boolean = true;
@@ -82,7 +90,8 @@ const
 type
   pheap_extra_info = ^theap_extra_info;
   theap_extra_info = record
-    fillproc : tfillextrainfoProc;
+    check       : cardinal;  { used to check if the procvar is still valid }
+    fillproc    : tfillextrainfoProc;
     displayproc : tdisplayextrainfoProc;
     data : record
            end;
@@ -223,7 +232,10 @@ begin
   for i:=1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
-  if assigned(pp^.extra_info^.displayproc) then
+  { the check is done to be sure that the procvar is not overwritten }
+  if assigned(pp^.extra_info) and
+     (pp^.extra_info^.check=$12345678) and
+     assigned(pp^.extra_info^.displayproc) then
    pp^.extra_info^.displayproc(ptext,@pp^.extra_info^.data);
 end;
 
@@ -240,8 +252,11 @@ begin
   for i:=(tracesize div 2)+1 to tracesize do
    if pp^.calls[i]<>0 then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
-  for i:=0 to (pp^.exact_info_size div 4)-1 do
-    writeln(ptext,'info ',i,'=',plongint(pointer(pp^.extra_info)+4*i)^);
+  { the check is done to be sure that the procvar is not overwritten }
+  if assigned(pp^.extra_info) and
+     (pp^.extra_info^.check=$12345678) and
+     assigned(pp^.extra_info^.displayproc) then
+   pp^.extra_info^.displayproc(ptext,@pp^.extra_info^.data);
 end;
 
 
@@ -277,14 +292,15 @@ end;
 {$endif EXTRA}
 
 procedure dump_wrong_size(p : pheap_mem_info;size : longint;var ptext : text);
-var
-  i : longint;
 begin
   Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
   dump_stack(ptext,get_caller_frame(get_frame));
-  for i:=0 to (p^.exact_info_size div 4)-1 do
-    writeln(ptext,'info ',i,'=',plongint(p^.extra_info+4*i)^);
+  { the check is done to be sure that the procvar is not overwritten }
+  if assigned(p^.extra_info) and
+     (p^.extra_info^.check=$12345678) and
+     assigned(p^.extra_info^.displayproc) then
+   p^.extra_info^.displayproc(ptext,@p^.extra_info^.data);
   call_stack(p,ptext);
 end;
 
@@ -323,7 +339,7 @@ end;
 Function TraceGetMem(size:longint):pointer;
 var
   i,bp : longint;
-  pl : plongint;
+  pl : pdword;
   p : pointer;
   pp : pheap_mem_info;
 begin
@@ -349,6 +365,7 @@ begin
    begin
      pp^.extra_info:=pointer(p)+bp-extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
+     pp^.extra_info^.check:=$12345678;
      pp^.extra_info^.fillproc:=fill_extra_info_proc;
      pp^.extra_info^.displayproc:=display_extra_info_proc;
      if assigned(fill_extra_info_proc) then
@@ -359,7 +376,7 @@ begin
       end;
    end
   else
-   pp^.extra_info:=nil;    
+   pp^.extra_info:=nil;
   if add_tail then
     begin
       pl:=pointer(p)+bp-extra_info_size-sizeof(longint);
@@ -556,7 +573,7 @@ var
   oldsize,
   allocsize,
   i,bp : longint;
-  pl : plongint;
+  pl : pdword;
   pp : pheap_mem_info;
   oldextrasize,
   oldexactsize : longint;
@@ -601,7 +618,7 @@ begin
    begin
      old_fill_extra_info_proc:=pp^.extra_info^.fillproc;
      old_display_extra_info_proc:=pp^.extra_info^.displayproc;
-   end;  
+   end;
   { Do the real ReAllocMem, but alloc also for the info block }
   allocsize:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
@@ -641,13 +658,14 @@ begin
    begin
      pp^.extra_info:=p+allocsize-pp^.extra_info_size;
      fillchar(pp^.extra_info^,extra_info_size,0);
+     pp^.extra_info^.check:=$12345678;
      pp^.extra_info^.fillproc:=old_fill_extra_info_proc;
      pp^.extra_info^.displayproc:=old_display_extra_info_proc;
      if assigned(pp^.extra_info^.fillproc) then
       pp^.extra_info^.fillproc(@pp^.extra_info^.data);
    end
   else
-   pp^.extra_info:=nil;    
+   pp^.extra_info:=nil;
   if add_tail then
     begin
       pl:=pointer(p)+allocsize-pp^.extra_info_size-sizeof(longint);
@@ -925,6 +943,41 @@ end;
 
 
 {*****************************************************************************
+                             Program Hooks
+*****************************************************************************}
+
+Procedure SetHeapTraceOutput(const name : string);
+var i : longint;
+begin
+   if ptext<>@stderr then
+     begin
+        ptext:=@stderr;
+        close(ownfile);
+     end;
+   assign(ownfile,name);
+{$I-}
+   append(ownfile);
+   if IOResult<>0 then
+     Rewrite(ownfile);
+{$I+}
+   ptext:=@ownfile;
+   for i:=0 to Paramcount do
+     write(ptext^,paramstr(i),' ');
+   writeln(ptext^);
+end;
+
+procedure SetHeapExtraInfo( size : longint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
+begin
+  { the total size must stay multiple of 8, also allocate 2 pointers for
+    the fill and display procvars }
+  exact_info_size:=size + sizeof(theap_extra_info);
+  extra_info_size:=((exact_info_size+7) div 8)*8;
+  fill_extra_info_proc:=fillproc;
+  display_extra_info_proc:=displayproc;
+end;
+
+
+{*****************************************************************************
                            Install MemoryManager
 *****************************************************************************}
 
@@ -940,6 +993,27 @@ const
     MaxAvail : TraceMaxAvail;
     HeapSize : TraceHeapsize;
   );
+
+
+procedure TraceInit;
+begin
+  EntryMemUsed:=System.HeapSize-MemAvail;
+  MakeCRC32Tbl;
+  SetMemoryManager(TraceManager);
+  ptext:=@stderr;
+{$ifdef EXTRA}
+  Assign(error_file,'heap.err');
+  Rewrite(error_file);
+{$endif EXTRA}
+  { checkpointer init }
+{$ifdef go32v2}
+  Heap_at_init:=HeapPtr;
+{$endif}
+{$ifdef win32}
+  StartupHeapEnd:=HeapEnd;
+{$endif}
+end;
+
 
 procedure TraceExit;
 begin
@@ -972,59 +1046,82 @@ begin
      end;
 end;
 
-Procedure SetHeapTraceOutput(const name : string);
-var i : longint;
-begin
-   if ptext<>@stderr then
-     begin
-        ptext:=@stderr;
-        close(ownfile);
-     end;
-   assign(ownfile,name);
-{$I-}
-   append(ownfile);
-   if IOResult<>0 then
-     Rewrite(ownfile);
-{$I+}
-   ptext:=@ownfile;
-   for i:=0 to Paramcount do
-     write(ptext^,paramstr(i),' ');
-   writeln(ptext^);
+Function GetEnv(P:string):Pchar;
+{
+  Searches the environment for a string with name p and
+  returns a pchar to it's value.
+  A pchar is used to accomodate for strings of length > 255
+}
+var
+  ep    : ppchar;
+  i     : longint;
+  found : boolean;
+Begin
+  p:=p+'=';            {Else HOST will also find HOSTNAME, etc}
+  ep:=envp;
+  found:=false;
+  if ep<>nil then
+   begin
+     while (not found) and (ep^<>nil) do
+      begin
+        found:=true;
+        for i:=1 to length(p) do
+         if p[i]<>ep^[i-1] then
+          begin
+            found:=false;
+            break;
+          end;
+        if not found then
+         inc(ep);
+      end;
+   end;
+  if found then
+   getenv:=ep^+length(p)
+  else
+   getenv:=nil;
 end;
 
-procedure SetHeapExtraInfo( size : longint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
+
+procedure LoadEnvironment;
+var
+  i,j : longint;
+  s,hs : string;
 begin
-  { the total size must stay multiple of 8, also allocate 2 pointers for
-    the fill and display procvars }
-  exact_info_size:=size + sizeof(pointer)*2;
-  extra_info_size:=((exact_info_size+7) div 8)*8;
-  fill_extra_info_proc:=fillproc;
-  display_extra_info_proc:=displayproc;
+  s:=Getenv('HEAPTRC');
+  if pos('keepreleased',s)>0 then
+   keepreleased:=true;
+  if pos('disabled',s)>0 then
+   useheaptrace:=false;
+  if pos('nohalt',s)>0 then
+   haltonerror:=false;
+  i:=pos('log=',s);
+  if i>0 then
+   begin
+     hs:=copy(s,i+4,255);
+     j:=pos(' ',hs);
+     if j=0 then
+      j:=length(hs)+1;
+     delete(hs,j,255);
+     SetHeapTraceOutput(hs);
+   end;
 end;
 
 
 Initialization
-  EntryMemUsed:=System.HeapSize-MemAvail;
-  MakeCRC32Tbl;
-  SetMemoryManager(TraceManager);
-  ptext:=@stderr;
-{$ifdef EXTRA}
-  Assign(error_file,'heap.err');
-  Rewrite(error_file);
-{$endif EXTRA}
-  { checkpointer init }
-{$ifdef go32v2}
-  Heap_at_init:=HeapPtr;
-{$endif}
-{$ifdef win32}
-  StartupHeapEnd:=HeapEnd;
-{$endif}
+  LoadEnvironment;
+  { heaptrc can be disabled from the environment }
+  if useheaptrace then
+   TraceInit;
 finalization
-  TraceExit;
+  if useheaptrace then
+   TraceExit;
 end.
 {
   $Log$
-  Revision 1.8  2001-04-11 14:08:31  peter
+  Revision 1.9  2001-04-12 18:00:14  peter
+    * allow runtime setting using the environment HEAPTRC
+
+  Revision 1.8  2001/04/11 14:08:31  peter
     * some small fixes to my previous commit
 
   Revision 1.7  2001/04/11 12:34:50  peter
