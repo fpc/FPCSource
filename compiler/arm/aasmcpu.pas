@@ -487,15 +487,15 @@ implementation
                 inc(curpos);
               end;
 
-            if ((curpos-lastpos)>1016) and
+            { split only at real instructions else the test below fails }
+            if ((curpos-lastpos)>1016) and (curtai.typ=ait_instruction) and
               (
-                { don't splitt loads of pc to lr and the following move }
+                { don't split loads of pc to lr and the following move }
                 not(
-                    (curtai.typ=ait_instruction) and
                     (taicpu(curtai).opcode=A_MOV) and
                     (taicpu(curtai).oper[0]^.typ=top_reg) and
                     (taicpu(curtai).oper[0]^.reg=NR_R14) and
-                    (taicpu(curtai).oper[0]^.typ=top_reg) and
+                    (taicpu(curtai).oper[1]^.typ=top_reg) and
                     (taicpu(curtai).oper[1]^.reg=NR_PC)
                    )
               ) then
@@ -518,7 +518,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2005-02-15 21:24:40  florian
+  Revision 1.41  2005-02-20 12:23:45  florian
+    * fixed constant insertation
+
+  Revision 1.40  2005/02/15 21:24:40  florian
     * don't split indirect calls while inserting pc relative constants
 
   Revision 1.39  2005/02/15 19:53:41  florian
