@@ -208,14 +208,6 @@ end;
 {$endif dummy}
 
 
-procedure halt(errnum : byte);
-begin
-  ExitCode:=errnum;
-  do_exit;
-  system_exit;
-end;
-
-
 function paramcount : longint;
 begin
   paramcount := argc - 1;
@@ -229,7 +221,6 @@ end;
    function GetCommandFile:pchar;forward;
 
 function paramstr(l : longint) : string;
-
 begin
   if (l>=0) and (l<argc) then
     paramstr:=strpas(argv[l])
@@ -1170,7 +1161,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2000-01-20 23:38:02  peter
+  Revision 1.59  2000-02-09 12:24:39  peter
+    * halt moved to system.inc
+
+  Revision 1.58  2000/01/20 23:38:02  peter
     * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
       rewrite opens always with filemode 2
 
