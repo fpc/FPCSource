@@ -636,16 +636,15 @@ Begin
                      (Pai386(hp1)^.op1t = top_reg) And
                      (Pai386(hp1)^.op1 = Pai386(p)^.op2)
                     Then
-                {we have "mov x, %treg; mov %treg, y}
-                      If (Pai386(hp1)^.op2t <> top_reg) Or
-                         (GetNextInstruction(hp1, hp2) And
+                {we have "mov x, %treg; mov %treg, y }
+(*                      If (GetNextInstruction(hp1, hp2) And
                           (RegUsedAfterInstruction(TRegister(Pai386(hp1)^.op2), hp1, TmpUsedRegs) or
                 {now TmpUsedRegs contains the regalloc data after hp1}
                           (RegInInstruction(TRegister(Pai386(hp1)^.op2), hp2))) And
-                         Not(TRegister(Pai386(hp1)^.op1) in TmpUsedRegs))
+                         Not(TRegister(Pai386(hp1)^.op1) in TmpUsedRegs)) *)
+                      If not(RegUsedAfterInstruction(TRegister(Pai386(p)^.op2), hp1, TmpUsedRegs))
                         Then
-               {we've got "mov x, %treg; mov %treg, y; XXX y" (ie. y is used in
-                the third instruction)}
+               {we've got "mov x, %treg; mov %treg, y; where %treg is not used after that }
                           Case Pai386(p)^.op1t Of
                             top_reg:
                           {change "mov %reg, %treg; mov %treg, y"
@@ -1614,7 +1613,10 @@ End.
 
 {
  $Log$
- Revision 1.40  1999-03-29 16:02:50  peter
+ Revision 1.41  1999-04-09 08:33:05  peter
+   * fixed mov reg,treg;mov treg,x bug
+
+ Revision 1.40  1999/03/29 16:02:50  peter
    * added type check for or/test x,x
    * added size check for mov,mov,mov optimizes
 
