@@ -20,9 +20,13 @@ Uses UnixUtil,BaseUnix;
 
 { Get Types and Constants }
 {$i sysconst.inc}
+{$ifdef FreeBSD}
+{$i systypes.inc}
+{$else}
 {$ifndef FPC_USE_LIBC}
 {$i systypes.inc}
 {$endif FPC_USE_LIBC}
+{$endif}
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
@@ -86,8 +90,10 @@ function  SetDateTime (Year,Month,Day,hour,minute,second:Word) : Boolean;
      Process Handling
 ***************************}
 
+
 function CreateShellArgV (const prog:string):ppchar;
 function CreateShellArgV (const prog:Ansistring):ppchar;
+procedure FreeShellArgV(p:ppchar);
 
 // These are superceded by the fpExec functions that are more pascallike
 // and have less limitations. However I'll leave them in for a while, to
@@ -117,6 +123,7 @@ function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;
 Function Shell   (const Command:AnsiString):cint;
+Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
@@ -303,6 +310,7 @@ begin
       WaitProcess:=s; // s<0 should not occur, but wie return also a negativ value
    end;
 end;
+
 
 function InternalCreateShellArgV(cmd:pChar; len:cint):ppchar;
 {
@@ -641,6 +649,8 @@ End;
 // Exect turns on tracing for the process
 // execvP has the searchpath as array of ansistring ( const char *search_path)
 
+{$define FPC_USE_FPEXEC}
+
 Function Shell(const Command:String):cint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -716,6 +726,64 @@ begin { Changes as above }
  {$ENDIF}
 end;
 
+
+{$ifdef FPC_USE_LIBC}
+function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
+
+Function fpSystem(const Command:AnsiString):cint;
+begin
+  fpsystem:=xfpsystem(pchar(command));
+end;
+{$else}
+Function fpSystem(const Command:AnsiString):cint;
+{
+  AnsiString version of Shell
+}
+var
+  pid,savedpid   : cint;
+  pstat		 : cint;
+  ign,intact,
+  quitact 	 : SigactionRec;
+  newsigblock,
+  oldsigblock	 : tsigset;
+
+begin { Changes as above }
+  if command='' then exit(1); 
+  ign.sa_handler:=TSigAction(SIG_IGN);
+  fpsigemptyset(ign.sa_mask);
+  ign.sa_flags:=0;
+  fpsigaction(SIGINT, @ign, @intact);
+  fpsigaction(SIGQUIT, @ign, @quitact);
+  fpsigemptyset(newsigblock);
+  fpsigaddset(newsigblock,SIGCHLD);
+  fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
+  pid:=fpfork;
+  if pid=0 then // We are in the Child
+   begin
+     fpsigaction(SIGINT,@intact,NIL);
+     fpsigaction(SIGQUIT,@quitact,NIL);     
+     fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+     fpexecl('/bin/sh',['-c',Command]);	
+     fpExit(127); // was exit(127)!! We must exit the Process, not the function
+   end
+  else if (pid<>-1) then // Successfull started
+     begin
+        savedpid:=pid;
+	repeat
+          pid:=fpwaitpid(savedpid,@pstat,0);
+        until (pid<>-1) and (fpgeterrno()<>ESysEintr);
+        if pid=-1 Then 
+ 	 fpsystem:=-1 
+	else
+	 fpsystem:=pstat;
+     end 
+  else // no success
+   fpsystem:=-1;
+  fpsigaction(SIGINT,@intact,NIL);
+  fpsigaction(SIGQUIT,@quitact,NIL);     
+  fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+end;
+{$endif}
 
 Function WIFSTOPPED(Status: Integer): Boolean;
 begin
@@ -1660,7 +1728,10 @@ End.
 
 {
   $Log$
-  Revision 1.63  2004-02-13 10:50:22  marco
+  Revision 1.64  2004-02-14 18:22:15  marco
+   * fpsystem, and some FPC_USE_LIBC fixes. (FreeBSD needs systypes.inc, also when FPC_USE_LIBC, it only contains types like statfs
+
+  Revision 1.63  2004/02/13 10:50:22  marco
    * Hopefully last large changes to fpexec and friends.
   	- naming conventions changes from Michael.
   	- shell functions get alternative under ifdef.
