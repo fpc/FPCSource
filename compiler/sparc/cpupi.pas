@@ -27,10 +27,10 @@ uses
 	cutils,
 	cgbase,cpuinfo;
 type
-  TSparcprocinfo=class(TProcInfo)
+  TSparcProcInfo=class(TProcInfo)
     {overall size of allocated stack space, currently this is used for the
     PowerPC only}
-    localsize:aword;
+    LocalSize:aword;
     {max of space need for parameters, currently used by the PowerPC port only}
     maxpushedparasize:aword;
     constructor create;override;
@@ -57,33 +57,45 @@ constructor TSparcprocinfo.create;
 	begin
 		inherited create;
 		maxpushedparasize:=0;
-		localsize:=0;
+		LocalSize:=0;
 	end;
 procedure TSparcprocinfo.after_header;
 	begin
-  	{Reserve the stack for copying parameters passeѕ into registers}
+  	{First 16 words are in the frame are used to save registers in case of a
+    register overflow/underflow}
+    {The 17th word is used to save the address of the variable which will
+    receive the return value of the called function}
+    Return_Offset:=-64;{16*4}
     procdef.parast.address_fixup:=(16+1)*4;
+  	{Reserve the stack for copying parameters passed into registers. By default
+    we reserve space for the 6 input registers even if the function had less
+    parameters.}
+    procdef.localst.address_fixup:=6*4+(16+1)*4;
 	end;
 procedure TSparcProcInfo.after_pass1;
 	begin
-    if(procdef.parast.datasize>6*4)
-    then
-      procdef.localst.address_fixup:=procdef.parast.datasize+(16+1)*4
-    else
-      procdef.localst.address_fixup:=6*4+(16+1)*4;
-		procinfo.firsttemp_offset:=procdef.localst.address_fixup+procdef.localst.datasize;
-	  WriteLn('Parameter copies start at: %i6+'+tostr(procdef.parast.address_fixup));
-		WriteLn('Locals start at: %o6+'+tostr(procdef.localst.address_fixup));
-	  WriteLn('Temp. space start: %o6+'+tostr(procinfo.firsttemp_offset));
-		tg.firsttemp:=procinfo.firsttemp_offset;
-		tg.lasttemp:=procinfo.firsttemp_offset;
+    with ProcDef do
+      begin
+        if parast.datasize>6*4
+        then
+          localst.address_fixup:=parast.address_fixup+parast.datasize;
+		    firsttemp_offset:=localst.address_fixup+localst.datasize;
+	      WriteLn('Parameter copies start at: %i6+'+tostr(parast.address_fixup));
+    		WriteLn('Locals start at: %o6+'+tostr(localst.address_fixup));
+	      WriteLn('Temp. space start: %o6+'+tostr(firsttemp_offset));
+    		tg.firsttemp:=procinfo.firsttemp_offset;
+		    tg.lasttemp:=procinfo.firsttemp_offset;
+      end;
 	end;
 begin
   cprocinfo:=TSparcProcInfo;
 end.
 {
   $Log$
-  Revision 1.6  2002-11-10 19:07:46  mazen
+  Revision 1.7  2002-11-14 21:42:08  mazen
+  * fixing return value variable address
+
+  Revision 1.6  2002/11/10 19:07:46  mazen
   * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
   Revision 1.5  2002/11/03 20:22:40  mazen

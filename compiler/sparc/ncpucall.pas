@@ -35,21 +35,15 @@ set when generating function prologue in cgcpu.tcgSPARC.g_stackframe_entry}
   end;
 implementation
 uses
-  globtype,systems,
+  systems,
   cutils,verbose,globals,
-  symconst,symbase,symsym,symtable,defbase,paramgr,
+  paramgr,
 {$ifdef GDB}
-  {$ifdef delphi}
-  sysutils,
-  {$else}
-  strings,
-  {$endif}
   gdb,
 {$endif GDB}
-  cginfo,cgbase,pass_2,
-  cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
+  cgbase,
   nmem,nld,ncnv,
-  ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpupi;
+  cgobj,tgobj,rgobj,rgcpu,cgcpu,cpupi;
 function TSparcCallNode.pass_1:TNode;
   begin
     result:=inherited pass_1;
@@ -75,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-10-10 19:57:52  mazen
+  Revision 1.5  2002-11-14 21:42:08  mazen
+  * fixing return value variable address
+
+  Revision 1.4  2002/10/10 19:57:52  mazen
   * Just to update repsitory
 
   Revision 1.3  2002/09/30 19:12:14  mazen
