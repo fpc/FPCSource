@@ -48,7 +48,7 @@ unit pexpr;
     uses
        globtype,systems,tokens,
        cobjects,globals,scanner,aasm,pass_1,
-       hcodegen,types,verbose,strings
+       hcodegen,types,verbose,strings,tccal
        { parser specific stuff }
        ,pbase,pdecl
        { processor specific stuff }
@@ -613,6 +613,7 @@ unit pexpr;
                         if (p2^.treetype<>errorn) and getprocvar then
                           handle_procvar(pprocvardef(ppropertysym(sym)^.proptype),p2);
                         p1^.left:=gencallparanode(p2,p1^.left);
+                        firstcallparan(p1^.left,nil);
                         getprocvar:=false;
                      end
                    else if ppropertysym(sym)^.writeaccesssym^.typ=varsym then
@@ -1987,7 +1988,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.104  1999-05-07 10:35:23  florian
+  Revision 1.105  1999-05-12 22:36:09  florian
+    * override isn't allowed in objects!
+
+  Revision 1.104  1999/05/07 10:35:23  florian
     * first fix for a problem with method pointer properties, still doesn't work
       with WITH
 

@@ -38,6 +38,7 @@
                       use external messagefiles, default for TP
   NOAG386INT          no Intel Assembler output
   NOAG386NSM          no NASM output
+  NOAG386BIN          leaves out the binary writer
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -267,7 +268,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  1999-05-02 09:35:45  florian
+  Revision 1.42  1999-05-12 22:36:11  florian
+    * override isn't allowed in objects!
+
+  Revision 1.41  1999/05/02 09:35:45  florian
     + method message handlers which contain an explicit self can't be called
       directly anymore
     + self is now loaded at the start of the an message handler with an explicit

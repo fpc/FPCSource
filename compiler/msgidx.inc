@@ -198,6 +198,7 @@ type tmsgconst=(
   parser_e_self_in_non_message_handler,
   parser_e_threadvars_only_sg,
   parser_f_direct_assembler_not_allowed,
+  parser_e_no_object_override,
   type_e_mismatch,
   type_e_incompatible_types,
   type_e_integer_expr_expected,

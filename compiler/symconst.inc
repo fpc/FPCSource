@@ -72,18 +72,23 @@
          (pomethodpointer+povirtualmethod+pooverridingmethod);
 
        { options for objects and classes }
-       oo_is_abstract  = $1;
+       oo_is_abstract  = $1;         { true, if the object/class has an abstract }
+                                     { method => no instances can be created     }
        oo_is_class     = $2;
-       oo_hasvirtual   = $4;
+       oo_hasvirtual   = $4;         { true, if the object/class has virtual methods }
        oo_hasprivate   = $8;
        oo_hasprotected = $10;
-       oo_isforward    = $20;
-       oo_can_have_published = $40;
-       oo_hasconstructor = $80;
-       oo_hasdestructor = $100;
-       oo_hasvmt        = $200;
+       oo_isforward    = $20;        { true, if the class is only a forward declared yet }
+       oo_can_have_published = $40;  { true, if the class has rtti, i.e. you             }
+                                     { can publish properties                            }
+       oo_hasconstructor = $80;      { true, if the object/class has a constructor }
+       oo_hasdestructor = $100;      { true, if the object/class has a destructor }
+       oo_hasvmt        = $200;      { true, if the object/class has a vmt }
        oo_hasmsgstr     = $400;
        oo_hasmsgint     = $800;
+       oo_cppvmt        = $1000;     { true, if the object/class uses an C++ compatible }
+                                     { vmt, all members of the same class tree          }
+                                     { must use then a C++ compatible vmt               }
 
        { options for properties }
        ppo_indexed = $1;
@@ -99,7 +104,10 @@
 
 {
   $Log$
-  Revision 1.6  1999-04-28 06:02:10  florian
+  Revision 1.7  1999-05-12 22:36:13  florian
+    * override isn't allowed in objects!
+
+  Revision 1.6  1999/04/28 06:02:10  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written
