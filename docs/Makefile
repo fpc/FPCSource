@@ -57,7 +57,7 @@ override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 
 HOSTOS=$(shell $(FPC) -iSO)
 # Which docs are made when 'html' is specified
-HTML = user rtl ref prog fpdoc chart
+HTML = user rtl fcl ref prog fpdoc chart
 
 # Can be 'report','book', 'html', 'hevea', 'ts3' 'ts4'
 ifdef USEHEVEA
@@ -350,9 +350,9 @@ syntax.sty: styles/syntax.sty
 	cp $(wildcard styles/*.*) .
 
 ifndef inWinNT
-includes: date.inc preamble.inc syntax.sty scripts.chk
+INCLUDES=date.inc preamble.inc syntax.sty scripts.chk
 else
-includes: date.inc preamble.inc syntax.sty
+INCLUDES=date.inc preamble.inc syntax.sty
 endif
 
 
@@ -421,38 +421,38 @@ rtl.inc: $(RTLXML)
 onechap: onechap.dvi
 
 
-ref.dvi: ref.tex includes
+ref.dvi: ref.tex $(INCLUDES)
 
-prog.dvi: prog.tex includes
+prog.dvi: prog.tex $(INCLUDES)
 
-user.dvi: user.tex includes
+user.dvi: user.tex $(INCLUDES)
 
-fpdoc.dvi: fpdoc.tex includes
+fpdoc.dvi: fpdoc.tex $(INCLUDES)
 
-fcl.dvi: fcl.tex fcl.inc includes
+fcl.dvi: fcl.tex fcl.inc $(INCLUDES)
 
 chart.dvi: chart.tex
 
 
-ref.pdf: ref.tex includes
+ref.pdf: ref.tex $(INCLUDES)
 
-user.pdf: user.tex includes
+user.pdf: user.tex $(INCLUDES)
 
-prog.pdf: prog.tex includes
+prog.pdf: prog.tex $(INCLUDES)
 
-onechap.pdf: onechap.tex includes
+onechap.pdf: onechap.tex $(INCLUDES)
 
-onechap.dvi: onechap.tex includes
+onechap.dvi: onechap.tex $(INCLUDES)
 
-fpdoc.pdf: fpdoc.tex includes
+fpdoc.pdf: fpdoc.tex $(INCLUDES)
 
-fcl.pdf: fcl.tex fcl.inc includes
+fcl.pdf: fcl.tex fcl.inc $(INCLUDES)
 
 chart.pdf: chart.tex
 
-rtl.dvi: rtl.tex rtl.inc includes
+rtl.dvi: rtl.tex rtl.inc $(INCLUDES)
 
-rtl.pdf: rtl.tex rtl.inc includes
+rtl.pdf: rtl.tex rtl.inc $(INCLUDES)
 
 dvi : $(DVI)
 
@@ -664,7 +664,11 @@ execute:
 
 #
 # $Log$
-# Revision 1.34  2004-12-15 22:14:14  michael
+# Revision 1.35  2004-12-19 20:20:16  peter
+#   * includes variable instead of target to prevent always rebuilding
+#   * also build fcl.pdf
+#
+# Revision 1.34  2004/12/15 22:14:14  michael
 # + Make targets fixed (hopefully)
 #
 # Revision 1.33  2004/12/14 21:50:02  michael
