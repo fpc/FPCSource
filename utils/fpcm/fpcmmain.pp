@@ -115,7 +115,7 @@ interface
         function  GetTargetRequires(t:TTarget):TStringList;
         function  CheckLibcRequire:boolean;
         procedure CreateExportSection;
-        procedure SubstVariables(var s:string);
+        function  SubstVariables(const s:string):string;
         function  GetVariable(const inivar:string):string;
         function  SetVariable(const inivar,value:string;add:boolean):string;
         procedure Print;
@@ -153,14 +153,6 @@ implementation
         dir,unitdir,packdir : string;
       end;
 
-    const
-      specialdirs = 4;
-      specialdir : array[1..specialdirs] of tspecialdir=(
-        (dir: 'rtl';  unitdir: '$(UNITSDIR)/rtl';  packdir: '$(FPCDIR)/rtl'),
-        (dir: 'fcl';  unitdir: '$(UNITSDIR)/fcl';  packdir: '$(FPCDIR)/fcl'),
-        (dir: 'api';  unitdir: '$(UNITSDIR)/api';  packdir: '$(FPCDIR)/api'),
-        (dir: 'fv';   unitdir: '$(UNITSDIR)/fv';   packdir: '$(FPCDIR)/fv')
-      );
 
 {****************************************************************************
                                  Helpers
@@ -661,23 +653,10 @@ implementation
 
       var
         s : string;
-        i : integer;
       begin
-        s:='$(PACKAGESDIR)/'+ReqName;
-        For i:=1 to SpecialDirs do
-         if SpecialDir[i].Dir=ReqName then
-          begin
-            s:=SpecialDir[i].PackDir;
-            break;
-          end;
-        SubstVariables(s);
-        if TryFile(s+'/Makefile.fpc') then
+        s:=SubstVariables('$(wildcard $(addsuffix /'+ReqName+'/Makefile.fpc,$(FPCDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(PACKAGESDIR)) $(addsuffix /'+ReqName+'/Makefile.fpc,$(REQUIRE_PACKAGESDIR)))');
+        if TryFile(s) then
          exit;
-        {s:=GetVariable('default.fpcdir');
-        writeln('s: ',s);
-        if (s<>'') and (TryFile(s+'/Makefile.fpc')) then
-         exit; }
-
         Raise Exception.Create('s_package_not_found '+Reqname);
       end;
 
@@ -880,34 +859,145 @@ implementation
       end;
 
 
-    procedure TFPCMake.SubstVariables(var s:string);
+    function TFPCMake.SubstVariables(const s:string):string;
+
+      function Expect(var s:string;c:char):boolean;
+      begin
+        if (s<>'') and (s[1]=c) then
+         begin
+           Delete(s,1,1);
+           Result:=true;
+         end
+        else
+         begin
+           writeln('Error "',c,'" expected');
+           Result:=false;
+         end;
+      end;
+
+      function GetVar(var s:string;untilc:char):string;
       var
         i,j,k : integer;
-        s2,s3 : string;
+        first : boolean;
+        func,
+        tok,s1,s2,s3 : string;
         Sec   : TFPCMakeSection;
       begin
+        Result:='';
         repeat
+          j:=Pos(untilc,s);
+          if j=0 then
+           j:=Length(s)+1;
           i:=Pos('$(',s);
-          if i=0 then
+          if (j<i) or (i=0) then
            break;
-          j:=PosIdx(')',s,i+2);
-          s2:=Copy(s,i+2,j-i-2);
-          k:=pos('.',s2);
-          if k>0 then
+          Result:=Result+Copy(s,1,i-1);
+          Delete(s,1,i+1);
+          { Maybe Function ? }
+          j:=Pos(')',s);
+          if j=0 then
+           j:=Length(s)+1;
+          i:=Pos(' ',s);
+          if i=0 then
+           i:=Length(s)+1;
+          if i<j then
            begin
-             s3:=Copy(s2,k+1,Length(s2)-k);
-             s2:=Copy(s2,1,k-1);
-             Sec:=TFPCMakeSection(Section[s2]);
-             if assigned(Sec) then
-              s2:=Sec[s3]
-             else
-              s2:='';
+             { It's a function }
+             Func:=Copy(s,1,i-1);
+             if Func='wildcard' then
+              begin
+                Delete(s,1,9);
+                s1:=GetVar(s,')');
+                Expect(s,')');
+writeln('$(wildcard ',s1,')');
+                first:=true;
+                repeat
+                  tok:=GetToken(s1);
+                  if tok='' then
+                   break;
+                  if FileExists(tok) then
+                   begin
+                     if not first then
+                      Result:=Result+' '
+                     else
+                      first:=false;
+                     Result:=Result+tok;
+                   end;
+                until false;
+              end
+             else if Func='addprefix' then
+              begin
+                Delete(s,1,10);
+                s1:=GetVar(s,',');
+                if Expect(s,',') then
+                 begin
+                   s2:=GetVar(s,')');
+                   Expect(s,')');
+                 end;
+                first:=true;
+                repeat
+                  tok:=GetToken(s2);
+                  if tok='' then
+                   break;
+                  if not first then
+                   Result:=Result+' '
+                  else
+                   first:=false;
+                  Result:=Result+s1+tok;
+                until false;
+              end
+             else if Func='addsuffix' then
+              begin
+                Delete(s,1,10);
+                s1:=GetVar(s,',');
+                if Expect(s,',') then
+                 begin
+                   s2:=GetVar(s,')');
+                   Expect(s,')');
+                 end;
+                first:=true;
+                repeat
+                  tok:=GetToken(s2);
+                  if tok='' then
+                   break;
+                  if not first then
+                   Result:=Result+' '
+                  else
+                   first:=false;
+                  Result:=Result+tok+s1;
+                until false;
+              end;
            end
           else
-           s2:=Variables[s2];
-          Delete(s,i,j-i+1);
-          Insert(s2,s,i);
+           begin
+             s2:=Copy(s,1,j-1);
+             Delete(s,1,j);
+             k:=pos('_',s2);
+             if k>0 then
+              begin
+                s3:=LowerCase(Copy(s2,k+1,Length(s2)-k));
+                s2:=LowerCase(Copy(s2,1,k-1));
+                Sec:=TFPCMakeSection(Section[s2]);
+                if assigned(Sec) then
+                 s2:=Sec[s3]
+                else
+                 s2:='';
+              end
+             else
+              s2:=Variables[s2];
+             Insert(s2,s,1);
+           end;
         until false;
+        Result:=Result+Copy(s,1,j-1);
+        Delete(s,1,j-1);
+      end;
+
+      var
+        s1 : string;
+      begin
+        s1:=s;
+        Result:=GetVar(s1,#0);
+writeln('R: ',result);
       end;
 
 
@@ -918,7 +1008,7 @@ implementation
         i   : integer;
       begin
         Result:='';
-        i:=Pos('.',inivar);
+        i:=Pos('_',inivar);
         if i<>0 then
          begin
            Sec:=TFPCMakeSection(FSections[Copy(Inivar,1,i-1)]);
@@ -943,7 +1033,7 @@ implementation
         key : string;
       begin
         Result:='';
-        i:=Pos('.',inivar);
+        i:=Pos('_',inivar);
         if i<>0 then
          begin
            Sec:=TFPCMakeSection(FSections[Copy(Inivar,1,i-1)]);
@@ -992,7 +1082,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2001-02-01 22:00:10  peter
+  Revision 1.4  2001-02-05 20:44:56  peter
+    * variable substition like GNU Make. wildcard,addprefix,addsuffix
+      already implemented
+
+  Revision 1.3  2001/02/01 22:00:10  peter
     * default.fpcdir is back
     * subdir requirement checking works, but not very optimal yet as
       it can load the same Makefile.fpc multiple times
