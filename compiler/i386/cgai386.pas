@@ -28,27 +28,26 @@ unit cgai386;
 interface
 
     uses
-       cobjects,
        cpubase,cpuasm,
        symconst,symtype,symdef,aasm;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
 
-    function def_opsize(p1:pdef):topsize;
-    function def2def_opsize(p1,p2:pdef):topsize;
-    function def_getreg(p1:pdef):tregister;
+    function def_opsize(p1:tdef):topsize;
+    function def2def_opsize(p1,p2:tdef):topsize;
+    function def_getreg(p1:tdef):tregister;
     function makereg8(r:tregister):tregister;
     function makereg16(r:tregister):tregister;
     function makereg32(r:tregister):tregister;
 
 
     procedure locflags2reg(var l:tlocation;opsize:topsize);
-    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: pasmlabel);
+    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: tasmlabel);
 
 
-    procedure emitlab(var l : pasmlabel);
-    procedure emitjmp(c : tasmcond;var l : pasmlabel);
+    procedure emitlab(var l : tasmlabel);
+    procedure emitjmp(c : tasmcond;var l : tasmlabel);
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
 
     procedure emit_none(i : tasmop;s : topsize);
@@ -67,10 +66,10 @@ interface
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
 
 
-    procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
-    procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
-    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
-    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
+    procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
+    procedure emit_sym_ofs(i : tasmop;s : topsize;op : tasmsymbol;ofs : longint);
+    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;reg : tregister);
+    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;ref : preference);
 
     procedure emitcall(const routine:string);
 
@@ -94,7 +93,7 @@ interface
 
     procedure emit_pushw_loc(const t:tlocation);
     procedure emit_push_lea_loc(const t:tlocation;freetemp:boolean);
-    procedure emit_to_mem(var t:tlocation;def:pdef);
+    procedure emit_to_mem(var t:tlocation;def:tdef);
     procedure emit_to_reg16(var hr:tregister);
     procedure emit_to_reg32(var hr:tregister);
     procedure emit_mov_reg_loc(reg: TRegister; const t:tlocation);
@@ -103,16 +102,16 @@ interface
     procedure copyshortstring(const dref,sref : treference;len : byte;
                         loadref, del_sref: boolean);
 
-    procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
-    procedure incrstringref(t : pdef;const ref : treference);
-    procedure decrstringref(t : pdef;const ref : treference);
+    procedure finalize(t : tdef;const ref : treference;is_already_ref : boolean);
+    procedure incrstringref(t : tdef;const ref : treference);
+    procedure decrstringref(t : tdef;const ref : treference);
 
     procedure push_int(l : longint);
     procedure emit_push_mem(const ref : treference);
     procedure emitpushreferenceaddr(const ref : treference);
 
-    procedure incrcomintfref(t: pdef; const ref: treference);
-    procedure decrcomintfref(t: pdef; const ref: treference);
+    procedure incrcomintfref(t: tdef; const ref: treference);
+    procedure decrcomintfref(t: tdef; const ref: treference);
 
     procedure floatload(t : tfloattype;const ref : treference);
     procedure floatstore(t : tfloattype;const ref : treference);
@@ -120,7 +119,7 @@ interface
     procedure floatstoreops(t : tfloattype;var op : tasmop;var s : topsize);
 
     procedure maybe_loadself;
-    procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;destreg:Tregister;delloc:boolean);
+    procedure emitloadord2reg(const location:Tlocation;orddef:torddef;destreg:Tregister;delloc:boolean);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean;loadref:boolean);
 
     procedure genentrycode(alist : TAAsmoutput;make_global:boolean;
@@ -159,7 +158,7 @@ implementation
 {$else}
        strings,
 {$endif}
-       cutils,
+       cutils,cclasses,
        globtype,systems,globals,verbose,
        fmodule,
        symbase,symsym,symtable,types,
@@ -177,9 +176,9 @@ implementation
                                 Helpers
 *****************************************************************************}
 
-    function def_opsize(p1:pdef):topsize;
+    function def_opsize(p1:tdef):topsize;
       begin
-        case p1^.size of
+        case p1.size of
          1 : def_opsize:=S_B;
          2 : def_opsize:=S_W;
          4 : def_opsize:=S_L;
@@ -189,11 +188,11 @@ implementation
       end;
 
 
-    function def2def_opsize(p1,p2:pdef):topsize;
+    function def2def_opsize(p1,p2:tdef):topsize;
       var
         o1 : topsize;
       begin
-        case p1^.size of
+        case p1.size of
          1 : o1:=S_B;
          2 : o1:=S_W;
          4 : o1:=S_L;
@@ -204,7 +203,7 @@ implementation
         end;
         if assigned(p2) then
          begin
-           case p2^.size of
+           case p2.size of
             1 : o1:=S_B;
             2 : begin
                   if o1=S_B then
@@ -225,9 +224,9 @@ implementation
       end;
 
 
-    function def_getreg(p1:pdef):tregister;
+    function def_getreg(p1:tdef):tregister;
       begin
-        case p1^.size of
+        case p1.size of
          1 : def_getreg:=reg32toreg8(getregister32);
          2 : def_getreg:=reg32toreg16(getregister32);
          4 : def_getreg:=getregister32;
@@ -295,10 +294,10 @@ implementation
       end;
 
 
-    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: pasmlabel);
+    procedure locjump2reg(var l:tlocation;opsize:topsize; otl, ofl: tasmlabel);
       var
         hregister : tregister;
-        hl : pasmlabel;
+        hl : tasmlabel;
       begin
          if l.loc = LOC_JUMP then
            begin
@@ -328,15 +327,15 @@ implementation
                               Emit Assembler
 *****************************************************************************}
 
-    procedure emitlab(var l : pasmlabel);
+    procedure emitlab(var l : tasmlabel);
       begin
-         if not l^.is_set then
+         if not l.is_set then
           exprasmList.concat(Tai_label.Create(l))
          else
           internalerror(7453984);
       end;
 
-    procedure emitjmp(c : tasmcond;var l : pasmlabel);
+    procedure emitjmp(c : tasmcond;var l : tasmlabel);
       var
         ai : taicpu;
       begin
@@ -427,22 +426,22 @@ implementation
          exprasmList.concat(Taicpu.Op_reg_reg_reg(i,s,reg1,reg2,reg3));
       end;
 
-    procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
+    procedure emit_sym(i : tasmop;s : topsize;op : tasmsymbol);
       begin
         exprasmList.concat(Taicpu.Op_sym(i,s,op));
       end;
 
-    procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
+    procedure emit_sym_ofs(i : tasmop;s : topsize;op : tasmsymbol;ofs : longint);
       begin
         exprasmList.concat(Taicpu.Op_sym_ofs(i,s,op,ofs));
       end;
 
-    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
+    procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;reg : tregister);
       begin
         exprasmList.concat(Taicpu.Op_sym_ofs_reg(i,s,op,ofs,reg));
       end;
 
-    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
+    procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : tasmsymbol;ofs:longint;ref : preference);
       begin
         exprasmList.concat(Taicpu.Op_sym_ofs_ref(i,s,op,ofs,ref));
       end;
@@ -852,7 +851,7 @@ implementation
       end;
 
 
-    procedure emit_to_mem(var t:tlocation;def:pdef);
+    procedure emit_to_mem(var t:tlocation;def:tdef);
 
       var
          r : treference;
@@ -862,7 +861,7 @@ implementation
                LOC_FPU : begin
                            reset_reference(t.reference);
                            gettempofsizereference(10,t.reference);
-                           floatstore(pfloatdef(def)^.typ,t.reference);
+                           floatstore(tfloatdef(def).typ,t.reference);
                          end;
                LOC_REGISTER:
                  begin
@@ -885,7 +884,7 @@ implementation
                            inc(fpuvaroffset);
                            reset_reference(t.reference);
                            gettempofsizereference(10,t.reference);
-                           floatstore(pfloatdef(def)^.typ,t.reference);
+                           floatstore(tfloatdef(def).typ,t.reference);
                          end;
          else
          internalerror(333);
@@ -973,7 +972,7 @@ implementation
                            Emit String Functions
 *****************************************************************************}
 
-    procedure incrcomintfref(t: pdef; const ref: treference);
+    procedure incrcomintfref(t: tdef; const ref: treference);
 
       var
          pushedregs : tpushed;
@@ -990,7 +989,7 @@ implementation
       end;
 
 
-    procedure decrcomintfref(t: pdef; const ref: treference);
+    procedure decrcomintfref(t: tdef; const ref: treference);
 
       var
          pushedregs : tpushed;
@@ -1026,6 +1025,8 @@ implementation
          maybe_loadself;
       end;
 
+
+{$ifdef unused}
     procedure copylongstring(const dref,sref : treference;len : longint;loadref:boolean);
       begin
          emitpushreferenceaddr(dref);
@@ -1038,13 +1039,12 @@ implementation
          emitcall('FPC_LONGSTR_COPY');
          maybe_loadself;
       end;
+{$endif unused}
 
 
-    procedure incrstringref(t : pdef;const ref : treference);
-
+    procedure incrstringref(t : tdef;const ref : treference);
       var
          pushedregs : tpushed;
-
       begin
          pushusedregisters(pushedregs,$ff);
          emitpushreferenceaddr(ref);
@@ -1062,7 +1062,7 @@ implementation
       end;
 
 
-    procedure decrstringref(t : pdef;const ref : treference);
+    procedure decrstringref(t : tdef;const ref : treference);
 
       var
          pushedregs : tpushed;
@@ -1416,7 +1416,7 @@ implementation
       end;
 
 
-    procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;
+    procedure emitloadord2reg(const location:Tlocation;orddef:torddef;
                               destreg:Tregister;delloc:boolean);
 
     {A lot smaller and less bug sensitive than the original unfolded loads.}
@@ -1429,7 +1429,7 @@ implementation
         case location.loc of
             LOC_REGISTER,LOC_CREGISTER:
                 begin
-                    case orddef^.typ of
+                    case orddef.typ of
                         u8bit:
                             tai:=Taicpu.Op_reg_reg(A_MOVZX,S_BL,location.register,destreg);
                         s8bit:
@@ -1453,7 +1453,7 @@ implementation
                     else
                      begin
                        r:=newreference(location.reference);
-                       case orddef^.typ of
+                       case orddef.typ of
                          u8bit:
                             tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,r,destreg);
                          s8bit:
@@ -1531,9 +1531,9 @@ implementation
 
   procedure genprofilecode;
     var
-      pl : pasmlabel;
+      pl : tasmlabel;
     begin
-      if (po_assembler in aktprocsym^.definition^.procoptions) then
+      if (po_assembler in aktprocsym.definition.procoptions) then
        exit;
       case target_info.target of
          target_i386_freebsd,
@@ -1599,18 +1599,18 @@ implementation
 
 
   { generates the code for threadvar initialisation }
-  procedure initialize_threadvar(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure initialize_threadvar(p : tnamedindexitem);
 
     var
        hr : treference;
 
     begin
-       if (psym(p)^.typ=varsym) and
-          (vo_is_thread_var in pvarsym(p)^.varoptions) then
+       if (tsym(p).typ=varsym) and
+          (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
-            exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,pvarsym(p)^.getsize));
+            exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,tvarsym(p).getsize));
             reset_reference(hr);
-            hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+            hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
             emitpushreferenceaddr(hr);
             saveregvars($ff);
             emitcall('FPC_INIT_THREADVAR');
@@ -1620,7 +1620,7 @@ implementation
     { initilizes data of type t                           }
     { if is_already_ref is true then the routines assumes }
     { that r points to the data to initialize             }
-    procedure initialize(t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure initialize(t : tdef;const ref : treference;is_already_ref : boolean);
 
       var
          hr : treference;
@@ -1636,7 +1636,7 @@ implementation
          else
            begin
               reset_reference(hr);
-              hr.symbol:=pstoreddef(t)^.get_inittable_label;
+              hr.symbol:=tstoreddef(t).get_inittable_label;
               emitpushreferenceaddr(hr);
               if is_already_ref then
                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
@@ -1650,7 +1650,7 @@ implementation
     { finalizes data of type t                            }
     { if is_already_ref is true then the routines assumes }
     { that r points to the data to finalizes              }
-    procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
+    procedure finalize(t : tdef;const ref : treference;is_already_ref : boolean);
 
       var
          r : treference;
@@ -1668,7 +1668,7 @@ implementation
          else
            begin
               reset_reference(r);
-              r.symbol:=pstoreddef(t)^.get_inittable_label;
+              r.symbol:=tstoreddef(t).get_inittable_label;
               emitpushreferenceaddr(r);
               if is_already_ref then
                 exprasmList.concat(Taicpu.Op_ref(A_PUSH,S_L,
@@ -1681,121 +1681,119 @@ implementation
 
 
   { generates the code for initialisation of local data }
-  procedure initialize_data(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure initialize_data(p : tnamedindexitem);
 
     var
        hr : treference;
 
     begin
-       if (psym(p)^.typ=varsym) and
-          assigned(pvarsym(p)^.vartype.def) and
-          not(is_class(pvarsym(p)^.vartype.def)) and
-          pvarsym(p)^.vartype.def^.needs_inittable then
+       if (tsym(p).typ=varsym) and
+          assigned(tvarsym(p).vartype.def) and
+          not(is_class(tvarsym(p).vartype.def)) and
+          tvarsym(p).vartype.def.needs_inittable then
          begin
             if assigned(procinfo) then
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
-            if psym(p)^.owner^.symtabletype in [localsymtable,inlinelocalsymtable] then
+            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
               begin
                  hr.base:=procinfo^.framepointer;
-                 hr.offset:=-pvarsym(p)^.address+pvarsym(p)^.owner^.address_fixup;
+                 hr.offset:=-tvarsym(p).address+tvarsym(p).owner.address_fixup;
               end
             else
               begin
-                 hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                 hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
               end;
-            initialize(pvarsym(p)^.vartype.def,hr,false);
+            initialize(tvarsym(p).vartype.def,hr,false);
          end;
     end;
 
   { generates the code for incrementing the reference count of parameters and
     initialize out parameters }
-  procedure init_paras(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure init_paras(p : tnamedindexitem);
 
     var
        hrv : treference;
        hr: treference;
 
     begin
-       if (psym(p)^.typ=varsym) and
-          not is_class(pvarsym(p)^.vartype.def) and
-          pvarsym(p)^.vartype.def^.needs_inittable then
+       if (tsym(p).typ=varsym) and
+          not is_class(tvarsym(p).vartype.def) and
+          tvarsym(p).vartype.def.needs_inittable then
          begin
-           if (pvarsym(p)^.varspez=vs_value) then
+           if (tvarsym(p).varspez=vs_value) then
              begin
                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
 
                reset_reference(hrv);
                hrv.base:=procinfo^.framepointer;
-               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+               hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
-               if is_ansistring(pvarsym(p)^.vartype.def) or
-                  is_widestring(pvarsym(p)^.vartype.def) then
+               if is_ansistring(tvarsym(p).vartype.def) or
+                  is_widestring(tvarsym(p).vartype.def) then
                  begin
-                   incrstringref(pvarsym(p)^.vartype.def,hrv)
+                   incrstringref(tvarsym(p).vartype.def,hrv)
                  end
-               else if is_interfacecom(pvarsym(p)^.vartype.def) then
+               else if is_interfacecom(tvarsym(p).vartype.def) then
                  begin
-                   incrcomintfref(pvarsym(p)^.vartype.def,hrv)
+                   incrcomintfref(tvarsym(p).vartype.def,hrv)
                  end
                else
                  begin
                    reset_reference(hr);
-                   hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
+                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_inittable_label;
                    emitpushreferenceaddr(hr);
                    emitpushreferenceaddr(hrv);
                    emitcall('FPC_ADDREF');
                  end;
              end
-           else if (pvarsym(p)^.varspez=vs_out) then
+           else if (tvarsym(p).varspez=vs_out) then
              begin
                reset_reference(hrv);
                hrv.base:=procinfo^.framepointer;
-               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
-               {$ifndef noAllocEdi}
+               hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
                getexplicitregister32(R_EDI);
-               {$endif noAllocEdi}
                exprasmList.concat(Taicpu.Op_ref_reg(A_MOV,S_L,newreference(hrv),R_EDI));
                reset_reference(hr);
                hr.base:=R_EDI;
-               initialize(pvarsym(p)^.vartype.def,hr,false);
+               initialize(tvarsym(p).vartype.def,hr,false);
              end;
          end;
     end;
 
   { generates the code for decrementing the reference count of parameters }
-  procedure final_paras(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure final_paras(p : tnamedindexitem);
 
     var
        hrv : treference;
        hr: treference;
 
     begin
-       if (psym(p)^.typ=varsym) and
-          not is_class(pvarsym(p)^.vartype.def) and
-          pvarsym(p)^.vartype.def^.needs_inittable then
+       if (tsym(p).typ=varsym) and
+          not is_class(tvarsym(p).vartype.def) and
+          tvarsym(p).vartype.def.needs_inittable then
          begin
-           if (pvarsym(p)^.varspez=vs_value) then
+           if (tvarsym(p).varspez=vs_value) then
              begin
                procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
 
                reset_reference(hrv);
                hrv.base:=procinfo^.framepointer;
-               hrv.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+               hrv.offset:=tvarsym(p).address+procinfo^.para_offset;
 
-               if is_ansistring(pvarsym(p)^.vartype.def) or
-                  is_widestring(pvarsym(p)^.vartype.def) then
+               if is_ansistring(tvarsym(p).vartype.def) or
+                  is_widestring(tvarsym(p).vartype.def) then
                  begin
-                   decrstringref(pvarsym(p)^.vartype.def,hrv)
+                   decrstringref(tvarsym(p).vartype.def,hrv)
                  end
-               else if is_interfacecom(pvarsym(p)^.vartype.def) then
+               else if is_interfacecom(tvarsym(p).vartype.def) then
                  begin
-                   decrcomintfref(pvarsym(p)^.vartype.def,hrv)
+                   decrcomintfref(tvarsym(p).vartype.def,hrv)
                  end
                else
                  begin
                    reset_reference(hr);
-                   hr.symbol:=pstoreddef(pvarsym(p)^.vartype.def)^.get_inittable_label;
+                   hr.symbol:=tstoreddef(tvarsym(p).vartype.def).get_inittable_label;
                    emitpushreferenceaddr(hr);
                    emitpushreferenceaddr(hrv);
                    emitcall('FPC_DECREF');
@@ -1806,65 +1804,67 @@ implementation
 
 
   { generates the code for finalisation of local data }
-  procedure finalize_data(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure finalize_data(p : tnamedindexitem);
 
     var
        hr : treference;
 
     begin
-       if (psym(p)^.typ=varsym) and
-          assigned(pvarsym(p)^.vartype.def) and
-          not(is_class(pvarsym(p)^.vartype.def)) and
-          pvarsym(p)^.vartype.def^.needs_inittable then
+       if (tsym(p).typ=varsym) and
+          assigned(tvarsym(p).vartype.def) and
+          not(is_class(tvarsym(p).vartype.def)) and
+          tvarsym(p).vartype.def.needs_inittable then
          begin
             if assigned(procinfo) then
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
-            case psym(p)^.owner^.symtabletype of
+            case tsym(p).owner.symtabletype of
                localsymtable,inlinelocalsymtable:
                  begin
                     hr.base:=procinfo^.framepointer;
-                    hr.offset:=-pvarsym(p)^.address+pvarsym(p)^.owner^.address_fixup;
+                    hr.offset:=-tvarsym(p).address+tvarsym(p).owner.address_fixup;
                  end;
                else
-                 hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
+                 hr.symbol:=newasmsymbol(tvarsym(p).mangledname);
             end;
-            finalize(pvarsym(p)^.vartype.def,hr,false);
+            finalize(tvarsym(p).vartype.def,hr,false);
          end;
     end;
 
 
   { generates the code to make local copies of the value parameters }
-  procedure copyvalueparas(p : pnamedindexobject);{$ifndef fpc}far;{$endif}
+  procedure copyvalueparas(p : tnamedindexitem);
     var
       href1,href2 : treference;
       r    : preference;
       power,len  : longint;
       opsize : topsize;
-      again,ok : pasmlabel;
+{$ifndef NOTARGETWIN32}
+      again,ok : tasmlabel;
+{$endif}
     begin
-       if (psym(p)^.typ=varsym) and
-          (pvarsym(p)^.varspez=vs_value) and
-          (push_addr_param(pvarsym(p)^.vartype.def)) then
+       if (tsym(p).typ=varsym) and
+          (tvarsym(p).varspez=vs_value) and
+          (push_addr_param(tvarsym(p).vartype.def)) then
         begin
-          if is_open_array(pvarsym(p)^.vartype.def) or
-             is_array_of_const(pvarsym(p)^.vartype.def) then
+          if is_open_array(tvarsym(p).vartype.def) or
+             is_array_of_const(tvarsym(p).vartype.def) then
            begin
               { get stack space }
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
+              r^.offset:=tvarsym(p).address+4+procinfo^.para_offset;
               getexplicitregister32(R_EDI);
               exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_EDI));
               exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
-              if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
+              if (tarraydef(tvarsym(p).vartype.def).elesize<>1) then
                begin
-                 if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
+                 if ispowerof2(tarraydef(tvarsym(p).vartype.def).elesize, power) then
                    exprasmList.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
                  else
                    exprasmList.concat(Taicpu.op_const_reg(A_IMUL,S_L,
-                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI));
+                     tarraydef(tvarsym(p).vartype.def).elesize,R_EDI));
                end;
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
@@ -1888,19 +1888,19 @@ implementation
                    new(r);
                    reset_reference(r^);
                    r^.base:=procinfo^.framepointer;
-                   r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
+                   r^.offset:=tvarsym(p).address+4+procinfo^.para_offset;
                    getexplicitregister32(R_EDI);
                    exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_EDI));
 
                    exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_EDI));
 
-                   if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
+                   if (tarraydef(tvarsym(p).vartype.def).elesize<>1) then
                     begin
-                      if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
+                      if ispowerof2(tarraydef(tvarsym(p).vartype.def).elesize, power) then
                         exprasmList.concat(Taicpu.op_const_reg(A_SHL,S_L,power,R_EDI))
                       else
                         exprasmList.concat(Taicpu.op_const_reg(A_IMUL,S_L,
-                          parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI));
+                          tarraydef(tvarsym(p).vartype.def).elesize,R_EDI));
                     end;
                 end
               else
@@ -1917,21 +1917,21 @@ implementation
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo^.para_offset;
+              r^.offset:=tvarsym(p).address+4+procinfo^.para_offset;
               exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_ECX));
 
               { load source }
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              r^.offset:=tvarsym(p).address+procinfo^.para_offset;
               exprasmList.concat(Taicpu.op_ref_reg(A_MOV,S_L,r,R_ESI));
 
               { scheduled .... }
               exprasmList.concat(Taicpu.op_reg(A_INC,S_L,R_ECX));
 
               { calculate size }
-              len:=parraydef(pvarsym(p)^.vartype.def)^.elesize;
+              len:=tarraydef(tvarsym(p).vartype.def).elesize;
               opsize:=S_B;
               if (len and 3)=0 then
                begin
@@ -1963,29 +1963,29 @@ implementation
               new(r);
               reset_reference(r^);
               r^.base:=procinfo^.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              r^.offset:=tvarsym(p).address+procinfo^.para_offset;
               exprasmList.concat(Taicpu.op_reg_ref(A_MOV,S_L,R_ESP,r));
            end
           else
-           if is_shortstring(pvarsym(p)^.vartype.def) then
+           if is_shortstring(tvarsym(p).vartype.def) then
             begin
               reset_reference(href1);
               href1.base:=procinfo^.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              href1.offset:=tvarsym(p).address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
-              href2.offset:=-pvarsym(p)^.localvarsym^.address+pvarsym(p)^.localvarsym^.owner^.address_fixup;
-              copyshortstring(href2,href1,pstringdef(pvarsym(p)^.vartype.def)^.len,true,false);
+              href2.offset:=-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup;
+              copyshortstring(href2,href1,tstringdef(tvarsym(p).vartype.def).len,true,false);
             end
            else
             begin
               reset_reference(href1);
               href1.base:=procinfo^.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo^.para_offset;
+              href1.offset:=tvarsym(p).address+procinfo^.para_offset;
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
-              href2.offset:=-pvarsym(p)^.localvarsym^.address+pvarsym(p)^.localvarsym^.owner^.address_fixup;
-              concatcopy(href1,href2,pvarsym(p)^.vartype.def^.size,true,true);
+              href2.offset:=-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup;
+              concatcopy(href1,href2,tvarsym(p).vartype.def.size,true,true);
             end;
         end;
     end;
@@ -2044,16 +2044,18 @@ implementation
          end;
    end;
 
+{$ifdef dummy}
   var
      ls : longint;
 
-  procedure largest_size(p : pnamedindexobject);{$ifndef FPC}far;{$endif}
+  procedure largest_size(p : tnamedindexitem);
 
     begin
-       if (psym(p)^.typ=varsym) and
-         (pvarsym(p)^.getvaluesize>ls) then
-         ls:=pvarsym(p)^.getvaluesize;
+       if (tsym(p).typ=varsym) and
+         (tvarsym(p).getvaluesize>ls) then
+         ls:=tvarsym(p).getvaluesize;
     end;
+{$endif dummy}
 
   procedure alignstack(alist : TAAsmoutput);
 
@@ -2063,7 +2065,7 @@ implementation
          (aktoptprocessor in [classp5,classp6]) then
          begin
             ls:=0;
-            aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}largest_size);
+            aktprocsym.definition.localst.foreach({$ifndef TP}@{$endif}largest_size);
             if ls>=8 then
               aList.insert(Taicpu.Op_const_reg(A_AND,S_L,-8,R_ESP));
          end;
@@ -2083,18 +2085,18 @@ implementation
       stab_function_name : tai_stab_function_name;
 {$endif GDB}
       hr : preference;
-      p : psymtable;
+      p : tsymtable;
       r : treference;
       oldlist,
       oldexprasmlist : TAAsmoutput;
-      again : pasmlabel;
+      again : tasmlabel;
       i : longint;
       tempbuf,tempaddr : treference;
 
     begin
        oldexprasmlist:=exprasmlist;
        exprasmlist:=alist;
-       if (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
+       if (not inlined) and (aktprocsym.definition.proctypeoption=potype_proginit) then
            begin
               emitinsertcall('FPC_INITIALIZEUNITS');
               oldlist:=exprasmlist;
@@ -2102,8 +2104,8 @@ implementation
               p:=symtablestack;
               while assigned(p) do
                 begin
-                   p^.foreach({$ifndef TP}@{$endif}initialize_threadvar);
-                   p:=p^.next;
+                   p.foreach_static({$ifndef TP}@{$endif}initialize_threadvar);
+                   p:=p.next;
                 end;
               oldList.insertlist(exprasmlist);
               exprasmlist.free;
@@ -2116,7 +2118,7 @@ implementation
 {$endif GDB}
 
       { a constructor needs a help procedure }
-      if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
+      if (aktprocsym.definition.proctypeoption=potype_constructor) then
         begin
           if is_class(procinfo^._class) then
             begin
@@ -2129,7 +2131,7 @@ implementation
               exprasmList.insert(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
               getexplicitregister32(R_EDI);
-              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI));
+              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class.vmt_offset,R_EDI));
             end
           else
             Internalerror(200006161);
@@ -2137,7 +2139,7 @@ implementation
 
       { don't load ESI, does the caller }
       { we must do it for local function }
-      { that can be called from a foreach }
+      { that can be called from a foreach_static }
       { of another object than self !! PM }
 
          if assigned(procinfo^._class) and  { !!!!! shouldn't we load ESI always? }
@@ -2146,7 +2148,7 @@ implementation
 
       { When message method contains self as a parameter,
         we must load it into ESI }
-      If (po_containsself in aktprocsym^.definition^.procoptions) then
+      If (po_containsself in aktprocsym.definition.procoptions) then
         begin
            new(hr);
            reset_reference(hr^);
@@ -2156,9 +2158,9 @@ implementation
            exprasmList.insert(Tairegalloc.Alloc(R_ESI));
         end;
       { should we save edi,esi,ebx like C ? }
-      if (po_savestdregs in aktprocsym^.definition^.procoptions) then
+      if (po_savestdregs in aktprocsym.definition.procoptions) then
        begin
-         if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+         if (aktprocsym.definition.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBX));
          exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
          exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
@@ -2166,7 +2168,7 @@ implementation
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-      if (po_saveregisters in aktprocsym^.definition^.procoptions) then
+      if (po_saveregisters in aktprocsym.definition.procoptions) then
         begin
           exprasmList.insert(Taicpu.Op_none(A_PUSHA,S_L));
         end;
@@ -2177,20 +2179,20 @@ implementation
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
-              if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (aktprocsym.definition.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-4;
+                parasize:=aktprocsym.definition.parast.datasize+procinfo^.para_offset-4;
               if stackframe<>0 then
                 exprasmList.insert(Taicpu.op_const_reg(A_SUB,S_L,stackframe,R_ESP));
           end
         else
           begin
               alignstack(alist);
-              if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (aktprocsym.definition.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-8;
+                parasize:=aktprocsym.definition.parast.datasize+procinfo^.para_offset-8;
               nostackframe:=false;
               if stackframe<>0 then
                   begin
@@ -2209,7 +2211,7 @@ implementation
 
                             { %edi is already saved when pocdecl is used
                               if ((target_info.target=target_linux) or (target_info.target=target_freebsd)) and
-                               ((aktprocsym^.definition^.options and poexports)<>0) then
+                               ((aktprocsym.definition.options and poexports)<>0) then
                                   exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI)); }
                               { ATTENTION:
                                 never use ENTER in linux !!! (or freebsd MvdV)
@@ -2219,6 +2221,7 @@ implementation
                       else
 {$endif unused}
                           begin
+{$ifndef NOTARGETWIN32}
                             { windows guards only a few pages for stack growing, }
                             { so we have to access every page first              }
                             if (target_os.id=os_i386_win32) and
@@ -2249,6 +2252,7 @@ implementation
                                     end
                               end
                             else
+{$endif NOTARGETWIN32}
                               exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
                             if (cs_check_stack in aktlocalswitches) and
                               not(target_info.target in [target_i386_freebsd,
@@ -2272,12 +2276,12 @@ implementation
                  end;
           end;
 
-      if (po_interrupt in aktprocsym^.definition^.procoptions) then
+      if (po_interrupt in aktprocsym.definition.procoptions) then
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
       if (not is_void(procinfo^.returntype.def)) and
-         (procinfo^.returntype.def^.needs_inittable) then
+         (procinfo^.returntype.def.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
@@ -2287,36 +2291,36 @@ implementation
         end;
 
       { initialisize local data like ansistrings }
-      case aktprocsym^.definition^.proctypeoption of
+      case aktprocsym.definition.proctypeoption of
          potype_unitinit:
            begin
               { using current_module.globalsymtable is hopefully      }
-              { more robust than symtablestack and symtablestack^.next }
-              psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
-              psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}initialize_data);
+              { more robust than symtablestack and symtablestack.next }
+              tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data);
+              tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data);
            end;
          { units have seperate code for initilization and finalization }
          potype_unitfinalize: ;
          else
-           aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}initialize_data);
+           aktprocsym.definition.localst.foreach_static({$ifndef TP}@{$endif}initialize_data);
       end;
 
       { initialisizes temp. ansi/wide string data }
       inittempvariables;
 
       { generate copies of call by value parameters }
-      if not(po_assembler in aktprocsym^.definition^.procoptions) and
-         (([pocall_cdecl,pocall_cppdecl]*aktprocsym^.definition^.proccalloptions)=[]) then
-        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
+      if not(po_assembler in aktprocsym.definition.procoptions) and
+         (([pocall_cdecl,pocall_cppdecl]*aktprocsym.definition.proccalloptions)=[]) then
+        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas);
 
-      if assigned( aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}init_paras);
+      if assigned( aktprocsym.definition.parast) then
+        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}init_paras);
 
       { do we need an exception frame because of ansi/widestrings/interfaces ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
-        not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+        not(aktprocsym.definition.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -2348,11 +2352,11 @@ implementation
       if not inlined then
        begin
          if (cs_profile in aktmoduleswitches) or
-            (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-            (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
+            (aktprocsym.definition.owner.symtabletype=globalsymtable) or
+            (assigned(procinfo^._class) and (procinfo^._class.owner.symtabletype=globalsymtable)) then
               make_global:=true;
 
-         hs:=aktprocsym^.definition^.aliasnames.getfirst;
+         hs:=aktprocsym.definition.aliasnames.getfirst;
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) and target_os.use_function_relative_addresses then
@@ -2372,19 +2376,19 @@ implementation
               exprasmList.insert(Tai_stab_function_name.Create(strpnew(hs)));
 {$endif GDB}
 
-            hs:=aktprocsym^.definition^.aliasnames.getfirst;
+            hs:=aktprocsym.definition.aliasnames.getfirst;
           end;
 
          if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
-          aktprocsym^.is_global := True;
+          aktprocsym.is_global := True;
 
 {$ifdef GDB}
          if (cs_debuginfo in aktmoduleswitches) then
           begin
             if target_os.use_function_relative_addresses then
              exprasmList.insert(stab_function_name);
-            exprasmList.insert(Tai_stabs.Create(aktprocsym^.stabstring));
-            aktprocsym^.isstabwritten:=true;
+            exprasmList.insert(Tai_stabs.Create(aktprocsym.stabstring));
+            aktprocsym.isstabwritten:=true;
           end;
 {$endif GDB}
 
@@ -2410,18 +2414,18 @@ implementation
       if not is_void(procinfo^.returntype.def) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
-                 assigned(opsym) then
+                 assigned(otsym) then
                 procinfo^.funcret_is_valid:=
-                  procinfo^.funcret_is_valid or (opsym^.refs>0);}
+                  procinfo^.funcret_is_valid or (otsym.refs>0);}
               if (procinfo^.funcret_state<>vs_assigned) and not inlined { and
                 ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
+              if (procinfo^.returntype.def.deftype in [orddef,enumdef]) then
                 begin
                   uses_eax:=true;
                   exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-                  case procinfo^.returntype.def^.size of
+                  case procinfo^.returntype.def.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
@@ -2449,9 +2453,9 @@ implementation
                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                   end
               else
-                 if (procinfo^.returntype.def^.deftype=floatdef) then
+                 if (procinfo^.returntype.def.deftype=floatdef) then
                    begin
-                      floatloadops(pfloatdef(procinfo^.returntype.def)^.typ,op,s);
+                      floatloadops(tfloatdef(procinfo^.returntype.def).typ,op,s);
                       exprasmList.concat(Taicpu.Op_ref(op,s,hr));
                    end
               else
@@ -2469,9 +2473,9 @@ implementation
       if not is_void(procinfo^.returntype.def) then
           begin
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (procinfo^.returntype.def^.deftype in [orddef,enumdef]) then
+              if (procinfo^.returntype.def.deftype in [orddef,enumdef]) then
                 begin
-                  case procinfo^.returntype.def^.size of
+                  case procinfo^.returntype.def.size of
                    8:
                      begin
                         emit_reg_ref(A_MOV,S_L,R_EAX,hr);
@@ -2495,9 +2499,9 @@ implementation
                     emit_reg_ref(A_MOV,S_L,R_EAX,hr);
                   end
               else
-                 if (procinfo^.returntype.def^.deftype=floatdef) then
+                 if (procinfo^.returntype.def.deftype=floatdef) then
                    begin
-                      floatstoreops(pfloatdef(procinfo^.returntype.def)^.typ,op,s);
+                      floatstoreops(tfloatdef(procinfo^.returntype.def).typ,op,s);
                       exprasmlist.concat(taicpu.op_ref(op,s,hr));
                    end
               else
@@ -2515,18 +2519,18 @@ implementation
        st : string[2];
 {$endif GDB}
        stabsendlabel,nofinal,okexitlabel,
-       noreraiselabel,nodestroycall : pasmlabel;
+       noreraiselabel,nodestroycall : tasmlabel;
        hr : treference;
        uses_eax,uses_edx,uses_esi : boolean;
        oldexprasmlist : TAAsmoutput;
        ai : taicpu;
-       pd : pprocdef;
+       pd : tprocdef;
 
   begin
       oldexprasmlist:=exprasmlist;
       exprasmlist:=alist;
 
-      if aktexit2label^.is_used and
+      if aktexit2label.is_used and
          ((procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
         begin
           exprasmlist.concat(taicpu.op_sym(A_JMP,S_NO,aktexitlabel));
@@ -2534,11 +2538,11 @@ implementation
           handle_fast_exit_return_value;
         end;
 
-      if aktexitlabel^.is_used then
+      if aktexitlabel.is_used then
         exprasmList.concat(Tai_label.Create(aktexitlabel));
 
       { call the destructor help procedure }
-      if (aktprocsym^.definition^.proctypeoption=potype_destructor) and
+      if (aktprocsym.definition.proctypeoption=potype_destructor) and
          assigned(procinfo^._class) then
         begin
           if is_class(procinfo^._class) then
@@ -2549,16 +2553,16 @@ implementation
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
               getexplicitregister32(R_EDI);
-              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI));
+              exprasmList.insert(Taicpu.Op_const_reg(A_MOV,S_L,procinfo^._class.vmt_offset,R_EDI));
               { must the object be finalized ? }
-              if procinfo^._class^.needs_inittable then
+              if procinfo^._class.needs_inittable then
                 begin
                    getlabel(nofinal);
                    exprasmList.insert(Tai_label.Create(nofinal));
                    emitinsertcall('FPC_FINALIZE');
                    ungetregister32(R_EDI);
                    exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_ESI));
-                   exprasmList.insert(Taicpu.Op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label));
+                   exprasmList.insert(Taicpu.Op_sym(A_PUSH,S_L,procinfo^._class.get_inittable_label));
                    ai:=Taicpu.Op_sym(A_Jcc,S_NO,nofinal);
                    ai.SetCondition(C_Z);
                    exprasmList.insert(ai);
@@ -2578,32 +2582,32 @@ implementation
       finalizetempvariables;
 
       { finalize local data like ansistrings}
-      case aktprocsym^.definition^.proctypeoption of
+      case aktprocsym.definition.proctypeoption of
          potype_unitfinalize:
            begin
               { using current_module.globalsymtable is hopefully      }
-              { more robust than symtablestack and symtablestack^.next }
-              psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-              psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+              { more robust than symtablestack and symtablestack.next }
+              tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
+              tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
            end;
          { units have seperate code for initialization and finalization }
          potype_unitinit: ;
          else
-           aktprocsym^.definition^.localst^.foreach({$ifndef TP}@{$endif}finalize_data);
+           aktprocsym.definition.localst.foreach_static({$ifndef TP}@{$endif}finalize_data);
       end;
 
       { finalize paras data }
-      if assigned(aktprocsym^.definition^.parast) then
-        aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}final_paras);
+      if assigned(aktprocsym.definition.parast) then
+        aktprocsym.definition.parast.foreach_static({$ifndef TP}@{$endif}final_paras);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
       if not inlined and
          ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
       { but it's useless in init/final code of units }
-        not(aktprocsym^.definition^.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+        not(aktprocsym.definition.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
         begin
            { the exception helper routines modify all registers }
-           aktprocsym^.definition^.usedregisters:=$ff;
+           aktprocsym.definition.usedregisters:=$ff;
 
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
@@ -2612,11 +2616,11 @@ implementation
            exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
            ungetregister32(R_EAX);
            emitjmp(C_E,noreraiselabel);
-           if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
+           if (aktprocsym.definition.proctypeoption=potype_constructor) then
              begin
                 if assigned(procinfo^._class) then
                   begin
-                     pd:=procinfo^._class^.searchdestructor;
+                     pd:=procinfo^._class.searchdestructor;
                      if assigned(pd) then
                        begin
                           getlabel(nodestroycall);
@@ -2631,19 +2635,19 @@ implementation
                           else if is_object(procinfo^._class) then
                             begin
                                emit_reg(A_PUSH,S_L,R_ESI);
-                               emit_sym(A_PUSH,S_L,newasmsymbol(procinfo^._class^.vmt_mangledname));
+                               emit_sym(A_PUSH,S_L,newasmsymbol(procinfo^._class.vmt_mangledname));
                             end
                           else
                             begin
                               Internalerror(200006161);
                             end;
-                          if (po_virtualmethod in pd^.procoptions) then
+                          if (po_virtualmethod in pd.procoptions) then
                             begin
                                emit_ref_reg(A_MOV,S_L,new_reference(R_ESI,0),R_EDI);
-                               emit_ref(A_CALL,S_NO,new_reference(R_EDI,procinfo^._class^.vmtmethodoffset(pd^.extnumber)));
+                               emit_ref(A_CALL,S_NO,new_reference(R_EDI,procinfo^._class.vmtmethodoffset(pd.extnumber)));
                             end
                           else
-                            emitcall(pd^.mangledname);
+                            emitcall(pd.mangledname);
                           { not necessary because the result is never assigned in the
                             case of an exception (FK)
                           emit_const_reg(A_MOV,S_L,0,R_ESI);
@@ -2656,8 +2660,8 @@ implementation
            else
            { must be the return value finalized before reraising the exception? }
            if (not is_void(procinfo^.returntype.def)) and
-             (procinfo^.returntype.def^.needs_inittable) and
-             ((procinfo^.returntype.def^.deftype<>objectdef) or
+             (procinfo^.returntype.def.needs_inittable) and
+             ((procinfo^.returntype.def.deftype<>objectdef) or
               not is_class(procinfo^.returntype.def)) then
              begin
                 reset_reference(hr);
@@ -2671,7 +2675,7 @@ implementation
         end;
 
       { call __EXIT for main program }
-      if (not DLLsource) and (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
+      if (not DLLsource) and (not inlined) and (aktprocsym.definition.proctypeoption=potype_proginit) then
        begin
          emitcall('FPC_DO_EXIT');
        end;
@@ -2680,8 +2684,8 @@ implementation
       uses_eax:=false;
       uses_edx:=false;
       uses_esi:=false;
-      if not(po_assembler in aktprocsym^.definition^.procoptions) then
-          if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
+      if not(po_assembler in aktprocsym.definition.procoptions) then
+          if (aktprocsym.definition.proctypeoption<>potype_constructor) then
             handle_return_value(inlined,uses_eax,uses_edx)
           else
               begin
@@ -2700,7 +2704,7 @@ implementation
                     begin
                       emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
                        getexplicitregister32(R_EDI);
-                      emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
+                      emit_const_reg(A_MOV,S_L,procinfo^._class.vmt_offset,R_EDI);
                       emitcall('FPC_HELP_FAIL');
                       ungetregister32(R_EDI);
                     end
@@ -2721,7 +2725,7 @@ implementation
                   uses_esi:=true;
               end;
 
-      if aktexit2label^.is_used and not aktexit2label^.is_set then
+      if aktexit2label.is_used and not aktexit2label.is_set then
         emitlab(aktexit2label);
 
       if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
@@ -2730,13 +2734,13 @@ implementation
           emitlab(stabsendlabel);
         end;
       { gives problems for long mangled names }
-      {List.concat(Tai_symbol.Create(aktprocsym^.definition^.mangledname+'_end'));}
+      {List.concat(Tai_symbol.Create(aktprocsym.definition.mangledname+'_end'));}
 
       { should we restore edi ? }
       { for all i386 gcc implementations }
-      if (po_savestdregs in aktprocsym^.definition^.procoptions) then
+      if (po_savestdregs in aktprocsym.definition.procoptions) then
         begin
-          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
+          if (aktprocsym.definition.usedregisters and ($80 shr byte(R_EBX)))<>0 then
            exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EBX));
           exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_ESI));
           exprasmList.concat(Taicpu.Op_reg(A_POP,S_L,R_EDI));
@@ -2744,14 +2748,14 @@ implementation
             but that is risky because it only works
             if genexitcode is called after genentrycode
             so lets skip this for the moment PM
-          aktprocsym^.definition^.usedregisters:=
-            aktprocsym^.definition^.usedregisters or not ($80 shr byte(R_EBX));
+          aktprocsym.definition.usedregisters:=
+            aktprocsym.definition.usedregisters or not ($80 shr byte(R_EBX));
           }
         end;
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-      if (po_saveregisters in aktprocsym^.definition^.procoptions) then
+      if (po_saveregisters in aktprocsym.definition.procoptions) then
         begin
           if uses_esi then
             exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,4)));
@@ -2774,13 +2778,13 @@ implementation
 
       { parameters are limited to 65535 bytes because }
       { ret allows only imm16                    }
-      if (parasize>65535) and not(pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+      if (parasize>65535) and not(pocall_clearstack in aktprocsym.definition.proccalloptions) then
        CGMessage(cg_e_parasize_too_big);
 
       { at last, the return is generated }
 
       if not inlined then
-      if (po_interrupt in aktprocsym^.definition^.procoptions) then
+      if (po_interrupt in aktprocsym.definition.procoptions) then
           begin
              if uses_esi then
                exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_ESI,new_reference(R_ESP,16)));
@@ -2800,11 +2804,11 @@ implementation
        begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
+         if (pocall_clearstack in aktprocsym.definition.proccalloptions) then
            begin
 {$ifndef OLD_C_STACK}
              { complex return values are removed from stack in C code PM }
-             if ret_in_param(aktprocsym^.definition^.rettype.def) then
+             if ret_in_param(aktprocsym.definition.rettype.def) then
                exprasmList.concat(Taicpu.Op_const(A_RET,S_NO,4))
              else
 {$endif not OLD_C_STACK}
@@ -2817,24 +2821,24 @@ implementation
        end;
 
       if not inlined then
-        exprasmList.concat(Tai_symbol_end.Createname(aktprocsym^.definition^.mangledname));
+        exprasmList.concat(Tai_symbol_end.Createname(aktprocsym.definition.mangledname));
 
 {$ifdef GDB}
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-              aktprocsym^.concatstabto(exprasmlist);
+              aktprocsym.concatstabto(exprasmlist);
               if assigned(procinfo^._class) then
                 if (not assigned(procinfo^.parent) or
                    not assigned(procinfo^.parent^._class)) then
                   begin
-                    if (po_classmethod in aktprocsym^.definition^.procoptions) or
-                       ((po_virtualmethod in aktprocsym^.definition^.procoptions) and
-                        (potype_constructor=aktprocsym^.definition^.proctypeoption)) or
-                       (po_staticmethod in aktprocsym^.definition^.procoptions) then
+                    if (po_classmethod in aktprocsym.definition.procoptions) or
+                       ((po_virtualmethod in aktprocsym.definition.procoptions) and
+                        (potype_constructor=aktprocsym.definition.proctypeoption)) or
+                       (po_staticmethod in aktprocsym.definition.procoptions) then
                       begin
                         exprasmList.concat(Tai_stabs.Create(strpnew(
-                         '"pvmt:p'+pstoreddef(pvmttype.def)^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
+                         '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
+                         tostr(N_tsym)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
                       end
                     else
                       begin
@@ -2843,8 +2847,8 @@ implementation
                         else
                           st:='p';
                         exprasmList.concat(Tai_stabs.Create(strpnew(
-                         '"$t:'+st+procinfo^._class^.numberstring+'",'+
-                         tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
+                         '"$t:'+st+procinfo^._class.numberstring+'",'+
+                         tostr(N_tsym)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
                       end;
                   end
                 else
@@ -2854,7 +2858,7 @@ implementation
                     else
                       st:='';
                     exprasmList.concat(Tai_stabs.Create(strpnew(
-                     '"$t:r'+st+procinfo^._class^.numberstring+'",'+
+                     '"$t:r'+st+procinfo^._class.numberstring+'",'+
                      tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI]))));
                   end;
 
@@ -2862,53 +2866,53 @@ implementation
               { this enables test if the function is a local one !! }
               if  assigned(procinfo^.parent) and (lexlevel>normal_function_level) then
                 exprasmList.concat(Tai_stabs.Create(strpnew(
-                 '"parent_ebp:'+pstoreddef(voidpointertype.def)^.numberstring+'",'+
+                 '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
                  tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset))));
 
-              if (not is_void(aktprocsym^.definition^.rettype.def)) then
+              if (not is_void(aktprocsym.definition.rettype.def)) then
                 begin
-                  if ret_in_param(aktprocsym^.definition^.rettype.def) then
+                  if ret_in_param(aktprocsym.definition.rettype.def) then
                     exprasmList.concat(Tai_stabs.Create(strpnew(
-                     '"'+aktprocsym^.name+':X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))))
+                     '"'+aktprocsym.name+':X*'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                     tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
                   else
                     exprasmList.concat(Tai_stabs.Create(strpnew(
-                     '"'+aktprocsym^.name+':X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))));
+                     '"'+aktprocsym.name+':X'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                     tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))));
                   if (m_result in aktmodeswitches) then
-                    if ret_in_param(aktprocsym^.definition^.rettype.def) then
+                    if ret_in_param(aktprocsym.definition.rettype.def) then
                       exprasmList.concat(Tai_stabs.Create(strpnew(
-                       '"RESULT:X*'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))))
+                       '"RESULT:X*'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                       tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))))
                     else
                       exprasmList.concat(Tai_stabs.Create(strpnew(
-                       '"RESULT:X'+pstoreddef(aktprocsym^.definition^.rettype.def)^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset))));
+                       '"RESULT:X'+tstoreddef(aktprocsym.definition.rettype.def).numberstring+'",'+
+                       tostr(N_tsym)+',0,0,'+tostr(procinfo^.return_offset))));
                 end;
-              mangled_length:=length(aktprocsym^.definition^.mangledname);
+              mangled_length:=length(aktprocsym.definition.mangledname);
               getmem(p,2*mangled_length+50);
               strpcopy(p,'192,0,0,');
-              strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+              strpcopy(strend(p),aktprocsym.definition.mangledname);
               if (target_os.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
-                  strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                  strpcopy(strend(p),aktprocsym.definition.mangledname);
                 end;
               exprasmList.concat(Tai_stabn.Create(strnew(p)));
               {List.concat(Tai_stabn.Create(strpnew('192,0,0,'
-               +aktprocsym^.definition^.mangledname))));
+               +aktprocsym.definition.mangledname))));
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
-              strpcopy(p,'224,0,0,'+stabsendlabel^.name);
+              strpcopy(p,'224,0,0,'+stabsendlabel.name);
               if (target_os.use_function_relative_addresses) then
                 begin
                   strpcopy(strend(p),'-');
-                  strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                  strpcopy(strend(p),aktprocsym.definition.mangledname);
                 end;
               exprasmList.concatlist(withdebuglist);
               exprasmList.concat(Tai_stabn.Create(strnew(p)));
                { strpnew('224,0,0,'
-               +aktprocsym^.definition^.mangledname+'_end'))));}
+               +aktprocsym.definition.mangledname+'_end'))));}
               freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
@@ -2921,9 +2925,9 @@ implementation
 
       begin
          { using current_module.globalsymtable is hopefully      }
-         { more robust than symtablestack and symtablestack^.next }
-         psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         { more robust than symtablestack and symtablestack.next }
+         tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
+         tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          exprasmList.insert(Tai_symbol.Createname_global('FINALIZE$$'+current_module.modulename^,0));
          exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_finalize',0));
 {$ifdef GDB}
@@ -2939,9 +2943,9 @@ implementation
 
       begin
          { using current_module.globalsymtable is hopefully      }
-         { more robust than symtablestack and symtablestack^.next }
-         psymtable(current_module.globalsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
-         psymtable(current_module.localsymtable)^.foreach({$ifndef TP}@{$endif}finalize_data);
+         { more robust than symtablestack and symtablestack.next }
+         tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
+         tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_data);
          exprasmList.insert(Tai_symbol.Createname_global('INIT$$'+current_module.modulename^,0));
          exprasmList.insert(Tai_symbol.Createname_global(target_os.cprefix+current_module.modulename^+'_init',0));
 {$ifdef GDB}
@@ -2979,7 +2983,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2001-04-05 21:33:07  peter
+  Revision 1.20  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.19  2001/04/05 21:33:07  peter
     * fast exit fix merged
 
   Revision 1.18  2001/04/02 21:20:35  peter

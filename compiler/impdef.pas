@@ -23,7 +23,7 @@
 
  ****************************************************************************
 }
-unit impdef;
+unit imtdef;
 
 {$ifndef STANDALONE}
   {$i defines.inc}
@@ -479,7 +479,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-01-13 00:09:21  peter
+  Revision 1.6  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2001/01/13 00:09:21  peter
     * made Pavel O. happy ;)
 
   Revision 1.4  2000/11/20 13:58:19  pierre

@@ -27,7 +27,7 @@ unit tgcpu;
 interface
 
     uses
-       cobjects,globals,
+       globals,
        hcodegen,verbose,aasm,
        node,
        cpubase,cpuasm
@@ -674,7 +674,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-12-25 00:07:34  peter
+  Revision 1.4  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.3  2000/12/25 00:07:34  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -101,7 +101,7 @@ implementation
          i,numparts : byte;
          adjustment : longint;
          {href,href2 : Treference;}
-         l,l2       : pasmlabel;
+         l,l2       : tasmlabel;
 {$ifdef CORRECT_SET_IN_FPC}
          AM         : tasmop;
 {$endif CORRECT_SET_IN_FPC}
@@ -172,9 +172,9 @@ implementation
 
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(psetdef(right.resulttype.def)^.settype=smallset) and
-                    ((left.resulttype.def^.deftype=orddef) and (porddef(left.resulttype.def)^.high<=32) or
-                     (left.resulttype.def^.deftype=enumdef) and (penumdef(left.resulttype.def)^.max<=32));
+         use_small:=(tsetdef(right.resulttype.def).settype=smallset) and
+                    ((left.resulttype.def.deftype=orddef) and (torddef(left.resulttype.def).high<=32) or
+                     (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -531,7 +531,7 @@ implementation
          hp : tnode;
          { register with case expression }
          hregister,hregister2 : tregister;
-         endlabel,elselabel : pasmlabel;
+         endlabel,elselabel : tasmlabel;
 
          { true, if we can omit the range check of the jump table }
          jumptable_no_range : boolean;
@@ -542,7 +542,7 @@ implementation
       procedure gentreejmp(p : pcaserecord);
 
         var
-           lesslabel,greaterlabel : pasmlabel;
+           lesslabel,greaterlabel : tasmlabel;
 
        begin
          emitlab(p^._at);
@@ -592,7 +592,7 @@ implementation
         procedure genitem(t : pcaserecord);
 
           var
-             l1 : pasmlabel;
+             l1 : tasmlabel;
 
           begin
              if assigned(t^.less) then
@@ -753,7 +753,7 @@ implementation
       procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
 
         var
-           table : pasmlabel;
+           table : tasmlabel;
            last : TConstExprInt;
            hr : preference;
 
@@ -830,7 +830,7 @@ implementation
          max_label: tconstexprint;
          lv,hv,labels : longint;
          max_linear_list : longint;
-         otl, ofl: pasmlabel;
+         otl, ofl: tasmlabel;
 {$ifdef Delphi}
          dist : cardinal;
 {$else Delphi}
@@ -870,7 +870,7 @@ implementation
            end;
          secondpass(left);
          { determines the size of the operand }
-         opsize:=bytes2Sxx[left.resulttype.def^.size];
+         opsize:=bytes2Sxx[left.resulttype.def.size];
          { copy the case expression to a register }
          case left.location.loc of
             LOC_REGISTER:
@@ -1065,7 +1065,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-06 14:09:34  jonas
+  Revision 1.14  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/06 14:09:34  jonas
     * fixed bug in ti386innode.pass_2 code and made it simpler/faster
 
   Revision 1.12  2001/04/02 21:20:38  peter

@@ -28,7 +28,7 @@ unit hcodegen;
 
     uses
       { common }
-      cobjects,
+      cclasses,
       { global }
       globals,verbose,
       { symtable }
@@ -55,16 +55,16 @@ unit hcodegen;
           { pointer to parent in nested procedures }
           parent : pprocinfo;
           { current class, if we are in a method }
-          _class : pobjectdef;
+          _class : tobjectdef;
           { return type }
           returntype : ttype;
           { symbol of the function, and the sym for result variable }
           resultfuncretsym,
-          funcretsym : pfuncretsym;
+          funcretsym : tfuncretsym;
           funcret_state : tvarstate;
           { the definition of the proc itself }
-          def : pprocdef;
-          sym : pprocsym;
+          def : tprocdef;
+          sym : tprocsym;
 
           { frame pointer offset }
           framepointer_offset : longint;
@@ -104,11 +104,11 @@ unit hcodegen;
 
        pregvarinfo = ^tregvarinfo;
        tregvarinfo = record
-          regvars : array[1..maxvarregs] of pvarsym;
+          regvars : array[1..maxvarregs] of tvarsym;
           regvars_para : array[1..maxvarregs] of boolean;
           regvars_refs : array[1..maxvarregs] of longint;
 
-          fpuregvars : array[1..maxfpuvarregs] of pvarsym;
+          fpuregvars : array[1..maxfpuvarregs] of tvarsym;
           fpuregvars_para : array[1..maxfpuvarregs] of boolean;
           fpuregvars_refs : array[1..maxfpuvarregs] of longint;
        end;
@@ -119,19 +119,19 @@ unit hcodegen;
        procinfo : pprocinfo;
 
        { labels for BREAK and CONTINUE }
-       aktbreaklabel,aktcontinuelabel : pasmlabel;
+       aktbreaklabel,aktcontinuelabel : tasmlabel;
 
        { label when the result is true or false }
-       truelabel,falselabel : pasmlabel;
+       truelabel,falselabel : tasmlabel;
 
        { label to leave the sub routine }
-       aktexitlabel : pasmlabel;
+       aktexitlabel : tasmlabel;
 
        { also an exit label, only used we need to clear only the stack }
-       aktexit2label : pasmlabel;
+       aktexit2label : tasmlabel;
 
        { only used in constructor for fail or if getmem fails }
-       faillabel,quickexitlabel : pasmlabel;
+       faillabel,quickexitlabel : tasmlabel;
 
        { Boolean, wenn eine loadn kein Assembler erzeugt hat }
        simple_loadn : boolean;
@@ -366,8 +366,8 @@ implementation
          exportssection:=nil;
          resourcesection:=nil;
          { assembler symbols }
-         asmsymbollist:=new(pdictionary,init);
-         asmsymbollist^.usehash;
+         asmsymbollist:=tdictionary.create;
+         asmsymbollist.usehash;
          { resourcestrings }
          ResourceStrings:=TResourceStrings.Create;
       end;
@@ -400,15 +400,15 @@ implementation
          if assigned(resourcesection) then
           resourcesection.free;
 {$ifdef MEMDEBUG}
-         d.done;
+         d.free;
 {$endif}
          { assembler symbols }
 {$ifdef MEMDEBUG}
          d.init('asmsymbol');
 {$endif}
-         dispose(asmsymbollist,done);
+         asmsymbollist.free;
 {$ifdef MEMDEBUG}
-         d.done;
+         d.free;
 {$endif}
          { resource strings }
          ResourceStrings.free;
@@ -437,7 +437,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-25 00:07:26  peter
+  Revision 1.10  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -67,7 +67,7 @@ implementation
          symtabletype : tsymtabletype;
          i : longint;
          hp : preference;
-         s : pasmsymbol;
+         s : tasmsymbol;
          popeax : boolean;
          //pushed : tpushed;
          //hr : treference;
@@ -75,27 +75,27 @@ implementation
       begin
          simple_loadn:=true;
          reset_reference(location.reference);
-         case symtableentry^.typ of
+         case symtableentry.typ of
               { this is only for toasm and toaddr }
               absolutesym :
                  begin
                     location.reference.symbol:=nil;
-                    if (pabsolutesym(symtableentry)^.abstyp=toaddr) then
+                    if (tabsolutesym(symtableentry).abstyp=toaddr) then
                      begin
-                       if pabsolutesym(symtableentry)^.absseg then
+                       if tabsolutesym(symtableentry).absseg then
                         location.reference.segment:=R_FS;
-                       location.reference.offset:=pabsolutesym(symtableentry)^.address;
+                       location.reference.offset:=tabsolutesym(symtableentry).address;
                      end
                     else
-                     location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                     location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                  end;
               constsym:
                 begin
-                   if pconstsym(symtableentry)^.consttyp=constresourcestring then
+                   if tconstsym(symtableentry).consttyp=constresourcestring then
                      begin
                         location.loc:=LOC_MEM;
-                        location.reference.symbol:=newasmsymbol(pconstsym(symtableentry)^.owner^.name^+'_RESOURCESTRINGLIST');
-                        location.reference.offset:=pconstsym(symtableentry)^.resstrindex*16+8;
+                        location.reference.symbol:=newasmsymbol(tconstsym(symtableentry).owner.name^+'_RESOURCESTRINGLIST');
+                        location.reference.offset:=tconstsym(symtableentry).resstrindex*16+8;
                      end
                    else
                      internalerror(22798);
@@ -104,31 +104,31 @@ implementation
                  begin
                     hregister:=R_NO;
                     { C variable }
-                    if (vo_is_C_var in pvarsym(symtableentry)^.varoptions) then
+                    if (vo_is_C_var in tvarsym(symtableentry).varoptions) then
                       begin
-                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                       end
                     { DLL variable }
-                    else if (vo_is_dll_var in pvarsym(symtableentry)^.varoptions) then
+                    else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                       begin
                          hregister:=getregister32;
-                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                          emit_ref_reg(A_MOV,S_L,newreference(location.reference),hregister);
                          location.reference.symbol:=nil;
                          location.reference.base:=hregister;
                       end
                     { external variable }
-                    else if (vo_is_external in pvarsym(symtableentry)^.varoptions) then
+                    else if (vo_is_external in tvarsym(symtableentry).varoptions) then
                       begin
-                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                       end
                     { thread variable }
-                    else if (vo_is_thread_var in pvarsym(symtableentry)^.varoptions) then
+                    else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                       begin
                          popeax:=not(R_EAX in unused);
                          if popeax then
                            emit_reg(A_PUSH,S_L,R_EAX);
-                         location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                         location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                          emit_ref(A_PUSH,S_L,newreference(location.reference));
                          { the called procedure isn't allowed to change }
                          { any register except EAX                    }
@@ -144,29 +144,29 @@ implementation
                     { normal variable }
                     else
                       begin
-                         symtabletype:=symtable^.symtabletype;
+                         symtabletype:=symtable.symtabletype;
                          { in case it is a register variable: }
-                         if pvarsym(symtableentry)^.reg<>R_NO then
+                         if tvarsym(symtableentry).reg<>R_NO then
                            begin
-                              if pvarsym(symtableentry)^.reg in [R_ST0..R_ST7] then
+                              if tvarsym(symtableentry).reg in [R_ST0..R_ST7] then
                                 begin
                                    location.loc:=LOC_CFPUREGISTER;
-                                   location.register:=pvarsym(symtableentry)^.reg;
+                                   location.register:=tvarsym(symtableentry).reg;
                                 end
                               else
-                                if not(makereg32(pvarsym(symtableentry)^.reg) in [R_EAX..R_EBX]) or
-                                   regvar_loaded[pvarsym(symtableentry)^.reg] then
+                                if not(makereg32(tvarsym(symtableentry).reg) in [R_EAX..R_EBX]) or
+                                   regvar_loaded[tvarsym(symtableentry).reg] then
                                 begin
                                    location.loc:=LOC_CREGISTER;
-                                   location.register:=pvarsym(symtableentry)^.reg;
-                                   unused:=unused-[pvarsym(symtableentry)^.reg];
+                                   location.register:=tvarsym(symtableentry).reg;
+                                   unused:=unused-[tvarsym(symtableentry).reg];
                                 end
                               else
                                 begin
-                                  load_regvar(exprasmlist,pvarsym(symtableentry));
+                                  load_regvar(exprasmlist,tvarsym(symtableentry));
                                   location.loc:=LOC_CREGISTER;
-                                  location.register:=pvarsym(symtableentry)^.reg;
-                                  unused:=unused-[pvarsym(symtableentry)^.reg];
+                                  location.register:=tvarsym(symtableentry).reg;
+                                  unused:=unused-[tvarsym(symtableentry).reg];
                                 end
                            end
                          else
@@ -179,20 +179,20 @@ implementation
                                    if (symtabletype in [inlinelocalsymtable,
                                                         localsymtable]) then
                                      location.reference.offset:=
-                                       pvarsym(symtableentry)^.address-symtable^.address_fixup
+                                       tvarsym(symtableentry).address-symtable.address_fixup
                                    else
                                      location.reference.offset:=
-                                       pvarsym(symtableentry)^.address+symtable^.address_fixup;
+                                       tvarsym(symtableentry).address+symtable.address_fixup;
 
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) then
                                      begin
                                         if use_esp_stackframe then
                                           dec(location.reference.offset,
-                                            pvarsym(symtableentry)^.getvaluesize)
+                                            tvarsym(symtableentry).getvaluesize)
                                         else
                                           location.reference.offset:=-location.reference.offset;
                                      end;
-                                   if (lexlevel>(symtable^.symtablelevel)) then
+                                   if (lexlevel>(symtable.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
 
@@ -204,7 +204,7 @@ implementation
 
                                         simple_loadn:=false;
                                         i:=lexlevel-1;
-                                        while i>(symtable^.symtablelevel) do
+                                        while i>(symtable.symtablelevel) do
                                           begin
                                              { make a reference }
                                              hp:=new_reference(hregister,8);
@@ -216,27 +216,27 @@ implementation
                                 end
                               else
                                 case symtabletype of
-                                   unitsymtable,globalsymtable,
+                                   globalsymtable,
                                    staticsymtable :
                                      begin
-                                       location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                                       location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                                      end;
                                    stt_exceptsymtable:
                                      begin
                                         location.reference.base:=procinfo^.framepointer;
-                                        location.reference.offset:=pvarsym(symtableentry)^.address;
+                                        location.reference.offset:=tvarsym(symtableentry).address;
                                      end;
                                    objectsymtable:
                                      begin
                                         getexplicitregister32(R_ESI);
-                                        if (sp_static in pvarsym(symtableentry)^.symoptions) then
+                                        if (sp_static in tvarsym(symtableentry).symoptions) then
                                           begin
-                                             location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                                             location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                                           end
                                         else
                                           begin
                                              location.reference.base:=R_ESI;
-                                             location.reference.offset:=pvarsym(symtableentry)^.address;
+                                             location.reference.offset:=tvarsym(symtableentry).address;
                                           end;
                                      end;
                                    withsymtable:
@@ -246,33 +246,33 @@ implementation
                                           contains the offset of the temp
                                           stored }
 {                                       hp:=new_reference(procinfo^.framepointer,
-                                          symtable^.datasize);
+                                          symtable.datasize);
 
                                         emit_ref_reg(A_MOV,S_L,hp,hregister);}
 
-                                        if nf_islocal in tnode(pwithsymtable(symtable)^.withnode).flags then
+                                        if nf_islocal in tnode(twithsymtable(symtable).withnode).flags then
                                          begin
-                                           location.reference:=twithnode(pwithsymtable(symtable)^.withnode).withreference^;
+                                           location.reference:=twithnode(twithsymtable(symtable).withnode).withreference^;
                                          end
                                         else
                                          begin
                                            hregister:=getregister32;
                                            location.reference.base:=hregister;
                                            emit_ref_reg(A_MOV,S_L,
-                                             newreference(twithnode(pwithsymtable(symtable)^.withnode).withreference^),
+                                             newreference(twithnode(twithsymtable(symtable).withnode).withreference^),
                                              hregister);
                                          end;
-                                        inc(location.reference.offset,pvarsym(symtableentry)^.address);
+                                        inc(location.reference.offset,tvarsym(symtableentry).address);
                                      end;
                                 end;
                            end;
                          { in case call by reference, then calculate. Open array
                            is always an reference! }
-                         if (pvarsym(symtableentry)^.varspez in [vs_var,vs_out]) or
-                            is_open_array(pvarsym(symtableentry)^.vartype.def) or
-                            is_array_of_const(pvarsym(symtableentry)^.vartype.def) or
-                            ((pvarsym(symtableentry)^.varspez=vs_const) and
-                             push_addr_param(pvarsym(symtableentry)^.vartype.def)) then
+                         if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                            is_open_array(tvarsym(symtableentry).vartype.def) or
+                            is_array_of_const(tvarsym(symtableentry).vartype.def) or
+                            ((tvarsym(symtableentry).varspez=vs_const) and
+                             push_addr_param(tvarsym(symtableentry).vartype.def)) then
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
@@ -302,13 +302,13 @@ implementation
                          gettempofsizereference(8,location.reference);
                          if left.nodetype=typen then
                           begin
-                            if left.resulttype.def^.deftype<>objectdef then
+                            if left.resulttype.def.deftype<>objectdef then
                              internalerror(200103261);
                             getexplicitregister32(R_EDI);
                             hregister:=R_EDI;
                             new(hp);
                             emit_sym_ofs_reg(A_MOV,S_L,
-                              newasmsymbol(pobjectdef(left.resulttype.def)^.vmt_mangledname),0,R_EDI);
+                              newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,R_EDI);
                           end
                          else
                           begin
@@ -352,7 +352,7 @@ implementation
                            hregister,hp);
 
                          { virtual method ? }
-                         if (po_virtualmethod in pprocsym(symtableentry)^.definition^.procoptions) then
+                         if (po_virtualmethod in tprocsym(symtableentry).definition.procoptions) then
                            begin
                               new(hp);
                               reset_reference(hp^);
@@ -367,23 +367,19 @@ implementation
                               new(hp);
                               reset_reference(hp^);
                               hp^.base:=R_EDI;
-                              hp^.offset:=pprocsym(symtableentry)^.definition^._class^.vmtmethodoffset(
-                                pprocsym(symtableentry)^.definition^.extnumber);
+                              hp^.offset:=tprocsym(symtableentry).definition._class.vmtmethodoffset(
+                                tprocsym(symtableentry).definition.extnumber);
                               emit_ref_reg(A_MOV,S_L,
                                 hp,R_EDI);
                               { ... and store it }
                               emit_reg_ref(A_MOV,S_L,
                                 R_EDI,newreference(location.reference));
-{$ifndef noAllocEdi}
                               ungetregister32(R_EDI);
-{$endif noAllocEdi}
                            end
                          else
                            begin
-{$ifndef noAllocEdi}
                               ungetregister32(R_EDI);
-{$endif noAllocEdi}
-                              s:=newasmsymbol(pprocsym(symtableentry)^.definition^.mangledname);
+                              s:=newasmsymbol(tprocsym(symtableentry).definition.mangledname);
                               emit_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(location.reference));
                            end;
@@ -391,12 +387,12 @@ implementation
                     else
                       begin
                          {!!!!! Be aware, work on virtual methods too }
-                         location.reference.symbol:=newasmsymbol(pprocsym(symtableentry)^.definition^.mangledname);
+                         location.reference.symbol:=newasmsymbol(tprocsym(symtableentry).definition.mangledname);
                       end;
                  end;
               typedconstsym :
                  begin
-                    location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
+                    location.reference.symbol:=newasmsymbol(symtableentry.mangledname);
                  end;
               else internalerror(4);
          end;
@@ -410,7 +406,7 @@ implementation
     procedure ti386assignmentnode.pass_2;
       var
          opsize : topsize;
-         otlabel,hlabel,oflabel : pasmlabel;
+         otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
          loc : tloc;
          r : preference;
@@ -481,7 +477,7 @@ implementation
               exit;
            end;
 {$endif test_dest_loc}
-         if left.resulttype.def^.deftype=stringdef then
+         if left.resulttype.def.deftype=stringdef then
            begin
               if is_ansistring(left.resulttype.def) then
                 begin
@@ -572,7 +568,7 @@ implementation
                          if (right.nodetype=ordconstn) or
                             (loc=LOC_CREGISTER) then
                            begin
-                              case left.resulttype.def^.size of
+                              case left.resulttype.def.size of
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
@@ -625,7 +621,7 @@ implementation
                            end
                          else if loc=LOC_CFPUREGISTER then
                            begin
-                              floatloadops(pfloatdef(right.resulttype.def)^.typ,op,opsize);
+                              floatloadops(tfloatdef(right.resulttype.def).typ,op,opsize);
                               emit_ref(op,opsize,
                                 newreference(right.location.reference));
                               emit_reg(A_FSTP,S_NO,
@@ -633,16 +629,16 @@ implementation
                            end
                          else
                            begin
-                              if (right.resulttype.def^.needs_inittable) then
+                              if (right.resulttype.def.needs_inittable) then
                                 begin
                                    { this would be a problem }
-                                   if not(left.resulttype.def^.needs_inittable) then
+                                   if not(left.resulttype.def.needs_inittable) then
                                      internalerror(3457);
 
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=pstoreddef(right.resulttype.def)^.get_inittable_label;
+                                   r^.symbol:=tstoreddef(right.resulttype.def).get_inittable_label;
                                    emitpushreferenceaddr(r^);
 
                                    emitpushreferenceaddr(right.location.reference);
@@ -650,7 +646,7 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=pstoreddef(left.resulttype.def)^.get_inittable_label;
+                                   r^.symbol:=tstoreddef(left.resulttype.def).get_inittable_label;
                                    emitpushreferenceaddr(r^);
                                    emitpushreferenceaddr(left.location.reference);
                                    emitcall('FPC_DECREF');
@@ -658,11 +654,11 @@ implementation
 
 {$ifdef regallocfix}
                               concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype.def^.size,true,false);
+                                left.location.reference,left.resulttype.def.size,true,false);
                               ungetiftemp(right.location.reference);
 {$Else regallocfix}
                               concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype.def^.size,false,false);
+                                left.location.reference,left.resulttype.def.size,false,false);
                               ungetiftemp(right.location.reference);
 {$endif regallocfix}
                            end;
@@ -681,7 +677,7 @@ implementation
 {$endif SUPPORT_MMX}
             LOC_REGISTER,
             LOC_CREGISTER : begin
-                              case right.resulttype.def^.size of
+                              case right.resulttype.def.size of
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
@@ -726,15 +722,15 @@ implementation
 
                            end;
             LOC_FPU : begin
-                              if (left.resulttype.def^.deftype=floatdef) then
-                               fputyp:=pfloatdef(left.resulttype.def)^.typ
+                              if (left.resulttype.def.deftype=floatdef) then
+                               fputyp:=tfloatdef(left.resulttype.def).typ
                               else
-                               if (right.resulttype.def^.deftype=floatdef) then
-                                fputyp:=pfloatdef(right.resulttype.def)^.typ
+                               if (right.resulttype.def.deftype=floatdef) then
+                                fputyp:=tfloatdef(right.resulttype.def).typ
                               else
                                if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype.def^.deftype=floatdef) then
-                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype.def)^.typ
+                                  (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
+                                fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
                               else
                                 fputyp:=s32real;
                               case loc of
@@ -751,15 +747,15 @@ implementation
                               end;
                            end;
             LOC_CFPUREGISTER: begin
-                              if (left.resulttype.def^.deftype=floatdef) then
-                               fputyp:=pfloatdef(left.resulttype.def)^.typ
+                              if (left.resulttype.def.deftype=floatdef) then
+                               fputyp:=tfloatdef(left.resulttype.def).typ
                               else
-                               if (right.resulttype.def^.deftype=floatdef) then
-                                fputyp:=pfloatdef(right.resulttype.def)^.typ
+                               if (right.resulttype.def.deftype=floatdef) then
+                                fputyp:=tfloatdef(right.resulttype.def).typ
                               else
                                if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype.def^.deftype=floatdef) then
-                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype.def)^.typ
+                                  (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
+                                fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
                               else
                                 fputyp:=s32real;
                               emit_reg(A_FLD,S_NO,
@@ -905,19 +901,19 @@ implementation
       var
         hp    : tarrayconstructornode;
         href  : treference;
-        lt    : pdef;
+        lt    : tdef;
         vaddr : boolean;
         vtype : longint;
         freetemp,
         dovariant : boolean;
         elesize : longint;
       begin
-        dovariant:=(nf_forcevaria in flags) or parraydef(resulttype.def)^.isvariant;
+        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
          elesize:=8
         else
          begin
-           elesize:=parraydef(resulttype.def)^.elesize;
+           elesize:=tarraydef(resulttype.def).elesize;
            if elesize>4 then
             internalerror(8765678);
          end;
@@ -926,10 +922,10 @@ implementation
            reset_reference(location.reference);
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
-            if parraydef(resulttype.def)^.highrange=-1 then
+            if tarraydef(resulttype.def).highrange=-1 then
               gettempofsizereference(elesize,location.reference)
             else
-              gettempofsizereference((parraydef(resulttype.def)^.highrange+1)*elesize,location.reference);
+              gettempofsizereference((tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
            href:=location.reference;
          end;
         hp:=self;
@@ -947,13 +943,13 @@ implementation
                  vtype:=$ff;
                  vaddr:=false;
                  lt:=hp.left.resulttype.def;
-                 case lt^.deftype of
+                 case lt.deftype of
                    enumdef,
                    orddef :
                      begin
                        if is_64bitint(lt) then
                          begin
-                            case porddef(lt)^.typ of
+                            case torddef(lt).typ of
                                s64bit:
                                  vtype:=vtInt64;
                                u64bit:
@@ -962,14 +958,14 @@ implementation
                             freetemp:=false;
                             vaddr:=true;
                          end
-                       else if (lt^.deftype=enumdef) or
+                       else if (lt.deftype=enumdef) or
                          is_integer(lt) then
                          vtype:=vtInteger
                        else
                          if is_boolean(lt) then
                            vtype:=vtBoolean
                          else
-                           if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
+                           if (lt.deftype=orddef) and (torddef(lt).typ=uchar) then
                              vtype:=vtChar;
                      end;
                    floatdef :
@@ -1072,7 +1068,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-02 21:20:37  peter
+  Revision 1.13  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/04/02 21:20:37  peter
     * resulttype rewrite
 
   Revision 1.11  2000/12/25 00:07:33  peter

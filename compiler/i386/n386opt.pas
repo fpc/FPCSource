@@ -82,7 +82,7 @@ end;
 
 procedure ti386addsstringcharoptnode.pass_2;
 var
-  l: pasmlabel;
+  l: tasmlabel;
   href2: preference;
   href:  treference;
   hreg, lengthreg: tregister;
@@ -135,7 +135,7 @@ begin
   if istemp(left.location.reference) then
     checklength := curmaxlen = 255
   else
-    checklength := curmaxlen >= pstringdef(left.resulttype.def)^.len;
+    checklength := curmaxlen >= tstringdef(left.resulttype.def).len;
   if checklength then
     begin
       { is it already maximal? }
@@ -143,7 +143,7 @@ begin
       if istemp(left.location.reference) then
         emit_const_reg(A_CMP,S_L,255,lengthreg)
       else
-        emit_const_reg(A_CMP,S_L,pstringdef(left.resulttype.def)^.len,lengthreg);
+        emit_const_reg(A_CMP,S_L,tstringdef(left.resulttype.def).len,lengthreg);
       emitjmp(C_E,l);
     end;
 
@@ -248,7 +248,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-04-02 21:20:38  peter
+  Revision 1.4  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.3  2001/04/02 21:20:38  peter
     * resulttype rewrite
 
   Revision 1.2  2001/01/06 19:12:31  jonas

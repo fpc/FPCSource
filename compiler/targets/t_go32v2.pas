@@ -85,7 +85,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes.Init(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
@@ -150,7 +150,7 @@ begin
 
 { Write and Close response }
   linkres.writetodisk;
-  linkres.done;
+  LinkRes.Free;
 
   WriteResponseFile:=True;
 end;
@@ -165,7 +165,7 @@ begin
   WriteScript:=False;
 
   { Open link.res file }
-  ScriptRes.Init(outputexedir+Info.ResName);
+  ScriptRes:=TLinkRes.Create(outputexedir+Info.ResName);
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
@@ -271,7 +271,7 @@ begin
 
 { Write and Close response }
   ScriptRes.WriteToDisk;
-  ScriptRes.done;
+  ScriptRes.Free;
 
   WriteScript:=True;
 end;
@@ -419,7 +419,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.7  2001/01/27 21:29:35  florian

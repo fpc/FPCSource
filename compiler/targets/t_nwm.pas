@@ -134,7 +134,7 @@ begin
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { do nothing with the procedure, only set the mangledname }
   if name<>'' then
-    aktprocsym^.definition^.setmangledname(name)
+    aktprocsym.definition.setmangledname(name)
   else
     message(parser_e_empty_import_name);
 end;
@@ -145,8 +145,8 @@ begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
-  aktvarsym^.setmangledname(name);
-  exclude(aktvarsym^.varoptions,vo_is_dll_var);
+  aktvarsym.setmangledname(name);
+  exclude(aktvarsym.varoptions,vo_is_dll_var);
 end;
 
 
@@ -177,7 +177,7 @@ begin
   { use pascal name is none specified }
   if (hp.options and eo_name)=0 then
     begin
-       hp.name:=stringdup(hp.sym^.name);
+       hp.name:=stringdup(hp.sym.name);
        hp.options:=hp.options or eo_name;
     end;
   { now place in correct order }
@@ -227,7 +227,7 @@ begin
         { place jump in codesegment }
         codeSegment.concat(Tai_align.Create_op(4,$90));
         codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,0));
-        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym^.mangledname)));
+        codeSegment.concat(Taicpu.Op_sym(A_JMP,S_NO,newasmsymbol(hp2.sym.mangledname)));
         codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
       end
@@ -277,7 +277,7 @@ begin
   NlmNam := ProgNam + target_os.exeext;
 
   { Open link.res file }
-  LinkRes.Init(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   if Description <> '' then
     LinkRes.Add('DESCRIPTION "' + Description + '"');
@@ -375,7 +375,7 @@ begin
 
 { Write and Close response }
   linkres.writetodisk;
-  linkres.done;
+  LinkRes.Free;
 
   WriteResponseFile:=True;
 end;
@@ -421,7 +421,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.6  2001/02/20 21:41:16  peter

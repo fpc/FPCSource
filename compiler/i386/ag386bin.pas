@@ -29,7 +29,7 @@ unit ag386bin;
 interface
 
     uses
-      cobjects,
+      cclasses,
       globals,
       cpubase,aasm,
       fmodule,finput,
@@ -55,7 +55,7 @@ interface
         n_line       : byte;     { different types of source lines }
         linecount,
         includecount : longint;
-        funcname     : pasmsymbol;
+        funcname     : tasmsymbol;
         stabslastfileinfo : tfileposinfo;
         procedure convertstabs(p:pchar);
         procedure emitlineinfostabs(nidx,line : longint);
@@ -100,7 +100,7 @@ implementation
         hp : pchar;
         reloc : boolean;
         sec : tsection;
-        ps : pasmsymbol;
+        ps : tasmsymbol;
         s : string;
       begin
         ofs:=0;
@@ -187,8 +187,8 @@ implementation
                   internalerror(33006)
                 else
                   begin
-                    sec:=ps^.section;
-                    ofs:=ps^.address;
+                    sec:=ps.section;
+                    ofs:=ps.address;
                     reloc:=true;
                     UsedAsmSymbolListInsert(ps);
                   end;
@@ -209,9 +209,9 @@ implementation
                       internalerror(33007)
                     else
                       begin
-                        if ps^.section<>sec then
+                        if ps.section<>sec then
                           internalerror(33008);
-                        ofs:=ofs-ps^.address;
+                        ofs:=ofs-ps.address;
                         reloc:=false;
                         UsedAsmSymbolListInsert(ps);
                       end;
@@ -219,7 +219,7 @@ implementation
               end;
           end;
         { external bss need speical handling (PM) }
-        if assigned(ps) and (ps^.section=sec_none) then
+        if assigned(ps) and (ps.section=sec_none) then
           begin
             if currpass=2 then
               begin
@@ -247,7 +247,7 @@ implementation
 
         if (nidx=n_textline) and assigned(funcname) and
            (target_os.use_function_relative_addresses) then
-          objectdata.WriteStabs(sec_code,objectdata.sectionsize(sec_code)-funcname^.address,
+          objectdata.WriteStabs(sec_code,objectdata.sectionsize(sec_code)-funcname.address,
               nil,nidx,0,line,false)
         else
           begin
@@ -273,7 +273,7 @@ implementation
     procedure TInternalAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
       var
         curr_n : byte;
-        hp : pasmsymbol;
+        hp : tasmsymbol;
         infile : tinputfile;
       begin
         if not ((cs_debuginfo in aktmoduleswitches) or
@@ -292,7 +292,7 @@ implementation
            hp:=newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
            if currpass=1 then
              begin
-                hp^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                 UsedAsmSymbolListInsert(hp);
              end
            else
@@ -329,7 +329,7 @@ implementation
 
     procedure TInternalAssembler.EndFileLineInfo;
       var
-        hp : pasmsymbol;
+        hp : tasmsymbol;
         store_sec : tsection;
       begin
           if not ((cs_debuginfo in aktmoduleswitches) or
@@ -340,7 +340,7 @@ implementation
         hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
-            hp^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+            hp.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
             UsedAsmSymbolListInsert(hp);
           end
         else
@@ -430,9 +430,9 @@ implementation
              ait_section:
                objectalloc.setsection(Tai_section(hp).sec);
              ait_symbol :
-               Tai_symbol(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_label :
-               Tai_label(hp).l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+               Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_string :
                objectalloc.sectionalloc(Tai_string(hp).len);
              ait_instruction :
@@ -487,10 +487,10 @@ implementation
                   begin
                     if Tai_datablock(hp).is_global then
                      begin
-                       Tai_datablock(hp).sym^.setaddress(sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
+                       Tai_datablock(hp).sym.setaddress(sec_none,Tai_datablock(hp).size,Tai_datablock(hp).size);
                        { force to be common/external, must be after setaddress as that would
                          set it to AS_GLOBAL }
-                       Tai_datablock(hp).sym^.bind:=AB_COMMON;
+                       Tai_datablock(hp).sym.bind:=AB_COMMON;
                      end
                     else
                      begin
@@ -499,7 +499,7 @@ implementation
                          objectalloc.sectionalign(4)
                        else if l>1 then
                          objectalloc.sectionalign(2);
-                       Tai_datablock(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,
+                       Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,
                          Tai_datablock(hp).size);
                        objectalloc.sectionalloc(Tai_datablock(hp).size);
                      end;
@@ -511,7 +511,7 @@ implementation
                        objectalloc.sectionalign(4)
                      else if l>1 then
                        objectalloc.sectionalign(2);
-                     Tai_datablock(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
+                     Tai_datablock(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,Tai_datablock(hp).size);
                      objectalloc.sectionalloc(Tai_datablock(hp).size);
                    end;
                  UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
@@ -570,20 +570,20 @@ implementation
 {$endif}
              ait_symbol :
                begin
-                 Tai_symbol(hp).sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 Tai_symbol(hp).sym.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.target=target_i386_linux then
                   begin
-                    Tai_symbol(hp).sym^.size:=objectalloc.sectionsize-Tai_symbol(hp).sym^.address;
+                    Tai_symbol(hp).sym.size:=objectalloc.sectionsize-Tai_symbol(hp).sym.address;
                     UsedAsmSymbolListInsert(Tai_symbol(hp).sym);
                   end;
                 end;
              ait_label :
                begin
-                 Tai_label(hp).l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
+                 Tai_label(hp).l.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(Tai_label(hp).l);
                end;
              ait_string :
@@ -1026,14 +1026,19 @@ implementation
         objectoutput.free;
         objectalloc.free;
 {$ifdef MEMDEBUG}
-         d.done;
+         d.free;
 {$endif}
       end;
 
 end.
 {
   $Log$
-  Revision 1.6  2001-03-11 22:58:51  peter
+  Revision 1.7  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/11 22:58:51  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.5  2001/03/05 21:39:11  peter

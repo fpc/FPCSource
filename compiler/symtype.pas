@@ -26,7 +26,7 @@ interface
 
     uses
       { common }
-      cutils,cobjects,
+      cutils,
       { global }
       globtype,globals,
       { symtable }
@@ -40,21 +40,20 @@ interface
                 Required Forwards
 ************************************************}
 
-      psym = ^tsym;
+      tsym = class;
 
 {************************************************
                      TRef
 ************************************************}
 
-      pref = ^tref;
-      tref = object
-        nextref     : pref;
+      tref = class
+        nextref     : tref;
         posinfo     : tfileposinfo;
         moduleindex : longint;
         is_written  : boolean;
-        constructor init(ref:pref;pos:pfileposinfo);
+        constructor create(ref:tref;pos:pfileposinfo);
         procedure   freechain;
-        destructor  done; virtual;
+        destructor  destroy;override;
       end;
 
 {************************************************
@@ -63,16 +62,15 @@ interface
 
       tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
 
-      pdef = ^tdef;
-      tdef = object(tdefentry)
-         typesym    : psym;  { which type the definition was generated this def }
-         constructor init;
+      tdef = class(tdefentry)
+         typesym    : tsym;  { which type the definition was generated this def }
+         constructor create;
          procedure deref;virtual;
          function  typename:string;
          function  gettypename:string;virtual;
          function  size:longint;virtual;abstract;
          function  alignment:longint;virtual;abstract;
-         function  getsymtable(t:tgetsymtable):psymtable;virtual;
+         function  getsymtable(t:tgetsymtable):tsymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  get_rtti_label : string;virtual;abstract;
@@ -83,16 +81,16 @@ interface
 ************************************************}
 
       { this object is the base for all symbol objects }
-      tsym = object(tsymentry)
+      tsym = class(tsymentry)
          _realname  : pstring;
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
-         constructor init(const n : string);
-         destructor done;virtual;
+         constructor create(const n : string);
+         destructor destroy;override;
          function  realname:string;
          procedure prederef;virtual; { needed for ttypesym to be deref'd first }
          procedure deref;virtual;
-         function  gettypedef:pdef;virtual;
+         function  gettypedef:tdef;virtual;
          function  mangledname : string;virtual;abstract;
       end;
 
@@ -101,11 +99,11 @@ interface
 ************************************************}
 
       ttype = object
-        def : pdef;
-        sym : psym;
+        def : tdef;
+        sym : tsym;
         procedure reset;
-        procedure setdef(p:pdef);
-        procedure setsym(p:psym);
+        procedure setdef(p:tdef);
+        procedure setsym(p:tsym);
         procedure load;
         procedure write;
         procedure resolve;
@@ -117,31 +115,30 @@ interface
 
       psymlistitem = ^tsymlistitem;
       tsymlistitem = record
-        sym  : psym;
+        sym  : tsym;
         next : psymlistitem;
       end;
 
-      psymlist = ^tsymlist;
-      tsymlist = object
-        def      : pdef;
+      tsymlist = class
+        def      : tdef;
         firstsym,
         lastsym  : psymlistitem;
-        constructor init;
+        constructor create;
         constructor load;
-        destructor  done;
+        destructor  destroy;override;
         function  empty:boolean;
-        procedure setdef(p:pdef);
-        procedure addsym(p:psym);
+        procedure setdef(p:tdef);
+        procedure addsym(p:tsym);
         procedure clear;
-        function  getcopy:psymlist;
+        function  getcopy:tsymlist;
         procedure resolve;
         procedure write;
       end;
 
 
     { resolving }
-    procedure resolvesym(var sym:psym);
-    procedure resolvedef(var def:pdef);
+    procedure resolvesym(var sym:tsym);
+    procedure resolvedef(var def:tdef);
 
 
 implementation
@@ -155,9 +152,9 @@ implementation
                                 Tdef
 ****************************************************************************}
 
-    constructor tdef.init;
+    constructor tdef.create;
       begin
-         inherited init;
+         inherited create;
          deftype:=abstractdef;
          owner := nil;
          typesym := nil;
@@ -168,9 +165,9 @@ implementation
       begin
         if assigned(typesym) and
            not(deftype=procvardef) and
-           assigned(typesym^._realname) and
-           (typesym^._realname^[1]<>'$') then
-         typename:=typesym^._realname^
+           assigned(typesym._realname) and
+           (typesym._realname^[1]<>'$') then
+         typename:=typesym._realname^
         else
          typename:=gettypename;
       end;
@@ -188,7 +185,7 @@ implementation
       end;
 
 
-    function tdef.getsymtable(t:tgetsymtable):psymtable;
+    function tdef.getsymtable(t:tgetsymtable):tsymtable;
       begin
         getsymtable:=nil;
       end;
@@ -198,21 +195,21 @@ implementation
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tsym.init(const n : string);
+    constructor tsym.create(const n : string);
       begin
          if n[1]='$' then
-          inherited initname(copy(n,2,255))
+          inherited createname(copy(n,2,255))
          else
-          inherited initname(upper(n));
+          inherited createname(upper(n));
          _realname:=stringdup(n);
          typ:=abstractsym;
       end;
 
 
-    destructor tsym.done;
+    destructor tsym.destroy;
       begin
         stringdispose(_realname);
-        inherited done;
+        inherited destroy;
       end;
 
 
@@ -234,7 +231,7 @@ implementation
       end;
 
 
-    function tsym.gettypedef:pdef;
+    function tsym.gettypedef:tdef;
       begin
         gettypedef:=nil;
       end;
@@ -244,7 +241,7 @@ implementation
                                TRef
 ****************************************************************************}
 
-    constructor tref.init(ref :pref;pos : pfileposinfo);
+    constructor tref.create(ref :tref;pos : pfileposinfo);
       begin
         nextref:=nil;
         if pos<>nil then
@@ -252,25 +249,25 @@ implementation
         if assigned(current_module) then
           moduleindex:=current_module.unit_index;
         if assigned(ref) then
-          ref^.nextref:=@self;
+          ref.nextref:=self;
         is_written:=false;
       end;
 
     procedure tref.freechain;
       var
-        p,q : pref;
+        p,q : tref;
       begin
         p:=nextref;
         nextref:=nil;
         while assigned(p) do
           begin
-            q:=p^.nextref;
-            dispose(p,done);
+            q:=p.nextref;
+            p.free;
             p:=q;
           end;
       end;
 
-    destructor tref.done;
+    destructor tref.destroy;
       begin
          nextref:=nil;
       end;
@@ -287,17 +284,17 @@ implementation
       end;
 
 
-    procedure ttype.setdef(p:pdef);
+    procedure ttype.setdef(p:tdef);
       begin
         def:=p;
         sym:=nil;
       end;
 
 
-    procedure ttype.setsym(p:psym);
+    procedure ttype.setsym(p:tsym);
       begin
         sym:=p;
-        def:=p^.gettypedef;
+        def:=p.gettypedef;
         if not assigned(def) then
          internalerror(1234005);
       end;
@@ -305,8 +302,8 @@ implementation
 
     procedure ttype.load;
       begin
-        def:=pdef(readderef);
-        sym:=psym(readderef);
+        def:=tdef(readderef);
+        sym:=tsym(readderef);
       end;
 
 
@@ -315,8 +312,8 @@ implementation
         { Don't write symbol references for the current unit
           and for the system unit }
         if assigned(sym) and
-           (sym^.owner^.unitid<>0) and
-           (sym^.owner^.unitid<>1) then
+           (sym.owner.unitid<>0) and
+           (sym.owner.unitid<>1) then
          begin
            writederef(nil);
            writederef(sym);
@@ -344,7 +341,7 @@ implementation
                                  TSymList
 ****************************************************************************}
 
-    constructor tsymlist.init;
+    constructor tsymlist.create;
       begin
         def:=nil; { needed for procedures }
         firstsym:=nil;
@@ -354,13 +351,13 @@ implementation
 
     constructor tsymlist.load;
       var
-        sym : psym;
+        sym : tsym;
       begin
-        def:=pdef(readderef);
+        def:=tdef(readderef);
         firstsym:=nil;
         lastsym:=nil;
         repeat
-          sym:=psym(readderef);
+          sym:=tsym(readderef);
           if sym=nil then
            break;
           addsym(sym);
@@ -368,7 +365,7 @@ implementation
       end;
 
 
-    destructor tsymlist.done;
+    destructor tsymlist.destroy;
       begin
         clear;
       end;
@@ -396,13 +393,13 @@ implementation
       end;
 
 
-    procedure tsymlist.setdef(p:pdef);
+    procedure tsymlist.setdef(p:tdef);
       begin
         def:=p;
       end;
 
 
-    procedure tsymlist.addsym(p:psym);
+    procedure tsymlist.addsym(p:tsym);
       var
         hp : psymlistitem;
       begin
@@ -419,17 +416,17 @@ implementation
       end;
 
 
-    function tsymlist.getcopy:psymlist;
+    function tsymlist.getcopy:tsymlist;
       var
-        hp  : psymlist;
+        hp  : tsymlist;
         hp2 : psymlistitem;
       begin
-        new(hp,init);
-        hp^.def:=def;
+        hp:=tsymlist.create;
+        hp.def:=def;
         hp2:=firstsym;
         while assigned(hp2) do
          begin
-           hp^.addsym(hp2^.sym);
+           hp.addsym(hp2^.sym);
            hp2:=hp2^.next;
          end;
         getcopy:=hp;
@@ -469,95 +466,95 @@ implementation
                         Symbol / Definition Resolving
 *****************************************************************************}
 
-    procedure resolvederef(var p:pderef;var st:psymtable;var idx:word);
+    procedure resolvederef(var p:tderef;var st:tsymtable;var idx:word);
       var
-        hp : pderef;
-        pd : pdef;
+        hp : tderef;
+        pd : tdef;
       begin
         st:=nil;
         idx:=0;
         while assigned(p) do
          begin
-           case p^.dereftype of
+           case p.dereftype of
              derefaktrecordindex :
                begin
                  st:=aktrecordsymtable;
-                 idx:=p^.index;
+                 idx:=p.index;
                end;
              derefaktstaticindex :
                begin
                  st:=aktstaticsymtable;
-                 idx:=p^.index;
+                 idx:=p.index;
                end;
              derefaktlocal :
                begin
                  st:=aktlocalsymtable;
-                 idx:=p^.index;
+                 idx:=p.index;
                end;
              derefunit :
                begin
 {$ifdef NEWMAP}
-                 st:=psymtable(current_module.map^[p^.index]^.globalsymtable);
+                 st:=tsymtable(current_module.map^[p.index]^.globalsymtable);
 {$else NEWMAP}
-                 st:=psymtable(current_module.map^[p^.index]);
+                 st:=tsymtable(current_module.map^[p.index]);
 {$endif NEWMAP}
                end;
              derefrecord :
                begin
-                 pd:=pdef(st^.getdefnr(p^.index));
-                 st:=pd^.getsymtable(gs_record);
+                 pd:=tdef(st.getdefnr(p.index));
+                 st:=pd.getsymtable(gs_record);
                  if not assigned(st) then
                   internalerror(556658);
                end;
              dereflocal :
                begin
-                 pd:=pdef(st^.getdefnr(p^.index));
-                 st:=pd^.getsymtable(gs_local);
+                 pd:=tdef(st.getdefnr(p.index));
+                 st:=pd.getsymtable(gs_local);
                  if not assigned(st) then
                   internalerror(556658);
                end;
              derefpara :
                begin
-                 pd:=pdef(st^.getdefnr(p^.index));
-                 st:=pd^.getsymtable(gs_para);
+                 pd:=tdef(st.getdefnr(p.index));
+                 st:=pd.getsymtable(gs_para);
                  if not assigned(st) then
                   internalerror(556658);
                end;
              derefindex :
                begin
-                 idx:=p^.index;
+                 idx:=p.index;
                end;
              else
                internalerror(556658);
            end;
            hp:=p;
-           p:=p^.next;
-           dispose(hp,done);
+           p:=p.next;
+           hp.free;
          end;
       end;
 
 
-    procedure resolvedef(var def:pdef);
+    procedure resolvedef(var def:tdef);
       var
-        st   : psymtable;
+        st   : tsymtable;
         idx  : word;
       begin
-        resolvederef(pderef(def),st,idx);
+        resolvederef(tderef(def),st,idx);
         if assigned(st) then
-         def:=pdef(st^.getdefnr(idx))
+         def:=tdef(st.getdefnr(idx))
         else
          def:=nil;
       end;
 
 
-    procedure resolvesym(var sym:psym);
+    procedure resolvesym(var sym:tsym);
       var
-        st   : psymtable;
+        st   : tsymtable;
         idx  : word;
       begin
-        resolvederef(pderef(sym),st,idx);
+        resolvederef(tderef(sym),st,idx);
         if assigned(st) then
-         sym:=psym(st^.getsymnr(idx))
+         sym:=tsym(st.getsymnr(idx))
         else
          sym:=nil;
       end;
@@ -565,7 +562,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-04-02 21:20:35  peter
+  Revision 1.6  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2001/04/02 21:20:35  peter
     * resulttype rewrite
 
   Revision 1.4  2000/12/25 00:07:30  peter

@@ -25,23 +25,24 @@ unit fmodule;
 {$i defines.inc}
 
 {$ifdef go32v1}
-  {$define SHORTASMPREFIX}
+  {$define SHORTASMprefix}
 {$endif}
 {$ifdef go32v2}
-  {$define SHORTASMPREFIX}
+  {$define SHORTASMprefix}
 {$endif}
 {$ifdef OS2}
   { Allthough OS/2 supports long filenames I play it safe and
     use 8.3 filenames, because this allows the compiler to run
     on a FAT partition. (DM) }
-  {$define SHORTASMPREFIX}
+  {$define SHORTASMprefix}
 {$endif}
 
 interface
 
     uses
-       cutils,cobjects,cclasses,
-       globals,ppu,finput;
+       cutils,cclasses,
+       globals,ppu,finput,
+       symbase;
 
     const
        maxunits = 1024;
@@ -106,8 +107,8 @@ interface
           islibrary     : boolean;  { if it is a library (win32 dll) }
           map           : punitmap; { mapping of all used units }
           unitcount     : longint;  { local unit counter }
-          globalsymtable,           { pointer to the local/static symtable of this unit }
-          localsymtable : pointer;  { pointer to the psymtable of this unit }
+          globalsymtable,           { pointer to the global symtable of this unit }
+          localsymtable : tsymtable;{ pointer to the local symtable of this unit }
           scanner       : pointer;  { scanner object used }
           loaded_from   : tmodule;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
@@ -187,7 +188,6 @@ uses
   dos,
 {$endif}
   globtype,verbose,systems,
-  symbase,
   scanner;
 
 
@@ -614,12 +614,12 @@ uses
           pscannerfile(scanner)^.invalid:=true;
         if assigned(globalsymtable) then
           begin
-            dispose(psymtable(globalsymtable),done);
+            globalsymtable.free;
             globalsymtable:=nil;
           end;
         if assigned(localsymtable) then
           begin
-            dispose(psymtable(localsymtable),done);
+            localsymtable.free;
             localsymtable:=nil;
           end;
         if assigned(map) then
@@ -703,7 +703,7 @@ uses
          inherited create('Program');
         mainsource:=stringdup(s);
         { Dos has the famous 8.3 limit :( }
-{$ifdef SHORTASMPREFIX}
+{$ifdef SHORTASMprefix}
         asmprefix:=stringdup(FixFileName('as'));
 {$else}
         asmprefix:=stringdup(FixFileName(n));
@@ -815,13 +815,13 @@ uses
         d.init('symtable');
 {$endif}
         if assigned(globalsymtable) then
-          dispose(psymtable(globalsymtable),done);
+          globalsymtable.free;
         globalsymtable:=nil;
         if assigned(localsymtable) then
-          dispose(psymtable(localsymtable),done);
+          localsymtable.free;
         localsymtable:=nil;
 {$ifdef MEMDEBUG}
-        d.done;
+        d.free;
 {$endif}
         inherited Destroy;
       end;
@@ -878,7 +878,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2001-04-02 21:20:29  peter
+  Revision 1.11  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.10  2001/04/02 21:20:29  peter
     * resulttype rewrite
 
   Revision 1.9  2001/03/13 18:45:06  peter

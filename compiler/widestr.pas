@@ -32,7 +32,13 @@ unit widestr;
 
     type
        tcompilerwidechar = word;
+{$ifdef delphi}
+       { delphi doesn't allow pointer accessing as array }
+       tcompilerwidechararray = array[0..0] of tcompilerwidechar;
+       pcompilerwidechar = ^tcompilerwidechararray;
+{$else}
        pcompilerwidechar = ^tcompilerwidechar;
+{$endif}
 
        pcompilerwidestring = ^tcompilerwidestring;
        tcompilerwidestring = record
@@ -124,7 +130,7 @@ unit widestr;
     function comparewidestringwidestring(const s1,s2 : tcompilerwidestring) : longint;
 
       begin
-        {$warning todo}
+        {$ifdef fpc}{$warning todo}{$endif}
         comparewidestringwidestring:=0;
       end;
 
@@ -147,7 +153,7 @@ unit widestr;
       end;
 }
       begin
-        {$warning todo}
+        {$ifdef fpc}{$warning todo}{$endif}
         asciichar2unicode:=0;
       end;
 
@@ -184,7 +190,12 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.2  2001-04-02 21:20:35  peter
+  Revision 1.3  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.2  2001/04/02 21:20:35  peter
     * resulttype rewrite
 
   Revision 1.1  2000/11/29 00:30:43  florian

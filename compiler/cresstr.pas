@@ -142,7 +142,7 @@ procedure TResourceStrings.CreateResourceStringList;
 
   Procedure AppendToAsmResList (P : TResourceStringItem);
   Var
-    l1 : pasmlabel;
+    l1 : tasmlabel;
     s : pchar;
     l : longint;
   begin
@@ -292,7 +292,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-02-24 10:44:55  peter
+  Revision 1.10  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/02/24 10:44:55  peter
     * generate .rst from ppufilename instead of modulename
 
   Revision 1.8  2000/12/25 00:07:25  peter

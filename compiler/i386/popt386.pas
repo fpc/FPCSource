@@ -445,9 +445,9 @@ Var
    jmp l3               jmp l3}
 
   Var p1, p2: Tai;
-      l: pasmlabel;
+      l: tasmlabel;
 
-    Function FindAnyLabel(hp: Tai; var l: pasmlabel): Boolean;
+    Function FindAnyLabel(hp: Tai; var l: tasmlabel): Boolean;
     Begin
       FindAnyLabel := false;
       While assigned(hp.next) and
@@ -462,11 +462,11 @@ Var
     End;
 
   Begin
-    If (pasmlabel(hp.oper[0].sym)^.labelnr >= LoLab) and
-       (pasmlabel(hp.oper[0].sym)^.labelnr <= HiLab) and   {range check, a jump can go past an assembler block!}
-       Assigned(LTable^[pasmlabel(hp.oper[0].sym)^.labelnr-LoLab].TaiObj) Then
+    If (tasmlabel(hp.oper[0].sym).labelnr >= LoLab) and
+       (tasmlabel(hp.oper[0].sym).labelnr <= HiLab) and   {range check, a jump can go past an assembler block!}
+       Assigned(LTable^[tasmlabel(hp.oper[0].sym).labelnr-LoLab].TaiObj) Then
       Begin
-        p1 := LTable^[pasmlabel(hp.oper[0].sym)^.labelnr-LoLab].TaiObj; {the jump's destination}
+        p1 := LTable^[tasmlabel(hp.oper[0].sym).labelnr-LoLab].TaiObj; {the jump's destination}
         SkipLabels(p1,p1);
         If (Tai(p1).typ = ait_instruction) and
            (Taicpu(p1).is_jmp) Then
@@ -486,9 +486,9 @@ Var
               SkipLabels(p1,p1)) Then
             Begin
               GetFinalDestination(asml, Taicpu(p1));
-              Dec(pasmlabel(hp.oper[0].sym)^.refs);
+              Dec(tasmlabel(hp.oper[0].sym).refs);
               hp.oper[0].sym:=Taicpu(p1).oper[0].sym;
-              inc(pasmlabel(hp.oper[0].sym)^.refs);
+              inc(tasmlabel(hp.oper[0].sym).refs);
             End
           Else
             If (Taicpu(p1).condition = inverse_cond[hp.condition]) then
@@ -500,9 +500,9 @@ Var
   {$endif finaldestdebug}
                   getlabel(l);
                   insertllitem(asml,p1,p1.next,Tai_label.Create(l));
-                  dec(pasmlabel(Taicpu(hp).oper[0].sym)^.refs);
+                  dec(tasmlabel(Taicpu(hp).oper[0].sym).refs);
                   hp.oper[0].sym := l;
-                  inc(l^.refs);
+                  inc(l.refs);
   {               this won't work, since the new label isn't in the labeltable }
   {               so it will fail the rangecheck. Labeltable should become a   }
   {               hashtable to support this:                                   }
@@ -514,7 +514,7 @@ Var
                   insertllitem(asml,p1,p1.next,Tai_asm_comment.Create(
                     strpnew('next label reused'))));
   {$endif finaldestdebug}
-                  inc(l^.refs);
+                  inc(l.refs);
                   hp.oper[0].sym := l;
                   GetFinalDestination(asml, hp);
                 end;
@@ -594,7 +594,7 @@ Begin
                { remove jumps to a label coming right after them }
                If GetNextInstruction(p, hp1) then
                  Begin
-                   if FindLabel(pasmlabel(Taicpu(p).oper[0].sym), hp1) then
+                   if FindLabel(tasmlabel(Taicpu(p).oper[0].sym), hp1) then
                      Begin
                        hp2:=Tai(hp1.next);
                        asml.remove(p);
@@ -609,7 +609,7 @@ Begin
                        If (Tai(hp1).typ=ait_instruction) and
                           (Taicpu(hp1).opcode=A_JMP) and
                           GetNextInstruction(hp1, hp2) And
-                          FindLabel(PAsmLabel(Taicpu(p).oper[0].sym), hp2)
+                          FindLabel(tasmlabel(Taicpu(p).oper[0].sym), hp2)
                          Then
                            Begin
                              if Taicpu(p).opcode=A_Jcc then
@@ -621,9 +621,9 @@ Begin
                                 p:=Tai(p.next);
                                 continue;
                               end;
-                             Dec(Tai_label(hp2).l^.refs);
+                             Dec(Tai_label(hp2).l.refs);
                              Taicpu(p).oper[0].sym:=Taicpu(hp1).oper[0].sym;
-                             Inc(Taicpu(p).oper[0].sym^.refs);
+                             Inc(Taicpu(p).oper[0].sym.refs);
                              asml.remove(hp1);
                              hp1.free;
                              If (LabDif <> 0) Then
@@ -699,7 +699,7 @@ Begin
                        (Taicpu(hp3).is_jmp) and
                        (Taicpu(hp3).opcode = A_JMP) And
                        GetNextInstruction(hp3, hp4) And
-                       FindLabel(PAsmLabel(Taicpu(hp1).oper[0].sym),hp4)
+                       FindLabel(tasmlabel(Taicpu(hp1).oper[0].sym),hp4)
                       Then
                         Begin
                           Taicpu(hp2).Opcode := A_SUB;
@@ -1688,7 +1688,7 @@ Begin
                        end;
                      if assigned(hp1) then
                        begin
-                          if FindLabel(PAsmLabel(Taicpu(p).oper[0].sym),hp1) then
+                          if FindLabel(tasmlabel(Taicpu(p).oper[0].sym),hp1) then
                             begin
                                if (l<=4) and (l>0) then
                                  begin
@@ -1728,7 +1728,7 @@ Begin
                                 (hp2.typ=ait_instruction) and
                                 (Taicpu(hp2).is_jmp) and
                                 (Taicpu(hp2).condition=C_None) and
-                                FindLabel(PAsmLabel(Taicpu(p).oper[0].sym),hp1) then
+                                FindLabel(tasmlabel(Taicpu(p).oper[0].sym),hp1) then
                                  begin
                                     l:=0;
                                     while assigned(hp1) And
@@ -1740,7 +1740,7 @@ Begin
                                  end;
                               {
                               if assigned(hp1) and
-                                FindLabel(PAsmLabel(Taicpu(hp2).oper[0].sym),hp1) then
+                                FindLabel(tasmlabel(Taicpu(hp2).oper[0].sym),hp1) then
                                 begin
                                    condition:=inverse_cond[Taicpu(p).condition];
                                    GetNextInstruction(p,hp1);
@@ -2008,7 +2008,12 @@ End.
 
 {
   $Log$
-  Revision 1.12  2001-04-06 14:06:03  jonas
+  Revision 1.13  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/04/06 14:06:03  jonas
     * fixed incompatibility between new regvar handling and -Op2
 
   Revision 1.11  2001/04/02 21:20:39  peter

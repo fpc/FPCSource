@@ -27,7 +27,7 @@ unit pbase;
 interface
 
     uses
-       cutils,cobjects,cclasses,
+       cutils,cclasses,
        tokens,globals,
        symconst,symbase,symtype,symdef,symsym,symtable
 {$ifdef fixLeaksOnError}
@@ -41,7 +41,7 @@ interface
 
        { sspecial for handling procedure vars }
        getprocvar : boolean = false;
-       getprocvardef : pprocvardef = nil;
+       getprocvardef : tprocvardef = nil;
 
     type
        { listitem }
@@ -64,10 +64,10 @@ interface
 
        { for operators }
        optoken : ttoken;
-       opsym : pvarsym;
+       otsym : tvarsym;
 
        { symtable were unit references are stored }
-       refsymtable : psymtable;
+       refsymtable : tsymtable;
 
        { true, if only routine headers should be parsed }
        parse_only : boolean;
@@ -100,7 +100,7 @@ interface
 
     { consume a symbol, if not found give an error and
       and return an errorsym }
-    function consume_sym(var srsym:psym;var srsymtable:psymtable):boolean;
+    function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
 
     { reads a list of identifiers into a string list }
     function idlist : tidstringlist;
@@ -244,7 +244,7 @@ implementation
 
 
 
-    function consume_sym(var srsym:psym;var srsymtable:psymtable):boolean;
+    function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
         { first check for identifier }
         if token<>_ID then
@@ -258,15 +258,15 @@ implementation
         searchsym(pattern,srsym,srsymtable);
         if assigned(srsym) then
          begin
-           if (srsym^.typ=unitsym) then
+           if (srsym.typ=unitsym) then
             begin
               { only allow unit.symbol access if the name was
                 found in the current module }
-              if srsym^.owner^.unitid=0 then
+              if srsym.owner.unitid=0 then
                begin
                  consume(_ID);
                  consume(_POINT);
-                 srsymtable:=punitsym(srsym)^.unitsymtable;
+                 srsymtable:=tunitsym(srsym).unitsymtable;
                  srsym:=searchsymonlyin(srsymtable,pattern);
                end
               else
@@ -322,7 +322,12 @@ end.
 
 {
   $Log$
-  Revision 1.9  2001-04-02 21:20:31  peter
+  Revision 1.10  2001-04-13 01:22:11  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.8  2001/03/11 22:58:49  peter

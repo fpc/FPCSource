@@ -26,14 +26,15 @@ unit import;
 interface
 
 uses
-  cutils,cclasses;
+  cutils,cclasses,
+  aasm;
 
 type
    timported_item = class(tlinkedlistitem)
       ordnr  : word;
       name,
       func   : pstring;
-      lab    : pointer; { should be plabel, but this gaves problems with circular units }
+      lab    : tasmlabel; { should be plabel, but this gaves problems with circular units }
       is_var : boolean;
       constructor Create(const n,s : string;o : word);
       constructor Create_var(const n,s : string);
@@ -290,7 +291,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-03-06 18:28:02  peter
+  Revision 1.12  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.11  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

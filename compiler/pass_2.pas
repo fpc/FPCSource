@@ -51,7 +51,7 @@ implementation
      cutils,
 {$endif}
      globtype,systems,
-     cobjects,globals,
+     cclasses,globals,
      symconst,symbase,symtype,symsym,aasm,
      pass_1,hcodegen,temp_gen,regvars,nflw,tgcpu;
 
@@ -215,12 +215,12 @@ implementation
          do_secondpass:=codegenerror;
       end;
 
-    procedure clearrefs(p : pnamedindexobject);
+    procedure clearrefs(p : tnamedindexitem);
 
       begin
-         if (psym(p)^.typ=varsym) then
-           if pvarsym(p)^.refs>1 then
-             pvarsym(p)^.refs:=1;
+         if (tsym(p).typ=varsym) then
+           if tvarsym(p).refs>1 then
+             tvarsym(p).refs:=1;
       end;
 
     procedure generatecode(var p : tnode);
@@ -237,8 +237,8 @@ implementation
          clearregistercount;
          use_esp_stackframe:=false;
          aktexceptblock:=nil;
-         symtablestack^.foreach(@clearrefs);
-         symtablestack^.next^.foreach(@clearrefs);
+         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
+         symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
          if not(do_firstpass(p)) then
            begin
              if (cs_regalloc in aktglobalswitches) and
@@ -258,8 +258,8 @@ implementation
                                    if assigned(aktprocsym) then
                                      begin
                                        if not(assigned(procinfo^._class)) and
-                                          not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
-                                          not(po_interrupt in aktprocsym^.definition^.procoptions) and
+                                          not(aktprocsym.definition.proctypeoption in [potype_constructor,potype_destructor]) and
+                                          not(po_interrupt in aktprocsym.definition.procoptions) and
                                           ((procinfo^.flags and pi_do_call)=0) and
                                           (lexlevel>=normal_function_level) then
                                          begin
@@ -278,7 +278,7 @@ implementation
                                              dec(procinfo^.retoffset,4);
 
                                            dec(procinfo^.para_offset,4);
-                                           aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
+                                           aktprocsym.definition.parast.address_fixup:=procinfo^.para_offset;
                                          end;
                                      end;
                                     *)
@@ -289,12 +289,12 @@ implementation
               cleanup_regvars(procinfo^.aktexitcode);
 
               if assigned(aktprocsym) and
-                 (pocall_inline in aktprocsym^.definition^.proccalloptions) then
+                 (pocall_inline in aktprocsym.definition.proccalloptions) then
                 make_const_global:=true;
               do_secondpass(p);
 
               if assigned(procinfo^.def) then
-                procinfo^.def^.fpu_used:=p.registersfpu;
+                procinfo^.def.fpu_used:=p.registersfpu;
 
            end;
          procinfo^.aktproccode.concatlist(exprasmlist);
@@ -304,7 +304,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-04-02 21:20:31  peter
+  Revision 1.14  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.12  2000/12/25 00:07:27  peter

@@ -105,7 +105,7 @@ implementation
       begin
          location.register:=getregister32;
          emit_sym_ofs_reg(A_MOV,
-            S_L,newasmsymbol(pobjectdef(pclassrefdef(resulttype.def)^.pointertype.def)^.vmt_mangledname),0,
+            S_L,newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0,
             location.register);
       end;
 
@@ -140,16 +140,16 @@ implementation
               gettempofsizereference(target_os.size_of_pointer,location.reference);
 
               { determines the size of the mem block }
-              push_int(ppointerdef(resulttype.def)^.pointertype.def^.size);
+              push_int(tpointerdef(resulttype.def).pointertype.def.size);
               emit_push_lea_loc(location,false);
               saveregvars($ff);
               emitcall('FPC_GETMEM');
 
-              if ppointerdef(resulttype.def)^.pointertype.def^.needs_inittable then
+              if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
                 begin
                    new(r);
                    reset_reference(r^);
-                   r^.symbol:=pstoreddef(ppointerdef(resulttype.def)^.pointertype.def)^.get_inittable_label;
+                   r^.symbol:=tstoreddef(tpointerdef(resulttype.def).pointertype.def).get_inittable_label;
                    emitpushreferenceaddr(r^);
                    dispose(r);
                    { push pointer we just allocated, we need to initialize the
@@ -219,11 +219,11 @@ implementation
          case nodetype of
            simpledisposen:
              begin
-                if ppointerdef(left.resulttype.def)^.pointertype.def^.needs_inittable then
+                if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=pstoreddef(ppointerdef(left.resulttype.def)^.pointertype.def)^.get_inittable_label;
+                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      { push pointer adress }
@@ -236,14 +236,14 @@ implementation
            simplenewn:
              begin
                 { determines the size of the mem block }
-                push_int(ppointerdef(left.resulttype.def)^.pointertype.def^.size);
+                push_int(tpointerdef(left.resulttype.def).pointertype.def.size);
                 emit_push_lea_loc(left.location,true);
                 emitcall('FPC_GETMEM');
-                if ppointerdef(left.resulttype.def)^.pointertype.def^.needs_inittable then
+                if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
                   begin
                      new(r);
                      reset_reference(r^);
-                     r^.symbol:=pstoreddef(ppointerdef(left.resulttype.def)^.pointertype.def)^.get_inittable_label;
+                     r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_inittable_label;
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      emit_push_loc(left.location);
@@ -279,13 +279,13 @@ implementation
          {@ on a procvar means returning an address to the procedure that
            is stored in it.}
          { yes but left.symtableentry can be nil
-           for example on @self !! }
+           for example on self !! }
          { symtableentry can be also invalid, if left is no tree node }
          if (m_tp_procvar in aktmodeswitches) and
            (left.nodetype=loadn) and
            assigned(tloadnode(left).symtableentry) and
-           (tloadnode(left).symtableentry^.typ=varsym) and
-           (pvarsym(tloadnode(left).symtableentry)^.vartype.def^.deftype=procvardef) then
+           (tloadnode(left).symtableentry.typ=varsym) and
+           (tvarsym(tloadnode(left).symtableentry).vartype.def.deftype=procvardef) then
            emit_ref_reg(A_MOV,S_L,
              newreference(left.location.reference),
              location.register)
@@ -348,9 +348,9 @@ implementation
                  location.reference.base:=hr;
               end;
          end;
-         if ppointerdef(left.resulttype.def)^.is_far then
+         if tpointerdef(left.resulttype.def).is_far then
           location.reference.segment:=R_FS;
-         if not ppointerdef(left.resulttype.def)^.is_far and
+         if not tpointerdef(left.resulttype.def).is_far and
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
               begin
@@ -408,7 +408,7 @@ implementation
          else
            set_location(location,left.location);
 
-         inc(location.reference.offset,vs^.address);
+         inc(location.reference.offset,vs.address);
       end;
 
 
@@ -428,10 +428,10 @@ implementation
              get_mul_size:=1
             else
              begin
-               if (left.resulttype.def^.deftype=arraydef) then
-                get_mul_size:=parraydef(left.resulttype.def)^.elesize
+               if (left.resulttype.def.deftype=arraydef) then
+                get_mul_size:=tarraydef(left.resulttype.def).elesize
                else
-                get_mul_size:=resulttype.def^.size;
+                get_mul_size:=resulttype.def.size;
              end
           end;
 
@@ -462,10 +462,10 @@ implementation
          hp  : preference;
          href : treference;
          tai : Taicpu;
-         srsym : psym;
+         srsym : tsym;
          pushed : tpushed;
          hightree : tnode;
-         hl,otl,ofl : pasmlabel;
+         hl,otl,ofl : tasmlabel;
       begin
          secondpass(left);
          { we load the array reference to location }
@@ -571,21 +571,21 @@ implementation
            set_location(location,left.location);
 
          { offset can only differ from 0 if arraydef }
-         if (left.resulttype.def^.deftype=arraydef) and
+         if (left.resulttype.def.deftype=arraydef) and
            not(is_dynamic_array(left.resulttype.def)) then
            dec(location.reference.offset,
-               get_mul_size*parraydef(left.resulttype.def)^.lowrange);
+               get_mul_size*tarraydef(left.resulttype.def).lowrange);
          if right.nodetype=ordconstn then
            begin
               { offset can only differ from 0 if arraydef }
-              if (left.resulttype.def^.deftype=arraydef) then
+              if (left.resulttype.def.deftype=arraydef) then
                 begin
                    if not(is_open_array(left.resulttype.def)) and
                       not(is_array_of_const(left.resulttype.def)) and
                       not(is_dynamic_array(left.resulttype.def)) then
                      begin
-                        if (tordconstnode(right).value>parraydef(left.resulttype.def)^.highrange) or
-                           (tordconstnode(right).value<parraydef(left.resulttype.def)^.lowrange) then
+                        if (tordconstnode(right).value>tarraydef(left.resulttype.def).highrange) or
+                           (tordconstnode(right).value<tarraydef(left.resulttype.def).lowrange) then
                            begin
                               if (cs_check_range in aktlocalswitches) then
                                 CGMessage(parser_e_range_check_error)
@@ -593,7 +593,7 @@ implementation
                                 CGMessage(parser_w_range_check_error);
                            end;
                         dec(left.location.reference.offset,
-                            get_mul_size*parraydef(left.resulttype.def)^.lowrange);
+                            get_mul_size*tarraydef(left.resulttype.def).lowrange);
                      end
                    else
                      begin
@@ -602,13 +602,13 @@ implementation
                         {!!!!!!!!!!!!!!!!!}
                      end;
                 end
-              else if (left.resulttype.def^.deftype=stringdef) then
+              else if (left.resulttype.def.deftype=stringdef) then
                 begin
                    if (tordconstnode(right).value=0) and not(is_shortstring(left.resulttype.def)) then
                      CGMessage(cg_e_can_access_element_zero);
 
                    if (cs_check_range in aktlocalswitches) then
-                     case pstringdef(left.resulttype.def)^.string_typ of
+                     case tstringdef(left.resulttype.def).string_typ of
                         { it's the same for ansi- and wide strings }
                         st_widestring,
                         st_ansistring:
@@ -656,7 +656,7 @@ implementation
               { need that fancy code (it would be }
               { buggy)                            }
                 not(cs_check_range in aktlocalswitches) and
-                (left.resulttype.def^.deftype=arraydef) then
+                (left.resulttype.def.deftype=arraydef) then
                 begin
                    extraoffset:=0;
                    if (right.nodetype=addn) then
@@ -733,18 +733,18 @@ implementation
 
               if cs_check_range in aktlocalswitches then
                begin
-                 if left.resulttype.def^.deftype=arraydef then
+                 if left.resulttype.def.deftype=arraydef then
                    begin
                      if is_open_array(left.resulttype.def) or
                         is_array_of_const(left.resulttype.def) then
                       begin
                         reset_reference(href);
-                        parraydef(left.resulttype.def)^.genrangecheck;
-                        href.symbol:=newasmsymbol(parraydef(left.resulttype.def)^.getrangecheckstring);
+                        tarraydef(left.resulttype.def).genrangecheck;
+                        href.symbol:=newasmsymbol(tarraydef(left.resulttype.def).getrangecheckstring);
                         href.offset:=4;
                         srsym:=searchsymonlyin(tloadnode(left).symtable,
-                          'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                        hightree:=cloadnode.create(pvarsym(srsym),tloadnode(left).symtable);
+                          'high'+tvarsym(tloadnode(left).symtableentry).name);
+                        hightree:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                         firstpass(hightree);
                         secondpass(hightree);
                         emit_mov_loc_ref(hightree.location,href,S_L,true);
@@ -759,7 +759,7 @@ implementation
                  LOC_REGISTER:
                    begin
                       ind:=right.location.register;
-                      case right.resulttype.def^.size of
+                      case right.resulttype.def.size of
                          1:
                            begin
                               hr:=reg8toreg32(ind);
@@ -777,7 +777,7 @@ implementation
                  LOC_CREGISTER:
                    begin
                       ind:=getregister32;
-                      case right.resulttype.def^.size of
+                      case right.resulttype.def.size of
                          1:
                            emit_reg_reg(A_MOVZX,S_BL,right.location.register,ind);
                          2:
@@ -811,7 +811,7 @@ implementation
                       ind:=getregister32;
                       { Booleans are stored in an 8 bit memory location, so
                         the use of MOVL is not correct }
-                      case right.resulttype.def^.size of
+                      case right.resulttype.def.size of
                        1 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_BL,newreference(right.location.reference),ind);
                        2 : tai:=Taicpu.Op_ref_reg(A_MOVZX,S_WL,newreference(right.location.reference),ind);
                        4 : tai:=Taicpu.Op_ref_reg(A_MOV,S_L,newreference(right.location.reference),ind);
@@ -825,13 +825,13 @@ implementation
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
                begin
-                 if left.resulttype.def^.deftype=arraydef then
+                 if left.resulttype.def.deftype=arraydef then
                    begin
                      { done defore (PM) }
                    end
-                 else if (left.resulttype.def^.deftype=stringdef) then
+                 else if (left.resulttype.def.deftype=stringdef) then
                    begin
-                      case pstringdef(left.resulttype.def)^.string_typ of
+                      case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
                          st_ansistring:
@@ -906,7 +906,7 @@ implementation
       begin
          reset_reference(location.reference);
          getexplicitregister32(R_ESI);
-         if (resulttype.def^.deftype=classrefdef) or
+         if (resulttype.def.deftype=classrefdef) or
            is_class(resulttype.def) then
            location.register:=R_ESI
          else
@@ -922,7 +922,7 @@ implementation
       var
         usetemp,with_expr_in_temp : boolean;
 {$ifdef GDB}
-        withstartlabel,withendlabel : pasmlabel;
+        withstartlabel,withendlabel : tasmlabel;
         pp : pchar;
         mangled_length  : longint;
 
@@ -940,7 +940,7 @@ implementation
 
                usetemp:=false;
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocsym^.definition^.localst) then
+                  (tloadnode(left).symtable=aktprocsym.definition.localst) then
                  begin
                     { for locals use the local storage }
                     withreference^:=left.location.reference;
@@ -950,17 +950,13 @@ implementation
                 { call can have happend with a property }
                 if is_class_or_interface(left.resulttype.def) then
                  begin
-{$ifndef noAllocEdi}
                     getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                     emit_mov_loc_reg(left.location,R_EDI);
                     usetemp:=true;
                  end
                else
                  begin
-{$ifndef noAllocEdi}
                    getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                    emit_lea_loc_reg(left.location,R_EDI,false);
                    usetemp:=true;
                  end;
@@ -986,9 +982,7 @@ implementation
                   normaltemptopersistant(withreference^.offset);
                   { move to temp reference }
                   emit_reg_ref(A_MOV,S_L,R_EDI,newreference(withreference^));
-{$ifndef noAllocEdi}
                   ungetregister32(R_EDI);
-{$endif noAllocEdi}
 {$ifdef GDB}
                   if (cs_debuginfo in aktmoduleswitches) then
                     begin
@@ -997,16 +991,16 @@ implementation
                       getaddrlabel(withendlabel);
                       emitlab(withstartlabel);
                       withdebugList.concat(Tai_stabs.Create(strpnew(
-                         '"with'+tostr(withlevel)+':'+tostr(symtablestack^.getnewtypecount)+
-                         '=*'+pstoreddef(left.resulttype.def)^.numberstring+'",'+
+                         '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
+                         '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                          tostr(N_LSYM)+',0,0,'+tostr(withreference^.offset))));
-                      mangled_length:=length(aktprocsym^.definition^.mangledname);
+                      mangled_length:=length(aktprocsym.definition.mangledname);
                       getmem(pp,mangled_length+50);
-                      strpcopy(pp,'192,0,0,'+withstartlabel^.name);
+                      strpcopy(pp,'192,0,0,'+withstartlabel.name);
                       if (target_os.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
+                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
                         end;
                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                     end;
@@ -1024,11 +1018,11 @@ implementation
                    if (cs_debuginfo in aktmoduleswitches) then
                      begin
                        emitlab(withendlabel);
-                       strpcopy(pp,'224,0,0,'+withendlabel^.name);
+                       strpcopy(pp,'224,0,0,'+withendlabel.name);
                       if (target_os.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
+                          strpcopy(strend(pp),aktprocsym.definition.mangledname);
                         end;
                        withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                        freemem(pp,mangled_length+50);
@@ -1061,7 +1055,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-04-02 21:20:38  peter
+  Revision 1.12  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.11  2001/04/02 21:20:38  peter
     * resulttype rewrite
 
   Revision 1.10  2001/03/11 22:58:52  peter

@@ -28,8 +28,8 @@ interface
 uses
   symbase;
 
-procedure insertinternsyms(p : psymtable);
-procedure insert_intern_types(p : psymtable);
+procedure insertinternsyms(p : tsymtable);
+procedure insert_intern_types(p : tsymtable);
 
 procedure readconstdefs;
 procedure createconstdefs;
@@ -42,65 +42,65 @@ uses
   symconst,symtype,symsym,symdef,symtable,
   ninl;
 
-procedure insertinternsyms(p : psymtable);
+procedure insertinternsyms(p : tsymtable);
 {
   all intern procedures for the system unit
 }
 begin
-  p^.insert(new(psyssym,init('Concat',in_concat_x)));
-  p^.insert(new(psyssym,init('Write',in_write_x)));
-  p^.insert(new(psyssym,init('WriteLn',in_writeln_x)));
-  p^.insert(new(psyssym,init('Assigned',in_assigned_x)));
-  p^.insert(new(psyssym,init('Read',in_read_x)));
-  p^.insert(new(psyssym,init('ReadLn',in_readln_x)));
-  p^.insert(new(psyssym,init('Ofs',in_ofs_x)));
-  p^.insert(new(psyssym,init('SizeOf',in_sizeof_x)));
-  p^.insert(new(psyssym,init('TypeOf',in_typeof_x)));
-  p^.insert(new(psyssym,init('Low',in_low_x)));
-  p^.insert(new(psyssym,init('High',in_high_x)));
-  p^.insert(new(psyssym,init('Seg',in_seg_x)));
-  p^.insert(new(psyssym,init('Ord',in_ord_x)));
-  p^.insert(new(psyssym,init('Pred',in_pred_x)));
-  p^.insert(new(psyssym,init('Succ',in_succ_x)));
-  p^.insert(new(psyssym,init('Exclude',in_exclude_x_y)));
-  p^.insert(new(psyssym,init('Include',in_include_x_y)));
-  p^.insert(new(psyssym,init('Break',in_break)));
-  p^.insert(new(psyssym,init('Continue',in_continue)));
-  p^.insert(new(psyssym,init('Dec',in_dec_x)));
-  p^.insert(new(psyssym,init('Inc',in_inc_x)));
-  p^.insert(new(psyssym,init('Str',in_str_x_string)));
-  p^.insert(new(psyssym,init('Assert',in_assert_x_y)));
-  p^.insert(new(psyssym,init('Val',in_val_x)));
-  p^.insert(new(psyssym,init('Addr',in_addr_x)));
-  p^.insert(new(psyssym,init('TypeInfo',in_typeinfo_x)));
-  p^.insert(new(psyssym,init('SetLength',in_setlength_x)));
-  p^.insert(new(psyssym,init('Finalize',in_finalize_x)));
+  p.insert(tsyssym.create('Concat',in_concat_x));
+  p.insert(tsyssym.create('Write',in_write_x));
+  p.insert(tsyssym.create('WriteLn',in_writeln_x));
+  p.insert(tsyssym.create('Assigned',in_assigned_x));
+  p.insert(tsyssym.create('Read',in_read_x));
+  p.insert(tsyssym.create('ReadLn',in_readln_x));
+  p.insert(tsyssym.create('Ofs',in_ofs_x));
+  p.insert(tsyssym.create('SizeOf',in_sizeof_x));
+  p.insert(tsyssym.create('TypeOf',in_typeof_x));
+  p.insert(tsyssym.create('Low',in_low_x));
+  p.insert(tsyssym.create('High',in_high_x));
+  p.insert(tsyssym.create('Seg',in_seg_x));
+  p.insert(tsyssym.create('Ord',in_ord_x));
+  p.insert(tsyssym.create('Pred',in_pred_x));
+  p.insert(tsyssym.create('Succ',in_succ_x));
+  p.insert(tsyssym.create('Exclude',in_exclude_x_y));
+  p.insert(tsyssym.create('Include',in_include_x_y));
+  p.insert(tsyssym.create('Break',in_break));
+  p.insert(tsyssym.create('Continue',in_continue));
+  p.insert(tsyssym.create('Dec',in_dec_x));
+  p.insert(tsyssym.create('Inc',in_inc_x));
+  p.insert(tsyssym.create('Str',in_str_x_string));
+  p.insert(tsyssym.create('Assert',in_assert_x_y));
+  p.insert(tsyssym.create('Val',in_val_x));
+  p.insert(tsyssym.create('Addr',in_addr_x));
+  p.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
+  p.insert(tsyssym.create('SetLength',in_setlength_x));
+  p.insert(tsyssym.create('Finalize',in_finalize_x));
 end;
 
 
-procedure insert_intern_types(p : psymtable);
+procedure insert_intern_types(p : tsymtable);
 {
   all the types inserted into the system unit
 }
 
   procedure addtype(const s:string;const t:ttype);
   begin
-    p^.insert(new(ptypesym,init(s,t)));
+    p.insert(ttypesym.create(s,t));
   end;
 
-  procedure adddef(const s:string;def:pdef);
+  procedure adddef(const s:string;def:tdef);
   var
     t : ttype;
   begin
     t.setdef(def);
-    p^.insert(new(ptypesym,init(s,t)));
+    p.insert(ttypesym.create(s,t));
   end;
 
 var
   { several defs to simulate more or less C++ objects for GDB }
   vmttype,
   vmtarraytype : ttype;
-  vmtsymtable  : psymtable;
+  vmtsymtable  : tsymtable;
 begin
 { Internal types }
   addtype('$formal',cformaltype);
@@ -130,19 +130,19 @@ begin
   addtype('$s80real',s80floattype);
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
-  vmtsymtable:=new(pstoredsymtable,init(recordsymtable));
-  vmttype.setdef(new(precorddef,init(vmtsymtable)));
-  pvmttype.setdef(new(ppointerdef,init(vmttype)));
-  vmtsymtable^.insert(new(pvarsym,init('$parent',pvmttype)));
-  vmtsymtable^.insert(new(pvarsym,init('$length',s32bittype)));
-  vmtsymtable^.insert(new(pvarsym,init('$mlength',s32bittype)));
-  vmtarraytype.setdef(new(parraydef,init(0,1,s32bittype)));
-  parraydef(vmtarraytype.def)^.elementtype:=voidpointertype;
-  vmtsymtable^.insert(new(pvarsym,init('$__pfn',vmtarraytype)));
+  vmtsymtable:=trecordsymtable.create;
+  vmttype.setdef(trecorddef.create(vmtsymtable));
+  pvmttype.setdef(tpointerdef.create(vmttype));
+  vmtsymtable.insert(tvarsym.create('$parent',pvmttype));
+  vmtsymtable.insert(tvarsym.create('$length',s32bittype));
+  vmtsymtable.insert(tvarsym.create('$mlength',s32bittype));
+  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+  tarraydef(vmtarraytype.def).elementtype:=voidpointertype;
+  vmtsymtable.insert(tvarsym.create('$__pfn',vmtarraytype));
   addtype('$__vtbl_ptr_type',vmttype);
   addtype('$pvmt',pvmttype);
-  vmtarraytype.setdef(new(parraydef,init(0,1,s32bittype)));
-  parraydef(vmtarraytype.def)^.elementtype:=pvmttype;
+  vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
+  tarraydef(vmtarraytype.def).elementtype:=pvmttype;
   addtype('$vtblarray',vmtarraytype);
 { Add functions that require compiler magic }
   insertinternsyms(p);
@@ -152,7 +152,7 @@ begin
   addtype('Extended',s80floattype);
   addtype('Real',s64floattype);
 {$ifdef i386}
-  adddef('Comp',new(pfloatdef,init(s64comp)));
+  adddef('Comp',tfloatdef.create(s64comp));
 {$endif}
   addtype('Pointer',voidpointertype);
   addtype('FarPointer',voidfarpointertype);
@@ -162,15 +162,15 @@ begin
   addtype('WideString',cwidestringtype);
   addtype('Boolean',booltype);
   addtype('ByteBool',booltype);
-  adddef('WordBool',new(porddef,init(bool16bit,0,1)));
-  adddef('LongBool',new(porddef,init(bool32bit,0,1)));
+  adddef('WordBool',torddef.create(bool16bit,0,1));
+  adddef('LongBool',torddef.create(bool32bit,0,1));
   addtype('Char',cchartype);
   addtype('WideChar',cwidechartype);
-  adddef('Text',new(pfiledef,inittext));
+  adddef('Text',tfiledef.createtext);
   addtype('Cardinal',u32bittype);
   addtype('QWord',cu64bittype);
   addtype('Int64',cs64bittype);
-  adddef('TypedFile',new(pfiledef,inittyped(voidtype)));
+  adddef('TypedFile',tfiledef.createtyped(voidtype));
   addtype('Variant',cvarianttype);
 end;
 
@@ -219,45 +219,45 @@ begin
   { create definitions for constants }
   oldregisterdef:=registerdef;
   registerdef:=false;
-  cformaltype.setdef(new(pformaldef,init));
-  voidtype.setdef(new(porddef,init(uvoid,0,0)));
-  u8bittype.setdef(new(porddef,init(u8bit,0,255)));
-  u16bittype.setdef(new(porddef,init(u16bit,0,65535)));
-  u32bittype.setdef(new(porddef,init(u32bit,0,longint($ffffffff))));
-  s32bittype.setdef(new(porddef,init(s32bit,longint($80000000),$7fffffff)));
-  cu64bittype.setdef(new(porddef,init(u64bit,0,0)));
-  cs64bittype.setdef(new(porddef,init(s64bit,0,0)));
-  booltype.setdef(new(porddef,init(bool8bit,0,1)));
-  cchartype.setdef(new(porddef,init(uchar,0,255)));
-  cwidechartype.setdef(new(porddef,init(uwidechar,0,65535)));
-  cshortstringtype.setdef(new(pstringdef,shortinit(255)));
+  cformaltype.setdef(tformaldef.create);
+  voidtype.setdef(torddef.create(uvoid,0,0));
+  u8bittype.setdef(torddef.create(u8bit,0,255));
+  u16bittype.setdef(torddef.create(u16bit,0,65535));
+  u32bittype.setdef(torddef.create(u32bit,0,longint($ffffffff)));
+  s32bittype.setdef(torddef.create(s32bit,longint($80000000),$7fffffff));
+  cu64bittype.setdef(torddef.create(u64bit,0,0));
+  cs64bittype.setdef(torddef.create(s64bit,0,0));
+  booltype.setdef(torddef.create(bool8bit,0,1));
+  cchartype.setdef(torddef.create(uchar,0,255));
+  cwidechartype.setdef(torddef.create(uwidechar,0,65535));
+  cshortstringtype.setdef(tstringdef.createshort(255));
   { should we give a length to the default long and ansi string definition ?? }
-  clongstringtype.setdef(new(pstringdef,longinit(-1)));
-  cansistringtype.setdef(new(pstringdef,ansiinit(-1)));
-  cwidestringtype.setdef(new(pstringdef,wideinit(-1)));
+  clongstringtype.setdef(tstringdef.createlong(-1));
+  cansistringtype.setdef(tstringdef.createansi(-1));
+  cwidestringtype.setdef(tstringdef.createwide(-1));
   { length=0 for shortstring is open string (needed for readln(string) }
-  openshortstringtype.setdef(new(pstringdef,shortinit(0)));
-  openchararraytype.setdef(new(parraydef,init(0,-1,s32bittype)));
-  parraydef(openchararraytype.def)^.elementtype:=cchartype;
+  openshortstringtype.setdef(tstringdef.createshort(0));
+  openchararraytype.setdef(tarraydef.create(0,-1,s32bittype));
+  tarraydef(openchararraytype.def).elementtype:=cchartype;
 {$ifdef i386}
-  s32floattype.setdef(new(pfloatdef,init(s32real)));
-  s64floattype.setdef(new(pfloatdef,init(s64real)));
-  s80floattype.setdef(new(pfloatdef,init(s80real)));
+  s32floattype.setdef(tfloatdef.create(s32real));
+  s64floattype.setdef(tfloatdef.create(s64real));
+  s80floattype.setdef(tfloatdef.create(s80real));
 {$endif}
 {$ifdef m68k}
-  s32floattype.setdef(new(pfloatdef,init(s32real)));
-  s64floattype.setdef(new(pfloatdef,init(s64real)));
+  s32floattype.setdef(tfloatdef.create(s32real));
+  s64floattype.setdef(tfloatdef.create(s64real));
   if (cs_fp_emulation in aktmoduleswitches) then
-   s80floattype.setdef(new(pfloatdef,init(s32real)))
+   s80floattype.setdef(tfloatdef.create(s32real)))
   else
-   s80floattype.setdef(new(pfloatdef,init(s80real)));
+   s80floattype.setdef(tfloatdef.create(s80real));
 {$endif}
   { some other definitions }
-  voidpointertype.setdef(new(ppointerdef,init(voidtype)));
-  charpointertype.setdef(new(ppointerdef,init(cchartype)));
-  voidfarpointertype.setdef(new(ppointerdef,initfar(voidtype)));
-  cfiletype.setdef(new(pfiledef,inituntyped));
-  cvarianttype.setdef(new(pvariantdef,init));
+  voidpointertype.setdef(tpointerdef.create(voidtype));
+  charpointertype.setdef(tpointerdef.create(cchartype));
+  voidfarpointertype.setdef(tpointerdef.createfar(voidtype));
+  cfiletype.setdef(tfiledef.createuntyped);
+  cvarianttype.setdef(tvariantdef.create);
   registerdef:=oldregisterdef;
 end;
 
@@ -265,7 +265,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-04-02 21:20:34  peter
+  Revision 1.15  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.13  2001/03/25 12:40:00  florian

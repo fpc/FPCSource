@@ -91,7 +91,7 @@ implementation
 
       begin
         { Get the accumulator first so it can't be used in the dest }
-        if (dest.resulttype.def^.deftype=orddef) and
+        if (dest.resulttype.def.deftype=orddef) and
           not(is_64bitint(dest.resulttype.def)) then
           hregister:=getexplicitregister32(accumulator);
         { process dest }
@@ -99,17 +99,17 @@ implementation
         if Codegenerror then
          exit;
         { store the value }
-        Case dest.resulttype.def^.deftype of
+        Case dest.resulttype.def.deftype of
           floatdef:
             if dest.location.loc=LOC_CFPUREGISTER then
               begin
-                 floatstoreops(pfloatdef(dest.resulttype.def)^.typ,op,opsize);
+                 floatstoreops(tfloatdef(dest.resulttype.def).typ,op,opsize);
                  emit_reg(op,opsize,correct_fpuregister(dest.location.register,fpuvaroffset+1));
               end
             else
               begin
                  inc(fpuvaroffset);
-                 floatstore(PFloatDef(dest.resulttype.def)^.typ,dest.location.reference);
+                 floatstore(tfloatdef(dest.resulttype.def).typ,dest.location.reference);
                  { floatstore decrements the fpu var offset }
                  { but in fact we didn't increment it       }
               end;
@@ -121,7 +121,7 @@ implementation
                 end
               else
                begin
-                 Case dest.resulttype.def^.size of
+                 Case dest.resulttype.def.size of
                   1 : hreg:=regtoreg8(hregister);
                   2 : hreg:=regtoreg16(hregister);
                   4 : hreg:=hregister;
@@ -129,26 +129,26 @@ implementation
                  emit_mov_reg_loc(hreg,dest.location);
                  If (cs_check_range in aktlocalswitches) and
                     {no need to rangecheck longints or cardinals on 32bit processors}
-                    not((porddef(dest.resulttype.def)^.typ = s32bit) and
-                        (porddef(dest.resulttype.def)^.low = longint($80000000)) and
-                        (porddef(dest.resulttype.def)^.high = $7fffffff)) and
-                    not((porddef(dest.resulttype.def)^.typ = u32bit) and
-                        (porddef(dest.resulttype.def)^.low = 0) and
-                        (porddef(dest.resulttype.def)^.high = longint($ffffffff))) then
+                    not((torddef(dest.resulttype.def).typ = s32bit) and
+                        (torddef(dest.resulttype.def).low = longint($80000000)) and
+                        (torddef(dest.resulttype.def).high = $7fffffff)) and
+                    not((torddef(dest.resulttype.def).typ = u32bit) and
+                        (torddef(dest.resulttype.def).low = 0) and
+                        (torddef(dest.resulttype.def).high = longint($ffffffff))) then
                   Begin
                     {do not register this temporary def}
                     OldRegisterDef := RegisterDef;
                     RegisterDef := False;
                     htype.reset;
-                    Case PordDef(dest.resulttype.def)^.typ of
+                    Case torddef(dest.resulttype.def).typ of
                       u8bit,u16bit,u32bit:
                         begin
-                          htype.setdef(new(porddef,init(u32bit,0,longint($ffffffff))));
+                          htype.setdef(torddef.create(u32bit,0,longint($ffffffff)));
                           hreg:=hregister;
                         end;
                       s8bit,s16bit,s32bit:
                         begin
-                          htype.setdef(new(porddef,init(s32bit,longint($80000000),$7fffffff)));
+                          htype.setdef(torddef.create(s32bit,longint($80000000),$7fffffff));
                           hreg:=hregister;
                         end;
                     end;
@@ -163,7 +163,7 @@ implementation
                     { emit the range check }
                     emitrangecheck(hp,dest.resulttype.def);
                     if assigned(htype.def) then
-                      Dispose(htype.def, Done);
+                      htype.def.free;
                     RegisterDef := OldRegisterDef;
                     hp.free;
                   End;
@@ -220,20 +220,21 @@ implementation
            node       : tcallparanode;
            hp         : tnode;
            typedtyp,
-           pararesult : pdef;
+           pararesult : tdef;
            orgfloattype : tfloattype;
            dummycoll  : tparaitem;
-           iolabel    : pasmlabel;
+           iolabel    : tasmlabel;
            npara      : longint;
            esireloaded : boolean;
-
+        label
+          myexit;
         begin
            { here we don't use register calling conventions }
            dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
-              not(po_iocheck in aktprocsym^.definition^.procoptions) then
+              not(po_iocheck in aktprocsym.definition.procoptions) then
              begin
                 getaddrlabel(iolabel);
                 emitlab(iolabel);
@@ -254,9 +255,7 @@ implementation
                 loadstream;
                 { save @aktfile in temporary variable }
                 emit_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile));
-{$ifndef noAllocEdi}
                 ungetregister32(R_EDI);
-{$endif noAllocEdi}
              end
            else
              begin
@@ -267,25 +266,22 @@ implementation
                 npara := nb_para;
                 { calculate data variable }
                 { is first parameter a file type ? }
-                if node.left.resulttype.def^.deftype=filedef then
+                if node.left.resulttype.def.deftype=filedef then
                   begin
-                     ft:=pfiledef(node.left.resulttype.def)^.filetyp;
+                     ft:=tfiledef(node.left.resulttype.def).filetyp;
                      if ft=ft_typed then
-                       typedtyp:=pfiledef(node.left.resulttype.def)^.typedfiletype.def;
+                       typedtyp:=tfiledef(node.left.resulttype.def).typedfiletype.def;
                      secondpass(node.left);
                      if codegenerror then
-                       exit;
+                       goto myexit;
 
                      { save reference in temporary variables }
                      if node.left.location.loc<>LOC_REFERENCE then
                        begin
                           CGMessage(cg_e_illegal_expression);
-                          exit;
+                          goto myexit;
                        end;
-{$ifndef noAllocEdi}
                      getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-
                      emit_ref_reg(A_LEA,S_L,newreference(node.left.location.reference),R_EDI);
                      del_reference(node.left.location.reference);
                      { skip to the next parameter }
@@ -299,9 +295,7 @@ implementation
 
                 { save @aktfile in temporary variable }
                 emit_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile));
-{$ifndef noAllocEdi}
                 ungetregister32(R_EDI);
-{$endif noAllocEdi}
                 if doread then
                 { parameter by READ gives call by reference }
                   dummycoll.paratyp:=vs_var
@@ -312,7 +306,7 @@ implementation
                 { because of secondcallparan, which otherwise attaches }
                 if ft=ft_typed then
                   { this is to avoid copy of simple const parameters }
-                  {dummycoll.data:=new(pformaldef,init)}
+                  {dummycoll.data:=new(pformaldef.create)}
                   dummycoll.paratype:=cformaltype
                 else
                   { I think, this isn't a good solution (FK) }
@@ -331,9 +325,9 @@ implementation
                        convert here else we loose the old float type }
                      if (not doread) and
                         (ft<>ft_typed) and
-                        (tcallparanode(hp).left.resulttype.def^.deftype=floatdef) then
+                        (tcallparanode(hp).left.resulttype.def.deftype=floatdef) then
                       begin
-                        orgfloattype:=pfloatdef(tcallparanode(hp).left.resulttype.def)^.typ;
+                        orgfloattype:=tfloatdef(tcallparanode(hp).left.resulttype.def).typ;
                         tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,pbestrealtype^);
                         firstpass(tcallparanode(hp).left);
                       end;
@@ -341,7 +335,7 @@ implementation
                        parameter as their destination instead of being pushed }
                      if doread and
                         (ft<>ft_typed) and
-                        (tcallparanode(hp).resulttype.def^.deftype in [orddef,floatdef]) then
+                        (tcallparanode(hp).resulttype.def.deftype in [orddef,floatdef]) then
                       begin
                       end
                      else
@@ -362,7 +356,7 @@ implementation
                       end;
                      tcallparanode(hp).right:=node;
                      if codegenerror then
-                       exit;
+                       goto myexit;
 
                      emit_push_mem(aktfile);
                      if (ft=ft_typed) then
@@ -378,7 +372,7 @@ implementation
                           { I think that is only possible by adding }
                           { reset and rewrite to the inline list a call }
                           { allways read only one record by element }
-                            push_int(typedtyp^.size);
+                            push_int(typedtyp.size);
                             saveregvars($ff);
                             if doread then
                               emitcall('FPC_TYPED_READ')
@@ -404,10 +398,10 @@ implementation
                                    tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
                                    if codegenerror then
-                                     exit;
+                                     goto myexit;
                                 end
                               else
-                                if pararesult^.deftype<>floatdef then
+                                if pararesult.deftype<>floatdef then
                                   push_int(0)
                                 else
                                   push_int(-32767);
@@ -421,25 +415,25 @@ implementation
                                    dummycoll.paratyp:=vs_value;
                                    tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
-                                   if pararesult^.deftype<>floatdef then
+                                   if pararesult.deftype<>floatdef then
                                      CGMessage(parser_e_illegal_colon_qualifier);
                                    if codegenerror then
-                                     exit;
+                                     goto myexit;
                                 end
                               else
                                 begin
-                                  if pararesult^.deftype=floatdef then
+                                  if pararesult.deftype=floatdef then
                                     push_int(-1);
                                 end;
                              { push also the real type for floats }
-                              if pararesult^.deftype=floatdef then
+                              if pararesult.deftype=floatdef then
                                 push_int(ord(orgfloattype));
                             end;
                           saveregvars($ff);
-                          case pararesult^.deftype of
+                          case pararesult.deftype of
                             stringdef :
                               begin
-                                emitcall(rdwrprefix[doread]+pstringdef(pararesult)^.stringtypname);
+                                emitcall(rdwrprefix[doread]+tstringdef(pararesult).stringtypname);
                               end;
                             pointerdef :
                               begin
@@ -455,7 +449,7 @@ implementation
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
                                 {
-                                if pfloatdef(resulttype.def)^.typ<>f32bit then
+                                if tfloatdef(resulttype.def).typ<>f32bit then
                                   dec(fpuvaroffset);
                                 }
                                 if doread then
@@ -467,7 +461,7 @@ implementation
                               end;
                             orddef :
                               begin
-                                case porddef(pararesult)^.typ of
+                                case torddef(pararesult).typ of
                                   s8bit,s16bit,s32bit :
                                     emitcall(rdwrprefix[doread]+'SINT');
                                   u8bit,u16bit,u32bit :
@@ -544,6 +538,9 @@ implementation
                      hp:=tcallparanode(hp).right;
                   end;
              end;
+
+        myexit:
+           dummycoll.free;
         end;
 
       procedure handle_str;
@@ -556,7 +553,8 @@ implementation
            is_real : boolean;
            realtype : tfloattype;
            procedureprefix : string;
-
+        label
+           myexit;
           begin
            dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
@@ -565,10 +563,10 @@ implementation
            is_real:=false;
            while assigned(node.right) do node:=tcallparanode(node.right);
            { if a real parameter somewhere then call REALSTR }
-           if (node.left.resulttype.def^.deftype=floatdef) then
+           if (node.left.resulttype.def.deftype=floatdef) then
             begin
               is_real:=true;
-              realtype:=pfloatdef(node.left.resulttype.def)^.typ;
+              realtype:=tfloatdef(node.left.resulttype.def).typ;
             end;
 
            node:=tcallparanode(left);
@@ -584,13 +582,10 @@ implementation
              dummycoll.paratype:=openshortstringtype
            else
              dummycoll.paratype:=hp.resulttype;
-           procedureprefix:='FPC_'+pstringdef(hp.resulttype.def)^.stringtypname+'_';
+           procedureprefix:='FPC_'+tstringdef(hp.resulttype.def).stringtypname+'_';
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             begin
-               dummycoll.free;
-               exit;
-             end;
+            goto myexit;
 
            dummycoll.paratyp:=vs_const;
            left.free;
@@ -612,10 +607,7 @@ implementation
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  begin
-                    dummycoll.free;
-                    exit;
-                  end;
+                  goto myexit;
                 hp.free;
                 hp:=node;
                 node:=tcallparanode(node.right);
@@ -632,10 +624,7 @@ implementation
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  begin
-                    dummycoll.free;
-                    exit;
-                  end;
+                  goto myexit;
                 hp.free;
                 hp:=node;
                 node:=tcallparanode(node.right);
@@ -659,16 +648,13 @@ implementation
            dummycoll.paratyp:=vs_value;
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             begin
-               dummycoll.free;
-               exit;
-             end;
+            goto myexit;
 
            saveregvars($ff);
            if is_real then
              emitcall(procedureprefix+'FLOAT')
            else
-             case porddef(hp.resulttype.def)^.typ of
+             case torddef(hp.resulttype.def).typ of
                 u32bit:
                   emitcall(procedureprefix+'CARDINAL');
 
@@ -681,9 +667,11 @@ implementation
                 else
                   emitcall(procedureprefix+'LONGINT');
              end;
-           hp.free;
-           dummycoll.free;
            popusedregisters(pushed);
+           hp.free;
+
+        myexit:
+           dummycoll.free;
         end;
 
 
@@ -692,13 +680,14 @@ implementation
            hp,node,
            code_para, dest_para : tcallparanode;
            hreg,hreg2: TRegister;
-           hdef: POrdDef;
+           hdef: torddef;
            procedureprefix : string;
            hr, hr2: TReference;
            dummycoll : tparaitem;
            has_code, has_32bit_code, oldregisterdef: boolean;
            r : preference;
-
+          label
+            myexit;
           begin
            dummycoll:=TParaItem.Create;
            dummycoll.register:=R_NO;
@@ -719,7 +708,7 @@ implementation
                hp := node;
                node := tcallparanode(node.right);
                hp.right := nil;
-               has_32bit_code := (porddef(tcallparanode(code_para).left.resulttype.def)^.typ in [u32bit,s32bit]);
+               has_32bit_code := (torddef(tcallparanode(code_para).left.resulttype.def).typ in [u32bit,s32bit]);
              End;
 
           {hp = destination now, save for later use}
@@ -734,10 +723,7 @@ implementation
            dummycoll.paratype.setdef(dest_para.resulttype.def);
            dest_para.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-           begin
-             dummycoll.free;
-             exit;
-           end;
+            goto myexit;
 
           {save the regvars}
            pushusedregisters(pushed,$ff);
@@ -751,10 +737,7 @@ implementation
                dummycoll.paratype.setdef(code_para.resulttype.def);
                code_para.secondcallparan(dummycoll,false,false,false,0,0);
                if codegenerror then
-                 begin
-                   dummycoll.free;
-                   exit;
-                 end;
+                goto myexit;
                code_para.free;
              End
            Else
@@ -769,12 +752,9 @@ implementation
            dummycoll.paratype.setdef(node.resulttype.def);
            node.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             begin
-               dummycoll.free;
-               exit;
-             end;
+             goto myexit;
 
-           Case dest_para.resulttype.def^.deftype of
+           Case dest_para.resulttype.def.deftype of
              floatdef:
                begin
                   procedureprefix := 'FPC_VAL_REAL_';
@@ -795,7 +775,7 @@ implementation
                         {if we are converting to a signed number, we have to include the
                          size of the destination, so the Val function can extend the sign
                          of the result to allow proper range checking}
-                        emit_const(A_PUSH,S_L,dest_para.resulttype.def^.size);
+                        emit_const(A_PUSH,S_L,dest_para.resulttype.def.size);
                         procedureprefix := 'FPC_VAL_SINT_'
                       end
                     else
@@ -804,7 +784,7 @@ implementation
            End;
 
            saveregvars($ff);
-           emitcall(procedureprefix+pstringdef(node.resulttype.def)^.stringtypname);
+           emitcall(procedureprefix+tstringdef(node.resulttype.def).stringtypname);
            { before disposing node we need to ungettemp !! PM }
            if node.left.location.loc in [LOC_REFERENCE,LOC_MEM] then
              ungetiftemp(node.left.location.reference);
@@ -814,7 +794,7 @@ implementation
           {reload esi in case the dest_para/code_para is a class variable or so}
            maybe_loadself;
 
-           If (dest_para.resulttype.def^.deftype = orddef) Then
+           If (dest_para.resulttype.def.deftype = orddef) Then
              Begin
               {store the result in a safe place, because EAX may be used by a
                register variable}
@@ -839,21 +819,15 @@ implementation
               {load the address of the code parameter}
                secondpass(code_para.left);
               {move the code to its destination}
-{$ifndef noAllocEdi}
                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                emit_ref_reg(A_MOV,S_L,NewReference(hr),R_EDI);
                emit_mov_reg_loc(R_DI,code_para.left.location);
-{$ifndef noAllocEdi}
                ungetregister32(R_EDI);
-{$endif noAllocEdi}
                code_para.free;
              End;
 
           {restore the address of the result}
-{$ifndef noAllocEdi}
            getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
            emit_reg(A_POP,S_L,R_EDI);
 
           {set up hr2 to a refernce with EDI as base register}
@@ -861,11 +835,11 @@ implementation
            hr2.base := R_EDI;
 
           {save the function result in the destination variable}
-           Case dest_para.left.resulttype.def^.deftype of
+           Case dest_para.left.resulttype.def.deftype of
              floatdef:
-               floatstore(PFloatDef(dest_para.left.resulttype.def)^.typ, hr2);
+               floatstore(tfloatdef(dest_para.left.resulttype.def).typ, hr2);
              orddef:
-               Case PordDef(dest_para.left.resulttype.def)^.typ of
+               Case torddef(dest_para.left.resulttype.def).typ of
                  u8bit,s8bit:
                    emit_reg_ref(A_MOV, S_B,
                      RegToReg8(hreg),newreference(hr2));
@@ -886,22 +860,20 @@ implementation
                    end;
                End;
            End;
-{$ifndef noAllocEdi}
            ungetregister32(R_EDI);
-{$endif noAllocEdi}
            If (cs_check_range in aktlocalswitches) and
-              (dest_para.left.resulttype.def^.deftype = orddef) and
+              (dest_para.left.resulttype.def.deftype = orddef) and
               (not(is_64bitint(dest_para.left.resulttype.def))) and
             {the following has to be changed to 64bit checking, once Val
              returns 64 bit values (unless a special Val function is created
              for that)}
             {no need to rangecheck longints or cardinals on 32bit processors}
-               not((porddef(dest_para.left.resulttype.def)^.typ = s32bit) and
-                   (porddef(dest_para.left.resulttype.def)^.low = longint($80000000)) and
-                   (porddef(dest_para.left.resulttype.def)^.high = $7fffffff)) and
-               not((porddef(dest_para.left.resulttype.def)^.typ = u32bit) and
-                   (porddef(dest_para.left.resulttype.def)^.low = 0) and
-                   (porddef(dest_para.left.resulttype.def)^.high = longint($ffffffff))) then
+               not((torddef(dest_para.left.resulttype.def).typ = s32bit) and
+                   (torddef(dest_para.left.resulttype.def).low = longint($80000000)) and
+                   (torddef(dest_para.left.resulttype.def).high = $7fffffff)) and
+               not((torddef(dest_para.left.resulttype.def).typ = u32bit) and
+                   (torddef(dest_para.left.resulttype.def).low = 0) and
+                   (torddef(dest_para.left.resulttype.def).high = longint($ffffffff))) then
              Begin
                hp:=tcallparanode(dest_para.left.getcopy);
                hp.location.loc := LOC_REGISTER;
@@ -909,21 +881,22 @@ implementation
               {do not register this temporary def}
                OldRegisterDef := RegisterDef;
                RegisterDef := False;
-               Case PordDef(dest_para.left.resulttype.def)^.typ of
-                 u8bit,u16bit,u32bit: new(hdef,init(u32bit,0,longint($ffffffff)));
-                 s8bit,s16bit,s32bit: new(hdef,init(s32bit,longint($80000000),$7fffffff));
+               Case torddef(dest_para.left.resulttype.def).typ of
+                 u8bit,u16bit,u32bit: hdef:=torddef.create(u32bit,0,longint($ffffffff));
+                 s8bit,s16bit,s32bit: hdef:=torddef.create(s32bit,longint($80000000),$7fffffff);
                end;
                hp.resulttype.def := hdef;
                emitrangecheck(hp,dest_para.left.resulttype.def);
                hp.right := nil;
-               Dispose(hp.resulttype.def, Done);
+               hp.resulttype.def.free;
                RegisterDef := OldRegisterDef;
                hp.free;
              End;
           {dest_para.right is already nil}
            dest_para.free;
-           dummycoll.free;
            UnGetIfTemp(hr);
+        myexit:
+           dummycoll.free;
         end;
 
       var
@@ -934,9 +907,9 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
-         otlabel,oflabel{,l1}   : pasmlabel;
+         otlabel,oflabel{,l1}   : tasmlabel;
          oldpushedparasize : longint;
-         def : pdef;
+         def : tdef;
          hr,hr2 : treference;
 
       begin
@@ -1011,7 +984,7 @@ implementation
                    begin
                       location.register:=getregister32;
                       emit_sym_ofs_reg(A_MOV,
-                        S_L,newasmsymbol(pobjectdef(left.resulttype.def)^.vmt_mangledname),0,
+                        S_L,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,
                         location.register);
                    end
                  else
@@ -1022,7 +995,7 @@ implementation
                       location.register:=getregister32;
                       { load VMT pointer }
                       inc(left.location.reference.offset,
-                        pobjectdef(left.resulttype.def)^.vmt_offset);
+                        tobjectdef(left.resulttype.def).vmt_offset);
                       emit_ref_reg(A_MOV,S_L,
                       newreference(left.location.reference),
                         location.register);
@@ -1134,7 +1107,7 @@ implementation
                      asmop:=A_SUB
                    else
                      asmop:=A_ADD;
-                 case resulttype.def^.size of
+                 case resulttype.def.size of
                    8 : opsize:=S_L;
                    4 : opsize:=S_L;
                    2 : opsize:=S_W;
@@ -1143,7 +1116,7 @@ implementation
                    internalerror(10080);
                  end;
                  location.loc:=LOC_REGISTER;
-                 if resulttype.def^.size=8 then
+                 if resulttype.def.size=8 then
                    begin
                       if left.location.loc<>LOC_REGISTER then
                         begin
@@ -1198,9 +1171,9 @@ implementation
                              del_reference(left.location.reference);
 
                            location.register:=getregister32;
-                           if (resulttype.def^.size=2) then
+                           if (resulttype.def.size=2) then
                              location.register:=reg32toreg16(location.register);
-                           if (resulttype.def^.size=1) then
+                           if (resulttype.def.size=1) then
                              location.register:=reg32toreg8(location.register);
                            if left.location.loc=LOC_CREGISTER then
                              emit_reg_reg(A_MOV,opsize,left.location.register,
@@ -1231,10 +1204,10 @@ implementation
                 addconstant:=true;
               { load first parameter, must be a reference }
                 secondpass(tcallparanode(left).left);
-                case tcallparanode(left).left.resulttype.def^.deftype of
+                case tcallparanode(left).left.resulttype.def.deftype of
                   orddef,
                  enumdef : begin
-                             case tcallparanode(left).left.resulttype.def^.size of
+                             case tcallparanode(left).left.resulttype.def.size of
                               1 : opsize:=S_B;
                               2 : opsize:=S_W;
                               4 : opsize:=S_L;
@@ -1243,10 +1216,10 @@ implementation
                            end;
               pointerdef : begin
                              opsize:=S_L;
-                             if is_void(ppointerdef(tcallparanode(left).left.resulttype.def)^.pointertype.def) then
+                             if is_void(tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def) then
                               addvalue:=1
                              else
-                              addvalue:=ppointerdef(tcallparanode(left).left.resulttype.def)^.pointertype.def^.size;
+                              addvalue:=tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def.size;
                            end;
                 else
                  internalerror(10081);
@@ -1336,11 +1309,11 @@ implementation
 
             in_typeinfo_x:
                begin
-                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.generate_rtti;
+                  tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).generate_rtti;
                   location.register:=getregister32;
                   new(r);
                   reset_reference(r^);
-                  r^.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.rtti_label;
+                  r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).rtti_label;
                   emit_ref_reg(A_LEA,S_L,r,location.register);
                end;
 
@@ -1348,12 +1321,12 @@ implementation
                begin
                   pushusedregisters(pushed,$ff);
                   { force rtti generation }
-                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.generate_rtti;
+                  tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).generate_rtti;
                   { if a count is passed, push size, typeinfo and count }
                   if assigned(tcallparanode(left).right) then
                     begin
                        secondpass(tcallparanode(tcallparanode(left).right).left);
-                       push_int(tcallparanode(left).left.resulttype.def^.size);
+                       push_int(tcallparanode(left).left.resulttype.def.size);
                        if codegenerror then
                         exit;
                        emit_push_loc(tcallparanode(tcallparanode(left).right).left.location);
@@ -1361,7 +1334,7 @@ implementation
 
                   { generate a reference }
                   reset_reference(hr);
-                  hr.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.rtti_label;
+                  hr.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).rtti_label;
                   emitpushreferenceaddr(hr);
 
                   { data to finalize }
@@ -1399,7 +1372,7 @@ implementation
              in_reset_typedfile,in_rewrite_typedfile :
                begin
                   pushusedregisters(pushed,$ff);
-                  emit_const(A_PUSH,S_L,pfiledef(left.resulttype.def)^.typedfiletype.def^.size);
+                  emit_const(A_PUSH,S_L,tfiledef(left.resulttype.def).typedfiletype.def.size);
                   secondpass(left);
                   emitpushreferenceaddr(left.location.reference);
                   saveregvars($ff);
@@ -1448,12 +1421,13 @@ implementation
                   { handle shortstrings separately since the hightree must be }
                   { pushed too (JM)                                           }
                   if not(is_dynamic_array(def)) and
-                     (pstringdef(def)^.string_typ = st_shortstring) then
+                     (tstringdef(def).string_typ = st_shortstring) then
                     begin
                       dummycoll:=TParaItem.Create;
                       dummycoll.paratyp:=vs_var;
                       dummycoll.paratype:=openshortstringtype;
                       tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
+                      dummycoll.free;
                       if codegenerror then
                         exit;
                     end
@@ -1463,7 +1437,7 @@ implementation
                        emitpushreferenceaddr(hr2);
                        push_int(l);
                        reset_reference(hr2);
-                       hr2.symbol:=pstoreddef(def)^.get_inittable_label;
+                       hr2.symbol:=tstoreddef(def).get_inittable_label;
                        emitpushreferenceaddr(hr2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
                        saveregvars($ff);
@@ -1473,7 +1447,7 @@ implementation
                   else
                     { must be string }
                     begin
-                       case pstringdef(def)^.string_typ of
+                       case tstringdef(def).string_typ of
                           st_widestring:
                             begin
                               emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
@@ -1558,7 +1532,7 @@ implementation
                         asmop:=A_BTS
                       else
                         asmop:=A_BTR;
-                      if psetdef(left.resulttype.def)^.settype=smallset then
+                      if tsetdef(left.resulttype.def).settype=smallset then
                         begin
                            if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
                              { we don't need a mod 32 because this is done automatically  }
@@ -1627,7 +1601,7 @@ implementation
                       end;
                     LOC_REFERENCE,LOC_MEM:
                       begin
-                         floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference);
+                         floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
                          del_reference(left.location.reference);
                       end
                     else
@@ -1704,7 +1678,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-02 21:20:37  peter
+  Revision 1.14  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/02 21:20:37  peter
     * resulttype rewrite
 
   Revision 1.12  2001/03/13 11:52:48  jonas

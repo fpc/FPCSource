@@ -27,7 +27,7 @@ unit temp_gen;
 interface
 
     uses
-      cpubase,cpuinfo,cobjects,globals,
+      cpubase,cpuinfo,globals,
       hcodegen,verbose,fmodule,aasm;
 
 {$ifdef newcg}
@@ -107,7 +107,7 @@ interface
         while assigned(templist) do
          begin
 {$ifdef EXTDEBUG}
-           case tempList^.temptype of
+           case templist^.temptype of
              tt_normal,
              tt_persistant :
                Comment(V_Warning,'temporary assignment of size '+
@@ -591,7 +591,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-01-05 17:36:58  florian
+  Revision 1.12  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.11  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 

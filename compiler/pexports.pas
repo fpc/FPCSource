@@ -39,9 +39,9 @@ implementation
        globals,tokens,verbose,
        systems,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,
+       symconst,symbase,symtype,symdef,symsym,
        { pass 1 }
-       node,pass_1,
+       node,
        ncon,
        { parser }
        scanner,
@@ -58,8 +58,8 @@ implementation
          DefString : string;
          InternalProcName : string;
          pt               : tnode;
-         srsym            : psym;
-         srsymtable : psymtable;
+         srsym            : tsym;
+         srsymtable : tsymtable;
       begin
          DefString:='';
          InternalProcName:='';
@@ -72,16 +72,16 @@ implementation
                    orgs:=orgpattern;
                    consume_sym(srsym,srsymtable);
                    hp.sym:=srsym;
-                   if ((hp.sym^.typ<>procsym) or
+                   if ((hp.sym.typ<>procsym) or
                        ((tf_need_export in target_info.flags) and
-                        not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)
+                        not(po_exports in tprocdef(tprocsym(srsym).definition).procoptions)
                        )
                       ) and
-                      (srsym^.typ<>varsym) and (srsym^.typ<>typedconstsym) then
+                      (srsym.typ<>varsym) and (srsym.typ<>typedconstsym) then
                     Message(parser_e_illegal_symbol_exported)
                    else
                     begin
-                      InternalProcName:=srsym^.mangledname;
+                      InternalProcName:=srsym.mangledname;
                       { This is wrong if the first is not
                         an underline }
                       if InternalProcName[1]='_' then
@@ -93,7 +93,7 @@ implementation
                         end;
                       if length(InternalProcName)<2 then
                        Message(parser_e_procname_to_short_for_export);
-                      DefString:=srsym^.realname+'='+InternalProcName;
+                      DefString:=srsym.realname+'='+InternalProcName;
                     end;
                    if (idtoken=_INDEX) then
                     begin
@@ -109,9 +109,9 @@ implementation
                       hp.options:=hp.options or eo_index;
                       pt.free;
                       if target_os.id=os_i386_win32 then
-                       DefString:=srsym^.realname+'='+InternalProcName+' @ '+tostr(hp.index)
+                       DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
                       else
-                       DefString:=srsym^.realname+'='+InternalProcName; {Index ignored!}
+                       DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
                     end;
                    if (idtoken=_NAME) then
                     begin
@@ -132,7 +132,7 @@ implementation
                     begin
                       consume(_RESIDENT);
                       hp.options:=hp.options or eo_resident;
-                      DefString:=srsym^.realname+'='+InternalProcName;{Resident ignored!}
+                      DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                     end;
                    if (DefString<>'') and UseDeffileForExport then
                     DefFile.AddExport(DefString);
@@ -142,7 +142,7 @@ implementation
                       hp.name:=stringdup(orgs);
                       hp.options:=hp.options or eo_name;
                     end;
-                   if hp.sym^.typ=procsym then
+                   if hp.sym.typ=procsym then
                     exportlib.exportprocedure(hp)
                    else
                     exportlib.exportvar(hp);
@@ -163,7 +163,12 @@ end.
 
 {
   $Log$
-  Revision 1.13  2001-04-04 22:43:52  peter
+  Revision 1.14  2001-04-13 01:22:12  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/04 22:43:52  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.12  2001/03/11 22:58:50  peter

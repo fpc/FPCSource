@@ -30,31 +30,28 @@ uses
   cclasses;
 
 type
-  PScript=^TScript;
-  TScript=object
+  TScript=class
     fn   : string[80];
     data : TStringList;
     executable : boolean;
-    constructor Init(const s:string);
-    constructor InitExec(const s:string);
-    destructor Done;
+    constructor Create(const s:string);
+    constructor CreateExec(const s:string);
+    destructor Destroy;override;
     procedure AddStart(const s:string);
     procedure Add(const s:string);
     Function  Empty:boolean;
     procedure WriteToDisk;virtual;
   end;
 
-  PAsmScript = ^TAsmScript;
-  TAsmScript = Object (TScript)
-    Constructor Init (Const ScriptName : String);
+  TAsmScript = class (TScript)
+    Constructor Create(Const ScriptName : String);
     Procedure AddAsmCommand (Const Command, Options,FileName : String);
     Procedure AddLinkCommand (Const Command, Options, FileName : String);
     Procedure AddDeleteCommand (Const FileName : String);
-    Procedure WriteToDisk;virtual;
+    Procedure WriteToDisk;override;
   end;
 
-  PLinkRes = ^TLinkRes;
-  TLinkRes = Object (TScript)
+  TLinkRes = Class (TScript)
     procedure Add(const s:string);
     procedure AddFileName(const s:string);
   end;
@@ -81,7 +78,7 @@ uses
                                   TScript
 ****************************************************************************}
 
-constructor TScript.Init(const s:string);
+constructor TScript.Create(const s:string);
 begin
   fn:=FixFileName(s);
   executable:=false;
@@ -89,7 +86,7 @@ begin
 end;
 
 
-constructor TScript.InitExec(const s:string);
+constructor TScript.CreateExec(const s:string);
 begin
   fn:=FixFileName(s)+source_os.scriptext;
   executable:=true;
@@ -97,7 +94,7 @@ begin
 end;
 
 
-destructor TScript.Done;
+destructor TScript.Destroy;
 begin
   data.Free;
 end;
@@ -141,9 +138,9 @@ end;
                                   Asm Response
 ****************************************************************************}
 
-Constructor TAsmScript.Init (Const ScriptName : String);
+Constructor TAsmScript.Create (Const ScriptName : String);
 begin
-  Inherited InitExec(ScriptName);
+  Inherited CreateExec(ScriptName);
 end;
 
 
@@ -241,7 +238,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-02-05 20:47:00  peter
+  Revision 1.8  2001-04-13 01:22:14  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.7  2001/02/05 20:47:00  peter
     * support linux unit for ver1_0 compilers
 
   Revision 1.6  2001/01/21 20:32:45  marco

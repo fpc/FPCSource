@@ -27,8 +27,6 @@ unit pdecl;
 interface
 
     uses
-      { common }
-      cobjects,
       { global }
       globals,
       { symtable }
@@ -36,7 +34,7 @@ interface
       { pass_1 }
       node;
 
-    function  readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
+    function  readconstant(const name:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
     procedure label_dec;
@@ -49,7 +47,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        globtype,tokens,verbose,
        systems,
@@ -58,16 +56,15 @@ implementation
        { symtable }
        symconst,symbase,symtype,symdef,symtable,
        { pass 1 }
-       pass_1,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj;
 
 
-    function readconstant(const name:string;const filepos:tfileposinfo):pconstsym;
+    function readconstant(const name:string;const filepos:tfileposinfo):tconstsym;
       var
-        hp : pconstsym;
+        hp : tconstsym;
         p : tnode;
         ps : pconstset;
         pd : pbestreal;
@@ -85,42 +82,42 @@ implementation
            ordconstn:
              begin
                 if is_constintnode(p) then
-                  hp:=new(pconstsym,init_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype))
+                  hp:=tconstsym.create_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype)
                 else if is_constcharnode(p) then
-                  hp:=new(pconstsym,init(name,constchar,tordconstnode(p).value))
+                  hp:=tconstsym.create(name,constchar,tordconstnode(p).value)
                 else if is_constboolnode(p) then
-                  hp:=new(pconstsym,init(name,constbool,tordconstnode(p).value))
-                else if p.resulttype.def^.deftype=enumdef then
-                  hp:=new(pconstsym,init_typed(name,constord,tordconstnode(p).value,p.resulttype))
-                else if p.resulttype.def^.deftype=pointerdef then
-                  hp:=new(pconstsym,init_typed(name,constord,tordconstnode(p).value,p.resulttype))
+                  hp:=tconstsym.create(name,constbool,tordconstnode(p).value)
+                else if p.resulttype.def.deftype=enumdef then
+                  hp:=tconstsym.create_typed(name,constord,tordconstnode(p).value,p.resulttype)
+                else if p.resulttype.def.deftype=pointerdef then
+                  hp:=tconstsym.create_typed(name,constord,tordconstnode(p).value,p.resulttype)
                 else internalerror(111);
              end;
            stringconstn:
              begin
                 getmem(sp,tstringconstnode(p).len+1);
                 move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                hp:=new(pconstsym,init_string(name,conststring,sp,tstringconstnode(p).len));
+                hp:=tconstsym.create_string(name,conststring,sp,tstringconstnode(p).len);
              end;
            realconstn :
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=new(pconstsym,init(name,constreal,longint(pd)));
+                hp:=tconstsym.create(name,constreal,longint(pd));
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=new(pconstsym,init_typed(name,constset,longint(ps),p.resulttype));
+               hp:=tconstsym.create_typed(name,constset,longint(ps),p.resulttype);
              end;
            pointerconstn :
              begin
-               hp:=new(pconstsym,init_typed(name,constpointer,tordconstnode(p).value,p.resulttype));
+               hp:=tconstsym.create_typed(name,constpointer,tordconstnode(p).value,p.resulttype);
              end;
            niln :
              begin
-               hp:=new(pconstsym,init_typed(name,constnil,0,p.resulttype));
+               hp:=tconstsym.create_typed(name,constnil,0,p.resulttype);
              end;
            else
              Message(cg_e_illegal_expression);
@@ -135,7 +132,7 @@ implementation
       var
          name : stringid;
          tt  : ttype;
-         sym : psym;
+         sym : tsym;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          skipequal : boolean;
@@ -154,7 +151,7 @@ implementation
                    consume(_EQUAL);
                    sym:=readconstant(name,filepos);
                    if assigned(sym) then
-                    symtablestack^.insert(sym);
+                    symtablestack.insert(sym);
                    consume(_SEMICOLON);
                 end;
 
@@ -176,19 +173,19 @@ implementation
                    if m_delphi in aktmodeswitches then
                      begin
                        if assigned(readtypesym) then
-                        sym:=new(ptypedconstsym,initsym(name,readtypesym,true))
+                        sym:=ttypedconstsym.createsym(name,readtypesym,true)
                        else
-                        sym:=new(ptypedconstsym,init(name,def,true))
+                        sym:=ttypedconstsym.create(name,def,true)
                      end
                    else
 {$endif DELPHI_CONST_IN_RODATA}
                      begin
-                       sym:=new(ptypedconstsym,inittype(name,tt,false))
+                       sym:=ttypedconstsym.createtype(name,tt,false)
                      end;
                    akttokenpos:=storetokenpos;
-                   symtablestack^.insert(sym);
+                   symtablestack.insert(sym);
                    { procvar can have proc directives }
-                   if (tt.def^.deftype=procvardef) then
+                   if (tt.def.deftype=procvardef) then
                     begin
                       { support p : procedure;stdcall=nil; }
                       if (token=_SEMICOLON) then
@@ -215,10 +212,10 @@ implementation
                       consume(_EQUAL);
 {$ifdef DELPHI_CONST_IN_RODATA}
                       if m_delphi in aktmodeswitches then
-                       readtypedconst(tt,ptypedconstsym(sym),true)
+                       readtypedconst(tt,ttypedconstsym(sym),true)
                       else
 {$endif DELPHI_CONST_IN_RODATA}
-                       readtypedconst(tt,ptypedconstsym(sym),false);
+                       readtypedconst(tt,ttypedconstsym(sym),false);
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -234,7 +231,7 @@ implementation
 
     procedure label_dec;
       var
-         hl : pasmlabel;
+         hl : tasmlabel;
       begin
          consume(_LABEL);
          if not(cs_support_goto in aktmoduleswitches) then
@@ -248,11 +245,11 @@ implementation
                   begin
                     getdatalabel(hl);
                     { we still want a warning if unused }
-                    hl^.refs:=0;
+                    hl.refs:=0;
                   end
                 else
                   getlabel(hl);
-                symtablestack^.insert(new(plabelsym,init(pattern,hl)));
+                symtablestack.insert(tlabelsym.create(pattern,hl));
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);
@@ -262,21 +259,21 @@ implementation
 
 
     { search in symtablestack used, but not defined type }
-    procedure resolve_type_forward(p : pnamedindexobject);
+    procedure resolve_type_forward(p : tnamedindexitem);
       var
-        hpd,pd : pdef;
+        hpd,pd : tdef;
         stpos  : tfileposinfo;
         again  : boolean;
-        srsym  : psym;
-        srsymtable : psymtable;
+        srsym  : tsym;
+        srsymtable : tsymtable;
       begin
          { Check only typesyms or record/object fields }
-         case psym(p)^.typ of
+         case tsym(p).typ of
            typesym :
-             pd:=ptypesym(p)^.restype.def;
+             pd:=ttypesym(p).restype.def;
            varsym :
-             if (psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-               pd:=pvarsym(p)^.vartype.def
+             if (tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
+               pd:=tvarsym(p).vartype.def
              else
                exit;
            else
@@ -284,80 +281,80 @@ implementation
          end;
          repeat
            again:=false;
-           case pd^.deftype of
+           case pd.deftype of
              arraydef :
                begin
                  { elementtype could also be defined using a forwarddef }
-                 pd:=parraydef(pd)^.elementtype.def;
+                 pd:=tarraydef(pd).elementtype.def;
                  again:=true;
                end;
              pointerdef,
              classrefdef :
                begin
                  { classrefdef inherits from pointerdef }
-                 hpd:=ppointerdef(pd)^.pointertype.def;
+                 hpd:=tpointerdef(pd).pointertype.def;
                  { still a forward def ? }
-                 if hpd^.deftype=forwarddef then
+                 if hpd.deftype=forwarddef then
                   begin
                     { try to resolve the forward }
                     { get the correct position for it }
                     stpos:=akttokenpos;
-                    akttokenpos:=pforwarddef(hpd)^.forwardpos;
+                    akttokenpos:=tforwarddef(hpd).forwardpos;
                     resolving_forward:=true;
                     make_ref:=false;
-                    searchsym(pforwarddef(hpd)^.tosymname,srsym,srsymtable);
+                    searchsym(tforwarddef(hpd).tosymname,srsym,srsymtable);
                     make_ref:=true;
                     resolving_forward:=false;
                     akttokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
-                    dispose(hpd,done);
-                    ppointerdef(pd)^.pointertype.def:=nil; { if error occurs }
+                    hpd.free;
+                    tpointerdef(pd).pointertype.def:=nil; { if error occurs }
                     { was a type sym found ? }
                     if assigned(srsym) and
-                       (srsym^.typ=typesym) then
+                       (srsym.typ=typesym) then
                      begin
-                       ppointerdef(pd)^.pointertype.setsym(srsym);
+                       tpointerdef(pd).pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
-                       inc(pstoredsym(srsym)^.refs);
+                       inc(tstoredsym(srsym).refs);
 {$ifdef GDB}
                        if (cs_debuginfo in aktmoduleswitches) and assigned(debuglist) and
-                          (psym(p)^.owner^.symtabletype in [globalsymtable,staticsymtable]) then
+                          (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
                         begin
-                          ptypesym(p)^.isusedinstab := true;
-                          ptypesym(p)^.concatstabto(debuglist);
+                          ttypesym(p).isusedinstab := true;
+                          ttypesym(p).concatstabto(debuglist);
                         end;
 {$endif GDB}
                        { we need a class type for classrefdef }
-                       if (pd^.deftype=classrefdef) and
-                          not(is_class(ptypesym(srsym)^.restype.def)) then
-                         Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename);
+                       if (pd.deftype=classrefdef) and
+                          not(is_class(ttypesym(srsym).restype.def)) then
+                         Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename);
                      end
                     else
                      begin
-                       MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,psym(p)^.realname);
+                       MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
                        { try to recover }
-                       ppointerdef(pd)^.pointertype:=generrortype;
+                       tpointerdef(pd).pointertype:=generrortype;
                      end;
                   end;
                end;
              recorddef :
-               precorddef(pd)^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+               trecorddef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
              objectdef :
                begin
                  if not(m_fpc in aktmodeswitches) and
-                    (oo_is_forward in pobjectdef(pd)^.objectoptions) then
+                    (oo_is_forward in tobjectdef(pd).objectoptions) then
                   begin
                     { only give an error as the implementation may follow in an
                       other type block which is allowed by FPC modes }
-                    MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,psym(p)^.realname);
+                    MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
                   end
                  else
                   begin
                     { Check all fields of the object declaration, but don't
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
-                    if not(psym(p)^.owner^.symtabletype in [objectsymtable,recordsymtable]) then
-                     pobjectdef(pd)^.symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+                    if not(tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
+                     tobjectdef(pd).symtable.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
                   end;
                end;
           end;
@@ -369,9 +366,9 @@ implementation
     procedure type_dec;
       var
          typename,orgtypename : stringid;
-         newtype  : ptypesym;
-         sym      : psym;
-         srsymtable : psymtable;
+         newtype  : ttypesym;
+         sym      : tsym;
+         srsymtable : tsymtable;
          tt       : ttype;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
@@ -395,18 +392,18 @@ implementation
            { found a symbol with this name? }
            if assigned(sym) then
             begin
-              if (sym^.typ=typesym) then
+              if (sym.typ=typesym) then
                begin
                  if ((token=_CLASS) or
                      (token=_INTERFACE)) and
-                    (assigned(ptypesym(sym)^.restype.def)) and
-                    is_class_or_interface(ptypesym(sym)^.restype.def) and
-                    (oo_is_forward in pobjectdef(ptypesym(sym)^.restype.def)^.objectoptions) then
+                    (assigned(ttypesym(sym).restype.def)) and
+                    is_class_or_interface(ttypesym(sym).restype.def) and
+                    (oo_is_forward in tobjectdef(ttypesym(sym).restype.def).objectoptions) then
                   begin
                     { we can ignore the result   }
                     { the definition is modified }
-                    object_dec(orgtypename,pobjectdef(ptypesym(sym)^.restype.def));
-                    newtype:=ptypesym(sym);
+                    object_dec(orgtypename,tobjectdef(ttypesym(sym).restype.def));
+                    newtype:=ttypesym(sym);
                   end;
                end;
             end;
@@ -418,33 +415,33 @@ implementation
                 will give an error (PFV) }
               tt:=generrortype;
               storetokenpos:=akttokenpos;
-              newtype:=new(ptypesym,init(orgtypename,tt));
-              symtablestack^.insert(newtype);
+              newtype:=ttypesym.create(orgtypename,tt);
+              symtablestack.insert(newtype);
               akttokenpos:=defpos;
               akttokenpos:=storetokenpos;
               { read the type definition }
               read_type(tt,orgtypename);
               { update the definition of the type }
-              newtype^.restype:=tt;
+              newtype.restype:=tt;
               if not assigned(tt.sym) then
                 tt.sym:=newtype;
-              if assigned(tt.def) and not assigned(tt.def^.typesym) then
-                tt.def^.typesym:=newtype;
+              if assigned(tt.def) and not assigned(tt.def.typesym) then
+                tt.def.typesym:=newtype;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in aktmoduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
-                 assigned(tt.def) and (tt.def^.deftype=recorddef) and (tt.def^.size=16) then
-                rec_tguid:=precorddef(tt.def);
+                 assigned(tt.def) and (tt.def.deftype=recorddef) and (tt.def.size=16) then
+                rec_tguid:=trecorddef(tt.def);
             end;
-           if assigned(newtype^.restype.def) then
+           if assigned(newtype.restype.def) then
             begin
-              case newtype^.restype.def^.deftype of
+              case newtype.restype.def.deftype of
                 pointerdef :
                   begin
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
-                       ppointerdef(newtype^.restype.def)^.is_far:=true;
+                       tpointerdef(newtype.restype.def).is_far:=true;
                        consume(_SEMICOLON);
                      end;
                   end;
@@ -452,7 +449,7 @@ implementation
                   begin
                     if not is_proc_directive(token) then
                      consume(_SEMICOLON);
-                    parse_var_proc_directives(psym(newtype));
+                    parse_var_proc_directives(tsym(newtype));
                   end;
                 else
                   consume(_SEMICOLON);
@@ -460,7 +457,7 @@ implementation
             end;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack^.foreach({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
+         symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}resolve_type_forward);
          block_type:=old_block_type;
       end;
 
@@ -479,7 +476,7 @@ implementation
     { the top symbol table of symtablestack                }
       begin
         consume(_THREADVAR);
-        if not(symtablestack^.symtabletype in [staticsymtable,globalsymtable]) then
+        if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         read_var_decs(false,false,true);
       end;
@@ -494,7 +491,7 @@ implementation
          sp : pchar;
       begin
          consume(_RESOURCESTRING);
-         if not(symtablestack^.symtabletype in [staticsymtable,globalsymtable]) then
+         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -517,7 +514,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value);
                                 sp[1]:=#0;
-                                symtablestack^.insert(new(pconstsym,init_string(name,constresourcestring,sp,1)));
+                                symtablestack.insert(tconstsym.create_string(name,constresourcestring,sp,1));
                              end
                            else
                              Message(cg_e_illegal_expression);
@@ -526,7 +523,7 @@ implementation
                         begin
                            getmem(sp,tstringconstnode(p).len+1);
                            move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                           symtablestack^.insert(new(pconstsym,init_string(name,constresourcestring,sp,tstringconstnode(p).len)));
+                           symtablestack.insert(tconstsym.create_string(name,constresourcestring,sp,tstringconstnode(p).len));
                         end;
                       else
                         Message(cg_e_illegal_expression);
@@ -544,7 +541,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-04-04 22:43:50  peter
+  Revision 1.29  2001-04-13 01:22:11  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.28  2001/04/04 22:43:50  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.27  2001/04/04 21:30:43  florian

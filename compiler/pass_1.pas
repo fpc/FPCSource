@@ -47,9 +47,10 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,globals,verbose,
+      cutils,globals,
       hcodegen,symdef,
 {$ifdef extdebug}
+      verbose,
       htypechk,
 {$endif extdebug}
       tgcpu
@@ -79,17 +80,12 @@ implementation
            aktfilepos:=p.fileinfo;
            aktlocalswitches:=p.localswitches;
            hp:=p.det_resulttype;
-//writeln('result: ',nodetype2str[p.nodetype],' ',dword(hp));
            { should the node be replaced? }
            if assigned(hp) then
             begin
                p.free;
                p:=hp;
             end;
-{$ifdef EXTDEBUG}
-           { save resulttype for checking of changes in pass_1 }
-           p.oldresulttype:=p.resulttype;
-{$endif EXTDEBUG}
            aktlocalswitches:=oldlocalswitches;
            aktfilepos:=oldpos;
            if codegenerror then
@@ -149,10 +145,6 @@ implementation
                      p.free;
                      p:=hp;
                   end;
-{$ifdef EXTDEBUG}
-                 { save resulttype for checking of changes in pass_1 }
-                 p.oldresulttype:=p.resulttype;
-{$endif EXTDEBUG}
                end;
               { first pass }
               hp:=p.pass_1;
@@ -162,12 +154,6 @@ implementation
                    p.free;
                    p:=hp;
                 end;
-{$ifdef EXTDEBUG}
-              { check if the resulttype is still the same }
-              if (p.oldresulttype.def<>p.resulttype.def) and
-                 (p.oldresulttype.sym<>p.resulttype.sym) then
-               Comment(V_Warning,'Resulttype change in '+nodetype2str[p.nodetype]+'.pass_1');
-{$endif EXTDEBUG}
               aktlocalswitches:=oldlocalswitches;
               aktfilepos:=oldpos;
               if codegenerror then
@@ -194,7 +180,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-04-02 21:20:31  peter
+  Revision 1.13  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.11  2000/12/18 21:56:52  peter

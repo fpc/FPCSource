@@ -52,7 +52,7 @@ unit ncgbas;
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,cclasses,verbose,globals,
       aasm,symtable,types,
       htypechk,
       cpubase,cpuasm,
@@ -108,7 +108,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:50  peter
+  Revision 1.2  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
 }

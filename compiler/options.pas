@@ -56,8 +56,10 @@ type
     procedure parsecmd(cmd:string);
   end;
 
+  TOptionClass=class of toption;
+
 var
-  coption : class of toption;
+  coption : TOptionClass;
 
 procedure read_arguments(cmd:string);
 
@@ -71,7 +73,7 @@ uses
   dos,
 {$endif Delphi}
   version,systems,
-  cutils,cobjects,messages
+  cutils,messages
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -771,7 +773,7 @@ begin
                        case More[j] of
                         'B': {bind_win32_dll:=true}
                              begin
-                               {  -WB200000 means set prefered base address
+                               {  -WB200000 means set trefered base address
                                  to $200000, but does not change relocsection boolean
                                  this way we can create both relocatble and
                                  non relocatable DLL at a specific base address PM }
@@ -1555,7 +1557,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2001-03-25 12:27:31  peter
+  Revision 1.39  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.38  2001/03/25 12:27:31  peter
     * fixed -Se (merged)
 
   Revision 1.37  2001/03/23 00:16:07  florian

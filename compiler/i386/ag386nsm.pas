@@ -42,7 +42,7 @@ interface
 {$ifdef delphi}
       sysutils,
 {$endif}
-      cutils,globtype,globals,systems,cobjects,
+      cutils,globtype,globals,systems,cclasses,
       fmodule,finput,verbose,cpubase,cpuasm
       ;
 
@@ -161,7 +161,7 @@ interface
            s:='[';
          if assigned(symbol) then
           begin
-            s:=s+symbol^.name;
+            s:=s+symbol.name;
             first:=false;
           end;
          if (base<>R_NO) then
@@ -238,7 +238,7 @@ interface
           top_symbol :
             begin
               if assigned(o.sym) then
-               hs:='dword '+o.sym^.name
+               hs:='dword '+o.sym.name
               else
                hs:='dword ';
               if o.symofs>0 then
@@ -283,7 +283,7 @@ interface
             getopstr_jmp:=tostr(o.val);
           top_symbol :
             begin
-              hs:=o.sym^.name;
+              hs:=o.sym.name;
               if o.symofs>0 then
                hs:=hs+'+'+tostr(o.symofs)
               else
@@ -454,9 +454,9 @@ interface
                if tai_datablock(hp).is_global then
                 begin
                   AsmWrite(#9'GLOBAL ');
-                  AsmWriteLn(tai_datablock(hp).sym^.name);
+                  AsmWriteLn(tai_datablock(hp).sym.name);
                 end;
-               AsmWrite(PadTabs(tai_datablock(hp).sym^.name,':'));
+               AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
                AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
              end;
 
@@ -483,7 +483,7 @@ interface
            ait_const_symbol :
              begin
                AsmWrite(#9#9'DD'#9);
-               AsmWrite(tai_const_symbol(hp).sym^.name);
+               AsmWrite(tai_const_symbol(hp).sym.name);
                if tai_const_symbol(hp).offset>0 then
                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                else if tai_const_symbol(hp).offset<0 then
@@ -494,7 +494,7 @@ interface
            ait_const_rva :
              begin
                AsmWrite(#9#9'RVA'#9);
-               AsmWriteLn(tai_const_symbol(hp).sym^.name);
+               AsmWriteLn(tai_const_symbol(hp).sym.name);
              end;
 
            ait_real_32bit :
@@ -588,8 +588,8 @@ interface
 
            ait_label :
              begin
-               if tai_label(hp).l^.is_used then
-                AsmWriteLn(tai_label(hp).l^.name+':');
+               if tai_label(hp).l.is_used then
+                AsmWriteLn(tai_label(hp).l.name+':');
              end;
 
            ait_direct :
@@ -603,9 +603,9 @@ interface
                if tai_symbol(hp).is_global then
                 begin
                   AsmWrite(#9'GLOBAL ');
-                  AsmWriteLn(tai_symbol(hp).sym^.name);
+                  AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               AsmWrite(tai_symbol(hp).sym^.name);
+               AsmWrite(tai_symbol(hp).sym.name);
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                    ait_const_symbol,ait_const_rva,
@@ -716,16 +716,16 @@ interface
     var
       currentasmlist : TExternalAssembler;
 
-    procedure writeexternal(p:pnamedindexobject);
+    procedure writeexternal(p:tnamedindexitem);
       begin
-        if pasmsymbol(p)^.defbind=AB_EXTERNAL then
-         currentasmlist.AsmWriteln('EXTERN'#9+p^.name);
+        if tasmsymbol(p).defbind=AB_EXTERNAL then
+         currentasmlist.AsmWriteln('EXTERN'#9+p.name);
       end;
 
     procedure T386NasmAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        AsmSymbolList^.foreach({$ifdef fpcprocvar}@{$endif}writeexternal);
+        AsmSymbolList.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal);
       end;
 
 
@@ -773,7 +773,12 @@ interface
 end.
 {
   $Log$
-  Revision 1.6  2001-03-05 21:39:11  peter
+  Revision 1.7  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/05 21:39:11  peter
     * changed to class with common TAssembler also for internal assembler
 
   Revision 1.5  2001/02/20 21:36:39  peter

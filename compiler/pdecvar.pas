@@ -34,14 +34,14 @@ implementation
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,
        { global }
        globtype,globals,tokens,verbose,
        systems,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,types,fmodule,
        { pass 1 }
-       node,pass_1,
+       node,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -62,27 +62,27 @@ implementation
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
 
-      procedure insert_syms(st : psymtable;sc : tidstringlist;tt : ttype;is_threadvar : boolean);
-      { inserts the symbols of sc in st with def as definition or sym as ptypesym, sc is disposed }
+      procedure insert_syms(st : tsymtable;sc : tidstringlist;tt : ttype;is_threadvar : boolean);
+      { inserts the symbols of sc in st with def as definition or sym as ttypesym, sc is disposed }
         var
            s : string;
            filepos : tfileposinfo;
-           ss : pvarsym;
+           ss : tvarsym;
         begin
            filepos:=akttokenpos;
            while not sc.empty do
              begin
                 s:=sc.get(akttokenpos);
-                ss:=new(pvarsym,init(s,tt));
+                ss:=tvarsym.Create(s,tt);
                 if is_threadvar then
-                  include(ss^.varoptions,vo_is_thread_var);
-                st^.insert(ss);
+                  include(ss.varoptions,vo_is_thread_var);
+                st.insert(ss);
                 { static data fields are inserted in the globalsymtable }
-                if (st^.symtabletype=objectsymtable) and
+                if (st.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     s:='$'+lower(st^.name^)+'_'+upper(s);
-                     st^.defowner^.owner^.insert(new(pvarsym,init(s,tt)));
+                     s:='$'+lower(st.name^)+'_'+upper(s);
+                     st.defowner.owner.insert(tvarsym.create(s,tt));
                   end;
              end;
 {$ifdef fixLeaksOnError}
@@ -98,14 +98,14 @@ implementation
          s : stringid;
          old_block_type : tblock_type;
          declarepos,storetokenpos : tfileposinfo;
-         oldsymtablestack : psymtable;
+         oldsymtablestack : tsymtable;
          symdone : boolean;
          { to handle absolute }
-         abssym : pabsolutesym;
+         abssym : tabsolutesym;
          l    : longint;
          code : integer;
          { c var }
-         newtype : ptypesym;
+         newtype : ttypesym;
          is_dll,
          is_gpc_name,is_cdecl,extern_aktvarsym,export_aktvarsym : boolean;
          old_current_object_option : tsymoptions;
@@ -113,17 +113,17 @@ implementation
          C_name : string;
          tt,casetype : ttype;
          { Delphi initialized vars }
-         pconstsym : ptypedconstsym;
+         tconstsym : ttypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : tnode;
-         srsym : psym;
-         srsymtable : psymtable;
-         unionsymtable : psymtable;
+         srsym : tsym;
+         srsymtable : tsymtable;
+         unionsymtable : tsymtable;
          offset : longint;
-         uniondef : precorddef;
-         unionsym : pvarsym;
+         uniondef : trecorddef;
+         unionsym : tvarsym;
          uniontype : ttype;
       begin
          old_current_object_option:=current_object_option;
@@ -166,13 +166,13 @@ implementation
                 { for records, don't search the recordsymtable for
                   the symbols of the types }
                     oldsymtablestack:=symtablestack;
-                    symtablestack:=symtablestack^.next;
+                    symtablestack:=symtablestack.next;
                 read_type(tt,'');
                     symtablestack:=oldsymtablestack;
                   end
                  else
                   read_type(tt,'');
-             if (variantrecordlevel>0) and tt.def^.needs_inittable then
+             if (variantrecordlevel>0) and tt.def.needs_inittable then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
              symdone:=false;
@@ -187,9 +187,9 @@ implementation
                      writeln('problem with strContStack in pdecl (3)');
 {$endif fixLeaksOnError}
                   sc.free;
-                  aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
-                  include(aktvarsym^.varoptions,vo_is_external);
-                  symtablestack^.insert(aktvarsym);
+                  aktvarsym:=tvarsym.create_C(s,target_os.Cprefix+C_name,tt);
+                  include(aktvarsym.varoptions,vo_is_external);
+                  symtablestack.insert(aktvarsym);
                   akttokenpos:=storetokenpos;
                   symdone:=true;
                end;
@@ -212,14 +212,14 @@ implementation
                  begin
                    consume_sym(srsym,srsymtable);
                    { we should check the result type of srsym }
-                   if not (srsym^.typ in [varsym,typedconstsym,funcretsym]) then
+                   if not (srsym.typ in [varsym,typedconstsym,funcretsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
                    storetokenpos:=akttokenpos;
                    akttokenpos:=declarepos;
-                   abssym:=new(pabsolutesym,init(s,tt));
-                   abssym^.abstyp:=tovar;
-                   abssym^.ref:=pstoredsym(srsym);
-                   symtablestack^.insert(abssym);
+                   abssym:=tabsolutesym.create(s,tt);
+                   abssym.abstyp:=tovar;
+                   abssym.ref:=tstoredsym(srsym);
+                   symtablestack.insert(abssym);
                    akttokenpos:=storetokenpos;
                  end
                 else
@@ -227,12 +227,12 @@ implementation
                   begin
                     storetokenpos:=akttokenpos;
                     akttokenpos:=declarepos;
-                    abssym:=new(pabsolutesym,init(s,tt));
+                    abssym:=tabsolutesym.create(s,tt);
                     s:=pattern;
                     consume(token);
-                    abssym^.abstyp:=toasm;
-                    abssym^.asmname:=stringdup(s);
-                    symtablestack^.insert(abssym);
+                    abssym.abstyp:=toasm;
+                    abssym.asmname:=stringdup(s);
+                    symtablestack.insert(abssym);
                     akttokenpos:=storetokenpos;
                   end
                 else
@@ -245,12 +245,12 @@ implementation
                      begin
                        storetokenpos:=akttokenpos;
                        akttokenpos:=declarepos;
-                       abssym:=new(pabsolutesym,init(s,tt));
-                       abssym^.abstyp:=toaddr;
-                       abssym^.absseg:=false;
+                       abssym:=tabsolutesym.create(s,tt);
+                       abssym.abstyp:=toaddr;
+                       abssym.absseg:=false;
                        s:=pattern;
                        consume(_INTCONST);
-                       val(s,abssym^.address,code);
+                       val(s,abssym.address,code);
                        if (token=_COLON) and
                          (target_info.target=target_i386_go32v2) then
                         begin
@@ -258,10 +258,10 @@ implementation
                           s:=pattern;
                           consume(_INTCONST);
                           val(s,l,code);
-                          abssym^.address:=abssym^.address shl 4+l;
-                          abssym^.absseg:=true;
+                          abssym.address:=abssym.address shl 4+l;
+                          abssym.absseg:=true;
                         end;
-                       symtablestack^.insert(abssym);
+                       symtablestack.insert(abssym);
                        akttokenpos:=storetokenpos;
                      end
                     else
@@ -277,31 +277,31 @@ implementation
                - in record or object
                - ... (PM) }
              if (m_delphi in aktmodeswitches) and (token=_EQUAL) and
-                not (symtablestack^.symtabletype in [parasymtable]) and
+                not (symtablestack.symtabletype in [parasymtable]) and
                 not is_record and not is_object then
                begin
                   storetokenpos:=akttokenpos;
                   s:=sc.get(akttokenpos);
                   if not sc.empty then
                     Message(parser_e_initialized_only_one_var);
-                  pconstsym:=new(ptypedconstsym,inittype(s,tt,false));
-                  symtablestack^.insert(pconstsym);
+                  tconstsym:=ttypedconstsym.createtype(s,tt,false);
+                  symtablestack.insert(tconstsym);
                   akttokenpos:=storetokenpos;
                   consume(_EQUAL);
-                  readtypedconst(tt,pconstsym,false);
+                  readtypedconst(tt,tconstsym,false);
                   symdone:=true;
                end;
              { for a record there doesn't need to be a ; before the END or ) }
              if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
                consume(_SEMICOLON);
              { procvar handling }
-             if (tt.def^.deftype=procvardef) and (tt.def^.typesym=nil) then
+             if (tt.def.deftype=procvardef) and (tt.def.typesym=nil) then
                begin
-                  newtype:=new(ptypesym,init('unnamed',tt));
-                  parse_var_proc_directives(psym(newtype));
-                  newtype^.restype.def:=nil;
-                  tt.def^.typesym:=nil;
-                  dispose(newtype,done);
+                  newtype:=ttypesym.create('unnamed',tt);
+                  parse_var_proc_directives(tsym(newtype));
+                  newtype.restype.def:=nil;
+                  tt.def.typesym:=nil;
+                  newtype.free;
                end;
              { Check for variable directives }
              if not symdone and (token=_ID) then
@@ -344,7 +344,7 @@ implementation
                     begin
                       consume(_ID);
                       if extern_aktvarsym or
-                         (symtablestack^.symtabletype in [parasymtable,localsymtable]) then
+                         (symtablestack.symtabletype in [parasymtable,localsymtable]) then
                        Message(parser_e_not_external_and_export)
                       else
                        export_aktvarsym:=true;
@@ -368,19 +368,19 @@ implementation
                    storetokenpos:=akttokenpos;
                    akttokenpos:=declarepos;
                    if is_dll then
-                    aktvarsym:=new(pvarsym,init_dll(s,tt))
+                    aktvarsym:=tvarsym.create_dll(s,tt)
                    else
-                    aktvarsym:=new(pvarsym,init_C(s,C_name,tt));
+                    aktvarsym:=tvarsym.create_C(s,C_name,tt);
                    { set some vars options }
                    if export_aktvarsym then
                     begin
-                      inc(aktvarsym^.refs);
-                      include(aktvarsym^.varoptions,vo_is_exported);
+                      inc(aktvarsym.refs);
+                      include(aktvarsym.varoptions,vo_is_exported);
                     end;
                    if extern_aktvarsym then
-                    include(aktvarsym^.varoptions,vo_is_external);
+                    include(aktvarsym.varoptions,vo_is_external);
                    { insert in the stack/datasegment }
-                   symtablestack^.insert(aktvarsym);
+                   symtablestack.insert(aktvarsym);
                    akttokenpos:=storetokenpos;
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
@@ -393,11 +393,11 @@ implementation
                             current_module.uses_imports:=true;
                             importlib.preparelib(current_module.modulename^);
                           end;
-                         importlib.importvariable(aktvarsym^.mangledname,dll_name,C_name)
+                         importlib.importvariable(aktvarsym.mangledname,dll_name,C_name)
                        end
                       else
                        if target_info.DllScanSupported then
-                        current_module.Externals.insert(tExternalsItem.create(aktvarsym^.mangledname));
+                        current_module.Externals.insert(tExternalsItem.create(aktvarsym.mangledname));
                     end;
                    symdone:=true;
                  end
@@ -424,7 +424,7 @@ implementation
                    end
                   else
                    if (sp_published in current_object_option) and
-                      not(oo_can_have_published in pobjectdef(tt.def)^.objectoptions) then
+                      not(oo_can_have_published in tobjectdef(tt.def).objectoptions) then
                     begin
                       Message(parser_e_only_publishable_classes_can__be_published);
                       exclude(current_object_option,sp_published);
@@ -442,12 +442,12 @@ implementation
               s:=pattern;
               searchsym(s,srsym,srsymtable);
               { may be only a type: }
-              if assigned(srsym) and (srsym^.typ in [typesym,unitsym]) then
+              if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
                begin
                  { for records, don't search the recordsymtable for
                    the symbols of the types }
                  oldsymtablestack:=symtablestack;
-                 symtablestack:=symtablestack^.next;
+                 symtablestack:=symtablestack.next;
                  read_type(casetype,'');
                  symtablestack:=oldsymtablestack;
                end
@@ -458,22 +458,22 @@ implementation
                   { for records, don't search the recordsymtable for
                     the symbols of the types }
                   oldsymtablestack:=symtablestack;
-                  symtablestack:=symtablestack^.next;
+                  symtablestack:=symtablestack.next;
                   read_type(casetype,'');
                   symtablestack:=oldsymtablestack;
-                  symtablestack^.insert(new(pvarsym,init(s,casetype)));
+                  symtablestack.insert(tvarsym.create(s,casetype));
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
               consume(_OF);
-              UnionSymtable:=new(pstoredsymtable,init(recordsymtable));
-              UnionSymtable^.next:=symtablestack;
+              UnionSymtable:=trecordsymtable.create;
+              Unionsymtable.next:=symtablestack;
               registerdef:=false;
-              UnionDef:=new(precorddef,init(unionsymtable));
+              UnionDef:=trecorddef.create(unionsymtable);
               registerdef:=true;
               symtablestack:=UnionSymtable;
-              startvarrecsize:=symtablestack^.datasize;
-              startvarrecalign:=symtablestack^.dataalignment;
+              startvarrecsize:=symtablestack.datasize;
+              startvarrecalign:=symtablestack.dataalignment;
               repeat
                 repeat
                   pt:=comp_expr(true);
@@ -494,33 +494,33 @@ implementation
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
-                maxsize:=max(maxsize,symtablestack^.datasize);
-                maxalignment:=max(maxalignment,symtablestack^.dataalignment);
+                maxsize:=max(maxsize,symtablestack.datasize);
+                maxalignment:=max(maxalignment,symtablestack.dataalignment);
                 { the items of the next variant are overlayed }
-                symtablestack^.datasize:=startvarrecsize;
-                symtablestack^.dataalignment:=startvarrecalign;
+                symtablestack.datasize:=startvarrecsize;
+                symtablestack.dataalignment:=startvarrecalign;
                 if (token<>_END) and (token<>_RKLAMMER) then
                   consume(_SEMICOLON)
                 else
                   break;
               until (token=_END) or (token=_RKLAMMER);
               { at last set the record size to that of the biggest variant }
-              symtablestack^.datasize:=maxsize;
-              symtablestack^.dataalignment:=maxalignment;
+              symtablestack.datasize:=maxsize;
+              symtablestack.dataalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
-              UnionSym:=new(pvarsym,init('case',uniontype));
-              symtablestack:=symtablestack^.next;
-              { we do NOT call symtablestack^.insert
+              UnionSym:=tvarsym.create('case',uniontype);
+              symtablestack:=symtablestack.next;
+              { we do NOT call symtablestack.insert
                on purpose PM }
-              offset:=align_from_size(symtablestack^.datasize,maxalignment);
-              symtablestack^.datasize:=offset+unionsymtable^.datasize;
-              if maxalignment>symtablestack^.dataalignment then
-                symtablestack^.dataalignment:=maxalignment;
-              pstoredsymtable(UnionSymtable)^.Insert_in(symtablestack,offset);
-              UnionSym^.owner:=nil;
-              dispose(unionsym,done);
-              dispose(uniondef,done);
+              offset:=align_from_size(symtablestack.datasize,maxalignment);
+              symtablestack.datasize:=offset+unionsymtable.datasize;
+              if maxalignment>symtablestack.dataalignment then
+                symtablestack.dataalignment:=maxalignment;
+              trecordsymtable(Unionsymtable).Insert_in(symtablestack,offset);
+              Unionsym.owner:=nil;
+              unionsym.free;
+              uniondef.free;
            end;
          block_type:=old_block_type;
          current_object_option:=old_current_object_option;
@@ -529,7 +529,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-04 22:43:52  peter
+  Revision 1.15  2001-04-13 01:22:12  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/04 22:43:52  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.13  2001/04/04 21:30:45  florian

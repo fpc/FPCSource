@@ -99,7 +99,10 @@ uses
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   link,import,export,tokens,pass_1,
   { cpu overrides }
-  cpuswtch,cpunode
+  cpuswtch
+{$ifndef NOPASS2}
+  ,cpunode
+{$endif}
   ;
 
 function Compile(const cmd:string):longint;
@@ -209,7 +212,7 @@ begin
   CompilerInitedAfterArgs:=true;
 end;
 
-procedure minimal_stop;{$ifndef fpc}far;{$endif}
+procedure minimal_stop;
 begin
   DoneCompiler;
   olddo_stop{$ifdef FPCPROCVAR}(){$endif};
@@ -320,7 +323,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-04-02 21:20:29  peter
+  Revision 1.17  2001-04-13 01:22:06  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:29  peter
     * resulttype rewrite
 
   Revision 1.15  2000/12/26 15:57:25  peter

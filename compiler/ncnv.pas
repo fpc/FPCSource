@@ -153,14 +153,14 @@ implementation
 
         procedure update_constsethi(t:ttype);
         begin
-          if ((t.def^.deftype=orddef) and
-              (porddef(t.def)^.high>=constsethi)) then
+          if ((t.def.deftype=orddef) and
+              (torddef(t.def).high>=constsethi)) then
             begin
-               constsethi:=porddef(t.def)^.high;
+               constsethi:=torddef(t.def).high;
                if htype.def=nil then
                  begin
                     if (constsethi>255) or
-                       (porddef(t.def)^.low<0) then
+                       (torddef(t.def).low<0) then
                       htype:=u8bittype
                     else
                       htype:=t;
@@ -168,12 +168,12 @@ implementation
                if constsethi>255 then
                  constsethi:=255;
             end
-          else if ((t.def^.deftype=enumdef) and
-                  (penumdef(t.def)^.max>=constsethi)) then
+          else if ((t.def.deftype=enumdef) and
+                  (tenumdef(t.def).max>=constsethi)) then
             begin
                if htype.def=nil then
                  htype:=t;
-               constsethi:=penumdef(t.def)^.max;
+               constsethi:=tenumdef(t.def).max;
             end;
         end;
 
@@ -232,7 +232,7 @@ implementation
                resulttypepass(p3);
               if codegenerror then
                break;
-              case p2.resulttype.def^.deftype of
+              case p2.resulttype.def.deftype of
                  enumdef,
                  orddef:
                    begin
@@ -353,7 +353,7 @@ implementation
            p.free;
          end;
       { set the initial set type }
-        constp.resulttype.setdef(new(psetdef,init(htype,constsethi)));
+        constp.resulttype.setdef(tsetdef.create(htype,constsethi));
       { determine the resulttype for the tree }
         resulttypepass(buildp);
       { set the new tree }
@@ -427,7 +427,7 @@ implementation
          result:=nil;
          if left.nodetype=stringconstn then
           begin
-             tstringconstnode(left).st_type:=pstringdef(resulttype.def)^.string_typ;
+             tstringconstnode(left).st_type:=tstringdef(resulttype.def).string_typ;
              tstringconstnode(left).resulttype:=resulttype;
              result:=left;
              left:=nil;
@@ -443,7 +443,7 @@ implementation
          if left.nodetype=ordconstn then
            begin
               hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),st_default);
-              hp.st_type:=pstringdef(resulttype.def)^.string_typ;
+              hp.st_type:=tstringdef(resulttype.def).string_typ;
               resulttypepass(hp);
               result:=hp;
            end;
@@ -558,8 +558,7 @@ implementation
     function ttypeconvnode.det_resulttype:tnode;
       var
         hp : tnode;
-        aprocdef : pprocdef;
-        enable_range_check: boolean;
+        aprocdef : tprocdef;
       begin
         result:=nil;
         resulttype:=totype;
@@ -573,16 +572,16 @@ implementation
           begin
           { becuase is_equal only checks the basetype for sets we need to
             check here if we are loading a smallset into a normalset }
-            if (resulttype.def^.deftype=setdef) and
-               (left.resulttype.def^.deftype=setdef) and
-               (psetdef(resulttype.def)^.settype<>smallset) and
-               (psetdef(left.resulttype.def)^.settype=smallset) then
+            if (resulttype.def.deftype=setdef) and
+               (left.resulttype.def.deftype=setdef) and
+               (tsetdef(resulttype.def).settype<>smallset) and
+               (tsetdef(left.resulttype.def).settype=smallset) then
              begin
              { try to define the set as a normalset if it's a constant set }
                if left.nodetype=setconstn then
                 begin
                   resulttype:=left.resulttype;
-                  psetdef(resulttype.def)^.settype:=normset
+                  tsetdef(resulttype.def).settype:=normset
                 end
                else
                 convtype:=tc_load_smallset;
@@ -618,45 +617,45 @@ implementation
            use an extra check for them.}
            if (m_tp_procvar in aktmodeswitches) then
             begin
-              if (resulttype.def^.deftype=procvardef) and
+              if (resulttype.def.deftype=procvardef) and
                  (is_procsym_load(left) or is_procsym_call(left)) then
                begin
                  if is_procsym_call(left) then
                   begin
-                    hp:=cloadnode.create(pprocsym(tcallnode(left).symtableprocentry),
+                    hp:=cloadnode.create(tprocsym(tcallnode(left).symtableprocentry),
                         tcallnode(left).symtableproc);
-                    if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                    if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
                        assigned(tcallnode(left).methodpointer) then
                       tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
                     resulttypepass(hp);
                     left.free;
                     left:=hp;
-                    aprocdef:=pprocdef(left.resulttype.def);
+                    aprocdef:=tprocdef(left.resulttype.def);
                   end
                  else
                   begin
                     if (left.nodetype<>addrn) then
-                      aprocdef:=pprocsym(tloadnode(left).symtableentry)^.definition;
+                      aprocdef:=tprocsym(tloadnode(left).symtableentry).definition;
                   end;
                  convtype:=tc_proc_2_procvar;
                  { Now check if the procedure we are going to assign to
                    the procvar,  is compatible with the procvar's type }
                  if assigned(aprocdef) then
                   begin
-                    if not proc_to_procvar_equal(aprocdef,pprocvardef(resulttype.def)) then
-                     CGMessage2(type_e_incompatible_types,aprocdef^.typename,resulttype.def^.typename);
+                    if not proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def)) then
+                     CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
                     result:=first_call_helper(convtype);
                   end
                  else
-                  CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+                  CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                  exit;
                end;
             end;
            if nf_explizit in flags then
             begin
               { check if the result could be in a register }
-              if not(pstoreddef(resulttype.def)^.is_intregable) and
-                not(pstoreddef(resulttype.def)^.is_fpuregable) then
+              if not(tstoreddef(resulttype.def).is_intregable) and
+                not(tstoreddef(resulttype.def).is_fpuregable) then
                 make_not_regable(left);
               { boolean to byte are special because the
                 location can be different }
@@ -680,7 +679,7 @@ implementation
               convtype:=tc_equal;
 
               { enum to ordinal will always be s32bit }
-              if (left.resulttype.def^.deftype=enumdef) and
+              if (left.resulttype.def.deftype=enumdef) and
                  is_ordinal(resulttype.def) then
                begin
                  if left.nodetype=ordconstn then
@@ -693,13 +692,13 @@ implementation
                  else
                   begin
                     if isconvertable(s32bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
-                      CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+                      CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                   end;
                end
 
               { ordinal to enumeration }
               else
-               if (resulttype.def^.deftype=enumdef) and
+               if (resulttype.def.deftype=enumdef) and
                   is_ordinal(left.resulttype.def) then
                 begin
                   if left.nodetype=ordconstn then
@@ -712,7 +711,7 @@ implementation
                   else
                    begin
                      if IsConvertable(left.resulttype.def,s32bittype.def,convtype,ordconstn,false)=0 then
-                       CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+                       CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                    end;
                 end
 
@@ -750,7 +749,7 @@ implementation
                    else
                     begin
                       if IsConvertable(left.resulttype.def,u8bittype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                     end;
                  end
 
@@ -769,7 +768,7 @@ implementation
                    else
                     begin
                       if IsConvertable(u8bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
-                        CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                     end;
                  end
 
@@ -778,23 +777,23 @@ implementation
                else
                 begin
                   if not(
-                     (left.resulttype.def^.deftype=formaldef) or
-                     (left.resulttype.def^.size=resulttype.def^.size) or
+                     (left.resulttype.def.deftype=formaldef) or
+                     (left.resulttype.def.size=resulttype.def.size) or
                      (is_void(left.resulttype.def)  and
                       (left.nodetype=derefn))
                      ) then
                     CGMessage(cg_e_illegal_type_conversion);
-                  if ((left.resulttype.def^.deftype=orddef) and
-                      (resulttype.def^.deftype=pointerdef)) or
-                      ((resulttype.def^.deftype=orddef) and
-                       (left.resulttype.def^.deftype=pointerdef)) then
+                  if ((left.resulttype.def.deftype=orddef) and
+                      (resulttype.def.deftype=pointerdef)) or
+                      ((resulttype.def.deftype=orddef) and
+                       (left.resulttype.def.deftype=pointerdef)) then
                     CGMessage(cg_d_pointer_to_longint_conv_not_portable);
                 end;
 
                { the conversion into a strutured type is only }
                { possible, if the source is no register    }
-               if ((resulttype.def^.deftype in [recorddef,stringdef,arraydef]) or
-                   ((resulttype.def^.deftype=objectdef) and not(is_class(resulttype.def)))
+               if ((resulttype.def.deftype in [recorddef,stringdef,arraydef]) or
+                   ((resulttype.def.deftype=objectdef) and not(is_class(resulttype.def)))
                   ) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
                    it also works if the assignment is overloaded
                    YES but this code is not executed if assignment is overloaded (PM)
@@ -802,7 +801,7 @@ implementation
                  CGMessage(cg_e_illegal_type_conversion);
             end
            else
-            CGMessage2(type_e_incompatible_types,left.resulttype.def^.typename,resulttype.def^.typename);
+            CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
          end;
 
        { tp7 procvar support, when right is not a procvardef and we got a
@@ -810,8 +809,8 @@ implementation
          result is already done in is_convertible, also no conflict with
          @procvar is here because that has an extra addrn }
          if (m_tp_procvar in aktmodeswitches) and
-            (resulttype.def^.deftype<>procvardef) and
-            (left.resulttype.def^.deftype=procvardef) and
+            (resulttype.def.deftype<>procvardef) and
+            (left.resulttype.def.deftype=procvardef) and
             (left.nodetype=loadn) then
           begin
             hp:=ccallnode.create(nil,nil,nil,nil);
@@ -823,30 +822,11 @@ implementation
         { ordinal contants can be directly converted }
         if (left.nodetype=ordconstn) and is_ordinal(resulttype.def)  then
           begin
-             { range checking is done in cordconstnode.create (PFV) }
-             { disable for explicit type casts (JM) }
-             if (nf_explizit in flags) and
-                (cs_check_range in aktlocalswitches) then
-               begin
-                 exclude(aktlocalswitches,cs_check_range);
-                 enable_range_check := true;
-               end
-             else
-               enable_range_check := false;
-             hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
-             resulttypepass(hp);
-             { do sign extension if necessary (JM) }
-             if not (cs_check_range in aktlocalswitches) and
-                is_signed(resulttype.def) then
-               with tordconstnode(hp) do
-                 case resulttype.def^.size of
-                   1: value := shortint(value);
-                   2: value := smallint(value);
-                   4: value := longint(value);
-                 end;
-             if enable_range_check then
-               include(aktlocalswitches,cs_check_range);
-             result:=hp;
+             { replace the resulttype and recheck the range }
+             left.resulttype:=resulttype;
+             testrange(left.resulttype.def,tordconstnode(left).value,(nf_explizit in flags));
+             result:=left;
+             left:=nil;
              exit;
           end;
 
@@ -866,7 +846,7 @@ implementation
       begin
         first_int_to_int:=nil;
         if (left.location.loc<>LOC_REGISTER) and
-           (resulttype.def^.size>left.resulttype.def^.size) then
+           (resulttype.def.size>left.resulttype.def.size) then
            location.loc:=LOC_REGISTER;
         if is_64bitint(resulttype.def) then
           registers32:=max(registers32,2)
@@ -894,14 +874,14 @@ implementation
     function ttypeconvnode.first_string_to_string : tnode;
       begin
          first_string_to_string:=nil;
-         if pstringdef(resulttype.def)^.string_typ<>
-            pstringdef(left.resulttype.def)^.string_typ then
+         if tstringdef(resulttype.def).string_typ<>
+            tstringdef(left.resulttype.def).string_typ then
            begin
              procinfo^.flags:=procinfo^.flags or pi_do_call;
            end;
          { for simplicity lets first keep all ansistrings
            as LOC_MEM, could also become LOC_REGISTER }
-         if pstringdef(resulttype.def)^.string_typ in [st_ansistring,st_widestring] then
+         if tstringdef(resulttype.def).string_typ in [st_ansistring,st_widestring] then
            { we may use ansistrings so no fast exit here }
            procinfo^.no_fast_exit:=true;
          location.loc:=LOC_MEM;
@@ -945,8 +925,8 @@ implementation
          first_real_to_real:=nil;
         { comp isn't a floating type }
 {$ifdef i386}
-         if (pfloatdef(resulttype.def)^.typ=s64comp) and
-            (pfloatdef(left.resulttype.def)^.typ<>s64comp) and
+         if (tfloatdef(resulttype.def).typ=s64comp) and
+            (tfloatdef(left.resulttype.def).typ<>s64comp) and
             not (nf_explizit in flags) then
            CGMessage(type_w_convert_real_2_comp);
 {$endif}
@@ -988,7 +968,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
          location.loc:=LOC_REGISTER;
@@ -1003,7 +983,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
          location.loc:=LOC_REGISTER;
@@ -1141,8 +1121,8 @@ implementation
         if nf_explizit in flags then
          begin
            { check if the result could be in a register }
-           if not(pstoreddef(resulttype.def)^.is_intregable) and
-              not(pstoreddef(resulttype.def)^.is_fpuregable) then
+           if not(tstoreddef(resulttype.def).is_intregable) and
+              not(tstoreddef(resulttype.def).is_fpuregable) then
             make_not_regable(left);
          end;
 
@@ -1187,16 +1167,16 @@ implementation
          if codegenerror then
            exit;
 
-         if (right.resulttype.def^.deftype=classrefdef) then
+         if (right.resulttype.def.deftype=classrefdef) then
           begin
             { left must be a class }
             if is_class(left.resulttype.def) then
              begin
                { the operands must be related }
-               if (not(pobjectdef(left.resulttype.def)^.is_related(
-                  pobjectdef(pclassrefdef(right.resulttype.def)^.pointertype.def)))) and
-                  (not(pobjectdef(pclassrefdef(right.resulttype.def)^.pointertype.def)^.is_related(
-                  pobjectdef(left.resulttype.def)))) then
+               if (not(tobjectdef(left.resulttype.def).is_related(
+                  tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def)))) and
+                  (not(tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def).is_related(
+                  tobjectdef(left.resulttype.def)))) then
                  CGMessage(type_e_mismatch);
              end
             else
@@ -1246,21 +1226,21 @@ implementation
          if codegenerror then
            exit;
 
-         if (right.resulttype.def^.deftype=classrefdef) then
+         if (right.resulttype.def.deftype=classrefdef) then
           begin
             { left must be a class }
             if is_class(left.resulttype.def) then
              begin
                { the operands must be related }
-               if (not(pobjectdef(left.resulttype.def)^.is_related(
-                  pobjectdef(pclassrefdef(right.resulttype.def)^.pointertype.def)))) and
-                  (not(pobjectdef(pclassrefdef(right.resulttype.def)^.pointertype.def)^.is_related(
-                  pobjectdef(left.resulttype.def)))) then
+               if (not(tobjectdef(left.resulttype.def).is_related(
+                  tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def)))) and
+                  (not(tobjectdef(tclassrefdef(right.resulttype.def).pointertype.def).is_related(
+                  tobjectdef(left.resulttype.def)))) then
                  CGMessage(type_e_mismatch);
              end
             else
              CGMessage(type_e_mismatch);
-            resulttype:=pclassrefdef(right.resulttype.def)^.pointertype;
+            resulttype:=tclassrefdef(right.resulttype.def).pointertype;
           end
          else
           CGMessage(type_e_mismatch);
@@ -1295,7 +1275,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-04-04 22:42:39  peter
+  Revision 1.24  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.23  2001/04/04 22:42:39  peter
     * move constant folding into det_resulttype
 
   Revision 1.22  2001/04/02 21:20:30  peter

@@ -75,6 +75,7 @@ implementation
     begin
        if not pp_heap_inited then
          begin
+            keepreleased:=true;
             SetHeapTraceOutput('heap.log');
             SetHeapExtraInfo(sizeof(textra_info),
                              {$ifdef FPCPROCVAR}@{$endif}set_extra_info,
@@ -89,8 +90,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-04-11 12:36:26  peter
-    * use new heaptrc version
+  Revision 1.7  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
 
   Revision 1.5  2001/03/13 18:43:17  peter
     * made memdebug and heaptrc compilable again

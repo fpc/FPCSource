@@ -80,9 +80,9 @@ interface
        end;
 
        tgotonode = class(tnode)
-          labelnr : pasmlabel;
-          labsym : plabelsym;
-          constructor create(p : pasmlabel);virtual;
+          labelnr : tasmlabel;
+          labsym : tlabelsym;
+          constructor create(p : tasmlabel);virtual;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -90,10 +90,10 @@ interface
        end;
 
        tlabelnode = class(tunarynode)
-          labelnr : pasmlabel;
+          labelnr : tasmlabel;
           exceptionblock : tnode;
-          labsym : plabelsym;
-          constructor create(p : pasmlabel;l:tnode);virtual;
+          labsym : tlabelsym;
+          constructor create(p : tasmlabel;l:tnode);virtual;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -123,8 +123,8 @@ interface
        end;
 
        tonnode = class(tbinarynode)
-          exceptsymtable : psymtable;
-          excepttype : pobjectdef;
+          exceptsymtable : tsymtable;
+          excepttype : tobjectdef;
           constructor create(l,r:tnode);virtual;
           destructor destroy;override;
           function det_resulttype:tnode;override;
@@ -362,7 +362,7 @@ implementation
          if not codegenerror then
           begin
             if not is_boolean(left.resulttype.def) then
-              Message1(type_e_boolean_expr_expected,left.resulttype.def^.typename);
+              Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
           end;
 
          registers32:=left.registers32;
@@ -546,11 +546,11 @@ implementation
            in the same lexlevel }
          if (hp.nodetype=funcretn) or
             ((hp.nodetype=loadn) and
-             ((tloadnode(hp).symtable^.symtablelevel<=1) or
-              (tloadnode(hp).symtable^.symtablelevel=lexlevel))) then
+             ((tloadnode(hp).symtable.symtablelevel<=1) or
+              (tloadnode(hp).symtable.symtablelevel=lexlevel))) then
           begin
-            if tloadnode(hp).symtableentry^.typ=varsym then
-              pvarsym(tloadnode(hp).symtableentry)^.varstate:=vs_used;
+            if tloadnode(hp).symtableentry.typ=varsym then
+              tvarsym(tloadnode(hp).symtableentry).varstate:=vs_used;
             if (not(is_ordinal(t2.resulttype.def)) or is_64bitint(t2.resulttype.def)) then
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
@@ -700,7 +700,7 @@ implementation
                              TGOTONODE
 *****************************************************************************}
 
-    constructor tgotonode.create(p : pasmlabel);
+    constructor tgotonode.create(p : tasmlabel);
 
       begin
         inherited create(goton);
@@ -741,7 +741,7 @@ implementation
                              TLABELNODE
 *****************************************************************************}
 
-    constructor tlabelnode.create(p : pasmlabel;l:tnode);
+    constructor tlabelnode.create(p : tasmlabel;l:tnode);
 
       begin
         inherited create(labeln,l);
@@ -1012,7 +1012,7 @@ implementation
     destructor tonnode.destroy;
       begin
         if assigned(exceptsymtable) then
-         dispose(exceptsymtable,done);
+         exceptsymtable.free;
         inherited destroy;
       end;
 
@@ -1136,7 +1136,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-04-02 21:20:30  peter
+  Revision 1.16  2001-04-13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.15  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.14  2001/03/25 12:27:59  peter

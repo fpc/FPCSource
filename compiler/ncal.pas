@@ -35,15 +35,15 @@ interface
        tcallnode = class(tbinarynode)
           { the symbol containing the definition of the procedure }
           { to call                                               }
-          symtableprocentry : pprocsym;
+          symtableprocentry : tprocsym;
           { the symtable containing symtableprocentry }
-          symtableproc   : psymtable;
+          symtableproc   : tsymtable;
           { the definition of the procedure to call }
-          procdefinition : pabstractprocdef;
+          procdefinition : tabstractprocdef;
           methodpointer  : tnode;
           { only the processor specific nodes need to override this }
           { constructor                                             }
-          constructor create(l:tnode; v : pprocsym;st : psymtable; mp : tnode);virtual;
+          constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
           destructor destroy;override;
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -83,7 +83,7 @@ interface
 
        tprocinlinenode = class(tnode)
           inlinetree : tnode;
-          inlineprocsym : pprocsym;
+          inlineprocsym : tprocsym;
           retoffset,para_offset,para_size : longint;
           constructor create(callp,code : tnode);virtual;
           destructor destroy;override;
@@ -209,7 +209,7 @@ implementation
            it here before the arrayconstructor node breaks the tree
            with its conversions of enum->ord }
          if (left.nodetype=arrayconstructorn) and
-            (defcoll.paratype.def^.deftype=setdef) then
+            (defcoll.paratype.def.deftype=setdef) then
            inserttypeconv(left,defcoll.paratype);
 
          { set some settings needed for arrayconstructor }
@@ -218,8 +218,8 @@ implementation
             if is_array_of_const(defcoll.paratype.def) then
              begin
                if assigned(aktcallprocsym) and
-                  (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym^.definition^.proccalloptions)<>[]) and
-                  (po_external in aktcallprocsym^.definition^.procoptions) then
+                  (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym.definition.proccalloptions)<>[]) and
+                  (po_external in aktcallprocsym.definition.procoptions) then
                  include(left.flags,nf_cargs);
                { force variant array }
                include(left.flags,nf_forcevaria);
@@ -227,7 +227,7 @@ implementation
             else
              begin
                include(left.flags,nf_novariaallowed);
-               tarrayconstructornode(left).constructortype:=parraydef(defcoll.paratype.def)^.elementtype;
+               tarrayconstructornode(left).constructortype:=tarraydef(defcoll.paratype.def).elementtype;
              end;
           end;
 
@@ -258,58 +258,58 @@ implementation
             allow_array_constructor:=old_array_constructor; }
           end;
          { check if local proc/func is assigned to procvar }
-         if left.resulttype.def^.deftype=procvardef then
-           test_local_to_procvar(pprocvardef(left.resulttype.def),defcoll.paratype.def);
+         if left.resulttype.def.deftype=procvardef then
+           test_local_to_procvar(tprocvardef(left.resulttype.def),defcoll.paratype.def);
          { property is not allowed as var parameter }
          if (defcoll.paratyp in [vs_out,vs_var]) and
             (nf_isproperty in left.flags) then
            CGMessagePos(left.fileinfo,type_e_argument_cant_be_assigned);
          { generate the high() value tree }
          if not(assigned(aktcallprocsym) and
-                (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym^.definition^.proccalloptions)<>[]) and
-                (po_external in aktcallprocsym^.definition^.procoptions)) and
+                (([pocall_cppdecl,pocall_cdecl]*aktcallprocsym.definition.proccalloptions)<>[]) and
+                (po_external in aktcallprocsym.definition.procoptions)) and
             push_high_param(defcoll.paratype.def) then
            gen_high_tree(is_open_string(defcoll.paratype.def));
          if not(is_shortstring(left.resulttype.def) and
                 is_shortstring(defcoll.paratype.def)) and
-                (defcoll.paratype.def^.deftype<>formaldef) then
+                (defcoll.paratype.def.deftype<>formaldef) then
            begin
               if (defcoll.paratyp in [vs_var,vs_out]) and
               { allows conversion from word to integer and
                 byte to shortint }
                 (not(
-                   (left.resulttype.def^.deftype=orddef) and
-                   (defcoll.paratype.def^.deftype=orddef) and
-                   (left.resulttype.def^.size=defcoll.paratype.def^.size)
+                   (left.resulttype.def.deftype=orddef) and
+                   (defcoll.paratype.def.deftype=orddef) and
+                   (left.resulttype.def.size=defcoll.paratype.def.size)
                     ) and
               { an implicit pointer conversion is allowed }
                 not(
-                   (left.resulttype.def^.deftype=pointerdef) and
-                   (defcoll.paratype.def^.deftype=pointerdef)
+                   (left.resulttype.def.deftype=pointerdef) and
+                   (defcoll.paratype.def.deftype=pointerdef)
                     ) and
               { child classes can be also passed }
                 not(
-                   (left.resulttype.def^.deftype=objectdef) and
-                   (defcoll.paratype.def^.deftype=objectdef) and
-                   pobjectdef(left.resulttype.def)^.is_related(pobjectdef(defcoll.paratype.def))
+                   (left.resulttype.def.deftype=objectdef) and
+                   (defcoll.paratype.def.deftype=objectdef) and
+                   tobjectdef(left.resulttype.def).is_related(tobjectdef(defcoll.paratype.def))
                    ) and
               { passing a single element to a openarray of the same type }
                 not(
                    (is_open_array(defcoll.paratype.def) and
-                   is_equal(parraydef(defcoll.paratype.def)^.elementtype.def,left.resulttype.def))
+                   is_equal(tarraydef(defcoll.paratype.def).elementtype.def,left.resulttype.def))
                    ) and
               { an implicit file conversion is also allowed }
               { from a typed file to an untyped one           }
                 not(
-                   (left.resulttype.def^.deftype=filedef) and
-                   (defcoll.paratype.def^.deftype=filedef) and
-                   (pfiledef(defcoll.paratype.def)^.filetyp = ft_untyped) and
-                   (pfiledef(left.resulttype.def)^.filetyp = ft_typed)
+                   (left.resulttype.def.deftype=filedef) and
+                   (defcoll.paratype.def.deftype=filedef) and
+                   (tfiledef(defcoll.paratype.def).filetyp = ft_untyped) and
+                   (tfiledef(left.resulttype.def).filetyp = ft_typed)
                     ) and
                 not(is_equal(left.resulttype.def,defcoll.paratype.def))) then
                   begin
                      CGMessagePos2(left.fileinfo,parser_e_call_by_ref_without_typeconv,
-                       left.resulttype.def^.typename,defcoll.paratype.def^.typename);
+                       left.resulttype.def.typename,defcoll.paratype.def.typename);
                   end;
               { Process open parameters }
               if push_high_param(defcoll.paratype.def) then
@@ -345,7 +345,7 @@ implementation
          { into a register }
          { is this usefull here ? }
          { this was missing in formal parameter list   }
-         if (defcoll.paratype.def^.deftype=formaldef) then
+         if (defcoll.paratype.def.deftype=formaldef) then
            begin
              if defcoll.paratyp in [vs_var,vs_out] then
                begin
@@ -441,30 +441,30 @@ implementation
     procedure tcallparanode.gen_high_tree(openstring:boolean);
       var
         len : longint;
-        st  : psymtable;
+        st  : tsymtable;
         loadconst : boolean;
-        srsym : psym;
+        srsym : tsym;
       begin
         if assigned(hightree) then
           exit;
         len:=-1;
         loadconst:=true;
-        case left.resulttype.def^.deftype of
+        case left.resulttype.def.deftype of
           arraydef :
             begin
               if is_open_array(left.resulttype.def) or
                  is_array_of_const(left.resulttype.def) then
                begin
                  st:=tloadnode(left).symtable;
-                 srsym:=searchsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                 hightree:=cloadnode.create(pvarsym(srsym),st);
+                 srsym:=searchsymonlyin(st,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                 hightree:=cloadnode.create(tvarsym(srsym),st);
                  loadconst:=false;
                end
               else
                 begin
                   { this is an empty constructor }
-                  len:=parraydef(left.resulttype.def)^.highrange-
-                       parraydef(left.resulttype.def)^.lowrange;
+                  len:=tarraydef(left.resulttype.def).highrange-
+                       tarraydef(left.resulttype.def).lowrange;
                 end;
             end;
           stringdef :
@@ -474,12 +474,12 @@ implementation
                  if is_open_string(left.resulttype.def) then
                   begin
                     st:=tloadnode(left).symtable;
-                    srsym:=searchsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                    hightree:=cloadnode.create(pvarsym(srsym),st);
+                    srsym:=searchsymonlyin(st,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                    hightree:=cloadnode.create(tvarsym(srsym),st);
                     loadconst:=false;
                   end
                  else
-                  len:=pstringdef(left.resulttype.def)^.len;
+                  len:=tstringdef(left.resulttype.def).len;
                end
               else
              { passing a string to an array of char }
@@ -521,7 +521,7 @@ implementation
                                  TCALLNODE
  ****************************************************************************}
 
-    constructor tcallnode.create(l:tnode;v : pprocsym;st : psymtable; mp : tnode);
+    constructor tcallnode.create(l:tnode;v : tprocsym;st : tsymtable; mp : tnode);
 
       begin
          inherited create(calln,l,nil);
@@ -571,25 +571,25 @@ implementation
       type
          pprocdefcoll = ^tprocdefcoll;
          tprocdefcoll = record
-            data      : pprocdef;
+            data      : tprocdef;
             nextpara  : tparaitem;
             firstpara : tparaitem;
             next      : pprocdefcoll;
          end;
       var
          hp,procs,hp2 : pprocdefcoll;
-         pd : pprocdef;
-         oldcallprocsym : pprocsym;
-         def_from,def_to,conv_to : pdef;
-         hpt,hpt2 : tnode;
+         pd : tprocdef;
+         oldcallprocsym : tprocsym;
+         def_from,def_to,conv_to : tdef;
+         hpt : tnode;
          pt : tcallparanode;
          exactmatch : boolean;
          paralength,lastpara : longint;
-         lastparatype : pdef;
+         lastparatype : tdef;
          pdc : tparaitem;
 {$ifdef TEST_PROCSYMS}
-         nextprocsym : pprocsym;
-         symt : psymtable;
+         nextprocsym : tprocsym;
+         symt : tsymtable;
 {$endif TEST_PROCSYMS}
          { only Dummy }
          hcvt : tconverttype;
@@ -598,7 +598,7 @@ implementation
 
       { check if the resulttype.def from tree p is equal with def, needed
         for stringconstn and formaldef }
-      function is_equal(p:tcallparanode;def:pdef) : boolean;
+      function is_equal(p:tcallparanode;def:tdef) : boolean;
 
         begin
            { safety check }
@@ -608,7 +608,7 @@ implementation
               exit;
             end;
            { all types can be passed to a formaldef }
-           is_equal:=(def^.deftype=formaldef) or
+           is_equal:=(def.deftype=formaldef) or
              (types.is_equal(p.resulttype.def,def))
            { integer constants are compatible with all integer parameters if
              the specified value matches the range }
@@ -617,16 +617,16 @@ implementation
               (tbinarynode(p).left.nodetype=ordconstn) and
               is_integer(p.resulttype.def) and
               is_integer(def) and
-              (tordconstnode(p.left).value>=porddef(def)^.low) and
-              (tordconstnode(p.left).value<=porddef(def)^.high)
+              (tordconstnode(p.left).value>=torddef(def).low) and
+              (tordconstnode(p.left).value<=torddef(def).high)
              )
            { to support ansi/long/wide strings in a proper way }
            { string and string[10] are assumed as equal }
            { when searching the correct overloaded procedure   }
              or
              (
-              (def^.deftype=stringdef) and (p.resulttype.def^.deftype=stringdef) and
-              (pstringdef(def)^.string_typ=pstringdef(p.resulttype.def)^.string_typ)
+              (def.deftype=stringdef) and (p.resulttype.def.deftype=stringdef) and
+              (tstringdef(def).string_typ=tstringdef(p.resulttype.def).string_typ)
              )
              or
              (
@@ -641,32 +641,32 @@ implementation
            { set can also be a not yet converted array constructor }
              or
              (
-              (def^.deftype=setdef) and (p.resulttype.def^.deftype=arraydef) and
-              (parraydef(p.resulttype.def)^.IsConstructor) and not(parraydef(p.resulttype.def)^.IsVariant)
+              (def.deftype=setdef) and (p.resulttype.def.deftype=arraydef) and
+              (tarraydef(p.resulttype.def).IsConstructor) and not(tarraydef(p.resulttype.def).IsVariant)
              )
            { in tp7 mode proc -> procvar is allowed }
              or
              (
               (m_tp_procvar in aktmodeswitches) and
-              (def^.deftype=procvardef) and (p.left.nodetype=calln) and
-              (proc_to_procvar_equal(pprocdef(tcallnode(p.left).procdefinition),pprocvardef(def)))
+              (def.deftype=procvardef) and (p.left.nodetype=calln) and
+              (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def)))
              )
              ;
         end;
 
-      function is_in_limit(def_from,def_to : pdef) : boolean;
+      function is_in_limit(def_from,def_to : tdef) : boolean;
 
         begin
-           is_in_limit:=(def_from^.deftype = orddef) and
-                        (def_to^.deftype = orddef) and
-                        (porddef(def_from)^.low>porddef(def_to)^.low) and
-                        (porddef(def_from)^.high<porddef(def_to)^.high);
+           is_in_limit:=(def_from.deftype = orddef) and
+                        (def_to.deftype = orddef) and
+                        (torddef(def_from).low>torddef(def_to).low) and
+                        (torddef(def_from).high<torddef(def_to).high);
         end;
 
       var
         i : longint;
         is_const : boolean;
-        bestord  : porddef;
+        bestord  : torddef;
       begin
          result:=nil;
 
@@ -683,7 +683,7 @@ implementation
                exit;
 
               { check the parameters }
-              pdc:=tparaitem(pprocvardef(right.resulttype.def)^.Para.first);
+              pdc:=tparaitem(tprocvardef(right.resulttype.def).Para.first);
               pt:=tcallparanode(left);
               while assigned(pdc) and assigned(pt) do
                 begin
@@ -697,7 +697,7 @@ implementation
                    CGMessage(parser_e_illegal_parameter_list);
                 end;
 
-              procdefinition:=pabstractprocdef(right.resulttype.def);
+              procdefinition:=tabstractprocdef(right.resulttype.def);
            end
          else
          { not a procedure variable }
@@ -710,7 +710,7 @@ implementation
                      goto errorexit;
                 end;
 
-              aktcallprocsym:=pprocsym(symtableprocentry);
+              aktcallprocsym:=tprocsym(symtableprocentry);
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
@@ -725,9 +725,9 @@ implementation
                      while assigned(symt^.next) and not assigned(srsym) do
                        begin
                           symt:=symt^.next;
-                          srsym:=searchsymonlyin(symt,actprocsym^.name);
+                          srsym:=searchsymonlyin(symt,actprocsym.name);
                           if assigned(srsym) then
-                            if srsym^.typ<>procsym then
+                            if srsym.typ<>procsym then
                               begin
                                  { reject all that is not a procedure }
                                  srsym:=nil;
@@ -749,25 +749,25 @@ implementation
                      end;
 
                    { link all procedures which have the same # of parameters }
-                   pd:=aktcallprocsym^.definition;
+                   pd:=aktcallprocsym.definition;
                    while assigned(pd) do
                      begin
                         { only when the # of parameter are supported by the
                           procedure }
-                        if (paralength>=pd^.minparacount) and (paralength<=pd^.maxparacount) then
+                        if (paralength>=pd.minparacount) and (paralength<=pd.maxparacount) then
                           begin
                              new(hp);
                              hp^.data:=pd;
                              hp^.next:=procs;
-                             hp^.firstpara:=tparaitem(pd^.Para.first);
+                             hp^.firstpara:=tparaitem(pd.Para.first);
                              { if not all parameters are given, then skip the
                                default parameters }
-                             for i:=1 to pd^.maxparacount-paralength do
+                             for i:=1 to pd.maxparacount-paralength do
                               hp^.firstpara:=tparaitem(hp^.firstPara.next);
                              hp^.nextpara:=hp^.firstpara;
                              procs:=hp;
                           end;
-                        pd:=pd^.nextoverloaded;
+                        pd:=pd.nextoverloaded;
                      end;
 
                    { no procedures found? then there is something wrong
@@ -779,8 +779,8 @@ implementation
                       if not(assigned(left)) and
                          (m_tp_procvar in aktmodeswitches) then
                         begin
-                          hpt:=cloadnode.create(pprocsym(symtableprocentry),symtableproc);
-                          if (symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                          hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
+                          if (symtableprocentry.owner.symtabletype=objectsymtable) and
                              assigned(methodpointer) then
                             tloadnode(hpt).set_mp(methodpointer.getcopy);
                           resulttypepass(hpt);
@@ -791,7 +791,7 @@ implementation
                           if assigned(left) then
                            aktfilepos:=left.fileinfo;
                           CGMessage(parser_e_wrong_parameter_size);
-                          aktcallprocsym^.write_parameter_lists(nil);
+                          aktcallprocsym.write_parameter_lists(nil);
                         end;
                       goto errorexit;
                     end;
@@ -913,9 +913,9 @@ implementation
                         begin
                           aktfilepos:=pt.fileinfo;
                           CGMessage3(type_e_wrong_parameter_type,tostr(lastpara),
-                            pt.resulttype.def^.typename,lastparatype^.typename);
+                            pt.resulttype.def.typename,lastparatype.typename);
                         end;
-                      aktcallprocsym^.write_parameter_lists(nil);
+                      aktcallprocsym.write_parameter_lists(nil);
                       goto errorexit;
                     end;
 
@@ -947,10 +947,10 @@ implementation
                                   if not is_equal(pt,hp^.nextPara.paratype.def) then
                                     begin
                                        def_to:=hp^.nextPara.paratype.def;
-                                       if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
+                                       if ((def_from.deftype=orddef) and (def_to.deftype=orddef)) and
                                          (is_in_limit(def_from,def_to) or
                                          ((hp^.nextPara.paratyp in [vs_var,vs_out]) and
-                                         (def_from^.size=def_to^.size))) then
+                                         (def_from.size=def_to.size))) then
                                          begin
                                             exactmatch:=true;
                                             conv_to:=def_to;
@@ -982,9 +982,9 @@ implementation
                                        else
                                          begin
                                            def_to:=hp^.next^.nextPara.paratype.def;
-                                           if (conv_to^.size>def_to^.size) or
-                                              ((porddef(conv_to)^.low<porddef(def_to)^.low) and
-                                              (porddef(conv_to)^.high>porddef(def_to)^.high)) then
+                                           if (conv_to.size>def_to.size) or
+                                              ((torddef(conv_to).low<torddef(def_to).low) and
+                                              (torddef(conv_to).high>torddef(def_to).high)) then
                                              begin
                                                 hp2:=procs;
                                                 procs:=hp;
@@ -1082,9 +1082,9 @@ implementation
                                   if not is_integer(def_to) then
                                    internalerror(43297815);
                                   if (not assigned(bestord)) or
-                                     ((porddef(def_to)^.low>bestord^.low) or
-                                      (porddef(def_to)^.high<bestord^.high)) then
-                                   bestord:=porddef(def_to);
+                                     ((torddef(def_to).low>bestord.low) or
+                                      (torddef(def_to).high<bestord.high)) then
+                                   bestord:=torddef(def_to);
                                   hp:=hp^.next;
                                 end;
                              end;
@@ -1098,7 +1098,7 @@ implementation
                                 begin
                                   hp2:=hp^.next;
                                   { keep matching bestord, dispose the others }
-                                  if (porddef(hp^.nextPara.paratype.def)=bestord) then
+                                  if (torddef(hp^.nextPara.paratype.def)=bestord) then
                                    begin
                                      hp^.next:=procs;
                                      procs:=hp;
@@ -1172,7 +1172,7 @@ implementation
                    if not(assigned(procs)) or assigned(procs^.next) then
                      begin
                         CGMessage(cg_e_cant_choose_overload_function);
-                        aktcallprocsym^.write_parameter_lists(nil);
+                        aktcallprocsym.write_parameter_lists(nil);
                         goto errorexit;
                      end;
 {$ifdef TEST_PROCSYMS}
@@ -1185,24 +1185,24 @@ implementation
 {$endif TEST_PROCSYMS}
                    if make_ref then
                      begin
-                        procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@fileinfo));
-                        inc(procs^.data^.refcount);
-                        if procs^.data^.defref=nil then
-                          procs^.data^.defref:=procs^.data^.lastref;
+                        procs^.data.lastref:=tref.create(procs^.data.lastref,@fileinfo);
+                        inc(procs^.data.refcount);
+                        if procs^.data.defref=nil then
+                          procs^.data.defref:=procs^.data.lastref;
                      end;
 
                    procdefinition:=procs^.data;
                    { big error for with statements
-                   symtableproc:=procdefinition^.owner;
+                   symtableproc:=procdefinition.owner;
                    but neede for overloaded operators !! }
                    if symtableproc=nil then
-                     symtableproc:=procdefinition^.owner;
+                     symtableproc:=procdefinition.owner;
 
 {$ifdef CHAINPROCSYMS}
                    { object with method read;
                      call to read(x) will be a usual procedure call }
                    if assigned(methodpointer) and
-                     (procdefinition^._class=nil) then
+                     (procdefinition._class=nil) then
                      begin
                         { not ok for extended }
                         case methodpointer^.nodetype of
@@ -1217,70 +1217,74 @@ implementation
 
               { add needed default parameters }
               if assigned(procs) and
-                 (paralength<procdefinition^.maxparacount) then
+                 (paralength<procdefinition.maxparacount) then
                begin
                  { add default parameters, just read back the skipped
                    paras starting from firstPara.previous, when not available
                    (all parameters are default) then start with the last
                    parameter and read backward (PFV) }
                  if not assigned(procs^.firstpara) then
-                  pdc:=tparaitem(procs^.data^.Para.last)
+                  pdc:=tparaitem(procs^.data.Para.last)
                  else
                   pdc:=tparaitem(procs^.firstPara.previous);
                  while assigned(pdc) do
                   begin
                     if not assigned(pdc.defaultvalue) then
                      internalerror(751349858);
-                    left:=ccallparanode.create(genconstsymtree(pconstsym(pdc.defaultvalue)),left);
+                    left:=ccallparanode.create(genconstsymtree(tconstsym(pdc.defaultvalue)),left);
                     pdc:=tparaitem(pdc.previous);
                   end;
                end;
            end;
 
               { handle predefined procedures }
-              is_const:=(pocall_internconst in procdefinition^.proccalloptions) and
+              is_const:=(pocall_internconst in procdefinition.proccalloptions) and
                         ((block_type in [bt_const,bt_type]) or
                          (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
-              if (pocall_internproc in procdefinition^.proccalloptions) or is_const then
+              if (pocall_internproc in procdefinition.proccalloptions) or is_const then
                 begin
                    if assigned(left) then
                      begin
-                       hpt2:=left;
-                       left:=nil;
                      { ptr and settextbuf needs two args }
-                       if assigned(tcallparanode(hpt2).right) then
-                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,hpt2)
+                       if assigned(tcallparanode(left).right) then
+                        begin
+                          hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,left);
+                          left:=nil;
+                        end
                        else
-                        hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,tcallparanode(hpt2).left);
+                        begin
+                          hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,tcallparanode(left).left);
+                          tcallparanode(left).left:=nil;
+                        end;
                      end
                    else
-                     hpt:=geninlinenode(pprocdef(procdefinition)^.extnumber,is_const,nil);
-                   firstpass(hpt);
+                     hpt:=geninlinenode(tprocdef(procdefinition).extnumber,is_const,nil);
+                   resulttypepass(hpt);
                    result:=hpt;
                    goto errorexit;
                 end;
 
          { Calling a message method directly ? }
          if assigned(procdefinition) and
-            (po_containsself in procdefinition^.procoptions) then
+            (po_containsself in procdefinition.procoptions) then
            message(cg_e_cannot_call_message_direct);
 
          { ensure that the result type is set }
-         resulttype:=procdefinition^.rettype;
+         resulttype:=procdefinition.rettype;
 
          { constructors return their current class type, not the type where the
            constructor is declared, this can be different because of inheritance }
-         if (procdefinition^.proctypeoption=potype_constructor) then
+         if (procdefinition.proctypeoption=potype_constructor) then
            begin
              if assigned(methodpointer) and
                 assigned(methodpointer.resulttype.def) and
-                (methodpointer.resulttype.def^.deftype=classrefdef) then
-               resulttype:=pclassrefdef(methodpointer.resulttype.def)^.pointertype;
+                (methodpointer.resulttype.def.deftype=classrefdef) then
+               resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype;
            end;
 
          { insert type conversions }
          if assigned(left) then
-          tcallparanode(left).insert_typeconv(tparaitem(procdefinition^.Para.first),true);
+          tcallparanode(left).insert_typeconv(tparaitem(procdefinition.Para.first),true);
 
       errorexit:
          { Reset some settings back }
@@ -1292,7 +1296,7 @@ implementation
 
     function tcallnode.pass_1 : tnode;
       var
-         hpt,hpt2,inlinecode : tnode;
+         inlinecode : tnode;
          inlined : boolean;
 {$ifdef m68k}
          regi : tregister;
@@ -1300,8 +1304,6 @@ implementation
          method_must_be_valid : boolean;
       label
         errorexit;
-      var
-        is_const : boolean;
       begin
          result:=nil;
          inlined:=false;
@@ -1311,13 +1313,13 @@ implementation
            tcallparanode(left).det_registers;
 
          if assigned(procdefinition) and
-            (pocall_inline in procdefinition^.proccalloptions) then
+            (pocall_inline in procdefinition.proccalloptions) then
            begin
               inlinecode:=right;
               if assigned(inlinecode) then
                 begin
                    inlined:=true;
-                   exclude(procdefinition^.proccalloptions,pocall_inline);
+                   exclude(procdefinition.proccalloptions,pocall_inline);
                 end;
               right:=nil;
            end;
@@ -1348,7 +1350,7 @@ implementation
 
               { calc the correture value for the register }
               { handle predefined procedures }
-              if (pocall_inline in procdefinition^.proccalloptions) then
+              if (pocall_inline in procdefinition.proccalloptions) then
                 begin
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
@@ -1357,15 +1359,15 @@ implementation
                    { nodetype:=procinlinen; }
                    if not assigned(right) then
                      begin
-                        if assigned(pprocdef(procdefinition)^.code) then
-                          inlinecode:=cprocinlinenode.create(self,tnode(pprocdef(procdefinition)^.code))
+                        if assigned(tprocdef(procdefinition).code) then
+                          inlinecode:=cprocinlinenode.create(self,tnode(tprocdef(procdefinition).code))
                         else
                           CGMessage(cg_e_no_code_for_inline_stored);
                         if assigned(inlinecode) then
                           begin
                              { consider it has not inlined if called
                                again inside the args }
-                             exclude(procdefinition^.proccalloptions,pocall_inline);
+                             exclude(procdefinition.proccalloptions,pocall_inline);
                              firstpass(inlinecode);
                              inlined:=true;
                           end;
@@ -1379,12 +1381,12 @@ implementation
 
 {$ifndef newcg}
 {$ifdef i386}
-              incrementregisterpushed(pprocdef(procdefinition)^.usedregisters);
+              incrementregisterpushed(tprocdef(procdefinition).usedregisters);
 {$endif}
 {$ifdef m68k}
              for regi:=R_D0 to R_A6 do
                begin
-                  if (pprocdef(procdefinition)^.usedregisters and ($800 shr word(regi)))<>0 then
+                  if (tprocdef(procdefinition).usedregisters and ($800 shr word(regi)))<>0 then
                     inc(reg_pushes[regi],t_times*2);
                end;
 {$endif}
@@ -1394,13 +1396,13 @@ implementation
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
            begin
-              if (procdefinition^.proctypeoption=potype_constructor) then
+              if (procdefinition.proctypeoption=potype_constructor) then
                 begin
                    { extra handling of classes }
                    { methodpointer should be assigned! }
                    if assigned(methodpointer) and
                       assigned(methodpointer.resulttype.def) and
-                      (methodpointer.resulttype.def^.deftype=classrefdef) then
+                      (methodpointer.resulttype.def.deftype=classrefdef) then
                      begin
                         location.loc:=LOC_REGISTER;
                         registers32:=1;
@@ -1441,7 +1443,7 @@ implementation
                              registers32:=1;
                           end;
                      end
-                   else if (resulttype.def^.deftype=floatdef) then
+                   else if (resulttype.def.deftype=floatdef) then
                      begin
                         location.loc:=LOC_FPU;
                         registersfpu:=1;
@@ -1451,7 +1453,7 @@ implementation
                 end;
            end;
          { a fpu can be used in any procedure !! }
-         registersfpu:=procdefinition^.fpu_used;
+         registersfpu:=procdefinition.fpu_used;
          { if this is a call to a method calc the registers }
          if (methodpointer<>nil) then
            begin
@@ -1463,9 +1465,9 @@ implementation
                           registers32:=1;
                 else
                   begin
-                     if (procdefinition^.proctypeoption in [potype_constructor,potype_destructor]) and
-                        assigned(symtableproc) and (symtableproc^.symtabletype=withsymtable) and
-                        not pwithsymtable(symtableproc)^.direct_with then
+                     if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
+                        assigned(symtableproc) and (symtableproc.symtabletype=withsymtable) and
+                        not twithsymtable(symtableproc).direct_with then
                        begin
                           CGmessage(cg_e_cannot_call_cons_dest_inside_with);
                        end; { Is accepted by Delphi !! }
@@ -1474,9 +1476,9 @@ implementation
 
                      { R.Assign is not a constructor !!! }
                      { but for R^.Assign, R must be valid !! }
-                     if (procdefinition^.proctypeoption=potype_constructor) or
+                     if (procdefinition.proctypeoption=potype_constructor) or
                         ((methodpointer.nodetype=loadn) and
-                        (not(oo_has_virtual in pobjectdef(methodpointer.resulttype.def)^.objectoptions))) then
+                        (not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions))) then
                        method_must_be_valid:=false
                      else
                        method_must_be_valid:=true;
@@ -1484,8 +1486,8 @@ implementation
                      set_varstate(methodpointer,method_must_be_valid);
                      { The object is already used ven if it is called once }
                      if (methodpointer.nodetype=loadn) and
-                        (tloadnode(methodpointer).symtableentry^.typ=varsym) then
-                       pvarsym(tloadnode(methodpointer).symtableentry)^.varstate:=vs_used;
+                        (tloadnode(methodpointer).symtableentry.typ=varsym) then
+                       tvarsym(tloadnode(methodpointer).symtableentry).varstate:=vs_used;
 
                      registersfpu:=max(methodpointer.registersfpu,registersfpu);
                      registers32:=max(methodpointer.registers32,registers32);
@@ -1519,7 +1521,7 @@ implementation
            end;
       errorexit:
          if inlined then
-           include(procdefinition^.proccalloptions,pocall_inline);
+           include(procdefinition.proccalloptions,pocall_inline);
       end;
 
 
@@ -1544,8 +1546,8 @@ implementation
          inlineprocsym:=tcallnode(callp).symtableprocentry;
          retoffset:=-target_os.size_of_pointer; { less dangerous as zero (PM) }
          para_offset:=0;
-         para_size:=inlineprocsym^.definition^.para_size(target_os.stackalignment);
-         if ret_in_param(inlineprocsym^.definition^.rettype.def) then
+         para_size:=inlineprocsym.definition.para_size(target_os.stackalignment);
+         if ret_in_param(inlineprocsym.definition.rettype.def) then
            para_size:=para_size+target_os.size_of_pointer;
          { copy args }
          if assigned(code) then
@@ -1556,7 +1558,7 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=code.registersmmx;
 {$endif SUPPORT_MMX}
-         resulttype:=inlineprocsym^.definition^.rettype;
+         resulttype:=inlineprocsym.definition.rettype;
       end;
 
     destructor tprocinlinenode.destroy;
@@ -1613,7 +1615,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-04-04 22:42:39  peter
+  Revision 1.27  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.26  2001/04/04 22:42:39  peter
     * move constant folding into det_resulttype
 
   Revision 1.25  2001/04/02 21:20:30  peter

@@ -36,7 +36,7 @@ interface
 implementation
 
     uses
-      cutils,cobjects,cclasses,
+      cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symsym,fmodule,aasm,
       hcodegen,
@@ -92,10 +92,10 @@ implementation
           stacksize:=target_info.stacksize;
 
          { open assembler response }
-         AsmRes.Init(outputexedir+'ppas');
+         AsmRes:=TAsmScript.Create(outputexedir+'ppas');
 
          { open deffile }
-         DefFile.Init(outputexedir+inputfile+target_os.defext);
+         DefFile:=TDefFile.Create(outputexedir+inputfile+target_os.defext);
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TStringList.Create;
@@ -108,9 +108,17 @@ implementation
          loaded_units.free;
          usedunits.free;
 
+         { if there was an error in the scanner, the scanner is
+           still assinged }
+         if assigned(current_scanner) then
+          begin
+            dispose(current_scanner,done);
+            current_scanner:=nil;
+          end;
+
          { close ppas,deffile }
-         asmres.done;
-         deffile.done;
+         asmres.free;
+         deffile.free;
 
          { free list of .o files }
          SmartLinkOFiles.Free;
@@ -200,6 +208,7 @@ implementation
          until false;
        { free scanner }
          dispose(current_scanner,done);
+         current_scanner:=nil;
        { close }
          dispose(preprocfile,done);
       end;
@@ -221,9 +230,9 @@ implementation
        { symtable }
          oldrefsymtable,
          olddefaultsymtablestack,
-         oldsymtablestack : psymtable;
+         oldsymtablestack : tsymtable;
          oldprocprefix    : string;
-         oldaktprocsym    : pprocsym;
+         oldaktprocsym    : tprocsym;
          oldoverloaded_operators : toverloaded_operators;
        { cg }
          oldnextlabelnr : longint;
@@ -241,7 +250,7 @@ implementation
          olddebuglist,
          oldwithdebuglist,
          oldconsts     : taasmoutput;
-         oldasmsymbollist : pdictionary;
+         oldasmsymbollist : tdictionary;
        { resourcestrings }
          OldResourceStrings : tResourceStrings;
        { akt.. things }
@@ -363,6 +372,10 @@ implementation
             main_module:=current_module;
           end;
 
+         { a unit compiled at command line must be inside the loaded_unit list }
+         if (compile_level=1) then
+           loaded_units.insert(current_module);
+
          { Set the module to use for verbose }
          SetCompileModule(current_module);
 
@@ -461,6 +474,7 @@ implementation
           end;
        { free scanner }
          dispose(current_scanner,done);
+         current_scanner:=nil;
        { restore previous scanner !! }
          current_module.scanner:=prev_scanner;
          if assigned(prev_scanner) then
@@ -567,11 +581,11 @@ implementation
           (* Obsolete code aktprocsym
              is disposed by the localsymtable disposal (PM)
           { Free last aktprocsym }
-            if assigned(aktprocsym) and (aktprocsym^.owner=nil) then
+            if assigned(aktprocsym) and (aktprocsym.owner=nil) then
              begin
                { init parts are not needed in units !! }
                if current_module.is_unit then
-                 aktprocsym^.definition^.forwarddef:=false;
+                 aktprocsym.definition.forwarddef:=false;
                dispose(aktprocsym,done);
              end; *)
           end;
@@ -589,7 +603,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2000-12-25 00:07:27  peter
+  Revision 1.14  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,cclasses,
        { global }
        globtype,globals,
        { symtable }
@@ -42,28 +42,32 @@ interface
        hasharraysize    = 256;
        indexgrowsize    = 64;
 
+{$ifdef GDB}
+       memsizeinc = 2048; { for long stabstrings }
+{$endif GDB}
+
+
 {************************************************
             Needed forward pointers
 ************************************************}
 
     type
-       psymtable = ^tsymtable;
+       tsymtable = class;
 
 {************************************************
                TSymtableEntry
 ************************************************}
 
-      psymtableentry = ^tsymtableentry;
-      tsymtableentry = object(tnamedindexobject)
-         owner : psymtable;
+      tsymtableentry = class(TNamedIndexItem)
+         owner : tsymtable;
       end;
 
 
 {************************************************
                  TDefEntry
 ************************************************}
-      pdefentry = ^tdefentry;
-      tdefentry = object(tsymtableentry)
+
+      tdefentry = class(tsymtableentry)
          deftype : tdeftype;
       end;
 
@@ -73,8 +77,7 @@ interface
 ************************************************}
 
       { this object is the base for all symbol objects }
-      psymentry = ^tsymentry;
-      tsymentry = object(tsymtableentry)
+      tsymentry = class(tsymtableentry)
          typ : tsymtyp;
       end;
 
@@ -83,38 +86,41 @@ interface
                  TSymtable
 ************************************************}
 
-       tsearchhasharray = array[0..hasharraysize-1] of psymentry;
+       tsearchhasharray = array[0..hasharraysize-1] of tsymentry;
        psearchhasharray = ^tsearchhasharray;
 
-       tsymtable = object
+       tsymtable = class
+       public
+          name      : pstring;
+          realname  : pstring;
           symtabletype : tsymtabletype;
           { each symtable gets a number }
           unitid    : word{integer give range check errors PM};
-          name      : pstring;
           datasize  : longint;
           dataalignment : longint;
           symindex,
-          defindex  : pindexarray;
-          symsearch : pdictionary;
-          next      : psymtable;
-          defowner  : pdefentry; { for records and objects }
+          defindex  : TIndexArray;
+          symsearch : Tdictionary;
+          next      : tsymtable;
+          defowner  : tdefentry; { for records and objects }
           { only used for parameter symtable to determine the offset relative }
           { to the frame pointer and for local inline }
           address_fixup : longint;
           { this saves all definition to allow a proper clean up }
           { separate lexlevel from symtable type }
           symtablelevel : byte;
-          constructor init(t : tsymtabletype);
-          destructor  done;virtual;
+          constructor Create(const s:string);
+          destructor  destroy;override;
           procedure clear;virtual;
-          function  rename(const olds,news : stringid):psymentry;
+          function  rename(const olds,news : stringid):tsymentry;
           procedure foreach(proc2call : tnamedindexcallback);
-          procedure insert(sym : psymentry);virtual;
-          function  search(const s : stringid) : psymentry;
-          function  speedsearch(const s : stringid;speedvalue : longint) : psymentry;virtual;
-          procedure registerdef(p : pdefentry);
-          function  getdefnr(l : longint) : pdefentry;
-          function  getsymnr(l : longint) : psymentry;
+          procedure foreach_static(proc2call : tnamedindexstaticcallback);
+          procedure insert(sym : tsymentry);virtual;
+          function  search(const s : stringid) : tsymentry;
+          function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
+          procedure registerdef(p : tdefentry);
+          function  getdefnr(l : longint) : tdefentry;
+          function  getsymnr(l : longint) : tsymentry;
 {$ifdef GDB}
           function getnewtypecount : word; virtual;
 {$endif GDB}
@@ -124,24 +130,23 @@ interface
                     TDeref
 ************************************************}
 
-      pderef = ^tderef;
-      tderef = object
+      tderef = class
         dereftype : tdereftype;
         index     : word;
-        next      : pderef;
-        constructor init(typ:tdereftype;i:word);
-        destructor  done;
+        next      : tderef;
+        constructor create(typ:tdereftype;i:word);
+        destructor  destroy;override;
       end;
 
 
     var
        registerdef : boolean;      { true, when defs should be registered }
 
-       defaultsymtablestack : psymtable;  { symtablestack after default units have been loaded }
-       symtablestack     : psymtable;     { linked list of symtables }
-       aktrecordsymtable : psymtable;     { current record read from ppu symtable }
-       aktstaticsymtable : psymtable;     { current static for local ppu symtable }
-       aktlocalsymtable  : psymtable;     { current proc local for local ppu symtable }
+       defaultsymtablestack : tsymtable;  { symtablestack after default units have been loaded }
+       symtablestack     : tsymtable;     { linked list of symtables }
+       aktrecordsymtable : tsymtable;     { current record read from ppu symtable }
+       aktstaticsymtable : tsymtable;     { current static for local ppu symtable }
+       aktlocalsymtable  : tsymtable;     { current proc local for local ppu symtable }
 
 
 implementation
@@ -153,42 +158,65 @@ implementation
                                 TSYMTABLE
 ****************************************************************************}
 
-    constructor tsymtable.init(t : tsymtabletype);
+    constructor tsymtable.Create(const s:string);
       begin
-         symtabletype:=t;
+         if s<>'' then
+          begin
+            name:=stringdup(upper(s));
+            realname:=stringdup(s);
+          end
+         else
+          begin
+            name:=nil;
+            realname:=nil;
+          end;
+         symtabletype:=abstractsymtable;
+         symtablelevel:=0;
          defowner:=nil;
-         new(symindex,init(indexgrowsize));
-         new(defindex,init(indexgrowsize));
-         new(symsearch,init);
-         symsearch^.noclear:=true;
+         next:=nil;
+         symindex:=tindexarray.create(indexgrowsize);
+         defindex:=TIndexArray.create(indexgrowsize);
+         symsearch:=tdictionary.create;
+         symsearch.noclear:=true;
+         unitid:=0;
+         address_fixup:=0;
+         datasize:=0;
+         dataalignment:=1;
       end;
 
 
-    destructor tsymtable.done;
+    destructor tsymtable.destroy;
       begin
         stringdispose(name);
-        dispose(symindex,done);
-        dispose(defindex,done);
+        stringdispose(realname);
+        symindex.destroy;
+        defindex.destroy;
         { symsearch can already be disposed or set to nil for withsymtable }
         if assigned(symsearch) then
          begin
-           dispose(symsearch,done);
+           symsearch.destroy;
            symsearch:=nil;
          end;
       end;
 
 
-    procedure tsymtable.registerdef(p : pdefentry);
+    procedure tsymtable.registerdef(p : tdefentry);
       begin
-         defindex^.insert(p);
+         defindex.insert(p);
          { set def owner and indexnb }
-         p^.owner:=@self;
+         p.owner:=self;
       end;
 
 
     procedure tsymtable.foreach(proc2call : tnamedindexcallback);
       begin
-        symindex^.foreach(proc2call);
+        symindex.foreach(proc2call);
+      end;
+
+
+    procedure tsymtable.foreach_static(proc2call : tnamedindexstaticcallback);
+      begin
+        symindex.foreach_static(proc2call);
       end;
 
 
@@ -198,54 +226,54 @@ implementation
 
     procedure tsymtable.clear;
       begin
-         symindex^.clear;
-         defindex^.clear;
+         symindex.clear;
+         defindex.clear;
       end;
 
 
-    procedure tsymtable.insert(sym:psymentry);
+    procedure tsymtable.insert(sym:tsymentry);
       begin
-         sym^.owner:=@self;
+         sym.owner:=self;
          { insert in index and search hash }
-         symindex^.insert(sym);
-         symsearch^.insert(sym);
+         symindex.insert(sym);
+         symsearch.insert(sym);
       end;
 
 
-    function tsymtable.search(const s : stringid) : psymentry;
+    function tsymtable.search(const s : stringid) : tsymentry;
       begin
         search:=speedsearch(s,getspeedvalue(s));
       end;
 
 
-    function tsymtable.speedsearch(const s : stringid;speedvalue : longint) : psymentry;
+    function tsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
       begin
-        speedsearch:=psymentry(symsearch^.speedsearch(s,speedvalue));
+        speedsearch:=tsymentry(symsearch.speedsearch(s,speedvalue));
       end;
 
 
-    function tsymtable.rename(const olds,news : stringid):psymentry;
+    function tsymtable.rename(const olds,news : stringid):tsymentry;
       begin
-        rename:=psymentry(symsearch^.rename(olds,news));
+        rename:=tsymentry(symsearch.rename(olds,news));
       end;
 
 
-    function tsymtable.getsymnr(l : longint) : psymentry;
+    function tsymtable.getsymnr(l : longint) : tsymentry;
       var
-        hp : psymentry;
+        hp : tsymentry;
       begin
-        hp:=psymentry(symindex^.search(l));
+        hp:=tsymentry(symindex.search(l));
         if hp=nil then
          internalerror(10999);
         getsymnr:=hp;
       end;
 
 
-    function tsymtable.getdefnr(l : longint) : pdefentry;
+    function tsymtable.getdefnr(l : longint) : tdefentry;
       var
-        hp : pdefentry;
+        hp : tdefentry;
       begin
-        hp:=pdefentry(defindex^.search(l));
+        hp:=tdefentry(defindex.search(l));
         if hp=nil then
          internalerror(10998);
         getdefnr:=hp;
@@ -264,7 +292,7 @@ implementation
                                TDeref
 ****************************************************************************}
 
-    constructor tderef.init(typ:tdereftype;i:word);
+    constructor tderef.create(typ:tdereftype;i:word);
       begin
         dereftype:=typ;
         index:=i;
@@ -272,7 +300,7 @@ implementation
       end;
 
 
-    destructor tderef.done;
+    destructor tderef.destroy;
       begin
       end;
 
@@ -283,7 +311,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-31 22:02:51  peter
+  Revision 1.2  2001-04-13 01:22:15  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
 }

@@ -40,7 +40,7 @@ unit cpuasm;
 interface
 
 uses
-  cobjects,cclasses,
+  cclasses,
   aasm,globals,verbose,
   cpubase;
 
@@ -97,15 +97,15 @@ type
      constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
 
      { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
+     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
 
-     constructor op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
-     constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
-     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+     constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
+     constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
+     constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
+     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
 
      procedure loadconst(opidx:longint;l:longint);
-     procedure loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
+     procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
      procedure loadref(opidx:longint;p:preference);
      procedure loadreg(opidx:longint;r:tregister);
      procedure loadoper(opidx:longint;o:toper);
@@ -140,7 +140,7 @@ type
      function  calcsize(p:PInsEntry):longint;
      procedure gencode;
      function  NeedAddrPrefix(opidx:byte):boolean;
-     procedure SwapOperands;
+     procedure Swatoperands;
 {$endif NOAG386BIN}
   end;
 
@@ -240,7 +240,7 @@ uses
       end;
 
 
-    procedure taicpu.loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
+    procedure taicpu.loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -254,7 +254,7 @@ uses
          end;
         { Mark the symbol as used }
         if assigned(s) then
-         inc(s^.refs);
+         inc(s.refs);
       end;
 
 
@@ -283,7 +283,7 @@ uses
                typ:=top_ref;
                { mark symbol as used }
                if assigned(ref^.symbol) then
-                 inc(ref^.symbol^.refs);
+                 inc(ref^.symbol.refs);
              end;
          end;
       end;
@@ -509,7 +509,7 @@ uses
       end;
 
 
-    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
+    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
       begin
          inherited create;
          init(op,_size);
@@ -519,7 +519,7 @@ uses
       end;
 
 
-    constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
+    constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
       begin
          inherited create;
          init(op,_size);
@@ -528,7 +528,7 @@ uses
       end;
 
 
-    constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
       begin
          inherited create;
          init(op,_size);
@@ -537,7 +537,7 @@ uses
       end;
 
 
-    constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
+    constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
          inherited create;
          init(op,_size);
@@ -547,7 +547,7 @@ uses
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
          inherited create;
          init(op,_size);
@@ -566,7 +566,7 @@ uses
              top_ref:
                dispose(oper[0].ref);
              top_symbol:
-               dec(Pasmsymbol(oper[0].sym)^.refs);
+               dec(tasmsymbol(oper[0].sym).refs);
            end;
            if (ops>1) then
             begin
@@ -682,7 +682,7 @@ uses
       end;
 
 
-    procedure taicpu.SwapOperands;
+    procedure taicpu.Swatoperands;
       var
         p : TOper;
       begin
@@ -708,7 +708,7 @@ uses
       begin
         if FOperandOrder<>order then
          begin
-           SwapOperands;
+           Swatoperands;
            FOperandOrder:=order;
          end;
       end;
@@ -821,11 +821,11 @@ begin
              l:=InsOffset-LastInsOffset;
             inc(l,symofs);
             if assigned(sym) then
-             inc(l,sym^.address);
+             inc(l,sym.address);
             { instruction size will then always become 2 (PFV) }
             relsize:=(InsOffset+2)-l;
             if (not assigned(sym) or
-                ((sym^.bind<>AB_EXTERNAL) and (sym^.address<>0))) and
+                ((sym.bind<>AB_EXTERNAL) and (sym.address<>0))) and
                (relsize>=-128) and (relsize<=127) then
              ot:=OT_IMM32 or OT_SHORT
             else
@@ -930,7 +930,7 @@ begin
    { we can leave because the size for all operands is forced to be
      the same
      but not if IF_SB IF_SW or IF_SD is set PM }
-     if asize= $ffffffff then
+     if asize=-1 then
        exit;
      siz[0]:=asize;
      siz[1]:=asize;
@@ -1189,7 +1189,7 @@ const
 var
   j     : longint;
   i,b   : tregister;
-  sym   : pasmsymbol;
+  sym   : tasmsymbol;
   md,s  : byte;
   base,index,scalefactor,
   o     : longint;
@@ -1463,7 +1463,7 @@ procedure taicpu.GenCode;
 
 var
   currval : longint;
-  currsym : pasmsymbol;
+  currsym : tasmsymbol;
 
   procedure getvalsym(opidx:longint);
   begin
@@ -1652,7 +1652,7 @@ begin
           getvalsym(c-40);
           data:=currval-insend;
           if assigned(currsym) then
-           inc(data,currsym^.address);
+           inc(data,currsym.address);
           if (data>127) or (data<-128) then
            Message1(asmw_e_short_jmp_out_of_range,tostr(data));
           objectdata.writebytes(data,1);
@@ -1773,7 +1773,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-04-05 21:33:45  peter
+  Revision 1.14  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/05 21:33:45  peter
     * movd and opsize fix merged
 
   Revision 1.12  2001/03/25 12:29:45  peter

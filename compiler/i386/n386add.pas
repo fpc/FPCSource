@@ -42,7 +42,7 @@ interface
 
     uses
       globtype,systems,
-      cutils,cobjects,verbose,globals,
+      cutils,verbose,globals,
       symconst,symdef,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpuasm,
@@ -102,12 +102,12 @@ interface
       begin
          { remove temporary location if not a set or string }
          { that's a bad hack (FK) who did this ?            }
-         if (left.resulttype.def^.deftype<>stringdef) and
-            ((left.resulttype.def^.deftype<>setdef) or (psetdef(left.resulttype.def)^.settype=smallset)) and
+         if (left.resulttype.def.deftype<>stringdef) and
+            ((left.resulttype.def.deftype<>setdef) or (tsetdef(left.resulttype.def).settype=smallset)) and
             (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            ungetiftemp(left.location.reference);
-         if (right.resulttype.def^.deftype<>stringdef) and
-            ((right.resulttype.def^.deftype<>setdef) or (psetdef(right.resulttype.def)^.settype=smallset)) and
+         if (right.resulttype.def.deftype<>stringdef) and
+            ((right.resulttype.def.deftype<>setdef) or (tsetdef(right.resulttype.def).settype=smallset)) and
             (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            ungetiftemp(right.location.reference);
          { in case of comparison operation the put result in the flags }
@@ -128,7 +128,7 @@ interface
 
       var
 {$ifdef newoptimizations2}
-        l: pasmlabel;
+        l: tasmlabel;
         hreg: tregister;
         href2: preference;
         oldregisterdef: boolean;
@@ -142,7 +142,7 @@ interface
         { string operations are not commutative }
         if nf_swaped in flags then
           swapleftright;
-        case pstringdef(left.resulttype.def)^.string_typ of
+        case tstringdef(left.resulttype.def).string_typ of
            st_ansistring:
              begin
                 case nodetype of
@@ -296,7 +296,7 @@ interface
                              { length of temp string = 255 (JM) }
                              { *** redefining a type is not allowed!! (thanks, Pierre) }
                              { also problem with constant string!                      }
-                             pstringdef(left.resulttype.def)^.len := 255;
+                             tstringdef(left.resulttype.def).len := 255;
 
 {$endif newoptimizations2}
                           end;
@@ -317,7 +317,7 @@ interface
                               newreference(left.location.reference),R_EDI);
                             { is it already maximal? }
                             emit_const_reg(A_CMP,S_L,
-                              pstringdef(left.resulttype.def)^.len,R_EDI);
+                              tstringdef(left.resulttype.def).len,R_EDI);
                             emitjmp(C_E,l);
                             { no, so add the new character }
                             { is it a constant char? }
@@ -392,7 +392,7 @@ interface
 {$ifdef newoptimizations2}
                            { string (could be < 255 chars now) (JM)         }
                             emit_const(A_PUSH,S_L,
-                              pstringdef(left.resulttype.def)^.len);
+                              tstringdef(left.resulttype.def).len);
 {$endif newoptimizations2}
                             emitpushreferenceaddr(left.location.reference);
                            { the optimizer can more easily put the          }
@@ -673,10 +673,10 @@ interface
          pushed,mboverflow,cmpop : boolean;
          op,op2 : tasmop;
          resflags : tresflags;
-         otl,ofl : pasmlabel;
+         otl,ofl : tasmlabel;
          power : longint;
          opsize : topsize;
-         hl4: pasmlabel;
+         hl4: tasmlabel;
          hr : preference;
 
          { true, if unsigned types are compared }
@@ -763,14 +763,14 @@ interface
       begin
       { to make it more readable, string and set (not smallset!) have their
         own procedures }
-         case left.resulttype.def^.deftype of
+         case left.resulttype.def.deftype of
          stringdef : begin
                        addstring;
                        exit;
                      end;
             setdef : begin
                      { normalsets are handled separate }
-                       if not(psetdef(left.resulttype.def)^.settype=smallset) then
+                       if not(tsetdef(left.resulttype.def).settype=smallset) then
                         begin
                           addset;
                           exit;
@@ -787,7 +787,7 @@ interface
 
          { are we a (small)set, must be set here because the side can be
            swapped ! (PFV) }
-         is_set:=(left.resulttype.def^.deftype=setdef);
+         is_set:=(left.resulttype.def.deftype=setdef);
 
          { calculate the operator which is more difficult }
          firstcomplex(self);
@@ -796,12 +796,12 @@ interface
          if is_boolean(left.resulttype.def) and
             is_boolean(right.resulttype.def) then
            begin
-             if (porddef(left.resulttype.def)^.typ=bool8bit) or
-                (porddef(right.resulttype.def)^.typ=bool8bit) then
+             if (torddef(left.resulttype.def).typ=bool8bit) or
+                (torddef(right.resulttype.def).typ=bool8bit) then
                opsize:=S_B
              else
-               if (porddef(left.resulttype.def)^.typ=bool16bit) or
-                  (porddef(right.resulttype.def)^.typ=bool16bit) then
+               if (torddef(left.resulttype.def).typ=bool16bit) or
+                  (torddef(right.resulttype.def).typ=bool16bit) then
                  opsize:=S_W
              else
                opsize:=S_L;
@@ -916,28 +916,28 @@ interface
                   set_location(left.location,location);
                 end;
 
-              if (left.resulttype.def^.deftype=pointerdef) or
+              if (left.resulttype.def.deftype=pointerdef) or
 
-                 (right.resulttype.def^.deftype=pointerdef) or
+                 (right.resulttype.def.deftype=pointerdef) or
 
                  (is_class_or_interface(right.resulttype.def) and is_class_or_interface(left.resulttype.def)) or
 
-                 (left.resulttype.def^.deftype=classrefdef) or
+                 (left.resulttype.def.deftype=classrefdef) or
 
-                 (left.resulttype.def^.deftype=procvardef) or
+                 (left.resulttype.def.deftype=procvardef) or
 
-                 ((left.resulttype.def^.deftype=enumdef) and
-                  (left.resulttype.def^.size=4)) or
+                 ((left.resulttype.def.deftype=enumdef) and
+                  (left.resulttype.def.size=4)) or
 
-                 ((left.resulttype.def^.deftype=orddef) and
-                 (porddef(left.resulttype.def)^.typ=s32bit)) or
-                 ((right.resulttype.def^.deftype=orddef) and
-                 (porddef(right.resulttype.def)^.typ=s32bit)) or
+                 ((left.resulttype.def.deftype=orddef) and
+                 (torddef(left.resulttype.def).typ=s32bit)) or
+                 ((right.resulttype.def.deftype=orddef) and
+                 (torddef(right.resulttype.def).typ=s32bit)) or
 
-                ((left.resulttype.def^.deftype=orddef) and
-                 (porddef(left.resulttype.def)^.typ=u32bit)) or
-                 ((right.resulttype.def^.deftype=orddef) and
-                 (porddef(right.resulttype.def)^.typ=u32bit)) or
+                ((left.resulttype.def.deftype=orddef) and
+                 (torddef(left.resulttype.def).typ=u32bit)) or
+                 ((right.resulttype.def.deftype=orddef) and
+                 (torddef(right.resulttype.def).typ=u32bit)) or
 
                 { as well as small sets }
                  is_set then
@@ -1134,7 +1134,7 @@ interface
                            { constant (JM)                             }
                            release_loc(right.location);
                            location.register := getregister32;
-                           emitloadord2reg(right.location,porddef(u32bittype.def),location.register,false);
+                           emitloadord2reg(right.location,torddef(u32bittype.def),location.register,false);
                            emit_const_reg(A_SHL,S_L,power,location.register)
                          End
                        Else
@@ -1160,13 +1160,13 @@ interface
                          { left.location can be R_EAX !!! }
                          getexplicitregister32(R_EDI);
                          { load the left value }
-                         emitloadord2reg(left.location,porddef(u32bittype.def),R_EDI,true);
+                         emitloadord2reg(left.location,torddef(u32bittype.def),R_EDI,true);
                          release_loc(left.location);
                          { allocate EAX }
                          if R_EAX in unused then
                            exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { load he right value }
-                         emitloadord2reg(right.location,porddef(u32bittype.def),R_EAX,true);
+                         emitloadord2reg(right.location,torddef(u32bittype.def),R_EAX,true);
                          release_loc(right.location);
                          { allocate EAX if it isn't yet allocated (JM) }
                          if (R_EAX in unused) then
@@ -1429,11 +1429,11 @@ interface
               else
 
               { Char type }
-                if ((left.resulttype.def^.deftype=orddef) and
-                    (porddef(left.resulttype.def)^.typ=uchar)) or
+                if ((left.resulttype.def.deftype=orddef) and
+                    (torddef(left.resulttype.def).typ=uchar)) or
               { enumeration type 16 bit }
-                   ((left.resulttype.def^.deftype=enumdef) and
-                    (left.resulttype.def^.size=1)) then
+                   ((left.resulttype.def.deftype=enumdef) and
+                    (left.resulttype.def.size=1)) then
                  begin
                    case nodetype of
                       ltn,lten,gtn,gten,
@@ -1507,8 +1507,8 @@ interface
                 end
               else
               { 16 bit enumeration type }
-                if ((left.resulttype.def^.deftype=enumdef) and
-                    (left.resulttype.def^.size=2)) then
+                if ((left.resulttype.def.deftype=enumdef) and
+                    (left.resulttype.def.size=2)) then
                  begin
                    case nodetype of
                       ltn,lten,gtn,gten,
@@ -1586,10 +1586,10 @@ interface
                 begin
                    mboverflow:=false;
                    cmpop:=false;
-                   unsigned:=((left.resulttype.def^.deftype=orddef) and
-                       (porddef(left.resulttype.def)^.typ=u64bit)) or
-                      ((right.resulttype.def^.deftype=orddef) and
-                       (porddef(right.resulttype.def)^.typ=u64bit));
+                   unsigned:=((left.resulttype.def.deftype=orddef) and
+                       (torddef(left.resulttype.def).typ=u64bit)) or
+                      ((right.resulttype.def.deftype=orddef) and
+                       (torddef(right.resulttype.def).typ=u64bit));
                    case nodetype of
                       addn : begin
                                 begin
@@ -1658,7 +1658,7 @@ interface
                         clear_location(hloc);
                         emit_pushq_loc(right.location);
                         saveregvars($ff);
-                        if porddef(resulttype.def)^.typ=u64bit then
+                        if torddef(resulttype.def).typ=u64bit then
                           emitcall('FPC_MUL_QWORD')
                         else
                           emitcall('FPC_MUL_INT64');
@@ -1924,7 +1924,7 @@ interface
                 end
               else
               { Floating point }
-               if (left.resulttype.def^.deftype=floatdef) then
+               if (left.resulttype.def.deftype=floatdef) then
                  begin
                     { real constants to the right, but only if it
                       isn't on the FPU stack, i.e. 1.0 or 0.0! }
@@ -1954,7 +1954,7 @@ interface
                               inc(fpuvaroffset);
                             end
                          else
-                           floatload(pfloatdef(right.resulttype.def)^.typ,right.location.reference);
+                           floatload(tfloatdef(right.resulttype.def).typ,right.location.reference);
                          if (left.location.loc<>LOC_FPU) then
                            begin
                               if left.location.loc=LOC_CFPUREGISTER then
@@ -1964,7 +1964,7 @@ interface
                                    inc(fpuvaroffset);
                                 end
                               else
-                                floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference)
+                                floatload(tfloatdef(left.resulttype.def).typ,left.location.reference)
                            end
                          { left was on the stack => swap }
                          else
@@ -1983,7 +1983,7 @@ interface
                               inc(fpuvaroffset);
                            end
                          else
-                           floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference)
+                           floatload(tfloatdef(left.resulttype.def).typ,left.location.reference)
                       end
                     { fpu operands are always in the wrong order on the stack }
                     else
@@ -2273,7 +2273,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-04-02 21:20:36  peter
+  Revision 1.11  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.10  2001/04/02 21:20:36  peter
     * resulttype rewrite
 
   Revision 1.9  2000/12/31 11:14:11  jonas

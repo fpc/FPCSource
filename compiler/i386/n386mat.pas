@@ -68,7 +68,7 @@ implementation
          shrdiv, andmod, pushed,popeax,popedx : boolean;
 
          power : longint;
-         hl : pasmlabel;
+         hl : tasmlabel;
          hloc : tlocation;
          pushedreg : tpushed;
          typename,opname : string[6];
@@ -102,7 +102,7 @@ implementation
               clear_location(hloc);
               emit_pushq_loc(right.location);
 
-              if porddef(resulttype.def)^.typ=u64bit then
+              if torddef(resulttype.def).typ=u64bit then
                 typename:='QWORD'
               else
                 typename:='INT64';
@@ -260,13 +260,13 @@ implementation
                           end;
                      end;
                    { sign extension depends on the left type }
-                   if porddef(left.resulttype.def)^.typ=u32bit then
+                   if torddef(left.resulttype.def).typ=u32bit then
                       emit_reg_reg(A_XOR,S_L,R_EDX,R_EDX)
                    else
                       emit_none(A_CDQ,S_NO);
 
                    { division depends on the right type }
-                   if porddef(right.resulttype.def)^.typ=u32bit then
+                   if torddef(right.resulttype.def).typ=u32bit then
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
@@ -340,7 +340,7 @@ implementation
          hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
          op : tasmop;
-         l1,l2,l3 : pasmlabel;
+         l1,l2,l3 : tasmlabel;
 
       begin
          popecx:=false;
@@ -761,10 +761,10 @@ implementation
                  LOC_REFERENCE,LOC_MEM:
                                 begin
                                    del_reference(left.location.reference);
-                                   if (left.resulttype.def^.deftype=floatdef) then
+                                   if (left.resulttype.def.deftype=floatdef) then
                                      begin
                                         location.loc:=LOC_FPU;
-                                        floatload(pfloatdef(left.resulttype.def)^.typ,
+                                        floatload(tfloatdef(left.resulttype.def).typ,
                                           left.location.reference);
                                         emit_none(A_FCHS,S_NO);
                                      end
@@ -823,7 +823,7 @@ implementation
             (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,
              F_BE,F_B,F_AE,F_A);
       var
-         hl : pasmlabel;
+         hl : tasmlabel;
          opsize : topsize;
       begin
          if is_boolean(resulttype.def) then
@@ -998,7 +998,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-04 22:37:06  peter
+  Revision 1.13  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/04/04 22:37:06  peter
     * fix for not with no 32bit values
 
   Revision 1.11  2001/04/02 21:20:38  peter

@@ -30,30 +30,27 @@ interface
       globtype,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(const n : stringid;fd : pobjectdef) : pdef;
+    function object_dec(const n : stringid;fd : tobjectdef) : tdef;
 
 implementation
 
     uses
-      cutils,cobjects,cclasses,
+      cutils,cclasses,
       globals,verbose,systems,tokens,
       aasm,symconst,symbase,symsym,symtable,types,
-{$ifdef GDB}
-      gdb,
-{$endif}
       hcodegen,hcgdata,
       node,nld,ncon,ncnv,pass_1,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype;
 
-    function object_dec(const n : stringid;fd : pobjectdef) : pdef;
+    function object_dec(const n : stringid;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
          actmembertype : tsymoptions;
          there_is_a_destructor : boolean;
          classtype : tobjectdeftype;
-         childof : pobjectdef;
-         aktclass : pobjectdef;
+         childof : tobjectdef;
+         aktclass : tobjectdef;
 
       procedure constructor_head;
 
@@ -64,21 +61,21 @@ implementation
            parse_proc_head(potype_constructor);
            dec(lexlevel);
 
-           if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
+           if (cs_constructor_name in aktglobalswitches) and (aktprocsym.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
 
-           include(aktclass^.objectoptions,oo_has_constructor);
+           include(aktclass.objectoptions,oo_has_constructor);
            consume(_SEMICOLON);
              begin
                 if is_class(aktclass) then
                   begin
                      { CLASS constructors return the created instance }
-                     aktprocsym^.definition^.rettype.def:=aktclass;
+                     aktprocsym.definition.rettype.def:=aktclass;
                   end
                 else
                   begin
                      { OBJECT constructors return a boolean }
-                     aktprocsym^.definition^.rettype:=booltype;
+                     aktprocsym.definition.rettype:=booltype;
                   end;
              end;
         end;
@@ -87,38 +84,38 @@ implementation
       procedure property_dec;
 
         var
-           sym : psym;
+           sym : tsym;
            propertyparas : tlinkedlist;
 
         { returns the matching procedure to access a property }
-        function get_procdef : pprocdef;
+        function get_procdef : tprocdef;
 
           var
-             p : pprocdef;
+             p : tprocdef;
 
           begin
-             p:=pprocsym(sym)^.definition;
+             p:=tprocsym(sym).definition;
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p^.para,propertyparas,cp_value_equal_const) or convertable_paras(p^.para,propertyparas,cp_value_equal_const) then {MvdV: Ozerski 14.03.01}
+                  if equal_paras(p.para,propertyparas,cp_value_equal_const) or convertable_paras(p.para,propertyparas,cp_value_equal_const) then {MvdV: Ozerski 14.03.01}
                     break;
-                  p:=p^.nextoverloaded;
+                  p:=p.nextoverloaded;
                end;
              get_procdef:=p;
           end;
 
         var
            hp2,datacoll : tparaitem;
-           p : ppropertysym;
-           overriden : psym;
+           p : tpropertysym;
+           overriden : tsym;
            hs : string;
            varspez : tvarspez;
            sc : tidstringlist;
            s : string;
            tt : ttype;
            declarepos : tfileposinfo;
-           pp : pprocdef;
+           pp : tprocdef;
            pt : tnode;
            propname : stringid;
 
@@ -132,7 +129,7 @@ implementation
            datacoll:=nil;
            if token=_ID then
              begin
-                p:=new(ppropertysym,init(orgpattern));
+                p:=tpropertysym.create(orgpattern);
                 propname:=pattern;
                 consume(_ID);
                 { property parameters ? }
@@ -181,9 +178,9 @@ implementation
                                  consume(_ARRAY);
                                  consume(_OF);
                                  { define range and type of range }
-                                 tt.setdef(new(parraydef,init(0,-1,s32bittype)));
+                                 tt.setdef(tarraydef.create(0,-1,s32bittype));
                                  { define field type }
-                                 single_type(parraydef(tt.def)^.elementtype,s,false);
+                                 single_type(tarraydef(tt.def).elementtype,s,false);
                               end
                             else
                               single_type(tt,s,false);
@@ -213,7 +210,7 @@ implementation
                 if (token=_COLON) or not(propertyparas.empty) then
                   begin
                      consume(_COLON);
-                     single_type(p^.proptype,hs,false);
+                     single_type(p.proptype,hs,false);
                      if (idtoken=_INDEX) then
                        begin
                           consume(_INDEX);
@@ -221,51 +218,51 @@ implementation
                           if is_constnode(pt) and
                              is_ordinal(pt.resulttype.def) and
                              (not is_64bitint(pt.resulttype.def)) then
-                            p^.index:=tordconstnode(pt).value
+                            p.index:=tordconstnode(pt).value
                           else
                             begin
                               Message(parser_e_invalid_property_index_value);
-                              p^.index:=0;
+                              p.index:=0;
                             end;
-                          p^.indextype.setdef(pt.resulttype.def);
-                          include(p^.propoptions,ppo_indexed);
+                          p.indextype.setdef(pt.resulttype.def);
+                          include(p.propoptions,ppo_indexed);
                           { concat a longint to the para template }
                           hp2:=TParaItem.Create;
                           hp2.paratyp:=vs_value;
-                          hp2.paratype:=p^.indextype;
+                          hp2.paratype:=p.indextype;
                           propertyparas.insert(hp2);
                           pt.free;
                        end;
                      { the parser need to know if a property has parameters }
                      if not(propertyparas.empty) then
-                       include(p^.propoptions,ppo_hasparameters);
+                       include(p.propoptions,ppo_hasparameters);
                   end
                 else
                   begin
                      { do an property override }
                      overriden:=search_class_member(aktclass,propname);
-                     if assigned(overriden) and (overriden^.typ=propertysym) then
+                     if assigned(overriden) and (overriden.typ=propertysym) then
                        begin
-                         p^.dooverride(ppropertysym(overriden));
+                         p.dooverride(tpropertysym(overriden));
                        end
                      else
                        begin
-                         p^.proptype:=generrortype;
+                         p.proptype:=generrortype;
                          message(parser_e_no_property_found_to_override);
                        end;
                   end;
                 if (sp_published in current_object_option) and
-                   not(p^.proptype.def^.is_publishable) then
+                   not(p.proptype.def.is_publishable) then
                   Message(parser_e_cant_publish_that_property);
 
                 { create data defcoll to allow correct parameter checks }
                 datacoll:=TParaItem.Create;
                 datacoll.paratyp:=vs_value;
-                datacoll.paratype:=p^.proptype;
+                datacoll.paratype:=p.proptype;
 
                 if (idtoken=_READ) then
                   begin
-                     p^.readaccess^.clear;
+                     p.readaccess.clear;
                      consume(_READ);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
@@ -277,12 +274,12 @@ implementation
                        begin
                           consume(_ID);
                           while (token=_POINT) and
-                                ((sym^.typ=varsym) and
-                                 (pvarsym(sym)^.vartype.def^.deftype=recorddef)) do
+                                ((sym.typ=varsym) and
+                                 (tvarsym(sym).vartype.def.deftype=recorddef)) do
                            begin
-                             p^.readaccess^.addsym(sym);
+                             p.readaccess.addsym(sym);
                              consume(_POINT);
-                             sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                             sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
                              if not assigned(sym) then
                                Message1(sym_e_illegal_field,pattern);
                              consume(_ID);
@@ -292,30 +289,30 @@ implementation
                      if assigned(sym) then
                        begin
                           { search the matching definition }
-                          case sym^.typ of
+                          case sym.typ of
                             procsym :
                               begin
                                  pp:=get_procdef;
                                  if not(assigned(pp)) or
-                                    not(is_equal(pp^.rettype.def,p^.proptype.def)) then
+                                    not(is_equal(pp.rettype.def,p.proptype.def)) then
                                    Message(parser_e_ill_property_access_sym);
-                                 p^.readaccess^.setdef(pp);
+                                 p.readaccess.setdef(pp);
                               end;
                             varsym :
                               begin
                                 if not(propertyparas.empty) or
-                                   not(is_equal(pvarsym(sym)^.vartype.def,p^.proptype.def)) then
+                                   not(is_equal(tvarsym(sym).vartype.def,p.proptype.def)) then
                                   Message(parser_e_ill_property_access_sym);
                               end;
                             else
                               Message(parser_e_ill_property_access_sym);
                           end;
-                          p^.readaccess^.addsym(sym);
+                          p.readaccess.addsym(sym);
                        end;
                   end;
                 if (idtoken=_WRITE) then
                   begin
-                     p^.writeaccess^.clear;
+                     p.writeaccess.clear;
                      consume(_WRITE);
                      sym:=search_class_member(aktclass,pattern);
                      if not(assigned(sym)) then
@@ -327,12 +324,12 @@ implementation
                        begin
                           consume(_ID);
                           while (token=_POINT) and
-                                ((sym^.typ=varsym) and
-                                 (pvarsym(sym)^.vartype.def^.deftype=recorddef)) do
+                                ((sym.typ=varsym) and
+                                 (tvarsym(sym).vartype.def.deftype=recorddef)) do
                            begin
-                             p^.writeaccess^.addsym(sym);
+                             p.writeaccess.addsym(sym);
                              consume(_POINT);
-                             sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                             sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
                              if not assigned(sym) then
                                Message1(sym_e_illegal_field,pattern);
                              consume(_ID);
@@ -342,7 +339,7 @@ implementation
                      if assigned(sym) then
                        begin
                           { search the matching definition }
-                          case sym^.typ of
+                          case sym.typ of
                             procsym :
                               begin
                                  { insert data entry to check access method }
@@ -352,25 +349,25 @@ implementation
                                  propertyparas.remove(datacoll);
                                  if not(assigned(pp)) then
                                    Message(parser_e_ill_property_access_sym);
-                                 p^.writeaccess^.setdef(pp);
+                                 p.writeaccess.setdef(pp);
                               end;
                             varsym :
                               begin
                                  if not(propertyparas.empty) or
-                                    not(is_equal(pvarsym(sym)^.vartype.def,p^.proptype.def)) then
+                                    not(is_equal(tvarsym(sym).vartype.def,p.proptype.def)) then
                                    Message(parser_e_ill_property_access_sym);
                               end
                             else
                               Message(parser_e_ill_property_access_sym);
                           end;
-                          p^.writeaccess^.addsym(sym);
+                          p.writeaccess.addsym(sym);
                        end;
                   end;
-                include(p^.propoptions,ppo_stored);
+                include(p.propoptions,ppo_stored);
                 if (idtoken=_STORED) then
                   begin
                      consume(_STORED);
-                     p^.storedaccess^.clear;
+                     p.storedaccess.clear;
                      case token of
                         _ID:
                            { in the case that idtoken=_DEFAULT }
@@ -389,12 +386,12 @@ implementation
                                   begin
                                      consume(_ID);
                                      while (token=_POINT) and
-                                           ((sym^.typ=varsym) and
-                                            (pvarsym(sym)^.vartype.def^.deftype=recorddef)) do
+                                           ((sym.typ=varsym) and
+                                            (tvarsym(sym).vartype.def.deftype=recorddef)) do
                                       begin
-                                        p^.storedaccess^.addsym(sym);
+                                        p.storedaccess.addsym(sym);
                                         consume(_POINT);
-                                        sym:=searchsymonlyin(precorddef(pvarsym(sym)^.vartype.def)^.symtable,pattern);
+                                        sym:=searchsymonlyin(trecorddef(tvarsym(sym).vartype.def).symtable,pattern);
                                         if not assigned(sym) then
                                           Message1(sym_e_illegal_field,pattern);
                                         consume(_ID);
@@ -404,39 +401,39 @@ implementation
                                 if assigned(sym) then
                                   begin
                                      { only non array properties can be stored }
-                                     case sym^.typ of
+                                     case sym.typ of
                                        procsym :
                                          begin
-                                           pp:=pprocsym(sym)^.definition;
+                                           pp:=tprocsym(sym).definition;
                                            while assigned(pp) do
                                              begin
                                                 { the stored function shouldn't have any parameters }
-                                                if pp^.Para.empty then
+                                                if pp.Para.empty then
                                                   break;
-                                                 pp:=pp^.nextoverloaded;
+                                                 pp:=pp.nextoverloaded;
                                              end;
                                            { found we a procedure and does it really return a bool? }
                                            if not(assigned(pp)) or
-                                              not(is_boolean(pp^.rettype.def)) then
+                                              not(is_boolean(pp.rettype.def)) then
                                              Message(parser_e_ill_property_storage_sym);
-                                           p^.storedaccess^.setdef(pp);
+                                           p.storedaccess.setdef(pp);
                                          end;
                                        varsym :
                                          begin
                                            if not(propertyparas.empty) or
-                                              not(is_boolean(pvarsym(sym)^.vartype.def)) then
+                                              not(is_boolean(tvarsym(sym).vartype.def)) then
                                              Message(parser_e_stored_property_must_be_boolean);
                                          end;
                                        else
                                          Message(parser_e_ill_property_storage_sym);
                                      end;
-                                     p^.storedaccess^.addsym(sym);
+                                     p.storedaccess.addsym(sym);
                                   end;
                              end;
                         _FALSE:
                           begin
                              consume(_FALSE);
-                             exclude(p^.propoptions,ppo_stored);
+                             exclude(p.propoptions,ppo_stored);
                           end;
                         _TRUE:
                           consume(_TRUE);
@@ -445,37 +442,37 @@ implementation
                 if (idtoken=_DEFAULT) then
                   begin
                      consume(_DEFAULT);
-                     if not(is_ordinal(p^.proptype.def) or
-                            is_64bitint(p^.proptype.def) or
-                            ((p^.proptype.def^.deftype=setdef) and
-                             (psetdef(p^.proptype.def)^.settype=smallset))) or
+                     if not(is_ordinal(p.proptype.def) or
+                            is_64bitint(p.proptype.def) or
+                            ((p.proptype.def.deftype=setdef) and
+                             (tsetdef(p.proptype.def).settype=smallset))) or
                         not(propertyparas.empty) then
                        Message(parser_e_property_cant_have_a_default_value);
                      { Get the result of the default, the firstpass is
                        needed to support values like -1 }
                      pt:=comp_expr(true);
-                     if (p^.proptype.def^.deftype=setdef) and
+                     if (p.proptype.def.deftype=setdef) and
                         (pt.nodetype=arrayconstructorn) then
                        begin
                          arrayconstructor_to_set(tarrayconstructornode(pt));
                          do_resulttypepass(pt);
                        end;
-                     inserttypeconv(pt,p^.proptype);
+                     inserttypeconv(pt,p.proptype);
                      if not(is_constnode(pt)) then
                        Message(parser_e_property_default_value_must_const);
 
                      if pt.nodetype=setconstn then
-                       p^.default:=plongint(tsetconstnode(pt).value_set)^
+                       p.default:=plongint(tsetconstnode(pt).value_set)^
                      else
-                       p^.default:=tordconstnode(pt).value;
+                       p.default:=tordconstnode(pt).value;
                      pt.free;
                   end
                 else if (idtoken=_NODEFAULT) then
                   begin
                      consume(_NODEFAULT);
-                     p^.default:=0;
+                     p.default:=0;
                   end;
-                symtablestack^.insert(p);
+                symtablestack.insert(p);
                 { default property ? }
                 consume(_SEMICOLON);
                 if (idtoken=_DEFAULT) then
@@ -485,11 +482,11 @@ implementation
                      p2:=search_default_property(aktclass);
                      if assigned(p2) then
                        message1(parser_e_only_one_default_property,
-                         pobjectdef(p2^.owner^.defowner)^.objname^)
+                         tobjectdef(p2.owner.defowner)^.objname^)
                      else
                      }
                        begin
-                          include(p^.propoptions,ppo_defaultproperty);
+                          include(p.propoptions,ppo_defaultproperty);
                           if propertyparas.empty then
                             message(parser_e_property_need_paras);
                        end;
@@ -514,27 +511,24 @@ implementation
            inc(lexlevel);
            parse_proc_head(potype_destructor);
            dec(lexlevel);
-           if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
+           if (cs_constructor_name in aktglobalswitches) and (aktprocsym.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
-           include(aktclass^.objectoptions,oo_has_destructor);
+           include(aktclass.objectoptions,oo_has_destructor);
            consume(_SEMICOLON);
-           if not(aktprocsym^.definition^.Para.empty) then
+           if not(aktprocsym.definition.Para.empty) then
              if not (m_tp in aktmodeswitches) then
                Message(parser_e_no_paras_for_destructor);
            { no return value }
-           aktprocsym^.definition^.rettype:=voidtype;
+           aktprocsym.definition.rettype:=voidtype;
         end;
 
       var
          hs      : string;
-         pcrd       : pclassrefdef;
+         pcrd       : tclassrefdef;
          tt     : ttype;
          oldprocinfo : pprocinfo;
-         oldprocsym : pprocsym;
+         oldprocsym : tprocsym;
          oldparse_only : boolean;
-         methodnametable,intmessagetable,
-         strmessagetable,classnamelabel,
-         fieldtablelabel : pasmlabel;
          storetypecanbeforward : boolean;
 
       procedure setclassattributes;
@@ -542,12 +536,12 @@ implementation
         begin
            if classtype=odt_class then
              begin
-                aktclass^.objecttype:=odt_class;
+                aktclass.objecttype:=odt_class;
                 if (cs_generate_rtti in aktlocalswitches) or
-                    (assigned(aktclass^.childof) and
-                     (oo_can_have_published in aktclass^.childof^.objectoptions)) then
+                    (assigned(aktclass.childof) and
+                     (oo_can_have_published in aktclass.childof.objectoptions)) then
                   begin
-                     include(aktclass^.objectoptions,oo_can_have_published);
+                     include(aktclass.objectoptions,oo_can_have_published);
                      { in "publishable" classes the default access type is published }
                      actmembertype:=[sp_published];
                      { don't know if this is necessary (FK) }
@@ -562,7 +556,7 @@ implementation
            if assigned(fd) then
              aktclass:=fd
            else
-             aktclass:=new(pobjectdef,init(classtype,n,nil));
+             aktclass:=tobjectdef.create(classtype,n,nil);
            { is the current class tobject?   }
            { so you could define your own tobject }
            if (cs_compilesystem in aktmoduleswitches) and (classtype=odt_class) and (upper(n)='TOBJECT') then
@@ -577,160 +571,30 @@ implementation
                   odt_interfacecom:
                     childof:=interface_iunknown;
                 end;
-                if (oo_is_forward in childof^.objectoptions) then
-                  Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
-                aktclass^.set_parent(childof);
+                if (oo_is_forward in childof.objectoptions) then
+                  Message1(parser_e_forward_declaration_must_be_resolved,childof.objname^);
+                aktclass.set_parent(childof);
              end;
          end;
-
-      { generates the vmt for classes as well as for objects }
-      procedure writevmt;
-
-        var
-           vmtlist : taasmoutput;
-{$ifdef WITHDMT}
-           dmtlabel : pasmlabel;
-{$endif WITHDMT}
-           interfacetable : pasmlabel;
-
-        begin
-{$ifdef WITHDMT}
-           dmtlabel:=gendmt(aktclass);
-{$endif WITHDMT}
-           { this generates the entries }
-           vmtlist:=TAasmoutput.Create;
-           genvmt(vmtlist,aktclass);
-
-           { write tables for classes, this must be done before the actual
-             class is written, because we need the labels defined }
-           if classtype=odt_class then
-            begin
-              methodnametable:=genpublishedmethodstable(aktclass);
-              fieldtablelabel:=aktclass^.generate_field_table;
-              { rtti }
-              if (oo_can_have_published in aktclass^.objectoptions) then
-               aktclass^.generate_rtti;
-              { write class name }
-              getdatalabel(classnamelabel);
-              dataSegment.concat(Tai_label.Create(classnamelabel));
-              dataSegment.concat(Tai_const.Create_8bit(length(aktclass^.objname^)));
-              dataSegment.concat(Tai_string.Create(aktclass^.objname^));
-              { generate message and dynamic tables }
-              if (oo_has_msgstr in aktclass^.objectoptions) then
-                strmessagetable:=genstrmsgtab(aktclass);
-              if (oo_has_msgint in aktclass^.objectoptions) then
-                intmessagetable:=genintmsgtab(aktclass)
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              if aktclass^.implementedinterfaces^.count>0 then
-                interfacetable:=genintftable(aktclass);
-            end;
-
-          { write debug info }
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) then
-           begin
-             do_count_dbx:=true;
-             if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
-               dataSegment.concat(Tai_stabs.Create(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
-                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname)));
-           end;
-{$endif GDB}
-           dataSegment.concat(Tai_symbol.Createdataname_global(aktclass^.vmt_mangledname,0));
-
-           { determine the size with symtable^.datasize, because }
-           { size gives back 4 for classes                    }
-           dataSegment.concat(Tai_const.Create_32bit(aktclass^.symtable^.datasize));
-           dataSegment.concat(Tai_const.Create_32bit(-aktclass^.symtable^.datasize));
-{$ifdef WITHDMT}
-           if classtype=ct_object then
-             begin
-                if assigned(dmtlabel) then
-                  dataSegment.concat(Tai_const_symbol.Create(dmtlabel)))
-                else
-                  dataSegment.concat(Tai_const.Create_32bit(0));
-             end;
-{$endif WITHDMT}
-           { write pointer to parent VMT, this isn't implemented in TP }
-           { but this is not used in FPC ? (PM) }
-           { it's not used yet, but the delphi-operators as and is need it (FK) }
-           { it is not written for parents that don't have any vmt !! }
-           if assigned(aktclass^.childof) and
-              (oo_has_vmt in aktclass^.childof^.objectoptions) then
-             dataSegment.concat(Tai_const_symbol.Createname(aktclass^.childof^.vmt_mangledname))
-           else
-             dataSegment.concat(Tai_const.Create_32bit(0));
-
-           { write extended info for classes, for the order see rtl/inc/objpash.inc }
-           if classtype=odt_class then
-            begin
-              { pointer to class name string }
-              dataSegment.concat(Tai_const_symbol.Create(classnamelabel));
-              { pointer to dynamic table }
-              if (oo_has_msgint in aktclass^.objectoptions) then
-                dataSegment.concat(Tai_const_symbol.Create(intmessagetable))
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              { pointer to method table }
-              if assigned(methodnametable) then
-                dataSegment.concat(Tai_const_symbol.Create(methodnametable))
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              { pointer to field table }
-              dataSegment.concat(Tai_const_symbol.Create(fieldtablelabel));
-              { pointer to type info of published section }
-              if (oo_can_have_published in aktclass^.objectoptions) then
-                dataSegment.concat(Tai_const_symbol.Createname(aktclass^.rtti_name))
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              { inittable for con-/destruction }
-              {
-              if aktclass^.needs_inittable then
-              }
-              { we generate the init table for classes always, because needs_inittable }
-              { for classes is always false, it applies only for objects               }
-              dataSegment.concat(Tai_const_symbol.Create(aktclass^.get_inittable_label));
-              {
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              }
-              { auto table }
-              dataSegment.concat(Tai_const.Create_32bit(0));
-              { interface table }
-              if aktclass^.implementedinterfaces^.count>0 then
-                dataSegment.concat(Tai_const_symbol.Create(interfacetable))
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-              { table for string messages }
-              if (oo_has_msgstr in aktclass^.objectoptions) then
-                dataSegment.concat(Tai_const_symbol.Create(strmessagetable))
-              else
-                dataSegment.concat(Tai_const.Create_32bit(0));
-            end;
-           dataSegment.concatlist(vmtlist);
-           vmtlist.free;
-           { write the size of the VMT }
-           dataSegment.concat(Tai_symbol_end.Createname(aktclass^.vmt_mangledname));
-        end;
 
       procedure setinterfacemethodoptions;
 
         var
           i: longint;
-          defs: pindexarray;
-          pd: pprocdef;
+          defs: TIndexArray;
+          pd: tprocdef;
         begin
-          include(aktclass^.objectoptions,oo_has_virtual);
-          defs:=aktclass^.symtable^.defindex;
-          for i:=1 to defs^.count do
+          include(aktclass.objectoptions,oo_has_virtual);
+          defs:=aktclass.symtable.defindex;
+          for i:=1 to defs.count do
             begin
-              pd:=pprocdef(defs^.search(i));
-              if pd^.deftype=procdef then
+              pd:=tprocdef(defs.search(i));
+              if pd.deftype=procdef then
                 begin
-                  pd^.extnumber:=aktclass^.lastvtableindex;
-                  inc(aktclass^.lastvtableindex);
-                  include(pd^.procoptions,po_virtualmethod);
-                  pd^.forwarddef:=false;
+                  pd.extnumber:=aktclass.lastvtableindex;
+                  inc(aktclass.lastvtableindex);
+                  include(pd.procoptions,po_virtualmethod);
+                  pd.forwarddef:=false;
                 end;
             end;
         end;
@@ -764,11 +628,11 @@ implementation
                        { also anonym objects aren't allow (o : object a : longint; end;) }
                        if n='' then
                          Message(parser_f_no_anonym_objects);
-                       aktclass:=new(pobjectdef,init(classtype,n,nil));
+                       aktclass:=tobjectdef.create(classtype,n,nil);
                        if (cs_compilesystem in aktmoduleswitches) and
                           (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
                          interface_iunknown:=aktclass;
-                       include(aktclass^.objectoptions,oo_is_forward);
+                       include(aktclass.objectoptions,oo_is_forward);
                        object_dec:=aktclass;
                        typecanbeforward:=storetypecanbeforward;
                        readobjecttype:=false;
@@ -787,16 +651,16 @@ implementation
                         single_type(tt,hs,typecanbeforward);
 
                         { accept hp1, if is a forward def or a class }
-                        if (tt.def^.deftype=forwarddef) or
+                        if (tt.def.deftype=forwarddef) or
                            is_class(tt.def) then
                           begin
-                             pcrd:=new(pclassrefdef,init(tt));
+                             pcrd:=tclassrefdef.create(tt);
                              object_dec:=pcrd;
                           end
                         else
                           begin
                              object_dec:=generrortype.def;
-                             Message1(type_e_class_type_expected,generrortype.def^.typename);
+                             Message1(type_e_class_type_expected,generrortype.def.typename);
                           end;
                         typecanbeforward:=storetypecanbeforward;
                         readobjecttype:=false;
@@ -808,14 +672,14 @@ implementation
                         { also anonym objects aren't allow (o : object a : longint; end;) }
                         if n='' then
                           Message(parser_f_no_anonym_objects);
-                        aktclass:=new(pobjectdef,init(odt_class,n,nil));
+                        aktclass:=tobjectdef.create(odt_class,n,nil);
                         if (cs_compilesystem in aktmoduleswitches) and (upper(n)='TOBJECT') then
                           class_tobject:=aktclass;
-                        aktclass^.objecttype:=odt_class;
-                        include(aktclass^.objectoptions,oo_is_forward);
+                        aktclass.objecttype:=odt_class;
+                        include(aktclass.objectoptions,oo_is_forward);
                         { all classes must have a vmt !!  at offset zero }
-                        if not(oo_has_vmt in aktclass^.objectoptions) then
-                          aktclass^.insertvmt;
+                        if not(oo_has_vmt in aktclass.objectoptions) then
+                          aktclass.insertvmt;
 
                         object_dec:=aktclass;
                         typecanbeforward:=storetypecanbeforward;
@@ -833,24 +697,24 @@ implementation
 
       procedure readimplementedinterfaces;
         var
-          implintf: pobjectdef;
+          implintf: tobjectdef;
           tt      : ttype;
         begin
           while try_to_consume(_COMMA) do begin
             id_type(tt,pattern,false);
-            implintf:=pobjectdef(tt.def);
-            if (tt.def^.deftype<>objectdef) then begin
-              Message1(type_e_interface_type_expected,tt.def^.typename);
+            implintf:=tobjectdef(tt.def);
+            if (tt.def.deftype<>objectdef) then begin
+              Message1(type_e_interface_type_expected,tt.def.typename);
               Continue; { omit }
             end;
             if not is_interface(implintf) then begin
-              Message1(type_e_interface_type_expected,implintf^.typename);
+              Message1(type_e_interface_type_expected,implintf.typename);
               Continue; { omit }
             end;
-            if aktclass^.implementedinterfaces^.searchintf(tt.def)<>-1 then
-              Message1(sym_e_duplicate_id,tt.def^.name)
+            if aktclass.implementedinterfaces.searchintf(tt.def)<>-1 then
+              Message1(sym_e_duplicate_id,tt.def.name)
             else
-              aktclass^.implementedinterfaces^.addintf(tt.def);
+              aktclass.implementedinterfaces.addintf(tt.def);
           end;
         end;
 
@@ -861,10 +725,10 @@ implementation
           p:=comp_expr(true);
           if p.nodetype=stringconstn then
             begin
-              aktclass^.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
+              aktclass.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
               p.free;
-              aktclass^.isiidguidvalid:=string2guid(aktclass^.iidstr^,aktclass^.iidguid);
-              if (classtype=odt_interfacecom) and not aktclass^.isiidguidvalid then
+              aktclass.isiidguidvalid:=string2guid(aktclass.iidstr^,aktclass.iidguid);
+              if (classtype=odt_interfacecom) and not aktclass.isiidguidvalid then
                 Message(parser_e_improper_guid_syntax);
             end
           else
@@ -882,14 +746,14 @@ implementation
              begin
                 consume(_LKLAMMER);
                 id_type(tt,pattern,false);
-                childof:=pobjectdef(tt.def);
+                childof:=tobjectdef(tt.def);
                 if (not assigned(childof)) or
-                   (childof^.deftype<>objectdef) then
+                   (childof.deftype<>objectdef) then
                  begin
                    if assigned(childof) then
-                    Message1(type_e_class_type_expected,childof^.typename);
+                    Message1(type_e_class_type_expected,childof.typename);
                    childof:=nil;
-                   aktclass:=new(pobjectdef,init(classtype,n,nil));
+                   aktclass:=tobjectdef.create(classtype,n,nil);
                  end
                 else
                  begin
@@ -915,18 +779,18 @@ implementation
                      correct field addresses }
                    if assigned(fd) then
                     begin
-                      if (oo_is_forward in childof^.objectoptions) then
-                       Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
+                      if (oo_is_forward in childof.objectoptions) then
+                       Message1(parser_e_forward_declaration_must_be_resolved,childof.objname^);
                       aktclass:=fd;
                       { we must inherit several options !!
                         this was missing !!
                         all is now done in set_parent
                         including symtable datasize setting PM }
-                      fd^.set_parent(childof);
+                      fd.set_parent(childof);
                     end
                    else
-                    aktclass:=new(pobjectdef,init(classtype,n,childof));
-                   if aktclass^.objecttype=odt_class then
+                    aktclass:=tobjectdef.create(classtype,n,childof);
+                   if aktclass.objecttype=odt_class then
                     readimplementedinterfaces;
                  end;
                 consume(_RKLAMMER);
@@ -935,7 +799,7 @@ implementation
            else if classtype in [odt_class,odt_interfacecom] then
              setclassparent
            else
-             aktclass:=new(pobjectdef,init(classtype,n,nil));
+             aktclass:=tobjectdef.create(classtype,n,nil);
            { read GUID }
              if (classtype in [odt_interfacecom,odt_interfacecorba]) and
                 try_to_consume(_LECKKLAMMER) then
@@ -950,28 +814,28 @@ implementation
         begin
            if is_cppclass(aktclass) then
              begin
-                include(aktprocsym^.definition^.proccalloptions,pocall_cppdecl);
-                aktprocsym^.definition^.setmangledname(
-                  target_os.Cprefix+aktprocsym^.definition^.cplusplusmangledname);
+                include(aktprocsym.definition.proccalloptions,pocall_cppdecl);
+                aktprocsym.definition.setmangledname(
+                  target_os.Cprefix+aktprocsym.definition.cplusplusmangledname);
              end;
         end;
 
       var
-        temppd : pprocdef;
+        temppd : tprocdef;
+        ch : tclassheader;
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
          oldprocsym:=aktprocsym;
          { forward is resolved }
          if assigned(fd) then
-           exclude(fd^.objectoptions,oo_is_forward);
+           exclude(fd.objectoptions,oo_is_forward);
 
          there_is_a_destructor:=false;
          actmembertype:=[sp_public];
 
          { objects and class types can't be declared local }
-         if (symtablestack^.symtabletype<>globalsymtable) and
-           (symtablestack^.symtabletype<>staticsymtable) then
+         if not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) then
            Message(parser_e_no_local_objects);
 
          storetypecanbeforward:=typecanbeforward;
@@ -996,8 +860,8 @@ implementation
          setclassattributes;
 
          aktobjectdef:=aktclass;
-         aktclass^.symtable^.next:=symtablestack;
-         symtablestack:=aktclass^.symtable;
+         aktclass.symtable.next:=symtablestack;
+         symtablestack:=aktclass.symtable;
          testcurobject:=1;
          curobjectname:=Upper(n);
 
@@ -1013,9 +877,9 @@ implementation
           { Parse componenten }
             repeat
               if (sp_private in actmembertype) then
-                include(aktclass^.objectoptions,oo_has_private);
+                include(aktclass.objectoptions,oo_has_private);
               if (sp_protected in actmembertype) then
-                include(aktclass^.objectoptions,oo_has_protected);
+                include(aktclass.objectoptions,oo_has_protected);
               case token of
               _ID : begin
                       case idtoken of
@@ -1044,7 +908,7 @@ implementation
                                     if is_interface(aktclass) then
                                       Message(parser_e_no_access_specifier_in_interfaces)
                                     else
-                                      if not(oo_can_have_published in aktclass^.objectoptions) then
+                                      if not(oo_can_have_published in aktclass.objectoptions) then
                                         Message(parser_e_cant_have_published);
                                     consume(_PUBLISHED);
                                     current_object_option:=[sp_published];
@@ -1068,14 +932,14 @@ implementation
 {$endif newcg}
                       { check if there are duplicates }
                       check_identical_proc(temppd);
-                      if (po_msgint in aktprocsym^.definition^.procoptions) then
-                        include(aktclass^.objectoptions,oo_has_msgint);
+                      if (po_msgint in aktprocsym.definition.procoptions) then
+                        include(aktclass.objectoptions,oo_has_msgint);
 
-                      if (po_msgstr in aktprocsym^.definition^.procoptions) then
-                        include(aktclass^.objectoptions,oo_has_msgstr);
+                      if (po_msgstr in aktprocsym.definition.procoptions) then
+                        include(aktclass.objectoptions,oo_has_msgstr);
 
-                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-                        include(aktclass^.objectoptions,oo_has_virtual);
+                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
+                        include(aktclass.objectoptions,oo_has_virtual);
 
                       chkcpp;
 
@@ -1092,8 +956,8 @@ implementation
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-                        include(aktclass^.objectoptions,oo_has_virtual);
+                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
+                        include(aktclass.objectoptions,oo_has_virtual);
 
                       chkcpp;
 
@@ -1113,8 +977,8 @@ implementation
 {$ifndef newcg}
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-                        include(aktclass^.objectoptions,oo_has_virtual);
+                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
+                        include(aktclass.objectoptions,oo_has_virtual);
 
                       chkcpp;
 
@@ -1135,25 +999,26 @@ implementation
          typecanbeforward:=storetypecanbeforward;
 
          { generate vmt space if needed }
-         if not(oo_has_vmt in aktclass^.objectoptions) and
-            (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*aktclass^.objectoptions<>[]) or
+         if not(oo_has_vmt in aktclass.objectoptions) and
+            (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*aktclass.objectoptions<>[]) or
              (classtype in [odt_class])
             ) then
-           aktclass^.insertvmt;
+           aktclass.insertvmt;
          if (cs_create_smart in aktmoduleswitches) then
            dataSegment.concat(Tai_cut.Create);
 
+         ch:=tclassheader.create(aktclass);
          if is_interface(aktclass) then
-           writeinterfaceids(aktclass);
-
-         if (oo_has_vmt in aktclass^.objectoptions) then
-           writevmt;
+           ch.writeinterfaceids;
+         if (oo_has_vmt in aktclass.objectoptions) then
+           ch.writevmt;
+         ch.free;
 
          if is_interface(aktclass) then
            setinterfacemethodoptions;
 
          { restore old state }
-         symtablestack:=symtablestack^.next;
+         symtablestack:=symtablestack.next;
          aktobjectdef:=nil;
          {Restore procinfo}
          dispose(procinfo,done);
@@ -1167,7 +1032,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-04-04 22:43:51  peter
+  Revision 1.21  2001-04-13 01:22:11  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.20  2001/04/04 22:43:51  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.19  2001/04/04 21:30:43  florian

@@ -28,7 +28,7 @@ uses
   aasm,
   symbase,symtype,symtable,symdef,symsym;
 
-procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
+procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
 
 implementation
 
@@ -82,22 +82,22 @@ virtual(2):      OK     OK    OK(3)  OK     OK(3)      OK          OK(4)
 
 }
 
-function getselfoffsetfromsp(procdef: pprocdef): longint;
+function getselfoffsetfromsp(procdef: tprocdef): longint;
 begin
-  if not assigned(procdef^.parast^.symindex^.first) then
+  if not assigned(procdef.parast.symindex.first) then
     getselfoffsetfromsp:=4
   else
-    if psym(procdef^.parast^.symindex^.first)^.typ=varsym then
-      getselfoffsetfromsp:=pvarsym(procdef^.parast^.symindex^.first)^.address+4
+    if tsym(procdef.parast.symindex.first).typ=varsym then
+      getselfoffsetfromsp:=tvarsym(procdef.parast.symindex.first).address+4
     else
       Internalerror(2000061310);
 end;
 
 
-procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: pprocdef; const labelname: string; ioffset: longint);
+procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
   procedure checkvirtual;
   begin
-    if (procdef^.extnumber=-1) then
+    if (procdef.extnumber=-1) then
       Internalerror(200006139);
   end;
 
@@ -123,24 +123,24 @@ procedure cgintfwrapper(asmlist: TAAsmoutput; procdef: pprocdef; const labelname
   procedure op_oneaxmethodaddr(op: TAsmOp);
   begin
     { call/jmp  vmtoffs(%eax) ; method offs }
-    emit_ref(op,S_L,new_reference(R_EAX,procdef^._class^.vmtmethodoffset(procdef^.extnumber)));
+    emit_ref(op,S_L,new_reference(R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber)));
   end;
 
   procedure loadmethodoffstoeax;
   begin
     { mov  vmtoffs(%eax),%eax ; method offs }
-    emit_ref_reg(A_MOV,S_L,new_reference(R_EAX,procdef^._class^.vmtmethodoffset(procdef^.extnumber)),R_EAX);
+    emit_ref_reg(A_MOV,S_L,new_reference(R_EAX,procdef._class.vmtmethodoffset(procdef.extnumber)),R_EAX);
   end;
 
 var
   oldexprasmlist: TAAsmoutput;
-  lab : pasmsymbol;
+  lab : tasmsymbol;
 
 begin
-  if procdef^.proctypeoption<>potype_none then
+  if procdef.proctypeoption<>potype_none then
     Internalerror(200006137);
-  if not assigned(procdef^._class) or
-     (procdef^.procoptions*[po_containsself, po_classmethod, po_staticmethod,
+  if not assigned(procdef._class) or
+     (procdef.procoptions*[po_containsself, po_classmethod, po_staticmethod,
        po_methodpointer, po_interrupt, po_iocheck]<>[]) then
     Internalerror(200006138);
 
@@ -153,9 +153,9 @@ begin
   adjustselfvalue(ioffset);
 
   { case 1  or 2 }
-  if (pocall_clearstack in procdef^.proccalloptions) then
+  if (pocall_clearstack in procdef.proccalloptions) then
     begin
-      if po_virtualmethod in procdef^.procoptions then
+      if po_virtualmethod in procdef.procoptions then
         begin { case 2 }
           getselftoeax(0);
           loadvmttoeax;
@@ -163,13 +163,13 @@ begin
         end
       else { case 1 }
         begin
-          emitcall(procdef^.mangledname);
+          emitcall(procdef.mangledname);
         end;
       { restore param1 value self to interface }
       adjustselfvalue(-ioffset);
     end
   { case 3 }
-  else if [po_virtualmethod,po_saveregisters]*procdef^.procoptions=[po_virtualmethod,po_saveregisters] then
+  else if [po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters] then
     begin
       emit_reg(A_PUSH,S_L,R_EBX); { allocate space for address}
       emit_reg(A_PUSH,S_L,R_EAX);
@@ -184,7 +184,7 @@ begin
       emit_none(A_RET,S_L);
     end
   { case 4 }
-  else if po_virtualmethod in procdef^.procoptions then
+  else if po_virtualmethod in procdef.procoptions then
     begin
       getselftoeax(0);
       loadvmttoeax;
@@ -193,7 +193,7 @@ begin
   { case 0 }
   else
     begin
-      lab:=newasmsymbol(procdef^.mangledname);
+      lab:=newasmsymbol(procdef.mangledname);
       emit_sym(A_JMP,S_NO,lab);
     end;
   exprasmlist:=oldexprasmlist;
@@ -202,7 +202,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:33  peter
+  Revision 1.5  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.4  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

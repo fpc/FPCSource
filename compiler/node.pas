@@ -27,7 +27,7 @@ unit node;
 interface
 
     uses
-       cobjects,cclasses,
+       cclasses,
        globtype,globals,
        cpubase,
        aasm,
@@ -298,7 +298,6 @@ interface
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
 {$ifdef extdebug}
-          oldresulttype : ttype; { to detect changed resulttype }
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
@@ -351,7 +350,7 @@ interface
        { true- and falselabel                                     }
        tparentnode = class(tnode)
 {$ifdef newcg}
-          falselabel,truelabel : pasmlabel;
+          falselabel,truelabel : tasmlabel;
 {$endif newcg}
        end;
 
@@ -430,7 +429,6 @@ implementation
          registersmmx:=0;
 {$endif SUPPORT_MMX}
 {$ifdef EXTDEBUG}
-         oldresulttype.reset;
          maxfirstpasscount:=0;
          firstpasscount:=0;
 {$endif EXTDEBUG}
@@ -792,7 +790,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-02 21:20:31  peter
+  Revision 1.15  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.13  2001/01/13 00:08:09  peter

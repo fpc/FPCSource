@@ -38,7 +38,7 @@ const
 
 type
    texported_item = class(tlinkedlistitem)
-      sym : psym;
+      sym : tsym;
       index : longint;
       name : pstring;
       options : word;
@@ -239,7 +239,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-02-26 19:44:52  peter
+  Revision 1.13  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/02/26 19:44:52  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.11  2001/02/03 00:09:02  peter

@@ -78,7 +78,7 @@ implementation
       var
          hp,t    : tnode;
          lt,rt   : tnodetype;
-         rd,ld   : pdef;
+         rd,ld   : tdef;
          htype   : ttype;
          ot      : tnodetype;
          concatstrings : boolean;
@@ -102,26 +102,33 @@ implementation
          if codegenerror then
            exit;
 
+         { convert array constructors to sets, because there is no other operator
+           possible for array constructors }
+         if is_array_constructor(left.resulttype.def) then
+          begin
+            arrayconstructor_to_set(tarrayconstructornode(left));
+            resulttypepass(left);
+          end;
+         if is_array_constructor(right.resulttype.def) then
+          begin
+            arrayconstructor_to_set(tarrayconstructornode(right));
+            resulttypepass(right);
+          end;
+
+         { is one a real float, then both need to be floats, this
+           need to be done before the constant folding so constant
+           operation on a float and int are also handled }
+         if (right.resulttype.def.deftype=floatdef) or (left.resulttype.def.deftype=floatdef) then
+          begin
+            inserttypeconv(right,pbestrealtype^);
+            inserttypeconv(left,pbestrealtype^);
+          end;
+
          { load easier access variables }
          rd:=right.resulttype.def;
          ld:=left.resulttype.def;
          rt:=right.nodetype;
          lt:=left.nodetype;
-
-         { convert array constructors to sets, because there is no other operator
-           possible for array constructors }
-         if is_array_constructor(ld) then
-          begin
-            arrayconstructor_to_set(tarrayconstructornode(left));
-            resulttypepass(left);
-            ld:=left.resulttype.def;
-          end;
-         if is_array_constructor(rd) then
-          begin
-            arrayconstructor_to_set(tarrayconstructornode(right));
-            resulttypepass(right);
-            rd:=right.resulttype.def;
-          end;
 
          { both are int constants }
          if (((is_constintnode(left) and is_constintnode(right)) or
@@ -154,7 +161,7 @@ implementation
                 begin
                   { make left const type the biggest, this type will be used
                     for orn,andn,xorn }
-                  if rd^.size>ld^.size then
+                  if rd.size>ld.size then
                     inserttypeconv(left,right.resulttype);
                 end;
 
@@ -169,10 +176,10 @@ implementation
                 rv:=tpointerconstnode(right).value;
               if (lt = pointerconstn) and
                  (rt <> pointerconstn) then
-                rv := rv * ppointerdef(left.resulttype.def)^.pointertype.def^.size;
+                rv := rv * tpointerdef(left.resulttype.def).pointertype.def.size;
               if (rt = pointerconstn) and
                  (lt <> pointerconstn) then
-                lv := lv * ppointerdef(right.resulttype.def)^.pointertype.def^.size;
+                lv := lv * tpointerdef(right.resulttype.def).pointertype.def.size;
               case nodetype of
                 addn :
                   if (lt <> pointerconstn) then
@@ -445,18 +452,18 @@ implementation
           end
 
          { if both are orddefs then check sub types }
-         else if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
+         else if (ld.deftype=orddef) and (rd.deftype=orddef) then
            begin
              { 2 booleans? Make them equal to the largest boolean }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                if porddef(left.resulttype.def)^.size>porddef(right.resulttype.def)^.size then
+                if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
                    inserttypeconv(right,left.resulttype);
                    ttypeconvnode(right).convtype:=tc_bool_2_int;
                    include(right.flags,nf_explizit);
                  end
-                else if porddef(left.resulttype.def)^.size<porddef(right.resulttype.def)^.size then
+                else if torddef(left.resulttype.def).size<torddef(right.resulttype.def).size then
                  begin
                    inserttypeconv(left,right.resulttype);
                    ttypeconvnode(left).convtype:=tc_bool_2_int;
@@ -535,23 +542,23 @@ implementation
                   end;
                end
              { is there a signed 64 bit type ? }
-             else if ((porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit)) then
+             else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
                begin
-                  if (porddef(ld)^.typ<>s64bit) then
+                  if (torddef(ld).typ<>s64bit) then
                    inserttypeconv(left,cs64bittype);
-                  if (porddef(rd)^.typ<>s64bit) then
+                  if (torddef(rd).typ<>s64bit) then
                    inserttypeconv(right,cs64bittype);
                end
              { is there a unsigned 64 bit type ? }
-             else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) then
+             else if ((torddef(rd).typ=u64bit) or (torddef(ld).typ=u64bit)) then
                begin
-                  if (porddef(ld)^.typ<>u64bit) then
+                  if (torddef(ld).typ<>u64bit) then
                    inserttypeconv(left,cu64bittype);
-                  if (porddef(rd)^.typ<>u64bit) then
+                  if (torddef(rd).typ<>u64bit) then
                    inserttypeconv(right,cu64bittype);
                end
              { is there a cardinal? }
-             else if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) then
+             else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
                begin
                  if is_signed(ld) and
                     { then rd = u32bit }
@@ -609,16 +616,28 @@ implementation
                end;
            end
 
+         { if both are floatdefs, conversion is already done before constant folding }
+           else if (ld.deftype=floatdef) then
+            begin
+              { already converted }
+            end
+
+         else if (right.resulttype.def.deftype=floatdef) or (left.resulttype.def.deftype=floatdef) then
+          begin
+            inserttypeconv(right,pbestrealtype^);
+            inserttypeconv(left,pbestrealtype^);
+          end
+
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-         else if (ld^.deftype=setdef) then
+         else if (ld.deftype=setdef) then
           begin
             { trying to add a set element? }
-            if (nodetype=addn) and (rd^.deftype<>setdef) then
+            if (nodetype=addn) and (rd.deftype<>setdef) then
              begin
                if (rt=setelementn) then
                 begin
-                  if not(is_equal(psetdef(ld)^.elementtype.def,rd)) then
+                  if not(is_equal(tsetdef(ld).elementtype.def,rd)) then
                    CGMessage(type_e_set_element_are_not_comp);
                 end
                else
@@ -629,18 +648,18 @@ implementation
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
                { right def must be a also be set }
-               if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
+               if (rd.deftype<>setdef) or not(is_equal(rd,ld)) then
                 CGMessage(type_e_set_element_are_not_comp);
              end;
 
             { ranges require normsets }
-            if (psetdef(ld)^.settype=smallset) and
+            if (tsetdef(ld).settype=smallset) and
                (rt=setelementn) and
                assigned(tsetelementnode(right).right) then
              begin
                { generate a temporary normset def, it'll be destroyed
                  when the symtable is unloaded }
-               htype.setdef(new(psetdef,init(psetdef(ld)^.elementtype,255)));
+               htype.setdef(tsetdef.create(tsetdef(ld).elementtype,255));
                inserttypeconv(left,htype);
              end;
           end
@@ -658,7 +677,7 @@ implementation
          { is one of the operands a string?,
            chararrays are also handled as strings (after conversion), also take
            care of chararray+chararray and chararray+char }
-         else if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
+         else if (rd.deftype=stringdef) or (ld.deftype=stringdef) or
                  ((is_chararray(rd) or is_char(rd)) and
                   (is_chararray(ld) or is_char(ld))) then
           begin
@@ -694,16 +713,8 @@ implementation
               end;
           end
 
-         { is one a real float ? }
-         else if (rd^.deftype=floatdef) or (ld^.deftype=floatdef) then
-          begin
-          { convert both to bestreal }
-            inserttypeconv(right,pbestrealtype^);
-            inserttypeconv(left,pbestrealtype^);
-          end
-
          { pointer comparision and subtraction }
-         else if (rd^.deftype=pointerdef) and (ld^.deftype=pointerdef) then
+         else if (rd.deftype=pointerdef) and (ld.deftype=pointerdef) then
           begin
             case nodetype of
                equaln,unequaln :
@@ -771,7 +782,7 @@ implementation
           begin
             if is_class_or_interface(rd) and is_class_or_interface(ld) then
              begin
-               if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
+               if tobjectdef(rd).is_related(tobjectdef(ld)) then
                 inserttypeconv(right,left.resulttype)
                else
                 inserttypeconv(left,right.resulttype);
@@ -785,10 +796,10 @@ implementation
              CGMessage(type_e_mismatch);
           end
 
-         else if (rd^.deftype=classrefdef) and (ld^.deftype=classrefdef) then
+         else if (rd.deftype=classrefdef) and (ld.deftype=classrefdef) then
           begin
-            if pobjectdef(pclassrefdef(rd)^.pointertype.def)^.is_related(
-                    pobjectdef(pclassrefdef(ld)^.pointertype.def)) then
+            if tobjectdef(tclassrefdef(rd).pointertype.def).is_related(
+                    tobjectdef(tclassrefdef(ld).pointertype.def)) then
               inserttypeconv(right,left.resulttype)
             else
               inserttypeconv(left,right.resulttype);
@@ -798,14 +809,14 @@ implementation
           end
 
          { allows comperasion with nil pointer }
-         else if is_class_or_interface(rd) or (rd^.deftype=classrefdef) then
+         else if is_class_or_interface(rd) or (rd.deftype=classrefdef) then
           begin
             inserttypeconv(left,right.resulttype);
             if not(nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
           end
 
-         else if is_class_or_interface(ld) or (ld^.deftype=classrefdef) then
+         else if is_class_or_interface(ld) or (ld.deftype=classrefdef) then
           begin
             inserttypeconv(right,left.resulttype);
             if not(nodetype in [equaln,unequaln]) then
@@ -813,8 +824,8 @@ implementation
           end
 
        { support procvar=nil,procvar<>nil }
-         else if ((ld^.deftype=procvardef) and (rt=niln)) or
-                 ((rd^.deftype=procvardef) and (lt=niln)) then
+         else if ((ld.deftype=procvardef) and (rt=niln)) or
+                 ((rd.deftype=procvardef) and (lt=niln)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
@@ -843,11 +854,11 @@ implementation
 
          { this is a little bit dangerous, also the left type }
          { pointer to should be checked! This broke the mmx support      }
-         else if (rd^.deftype=pointerdef) or is_zero_based_array(rd) then
+         else if (rd.deftype=pointerdef) or is_zero_based_array(rd) then
           begin
             if is_zero_based_array(rd) then
               begin
-                resulttype.setdef(new(ppointerdef,init(parraydef(rd)^.elementtype)));
+                resulttype.setdef(tpointerdef.create(tarraydef(rd).elementtype));
                 inserttypeconv(right,resulttype);
               end;
             inserttypeconv(left,s32bittype);
@@ -856,19 +867,19 @@ implementation
                 if not(cs_extsyntax in aktmoduleswitches) or
                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
                   CGMessage(type_e_mismatch);
-                if (rd^.deftype=pointerdef) and
-                   (ppointerdef(rd)^.pointertype.def^.size>1) then
-                  left:=caddnode.create(muln,left,cordconstnode.create(ppointerdef(rd)^.pointertype.def^.size,s32bittype));
+                if (rd.deftype=pointerdef) and
+                   (tpointerdef(rd).pointertype.def.size>1) then
+                  left:=caddnode.create(muln,left,cordconstnode.create(tpointerdef(rd).pointertype.def.size,s32bittype));
               end
             else
               CGMessage(type_e_mismatch);
           end
 
-         else if (ld^.deftype=pointerdef) or is_zero_based_array(ld) then
+         else if (ld.deftype=pointerdef) or is_zero_based_array(ld) then
           begin
             if is_zero_based_array(ld) then
               begin
-                 resulttype.setdef(new(ppointerdef,init(parraydef(ld)^.elementtype)));
+                 resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
                  inserttypeconv(left,resulttype);
               end;
             inserttypeconv(right,s32bittype);
@@ -877,22 +888,22 @@ implementation
                 if not(cs_extsyntax in aktmoduleswitches) or
                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
                   CGMessage(type_e_mismatch);
-                if (ld^.deftype=pointerdef) and
-                   (ppointerdef(ld)^.pointertype.def^.size>1) then
-                  right:=caddnode.create(muln,right,cordconstnode.create(ppointerdef(ld)^.pointertype.def^.size,s32bittype));
+                if (ld.deftype=pointerdef) and
+                   (tpointerdef(ld).pointertype.def.size>1) then
+                  right:=caddnode.create(muln,right,cordconstnode.create(tpointerdef(ld).pointertype.def.size,s32bittype));
               end
             else
               CGMessage(type_e_mismatch);
          end
 
-         else if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
+         else if (rd.deftype=procvardef) and (ld.deftype=procvardef) and is_equal(rd,ld) then
           begin
             if not (nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
           end
 
          { enums }
-         else if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) then
+         else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
           begin
             if not(is_equal(ld,rd)) then
              inserttypeconv(right,left.resulttype);
@@ -937,7 +948,7 @@ implementation
       var
          hp      : tnode;
          lt,rt   : tnodetype;
-         rd,ld   : pdef;
+         rd,ld   : tdef;
       begin
          result:=nil;
          { first do the two subtrees }
@@ -967,7 +978,7 @@ implementation
            end
 
          { if both are orddefs then check sub types }
-         else if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
+         else if (ld.deftype=orddef) and (rd.deftype=orddef) then
            begin
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
@@ -996,10 +1007,10 @@ implementation
                  calcregisters(self,1,0,0);
                end
               { is there a 64 bit type ? }
-             else if (porddef(ld)^.typ in [s64bit,u64bit]) then
+             else if (torddef(ld).typ in [s64bit,u64bit]) then
                calcregisters(self,2,0,0)
              { is there a cardinal? }
-             else if (porddef(ld)^.typ=u32bit) then
+             else if (torddef(ld).typ=u32bit) then
                begin
                  calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
@@ -1013,9 +1024,9 @@ implementation
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-         else if (ld^.deftype=setdef) then
+         else if (ld.deftype=setdef) then
            begin
-             if psetdef(ld)^.settype=smallset then
+             if tsetdef(ld).settype=smallset then
               begin
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
@@ -1041,7 +1052,7 @@ implementation
            end
 
          { is one of the operands a string }
-         else if (ld^.deftype=stringdef) then
+         else if (ld.deftype=stringdef) then
             begin
               if is_widestring(ld) then
                 begin
@@ -1099,14 +1110,14 @@ implementation
            end
 
          { is one a real float ? }
-         else if (rd^.deftype=floatdef) or (ld^.deftype=floatdef) then
+         else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
               calcregisters(self,0,1,0);
               location.loc:=LOC_FPU;
             end
 
          { pointer comperation and subtraction }
-         else if (ld^.deftype=pointerdef) then
+         else if (ld.deftype=pointerdef) then
             begin
               location.loc:=LOC_REGISTER;
               calcregisters(self,1,0,0);
@@ -1118,15 +1129,15 @@ implementation
               calcregisters(self,1,0,0);
             end
 
-         else if (ld^.deftype=classrefdef) then
+         else if (ld.deftype=classrefdef) then
             begin
               location.loc:=LOC_REGISTER;
               calcregisters(self,1,0,0);
             end
 
          { support procvar=nil,procvar<>nil }
-         else if ((ld^.deftype=procvardef) and (rt=niln)) or
-                 ((rd^.deftype=procvardef) and (lt=niln)) then
+         else if ((ld.deftype=procvardef) and (rt=niln)) or
+                 ((rd.deftype=procvardef) and (lt=niln)) then
             begin
               calcregisters(self,1,0,0);
               location.loc:=LOC_REGISTER;
@@ -1143,19 +1154,19 @@ implementation
             end
 {$endif SUPPORT_MMX}
 
-         else if (rd^.deftype=pointerdef) or (ld^.deftype=pointerdef) then
+         else if (rd.deftype=pointerdef) or (ld.deftype=pointerdef) then
             begin
               location.loc:=LOC_REGISTER;
               calcregisters(self,1,0,0);
             end
 
-         else  if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
+         else  if (rd.deftype=procvardef) and (ld.deftype=procvardef) and is_equal(rd,ld) then
            begin
              calcregisters(self,1,0,0);
              location.loc:=LOC_REGISTER;
            end
 
-         else if (ld^.deftype=enumdef) then
+         else if (ld.deftype=enumdef) then
            begin
               calcregisters(self,1,0,0);
            end
@@ -1197,7 +1208,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2001-04-04 22:42:39  peter
+  Revision 1.25  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.24  2001/04/04 22:42:39  peter
     * move constant folding into det_resulttype
 
   Revision 1.23  2001/04/02 21:20:30  peter

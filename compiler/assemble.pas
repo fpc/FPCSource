@@ -34,7 +34,7 @@ uses
   strings,
   dos,
 {$endif Delphi}
-  cobjects,globtype,globals,aasm;
+  globtype,globals,aasm;
 
 const
   AsmOutSize=32768;
@@ -612,7 +612,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-03-13 18:42:39  peter
+  Revision 1.17  2001-04-13 01:22:06  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/03/13 18:42:39  peter
     * don't create temporary smartlink dir for internalassembler
 
   Revision 1.15  2001/03/05 21:39:11  peter

@@ -47,7 +47,7 @@ interface
       strings,
       dos,
 {$endif}
-      cutils,cobjects,cclasses,
+      cutils,cclasses,
       globtype,version,systems;
 
     const
@@ -279,35 +279,6 @@ implementation
     procedure abstract;
       begin
         do_internalerror(255);
-      end;
-
-
-    function ngraphsearchvalue(const s1,s2 : string) : double;
-      const
-         n = 3;
-      var
-         equals,i,j : longint;
-         hs : string;
-      begin
-         equals:=0;
-         { is the string long enough ? }
-         if min(length(s1),length(s2))-n+1<1 then
-           begin
-              ngraphsearchvalue:=0.0;
-              exit;
-           end;
-         for i:=1 to length(s1)-n+1 do
-           begin
-              hs:=copy(s1,i,n);
-              for j:=1 to length(s2)-n+1 do
-                if hs=copy(s2,j,n) then
-                  inc(equals);
-           end;
-{$ifdef fpc}
-         ngraphsearchvalue:=equals/double(max(length(s1),length(s2))-n+1);
-{$else}
-         ngraphsearchvalue:=equals/(max(length(s1),length(s2))-n+1);
-{$endif}
       end;
 
 
@@ -1341,7 +1312,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-04-04 21:30:42  florian
+  Revision 1.30  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.29  2001/04/04 21:30:42  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 

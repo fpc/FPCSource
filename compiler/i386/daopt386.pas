@@ -197,7 +197,7 @@ Function DFAPass2(
                                       BlockStart, BlockEnd: Tai): Boolean;
 Procedure ShutDownDFA;
 
-Function FindLabel(L: PasmLabel; Var hp: Tai): Boolean;
+Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
 
 Procedure IncState(Var S: Byte; amount: longint);
 
@@ -256,19 +256,19 @@ Var
   var temp: PSearchLinkedListItem;
   begin
     temp := first;
-    while (temp <> last^.next) and
+    while (temp <> last.next) and
           not(temp.equals(p)) do
       temp := temp.next;
-    searchByValue := temp <> last^.next;
+    searchByValue := temp <> last.next;
   end;
 
   procedure TSearchLinkedList.removeByValue(p: PSearchLinkedListItem);
   begin
     temp := first;
-    while (temp <> last^.next) and
+    while (temp <> last.next) and
           not(temp.equals(p)) do
       temp := temp.next;
-    if temp <> last^.next then
+    if temp <> last.next then
       begin
         remove(temp);
         dispose(temp,done);
@@ -320,10 +320,10 @@ Begin
           Then
             Begin
               LabelFound := True;
-              If (Tai_Label(p).l^.labelnr < LowLabel) Then
-                LowLabel := Tai_Label(p).l^.labelnr;
-              If (Tai_Label(p).l^.labelnr > HighLabel) Then
-                HighLabel := Tai_Label(p).l^.labelnr;
+              If (Tai_Label(p).l.labelnr < LowLabel) Then
+                LowLabel := Tai_Label(p).l.labelnr;
+              If (Tai_Label(p).l.labelnr > HighLabel) Then
+                HighLabel := Tai_Label(p).l.labelnr;
             End;
       lastP := p;
       GetNextInstruction(p, p);
@@ -388,18 +388,18 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
 
 begin
   if assigned(procinfo^.returntype.def) then
-    case procinfo^.returntype.def^.deftype of
+    case procinfo^.returntype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
       orddef:
-        if procinfo^.returntype.def^.size <> 0 then
+        if procinfo^.returntype.def.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
             { for int64/qword }
-            if procinfo^.returntype.def^.size = 8 then
+            if procinfo^.returntype.def.size = 8 then
               DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
           end;
     end;
@@ -410,18 +410,18 @@ var regCounter: TRegister;
 begin
   regs := [];
   if assigned(procinfo^.returntype.def) then
-    case procinfo^.returntype.def^.deftype of
+    case procinfo^.returntype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
        regs := [R_EAX];
       orddef:
-        if procinfo^.returntype.def^.size <> 0 then
+        if procinfo^.returntype.def.size <> 0 then
           begin
             regs := [R_EAX];
             { for int64/qword }
-            if procinfo^.returntype.def^.size = 8 then
+            if procinfo^.returntype.def.size = 8 then
               regs := regs + [R_EDX];
           end;
     end;
@@ -444,7 +444,7 @@ begin
   while not(funcResReg and
             (p.typ = ait_instruction) and
             (Taicpu(p).opcode = A_JMP) and
-            (pasmlabel(Taicpu(p).oper[0].sym) = aktexit2label)) and
+            (tasmlabel(Taicpu(p).oper[0].sym) = aktexit2label)) and
         getLastInstruction(p, p) And
         not(regInInstruction(reg, p)) Do
     hp1 := p;
@@ -453,7 +453,7 @@ begin
   if not(funcResReg) or
      not((hp1.typ = ait_instruction) and
          (Taicpu(hp1).opcode = A_JMP) and
-         (pasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then
+         (tasmlabel(Taicpu(hp1).oper[0].sym) = aktexit2label)) then
     begin
       p := TaiRegAlloc.deAlloc(reg);
       insertLLItem(AsmL, hp1.previous, hp1, p);
@@ -481,7 +481,7 @@ Begin
       Case p.typ Of
         ait_Label:
           If not labelCanBeSkipped(Tai_label(p)) Then
-            LabelTable^[Tai_Label(p).l^.labelnr-LowLabel].TaiObj := p;
+            LabelTable^[Tai_Label(p).l.labelnr-LowLabel].TaiObj := p;
         ait_regAlloc:
           { ESI and EDI are (de)allocated manually, don't mess with them }
           if not(TaiRegAlloc(p).Reg in [R_EDI,R_ESI]) then
@@ -528,7 +528,7 @@ End;
 
 {************************ Search the Label table ************************}
 
-Function FindLabel(L: PasmLabel; Var hp: Tai): Boolean;
+Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
 
 {searches for the specified label starting from hp as long as the
  encountered instructions are labels, to be able to optimize constructs like
@@ -1063,7 +1063,7 @@ End;
 
 function labelCanBeSkipped(p: Tai_label): boolean;
 begin
-  labelCanBeSkipped := not(p.l^.is_used) or p.l^.is_addr;
+  labelCanBeSkipped := not(p.l.is_used) or p.l.is_addr;
 end;
 
 {******************* The Data Flow Analyzer functions ********************}
@@ -1989,7 +1989,7 @@ Begin
                             While GetNextInstruction(hp, hp) And
                                   Not((hp.typ = ait_instruction) And
                                       (Taicpu(hp).is_jmp) and
-                                      (pasmlabel(Taicpu(hp).oper[0].sym)^.labelnr = Tai_Label(p).l^.labelnr)) And
+                                      (tasmlabel(Taicpu(hp).oper[0].sym).labelnr = Tai_Label(p).l^.labelnr)) And
                                   Not((hp.typ = ait_label) And
                                       (LTable^[Tai_Label(hp).l^.labelnr-LoLab].RefsFound
                                        = Tai_Label(hp).l^.RefCount) And
@@ -2041,8 +2041,8 @@ Begin
                       con_invalid: typ := con_unknown;
                     end;
 {$Else JumpAnal}
-          With LTable^[pasmlabel(Taicpu(p).oper[0].sym)^.labelnr-LoLab] Do
-            If (RefsFound = pasmlabel(Taicpu(p).oper[0].sym)^.RefCount) Then
+          With LTable^[tasmlabel(Taicpu(p).oper[0].sym).labelnr-LoLab] Do
+            If (RefsFound = tasmlabel(Taicpu(p).oper[0].sym).RefCount) Then
               Begin
                 If (InstrCnt < InstrNr)
                   Then
@@ -2390,9 +2390,9 @@ Begin
           begin
             if Taicpu(p).is_jmp then
              begin
-               If (pasmlabel(Taicpu(p).oper[0].sym)^.labelnr >= LoLab) And
-                  (pasmlabel(Taicpu(p).oper[0].sym)^.labelnr <= HiLab) Then
-                 Inc(LTable^[pasmlabel(Taicpu(p).oper[0].sym)^.labelnr-LoLab].RefsFound);
+               If (tasmlabel(Taicpu(p).oper[0].sym).labelnr >= LoLab) And
+                  (tasmlabel(Taicpu(p).oper[0].sym).labelnr <= HiLab) Then
+                 Inc(LTable^[tasmlabel(Taicpu(p).oper[0].sym).labelnr-LoLab].RefsFound);
              end;
           end;
 {        ait_instruction:
@@ -2454,7 +2454,12 @@ End.
 
 {
   $Log$
-  Revision 1.16  2001-04-02 21:20:36  peter
+  Revision 1.17  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:36  peter
     * resulttype rewrite
 
   Revision 1.15  2000/12/31 11:00:31  jonas

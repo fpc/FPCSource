@@ -95,16 +95,16 @@ implementation
         function do_lowhigh(const t:ttype) : tnode;
         var
            v    : tconstexprint;
-           enum : penumsym;
+           enum : tenumsym;
            hp   : tnode;
         begin
-           case t.def^.deftype of
+           case t.def.deftype of
              orddef:
                begin
                   if inlinenumber=in_low_x then
-                    v:=porddef(t.def)^.low
+                    v:=torddef(t.def).low
                   else
-                    v:=porddef(t.def)^.high;
+                    v:=torddef(t.def).high;
                   { low/high of torddef are longints, so we need special }
                   { handling for cardinal and 64bit types (JM)           }
                   if is_signed(t.def) and
@@ -127,17 +127,16 @@ implementation
                   if not is_signed(t.def) and
                      is_64bitint(t.def) and
                      (inlinenumber = in_high_x) then
-                    tordconstnode(hp).value :=
-                      tconstexprint(qword($ffffffff) shl 32 or $ffffffff);
+                    tordconstnode(hp).value := -1; { is the same as qword($ffffffffffffffff) }
                   do_lowhigh:=hp;
                end;
              enumdef:
                begin
-                  enum:=penumsym(Penumdef(t.def)^.firstenum);
-                  v:=Penumdef(t.def)^.maxval;
+                  enum:=tenumsym(tenumdef(t.def).firstenum);
+                  v:=tenumdef(t.def).maxval;
                   if inlinenumber=in_high_x then
-                    while assigned(enum) and (enum^.value <> v) do
-                      enum:=enum^.nextenum;
+                    while assigned(enum) and (enum.value <> v) do
+                      enum:=enum.nextenum;
                   if not assigned(enum) then
                     internalerror(309993)
                   else
@@ -178,7 +177,7 @@ implementation
          vl,vl2    : longint;
          vr        : bestreal;
          hp        :  tnode;
-         srsym     : psym;
+         srsym     : tsym;
       label
          myexit;
       begin
@@ -291,14 +290,14 @@ implementation
                  in_const_odd :
                    begin
                      if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def^.typename)
+                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                      else
                       hp:=cordconstnode.create(byte(odd(vl)),booltype);
                    end;
                  in_const_swap_word :
                    begin
                      if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def^.typename)
+                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                      else
                       hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resulttype);
                    end;
@@ -463,10 +462,10 @@ implementation
                       goto myexit;
                     end;
                    set_varstate(left,true);
-                   case left.resulttype.def^.deftype of
+                   case left.resulttype.def.deftype of
                      orddef :
                        begin
-                         case porddef(left.resulttype.def)^.typ of
+                         case torddef(left.resulttype.def).typ of
                            bool8bit,
                            uchar:
                              begin
@@ -537,7 +536,7 @@ implementation
 
                   { we don't need string convertions here }
                   if (left.nodetype=typeconvn) and
-                     (ttypeconvnode(left).left.resulttype.def^.deftype=stringdef) then
+                     (ttypeconvnode(left).left.resulttype.def.deftype=stringdef) then
                     begin
                        hp:=ttypeconvnode(left).left;
                        ttypeconvnode(left).left:=nil;
@@ -570,7 +569,7 @@ implementation
                      resulttype:=u8bittype;
 
                    { check the type, must be string or char }
-                   if (left.resulttype.def^.deftype<>stringdef) and
+                   if (left.resulttype.def.deftype<>stringdef) and
                       (not is_char(left.resulttype.def)) then
                      CGMessage(type_e_mismatch);
                 end;
@@ -608,8 +607,8 @@ implementation
                      CGMessage(type_e_ordinal_expr_expected)
                    else
                      begin
-                       if (resulttype.def^.deftype=enumdef) and
-                          (penumdef(resulttype.def)^.has_jumps) then
+                       if (resulttype.def.deftype=enumdef) and
+                          (tenumdef(resulttype.def).has_jumps) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
 
@@ -643,7 +642,7 @@ implementation
                         valid_for_assign(ppn.left,false);
                         set_varstate(ppn.left,false);
                         { first param must be a string or dynamic array ...}
-                        if not((ppn.left.resulttype.def^.deftype=stringdef) or
+                        if not((ppn.left.resulttype.def.deftype=stringdef) or
                            (is_dynamic_array(ppn.left.resulttype.def))) then
                           CGMessage(type_e_mismatch);
 
@@ -654,8 +653,8 @@ implementation
 
                        { convert shortstrings to openstring parameters }
                        { (generate the hightree) (JM)                  }
-                       if (ppn.left.resulttype.def^.deftype = stringdef) and
-                          (pstringdef(ppn.left.resulttype.def)^.string_typ =
+                       if (ppn.left.resulttype.def.deftype = stringdef) and
+                          (tstringdef(ppn.left.resulttype.def).string_typ =
                             st_shortstring) then
                          begin
                            dummycoll:=tparaitem.create;
@@ -698,7 +697,7 @@ implementation
                        { first param must be var }
                        valid_for_assign(tcallparanode(left).left,false);
 
-                       if (left.resulttype.def^.deftype in [enumdef,pointerdef]) or
+                       if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                           is_ordinal(left.resulttype.def) then
                         begin
                           { two paras ? }
@@ -764,7 +763,7 @@ implementation
                        valid_for_assign(tcallparanode(left).left,false);
                        { check type }
                        if assigned(left.resulttype.def) and
-                          (left.resulttype.def^.deftype=setdef) then
+                          (left.resulttype.def.deftype=setdef) then
                          begin
                             { two paras ? }
                             if assigned(tcallparanode(left).right) then
@@ -772,7 +771,7 @@ implementation
                                  { insert a type conversion       }
                                  { to the type of the set elements  }
                                  inserttypeconv(tcallparanode(tcallparanode(left).right).left,
-                                   psetdef(left.resulttype.def)^.elementtype);
+                                   tsetdef(left.resulttype.def).elementtype);
                                  { only three parameters are allowed }
                                  if assigned(tcallparanode(tcallparanode(left).right).right) then
                                    CGMessage(cg_e_illegal_expression);
@@ -789,7 +788,7 @@ implementation
               in_high_x:
                 begin
                   set_varstate(left,false);
-                  case left.resulttype.def^.deftype of
+                  case left.resulttype.def.deftype of
                     orddef,
                     enumdef:
                       begin
@@ -799,7 +798,7 @@ implementation
                       end;
                     setdef:
                       begin
-                        hp:=do_lowhigh(Psetdef(left.resulttype.def)^.elementtype);
+                        hp:=do_lowhigh(tsetdef(left.resulttype.def).elementtype);
                         resulttypepass(hp);
                         result:=hp;
                       end;
@@ -807,7 +806,7 @@ implementation
                       begin
                         if inlinenumber=in_low_x then
                          begin
-                           hp:=cordconstnode.create(Parraydef(left.resulttype.def)^.lowrange,parraydef(left.resulttype.def)^.rangetype);
+                           hp:=cordconstnode.create(tarraydef(left.resulttype.def).lowrange,tarraydef(left.resulttype.def).rangetype);
                            resulttypepass(hp);
                            result:=hp;
                          end
@@ -816,14 +815,14 @@ implementation
                            if is_open_array(left.resulttype.def) or
                              is_array_of_const(left.resulttype.def) then
                             begin
-                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                              hp:=cloadnode.create(pvarsym(srsym),tloadnode(left).symtable);
+                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                              hp:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                               resulttypepass(hp);
                               result:=hp;
                             end
                            else
                             begin
-                              hp:=cordconstnode.create(Parraydef(left.resulttype.def)^.highrange,parraydef(left.resulttype.def)^.rangetype);
+                              hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype);
                               resulttypepass(hp);
                               result:=hp;
                             end;
@@ -841,14 +840,14 @@ implementation
                          begin
                            if is_open_string(left.resulttype.def) then
                             begin
-                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                              hp:=cloadnode.create(pvarsym(srsym),tloadnode(left).symtable);
+                              srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                              hp:=cloadnode.create(tvarsym(srsym),tloadnode(left).symtable);
                               resulttypepass(hp);
                               result:=hp;
                             end
                            else
                             begin
-                              hp:=cordconstnode.create(Pstringdef(left.resulttype.def)^.len,u8bittype);
+                              hp:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8bittype);
                               resulttypepass(hp);
                               result:=hp;
                             end;
@@ -1010,7 +1009,7 @@ implementation
     function tinlinenode.pass_1 : tnode;
       var
          p1,hp,hpp  :  tnode;
-         srsym : psym;
+         srsym : tsym;
 {$ifndef NOCOLONCHECK}
          frac_para,length_para : tnode;
 {$endif ndef NOCOLONCHECK}
@@ -1052,12 +1051,12 @@ implementation
             begin
               if push_high_param(left.resulttype.def) then
                begin
-                 srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
-                 hp:=caddnode.create(addn,cloadnode.create(pvarsym(srsym),tloadnode(left).symtable),
+                 srsym:=searchsymonlyin(tloadnode(left).symtable,'high'+tvarsym(tloadnode(left).symtableentry).name);
+                 hp:=caddnode.create(addn,cloadnode.create(tvarsym(srsym),tloadnode(left).symtable),
                                   cordconstnode.create(1,s32bittype));
-                 if (left.resulttype.def^.deftype=arraydef) and
-                    (parraydef(left.resulttype.def)^.elesize<>1) then
-                   hp:=caddnode.create(muln,hp,cordconstnode.create(parraydef(left.resulttype.def)^.elesize,s32bittype));
+                 if (left.resulttype.def.deftype=arraydef) and
+                    (tarraydef(left.resulttype.def).elesize<>1) then
+                   hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(left.resulttype.def).elesize,s32bittype));
                  firstpass(hp);
                  result:=hp;
                end
@@ -1136,7 +1135,7 @@ implementation
                if is_64bitint(left.resulttype.def) or
                   { range/overflow checking doesn't work properly }
                   { with the inc/dec code that's generated (JM)   }
-                  ((left.resulttype.def^.deftype = orddef) and
+                  ((left.resulttype.def.deftype = orddef) and
                    not(is_char(left.resulttype.def)) and
                    not(is_boolean(left.resulttype.def)) and
                    (aktlocalswitches *
@@ -1168,7 +1167,7 @@ implementation
                    { return new node }
                    result := hpp;
                  end
-               else if (left.resulttype.def^.deftype in [enumdef,pointerdef]) or
+               else if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                        is_ordinal(left.resulttype.def) then
                  begin
                     { two paras ? }
@@ -1212,15 +1211,15 @@ implementation
                     { file is not typed.                             }
                     if assigned(hp) and assigned(hp.resulttype.def) then
                       Begin
-                        if (hp.resulttype.def^.deftype=filedef) then
-                        if (pfiledef(hp.resulttype.def)^.filetyp=ft_untyped) then
+                        if (hp.resulttype.def.deftype=filedef) then
+                        if (tfiledef(hp.resulttype.def).filetyp=ft_untyped) then
                           begin
                            if (inlinenumber in [in_readln_x,in_writeln_x]) then
                              CGMessage(type_e_no_readln_writeln_for_typed_file)
                            else
                              CGMessage(type_e_no_read_write_for_untyped_file);
                           end
-                        else if (pfiledef(hp.resulttype.def)^.filetyp=ft_typed) then
+                        else if (tfiledef(hp.resulttype.def).filetyp=ft_typed) then
                          begin
                            file_is_typed:=true;
                            { test the type }
@@ -1231,7 +1230,7 @@ implementation
                             begin
                               if (tcallparanode(hpp).left.nodetype=typen) then
                                 CGMessage(type_e_cant_read_write_type);
-                              if not is_equal(hpp.resulttype.def,pfiledef(hp.resulttype.def)^.typedfiletype.def) then
+                              if not is_equal(hpp.resulttype.def,tfiledef(hp.resulttype.def).typedfiletype.def) then
                                 CGMessage(type_e_mismatch);
                               { generate the high() value for the shortstring }
                               if ((not iswrite) and is_shortstring(tcallparanode(hpp).left.resulttype.def)) or
@@ -1264,14 +1263,14 @@ implementation
                                begin
                                  isreal:=false;
                                  { support writeln(procvar) }
-                                 if (tcallparanode(hp).left.resulttype.def^.deftype=procvardef) then
+                                 if (tcallparanode(hp).left.resulttype.def.deftype=procvardef) then
                                   begin
                                     p1:=ccallnode.create(nil,nil,nil,nil);
                                     tcallnode(p1).set_procvar(tcallparanode(hp).left);
                                     firstpass(p1);
                                     tcallparanode(hp).left:=p1;
                                   end;
-                                 case tcallparanode(hp).left.resulttype.def^.deftype of
+                                 case tcallparanode(hp).left.resulttype.def.deftype of
                                    filedef :
                                      begin
                                        { only allowed as first parameter }
@@ -1296,7 +1295,7 @@ implementation
                                      end;
                                    orddef :
                                      begin
-                                       case porddef(tcallparanode(hp).left.resulttype.def)^.typ of
+                                       case torddef(tcallparanode(hp).left.resulttype.def).typ of
                                          uchar,
                                          u32bit,s32bit,
                                          u64bit,s64bit:
@@ -1348,10 +1347,10 @@ implementation
                                         end;
                                       { can be nil if you use "write(e:0:6)" while e is undeclared (JM) }
                                       if assigned(tcallparanode(hpp).left.resulttype.def) then
-                                        isreal:=(tcallparanode(hpp).left.resulttype.def^.deftype=floatdef)
+                                        isreal:=(tcallparanode(hpp).left.resulttype.def.deftype=floatdef)
                                       else exit;
                                       if (not is_integer(tcallparanode(length_para).left.resulttype.def)) then
-                                       CGMessage1(type_e_integer_expr_expected,tcallparanode(length_para).left.resulttype.def^.typename)
+                                       CGMessage1(type_e_integer_expr_expected,tcallparanode(length_para).left.resulttype.def.typename)
                                      else
                                        tcallparanode(length_para).left:=ctypeconvnode.create(tcallparanode(length_para).left,s32bittype);
                                      if assigned(frac_para) then
@@ -1359,7 +1358,7 @@ implementation
                                          if isreal then
                                           begin
                                             if (not is_integer(tcallparanode(frac_para).left.resulttype.def)) then
-                                              CGMessage1(type_e_integer_expr_expected,tcallparanode(frac_para).left.resulttype.def^.typename)
+                                              CGMessage1(type_e_integer_expr_expected,tcallparanode(frac_para).left.resulttype.def.typename)
                                             else
                                               tcallparanode(frac_para).left:=ctypeconvnode.create(tcallparanode(frac_para).left,s32bittype);
                                           end
@@ -1395,8 +1394,8 @@ implementation
                 already done in firstcalln }
               { now we know the type of buffer }
               srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
-              hp:=ccallparanode.create(cordconstnode.create(tcallparanode(left).left.resulttype.def^.size,s32bittype),left);
-              hp:=ccallnode.create(hp,pprocsym(srsym),systemunit,nil);
+              hp:=ccallparanode.create(cordconstnode.create(tcallparanode(left).left.resulttype.def.size,s32bittype),left);
+              hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
               left:=nil;
               firstpass(hp);
               result:=hp;
@@ -1423,7 +1422,7 @@ implementation
               hp:=left;
               { valid string ? }
               if not assigned(hp) or
-                 (tcallparanode(hp).left.resulttype.def^.deftype<>stringdef) or
+                 (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) or
                  (tcallparanode(hp).right=nil) then
                 CGMessage(cg_e_illegal_expression);
               { we need a var parameter }
@@ -1445,10 +1444,10 @@ implementation
                 CGMessage(cg_e_illegal_expression);
 
               isreal:=false;
-              case hp.resulttype.def^.deftype of
+              case hp.resulttype.def.deftype of
                 orddef :
                   begin
-                    case porddef(tcallparanode(hp).left.resulttype.def)^.typ of
+                    case torddef(tcallparanode(hp).left.resulttype.def).typ of
                       u32bit,s32bit,
                       s64bit,u64bit:
                         ;
@@ -1474,7 +1473,7 @@ implementation
                   firstpass(tcallparanode(hpp).left);
                   set_varstate(tcallparanode(hpp).left,true);
                   if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
-                    CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def^.typename)
+                    CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
                   else
                     tcallparanode(hpp).left:=ctypeconvnode.create(tcallparanode(hpp).left,s32bittype);
                   hpp:=tcallparanode(hpp).right;
@@ -1483,7 +1482,7 @@ implementation
                       if isreal then
                        begin
                          if (not is_integer(tcallparanode(hpp).left.resulttype.def)) then
-                           CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def^.typename)
+                           CGMessage1(type_e_integer_expr_expected,tcallparanode(hpp).left.resulttype.def.typename)
                          else
                            begin
                              firstpass(tcallparanode(hpp).left);
@@ -1529,8 +1528,8 @@ implementation
                  {code has to be a var parameter}
                    if valid_for_assign(tcallparanode(left).left,false) then
                     begin
-                      if (tcallparanode(left).left.resulttype.def^.deftype <> orddef) or
-                        not(porddef(tcallparanode(left).left.resulttype.def)^.typ in
+                      if (tcallparanode(left).left.resulttype.def.deftype <> orddef) or
+                        not(torddef(tcallparanode(left).left.resulttype.def).typ in
                             [u16bit,s16bit,u32bit,s32bit]) then
                        CGMessage(type_e_mismatch);
                     end;
@@ -1553,9 +1552,9 @@ implementation
               tcallparanode(hpp).right := hp;
               if valid_for_assign(tcallparanode(hpp).left,false) then
                begin
-                 If Not((tcallparanode(hpp).left.resulttype.def^.deftype = floatdef) or
-                        ((tcallparanode(hpp).left.resulttype.def^.deftype = orddef) And
-                         (POrdDef(tcallparanode(hpp).left.resulttype.def)^.typ in
+                 If Not((tcallparanode(hpp).left.resulttype.def.deftype = floatdef) or
+                        ((tcallparanode(hpp).left.resulttype.def.deftype = orddef) And
+                         (torddef(tcallparanode(hpp).left.resulttype.def).typ in
                           [u32bit,s32bit,
                            u8bit,s8bit,u16bit,s16bit,s64bit,u64bit]))) Then
                    CGMessage(type_e_mismatch);
@@ -1568,7 +1567,7 @@ implementation
                 exit;
               { if not a stringdef then insert a type conv which
                 does the other type checking }
-              If (tcallparanode(hp).left.resulttype.def^.deftype<>stringdef) then
+              If (tcallparanode(hp).left.resulttype.def.deftype<>stringdef) then
                begin
                  tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,cshortstringtype);
                  firstpass(tcallparanode(hp).left);
@@ -1721,7 +1720,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2001-04-05 21:02:13  peter
+  Revision 1.36  2001-04-13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.35  2001/04/05 21:02:13  peter
     * fixed fpu inline functions typeconvs
 
   Revision 1.34  2001/04/04 22:42:40  peter

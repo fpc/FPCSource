@@ -32,7 +32,7 @@ unit link;
 
 interface
 uses
-  cobjects,cclasses,
+  cclasses,
   systems,
   fmodule;
 
@@ -557,7 +557,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2001-02-26 19:44:52  peter
+  Revision 1.15  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/02/26 19:44:52  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.13  2001/02/20 21:41:17  peter

@@ -27,7 +27,7 @@ interface
 
     uses
        { common }
-       cutils,cobjects,cclasses,
+       cutils,cclasses,
        { global }
        globtype,globals,tokens,
        { symtable }
@@ -44,29 +44,30 @@ interface
                     TDef
 ************************************************}
 
-       pstoreddef = ^tstoreddef;
-       tstoreddef = object(tdef)
+       tstoreddef = class(tdef)
           has_inittable : boolean;
           { adress of init informations }
-          inittable_label : pasmlabel;
-
+          inittable_label : tasmlabel;
           has_rtti   : boolean;
           { address of rtti }
-          rtti_label : pasmlabel;
-
+          rtti_label : tasmlabel;
+{$ifdef EXTDEBUG}
+          fileinfo   : tfileposinfo;
+{$endif}
           nextglobal,
-          previousglobal : pstoreddef;
+          previousglobal : tstoreddef;
 {$ifdef GDB}
           globalnb       : word;
           is_def_stab_written : tdefstabstatus;
 {$endif GDB}
-          constructor init;
-          constructor load;
-          destructor  done;virtual;
-          procedure write;virtual;
-          function  size:longint;virtual;
-          function  alignment:longint;virtual;
-          function  is_publishable : boolean;virtual;
+          constructor create;
+          constructor loaddef;
+          destructor  destroy;override;
+          procedure writedef;
+          procedure write;virtual;abstract;
+          function  size:longint;override;
+          function  alignment:longint;override;
+          function  is_publishable : boolean;override;
           function  is_in_current : boolean;
           { debug }
 {$ifdef GDB}
@@ -77,9 +78,9 @@ interface
           function  allstabstring : pchar;virtual;
 {$endif GDB}
           { init. tables }
-          function  needs_inittable : boolean;virtual;
+          function  needs_inittable : boolean;override;
           procedure generate_inittable;
-          function  get_inittable_label : pasmlabel;
+          function  get_inittable_label : tasmlabel;
           { the default implemenation calls write_rtti_data     }
           { if init and rtti data is different these procedures }
           { must be overloaded                                  }
@@ -87,7 +88,7 @@ interface
           procedure write_child_init_data;virtual;
           { rtti }
           procedure write_rtti_name;
-          function  get_rtti_label : string;virtual;
+          function  get_rtti_label : string;override;
           procedure generate_rtti;virtual;
           procedure write_rtti_data;virtual;
           procedure write_child_rtti_data;virtual;
@@ -107,7 +108,7 @@ interface
           argconvtyp   : targconvtyp;
           convertlevel : byte;
           register     : tregister;
-          defaultvalue : psym; { pconstsym }
+          defaultvalue : tsym; { tconstsym }
        end;
 
        { this is only here to override the count method,
@@ -118,62 +119,57 @@ interface
 
        tfiletyp = (ft_text,ft_typed,ft_untyped);
 
-       pfiledef = ^tfiledef;
-       tfiledef = object(tstoreddef)
+       tfiledef = class(tstoreddef)
           filetyp : tfiletyp;
           typedfiletype : ttype;
-          constructor inittext;
-          constructor inituntyped;
-          constructor inittyped(const tt : ttype);
+          constructor createtext;
+          constructor createuntyped;
+          constructor createtyped(const tt : ttype);
           constructor load;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  gettypename:string;virtual;
+          procedure write;override;
+          procedure deref;override;
+          function  gettypename:string;override;
           procedure setsize;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       pvariantdef = ^tvariantdef;
-       tvariantdef = object(tstoreddef)
-          constructor init;
+       tvariantdef = class(tstoreddef)
+          constructor create;
           constructor load;
-          procedure write;virtual;
+          procedure write;override;
           procedure setsize;
-          function needs_inittable : boolean;virtual;
-          procedure write_rtti_data;virtual;
+          function needs_inittable : boolean;override;
+          procedure write_rtti_data;override;
        end;
 
-       pformaldef = ^tformaldef;
-       tformaldef = object(tstoreddef)
-          constructor init;
+       tformaldef = class(tstoreddef)
+          constructor create;
           constructor load;
-          procedure write;virtual;
-          function  gettypename:string;virtual;
+          procedure write;override;
+          function  gettypename:string;override;
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       pforwarddef = ^tforwarddef;
-       tforwarddef = object(tstoreddef)
+       tforwarddef = class(tstoreddef)
           tosymname : string;
           forwardpos : tfileposinfo;
-          constructor init(const s:string;const pos : tfileposinfo);
-          function  gettypename:string;virtual;
+          constructor create(const s:string;const pos : tfileposinfo);
+          function  gettypename:string;override;
        end;
 
-       perrordef = ^terrordef;
-       terrordef = object(tstoreddef)
-          constructor init;
-          function  gettypename:string;virtual;
+       terrordef = class(tstoreddef)
+          constructor create;
+          function  gettypename:string;override;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
+          function  stabstring : pchar;override;
 {$endif GDB}
        end;
 
@@ -182,33 +178,85 @@ interface
          to avoid problems with bugs (FK)
        }
 
-       ppointerdef = ^tpointerdef;
-       tpointerdef = object(tstoreddef)
+       tpointerdef = class(tstoreddef)
           pointertype : ttype;
           is_far : boolean;
-          constructor init(const tt : ttype);
-          constructor initfar(const tt : ttype);
+          constructor create(const tt : ttype);
+          constructor createfar(const tt : ttype);
           constructor load;
-          destructor  done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  gettypename:string;virtual;
+          procedure write;override;
+          procedure deref;override;
+          function  gettypename:string;override;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       pprocdef = ^tprocdef;
+       tabstractrecorddef = class(tstoreddef)
+       private
+          Count     : integer;
+{$ifdef GDB}
+          StabRecString : pchar;
+          StabRecSize   : Integer;
+          RecOffset     : Integer;
+          procedure addname(p : tnamedindexitem);
+{$endif}
+          procedure count_inittable_fields(sym : tnamedindexitem);
+          procedure count_fields(sym : tnamedindexitem);
+          procedure write_field_inittable(sym : tnamedindexitem);
+          procedure write_field_rtti(sym : tnamedindexitem);
+          procedure generate_child_inittable(sym:tnamedindexitem);
+          procedure generate_child_rtti(sym : tnamedindexitem);
+       public
+          symtable : tsymtable;
+          function  getsymtable(t:tgetsymtable):tsymtable;override;
+       end;
 
-       pimplementedinterfaces = ^timplementedinterfaces;
+       trecorddef = class(tabstractrecorddef)
+       public
+          constructor create(p : tsymtable);
+          constructor load;
+          destructor destroy;override;
+          procedure write;override;
+          procedure deref;override;
+          function  size:longint;override;
+          function  alignment : longint;override;
+          function  gettypename:string;override;
+          { debug }
+{$ifdef GDB}
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
+{$endif GDB}
+          { init/final }
+          procedure write_init_data;override;
+          procedure write_child_init_data;override;
+          function  needs_inittable : boolean;override;
+          { rtti }
+          procedure write_rtti_data;override;
+          procedure write_child_rtti_data;override;
+       end;
 
-       pobjectdef = ^tobjectdef;
-       tobjectdef = object(tstoreddef)
-          childof  : pobjectdef;
+       tprocdef = class;
+
+       timplementedinterfaces = class;
+
+       tobjectdef = class(tabstractrecorddef)
+       private
+          sd : tprocdef;
+          procedure _searchdestructor(sym : tnamedindexitem);
+{$ifdef GDB}
+          procedure addprocname(p :tnamedindexitem);
+{$endif GDB}
+          procedure count_published_properties(sym:tnamedindexitem);
+          procedure write_property_info(sym : tnamedindexitem);
+          procedure generate_published_child_rtti(sym : tnamedindexitem);
+          procedure count_published_fields(sym:tnamedindexitem);
+          procedure writefields(sym:tnamedindexitem);
+       public
+          childof  : tobjectdef;
           objname  : pstring;
-          symtable : psymtable;
           objectoptions : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
@@ -222,66 +270,65 @@ interface
           iidstr: pstring;
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
-          implementedinterfaces: pimplementedinterfaces;
-          constructor init(ot : tobjectdeftype;const n : string;c : pobjectdef);
+          implementedinterfaces: timplementedinterfaces;
+          constructor create(ot : tobjectdeftype;const n : string;c : tobjectdef);
           constructor load;
-          destructor  done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  size : longint;virtual;
-          function  alignment:longint;virtual;
-          function  getsymtable(t:tgetsymtable):psymtable;virtual;
+          destructor  destroy;override;
+          procedure write;override;
+          procedure deref;override;
+          function  size : longint;override;
+          function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
-          function  is_publishable : boolean;virtual;
+          function  is_publishable : boolean;override;
           function  vmt_mangledname : string;
           function  rtti_name : string;
           procedure check_forwards;
-          function  is_related(d : pobjectdef) : boolean;
+          function  is_related(d : tobjectdef) : boolean;
           function  next_free_name_index : longint;
           procedure insertvmt;
-          procedure set_parent(c : pobjectdef);
-          function searchdestructor : pprocdef;
+          procedure set_parent(c : tobjectdef);
+          function searchdestructor : tprocdef;
           { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
-          procedure set_globalnb;virtual;
+          function  stabstring : pchar;override;
+          procedure set_globalnb;override;
           function  classnumberstring : string;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
-          function  allstabstring : pchar;virtual;
+          procedure concatstabto(asmlist : taasmoutput);override;
+          function  allstabstring : pchar;override;
 {$endif GDB}
           { init/final }
-          function  needs_inittable : boolean;virtual;
-          procedure write_init_data;virtual;
-          procedure write_child_init_data;virtual;
+          function  needs_inittable : boolean;override;
+          procedure write_init_data;override;
+          procedure write_child_init_data;override;
           { rtti }
-          function  get_rtti_label : string;virtual;
-          procedure generate_rtti;virtual;
-          procedure write_rtti_data;virtual;
-          procedure write_child_rtti_data;virtual;
-          function generate_field_table : pasmlabel;
+          function  get_rtti_label : string;override;
+          procedure generate_rtti;override;
+          procedure write_rtti_data;override;
+          procedure write_child_rtti_data;override;
+          function generate_field_table : tasmlabel;
        end;
 
-       timplementedinterfaces = object
-          constructor init;
-          destructor  done; virtual;
+       timplementedinterfaces = class
+          constructor create;
+          destructor  destroy; override;
 
           function  count: longint;
-          function  interfaces(intfindex: longint): pobjectdef;
+          function  interfaces(intfindex: longint): tobjectdef;
           function  ioffsets(intfindex: longint): plongint;
-          function  searchintf(def: pdef): longint;
-          procedure addintf(def: pdef);
+          function  searchintf(def: tdef): longint;
+          procedure addintf(def: tdef);
 
           procedure deref;
-          procedure addintfref(def: pdef);
+          procedure addintfref(def: tdef);
 
           procedure clearmappings;
           procedure addmappings(intfindex: longint; const name, newname: string);
           function  getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
 
           procedure clearimplprocs;
-          procedure addimplproc(intfindex: longint; procdef: pprocdef);
+          procedure addimplproc(intfindex: longint; procdef: tprocdef);
           function  implproccount(intfindex: longint): longint;
-          function  implprocs(intfindex: longint; procindex: longint): pprocdef;
+          function  implprocs(intfindex: longint; procindex: longint): tprocdef;
           function  isimplmergepossible(intfindex, remainindex: longint; var weight: longint): boolean;
 
        private
@@ -290,21 +337,19 @@ interface
        end;
 
 
-       pclassrefdef = ^tclassrefdef;
-       tclassrefdef = object(tpointerdef)
-          constructor init(const t:ttype);
+       tclassrefdef = class(tpointerdef)
+          constructor create(const t:ttype);
           constructor load;
-          procedure write;virtual;
-          function gettypename:string;virtual;
+          procedure write;override;
+          function gettypename:string;override;
           { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       parraydef = ^tarraydef;
-       tarraydef = object(tstoreddef)
+       tarraydef = class(tstoreddef)
           rangenr    : longint;
           lowrange,
           highrange  : longint;
@@ -314,65 +359,38 @@ interface
           IsVariant,
           IsConstructor,
           IsArrayOfConst : boolean;
-          function gettypename:string;virtual;
+          function gettypename:string;override;
           function elesize : longint;
-          constructor init(l,h : longint;const t : ttype);
+          constructor create(l,h : longint;const t : ttype);
           constructor load;
-          procedure write;virtual;
+          procedure write;override;
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
-          procedure deref;virtual;
-          function size : longint;virtual;
-          function alignment : longint;virtual;
+          procedure deref;override;
+          function size : longint;override;
+          function alignment : longint;override;
           { generates the ranges needed by the asm instruction BOUND (i386)
             or CMP2 (Motorola) }
           procedure genrangecheck;
 
           { returns the label of the range check string }
           function getrangecheckstring : string;
-          function needs_inittable : boolean;virtual;
-          procedure write_rtti_data;virtual;
-          procedure write_child_rtti_data;virtual;
+          function needs_inittable : boolean;override;
+          procedure write_rtti_data;override;
+          procedure write_child_rtti_data;override;
        end;
 
-       precorddef = ^trecorddef;
-       trecorddef = object(tstoreddef)
-          symtable : psymtable;
-          constructor init(p : psymtable);
-          constructor load;
-          destructor done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  size:longint;virtual;
-          function  alignment : longint;virtual;
-          function  gettypename:string;virtual;
-          function  getsymtable(t:tgetsymtable):psymtable;virtual;
-          { debug }
-{$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
-{$endif GDB}
-          { init/final }
-          procedure write_init_data;virtual;
-          procedure write_child_init_data;virtual;
-          function  needs_inittable : boolean;virtual;
-          { rtti }
-          procedure write_rtti_data;virtual;
-          procedure write_child_rtti_data;virtual;
-       end;
-
-       porddef = ^torddef;
-       torddef = object(tstoreddef)
+       torddef = class(tstoreddef)
           rangenr  : longint;
           low,high : longint;
           typ      : tbasetype;
-          constructor init(t : tbasetype;v,b : longint);
+          constructor create(t : tbasetype;v,b : longint);
           constructor load;
-          procedure write;virtual;
-          function  is_publishable : boolean;virtual;
-          function  gettypename:string;virtual;
+          procedure write;override;
+          function  is_publishable : boolean;override;
+          function  gettypename:string;override;
           procedure setsize;
           { generates the ranges needed by the asm instruction BOUND }
           { or CMP2 (Motorola)                                       }
@@ -380,31 +398,29 @@ interface
           function  getrangecheckstring : string;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
+          function  stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;virtual;
+          procedure write_rtti_data;override;
        end;
 
-       pfloatdef = ^tfloatdef;
-       tfloatdef = object(tstoreddef)
+       tfloatdef = class(tstoreddef)
           typ : tfloattype;
-          constructor init(t : tfloattype);
+          constructor create(t : tfloattype);
           constructor load;
-          procedure write;virtual;
-          function  gettypename:string;virtual;
-          function  is_publishable : boolean;virtual;
+          procedure write;override;
+          function  gettypename:string;override;
+          function  is_publishable : boolean;override;
           procedure setsize;
           { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;virtual;
+          procedure write_rtti_data;override;
        end;
 
-       pabstractprocdef = ^tabstractprocdef;
-       tabstractprocdef = object(tstoreddef)
+       tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           rettype         : ttype;
           proctypeoption  : tproctypeoption;
@@ -415,39 +431,38 @@ interface
           minparacount    : longint;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
-          constructor init;
+          constructor create;
           constructor load;
-          destructor done;virtual;
-          procedure  write;virtual;
-          procedure deref;virtual;
-          procedure concatpara(const tt:ttype;vsp : tvarspez;defval:psym);
+          destructor destroy;override;
+          procedure  write;override;
+          procedure deref;override;
+          procedure concatpara(const tt:ttype;vsp : tvarspez;defval:tsym);
           function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
           function  proccalloption2str : string;
           procedure test_if_fpu_result;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       pprocvardef = ^tprocvardef;
-       tprocvardef = object(tabstractprocdef)
-          constructor init;
+       tprocvardef = class(tabstractprocdef)
+          constructor create;
           constructor load;
-          procedure write;virtual;
-          function  size : longint;virtual;
-          function gettypename:string;virtual;
-          function is_publishable : boolean;virtual;
+          procedure write;override;
+          function  size : longint;override;
+          function gettypename:string;override;
+          function is_publishable : boolean;override;
           { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput); virtual;
+          function stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput); override;
 {$endif GDB}
           { rtti }
-          procedure write_child_rtti_data;virtual;
-          procedure write_rtti_data;virtual;
+          procedure write_child_rtti_data;override;
+          procedure write_rtti_data;override;
        end;
 
        tmessageinf = record
@@ -456,30 +471,33 @@ interface
            1 : (i : longint);
        end;
 
-       tprocdef = object(tabstractprocdef)
+       tprocdef = class(tabstractprocdef)
        private
           _mangledname : pstring;
        public
           extnumber  : longint;
           messageinf : tmessageinf;
-          nextoverloaded : pprocdef;
+          nextoverloaded : tprocdef;
+{$ifndef EXTDEBUG}
           { where is this function defined, needed here because there
-            is only one symbol for all overloaded functions }
+            is only one symbol for all overloaded functions
+            EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
+{$endif}
           { symbol owning this definition }
-          procsym : psym;
+          procsym : tsym;
           { alias names }
           aliasnames : tstringlist;
           { symtables }
           parast,
-          localst : psymtable;
+          localst : tsymtable;
           { browser info }
           lastref,
           defref,
           crossref,
-          lastwritten : pref;
+          lastwritten : tref;
           refcount : longint;
-          _class : pobjectdef;
+          _class : tobjectdef;
           { it's a tree, but this not easy to handle }
           { used for inlined procs                   }
           code : tnode;
@@ -501,12 +519,12 @@ interface
 {$else newcg}
           usedregisters : longint;
 {$endif newcg}
-          constructor init;
+          constructor create;
           constructor load;
-          destructor  done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  getsymtable(t:tgetsymtable):psymtable;virtual;
+          destructor  destroy;override;
+          procedure write;override;
+          procedure deref;override;
+          function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  haspara:boolean;
           function  mangledname : string;
           procedure setmangledname(const s : string);
@@ -517,55 +535,53 @@ interface
           function  cplusplusmangledname : string;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
        end;
 
-       pstringdef = ^tstringdef;
-       tstringdef = object(tstoreddef)
+       tstringdef = class(tstoreddef)
           string_typ : tstringtype;
           len        : longint;
-          constructor shortinit(l : byte);
-          constructor shortload;
-          constructor longinit(l : longint);
-          constructor longload;
-          constructor ansiinit(l : longint);
-          constructor ansiload;
-          constructor wideinit(l : longint);
-          constructor wideload;
+          constructor createshort(l : byte);
+          constructor loadshort;
+          constructor createlong(l : longint);
+          constructor loadlong;
+          constructor createansi(l : longint);
+          constructor loadansi;
+          constructor createwide(l : longint);
+          constructor loadwide;
           function  stringtypname:string;
-          function  size : longint;virtual;
-          procedure write;virtual;
-          function  gettypename:string;virtual;
-          function  is_publishable : boolean;virtual;
+          function  size : longint;override;
+          procedure write;override;
+          function  gettypename:string;override;
+          function  is_publishable : boolean;override;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
           { init/final }
-          function  needs_inittable : boolean;virtual;
+          function  needs_inittable : boolean;override;
           { rtti }
-          procedure write_rtti_data;virtual;
+          procedure write_rtti_data;override;
        end;
 
-       penumdef = ^tenumdef;
-       tenumdef = object(tstoreddef)
+       tenumdef = class(tstoreddef)
           rangenr,
           minval,
           maxval    : longint;
           has_jumps : boolean;
-          firstenum : psym;  {penumsym}
-          basedef   : penumdef;
-          constructor init;
-          constructor init_subrange(_basedef:penumdef;_min,_max:longint);
+          firstenum : tsym;  {tenumsym}
+          basedef   : tenumdef;
+          constructor create;
+          constructor create_subrange(_basedef:tenumdef;_min,_max:longint);
           constructor load;
-          destructor done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  gettypename:string;virtual;
-          function  is_publishable : boolean;virtual;
+          destructor destroy;override;
+          procedure write;override;
+          procedure deref;override;
+          function  gettypename:string;override;
+          function  is_publishable : boolean;override;
           procedure calcsavesize;
           procedure setmax(_max:longint);
           procedure setmin(_min:longint);
@@ -575,42 +591,41 @@ interface
           procedure genrangecheck;
           { debug }
 {$ifdef GDB}
-          function stabstring : pchar;virtual;
+          function stabstring : pchar;override;
 {$endif GDB}
           { rtti }
-          procedure write_child_rtti_data;virtual;
-          procedure write_rtti_data;virtual;
+          procedure write_child_rtti_data;override;
+          procedure write_rtti_data;override;
        private
           procedure correct_owner_symtable;
        end;
 
-       psetdef = ^tsetdef;
-       tsetdef = object(tstoreddef)
+       tsetdef = class(tstoreddef)
           elementtype : ttype;
           settype : tsettype;
-          constructor init(const t:ttype;high : longint);
+          constructor create(const t:ttype;high : longint);
           constructor load;
-          destructor  done;virtual;
-          procedure write;virtual;
-          procedure deref;virtual;
-          function  gettypename:string;virtual;
-          function  is_publishable : boolean;virtual;
+          destructor  destroy;override;
+          procedure write;override;
+          procedure deref;override;
+          function  gettypename:string;override;
+          function  is_publishable : boolean;override;
           { debug }
 {$ifdef GDB}
-          function  stabstring : pchar;virtual;
-          procedure concatstabto(asmlist : taasmoutput);virtual;
+          function  stabstring : pchar;override;
+          procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
           { rtti }
-          procedure write_rtti_data;virtual;
-          procedure write_child_rtti_data;virtual;
+          procedure write_rtti_data;override;
+          procedure write_child_rtti_data;override;
        end;
 
 
     var
-       aktobjectdef : pobjectdef;  { used for private functions check !! }
+       aktobjectdef : tobjectdef;  { used for private functions check !! }
 
        firstglobaldef,               { linked list of all globals defs }
-       lastglobaldef : pstoreddef;   { used to reset stabs/ranges }
+       lastglobaldef : tstoreddef;   { used to reset stabs/ranges }
 
 {$ifdef GDB}
        { for STAB debugging }
@@ -652,9 +667,9 @@ interface
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
 
-       class_tobject : pobjectdef;      { pointer to the anchestor of all classes }
-       interface_iunknown : pobjectdef; { KAZ: pointer to the ancestor }
-       rec_tguid : precorddef;          { KAZ: pointer to the TGUID type }
+       class_tobject : tobjectdef;      { pointer to the anchestor of all classes }
+       interface_iunknown : tobjectdef; { KAZ: pointer to the ancestor }
+       rec_tguid : trecorddef;          { KAZ: pointer to the TGUID type }
                                         { of all interfaces            }
 
     const
@@ -680,13 +695,13 @@ interface
 {$endif GDB}
 
     { should be in the types unit, but the types unit uses the node stuff :( }
-    function is_interfacecom(def: pdef): boolean;
-    function is_interfacecorba(def: pdef): boolean;
-    function is_interface(def: pdef): boolean;
-    function is_class(def: pdef): boolean;
-    function is_object(def: pdef): boolean;
-    function is_cppclass(def: pdef): boolean;
-    function is_class_or_interface(def: pdef): boolean;
+    function is_interfacecom(def: tdef): boolean;
+    function is_interfacecorba(def: tdef): boolean;
+    function is_interface(def: tdef): boolean;
+    function is_object(def: tdef): boolean;
+    function is_class(def: tdef): boolean;
+    function is_cppclass(def: tdef): boolean;
+    function is_class_or_interface(def: tdef): boolean;
 
     procedure reset_global_defs;
 
@@ -717,21 +732,18 @@ implementation
        gendef
        ;
 
-    const
-       memsizeinc = 2048; { for long stabstrings }
-
 {****************************************************************************
                                   Helpers
 ****************************************************************************}
 
 {$ifdef GDB}
-    procedure forcestabto(asmlist : taasmoutput; pd : pdef);
+    procedure forcestabto(asmlist : taasmoutput; pd : tdef);
       begin
-        if pstoreddef(pd)^.is_def_stab_written = not_written then
+        if tstoreddef(pd).is_def_stab_written = not_written then
          begin
-           if assigned(pd^.typesym) then
-            ptypesym(pd^.typesym)^.isusedinstab := true;
-           pstoreddef(pd)^.concatstabto(asmlist);
+           if assigned(pd.typesym) then
+            ttypesym(pd.typesym).isusedinstab := true;
+           tstoreddef(pd).concatstabto(asmlist);
          end;
       end;
 {$endif GDB}
@@ -741,29 +753,32 @@ implementation
                      TDEF (base class for definitions)
 ****************************************************************************}
 
-    constructor tstoreddef.init;
+    constructor tstoreddef.create;
       begin
-         inherited init;
+         inherited create;
          savesize := 0;
          has_rtti:=false;
          has_inittable:=false;
+{$ifdef EXTDEBUG}
+         fileinfo := aktfilepos;
+{$endif}
          if registerdef then
-           symtablestack^.registerdef(@self);
+           symtablestack.registerdef(self);
 {$ifdef GDB}
          is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
          if assigned(lastglobaldef) then
            begin
-              lastglobaldef^.nextglobal := @self;
+              lastglobaldef.nextglobal := self;
               previousglobal:=lastglobaldef;
            end
          else
            begin
-              firstglobaldef := @self;
+              firstglobaldef := self;
               previousglobal := nil;
            end;
-         lastglobaldef := @self;
+         lastglobaldef := self;
          nextglobal := nil;
       end;
 
@@ -772,56 +787,59 @@ implementation
        manglenamesize : longint;
 {$endif}
 
-    constructor tstoreddef.load;
+    constructor tstoreddef.loaddef;
       begin
-         inherited init;
+         inherited create;
          has_rtti:=false;
          has_inittable:=false;
+{$ifdef EXTDEBUG}
+         fillchar(fileinfo,sizeof(fileinfo),0);
+{$endif}
 {$ifdef GDB}
          is_def_stab_written := not_written;
          globalnb := 0;
 {$endif GDB}
          if assigned(lastglobaldef) then
            begin
-              lastglobaldef^.nextglobal := @self;
+              lastglobaldef.nextglobal := self;
               previousglobal:=lastglobaldef;
            end
          else
            begin
-              firstglobaldef := @self;
+              firstglobaldef := self;
               previousglobal:=nil;
            end;
-         lastglobaldef := @self;
+         lastglobaldef := self;
          nextglobal := nil;
       { load }
          indexnr:=readword;
-         typesym:=ptypesym(readderef);
+         typesym:=ttypesym(readderef);
       end;
 
 
-    destructor tstoreddef.done;
+    destructor tstoreddef.destroy;
       begin
          { first element  ? }
          if not(assigned(previousglobal)) then
            begin
               firstglobaldef := nextglobal;
               if assigned(firstglobaldef) then
-                firstglobaldef^.previousglobal:=nil;
+                firstglobaldef.previousglobal:=nil;
            end
          else
            begin
               { remove reference in the element before }
-              previousglobal^.nextglobal:=nextglobal;
+              previousglobal.nextglobal:=nextglobal;
            end;
          { last element ? }
          if not(assigned(nextglobal)) then
            begin
               lastglobaldef := previousglobal;
               if assigned(lastglobaldef) then
-                lastglobaldef^.nextglobal:=nil;
+                lastglobaldef.nextglobal:=nil;
            end
          else
-           nextglobal^.previousglobal:=previousglobal;
+           nextglobal.previousglobal:=previousglobal;
          previousglobal:=nil;
          nextglobal:=nil;
       end;
@@ -829,22 +847,22 @@ implementation
 
     function tstoreddef.is_in_current : boolean;
       var
-        p : psymtable;
+        p : tsymtable;
       begin
          p:=owner;
          is_in_current:=false;
          while assigned(p) do
            begin
-              if (p=current_module.globalsymtable) or (p=current_module.localsymtable)
-                 or (p^.symtabletype in [globalsymtable,staticsymtable]) then
+              if (p=tsymtable(current_module.globalsymtable)) or (p=tsymtable(current_module.localsymtable))
+                 or (p.symtabletype in [globalsymtable,staticsymtable]) then
                 begin
                    is_in_current:=true;
                    exit;
                 end
-              else if p^.symtabletype in [localsymtable,parasymtable,objectsymtable] then
+              else if p.symtabletype in [localsymtable,parasymtable,objectsymtable] then
                 begin
-                  if assigned(p^.defowner) then
-                    p:=pobjectdef(p^.defowner)^.owner
+                  if assigned(p.defowner) then
+                    p:=tobjectdef(p.defowner).owner
                   else
                     exit;
                 end
@@ -854,7 +872,7 @@ implementation
 
       end;
 
-    procedure tstoreddef.write;
+    procedure tstoreddef.writedef;
       begin
         writeword(indexnr);
         writederef(typesym);
@@ -862,7 +880,7 @@ implementation
         if globalnb = 0 then
           begin
             if assigned(owner) then
-              globalnb := owner^.getnewtypecount
+              globalnb := owner.getnewtypecount
             else
               begin
                 globalnb := PGlobalTypeCount^;
@@ -900,19 +918,19 @@ implementation
 
 
     function tstoreddef.numberstring : string;
-      var table : psymtable;
+      var table : tsymtable;
       begin
       {formal def have no type !}
       if deftype = formaldef then
         begin
-        numberstring := pstoreddef(voidtype.def)^.numberstring;
+        numberstring := tstoreddef(voidtype.def).numberstring;
         exit;
         end;
-      if (not assigned(typesym)) or (not ptypesym(typesym)^.isusedinstab) then
+      if (not assigned(typesym)) or (not ttypesym(typesym).isusedinstab) then
         begin
            {set even if debuglist is not defined}
            if assigned(typesym) then
-             ptypesym(typesym)^.isusedinstab := true;
+             ttypesym(typesym).isusedinstab := true;
            if assigned(debuglist) and (is_def_stab_written = not_written) then
              concatstabto(debuglist);
         end;
@@ -927,7 +945,7 @@ implementation
            if globalnb = 0 then
              begin
                 if assigned(owner) then
-                  globalnb := owner^.getnewtypecount
+                  globalnb := owner.getnewtypecount
                 else
                   begin
                      globalnb := PGlobalTypeCount^;
@@ -936,9 +954,9 @@ implementation
              end;
            if assigned(typesym) then
              begin
-                table := ptypesym(typesym)^.owner;
-                if table^.unitid > 0 then
-                  numberstring := '('+tostr(table^.unitid)+','+tostr(pstoreddef(ptypesym(typesym)^.restype.def)^.globalnb)+')'
+                table := ttypesym(typesym).owner;
+                if table.unitid > 0 then
+                  numberstring := '('+tostr(table.unitid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
                 else
                   numberstring := tostr(globalnb);
                 exit;
@@ -961,8 +979,8 @@ implementation
         stabchar := 'Tt';
       if assigned(typesym) then
         begin
-           sname := ptypesym(typesym)^.name;
-           sym_line_no:=ptypesym(typesym)^.fileinfo.line;
+           sname := ttypesym(typesym).name;
+           sym_line_no:=ttypesym(typesym).fileinfo.line;
         end
       else
         begin
@@ -980,7 +998,7 @@ implementation
     procedure tstoreddef.concatstabto(asmlist : taasmoutput);
      var stab_str : pchar;
     begin
-    if ((typesym = nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
+    if ((typesym = nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
       and (is_def_stab_written = not_written) then
       begin
       If cs_gdb_dbx in aktglobalswitches then
@@ -988,11 +1006,11 @@ implementation
            { otherwise you get two of each def }
            If assigned(typesym) then
              begin
-                if ptypesym(typesym)^.typ=symconst.typesym then
-                  ptypesym(typesym)^.isusedinstab:=true;
-                if (ptypesym(typesym)^.owner = nil) or
-                  ((ptypesym(typesym)^.owner^.symtabletype = unitsymtable) and
-                 punitsymtable(ptypesym(typesym)^.owner)^.dbx_count_ok)  then
+                if ttypesym(typesym).typ=symconst.typesym then
+                  ttypesym(typesym).isusedinstab:=true;
+                if (ttypesym(typesym).owner = nil) or
+                   ((ttypesym(typesym).owner.symtabletype = globalsymtable) and
+                    tglobalsymtable(ttypesym(typesym).owner).dbx_count_ok)  then
                 begin
                    {with DBX we get the definition from the other objects }
                    is_def_stab_written := written;
@@ -1028,7 +1046,7 @@ implementation
     function tstoreddef.get_rtti_label : string;
       begin
          generate_rtti;
-         get_rtti_label:=rtti_label^.name;
+         get_rtti_label:=rtti_label.name;
       end;
 
 
@@ -1061,7 +1079,7 @@ implementation
       end;
 
 
-    function tstoreddef.get_inittable_label : pasmlabel;
+    function tstoreddef.get_inittable_label : tasmlabel;
       begin
          if not(has_inittable) then
            generate_inittable;
@@ -1076,7 +1094,7 @@ implementation
          { name }
          if assigned(typesym) then
            begin
-              str:=ptypesym(typesym)^.realname;
+              str:=ttypesym(typesym).realname;
               rttiList.concat(Tai_string.Create(chr(length(str))+str));
            end
          else
@@ -1111,14 +1129,14 @@ implementation
           procvardef :
             is_intregable:=true;
           orddef :
-            case porddef(@self)^.typ of
+            case torddef(self).typ of
               bool8bit,bool16bit,bool32bit,
               u8bit,u16bit,u32bit,
               s8bit,s16bit,s32bit:
                 is_intregable:=true;
             end;
           setdef:
-            is_intregable:=(psetdef(@self)^.settype=smallset);
+            is_intregable:=(tsetdef(self).settype=smallset);
         end;
      end;
 
@@ -1147,9 +1165,9 @@ implementation
                                Tstringdef
 ****************************************************************************}
 
-    constructor tstringdef.shortinit(l : byte);
+    constructor tstringdef.createshort(l : byte);
       begin
-         inherited init;
+         inherited create;
          string_typ:=st_shortstring;
          deftype:=stringdef;
          len:=l;
@@ -1157,9 +1175,9 @@ implementation
       end;
 
 
-    constructor tstringdef.shortload;
+    constructor tstringdef.loadshort;
       begin
-         inherited load;
+         inherited loaddef;
          string_typ:=st_shortstring;
          deftype:=stringdef;
          len:=readbyte;
@@ -1167,9 +1185,9 @@ implementation
       end;
 
 
-    constructor tstringdef.longinit(l : longint);
+    constructor tstringdef.createlong(l : longint);
       begin
-         inherited init;
+         inherited create;
          string_typ:=st_longstring;
          deftype:=stringdef;
          len:=l;
@@ -1177,9 +1195,9 @@ implementation
       end;
 
 
-    constructor tstringdef.longload;
+    constructor tstringdef.loadlong;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=readlong;
@@ -1187,9 +1205,9 @@ implementation
       end;
 
 
-    constructor tstringdef.ansiinit(l : longint);
+    constructor tstringdef.createansi(l : longint);
       begin
-         inherited init;
+         inherited create;
          string_typ:=st_ansistring;
          deftype:=stringdef;
          len:=l;
@@ -1197,9 +1215,9 @@ implementation
       end;
 
 
-    constructor tstringdef.ansiload;
+    constructor tstringdef.loadansi;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=readlong;
@@ -1207,9 +1225,9 @@ implementation
       end;
 
 
-    constructor tstringdef.wideinit(l : longint);
+    constructor tstringdef.createwide(l : longint);
       begin
-         inherited init;
+         inherited create;
          string_typ:=st_widestring;
          deftype:=stringdef;
          len:=l;
@@ -1217,9 +1235,9 @@ implementation
       end;
 
 
-    constructor tstringdef.wideload;
+    constructor tstringdef.loadwide;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=readlong;
@@ -1245,7 +1263,7 @@ implementation
 
     procedure tstringdef.write;
       begin
-         inherited write;
+         inherited writedef;
          if string_typ=st_shortstring then
            writebyte(len)
          else
@@ -1368,9 +1386,9 @@ implementation
                                  TENUMDEF
 ****************************************************************************}
 
-    constructor tenumdef.init;
+    constructor tenumdef.create;
       begin
-         inherited init;
+         inherited create;
          deftype:=enumdef;
          minval:=0;
          maxval:=0;
@@ -1382,9 +1400,9 @@ implementation
          correct_owner_symtable;
       end;
 
-    constructor tenumdef.init_subrange(_basedef:penumdef;_min,_max:longint);
+    constructor tenumdef.create_subrange(_basedef:tenumdef;_min,_max:longint);
       begin
-         inherited init;
+         inherited create;
          deftype:=enumdef;
          minval:=_min;
          maxval:=_max;
@@ -1392,18 +1410,18 @@ implementation
          calcsavesize;
          has_jumps:=false;
          rangenr:=0;
-         firstenum:=basedef^.firstenum;
-         while assigned(firstenum) and (penumsym(firstenum)^.value<>minval) do
-          firstenum:=penumsym(firstenum)^.nextenum;
+         firstenum:=basedef.firstenum;
+         while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
+          firstenum:=tenumsym(firstenum).nextenum;
          correct_owner_symtable;
       end;
 
 
     constructor tenumdef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=enumdef;
-         basedef:=penumdef(readderef);
+         basedef:=tenumdef(readderef);
          minval:=readlong;
          maxval:=readlong;
          savesize:=readlong;
@@ -1453,19 +1471,19 @@ implementation
     procedure tenumdef.deref;
       begin
         inherited deref;
-        resolvedef(pdef(basedef));
+        resolvedef(tdef(basedef));
       end;
 
 
-    destructor tenumdef.done;
+    destructor tenumdef.destroy;
       begin
-        inherited done;
+        inherited destroy;
       end;
 
 
     procedure tenumdef.write;
       begin
-         inherited write;
+         inherited writedef;
          writederef(basedef);
          writelong(min);
          writelong(max);
@@ -1503,16 +1521,16 @@ implementation
       inserted in the owner symtable }
     procedure tenumdef.correct_owner_symtable;
       var
-         st : psymtable;
+         st : tsymtable;
       begin
          if assigned(owner) and
-            (owner^.symtabletype in [recordsymtable,objectsymtable]) then
+            (owner.symtabletype in [recordsymtable,objectsymtable]) then
            begin
-              owner^.defindex^.deleteindex(@self);
+              owner.defindex.deleteindex(self);
               st:=owner;
-              while (st^.symtabletype in [recordsymtable,objectsymtable]) do
-                st:=st^.next;
-              st^.registerdef(@self);
+              while (st.symtabletype in [recordsymtable,objectsymtable]) do
+                st:=st.next;
+              st.registerdef(self);
            end;
       end;
 
@@ -1521,7 +1539,7 @@ implementation
 {$ifdef GDB}
     function tenumdef.stabstring : pchar;
       var st,st2 : pchar;
-          p : penumsym;
+          p : tenumsym;
           s : string;
           memsize : word;
       begin
@@ -1532,10 +1550,10 @@ implementation
           strpcopy(st,'@s'+tostr(savesize*8)+';e')
         else
           strpcopy(st,'e');
-        p := penumsym(firstenum);
+        p := tenumsym(firstenum);
         while assigned(p) do
           begin
-            s :=p^.name+':'+tostr(p^.value)+',';
+            s :=p.name+':'+tostr(p.value)+',';
             { place for the ending ';' also }
             if (strlen(st)+length(s)+1<memsize) then
               strpcopy(strend(st),s)
@@ -1548,7 +1566,7 @@ implementation
                 memsize := memsize+memsizeinc;
                 strpcopy(strend(st),s);
               end;
-            p := p^.nextenum;
+            p := p.nextenum;
           end;
         strpcopy(strend(st),';');
         stabstring := strnew(st);
@@ -1560,14 +1578,14 @@ implementation
     procedure tenumdef.write_child_rtti_data;
       begin
          if assigned(basedef) then
-           basedef^.get_rtti_label;
+           basedef.get_rtti_label;
       end;
 
 
     procedure tenumdef.write_rtti_data;
 
       var
-         hp : penumsym;
+         hp : tenumsym;
 
       begin
          rttiList.concat(Tai_const.Create_8bit(tkEnumeration));
@@ -1583,15 +1601,15 @@ implementation
          rttiList.concat(Tai_const.Create_32bit(min));
          rttiList.concat(Tai_const.Create_32bit(max));
          if assigned(basedef) then
-           rttiList.concat(Tai_const_symbol.Createname(basedef^.get_rtti_label))
+           rttiList.concat(Tai_const_symbol.Createname(basedef.get_rtti_label))
          else
            rttiList.concat(Tai_const.Create_32bit(0));
-         hp:=penumsym(firstenum);
+         hp:=tenumsym(firstenum);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const.Create_8bit(length(hp^.name)));
-              rttiList.concat(Tai_string.Create(lower(hp^.name)));
-              hp:=hp^.nextenum;
+              rttiList.concat(Tai_const.Create_8bit(length(hp.name)));
+              rttiList.concat(Tai_string.Create(lower(hp.name)));
+              hp:=hp.nextenum;
            end;
          rttiList.concat(Tai_const.Create_8bit(0));
       end;
@@ -1612,9 +1630,9 @@ implementation
                                  TORDDEF
 ****************************************************************************}
 
-    constructor torddef.init(t : tbasetype;v,b : longint);
+    constructor torddef.create(t : tbasetype;v,b : longint);
       begin
-         inherited init;
+         inherited create;
          deftype:=orddef;
          low:=v;
          high:=b;
@@ -1626,7 +1644,7 @@ implementation
 
     constructor torddef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=orddef;
          typ:=tbasetype(readbyte);
          low:=readlong;
@@ -1741,7 +1759,7 @@ implementation
 
     procedure torddef.write;
       begin
-         inherited write;
+         inherited writedef;
          writebyte(byte(typ));
          writelong(low);
          writelong(high);
@@ -1769,7 +1787,7 @@ implementation
          { u32bit : stabstring := strpnew('r'+
               s32bittype^.numberstring+';0;-1;'); }
         else
-          stabstring := strpnew('r'+pstoreddef(s32bittype.def)^.numberstring+';'+tostr(low)+';'+tostr(high)+';');
+          stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';'+tostr(low)+';'+tostr(high)+';');
         end;
       end;
 {$endif GDB}
@@ -1857,9 +1875,9 @@ implementation
                                 TFLOATDEF
 ****************************************************************************}
 
-    constructor tfloatdef.init(t : tfloattype);
+    constructor tfloatdef.create(t : tfloattype);
       begin
-         inherited init;
+         inherited create;
          deftype:=floatdef;
          typ:=t;
          setsize;
@@ -1868,7 +1886,7 @@ implementation
 
     constructor tfloatdef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=floatdef;
          typ:=tfloattype(readbyte);
          setsize;
@@ -1890,7 +1908,7 @@ implementation
 
     procedure tfloatdef.write;
       begin
-         inherited write;
+         inherited writedef;
          writebyte(byte(typ));
          current_ppu^.writeentry(ibfloatdef);
       end;
@@ -1902,14 +1920,14 @@ implementation
          case typ of
             s32real,
             s64real : stabstring := strpnew('r'+
-               pstoreddef(s32bittype.def)^.numberstring+';'+tostr(savesize)+';0;');
+               tstoreddef(s32bittype.def).numberstring+';'+tostr(savesize)+';0;');
             { found this solution in stabsread.c from GDB v4.16 }
             s64comp : stabstring := strpnew('r'+
-               pstoreddef(s32bittype.def)^.numberstring+';-'+tostr(savesize)+';0;');
+               tstoreddef(s32bittype.def).numberstring+';-'+tostr(savesize)+';0;');
 {$ifdef i386}
             { under dos at least you must give a size of twelve instead of 10 !! }
             { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
-            s80real : stabstring := strpnew('r'+pstoreddef(s32bittype.def)^.numberstring+';12;0;');
+            s80real : stabstring := strpnew('r'+tstoreddef(s32bittype.def).numberstring+';12;0;');
 {$endif i386}
             else
               internalerror(10005);
@@ -1949,9 +1967,9 @@ implementation
                                 TFILEDEF
 ****************************************************************************}
 
-    constructor tfiledef.inittext;
+    constructor tfiledef.createtext;
       begin
-         inherited init;
+         inherited create;
          deftype:=filedef;
          filetyp:=ft_text;
          typedfiletype.reset;
@@ -1959,9 +1977,9 @@ implementation
       end;
 
 
-    constructor tfiledef.inituntyped;
+    constructor tfiledef.createuntyped;
       begin
-         inherited init;
+         inherited create;
          deftype:=filedef;
          filetyp:=ft_untyped;
          typedfiletype.reset;
@@ -1969,9 +1987,9 @@ implementation
       end;
 
 
-    constructor tfiledef.inittyped(const tt : ttype);
+    constructor tfiledef.createtyped(const tt : ttype);
       begin
-         inherited init;
+         inherited create;
          deftype:=filedef;
          filetyp:=ft_typed;
          typedfiletype:=tt;
@@ -1981,7 +1999,7 @@ implementation
 
     constructor tfiledef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=filedef;
          filetyp:=tfiletyp(readbyte);
          if filetyp=ft_typed then
@@ -2014,7 +2032,7 @@ implementation
 
     procedure tfiledef.write;
       begin
-         inherited write;
+         inherited writedef;
          writebyte(byte(filetyp));
          if filetyp=ft_typed then
            typedfiletype.write;
@@ -2028,9 +2046,9 @@ implementation
    {$IfDef GDBknowsfiles}
       case filetyp of
         ft_typed :
-          stabstring := strpnew('d'+typedfiletype.def^.numberstring{+';'});
+          stabstring := strpnew('d'+typedfiletype.def.numberstring{+';'});
         ft_untyped :
-          stabstring := strpnew('d'+voiddef^.numberstring{+';'});
+          stabstring := strpnew('d'+voiddef.numberstring{+';'});
         ft_text :
           stabstring := strpnew('d'+cchartype^.numberstring{+';'});
       end;
@@ -2063,7 +2081,7 @@ implementation
     procedure tfiledef.concatstabto(asmlist : taasmoutput);
       begin
       { most file defs are unnamed !!! }
-      if ((typesym = nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+      if ((typesym = nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
          (is_def_stab_written  = not_written) then
         begin
         if assigned(typedfiletype.def) then
@@ -2080,7 +2098,7 @@ implementation
            ft_untyped:
              gettypename:='File';
            ft_typed:
-             gettypename:='File Of '+typedfiletype.def^.typename;
+             gettypename:='File Of '+typedfiletype.def.typename;
            ft_text:
              gettypename:='Text'
          end;
@@ -2091,9 +2109,9 @@ implementation
                                TVARIANTDEF
 ****************************************************************************}
 
-    constructor tvariantdef.init;
+    constructor tvariantdef.create;
       begin
-         inherited init;
+         inherited create;
          deftype:=variantdef;
          setsize;
       end;
@@ -2101,7 +2119,7 @@ implementation
 
     constructor tvariantdef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=variantdef;
          setsize;
       end;
@@ -2109,7 +2127,7 @@ implementation
 
     procedure tvariantdef.write;
       begin
-         inherited write;
+         inherited writedef;
          current_ppu^.writeentry(ibvariantdef);
       end;
 
@@ -2135,9 +2153,9 @@ implementation
                                TPOINTERDEF
 ****************************************************************************}
 
-    constructor tpointerdef.init(const tt : ttype);
+    constructor tpointerdef.create(const tt : ttype);
       begin
-        inherited init;
+        inherited create;
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=false;
@@ -2145,9 +2163,9 @@ implementation
       end;
 
 
-    constructor tpointerdef.initfar(const tt : ttype);
+    constructor tpointerdef.createfar(const tt : ttype);
       begin
-        inherited init;
+        inherited create;
         deftype:=pointerdef;
         pointertype:=tt;
         is_far:=true;
@@ -2157,23 +2175,11 @@ implementation
 
     constructor tpointerdef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=pointerdef;
          pointertype.load;
          is_far:=(readbyte<>0);
          savesize:=target_os.size_of_pointer;
-      end;
-
-
-    destructor tpointerdef.done;
-      begin
-        if assigned(pointertype.def) and
-           (pointertype.def^.deftype=forwarddef) then
-         begin
-           dispose(pointertype.def,done);
-           pointertype.reset;
-         end;
-        inherited done;
       end;
 
 
@@ -2186,7 +2192,7 @@ implementation
 
     procedure tpointerdef.write;
       begin
-         inherited write;
+         inherited writedef;
          pointertype.write;
          writebyte(byte(is_far));
          current_ppu^.writeentry(ibpointerdef);
@@ -2196,7 +2202,7 @@ implementation
 {$ifdef GDB}
     function tpointerdef.stabstring : pchar;
       begin
-        stabstring := strpnew('*'+pstoreddef(pointertype.def)^.numberstring);
+        stabstring := strpnew('*'+tstoreddef(pointertype.def).numberstring);
       end;
 
 
@@ -2205,26 +2211,26 @@ implementation
           sym_line_no : longint;
       begin
       if assigned(pointertype.def) and
-         (pointertype.def^.deftype=forwarddef) then
+         (pointertype.def.deftype=forwarddef) then
         exit;
 
-      if ( (typesym=nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+      if ( (typesym=nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
          (is_def_stab_written = not_written) then
         begin
           is_def_stab_written := being_written;
         if assigned(pointertype.def) and
-           (pointertype.def^.deftype in [recorddef,objectdef]) then
+           (pointertype.def.deftype in [recorddef,objectdef]) then
           begin
-            nb:=pstoreddef(pointertype.def)^.numberstring;
+            nb:=tstoreddef(pointertype.def).numberstring;
             {to avoid infinite recursion in record with next-like fields }
-            if pstoreddef(pointertype.def)^.is_def_stab_written = being_written then
+            if tstoreddef(pointertype.def).is_def_stab_written = being_written then
               begin
-                if assigned(pointertype.def^.typesym) then
+                if assigned(pointertype.def.typesym) then
                   begin
                     if assigned(typesym) then
                       begin
-                         st := ptypesym(typesym)^.name;
-                         sym_line_no:=ptypesym(typesym)^.fileinfo.line;
+                         st := ttypesym(typesym).name;
+                         sym_line_no:=ttypesym(typesym).fileinfo.line;
                       end
                     else
                       begin
@@ -2232,7 +2238,7 @@ implementation
                          sym_line_no:=0;
                       end;
                     st := '"'+st+':t'+numberstring+'=*'+nb
-                          +'=xs'+pointertype.def^.typesym^.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
+                          +'=xs'+pointertype.def.typesym.name+':",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0';
                     asmList.concat(Tai_stabs.Create(strpnew(st)));
                     end;
               end
@@ -2258,18 +2264,18 @@ implementation
 
       begin
          if is_far then
-          gettypename:='^'+pointertype.def^.typename+';far'
+          gettypename:='^'+pointertype.def.typename+';far'
          else
-          gettypename:='^'+pointertype.def^.typename;
+          gettypename:='^'+pointertype.def.typename;
       end;
 
 {****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
 
-    constructor tclassrefdef.init(const t:ttype);
+    constructor tclassrefdef.create(const t:ttype);
       begin
-         inherited init(t);
+         inherited create(t);
          deftype:=classrefdef;
       end;
 
@@ -2277,7 +2283,7 @@ implementation
     constructor tclassrefdef.load;
       begin
          { be careful, tclassdefref inherits from tpointerdef }
-         tstoreddef.load;
+         inherited loaddef;
          deftype:=classrefdef;
          pointertype.load;
          is_far:=false;
@@ -2288,7 +2294,7 @@ implementation
     procedure tclassrefdef.write;
       begin
          { be careful, tclassdefref inherits from tpointerdef }
-         tstoreddef.write;
+         inherited writedef;
          pointertype.write;
          current_ppu^.writeentry(ibclassrefdef);
       end;
@@ -2297,7 +2303,7 @@ implementation
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
       begin
-         stabstring:=strpnew(pstoreddef(pvmttype.def)^.numberstring+';');
+         stabstring:=strpnew(tstoreddef(pvmttype.def).numberstring+';');
       end;
 
 
@@ -2310,7 +2316,7 @@ implementation
     function tclassrefdef.gettypename : string;
 
       begin
-         gettypename:='Class Of '+pointertype.def^.typename;
+         gettypename:='Class Of '+pointertype.def.typename;
       end;
 
 
@@ -2325,9 +2331,9 @@ implementation
 {$define usesmallset}
 {$endif i386}
 
-    constructor tsetdef.init(const t:ttype;high : longint);
+    constructor tsetdef.create(const t:ttype;high : longint);
       begin
-         inherited init;
+         inherited create;
          deftype:=setdef;
          elementtype:=t;
 {$ifdef usesmallset}
@@ -2367,7 +2373,7 @@ implementation
 
     constructor tsetdef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=setdef;
          elementtype.load;
          settype:=tsettype(readbyte);
@@ -2379,15 +2385,15 @@ implementation
       end;
 
 
-    destructor tsetdef.done;
+    destructor tsetdef.destroy;
       begin
-        inherited done;
+        inherited destroy;
       end;
 
 
     procedure tsetdef.write;
       begin
-         inherited write;
+         inherited writedef;
          elementtype.write;
          writebyte(byte(settype));
          if settype=varset then
@@ -2406,13 +2412,13 @@ implementation
          if settype=smallset then
            stabstring := strpnew('r'+s32bittype^.numberstring+';0;0xffffffff;')
          else }
-           stabstring := strpnew('S'+pstoreddef(elementtype.def)^.numberstring);
+           stabstring := strpnew('S'+tstoreddef(elementtype.def).numberstring);
       end;
 
 
     procedure tsetdef.concatstabto(asmlist : taasmoutput);
       begin
-      if ( not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+      if ( not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
           (is_def_stab_written = not_written) then
         begin
           if assigned(elementtype.def) then
@@ -2435,13 +2441,13 @@ implementation
          rttiList.concat(Tai_const.Create_8bit(tkSet));
          write_rtti_name;
          rttiList.concat(Tai_const.Create_8bit(otULong));
-         rttiList.concat(Tai_const_symbol.Createname(elementtype.def^.get_rtti_label));
+         rttiList.concat(Tai_const_symbol.Createname(elementtype.def.get_rtti_label));
       end;
 
 
     procedure tsetdef.write_child_rtti_data;
       begin
-         elementtype.def^.get_rtti_label;
+         elementtype.def.get_rtti_label;
       end;
 
 
@@ -2454,7 +2460,7 @@ implementation
 
       begin
          if assigned(elementtype.def) then
-          gettypename:='Set Of '+elementtype.def^.typename
+          gettypename:='Set Of '+elementtype.def.typename
          else
           gettypename:='Empty Set';
       end;
@@ -2464,28 +2470,28 @@ implementation
                                  TFORMALDEF
 ***************************************************************************}
 
-    constructor tformaldef.init;
+    constructor tformaldef.create;
       var
          stregdef : boolean;
       begin
          stregdef:=registerdef;
          registerdef:=false;
-         inherited init;
+         inherited create;
          deftype:=formaldef;
          registerdef:=stregdef;
          { formaldef must be registered at unit level !! }
          if registerdef and assigned(current_module) then
             if assigned(current_module.localsymtable) then
-              psymtable(current_module.localsymtable)^.registerdef(@self)
+              tsymtable(current_module.localsymtable).registerdef(self)
             else if assigned(current_module.globalsymtable) then
-              psymtable(current_module.globalsymtable)^.registerdef(@self);
+              tsymtable(current_module.globalsymtable).registerdef(self);
          savesize:=target_os.size_of_pointer;
       end;
 
 
     constructor tformaldef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=formaldef;
          savesize:=target_os.size_of_pointer;
       end;
@@ -2493,7 +2499,7 @@ implementation
 
     procedure tformaldef.write;
       begin
-         inherited write;
+         inherited writedef;
          current_ppu^.writeentry(ibformaldef);
       end;
 
@@ -2521,9 +2527,9 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.init(l,h : longint;const t : ttype);
+    constructor tarraydef.create(l,h : longint;const t : ttype);
       begin
-         inherited init;
+         inherited create;
          deftype:=arraydef;
          lowrange:=l;
          highrange:=h;
@@ -2539,7 +2545,7 @@ implementation
 
     constructor tarraydef.load;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=arraydef;
          { the addresses are calculated later }
          elementtype.load;
@@ -2600,7 +2606,7 @@ implementation
 
     procedure tarraydef.write;
       begin
-         inherited write;
+         inherited writedef;
          elementtype.write;
          rangetype.write;
          writelong(lowrange);
@@ -2613,14 +2619,14 @@ implementation
 {$ifdef GDB}
     function tarraydef.stabstring : pchar;
       begin
-      stabstring := strpnew('ar'+pstoreddef(rangetype.def)^.numberstring+';'
-                    +tostr(lowrange)+';'+tostr(highrange)+';'+pstoreddef(elementtype.def)^.numberstring);
+      stabstring := strpnew('ar'+tstoreddef(rangetype.def).numberstring+';'
+                    +tostr(lowrange)+';'+tostr(highrange)+';'+tstoreddef(elementtype.def).numberstring);
       end;
 
 
     procedure tarraydef.concatstabto(asmlist : taasmoutput);
       begin
-      if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
+      if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
         and (is_def_stab_written = not_written) then
         begin
         {when array are inserted they have no definition yet !!}
@@ -2641,15 +2647,15 @@ implementation
            IsConstructor then
          begin
            { strings are stored by address only }
-           case elementtype.def^.deftype of
+           case elementtype.def.deftype of
              stringdef :
                elesize:=4;
              else
-               elesize:=elementtype.def^.size;
+               elesize:=elementtype.def.size;
            end;
          end
         else
-         elesize:=elementtype.def^.size;
+         elesize:=elementtype.def.size;
       end;
 
 
@@ -2681,8 +2687,8 @@ implementation
     function tarraydef.alignment : longint;
       begin
          { alignment is the size of the elements }
-         if elementtype.def^.deftype=recorddef then
-          alignment:=elementtype.def^.alignment
+         if elementtype.def.deftype=recorddef then
+          alignment:=elementtype.def.alignment
          else
           alignment:=elesize;
       end;
@@ -2690,13 +2696,13 @@ implementation
 
     function tarraydef.needs_inittable : boolean;
       begin
-         needs_inittable:=IsDynamicArray or elementtype.def^.needs_inittable;
+         needs_inittable:=IsDynamicArray or elementtype.def.needs_inittable;
       end;
 
 
     procedure tarraydef.write_child_rtti_data;
       begin
-         elementtype.def^.get_rtti_label;
+         elementtype.def.get_rtti_label;
       end;
 
 
@@ -2713,7 +2719,7 @@ implementation
          if not(IsDynamicArray) then
            rttiList.concat(Tai_const.Create_32bit(highrange-lowrange+1));
          { element type }
-         rttiList.concat(Tai_const_symbol.Createname(elementtype.def^.get_rtti_label));
+         rttiList.concat(Tai_const_symbol.Createname(elementtype.def.get_rtti_label));
          { variant type }
          // !!!!!!!!!!!!!!!!
       end;
@@ -2726,57 +2732,26 @@ implementation
              if isvariant or ((highrange=-1) and (lowrange=0)) then
                gettypename:='Array Of Const'
              else
-               gettypename:='Array Of '+elementtype.def^.typename;
+               gettypename:='Array Of '+elementtype.def.typename;
            end
          else if ((highrange=-1) and (lowrange=0)) or IsDynamicArray then
-           gettypename:='Array Of '+elementtype.def^.typename
+           gettypename:='Array Of '+elementtype.def.typename
          else
            begin
-              if rangetype.def^.deftype=enumdef then
-                gettypename:='Array['+rangetype.def^.typename+'] Of '+elementtype.def^.typename
+              if rangetype.def.deftype=enumdef then
+                gettypename:='Array['+rangetype.def.typename+'] Of '+elementtype.def.typename
               else
                 gettypename:='Array['+tostr(lowrange)+'..'+
-                  tostr(highrange)+'] Of '+elementtype.def^.typename
+                  tostr(highrange)+'] Of '+elementtype.def.typename
            end;
       end;
 
+
 {***************************************************************************
-                                  trecorddef
+                              tabstractrecorddef
 ***************************************************************************}
 
-    constructor trecorddef.init(p : psymtable);
-      begin
-         inherited init;
-         deftype:=recorddef;
-         symtable:=p;
-         symtable^.defowner := @self;
-         symtable^.dataalignment:=packrecordalignment[aktpackrecords];
-      end;
-
-
-    constructor trecorddef.load;
-      var
-         oldread_member : boolean;
-      begin
-         inherited load;
-         deftype:=recorddef;
-         savesize:=readlong;
-         oldread_member:=read_member;
-         read_member:=true;
-         symtable:=new(pstoredsymtable,loadas(recordsymtable));
-         read_member:=oldread_member;
-         symtable^.defowner:=@self;
-      end;
-
-
-    destructor trecorddef.done;
-      begin
-         if assigned(symtable) then
-           dispose(symtable,done);
-         inherited done;
-      end;
-
-    function trecorddef.getsymtable(t:tgetsymtable):psymtable;
+    function tabstractrecorddef.getsymtable(t:tgetsymtable):tsymtable;
       begin
          if t=gs_record then
          getsymtable:=symtable
@@ -2784,55 +2759,163 @@ implementation
          getsymtable:=nil;
       end;
 
-    var
-       binittable : boolean;
 
-    procedure check_rec_inittable(s : pnamedindexobject);
-
+{$ifdef GDB}
+    procedure tabstractrecorddef.addname(p : tnamedindexitem);
+      var
+        news, newrec : pchar;
+        spec : string[3];
+        varsize : longint;
       begin
-         if (not binittable) and
-            (psym(s)^.typ=varsym) and
-            assigned(pvarsym(s)^.vartype.def) then
-          begin
-            if (pvarsym(s)^.vartype.def^.deftype<>objectdef) or
-               not(is_class(pdef(pvarsym(s)^.vartype.def))) then
-             binittable:=pvarsym(s)^.vartype.def^.needs_inittable;
-          end;
+        { static variables from objects are like global objects }
+        if (sp_static in tsym(p).symoptions) then
+          exit;
+        If tsym(p).typ = varsym then
+         begin
+           if (sp_protected in tsym(p).symoptions) then
+             spec:='/1'
+           else if (sp_private in tsym(p).symoptions) then
+             spec:='/0'
+           else
+             spec:='';
+           if not assigned(tvarsym(p).vartype.def) then
+            writeln(tvarsym(p).name);
+           { class fields are pointers PM, obsolete now PM }
+           {if (tvarsym(p).vartype.def.deftype=objectdef) and
+              tobjectdef(tvarsym(p).vartype.def).is_class then
+              spec:=spec+'*'; }
+           varsize:=tvarsym(p).vartype.def.size;
+           { open arrays made overflows !! }
+           if varsize>$fffffff then
+             varsize:=$fffffff;
+           newrec := strpnew(p.name+':'+spec+tstoreddef(tvarsym(p).vartype.def).numberstring
+                         +','+tostr(tvarsym(p).address*8)+','
+                         +tostr(varsize*8)+';');
+           if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
+             begin
+                getmem(news,stabrecsize+memsizeinc);
+                strcopy(news,stabrecstring);
+                freemem(stabrecstring,stabrecsize);
+                stabrecsize:=stabrecsize+memsizeinc;
+                stabrecstring:=news;
+             end;
+           strcat(StabRecstring,newrec);
+           strdispose(newrec);
+           {This should be used for case !!}
+           inc(RecOffset,tvarsym(p).vartype.def.size);
+         end;
+      end;
+{$endif GDB}
+
+
+    procedure tabstractrecorddef.count_inittable_fields(sym : tnamedindexitem);
+      begin
+         if ((tsym(sym).typ=varsym) and
+             tvarsym(sym).vartype.def.needs_inittable) then
+           inc(count);
       end;
 
 
-    function trecorddef.needs_inittable : boolean;
-      var
-         oldb : boolean;
+    procedure tabstractrecorddef.count_fields(sym : tnamedindexitem);
       begin
-         { there are recursive calls to needs_rtti possible, }
-         { so we have to change to old value how else should }
-         { we do that ? check_rec_rtti can't be a nested     }
-         { procedure of needs_rtti !                         }
-         oldb:=binittable;
-         binittable:=false;
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}check_rec_inittable);
-         needs_inittable:=binittable;
-         binittable:=oldb;
+        inc(count);
+      end;
+
+
+    procedure tabstractrecorddef.write_field_inittable(sym : tnamedindexitem);
+      begin
+         if ((tsym(sym).typ=varsym) and
+            tvarsym(sym).vartype.def.needs_inittable) then
+           begin
+              rttiList.concat(Tai_const_symbol.Create(tstoreddef(tvarsym(sym).vartype.def).get_inittable_label));
+              rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+           end;
+      end;
+
+
+    procedure tabstractrecorddef.write_field_rtti(sym : tnamedindexitem);
+      begin
+         rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym).vartype.def.get_rtti_label));
+         rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+      end;
+
+
+    procedure tabstractrecorddef.generate_child_inittable(sym:tnamedindexitem);
+      begin
+         if (tsym(sym).typ=varsym) and
+            tvarsym(sym).vartype.def.needs_inittable then
+         { force inittable generation }
+           tstoreddef(tvarsym(sym).vartype.def).get_inittable_label;
+      end;
+
+
+    procedure tabstractrecorddef.generate_child_rtti(sym : tnamedindexitem);
+      begin
+         tvarsym(sym).vartype.def.get_rtti_label;
+      end;
+
+
+
+{***************************************************************************
+                                  trecorddef
+***************************************************************************}
+
+    constructor trecorddef.create(p : tsymtable);
+      begin
+         inherited create;
+         deftype:=recorddef;
+         symtable:=p;
+         symtable.defowner := self;
+         symtable.dataalignment:=packrecordalignment[aktpackrecords];
+      end;
+
+
+    constructor trecorddef.load;
+      var
+         oldread_member : boolean;
+      begin
+         inherited loaddef;
+         deftype:=recorddef;
+         savesize:=readlong;
+         oldread_member:=read_member;
+         read_member:=true;
+         symtable:=trecordsymtable.create;
+         trecordsymtable(symtable).load;
+         read_member:=oldread_member;
+         symtable.defowner:=self;
+      end;
+
+
+    destructor trecorddef.destroy;
+      begin
+         if assigned(symtable) then
+           symtable.free;
+         inherited destroy;
+      end;
+
+    function trecorddef.needs_inittable : boolean;
+      begin
+        needs_inittable:=trecordsymtable(symtable).needs_init_final
       end;
 
 
     procedure trecorddef.deref;
       var
-         oldrecsyms : psymtable;
+         oldrecsyms : tsymtable;
       begin
          inherited deref;
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
          { now dereference the definitions }
-         pstoredsymtable(symtable)^.deref;
+         tstoredsymtable(symtable).deref;
          aktrecordsymtable:=oldrecsyms;
-         { assign TGUID? }
+         { assign TGUID? load only from system unit (unitid=1) }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
             assigned(owner) and
-            (owner^.unitid=0) then
-           rec_tguid:=@self;
+            assigned(owner.name) and
+            (owner.name^='SYSTEM') then
+           rec_tguid:=self;
       end;
 
 
@@ -2842,36 +2925,36 @@ implementation
       begin
          oldread_member:=read_member;
          read_member:=true;
-         inherited write;
+         inherited writedef;
          writelong(savesize);
          current_ppu^.writeentry(ibrecorddef);
-         pstoredsymtable(symtable)^.writeas;
+         trecordsymtable(symtable).write;
          read_member:=oldread_member;
       end;
 
     function trecorddef.size:longint;
       begin
-        size:=symtable^.datasize;
+        size:=symtable.datasize;
       end;
 
 
     function trecorddef.alignment:longint;
       var
         l  : longint;
-        hp : pvarsym;
+        hp : tvarsym;
       begin
         { also check the first symbol for it's size, because a
           packed record has dataalignment of 1, but the first
           sym could be a longint which should be aligned on 4 bytes,
           this is compatible with C record packing (PFV) }
-        hp:=pvarsym(symtable^.symindex^.first);
+        hp:=tvarsym(symtable.symindex.first);
         if assigned(hp) then
          begin
-           if hp^.vartype.def^.deftype in [recorddef,arraydef] then
-            l:=hp^.vartype.def^.alignment
+           if hp.vartype.def.deftype in [recorddef,arraydef] then
+            l:=hp.vartype.def.alignment
            else
-            l:=hp^.vartype.def^.size;
-           if l>symtable^.dataalignment then
+            l:=hp.vartype.def.size;
+           if l>symtable.dataalignment then
             begin
               if l>=4 then
                alignment:=4
@@ -2882,156 +2965,45 @@ implementation
                alignment:=1;
             end
            else
-            alignment:=symtable^.dataalignment;
+            alignment:=symtable.dataalignment;
          end
         else
-         alignment:=symtable^.dataalignment;
+         alignment:=symtable.dataalignment;
       end;
 
+
 {$ifdef GDB}
-    Const StabRecString : pchar = Nil;
-          StabRecSize : longint = 0;
-          RecOffset : Longint = 0;
-
-    procedure addname(p : pnamedindexobject);
-    var
-      news, newrec : pchar;
-      spec : string[3];
-      size : longint;
-    begin
-    { static variables from objects are like global objects }
-    if (sp_static in psym(p)^.symoptions) then
-      exit;
-    If psym(p)^.typ = varsym then
-       begin
-         if (sp_protected in psym(p)^.symoptions) then
-           spec:='/1'
-         else if (sp_private in psym(p)^.symoptions) then
-           spec:='/0'
-         else
-           spec:='';
-         if not assigned(pvarsym(p)^.vartype.def) then
-          writeln(pvarsym(p)^.name);
-         { class fields are pointers PM, obsolete now PM }
-         {if (pvarsym(p)^.vartype.def^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.vartype.def)^.is_class then
-            spec:=spec+'*'; }
-         size:=pvarsym(p)^.vartype.def^.size;
-         { open arrays made overflows !! }
-         if size>$fffffff then
-           size:=$fffffff;
-         newrec := strpnew(p^.name+':'+spec+pstoreddef(pvarsym(p)^.vartype.def)^.numberstring
-                       +','+tostr(pvarsym(p)^.address*8)+','
-                       +tostr(size*8)+';');
-         if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
-           begin
-              getmem(news,stabrecsize+memsizeinc);
-              strcopy(news,stabrecstring);
-              freemem(stabrecstring,stabrecsize);
-              stabrecsize:=stabrecsize+memsizeinc;
-              stabrecstring:=news;
-           end;
-         strcat(StabRecstring,newrec);
-         strdispose(newrec);
-         {This should be used for case !!}
-         RecOffset := RecOffset + pvarsym(p)^.vartype.def^.size;
-       end;
-    end;
-
-
     function trecorddef.stabstring : pchar;
-      Var oldrec : pchar;
-          oldsize,oldrecoffset : longint;
       begin
-        oldrec := stabrecstring;
-        oldsize:=stabrecsize;
         GetMem(stabrecstring,memsizeinc);
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(size));
-        OldRecOffset:=RecOffset;
         RecOffset := 0;
-        symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
+        symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
         strpcopy(strend(StabRecString),';');
         stabstring := strnew(StabRecString);
         Freemem(stabrecstring,stabrecsize);
-        stabrecstring := oldrec;
-        stabrecsize:=oldsize;
-        RecOffset:=OldRecOffset;
       end;
 
 
     procedure trecorddef.concatstabto(asmlist : taasmoutput);
       begin
-        if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+        if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
            (is_def_stab_written = not_written)  then
           inherited concatstabto(asmlist);
       end;
 
 {$endif GDB}
 
-    var
-       count : longint;
-
-    procedure count_inittable_fields(sym : pnamedindexobject);
-      begin
-         if ((psym(sym)^.typ=varsym) and
-             pvarsym(sym)^.vartype.def^.needs_inittable) {and
-             (pvarsym(sym)^.vartype.def^.deftype<>objectdef) or
-             not(is_class(pdef(pvarsym(sym)^.vartype.def)))} then
-           inc(count);
-      end;
-
-
-    procedure count_fields(sym : pnamedindexobject);
-      begin
-            inc(count);
-      end;
-
-
-    procedure write_field_inittable(sym : pnamedindexobject);
-      begin
-         if ((psym(sym)^.typ=varsym) and
-            pvarsym(sym)^.vartype.def^.needs_inittable) and
-            ((pvarsym(sym)^.vartype.def^.deftype<>objectdef) or
-             not(is_class(pvarsym(sym)^.vartype.def))) then
-           begin
-              rttiList.concat(Tai_const_symbol.Create(pstoreddef(pvarsym(sym)^.vartype.def)^.get_inittable_label));
-              rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
-           end;
-      end;
-
-
-    procedure write_field_rtti(sym : pnamedindexobject);
-      begin
-         rttiList.concat(Tai_const_symbol.Createname(pvarsym(sym)^.vartype.def^.get_rtti_label));
-         rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
-      end;
-
-
-    procedure generate_child_inittable(sym:pnamedindexobject);
-      begin
-         if (psym(sym)^.typ=varsym) and
-            pvarsym(sym)^.vartype.def^.needs_inittable then
-         { force inittable generation }
-           pstoreddef(pvarsym(sym)^.vartype.def)^.get_inittable_label;
-      end;
-
-
-    procedure generate_child_rtti(sym : pnamedindexobject);
-      begin
-         pvarsym(sym)^.vartype.def^.get_rtti_label;
-      end;
-
-
     procedure trecorddef.write_child_rtti_data;
       begin
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_rtti);
       end;
 
 
     procedure trecorddef.write_child_init_data;
       begin
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
       end;
 
 
@@ -3041,9 +3013,9 @@ implementation
          write_rtti_name;
          rttiList.concat(Tai_const.Create_32bit(size));
          count:=0;
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_fields);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_fields);
          rttiList.concat(Tai_const.Create_32bit(count));
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_rtti);
       end;
 
 
@@ -3053,9 +3025,9 @@ implementation
          write_rtti_name;
          rttiList.concat(Tai_const.Create_32bit(size));
          count:=0;
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
          rttiList.concat(Tai_const.Create_32bit(count));
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
       end;
 
     function trecorddef.gettypename : string;
@@ -3069,9 +3041,9 @@ implementation
                        TABSTRACTPROCDEF
 ***************************************************************************}
 
-    constructor tabstractprocdef.init;
+    constructor tabstractprocdef.create;
       begin
-         inherited init;
+         inherited create;
          para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
@@ -3085,14 +3057,14 @@ implementation
       end;
 
 
-    destructor tabstractprocdef.done;
+    destructor tabstractprocdef.destroy;
       begin
          Para.Free;
-         inherited done;
+         inherited destroy;
       end;
 
 
-    procedure tabstractprocdef.concatpara(const tt:ttype;vsp : tvarspez;defval:psym);
+    procedure tabstractprocdef.concatpara(const tt:ttype;vsp : tvarspez;defval:tsym);
       var
         hp : TParaItem;
       begin
@@ -3115,7 +3087,7 @@ implementation
     procedure tabstractprocdef.test_if_fpu_result;
       begin
          if assigned(rettype.def) and
-            (rettype.def^.deftype=floatdef) then
+            (rettype.def.deftype=floatdef) then
            fpu_used:=2;
       end;
 
@@ -3130,7 +3102,7 @@ implementation
          while assigned(hp) do
           begin
             hp.paratype.resolve;
-            resolvesym(psym(hp.defaultvalue));
+            resolvesym(tsym(hp.defaultvalue));
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -3141,7 +3113,7 @@ implementation
          hp : TParaItem;
          count,i : word;
       begin
-         inherited load;
+         inherited loaddef;
          Para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
@@ -3159,7 +3131,7 @@ implementation
             { hp.register:=tregister(readbyte); }
             hp.register:=R_NO;
             hp.paratype.load;
-            hp.defaultvalue:=psym(readderef);
+            hp.defaultvalue:=tsym(readderef);
             if not assigned(hp.defaultvalue) then
              inc(minparacount);
             inc(maxparacount);
@@ -3173,7 +3145,7 @@ implementation
         hp : TParaItem;
         oldintfcrc : boolean;
       begin
-         inherited write;
+         inherited writedef;
          rettype.write;
          oldintfcrc:=current_ppu^.do_interface_crc;
          current_ppu^.do_interface_crc:=false;
@@ -3211,7 +3183,7 @@ implementation
               vs_const : if push_addr_param(pdc.paratype.def) then
                           inc(l,target_os.size_of_pointer)
                          else
-                          inc(l,pdc.paratype.def^.size);
+                          inc(l,pdc.paratype.def.size);
             end;
             l:=align(l,alignsize);
             pdc:=TParaItem(pdc.next);
@@ -3224,7 +3196,7 @@ implementation
       var
         hs,s : string;
         hp : TParaItem;
-        hpc : pconstsym;
+        hpc : tconstsym;
       begin
         hp:=TParaItem(Para.last);
         if not(assigned(hp)) then
@@ -3235,8 +3207,8 @@ implementation
         s:='(';
         while assigned(hp) do
          begin
-           if assigned(hp.paratype.def^.typesym) then
-             s:=s+hp.paratype.def^.typesym^.realname
+           if assigned(hp.paratype.def.typesym) then
+             s:=s+hp.paratype.def.typesym.realname
            else if hp.paratyp=vs_var then
              s:=s+'var'
            else if hp.paratyp=vs_const then
@@ -3246,20 +3218,20 @@ implementation
            { default value }
            if assigned(hp.defaultvalue) then
             begin
-              hpc:=pconstsym(hp.defaultvalue);
+              hpc:=tconstsym(hp.defaultvalue);
               hs:='';
-              case hpc^.consttyp of
+              case hpc.consttyp of
                 conststring,
                 constresourcestring :
-                  hs:=strpas(pchar(tpointerord(hpc^.value)));
+                  hs:=strpas(pchar(tpointerord(hpc.value)));
                 constreal :
-                  str(pbestreal(tpointerord(hpc^.value))^,hs);
+                  str(pbestreal(tpointerord(hpc.value))^,hs);
                 constord,
                 constpointer :
-                  hs:=tostr(hpc^.value);
+                  hs:=tostr(hpc.value);
                 constbool :
                   begin
-                    if hpc^.value<>0 then
+                    if hpc.value<>0 then
                      hs:='TRUE'
                     else
                      hs:='FALSE';
@@ -3267,7 +3239,7 @@ implementation
                 constnil :
                   hs:='nil';
                 constchar :
-                  hs:=chr(hpc^.value);
+                  hs:=chr(hpc.value);
                 constset :
                   hs:='<set>';
               end;
@@ -3335,7 +3307,7 @@ implementation
 
     procedure tabstractprocdef.concatstabto(asmlist : taasmoutput);
       begin
-         if (not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
+         if (not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
             and (is_def_stab_written = not_written)  then
            begin
               if assigned(rettype.def) then forcestabto(asmlist,rettype.def);
@@ -3349,29 +3321,29 @@ implementation
                                   TPROCDEF
 ***************************************************************************}
 
-    constructor tprocdef.init;
+    constructor tprocdef.create;
       begin
-         inherited init;
+         inherited create;
          deftype:=procdef;
          _mangledname:=nil;
          nextoverloaded:=nil;
          fileinfo:=aktfilepos;
          extnumber:=-1;
          aliasnames:=tstringlist.create;
-         localst:=new(pstoredsymtable,init(localsymtable));
-         parast:=new(pstoredsymtable,init(parasymtable));
-         localst^.defowner:=@self;
-         parast^.defowner:=@self;
+         localst:=tlocalsymtable.create;
+         parast:=tparasymtable.create;
+         localst.defowner:=self;
+         parast.defowner:=self;
          { this is used by insert
-          to check same names in parast and localst }
-         localst^.next:=parast;
+           to check same names in parast and localst }
+         localst.next:=parast;
          defref:=nil;
          crossref:=nil;
          lastwritten:=nil;
          refcount:=0;
          if (cs_browser in aktmoduleswitches) and make_ref then
           begin
-            defref:=new(pref,init(defref,@akttokenpos));
+            defref:=tref.create(defref,@akttokenpos);
             inc(refcount);
           end;
          lastref:=defref;
@@ -3415,8 +3387,8 @@ implementation
          _mangledname:=stringdup(readstring);
 
          extnumber:=readlong;
-         nextoverloaded:=pprocdef(readderef);
-         _class := pobjectdef(readderef);
+         nextoverloaded:=tprocdef(readderef);
+         _class := tobjectdef(readderef);
          readposinfo(fileinfo);
 
          if (cs_link_deffile in aktglobalswitches) and
@@ -3426,12 +3398,14 @@ implementation
 
          aliasnames:=tstringlist.create;
 
-         parast:=new(pstoredsymtable,loadas(parasymtable));
-         parast^.defowner:=@self;
+         parast:=tparasymtable.create;
+         tparasymtable(parast).load;
+         parast.defowner:=self;
+         localst:=nil;
          {new(localst,loadas(localsymtable));
-         localst^.defowner:=@self;
-         parast^.next:=localst;
-         localst^.next:=owner;}
+         localst.defowner:=self;
+         parast.next:=localst;
+         localst.next:=owner;}
 
          forwarddef:=false;
          interfacedef:=false;
@@ -3447,192 +3421,18 @@ implementation
       end;
 
 
-    function tprocdef.fullprocname:string;
-      var
-        s : string;
-      begin
-        s:='';
-        if assigned(_class) then
-         s:=_class^.objname^+'.';
-        s:=s+procsym^.realname+demangled_paras;
-        fullprocname:=s;
-      end;
-
-
-    function tprocdef.fullprocnamewithret:string;
-      var
-        s : string;
-      begin
-        s:=fullprocname;
-        if assigned(rettype.def) and
-          not(is_equal(rettype.def,voidtype.def)) then
-               s:=s+' : '+rettype.def^.gettypename;
-        fullprocnamewithret:=s;
-      end;
-
-
-    function tprocdef.getsymtable(t:tgetsymtable):psymtable;
-      begin
-        case t of
-          gs_local :
-            getsymtable:=localst;
-          gs_para :
-            getsymtable:=parast;
-          else
-            getsymtable:=nil;
-        end;
-      end;
-
-Const local_symtable_index : longint = $8001;
-
-    procedure tprocdef.load_references;
-      var
-        pos : tfileposinfo;
-{$ifndef NOLOCALBROWSER}
-        oldsymtablestack,
-        st : psymtable;
-{$endif ndef NOLOCALBROWSER}
-        move_last : boolean;
-      begin
-        move_last:=lastwritten=lastref;
-        while (not current_ppu^.endofentry) do
-         begin
-           readposinfo(pos);
-           inc(refcount);
-           lastref:=new(pref,init(lastref,@pos));
-           lastref^.is_written:=true;
-           if refcount=1 then
-            defref:=lastref;
-         end;
-        if move_last then
-          lastwritten:=lastref;
-        if ((current_module.flags and uf_local_browser)<>0)
-           and is_in_current then
-          begin
-{$ifndef NOLOCALBROWSER}
-             oldsymtablestack:=symtablestack;
-             st:=aktlocalsymtable;
-             parast:=new(pstoredsymtable,loadas(parasymtable));
-             parast^.defowner:=@self;
-             aktlocalsymtable:=parast;
-             pstoredsymtable(parast)^.deref;
-             parast^.next:=owner;
-             pstoredsymtable(parast)^.load_browser;
-             aktlocalsymtable:=st;
-             localst:=new(pstoredsymtable,loadas(localsymtable));
-             localst^.defowner:=@self;
-             aktlocalsymtable:=localst;
-             symtablestack:=parast;
-             pstoredsymtable(localst)^.deref;
-             localst^.next:=parast;
-             pstoredsymtable(localst)^.load_browser;
-             aktlocalsymtable:=st;
-             symtablestack:=oldsymtablestack;
-{$endif ndef NOLOCALBROWSER}
-          end;
-      end;
-
-
-    function tprocdef.write_references : boolean;
-      var
-        ref : pref;
-{$ifndef NOLOCALBROWSER}
-        st : psymtable;
-        pdo : pobjectdef;
-{$endif ndef NOLOCALBROWSER}
-        move_last : boolean;
-      begin
-        move_last:=lastwritten=lastref;
-        if move_last and (((current_module.flags and uf_local_browser)=0)
-           or not is_in_current) then
-          exit;
-      { write address of this symbol }
-        writederef(@self);
-      { write refs }
-        if assigned(lastwritten) then
-          ref:=lastwritten
-        else
-          ref:=defref;
-        while assigned(ref) do
-         begin
-           if ref^.moduleindex=current_module.unit_index then
-             begin
-                writeposinfo(ref^.posinfo);
-                ref^.is_written:=true;
-                if move_last then
-                  lastwritten:=ref;
-             end
-           else if not ref^.is_written then
-             move_last:=false
-           else if move_last then
-             lastwritten:=ref;
-           ref:=ref^.nextref;
-         end;
-        current_ppu^.writeentry(ibdefref);
-        write_references:=true;
-        if ((current_module.flags and uf_local_browser)<>0)
-           and is_in_current then
-          begin
-{$ifndef NOLOCALBROWSER}
-             pdo:=_class;
-             if (owner^.symtabletype<>localsymtable) then
-               while assigned(pdo) do
-                 begin
-                    if pdo^.symtable<>aktrecordsymtable then
-                      begin
-                         pdo^.symtable^.unitid:=local_symtable_index;
-                         inc(local_symtable_index);
-                      end;
-                    pdo:=pdo^.childof;
-                 end;
-
-             { we need TESTLOCALBROWSER para and local symtables
-               PPU files are then easier to read PM }
-             if not assigned(parast) then
-               parast:=new(pstoredsymtable,init(parasymtable));
-             parast^.defowner:=@self;
-             st:=aktlocalsymtable;
-             aktlocalsymtable:=parast;
-             pstoredsymtable(parast)^.writeas;
-             parast^.unitid:=local_symtable_index;
-             inc(local_symtable_index);
-             pstoredsymtable(parast)^.write_browser;
-             if not assigned(localst) then
-               localst:=new(pstoredsymtable,init(localsymtable));
-             localst^.defowner:=@self;
-             aktlocalsymtable:=localst;
-             pstoredsymtable(localst)^.writeas;
-             localst^.unitid:=local_symtable_index;
-             inc(local_symtable_index);
-             pstoredsymtable(localst)^.write_browser;
-             aktlocalsymtable:=st;
-             { decrement for }
-             local_symtable_index:=local_symtable_index-2;
-             pdo:=_class;
-             if (owner^.symtabletype<>localsymtable) then
-               while assigned(pdo) do
-                 begin
-                    if pdo^.symtable<>aktrecordsymtable then
-                      dec(local_symtable_index);
-                    pdo:=pdo^.childof;
-                 end;
-{$endif ndef NOLOCALBROWSER}
-          end;
-      end;
-
-
-    destructor tprocdef.done;
+    destructor tprocdef.destroy;
       begin
          if assigned(defref) then
            begin
-             defref^.freechain;
-             dispose(defref,done);
+             defref.freechain;
+             defref.free;
            end;
          aliasnames.free;
          if assigned(parast) then
-           dispose(parast,done);
-         if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
-           dispose(localst,done);
+           parast.free;
+         if assigned(localst) and (localst.symtabletype<>staticsymtable) then
+           localst.free;
          if (pocall_inline in proccalloptions) and assigned(code) then
            tnode(code).free;
          if assigned(regvarinfo) then
@@ -3641,7 +3441,7 @@ Const local_symtable_index : longint = $8001;
            strdispose(messageinf.str);
          if assigned(_mangledname) then
            stringdispose(_mangledname);
-         inherited done;
+         inherited destroy;
       end;
 
 
@@ -3686,7 +3486,7 @@ Const local_symtable_index : longint = $8001;
            begin
               { only write the overloads from the same unit }
               if assigned(nextoverloaded) and
-                 (nextoverloaded^.owner=owner) then
+                 (nextoverloaded.owner=owner) then
                 writederef(nextoverloaded)
               else
                 writederef(nil);
@@ -3711,51 +3511,218 @@ Const local_symtable_index : longint = $8001;
          current_ppu^.do_interface_crc:=false;
          if not assigned(parast) then
           begin
-            parast:=new(pstoredsymtable,init(parasymtable));
-            parast^.defowner:=@self;
+            parast:=tparasymtable.create;
+            parast.defowner:=self;
           end;
-         pstoredsymtable(parast)^.writeas;
+         tparasymtable(parast).write;
          {if not assigned(localst) then
           begin
-            localst:=new(pstoredsymtable,init(localsymtable));
-            localst^.defowner:=@self;
+            localst:=new(tstoredsymtable.create(localsymtable));
+            localst.defowner:=self;
           end;
-         localst^.writeas;}
+         localst.writeas;}
          current_ppu^.do_interface_crc:=oldintfcrc;
+      end;
+
+
+    function tprocdef.fullprocname:string;
+      var
+        s : string;
+      begin
+        s:='';
+        if assigned(_class) then
+         s:=_class.objname^+'.';
+        s:=s+procsym.realname+demangled_paras;
+        fullprocname:=s;
+      end;
+
+
+    function tprocdef.fullprocnamewithret:string;
+      var
+        s : string;
+      begin
+        s:=fullprocname;
+        if assigned(rettype.def) and
+          not(is_equal(rettype.def,voidtype.def)) then
+               s:=s+' : '+rettype.def.gettypename;
+        fullprocnamewithret:=s;
+      end;
+
+
+    function tprocdef.getsymtable(t:tgetsymtable):tsymtable;
+      begin
+        case t of
+          gs_local :
+            getsymtable:=localst;
+          gs_para :
+            getsymtable:=parast;
+          else
+            getsymtable:=nil;
+        end;
+      end;
+
+Const local_symtable_index : longint = $8001;
+
+    procedure tprocdef.load_references;
+      var
+        pos : tfileposinfo;
+        oldsymtablestack,
+        st : tsymtable;
+        move_last : boolean;
+      begin
+        move_last:=lastwritten=lastref;
+        while (not current_ppu^.endofentry) do
+         begin
+           readposinfo(pos);
+           inc(refcount);
+           lastref:=tref.create(lastref,@pos);
+           lastref.is_written:=true;
+           if refcount=1 then
+            defref:=lastref;
+         end;
+        if move_last then
+          lastwritten:=lastref;
+        if ((current_module.flags and uf_local_browser)<>0)
+           and is_in_current then
+          begin
+             oldsymtablestack:=symtablestack;
+             st:=aktlocalsymtable;
+             parast:=tparasymtable.create;
+             tparasymtable(parast).load;
+             parast.defowner:=self;
+             aktlocalsymtable:=parast;
+             tparasymtable(parast).deref;
+             parast.next:=owner;
+             tparasymtable(parast).load_browser;
+             aktlocalsymtable:=st;
+             localst:=tlocalsymtable.create;
+             tlocalsymtable(localst).load;
+             localst.defowner:=self;
+             aktlocalsymtable:=localst;
+             symtablestack:=parast;
+             tlocalsymtable(localst).deref;
+             localst.next:=parast;
+             tlocalsymtable(localst).load_browser;
+             aktlocalsymtable:=st;
+             symtablestack:=oldsymtablestack;
+          end;
+      end;
+
+
+    function tprocdef.write_references : boolean;
+      var
+        ref : tref;
+        st : tsymtable;
+        pdo : tobjectdef;
+        move_last : boolean;
+      begin
+        move_last:=lastwritten=lastref;
+        if move_last and (((current_module.flags and uf_local_browser)=0)
+           or not is_in_current) then
+          exit;
+      { write address of this symbol }
+        writederef(self);
+      { write refs }
+        if assigned(lastwritten) then
+          ref:=lastwritten
+        else
+          ref:=defref;
+        while assigned(ref) do
+         begin
+           if ref.moduleindex=current_module.unit_index then
+             begin
+                writeposinfo(ref.posinfo);
+                ref.is_written:=true;
+                if move_last then
+                  lastwritten:=ref;
+             end
+           else if not ref.is_written then
+             move_last:=false
+           else if move_last then
+             lastwritten:=ref;
+           ref:=ref.nextref;
+         end;
+        current_ppu^.writeentry(ibdefref);
+        write_references:=true;
+        if ((current_module.flags and uf_local_browser)<>0)
+           and is_in_current then
+          begin
+             pdo:=_class;
+             if (owner.symtabletype<>localsymtable) then
+               while assigned(pdo) do
+                 begin
+                    if pdo.symtable<>aktrecordsymtable then
+                      begin
+                         pdo.symtable.unitid:=local_symtable_index;
+                         inc(local_symtable_index);
+                      end;
+                    pdo:=pdo.childof;
+                 end;
+
+             { we need TESTLOCALBROWSER para and local symtables
+               PPU files are then easier to read PM }
+             if not assigned(parast) then
+               parast:=tparasymtable.create;
+             parast.defowner:=self;
+             st:=aktlocalsymtable;
+             aktlocalsymtable:=parast;
+             tstoredsymtable(parast).write;
+             parast.unitid:=local_symtable_index;
+             inc(local_symtable_index);
+             tstoredsymtable(parast).write_browser;
+             if not assigned(localst) then
+               localst:=tlocalsymtable.create;
+             localst.defowner:=self;
+             aktlocalsymtable:=localst;
+             tstoredsymtable(localst).write;
+             localst.unitid:=local_symtable_index;
+             inc(local_symtable_index);
+             tstoredsymtable(localst).write_browser;
+             aktlocalsymtable:=st;
+             { decrement for }
+             local_symtable_index:=local_symtable_index-2;
+             pdo:=_class;
+             if (owner.symtabletype<>localsymtable) then
+               while assigned(pdo) do
+                 begin
+                    if pdo.symtable<>aktrecordsymtable then
+                      dec(local_symtable_index);
+                    pdo:=pdo.childof;
+                 end;
+          end;
       end;
 
 
     function tprocdef.haspara:boolean;
       begin
-        haspara:=assigned(parast^.symindex^.first);
+        haspara:=assigned(parast.symindex.first);
       end;
 
 
 {$ifdef GDB}
-    procedure addparaname(p : psym);
+{    procedure addparaname(p : tsym);
       var vs : char;
       begin
-      if pvarsym(p)^.varspez = vs_value then vs := '1'
+      if tvarsym(p).varspez = vs_value then vs := '1'
         else vs := '0';
-      strpcopy(strend(StabRecString),p^.name+':'+pstoreddef(pvarsym(p)^.vartype.def)^.numberstring+','+vs+';');
-      end;
+      strpcopy(strend(StabRecString),p^.name+':'+tstoreddef(tvarsym(p).vartype.def).numberstring+','+vs+';');
+      end; }
 
 
     function tprocdef.stabstring : pchar;
       var
           i : longint;
-          oldrec : pchar;
+          stabrecstring : pchar;
       begin
-      oldrec := stabrecstring;
       getmem(StabRecString,1024);
-      strpcopy(StabRecString,'f'+pstoreddef(rettype.def)^.numberstring);
+      strpcopy(StabRecString,'f'+tstoreddef(rettype.def).numberstring);
       i:=maxparacount;
       if i>0 then
         begin
         strpcopy(strend(StabRecString),','+tostr(i)+';');
         (* confuse gdb !! PM
         if assigned(parast) then
-          parast^.foreach({$ifdef FPCPROCVAR}@{$endif}addparaname)
+          parast.foreach({$ifdef FPCPROCVAR}@{$endif}addparaname)
           else
           begin
           param := para1;
@@ -3767,7 +3734,7 @@ Const local_symtable_index : longint = $8001;
             {Here we have lost the parameter names !!}
             {using lower case parameters }
             strpcopy(strend(stabrecstring),'p'+tostr(i)
-               +':'+param^.paratype.def^.numberstring+','+vartyp+';');
+               +':'+param^.paratype.def.numberstring+','+vartyp+';');
             param := param^.next;
             end;
           end;   *)
@@ -3775,7 +3742,6 @@ Const local_symtable_index : longint = $8001;
         end;
       stabstring := strnew(stabrecstring);
       freemem(stabrecstring,1024);
-      stabrecstring := oldrec;
       end;
 
 
@@ -3787,19 +3753,19 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.deref;
       var
         oldsymtablestack,
-        oldlocalsymtable : psymtable;
+        oldlocalsymtable : tsymtable;
       begin
          inherited deref;
-         resolvedef(pdef(nextoverloaded));
-         resolvedef(pdef(_class));
+         resolvedef(tdef(nextoverloaded));
+         resolvedef(tdef(_class));
          { parast }
          oldsymtablestack:=symtablestack;
          oldlocalsymtable:=aktlocalsymtable;
          aktlocalsymtable:=parast;
-         pstoredsymtable(parast)^.deref;
+         tparasymtable(parast).deref;
          {symtablestack:=parast;
          aktlocalsymtable:=localst;
-         localst^.deref;}
+         localst.deref;}
          aktlocalsymtable:=oldlocalsymtable;
          symtablestack:=oldsymtablestack;
       end;
@@ -3818,7 +3784,7 @@ Const local_symtable_index : longint = $8001;
 
     function tprocdef.cplusplusmangledname : string;
 
-      function getcppparaname(p : pdef) : string;
+      function getcppparaname(p : tdef) : string;
 
         const
            ordtype2str : array[tbasetype] of string[2] = (
@@ -3832,11 +3798,11 @@ Const local_symtable_index : longint = $8001;
            s : string;
 
         begin
-           case p^.deftype of
+           case p.deftype of
               orddef:
-                s:=ordtype2str[porddef(p)^.typ];
+                s:=ordtype2str[torddef(p).typ];
               pointerdef:
-                s:='P'+getcppparaname(ppointerdef(p)^.pointertype.def);
+                s:='P'+getcppparaname(tpointerdef(p).pointertype.def);
               else
                 internalerror(2103001);
            end;
@@ -3848,10 +3814,10 @@ Const local_symtable_index : longint = $8001;
          param : TParaItem;
 
       begin
-         s := procsym^.realname;
-         if procsym^.owner^.symtabletype=objectsymtable then
+         s := procsym.realname;
+         if procsym.owner.symtabletype=objectsymtable then
            begin
-              s2:=upper(pobjectdef(procsym^.owner^.defowner)^.typesym^.realname);
+              s2:=upper(tobjectdef(procsym.owner.defowner).typesym.realname);
               case proctypeoption of
                  potype_destructor:
                    s:='_$_'+tostr(length(s2))+s2;
@@ -3901,13 +3867,13 @@ Const local_symtable_index : longint = $8001;
 {$ifdef EXTDEBUG}
          if assigned(parast) then
            begin
-              stringdispose(parast^.name);
-              parast^.name:=stringdup('args of '+s);
+              stringdispose(parast.name);
+              parast.name:=stringdup('args of '+s);
            end;
          if assigned(localst) then
            begin
-              stringdispose(localst^.name);
-              localst^.name:=stringdup('locals of '+s);
+              stringdispose(localst.name);
+              localst.name:=stringdup('locals of '+s);
            end;
 {$endif}
       end;
@@ -3917,9 +3883,9 @@ Const local_symtable_index : longint = $8001;
                                  TPROCVARDEF
 ***************************************************************************}
 
-    constructor tprocvardef.init;
+    constructor tprocvardef.create;
       begin
-         inherited init;
+         inherited create;
          deftype:=procvardef;
       end;
 
@@ -3965,7 +3931,7 @@ Const local_symtable_index : longint = $8001;
         getmem(nss,1024);
         { it is not a function but a function pointer !! (PM) }
 
-        strpcopy(nss,'*f'+pstoreddef(rettype.def)^.numberstring{+','+tostr(i)}+';');
+        strpcopy(nss,'*f'+tstoreddef(rettype.def).numberstring{+','+tostr(i)}+';');
         { this confuses gdb !!
           we should use 'F' instead of 'f' but
           as we use c++ language mode
@@ -3981,7 +3947,7 @@ Const local_symtable_index : longint = $8001;
           inc(i);
           if param^.paratyp = vs_value then vartyp := '1' else vartyp := '0';
           {Here we have lost the parameter names !!}
-          pst := strpnew('p'+tostr(i)+':'+param^.paratype.def^.numberstring+','+vartyp+';');
+          pst := strpnew('p'+tostr(i)+':'+param^.paratype.def.numberstring+','+vartyp+';');
           strcat(nss,pst);
           strdispose(pst);
           param := param^.next;
@@ -3994,7 +3960,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tprocvardef.concatstabto(asmlist : taasmoutput);
       begin
-         if ( not assigned(typesym) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches))
+         if ( not assigned(typesym) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches))
            and (is_def_stab_written = not_written)  then
            inherited concatstabto(asmlist);
          is_def_stab_written:=written;
@@ -4043,7 +4009,7 @@ Const local_symtable_index : longint = $8001;
                  rttiList.concat(Tai_const.Create_8bit(0));
 
                  { write name of type of current parameter }
-                 pstoreddef(pdc.paratype.def)^.write_rtti_name;
+                 tstoreddef(pdc.paratype.def).write_rtti_name;
 
                  if (pocall_leftright in proccalloptions) then
                   pdc:=TParaItem(pdc.previous)
@@ -4052,7 +4018,7 @@ Const local_symtable_index : longint = $8001;
                end;
 
              { write name of result type }
-             pstoreddef(rettype.def)^.write_rtti_name;
+             tstoreddef(rettype.def).write_rtti_name;
           end;
       end;
 
@@ -4073,7 +4039,7 @@ Const local_symtable_index : longint = $8001;
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
            gettypename:='<procedure variable type of function'+demangled_paras+
-             ':'+rettype.def^.gettypename+';'+proccalloption2str+'>'
+             ':'+rettype.def.gettypename+';'+proccalloption2str+'>'
          else
            gettypename:='<procedure variable type of procedure'+demangled_paras+
              ';'+proccalloption2str+'>';
@@ -4090,20 +4056,19 @@ Const local_symtable_index : longint = $8001;
        vtableassigned : boolean = false;
 {$endif GDB}
 
-   constructor tobjectdef.init(ot : tobjectdeftype;const n : string;c : pobjectdef);
+   constructor tobjectdef.create(ot : tobjectdeftype;const n : string;c : tobjectdef);
      begin
-        inherited init;
+        inherited create;
         objecttype:=ot;
         deftype:=objectdef;
         objectoptions:=[];
         childof:=nil;
-        symtable:=new(pstoredsymtable,init(objectsymtable));
-        symtable^.name := stringdup(n);
+        symtable:=tobjectsymtable.create(n);
         { create space for vmt !! }
         vmt_offset:=0;
-        symtable^.datasize:=0;
-        symtable^.defowner:=@self;
-        symtable^.dataalignment:=packrecordalignment[aktpackrecords];
+        symtable.datasize:=0;
+        symtable.defowner:=self;
+        symtable.dataalignment:=packrecordalignment[aktpackrecords];
         lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(n);
@@ -4115,7 +4080,7 @@ Const local_symtable_index : longint = $8001;
 
         { set£p implemented interfaces }
         if objecttype in [odt_class,odt_interfacecorba] then
-          new(implementedinterfaces,init)
+          implementedinterfaces:=timplementedinterfaces.create
         else
           implementedinterfaces:=nil;
 
@@ -4130,13 +4095,13 @@ Const local_symtable_index : longint = $8001;
          oldread_member : boolean;
          i,implintfcount: longint;
       begin
-         inherited load;
+         inherited loaddef;
          deftype:=objectdef;
          objecttype:=tobjectdeftype(readbyte);
          savesize:=readlong;
          vmt_offset:=readlong;
          objname:=stringdup(readstring);
-         childof:=pobjectdef(readderef);
+         childof:=tobjectdef(readderef);
          readsmallset(objectoptions);
          has_rtti:=boolean(readbyte);
 
@@ -4153,12 +4118,12 @@ Const local_symtable_index : longint = $8001;
          { load implemented interfaces }
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
-             new(implementedinterfaces,init);
+             implementedinterfaces:=timplementedinterfaces.create;
              implintfcount:=readlong;
              for i:=1 to implintfcount do
                begin
-                  implementedinterfaces^.addintfref(pdef(readderef));
-                  implementedinterfaces^.ioffsets(i)^:=readlong;
+                  implementedinterfaces.addintfref(tdef(readderef));
+                  implementedinterfaces.ioffsets(i)^:=readlong;
                end;
            end
          else
@@ -4166,11 +4131,11 @@ Const local_symtable_index : longint = $8001;
 
          oldread_member:=read_member;
          read_member:=true;
-         symtable:=new(pstoredsymtable,loadas(objectsymtable));
+         symtable:=tobjectsymtable.create(objname^);
+         tobjectsymtable(symtable).load;
          read_member:=oldread_member;
 
-         symtable^.defowner:=@self;
-         symtable^.name := stringdup(objname^);
+         symtable.defowner:=self;
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
@@ -4178,28 +4143,28 @@ Const local_symtable_index : longint = $8001;
          if (childof=nil) and
             (objecttype=odt_class) and
             (upper(objname^)='TOBJECT') then
-           class_tobject:=@self;
+           class_tobject:=self;
          if (childof=nil) and
             (objecttype=odt_interfacecom) and
             (upper(objname^)='IUNKNOWN') then
-           interface_iunknown:=@self;
+           interface_iunknown:=self;
 {$ifdef GDB}
          writing_class_record_stab:=false;
 {$endif GDB}
        end;
 
 
-   destructor tobjectdef.done;
+   destructor tobjectdef.destroy;
      begin
         if assigned(symtable) then
-          dispose(symtable,done);
+          symtable.free;
         if (oo_is_forward in objectoptions) then
           Message1(sym_e_class_forward_not_resolved,objname^);
         stringdispose(objname);
         stringdispose(iidstr);
         if assigned(implementedinterfaces) then
-          dispose(implementedinterfaces,done);
-        inherited done;
+          implementedinterfaces.free;
+        inherited destroy;
      end;
 
 
@@ -4209,7 +4174,7 @@ Const local_symtable_index : longint = $8001;
          implintfcount : longint;
          i : longint;
       begin
-         inherited write;
+         inherited writedef;
          writebyte(byte(objecttype));
          writelong(size);
          writelong(vmt_offset);
@@ -4227,12 +4192,12 @@ Const local_symtable_index : longint = $8001;
 
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
-              implintfcount:=implementedinterfaces^.count;
+              implintfcount:=implementedinterfaces.count;
               writelong(implintfcount);
               for i:=1 to implintfcount do
                 begin
-                   writederef(implementedinterfaces^.interfaces(i));
-                   writelong(implementedinterfaces^.ioffsets(i)^);
+                   writederef(implementedinterfaces.interfaces(i));
+                   writelong(implementedinterfaces.ioffsets(i)^);
                 end;
            end;
 
@@ -4240,35 +4205,27 @@ Const local_symtable_index : longint = $8001;
 
          oldread_member:=read_member;
          read_member:=true;
-         pstoredsymtable(symtable)^.writeas;
+         tobjectsymtable(symtable).write;
          read_member:=oldread_member;
       end;
 
 
-    function tobjectdef.getsymtable(t:tgetsymtable):psymtable;
-      begin
-        if t=gs_record then
-         getsymtable:=symtable
-        else
-         getsymtable:=nil;
-      end;
-
     procedure tobjectdef.deref;
       var
-         oldrecsyms : psymtable;
+         oldrecsyms : tsymtable;
       begin
          inherited deref;
-         resolvedef(pdef(childof));
+         resolvedef(tdef(childof));
          oldrecsyms:=aktrecordsymtable;
          aktrecordsymtable:=symtable;
-         pstoredsymtable(symtable)^.deref;
+         tstoredsymtable(symtable).deref;
          aktrecordsymtable:=oldrecsyms;
          if objecttype in [odt_class,odt_interfacecorba] then
-           implementedinterfaces^.deref;
+           implementedinterfaces.deref;
       end;
 
 
-    procedure tobjectdef.set_parent( c : pobjectdef);
+    procedure tobjectdef.set_parent( c : tobjectdef);
       begin
         { nothing to do if the parent was not forward !}
         if assigned(childof) then
@@ -4278,26 +4235,26 @@ Const local_symtable_index : longint = $8001;
         if assigned(c) then
           begin
              { only important for classes }
-             lastvtableindex:=c^.lastvtableindex;
-             objectoptions:=objectoptions+(c^.objectoptions*
+             lastvtableindex:=c.lastvtableindex;
+             objectoptions:=objectoptions+(c.objectoptions*
                [oo_has_virtual,oo_has_private,oo_has_protected,oo_has_constructor,oo_has_destructor]);
              if not (objecttype in [odt_interfacecom,odt_interfacecorba]) then
                begin
                   { add the data of the anchestor class }
-                  inc(symtable^.datasize,c^.symtable^.datasize);
+                  inc(symtable.datasize,c.symtable.datasize);
                   if (oo_has_vmt in objectoptions) and
-                     (oo_has_vmt in c^.objectoptions) then
-                    dec(symtable^.datasize,target_os.size_of_pointer);
+                     (oo_has_vmt in c.objectoptions) then
+                    dec(symtable.datasize,target_os.size_of_pointer);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
-                  if (oo_has_vmt in c^.objectoptions) or is_class(@self) then
+                  if (oo_has_vmt in c.objectoptions) or is_class(self) then
                     begin
-                       vmt_offset:=c^.vmt_offset;
+                       vmt_offset:=c.vmt_offset;
                        include(objectoptions,oo_has_vmt);
                     end;
                end;
           end;
-        savesize := symtable^.datasize;
+        savesize := symtable.datasize;
       end;
 
 
@@ -4309,19 +4266,19 @@ Const local_symtable_index : longint = $8001;
         else
           begin
              { first round up to multiple of 4 }
-             if (symtable^.dataalignment=2) then
+             if (symtable.dataalignment=2) then
                begin
-                 if (symtable^.datasize and 1)<>0 then
-                   inc(symtable^.datasize);
+                 if (symtable.datasize and 1)<>0 then
+                   inc(symtable.datasize);
                end
              else
-              if (symtable^.dataalignment>=4) then
+              if (symtable.dataalignment>=4) then
                begin
-                 if (symtable^.datasize mod 4) <> 0 then
-                   inc(symtable^.datasize,4-(symtable^.datasize mod 4));
+                 if (symtable.datasize mod 4) <> 0 then
+                   inc(symtable.datasize,4-(symtable.datasize mod 4));
                end;
-             vmt_offset:=symtable^.datasize;
-             inc(symtable^.datasize,target_os.size_of_pointer);
+             vmt_offset:=symtable.datasize;
+             inc(symtable.datasize,target_os.size_of_pointer);
              include(objectoptions,oo_has_vmt);
           end;
      end;
@@ -4330,7 +4287,7 @@ Const local_symtable_index : longint = $8001;
    procedure tobjectdef.check_forwards;
      begin
         if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
-          pstoredsymtable(symtable)^.check_forwards;
+          tstoredsymtable(symtable).check_forwards;
         if (oo_is_forward in objectoptions) then
           begin
              { ok, in future, the forward can be resolved }
@@ -4341,11 +4298,11 @@ Const local_symtable_index : longint = $8001;
 
 
    { true, if self inherits from d (or if they are equal) }
-   function tobjectdef.is_related(d : pobjectdef) : boolean;
+   function tobjectdef.is_related(d : tobjectdef) : boolean;
      var
-        hp : pobjectdef;
+        hp : tobjectdef;
      begin
-        hp:=@self;
+        hp:=self;
         while assigned(hp) do
           begin
              if hp=d then
@@ -4353,56 +4310,54 @@ Const local_symtable_index : longint = $8001;
                   is_related:=true;
                   exit;
                end;
-             hp:=hp^.childof;
+             hp:=hp.childof;
           end;
         is_related:=false;
      end;
 
-   var
-      sd : pprocdef;
 
-   procedure _searchdestructor(sym : pnamedindexobject);
+   procedure tobjectdef._searchdestructor(sym : tnamedindexitem);
 
      var
-        p : pprocdef;
+        p : tprocdef;
 
      begin
         { if we found already a destructor, then we exit }
         if assigned(sd) then
           exit;
-        if psym(sym)^.typ=procsym then
+        if tsym(sym).typ=procsym then
           begin
-             p:=pprocsym(sym)^.definition;
+             p:=tprocsym(sym).definition;
              while assigned(p) do
                begin
-                  if p^.proctypeoption=potype_destructor then
+                  if p.proctypeoption=potype_destructor then
                     begin
                        sd:=p;
                        exit;
                     end;
-                  p:=p^.nextoverloaded;
+                  p:=p.nextoverloaded;
                end;
           end;
      end;
 
-   function tobjectdef.searchdestructor : pprocdef;
+   function tobjectdef.searchdestructor : tprocdef;
 
      var
-        o : pobjectdef;
+        o : tobjectdef;
 
      begin
         searchdestructor:=nil;
-        o:=@self;
+        o:=self;
         sd:=nil;
         while assigned(o) do
           begin
-             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor);
+             symtable.foreach({$ifdef FPCPROCVAR}@{$endif}_searchdestructor);
              if assigned(sd) then
                begin
                   searchdestructor:=sd;
                   exit;
                end;
-             o:=o^.childof;
+             o:=o.childof;
           end;
      end;
 
@@ -4411,13 +4366,13 @@ Const local_symtable_index : longint = $8001;
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
           size:=target_os.size_of_pointer
         else
-          size:=symtable^.datasize;
+          size:=symtable.datasize;
       end;
 
 
     function tobjectdef.alignment:longint;
       begin
-        alignment:=symtable^.dataalignment;
+        alignment:=symtable.dataalignment;
       end;
 
 
@@ -4448,10 +4403,10 @@ Const local_symtable_index : longint = $8001;
     begin
         if not(oo_has_vmt in objectoptions) then
           Message1(parser_object_has_no_vmt,objname^);
-        if owner^.name=nil then
+        if owner.name=nil then
           s1:=''
         else
-          s1:=upper(owner^.name^);
+          s1:=upper(owner.name^);
         if objname=nil then
           s2:=''
         else
@@ -4464,10 +4419,10 @@ Const local_symtable_index : longint = $8001;
     var
       s1,s2:string;
     begin
-       if owner^.name=nil then
+       if owner.name=nil then
          s1:=''
        else
-         s1:=upper(owner^.name^);
+         s1:=upper(owner.name^);
        if objname=nil then
          s2:=''
        else
@@ -4477,100 +4432,100 @@ Const local_symtable_index : longint = $8001;
 
 
 {$ifdef GDB}
-    procedure addprocname(p :pnamedindexobject);
-    var virtualind,argnames : string;
-        news, newrec : pchar;
-        pd,ipd : pprocdef;
-        lindex : longint;
-        para : TParaItem;
-        arglength : byte;
-        sp : char;
+    procedure tobjectdef.addprocname(p :tnamedindexitem);
+      var virtualind,argnames : string;
+          news, newrec : pchar;
+          pd,ipd : tprocdef;
+          lindex : longint;
+          para : TParaItem;
+          arglength : byte;
+          sp : char;
 
-    begin
-      If psym(p)^.typ = procsym then
-       begin
-                pd := pprocsym(p)^.definition;
-                { this will be used for full implementation of object stabs
-                not yet done }
-                ipd := pd;
-                while assigned(ipd^.nextoverloaded) do ipd := ipd^.nextoverloaded;
-                if (po_virtualmethod in pd^.procoptions) then
+      begin
+        If tsym(p).typ = procsym then
+         begin
+           pd := tprocsym(p).definition;
+           { this will be used for full implementation of object stabs
+           not yet done }
+           ipd := pd;
+           while assigned(ipd.nextoverloaded) do ipd := ipd.nextoverloaded;
+           if (po_virtualmethod in pd.procoptions) then
+             begin
+               lindex := pd.extnumber;
+               {doesnt seem to be necessary
+               lindex := lindex or $80000000;}
+               virtualind := '*'+tostr(lindex)+';'+ipd._class.classnumberstring+';'
+             end
+            else
+             virtualind := '.';
+
+            { used by gdbpas to recognize constructor and destructors }
+            if (pd.proctypeoption=potype_constructor) then
+              argnames:='__ct__'
+            else if (pd.proctypeoption=potype_destructor) then
+              argnames:='__dt__'
+            else
+              argnames := '';
+
+           { arguments are not listed here }
+           {we don't need another definition}
+            para := TParaItem(pd.Para.first);
+            while assigned(para) do
+              begin
+              if Para.paratype.def.deftype = formaldef then
+                begin
+                   if Para.paratyp=vs_var then
+                     argnames := argnames+'3var'
+                   else if Para.paratyp=vs_const then
+                     argnames:=argnames+'5const'
+                   else if Para.paratyp=vs_out then
+                     argnames:=argnames+'3out';
+                end
+              else
+                begin
+                { if the arg definition is like (v: ^byte;..
+                there is no sym attached to data !!! }
+                if assigned(Para.paratype.def.typesym) then
                   begin
-                    lindex := pd^.extnumber;
-                    {doesnt seem to be necessary
-                    lindex := lindex or $80000000;}
-                    virtualind := '*'+tostr(lindex)+';'+ipd^._class^.classnumberstring+';'
+                     arglength := length(Para.paratype.def.typesym.name);
+                     argnames := argnames + tostr(arglength)+Para.paratype.def.typesym.name;
                   end
-                 else
-                  virtualind := '.';
-
-                 { used by gdbpas to recognize constructor and destructors }
-                 if (pd^.proctypeoption=potype_constructor) then
-                   argnames:='__ct__'
-                 else if (pd^.proctypeoption=potype_destructor) then
-                   argnames:='__dt__'
-                 else
-                   argnames := '';
-
-                { arguments are not listed here }
-                {we don't need another definition}
-                 para := TParaItem(pd^.Para.first);
-                 while assigned(para) do
-                   begin
-                   if Para.paratype.def^.deftype = formaldef then
-                     begin
-                        if Para.paratyp=vs_var then
-                          argnames := argnames+'3var'
-                        else if Para.paratyp=vs_const then
-                          argnames:=argnames+'5const'
-                        else if Para.paratyp=vs_out then
-                          argnames:=argnames+'3out';
-                     end
-                   else
-                     begin
-                     { if the arg definition is like (v: ^byte;..
-                     there is no sym attached to data !!! }
-                     if assigned(Para.paratype.def^.typesym) then
-                       begin
-                          arglength := length(Para.paratype.def^.typesym^.name);
-                          argnames := argnames + tostr(arglength)+Para.paratype.def^.typesym^.name;
-                       end
-                     else
-                       begin
-                          argnames:=argnames+'11unnamedtype';
-                       end;
-                     end;
-                   para := TParaItem(Para.next);
-                   end;
-                ipd^.is_def_stab_written := written;
-                { here 2A must be changed for private and protected }
-                { 0 is private 1 protected and 2 public }
-                if (sp_private in psym(p)^.symoptions) then sp:='0'
-                else if (sp_protected in psym(p)^.symoptions) then sp:='1'
-                else sp:='2';
-                newrec := strpnew(p^.name+'::'+ipd^.numberstring
-                     +'=##'+pstoreddef(pd^.rettype.def)^.numberstring+';:'+argnames+';'+sp+'A'
-                     +virtualind+';');
-               { get spare place for a string at the end }
-               if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
-                 begin
-                    getmem(news,stabrecsize+memsizeinc);
-                    strcopy(news,stabrecstring);
-                    freemem(stabrecstring,stabrecsize);
-                    stabrecsize:=stabrecsize+memsizeinc;
-                    stabrecstring:=news;
-                 end;
-               strcat(StabRecstring,newrec);
-               {freemem(newrec,memsizeinc);    }
-               strdispose(newrec);
-               {This should be used for case !!
-               RecOffset := RecOffset + pd^.size;}
-       end;
-    end;
+                else
+                  begin
+                     argnames:=argnames+'11unnamedtype';
+                  end;
+                end;
+              para := TParaItem(Para.next);
+              end;
+           ipd.is_def_stab_written := written;
+           { here 2A must be changed for private and protected }
+           { 0 is private 1 protected and 2 public }
+           if (sp_private in tsym(p).symoptions) then sp:='0'
+           else if (sp_protected in tsym(p).symoptions) then sp:='1'
+           else sp:='2';
+           newrec := strpnew(p.name+'::'+ipd.numberstring
+                +'=##'+tstoreddef(pd.rettype.def).numberstring+';:'+argnames+';'+sp+'A'
+                +virtualind+';');
+          { get spare place for a string at the end }
+          if strlen(StabRecString) + strlen(newrec) >= StabRecSize-256 then
+            begin
+               getmem(news,stabrecsize+memsizeinc);
+               strcopy(news,stabrecstring);
+               freemem(stabrecstring,stabrecsize);
+               stabrecsize:=stabrecsize+memsizeinc;
+               stabrecstring:=news;
+            end;
+          strcat(StabRecstring,newrec);
+          {freemem(newrec,memsizeinc);    }
+          strdispose(newrec);
+          {This should be used for case !!
+          RecOffset := RecOffset + pd.size;}
+        end;
+      end;
 
 
     function tobjectdef.stabstring : pchar;
-      var anc : pobjectdef;
+      var anc : tobjectdef;
           oldrec : pchar;
           oldrecsize,oldrecoffset : longint;
           str_end : string;
@@ -4581,32 +4536,32 @@ Const local_symtable_index : longint = $8001;
             oldrecsize:=stabrecsize;
             stabrecsize:=memsizeinc;
             GetMem(stabrecstring,stabrecsize);
-            strpcopy(stabRecString,'s'+tostr(symtable^.datasize));
+            strpcopy(stabRecString,'s'+tostr(symtable.datasize));
             if assigned(childof) then
               begin
                 {only one ancestor not virtual, public, at base offset 0 }
                 {       !1           ,    0       2         0    ,       }
-                strpcopy(strend(stabrecstring),'!1,020,'+childof^.classnumberstring+';');
+                strpcopy(strend(stabrecstring),'!1,020,'+childof.classnumberstring+';');
               end;
             {virtual table to implement yet}
             OldRecOffset:=RecOffset;
             RecOffset := 0;
-            symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
             RecOffset:=OldRecOffset;
             if (oo_has_vmt in objectoptions) then
-              if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
+              if not assigned(childof) or not(oo_has_vmt in childof.objectoptions) then
                  begin
                     strpcopy(strend(stabrecstring),'$vf'+classnumberstring+':'+typeglobalnumber('vtblarray')
                       +','+tostr(vmt_offset*8)+';');
                  end;
-            symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname);
+            symtable.foreach({$ifdef FPCPROCVAR}@{$endif}addprocname);
             if (oo_has_vmt in objectoptions) then
               begin
-                 anc := @self;
-                 while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
-                   anc := anc^.childof;
+                 anc := self;
+                 while assigned(anc.childof) and (oo_has_vmt in anc.childof.objectoptions) do
+                   anc := anc.childof;
                  { just in case anc = self }
-                 str_end:=';~%'+anc^.classnumberstring+';';
+                 str_end:=';~%'+anc.classnumberstring+';';
               end
             else
               str_end:=';';
@@ -4662,8 +4617,8 @@ Const local_symtable_index : longint = $8001;
         stabchar := 'Tt';
       if assigned(typesym) then
         begin
-           sname := typesym^.name;
-           sym_line_no:=typesym^.fileinfo.line;
+           sname := typesym.name;
+           sym_line_no:=typesym.fileinfo.line;
         end
       else
         begin
@@ -4689,7 +4644,7 @@ Const local_symtable_index : longint = $8001;
             exit;
           end;
 
-      if ((typesym=nil) or ptypesym(typesym)^.isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
+      if ((typesym=nil) or ttypesym(typesym).isusedinstab or (cs_gdb_dbx in aktglobalswitches)) and
          (is_def_stab_written = not_written) then
         begin
           if globalnb=0 then
@@ -4702,14 +4657,14 @@ Const local_symtable_index : longint = $8001;
           is_def_stab_written:=not_written;
           if assigned(typesym) then
             begin
-              st:=typesym^._name;
-              typesym^._name:=stringdup(' ');
+              st:=typesym.FName;
+              typesym.FName:=stringdup(' ');
             end;
           inherited concatstabto(asmlist);
           if assigned(typesym) then
             begin
-              stringdispose(typesym^._name);
-              typesym^._name:=st;
+              stringdispose(typesym.FName);
+              typesym.FName:=st;
             end;
         end;
       end;
@@ -4718,7 +4673,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_init_data;
       begin
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_child_inittable);
       end;
 
 
@@ -4748,51 +4703,41 @@ Const local_symtable_index : longint = $8001;
            end
          else
            begin
-              symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
+              symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_inittable_fields);
               rttiList.concat(Tai_const.Create_32bit(count));
-              symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
+              symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_field_inittable);
            end;
       end;
 
 
     function tobjectdef.needs_inittable : boolean;
-      var
-         oldb : boolean;
       begin
          case objecttype of
-            odt_interfacecom: needs_inittable:=true;
+            odt_interfacecom:
+              needs_inittable:=true;
             odt_interfacecorba:
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
-              begin
-                 { there are recursive calls to needs_inittable possible, }
-                 { so we have to change to old value how else should      }
-                 { we do that ? check_rec_rtti can't be a nested          }
-                 { procedure of needs_rtti !                              }
-                 oldb:=binittable;
-                 binittable:=false;
-                 symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}check_rec_inittable);
-                 needs_inittable:=binittable;
-                 binittable:=oldb;
-              end;
-            else needs_inittable:=false;
+              needs_inittable:=tobjectsymtable(symtable).needs_init_final;
+            else
+              needs_inittable:=false;
          end;
       end;
 
 
-    procedure count_published_properties(sym:pnamedindexobject);
+    procedure tobjectdef.count_published_properties(sym:tnamedindexitem);
       begin
-         if needs_prop_entry(psym(sym)) and
-          (psym(sym)^.typ<>varsym) then
+         if needs_prop_entry(tsym(sym)) and
+          (tsym(sym).typ<>varsym) then
            inc(count);
       end;
 
 
-    procedure write_property_info(sym : pnamedindexobject);
+    procedure tobjectdef.write_property_info(sym : tnamedindexitem);
       var
          proctypesinfo : byte;
 
-      procedure writeproc(proc : psymlist; shiftvalue : byte);
+      procedure writeproc(proc : tsymlist; shiftvalue : byte);
 
         var
            typvalue : byte;
@@ -4800,18 +4745,18 @@ Const local_symtable_index : longint = $8001;
            address : longint;
 
         begin
-           if not(assigned(proc) and assigned(proc^.firstsym))  then
+           if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
                 rttiList.concat(Tai_const.Create_32bit(1));
                 typvalue:=3;
              end
-           else if proc^.firstsym^.sym^.typ=varsym then
+           else if proc.firstsym^.sym.typ=varsym then
              begin
                 address:=0;
-                hp:=proc^.firstsym;
+                hp:=proc.firstsym;
                 while assigned(hp) do
                   begin
-                     inc(address,pvarsym(hp^.sym)^.address);
+                     inc(address,tvarsym(hp^.sym).address);
                      hp:=hp^.next;
                   end;
                 rttiList.concat(Tai_const.Create_32bit(address));
@@ -4819,16 +4764,16 @@ Const local_symtable_index : longint = $8001;
              end
            else
              begin
-                if not(po_virtualmethod in pprocdef(proc^.def)^.procoptions) then
+                if not(po_virtualmethod in tprocdef(proc.def).procoptions) then
                   begin
-                     rttiList.concat(Tai_const_symbol.Createname(pprocdef(proc^.def)^.mangledname));
+                     rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.def).mangledname));
                      typvalue:=1;
                   end
                 else
                   begin
                      { virtual method, write vmt offset }
                      rttiList.concat(Tai_const.Create_32bit(
-                       pprocdef(proc^.def)^._class^.vmtmethodoffset(pprocdef(proc^.def)^.extnumber)));
+                       tprocdef(proc.def)._class.vmtmethodoffset(tprocdef(proc.def).extnumber)));
                      typvalue:=2;
                   end;
              end;
@@ -4836,19 +4781,19 @@ Const local_symtable_index : longint = $8001;
         end;
 
       begin
-         if needs_prop_entry(psym(sym)) then
-           case psym(sym)^.typ of
+         if needs_prop_entry(tsym(sym)) then
+           case tsym(sym).typ of
               varsym:
                 begin
 {$ifdef dummy}
-                   if not(pvarsym(sym)^.vartype.def^.deftype=objectdef) or
-                     not(pobjectdef(pvarsym(sym)^.vartype.def)^.is_class) then
+                   if not(tvarsym(sym).vartype.def.deftype=objectdef) or
+                     not(tobjectdef(tvarsym(sym).vartype.def).is_class) then
                      internalerror(1509992);
                    { access to implicit class property as field }
                    proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   rttiList.concat(Tai_const_symbol.Createname(pvarsym(sym^.vartype.def^.get_rtti_label)));
-                   rttiList.concat(Tai_const.Create_32bit(pvarsym(sym^.address)));
-                   rttiList.concat(Tai_const.Create_32bit(pvarsym(sym^.address)));
+                   rttiList.concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label)));
+                   rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
+                   rttiList.concat(Tai_const.Create_32bit(tvarsym(sym.address)));
                    { per default stored }
                    rttiList.concat(Tai_const.Create_32bit(1));
                    { index as well as ... }
@@ -4858,51 +4803,51 @@ Const local_symtable_index : longint = $8001;
                    rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
                    rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
-                   rttiList.concat(Tai_const.Create_8bit(length(pvarsym(sym^.realname))));
-                   rttiList.concat(Tai_string.Create(pvarsym(sym^.realname)));
+                   rttiList.concat(Tai_const.Create_8bit(length(tvarsym(sym.realname))));
+                   rttiList.concat(Tai_string.Create(tvarsym(sym.realname)));
 {$endif dummy}
                 end;
               propertysym:
                 begin
-                   if ppo_indexed in ppropertysym(sym)^.propoptions then
+                   if ppo_indexed in tpropertysym(sym).propoptions then
                      proctypesinfo:=$40
                    else
                      proctypesinfo:=0;
-                   rttiList.concat(Tai_const_symbol.Createname(ppropertysym(sym)^.proptype.def^.get_rtti_label));
-                   writeproc(ppropertysym(sym)^.readaccess,0);
-                   writeproc(ppropertysym(sym)^.writeaccess,2);
+                   rttiList.concat(Tai_const_symbol.Createname(tpropertysym(sym).proptype.def.get_rtti_label));
+                   writeproc(tpropertysym(sym).readaccess,0);
+                   writeproc(tpropertysym(sym).writeaccess,2);
                    { isn't it stored ? }
-                   if not(ppo_stored in ppropertysym(sym)^.propoptions) then
+                   if not(ppo_stored in tpropertysym(sym).propoptions) then
                      begin
                         rttiList.concat(Tai_const.Create_32bit(0));
                         proctypesinfo:=proctypesinfo or (3 shl 4);
                      end
                    else
-                     writeproc(ppropertysym(sym)^.storedaccess,4);
-                   rttiList.concat(Tai_const.Create_32bit(ppropertysym(sym)^.index));
-                   rttiList.concat(Tai_const.Create_32bit(ppropertysym(sym)^.default));
+                     writeproc(tpropertysym(sym).storedaccess,4);
+                   rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).index));
+                   rttiList.concat(Tai_const.Create_32bit(tpropertysym(sym).default));
                    rttiList.concat(Tai_const.Create_16bit(count));
                    inc(count);
                    rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
-                   rttiList.concat(Tai_const.Create_8bit(length(ppropertysym(sym)^.realname)));
-                   rttiList.concat(Tai_string.Create(ppropertysym(sym)^.realname));
+                   rttiList.concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
+                   rttiList.concat(Tai_string.Create(tpropertysym(sym).realname));
                 end;
               else internalerror(1509992);
            end;
       end;
 
 
-    procedure generate_published_child_rtti(sym : pnamedindexobject);
+    procedure tobjectdef.generate_published_child_rtti(sym : tnamedindexitem);
       begin
-         if needs_prop_entry(psym(sym)) then
-           case psym(sym)^.typ of
+         if needs_prop_entry(tsym(sym)) then
+           case tsym(sym).typ of
               varsym:
                 ;
                 { now ignored:
-                pvarsym(sym)^.vartype.def^.get_rtti_label;
+                tvarsym(sym).vartype.def.get_rtti_label;
                 }
               propertysym:
-                ppropertysym(sym)^.proptype.def^.get_rtti_label;
+                tpropertysym(sym).proptype.def.get_rtti_label;
               else
                 internalerror(1509991);
            end;
@@ -4911,7 +4856,7 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.write_child_rtti_data;
       begin
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}generate_published_child_rtti);
       end;
 
 
@@ -4932,14 +4877,14 @@ Const local_symtable_index : longint = $8001;
     type
        tclasslistitem = class(tlinkedlistitem)
           index : longint;
-          p : pobjectdef;
+          p : tobjectdef;
        end;
 
     var
        classtablelist : tlinkedlist;
        tablecount : longint;
 
-    function searchclasstablelist(p : pobjectdef) : tclasslistitem;
+    function searchclasstablelist(p : tobjectdef) : tclasslistitem;
 
       var
          hp : tclasslistitem;
@@ -4957,20 +4902,21 @@ Const local_symtable_index : longint = $8001;
          searchclasstablelist:=nil;
       end;
 
-    procedure count_published_fields(sym:pnamedindexobject);
+
+    procedure tobjectdef.count_published_fields(sym:tnamedindexitem);
       var
          hp : tclasslistitem;
       begin
-         if needs_prop_entry(psym(sym)) and
-          (psym(sym)^.typ=varsym) then
+         if needs_prop_entry(tsym(sym)) and
+          (tsym(sym).typ=varsym) then
           begin
-             if pvarsym(sym)^.vartype.def^.deftype<>objectdef then
+             if tvarsym(sym).vartype.def.deftype<>objectdef then
                internalerror(0206001);
-             hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
+             hp:=searchclasstablelist(tobjectdef(tvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                begin
                   hp:=tclasslistitem.create;
-                  hp.p:=pobjectdef(pvarsym(sym)^.vartype.def);
+                  hp.p:=tobjectdef(tvarsym(sym).vartype.def);
                   hp.index:=tablecount;
                   classtablelist.concat(hp);
                   inc(tablecount);
@@ -4979,28 +4925,29 @@ Const local_symtable_index : longint = $8001;
           end;
       end;
 
-    procedure writefields(sym:pnamedindexobject);
+
+    procedure tobjectdef.writefields(sym:tnamedindexitem);
       var
          hp : tclasslistitem;
       begin
-         if needs_prop_entry(psym(sym)) and
-          (psym(sym)^.typ=varsym) then
+         if needs_prop_entry(tsym(sym)) and
+          (tsym(sym).typ=varsym) then
           begin
-             rttiList.concat(Tai_const.Create_32bit(pvarsym(sym)^.address));
-             hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
+             rttiList.concat(Tai_const.Create_32bit(tvarsym(sym).address));
+             hp:=searchclasstablelist(tobjectdef(tvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
              rttiList.concat(Tai_const.Create_16bit(hp.index));
-             rttiList.concat(Tai_const.Create_8bit(length(pvarsym(sym)^.realname)));
-             rttiList.concat(Tai_string.Create(pvarsym(sym)^.realname));
+             rttiList.concat(Tai_const.Create_8bit(length(tvarsym(sym).realname)));
+             rttiList.concat(Tai_string.Create(tvarsym(sym).realname));
           end;
       end;
 
-    function tobjectdef.generate_field_table : pasmlabel;
 
+    function tobjectdef.generate_field_table : tasmlabel;
       var
          fieldtable,
-         classtable : pasmlabel;
+         classtable : tasmlabel;
          hp : tclasslistitem;
 
       begin
@@ -5009,11 +4956,11 @@ Const local_symtable_index : longint = $8001;
          getdatalabel(classtable);
          count:=0;
          tablecount:=0;
-         symtable^.foreach({$ifdef FPC}@{$endif}count_published_fields);
+         symtable.foreach({$ifdef FPC}@{$endif}count_published_fields);
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
          rttiList.concat(Tai_const_symbol.Create(classtable));
-         symtable^.foreach({$ifdef FPC}@{$endif}writefields);
+         symtable.foreach({$ifdef FPC}@{$endif}writefields);
 
          { generate the class table }
          rttiList.concat(Tai_label.Create(classtable));
@@ -5021,7 +4968,7 @@ Const local_symtable_index : longint = $8001;
          hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
-              rttiList.concat(Tai_const_symbol.Createname(pobjectdef(hp.p)^.vmt_mangledname));
+              rttiList.concat(Tai_const_symbol.Createname(tobjectdef(hp.p).vmt_mangledname));
               hp:=tclasslistitem(hp.next);
            end;
 
@@ -5029,16 +4976,17 @@ Const local_symtable_index : longint = $8001;
          classtablelist.free;
       end;
 
+
     function tobjectdef.next_free_name_index : longint;
       var
          i : longint;
       begin
-         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
-           i:=childof^.next_free_name_index
+         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+           i:=childof.next_free_name_index
          else
            i:=0;
          count:=0;
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          next_free_name_index:=i+count;
       end;
 
@@ -5065,19 +5013,19 @@ Const local_symtable_index : longint = $8001;
            rttiList.concat(Tai_const_symbol.Createname(vmt_mangledname));
 
          { write owner typeinfo }
-         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
-           rttiList.concat(Tai_const_symbol.Createname(childof^.get_rtti_label))
+         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+           rttiList.concat(Tai_const_symbol.Createname(childof.get_rtti_label))
          else
            rttiList.concat(Tai_const.Create_32bit(0));
 
          { count total number of properties }
-         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
-           count:=childof^.next_free_name_index
+         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+           count:=childof.next_free_name_index
          else
            count:=0;
 
          { write it }
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          rttiList.concat(Tai_const.Create_16bit(count));
 
          { write unit name }
@@ -5086,19 +5034,19 @@ Const local_symtable_index : longint = $8001;
 
          { write published properties count }
          count:=0;
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties);
          rttiList.concat(Tai_const.Create_16bit(count));
 
          { count is used to write nameindex   }
 
          { but we need an offset of the owner }
          { to give each property an own slot  }
-         if assigned(childof) and (oo_can_have_published in childof^.objectoptions) then
-           count:=childof^.next_free_name_index
+         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
+           count:=childof.next_free_name_index
          else
            count:=0;
 
-         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
+         symtable.foreach({$ifdef FPCPROCVAR}@{$endif}write_property_info);
       end;
 
 
@@ -5107,8 +5055,8 @@ Const local_symtable_index : longint = $8001;
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba];
       end;
 
-    function  tobjectdef.get_rtti_label : string;
 
+    function  tobjectdef.get_rtti_label : string;
       begin
          generate_rtti;
          get_rtti_label:=rtti_name;
@@ -5118,78 +5066,75 @@ Const local_symtable_index : longint = $8001;
                              TIMPLEMENTEDINTERFACES
 ****************************************************************************}
     type
-      pnamemap = ^tnamemap;
-      tnamemap = object(tnamedindexobject)
+      tnamemap = class(TNamedIndexItem)
         newname: pstring;
-        constructor init(const aname, anewname: string);
-        destructor  done; virtual;
+        constructor create(const aname, anewname: string);
+        destructor  destroy; override;
       end;
 
-    constructor tnamemap.init(const aname, anewname: string);
+    constructor tnamemap.create(const aname, anewname: string);
       begin
-        inherited initname(name);
+        inherited createname(name);
         newname:=stringdup(anewname);
       end;
 
-    destructor  tnamemap.done;
+    destructor  tnamemap.destroy;
       begin
         stringdispose(newname);
-        inherited done;
+        inherited destroy;
       end;
 
 
     type
-      pprocdefstore = ^tprocdefstore;
-      tprocdefstore = object(tnamedindexobject)
-        procdef: pprocdef;
-        constructor init(aprocdef: pprocdef);
+      tprocdefstore = class(TNamedIndexItem)
+        procdef: tprocdef;
+        constructor create(aprocdef: tprocdef);
       end;
 
-    constructor tprocdefstore.init(aprocdef: pprocdef);
+    constructor tprocdefstore.create(aprocdef: tprocdef);
       begin
-        inherited init;
+        inherited create;
         procdef:=aprocdef;
       end;
 
 
     type
-      pimplintfentry = ^timplintfentry;
-      timplintfentry = object(tnamedindexobject)
-        intf: pobjectdef;
+      timplintfentry = class(TNamedIndexItem)
+        intf: tobjectdef;
         ioffs: longint;
-        namemappings: pdictionary;
-        procdefs: pindexarray;
-        constructor init(aintf: pobjectdef);
-        destructor  done; virtual;
+        namemappings: tdictionary;
+        procdefs: TIndexArray;
+        constructor create(aintf: tobjectdef);
+        destructor  destroy; override;
       end;
 
-    constructor timplintfentry.init(aintf: pobjectdef);
+    constructor timplintfentry.create(aintf: tobjectdef);
       begin
-        inherited init;
+        inherited create;
         intf:=aintf;
         ioffs:=-1;
         namemappings:=nil;
         procdefs:=nil;
       end;
 
-    destructor  timplintfentry.done;
+    destructor  timplintfentry.destroy;
       begin
         if assigned(namemappings) then
-          dispose(namemappings,done);
+          namemappings.free;
         if assigned(procdefs) then
-          dispose(procdefs,done);
-        inherited done;
+          procdefs.free;
+        inherited destroy;
       end;
 
 
-    constructor timplementedinterfaces.init;
+    constructor timplementedinterfaces.create;
       begin
-        finterfaces.init(1);
+        finterfaces:=tindexarray.create(1);
       end;
 
-    destructor  timplementedinterfaces.done;
+    destructor  timplementedinterfaces.destroy;
       begin
-        finterfaces.done;
+        finterfaces.destroy;
       end;
 
     function  timplementedinterfaces.count: longint;
@@ -5203,24 +5148,24 @@ Const local_symtable_index : longint = $8001;
           InternalError(200006123);
       end;
 
-    function  timplementedinterfaces.interfaces(intfindex: longint): pobjectdef;
+    function  timplementedinterfaces.interfaces(intfindex: longint): tobjectdef;
       begin
         checkindex(intfindex);
-        interfaces:=pimplintfentry(finterfaces.search(intfindex))^.intf;
+        interfaces:=timplintfentry(finterfaces.search(intfindex)).intf;
       end;
 
     function  timplementedinterfaces.ioffsets(intfindex: longint): plongint;
       begin
         checkindex(intfindex);
-        ioffsets:=@pimplintfentry(finterfaces.search(intfindex))^.ioffs;
+        ioffsets:=@timplintfentry(finterfaces.search(intfindex)).ioffs;
       end;
 
-    function  timplementedinterfaces.searchintf(def: pdef): longint;
+    function  timplementedinterfaces.searchintf(def: tdef): longint;
       var
         i: longint;
       begin
         i:=1;
-        while (i<=count) and (pdef(interfaces(i))<>def) do inc(i);
+        while (i<=count) and (tdef(interfaces(i))<>def) do inc(i);
         if i<=count then
           searchintf:=i
         else
@@ -5232,21 +5177,21 @@ Const local_symtable_index : longint = $8001;
         i: longint;
       begin
         for i:=1 to count do
-          with pimplintfentry(finterfaces.search(i))^ do
-            resolvedef(pdef(intf));
+          with timplintfentry(finterfaces.search(i)) do
+            resolvedef(tdef(intf));
       end;
 
-    procedure timplementedinterfaces.addintfref(def: pdef);
+    procedure timplementedinterfaces.addintfref(def: tdef);
       begin
-        finterfaces.insert(new(pimplintfentry,init(pobjectdef(def))));
+        finterfaces.insert(timplintfentry.create(tobjectdef(def)));
       end;
 
-    procedure timplementedinterfaces.addintf(def: pdef);
+    procedure timplementedinterfaces.addintf(def: tdef);
       begin
-        if not assigned(def) or (searchintf(def)<>-1) or (def^.deftype<>objectdef) or
-           not (pobjectdef(def)^.objecttype in [odt_interfacecom,odt_interfacecorba]) then
+        if not assigned(def) or (searchintf(def)<>-1) or (def.deftype<>objectdef) or
+           not (tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba]) then
           internalerror(200006124);
-        finterfaces.insert(new(pimplintfentry,init(pobjectdef(def))));
+        finterfaces.insert(timplintfentry.create(tobjectdef(def)));
       end;
 
     procedure timplementedinterfaces.clearmappings;
@@ -5254,22 +5199,22 @@ Const local_symtable_index : longint = $8001;
         i: longint;
       begin
         for i:=1 to count do
-          with pimplintfentry(finterfaces.search(i))^ do
+          with timplintfentry(finterfaces.search(i)) do
             begin
-             if assigned(namemappings) then
-               dispose(namemappings,done);
-             namemappings:=nil;
+              if assigned(namemappings) then
+                namemappings.free;
+              namemappings:=nil;
             end;
       end;
 
     procedure timplementedinterfaces.addmappings(intfindex: longint; const name, newname: string);
       begin
         checkindex(intfindex);
-        with pimplintfentry(finterfaces.search(intfindex))^ do
+        with timplintfentry(finterfaces.search(intfindex)) do
           begin
             if not assigned(namemappings) then
-              new(namemappings,init);
-            namemappings^.insert(new(pnamemap,init(name,newname)));
+              namemappings:=tdictionary.create;
+            namemappings.insert(tnamemap.create(name,newname));
           end;
       end;
 
@@ -5277,17 +5222,17 @@ Const local_symtable_index : longint = $8001;
       begin
         checkindex(intfindex);
         if not assigned(nextexist) then
-          with pimplintfentry(finterfaces.search(intfindex))^ do
+          with timplintfentry(finterfaces.search(intfindex)) do
             begin
               if assigned(namemappings) then
-                nextexist:=namemappings^.search(name)
+                nextexist:=namemappings.search(name)
               else
                 nextexist:=nil;
             end;
         if assigned(nextexist) then
           begin
-            getmappings:=pnamemap(nextexist)^.newname^;
-            nextexist:=pnamemap(nextexist)^.listnext;
+            getmappings:=tnamemap(nextexist).newname^;
+            nextexist:=tnamemap(nextexist).listnext;
           end
         else
           getmappings:='';
@@ -5298,41 +5243,41 @@ Const local_symtable_index : longint = $8001;
         i: longint;
       begin
         for i:=1 to count do
-          with pimplintfentry(finterfaces.search(i))^ do
+          with timplintfentry(finterfaces.search(i)) do
             begin
               if assigned(procdefs) then
-                dispose(procdefs,done);
+                procdefs.free;
               procdefs:=nil;
             end;
       end;
 
-    procedure timplementedinterfaces.addimplproc(intfindex: longint; procdef: pprocdef);
+    procedure timplementedinterfaces.addimplproc(intfindex: longint; procdef: tprocdef);
       begin
         checkindex(intfindex);
-        with pimplintfentry(finterfaces.search(intfindex))^ do
+        with timplintfentry(finterfaces.search(intfindex)) do
           begin
             if not assigned(procdefs) then
-              new(procdefs,init(4));
-            procdefs^.insert(new(pprocdefstore,init(procdef)));
+              procdefs:=tindexarray.create(4);
+            procdefs.insert(tprocdefstore.create(procdef));
           end;
       end;
 
     function  timplementedinterfaces.implproccount(intfindex: longint): longint;
       begin
         checkindex(intfindex);
-        with pimplintfentry(finterfaces.search(intfindex))^ do
+        with timplintfentry(finterfaces.search(intfindex)) do
           if assigned(procdefs) then
-            implproccount:=procdefs^.count
+            implproccount:=procdefs.count
           else
             implproccount:=0;
       end;
 
-    function  timplementedinterfaces.implprocs(intfindex: longint; procindex: longint): pprocdef;
+    function  timplementedinterfaces.implprocs(intfindex: longint; procindex: longint): tprocdef;
       begin
         checkindex(intfindex);
-        with pimplintfentry(finterfaces.search(intfindex))^ do
+        with timplintfentry(finterfaces.search(intfindex)) do
           if assigned(procdefs) then
-            implprocs:=pprocdefstore(procdefs^.search(procindex))^.procdef
+            implprocs:=tprocdefstore(procdefs.search(procindex)).procdef
           else
             internalerror(200006131);
       end;
@@ -5341,13 +5286,13 @@ Const local_symtable_index : longint = $8001;
       var
         possible: boolean;
         i: longint;
-        iiep1: pindexarray;
-        iiep2: pindexarray;
+        iiep1: TIndexArray;
+        iiep2: TIndexArray;
       begin
         checkindex(intfindex);
         checkindex(remainindex);
-        iiep1:=pimplintfentry(finterfaces.search(intfindex))^.procdefs;
-        iiep2:=pimplintfentry(finterfaces.search(remainindex))^.procdefs;
+        iiep1:=timplintfentry(finterfaces.search(intfindex)).procdefs;
+        iiep2:=timplintfentry(finterfaces.search(remainindex)).procdefs;
         if not assigned(iiep1) then { empty interface is mergeable :-) }
           begin
             possible:=true;
@@ -5355,26 +5300,26 @@ Const local_symtable_index : longint = $8001;
           end
         else
           begin
-            possible:=assigned(iiep2) and (iiep1^.count<=iiep2^.count);
+            possible:=assigned(iiep2) and (iiep1.count<=iiep2.count);
             i:=1;
-            while (possible) and (i<=iiep1^.count) do
+            while (possible) and (i<=iiep1.count) do
               begin
                 possible:=
-                  pprocdefstore(iiep1^.search(i))^.procdef=
-                  pprocdefstore(iiep2^.search(i))^.procdef;
+                  (tprocdefstore(iiep1.search(i)).procdef=tprocdefstore(iiep2.search(i)).procdef);
                 inc(i);
               end;
             if possible then
-              weight:=iiep1^.count;
+              weight:=iiep1.count;
           end;
         isimplmergepossible:=possible;
       end;
+
 
 {****************************************************************************
                                 TFORWARDDEF
 ****************************************************************************}
 
-   constructor tforwarddef.init(const s:string;const pos : tfileposinfo);
+   constructor tforwarddef.create(const s:string;const pos : tfileposinfo);
      var
        oldregisterdef : boolean;
      begin
@@ -5382,7 +5327,7 @@ Const local_symtable_index : longint = $8001;
           end of the type declaration block }
         oldregisterdef:=registerdef;
         registerdef:=false;
-        inherited init;
+        inherited create;
         registerdef:=oldregisterdef;
         deftype:=forwarddef;
         tosymname:=s;
@@ -5400,9 +5345,9 @@ Const local_symtable_index : longint = $8001;
                                   TERRORDEF
 ****************************************************************************}
 
-   constructor terrordef.init;
+   constructor terrordef.create;
      begin
-        inherited init;
+        inherited create;
         deftype:=errordef;
      end;
 
@@ -5429,9 +5374,9 @@ Const local_symtable_index : longint = $8001;
     function typeglobalnumber(const s : string) : string;
 
       var st : string;
-          symt : psymtable;
-          srsym : psym;
-          srsymtable : psymtable;
+          symt : tsymtable;
+          srsym : tsym;
+          srsymtable : tsymtable;
           old_make_ref : boolean;
       begin
          old_make_ref:=make_ref;
@@ -5445,22 +5390,22 @@ Const local_symtable_index : longint = $8001;
            st := copy(s,pos('.',s)+1,255);
            if assigned(srsym) then
              begin
-             if srsym^.typ = unitsym then
+             if srsym.typ = unitsym then
                begin
-               symt := punitsym(srsym)^.unitsymtable;
-               srsym := psym(symt^.search(st));
+               symt := tunitsym(srsym).unitsymtable;
+               srsym := tsym(symt.search(st));
                end else srsym := nil;
              end;
            end else st := s;
          if srsym = nil then
           searchsym(st,srsym,srsymtable);
          if (srsym=nil) or
-            (srsym^.typ<>typesym) then
+            (srsym.typ<>typesym) then
            begin
              Message(type_e_type_id_expected);
              exit;
            end;
-         typeglobalnumber := pstoreddef(ptypesym(srsym)^.restype.def)^.numberstring;
+         typeglobalnumber := tstoreddef(ttypesym(srsym).restype.def).numberstring;
          make_ref:=old_make_ref;
       end;
 {$endif GDB}
@@ -5472,9 +5417,9 @@ Const local_symtable_index : longint = $8001;
 
    procedure reset_global_defs;
      var
-       def     : pstoreddef;
+       def     : tstoreddef;
 {$ifdef debug}
-       prevdef : pstoreddef;
+       prevdef : tstoreddef;
 {$endif debug}
      begin
 {$ifdef debug}
@@ -5487,90 +5432,95 @@ Const local_symtable_index : longint = $8001;
         while assigned(def) do
           begin
 {$ifdef GDB}
-            if assigned(def^.typesym) then
-              ptypesym(def^.typesym)^.isusedinstab:=false;
-            def^.is_def_stab_written:=not_written;
+            if assigned(def.typesym) then
+              ttypesym(def.typesym).isusedinstab:=false;
+            def.is_def_stab_written:=not_written;
 {$endif GDB}
             {if not current_module.in_implementation then}
               begin
                 { reset rangenr's }
-                case def^.deftype of
-                  orddef   : porddef(def)^.rangenr:=0;
-                  enumdef  : penumdef(def)^.rangenr:=0;
-                  arraydef : parraydef(def)^.rangenr:=0;
+                case def.deftype of
+                  orddef   : torddef(def).rangenr:=0;
+                  enumdef  : tenumdef(def).rangenr:=0;
+                  arraydef : tarraydef(def).rangenr:=0;
                 end;
-                if def^.deftype<>objectdef then
-                  def^.has_rtti:=false;
-                def^.has_inittable:=false;
+                if def.deftype<>objectdef then
+                  def.has_rtti:=false;
+                def.has_inittable:=false;
               end;
 {$ifdef debug}
             prevdef:=def;
 {$endif debug}
-            def:=def^.nextglobal;
+            def:=def.nextglobal;
           end;
      end;
 
-    function is_interfacecom(def: pdef): boolean;
+    function is_interfacecom(def: tdef): boolean;
       begin
         is_interfacecom:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_interfacecom);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype=odt_interfacecom);
       end;
 
-    function is_interfacecorba(def: pdef): boolean;
+    function is_interfacecorba(def: tdef): boolean;
       begin
         is_interfacecorba:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_interfacecorba);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype=odt_interfacecorba);
       end;
 
-    function is_interface(def: pdef): boolean;
+    function is_interface(def: tdef): boolean;
       begin
         is_interface:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype in [odt_interfacecom,odt_interfacecorba]);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba]);
       end;
 
 
-    function is_class(def: pdef): boolean;
+    function is_class(def: tdef): boolean;
       begin
         is_class:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_class);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype=odt_class);
       end;
 
-    function is_object(def: pdef): boolean;
+    function is_object(def: tdef): boolean;
       begin
         is_object:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_object);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype=odt_object);
       end;
 
-    function is_cppclass(def: pdef): boolean;
+    function is_cppclass(def: tdef): boolean;
       begin
         is_cppclass:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype=odt_cppclass);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype=odt_cppclass);
       end;
 
-    function is_class_or_interface(def: pdef): boolean;
+    function is_class_or_interface(def: tdef): boolean;
       begin
         is_class_or_interface:=
           assigned(def) and
-          (def^.deftype=objectdef) and
-          (pobjectdef(def)^.objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
       end;
 
 end.
 {
   $Log$
-  Revision 1.26  2001-04-05 21:32:22  peter
+  Revision 1.27  2001-04-13 01:22:15  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.26  2001/04/05 21:32:22  peter
     * enum stabs fix (merged)
 
   Revision 1.25  2001/04/04 21:30:45  florian

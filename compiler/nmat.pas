@@ -82,7 +82,7 @@ implementation
     function tmoddivnode.det_resulttype:tnode;
       var
          t : tnode;
-         rd,ld : pdef;
+         rd,ld : tdef;
          rv,lv : tconstexprint;
       begin
          result:=nil;
@@ -133,22 +133,22 @@ implementation
          { Do the same for qwords and positive constants as well, otherwise things like   }
          { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
          { "qword" was > high(int64) (JM)                                                 }
-         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) then
-           if (porddef(right.resulttype.def)^.typ in [u32bit,u64bit]) and
+         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) then
+           if (torddef(right.resulttype.def).typ in [u32bit,u64bit]) and
               is_constintnode(left) and
               (tordconstnode(left).value >= 0) then
              inserttypeconv(left,right.resulttype)
-           else if (porddef(left.resulttype.def)^.typ in [u32bit,u64bit]) and
+           else if (torddef(left.resulttype.def).typ in [u32bit,u64bit]) and
               is_constintnode(right) and
               (tordconstnode(right).value >= 0) then
              inserttypeconv(right,left.resulttype);
 
-         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) and
+         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
             (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def) or
              { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
-             ((porddef(right.resulttype.def)^.typ = u32bit) and
+             ((torddef(right.resulttype.def).typ = u32bit) and
               is_signed(left.resulttype.def)) or
-             ((porddef(left.resulttype.def)^.typ = u32bit) and
+             ((torddef(left.resulttype.def).typ = u32bit) and
               is_signed(right.resulttype.def))) then
            begin
               rd:=right.resulttype.def;
@@ -158,28 +158,28 @@ implementation
                 CGMessage(type_w_mixed_signed_unsigned);
               if is_signed(rd) or is_signed(ld) then
                 begin
-                   if (porddef(ld)^.typ<>s64bit) then
+                   if (torddef(ld).typ<>s64bit) then
                      inserttypeconv(left,cs64bittype);
-                   if (porddef(rd)^.typ<>s64bit) then
+                   if (torddef(rd).typ<>s64bit) then
                      inserttypeconv(right,cs64bittype);
                 end
               else
                 begin
-                   if (porddef(ld)^.typ<>u64bit) then
+                   if (torddef(ld).typ<>u64bit) then
                      inserttypeconv(left,cu64bittype);
-                   if (porddef(rd)^.typ<>u64bit) then
+                   if (torddef(rd).typ<>u64bit) then
                      inserttypeconv(right,cu64bittype);
                 end;
               resulttype:=left.resulttype;
            end
          else
            begin
-              if not(right.resulttype.def^.deftype=orddef) or
-                 not(porddef(right.resulttype.def)^.typ in [s32bit,u32bit]) then
+              if not(right.resulttype.def.deftype=orddef) or
+                 not(torddef(right.resulttype.def).typ in [s32bit,u32bit]) then
                 inserttypeconv(right,s32bittype);
 
-              if not(left.resulttype.def^.deftype=orddef) or
-                 not(porddef(left.resulttype.def)^.typ in [s32bit,u32bit]) then
+              if not(left.resulttype.def.deftype=orddef) or
+                 not(torddef(left.resulttype.def).typ in [s32bit,u32bit]) then
                 inserttypeconv(left,s32bittype);
 
               { the resulttype.def depends on the right side, because the left becomes }
@@ -190,8 +190,6 @@ implementation
 
 
     function tmoddivnode.pass_1 : tnode;
-      var
-         t : tnode;
       begin
          result:=nil;
          firstpass(left);
@@ -200,7 +198,7 @@ implementation
            exit;
 
          { 64bit }
-         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) and
+         if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
             (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
            begin
              calcregisters(self,2,0,0);
@@ -258,7 +256,7 @@ implementation
          { 64 bit ints have their own shift handling }
          if not(is_64bitint(left.resulttype.def)) then
            begin
-              if porddef(left.resulttype.def)^.typ <> u32bit then
+              if torddef(left.resulttype.def).typ <> u32bit then
                inserttypeconv(left,s32bittype);
            end;
 
@@ -270,7 +268,6 @@ implementation
 
     function tshlshrnode.pass_1 : tnode;
       var
-         t : tnode;
          regs : longint;
       begin
          result:=nil;
@@ -305,7 +302,7 @@ implementation
     function tunaryminusnode.det_resulttype : tnode;
       var
          t : tnode;
-         minusdef : pprocdef;
+         minusdef : tprocdef;
       begin
          result:=nil;
          resulttypepass(left);
@@ -330,7 +327,7 @@ implementation
            end;
 
          resulttype:=left.resulttype;
-         if (left.resulttype.def^.deftype=floatdef) then
+         if (left.resulttype.def.deftype=floatdef) then
            begin
            end
 {$ifdef SUPPORT_MMX}
@@ -340,7 +337,7 @@ implementation
                { if saturation is on, left.resulttype.def isn't
                  "mmx able" (FK)
                if (cs_mmx_saturation in aktlocalswitches^) and
-                 (porddef(parraydef(resulttype.def)^.definition)^.typ in
+                 (torddef(tarraydef(resulttype.def).definition).typ in
                  [s32bit,u32bit]) then
                  CGMessage(type_e_mismatch);
                }
@@ -349,7 +346,7 @@ implementation
          else if is_64bitint(left.resulttype.def) then
            begin
            end
-         else if (left.resulttype.def^.deftype=orddef) then
+         else if (left.resulttype.def.deftype=orddef) then
            begin
               inserttypeconv(left,s32bittype);
               resulttype:=left.resulttype;
@@ -357,13 +354,13 @@ implementation
          else
            begin
               if assigned(overloaded_operators[_minus]) then
-                minusdef:=overloaded_operators[_minus]^.definition
+                minusdef:=overloaded_operators[_minus].definition
               else
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if is_equal(tparaitem(minusdef^.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(minusdef^.para.first).next=nil) then
+                   if is_equal(tparaitem(minusdef.para.first).paratype.def,left.resulttype.def) and
+                      (tparaitem(minusdef.para.first).next=nil) then
                      begin
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_minus],nil,nil);
@@ -372,7 +369,7 @@ implementation
                         result:=t;
                         exit;
                      end;
-                   minusdef:=minusdef^.nextoverloaded;
+                   minusdef:=minusdef.nextoverloaded;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -380,8 +377,6 @@ implementation
 
 
     function tunaryminusnode.pass_1 : tnode;
-      var
-         t : tnode;
       begin
          result:=nil;
          firstpass(left);
@@ -394,7 +389,7 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-         if (left.resulttype.def^.deftype=floatdef) then
+         if (left.resulttype.def.deftype=floatdef) then
            begin
              location.loc:=LOC_FPU;
            end
@@ -414,7 +409,7 @@ implementation
                 registers32:=2;
               location.loc:=LOC_REGISTER;
            end
-         else if (left.resulttype.def^.deftype=orddef) then
+         else if (left.resulttype.def.deftype=orddef) then
            begin
               if (left.location.loc<>LOC_REGISTER) and
                  (registers32<1) then
@@ -437,7 +432,7 @@ implementation
     function tnotnode.det_resulttype : tnode;
       var
          t : tnode;
-         notdef : pprocdef;
+         notdef : tprocdef;
          v : tconstexprint;
       begin
          result:=nil;
@@ -450,7 +445,7 @@ implementation
          if (left.nodetype=ordconstn) then
            begin
               v:=tordconstnode(left).value;
-              case porddef(left.resulttype.def)^.typ of
+              case torddef(left.resulttype.def).typ of
                 bool8bit,
                 bool16bit,
                 bool32bit :
@@ -507,13 +502,13 @@ implementation
          else
            begin
               if assigned(overloaded_operators[_op_not]) then
-                notdef:=overloaded_operators[_op_not]^.definition
+                notdef:=overloaded_operators[_op_not].definition
               else
                 notdef:=nil;
               while assigned(notdef) do
                 begin
-                   if is_equal(tparaitem(notdef^.para.first).paratype.def,left.resulttype.def) and
-                      (tparaitem(notdef^.para.first).next=nil) then
+                   if is_equal(tparaitem(notdef.para.first).paratype.def,left.resulttype.def) and
+                      (tparaitem(notdef.para.first).next=nil) then
                      begin
                         t:=ccallnode.create(ccallparanode.create(left,nil),
                                             overloaded_operators[_op_not],nil,nil);
@@ -522,7 +517,7 @@ implementation
                         result:=t;
                         exit;
                      end;
-                   notdef:=notdef^.nextoverloaded;
+                   notdef:=notdef.nextoverloaded;
                 end;
               CGMessage(type_e_mismatch);
            end;
@@ -530,8 +525,6 @@ implementation
 
 
     function tnotnode.pass_1 : tnode;
-      var
-         t : tnode;
       begin
          result:=nil;
          firstpass(left);
@@ -595,7 +588,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-04-05 21:00:27  peter
+  Revision 1.20  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.19  2001/04/05 21:00:27  peter
     * fix constant not evaluation
 
   Revision 1.18  2001/04/04 22:42:40  peter

@@ -77,16 +77,16 @@ interface
 
     { is overloading of this operator allowed for this
       binary operator }
-    function isbinaryoperatoroverloadable(ld, rd,dd : pdef;
+    function isbinaryoperatoroverloadable(ld, rd,dd : tdef;
              treetyp : tnodetype) : boolean;
 
     { is overloading of this operator allowed for this
       unary operator }
-    function isunaryoperatoroverloadable(rd,dd : pdef;
+    function isunaryoperatoroverloadable(rd,dd : tdef;
              treetyp : tnodetype) : boolean;
 
     { check operator args and result type }
-    function isoperatoracceptable(pf : pprocdef; optoken : ttoken) : boolean;
+    function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
     function isbinaryoverloaded(var t : tnode) : boolean;
 
     { Register Allocation }
@@ -94,13 +94,13 @@ interface
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { subroutine handling }
-    procedure test_protected_sym(sym : psym);
+    procedure test_protected_sym(sym : tsym);
     procedure test_protected(p : tnode);
     function  valid_for_formal_var(p : tnode) : boolean;
     function  valid_for_formal_const(p : tnode) : boolean;
     function  is_procsym_load(p:tnode):boolean;
     function  is_procsym_call(p:tnode):boolean;
-    procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
+    procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
     function  valid_for_assign(p:tnode;allowprop:boolean):boolean;
     { sets the callunique flag, if the node is a vecn, }
     { takes care of type casts etc.                 }
@@ -138,37 +138,37 @@ implementation
     { ld is the left type definition
       rd the right type definition
       dd the result type definition  or voiddef if unkown }
-    function isbinaryoperatoroverloadable(ld, rd, dd : pdef;
+    function isbinaryoperatoroverloadable(ld, rd, dd : tdef;
              treetyp : tnodetype) : boolean;
       begin
         isbinaryoperatoroverloadable:=
            (treetyp=starstarn) or
-           (ld^.deftype=recorddef) or
-           (rd^.deftype=recorddef) or
-           ((rd^.deftype=pointerdef) and
+           (ld.deftype=recorddef) or
+           (rd.deftype=recorddef) or
+           ((rd.deftype=pointerdef) and
             not(is_pchar(rd) and
                 (is_chararray(ld) or
-                 (ld^.deftype=stringdef) or
+                 (ld.deftype=stringdef) or
                  (treetyp=addn))) and
-            (not(ld^.deftype in [pointerdef,objectdef,classrefdef,procvardef]) or
+            (not(ld.deftype in [pointerdef,objectdef,classrefdef,procvardef]) or
              not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,subn])
             ) and
             (not is_integer(ld) or not (treetyp in [addn,subn]))
            ) or
-           ((ld^.deftype=pointerdef) and
+           ((ld.deftype=pointerdef) and
             not(is_pchar(ld) and
                 (is_chararray(rd) or
-                 (rd^.deftype=stringdef) or
+                 (rd.deftype=stringdef) or
                  (treetyp=addn))) and
-            (not(rd^.deftype in [stringdef,pointerdef,objectdef,classrefdef,procvardef]) and
-             ((not is_integer(rd) and (rd^.deftype<>objectdef)
-               and (rd^.deftype<>classrefdef)) or
+            (not(rd.deftype in [stringdef,pointerdef,objectdef,classrefdef,procvardef]) and
+             ((not is_integer(rd) and (rd.deftype<>objectdef)
+               and (rd.deftype<>classrefdef)) or
               not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn])
              )
             )
            ) or
            { array def, but not mmx or chararray+[char,string,chararray] }
-           ((ld^.deftype=arraydef) and
+           ((ld.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(ld)) and
             not(is_chararray(ld) and
@@ -176,25 +176,25 @@ implementation
                  is_pchar(rd) or
                  { char array + int = pchar + int, fix for web bug 1377 (JM) }
                  is_integer(rd) or
-                 (rd^.deftype=stringdef) or
+                 (rd.deftype=stringdef) or
                  is_chararray(rd)))
            ) or
-           ((rd^.deftype=arraydef) and
+           ((rd.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
                 is_mmx_able_array(rd)) and
             not(is_chararray(rd) and
                 (is_char(ld) or
                  is_pchar(ld) or
-                 (ld^.deftype=stringdef) or
+                 (ld.deftype=stringdef) or
                  is_chararray(ld)))
            ) or
            { <> and = are defined for classes }
            (
-            (ld^.deftype=objectdef) and
+            (ld.deftype=objectdef) and
             not((treetyp in [equaln,unequaln]) and is_class_or_interface(ld))
            ) or
            (
-            (rd^.deftype=objectdef) and
+            (rd.deftype=objectdef) and
             not((treetyp in [equaln,unequaln]) and is_class_or_interface(rd))
            )
            or
@@ -202,23 +202,23 @@ implementation
            (
             (is_char(rd) or
              is_pchar(rd) or
-             (rd^.deftype=stringdef) or
+             (rd.deftype=stringdef) or
              is_chararray(rd) or
              is_char(ld) or
              is_pchar(ld) or
-             (ld^.deftype=stringdef) or
+             (ld.deftype=stringdef) or
              is_chararray(ld)
              ) and
              not(treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
              not(is_pchar(ld) and
-                 (is_integer(rd) or (rd^.deftype=pointerdef)) and
+                 (is_integer(rd) or (rd.deftype=pointerdef)) and
                  (treetyp=subn)
                 )
             );
       end;
 
 
-    function isunaryoperatoroverloadable(rd,dd : pdef;
+    function isunaryoperatoroverloadable(rd,dd : tdef;
              treetyp : tnodetype) : boolean;
       begin
         isunaryoperatoroverloadable:=false;
@@ -233,7 +233,7 @@ implementation
         else if (treetyp=subn { unaryminusn }) then
           begin
             isunaryoperatoroverloadable:=
-              not is_integer(rd) and not (rd^.deftype=floatdef)
+              not is_integer(rd) and not (rd.deftype=floatdef)
 {$ifdef SUPPORT_MMX}
               and not ((cs_mmx in aktlocalswitches) and
               is_mmx_able_array(rd))
@@ -251,20 +251,20 @@ implementation
           end;
       end;
 
-    function isoperatoracceptable(pf : pprocdef; optoken : ttoken) : boolean;
+    function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
       var
-        ld,rd,dd : pdef;
+        ld,rd,dd : tdef;
         i : longint;
       begin
-        case pf^.parast^.symindex^.count of
+        case pf.parast.symindex.count of
           2 : begin
                 isoperatoracceptable:=false;
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
-                      ld:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
-                      rd:=pvarsym(pf^.parast^.symindex^.first^.indexnext)^.vartype.def;
-                      dd:=pf^.rettype.def;
+                      ld:=tvarsym(pf.parast.symindex.first).vartype.def;
+                      rd:=tvarsym(pf.parast.symindex.first.indexnext).vartype.def;
+                      dd:=pf.rettype.def;
                       isoperatoracceptable:=
                         tok2node[i].op_overloading_supported and
                         isbinaryoperatoroverloadable(ld,rd,dd,tok2node[i].nod);
@@ -272,8 +272,8 @@ implementation
                     end;
               end;
           1 : begin
-                rd:=pvarsym(pf^.parast^.symindex^.first)^.vartype.def;
-                dd:=pf^.rettype.def;
+                rd:=tvarsym(pf.parast.symindex.first).vartype.def;
+                dd:=pf.rettype.def;
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
@@ -292,7 +292,7 @@ implementation
     function isbinaryoverloaded(var t : tnode) : boolean;
 
      var
-         rd,ld   : pdef;
+         rd,ld   : tdef;
          optoken : ttoken;
          ht      : tnode;
       begin
@@ -359,7 +359,7 @@ implementation
                end
              else
                begin
-                  inc(tcallnode(ht).symtableprocentry^.refs);
+                  inc(tcallnode(ht).symtableprocentry.refs);
                   { we need copies, because the originals will be destroyed when we give a }
                   { changed node back to firstpass! (JM)                                   }
                   if assigned(tbinarynode(t).left) then
@@ -394,8 +394,8 @@ implementation
             typeconvn :
               make_not_regable(ttypeconvnode(p).left);
             loadn :
-              if tloadnode(p).symtableentry^.typ=varsym then
-                pvarsym(tloadnode(p).symtableentry)^.varoptions:=pvarsym(tloadnode(p).symtableentry)^.varoptions-[vo_regable,vo_fpuregable];
+              if tloadnode(p).symtableentry.typ=varsym then
+                tvarsym(tloadnode(p).symtableentry).varoptions:=tvarsym(tloadnode(p).symtableentry).varoptions-[vo_regable,vo_fpuregable];
          end;
       end;
 
@@ -464,12 +464,19 @@ implementation
   overloaded function
   this is the reason why it is not in the parser, PM }
 
-    procedure test_protected_sym(sym : psym);
+    procedure test_protected_sym(sym : tsym);
       begin
-         if (sp_protected in sym^.symoptions) and
-            ((sym^.owner^.symtabletype=unitsymtable) or
-             ((sym^.owner^.symtabletype=objectsymtable) and
-             (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))
+         if (sp_protected in sym.symoptions) and
+            (
+             (
+              (sym.owner.symtabletype=globalsymtable) and
+              (sym.owner.unitid<>0)
+             ) or
+             (
+              (sym.owner.symtabletype=objectsymtable) and
+              (tobjectdef(sym.owner.defowner).owner.symtabletype=globalsymtable) and
+              (tobjectdef(sym.owner.defowner).owner.unitid<>0)
+             )
             ) then
           CGMessage(parser_e_cant_access_protected_member);
       end;
@@ -496,7 +503,7 @@ implementation
      begin
         case p.nodetype of
          loadn :
-           v:=(tloadnode(p).symtableentry^.typ in [typedconstsym,varsym]);
+           v:=(tloadnode(p).symtableentry.typ in [typedconstsym,varsym]);
          typeconvn :
            v:=valid_for_formal_var(ttypeconvnode(p).left);
          derefn,
@@ -548,9 +555,9 @@ implementation
 
     function is_procsym_load(p:tnode):boolean;
       begin
-         is_procsym_load:=((p.nodetype=loadn) and (tloadnode(p).symtableentry^.typ=procsym)) or
+         is_procsym_load:=((p.nodetype=loadn) and (tloadnode(p).symtableentry.typ=procsym)) or
                           ((p.nodetype=addrn) and (taddrnode(p).left.nodetype=loadn)
-                          and (tloadnode(taddrnode(p).left).symtableentry^.typ=procsym)) ;
+                          and (tloadnode(taddrnode(p).left).symtableentry.typ=procsym)) ;
       end;
 
    { change a proc call to a procload for assignment to a procvar }
@@ -558,15 +565,15 @@ implementation
     function is_procsym_call(p:tnode):boolean;
       begin
         is_procsym_call:=(p.nodetype=calln) and (tcallnode(p).left=nil) and
-             (((tcallnode(p).symtableprocentry^.typ=procsym) and (tcallnode(p).right=nil)) or
-             (assigned(tcallnode(p).right) and (tcallnode(tcallnode(p).right).symtableprocentry^.typ=varsym)));
+             (((tcallnode(p).symtableprocentry.typ=procsym) and (tcallnode(p).right=nil)) or
+             (assigned(tcallnode(p).right) and (tcallnode(tcallnode(p).right).symtableprocentry.typ=varsym)));
       end;
 
 
     { local routines can't be assigned to procvars }
-    procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
+    procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
       begin
-         if (from_def^.symtablelevel>1) and (to_def^.deftype=procvardef) then
+         if (from_def.symtablelevel>1) and (to_def.deftype=procvardef) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
 
@@ -610,7 +617,7 @@ implementation
                end;
              typeconvn :
                begin
-                 case hp.resulttype.def^.deftype of
+                 case hp.resulttype.def.deftype of
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
@@ -621,7 +628,7 @@ implementation
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resulttype.def^.deftype=pointerdef) then
+                       if (ttypeconvnode(hp).left.resulttype.def.deftype=pointerdef) then
                         gotderef:=true;
                      end;
                  end;
@@ -644,7 +651,7 @@ implementation
                begin
                  { Allow add/sub operators on a pointer, or an integer
                    and a pointer typecast and deref has been found }
-                 if (hp.resulttype.def^.deftype=pointerdef) or
+                 if (hp.resulttype.def.deftype=pointerdef) or
                     (is_integer(hp.resulttype.def) and gotpointer and gotderef) then
                   valid_for_assign:=true
                  else
@@ -667,7 +674,7 @@ implementation
              calln :
                begin
                  { check return type }
-                 case hp.resulttype.def^.deftype of
+                 case hp.resulttype.def.deftype of
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
@@ -689,11 +696,11 @@ implementation
                end;
              loadn :
                begin
-                 case tloadnode(hp).symtableentry^.typ of
+                 case tloadnode(hp).symtableentry.typ of
                    absolutesym,
                    varsym :
                      begin
-                       if (pvarsym(tloadnode(hp).symtableentry)^.varspez=vs_const) then
+                       if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef then
@@ -704,17 +711,17 @@ implementation
                         end;
                        { Are we at a with symtable, then we need to process the
                          withrefnode also to check for maybe a const load }
-                       if (tloadnode(hp).symtable^.symtabletype=withsymtable) then
+                       if (tloadnode(hp).symtable.symtabletype=withsymtable) then
                         begin
                           { continue with processing the withref node }
-                          hp:=tnode(pwithsymtable(tloadnode(hp).symtable)^.withrefnode);
+                          hp:=tnode(twithsymtable(tloadnode(hp).symtable).withrefnode);
                           gotwith:=true;
                         end
                        else
                         begin
                           { set the assigned flag for varsyms }
-                          if (pvarsym(tloadnode(hp).symtableentry)^.varstate=vs_declared) then
-                           pvarsym(tloadnode(hp).symtableentry)^.varstate:=vs_assigned;
+                          if (tvarsym(tloadnode(hp).symtableentry).varstate=vs_declared) then
+                           tvarsym(tloadnode(hp).symtableentry).varstate:=vs_assigned;
                           valid_for_assign:=true;
                           exit;
                         end;
@@ -739,7 +746,7 @@ implementation
 
     procedure set_varstate(p : tnode;must_be_valid : boolean);
       var
-        hsym : pvarsym;
+        hsym : tvarsym;
       begin
         while assigned(p) do
          begin
@@ -765,7 +772,7 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,true);
-                 if not(tunarynode(p).left.resulttype.def^.deftype in [stringdef,arraydef]) then
+                 if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
                   must_be_valid:=true;
                  p:=tunarynode(p).left;
                end;
@@ -779,50 +786,50 @@ implementation
                end;
              loadn :
                begin
-                 if (tloadnode(p).symtableentry^.typ=varsym) then
+                 if (tloadnode(p).symtableentry.typ=varsym) then
                   begin
-                    hsym:=pvarsym(tloadnode(p).symtableentry);
+                    hsym:=tvarsym(tloadnode(p).symtableentry);
                     if must_be_valid and (nf_first in p.flags) then
                      begin
-                       if (hsym^.varstate=vs_declared_and_first_found) or
-                          (hsym^.varstate=vs_set_but_first_not_passed) then
+                       if (hsym.varstate=vs_declared_and_first_found) or
+                          (hsym.varstate=vs_set_but_first_not_passed) then
                         begin
-                          if (assigned(hsym^.owner) and
+                          if (assigned(hsym.owner) and
                              assigned(aktprocsym) and
-                             (hsym^.owner = aktprocsym^.definition^.localst)) then
+                             (hsym.owner = aktprocsym.definition.localst)) then
                            begin
-                             if tloadnode(p).symtable^.symtabletype=localsymtable then
-                              CGMessage1(sym_n_uninitialized_local_variable,hsym^.realname)
+                             if tloadnode(p).symtable.symtabletype=localsymtable then
+                              CGMessage1(sym_n_uninitialized_local_variable,hsym.realname)
                              else
-                              CGMessage1(sym_n_uninitialized_variable,hsym^.realname);
+                              CGMessage1(sym_n_uninitialized_variable,hsym.realname);
                            end;
                         end;
                      end;
                     if (nf_first in p.flags) then
                      begin
-                       if hsym^.varstate=vs_declared_and_first_found then
+                       if hsym.varstate=vs_declared_and_first_found then
                         begin
                           { this can only happen at left of an assignment, no ? PM }
                           if (parsing_para_level=0) and not must_be_valid then
-                           hsym^.varstate:=vs_assigned
+                           hsym.varstate:=vs_assigned
                           else
-                           hsym^.varstate:=vs_used;
+                           hsym.varstate:=vs_used;
                         end
                        else
-                        if hsym^.varstate=vs_set_but_first_not_passed then
-                         hsym^.varstate:=vs_used;
+                        if hsym.varstate=vs_set_but_first_not_passed then
+                         hsym.varstate:=vs_used;
                        exclude(p.flags,nf_first);
                      end
                     else
                       begin
-                        if (hsym^.varstate=vs_assigned) and
+                        if (hsym.varstate=vs_assigned) and
                            (must_be_valid or (parsing_para_level>0) or
-                            (p.resulttype.def^.deftype=procvardef)) then
-                          hsym^.varstate:=vs_used;
-                        if (hsym^.varstate=vs_declared_and_first_found) and
+                            (p.resulttype.def.deftype=procvardef)) then
+                          hsym.varstate:=vs_used;
+                        if (hsym.varstate=vs_declared_and_first_found) and
                            (must_be_valid or (parsing_para_level>0) or
-                           (p.resulttype.def^.deftype=procvardef)) then
-                          hsym^.varstate:=vs_set_but_first_not_passed;
+                           (p.resulttype.def.deftype=procvardef)) then
+                          hsym.varstate:=vs_set_but_first_not_passed;
                       end;
                   end;
                  break;
@@ -914,7 +921,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-04-02 21:20:29  peter
+  Revision 1.24  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.23  2001/04/02 21:20:29  peter
     * resulttype rewrite
 
   Revision 1.22  2001/02/20 21:46:26  peter

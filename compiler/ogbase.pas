@@ -34,7 +34,7 @@ interface
        dos,
 {$endif Delphi}
        { common }
-       cclasses,cobjects,
+       cclasses,
        { targets }
        systems,
        { outputwriters }
@@ -51,7 +51,7 @@ interface
        toutputreloc = packed record
           next     : poutputreloc;
           address  : longint;
-          symbol   : pasmsymbol;
+          symbol   : tasmsymbol;
           section  : tsection; { only used if symbol=nil }
           typ      : relative_type;
        end;
@@ -90,7 +90,7 @@ interface
          function  aligneddatasize:longint;
          procedure alignsection;
          procedure alloc(l:longint);
-         procedure addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
+         procedure addsymreloc(ofs:longint;p:tasmsymbol;relative:relative_type);
          procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
        end;
 
@@ -98,7 +98,7 @@ interface
          { section }
          currsec   : tsection;
          sects     : array[TSection] of tobjectsection;
-         localsyms : pdictionary;
+         localsyms : tdictionary;
          constructor create;
          destructor  destroy;override;
          procedure createsection(sec:tsection);virtual;
@@ -108,11 +108,11 @@ interface
          procedure alloc(len:longint);
          procedure allocalign(len:longint);
          procedure writebytes(var data;len:longint);
-         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;abstract;
-         procedure writesymbol(p:pasmsymbol);virtual;abstract;
+         procedure writereloc(data,len:longint;p:tasmsymbol;relative:relative_type);virtual;abstract;
+         procedure writesymbol(p:tasmsymbol);virtual;abstract;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure addsymbol(p:pasmsymbol);
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure addsymbol(p:tasmsymbol);
        end;
 
        tobjectalloc = class
@@ -140,7 +140,7 @@ interface
          destructor  destroy;override;
          function  initwriting(const fn:string):boolean;virtual;
          procedure donewriting;virtual;
-         procedure exportsymbol(p:pasmsymbol);
+         procedure exportsymbol(p:tasmsymbol);
          property Data:TObjectData read FData write FData;
          property Writer:TObjectWriter read FWriter;
        end;
@@ -173,13 +173,12 @@ interface
       objectoutput : tobjectoutput;
 
       { globals }
-      globalsyms : pdictionary;
+      globalsyms : tdictionary;
 
 
 implementation
 
     uses
-      comphook,
       cutils,globtype,globals,verbose,fmodule;
 
 
@@ -330,7 +329,7 @@ implementation
       end;
 
 
-    procedure tobjectsection.addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
+    procedure tobjectsection.addsymreloc(ofs:longint;p:tasmsymbol;relative:relative_type);
       var
         r : POutputReloc;
       begin
@@ -370,8 +369,8 @@ implementation
       begin
         { reset }
         FillChar(Sects,sizeof(Sects),0);
-        localsyms:=new(pdictionary,init);
-        localsyms^.usehash;
+        localsyms:=tdictionary.create;
+        localsyms.usehash;
       end;
 
 
@@ -383,7 +382,7 @@ implementation
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           sects[sec].free;
-        dispose(localsyms,done);
+        localsyms.free;
       end;
 
 
@@ -441,12 +440,12 @@ implementation
       end;
 
 
-    procedure tobjectdata.addsymbol(p:pasmsymbol);
+    procedure tobjectdata.addsymbol(p:tasmsymbol);
       begin
-        if (p^.bind=AB_LOCAL) then
-         localsyms^.insert(p)
+        if (p.bind=AB_LOCAL) then
+         localsyms.insert(p)
         else
-         globalsyms^.insert(p);
+         globalsyms.insert(p);
       end;
 
 
@@ -497,12 +496,12 @@ implementation
       end;
 
 
-    procedure tobjectoutput.exportsymbol(p:pasmsymbol);
+    procedure tobjectoutput.exportsymbol(p:tasmsymbol);
       begin
         { export globals and common symbols, this is needed
           for .a files }
-        if p^.bind in [AB_GLOBAL,AB_COMMON] then
-         FWriter.writesym(p^.name);
+        if p.bind in [AB_GLOBAL,AB_COMMON] then
+         FWriter.writesym(p.name);
       end;
 
 
@@ -569,7 +568,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-03-05 21:40:38  peter
+  Revision 1.7  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/05 21:40:38  peter
     * more things for tcoffobjectinput
 
   Revision 1.5  2000/12/25 00:07:26  peter

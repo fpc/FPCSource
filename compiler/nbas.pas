@@ -159,7 +159,7 @@ implementation
          if (not (cs_extsyntax in aktmoduleswitches)) and
             assigned(right.resulttype.def) and
             not((right.nodetype=calln) and
-                (tcallnode(right).procdefinition^.proctypeoption=potype_constructor)) and
+                (tcallnode(right).procdefinition.proctypeoption=potype_constructor)) and
             not(is_void(right.resulttype.def)) then
            CGMessage(cg_e_illegal_expression);
          if codegenerror then
@@ -248,7 +248,7 @@ implementation
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp.right.resulttype.def) and
                       not((hp.right.nodetype=calln) and
-                          (tcallnode(hp.right).procdefinition^.proctypeoption=potype_constructor)) and
+                          (tcallnode(hp.right).procdefinition.proctypeoption=potype_constructor)) and
                       not(is_void(hp.right.resulttype.def)) then
                      CGMessage(cg_e_illegal_expression);
                 end;
@@ -401,7 +401,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-04-02 21:20:30  peter
+  Revision 1.10  2001-04-13 01:22:08  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.8  2001/02/05 20:45:49  peter

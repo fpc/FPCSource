@@ -30,7 +30,7 @@ unit verbose;
 interface
 
 uses
-  cutils,cobjects,
+  cutils,
   globals,finput,
   messages;
 
@@ -244,7 +244,7 @@ var
       end;
 
 
-    procedure LoadPrefixes;
+    procedure Loadprefixes;
 
         function loadprefix(w:longint):string;
         var
@@ -254,18 +254,18 @@ var
           s:=msg^.get(w);
           idx:=pos('_',s);
           if idx>0 then
-           LoadPrefix:=Copy(s,idx+1,255)
+           Loadprefix:=Copy(s,idx+1,255)
           else
-           LoadPrefix:=s;
+           Loadprefix:=s;
         end;
 
       begin
       { Load the prefixes }
-        fatalstr:=LoadPrefix(general_i_fatal);
-        errorstr:=LoadPrefix(general_i_error);
-        warningstr:=LoadPrefix(general_i_warning);
-        notestr:=LoadPrefix(general_i_note);
-        hintstr:=LoadPrefix(general_i_hint);
+        fatalstr:=Loadprefix(general_i_fatal);
+        errorstr:=Loadprefix(general_i_error);
+        warningstr:=Loadprefix(general_i_warning);
+        notestr:=Loadprefix(general_i_note);
+        hintstr:=Loadprefix(general_i_hint);
       end;
 
 
@@ -286,7 +286,7 @@ var
 {$endif}
          end;
         { reload the prefixes using the new messages }
-        LoadPrefixes;
+        Loadprefixes;
       end;
 
 
@@ -633,7 +633,7 @@ var
         FillChar(Status,sizeof(TCompilerStatus),0);
         status.verbosity:=V_Default;
         Status.MaxErrorCount:=50;
-        LoadPrefixes;
+        Loadprefixes;
       end;
 
 
@@ -651,7 +651,12 @@ var
 end.
 {
   $Log$
-  Revision 1.12  2001-03-13 20:59:56  peter
+  Revision 1.13  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/03/13 20:59:56  peter
     * message loading fixes from Sergey (merged)
 
   Revision 1.11  2000/12/26 15:58:29  peter

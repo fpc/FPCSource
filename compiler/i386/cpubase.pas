@@ -31,7 +31,7 @@ unit cpubase;
 interface
 
 uses
-  globals,cutils,cobjects,aasm;
+  globals,cutils,cclasses,aasm;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -194,8 +194,7 @@ type
 
   op2strtable=array[tasmop] of string[11];
 
-  pstr2opentry = ^tstr2opentry;
-  tstr2opentry = object(Tnamedindexobject)
+  tstr2opentry = class(Tnamedindexitem)
     op: TAsmOp;
   end;
 
@@ -444,7 +443,7 @@ type
      index       : tregister;
      scalefactor : byte;
      offset      : longint;
-     symbol      : pasmsymbol;
+     symbol      : tasmsymbol;
      offsetfixup : longint;
      options     : trefoptions;
 {$ifdef newcg}
@@ -466,7 +465,7 @@ type
            top_reg    : (reg:tregister);
            top_ref    : (ref:preference);
            top_const  : (val:longint);
-           top_symbol : (sym:pasmsymbol;symofs:longint);
+           top_symbol : (sym:tasmsymbol;symofs:longint);
         end;
 
 {*****************************************************************************
@@ -924,7 +923,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-02-20 21:34:04  peter
+  Revision 1.4  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.3  2001/02/20 21:34:04  peter
     * iret, lret fixes
 
   Revision 1.2  2000/12/07 17:19:45  jonas

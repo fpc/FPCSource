@@ -83,7 +83,7 @@ implementation
         opsize    : topsize;
         hregister,
         hregister2 : tregister;
-        l : pasmlabel;
+        l : tasmlabel;
 
       begin
         { insert range check if not explicit conversion }
@@ -91,12 +91,12 @@ implementation
           emitrangecheck(left,resulttype.def);
 
         { is the result size smaller ? }
-        if resulttype.def^.size<left.resulttype.def^.size then
+        if resulttype.def.size<left.resulttype.def.size then
           begin
             { only need to set the new size of a register }
             if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
              begin
-               case resulttype.def^.size of
+               case resulttype.def.size of
                 1 : location.register:=makereg8(left.location.register);
                 2 : location.register:=makereg16(left.location.register);
                 4 : location.register:=makereg32(left.location.register);
@@ -108,7 +108,7 @@ implementation
           end
 
         { is the result size bigger ? }
-        else if resulttype.def^.size>left.resulttype.def^.size then
+        else if resulttype.def.size>left.resulttype.def.size then
           begin
             { remove reference }
             if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -155,7 +155,7 @@ implementation
                  hregister2:=getregister32;
                  location.registerhigh:=hregister2;
               end;
-            case resulttype.def^.size of
+            case resulttype.def.size of
              1:
                location.register:=makereg8(hregister);
              2:
@@ -185,7 +185,7 @@ implementation
                 begin
                   emit_reg_reg(A_XOR,S_L,
                     hregister2,hregister2);
-                  if (porddef(resulttype.def)^.typ=s64bit) and
+                  if (torddef(resulttype.def).typ=s64bit) and
                     is_signed(left.resulttype.def) then
                     begin
                        getlabel(l);
@@ -208,15 +208,15 @@ implementation
       begin
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                              }
-         case pstringdef(resulttype.def)^.string_typ of
+         case tstringdef(resulttype.def).string_typ of
 
             st_shortstring:
-              case pstringdef(left.resulttype.def)^.string_typ of
+              case tstringdef(left.resulttype.def).string_typ of
                  st_shortstring:
                    begin
-                      gettempofsizereference(resulttype.def^.size,location.reference);
+                      gettempofsizereference(resulttype.def.size,location.reference);
                       copyshortstring(location.reference,left.location.reference,
-                        pstringdef(resulttype.def)^.len,false,true);
+                        tstringdef(resulttype.def).len,false,true);
 {                      done by copyshortstring now (JM)          }
 {                      del_reference(left.location.reference); }
                       ungetiftemp(left.location.reference);
@@ -228,7 +228,7 @@ implementation
                    end;
                  st_ansistring:
                    begin
-                      gettempofsizereference(resulttype.def^.size,location.reference);
+                      gettempofsizereference(resulttype.def.size,location.reference);
                       loadansi2short(left,self);
                       { this is done in secondtypeconv (FK)
                       removetemps(exprasmlist,temptoremove);
@@ -243,7 +243,7 @@ implementation
               end;
 
             st_longstring:
-              case pstringdef(left.resulttype.def)^.string_typ of
+              case tstringdef(left.resulttype.def).string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -262,7 +262,7 @@ implementation
               end;
 
             st_ansistring:
-              case pstringdef(left.resulttype.def)^.string_typ of
+              case tstringdef(left.resulttype.def).string_typ of
                  st_shortstring:
                    begin
                       clear_location(location);
@@ -294,7 +294,7 @@ implementation
               end;
 
             st_widestring:
-              case pstringdef(left.resulttype.def)^.string_typ of
+              case tstringdef(left.resulttype.def).string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -327,7 +327,7 @@ implementation
          clear_location(location);
          location.loc:=LOC_REGISTER;
          location.register:=getregister32;
-         case pstringdef(left.resulttype.def)^.string_typ of
+         case tstringdef(left.resulttype.def).string_typ of
            st_shortstring :
              begin
                inc(left.location.reference.offset);
@@ -365,12 +365,12 @@ implementation
     procedure ti386typeconvnode.second_string_to_chararray;
       var
          pushedregs: tpushed;
-         //l1 : pasmlabel;
+         //l1 : tasmlabel;
          //hr : preference;
          arrsize, strtype: longint;
          regstopush: byte;
       begin
-         with parraydef(resulttype.def)^ do
+         with tarraydef(resulttype.def) do
           begin
             if highrange<lowrange then
              internalerror(75432653);
@@ -380,7 +380,7 @@ implementation
          if (left.nodetype = stringconstn) and
             { left.length+1 since there's always a terminating #0 character (JM) }
             (tstringconstnode(left).len+1 >= arrsize) and
-            (pstringdef(left.resulttype.def)^.string_typ=st_shortstring) then
+            (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
            begin
              inc(location.reference.offset);
              exit;
@@ -395,7 +395,7 @@ implementation
 
          emit_push_lea_loc(location,false);
 
-         case pstringdef(left.resulttype.def)^.string_typ of
+         case tstringdef(left.resulttype.def).string_typ of
            st_shortstring :
              begin
                { 0 means shortstring }
@@ -492,12 +492,12 @@ implementation
          l : longint;
       begin
          { calc the length of the array }
-         l:=parraydef(left.resulttype.def)^.highrange-parraydef(left.resulttype.def)^.lowrange+1;
+         l:=tarraydef(left.resulttype.def).highrange-tarraydef(left.resulttype.def).lowrange+1;
          { this is a type conversion which copies the data, so we can't }
          { return a reference                                        }
          clear_location(location);
          location.loc:=LOC_MEM;
-         case pstringdef(resulttype.def)^.string_typ of
+         case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
                if l>255 then
@@ -505,15 +505,15 @@ implementation
                   CGMessage(type_e_mismatch);
                   l:=255;
                 end;
-               gettempofsizereference(resulttype.def^.size,location.reference);
+               gettempofsizereference(resulttype.def.size,location.reference);
                { we've also to release the registers ... }
                { Yes, but before pushusedregisters since that one resets unused! }
                { This caused web bug 1073 (JM)                                   }
                regstopush := $ff;
                remove_non_regvars_from_loc(left.location,regstopush);
                pushusedregisters(pushed,regstopush);
-               if l>=resulttype.def^.size then
-                 push_int(resulttype.def^.size-1)
+               if l>=resulttype.def.size then
+                 push_int(resulttype.def.size-1)
                else
                  push_int(l);
                { ... here only the temp. location is released }
@@ -562,7 +562,7 @@ implementation
       begin
          clear_location(location);
          location.loc:=LOC_MEM;
-         case pstringdef(resulttype.def)^.string_typ of
+         case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
                gettempofsizereference(256,location.reference);
@@ -592,22 +592,20 @@ implementation
       var
          r : preference;
          hregister : tregister;
-         l1,l2 : pasmlabel;
+         l1,l2 : tasmlabel;
 
       begin
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
          hregister:=R_EDI;
-         if porddef(left.resulttype.def)^.typ=u32bit then
+         if torddef(left.resulttype.def).typ=u32bit then
             push_int(0);
          if (left.location.loc=LOC_REGISTER) or
             (left.location.loc=LOC_CREGISTER) then
            begin
-{$ifndef noAllocEdi}
-              if not (porddef(left.resulttype.def)^.typ in [u32bit,s32bit,u64bit,s64bit]) then
+              if not (torddef(left.resulttype.def).typ in [u32bit,s32bit,u64bit,s64bit]) then
                 getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-              case porddef(left.resulttype.def)^.typ of
+              case torddef(left.resulttype.def).typ of
                  s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
                  u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
                  s16bit : emit_reg_reg(A_MOVSX,S_WL,left.location.register,R_EDI);
@@ -625,10 +623,8 @@ implementation
          else
            begin
               r:=newreference(left.location.reference);
-{$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-              case porddef(left.resulttype.def)^.typ of
+              case torddef(left.resulttype.def).typ of
                  s8bit:
                    emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
                  u8bit:
@@ -653,12 +649,10 @@ implementation
            end;
          { for 64 bit integers, the high dword is already pushed }
          emit_reg(A_PUSH,S_L,hregister);
-{$ifndef noAllocEdi}
          if hregister = R_EDI then
            ungetregister32(R_EDI);
-{$endif noAllocEdi}
          r:=new_reference(R_ESP,0);
-         case porddef(left.resulttype.def)^.typ of
+         case torddef(left.resulttype.def).typ of
            u32bit:
              begin
                 emit_ref(A_FILD,S_IQ,r);
@@ -676,16 +670,12 @@ implementation
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
                 inc(r^.offset,4);
-{$ifndef noAllocEdi}
                 getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                 emit_ref_reg(A_MOV,S_L,r,R_EDI);
                 r:=new_reference(R_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,r);
                 emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
-{$ifndef noAllocEdi}
                 ungetregister32(R_EDI);
-{$endif noAllocEdi}
                 r:=new_reference(R_ESP,0);
                 emit_ref(A_FILD,S_IQ,r);
                 getdatalabel(l1);
@@ -704,13 +694,9 @@ implementation
            else
              begin
                 emit_ref(A_FILD,S_IL,r);
-{$ifndef noAllocEdi}
                 getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                 emit_reg(A_POP,S_L,R_EDI);
-{$ifndef noAllocEdi}
                 ungetregister32(R_EDI);
-{$endif noAllocEdi}
              end;
          end;
          inc(fpuvaroffset);
@@ -731,7 +717,7 @@ implementation
             LOC_MEM,
             LOC_REFERENCE:
               begin
-                 floatload(pfloatdef(left.resulttype.def)^.typ,
+                 floatload(tfloatdef(left.resulttype.def).typ,
                    left.location.reference);
                  { we have to free the reference }
                  del_reference(left.location.reference);
@@ -771,7 +757,7 @@ implementation
 
     procedure ti386typeconvnode.second_bool_to_int;
       var
-         oldtruelabel,oldfalselabel,hlabel : pasmlabel;
+         oldtruelabel,oldfalselabel,hlabel : tasmlabel;
          hregister : tregister;
          newsize,
          opsize : topsize;
@@ -785,7 +771,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(location,left.location);
@@ -796,16 +782,16 @@ implementation
          clear_location(location);
          location.loc:=LOC_REGISTER;
          del_reference(left.location.reference);
-         case left.resulttype.def^.size of
+         case left.resulttype.def.size of
           1 : begin
-                case resulttype.def^.size of
+                case resulttype.def.size of
                  1 : opsize:=S_B;
                  2 : opsize:=S_BW;
                  4 : opsize:=S_BL;
                 end;
               end;
           2 : begin
-                case resulttype.def^.size of
+                case resulttype.def.size of
                  1 : begin
                        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                         left.location.register:=reg16toreg8(left.location.register);
@@ -816,7 +802,7 @@ implementation
                 end;
               end;
           4 : begin
-                case resulttype.def^.size of
+                case resulttype.def.size of
                  1 : begin
                        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                         left.location.register:=reg32toreg8(left.location.register);
@@ -839,7 +825,7 @@ implementation
           else
            op:=A_MOVZX;
          hregister:=getregister32;
-         case resulttype.def^.size of
+         case resulttype.def.size of
           1 : begin
                 location.register:=reg32toreg8(hregister);
                 newsize:=S_B;
@@ -898,7 +884,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype.def^.size=resulttype.def^.size) and
+            (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(location,left.location);
@@ -930,7 +916,7 @@ implementation
             else
               internalerror(10062);
          end;
-         case resulttype.def^.size of
+         case resulttype.def.size of
           1 : location.register:=makereg8(hregister);
           2 : location.register:=makereg16(hregister);
           4 : location.register:=makereg32(hregister);
@@ -963,7 +949,7 @@ implementation
 
     procedure ti386typeconvnode.second_ansistring_to_pchar;
       var
-         l1 : pasmlabel;
+         l1 : tasmlabel;
          hr : preference;
       begin
          clear_location(location);
@@ -995,11 +981,11 @@ implementation
         pushed : tpushed;
         regs_to_push: byte;
       begin
-         case pstringdef(resulttype.def)^.string_typ of
+         case tstringdef(resulttype.def).string_typ of
            st_shortstring:
              begin
                 location.loc:=LOC_REFERENCE;
-                gettempofsizereference(resulttype.def^.size,location.reference);
+                gettempofsizereference(resulttype.def.size,location.reference);
                 pushusedregisters(pushed,$ff);
                 case left.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
@@ -1063,7 +1049,7 @@ implementation
     procedure ti386typeconvnode.second_class_to_intf;
       var
          hreg : tregister;
-         l1 : pasmlabel;
+         l1 : tasmlabel;
       begin
          case left.location.loc of
             LOC_MEM,
@@ -1087,8 +1073,8 @@ implementation
          emit_reg_reg(A_TEST,S_L,hreg,hreg);
          getlabel(l1);
          emitjmp(C_Z,l1);
-         emit_const_reg(A_ADD,S_L,pobjectdef(left.resulttype.def)^.implementedinterfaces^.ioffsets(
-           pobjectdef(left.resulttype.def)^.implementedinterfaces^.searchintf(resulttype.def))^,hreg);
+         emit_const_reg(A_ADD,S_L,tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
+           tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(resulttype.def))^,hreg);
          emitlab(l1);
          location.loc:=LOC_REGISTER;
          location.register:=hreg;
@@ -1174,10 +1160,10 @@ implementation
 {$ifdef TESTOBJEXT2}
                   { Check explicit conversions to objects pointers !! }
                      if p^.explizit and
-                        (p^.resulttype.def^.deftype=pointerdef) and
-                        (ppointerdef(p^.resulttype.def)^.definition^.deftype=objectdef) and not
-                        (pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.isclass) and
-                        ((pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.options and oo_hasvmt)<>0) and
+                        (p^.resulttype.def.deftype=pointerdef) and
+                        (tpointerdef(p^.resulttype.def).definition.deftype=objectdef) and not
+                        (tobjectdef(tpointerdef(p^.resulttype.def).definition).isclass) and
+                        ((tobjectdef(tpointerdef(p^.resulttype.def).definition).options and oo_hasvmt)<>0) and
                         (cs_check_range in aktlocalswitches) then
                        begin
                           new(r);
@@ -1186,31 +1172,23 @@ implementation
                            r^.base:=p^.location.register
                           else
                             begin
-{$ifndef noAllocEdi}
                                getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                                emit_mov_loc_reg(p^.location,R_EDI);
                                r^.base:=R_EDI;
                             end;
                           { NIL must be accepted !! }
                           emit_reg_reg(A_OR,S_L,r^.base,r^.base);
-{$ifndef noAllocEdi}
                           ungetregister32(R_EDI);
-{$endif noAllocEdi}
                           getlabel(nillabel);
                           emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
-                          r^.offset:= pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.vmt_offset;
-{$ifndef noAllocEdi}
+                          r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
                           getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
                           emit_ref_reg(A_MOV,S_L,r,R_EDI);
                           emit_sym(A_PUSH,S_L,
-                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.vmt_mangledname));
+                            newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
                           emit_reg(A_PUSH,S_L,R_EDI);
-{$ifndef noAllocEdi}
                           ungetregister32(R_EDI);
-{$endif noAllocEdi}
                           emitcall('FPC_CHECK_OBJECT_EXT');
                           emitlab(nillabel);
                        end;
@@ -1334,7 +1312,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-02 21:20:36  peter
+  Revision 1.14  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/02 21:20:36  peter
     * resulttype rewrite
 
   Revision 1.12  2001/01/08 21:45:11  peter

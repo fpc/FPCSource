@@ -41,7 +41,7 @@ interface
 {$ifdef delphi}
       sysutils,
 {$endif}
-      cutils,globtype,globals,systems,cobjects,
+      cutils,globtype,globals,systems,cclasses,
       verbose,cpubase,cpuasm,finput,fmodule
       ;
 
@@ -137,7 +137,7 @@ interface
           begin
             if (aktoutputformat = as_i386_tasm) then
               s:=s+'dword ptr ';
-            s:=s+symbol^.name;
+            s:=s+symbol.name;
             first:=false;
           end;
          if (base<>R_NO) then
@@ -180,7 +180,7 @@ interface
         top_symbol :
           begin
             if assigned(o.sym) then
-              hs:='offset '+o.sym^.name
+              hs:='offset '+o.sym.name
             else
               hs:='offset ';
             if o.symofs>0 then
@@ -242,7 +242,7 @@ interface
           getopstr_jmp:=tostr(o.val);
         top_symbol :
           begin
-            hs:=o.sym^.name;
+            hs:=o.sym.name;
             if o.symofs>0 then
              hs:=hs+'+'+tostr(o.symofs)
             else
@@ -425,8 +425,8 @@ interface
                      end;
      ait_datablock : begin
                        if tai_datablock(hp).is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym^.name);
-                       AsmWriteLn(PadTabs(tai_datablock(hp).sym^.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
+                         AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
+                       AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
                      end;
    ait_const_32bit,
     ait_const_8bit,
@@ -447,7 +447,7 @@ interface
                        AsmLn;
                      end;
   ait_const_symbol : begin
-                       AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym^.name);
+                       AsmWriteLn(#9#9'DD'#9'offset '+tai_const_symbol(hp).sym.name);
                        if tai_const_symbol(hp).offset>0 then
                          AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                        else if tai_const_symbol(hp).offset<0 then
@@ -455,7 +455,7 @@ interface
                        AsmLn;
                      end;
      ait_const_rva : begin
-                       AsmWriteLn(#9#9'RVA'#9+tai_const_symbol(hp).sym^.name);
+                       AsmWriteLn(#9#9'RVA'#9+tai_const_symbol(hp).sym.name);
                      end;
         ait_real_32bit : AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
         ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
@@ -536,9 +536,9 @@ interface
                        AsmLn;
                      end;
          ait_label : begin
-                       if tai_label(hp).l^.is_used then
+                       if tai_label(hp).l.is_used then
                         begin
-                          AsmWrite(tai_label(hp).l^.name);
+                          AsmWrite(tai_label(hp).l.name);
                           if assigned(hp.next) and not(tai(hp.next).typ in
                              [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                               ait_const_symbol,ait_const_rva,
@@ -552,8 +552,8 @@ interface
                      end;
         ait_symbol : begin
                        if tai_symbol(hp).is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym^.name);
-                       AsmWrite(tai_symbol(hp).sym^.name);
+                         AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
+                       AsmWrite(tai_symbol(hp).sym.name);
                        if assigned(hp.next) and not(tai(hp.next).typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                            ait_const_symbol,ait_const_rva,
@@ -685,22 +685,22 @@ ait_stab_function_name : ;
     var
       currentasmlist : TExternalAssembler;
 
-    procedure writeexternal(p:pnamedindexobject);
+    procedure writeexternal(p:tnamedindexitem);
       begin
-        if pasmsymbol(p)^.defbind=AB_EXTERNAL then
+        if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
             if (aktoutputformat = as_i386_masm) then
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p^.name
+              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
                 +': NEAR')
             else
-              currentasmlist.AsmWriteln(#9'EXTRN'#9+p^.name);
+              currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
           end;
       end;
 
     procedure T386IntelAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        AsmSymbolList^.foreach({$ifdef fpcprocvar}@{$endif}writeexternal);
+        AsmSymbolList.foreach_static({$ifdef fpcprocvar}@{$endif}writeexternal);
       end;
 
 
@@ -748,7 +748,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.8  2001-03-25 12:30:17  peter
+  Revision 1.9  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.8  2001/03/25 12:30:17  peter
     * masm -al fix (merged)
 
   Revision 1.7  2001/03/05 21:39:11  peter

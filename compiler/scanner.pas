@@ -27,7 +27,7 @@ unit scanner;
 interface
 
     uses
-       cobjects,cclasses,
+       cclasses,
        globtype,globals,version,tokens,
        verbose,comphook,
        finput,
@@ -45,27 +45,25 @@ interface
        pmacrobuffer = ^tmacrobuffer;
        tmacrobuffer = array[0..maxmacrolen-1] of char;
 
-       pmacro = ^tmacro;
-       tmacro = object(tnamedindexobject)
+       tmacro = class(TNamedIndexItem)
           defined,
           defined_at_startup,
           is_used : boolean;
           buftext : pchar;
           buflen  : longint;
-          constructor init(const n : string);
-          destructor  done;virtual;
+          constructor Create(const n : string);
+          destructor  destroy;override;
        end;
 
        preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else);
-       ppreprocstack = ^tpreprocstack;
-       tpreprocstack = object
+
+       tpreprocstack = class
           typ     : preproctyp;
           accept  : boolean;
-          next    : ppreprocstack;
+          next    : tpreprocstack;
           name    : stringid;
           line_nb : longint;
-          constructor init(atyp:preproctyp;a:boolean;n:ppreprocstack);
-          destructor done;
+          constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
        end;
 
        pscannerfile = ^tscannerfile;
@@ -87,9 +85,9 @@ interface
           yylexcount     : longint;
           lastasmgetchar : char;
           ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
-          preprocstack   : ppreprocstack;
+          preprocstack   : tpreprocstack;
           invalid        : boolean; { flag if sourcefiles have been destroyed ! }
-          macros         : pdictionary;
+          macros         : Tdictionary;
           in_asm_string  : boolean;
 
           constructor init(const fn:string);
@@ -136,7 +134,7 @@ interface
        end;
 
 {$ifdef PREPROCWRITE}
-       ppreprocfile=^tpreprocfile;
+       tpreprocfile=^tpreprocfile;
        tpreprocfile=object
          f   : text;
          buf : pointer;
@@ -163,7 +161,7 @@ interface
         current_scanner : pscannerfile;
         aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
-        preprocfile     : ppreprocfile; { used with only preprocessing }
+        preprocfile     : tpreprocfile; { used with only preprocessing }
 {$endif PREPROCWRITE}
 
 
@@ -218,9 +216,9 @@ implementation
                                  TMacro
 *****************************************************************************}
 
-    constructor tmacro.init(const n : string);
+    constructor tmacro.create(const n : string);
       begin
-         inherited initname(n);
+         inherited createname(n);
          defined:=true;
          defined_at_startup:=false;
          is_used:=false;
@@ -229,11 +227,11 @@ implementation
       end;
 
 
-    destructor tmacro.done;
+    destructor tmacro.destroy;
       begin
          if assigned(buftext) then
            freemem(buftext,buflen);
-         inherited done;
+         inherited destroy;
       end;
 
 
@@ -293,16 +291,11 @@ implementation
                               TPreProcStack
 *****************************************************************************}
 
-    constructor tpreprocstack.init(atyp : preproctyp;a:boolean;n:ppreprocstack);
+    constructor tpreprocstack.create(atyp : preproctyp;a:boolean;n:tpreprocstack);
       begin
         accept:=a;
         typ:=atyp;
         next:=n;
-      end;
-
-
-    destructor tpreprocstack.done;
-      begin
       end;
 
 
@@ -333,7 +326,7 @@ implementation
         ignoredirectives:=TStringList.Create;
         invalid:=false;
         in_asm_string:=false;
-        new(macros,init);
+        macros:=tdictionary.create;
       { load block }
         if not openinputfile then
          Message1(scan_f_cannot_open_input,fn);
@@ -352,7 +345,12 @@ implementation
         if not invalid then
           begin
              if status.errorcount=0 then
-              checkpreprocstack;
+              checkpreprocstack
+             else
+              begin
+                while assigned(preprocstack) do
+                 poppreprocstack;
+              end;
            { close file, but only if we are the first compile }
            { probably not necessary anymore with invalid flag PM }
              if not current_module.in_second_compile then
@@ -362,47 +360,47 @@ implementation
               end;
           end;
          ignoredirectives.free;
-         dispose(macros,done);
+         macros.free;
        end;
 
 
     procedure tscannerfile.def_macro(const s : string);
       var
-        mac : pmacro;
+        mac : tmacro;
       begin
-         mac:=pmacro(macros^.search(s));
+         mac:=tmacro(macros.search(s));
          if mac=nil then
            begin
-             mac:=new(pmacro,init(s));
-             Message1(parser_m_macro_defined,mac^.name);
-             macros^.insert(mac);
+             mac:=tmacro.create(s);
+             Message1(parser_m_macro_defined,mac.name);
+             macros.insert(mac);
            end;
-         mac^.defined:=true;
-         mac^.defined_at_startup:=true;
+         mac.defined:=true;
+         mac.defined_at_startup:=true;
       end;
 
 
     procedure tscannerfile.set_macro(const s : string;value : string);
       var
-        mac : pmacro;
+        mac : tmacro;
       begin
-         mac:=pmacro(macros^.search(s));
+         mac:=tmacro(macros.search(s));
          if mac=nil then
            begin
-             mac:=new(pmacro,init(s));
-             macros^.insert(mac);
+             mac:=tmacro.create(s);
+             macros.insert(mac);
            end
          else
            begin
-              if assigned(mac^.buftext) then
-                freemem(mac^.buftext,mac^.buflen);
+              if assigned(mac.buftext) then
+                freemem(mac.buftext,mac.buflen);
            end;
-         Message2(parser_m_macro_set_to,mac^.name,value);
-         mac^.buflen:=length(value);
-         getmem(mac^.buftext,mac^.buflen);
-         move(value[1],mac^.buftext^,mac^.buflen);
-         mac^.defined:=true;
-         mac^.defined_at_startup:=true;
+         Message2(parser_m_macro_set_to,mac.name,value);
+         mac.buflen:=length(value);
+         getmem(mac.buftext,mac.buflen);
+         move(value[1],mac.buftext^,mac.buflen);
+         mac.defined:=true;
+         mac.defined_at_startup:=true;
       end;
 
 
@@ -700,7 +698,7 @@ implementation
       { check for missing ifdefs }
         while assigned(preprocstack) do
          begin
-           Message3(scan_e_endif_expected,preprocstring[preprocstack^.typ],preprocstack^.name,tostr(preprocstack^.line_nb));
+           Message3(scan_e_endif_expected,preprocstring[preprocstack.typ],preprocstack.name,tostr(preprocstack.line_nb));
            poppreprocstack;
          end;
       end;
@@ -708,13 +706,13 @@ implementation
 
     procedure tscannerfile.poppreprocstack;
       var
-        hp : ppreprocstack;
+        hp : tpreprocstack;
       begin
         if assigned(preprocstack) then
          begin
-           Message1(scan_c_endif_found,preprocstack^.name);
-           hp:=preprocstack^.next;
-           dispose(preprocstack,done);
+           Message1(scan_c_endif_found,preprocstack.name);
+           hp:=preprocstack.next;
+           preprocstack.free;
            preprocstack:=hp;
          end
         else
@@ -724,13 +722,13 @@ implementation
 
     procedure tscannerfile.addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:longint);
       begin
-        preprocstack:=new(ppreprocstack,init(atyp,((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
-        preprocstack^.name:=s;
-        preprocstack^.line_nb:=line_no;
-        if preprocstack^.accept then
-         Message2(w,preprocstack^.name,'accepted')
+        preprocstack:=tpreprocstack.create(atyp,((preprocstack=nil) or preprocstack.accept) and a,preprocstack);
+        preprocstack.name:=s;
+        preprocstack.line_nb:=line_no;
+        if preprocstack.accept then
+         Message2(w,preprocstack.name,'accepted')
         else
-         Message2(w,preprocstack^.name,'rejected');
+         Message2(w,preprocstack.name,'rejected');
       end;
 
 
@@ -738,14 +736,14 @@ implementation
       begin
         if assigned(preprocstack) then
          begin
-           preprocstack^.typ:=pp_else;
-           preprocstack^.line_nb:=line_no;
-           if not(assigned(preprocstack^.next)) or (preprocstack^.next^.accept) then
-            preprocstack^.accept:=not preprocstack^.accept;
-           if preprocstack^.accept then
-            Message2(scan_c_else_found,preprocstack^.name,'accepted')
+           preprocstack.typ:=pp_else;
+           preprocstack.line_nb:=line_no;
+           if not(assigned(preprocstack.next)) or (preprocstack.next.accept) then
+            preprocstack.accept:=not preprocstack.accept;
+           if preprocstack.accept then
+            Message2(scan_c_else_found,preprocstack.name,'accepted')
            else
-            Message2(scan_c_else_found,preprocstack^.name,'rejected');
+            Message2(scan_c_else_found,preprocstack.name,'rejected');
          end
         else
          Message(scan_e_endif_without_if);
@@ -1240,7 +1238,7 @@ implementation
         code    : integer;
         low,high,mid : longint;
         m       : longint;
-        mac     : pmacro;
+        mac     : tmacro;
         asciinr : string[6];
         iswidestring : boolean;
       label
@@ -1322,10 +1320,10 @@ implementation
             { this takes some time ... }
               if (cs_support_macro in aktmoduleswitches) then
                begin
-                 mac:=pmacro(macros^.search(pattern));
-                 if assigned(mac) and (assigned(mac^.buftext)) then
+                 mac:=tmacro(macros.search(pattern));
+                 if assigned(mac) and (assigned(mac.buftext)) then
                   begin
-                    insertmacro(pattern,mac^.buftext,mac^.buflen);
+                    insertmacro(pattern,mac.buftext,mac.buflen);
                   { handle empty macros }
                     if c=#0 then
                      begin
@@ -1946,7 +1944,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.13  2000-12-25 00:07:28  peter
+  Revision 1.14  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2000/12/25 00:07:28  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

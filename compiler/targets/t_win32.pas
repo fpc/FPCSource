@@ -210,7 +210,7 @@ implementation
          hp1 : timportlist;
          hp2 : timported_item;
          lhead,lname,lcode,
-         lidata4,lidata5 : pasmlabel;
+         lidata4,lidata5 : tasmlabel;
          r : preference;
       begin
          if (aktoutputformat<>as_i386_asw) and
@@ -277,7 +277,7 @@ implementation
                  importsSection.concat(Tai_section.Create(sec_idata7));
                  importsSection.concat(Tai_const_symbol.Create_rva(lhead));
                  { fixup }
-                 getlabel(pasmlabel(hp2.lab));
+                 getlabel(tasmlabel(hp2.lab));
                  importsSection.concat(Tai_section.Create(sec_idata4));
                  importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab));
                  { add jump field to importsection }
@@ -321,7 +321,7 @@ implementation
       var
          hp1 : timportlist;
          hp2 : timported_item;
-         l1,l2,l3,l4 : pasmlabel;
+         l1,l2,l3,l4 : tasmlabel;
          r : preference;
       begin
          if (aktoutputformat<>as_i386_asw) and
@@ -361,7 +361,7 @@ implementation
               hp2:=timported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   getlabel(pasmlabel(hp2.lab));
+                   getlabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
                      importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
                    else
@@ -508,8 +508,8 @@ implementation
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;
          entries,named_entries : longint;
-         name_label,dll_name_label,export_address_table : pasmlabel;
-         export_name_table_pointers,export_ordinal_table : pasmlabel;
+         name_label,dll_name_label,export_address_table : tasmlabel;
+         export_name_table_pointers,export_ordinal_table : tasmlabel;
          hp,hp2 : texported_item;
          temtexport : TLinkedList;
          address_table,name_table_pointers,
@@ -652,7 +652,7 @@ implementation
                    address_table.concat(Tai_const.Create_32bit(0));
                    inc(current_index);
                 end;
-              address_table.concat(Tai_const_symbol.Createname_rva(hp.sym^.mangledname));
+              address_table.concat(Tai_const_symbol.Createname_rva(hp.sym.mangledname));
               inc(current_index);
               hp:=texported_item(hp.next);
            end;
@@ -677,7 +677,7 @@ implementation
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-             p:=strpnew(#9+'export '+hp.sym^.mangledname+' '+hp.name^+' '+tostr(hp.index));
+             p:=strpnew(#9+'export '+hp.sym.mangledname+' '+hp.name^+' '+tostr(hp.index));
              exportssection.concat(tai_direct.create(p));
              hp:=texported_item(hp.next);
            end;
@@ -729,7 +729,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes.Init(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
@@ -773,7 +773,7 @@ begin
 
 { Write and Close response }
   linkres.writetodisk;
-  linkres.done;
+  LinkRes.Free;
 
   WriteResponseFile:=True;
 end;
@@ -1381,7 +1381,12 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-02 21:20:40  peter
+  Revision 1.4  2001-04-13 01:22:22  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.3  2001/04/02 21:20:40  peter
     * resulttype rewrite
 
   Revision 1.2  2001/03/06 18:28:02  peter

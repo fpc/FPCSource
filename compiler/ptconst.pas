@@ -31,7 +31,7 @@ interface
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
     { the assembler label is in the middle (PM) }
-    procedure readtypedconst(const t:ttype;sym : ptypedconstsym;no_change_allowed : boolean);
+    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;no_change_allowed : boolean);
 
 implementation
 
@@ -60,7 +60,7 @@ implementation
   {$maxfpuregisters 0}
 {$endif fpc}
     { this procedure reads typed constants }
-    procedure readtypedconst(const t:ttype;sym : ptypedconstsym;no_change_allowed : boolean);
+    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;no_change_allowed : boolean);
 
       var
 {$ifdef m68k}
@@ -71,21 +71,21 @@ implementation
          i,l,offset,
          strlength : longint;
          curconstsegment : TAAsmoutput;
-         ll        : pasmlabel;
+         ll        : tasmlabel;
          s         : string;
          ca        : pchar;
          tmpguid   : tguid;
          aktpos    : longint;
-         obj       : pobjectdef;
-         srsym     : psym;
-         symt      : psymtable;
+         obj       : tobjectdef;
+         srsym     : tsym;
+         symt      : tsymtable;
          value     : bestreal;
          strval    : pchar;
 
-      procedure check_range(def:porddef);
+      procedure check_range(def:torddef);
         begin
-           if ((tordconstnode(p).value>def^.high) or
-               (tordconstnode(p).value<def^.low)) then
+           if ((tordconstnode(p).value>def.high) or
+               (tordconstnode(p).value<def.low)) then
              begin
                 if (cs_check_range in aktlocalswitches) then
                   Message(parser_e_range_check_error)
@@ -100,11 +100,11 @@ implementation
            curconstsegment:=consts
          else
            curconstsegment:=datasegment;
-         case t.def^.deftype of
+         case t.def.deftype of
             orddef:
               begin
                  p:=comp_expr(true);
-                 case porddef(t.def)^.typ of
+                 case torddef(t.def).typ of
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
@@ -146,7 +146,7 @@ implementation
                          if is_constintnode(p) then
                            begin
                               curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
-                              check_range(porddef(t.def));
+                              check_range(torddef(t.def));
                            end
                          else
                            Message(cg_e_illegal_expression);
@@ -157,7 +157,7 @@ implementation
                          if is_constintnode(p) then
                            begin
                              curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
-                             check_range(porddef(t.def));
+                             check_range(torddef(t.def));
                            end
                          else
                            Message(cg_e_illegal_expression);
@@ -168,8 +168,8 @@ implementation
                          if is_constintnode(p) then
                            begin
                               curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
-                              if porddef(t.def)^.typ<>u32bit then
-                               check_range(porddef(t.def));
+                              if torddef(t.def).typ<>u32bit then
+                               check_range(torddef(t.def));
                            end
                          else
                            Message(cg_e_illegal_expression);
@@ -201,7 +201,7 @@ implementation
               else
                 Message(cg_e_illegal_expression);
 
-              case pfloatdef(t.def)^.typ of
+              case tfloatdef(t.def).typ of
                  s32real :
                    curconstSegment.concat(Tai_real_32bit.Create(value));
                  s64real :
@@ -221,11 +221,11 @@ implementation
               case p.nodetype of
                  loadvmtn:
                    begin
-                      if not(pobjectdef(pclassrefdef(p.resulttype.def)^.pointertype.def)^.is_related(
-                        pobjectdef(pclassrefdef(t.def)^.pointertype.def))) then
+                      if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
+                        tobjectdef(tclassrefdef(t.def).pointertype.def))) then
                         Message(cg_e_illegal_expression);
-                      curconstSegment.concat(Tai_const_symbol.Create(newasmsymbol(pobjectdef(
-                        pclassrefdef(p.resulttype.def)^.pointertype.def)^.vmt_mangledname)));
+                      curconstSegment.concat(Tai_const_symbol.Create(newasmsymbol(tobjectdef(
+                        tclassrefdef(p.resulttype.def).pointertype.def).vmt_mangledname)));
                    end;
                  niln:
                    curconstSegment.concat(Tai_const.Create_32bit(0));
@@ -263,7 +263,7 @@ implementation
                 curconstSegment.concat(Tai_const.Create_32bit(0))
               { maybe pchar ? }
               else
-                if is_char(ppointerdef(t.def)^.pointertype.def) and
+                if is_char(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
                     getdatalabel(ll);
@@ -292,9 +292,9 @@ implementation
                     hp:=taddrnode(p).left;
                     while assigned(hp) and (hp.nodetype in [subscriptn,vecn]) do
                       hp:=tbinarynode(hp).left;
-                    if (is_equal(ppointerdef(p.resulttype.def)^.pointertype.def,ppointerdef(t.def)^.pointertype.def) or
-                       (is_void(ppointerdef(p.resulttype.def)^.pointertype.def)) or
-                       (is_void(ppointerdef(t.def)^.pointertype.def))) and
+                    if (is_equal(tpointerdef(p.resulttype.def).pointertype.def,tpointerdef(t.def).pointertype.def) or
+                       (is_void(tpointerdef(p.resulttype.def).pointertype.def)) or
+                       (is_void(tpointerdef(t.def).pointertype.def))) and
                        (hp.nodetype=loadn) then
                       begin
                         do_resulttypepass(taddrnode(p).left);
@@ -305,7 +305,7 @@ implementation
                              case hp.nodetype of
                                vecn :
                                  begin
-                                   case tvecnode(hp).left.resulttype.def^.deftype of
+                                   case tvecnode(hp).left.resulttype.def.deftype of
                                      stringdef :
                                        begin
                                           { this seems OK for shortstring and ansistrings PM }
@@ -315,8 +315,8 @@ implementation
                                        end;
                                      arraydef :
                                        begin
-                                          len:=parraydef(tvecnode(hp).left.resulttype.def)^.elesize;
-                                          base:=parraydef(tvecnode(hp).left.resulttype.def)^.lowrange;
+                                          len:=tarraydef(tvecnode(hp).left.resulttype.def).elesize;
+                                          base:=tarraydef(tvecnode(hp).left.resulttype.def).lowrange;
                                        end
                                      else
                                        Message(cg_e_illegal_expression);
@@ -327,15 +327,15 @@ implementation
                                      Message(cg_e_illegal_expression);
                                  end;
                                subscriptn :
-                                 inc(offset,tsubscriptnode(hp).vs^.address)
+                                 inc(offset,tsubscriptnode(hp).vs.address)
                                else
                                  Message(cg_e_illegal_expression);
                              end;
                              hp:=tbinarynode(hp).left;
                           end;
-                        if tloadnode(hp).symtableentry^.typ=constsym then
+                        if tloadnode(hp).symtableentry.typ=constsym then
                           Message(type_e_variable_id_expected);
-                        curconstSegment.concat(Tai_const_symbol.Createname_offset(tloadnode(hp).symtableentry^.mangledname,offset));
+                        curconstSegment.concat(Tai_const_symbol.Createname_offset(tloadnode(hp).symtableentry.mangledname,offset));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -348,7 +348,7 @@ implementation
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         curconstSegment.concat(Tai_const_symbol.createname(
-                          pobjectdef(tinlinenode(p).left.resulttype.def)^.vmt_mangledname));
+                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname));
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -368,12 +368,12 @@ implementation
                    else
                      begin
 {$ifdef i386}
-                        for l:=0 to t.def^.size-1 do
+                        for l:=0 to t.def.size-1 do
                           curconstSegment.concat(Tai_const.Create_8bit(tsetconstnode(p).value_set^[l]));
 {$endif}
 {$ifdef m68k}
                         j:=0;
-                        for l:=0 to ((def^.size-1) div 4) do
+                        for l:=0 to ((def.size-1) div 4) do
                         { HORRIBLE HACK because of endian       }
                         { now use intel endian for constant sets }
                          begin
@@ -398,14 +398,14 @@ implementation
                   if is_equal(p.resulttype.def,t.def) or
                      is_subequal(p.resulttype.def,t.def) then
                    begin
-                     case p.resulttype.def^.size of
+                     case p.resulttype.def.size of
                        1 : curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
                        2 : curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
                        4 : curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
                      end;
                    end
                   else
-                   Message2(type_e_incompatible_types,t.def^.typename,p.resulttype.def^.typename);
+                   Message2(type_e_incompatible_types,t.def.typename,p.resulttype.def.typename);
                 end
               else
                 Message(cg_e_illegal_expression);
@@ -427,8 +427,8 @@ implementation
                 end
               else if is_constresourcestringnode(p) then
                 begin
-                  strval:=pchar(tpointerord(pconstsym(tloadnode(p).symtableentry)^.value));
-                  strlength:=pconstsym(tloadnode(p).symtableentry)^.len;
+                  strval:=pchar(tpointerord(tconstsym(tloadnode(p).symtableentry).value));
+                  strlength:=tconstsym(tloadnode(p).symtableentry).len;
                 end
               else
                 begin
@@ -437,13 +437,13 @@ implementation
                 end;
               if strlength>=0 then
                begin
-                 case pstringdef(t.def)^.string_typ of
+                 case tstringdef(t.def).string_typ of
                    st_shortstring:
                      begin
-                       if strlength>=t.def^.size then
+                       if strlength>=t.def.size then
                         begin
-                          message2(parser_w_string_too_long,strpas(strval),tostr(t.def^.size-1));
-                          strlength:=t.def^.size-1;
+                          message2(parser_w_string_too_long,strpas(strval),tostr(t.def.size-1));
+                          strlength:=t.def.size-1;
                         end;
                        curconstSegment.concat(Tai_const.Create_8bit(strlength));
                        { this can also handle longer strings }
@@ -452,15 +452,15 @@ implementation
                        ca[strlength]:=#0;
                        curconstSegment.concat(Tai_string.Create_length_pchar(ca,strlength));
                        { fillup with spaces if size is shorter }
-                       if t.def^.size>strlength then
+                       if t.def.size>strlength then
                         begin
-                          getmem(ca,t.def^.size-strlength);
-                          { def^.size contains also the leading length, so we }
+                          getmem(ca,t.def.size-strlength);
+                          { def.size contains also the leading length, so we }
                           { we have to subtract one                       }
-                          fillchar(ca[0],t.def^.size-strlength-1,' ');
-                          ca[t.def^.size-strlength-1]:=#0;
+                          fillchar(ca[0],t.def.size-strlength-1,' ');
+                          ca[t.def.size-strlength-1]:=#0;
                           { this can also handle longer strings }
-                          curconstSegment.concat(Tai_string.Create_length_pchar(ca,t.def^.size-strlength-1));
+                          curconstSegment.concat(Tai_string.Create_length_pchar(ca,t.def.size-strlength-1));
                         end;
                      end;
 {$ifdef UseLongString}
@@ -513,17 +513,17 @@ implementation
               if token=_LKLAMMER then
                 begin
                     consume(_LKLAMMER);
-                    for l:=parraydef(t.def)^.lowrange to parraydef(t.def)^.highrange-1 do
+                    for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
                       begin
-                         readtypedconst(parraydef(t.def)^.elementtype,nil,no_change_allowed);
+                         readtypedconst(tarraydef(t.def).elementtype,nil,no_change_allowed);
                          consume(_COMMA);
                       end;
-                    readtypedconst(parraydef(t.def)^.elementtype,nil,no_change_allowed);
+                    readtypedconst(tarraydef(t.def).elementtype,nil,no_change_allowed);
                     consume(_RKLAMMER);
                  end
               else
               { if array of char then we allow also a string }
-               if is_char(parraydef(t.def)^.elementtype.def) then
+               if is_char(tarraydef(t.def).elementtype.def) then
                 begin
                    p:=comp_expr(true);
                    if p.nodetype=stringconstn then
@@ -546,11 +546,11 @@ implementation
                        Message(cg_e_illegal_expression);
                        len:=0;
                      end;
-                   if len>(Parraydef(t.def)^.highrange-Parraydef(t.def)^.lowrange+1) then
+                   if len>(tarraydef(t.def).highrange-tarraydef(t.def).lowrange+1) then
                      Message(parser_e_string_larger_array);
-                   for i:=Parraydef(t.def)^.lowrange to Parraydef(t.def)^.highrange do
+                   for i:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange do
                      begin
-                        if i+1-Parraydef(t.def)^.lowrange<=len then
+                        if i+1-tarraydef(t.def).lowrange<=len then
                           begin
                              curconstSegment.concat(Tai_const.Create_8bit(byte(ca^)));
                              inc(ca);
@@ -582,7 +582,7 @@ implementation
                   if token=_KLAMMERAFFE then
                     consume(_KLAMMERAFFE);
               getprocvar:=true;
-              getprocvardef:=pprocvardef(t.def);
+              getprocvardef:=tprocvardef(t.def);
               p:=comp_expr(true);
               getprocvar:=false;
               if codegenerror then
@@ -593,9 +593,9 @@ implementation
               { convert calln to loadn }
               if p.nodetype=calln then
                begin
-                 hp:=cloadnode.create(pprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc);
-                 if (tcallnode(p).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                    is_class(pdef(tcallnode(p).symtableprocentry^.owner^.defowner)) then
+                 hp:=cloadnode.create(tprocsym(tcallnode(p).symtableprocentry),tcallnode(p).symtableproc);
+                 if (tcallnode(p).symtableprocentry.owner.symtabletype=objectsymtable) and
+                    is_class(tdef(tcallnode(p).symtableprocentry.owner.defowner)) then
                   tloadnode(hp).set_mp(tcallnode(p).methodpointer.getcopy);
                  p.free;
                  do_resulttypepass(hp);
@@ -609,10 +609,10 @@ implementation
               else if (p.nodetype=addrn) and assigned(taddrnode(p).left) and
                 (taddrnode(p).left.nodetype=calln) then
                 begin
-                   hp:=cloadnode.create(pprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
+                   hp:=cloadnode.create(tprocsym(tcallnode(taddrnode(p).left).symtableprocentry),
                      tcallnode(taddrnode(p).left).symtableproc);
-                   if (tcallnode(taddrnode(p).left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                      is_class(pdef(tcallnode(taddrnode(p).left).symtableprocentry^.owner^.defowner)) then
+                   if (tcallnode(taddrnode(p).left).symtableprocentry.owner.symtabletype=objectsymtable) and
+                      is_class(tdef(tcallnode(taddrnode(p).left).symtableprocentry.owner.defowner)) then
                     tloadnode(hp).set_mp(tcallnode(taddrnode(p).left).methodpointer.getcopy);
                    p.free;
                    do_resulttypepass(hp);
@@ -649,10 +649,10 @@ implementation
                end;
               { we now need to have a loadn with a procsym }
               if (p.nodetype=loadn) and
-                 (tloadnode(p).symtableentry^.typ=procsym) then
+                 (tloadnode(p).symtableentry.typ=procsym) then
                begin
                  curconstSegment.concat(Tai_const_symbol.createname(
-                   pprocsym(tloadnode(p).symtableentry)^.definition^.mangledname));
+                   tprocsym(tloadnode(p).symtableentry).definition.mangledname));
                end
               else
                Message(cg_e_illegal_expression);
@@ -662,7 +662,7 @@ implementation
          recorddef:
            begin
               { KAZ }
-              if (precorddef(t.def)=rec_tguid) and
+              if (trecorddef(t.def)=rec_tguid) and
                  ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
                 begin
                   p:=comp_expr(true);
@@ -698,7 +698,7 @@ implementation
                         s:=pattern;
                         consume(_ID);
                         consume(_COLON);
-                        srsym:=psym(precorddef(t.def)^.symtable^.search(s));
+                        srsym:=tsym(trecorddef(t.def).symtable.search(s));
                         if srsym=nil then
                           begin
                              Message1(sym_e_id_not_found,s);
@@ -707,26 +707,26 @@ implementation
                         else
                           begin
                              { check position }
-                             if pvarsym(srsym)^.address<aktpos then
+                             if tvarsym(srsym).address<aktpos then
                                Message(parser_e_invalid_record_const);
 
                              { if needed fill }
-                             if pvarsym(srsym)^.address>aktpos then
-                               for i:=1 to pvarsym(srsym)^.address-aktpos do
+                             if tvarsym(srsym).address>aktpos then
+                               for i:=1 to tvarsym(srsym).address-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
+                             aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(pvarsym(srsym)^.vartype,nil,no_change_allowed);
+                             readtypedconst(tvarsym(srsym).vartype,nil,no_change_allowed);
 
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
                              else break;
                           end;
                    end;
-                 for i:=1 to t.def^.size-aktpos do
+                 for i:=1 to t.def.size-aktpos do
                    curconstSegment.concat(Tai_const.Create_8bit(0));
                  consume(_RKLAMMER);
               end;
@@ -749,7 +749,7 @@ implementation
                   p.free;
                 end
               { for objects we allow it only if it doesn't contain a vmt }
-              else if (oo_has_vmt in pobjectdef(t.def)^.objectoptions) and
+              else if (oo_has_vmt in tobjectdef(t.def).objectoptions) and
                       not(m_tp in aktmodeswitches) then
                  Message(parser_e_type_const_not_possible)
               else
@@ -762,15 +762,15 @@ implementation
                         consume(_ID);
                         consume(_COLON);
                         srsym:=nil;
-                        obj:=pobjectdef(t.def);
-                        symt:=obj^.symtable;
+                        obj:=tobjectdef(t.def);
+                        symt:=obj.symtable;
                         while (srsym=nil) and assigned(symt) do
                           begin
-                             srsym:=psym(symt^.search(s));
+                             srsym:=tsym(symt.search(s));
                              if assigned(obj) then
-                               obj:=obj^.childof;
+                               obj:=obj.childof;
                              if assigned(obj) then
-                               symt:=obj^.symtable
+                               symt:=obj.symtable
                              else
                                symt:=nil;
                           end;
@@ -783,31 +783,31 @@ implementation
                         else
                           begin
                              { check position }
-                             if pvarsym(srsym)^.address<aktpos then
+                             if tvarsym(srsym).address<aktpos then
                                Message(parser_e_invalid_record_const);
 
                              { check in VMT needs to be added for TP mode }
                              if (m_tp in aktmodeswitches) and
-                                (oo_has_vmt in pobjectdef(t.def)^.objectoptions) and
-                                (pobjectdef(t.def)^.vmt_offset<pvarsym(srsym)^.address) then
+                                (oo_has_vmt in tobjectdef(t.def).objectoptions) and
+                                (tobjectdef(t.def).vmt_offset<tvarsym(srsym).address) then
                                begin
-                                 for i:=1 to pobjectdef(t.def)^.vmt_offset-aktpos do
+                                 for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                                    curconstsegment.concat(tai_const.create_8bit(0));
-                                 curconstsegment.concat(tai_const_symbol.createname(pobjectdef(t.def)^.vmt_mangledname));
+                                 curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                                  { this is more general }
-                                 aktpos:=pobjectdef(t.def)^.vmt_offset + target_os.size_of_pointer;
+                                 aktpos:=tobjectdef(t.def).vmt_offset + target_os.size_of_pointer;
                                end;
 
                              { if needed fill }
-                             if pvarsym(srsym)^.address>aktpos then
-                               for i:=1 to pvarsym(srsym)^.address-aktpos do
+                             if tvarsym(srsym).address>aktpos then
+                               for i:=1 to tvarsym(srsym).address-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.vartype.def^.size;
+                             aktpos:=tvarsym(srsym).address+tvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(pvarsym(srsym)^.vartype,nil,no_change_allowed);
+                             readtypedconst(tvarsym(srsym).vartype,nil,no_change_allowed);
 
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
@@ -815,16 +815,16 @@ implementation
                           end;
                      end;
                    if (m_tp in aktmodeswitches) and
-                      (oo_has_vmt in pobjectdef(t.def)^.objectoptions) and
-                      (pobjectdef(t.def)^.vmt_offset>=aktpos) then
+                      (oo_has_vmt in tobjectdef(t.def).objectoptions) and
+                      (tobjectdef(t.def).vmt_offset>=aktpos) then
                      begin
-                       for i:=1 to pobjectdef(t.def)^.vmt_offset-aktpos do
+                       for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                          curconstsegment.concat(tai_const.create_8bit(0));
-                       curconstsegment.concat(tai_const_symbol.createname(pobjectdef(t.def)^.vmt_mangledname));
+                       curconstsegment.concat(tai_const_symbol.createname(tobjectdef(t.def).vmt_mangledname));
                        { this is more general }
-                       aktpos:=pobjectdef(t.def)^.vmt_offset + target_os.size_of_pointer;
+                       aktpos:=tobjectdef(t.def).vmt_offset + target_os.size_of_pointer;
                      end;
-                   for i:=1 to t.def^.size-aktpos do
+                   for i:=1 to t.def.size-aktpos do
                      curconstSegment.concat(Tai_const.Create_8bit(0));
                    consume(_RKLAMMER);
                 end;
@@ -847,7 +847,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-04-04 22:43:53  peter
+  Revision 1.21  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.20  2001/04/04 22:43:53  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.19  2001/04/02 21:20:34  peter

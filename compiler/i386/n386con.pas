@@ -76,7 +76,7 @@ implementation
 
       var
          hp1 : tai;
-         lastlabel : pasmlabel;
+         lastlabel : tasmlabel;
          realait : tait;
 
       begin
@@ -95,7 +95,7 @@ implementation
          else
            begin
               lastlabel:=nil;
-              realait:=floattype2ait[pfloatdef(resulttype.def)^.typ];
+              realait:=floattype2ait[tfloatdef(resulttype.def).typ];
               { const already used ? }
               if not assigned(lab_real) then
                 begin
@@ -160,7 +160,7 @@ implementation
 
     procedure ti386ordconstnode.pass_2;
       var
-         l : pasmlabel;
+         l : tasmlabel;
 
       begin
          location.loc:=LOC_MEM;
@@ -193,7 +193,7 @@ implementation
          { an integer const. behaves as a memory reference }
          location.loc:=LOC_MEM;
          location.reference.is_immediate:=true;
-         location.reference.offset:=value;
+         location.reference.offset:=longint(value);
       end;
 
 
@@ -205,7 +205,7 @@ implementation
       var
          hp1 : tai;
          l1,l2,
-         lastlabel   : pasmlabel;
+         lastlabel   : tasmlabel;
          pc       : pchar;
          same_string : boolean;
          l,j,
@@ -386,19 +386,19 @@ implementation
     procedure ti386setconstnode.pass_2;
       var
          hp1     : tai;
-         lastlabel   : pasmlabel;
+         lastlabel   : tasmlabel;
          i         : longint;
          neededtyp   : tait;
       begin
         { small sets are loaded as constants }
-        if psetdef(resulttype.def)^.settype=smallset then
+        if tsetdef(resulttype.def).settype=smallset then
          begin
            location.loc:=LOC_MEM;
            location.reference.is_immediate:=true;
            location.reference.offset:=plongint(value_set)^;
            exit;
          end;
-        if psetdef(resulttype.def)^.settype=smallset then
+        if tsetdef(resulttype.def).settype=smallset then
          neededtyp:=ait_const_32bit
         else
          neededtyp:=ait_const_8bit;
@@ -461,7 +461,7 @@ implementation
                  if (cs_create_smart in aktmoduleswitches) then
                   Consts.concat(Tai_cut.Create);
                  Consts.concat(Tai_label.Create(lastlabel));
-                 if psetdef(resulttype.def)^.settype=smallset then
+                 if tsetdef(resulttype.def).settype=smallset then
                   begin
                     move(value_set^,i,sizeof(longint));
                     Consts.concat(Tai_const.Create_32bit(i));
@@ -500,7 +500,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-04-02 21:20:37  peter
+  Revision 1.8  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.7  2001/04/02 21:20:37  peter
     * resulttype rewrite
 
   Revision 1.6  2000/12/25 00:07:32  peter

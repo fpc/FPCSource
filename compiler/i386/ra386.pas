@@ -37,21 +37,19 @@ Function CheckOverride(overrideop,op:tasmop): Boolean;
 Procedure FWaitWarning;
 
 type
-  P386Operand=^T386Operand;
-  T386Operand=object(TOperand)
-    Procedure SetCorrectSize(opcode:tasmop);virtual;
-    Function SetupResult : boolean;virtual;
+  T386Operand=class(TOperand)
+    Procedure SetCorrectSize(opcode:tasmop);override;
+    Function SetupResult : boolean;override;
   end;
 
-  P386Instruction=^T386Instruction;
-  T386Instruction=object(TInstruction)
+  T386Instruction=class(TInstruction)
     { Operand sizes }
     procedure AddReferenceSizes;
     procedure SetInstructionOpsize;
     procedure CheckOperandSizes;
     procedure CheckNonCommutativeOpcodes;
     { opcode adding }
-    procedure ConcatInstruction(p : taasmoutput);virtual;
+    procedure ConcatInstruction(p : taasmoutput);override;
   end;
 
 
@@ -193,7 +191,7 @@ Function T386Operand.SetupResult:boolean;
 var
   Res : boolean;
 Begin
-  Res:=TOperand.setupResult;
+  Res:=inherited setupResult;
   { replace by ref by register if not place was
     reserved on stack }
   if res and (procinfo^.return_offset=0) then
@@ -202,7 +200,7 @@ Begin
      if is_fpu(procinfo^.returntype.def) then
        begin
          opr.reg:=R_ST0;
-         case pfloatdef(procinfo^.returntype.def)^.typ of
+         case tfloatdef(procinfo^.returntype.def).typ of
            s32real : size:=S_FS;
            s64real : size:=S_FL;
            s80real : size:=S_FX;
@@ -215,7 +213,7 @@ Begin
          end;
        end
      else if ret_in_acc(procinfo^.returntype.def) then
-       case procinfo^.returntype.def^.size of
+       case procinfo^.returntype.def.size of
        1 : begin
              opr.reg:=R_AL;
              size:=S_B;
@@ -251,15 +249,15 @@ procedure T386Instruction.AddReferenceSizes;
   operand is a register }
 var
   operand2,i : longint;
-  s : pasmsymbol;
+  s : tasmsymbol;
   so : longint;
 begin
   for i:=1to ops do
    begin
-   operands[i]^.SetCorrectSize(opcode);
-   if (operands[i]^.size=S_NO) then
+   operands[i].SetCorrectSize(opcode);
+   if (operands[i].size=S_NO) then
     begin
-      case operands[i]^.Opr.Typ of
+      case operands[i].Opr.Typ of
         OPR_REFERENCE :
           begin
             if i=2 then
@@ -269,30 +267,30 @@ begin
             if operand2<ops then
              begin
                { Only allow register as operand to take the size from }
-               if operands[operand2]^.opr.typ=OPR_REGISTER then
+               if operands[operand2].opr.typ=OPR_REGISTER then
                  begin
                    if ((opcode<>A_MOVD) and
                        (opcode<>A_CVTSI2SS)) then
-                     operands[i]^.size:=operands[operand2]^.size;
+                     operands[i].size:=operands[operand2].size;
                  end
                else
                 begin
                   { if no register then take the opsize (which is available with ATT),
                     if not availble then give an error }
                   if opsize<>S_NO then
-                    operands[i]^.size:=opsize
+                    operands[i].size:=opsize
                   else
                    begin
                      Message(asmr_e_unable_to_determine_reference_size);
                      { recovery }
-                     operands[i]^.size:=S_L;
+                     operands[i].size:=S_L;
                    end;
                 end;
              end
             else
              begin
                if opsize<>S_NO then
-                 operands[i]^.size:=opsize
+                 operands[i].size:=opsize
              end;
           end;
         OPR_SYMBOL :
@@ -300,14 +298,14 @@ begin
             { Fix lea which need a reference }
             if opcode=A_LEA then
              begin
-               s:=operands[i]^.opr.symbol;
-               so:=operands[i]^.opr.symofs;
-               operands[i]^.opr.typ:=OPR_REFERENCE;
-               reset_reference(operands[i]^.opr.ref);
-               operands[i]^.opr.ref.symbol:=s;
-               operands[i]^.opr.ref.offset:=so;
+               s:=operands[i].opr.symbol;
+               so:=operands[i].opr.symofs;
+               operands[i].opr.typ:=OPR_REFERENCE;
+               reset_reference(operands[i].opr.ref);
+               operands[i].opr.ref.symbol:=s;
+               operands[i].opr.ref.offset:=so;
              end;
-            operands[i]^.size:=S_L;
+            operands[i].size:=S_L;
           end;
       end;
     end;
@@ -325,25 +323,25 @@ begin
       { "push es" must be stored as a long PM }
       if ((opcode=A_PUSH) or
           (opcode=A_POP)) and
-         (operands[1]^.opr.typ=OPR_REGISTER) and
-         ((operands[1]^.opr.reg>=firstsreg) and
-          (operands[1]^.opr.reg<=lastsreg)) then
+         (operands[1].opr.typ=OPR_REGISTER) and
+         ((operands[1].opr.reg>=firstsreg) and
+          (operands[1].opr.reg<=lastsreg)) then
         opsize:=S_L
       else
-        opsize:=operands[1]^.size;
+        opsize:=operands[1].size;
     2 :
       begin
         case opcode of
           A_MOVZX,A_MOVSX :
             begin
-              case operands[1]^.size of
+              case operands[1].size of
                 S_W :
-                  case operands[2]^.size of
+                  case operands[2].size of
                     S_L :
                       opsize:=S_WL;
                   end;
                 S_B :
-                  case operands[2]^.size of
+                  case operands[2].size of
                     S_W :
                       opsize:=S_BW;
                     S_L :
@@ -355,13 +353,13 @@ begin
                      32 bit register or memory, so no opsize is correct here PM }
             exit;
           A_OUT :
-            opsize:=operands[1]^.size;
+            opsize:=operands[1].size;
           else
-            opsize:=operands[2]^.size;
+            opsize:=operands[2].size;
         end;
       end;
     3 :
-      opsize:=operands[3]^.size;
+      opsize:=operands[3].size;
   end;
 end;
 
@@ -387,9 +385,9 @@ begin
   { special push/pop selector case }
   if ((opcode=A_PUSH) or
       (opcode=A_POP)) and
-     (operands[1]^.opr.typ=OPR_REGISTER) and
-     ((operands[1]^.opr.reg>=firstsreg) and
-      (operands[1]^.opr.reg<=lastsreg)) then
+     (operands[1].opr.typ=OPR_REGISTER) and
+     ((operands[1].opr.reg>=firstsreg) and
+      (operands[1].opr.reg<=lastsreg)) then
      exit;
   if opsize in [S_BW,S_BL,S_WL] then
    begin
@@ -399,11 +397,11 @@ begin
       begin
         case opsize of
           S_BW :
-            sizeerr:=(operands[1]^.size<>S_B) or (operands[2]^.size<>S_W);
+            sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_W);
           S_BL :
-            sizeerr:=(operands[1]^.size<>S_B) or (operands[2]^.size<>S_L);
+            sizeerr:=(operands[1].size<>S_B) or (operands[2].size<>S_L);
           S_WL :
-            sizeerr:=(operands[1]^.size<>S_W) or (operands[2]^.size<>S_L);
+            sizeerr:=(operands[1].size<>S_W) or (operands[2].size<>S_L);
         end;
       end;
    end
@@ -411,9 +409,9 @@ begin
    begin
      for i:=1 to ops do
       begin
-        if (operands[i]^.opr.typ<>OPR_CONSTANT) and
-           (operands[i]^.size in [S_B,S_W,S_L]) and
-           (operands[i]^.size<>opsize) then
+        if (operands[i].opr.typ<>OPR_CONSTANT) and
+           (operands[i].size in [S_B,S_W,S_L]) and
+           (operands[i].size<>opsize) then
          sizeerr:=true;
       end;
    end;
@@ -435,11 +433,11 @@ end;
 procedure T386Instruction.CheckNonCommutativeOpcodes;
 begin
   if ((ops=2) and
-     (operands[1]^.opr.typ=OPR_REGISTER) and
-     (operands[2]^.opr.typ=OPR_REGISTER) and
+     (operands[1].opr.typ=OPR_REGISTER) and
+     (operands[2].opr.typ=OPR_REGISTER) and
      { if the first is ST and the second is also a register
        it is necessarily ST1 .. ST7 }
-     (operands[1]^.opr.reg=R_ST)) or
+     (operands[1].opr.reg=R_ST)) or
       (ops=0)  then
       if opcode=A_FSUBR then
         opcode:=A_FSUB
@@ -458,8 +456,8 @@ begin
       else if opcode=A_FDIVP then
         opcode:=A_FDIVRP;
   if  ((ops=1) and
-      (operands[1]^.opr.typ=OPR_REGISTER) and
-      (operands[1]^.opr.reg in [R_ST1..R_ST7])) then
+      (operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg in [R_ST1..R_ST7])) then
       if opcode=A_FSUBRP then
         opcode:=A_FSUBP
       else if opcode=A_FSUBP then
@@ -485,20 +483,20 @@ begin
    siz:=opsize
   else
    begin
-     if (Ops=2) and (operands[1]^.opr.typ=OPR_REGISTER) then
-      siz:=operands[1]^.size
+     if (Ops=2) and (operands[1].opr.typ=OPR_REGISTER) then
+      siz:=operands[1].size
      else
-      siz:=operands[Ops]^.size;
+      siz:=operands[Ops].size;
      { MOVD should be of size S_LQ or S_QL, but these do not exist PM }
-     if (ops=2) and (operands[1]^.size<>S_NO) and
-        (operands[2]^.size<>S_NO) and (operands[1]^.size<>operands[2]^.size) then
+     if (ops=2) and (operands[1].size<>S_NO) and
+        (operands[2].size<>S_NO) and (operands[1].size<>operands[2].size) then
        siz:=S_NO;
    end;
 
    if ((opcode=A_MOVD)or
        (opcode=A_CVTSI2SS)) and
-      ((operands[1]^.size=S_NO) or
-       (operands[2]^.size=S_NO)) then
+      ((operands[1].size=S_NO) or
+       (operands[2].size=S_NO)) then
      siz:=S_NO;
    { NASM does not support FADD without args
      as alias of FADDP
@@ -558,14 +556,14 @@ begin
   {$endif INTELOP}
 {$endif ATTOP}
        ops:=2;
-       operands[1]^.opr.typ:=OPR_REGISTER;
-       operands[2]^.opr.typ:=OPR_REGISTER;
-       operands[1]^.opr.reg:=R_ST;
-       operands[2]^.opr.reg:=R_ST1;
+       operands[1].opr.typ:=OPR_REGISTER;
+       operands[2].opr.typ:=OPR_REGISTER;
+       operands[1].opr.reg:=R_ST;
+       operands[2].opr.reg:=R_ST1;
      end;
   if (ops=1) and
-      ((operands[1]^.opr.typ=OPR_REGISTER) and
-      (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
+      ((operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg in [R_ST1..R_ST7])) and
       ((opcode=A_FSUBP) or
       (opcode=A_FSUBRP) or
       (opcode=A_FDIVP) or
@@ -583,14 +581,14 @@ begin
   {$endif INTELOP}
 {$endif ATTOP}
        ops:=2;
-       operands[2]^.opr.typ:=OPR_REGISTER;
-       operands[2]^.opr.reg:=operands[1]^.opr.reg;
-       operands[1]^.opr.reg:=R_ST;
+       operands[2].opr.typ:=OPR_REGISTER;
+       operands[2].opr.reg:=operands[1].opr.reg;
+       operands[1].opr.reg:=R_ST;
      end;
 
   if (ops=1) and
-      ((operands[1]^.opr.typ=OPR_REGISTER) and
-      (operands[1]^.opr.reg in [R_ST1..R_ST7])) and
+      ((operands[1].opr.typ=OPR_REGISTER) and
+      (operands[1].opr.reg in [R_ST1..R_ST7])) and
       ((opcode=A_FSUB) or
       (opcode=A_FSUBR) or
       (opcode=A_FDIV) or
@@ -608,8 +606,8 @@ begin
   {$endif INTELOP}
 {$endif ATTOP}
        ops:=2;
-       operands[2]^.opr.typ:=OPR_REGISTER;
-       operands[2]^.opr.reg:=R_ST;
+       operands[2].opr.typ:=OPR_REGISTER;
+       operands[2].opr.reg:=R_ST;
      end;
 
    { I tried to convince Linus Torwald to add
@@ -630,20 +628,20 @@ begin
   ai.Ops:=Ops;
   for i:=1to Ops do
    begin
-     case operands[i]^.opr.typ of
+     case operands[i].opr.typ of
        OPR_CONSTANT :
-         ai.loadconst(i-1,operands[i]^.opr.val);
+         ai.loadconst(i-1,operands[i].opr.val);
        OPR_REGISTER:
-         ai.loadreg(i-1,operands[i]^.opr.reg);
+         ai.loadreg(i-1,operands[i].opr.reg);
        OPR_SYMBOL:
-         ai.loadsymbol(i-1,operands[i]^.opr.symbol,operands[i]^.opr.symofs);
+         ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
        OPR_REFERENCE:
          begin
-           ai.loadref(i-1,newreference(operands[i]^.opr.ref));
-           if operands[i]^.size<>S_NO then
+           ai.loadref(i-1,newreference(operands[i].opr.ref));
+           if operands[i].size<>S_NO then
              begin
                asize:=0;
-               case operands[i]^.size of
+               case operands[i].size of
                    S_B :
                      asize:=OT_BITS8;
                    S_W, S_IS :
@@ -688,7 +686,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-04-05 21:33:45  peter
+  Revision 1.9  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.8  2001/04/05 21:33:45  peter
     * movd and opsize fix merged
 
   Revision 1.7  2001/03/05 21:49:44  peter

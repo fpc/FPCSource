@@ -32,7 +32,7 @@ interface
 
     uses
        { common }
-       cclasses,cobjects,
+       cclasses,
        { target }
        systems,
        { assembler }
@@ -72,10 +72,10 @@ interface
          destructor  destroy;override;
          procedure createsection(sec:tsection);override;
          procedure setsectionsizes(var s:tsecsize);override;
-         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);override;
-         procedure writesymbol(p:pasmsymbol);override;
+         procedure writereloc(data,len:longint;p:tasmsymbol;relative:relative_type);override;
+         procedure writesymbol(p:tasmsymbol);override;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;
                                  nidx,nother,line:longint;reloc:boolean);override;
        end;
 
@@ -325,28 +325,28 @@ implementation
       end;
 
 
-    procedure telf32data.writesymbol(p:pasmsymbol);
+    procedure telf32data.writesymbol(p:tasmsymbol);
       var
         sym : toutputsymbol;
       begin
         { already written ? }
-        if p^.idx<>-1 then
+        if p.idx<>-1 then
          exit;
         { be sure that the section will exists }
-        if (p^.section<>sec_none) and not(assigned(sects[p^.section])) then
-          createsection(p^.section);
+        if (p.section<>sec_none) and not(assigned(sects[p.section])) then
+          createsection(p.section);
         FillChar(sym,sizeof(sym),0);
-        sym.size:=p^.size;
-        sym.bind:=p^.bind;
-        sym.typ:=p^.typ;
+        sym.size:=p.size;
+        sym.bind:=p.bind;
+        sym.typ:=p.typ;
         { if local of global then set the section value to the address
           of the symbol }
         case sym.bind of
           AB_LOCAL,
           AB_GLOBAL :
             begin
-              sym.section:=p^.section;
-              sym.value:=p^.address;
+              sym.section:=p.section;
+              sym.value:=p.address;
             end;
           AB_COMMON :
             begin
@@ -358,21 +358,21 @@ implementation
          begin
            { symbolname, write the #0 separate to overcome 255+1 char not possible }
            sym.nameidx:=strtabsect.datasize;
-           strtabsect.writestr(p^.name);
+           strtabsect.writestr(p.name);
            strtabsect.writestr(#0);
            { update the asmsymbol index }
-           p^.idx:=syms.size div sizeof(toutputsymbol);
+           p.idx:=syms.size div sizeof(toutputsymbol);
            { symbol }
            Syms.write(sym,sizeof(toutputsymbol));
          end
         else
          begin
-           p^.idx:=-2; { local }
+           p.idx:=-2; { local }
          end;
       end;
 
 
-    procedure telf32data.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
+    procedure telf32data.writereloc(data,len:longint;p:tasmsymbol;relative:relative_type);
       var
         symaddr : longint;
       begin
@@ -381,9 +381,9 @@ implementation
         if assigned(p) then
          begin
            { real address of the symbol }
-           symaddr:=p^.address;
+           symaddr:=p.address;
            { no symbol relocation need inside a section }
-           if p^.section=currsec then
+           if p.section=currsec then
              begin
                case relative of
                  relative_false :
@@ -402,16 +402,16 @@ implementation
            else
              begin
                writesymbol(p);
-               if (p^.section<>sec_none) and (relative<>relative_true) then
+               if (p.section<>sec_none) and (relative<>relative_true) then
                 begin
-                  sects[currsec].addsectionreloc(sects[currsec].datasize,p^.section,relative);
+                  sects[currsec].addsectionreloc(sects[currsec].datasize,p.section,relative);
                   inc(data,symaddr);
                 end
                else
                 sects[currsec].addsymreloc(sects[currsec].datasize,p,relative);
                if relative=relative_true then
                 begin
-                  if p^.bind=AB_EXTERNAL then
+                  if p.bind=AB_EXTERNAL then
                    dec(data,len)
                   else
                    dec(data,len+sects[currsec].datasize);
@@ -456,7 +456,7 @@ implementation
       end;
 
 
-    procedure telf32data.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+    procedure telf32data.writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;
                                                  nidx,nother,line:longint;reloc:boolean);
       var
         stab : telf32stab;
@@ -526,13 +526,13 @@ implementation
               rel.address:=r^.address;
               if assigned(r^.symbol) then
                begin
-                 if (r^.symbol^.bind=AB_LOCAL) then
-                  relsym:=sects[r^.symbol^.section].secsymidx
+                 if (r^.symbol.bind=AB_LOCAL) then
+                  relsym:=sects[r^.symbol.section].secsymidx
                  else
                   begin
-                    if r^.symbol^.idx=-1 then
+                    if r^.symbol.idx=-1 then
                       internalerror(4321);
-                    relsym:=(r^.symbol^.idx+initsym);
+                    relsym:=(r^.symbol.idx+initsym);
                   end;
                end
               else
@@ -846,7 +846,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-03-05 21:40:39  peter
+  Revision 1.7  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/03/05 21:40:39  peter
     * more things for tcoffobjectinput
 
   Revision 1.5  2000/12/25 00:07:26  peter

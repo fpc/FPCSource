@@ -23,7 +23,6 @@ unit symppu;
 interface
 
     uses
-       cobjects,
        globtype,globals,
        symbase,
        ppu;
@@ -40,7 +39,7 @@ interface
     procedure writesmallset(var s);
     procedure writeguid(var g: tguid);
     procedure writeposinfo(const p:tfileposinfo);
-    procedure writederef(p : psymtableentry);
+    procedure writederef(p : tsymtableentry);
 
     function readbyte:byte;
     function readword:word;
@@ -51,7 +50,7 @@ interface
     procedure readsmallset(var s);
     procedure readguid(var g: tguid);
     procedure readposinfo(var p:tfileposinfo);
-    function readderef : psymtableentry;
+    function readderef : tsymtableentry;
 
     procedure closecurrentppu;
 
@@ -127,77 +126,76 @@ implementation
         current_ppu^.putdata(g,sizeof(g));
       end;
 
-    procedure writederef(p : psymtableentry);
+    procedure writederef(p : tsymtableentry);
       begin
         if p=nil then
          current_ppu^.putbyte(ord(derefnil))
         else
          begin
            { Static symtable ? }
-           if p^.owner^.symtabletype=staticsymtable then
+           if p.owner.symtabletype=staticsymtable then
             begin
               current_ppu^.putbyte(ord(derefaktstaticindex));
-              current_ppu^.putword(p^.indexnr);
+              current_ppu^.putword(p.indexnr);
             end
            { Local record/object symtable ? }
-           else if (p^.owner=aktrecordsymtable) then
+           else if (p.owner=aktrecordsymtable) then
             begin
               current_ppu^.putbyte(ord(derefaktrecordindex));
-              current_ppu^.putword(p^.indexnr);
+              current_ppu^.putword(p.indexnr);
             end
            { Local local/para symtable ? }
-           else if (p^.owner=aktlocalsymtable) then
+           else if (p.owner=aktlocalsymtable) then
             begin
               current_ppu^.putbyte(ord(derefaktlocal));
-              current_ppu^.putword(p^.indexnr);
+              current_ppu^.putword(p.indexnr);
             end
            else
             begin
               current_ppu^.putbyte(ord(derefindex));
-              current_ppu^.putword(p^.indexnr);
+              current_ppu^.putword(p.indexnr);
            { Current unit symtable ? }
               repeat
                 if not assigned(p) then
                  internalerror(556655);
-                case p^.owner^.symtabletype of
+                case p.owner.symtabletype of
                  { when writing the pseudo PPU file
                    to get CRC values the globalsymtable is not yet
                    a unitsymtable PM }
-                  globalsymtable,
-                  unitsymtable :
+                  globalsymtable :
                     begin
                       { check if the unit is available in the uses
                         clause, else it's an error }
-                      if p^.owner^.unitid=$ffff then
+                      if p.owner.unitid=$ffff then
                        internalerror(55665566);
                       current_ppu^.putbyte(ord(derefunit));
-                      current_ppu^.putword(p^.owner^.unitid);
+                      current_ppu^.putword(p.owner.unitid);
                       break;
                     end;
                   staticsymtable :
                     begin
                       current_ppu^.putbyte(ord(derefaktstaticindex));
-                      current_ppu^.putword(p^.indexnr);
+                      current_ppu^.putword(p.indexnr);
                       break;
                     end;
                   localsymtable :
                     begin
-                      p:=p^.owner^.defowner;
+                      p:=p.owner.defowner;
                       current_ppu^.putbyte(ord(dereflocal));
-                      current_ppu^.putword(p^.indexnr);
+                      current_ppu^.putword(p.indexnr);
                     end;
                   parasymtable :
                     begin
-                      p:=p^.owner^.defowner;
+                      p:=p.owner.defowner;
                       current_ppu^.putbyte(ord(derefpara));
-                      current_ppu^.putword(p^.indexnr);
+                      current_ppu^.putword(p.indexnr);
                     end;
                   objectsymtable,
                   recordsymtable :
                     begin
-                      p:=p^.owner^.defowner;
+                      p:=p.owner.defowner;
                       current_ppu^.putbyte(ord(derefrecord));
-                      current_ppu^.putword(p^.indexnr);
+                      current_ppu^.putword(p.indexnr);
                     end;
                   else
                     internalerror(556656);
@@ -297,9 +295,9 @@ implementation
       end;
 
 
-    function readderef : psymtableentry;
+    function readderef : tsymtableentry;
       var
-        hp,p : pderef;
+        hp,p : tderef;
         b : tdereftype;
       begin
         p:=nil;
@@ -314,8 +312,8 @@ implementation
             derefaktlocal,
             derefaktstaticindex :
               begin
-                new(p,init(b,current_ppu^.getword));
-                p^.next:=hp;
+                p:=tderef.create(b,current_ppu^.getword);
+                p.next:=hp;
                 break;
               end;
             derefindex,
@@ -323,18 +321,23 @@ implementation
             derefpara,
             derefrecord :
               begin
-                new(p,init(b,current_ppu^.getword));
-                p^.next:=hp;
+                p:=tderef.create(b,current_ppu^.getword);
+                p.next:=hp;
               end;
           end;
         until false;
-        readderef:=psymtableentry(p);
+        readderef:=tsymtableentry(p);
       end;
 
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:29  peter
+  Revision 1.5  2001-04-13 01:22:16  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.4  2000/12/25 00:07:29  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

@@ -29,11 +29,10 @@ uses
   cclasses;
 
 type
-  pdeffile=^tdeffile;
-  tdeffile=object
+  tdeffile=class
     fname : string;
-    constructor init(const fn:string);
-    destructor  done;
+    constructor create(const fn:string);
+    destructor  destroy;override;
     procedure addexport(const s:string);
     procedure addimport(const s:string);
     procedure writefile;
@@ -44,6 +43,7 @@ type
     exportlist,
     importlist   : tstringlist;
   end;
+
 var
   deffile : tdeffile;
 
@@ -57,7 +57,7 @@ uses
                                TDefFile
 ******************************************************************************}
 
-constructor tdeffile.init(const fn:string);
+constructor tdeffile.create(const fn:string);
 begin
   fname:=fn;
   WrittenOnDisk:=false;
@@ -67,7 +67,7 @@ begin
 end;
 
 
-destructor tdeffile.done;
+destructor tdeffile.destroy;
 begin
   if WrittenOnDisk and
      not(cs_link_extern in aktglobalswitches) then
@@ -160,7 +160,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:26  peter
+  Revision 1.6  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

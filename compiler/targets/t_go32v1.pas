@@ -82,7 +82,7 @@ begin
   WriteResponseFile:=False;
 
   { Open link.res file }
-  LinkRes.Init(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
@@ -147,7 +147,7 @@ begin
 
 { Write and Close response }
   linkres.writetodisk;
-  linkres.done;
+  LinkRes.Free;
 
   WriteResponseFile:=True;
 end;
@@ -189,7 +189,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.5  2000/12/25 00:07:30  peter

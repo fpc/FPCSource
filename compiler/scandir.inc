@@ -177,7 +177,7 @@ const
     function read_factor : string;
       var
          hs : string;
-         mac : pmacro;
+         mac : tmacro;
          len : byte;
       begin
          if preproc_token=_ID then
@@ -193,22 +193,22 @@ const
                 end
               else
                 begin
-                   mac:=pmacro(current_scanner^.macros^.search(hs));
+                   mac:=tmacro(current_scanner^.macros.search(hs));
                    hs:=preprocpat;
                    preproc_consume(_ID);
                    if assigned(mac) then
                      begin
-                        if mac^.defined and assigned(mac^.buftext) then
+                        if mac.defined and assigned(mac.buftext) then
                           begin
-                             if mac^.buflen>255 then
+                             if mac.buflen>255 then
                                begin
                                   len:=255;
                                   Message(scan_w_macro_cut_after_255_chars);
                                end
                              else
-                               len:=mac^.buflen;
+                               len:=mac.buflen;
                              hs[0]:=char(len);
-                             move(mac^.buftext^,hs[1],len);
+                             move(mac.buftext^,hs[1],len);
                           end
                         else
                           read_factor:='';
@@ -340,7 +340,7 @@ const
     procedure dir_conditional(t:tdirectivetoken);
       var
         hs    : string;
-        mac   : pmacro;
+        mac   : tmacro;
         found : boolean;
         state : char;
         oldaktfilepos : tfileposinfo;
@@ -359,10 +359,10 @@ const
    _DIR_IFDEF : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
-                  mac:=pmacro(current_scanner^.macros^.search(hs));
+                  mac:=tmacro(current_scanner^.macros.search(hs));
                   if assigned(mac) then
-                    mac^.is_used:=true;
-                  current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
+                    mac.is_used:=true;
+                  current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac.defined,hs,scan_c_ifdef_found);
                 end;
    _DIR_IFOPT : begin
                   current_scanner^.skipspace;
@@ -387,14 +387,14 @@ const
   _DIR_IFNDEF : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
-                  mac:=pmacro(current_scanner^.macros^.search(hs));
+                  mac:=tmacro(current_scanner^.macros.search(hs));
                   if assigned(mac) then
-                    mac^.is_used:=true;
-                  current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
+                    mac.is_used:=true;
+                  current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac.defined),hs,scan_c_ifndef_found);
                 end;
            end;
          { accept the text ? }
-           if (current_scanner^.preprocstack=nil) or current_scanner^.preprocstack^.accept then
+           if (current_scanner^.preprocstack=nil) or current_scanner^.preprocstack.accept then
             break
            else
             begin
@@ -416,32 +416,32 @@ const
       var
         hs  : string;
         bracketcount : longint;
-        mac : pmacro;
+        mac : tmacro;
         macropos : longint;
         macrobuffer : pmacrobuffer;
       begin
         current_scanner^.skipspace;
         hs:=current_scanner^.readid;
-        mac:=pmacro(current_scanner^.macros^.search(hs));
+        mac:=tmacro(current_scanner^.macros.search(hs));
         if not assigned(mac) then
           begin
-            mac:=new(pmacro,init(hs));
-            mac^.defined:=true;
-            Message1(parser_m_macro_defined,mac^.name);
-            current_scanner^.macros^.insert(mac);
+            mac:=tmacro.create(hs);
+            mac.defined:=true;
+            Message1(parser_m_macro_defined,mac.name);
+            current_scanner^.macros.insert(mac);
           end
         else
           begin
-            Message1(parser_m_macro_defined,mac^.name);
-            mac^.defined:=true;
+            Message1(parser_m_macro_defined,mac.name);
+            mac.defined:=true;
           { delete old definition }
-            if assigned(mac^.buftext) then
+            if assigned(mac.buftext) then
              begin
-               freemem(mac^.buftext,mac^.buflen);
-               mac^.buftext:=nil;
+               freemem(mac.buftext,mac.buflen);
+               mac.buftext:=nil;
              end;
           end;
-        mac^.is_used:=true;
+        mac.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
           { key words are never substituted }
@@ -479,13 +479,13 @@ const
                           Message(scan_f_macro_buffer_overflow);
                        until false;
                        { free buffer of macro ?}
-                       if assigned(mac^.buftext) then
-                         freemem(mac^.buftext,mac^.buflen);
+                       if assigned(mac.buftext) then
+                         freemem(mac.buftext,mac.buflen);
                        { get new mem }
-                       getmem(mac^.buftext,macropos);
-                       mac^.buflen:=macropos;
+                       getmem(mac.buftext,macropos);
+                       mac.buflen:=macropos;
                        { copy the text }
-                       move(macrobuffer^,mac^.buftext^,macropos);
+                       move(macrobuffer^,mac.buftext^,macropos);
                        dispose(macrobuffer);
                     end;
                end;
@@ -508,30 +508,30 @@ const
     procedure dir_undef(t:tdirectivetoken);
       var
         hs  : string;
-        mac : pmacro;
+        mac : tmacro;
       begin
         current_scanner^.skipspace;
         hs:=current_scanner^.readid;
-        mac:=pmacro(current_scanner^.macros^.search(hs));
+        mac:=tmacro(current_scanner^.macros.search(hs));
         if not assigned(mac) then
           begin
-             mac:=new(pmacro,init(hs));
-             Message1(parser_m_macro_undefined,mac^.name);
-             mac^.defined:=false;
-             current_scanner^.macros^.insert(mac);
+             mac:=tmacro.create(hs);
+             Message1(parser_m_macro_undefined,mac.name);
+             mac.defined:=false;
+             current_scanner^.macros.insert(mac);
           end
         else
           begin
-             Message1(parser_m_macro_undefined,mac^.name);
-             mac^.defined:=false;
+             Message1(parser_m_macro_undefined,mac.name);
+             mac.defined:=false;
              { delete old definition }
-             if assigned(mac^.buftext) then
+             if assigned(mac.buftext) then
                begin
-                  freemem(mac^.buftext,mac^.buflen);
-                  mac^.buftext:=nil;
+                  freemem(mac.buftext,mac.buflen);
+                  mac.buftext:=nil;
                end;
           end;
-        mac^.is_used:=true;
+        mac.is_used:=true;
       end;
 
 
@@ -1394,7 +1394,12 @@ const
 
 {
   $Log$
-  Revision 1.19  2001-03-13 18:45:07  peter
+  Revision 1.20  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.19  2001/03/13 18:45:07  peter
     * fixed some memory leaks
 
   Revision 1.18  2001/02/20 21:41:18  peter

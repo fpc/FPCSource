@@ -36,7 +36,7 @@ interface
        trealconstnode = class(tnode)
           restype : ttype;
           value_real : bestreal;
-          lab_real : pasmlabel;
+          lab_real : tasmlabel;
           constructor create(v : bestreal;const t:ttype);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -67,7 +67,7 @@ interface
        tstringconstnode = class(tnode)
           value_str : pchar;
           len : longint;
-          lab_str : pasmlabel;
+          lab_str : tasmlabel;
           st_type : tstringtype;
           constructor createstr(const s : string;st:tstringtype);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
@@ -83,7 +83,7 @@ interface
        tsetconstnode = class(tunarynode)
           restype : ttype;
           value_set : pconstset;
-          lab_set : pasmlabel;
+          lab_set : tasmlabel;
           constructor create(s : pconstset;const t:ttype);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
@@ -107,7 +107,7 @@ interface
        cnilnode : class of tnilnode;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
-    function genenumnode(v : penumsym) : tordconstnode;
+    function genenumnode(v : tenumsym) : tordconstnode;
 
     { some helper routines }
 {$ifdef INT64FUNCRESOK}
@@ -123,7 +123,7 @@ interface
     function is_constresourcestringnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
-    function genconstsymtree(p : pconstsym) : tnode;
+    function genconstsymtree(p : tconstsym) : tnode;
 
 implementation
 
@@ -150,12 +150,12 @@ implementation
       end;
 
 
-    function genenumnode(v : penumsym) : tordconstnode;
+    function genenumnode(v : tenumsym) : tordconstnode;
       var
         htype : ttype;
       begin
-         htype.setdef(v^.definition);
-         genenumnode:=cordconstnode.create(v^.value,htype);
+         htype.setdef(v.definition);
+         genenumnode:=cordconstnode.create(v.value,htype);
       end;
 
 
@@ -211,8 +211,8 @@ implementation
     function is_constresourcestringnode(p : tnode) : boolean;
       begin
         is_constresourcestringnode:=(p.nodetype=loadn) and
-          (tloadnode(p).symtableentry^.typ=constsym) and
-          (pconstsym(tloadnode(p).symtableentry)^.consttyp=constresourcestring);
+          (tloadnode(p).symtableentry.typ=constsym) and
+          (tconstsym(tloadnode(p).symtableentry).consttyp=constresourcestring);
       end;
 
 
@@ -238,43 +238,43 @@ implementation
       end;
 
 
-    function genconstsymtree(p : pconstsym) : tnode;
+    function genconstsymtree(p : tconstsym) : tnode;
       var
         p1  : tnode;
         len : longint;
         pc  : pchar;
       begin
         p1:=nil;
-        case p^.consttyp of
+        case p.consttyp of
           constint :
-            p1:=genintconstnode(p^.value);
+            p1:=genintconstnode(p.value);
           conststring :
             begin
-              len:=p^.len;
+              len:=p.len;
               if not(cs_ansistrings in aktlocalswitches) and (len>255) then
                len:=255;
               getmem(pc,len+1);
-              move(pchar(tpointerord(p^.value))^,pc^,len);
+              move(pchar(tpointerord(p.value))^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
           constchar :
-            p1:=cordconstnode.create(p^.value,cchartype);
+            p1:=cordconstnode.create(p.value,cchartype);
           constreal :
-            p1:=crealconstnode.create(pbestreal(tpointerord(p^.value))^,pbestrealtype^);
+            p1:=crealconstnode.create(pbestreal(tpointerord(p.value))^,pbestrealtype^);
           constbool :
-            p1:=cordconstnode.create(p^.value,booltype);
+            p1:=cordconstnode.create(p.value,booltype);
           constset :
-            p1:=csetconstnode.create(pconstset(tpointerord(p^.value)),p^.consttype);
+            p1:=csetconstnode.create(pconstset(tpointerord(p.value)),p.consttype);
           constord :
-            p1:=cordconstnode.create(p^.value,p^.consttype);
+            p1:=cordconstnode.create(p.value,p.consttype);
           constpointer :
-            p1:=cpointerconstnode.create(p^.value,p^.consttype);
+            p1:=cpointerconstnode.create(p.value,p.consttype);
           constnil :
             p1:=cnilnode.create;
           constresourcestring:
             begin
-              p1:=cloadnode.create(pvarsym(p),pvarsym(p)^.owner);
+              p1:=cloadnode.create(tvarsym(p),tvarsym(p).owner);
               p1.resulttype:=cansistringtype;
             end;
         end;
@@ -358,8 +358,7 @@ implementation
       begin
         result:=nil;
         resulttype:=restype;
-        if resulttype.def^.deftype=orddef then
-         testrange(resulttype.def,value);
+        testrange(resulttype.def,value,false);
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -645,7 +644,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-04-02 21:20:30  peter
+  Revision 1.17  2001-04-13 01:22:09  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:30  peter
     * resulttype rewrite
 
   Revision 1.15  2000/12/31 11:14:10  jonas

@@ -42,7 +42,7 @@ interface
        { aasm }
        cpubase,aasm,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,symtable,types,
+       symconst,symbase,symtype,symsym,symtable,types,
        { pass 1 }
        nbas,
        { parser }
@@ -62,8 +62,8 @@ interface
          retstr,s,hs : string;
          c : char;
          ende : boolean;
-         srsym,sym : psym;
-         srsymtable : psymtable;
+         srsym,sym : tsym;
+         srsymtable : tsymtable;
          code : TAAsmoutput;
          i,l : longint;
 
@@ -124,10 +124,10 @@ interface
                               begin
                                 searchsym(upper(hs),srsym,srsymtable);
                                 if srsym<>nil then
-                                  if (srsym^.typ = labelsym) then
+                                  if (srsym.typ = labelsym) then
                                     Begin
-                                       hs:=plabelsym(srsym)^.lab^.name;
-                                       plabelsym(srsym)^.lab^.is_set:=true;
+                                       hs:=tlabelsym(srsym).lab.name;
+                                       tlabelsym(srsym).lab.is_set:=true;
                                     end
                                   else
                                     Message(asmr_w_using_defined_as_local);
@@ -149,56 +149,56 @@ interface
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                    begin
-                                      if assigned(aktprocsym^.definition^.localst) and
+                                      if assigned(aktprocsym.definition.localst) and
                                          (lexlevel >= normal_function_level) then
-                                        sym:=psym(aktprocsym^.definition^.localst^.search(upper(hs)))
+                                        sym:=tsym(aktprocsym.definition.localst.search(upper(hs)))
                                       else
                                         sym:=nil;
                                       if assigned(sym) then
                                         begin
-                                           if (sym^.typ = labelsym) then
+                                           if (sym.typ = labelsym) then
                                              Begin
-                                                hs:=plabelsym(sym)^.lab^.name;
+                                                hs:=tlabelsym(sym).lab.name;
                                              end
-                                           else if sym^.typ=varsym then
+                                           else if sym.typ=varsym then
                                              begin
                                              {variables set are after a comma }
                                              {like in movl %eax,I }
                                              if pos(',',s) > 0 then
-                                               pvarsym(sym)^.varstate:=vs_used
+                                               tvarsym(sym).varstate:=vs_used
                                              else
-                                             if (pos('MOV',upper(s)) > 0) and (pvarsym(sym)^.varstate=vs_declared) then
+                                             if (pos('MOV',upper(s)) > 0) and (tvarsym(sym).varstate=vs_declared) then
                                               Message1(sym_n_uninitialized_local_variable,hs);
-                                             if (vo_is_external in pvarsym(sym)^.varoptions) then
-                                               hs:=pvarsym(sym)^.mangledname
+                                             if (vo_is_external in tvarsym(sym).varoptions) then
+                                               hs:=tvarsym(sym).mangledname
                                              else
-                                               hs:='-'+tostr(pvarsym(sym)^.address)+
+                                               hs:='-'+tostr(tvarsym(sym).address)+
                                                    '('+att_reg2str[procinfo^.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
-                                           if (sym^.typ=procsym) and ((pos('CALL',upper(s))>0) or
+                                           if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
                                               (pos('LEA',upper(s))>0)) then
                                              begin
-                                                hs:=pprocsym(sym)^.definition^.mangledname;
+                                                hs:=tprocsym(sym).definition.mangledname;
                                              end;
                                         end
                                       else
                                         begin
-                                           if assigned(aktprocsym^.definition^.parast) then
-                                             sym:=psym(aktprocsym^.definition^.parast^.search(upper(hs)))
+                                           if assigned(aktprocsym.definition.parast) then
+                                             sym:=tsym(aktprocsym.definition.parast.search(upper(hs)))
                                            else
                                              sym:=nil;
                                            if assigned(sym) then
                                              begin
-                                                if sym^.typ=varsym then
+                                                if sym.typ=varsym then
                                                   begin
-                                                     l:=pvarsym(sym)^.address;
+                                                     l:=tvarsym(sym).address;
                                                      { set offset }
-                                                     inc(l,aktprocsym^.definition^.parast^.address_fixup);
+                                                     inc(l,aktprocsym.definition.parast.address_fixup);
                                                      hs:=tostr(l)+'('+att_reg2str[procinfo^.framepointer]+')';
                                                      if pos(',',s) > 0 then
-                                                       pvarsym(sym)^.varstate:=vs_used;
+                                                       tvarsym(sym).varstate:=vs_used;
                                                   end;
                                              end
                                       { I added that but it creates a problem in line.ppi
@@ -210,24 +210,23 @@ interface
                                         begin
 {$ifndef IGNOREGLOBALVAR}
                                            searchsym(upper(hs),sym,srsymtable);
-                                           if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,
-                                             globalsymtable,staticsymtable]) then
+                                           if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
                                              begin
-                                                if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
+                                                if (sym.typ = varsym) or (sym.typ = typedconstsym) then
                                                   begin
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym^.mangledname);
-                                                     hs:=sym^.mangledname;
-                                                     if sym^.typ=varsym then
-                                                       inc(pvarsym(sym)^.refs);
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym.mangledname);
+                                                     hs:=sym.mangledname;
+                                                     if sym.typ=varsym then
+                                                       inc(tvarsym(sym).refs);
                                                   end;
                                                 { procs can be called or the address can be loaded }
-                                                if (sym^.typ=procsym) and
+                                                if (sym.typ=procsym) and
                                                    ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                   begin
-                                                     if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+                                                     if assigned(tprocsym(sym).definition.nextoverloaded) then
                                                        Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym^.mangledname);
-                                                     hs:=sym^.mangledname;
+                                                     Message2(asmr_h_direct_global_to_mangled,hs,sym.mangledname);
+                                                     hs:=sym.mangledname;
                                                   end;
                                              end
                                            else
@@ -288,7 +287,12 @@ interface
 end.
 {
   $Log$
-  Revision 1.6  2001-04-02 21:20:40  peter
+  Revision 1.7  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/04/02 21:20:40  peter
     * resulttype rewrite
 
   Revision 1.5  2001/03/11 22:58:52  peter

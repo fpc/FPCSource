@@ -81,8 +81,8 @@ interface
        end;
 
        tsubscriptnode = class(tunarynode)
-          vs : pvarsym;
-          constructor create(varsym : psym;l : tnode);virtual;
+          vs : tvarsym;
+          constructor create(varsym : tsym;l : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -96,17 +96,17 @@ interface
        end;
 
        tselfnode = class(tnode)
-          classdef : pobjectdef;
-          constructor create(_class : pobjectdef);virtual;
+          classdef : tobjectdef;
+          constructor create(_class : tobjectdef);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
 
        twithnode = class(tbinarynode)
-          withsymtable : pwithsymtable;
+          withsymtable : twithsymtable;
           tablecount : longint;
-          withreference:preference;
-          constructor create(symtable : pwithsymtable;l,r : tnode;count : longint);virtual;
+          withreference : preference;
+          constructor create(symtable : twithsymtable;l,r : tnode;count : longint);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -158,7 +158,7 @@ implementation
         if codegenerror then
          exit;
 
-        resulttype.setdef(new(pclassrefdef,init(left.resulttype)));;
+        resulttype.setdef(tclassrefdef.create(left.resulttype));
       end;
 
     function tloadvmtnode.pass_1 : tnode;
@@ -248,7 +248,7 @@ implementation
         resulttypepass(left);
         if codegenerror then
          exit;
-        resulttype:=ppointerdef(left.resulttype.def)^.pointertype;
+        resulttype:=tpointerdef(left.resulttype.def).pointertype;
       end;
 
 
@@ -293,8 +293,8 @@ implementation
         resulttypepass(left);
         if codegenerror then
          exit;
-        if (left.resulttype.def^.deftype<>pointerdef) then
-          CGMessage1(type_e_pointer_type_expected,left.resulttype.def^.typename);
+        if (left.resulttype.def.deftype<>pointerdef) then
+          CGMessage1(type_e_pointer_type_expected,left.resulttype.def.typename);
         resulttype:=voidtype;
       end;
 
@@ -337,7 +337,7 @@ implementation
       var
          hp  : tnode;
          hp2 : TParaItem;
-         hp3 : pabstractprocdef;
+         hp3 : tabstractprocdef;
       begin
         result:=nil;
         resulttypepass(left);
@@ -379,7 +379,7 @@ implementation
              vecn,
              derefn :
                begin
-                 if left.resulttype.def^.deftype=procvardef then
+                 if left.resulttype.def.deftype=procvardef then
                    include(flags,nf_procvarload);
                end;
            end;
@@ -394,7 +394,7 @@ implementation
         if left.nodetype=calln then
          internalerror(200103253)
         else
-         if (left.nodetype=loadn) and (tloadnode(left).symtableentry^.typ=procsym) then
+         if (left.nodetype=loadn) and (tloadnode(left).symtableentry.typ=procsym) then
           begin
             { the address is already available when loading a procedure of object }
             if assigned(tloadnode(left).left) then
@@ -406,26 +406,26 @@ implementation
             if not(m_tp_procvar in aktmodeswitches) then
               begin
 
-                 hp3:=pabstractprocdef(pprocsym(tloadnode(left).symtableentry)^.definition);
+                 hp3:=tabstractprocdef(tprocsym(tloadnode(left).symtableentry).definition);
 
                  { create procvardef }
-                 resulttype.setdef(new(pprocvardef,init));
-                 pprocvardef(resulttype.def)^.proctypeoption:=hp3^.proctypeoption;
-                 pprocvardef(resulttype.def)^.proccalloptions:=hp3^.proccalloptions;
-                 pprocvardef(resulttype.def)^.procoptions:=hp3^.procoptions;
-                 pprocvardef(resulttype.def)^.rettype:=hp3^.rettype;
-                 pprocvardef(resulttype.def)^.symtablelevel:=hp3^.symtablelevel;
+                 resulttype.setdef(tprocvardef.create);
+                 tprocvardef(resulttype.def).proctypeoption:=hp3.proctypeoption;
+                 tprocvardef(resulttype.def).proccalloptions:=hp3.proccalloptions;
+                 tprocvardef(resulttype.def).procoptions:=hp3.procoptions;
+                 tprocvardef(resulttype.def).rettype:=hp3.rettype;
+                 tprocvardef(resulttype.def).symtablelevel:=hp3.symtablelevel;
 
                  { method ? then set the methodpointer flag }
-                 if (hp3^.owner^.symtabletype=objectsymtable) then
-                   include(pprocvardef(resulttype.def)^.procoptions,po_methodpointer);
+                 if (hp3.owner.symtabletype=objectsymtable) then
+                   include(tprocvardef(resulttype.def).procoptions,po_methodpointer);
 
                  { we need to process the parameters reverse so they are inserted
                    in the correct right2left order (PFV) }
-                 hp2:=TParaItem(hp3^.Para.last);
+                 hp2:=TParaItem(hp3.Para.last);
                  while assigned(hp2) do
                    begin
-                      pprocvardef(resulttype.def)^.concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
+                      tprocvardef(resulttype.def).concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
                       hp2:=TParaItem(hp2.previous);
                    end;
               end
@@ -439,20 +439,20 @@ implementation
             while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
              hp:=tunarynode(hp).left;
             if assigned(hp) and (hp.nodetype=loadn) and
-               ((tloadnode(hp).symtableentry^.typ=absolutesym) and
-                pabsolutesym(tloadnode(hp).symtableentry)^.absseg) then
+               ((tloadnode(hp).symtableentry.typ=absolutesym) and
+                tabsolutesym(tloadnode(hp).symtableentry).absseg) then
              begin
                if not(cs_typed_addresses in aktlocalswitches) then
                  resulttype:=voidfarpointertype
                else
-                 resulttype.setdef(new(ppointerdef,initfar(left.resulttype)));
+                 resulttype.setdef(tpointerdef.createfar(left.resulttype));
              end
             else
              begin
                if not(cs_typed_addresses in aktlocalswitches) then
                  resulttype:=voidpointertype
                else
-                 resulttype.setdef(new(ppointerdef,init(left.resulttype)));
+                 resulttype.setdef(tpointerdef.create(left.resulttype));
              end;
           end;
 
@@ -525,7 +525,7 @@ implementation
          set_varstate(left,false);
          dec(parsing_para_level);
 
-         if (left.resulttype.def^.deftype)<>procvardef then
+         if (left.resulttype.def.deftype)<>procvardef then
            CGMessage(cg_e_illegal_expression);
 
          resulttype:=voidpointertype;
@@ -573,8 +573,8 @@ implementation
          if codegenerror then
           exit;
 
-         if left.resulttype.def^.deftype=pointerdef then
-          resulttype:=ppointerdef(left.resulttype.def)^.pointertype
+         if left.resulttype.def.deftype=pointerdef then
+          resulttype:=tpointerdef(left.resulttype.def).pointertype
          else
           CGMessage(cg_e_invalid_qualifier);
       end;
@@ -600,12 +600,12 @@ implementation
                             TSUBSCRIPTNODE
 *****************************************************************************}
 
-    constructor tsubscriptnode.create(varsym : psym;l : tnode);
+    constructor tsubscriptnode.create(varsym : tsym;l : tnode);
 
       begin
          inherited create(subscriptn,l);
-         { vs should be changed to psym! }
-         vs:=pvarsym(varsym);
+         { vs should be changed to tsym! }
+         vs:=tvarsym(varsym);
       end;
 
     function tsubscriptnode.getcopy : tnode;
@@ -625,7 +625,7 @@ implementation
         result:=nil;
         resulttypepass(left);
         set_varstate(left,false);
-        resulttype:=vs^.vartype;
+        resulttype:=vs.vartype;
       end;
 
 
@@ -688,16 +688,16 @@ implementation
           exit;
 
          { range check only for arrays }
-         if (left.resulttype.def^.deftype=arraydef) then
+         if (left.resulttype.def.deftype=arraydef) then
            begin
-              if (isconvertable(right.resulttype.def,parraydef(left.resulttype.def)^.rangetype.def,
+              if (isconvertable(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,
                     ct,ordconstn,false)=0) and
-                 not(is_equal(right.resulttype.def,parraydef(left.resulttype.def)^.rangetype.def)) then
+                 not(is_equal(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def)) then
                 CGMessage(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
          { maybe type conversion }
-         if (right.resulttype.def^.deftype<>enumdef) and
+         if (right.resulttype.def.deftype<>enumdef) and
             not(is_char(right.resulttype.def)) and
             not(is_boolean(right.resulttype.def)) then
            begin
@@ -707,27 +707,27 @@ implementation
          { are we accessing a pointer[], then convert the pointer to
            an array first, in FPC this is allowed for all pointers in
            delphi/tp7 it's only allowed for pchars }
-         if (left.resulttype.def^.deftype=pointerdef) and
+         if (left.resulttype.def.deftype=pointerdef) and
             ((m_fpc in aktmodeswitches) or
              is_pchar(left.resulttype.def) or
              is_pwidechar(left.resulttype.def)) then
           begin
             { convert pointer to array }
-            htype.setdef(new(parraydef,init(0,$7fffffff,s32bittype)));
-            parraydef(htype.def)^.elementtype:=ppointerdef(left.resulttype.def)^.pointertype;
+            htype.setdef(tarraydef.create(0,$7fffffff,s32bittype));
+            tarraydef(htype.def).elementtype:=tpointerdef(left.resulttype.def).pointertype;
             inserttypeconv(left,htype);
 
-            resulttype:=parraydef(htype.def)^.elementtype;
+            resulttype:=tarraydef(htype.def).elementtype;
           end;
 
          { determine return type }
          if not assigned(resulttype.def) then
-           if left.resulttype.def^.deftype=arraydef then
-             resulttype:=parraydef(left.resulttype.def)^.elementtype
-           else if left.resulttype.def^.deftype=stringdef then
+           if left.resulttype.def.deftype=arraydef then
+             resulttype:=tarraydef(left.resulttype.def).elementtype
+           else if left.resulttype.def.deftype=stringdef then
              begin
                 { indexed access to strings }
-                case pstringdef(left.resulttype.def)^.string_typ of
+                case tstringdef(left.resulttype.def).string_typ of
                    st_widestring :
                      resulttype:=cwidechartype;
                    st_ansistring :
@@ -746,7 +746,7 @@ implementation
     function tvecnode.pass_1 : tnode;
 {$ifdef consteval}
       var
-         tcsym : ptypedconstsym;
+         tcsym : ttypedconstsym;
 {$endif}
       begin
          result:=nil;
@@ -761,10 +761,10 @@ implementation
 {$ifdef consteval}
               { constant evaluation }
               if (left.nodetype=loadn) and
-                 (left.symtableentry^.typ=typedconstsym) then
+                 (left.symtableentry.typ=typedconstsym) then
                begin
-                 tcsym:=ptypedconstsym(left.symtableentry);
-                 if tcsym^.defintion^.typ=stringdef then
+                 tcsym:=ttypedconstsym(left.symtableentry);
+                 if tcsym.defintion^.typ=stringdef then
                   begin
 
                   end;
@@ -829,7 +829,7 @@ implementation
                                TSELFNODE
 *****************************************************************************}
 
-    constructor tselfnode.create(_class : pobjectdef);
+    constructor tselfnode.create(_class : tobjectdef);
 
       begin
          inherited create(selfn);
@@ -845,7 +845,7 @@ implementation
     function tselfnode.pass_1 : tnode;
       begin
          result:=nil;
-         if (resulttype.def^.deftype=classrefdef) or
+         if (resulttype.def.deftype=classrefdef) or
            is_class(resulttype.def) then
            location.loc:=LOC_CREGISTER
          else
@@ -857,7 +857,7 @@ implementation
                                TWITHNODE
 *****************************************************************************}
 
-    constructor twithnode.create(symtable : pwithsymtable;l,r : tnode;count : longint);
+    constructor twithnode.create(symtable : twithsymtable;l,r : tnode;count : longint);
 
       begin
          inherited create(withn,l,r);
@@ -870,7 +870,7 @@ implementation
 
     destructor twithnode.destroy;
       var
-        symt : psymtable;
+        symt : tsymtable;
         i    : longint;
       begin
         symt:=withsymtable;
@@ -878,8 +878,8 @@ implementation
          begin
            if assigned(symt) then
             begin
-              withsymtable:=pwithsymtable(symt^.next);
-              dispose(symt,done);
+              withsymtable:=twithsymtable(symt.next);
+              symt.free;
             end;
            symt:=withsymtable;
          end;
@@ -902,7 +902,7 @@ implementation
 
     function twithnode.det_resulttype:tnode;
       var
-         symtable : pwithsymtable;
+         symtable : twithsymtable;
          i : longint;
       begin
          result:=nil;
@@ -919,10 +919,10 @@ implementation
             for i:=1 to tablecount do
              begin
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocsym^.definition^.localst) then
-                symtable^.direct_with:=true;
-               symtable^.withnode:=self;
-               symtable:=pwithsymtable(symtable^.next);
+                  (tloadnode(left).symtable=aktprocsym.definition.localst) then
+                symtable.direct_with:=true;
+               symtable.withnode:=self;
+               symtable:=twithsymtable(symtable.next);
              end;
 
             resulttypepass(right);
@@ -976,7 +976,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-04-02 21:20:31  peter
+  Revision 1.17  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.16  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.15  2001/03/23 00:16:07  florian

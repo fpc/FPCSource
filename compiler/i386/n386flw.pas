@@ -99,8 +99,8 @@ implementation
     procedure ti386whilerepeatnode.pass_2;
       var
          lcont,lbreak,lloop,
-         oldclabel,oldblabel : pasmlabel;
-         otlabel,oflabel : pasmlabel;
+         oldclabel,oldblabel : tasmlabel;
+         otlabel,oflabel : tasmlabel;
 
          //start_regvars_loaded,
          //then_regvars_loaded: regvar_booleanarray;
@@ -178,7 +178,7 @@ implementation
     procedure ti386ifnode.pass_2;
 
       var
-         hl,otlabel,oflabel : pasmlabel;
+         hl,otlabel,oflabel : tasmlabel;
 
       begin
          otlabel:=truelabel;
@@ -232,7 +232,7 @@ implementation
 
     procedure ti386fornode.pass_2;
       var
-         l3,oldclabel,oldblabel : pasmlabel;
+         l3,oldclabel,oldblabel : tasmlabel;
          omitfirstcomp,temptovalue : boolean;
          hs : byte;
          temp1 : treference;
@@ -261,7 +261,7 @@ implementation
          { only calculate reference }
          cleartempgen;
          secondpass(t2);
-         hs:=t2.resulttype.def^.size;
+         hs:=t2.resulttype.def.size;
          if t2.location.loc <> LOC_CREGISTER then
            cmp32:=getregister32;
          case hs of
@@ -308,7 +308,7 @@ implementation
          { produce start assignment }
          cleartempgen;
          secondpass(left);
-         count_var_is_signed:=is_signed(porddef(t2.resulttype.def));
+         count_var_is_signed:=is_signed(torddef(t2.resulttype.def));
          if temptovalue then
              begin
               if t2.location.loc=LOC_CREGISTER then
@@ -464,7 +464,7 @@ implementation
       var
          {op : tasmop;
          s : topsize;}
-         otlabel,oflabel : pasmlabel;
+         otlabel,oflabel : tasmlabel;
          r : preference;
          is_mem,
          allocated_eax,
@@ -531,7 +531,7 @@ implementation
               else
                 internalerror(2001);
               end;
-              case procinfo^.returntype.def^.deftype of
+              case procinfo^.returntype.def.deftype of
            pointerdef,
            procvardef : begin
                           cleanleft;
@@ -547,7 +547,7 @@ implementation
              floatdef : begin
                           cleanleft;
                           if is_mem then
-                           floatload(pfloatdef(procinfo^.returntype.def)^.typ,left.location.reference);
+                           floatload(tfloatdef(procinfo^.returntype.def).typ,left.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -558,7 +558,7 @@ implementation
                           cleanleft;
                           exprasmlist.concat(tairegalloc.alloc(R_EAX));
                           allocated_eax := true;
-                          case procinfo^.returntype.def^.size of
+                          case procinfo^.returntype.def.size of
                            { it can be a qword/int64 too ... }
                            8 : if is_mem then
                                  begin
@@ -657,8 +657,8 @@ do_jmp:
          emitjmp(C_None,labelnr);
          { the assigned avoids only crashes if the label isn't defined }
          if assigned(labsym) and
-           assigned(labsym^.code) and
-            (aktexceptblock<>tlabelnode(labsym^.code).exceptionblock) then
+           assigned(labsym.code) and
+            (aktexceptblock<>tlabelnode(labsym.code).exceptionblock) then
            CGMessage(cg_e_goto_inout_of_exception_block);
        end;
 
@@ -683,7 +683,7 @@ do_jmp:
     procedure ti386raisenode.pass_2;
 
       var
-         a : pasmlabel;
+         a : tasmlabel;
       begin
          if assigned(left) then
            begin
@@ -733,7 +733,7 @@ do_jmp:
 *****************************************************************************}
 
     var
-       endexceptlabel : pasmlabel;
+       endexceptlabel : tasmlabel;
 
     { does the necessary things to clean up the object stack }
     { in the except block                                    }
@@ -777,7 +777,7 @@ do_jmp:
          oldaktexitlabel,
          oldaktexit2label,
          oldaktcontinuelabel,
-         oldaktbreaklabel : pasmlabel;
+         oldaktbreaklabel : tasmlabel;
          oldexceptblock : tnode;
 
 
@@ -1044,7 +1044,7 @@ do_jmp:
          oldaktcontinuelabel,
          doobjectdestroyandreraise,
          doobjectdestroy,
-         oldaktbreaklabel : pasmlabel;
+         oldaktbreaklabel : tasmlabel;
          ref : treference;
          oldexceptblock : tnode;
          oldflowcontrol : tflowcontrol;
@@ -1057,7 +1057,7 @@ do_jmp:
 
          { push the vmt }
          emit_sym(A_PUSH,S_L,
-           newasmsymbol(excepttype^.vmt_mangledname));
+           newasmsymbol(excepttype.vmt_mangledname));
          emitcall('FPC_CATCHES');
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
@@ -1068,7 +1068,7 @@ do_jmp:
 
          { what a hack ! }
          if assigned(exceptsymtable) then
-           pvarsym(exceptsymtable^.symindex^.first)^.address:=ref.offset;
+           tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
 
          emit_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref));
@@ -1204,7 +1204,7 @@ do_jmp:
          oldaktexitlabel,
          oldaktexit2label,
          oldaktcontinuelabel,
-         oldaktbreaklabel : pasmlabel;
+         oldaktbreaklabel : tasmlabel;
          oldexceptblock : tnode;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
@@ -1385,7 +1385,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-04-02 21:20:37  peter
+  Revision 1.10  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.9  2001/04/02 21:20:37  peter
     * resulttype rewrite
 
   Revision 1.8  2001/01/27 21:29:35  florian

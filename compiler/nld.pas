@@ -32,9 +32,9 @@ interface
 
     type
        tloadnode = class(tunarynode)
-          symtableentry : psym;
-          symtable : psymtable;
-          constructor create(v : psym;st : psymtable);virtual;
+          symtableentry : tsym;
+          symtable : tsymtable;
+          constructor create(v : tsym;st : tsymtable);virtual;
           procedure set_mp(p:tnode);
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
@@ -113,7 +113,7 @@ implementation
                              TLOADNODE
 *****************************************************************************}
 
-    constructor tloadnode.create(v : psym;st : psymtable);
+    constructor tloadnode.create(v : tsym;st : tsymtable);
 
       begin
          inherited create(loadn,nil);
@@ -143,16 +143,16 @@ implementation
     function tloadnode.det_resulttype:tnode;
       begin
          result:=nil;
-         case symtableentry^.typ of
+         case symtableentry.typ of
            absolutesym,
            varsym :
-             resulttype:=pvarsym(symtableentry)^.vartype;
+             resulttype:=tvarsym(symtableentry).vartype;
            constsym :
-             resulttype:=pconstsym(symtableentry)^.consttype;
+             resulttype:=tconstsym(symtableentry).consttype;
            typedconstsym :
-             resulttype:=ptypedconstsym(symtableentry)^.typedconsttype;
+             resulttype:=ttypedconstsym(symtableentry).typedconsttype;
            procsym :
-             resulttype.setdef(pprocsym(symtableentry)^.definition);
+             resulttype.setdef(tprocsym(symtableentry).definition);
            else
              internalerror(534785349);
          end;
@@ -166,12 +166,12 @@ implementation
          result:=nil;
 
          { optimize simple with loadings }
-         if (symtable^.symtabletype=withsymtable) and
-            (pwithsymtable(symtable)^.direct_with) and
-            (symtableentry^.typ=varsym) then
+         if (symtable.symtabletype=withsymtable) and
+            (twithsymtable(symtable).direct_with) and
+            (symtableentry.typ=varsym) then
            begin
-              p1:=tnode(pwithsymtable(symtable)^.withrefnode).getcopy;
-              p1:=csubscriptnode.create(pvarsym(symtableentry),p1);
+              p1:=tnode(twithsymtable(symtable).withrefnode).getcopy;
+              p1:=csubscriptnode.create(tvarsym(symtableentry),p1);
               left:=nil;
               firstpass(p1);
               result:=p1;
@@ -185,23 +185,23 @@ implementation
          registersmmx:=0;
 {$endif SUPPORT_MMX}
          { handle first absolute as it will replace the symtableentry }
-         if symtableentry^.typ=absolutesym then
+         if symtableentry.typ=absolutesym then
            begin
              { replace the symtableentry when it points to a var, else
                we are finished }
-             if pabsolutesym(symtableentry)^.abstyp=tovar then
+             if tabsolutesym(symtableentry).abstyp=tovar then
               begin
-                symtableentry:=pabsolutesym(symtableentry)^.ref;
-                symtable:=symtableentry^.owner;
+                symtableentry:=tabsolutesym(symtableentry).ref;
+                symtable:=symtableentry.owner;
                 include(flags,nf_absolute);
               end
              else
               exit;
            end;
-         case symtableentry^.typ of
+         case symtableentry.typ of
             funcretsym :
               begin
-                p1:=cfuncretnode.create(pfuncretsym(symtableentry)^.funcretprocinfo);
+                p1:=cfuncretnode.create(tfuncretsym(symtableentry).funcretprocinfo);
                 firstpass(p1);
                 { if it's refered as absolute then we need to have the
                   type of the absolute instead of the function return,
@@ -216,7 +216,7 @@ implementation
               end;
             constsym:
               begin
-                 if pconstsym(symtableentry)^.consttyp=constresourcestring then
+                 if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
                       resulttype:=cansistringtype;
                       { we use ansistrings so no fast exit here }
@@ -231,63 +231,63 @@ implementation
                 begin
                   { if it's refered by absolute then it's used }
                   if nf_absolute in flags then
-                   pvarsym(symtableentry)^.varstate:=vs_used;
-                  if (symtable^.symtabletype in [parasymtable,localsymtable]) and
-                      (lexlevel>symtable^.symtablelevel) then
+                   tvarsym(symtableentry).varstate:=vs_used;
+                  if (symtable.symtabletype in [parasymtable,localsymtable]) and
+                      (lexlevel>symtable.symtablelevel) then
                      begin
                        { if the variable is in an other stackframe then we need
                          a register to dereference }
-                       if (symtable^.symtablelevel)>0 then
+                       if (symtable.symtablelevel)>0 then
                         begin
                           registers32:=1;
                           { further, the variable can't be put into a register }
-                          pvarsym(symtableentry)^.varoptions:=
-                            pvarsym(symtableentry)^.varoptions-[vo_fpuregable,vo_regable];
+                          tvarsym(symtableentry).varoptions:=
+                            tvarsym(symtableentry).varoptions-[vo_fpuregable,vo_regable];
                         end;
                      end;
-                   if (pvarsym(symtableentry)^.varspez=vs_const) then
+                   if (tvarsym(symtableentry).varspez=vs_const) then
                      location.loc:=LOC_MEM;
                    { we need a register for call by reference parameters }
-                   if (pvarsym(symtableentry)^.varspez in [vs_var,vs_out]) or
-                      ((pvarsym(symtableentry)^.varspez=vs_const) and
-                      push_addr_param(pvarsym(symtableentry)^.vartype.def)) or
+                   if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
+                      ((tvarsym(symtableentry).varspez=vs_const) and
+                      push_addr_param(tvarsym(symtableentry).vartype.def)) or
                       { call by value open arrays are also indirect addressed }
-                      is_open_array(pvarsym(symtableentry)^.vartype.def) then
+                      is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
-                   if symtable^.symtabletype=withsymtable then
+                   if symtable.symtabletype=withsymtable then
                      inc(registers32);
 
-                   if ([vo_is_thread_var,vo_is_dll_var]*pvarsym(symtableentry)^.varoptions)<>[] then
+                   if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                      registers32:=1;
                    { count variable references }
 
                      { this will create problem with local var set by
                      under_procedures
-                     if (assigned(pvarsym(symtableentry)^.owner) and assigned(aktprocsym)
-                       and ((pvarsym(symtableentry)^.owner = aktprocsym^.definition^.localst)
-                       or (pvarsym(symtableentry)^.owner = aktprocsym^.definition^.localst))) then }
+                     if (assigned(tvarsym(symtableentry).owner) and assigned(aktprocsym)
+                       and ((tvarsym(symtableentry).owner = aktprocsym.definition.localst)
+                       or (tvarsym(symtableentry).owner = aktprocsym.definition.localst))) then }
                    if t_times<1 then
-                     inc(pvarsym(symtableentry)^.refs)
+                     inc(tvarsym(symtableentry).refs)
                    else
-                     inc(pvarsym(symtableentry)^.refs,t_times);
+                     inc(tvarsym(symtableentry).refs,t_times);
                 end;
             typedconstsym :
                 if not(nf_absolute in flags) then
-                  resulttype:=ptypedconstsym(symtableentry)^.typedconsttype;
+                  resulttype:=ttypedconstsym(symtableentry).typedconsttype;
             procsym :
                 begin
-                   if assigned(pprocsym(symtableentry)^.definition^.nextoverloaded) then
+                   if assigned(tprocsym(symtableentry).definition.nextoverloaded) then
                      CGMessage(parser_e_no_overloaded_procvars);
-                   resulttype.setdef(pprocsym(symtableentry)^.definition);
+                   resulttype.setdef(tprocsym(symtableentry).definition);
                    { if the owner of the procsym is a object,  }
                    { left must be set, if left isn't set       }
                    { it can be only self                       }
                    { this code is only used in TP procvar mode }
                    if (m_tp_procvar in aktmodeswitches) and
                       not(assigned(left)) and
-                      (pprocsym(symtableentry)^.owner^.symtabletype=objectsymtable) then
+                      (tprocsym(symtableentry).owner.symtabletype=objectsymtable) then
                     begin
-                      left:=cselfnode.create(pobjectdef(symtableentry^.owner^.defowner));
+                      left:=cselfnode.create(tobjectdef(symtableentry.owner.defowner));
                     end;
                    { method pointer ? }
                    if assigned(left) then
@@ -378,8 +378,8 @@ implementation
         valid_for_assign(left,true);
 
         { check if local proc/func is assigned to procvar }
-        if right.resulttype.def^.deftype=procvardef then
-          test_local_to_procvar(pprocvardef(right.resulttype.def),left.resulttype.def);
+        if right.resulttype.def.deftype=procvardef then
+          test_local_to_procvar(tprocvardef(right.resulttype.def),left.resulttype.def);
       end;
 
 
@@ -590,10 +590,10 @@ implementation
          end;
          if not assigned(htype.def) then
           htype:=voidtype;
-         resulttype.setdef(new(parraydef,init(0,len-1,s32bittype)));
-         parraydef(resulttype.def)^.elementtype:=htype;
-         parraydef(resulttype.def)^.IsConstructor:=true;
-         parraydef(resulttype.def)^.IsVariant:=varia;
+         resulttype.setdef(tarraydef.create(0,len-1,s32bittype));
+         tarraydef(resulttype.def).elementtype:=htype;
+         tarraydef(resulttype.def).IsConstructor:=true;
+         tarraydef(resulttype.def).IsVariant:=varia;
       end;
 
 
@@ -605,7 +605,7 @@ implementation
         dovariant : boolean;
         htype     : ttype;
       begin
-        dovariant:=(nf_forcevaria in flags) or parraydef(resulttype.def)^.isvariant;
+        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         result:=nil;
       { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
@@ -617,7 +617,7 @@ implementation
               { Insert typeconvs for array of const }
               if dovariant then
                begin
-                 case hp.left.resulttype.def^.deftype of
+                 case hp.left.resulttype.def.deftype of
                    enumdef :
                      begin
                        hp.left:=ctypeconvnode.create(hp.left,s32bittype);
@@ -654,7 +654,7 @@ implementation
                    classrefdef,
                    objectdef : ;
                    else
-                     CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def^.typename);
+                     CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                  end;
                end;
               hp:=tarrayconstructornode(hp.right);
@@ -737,7 +737,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-04-05 21:03:08  peter
+  Revision 1.14  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.13  2001/04/05 21:03:08  peter
     * array constructor fix
 
   Revision 1.12  2001/04/04 22:42:40  peter

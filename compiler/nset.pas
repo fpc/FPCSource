@@ -36,10 +36,10 @@ interface
           _low,_high : TConstExprInt;
 
           { only used by gentreejmp }
-          _at : pasmlabel;
+          _at : tasmlabel;
 
           { label of instruction }
-          statement : pasmlabel;
+          statement : tasmlabel;
 
           { is this the first of an case entry, needed to release statement
             label (PFV) }
@@ -180,26 +180,26 @@ implementation
         t : tnode;
         pst : pconstset;
 
-        function createsetconst(psd : psetdef) : pconstset;
+        function createsetconst(psd : tsetdef) : pconstset;
         var
           pcs : pconstset;
-          pes : penumsym;
+          pes : tenumsym;
           i : longint;
         begin
           new(pcs);
-          case psd^.elementtype.def^.deftype of
+          case psd.elementtype.def.deftype of
             enumdef :
               begin
-                pes:=penumsym(penumdef(psd^.elementtype.def)^.firstenum);
+                pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
                 while assigned(pes) do
                   begin
-                    pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
-                    pes:=pes^.nextenum;
+                    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
+                    pes:=pes.nextenum;
                   end;
               end;
             orddef :
               begin
-                for i:=porddef(psd^.elementtype.def)^.low to porddef(psd^.elementtype.def)^.high do
+                for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
                   begin
                     pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
                   end;
@@ -225,13 +225,13 @@ implementation
              exit;
           end;
 
-         if right.resulttype.def^.deftype<>setdef then
+         if right.resulttype.def.deftype<>setdef then
            CGMessage(sym_e_set_expected);
 
          if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
-             pst:=createsetconst(psetdef(ttypenode(right).resulttype.def));
+             pst:=createsetconst(tsetdef(ttypenode(right).resulttype.def));
              t:=csetconstnode.create(pst,ttypenode(right).resulttype);
              dispose(pst);
              right.free;
@@ -244,8 +244,8 @@ implementation
            exit;
 
          { type conversion/check }
-         if assigned(psetdef(right.resulttype.def)^.elementtype.def) then
-          inserttypeconv(left,psetdef(right.resulttype.def)^.elementtype);
+         if assigned(tsetdef(right.resulttype.def).elementtype.def) then
+          inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
       end;
 
 
@@ -264,7 +264,7 @@ implementation
            exit;
 
          { empty set then return false }
-         if not assigned(psetdef(right.resulttype.def)^.elementtype.def) then
+         if not assigned(tsetdef(right.resulttype.def).elementtype.def) then
           begin
             t:=cordconstnode.create(0,booltype);
             firstpass(t);
@@ -284,7 +284,7 @@ implementation
          left_right_max;
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
-         if psetdef(right.resulttype.def)^.settype<>smallset then
+         if tsetdef(right.resulttype.def).settype<>smallset then
            procinfo^.flags:=procinfo^.flags or pi_do_call
          else
            begin
@@ -588,7 +588,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-04-02 21:20:31  peter
+  Revision 1.13  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.12  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.11  2000/12/31 11:14:11  jonas

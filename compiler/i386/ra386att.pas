@@ -36,7 +36,7 @@ Implementation
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,cclasses,
        { global }
        globtype,globals,verbose,
        systems,
@@ -108,7 +108,7 @@ var
   actasmregister : tregister;
   actopsize      : topsize;
   actcondition   : tasmcond;
-  iasmops        : Pdictionary;
+  iasmops        : tdictionary;
   iasmregs       : ^reg2strtable;
 
 
@@ -117,16 +117,16 @@ Procedure SetupTables;
 var
   i : tasmop;
   j : tregister;
-  str2opentry: pstr2opentry;
+  str2opentry: tstr2opentry;
 Begin
   { opcodes }
-  new(iasmops,init);
-  iasmops^.delete_doubles:=true;
+  iasmops:=TDictionary.Create;
+  iasmops.delete_doubles:=true;
   for i:=firstop to lastop do
     begin
-      new(str2opentry,initname(upper(att_op2str[i])));
-      str2opentry^.op:=i;
-      iasmops^.insert(str2opentry);
+      str2opentry:=tstr2opentry.createname(upper(att_op2str[i]));
+      str2opentry.op:=i;
+      iasmops.insert(str2opentry);
     end;
   { registers }
   new(iasmregs);
@@ -156,7 +156,7 @@ const
     S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
   );
 var
-  str2opentry: pstr2opentry;
+  str2opentry: tstr2opentry;
   cond : string[4];
   cnd  : tasmcond;
   len,
@@ -178,10 +178,10 @@ Begin
         { here we search the entire table... }
         str2opentry:=nil;
         if {(length(s)>0) and} (len>0) then
-          str2opentry:=pstr2opentry(iasmops^.search(copy(s,1,len)));
+          str2opentry:=tstr2opentry(iasmops.search(copy(s,1,len)));
         if assigned(str2opentry) then
           begin
-            actopcode:=str2opentry^.op;
+            actopcode:=str2opentry.op;
             if att_needsuffix[actopcode]=attsufFPU then
              actopsize:=att_sizefpusuffix[sufidx]
             else if att_needsuffix[actopcode]=attsufFPUint then
@@ -818,9 +818,9 @@ var
   parenlevel,l,k : longint;
   errorflag : boolean;
   prevtok : tasmtoken;
-  sym : psym;
-  srsymtable : psymtable;
-  hl  : PAsmLabel;
+  sym : tsym;
+  srsymtable : tsymtable;
+  hl  : tasmlabel;
 Begin
   asmsym:='';
   value:=0;
@@ -952,13 +952,13 @@ Begin
                 searchsym(tempstr,sym,srsymtable);
                 if assigned(sym) then
                  begin
-                   case sym^.typ of
+                   case sym.typ of
                      varsym :
-                       l:=pvarsym(sym)^.getsize;
+                       l:=tvarsym(sym).getsize;
                      typedconstsym :
-                       l:=ptypedconstsym(sym)^.getsize;
+                       l:=ttypedconstsym(sym).getsize;
                      typesym :
-                       l:=ptypesym(sym)^.restype.def^.size;
+                       l:=ttypesym(sym).restype.def.size;
                      else
                        Message(asmr_e_wrong_sym_type);
                    end;
@@ -986,30 +986,30 @@ Begin
              if is_locallabel(tempstr) then
               begin
                 CreateLocalLabel(tempstr,hl,false);
-                hs:=hl^.name
+                hs:=hl.name
               end
              else
               if SearchLabel(tempstr,hl,false) then
-               hs:=hl^.name
+               hs:=hl.name
              else
               begin
                 searchsym(tempstr,sym,srsymtable);
                 if assigned(sym) then
                  begin
-                   case sym^.typ of
+                   case sym.typ of
                      varsym :
                        begin
-                         if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
+                         if sym.owner.symtabletype in [localsymtable,parasymtable] then
                           Message(asmr_e_no_local_or_para_allowed);
-                         hs:=pvarsym(sym)^.mangledname;
+                         hs:=tvarsym(sym).mangledname;
                        end;
                      typedconstsym :
-                       hs:=ptypedconstsym(sym)^.mangledname;
+                       hs:=ttypedconstsym(sym).mangledname;
                      procsym :
-                       hs:=pprocsym(sym)^.mangledname;
+                       hs:=tprocsym(sym).mangledname;
                      typesym :
                        begin
-                         if not(ptypesym(sym)^.restype.def^.deftype in [recorddef,objectdef]) then
+                         if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
                           Message(asmr_e_wrong_sym_type);
                        end;
                      else
@@ -1095,9 +1095,8 @@ end;
 ****************************************************************************}
 
 type
-  P386ATTOperand=^T386ATTOperand;
-  T386ATTOperand=object(T386Operand)
-    Procedure BuildOperand;virtual;
+  T386ATTOperand=class(T386Operand)
+    Procedure BuildOperand;override;
   private
     Procedure BuildReference;
     Procedure BuildConstant;
@@ -1278,7 +1277,7 @@ var
   expr : string;
   l,k : longint;
 
-  procedure AddLabelOperand(hl:pasmlabel);
+  procedure AddLabelOperand(hl:tasmlabel);
   begin
     if not(actasmtoken in [AS_PLUS,AS_MINUS,AS_LPAREN]) and
        is_calljmp(actopcode) then
@@ -1387,7 +1386,7 @@ var
 
 var
   tempreg : tregister;
-  hl      : PAsmLabel;
+  hl      : tasmlabel;
 Begin
   expr:='';
   case actasmtoken of
@@ -1598,10 +1597,9 @@ end;
 *****************************************************************************}
 
 type
-  P386AttInstruction=^T386AttInstruction;
-  T386AttInstruction=object(T386Instruction)
-    procedure InitOperands;virtual;
-    procedure BuildOpcode;virtual;
+  T386AttInstruction=class(T386Instruction)
+    procedure InitOperands;override;
+    procedure BuildOpcode;override;
   end;
 
 procedure T386AttInstruction.InitOperands;
@@ -1609,7 +1607,7 @@ var
   i : longint;
 begin
   for i:=1to 3 do
-   Operands[i]:=new(P386AttOperand,Init);
+   Operands[i]:=T386AttOperand.Create;
 end;
 
 
@@ -1689,7 +1687,7 @@ Begin
           break;
         end;
     else
-      Operands[operandnum]^.BuildOperand;
+      Operands[operandnum].BuildOperand;
     end; { end case }
   until false;
   Ops:=operandnum;
@@ -1866,7 +1864,7 @@ end;
 
 Function Assemble: tnode;
 Var
-  hl         : PAsmLabel;
+  hl         : tasmlabel;
   commname   : string;
   lastsec    : tsection;
   l1,l2      : longint;
@@ -1887,7 +1885,7 @@ Begin
   curlist:=TAAsmoutput.Create;
   lastsec:=sec_code;
   { setup label linked list }
-  new(LocalLabelList,Init);
+  LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
   c:=current_scanner^.asmgetchar;
   gettoken;
@@ -2057,13 +2055,13 @@ Begin
         end;
       AS_OPCODE:
         Begin
-          instr.init;
+          instr:=T386ATTInstruction.Create;
           instr.BuildOpcode;
           instr.AddReferenceSizes;
           instr.SetInstructionOpsize;
           instr.CheckOperandSizes;
           instr.ConcatInstruction(curlist);
-          instr.done;
+          instr.Free;
         end;
 
       AS_SEPARATOR:
@@ -2084,8 +2082,8 @@ Begin
     end;
   until false;
   { Check LocalLabelList }
-  LocalLabelList^.CheckEmitted;
-  dispose(LocalLabelList,Done);
+  LocalLabelList.CheckEmitted;
+  LocalLabelList.Free;
   { are we back in the code section? }
   if lastsec<>sec_code then
    begin
@@ -2109,7 +2107,7 @@ procedure ra386att_exit;
 begin
   exitproc:=old_exit;
   if assigned(iasmops) then
-    dispose(iasmops,done);
+    iasmops.Free;
   if assigned(iasmregs) then
     dispose(iasmregs);
 end;
@@ -2121,7 +2119,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-03-25 12:29:45  peter
+  Revision 1.9  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.8  2001/03/25 12:29:45  peter
     * offset_fixup fixes (merged)
 
   Revision 1.7  2001/03/11 22:58:52  peter

@@ -33,7 +33,7 @@ uses
   strings,
 {$endif}
   globtype,cpubase,
-  cobjects,globals,aasm;
+  globals,aasm;
 
 {stab constants }
 Const
@@ -46,7 +46,7 @@ Const
     N_BssLine = $48;
     N_RSYM = $40; { register variable }
     N_LSYM = $80;
-    N_PSYM = 160;
+    N_tsym = 160;
     N_SourceFile = $64;
     N_IncludeFile = $84;
     N_BINCL = $82;
@@ -249,7 +249,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:26  peter
+  Revision 1.6  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.5  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

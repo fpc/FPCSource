@@ -40,13 +40,13 @@ interface
        curobjectname : stringid;
 
     { reads a string, file type or a type id and returns a name and }
-    { pdef }
+    { tdef }
     procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
 
     procedure read_type(var tt:ttype;const name : stringid);
 
     { reads a type definition }
-    { to a appropriating pdef, s gets the name of   }
+    { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
     procedure id_type(var tt : ttype;var s : string;isforwarddef:boolean);
 
@@ -71,13 +71,13 @@ implementation
 
     procedure id_type(var tt : ttype;var s : string;isforwarddef:boolean);
     { reads a type definition }
-    { to a appropriating pdef, s gets the name of   }
+    { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
       var
         is_unit_specific : boolean;
         pos : tfileposinfo;
-        srsym : psym;
-        srsymtable : psymtable;
+        srsym : tsym;
+        srsymtable : tsymtable;
       begin
          s:=pattern;
          pos:=akttokenpos;
@@ -100,13 +100,13 @@ implementation
          searchsym(s,srsym,srsymtable);
          consume(_ID);
          if assigned(srsym) and
-            (srsym^.typ=unitsym) then
+            (srsym.typ=unitsym) then
            begin
               is_unit_specific:=true;
               consume(_POINT);
-              if srsym^.owner^.unitid=0 then
+              if srsym.owner.unitid=0 then
                begin
-                 srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                 srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,pattern);
                  pos:=akttokenpos;
                  s:=pattern;
                end
@@ -118,7 +118,7 @@ implementation
          if isforwarddef and
             not(is_unit_specific) then
           begin
-            tt.setdef(new(pforwarddef,init(s,pos)));
+            tt.setdef(tforwarddef.create(s,pos));
             exit;
           end;
          { unknown sym ? }
@@ -129,7 +129,7 @@ implementation
             exit;
           end;
          { type sym ? }
-         if (srsym^.typ<>typesym) then
+         if (srsym.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
             tt:=generrortype;
@@ -138,7 +138,7 @@ implementation
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error }
-         if (ptypesym(srsym)^.restype.def^.deftype=errordef) then
+         if (ttypesym(srsym).restype.def.deftype=errordef) then
           begin
             Message(sym_e_error_in_type_def);
             tt:=generrortype;
@@ -149,9 +149,9 @@ implementation
            loaded at that time. A symbol reference to an other unit
            is still possible, because it's already loaded (PFV)
            can't use in [] here, becuase unitid can be > 255 }
-         if (ptypesym(srsym)^.owner^.unitid=0) or
-            (ptypesym(srsym)^.owner^.unitid=1) then
-          tt.setdef(ptypesym(srsym)^.restype.def)
+         if (ttypesym(srsym).owner.unitid=0) or
+            (ttypesym(srsym).owner.unitid=1) then
+          tt.setdef(ttypesym(srsym).restype.def)
          else
           tt.setsym(srsym);
       end;
@@ -159,7 +159,7 @@ implementation
 
     procedure single_type(var tt:ttype;var s : string;isforwarddef:boolean);
     { reads a string, file type or a type id and returns a name and }
-    { pdef                                                        }
+    { tdef                                                        }
        var
           hs : string;
           t2 : ttype;
@@ -177,7 +177,7 @@ implementation
                      begin
                         consume(_OF);
                         single_type(t2,hs,false);
-                        tt.setdef(new(pfiledef,inittyped(t2)));
+                        tt.setdef(tfiledef.createtyped(t2));
                         s:='FILE$OF$'+hs;
                      end
                    else
@@ -194,18 +194,18 @@ implementation
       end;
 
     { reads a record declaration }
-    function record_dec : pdef;
+    function record_dec : tdef;
 
       var
-         symtable : psymtable;
+         symtable : tsymtable;
          storetypecanbeforward : boolean;
 
       begin
          { create recdef }
-         symtable:=new(pstoredsymtable,init(recordsymtable));
-         record_dec:=new(precorddef,init(symtable));
+         symtable:=trecordsymtable.create;
+         record_dec:=trecorddef.create(symtable);
          { update symtable stack }
-         symtable^.next:=symtablestack;
+         symtable.next:=symtablestack;
          symtablestack:=symtable;
          { parse record }
          consume(_RECORD);
@@ -217,9 +217,9 @@ implementation
          consume(_END);
          typecanbeforward:=storetypecanbeforward;
          { may be scale record size to a size of n*4 ? }
-         symtablestack^.datasize:=align(symtablestack^.datasize,symtablestack^.dataalignment);
+         symtablestack.datasize:=align(symtablestack.datasize,symtablestack.dataalignment);
          { restore symtable stack }
-         symtablestack:=symtable^.next;
+         symtablestack:=symtable.next;
       end;
 
 
@@ -228,8 +228,8 @@ implementation
       var
         pt : tnode;
         tt2 : ttype;
-        aktenumdef : penumdef;
-        ap : parraydef;
+        aktenumdef : tenumdef;
+        ap : tarraydef;
         s : stringid;
         l,v : TConstExprInt;
         oldaktpackrecords : tpackrecords;
@@ -276,18 +276,18 @@ implementation
                        else
                         begin
                         { All checks passed, create the new def }
-                          case pt1.resulttype.def^.deftype of
+                          case pt1.resulttype.def.deftype of
                             enumdef :
-                              tt.setdef(new(penumdef,init_subrange(penumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value)));
+                              tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value));
                             orddef :
                               begin
                                 if is_char(pt1.resulttype.def) then
-                                  tt.setdef(new(porddef,init(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value)))
+                                  tt.setdef(torddef.create(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value))
                                 else
                                   if is_boolean(pt1.resulttype.def) then
-                                    tt.setdef(new(porddef,init(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value)))
+                                    tt.setdef(torddef.create(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value))
                                   else
-                                    tt.setdef(new(porddef,init(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value)));
+                                    tt.setdef(torddef.create(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value));
                               end;
                           end;
                         end;
@@ -317,27 +317,27 @@ implementation
 
           procedure setdefdecl(const t:ttype);
           begin
-            case t.def^.deftype of
+            case t.def.deftype of
               enumdef :
                 begin
-                  lowval:=penumdef(t.def)^.min;
-                  highval:=penumdef(t.def)^.max;
+                  lowval:=tenumdef(t.def).min;
+                  highval:=tenumdef(t.def).max;
                   arraytype:=t;
                 end;
               orddef :
                 begin
-                  if porddef(t.def)^.typ in [uchar,
+                  if torddef(t.def).typ in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
                     bool8bit,bool16bit,bool32bit,
                     uwidechar] then
                     begin
-                       lowval:=porddef(t.def)^.low;
-                       highval:=porddef(t.def)^.high;
+                       lowval:=torddef(t.def).low;
+                       highval:=torddef(t.def).high;
                        arraytype:=t;
                     end
                   else
-                    Message1(parser_e_type_cant_be_used_in_array_index,t.def^.gettypename);
+                    Message1(parser_e_type_cant_be_used_in_array_index,t.def.gettypename);
                 end;
               else
                 Message(sym_e_error_in_type_def);
@@ -398,13 +398,13 @@ implementation
                 { create arraydef }
                   if not assigned(tt.def) then
                    begin
-                     ap:=new(parraydef,init(lowval,highval,arraytype));
+                     ap:=tarraydef.create(lowval,highval,arraytype);
                      tt.setdef(ap);
                    end
                   else
                    begin
-                     ap^.elementtype.setdef(new(parraydef,init(lowval,highval,arraytype)));
-                     ap:=parraydef(ap^.elementtype.def);
+                     ap.elementtype.setdef(tarraydef.create(lowval,highval,arraytype));
+                     ap:=tarraydef(ap.elementtype.def);
                    end;
 
                   if token=_COMMA then
@@ -416,15 +416,15 @@ implementation
              end
            else
              begin
-                ap:=new(parraydef,init(0,-1,s32bittype));
-                ap^.IsDynamicArray:=true;
+                ap:=tarraydef.create(0,-1,s32bittype);
+                ap.IsDynamicArray:=true;
                 tt.setdef(ap);
              end;
            consume(_OF);
            read_type(tt2,'');
            { if no error, set element type }
            if assigned(ap) then
-             ap^.elementtype:=tt2;
+             ap.elementtype:=tt2;
         end;
 
       begin
@@ -439,7 +439,7 @@ implementation
                 consume(_LKLAMMER);
                 { allow negativ value_str }
                 l:=-1;
-                aktenumdef:=new(penumdef,init);
+                aktenumdef:=tenumdef.create;
                 repeat
                   s:=orgpattern;
                   defpos:=akttokenpos;
@@ -471,7 +471,7 @@ implementation
                     inc(l);
                   storepos:=akttokenpos;
                   akttokenpos:=defpos;
-                  constsymtable^.insert(new(penumsym,init(s,aktenumdef,l)));
+                  constsymtable.insert(tenumsym.create(s,aktenumdef,l));
                   akttokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 tt.setdef(aktenumdef);
@@ -488,23 +488,23 @@ implementation
                 read_type(tt2,'');
                 if assigned(tt2.def) then
                  begin
-                   case tt2.def^.deftype of
+                   case tt2.def.deftype of
                      { don't forget that min can be negativ  PM }
                      enumdef :
-                       if penumdef(tt2.def)^.min>=0 then
-                        tt.setdef(new(psetdef,init(tt2,penumdef(tt2.def)^.max)))
+                       if tenumdef(tt2.def).min>=0 then
+                        tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).max))
                        else
                         Message(sym_e_ill_type_decl_set);
                      orddef :
                        begin
-                         case porddef(tt2.def)^.typ of
+                         case torddef(tt2.def).typ of
                            uchar :
-                             tt.setdef(new(psetdef,init(tt2,255)));
+                             tt.setdef(tsetdef.create(tt2,255));
                            u8bit,u16bit,u32bit,
                            s8bit,s16bit,s32bit :
                              begin
-                               if (porddef(tt2.def)^.low>=0) then
-                                tt.setdef(new(psetdef,init(tt2,porddef(tt2.def)^.high)))
+                               if (torddef(tt2.def).low>=0) then
+                                tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
                                else
                                 Message(sym_e_ill_type_decl_set);
                              end;
@@ -523,7 +523,7 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,hs,typecanbeforward);
-                tt.setdef(new(ppointerdef,init(tt2)));
+                tt.setdef(tpointerdef.create(tt2));
               end;
             _RECORD:
               begin
@@ -555,29 +555,29 @@ implementation
             _PROCEDURE:
               begin
                 consume(_PROCEDURE);
-                tt.setdef(new(pprocvardef,init));
+                tt.setdef(tprocvardef.create);
                 if token=_LKLAMMER then
-                 parameter_dec(pprocvardef(tt.def));
+                 parameter_dec(tprocvardef(tt.def));
                 if token=_OF then
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-                    include(pprocvardef(tt.def)^.procoptions,po_methodpointer);
+                    include(tprocvardef(tt.def).procoptions,po_methodpointer);
                   end;
               end;
             _FUNCTION:
               begin
                 consume(_FUNCTION);
-                tt.def:=new(pprocvardef,init);
+                tt.def:=tprocvardef.create;
                 if token=_LKLAMMER then
-                 parameter_dec(pprocvardef(tt.def));
+                 parameter_dec(tprocvardef(tt.def));
                 consume(_COLON);
-                single_type(pprocvardef(tt.def)^.rettype,hs,false);
+                single_type(tprocvardef(tt.def).rettype,hs,false);
                 if token=_OF then
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-                    include(pprocvardef(tt.def)^.procoptions,po_methodpointer);
+                    include(tprocvardef(tt.def).procoptions,po_methodpointer);
                   end;
               end;
             else
@@ -590,7 +590,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-04-04 22:43:53  peter
+  Revision 1.23  2001-04-13 01:22:13  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.22  2001/04/04 22:43:53  peter
     * remove unnecessary calls to firstpass
 
   Revision 1.21  2001/04/02 21:20:34  peter

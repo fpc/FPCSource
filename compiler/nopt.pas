@@ -84,7 +84,7 @@ var
 
 implementation
 
-uses cutils, htypechk, types, globtype, globals, cpubase, pass_1, ncnv, ncon,
+uses cutils, htypechk, types, globtype, globals, cpubase, ncnv, ncon,
      verbose, symdef, hcodegen;
 
 
@@ -196,7 +196,7 @@ begin
 {       doesn't work yet, don't know why (JM)
         tc_chararray_2_string:
           curmaxlen :=
-            min(ttypeconvnode(left).left.resulttype.def^.size,255); }
+            min(ttypeconvnode(left).left.resulttype.def.size,255); }
         else curmaxlen := 255;
       end;
     end
@@ -278,7 +278,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-04-02 21:20:31  peter
+  Revision 1.3  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.2  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.1  2001/01/04 11:24:19  jonas

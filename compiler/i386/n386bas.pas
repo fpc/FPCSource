@@ -53,16 +53,16 @@ unit n386bas;
 
     procedure ti386asmnode.pass_2;
 
-      procedure ReLabel(var p:pasmsymbol);
+      procedure ReLabel(var p:tasmsymbol);
         begin
-          if p^.proclocal then
+          if p.proclocal then
            begin
-             if not assigned(p^.altsymbol) then
+             if not assigned(p.altsymbol) then
               begin
-                p^.GenerateAltSymbol;
+                p.GenerateAltSymbol;
                 UsedAsmSymbolListInsert(p);
               end;
-             p:=p^.altsymbol;
+             p:=p.altsymbol;
            end;
         end;
 
@@ -75,8 +75,8 @@ unit n386bas;
          if inlining_procedure then
            begin
              CreateUsedAsmSymbolList;
-             localfixup:=aktprocsym^.definition^.localst^.address_fixup;
-             parafixup:=aktprocsym^.definition^.parast^.address_fixup;
+             localfixup:=aktprocsym.definition.localst.address_fixup;
+             parafixup:=aktprocsym.definition.parast.address_fixup;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -86,7 +86,7 @@ unit n386bas;
                   ait_label :
                      begin
                        { regenerate the labels by setting altsymbol }
-                       ReLabel(pasmsymbol(tai_label(hp2).l));
+                       ReLabel(tasmsymbol(tai_label(hp2).l));
                      end;
                   ait_const_rva,
                   ait_const_symbol :
@@ -144,7 +144,7 @@ unit n386bas;
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
-             if (pocall_inline in aktprocsym^.definition^.proccalloptions) then
+             if (pocall_inline in aktprocsym.definition.proccalloptions) then
                exprasmList.concatlistcopy(p_asm)
              else
                exprasmList.concatlist(p_asm);
@@ -204,7 +204,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-04-02 21:20:36  peter
+  Revision 1.7  2001-04-13 01:22:18  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.6  2001/04/02 21:20:36  peter
     * resulttype rewrite
 
   Revision 1.5  2000/12/25 00:07:32  peter

@@ -372,15 +372,14 @@ type
   tvaroptions=set of tvaroption;
 
   { types of the symtables }
-  tsymtabletype = (invalidsymtable,withsymtable,staticsymtable,
-                   globalsymtable,unitsymtable,
-                   objectsymtable,recordsymtable,
-                   macrosymtable,localsymtable,
-                   parasymtable,inlineparasymtable,
-                   inlinelocalsymtable,stt_exceptsymtable,
-                   { only used for PPU reading of static part
-                     of a unit }
-                   staticppusymtable);
+  tsymtabletype = (abstractsymtable,
+    globalsymtable,staticsymtable,
+    objectsymtable,recordsymtable,
+    localsymtable,parasymtable,
+    withsymtable,stt_exceptsymtable,
+    { used for inline detection }
+    inlineparasymtable,inlinelocalsymtable
+  );
 
 
   { definition contains the informations about a type }
@@ -452,7 +451,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2001-04-02 21:20:34  peter
+  Revision 1.16  2001-04-13 01:22:15  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.15  2001/04/02 21:20:34  peter
     * resulttype rewrite
 
   Revision 1.14  2001/03/22 00:10:58  florian

@@ -32,7 +32,7 @@ interface
 
     uses
        { common }
-       cclasses,cobjects,
+       cclasses,
        { target }
        systems,
        { assembler }
@@ -61,10 +61,10 @@ interface
          destructor  destroy;override;
          procedure setsectionsizes(var s:tsecsize);override;
          procedure createsection(sec:tsection);override;
-         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);override;
-         procedure writesymbol(p:pasmsymbol);override;
+         procedure writereloc(data,len:longint;p:tasmsymbol;relative:relative_type);override;
+         procedure writesymbol(p:tasmsymbol);override;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
        end;
 
        tcoffobjectoutput = class(tobjectoutput)
@@ -82,13 +82,13 @@ interface
          function  initwriting(const fn:string):boolean;override;
        end;
 
-       tpasmsymbolarray = array[0..high(word)] of pasmsymbol;
+       ttasmsymbolarray = array[0..high(word)] of tasmsymbol;
 
        tcoffobjectinput = class(tobjectinput)
        private
          Fidx2sec  : array[0..255] of tsection;
          FCoffsyms : tdynamicarray;
-         FSymTbl   : ^tpasmsymbolarray;
+         FSymTbl   : ^ttasmsymbolarray;
          win32     : boolean;
          procedure read_relocs(s:tcoffsection);
          procedure handle_symbols;
@@ -293,33 +293,33 @@ implementation
       end;
 
 
-    procedure tcoffdata.writesymbol(p:pasmsymbol);
+    procedure tcoffdata.writesymbol(p:tasmsymbol);
       var
         sym : toutputsymbol;
         s   : string;
       begin
         { already written ? }
-        if p^.idx<>-1 then
+        if p.idx<>-1 then
          exit;
         { be sure that the section will exists }
-        if (p^.section<>sec_none) and not(assigned(sects[p^.section])) then
-          createsection(p^.section);
+        if (p.section<>sec_none) and not(assigned(sects[p.section])) then
+          createsection(p.section);
         FillChar(sym,sizeof(sym),0);
-        sym.value:=p^.size;
-        sym.bind:=p^.bind;
+        sym.value:=p.size;
+        sym.bind:=p.bind;
         sym.typ:=AT_NONE;
         { if local of global then set the section value to the address
           of the symbol }
         if sym.bind in [AB_LOCAL,AB_GLOBAL] then
          begin
-           sym.section:=p^.section;
-           sym.value:=p^.address+sects[sym.section].mempos;
+           sym.section:=p.section;
+           sym.value:=p.address+sects[sym.section].mempos;
          end;
         { store the symbol, but not the local ones }
         if (sym.bind<>AB_LOCAL) then
          begin
            { symbolname }
-           s:=p^.name;
+           s:=p.name;
            if length(s)>8 then
             begin
               sym.nameidx:=FStrs.size+4;
@@ -332,18 +332,18 @@ implementation
               sym.namestr:=s;
             end;
            { update the asmsymbol index }
-           p^.idx:=FSyms.size div sizeof(TOutputSymbol);
+           p.idx:=FSyms.size div sizeof(TOutputSymbol);
            { write the symbol }
            FSyms.write(sym,sizeof(toutputsymbol));
          end
         else
          begin
-           p^.idx:=-2; { local }
+           p.idx:=-2; { local }
          end;
       end;
 
 
-    procedure tcoffdata.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
+    procedure tcoffdata.writereloc(data,len:longint;p:tasmsymbol;relative:relative_type);
       var
         curraddr,
         symaddr : longint;
@@ -355,11 +355,11 @@ implementation
            { current address }
            curraddr:=sects[currsec].mempos+sects[currsec].datasize;
            { real address of the symbol }
-           symaddr:=p^.address;
-           if p^.section<>sec_none then
-            inc(symaddr,sects[p^.section].mempos);
+           symaddr:=p.address;
+           if p.section<>sec_none then
+            inc(symaddr,sects[p.section].mempos);
            { no symbol relocation need inside a section }
-           if p^.section=currsec then
+           if p.section=currsec then
              begin
                case relative of
                  relative_false :
@@ -381,14 +381,14 @@ implementation
            else
              begin
                writesymbol(p);
-               if (p^.section<>sec_none) and (relative<>relative_true) then
-                 sects[currsec].addsectionreloc(curraddr,p^.section,relative)
+               if (p.section<>sec_none) and (relative<>relative_true) then
+                 sects[currsec].addsectionreloc(curraddr,p.section,relative)
                else
                  sects[currsec].addsymreloc(curraddr,p,relative);
                if not win32 then {seems wrong to me (PM) }
                 inc(data,symaddr)
                else
-                if (relative<>relative_true) and (p^.section<>sec_none) then
+                if (relative<>relative_true) and (p.section<>sec_none) then
                  inc(data,symaddr);
                if relative=relative_true then
                 begin
@@ -451,7 +451,7 @@ implementation
       end;
 
 
-    procedure tcoffdata.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+    procedure tcoffdata.writesymstabs(section:tsection;offset:longint;p:pchar;ps:tasmsymbol;
                                                  nidx,nother,line:longint;reloc:boolean);
       var
         stab : coffstab;
@@ -579,13 +579,13 @@ implementation
            rel.address:=r^.address;
            if assigned(r^.symbol) then
             begin
-              if (r^.symbol^.bind=AB_LOCAL) then
-               rel.sym:=2*data.sects[r^.symbol^.section].secsymidx
+              if (r^.symbol.bind=AB_LOCAL) then
+               rel.sym:=2*data.sects[r^.symbol.section].secsymidx
               else
                begin
-                 if r^.symbol^.idx=-1 then
+                 if r^.symbol.idx=-1 then
                    internalerror(4321);
-                 rel.sym:=r^.symbol^.idx+initsym;
+                 rel.sym:=r^.symbol.idx+initsym;
                end;
             end
            else
@@ -845,7 +845,7 @@ implementation
         rel  : coffreloc;
         rel_type : relative_type;
         i        : longint;
-        p        : pasmsymbol;
+        p        : tasmsymbol;
       begin
         for i:=1 to s.coffrelocs do
          begin
@@ -882,13 +882,13 @@ implementation
         symidx    : longint;
         sym       : coffsymbol;
         strname   : string;
-        p         : pasmsymbol;
+        p         : tasmsymbol;
         auxrec    : array[0..17] of byte;
       begin
         with tcoffdata(data) do
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
-           { Allocate memory for symidx -> pasmsymbol table }
+           { Allocate memory for symidx -> tasmsymbol table }
            GetMem(FSymTbl,nsyms*sizeof(pointer));
            FillChar(FSymTbl^,nsyms*sizeof(pointer),0);
            { Loop all symbols }
@@ -916,17 +916,17 @@ implementation
                   begin
                     if sym.section=0 then
                      begin
-                       p:=new(pasmsymbol,init(strname,AB_EXTERNAL,AT_FUNCTION));
+                       p:=tasmsymbol.create(strname,AB_EXTERNAL,AT_FUNCTION);
                      end
                     else
                      begin
-                       p:=new(pasmsymbol,init(strname,AB_GLOBAL,AT_FUNCTION));
+                       p:=tasmsymbol.create(strname,AB_GLOBAL,AT_FUNCTION);
                        sec:=Fidx2sec[sym.section];
                        if assigned(sects[sec]) then
                         begin
-                          p^.section:=sec;
+                          p.section:=sec;
                           if sym.value>=sects[sec].mempos then
-                           p^.address:=sym.value-sects[sec].mempos
+                           p.address:=sym.value-sects[sec].mempos
                           else
                            internalerror(432432432);
                         end
@@ -938,13 +938,13 @@ implementation
                   end;
                 COFF_SYM_STATIC :
                   begin
-                    p:=new(pasmsymbol,init(strname,AB_LOCAL,AT_FUNCTION));
+                    p:=tasmsymbol.create(strname,AB_LOCAL,AT_FUNCTION);
                     sec:=Fidx2sec[sym.section];
                     if assigned(sects[sec]) then
                      begin
-                       p^.section:=sec;
+                       p.section:=sec;
                        if sym.value>=sects[sec].mempos then
-                        p^.address:=sym.value-sects[sec].mempos
+                        p.address:=sym.value-sects[sec].mempos
                        else
                         begin
                           if Str2Sec(strname)<>sec then
@@ -1088,7 +1088,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-04-02 21:20:31  peter
+  Revision 1.12  2001-04-13 01:22:10  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.11  2001/04/02 21:20:31  peter
     * resulttype rewrite
 
   Revision 1.10  2001/03/13 18:45:07  peter

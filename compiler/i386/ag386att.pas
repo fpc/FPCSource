@@ -27,7 +27,7 @@ unit ag386att;
 interface
 
     uses
-      cobjects,
+      cclasses,
       globals,
       aasm,assemble;
 
@@ -168,7 +168,7 @@ interface
             else
              s:='';
             if assigned(symbol) then
-             s:=s+symbol^.name;
+             s:=s+symbol.name;
             if offset<0 then
              s:=s+tostr(offset)
             else
@@ -218,7 +218,7 @@ interface
         top_symbol :
           begin
             if assigned(o.sym) then
-              hs:='$'+o.sym^.name
+              hs:='$'+o.sym.name
             else
               hs:='$';
             if o.symofs>0 then
@@ -249,7 +249,7 @@ interface
           getopstr_jmp:=tostr(o.val);
         top_symbol :
           begin
-            hs:=o.sym^.name;
+            hs:=o.sym.name;
             if o.symofs>0 then
              hs:=hs+'+'+tostr(o.symofs)
             else
@@ -496,7 +496,7 @@ interface
                 AsmWrite(#9'.comm'#9)
                else
                 AsmWrite(#9'.lcomm'#9);
-               AsmWrite(tai_datablock(hp).sym^.name);
+               AsmWrite(tai_datablock(hp).sym.name);
                AsmWriteLn(','+tostr(tai_datablock(hp).size));
              end;
 
@@ -522,7 +522,7 @@ interface
 
            ait_const_symbol :
              begin
-               AsmWrite(#9'.long'#9+tai_const_symbol(hp).sym^.name);
+               AsmWrite(#9'.long'#9+tai_const_symbol(hp).sym.name);
                if tai_const_symbol(hp).offset>0 then
                  AsmWrite('+'+tostr(tai_const_symbol(hp).offset))
                else if tai_const_symbol(hp).offset<0 then
@@ -531,7 +531,7 @@ interface
              end;
 
            ait_const_rva :
-             AsmWriteLn(#9'.rva'#9+tai_const_symbol(hp).sym^.name);
+             AsmWriteLn(#9'.rva'#9+tai_const_symbol(hp).sym.name);
 
            ait_real_80bit :
              begin
@@ -645,14 +645,14 @@ interface
 
            ait_label :
              begin
-               if (tai_label(hp).l^.is_used) then
+               if (tai_label(hp).l.is_used) then
                 begin
-                  if tai_label(hp).l^.defbind=AB_GLOBAL then
+                  if tai_label(hp).l.defbind=AB_GLOBAL then
                    begin
                      AsmWrite('.globl'#9);
-                     AsmWriteLn(tai_label(hp).l^.name);
+                     AsmWriteLn(tai_label(hp).l.name);
                    end;
-                  AsmWrite(tai_label(hp).l^.name);
+                  AsmWrite(tai_label(hp).l.name);
                   AsmWriteLn(':');
                 end;
              end;
@@ -662,12 +662,12 @@ interface
                if tai_symbol(hp).is_global then
                 begin
                   AsmWrite('.globl'#9);
-                  AsmWriteLn(tai_symbol(hp).sym^.name);
+                  AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
                if target_info.target=target_i386_linux then
                 begin
                    AsmWrite(#9'.type'#9);
-                   AsmWrite(tai_symbol(hp).sym^.name);
+                   AsmWrite(tai_symbol(hp).sym.name);
                    if assigned(tai(hp.next)) and
                       (tai(hp.next).typ in [ait_const_symbol,ait_const_rva,
                          ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
@@ -675,15 +675,15 @@ interface
                     AsmWriteLn(',@object')
                    else
                     AsmWriteLn(',@function');
-                   if tai_symbol(hp).sym^.size>0 then
+                   if tai_symbol(hp).sym.size>0 then
                     begin
                       AsmWrite(#9'.size'#9);
-                      AsmWrite(tai_symbol(hp).sym^.name);
+                      AsmWrite(tai_symbol(hp).sym.name);
                       AsmWrite(', ');
-                      AsmWriteLn(tostr(tai_symbol(hp).sym^.size));
+                      AsmWriteLn(tostr(tai_symbol(hp).sym.size));
                     end;
                 end;
-               AsmWrite(tai_symbol(hp).sym^.name);
+               AsmWrite(tai_symbol(hp).sym.name);
                AsmWriteLn(':');
              end;
 
@@ -695,9 +695,9 @@ interface
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
-                  AsmWrite(tai_symbol(hp).sym^.name);
+                  AsmWrite(tai_symbol(hp).sym.name);
                   AsmWrite(', '+s+' - ');
-                  AsmWriteLn(tai_symbol(hp).sym^.name);
+                  AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
              end;
 
@@ -892,7 +892,12 @@ interface
 end.
 {
   $Log$
-  Revision 1.4  2001-03-05 21:39:11  peter
+  Revision 1.5  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.4  2001/03/05 21:39:11  peter
     * changed to class with common TAssembler also for internal assembler
 
   Revision 1.3  2001/01/13 20:24:24  peter

@@ -27,7 +27,7 @@ unit finput;
 interface
 
     uses
-      cutils,cobjects,cclasses;
+      cutils,cclasses;
 
     const
        InputFileBufSize=32*1024;
@@ -683,7 +683,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  2001-03-13 18:43:17  peter
+  Revision 1.8  2001-04-13 01:22:07  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.7  2001/03/13 18:43:17  peter
     * made memdebug and heaptrc compilable again
 
   Revision 1.6  2000/12/25 00:07:25  peter

@@ -36,7 +36,7 @@ Implementation
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,cclasses,
        { global }
        globtype,globals,verbose,
        systems,
@@ -123,7 +123,7 @@ var
   actopcode      : tasmop;
   actopsize      : topsize;
   actcondition   : tasmcond;
-  iasmops        : Pdictionary;
+  iasmops        : tdictionary;
   iasmregs       : ^reg2strtable;
 
 
@@ -132,16 +132,16 @@ Procedure SetupTables;
 var
   i : tasmop;
   j : tregister;
-  str2opentry: pstr2opentry;
+  str2opentry: tstr2opentry;
 Begin
   { opcodes }
-  new(iasmops,init);
-  iasmops^.delete_doubles:=true;
+  iasmops:=tdictionary.create;
+  iasmops.delete_doubles:=true;
   for i:=firstop to lastop do
     begin
-      new(str2opentry,initname(upper(int_op2str[i])));
-      str2opentry^.op:=i;
-      iasmops^.insert(str2opentry);
+      str2opentry:=tstr2opentry.createname(upper(int_op2str[i]));
+      str2opentry.op:=i;
+      iasmops.insert(str2opentry);
     end;
   { registers }
   new(iasmregs);
@@ -157,7 +157,7 @@ end;
 
    function is_asmopcode(const s: string):boolean;
    var
-     str2opentry: pstr2opentry;
+     str2opentry: tstr2opentry;
      cond : string[4];
      cnd : tasmcond;
      j: longint;
@@ -168,10 +168,10 @@ end;
      actcondition:=C_None;
      actopsize:=S_NO;
 
-     str2opentry:=pstr2opentry(iasmops^.search(s));
+     str2opentry:=tstr2opentry(iasmops.search(s));
      if assigned(str2opentry) then
        begin
-         actopcode:=str2opentry^.op;
+         actopcode:=str2opentry.op;
          actasmtoken:=AS_OPCODE;
          is_asmopcode:=TRUE;
          exit;
@@ -704,9 +704,9 @@ var
   parenlevel,l,k : longint;
   errorflag : boolean;
   prevtok : tasmtoken;
-  hl : PAsmLabel;
-  sym : psym;
-  srsymtable : psymtable;
+  hl : tasmlabel;
+  sym : tsym;
+  srsymtable : tsymtable;
 Begin
   { reset }
   value:=0;
@@ -817,13 +817,13 @@ Begin
                 searchsym(tempstr,sym,srsymtable);
                 if assigned(sym) then
                  begin
-                   case sym^.typ of
+                   case sym.typ of
                      varsym :
-                       l:=pvarsym(sym)^.getsize;
+                       l:=tvarsym(sym).getsize;
                      typedconstsym :
-                       l:=ptypedconstsym(sym)^.getsize;
+                       l:=ttypedconstsym(sym).getsize;
                      typesym :
-                       l:=ptypesym(sym)^.restype.def^.size;
+                       l:=ttypesym(sym).restype.def.size;
                      else
                        Message(asmr_e_wrong_sym_type);
                    end;
@@ -872,30 +872,30 @@ Begin
              if is_locallabel(tempstr) then
               begin
                 CreateLocalLabel(tempstr,hl,false);
-                hs:=hl^.name
+                hs:=hl.name
               end
              else
               if SearchLabel(tempstr,hl,false) then
-               hs:=hl^.name
+               hs:=hl.name
              else
               begin
                 searchsym(tempstr,sym,srsymtable);
                 if assigned(sym) then
                  begin
-                   case sym^.typ of
+                   case sym.typ of
                      varsym :
                        begin
-                         if sym^.owner^.symtabletype in [localsymtable,parasymtable] then
+                         if sym.owner.symtabletype in [localsymtable,parasymtable] then
                           Message(asmr_e_no_local_or_para_allowed);
-                         hs:=pvarsym(sym)^.mangledname;
+                         hs:=tvarsym(sym).mangledname;
                        end;
                      typedconstsym :
-                       hs:=ptypedconstsym(sym)^.mangledname;
+                       hs:=ttypedconstsym(sym).mangledname;
                      procsym :
-                       hs:=pprocsym(sym)^.mangledname;
+                       hs:=tprocsym(sym).mangledname;
                      typesym :
                        begin
-                         if not(ptypesym(sym)^.restype.def^.deftype in [recorddef,objectdef]) then
+                         if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
                           Message(asmr_e_wrong_sym_type);
                        end;
                      else
@@ -997,9 +997,8 @@ end;
 ****************************************************************************}
 
 type
-  P386IntelOperand=^T386IntelOperand;
-  T386IntelOperand=object(T386Operand)
-    Procedure BuildOperand;virtual;
+  T386IntelOperand=class(T386Operand)
+    Procedure BuildOperand;override;
   private
     Procedure BuildReference;
     Procedure BuildConstant;
@@ -1312,9 +1311,9 @@ var
   expr    : string;
   tempreg : tregister;
   l       : longint;
-  hl      : PAsmLabel;
+  hl      : tasmlabel;
 
-  procedure AddLabelOperand(hl:pasmlabel);
+  procedure AddLabelOperand(hl:tasmlabel);
   begin
     if is_calljmp(actopcode) then
      begin
@@ -1587,10 +1586,9 @@ end;
 *****************************************************************************}
 
 type
-  P386IntelInstruction=^T386IntelInstruction;
-  T386IntelInstruction=object(T386Instruction)
-    procedure InitOperands;virtual;
-    procedure BuildOpcode;virtual;
+  T386IntelInstruction=class(T386Instruction)
+    procedure InitOperands;override;
+    procedure BuildOpcode;override;
   end;
 
 procedure T386IntelInstruction.InitOperands;
@@ -1598,7 +1596,7 @@ var
   i : longint;
 begin
   for i:=1 to 3 do
-   Operands[i]:=new(P386IntelOperand,Init);
+   Operands[i]:=T386IntelOperand.Create;
 end;
 
 
@@ -1716,11 +1714,11 @@ Begin
           if actasmtoken=AS_PTR then
            begin
              Consume(AS_PTR);
-             Operands[operandnum]^.InitRef;
+             Operands[operandnum].InitRef;
            end;
-          Operands[operandnum]^.BuildOperand;
+          Operands[operandnum].BuildOperand;
           { now set the size which was specified by the override }
-          Operands[operandnum]^.size:=size;
+          Operands[operandnum].size:=size;
         end;
 
       { Type specifier }
@@ -1741,13 +1739,13 @@ Begin
           if actasmtoken=AS_PTR then
            begin
              Consume(AS_PTR);
-             Operands[operandnum]^.InitRef;
+             Operands[operandnum].InitRef;
            end;
-          Operands[operandnum]^.BuildOperand;
+          Operands[operandnum].BuildOperand;
         end;
 
       else
-        Operands[operandnum]^.BuildOperand;
+        Operands[operandnum].BuildOperand;
     end; { end case }
   until false;
   Ops:=operandnum;
@@ -1823,7 +1821,7 @@ end;
 
 Function Assemble: tnode;
 Var
-  hl : PAsmLabel;
+  hl : tasmlabel;
   instr : T386IntelInstruction;
 Begin
   Message1(asmr_d_start_reading,'intel');
@@ -1841,7 +1839,7 @@ Begin
    end;
   curlist:=TAAsmoutput.Create;
   { setup label linked list }
-  new(LocalLabelList,Init);
+  LocalLabelList:=TLocalLabelList.Create;
   { start tokenizer }
   c:=current_scanner^.asmgetchar;
   gettoken;
@@ -1890,17 +1888,17 @@ Begin
 
       AS_OPCODE :
         Begin
-          instr.init;
+          instr:=T386IntelInstruction.Create;
           instr.BuildOpcode;
           { We need AT&T style operands }
-          instr.SwapOperands;
+          instr.Swatoperands;
           { Must be done with args in ATT order }
           instr.CheckNonCommutativeOpcodes;
           instr.AddReferenceSizes;
           instr.SetInstructionOpsize;
           instr.CheckOperandSizes;
           instr.ConcatInstruction(curlist);
-          instr.done;
+          instr.Free;
         end;
 
       AS_SEPARATOR :
@@ -1919,8 +1917,8 @@ Begin
     end; { end case }
   until false;
   { Check LocalLabelList }
-  LocalLabelList^.CheckEmitted;
-  dispose(LocalLabelList,Done);
+  LocalLabelList.CheckEmitted;
+  LocalLabelList.Free;
   { Return the list in an asmnode }
   assemble:=casmnode.create(curlist);
   Message1(asmr_d_finish_reading,'intel');
@@ -1938,7 +1936,7 @@ procedure ra386int_exit;
 begin
   exitproc:=old_exit;
   if assigned(iasmops) then
-    dispose(iasmops,done);
+    iasmops.Free;
   if assigned(iasmregs) then
     dispose(iasmregs);
 end;
@@ -1950,7 +1948,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-03-25 12:29:45  peter
+  Revision 1.12  2001-04-13 01:22:21  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.11  2001/03/25 12:29:45  peter
     * offset_fixup fixes (merged)
 
   Revision 1.10  2001/03/11 22:58:52  peter

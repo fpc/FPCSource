@@ -47,14 +47,14 @@ interface
 
     procedure maketojumpbool(p : tnode);
     procedure emitoverflowcheck(p:tnode);
-    procedure emitrangecheck(p:tnode;todef:pdef);
+    procedure emitrangecheck(p:tnode;todef:tdef);
     procedure firstcomplex(p : tbinarynode);
 
 implementation
 
     uses
        globtype,globals,systems,verbose,
-       cutils,cobjects,
+       cutils,
        aasm,cpubase,cpuasm,
        symconst,symbase,symdef,symsym,symtable,
 {$ifdef GDB}
@@ -347,13 +347,13 @@ implementation
         op : tasmop;
         hreg : tregister;
         size : longint;
-        hlabel : pasmlabel;
+        hlabel : tasmlabel;
       begin
         case p.location.loc of
            LOC_REGISTER,
            LOC_CREGISTER:
              begin
-                  if p.resulttype.def^.size=8 then
+                  if p.resulttype.def.size=8 then
                     begin
                        inc(pushedparasize,8);
                        if inlined then
@@ -437,7 +437,7 @@ implementation
              end;
            LOC_FPU:
              begin
-                size:=align(pfloatdef(p.resulttype.def)^.size,alignment);
+                size:=align(tfloatdef(p.resulttype.def).size,alignment);
                 inc(pushedparasize,size);
                 if not inlined then
                  emit_const_reg(A_SUB,S_L,size,R_ESP);
@@ -447,7 +447,7 @@ implementation
                   exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
                 r:=new_reference(R_ESP,0);
-                floatstoreops(pfloatdef(p.resulttype.def)^.typ,op,opsize);
+                floatstoreops(tfloatdef(p.resulttype.def).typ,op,opsize);
                 { this is the easiest case for inlined !! }
                 if inlined then
                   begin
@@ -461,7 +461,7 @@ implementation
              begin
                 exprasmList.concat(Taicpu.Op_reg(A_FLD,S_NO,
                   correct_fpuregister(p.location.register,fpuvaroffset)));
-                size:=align(pfloatdef(p.resulttype.def)^.size,alignment);
+                size:=align(tfloatdef(p.resulttype.def).size,alignment);
                 inc(pushedparasize,size);
                 if not inlined then
                  emit_const_reg(A_SUB,S_L,size,R_ESP);
@@ -471,7 +471,7 @@ implementation
                   exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
                 r:=new_reference(R_ESP,0);
-                floatstoreops(pfloatdef(p.resulttype.def)^.typ,op,opsize);
+                floatstoreops(tfloatdef(p.resulttype.def).typ,op,opsize);
                 { this is the easiest case for inlined !! }
                 if inlined then
                   begin
@@ -484,11 +484,11 @@ implementation
              begin
                 tempreference:=p.location.reference;
                 del_reference(p.location.reference);
-                case p.resulttype.def^.deftype of
+                case p.resulttype.def.deftype of
                   enumdef,
                   orddef :
                     begin
-                      case p.resulttype.def^.size of
+                      case p.resulttype.def.size of
                        8 : begin
                              inc(pushedparasize,8);
                              if inlined then
@@ -552,7 +552,7 @@ implementation
                                 ungetregister32(R_EDI);
                               end
                              else
-                              emit_push_mem_size(tempreference,p.resulttype.def^.size);
+                              emit_push_mem_size(tempreference,p.resulttype.def.size);
                            end;
                          else
                            internalerror(234231);
@@ -560,7 +560,7 @@ implementation
                     end;
                   floatdef :
                     begin
-                      case pfloatdef(p.resulttype.def)^.typ of
+                      case tfloatdef(p.resulttype.def).typ of
                         s32real :
                           begin
                              inc(pushedparasize,4);
@@ -693,20 +693,20 @@ implementation
                        if is_widestring(p.resulttype.def) or
                           is_ansistring(p.resulttype.def) or
                           is_smallset(p.resulttype.def) or
-                          ((p.resulttype.def^.deftype in [recorddef,arraydef]) and
+                          ((p.resulttype.def.deftype in [recorddef,arraydef]) and
                            (
-                            (p.resulttype.def^.deftype<>arraydef) or not
-                            (parraydef(p.resulttype.def)^.IsConstructor or
-                             parraydef(p.resulttype.def)^.isArrayOfConst or
+                            (p.resulttype.def.deftype<>arraydef) or not
+                            (tarraydef(p.resulttype.def).IsConstructor or
+                             tarraydef(p.resulttype.def).isArrayOfConst or
                              is_open_array(p.resulttype.def))
                            ) and
-                           (p.resulttype.def^.size<=4)
+                           (p.resulttype.def.size<=4)
                           ) or
                           is_class(p.resulttype.def) or
                           is_interface(p.resulttype.def) then
                          begin
-                            if (p.resulttype.def^.size>2) or
-                               ((alignment=4) and (p.resulttype.def^.size>0)) then
+                            if (p.resulttype.def.size>2) or
+                               ((alignment=4) and (p.resulttype.def.size>0)) then
                               begin
                                 inc(pushedparasize,4);
                                 if inlined then
@@ -719,7 +719,7 @@ implementation
                               end
                             else
                               begin
-                                if p.resulttype.def^.size>0 then
+                                if p.resulttype.def.size>0 then
                                   begin
                                     inc(pushedparasize,2);
                                     if inlined then
@@ -736,7 +736,7 @@ implementation
                        else if is_cdecl then
                          begin
                            { push on stack }
-                           size:=align(p.resulttype.def^.size,alignment);
+                           size:=align(p.resulttype.def.size,alignment);
                            inc(pushedparasize,size);
                            emit_const_reg(A_SUB,S_L,size,R_ESP);
                            r:=new_reference(R_ESP,0);
@@ -904,14 +904,14 @@ implementation
     { produces if necessary overflowcode }
     procedure emitoverflowcheck(p:tnode);
       var
-         hl : pasmlabel;
+         hl : tasmlabel;
       begin
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
          getlabel(hl);
-         if not ((p.resulttype.def^.deftype=pointerdef) or
-                ((p.resulttype.def^.deftype=orddef) and
-                 (porddef(p.resulttype.def)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+         if not ((p.resulttype.def.deftype=pointerdef) or
+                ((p.resulttype.def.deftype=orddef) and
+                 (torddef(p.resulttype.def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
                                                   bool8bit,bool16bit,bool32bit]))) then
            emitjmp(C_NO,hl)
          else
@@ -922,16 +922,16 @@ implementation
 
     { produces range check code, while one of the operands is a 64 bit
       integer }
-    procedure emitrangecheck64(p : tnode;todef : pdef);
+    procedure emitrangecheck64(p : tnode;todef : tdef);
 
       var
         neglabel,
         poslabel,
-        endlabel: pasmlabel;
+        endlabel: tasmlabel;
         href   : preference;
         hreg   : tregister;
-        hdef   :  porddef;
-        fromdef : pdef;
+        hdef   :  torddef;
+        fromdef : tdef;
         opcode : tasmop;
         opsize   : topsize;
         oldregisterdef: boolean;
@@ -978,11 +978,11 @@ implementation
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              emitlab(poslabel);
-             new(hdef,init(u32bit,0,longint($ffffffff)));
+             hdef:=torddef.create(u32bit,0,longint($ffffffff));
              { the real p.resulttype.def is already saved in fromdef }
              p.resulttype.def := hdef;
              emitrangecheck(p,todef);
-             dispose(hdef,done);
+             hdef.free;
              { restore original resulttype.def }
              p.resulttype.def := todef;
 
@@ -1013,10 +1013,10 @@ implementation
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  emitlab(neglabel);
-                 new(hdef,init(s32bit,longint($80000000),-1));
+                 hdef:=torddef.create(s32bit,longint($80000000),-1);
                  p.resulttype.def := hdef;
                  emitrangecheck(p,todef);
-                 dispose(hdef,done);
+                 hdef.free;
                  emitlab(endlabel);
                end;
              registerdef := oldregisterdef;
@@ -1032,7 +1032,7 @@ implementation
               { also not if the fromdef is unsigned and < 64bit, since that will }
               { always fit in a 64bit int (todef is 64bit)                       }
               (from_signed or
-               (porddef(fromdef)^.typ = u64bit)) then
+               (torddef(fromdef).typ = u64bit)) then
              begin
                { in all cases, there is only a problem if the higest bit is set }
                if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -1043,7 +1043,7 @@ implementation
                else
                  begin
                    hreg := getexplicitregister32(R_EDI);
-                   case p.resulttype.def^.size of
+                   case p.resulttype.def.size of
                      1: opsize := S_BL;
                      2: opsize := S_WL;
                      4,8: opsize := S_L;
@@ -1055,7 +1055,7 @@ implementation
                    else
                      opcode := A_MOV;
                    href := newreference(p.location.reference);
-                   if p.resulttype.def^.size = 8 then
+                   if p.resulttype.def.size = 8 then
                      inc(href^.offset,4);
                    emit_ref_reg(opcode,opsize,href,hreg);
                  end;
@@ -1070,7 +1070,7 @@ implementation
       end;
 
      { produces if necessary rangecheckcode }
-     procedure emitrangecheck(p:tnode;todef:pdef);
+     procedure emitrangecheck(p:tnode;todef:tdef);
      {
        generate range checking code for the value at location t. The
        type used is the checked against todefs ranges. fromdef (p.resulttype.def)
@@ -1078,17 +1078,17 @@ implementation
        equal the check is also insert (needed for succ,pref,inc,dec)
      }
       var
-        neglabel : pasmlabel;
+        neglabel : tasmlabel;
         opsize : topsize;
         op     : tasmop;
-        fromdef : pdef;
+        fromdef : tdef;
         lto,hto,
         lfrom,hfrom : longint;
         is_reg : boolean;
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
-           not(todef^.deftype in [orddef,enumdef,arraydef]) then
+           not(todef.deftype in [orddef,enumdef,arraydef]) then
           exit;
         { only check when assigning to scalar, subranges are different,
           when todef=fromdef then the check is always generated }
@@ -1097,12 +1097,12 @@ implementation
         { int64/qword, since such operations can at most cause overflows (JM)   }
         if (fromdef = todef) and
           { then fromdef and todef can only be orddefs }
-           (((porddef(fromdef)^.typ = s32bit) and
-             (porddef(fromdef)^.low = longint($80000000)) and
-             (porddef(fromdef)^.high = $7fffffff)) or
-            ((porddef(fromdef)^.typ = u32bit) and
-             (porddef(fromdef)^.low = 0) and
-             (porddef(fromdef)^.high = longint($ffffffff))) or
+           (((torddef(fromdef).typ = s32bit) and
+             (torddef(fromdef).low = longint($80000000)) and
+             (torddef(fromdef).high = $7fffffff)) or
+            ((torddef(fromdef).typ = u32bit) and
+             (torddef(fromdef).low = 0) and
+             (torddef(fromdef).high = longint($ffffffff))) or
             is_64bitint(fromdef)) then
           exit;
         if is_64bitint(fromdef) or is_64bitint(todef) then
@@ -1208,8 +1208,8 @@ implementation
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
-            (p.left.resulttype.def^.deftype=orddef) and
-            (porddef(p.left.resulttype.def)^.typ in [bool8bit,bool16bit,bool32bit]) then
+            (p.left.resulttype.def.deftype=orddef) and
+            (torddef(p.left.resulttype.def).typ in [bool8bit,bool16bit,bool32bit]) then
            begin
              { p.swaped:=false}
              if nf_swaped in p.flags then
@@ -1242,12 +1242,12 @@ implementation
     procedure push_shortstring_length(p:tnode);
       var
         hightree : tnode;
-        srsym    : psym;
+        srsym    : tsym;
       begin
         if is_open_string(p.resulttype.def) then
          begin
-           srsym:=searchsymonlyin(tloadnode(p).symtable,'high'+pvarsym(tloadnode(p).symtableentry)^.name);
-           hightree:=cloadnode.create(pvarsym(srsym),tloadnode(p).symtable);
+           srsym:=searchsymonlyin(tloadnode(p).symtable,'high'+tvarsym(tloadnode(p).symtableentry).name);
+           hightree:=cloadnode.create(tvarsym(srsym),tloadnode(p).symtable);
            firstpass(hightree);
            secondpass(hightree);
            push_value_para(hightree,false,false,0,4);
@@ -1256,7 +1256,7 @@ implementation
          end
         else
          begin
-           push_int(pstringdef(p.resulttype.def)^.len);
+           push_int(tstringdef(p.resulttype.def).len);
          end;
       end;
 
@@ -1271,7 +1271,7 @@ implementation
       var
         href: treference;
       begin
-         case source.resulttype.def^.deftype of
+         case source.resulttype.def.deftype of
             stringdef:
               begin
                  if (source.nodetype=stringconstn) and
@@ -1332,7 +1332,7 @@ implementation
          r : preference;
 
       begin
-         case p.right.resulttype.def^.deftype of
+         case p.right.resulttype.def.deftype of
             stringdef:
               begin
                  if (p.right.nodetype=stringconstn) and
@@ -1472,7 +1472,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-04-02 21:20:39  peter
+  Revision 1.15  2001-04-13 01:22:19  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.14  2001/04/02 21:20:39  peter
     * resulttype rewrite
 
   Revision 1.13  2001/03/11 22:58:52  peter

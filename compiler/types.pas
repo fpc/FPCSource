@@ -27,7 +27,7 @@ unit types;
 interface
 
     uses
-       cobjects,cclasses,
+       cclasses,
        cpuinfo,
        node,
        symbase,symtype,symdef,symsym;
@@ -45,28 +45,28 @@ interface
  *****************************************************************************}
 
     { returns true, if def defines an ordinal type }
-    function is_ordinal(def : pdef) : boolean;
+    function is_ordinal(def : tdef) : boolean;
 
     { returns the min. value of the type }
-    function get_min_value(def : pdef) : longint;
+    function get_min_value(def : tdef) : longint;
 
     { returns true, if def defines an ordinal type }
-    function is_integer(def : pdef) : boolean;
+    function is_integer(def : tdef) : boolean;
 
     { true if p is a boolean }
-    function is_boolean(def : pdef) : boolean;
+    function is_boolean(def : tdef) : boolean;
 
     { true if p is a char }
-    function is_char(def : pdef) : boolean;
+    function is_char(def : tdef) : boolean;
 
     { true if p is a void}
-    function is_void(def : pdef) : boolean;
+    function is_void(def : tdef) : boolean;
 
     { true if p is a smallset def }
-    function is_smallset(p : pdef) : boolean;
+    function is_smallset(p : tdef) : boolean;
 
     { returns true, if def defines a signed data type (only for ordinal types) }
-    function is_signed(def : pdef) : boolean;
+    function is_signed(def : tdef) : boolean;
 
 {*****************************************************************************
                               Array helper functions
@@ -75,84 +75,84 @@ interface
     { true, if p points to a zero based (non special like open or
       dynamic array def, mainly this is used to see if the array
       is convertable to a pointer }
-    function is_zero_based_array(p : pdef) : boolean;
+    function is_zero_based_array(p : tdef) : boolean;
 
     { true if p points to an open array def }
-    function is_open_array(p : pdef) : boolean;
+    function is_open_array(p : tdef) : boolean;
 
     { true if p points to a dynamic array def }
-    function is_dynamic_array(p : pdef) : boolean;
+    function is_dynamic_array(p : tdef) : boolean;
 
     { true, if p points to an array of const def }
-    function is_array_constructor(p : pdef) : boolean;
+    function is_array_constructor(p : tdef) : boolean;
 
     { true, if p points to a variant array }
-    function is_variant_array(p : pdef) : boolean;
+    function is_variant_array(p : tdef) : boolean;
 
     { true, if p points to an array of const }
-    function is_array_of_const(p : pdef) : boolean;
+    function is_array_of_const(p : tdef) : boolean;
 
     { true, if p points any kind of special array }
-    function is_special_array(p : pdef) : boolean;
+    function is_special_array(p : tdef) : boolean;
 
     { true if p is a char array def }
-    function is_chararray(p : pdef) : boolean;
+    function is_chararray(p : tdef) : boolean;
 
     { true if p is a wide char array def }
-    function is_widechararray(p : pdef) : boolean;
+    function is_widechararray(p : tdef) : boolean;
 
 {*****************************************************************************
                           String helper functions
  *****************************************************************************}
 
     { true if p points to an open string def }
-    function is_open_string(p : pdef) : boolean;
+    function is_open_string(p : tdef) : boolean;
 
     { true if p is an ansi string def }
-    function is_ansistring(p : pdef) : boolean;
+    function is_ansistring(p : tdef) : boolean;
 
     { true if p is a long string def }
-    function is_longstring(p : pdef) : boolean;
+    function is_longstring(p : tdef) : boolean;
 
     { true if p is a wide string def }
-    function is_widestring(p : pdef) : boolean;
+    function is_widestring(p : tdef) : boolean;
 
     { true if p is a short string def }
-    function is_shortstring(p : pdef) : boolean;
+    function is_shortstring(p : tdef) : boolean;
 
     { true if p is a pchar def }
-    function is_pchar(p : pdef) : boolean;
+    function is_pchar(p : tdef) : boolean;
 
     { true if p is a pwidechar def }
-    function is_pwidechar(p : pdef) : boolean;
+    function is_pwidechar(p : tdef) : boolean;
 
     { true if p is a voidpointer def }
-    function is_voidpointer(p : pdef) : boolean;
+    function is_voidpointer(p : tdef) : boolean;
 
     { returns true, if def uses FPU }
-    function is_fpu(def : pdef) : boolean;
+    function is_fpu(def : tdef) : boolean;
 
     { true if the return value is in EAX }
-    function ret_in_acc(def : pdef) : boolean;
+    function ret_in_acc(def : tdef) : boolean;
 
     { true if uses a parameter as return value }
-    function ret_in_param(def : pdef) : boolean;
+    function ret_in_param(def : tdef) : boolean;
 
     { true, if def is a 64 bit int type }
-    function is_64bitint(def : pdef) : boolean;
+    function is_64bitint(def : tdef) : boolean;
 
-    function push_high_param(def : pdef) : boolean;
+    function push_high_param(def : tdef) : boolean;
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function push_addr_param(def : pdef) : boolean;
+    function push_addr_param(def : tdef) : boolean;
 
     { true, if def1 and def2 are semantical the same }
-    function is_equal(def1,def2 : pdef) : boolean;
+    function is_equal(def1,def2 : tdef) : boolean;
 
     { checks for type compatibility (subgroups of type)  }
     { used for case statements... probably missing stuff }
     { to use on other types                              }
-    function is_subequal(def1, def2: pdef): boolean;
+    function is_subequal(def1, def2: tdef): boolean;
 
      type
        tconverttype = (
@@ -183,21 +183,21 @@ interface
           tc_class_2_intf
        );
 
-    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
+    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
 
     { Returns:
        0 - Not convertable
        1 - Convertable
        2 - Convertable, but not first choice }
-    function isconvertable(def_from,def_to : pdef;
+    function isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
     { same as is_equal, but with error message if failed }
-    function CheckTypes(def1,def2 : pdef) : boolean;
+    function CheckTypes(def1,def2 : tdef) : boolean;
 
-    function equal_constsym(sym1,sym2:pconstsym):boolean;
+    function equal_constsym(sym1,sym2:tconstsym):boolean;
 
     { true, if two parameter lists are equal        }
     { if acp is cp_none, all have to match exactly  }
@@ -216,26 +216,24 @@ interface
     function convertable_paras(paralist1,paralist2 : tlinkedlist; acp : compare_type) : boolean;
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
+    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef) : boolean;
 
-    { if l isn't in the range of def a range check error is generated and
+    { if l isn't in the range of def a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure testrange(def : pdef;var l : tconstexprint);
+    procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
 
     { returns the range of def }
-    procedure getrange(def : pdef;var l : longint;var h : longint);
+    procedure getrange(def : tdef;var l : longint;var h : longint);
 
     { some type helper routines for MMX support }
-    function is_mmx_able_array(p : pdef) : boolean;
+    function is_mmx_able_array(p : tdef) : boolean;
 
     { returns the mmx type }
-    function mmx_type(p : pdef) : tmmxtype;
+    function mmx_type(p : tdef) : tmmxtype;
 
     { returns true, if sym needs an entry in the proplist of a class rtti }
-    function needs_prop_entry(sym : psym) : boolean;
+    function needs_prop_entry(sym : tsym) : boolean;
 
-    { returns true, if p contains data which needs init/final code }
-    function needs_init_final(p : psymtable) : boolean;
 
 implementation
 
@@ -243,55 +241,36 @@ implementation
        globtype,globals,systems,tokens,verbose,
        symconst,symtable,nld;
 
-    var
-       b_needs_init_final : boolean;
 
-    procedure _needs_init_final(p : pnamedindexobject);
-      begin
-         if (psym(p)^.typ=varsym) and
-           assigned(pvarsym(p)^.vartype.def) and
-           not is_class(pvarsym(p)^.vartype.def) and
-           pstoreddef(pvarsym(p)^.vartype.def)^.needs_inittable then
-           b_needs_init_final:=true;
-      end;
-
-    { returns true, if p contains data which needs init/final code }
-    function needs_init_final(p : psymtable) : boolean;
-      begin
-         b_needs_init_final:=false;
-         p^.foreach({$ifdef FPCPROCVAR}@{$endif}_needs_init_final);
-         needs_init_final:=b_needs_init_final;
-      end;
-
-    function needs_prop_entry(sym : psym) : boolean;
+    function needs_prop_entry(sym : tsym) : boolean;
 
       begin
-         needs_prop_entry:=(sp_published in psym(sym)^.symoptions) and
-         (sym^.typ in [propertysym,varsym]);
+         needs_prop_entry:=(sp_published in tsym(sym).symoptions) and
+         (sym.typ in [propertysym,varsym]);
       end;
 
 
-    function equal_constsym(sym1,sym2:pconstsym):boolean;
+    function equal_constsym(sym1,sym2:tconstsym):boolean;
       var
         p1,p2,pend : pchar;
       begin
         equal_constsym:=false;
-        if sym1^.consttyp<>sym2^.consttyp then
+        if sym1.consttyp<>sym2.consttyp then
          exit;
-        case sym1^.consttyp of
+        case sym1.consttyp of
            constint,
            constbool,
            constchar,
            constpointer,
            constord :
-             equal_constsym:=(sym1^.value=sym2^.value);
+             equal_constsym:=(sym1.value=sym2.value);
            conststring,constresourcestring :
              begin
-               if sym1^.len=sym2^.len then
+               if sym1.len=sym2.len then
                 begin
-                  p1:=pchar(tpointerord(sym1^.value));
-                  p2:=pchar(tpointerord(sym2^.value));
-                  pend:=p1+sym1^.len;
+                  p1:=pchar(tpointerord(sym1.value));
+                  p2:=pchar(tpointerord(sym2.value));
+                  pend:=p1+sym1.len;
                   while (p1<pend) do
                    begin
                      if p1^<>p2^ then
@@ -304,9 +283,9 @@ implementation
                 end;
              end;
            constreal :
-             equal_constsym:=(pbestreal(tpointerord(sym1^.value))^=pbestreal(tpointerord(sym2^.value))^);
+             equal_constsym:=(pbestreal(tpointerord(sym1.value))^=pbestreal(tpointerord(sym2.value))^);
            constset :
-             equal_constsym:=(pnormalset(tpointerord(sym1^.value))^=pnormalset(tpointerord(sym2^.value))^);
+             equal_constsym:=(pnormalset(tpointerord(sym1.value))^=pnormalset(tpointerord(sym2.value))^);
            constnil :
              equal_constsym:=true;
         end;
@@ -357,7 +336,7 @@ implementation
                    if assigned(def1.defaultvalue) and
                       assigned(def2.defaultvalue) then
                     begin
-                      if not equal_constsym(pconstsym(def1.defaultvalue),pconstsym(def2.defaultvalue)) then
+                      if not equal_constsym(tconstsym(def1.defaultvalue),tconstsym(def2.defaultvalue)) then
                        begin
                          equal_paras:=false;
                          exit;
@@ -426,7 +405,7 @@ implementation
 
 
     { true if a function can be assigned to a procvar }
-    function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
+    function proc_to_procvar_equal(def1:tprocdef;def2:tprocvardef) : boolean;
       const
         po_comp = po_compatibility_options-[po_methodpointer,po_classmethod];
       var
@@ -436,25 +415,25 @@ implementation
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer }
-         ismethod:=assigned(def1^.owner) and
-                   (def1^.owner^.symtabletype=objectsymtable);
+         ismethod:=assigned(def1.owner) and
+                   (def1.owner.symtabletype=objectsymtable);
                    { I think methods of objects are also not compatible }
                    { with procedure variables! (FK)
                    and
-                   assigned(def1^.owner^.defowner) and
-                   (pobjectdef(def1^.owner^.defowner)^.is_class); }
-         if (ismethod and not (po_methodpointer in def2^.procoptions)) or
-            (not(ismethod) and (po_methodpointer in def2^.procoptions)) then
+                   assigned(def1.owner.defowner) and
+                   (tobjectdef(def1.owner.defowner)^.is_class); }
+         if (ismethod and not (po_methodpointer in def2.procoptions)) or
+            (not(ismethod) and (po_methodpointer in def2.procoptions)) then
           begin
             Message(type_e_no_method_and_procedure_not_compatible);
             exit;
           end;
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
-         if is_equal(def1^.rettype.def,def2^.rettype.def) and
-            (equal_paras(def1^.para,def2^.para,cp_all) or
-             convertable_paras(def1^.para,def2^.para,cp_all)) and
-            ((po_comp * def1^.procoptions)= (po_comp * def2^.procoptions)) then
+         if is_equal(def1.rettype.def,def2.rettype.def) and
+            (equal_paras(def1.para,def2.para,cp_all) or
+             convertable_paras(def1.para,def2.para,cp_all)) and
+            ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) then
            proc_to_procvar_equal:=true
          else
            proc_to_procvar_equal:=false;
@@ -462,21 +441,21 @@ implementation
 
 
     { returns true, if def uses FPU }
-    function is_fpu(def : pdef) : boolean;
+    function is_fpu(def : tdef) : boolean;
       begin
-         is_fpu:=(def^.deftype=floatdef);
+         is_fpu:=(def.deftype=floatdef);
       end;
 
 
     { true if p is an ordinal }
-    function is_ordinal(def : pdef) : boolean;
+    function is_ordinal(def : tdef) : boolean;
       var
          dt : tbasetype;
       begin
-         case def^.deftype of
+         case def.deftype of
            orddef :
              begin
-               dt:=porddef(def)^.typ;
+               dt:=torddef(def).typ;
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
@@ -491,13 +470,13 @@ implementation
 
 
     { returns the min. value of the type }
-    function get_min_value(def : pdef) : longint;
+    function get_min_value(def : tdef) : longint;
       begin
-         case def^.deftype of
+         case def.deftype of
            orddef:
-             get_min_value:=porddef(def)^.low;
+             get_min_value:=torddef(def).low;
            enumdef:
-             get_min_value:=penumdef(def)^.min;
+             get_min_value:=tenumdef(def).min;
            else
              get_min_value:=0;
          end;
@@ -505,53 +484,53 @@ implementation
 
 
     { true if p is an integer }
-    function is_integer(def : pdef) : boolean;
+    function is_integer(def : tdef) : boolean;
       begin
-        is_integer:=(def^.deftype=orddef) and
-                    (porddef(def)^.typ in [uauto,u8bit,u16bit,u32bit,u64bit,
+        is_integer:=(def.deftype=orddef) and
+                    (torddef(def).typ in [uauto,u8bit,u16bit,u32bit,u64bit,
                                            s8bit,s16bit,s32bit,s64bit]);
       end;
 
 
     { true if p is a boolean }
-    function is_boolean(def : pdef) : boolean;
+    function is_boolean(def : tdef) : boolean;
       begin
-        is_boolean:=(def^.deftype=orddef) and
-                    (porddef(def)^.typ in [bool8bit,bool16bit,bool32bit]);
+        is_boolean:=(def.deftype=orddef) and
+                    (torddef(def).typ in [bool8bit,bool16bit,bool32bit]);
       end;
 
 
     { true if p is a void }
-    function is_void(def : pdef) : boolean;
+    function is_void(def : tdef) : boolean;
       begin
-        is_void:=(def^.deftype=orddef) and
-                 (porddef(def)^.typ=uvoid);
+        is_void:=(def.deftype=orddef) and
+                 (torddef(def).typ=uvoid);
       end;
 
 
     { true if p is a char }
-    function is_char(def : pdef) : boolean;
+    function is_char(def : tdef) : boolean;
       begin
-        is_char:=(def^.deftype=orddef) and
-                 (porddef(def)^.typ=uchar);
+        is_char:=(def.deftype=orddef) and
+                 (torddef(def).typ=uchar);
       end;
 
 
     { true if p is signed (integer) }
-    function is_signed(def : pdef) : boolean;
+    function is_signed(def : tdef) : boolean;
       var
          dt : tbasetype;
       begin
-         case def^.deftype of
+         case def.deftype of
            orddef :
              begin
-               dt:=porddef(def)^.typ;
+               dt:=torddef(def).typ;
                is_signed:=(dt in [s8bit,s16bit,s32bit,s64bit]);
              end;
            enumdef :
-             is_signed:=penumdef(def)^.min < 0;
+             is_signed:=tenumdef(def).min < 0;
            arraydef :
-             is_signed:=is_signed(parraydef(def)^.rangetype.def);
+             is_signed:=is_signed(tarraydef(def).rangetype.def);
            else
              is_signed:=false;
          end;
@@ -559,192 +538,192 @@ implementation
 
 
     { true, if p points to an open array def }
-    function is_open_string(p : pdef) : boolean;
+    function is_open_string(p : tdef) : boolean;
       begin
-         is_open_string:=(p^.deftype=stringdef) and
-                         (pstringdef(p)^.string_typ=st_shortstring) and
-                         (pstringdef(p)^.len=0);
+         is_open_string:=(p.deftype=stringdef) and
+                         (tstringdef(p).string_typ=st_shortstring) and
+                         (tstringdef(p).len=0);
       end;
 
 
     { true, if p points to a zero based array def }
-    function is_zero_based_array(p : pdef) : boolean;
+    function is_zero_based_array(p : tdef) : boolean;
       begin
-         is_zero_based_array:=(p^.deftype=arraydef) and
-                              (parraydef(p)^.lowrange=0) and
+         is_zero_based_array:=(p.deftype=arraydef) and
+                              (tarraydef(p).lowrange=0) and
                               not(is_special_array(p));
       end;
 
     { true if p points to a dynamic array def }
-    function is_dynamic_array(p : pdef) : boolean;
+    function is_dynamic_array(p : tdef) : boolean;
       begin
-         is_dynamic_array:=(p^.deftype=arraydef) and
-           parraydef(p)^.IsDynamicArray;
+         is_dynamic_array:=(p.deftype=arraydef) and
+           tarraydef(p).IsDynamicArray;
       end;
 
 
     { true, if p points to an open array def }
-    function is_open_array(p : pdef) : boolean;
+    function is_open_array(p : tdef) : boolean;
       begin
          { check for s32bittype is needed, because for u32bit the high
            range is also -1 ! (PFV) }
-         is_open_array:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.rangetype.def=s32bittype.def) and
-                        (parraydef(p)^.lowrange=0) and
-                        (parraydef(p)^.highrange=-1) and
-                        not(parraydef(p)^.IsConstructor) and
-                        not(parraydef(p)^.IsVariant) and
-                        not(parraydef(p)^.IsArrayOfConst) and
-                        not(parraydef(p)^.IsDynamicArray);
+         is_open_array:=(p.deftype=arraydef) and
+                        (tarraydef(p).rangetype.def=s32bittype.def) and
+                        (tarraydef(p).lowrange=0) and
+                        (tarraydef(p).highrange=-1) and
+                        not(tarraydef(p).IsConstructor) and
+                        not(tarraydef(p).IsVariant) and
+                        not(tarraydef(p).IsArrayOfConst) and
+                        not(tarraydef(p).IsDynamicArray);
 
       end;
 
     { true, if p points to an array of const def }
-    function is_array_constructor(p : pdef) : boolean;
+    function is_array_constructor(p : tdef) : boolean;
       begin
-         is_array_constructor:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.IsConstructor);
+         is_array_constructor:=(p.deftype=arraydef) and
+                        (tarraydef(p).IsConstructor);
       end;
 
     { true, if p points to a variant array }
-    function is_variant_array(p : pdef) : boolean;
+    function is_variant_array(p : tdef) : boolean;
       begin
-         is_variant_array:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.IsVariant);
+         is_variant_array:=(p.deftype=arraydef) and
+                        (tarraydef(p).IsVariant);
       end;
 
     { true, if p points to an array of const }
-    function is_array_of_const(p : pdef) : boolean;
+    function is_array_of_const(p : tdef) : boolean;
       begin
-         is_array_of_const:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.IsArrayOfConst);
+         is_array_of_const:=(p.deftype=arraydef) and
+                        (tarraydef(p).IsArrayOfConst);
       end;
 
     { true, if p points to a special array }
-    function is_special_array(p : pdef) : boolean;
+    function is_special_array(p : tdef) : boolean;
       begin
-         is_special_array:=(p^.deftype=arraydef) and
-                        ((parraydef(p)^.IsVariant) or
-                         (parraydef(p)^.IsArrayOfConst) or
-                         (parraydef(p)^.IsConstructor) or
+         is_special_array:=(p.deftype=arraydef) and
+                        ((tarraydef(p).IsVariant) or
+                         (tarraydef(p).IsArrayOfConst) or
+                         (tarraydef(p).IsConstructor) or
                          is_open_array(p)
                         );
       end;
 
     { true if p is an ansi string def }
-    function is_ansistring(p : pdef) : boolean;
+    function is_ansistring(p : tdef) : boolean;
       begin
-         is_ansistring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=st_ansistring);
+         is_ansistring:=(p.deftype=stringdef) and
+                        (tstringdef(p).string_typ=st_ansistring);
       end;
 
 
     { true if p is an long string def }
-    function is_longstring(p : pdef) : boolean;
+    function is_longstring(p : tdef) : boolean;
       begin
-         is_longstring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=st_longstring);
+         is_longstring:=(p.deftype=stringdef) and
+                        (tstringdef(p).string_typ=st_longstring);
       end;
 
 
     { true if p is an wide string def }
-    function is_widestring(p : pdef) : boolean;
+    function is_widestring(p : tdef) : boolean;
       begin
-         is_widestring:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=st_widestring);
+         is_widestring:=(p.deftype=stringdef) and
+                        (tstringdef(p).string_typ=st_widestring);
       end;
 
 
     { true if p is an short string def }
-    function is_shortstring(p : pdef) : boolean;
+    function is_shortstring(p : tdef) : boolean;
       begin
-         is_shortstring:=(p^.deftype=stringdef) and
-                         (pstringdef(p)^.string_typ=st_shortstring);
+         is_shortstring:=(p.deftype=stringdef) and
+                         (tstringdef(p).string_typ=st_shortstring);
       end;
 
     { true if p is a char array def }
-    function is_chararray(p : pdef) : boolean;
+    function is_chararray(p : tdef) : boolean;
       begin
-        is_chararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.elementtype.def,cchartype.def) and
+        is_chararray:=(p.deftype=arraydef) and
+                      is_equal(tarraydef(p).elementtype.def,cchartype.def) and
                       not(is_special_array(p));
       end;
 
     { true if p is a widechar array def }
-    function is_widechararray(p : pdef) : boolean;
+    function is_widechararray(p : tdef) : boolean;
       begin
-        is_widechararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.elementtype.def,cwidechartype.def) and
+        is_widechararray:=(p.deftype=arraydef) and
+                      is_equal(tarraydef(p).elementtype.def,cwidechartype.def) and
                       not(is_special_array(p));
       end;
 
 
     { true if p is a pchar def }
-    function is_pchar(p : pdef) : boolean;
+    function is_pchar(p : tdef) : boolean;
       begin
-        is_pchar:=(p^.deftype=pointerdef) and
-                  (is_equal(ppointerdef(p)^.pointertype.def,cchartype.def) or
-                   (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
-                    is_chararray(ppointerdef(p)^.pointertype.def)));
+        is_pchar:=(p.deftype=pointerdef) and
+                  (is_equal(tpointerdef(p).pointertype.def,cchartype.def) or
+                   (is_zero_based_array(tpointerdef(p).pointertype.def) and
+                    is_chararray(tpointerdef(p).pointertype.def)));
       end;
 
     { true if p is a pchar def }
-    function is_pwidechar(p : pdef) : boolean;
+    function is_pwidechar(p : tdef) : boolean;
       begin
-        is_pwidechar:=(p^.deftype=pointerdef) and
-                  (is_equal(ppointerdef(p)^.pointertype.def,cwidechartype.def) or
-                   (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
-                    is_widechararray(ppointerdef(p)^.pointertype.def)));
+        is_pwidechar:=(p.deftype=pointerdef) and
+                  (is_equal(tpointerdef(p).pointertype.def,cwidechartype.def) or
+                   (is_zero_based_array(tpointerdef(p).pointertype.def) and
+                    is_widechararray(tpointerdef(p).pointertype.def)));
       end;
 
 
     { true if p is a voidpointer def }
-    function is_voidpointer(p : pdef) : boolean;
+    function is_voidpointer(p : tdef) : boolean;
       begin
-        is_voidpointer:=(p^.deftype=pointerdef) and
-                        (ppointerdef(p)^.pointertype.def^.deftype=orddef) and
-                        (porddef(ppointerdef(p)^.pointertype.def)^.typ=uvoid);
+        is_voidpointer:=(p.deftype=pointerdef) and
+                        (tpointerdef(p).pointertype.def.deftype=orddef) and
+                        (torddef(tpointerdef(p).pointertype.def).typ=uvoid);
       end;
 
 
     { true if p is a smallset def }
-    function is_smallset(p : pdef) : boolean;
+    function is_smallset(p : tdef) : boolean;
       begin
-        is_smallset:=(p^.deftype=setdef) and
-                     (psetdef(p)^.settype=smallset);
+        is_smallset:=(p.deftype=setdef) and
+                     (tsetdef(p).settype=smallset);
       end;
 
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
-    function ret_in_acc(def : pdef) : boolean;
+    function ret_in_acc(def : tdef) : boolean;
       begin
-         ret_in_acc:=(def^.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
-                     ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
-                     ((def^.deftype=procvardef) and not(po_methodpointer in pprocvardef(def)^.procoptions)) or
-                     ((def^.deftype=objectdef) and not is_object(def)) or
-                     ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset));
+         ret_in_acc:=(def.deftype in [orddef,pointerdef,enumdef,classrefdef]) or
+                     ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_ansistring,st_widestring])) or
+                     ((def.deftype=procvardef) and not(po_methodpointer in tprocvardef(def).procoptions)) or
+                     ((def.deftype=objectdef) and not is_object(def)) or
+                     ((def.deftype=setdef) and (tsetdef(def).settype=smallset));
       end;
 
 
     { true, if def is a 64 bit int type }
-    function is_64bitint(def : pdef) : boolean;
+    function is_64bitint(def : tdef) : boolean;
       begin
-         is_64bitint:=(def^.deftype=orddef) and (porddef(def)^.typ in [u64bit,s64bit])
+         is_64bitint:=(def.deftype=orddef) and (torddef(def).typ in [u64bit,s64bit])
       end;
 
 
     { true if uses a parameter as return value }
-    function ret_in_param(def : pdef) : boolean;
+    function ret_in_param(def : tdef) : boolean;
       begin
-         ret_in_param:=(def^.deftype in [arraydef,recorddef]) or
-           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
-           ((def^.deftype=procvardef) and (po_methodpointer in pprocvardef(def)^.procoptions)) or
-           ((def^.deftype=objectdef) and is_object(def)) or
-           ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
+         ret_in_param:=(def.deftype in [arraydef,recorddef]) or
+           ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
+           ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
+           ((def.deftype=objectdef) and is_object(def)) or
+           ((def.deftype=setdef) and (tsetdef(def).settype<>smallset));
       end;
 
 
-    function push_high_param(def : pdef) : boolean;
+    function push_high_param(def : tdef) : boolean;
       begin
          push_high_param:=is_open_array(def) or
                           is_open_string(def) or
@@ -753,114 +732,134 @@ implementation
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function push_addr_param(def : pdef) : boolean;
+    function push_addr_param(def : tdef) : boolean;
       begin
         push_addr_param:=false;
         if never_copy_const_param then
          push_addr_param:=true
         else
          begin
-           case def^.deftype of
+           case def.deftype of
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(def^.size>target_os.size_of_pointer);
+               push_addr_param:=(def.size>target_os.size_of_pointer);
              arraydef :
-               push_addr_param:=((Parraydef(def)^.highrange>=Parraydef(def)^.lowrange) and (def^.size>target_os.size_of_pointer)) or
+               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>target_os.size_of_pointer)) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
              objectdef :
                push_addr_param:=is_object(def);
              stringdef :
-               push_addr_param:=pstringdef(def)^.string_typ in [st_shortstring,st_longstring];
+               push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
              procvardef :
-               push_addr_param:=(po_methodpointer in pprocvardef(def)^.procoptions);
+               push_addr_param:=(po_methodpointer in tprocvardef(def).procoptions);
              setdef :
-               push_addr_param:=(psetdef(def)^.settype<>smallset);
+               push_addr_param:=(tsetdef(def).settype<>smallset);
            end;
          end;
       end;
 
-    { test if l is in the range of def, outputs error if out of range }
-    procedure testrange(def : pdef;var l : tconstexprint);
+    { if l isn't in the range of def a range check error (if not explicit) is generated and
+      the value is placed within the range }
+    procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
       var
          lv,hv: longint;
          error: boolean;
-
       begin
          error := false;
          { for 64 bit types we need only to check if it is less than }
          { zero, if def is a qword node                              }
          if is_64bitint(def) then
            begin
-              if (l<0) and (porddef(def)^.typ=u64bit) then
+              if (l<0) and (torddef(def).typ=u64bit) then
                 begin
                    { don't zero the result, because it may come from hex notation
                      like $ffffffffffffffff! (JM)
                    l:=0; }
-                   if (cs_check_range in aktlocalswitches) then
-                     Message(parser_e_range_check_error)
-                   else
-                     Message(parser_w_range_check_error);
+                   if not explicit then
+                    begin
+                      if (cs_check_range in aktlocalswitches) then
+                        Message(parser_e_range_check_error)
+                      else
+                        Message(parser_w_range_check_error);
+                    end;
                    error := true;
                 end;
            end
          else
            begin
               getrange(def,lv,hv);
-              if (def^.deftype=orddef) and
-                 (porddef(def)^.typ=u32bit) then
+              if (def.deftype=orddef) and
+                 (torddef(def).typ=u32bit) then
                 begin
                   if (l < cardinal(lv)) or
                      (l > cardinal(hv)) then
                     begin
-                      if (cs_check_range in aktlocalswitches) then
-                        Message(parser_e_range_check_error)
-                      else
-                        Message(parser_w_range_check_error);
+                      if not explicit then
+                       begin
+                         if (cs_check_range in aktlocalswitches) then
+                           Message(parser_e_range_check_error)
+                         else
+                           Message(parser_w_range_check_error);
+                       end;
                       error := true;
                     end;
                 end
               else if (l<lv) or (l>hv) then
                 begin
-                   if (def^.deftype=enumdef) or
-                      (cs_check_range in aktlocalswitches) then
-                     Message(parser_e_range_check_error)
-                   else
-                     Message(parser_w_range_check_error);
+                   if not explicit then
+                    begin
+                      if (def.deftype=enumdef) or
+                         (cs_check_range in aktlocalswitches) then
+                        Message(parser_e_range_check_error)
+                      else
+                        Message(parser_w_range_check_error);
+                    end;
                    error := true;
                 end;
            end;
          if error then
-         { Fix the value to fit in the allocated space for this type of variable }
-           case def^.size of
-             1: l := l and $ff;
-             2: l := l and $ffff;
-             { work around sign extension bug (to be fixed) (JM) }
-             4: l := l and (int64($fffffff) shl 4 + $f);
-           end;
+          begin
+             { Fix the value to fit in the allocated space for this type of variable }
+             case def.size of
+               1: l := l and $ff;
+               2: l := l and $ffff;
+               { work around sign extension bug (to be fixed) (JM) }
+               4: l := l and (int64($fffffff) shl 4 + $f);
+             end;
+             { do sign extension if necessary (JM) }
+             if is_signed(def) then
+              begin
+                case def.size of
+                  1: l := shortint(l);
+                  2: l := smallint(l);
+                  4: l := longint(l);
+                end;
+              end;
+          end;
       end;
 
 
     { return the range from def in l and h }
-    procedure getrange(def : pdef;var l : longint;var h : longint);
+    procedure getrange(def : tdef;var l : longint;var h : longint);
       begin
-        case def^.deftype of
+        case def.deftype of
           orddef :
             begin
-              l:=porddef(def)^.low;
-              h:=porddef(def)^.high;
+              l:=torddef(def).low;
+              h:=torddef(def).high;
             end;
           enumdef :
             begin
-              l:=penumdef(def)^.min;
-              h:=penumdef(def)^.max;
+              l:=tenumdef(def).min;
+              h:=tenumdef(def).max;
             end;
           arraydef :
             begin
-              l:=parraydef(def)^.lowrange;
-              h:=parraydef(def)^.highrange;
+              l:=tarraydef(def).lowrange;
+              h:=tarraydef(def).highrange;
             end;
         else
           internalerror(987);
@@ -868,18 +867,18 @@ implementation
       end;
 
 
-    function mmx_type(p : pdef) : tmmxtype;
+    function mmx_type(p : tdef) : tmmxtype;
       begin
          mmx_type:=mmxno;
          if is_mmx_able_array(p) then
            begin
-              if parraydef(p)^.elementtype.def^.deftype=floatdef then
-                case pfloatdef(parraydef(p)^.elementtype.def)^.typ of
+              if tarraydef(p).elementtype.def.deftype=floatdef then
+                case tfloatdef(tarraydef(p).elementtype.def).typ of
                   s32real:
                     mmx_type:=mmxsingle;
                 end
               else
-                case porddef(parraydef(p)^.elementtype.def)^.typ of
+                case torddef(tarraydef(p).elementtype.def).typ of
                    u8bit:
                      mmx_type:=mmxu8bit;
                    s8bit:
@@ -897,38 +896,38 @@ implementation
       end;
 
 
-    function is_mmx_able_array(p : pdef) : boolean;
+    function is_mmx_able_array(p : tdef) : boolean;
       begin
 {$ifdef SUPPORT_MMX}
          if (cs_mmx_saturation in aktlocalswitches) then
            begin
-              is_mmx_able_array:=(p^.deftype=arraydef) and
+              is_mmx_able_array:=(p.deftype=arraydef) and
                 not(is_special_array(p)) and
                 (
                  (
-                  (parraydef(p)^.elementtype.def^.deftype=orddef) and
+                  (tarraydef(p).elementtype.def.deftype=orddef) and
                   (
                    (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=1) and
-                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u32bit,s32bit])
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=1) and
+                    (torddef(tarraydef(p).elementtype.def).typ in [u32bit,s32bit])
                    )
                    or
                    (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=3) and
-                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u16bit,s16bit])
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=3) and
+                    (torddef(tarraydef(p).elementtype.def).typ in [u16bit,s16bit])
                    )
                   )
                  )
                  or
                 (
                  (
-                  (parraydef(p)^.elementtype.def^.deftype=floatdef) and
+                  (tarraydef(p).elementtype.def.deftype=floatdef) and
                   (
-                   (parraydef(p)^.lowrange=0) and
-                   (parraydef(p)^.highrange=1) and
-                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
+                   (tarraydef(p).lowrange=0) and
+                   (tarraydef(p).highrange=1) and
+                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
                   )
                  )
                 )
@@ -936,37 +935,37 @@ implementation
            end
          else
            begin
-              is_mmx_able_array:=(p^.deftype=arraydef) and
+              is_mmx_able_array:=(p.deftype=arraydef) and
                 (
                  (
-                  (parraydef(p)^.elementtype.def^.deftype=orddef) and
+                  (tarraydef(p).elementtype.def.deftype=orddef) and
                   (
                    (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=1) and
-                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u32bit,s32bit])
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=1) and
+                    (torddef(tarraydef(p).elementtype.def).typ in [u32bit,s32bit])
                    )
                    or
                    (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=3) and
-                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u16bit,s16bit])
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=3) and
+                    (torddef(tarraydef(p).elementtype.def).typ in [u16bit,s16bit])
                    )
                    or
                    (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=7) and
-                    (porddef(parraydef(p)^.elementtype.def)^.typ in [u8bit,s8bit])
+                    (tarraydef(p).lowrange=0) and
+                    (tarraydef(p).highrange=7) and
+                    (torddef(tarraydef(p).elementtype.def).typ in [u8bit,s8bit])
                    )
                   )
                  )
                  or
                  (
-                  (parraydef(p)^.elementtype.def^.deftype=floatdef) and
+                  (tarraydef(p).elementtype.def.deftype=floatdef) and
                   (
-                   (parraydef(p)^.lowrange=0) and
-                   (parraydef(p)^.highrange=1) and
-                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
+                   (tarraydef(p).lowrange=0) and
+                   (tarraydef(p).highrange=1) and
+                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
                   )
                  )
                 );
@@ -977,10 +976,10 @@ implementation
       end;
 
 
-    function is_equal(def1,def2 : pdef) : boolean;
+    function is_equal(def1,def2 : tdef) : boolean;
       var
          b : boolean;
-         hd : pdef;
+         hd : tdef;
       begin
          { both types must exists }
          if not (assigned(def1) and assigned(def2)) then
@@ -990,7 +989,7 @@ implementation
           end;
 
          { be sure, that if there is a stringdef, that this is def1 }
-         if def2^.deftype=stringdef then
+         if def2.deftype=stringdef then
            begin
               hd:=def1;
               def1:=def2;
@@ -1003,49 +1002,49 @@ implementation
            b:=true
          else
          { pointer with an equal definition are equal }
-           if (def1^.deftype=pointerdef) and (def2^.deftype=pointerdef) then
+           if (def1.deftype=pointerdef) and (def2.deftype=pointerdef) then
              begin
                 { check if both are farpointer }
-                if (ppointerdef(def1)^.is_far=ppointerdef(def2)^.is_far) then
+                if (tpointerdef(def1).is_far=tpointerdef(def2).is_far) then
                  begin
                    { here a problem detected in tabsolutesym }
                    { the types can be forward type !!        }
-                   if assigned(def1^.typesym) and (ppointerdef(def1)^.pointertype.def^.deftype=forwarddef) then
-                    b:=(def1^.typesym=def2^.typesym)
+                   if assigned(def1.typesym) and (tpointerdef(def1).pointertype.def.deftype=forwarddef) then
+                    b:=(def1.typesym=def2.typesym)
                    else
-                    b:=ppointerdef(def1)^.pointertype.def=ppointerdef(def2)^.pointertype.def;
+                    b:=tpointerdef(def1).pointertype.def=tpointerdef(def2).pointertype.def;
                  end
                 else
                  b:=false;
              end
          else
          { ordinals are equal only when the ordinal type is equal }
-           if (def1^.deftype=orddef) and (def2^.deftype=orddef) then
+           if (def1.deftype=orddef) and (def2.deftype=orddef) then
              begin
-                case porddef(def1)^.typ of
+                case torddef(def1).typ of
                 u8bit,u16bit,u32bit,
                 s8bit,s16bit,s32bit:
-                  b:=((porddef(def1)^.typ=porddef(def2)^.typ) and
-                   (porddef(def1)^.low=porddef(def2)^.low) and
-                   (porddef(def1)^.high=porddef(def2)^.high));
+                  b:=((torddef(def1).typ=torddef(def2).typ) and
+                   (torddef(def1).low=torddef(def2).low) and
+                   (torddef(def1).high=torddef(def2).high));
                 uvoid,uchar,uwidechar,
                 bool8bit,bool16bit,bool32bit:
-                  b:=(porddef(def1)^.typ=porddef(def2)^.typ);
+                  b:=(torddef(def1).typ=torddef(def2).typ);
                 end;
              end
          else
-           if (def1^.deftype=floatdef) and (def2^.deftype=floatdef) then
-             b:=pfloatdef(def1)^.typ=pfloatdef(def2)^.typ
+           if (def1.deftype=floatdef) and (def2.deftype=floatdef) then
+             b:=tfloatdef(def1).typ=tfloatdef(def2).typ
          else
            { strings with the same length are equal }
-           if (def1^.deftype=stringdef) and (def2^.deftype=stringdef) and
-              (pstringdef(def1)^.string_typ=pstringdef(def2)^.string_typ) then
+           if (def1.deftype=stringdef) and (def2.deftype=stringdef) and
+              (tstringdef(def1).string_typ=tstringdef(def2).string_typ) then
              begin
                 b:=not(is_shortstring(def1)) or
-                   (pstringdef(def1)^.len=pstringdef(def2)^.len);
+                   (tstringdef(def1).len=tstringdef(def2).len);
              end
          else
-           if (def1^.deftype=formaldef) and (def2^.deftype=formaldef) then
+           if (def1.deftype=formaldef) and (def2.deftype=formaldef) then
              b:=true
          { file types with the same file element type are equal }
          { this is a problem for assign !!                      }
@@ -1054,48 +1053,48 @@ implementation
          { typed file that has voiddef as elemnt type           }
          { but must NOT match for text file !!!                 }
          else
-            if (def1^.deftype=filedef) and (def2^.deftype=filedef) then
-              b:=(pfiledef(def1)^.filetyp=pfiledef(def2)^.filetyp) and
+            if (def1.deftype=filedef) and (def2.deftype=filedef) then
+              b:=(tfiledef(def1).filetyp=tfiledef(def2).filetyp) and
                  ((
-                 ((pfiledef(def1)^.typedfiletype.def=nil) and
-                  (pfiledef(def2)^.typedfiletype.def=nil)) or
+                 ((tfiledef(def1).typedfiletype.def=nil) and
+                  (tfiledef(def2).typedfiletype.def=nil)) or
                  (
-                  (pfiledef(def1)^.typedfiletype.def<>nil) and
-                  (pfiledef(def2)^.typedfiletype.def<>nil) and
-                  is_equal(pfiledef(def1)^.typedfiletype.def,pfiledef(def2)^.typedfiletype.def)
+                  (tfiledef(def1).typedfiletype.def<>nil) and
+                  (tfiledef(def2).typedfiletype.def<>nil) and
+                  is_equal(tfiledef(def1).typedfiletype.def,tfiledef(def2).typedfiletype.def)
                  ) or
-                 ( (pfiledef(def1)^.typedfiletype.def=pdef(voidtype.def)) or
-                   (pfiledef(def2)^.typedfiletype.def=pdef(voidtype.def))
+                 ( (tfiledef(def1).typedfiletype.def=tdef(voidtype.def)) or
+                   (tfiledef(def2).typedfiletype.def=tdef(voidtype.def))
                  )))
          { sets with the same element base type are equal }
          else
-           if (def1^.deftype=setdef) and (def2^.deftype=setdef) then
+           if (def1.deftype=setdef) and (def2.deftype=setdef) then
              begin
-                if assigned(psetdef(def1)^.elementtype.def) and
-                   assigned(psetdef(def2)^.elementtype.def) then
-                  b:=is_subequal(psetdef(def1)^.elementtype.def,psetdef(def2)^.elementtype.def)
+                if assigned(tsetdef(def1).elementtype.def) and
+                   assigned(tsetdef(def2).elementtype.def) then
+                  b:=is_subequal(tsetdef(def1).elementtype.def,tsetdef(def2).elementtype.def)
                 else
                   { empty set is compatible with everything }
                   b:=true;
              end
          else
-           if (def1^.deftype=procvardef) and (def2^.deftype=procvardef) then
+           if (def1.deftype=procvardef) and (def2.deftype=procvardef) then
              begin
                 { poassembler isn't important for compatibility }
                 { if a method is assigned to a methodpointer    }
                 { is checked before                             }
-                b:=(pprocvardef(def1)^.proctypeoption=pprocvardef(def2)^.proctypeoption) and
-                   (pprocvardef(def1)^.proccalloptions=pprocvardef(def2)^.proccalloptions) and
-                   ((pprocvardef(def1)^.procoptions * po_compatibility_options)=
-                    (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
-                   is_equal(pprocvardef(def1)^.rettype.def,pprocvardef(def2)^.rettype.def) and
-                   equal_paras(pprocvardef(def1)^.para,pprocvardef(def2)^.para,cp_all);
+                b:=(tprocvardef(def1).proctypeoption=tprocvardef(def2).proctypeoption) and
+                   (tprocvardef(def1).proccalloptions=tprocvardef(def2).proccalloptions) and
+                   ((tprocvardef(def1).procoptions * po_compatibility_options)=
+                    (tprocvardef(def2).procoptions * po_compatibility_options)) and
+                   is_equal(tprocvardef(def1).rettype.def,tprocvardef(def2).rettype.def) and
+                   equal_paras(tprocvardef(def1).para,tprocvardef(def2).para,cp_all);
              end
          else
-           if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
+           if (def1.deftype=arraydef) and (def2.deftype=arraydef) then
              begin
                if is_dynamic_array(def1) and is_dynamic_array(def2) then
-                 b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def)
+                 b:=is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def)
                else
                 if is_array_of_const(def1) or is_array_of_const(def2) then
                  begin
@@ -1106,52 +1105,52 @@ implementation
                else
                 if is_open_array(def1) or is_open_array(def2) then
                  begin
-                   b:=is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def);
+                   b:=is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def);
                  end
                else
                 begin
                   b:=not(m_tp in aktmodeswitches) and
                      not(m_delphi in aktmodeswitches) and
-                     (parraydef(def1)^.lowrange=parraydef(def2)^.lowrange) and
-                     (parraydef(def1)^.highrange=parraydef(def2)^.highrange) and
-                     is_equal(parraydef(def1)^.elementtype.def,parraydef(def2)^.elementtype.def) and
-                     is_equal(parraydef(def1)^.rangetype.def,parraydef(def2)^.rangetype.def);
+                     (tarraydef(def1).lowrange=tarraydef(def2).lowrange) and
+                     (tarraydef(def1).highrange=tarraydef(def2).highrange) and
+                     is_equal(tarraydef(def1).elementtype.def,tarraydef(def2).elementtype.def) and
+                     is_equal(tarraydef(def1).rangetype.def,tarraydef(def2).rangetype.def);
                 end;
              end
          else
-           if (def1^.deftype=classrefdef) and (def2^.deftype=classrefdef) then
+           if (def1.deftype=classrefdef) and (def2.deftype=classrefdef) then
              begin
                 { similar to pointerdef: }
-                if assigned(def1^.typesym) and (pclassrefdef(def1)^.pointertype.def^.deftype=forwarddef) then
-                  b:=(def1^.typesym=def2^.typesym)
+                if assigned(def1.typesym) and (tclassrefdef(def1).pointertype.def.deftype=forwarddef) then
+                  b:=(def1.typesym=def2.typesym)
                 else
-                  b:=is_equal(pclassrefdef(def1)^.pointertype.def,pclassrefdef(def2)^.pointertype.def);
+                  b:=is_equal(tclassrefdef(def1).pointertype.def,tclassrefdef(def2).pointertype.def);
              end;
          is_equal:=b;
       end;
 
 
-    function is_subequal(def1, def2: pdef): boolean;
+    function is_subequal(def1, def2: tdef): boolean;
 
       var
-         basedef1,basedef2 : penumdef;
+         basedef1,basedef2 : tenumdef;
 
       Begin
         is_subequal := false;
         if assigned(def1) and assigned(def2) then
         Begin
-          if (def1^.deftype = orddef) and (def2^.deftype = orddef) then
+          if (def1.deftype = orddef) and (def2.deftype = orddef) then
             Begin
               { see p.47 of Turbo Pascal 7.01 manual for the separation of types }
               { range checking for case statements is done with testrange        }
-              case porddef(def1)^.typ of
+              case torddef(def1).typ of
                 u8bit,u16bit,u32bit,
                 s8bit,s16bit,s32bit,s64bit,u64bit :
-                  is_subequal:=(porddef(def2)^.typ in [s64bit,u64bit,s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
+                  is_subequal:=(torddef(def2).typ in [s64bit,u64bit,s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
                 bool8bit,bool16bit,bool32bit :
-                  is_subequal:=(porddef(def2)^.typ in [bool8bit,bool16bit,bool32bit]);
+                  is_subequal:=(torddef(def2).typ in [bool8bit,bool16bit,bool32bit]);
                 uchar :
-                  is_subequal:=(porddef(def2)^.typ=uchar);
+                  is_subequal:=(torddef(def2).typ=uchar);
               end;
             end
           else
@@ -1161,18 +1160,18 @@ implementation
 
               { I changed this to assume that the enums are equal }
               { if the basedefs are equal (FK)                    }
-              if (def1^.deftype=enumdef) and (def2^.deftype=enumdef) then
+              if (def1.deftype=enumdef) and (def2.deftype=enumdef) then
                 Begin
                    { get both basedefs }
-                   basedef1:=penumdef(def1);
-                   while assigned(basedef1^.basedef) do
-                     basedef1:=basedef1^.basedef;
-                   basedef2:=penumdef(def2);
-                   while assigned(basedef2^.basedef) do
-                     basedef2:=basedef2^.basedef;
+                   basedef1:=tenumdef(def1);
+                   while assigned(basedef1.basedef) do
+                     basedef1:=basedef1.basedef;
+                   basedef2:=tenumdef(def2);
+                   while assigned(basedef2.basedef) do
+                     basedef2:=basedef2.basedef;
                    is_subequal:=basedef1=basedef2;
                    {
-                   if penumdef(def1)^.firstenum = penumdef(def2)^.firstenum then
+                   if tenumdef(def1).firstenum = tenumdef(def2).firstenum then
                       is_subequal := TRUE;
                    }
                 end;
@@ -1180,26 +1179,26 @@ implementation
         end; { endif assigned ... }
       end;
 
-    function assignment_overloaded(from_def,to_def : pdef) : pprocdef;
+    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
        var
-          passproc : pprocdef;
+          passproc : tprocdef;
           convtyp : tconverttype;
        begin
           assignment_overloaded:=nil;
           if assigned(overloaded_operators[_ASSIGNMENT]) then
-            passproc:=overloaded_operators[_ASSIGNMENT]^.definition
+            passproc:=overloaded_operators[_ASSIGNMENT].definition
           else
             exit;
           while passproc<>nil do
             begin
-              if is_equal(passproc^.rettype.def,to_def) and
-                 (is_equal(TParaItem(passproc^.Para.first).paratype.def,from_def) or
-                 (isconvertable(from_def,TParaItem(passproc^.Para.first).paratype.def,convtyp,ordconstn,false)=1)) then
+              if is_equal(passproc.rettype.def,to_def) and
+                 (is_equal(TParaItem(passproc.Para.first).paratype.def,from_def) or
+                 (isconvertable(from_def,TParaItem(passproc.Para.first).paratype.def,convtyp,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
                 end;
-              passproc:=passproc^.nextoverloaded;
+              passproc:=passproc.nextoverloaded;
             end;
        end;
 
@@ -1208,7 +1207,7 @@ implementation
        0 - Not convertable
        1 - Convertable
        2 - Convertable, but not first choice }
-    function isconvertable(def_from,def_to : pdef;
+    function isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
@@ -1235,7 +1234,7 @@ implementation
 
       var
          b : byte;
-         hd1,hd2 : pdef;
+         hd1,hd2 : tdef;
          hct : tconverttype;
       begin
        { safety check }
@@ -1248,22 +1247,22 @@ implementation
        { tp7 procvar def support, in tp7 a procvar is always called, if the
          procvar is passed explicit a addrn would be there }
          if (m_tp_procvar in aktmodeswitches) and
-            (def_from^.deftype=procvardef) and
+            (def_from.deftype=procvardef) and
             (fromtreetype=loadn) then
           begin
-            def_from:=pprocvardef(def_from)^.rettype.def;
+            def_from:=tprocvardef(def_from).rettype.def;
           end;
 
        { we walk the wanted (def_to) types and check then the def_from
          types if there is a conversion possible }
          b:=0;
-         case def_to^.deftype of
+         case def_to.deftype of
            orddef :
              begin
-               case def_from^.deftype of
+               case def_from.deftype of
                  orddef :
                    begin
-                     doconv:=basedefconverts[basedeftbl[porddef(def_from)^.typ],basedeftbl[porddef(def_to)^.typ]];
+                     doconv:=basedefconverts[basedeftbl[torddef(def_from).typ],basedeftbl[torddef(def_to).typ]];
                      b:=1;
                      if (doconv=tc_not_possible) or
                         ((doconv=tc_int_2_bool) and
@@ -1288,7 +1287,7 @@ implementation
 
           stringdef :
              begin
-               case def_from^.deftype of
+               case def_from.deftype of
                  stringdef :
                    begin
                      doconv:=tc_string_2_string;
@@ -1310,9 +1309,9 @@ implementation
                       begin
                         doconv:=tc_chararray_2_string;
                         if (is_shortstring(def_to) and
-                            (def_from^.size <= 255)) or
+                            (def_from.size <= 255)) or
                            (is_ansistring(def_to) and
-                            (def_from^.size > 255)) then
+                            (def_from.size > 255)) then
                          b:=1
                         else
                          b:=2;
@@ -1325,7 +1324,7 @@ implementation
                      if is_pchar(def_from) and not(m_tp7 in aktmodeswitches) then
                       begin
                         doconv:=tc_pchar_2_string;
-                        { prefer ansistrings because pchars can overflow shortstrings, }
+                        { trefer ansistrings because pchars can overflow shortstrings, }
                         { but only if ansistrings are the default (JM)                 }
                         if (is_shortstring(def_to) and
                             not(cs_ansistrings in aktlocalswitches)) or
@@ -1341,7 +1340,7 @@ implementation
 
            floatdef :
              begin
-               case def_from^.deftype of
+               case def_from.deftype of
                  orddef :
                    begin { ordinal to real }
                      if is_integer(def_from) then
@@ -1352,7 +1351,7 @@ implementation
                    end;
                  floatdef :
                    begin { 2 float types ? }
-                     if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
+                     if tfloatdef(def_from).typ=tfloatdef(def_to).typ then
                        doconv:=tc_equal
                      else
                        doconv:=tc_real_2_real;
@@ -1363,14 +1362,14 @@ implementation
 
            enumdef :
              begin
-               if (def_from^.deftype=enumdef) then
+               if (def_from.deftype=enumdef) then
                 begin
                   hd1:=def_from;
-                  while assigned(penumdef(hd1)^.basedef) do
-                   hd1:=penumdef(hd1)^.basedef;
+                  while assigned(tenumdef(hd1).basedef) do
+                   hd1:=tenumdef(hd1).basedef;
                   hd2:=def_to;
-                  while assigned(penumdef(hd2)^.basedef) do
-                    hd2:=penumdef(hd2)^.basedef;
+                  while assigned(tenumdef(hd2).basedef) do
+                    hd2:=tenumdef(hd2).basedef;
                   if (hd1=hd2) then
                     begin
                        b:=1;
@@ -1384,29 +1383,29 @@ implementation
              begin
              { open array is also compatible with a single element of its base type }
                if is_open_array(def_to) and
-                  is_equal(parraydef(def_to)^.elementtype.def,def_from) then
+                  is_equal(tarraydef(def_to).elementtype.def,def_from) then
                 begin
                   doconv:=tc_equal;
                   b:=1;
                 end
                else
                 begin
-                  case def_from^.deftype of
+                  case def_from.deftype of
                     arraydef :
                       begin
                         { array constructor -> open array }
                         if is_open_array(def_to) and
                            is_array_constructor(def_from) then
                          begin
-                           if is_void(parraydef(def_from)^.elementtype.def) or
-                              is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
+                           if is_void(tarraydef(def_from).elementtype.def) or
+                              is_equal(tarraydef(def_to).elementtype.def,tarraydef(def_from).elementtype.def) then
                             begin
                               doconv:=tc_equal;
                               b:=1;
                             end
                            else
-                            if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructorn,false)<>0 then
+                            if isconvertable(tarraydef(def_from).elementtype.def,
+                                             tarraydef(def_to).elementtype.def,hct,arrayconstructorn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -1415,7 +1414,7 @@ implementation
                         else
                         { array of tvarrec -> array of const }
                          if is_array_of_const(def_to) and
-                            is_equal(parraydef(def_to)^.elementtype.def,parraydef(def_from)^.elementtype.def) then
+                            is_equal(tarraydef(def_to).elementtype.def,tarraydef(def_from).elementtype.def) then
                           begin
                             doconv:=tc_equal;
                             b:=1;
@@ -1424,7 +1423,7 @@ implementation
                     pointerdef :
                       begin
                         if is_zero_based_array(def_to) and
-                           is_equal(ppointerdef(def_from)^.pointertype.def,parraydef(def_to)^.elementtype.def) then
+                           is_equal(tpointerdef(def_from).pointertype.def,tarraydef(def_to).elementtype.def) then
                          begin
                            doconv:=tc_pointer_2_array;
                            b:=1;
@@ -1434,7 +1433,7 @@ implementation
                       begin
                         { string to char array }
                         if (not is_special_array(def_to)) and
-                           is_char(parraydef(def_to)^.elementtype.def) then
+                           is_char(tarraydef(def_to).elementtype.def) then
                          begin
                            doconv:=tc_string_2_chararray;
                            b:=1;
@@ -1444,7 +1443,7 @@ implementation
                       begin
                         { tvarrec -> array of constconst }
                          if is_array_of_const(def_to) and
-                            is_equal(def_from,parraydef(def_to)^.elementtype.def) then
+                            is_equal(def_from,tarraydef(def_to).elementtype.def) then
                           begin
                             doconv:=tc_equal;
                             b:=1;
@@ -1456,7 +1455,7 @@ implementation
 
            pointerdef :
              begin
-               case def_from^.deftype of
+               case def_from.deftype of
                  stringdef :
                    begin
                      { string constant (which can be part of array constructor)
@@ -1491,7 +1490,7 @@ implementation
                    begin
                      { chararray to pointer }
                      if is_zero_based_array(def_from) and
-                        is_equal(parraydef(def_from)^.elementtype.def,ppointerdef(def_to)^.pointertype.def) then
+                        is_equal(tarraydef(def_from).elementtype.def,tpointerdef(def_to).pointertype.def) then
                       begin
                         doconv:=tc_array_2_pointer;
                         b:=1;
@@ -1501,19 +1500,19 @@ implementation
                    begin
                      { child class pointer can be assigned to anchestor pointers }
                      if (
-                         (ppointerdef(def_from)^.pointertype.def^.deftype=objectdef) and
-                         (ppointerdef(def_to)^.pointertype.def^.deftype=objectdef) and
-                         pobjectdef(ppointerdef(def_from)^.pointertype.def)^.is_related(
-                           pobjectdef(ppointerdef(def_to)^.pointertype.def))
+                         (tpointerdef(def_from).pointertype.def.deftype=objectdef) and
+                         (tpointerdef(def_to).pointertype.def.deftype=objectdef) and
+                         tobjectdef(tpointerdef(def_from).pointertype.def).is_related(
+                           tobjectdef(tpointerdef(def_to).pointertype.def))
                         ) or
                         { all pointers can be assigned to void-pointer }
-                        is_equal(ppointerdef(def_to)^.pointertype.def,voidtype.def) or
+                        is_equal(tpointerdef(def_to).pointertype.def,voidtype.def) or
                         { in my opnion, is this not clean pascal }
                         { well, but it's handy to use, it isn't ? (FK) }
-                        is_equal(ppointerdef(def_from)^.pointertype.def,voidtype.def) then
+                        is_equal(tpointerdef(def_from).pointertype.def,voidtype.def) then
                        begin
                          { but don't allow conversion between farpointer-pointer }
-                         if (ppointerdef(def_to)^.is_far=ppointerdef(def_from)^.is_far) then
+                         if (tpointerdef(def_to).is_far=tpointerdef(def_from).is_far) then
                           begin
                             doconv:=tc_equal;
                             b:=1;
@@ -1525,8 +1524,8 @@ implementation
                      { procedure variable can be assigned to an void pointer }
                      { Not anymore. Use the @ operator now.}
                      if not(m_tp_procvar in aktmodeswitches) and
-                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
+                        (tpointerdef(def_to).pointertype.def.deftype=orddef) and
+                        (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
                       begin
                         doconv:=tc_equal;
                         b:=1;
@@ -1539,10 +1538,10 @@ implementation
                        can be assigned to void pointers      }
                      if (
                          is_class_or_interface(def_from) or
-                         (def_from^.deftype=classrefdef)
+                         (def_from.deftype=classrefdef)
                         ) and
-                        (ppointerdef(def_to)^.pointertype.def^.deftype=orddef) and
-                        (porddef(ppointerdef(def_to)^.pointertype.def)^.typ=uvoid) then
+                        (tpointerdef(def_to).pointertype.def.deftype=orddef) and
+                        (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
                        begin
                          doconv:=tc_equal;
                          b:=1;
@@ -1564,19 +1563,19 @@ implementation
            procvardef :
              begin
                { proc -> procvar }
-               if (def_from^.deftype=procdef) then
+               if (def_from.deftype=procdef) then
                 begin
                   doconv:=tc_proc_2_procvar;
-                  if proc_to_procvar_equal(pprocdef(def_from),pprocvardef(def_to)) then
+                  if proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to)) then
                    b:=1;
                 end
                else
                 { for example delphi allows the assignement from pointers }
                 { to procedure variables                                  }
                 if (m_pointer_2_procedure in aktmodeswitches) and
-                  (def_from^.deftype=pointerdef) and
-                  (ppointerdef(def_from)^.pointertype.def^.deftype=orddef) and
-                  (porddef(ppointerdef(def_from)^.pointertype.def)^.typ=uvoid) then
+                  (def_from.deftype=pointerdef) and
+                  (tpointerdef(def_from).pointertype.def.deftype=orddef) and
+                  (torddef(tpointerdef(def_from).pointertype.def).typ=uvoid) then
                 begin
                    doconv:=tc_equal;
                    b:=1;
@@ -1593,8 +1592,8 @@ implementation
            objectdef :
              begin
                { object pascal objects }
-               if (def_from^.deftype=objectdef) and
-                 pobjectdef(def_from)^.is_related(pobjectdef(def_to)) then
+               if (def_from.deftype=objectdef) and
+                 tobjectdef(def_from).is_related(tobjectdef(def_to)) then
                 begin
                   doconv:=tc_equal;
                   b:=1;
@@ -1620,17 +1619,17 @@ implementation
                    { classes can be assigned to interfaces }
                    else if is_interface(def_to) and
                      is_class(def_from) and
-                     assigned(pobjectdef(def_from)^.implementedinterfaces) and
-                     (pobjectdef(def_from)^.implementedinterfaces^.searchintf(def_to)<>-1) then
+                     assigned(tobjectdef(def_from).implementedinterfaces) and
+                     (tobjectdef(def_from).implementedinterfaces.searchintf(def_to)<>-1) then
                      begin
                         doconv:=tc_class_2_intf;
                         b:=1;
                      end
                    { Interface 2 GUID handling }
-                   else if (def_to=pdef(rec_tguid)) and
+                   else if (def_to=tdef(rec_tguid)) and
                            (fromtreetype=typen) and
                            is_interface(def_from) and
-                           pobjectdef(def_from)^.isiidguidvalid then
+                           tobjectdef(def_from).isiidguidvalid then
                      begin
                        b:=1;
                        doconv:=tc_equal;
@@ -1641,11 +1640,11 @@ implementation
            classrefdef :
              begin
                { class reference types }
-               if (def_from^.deftype=classrefdef) then
+               if (def_from.deftype=classrefdef) then
                 begin
                   doconv:=tc_equal;
-                  if pobjectdef(pclassrefdef(def_from)^.pointertype.def)^.is_related(
-                       pobjectdef(pclassrefdef(def_to)^.pointertype.def)) then
+                  if tobjectdef(tclassrefdef(def_from).pointertype.def).is_related(
+                       tobjectdef(tclassrefdef(def_to).pointertype.def)) then
                    b:=1;
                 end
                else
@@ -1666,24 +1665,24 @@ implementation
                when trying to find the good overloaded function !!
                so all file function are doubled in system.pp
                this is not very beautiful !!}
-               if (def_from^.deftype=filedef) and
+               if (def_from.deftype=filedef) and
                   (
                    (
-                    (pfiledef(def_from)^.filetyp = ft_typed) and
-                    (pfiledef(def_to)^.filetyp = ft_typed) and
+                    (tfiledef(def_from).filetyp = ft_typed) and
+                    (tfiledef(def_to).filetyp = ft_typed) and
                     (
-                     (pfiledef(def_from)^.typedfiletype.def = pdef(voidtype.def)) or
-                     (pfiledef(def_to)^.typedfiletype.def = pdef(voidtype.def))
+                     (tfiledef(def_from).typedfiletype.def = tdef(voidtype.def)) or
+                     (tfiledef(def_to).typedfiletype.def = tdef(voidtype.def))
                     )
                    ) or
                    (
                     (
-                     (pfiledef(def_from)^.filetyp = ft_untyped) and
-                     (pfiledef(def_to)^.filetyp = ft_typed)
+                     (tfiledef(def_from).filetyp = ft_untyped) and
+                     (tfiledef(def_to).filetyp = ft_typed)
                     ) or
                     (
-                     (pfiledef(def_from)^.filetyp = ft_typed) and
-                     (pfiledef(def_to)^.filetyp = ft_untyped)
+                     (tfiledef(def_from).filetyp = ft_typed) and
+                     (tfiledef(def_to).filetyp = ft_untyped)
                     )
                    )
                   ) then
@@ -1704,7 +1703,7 @@ implementation
       end;
 
 
-    function CheckTypes(def1,def2 : pdef) : boolean;
+    function CheckTypes(def1,def2 : tdef) : boolean;
 
       var
          s1,s2 : string;
@@ -1717,10 +1716,10 @@ implementation
              Message(type_e_mismatch)
            else
              begin
-                s1:=def1^.typename;
-                s2:=def2^.typename;
+                s1:=def1.typename;
+                s2:=def2.typename;
                 if (s1<>'<unknown type>') and (s2<>'<unknown type>') then
-                  Message2(type_e_not_equal_types,def1^.typename,def2^.typename)
+                  Message2(type_e_not_equal_types,def1.typename,def2.typename)
                 else
                   Message(type_e_mismatch);
              end;
@@ -1733,7 +1732,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-04-04 21:30:47  florian
+  Revision 1.39  2001-04-13 01:22:17  peter
+    * symtable change to classes
+    * range check generation and errors fixed, make cycle DEBUG=1 works
+    * memory leaks fixed
+
+  Revision 1.38  2001/04/04 21:30:47  florian
     * applied several fixes to get the DD8 Delphi Unit compiled
      e.g. "forward"-interfaces are working now
 
