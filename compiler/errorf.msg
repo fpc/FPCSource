@@ -695,11 +695,11 @@ parser_e_constructor_cannot_be_not_virtual=E_Les constructeurs virtuels sont seu
 parser_e_no_default_property_available=E_Pas de propri‚t‚ par d‚faut
 % You try to access a default property of a class, but this class (or one of
 % it's ancestors) doesn't have a default property.
-parser_e_cant_have_published=E_The class can't have a published section, use the {$M+} switch
+parser_e_cant_have_published=E_PUBLISHED non autoris‚ ici pour des classes, utilisez {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=E_Forward declaration of class $1 must be resolved here to use the class as ancestor
+parser_e_forward_declaration_must_be_resolved=E_La d‚claration anticip‚e de la classe $1 doit ˆtre r‚solue ici pour pouvoir ˆtreparent
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -709,109 +709,109 @@ parser_e_forward_declaration_must_be_resolved=E_Forward declaration of class $1 
 %       end;
 % \end{verbatim}
 % Where \var{ParentClass} is declared but not defined.
-parser_e_no_local_operator=E_Local operators not supported
+parser_e_no_local_operator=E_Les op‚rateurs ne peuvent ˆtre locaux
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=E_Procedure directive $1 not allowed in interface section
+parser_e_proc_dir_not_allowed_in_interface=E_La directive de proc‚dure $1 n'est pas autoris‚e en interface
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=E_Procedure directive $1 not allowed in implementation section
+parser_e_proc_dir_not_allowed_in_implementation=E_La directive de proc‚dure $1 n'est pas autoris‚e en impl‚mentation
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=E_Procedure directive $1 not allowed in procvar declaration
+parser_e_proc_dir_not_allowed_in_procvar=E_La directive de proc‚dure n'est pas valide pour une variable
 % This procedure directive cannot be part of a procedural of function
 % type declaration.
-parser_e_function_already_declared_public_forward=E_Function is already declared Public/Forward $1
+parser_e_function_already_declared_public_forward=E_La fonction $1 est d‚j… d‚clar‚e comme publique ou forward
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
-parser_e_not_external_and_export=E_Can't use both EXPORT and EXTERNAL
+parser_e_not_external_and_export=E_EXPORT et EXTERNAL sont incompatibles
 % These two procedure directives are mutually exclusive
-parser_e_name_keyword_expected=E_NAME keyword expected
+parser_e_name_keyword_expected=E_Le mot r‚serv‚ NAME est requis ici
 % The definition of an external variable needs a \var{name} clause.
-parser_w_not_supported_for_inline=W_$1 not yet supported inside inline procedure/function
+parser_w_not_supported_for_inline=W_$1 n'est pas support‚ pour des fonctions INLINE
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=W_Inlining disabled
+parser_w_inlining_disabled=W_Inlining d‚sactiv‚
 % Inlining of procedures is disabled.
-parser_i_writing_browser_log=I_Writing Browser log $1
+parser_i_writing_browser_log=I_Ecriture du Browser log $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=H_may be pointer dereference is missing
+parser_h_maybe_deref_caret_missing=H_le d‚r‚f‚rencement du pointeur semble manquer
 % The compiler thinks that a pointer may need a dereference.
-parser_f_assembler_reader_not_supported=F_Selected assembler reader not supported
+parser_f_assembler_reader_not_supported=F_Lecteur de code assembleur non support‚
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=E_Procedure directive $1 has conflicts with other directives
+parser_e_proc_dir_conflict=E_La directive de proc‚dure $1 est en conflit avec d'autres directives
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=E_Calling convention doesn't match forward
+parser_e_call_convention_dont_match_forward=E_La convention d'appel ne correspond pas … la fonction pr‚d‚finie
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_register_calling_not_supported=E_Register calling (fastcall) not supported
+parser_e_register_calling_not_supported=E_Appel avec registres (fastcall) non support‚
 % The \var{register} calling convention, i.e., arguments are passed in
 % registers instead of on the stack is not supported. Arguments are always
 % passed on the stack.
-parser_e_property_cant_have_a_default_value=E_Property can't have a default value
+parser_e_property_cant_have_a_default_value=E_Cette propri‚t‚ ne peut avoir de valeur par d‚faut
 % Set properties or indexed properties cannot have a default value.
-parser_e_property_default_value_must_const=E_The default value of a property must be constant
+parser_e_property_default_value_must_const=E_La valeur par d‚faut d'une propri‚t‚ doit ˆtre une constante
 % The value of a \var{default} declared property must be knwon at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
-parser_e_cant_publish_that=E_Symbol can't be published, can be only a class
+parser_e_cant_publish_that=E_Ce symbole n'est pas une classe et ne peut donc pas ˆtre PUBLISHED
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=E_That kind of property can't be published
+parser_e_cant_publish_that_property=E_Ce genre de propri‚t‚ ne peut ˆtre PUBLISHED
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_w_empty_import_name=W_Empty import name specified
+parser_w_empty_import_name=W_Nom d'importation vide
 % Both index and name for the import are 0 or empty
 parser_e_empty_import_name=W_Empty import name specified
 % Some targets need a name for the imported procedure or a cdecl specifier
-parser_e_used_proc_name_changed=E_Function internal name changed after use of function
+parser_e_used_proc_name_changed=E_Le nom interne de la fonction … chang‚ aprŠs son usage
 % This is an internal error; please report any occurrences of this error
 % to the \fpc team.
-parser_e_division_by_zero=E_Division by zero
+parser_e_division_by_zero=E_Division par z‚ro
 % There is a divsion by zero encounted
-parser_e_invalid_float_operation=E_Invalid floating point operation
+parser_e_invalid_float_operation=E_Op‚ration en virgule flottatne invalide
 % An operation on two real type values produced an overflow or a division
 % by zero.
-parser_e_array_lower_less_than_upper_bound=E_Upper bound of range is less than lower bound
+parser_e_array_lower_less_than_upper_bound=E_Limite sup‚rieure inf‚rieure … la limite inf‚rieure d'un intervalle
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is not possible
-parser_w_string_too_long=W_string "$1" is longer than $2
+parser_w_string_too_long=W_String "$1" est plus long que $2
 % The size of the constant string is larger than the size you specified in
 % string type definition
-parser_e_string_larger_array=E_string length is larger than array of char length
+parser_e_string_larger_array=E_longueur du String sup‚rieure … la longueur du CHAR ARRAY
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition
-parser_e_ill_msg_expr=E_Illegal expression after message directive
+parser_e_ill_msg_expr=E_Expression invalide aprŠs directive MESSAGE
 % \fpc supports only integer or string values as message constants
-parser_e_ill_msg_param=E_Message handlers can take only one call by ref. parameter
+parser_e_ill_msg_param=E_MESSAGE handler peuvent seulement accepter un paramŠtre par r‚f‚rence
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
 parser_e_duplicate_message_label=E_Duplicate message label: %1
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=E_Self can be only an explicit parameter in message handlers
+parser_e_self_in_non_message_handler=E_SELF ne peut ˆtre un paramŠtre explicite que dans les MESSAGE handlers
 % The self parameter can be passed only explicit if it is a method which
 % is declared as message method handler
-parser_e_threadvars_only_sg=E_Threadvars can be only static or global
+parser_e_threadvars_only_sg=E_THREADVARS peuvent seulement ˆtre statiques ou globaux
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=F_Direct assembler not supported for binary output format
+parser_f_direct_assembler_not_allowed=F_Assembleur direct non support‚ pour la sortie binaire
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=W_Don't load OBJPAS unit manual, use {$mode objfpc} or {$mode delphi} instead
+parser_w_no_objpas_use_mode=W_Ne chargez pas l'unit‚ OBJPAS manuellement, utilisez {$mode objfpc} ou {$mode delphi}
 % You're trying to load the ObjPas unit manual from a uses clause. This is
 % not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
 % directives which load the unit automaticly
-parser_e_no_object_override=E_OVERRIDE can't be used in objects
+parser_e_no_object_override=E_OVERRIDE nepeut ˆtre utilis‚ pour des objets
 % Override isn't support for objects, use VIRTUAL instead to override
 % a method of an anchestor object
 % \end{description}
@@ -822,28 +822,28 @@ parser_e_no_object_override=E_OVERRIDE can't be used in objects
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-parser_e_cant_use_inittable_here=E_Data types which requires initialization/finalization can't be used in variant records
+parser_e_cant_use_inittable_here=E_Les types de donn‚es n‚cessitant des initialisations ne peuvent faire partie de RECORD variables
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
-parser_e_resourcestring_only_sg=E_Resourcestrings can be only static or global
+parser_e_resourcestring_only_sg=E_RESOURCESTRINGS doivent ˆtre statiques ou globaux
 % Resourcestring can not be declared local, only global or using the static
 % directive.
-parser_e_exit_with_argument_not__possible=E_Exit with argument can't be used here
+parser_e_exit_with_argument_not__possible=E_Exit avec un argument ne peut ˆtre utilis‚ ici
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
-parser_e_stored_property_must_be_boolean=E_The type of the storage symbol must be boolean
+parser_e_stored_property_must_be_boolean=E_Le type du symbole STORED doit ˆtre un bool‚en
 % If you specify a storage symbol in a property declaration, it must be of
 % the type boolean
-parser_e_ill_property_storage_sym=E_This symbol isn't allowed as storage symbol
+parser_e_ill_property_storage_sym=E_Ce symbole n'est pas admis comme symbole STORED
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=E_Only class which are compiled in $M+ mode can be published
+parser_e_only_publishable_classes_can__be_published=E_Selues les classes compil‚es en mode $M+ peuvent ˆtre PUBLISHED
 % In the published section of a class can be only class as fields used which
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
-parser_e_proc_directive_expected=E_Procedure directive expected
+parser_e_proc_directive_expected=E_Directive de proc‚dure attendue
 % When declaring a procedure in a const block you used a ; after the
 % procedure declaration after which a procedure directive must follow.
 % Correct declarations are:
@@ -852,15 +852,15 @@ parser_e_proc_directive_expected=E_Procedure directive expected
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=E_The value for a property index must be of an ordinal type
+parser_e_invalid_property_index_value=E_Le type d'un index de propri‚t‚ doit ˆtre un type ordinal
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=E_Procedure name to short to be exported
+parser_e_procname_to_short_for_export=E_Nom de proc‚dure trop court pour ˆtre exprot‚
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
-parser_e_dlltool_unit_var_problem=E_No DEFFILE entry can be generated for unit global vars
-parser_e_dlltool_unit_var_problem2=E_Compile without -WD option
+parser_e_dlltool_unit_var_problem=E_Impossible de cr‚er une entr‚e DEFFILE pour des variables globales d'unit‚s
+parser_e_dlltool_unit_var_problem2=E_Compilez sans l'option -WD
 % \end{description}
 #
 # Type Checking
@@ -869,7 +869,7 @@ parser_e_dlltool_unit_var_problem2=E_Compile without -WD option
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-type_e_mismatch=E_Type mismatch
+type_e_mismatch=E_Incompatibilit‚ de types
 % This can happen in many cases:
 % \begin{itemize}
 % \item The variable you're assigning to is of a different type than the
@@ -879,7 +879,7 @@ type_e_mismatch=E_Type mismatch
 % \end{itemize}
 type_e_incompatible_types=E_Incompatible types: got $1 expected $2
 % There is no conversion possible between the two types
-type_e_not_equal_types=E_Type mismatch between $1 and $2
+type_e_not_equal_types=E_Incompatibilit‚ de types entre $1 et $2
 % The types are not equal
 type_e_type_id_expected=E_Identificateur de type attendu
 % The identifier is not a type, or you forgot to supply a type identifier.
@@ -889,10 +889,10 @@ type_e_variable_id_expected=E_Identificateur de variable attendu
 type_e_integer_expr_expected=E_Integer expression expected
 % The compiler expects an expression of type integer, but gets a different
 % type.
-type_e_boolean_expr_expected=E_Boolean expression expected, but got "$1"
+type_e_boolean_expr_expected=E_Expression bool‚enne attendue, mais "$1" obtenu
 % The expression must be a boolean type, it should be return true or
 % false.
-type_e_ordinal_expr_expected=E_Ordinal expression expected
+type_e_ordinal_expr_expected=E_Expression ordinale attendue
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
@@ -920,7 +920,7 @@ type_e_set_element_are_not_comp=E_Elements d'ensembles non compatibles
 type_e_set_operation_unknown=E_Op‚ration non permise pour des ensembles
 % several binary operations are not defined for sets
 % like div mod ** (also >= <= for now)
-type_w_convert_real_2_comp=W_Automatic type conversion from floating type to COMP which is an integer type
+type_w_convert_real_2_comp=W_Conversion automatique de r‚el vers COMP qui est un type entier
 % An implicit type conversion from a real type to a \var{comp} is
 % encountered. Since \var{Comp} is a 64 bit integer type, this may indicate
 % an error.
@@ -941,9 +941,9 @@ type_e_cant_read_write_type=E_Impossible de lire ou d'‚crire des variables de ce
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % booleans, reals, pchars and strings can be read from/written to a text file.
-type_e_no_readln_writeln_for_typed_file=E_Can't use readln or writeln on typed file
+type_e_no_readln_writeln_for_typed_file=E_Impossible d'utiliser READLN ou WRITELN pour un ficher typ‚
 % \var{readln} and \var{writeln} are only allowed for text files.
-type_e_no_read_write_for_untyped_file=E_Can't use read or write on untyped file.
+type_e_no_read_write_for_untyped_file=E_Impossible d'utiliser READ ou WRITE pour un FILE non typ‚
 % \var{read} and \var{write} are only allowed for text or typed files.
 type_e_typeconflict_in_set=E_Confit de type pour des ‚l‚ments d'un ensemble
 % There is at least one set element which is of the wrong type, i.e. not of
@@ -986,12 +986,12 @@ type_e_no_addr_of_constant=E_Impossible d'obtenir l'adresse d'une constante
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
-type_e_argument_cant_be_assigned=E_Argument can't be assigned to
+type_e_argument_cant_be_assigned=E_Impossible d'assigner une valeur … l'argument
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
 % used on the left side of an assignment, but they can't be used as arguments
-type_e_cannot_local_proc_to_procvar=E_Can't assign local procedure/function to procedure variable
+type_e_cannot_local_proc_to_procvar=E_Impossible d'assigner une fonction ou proc‚dure locale … une variable de proc‚dure
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
