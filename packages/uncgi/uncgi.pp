@@ -1,7 +1,8 @@
 unit uncgi;
-
 {
-  UNCGI UNIT 2.0.9
+  $Id$
+
+  UNCGI UNIT 2.0.11
   ----------------
 }
 
@@ -19,7 +20,7 @@ const
   maxquery	= 100;
   hextable	: array[0..15] of char=('0','1','2','3','4','5','6','7',
                                         '8','9','A','B','C','D','E','F');
-  uncgi_version = 'UNCGI 2.0.9';
+  uncgi_version = 'UNCGI 2.0.11';
   uncgi_year    = '1999';
   maintainer_name = 'Your Name Here';
   maintainer_email= 'your@email.address.here';
@@ -214,18 +215,14 @@ function get_value(id: pchar): pchar;
 var
   cnt	: word;
 begin
-  if not done_init then 
-  begin
-    get_value :=NIL;
-    exit;
-  end;
-  for cnt :=1 to query_read do 
-    if strcomp(strupper(id),strupper(query_array[1,cnt]))=0 then
-  begin
-    get_value := query_array[2,cnt];
-    exit;
-  end;
-  get_value:=NIL;
+  get_value:=Nil;
+  if done_init then 
+    for cnt :=1 to query_read do 
+      if strcomp(strupper(id),strupper(query_array[1,cnt]))=0 then
+        begin
+        get_value := query_array[2,cnt];
+        exit;
+        end;
 end;
 
 Function UnEscape(QueryString: PChar): PChar;
@@ -239,7 +236,8 @@ begin
   qslen:=strlen(QueryString);
   if qslen=0 then 
     begin
-    get_nodata :=true;
+    Unescape:=#0;
+    get_nodata:=true;
     exit;
     end
   else
@@ -309,17 +307,18 @@ var
   qslen		: longint;
 begin
   querystring :=strnew(getenv('QUERY_STRING'));
-  if querystring=NIL then uncgi_error('cgi_read_get_query()',
-                                  'No QUERY_STRING passed from server!');
-  qslen :=strlen(querystring);
-  if qslen=0 then 
+  if querystring<>NIL then
     begin
-    get_nodata :=true;
-    exit;
-    end
-  else
-    get_nodata :=false;
-  query_read:=Chop(QueryString);
+    qslen :=strlen(querystring);
+    if qslen=0 then 
+      begin
+      get_nodata :=true;
+      exit;
+      end
+    else
+      get_nodata :=false;
+    query_read:=Chop(QueryString);
+    end;
   done_init :=true;
 end;
   
@@ -333,25 +332,26 @@ var
   ch            : char;
   
 begin
-  if getenv('CONTENT_LENGTH')=Nil then 
-     uncgi_error('cgi_read_post_query()',
-                     'No content length passed from server!');
-  clen:=strpas (getenv('CONTENT_LENGTH'));
-  val(clen,qslen);
-  if upcase(strpas(getenv('CONTENT_TYPE')))<>'APPLICATION/X-WWW-FORM-URLENCODED' 
-    then uncgi_error('cgi_read_post_query()',
-                                      'No content type passed from server!');
-  getmem(querystring,qslen+1);
-  sptr :=0;
-  while sptr<>qslen do
-  begin 
-    read(ch);
-    pchar(longint(querystring)+sptr)^ :=ch;
-    inc(sptr);
-  end;
-  { !!! force null-termination }
-  pchar(longint(querystring)+sptr)^ :=#0;
-  query_read:=Chop(QueryString);
+  if getenv('CONTENT_LENGTH')<>Nil then 
+    begin
+    clen:=strpas (getenv('CONTENT_LENGTH'));
+    val(clen,qslen);
+    if upcase(strpas(getenv('CONTENT_TYPE')))='APPLICATION/X-WWW-FORM-URLENCODED' 
+      then
+      begin
+      getmem(querystring,qslen+1);
+      sptr :=0;
+      while sptr<>qslen do
+        begin 
+        read(ch);
+        pchar(longint(querystring)+sptr)^ :=ch;
+        inc(sptr);
+        end;
+      { !!! force null-termination }
+      pchar(longint(querystring)+sptr)^ :=#0;
+      query_read:=Chop(QueryString);
+      end;
+    end;
   done_init :=true;
 end;
 
@@ -359,6 +359,7 @@ procedure cgi_init;
 var
   rmeth	: pchar;
 begin
+  query_read:=0;
   rmeth :=http_request_method;
   if rmeth=nil then
     begin
@@ -391,9 +392,13 @@ begin
 end.
 
 {
-  UNCGI UNIT 2.0.6
-  -------------------------------------------
   HISTORY
+  $Log$
+  Revision 1.4  1999-07-26 20:07:44  michael
+  + Fix for empty values by Andre Steinert
+
+  
+  
 	-	1.0.0	03/07/97
 		----------------
 		Only GET method implemented
