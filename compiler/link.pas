@@ -290,7 +290,7 @@ begin
      4. global object path
      5. exepath }
   found:=false;
-  findobjectfile:=FindFile(s,'.',found)+s;
+  findobjectfile:=FindFile(s,'.'+DirSep,found)+s;
   if (not found) then
    findobjectfile:=UnitSearchPath.FindFile(s,found)+s;
   if (not found) then
@@ -325,7 +325,7 @@ begin
      3. global libary dir
      4. exe path of the compiler }
   found:=false;
-  findlibraryfile:=FindFile(s,'.',found)+s;
+  findlibraryfile:=FindFile(s,'.'+DirSep,found)+s;
   if (not found) then
    findlibraryfile:=current_module^.locallibrarysearchpath.FindFile(s,found)+s;
   if (not found) then
@@ -522,7 +522,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.81  2000-01-12 10:38:18  peter
+  Revision 1.82  2000-01-14 14:40:37  pierre
+   * use ./ instead of . to look into startup dir
+
+  Revision 1.81  2000/01/12 10:38:18  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet
