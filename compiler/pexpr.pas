@@ -1838,9 +1838,10 @@ unit pexpr;
                                          (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
                                         begin
                                            p2^.treetype:=loadn;
+                                           p2^.disposetyp:=dt_left;
                                            p2^.left:=p2^.methodpointer;
                                            p2^.resulttype:=pprocsym(p2^.symtableprocentry)^.definition;
-                                           p2^.symtableentry:=p2^.symtableprocentry;
+                                           p2^.symtableentry:=pvarsym(p2^.symtableprocentry);
                                         end;
                                    end
                                  else if (proc_to_procvar_equal(getprocvardef,pprocsym(p2^.symtableentry)^.definition)) then
@@ -1930,7 +1931,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.80  1999-01-21 16:41:01  pierre
+  Revision 1.81  1999-01-27 00:13:55  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.80  1999/01/21 16:41:01  pierre
    * fix for constructor inside with statements
 
   Revision 1.79  1998/12/30 22:15:48  peter

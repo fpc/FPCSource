@@ -688,8 +688,12 @@ unit types;
             if (def1^.deftype=procvardef) and (def2^.deftype=procvardef) then
               begin
                  { poassembler isn't important for compatibility }
-                 b:=((pprocvardef(def1)^.options and not(poassembler))=
-                     (pprocvardef(def2)^.options and not(poassembler))
+                 { if a method is assigned to a methodpointer    }
+                 { is checked before                             }
+                 b:=((pprocvardef(def1)^.options and not(poassembler or pomethodpointer or
+                       povirtualmethod or pooverridingmethod))=
+                     (pprocvardef(def2)^.options and not(poassembler or pomethodpointer or
+                       povirtualmethod or pooverridingmethod))
                     ) and
                    is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
                  { now evalute the parameters }
@@ -1056,7 +1060,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.46  1999-01-21 22:10:54  peter
+  Revision 1.47  1999-01-27 00:14:01  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.46  1999/01/21 22:10:54  peter
     * fixed array of const
     * generic platform independent high() support
 

@@ -171,6 +171,16 @@ implementation
                    if assigned(pprocsym(p^.symtableentry)^.definition^.nextoverloaded) then
                      CGMessage(parser_e_no_overloaded_procvars);
                    p^.resulttype:=pprocsym(p^.symtableentry)^.definition;
+                   { method pointer ? }
+                   if assigned(p^.left) then
+                     begin
+                        firstpass(p^.left);
+                        p^.registers32:=max(p^.registers32,p^.left^.registers32);
+                        p^.registersfpu:=max(p^.registersfpu,p^.left^.registersfpu);
+{$ifdef SUPPORT_MMX}
+                        p^.registersmmx:=max(p^.registersmmx,p^.left^.registersmmx);
+{$endif SUPPORT_MMX}
+                     end;
                 end;
             else internalerror(3);
          end;
@@ -437,7 +447,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-01-21 16:41:07  pierre
+  Revision 1.14  1999-01-27 00:13:58  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.13  1999/01/21 16:41:07  pierre
    * fix for constructor inside with statements
 
   Revision 1.12  1998/12/30 13:41:19  peter

@@ -51,6 +51,7 @@ implementation
          symtabletype : tsymtabletype;
          i : longint;
          hp : preference;
+         s : pcsymbol;
       begin
          simple_loadn:=true;
          reset_reference(p^.location.reference);
@@ -234,17 +235,73 @@ implementation
                  end;
               procsym:
                  begin
-                    if p^.is_methodpointer then
+                    if assigned(p^.left) then
                       begin
                          secondpass(p^.left);
-                         stringdispose(p^.location.reference.symbol);
+                         p^.location.loc:=LOC_MEM;
+                         gettempofsizereference(8,p^.location.reference);
+
+                         { load class instance address }
+                         case p^.left^.location.loc of
+
+                            LOC_CREGISTER,
+                            LOC_REGISTER:
+                              begin
+                                 hregister:=p^.left^.location.register;
+                                 ungetregister32(p^.left^.location.register);
+                                 { such code is allowed !
+                                   CGMessage(cg_e_illegal_expression); }
+                              end;
+
+                            LOC_MEM,
+                            LOC_REFERENCE:
+                              begin
+                                 hregister:=R_EDI;
+                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                   newreference(p^.left^.location.reference),R_EDI)));
+                                 del_reference(p^.left^.location.reference);
+                                 ungetiftemp(p^.left^.location.reference);
+                              end;
+                            else internalerror(26019);
+                         end;
+
+                         { store the class instance address }
+                         new(hp);
+                         hp^:=p^.location.reference;
+                         inc(hp^.offset,4);
+                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                           R_EDI,hp)));
+
                          { virtual method ? }
                          if (pprocsym(p^.symtableentry)^.definition^.options and povirtualmethod)<>0 then
                            begin
+                              new(hp);
+                              reset_reference(hp^);
+                              hp^.base:=hregister;
+                              { load vmt pointer }
+                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                hp,R_EDI)));
+                              { load method address }
+                              new(hp);
+                              reset_reference(hp^);
+                              hp^.base:=R_EDI;
+                              hp^.offset:=pprocsym(p^.symtableentry)^.definition^.extnumber*4+12;
+                              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                hp,R_EDI)));
+                              { ... and store it }
+                              exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                R_EDI,newreference(p^.location.reference))));
+
                            end
                          else
                            begin
-                              p^.location.reference.symbol:=stringdup(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                              new(s);
+                              s^.symbol:=strpnew(pprocsym(p^.symtableentry)^.definition^.mangledname);
+                              s^.offset:=0;
+
+                              exprasmlist^.concat(new(pai386,op_csymbol_ref(A_MOV,S_L,s,
+                                newreference(p^.location.reference))));
+
                               maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
                            end;
                       end
@@ -734,7 +791,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  1999-01-21 22:10:40  peter
+  Revision 1.43  1999-01-27 00:13:54  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.42  1999/01/21 22:10:40  peter
     * fixed array of const
     * generic platform independent high() support
 

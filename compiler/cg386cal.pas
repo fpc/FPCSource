@@ -851,8 +851,11 @@ implementation
                 begin
                    { method pointer can't be in a register }
                    inc(p^.right^.location.reference.offset,4);
+                   { load ESI }
+                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                     newreference(p^.right^.location.reference),R_ESI)));
                    { push self pointer }
-                   exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.right^.location.reference))));
+                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                    del_reference(p^.right^.location.reference);
                    dec(p^.right^.location.reference.offset,4);
                 end;
@@ -1232,7 +1235,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-01-21 22:10:35  peter
+  Revision 1.59  1999-01-27 00:13:52  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.58  1999/01/21 22:10:35  peter
     * fixed array of const
     * generic platform independent high() support
 

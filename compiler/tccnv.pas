@@ -679,9 +679,12 @@ implementation
            own resulttype. They will therefore always be incompatible with
            a procvar. Because isconvertable cannot check for procedures we
            use an extra check for them.}
-           if (m_tp_procvar in aktmodeswitches) and
-             ((is_procsym_load(p^.left) or is_procsym_call(p^.left)) and
-             (p^.resulttype^.deftype=procvardef)) then
+           if (p^.resulttype^.deftype=procvardef) and
+              ((m_tp_procvar in aktmodeswitches) or
+              { method pointer use always the TP syntax }
+               ((pprocvardef(p^.resulttype)^.options and pomethodpointer)<>0)
+              ) and
+             ((is_procsym_load(p^.left) or is_procsym_call(p^.left))) then
              begin
                 { just a test: p^.explizit:=false; }
                 if is_procsym_call(p^.left) then
@@ -744,7 +747,10 @@ implementation
                     proctype:=aprocdef^.deftype;
                     aprocdef^.deftype:=procvardef;
 
-                    if not is_equal(aprocdef,p^.resulttype) then
+                    { only methods can be assigned to method pointers }
+                    if (assigned(p^.left^.left) and
+                      ((pprocvardef(p^.resulttype)^.options and pomethodpointer)=0)) or
+                       not(is_equal(aprocdef,p^.resulttype)) then
                       begin
                         aprocdef^.deftype:=proctype;
                         CGMessage(type_e_mismatch);
@@ -949,7 +955,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  1999-01-19 12:17:45  peter
+  Revision 1.15  1999-01-27 00:13:57  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.14  1999/01/19 12:17:45  peter
     * removed rangecheck warning which was shown twice
 
   Revision 1.13  1998/12/30 22:13:47  peter

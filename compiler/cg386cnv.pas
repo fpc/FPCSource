@@ -1069,12 +1069,20 @@ implementation
 
     procedure second_proc_to_procvar(pto,pfrom : ptree;convtyp : tconverttype);
       begin
-        clear_location(pto^.location);
-        pto^.location.loc:=LOC_REGISTER;
-        pto^.location.register:=getregister32;
-        del_reference(pfrom^.location.reference);
-        exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-           newreference(pfrom^.location.reference),pto^.location.register)));
+        { method pointer ? }
+        if assigned(pfrom^.left) then
+          begin
+             set_location(pto^.location,pfrom^.location);
+          end
+        else
+          begin
+             clear_location(pto^.location);
+             pto^.location.loc:=LOC_REGISTER;
+             pto^.location.register:=getregister32;
+             del_reference(pfrom^.location.reference);
+             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
+               newreference(pfrom^.location.reference),pto^.location.register)));
+          end;
       end;
 
 
@@ -1562,7 +1570,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-01-21 22:10:36  peter
+  Revision 1.46  1999-01-27 00:13:53  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.45  1999/01/21 22:10:36  peter
     * fixed array of const
     * generic platform independent high() support
 

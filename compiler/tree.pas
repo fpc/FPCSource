@@ -238,7 +238,7 @@ unit tree;
              callparan : (is_colon_para : boolean;exact_match_found : boolean;hightree:ptree);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
-                      is_absolute,is_first,is_methodpointer : boolean);
+                      is_absolute,is_first : boolean);
              calln : (symtableprocentry : psym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
@@ -484,6 +484,8 @@ unit tree;
       begin
          if not(assigned(p)) then
            exit;
+         if not(p^.treetype in [addn..loadvmtn]) then
+           internalerror(26219);
          case p^.disposetyp of
             dt_leftright :
               begin
@@ -927,7 +929,6 @@ unit tree;
          p^.symtableentry:=v;
          p^.symtable:=st;
          p^.is_first := False;
-         p^.is_methodpointer:=false;
          { method pointer load nodes can use the left subtree }
          p^.disposetyp:=dt_left;
          p^.left:=nil;
@@ -948,6 +949,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
+         p^.left:=nil;
          p^.resulttype:=v^.definition;
          p^.symtableentry:=v;
          p^.symtable:=st;
@@ -972,6 +974,7 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.treetype:=loadn;
+         p^.left:=nil;
          p^.resulttype:=sym^.definition;
          p^.symtableentry:=pvarsym(sym);
          p^.symtable:=st;
@@ -1663,7 +1666,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.62  1999-01-21 22:10:52  peter
+  Revision 1.63  1999-01-27 00:14:00  florian
+    * "procedure of object"-stuff fixed
+
+  Revision 1.62  1999/01/21 22:10:52  peter
     * fixed array of const
     * generic platform independent high() support
 
