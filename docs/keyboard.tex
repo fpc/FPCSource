@@ -1,0 +1,309 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Keyboard unit
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{The KEYBOARD unit}
+\FPCexampledir{keybex}
+
+The \file{KeyBoard} unit implements a keyboard access layer which is system
+independent. It can be used to poll the keyboard state and wait for certaine
+events. 
+
+\section{Constants, Type and variables }
+
+\subsection{Constants}
+
+The following constants define some error constants, which may be returned
+by the keyboard functions.
+\begin{verbatim}
+errKbdBase           = 1010;
+errKbdInitError      = errKbdBase + 0;
+errKbdNotImplemented = errKbdBase + 1;
+\end{verbatim}
+The following constants denote special keyboard keys. The first constants
+denote the function keys:
+\begin{verbatim}
+const
+  kbdF1        = $FF01;
+  kbdF2        = $FF02;
+  kbdF3        = $FF03;
+  kbdF4        = $FF04;
+  kbdF5        = $FF05;
+  kbdF6        = $FF06;
+  kbdF7        = $FF07;
+  kbdF8        = $FF08;
+  kbdF9        = $FF09;
+  kbdF10       = $FF0A;
+  kbdF11       = $FF0B;
+  kbdF12       = $FF0C;
+  kbdF13       = $FF0D;
+  kbdF14       = $FF0E;
+  kbdF15       = $FF0F;
+  kbdF16       = $FF10;
+  kbdF17       = $FF11;
+  kbdF18       = $FF12;
+  kbdF19       = $FF13;
+  kbdF20       = $FF14;
+\end{verbatim}
+Constants  \$15 till \$1F are reserved for future function keys. The
+following constants denote the curso movement keys:
+\begin{verbatim}
+  kbdHome      = $FF20;
+  kbdUp        = $FF21;
+  kbdPgUp      = $FF22;
+  kbdLeft      = $FF23;
+  kbdMiddle    = $FF24;
+  kbdRight     = $FF25;
+  kbdEnd       = $FF26;
+  kbdDown      = $FF27;
+  kbdPgDn      = $FF28;
+
+  kbdInsert    = $FF29;
+  kbdDelete    = $FF2A;
+\end{verbatim}
+Constants \$2B till \$2F are reserved for future keypad key.
+The following flags are also defined:
+\begin{verbatim}
+  kbASCII       = $00;
+  kbUniCode     = $01;
+  kbFnKey       = $02;
+  kbPhys        = $03;
+  kbReleased    = $04;
+\end{verbatim}
+They can be used to check And the following shift-state flags:
+\begin{verbatim}
+  kbLeftShift   = 1;
+  kbRightShift  = 2;
+  kbShift       = kbLeftShift or kbRightShift;
+  kbCtrl        = 4;
+  kbAlt         = 8;
+\end{verbatim}
+\subsection{Types}
+The \var{TKeyEvent} type is the base type for all keyboard events:
+\begin{verbatim}
+  TKeyEvent = Longint;
+\end{verbatim}
+The structure of a \var{TKeyEvent} is explained in \seet{keyevent}.
+\begin{FPCltable}{lp}{Structure of \var{TKeyEvent}}{keyevent}
+Bytes & Meaning \\ \hline
+2 bytes & Depending on \var{flags} either the physical representation of a key
+         (under DOS scancode, ascii code pair), or the translated
+           ASCII/unicode character.\\
+1 byte & shift-state when this key was pressed (or shortly after) \\
+1 byte & \var{flags}, determining how to read the first two bytes \\ \hline.
+\end{FPCltable}
+The shift-state can be checked using the various shift-state constants, 
+and the flags in the last byte can be checked using one of the
+kbASCII,kbUniCode,kbFnKey,kbPhys, kbReleased constants.
+
+If there are two keys returning the same char-code, there's no way to find
+out which one was pressed (Gray+ and Simple+). If it needs to be known which
+was pressed, the untranslated keycodes must be used, but these are system
+dependent. System dependent constants may be defined to cover those, with
+possibily having the same name (but different value).
+\subsection{Variables}
+The following variable contains any pending (i.e. not yet consumed) keyboard
+event:
+\begin
+var
+  PendingKeyEvent : TKeyEvent;
+
+\section{Functions and Procedures}
+
+\begin{procedure}{DoneKeyboard}
+\Declaration
+Procedure DoneKeyboard
+\Description
+\var{DoneKeyboard} de-initializes the keyboard interface. 
+It clears up any allocated memory, or restores the console or terminal 
+the program was running in to its initial state. This function should 
+be called on program exit. Failing to do so may leave the terminal in 
+unusable state. Its exact action depends on the platform on which the 
+program is running.
+\Errors
+None.
+\SeeAlso
+\seep{InitKeyBoard}
+\end{procedure}
+
+\begin{function}{GetKeyEvent}
+\Declaration
+function GetKeyEvent: TKeyEvent;
+\Description
+\var{GetKeyEvent} returns the last keyevent if one was stored in
+\var{PendingKeyEvent}, or waits for one if none is available.
+A non-blocking version is available in \seef{PollKeyEvent}.
+
+The returned key is encoded as a \var{TKeyEvent} type variable. 
+See the types section for a description of how the key is described.
+\Errors
+If no key became available, 0 is returned.
+\SeeAlso
+\seep{PutKeyEvent}, \seef{PollKeyEvent}
+\end{function}
+
+\begin{function}{GetKeyEventChar}
+\Declaration
+function GetKeyEventChar(KeyEvent: TKeyEvent): Char;
+\Description
+\var{GetKeyEventChar} returns the charcode part of the given 
+\var{KeyEvent}, if it contains a translated keycode.
+\Errors
+None.
+\SeeAlso
+\seef{GetKeyEventUniCode},
+\seef{GetKeyEventShiftState}, 
+\seef{GetKeyEventFlags},
+\seef{GetKeyEventCode},
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{GetKeyEventCode}
+\Declaration
+function GetKeyEventCode(KeyEvent: TKeyEvent): Word;
+\Description
+\var{GetKeyEventCode} returns the translated function keycode part of 
+the given KeyEvent, if it contains a translated function keycode.
+\Errors
+None.
+\SeeAlso
+\seef{GetKeyEventUniCode},
+\seef{GetKeyEventShiftState}, 
+\seef{GetKeyEventFlags},
+\seef{GetKeyEventChar},
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{GetKeyEventFlags}
+\Declaration
+function GetKeyEventFlags(KeyEvent: TKeyEvent): Byte;
+\Description
+\var{GetKeyEventFlags} returns the flags part of the given 
+\var{KeyEvent}. 
+\Errors
+None.
+\SeeAlso
+\seef{GetKeyEventUniCode},
+\seef{GetKeyEventShiftState}, 
+\seef{GetKeyEventCode},
+\seef{GetKeyEventChar},
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{GetKeyEventShiftState}
+\Declaration
+function GetKeyEventShiftState(KeyEvent: TKeyEvent): Byte;
+\Description
+\var{GetKeyEventShiftState} returns the shift-state values of 
+the given \var{KeyEvent}.
+\Errors
+\SeeAlso
+\seef{GetKeyEventUniCode},
+\seef{GetKeyEventFlags}, 
+\seef{GetKeyEventCode},
+\seef{GetKeyEventChar},
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{GetKeyEventUniCode}
+\Declaration
+function GetKeyEventUniCode(KeyEvent: TKeyEvent): Word;
+\Description
+\var{GetKeyEventUniCode} returns the unicode part of the 
+given \var{KeyEvent} if it contains a translated unicode 
+character.
+\Errors
+None.
+\SeeAlso
+\seef{GetKeyEventShiftState},
+\seef{GetKeyEventFlags}, 
+\seef{GetKeyEventCode},
+\seef{GetKeyEventChar},
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{procedure}{InitKeyBoard}
+\Declaration
+procedure InitKeyboard;
+\Description
+\var{InitKeyboard} initializes the keyboard interface, any 
+additional platform specific parameters should be passed by 
+setting platform-specific global variables.
+
+This function should be called once, before using any of the
+keyboard functions.
+\Errors
+None.
+\SeeAlso
+\seep{DoneKeyBoard}
+\end{procedure}
+
+\begin{function}{IsFunctionKey}
+\Declaration
+function IsFunctionKey(KeyEvent: TKeyEvent): Boolean;
+\Description
+\var{IsFunctionKey} returns \var{True} if the given key event
+in \var{KeyEvent} was a function key or not.
+\Errors
+None.
+\SeeAlso
+\seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{PollKeyEvent}
+\Declaration
+function PollKeyEvent: TKeyEvent;
+\Description
+\var{PollKeyEvent} checks whether a key event is available, 
+and returns it if one is found. If no event is pending, 
+it returns 0.
+\Errors
+None.
+\SeeAlso
+\seep{PutKeyEvent}, \seef{GetKeyEvent}
+\end{function}
+
+\begin{function}{PollShiftStateEvent}
+\Declaration
+function PollShiftStateEvent: TKeyEvent;
+\Description
+\var{PollShiftStateEvent} returns the current shiftstate in a 
+keyevent. This will return 0 if there is no key event pending.
+\Errors
+None.
+\SeeAlso
+\seep{PollKeyEvent}, \seef{GetKeyEvent}
+\end{function}
+
+\begin{procedure}{PutKeyEvent}
+\Declaration
+procedure PutKeyEvent(KeyEvent: TKeyEvent);
+\Description
+\var{PutKeyEvent} adds the given \var{KeyEvent} to the input 
+queue. Please note that depending on the implementation this 
+can hold only one value, i.e. when calling \var{PutKeyEvent}
+multiple times, only the last pushed key will be remembered.
+\Errors
+\SeeAlso
+\end{function}
+
+\begin{function}{TranslateKeyEvent}
+\Declaration
+function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
+\Description
+\var{TranslateKeyEvent} performs ASCII translation of the 
+\var{KeyEvent}.
+\Errors
+None.
+\SeeAlso
+\seef{TranslateKeyEventUniCode}
+\end{function}
+
+\begin{function}{TranslateKeyEventUniCode}
+\Declaration
+function TranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
+\Description
+\var{TranslateKeyEventUniCode} performs Unicode translation of the 
+\var{KeyEvent}
+\Errors
+\SeeAlso
+\end{function}
