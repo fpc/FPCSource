@@ -297,7 +297,15 @@ begin
                     if LineCounter>y2 then
                       y2:=LineCounter;
                  end;
+{$ifdef HASWIDECHAR}
+  {$ifdef VER1_0}
+               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One;
+  {$else}
                LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
+  {$endif}
+{$else}
+               LineBuf^[BufCounter].UniCodeChar := WordRec(VideoBuf^[BufCounter]).One);
+{$endif}
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }
@@ -358,7 +366,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2001-07-30 15:01:12  marco
+  Revision 1.5  2001-08-01 18:01:20  peter
+    * WChar fix to compile also with 1.0.x
+
+  Revision 1.4  2001/07/30 15:01:12  marco
    * Fixed wchar=word to widechar conversion
 
   Revision 1.3  2001/06/13 18:32:55  peter

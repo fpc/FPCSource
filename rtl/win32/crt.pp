@@ -524,7 +524,15 @@ var
   DestCoor: TCoord;
   CharInfo: TCharInfo;
 begin
-  CharInfo.UnicodeChar := #32;
+{$ifdef HASWIDECHAR}
+  {$ifdef VER1_0}
+    CharInfo.UnicodeChar := 32;
+  {$else}
+    CharInfo.UnicodeChar := #32;
+  {$endif}
+{$else}
+  CharInfo.UnicodeChar := 32;
+{$endif}
   CharInfo.Attributes := TextAttr;
 
   Y := (WindMinY - 1) + (Y - 1) + 1;
@@ -561,7 +569,15 @@ var
 begin
   GetScreenCursor(X, Y);
 
-  CharInfo.UnicodeChar := #32;
+{$ifdef HASWIDECHAR}
+  {$ifdef VER1_0}
+    CharInfo.UnicodeChar := 32;
+  {$else}
+    CharInfo.UnicodeChar := #32;
+  {$endif}
+{$else}
+  CharInfo.UnicodeChar := 32;
+{$endif}
   CharInfo.Attributes := TextAttr;
 
   SrcRect.Top := Y - 1;
@@ -835,7 +851,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.12  2001-07-30 15:00:54  marco
+  Revision 1.13  2001-08-01 18:01:20  peter
+    * WChar fix to compile also with 1.0.x
+
+  Revision 1.12  2001/07/30 15:00:54  marco
    * Fixed unicode reference from word to widechar
 
   Revision 1.11  2001/07/13 17:43:25  peter

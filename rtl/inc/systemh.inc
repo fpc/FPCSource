@@ -146,7 +146,15 @@ Type
 {$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
-  wchar               = Widechar;
+  { 1.0.x also has HASWIDECHAR defined, but doesn't support it
+    fully, setting WChar to Word as fallback (PFV) }
+  {$ifndef VER1_0}
+  WChar               = Widechar;
+  {$else}
+  WChar               = Word;
+  {$endif}
+{$else}
+  WChar               = Word;
 {$endif HASWIDECHAR}
 {$ifdef HASWIDESTRING}
   PWideString         = ^WideString;
@@ -538,7 +546,10 @@ const
 
 {
   $Log$
-  Revision 1.33  2001-08-01 15:00:11  jonas
+  Revision 1.34  2001-08-01 18:01:20  peter
+    * WChar fix to compile also with 1.0.x
+
+  Revision 1.33  2001/08/01 15:00:11  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor
