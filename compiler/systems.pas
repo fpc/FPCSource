@@ -171,7 +171,6 @@ unit systems;
 
        tarinfo = packed record
           id      : tar;
-          arbin   : string[8];
           arcmd   : string[50];
        end;
 
@@ -803,34 +802,29 @@ implementation
 {$ifdef i386}
           ,(
             id    : ar_i386_ar;
-            arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'ar rs $LIB $FILES'
           ),
           (
             id    : ar_i386_arw;
-            arbin : 'arw';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'arw rs $LIB $FILES'
           )
 {$endif i386}
 {$ifdef m68k}
           ,(
             id    : ar_m68k_ar;
-            arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'ar rs $LIB $FILES'
           )
 {$endif m68k}
 {$ifdef alpha}
           ,(
             id    : ar_alpha_ar;
-            arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'ar rs $LIB $FILES'
           )
 {$endif}
 {$ifdef powerpc}
           ,(
             id    : ar_powerpc_ar;
-            arbin : 'ar';
-            arcmd : 'rs $LIB $FILES'
+            arcmd : 'ar rs $LIB $FILES'
           )
 {$endif}
           );
@@ -1515,7 +1509,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  1999-10-21 14:29:37  peter
+  Revision 1.96  1999-11-03 23:43:45  peter
+    * fixed ar commands
+
+  Revision 1.95  1999/10/21 14:29:37  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 
