@@ -492,6 +492,7 @@ begin
   for i := 0 to AStrings.Count-1 do begin
     sLine := Trim(AStrings[i]);
     if sLine > '' then
+      begin
       if IsComment(sLine) and (oSection = nil) then begin
         // comment at the beginning of the ini file
         oSection := TIniFileSection.Create(sLine);
@@ -521,6 +522,7 @@ begin
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
+      end;
       end;
   end;
 end;
@@ -770,7 +772,50 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-11-26 22:41:26  michael
+  + Fix for addition of empty ident/value by Jean-Pierre Planas
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.13  2000/06/30 22:11:25  peter
+    * fixed truncating of last char
+
+  Revision 1.12  2000/05/11 14:50:01  peter
+    * fixed getting of value when there was no separator. But it still
+      doesn't work for fpcmake
+
+  Revision 1.11  2000/05/10 16:43:43  michael
+  + New implementation by Erik WachtMeester
+
+  Revision ?.?  2000/04/29 13:51:00  erik
+    * fully rewritten for D5 compatibility and SectionList object structure
+
+  Revision 1.8  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.7  2000/01/06 01:20:33  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.1  2000/01/03 19:33:07  peter
+    * moved to packages dir
+
+  Revision 1.5  1999/11/23 09:50:51  peter
+    * load/save stream support
+
+  Revision 1.4  1999/11/08 15:01:38  peter
+    * fpcmake support
+
+  Revision 1.3  1999/11/02 23:58:37  peter
+    * comment support
+    * readsectionraw method
+
+  Revision 1.2  1999/04/29 16:21:54  michael
+  + Default mode Hugestrings
+
+  Revision 1.1  1999/04/08 15:44:10  michael
+  + Donated by Michael A. Hess
+
+  Initial Release 1999/04/07 MAH
+
 }
