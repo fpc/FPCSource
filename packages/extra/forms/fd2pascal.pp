@@ -507,13 +507,23 @@ var info : stat;
 
 begin
   FileName:=Copy(Filename,1,Length(Filename)-3)+'.pp';
-  {$ifdef ver1_0}fstat{$else}fpstat{$endif}(FileName,info);
+  {$ifdef ver1_0}
+  fstat(FileName,info);
   if linuxerror=0 then
     begin
     { File exists, move to .bak}
-    {$ifdef ver1_0}link{$else}fplink{$endif} (FileName,FileName+'.bak');
-    {$ifdef ver1_0}unlink{$else}fpunlink{$endif} (FileName);
+    link(FileName,FileName+'.bak');
+    unlink(FileName);
     end;
+  {$else}
+  if fpstat(FileName,info)<>-1 Then
+    begin
+    { File exists, move to .bak}
+      fplink (FileName,FileName+'.bak');
+      fpunlink(FileName);
+    end;
+  {$endif}
+
   assign(outfile,filename);
 {$i-}
   rewrite(outfile);
@@ -1126,7 +1136,10 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.3  2003-09-27 12:12:50  peter
+end.  Revision 1.4  2003-11-14 17:14:13  marco
+end.   * linuxerror fix
+end.
+end.  Revision 1.3  2003/09/27 12:12:50  peter
 end.    * fixed for unix
 end.
 end.  Revision 1.2  2002/09/07 15:42:54  peter
