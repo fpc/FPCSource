@@ -312,6 +312,6 @@ initialization
     format_message:=@FormatMessage;
     reset_error_mgr:=@ResetErrorMgr;
   end;
-  ImageHandlers.RegisterImageReader ('JPEG Graphics', 'jpg;jpeg', TFPReaderPNG);
+  ImageHandlers.RegisterImageReader ('JPEG Graphics', 'jpg;jpeg', TFPReaderJPEG);
 end.
 
