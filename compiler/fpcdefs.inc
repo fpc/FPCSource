@@ -49,6 +49,7 @@
   {$define x86}
   {$define cpuflags}
   {$define cpuextended}
+  {$define USECMOV}
 {$endif i386}
 
 {$ifdef x86_64}
@@ -58,6 +59,7 @@
   {$define cpuextended}
   {$define cpufloat128}
   {$define cputargethasfixedstack}
+  {$define USECMOV}
 {$endif x86_64}
 
 {$ifdef alpha}
@@ -93,7 +95,10 @@
 
 {
   $Log$
-  Revision 1.50  2005-02-26 01:26:59  jonas
+  Revision 1.51  2005-03-20 21:41:29  florian
+    * USECMOV activated
+
+  Revision 1.50  2005/02/26 01:26:59  jonas
     * fixed generic jumps optimizer and enabled it for ppc (the label table
       was not being initialised -> getfinaldestination always failed, which
       caused wrong optimizations in some cases)
