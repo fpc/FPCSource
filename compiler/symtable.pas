@@ -1480,10 +1480,9 @@ implementation
          internalerror(200208252);
         storefilepos:=aktfilepos;
         aktfilepos:=tsym(sym).fileinfo;
+        l:=tvarsym(sym).getvaluesize;
         if (vo_is_thread_var in tvarsym(sym).varoptions) then
-          l:=pointer_size
-        else
-          l:=tvarsym(sym).getvaluesize;
+          inc(l,pointer_size);
         varalign:=size_2_align(l);
         varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
         tvarsym(sym).address:=align(datasize,varalign);
@@ -2321,7 +2320,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-10-06 19:41:31  peter
+  Revision 1.75  2002-10-14 19:44:43  peter
+    * threadvars need 4 bytes extra for storing the threadvar index
+
+  Revision 1.74  2002/10/06 19:41:31  peter
     * Add finalization of typed consts
     * Finalization of globals in the main program
 
