@@ -78,7 +78,7 @@ function Do_SysCall(sysnr,param1:integer):longint; assembler;
   movl  sysnr,%eax
   pushw Param1
   call  actualsyscall
-  addw  $2,%esp
+  add   $2,%esp
   movw  %bx,Errno
  end;
 
@@ -455,7 +455,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:42:35  marco
+  Revision 1.3  2000-09-19 09:25:17  marco
+   * addw fix for main thread.
+
+  Revision 1.2  2000/09/18 13:42:35  marco
    * FreeBSD support into 1.1
 
   Revision 1.4  2000/09/11 14:38:10  marco
