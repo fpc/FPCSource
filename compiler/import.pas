@@ -95,7 +95,7 @@ end;
 constructor timportlist.init(const n : string);
 begin
   inherited init;
-  dllname:=stringdup(SplitName(n));
+  dllname:=stringdup(n);
   imported_procedures:=new(plinkedlist,init);
 end;
 
@@ -164,7 +164,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-10-13 13:10:17  peter
+  Revision 1.7  1998-10-19 15:41:02  peter
+    * better splitname to support glib-1.1.dll alike names
+
+  Revision 1.6  1998/10/13 13:10:17  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.5  1998/10/06 17:16:51  pierre

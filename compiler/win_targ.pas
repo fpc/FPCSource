@@ -63,20 +63,21 @@ unit win_targ;
       var
          hp1 : pimportlist;
          hp2 : pimported_procedure;
-
+         hs  : string;
       begin
+         hs:=SplitName(module);
          { search for the module }
          hp1:=pimportlist(current_module^.imports^.first);
          while assigned(hp1) do
            begin
-              if module=hp1^.dllname^ then
+              if hs=hp1^.dllname^ then
                 break;
               hp1:=pimportlist(hp1^.next);
            end;
          { generate a new item ? }
          if not(assigned(hp1)) then
            begin
-              hp1:=new(pimportlist,init(module));
+              hp1:=new(pimportlist,init(hs));
               current_module^.imports^.concat(hp1);
            end;
          hp2:=new(pimported_procedure,init(func,name,index));
@@ -293,7 +294,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.8  1998-09-07 18:33:35  peter
+  Revision 1.9  1998-10-19 15:41:03  peter
+    * better splitname to support glib-1.1.dll alike names
+
+  Revision 1.8  1998/09/07 18:33:35  peter
     + smartlinking for win95 imports
 
   Revision 1.7  1998/09/03 17:39:06  florian
