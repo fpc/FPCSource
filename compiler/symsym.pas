@@ -1832,6 +1832,7 @@ implementation
 
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
       var
+        tempreg: tregister;
         stab_str : pchar;
         c : char;
       begin
@@ -1861,14 +1862,21 @@ implementation
          else
            if (reg.enum<>R_NO) then
              begin
-                if reg.enum>lastreg then
+                if reg.enum = R_INTREGISTER then
+                  begin
+                    tempreg := reg;
+                    convert_register_to_enum(tempreg);
+                  end
+                else
+                  tempreg := reg;
+                if tempreg.enum>lastreg then
                   internalerror(2003010801);
                 { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                 { this is the register order for GDB}
                 stab_str:=strpnew('"'+name+':r'
                        +tstoreddef(vartype.def).numberstring+'",'+
                        tostr(N_RSYM)+',0,'+
-                       tostr(fileinfo.line)+','+tostr(stab_regindex[reg.enum]));
+                       tostr(fileinfo.line)+','+tostr(stab_regindex[tempreg.enum]));
                 asmList.concat(Tai_stabs.Create(stab_str));
              end
          else
@@ -1880,16 +1888,20 @@ implementation
       begin
         _vartype := newtype;
          { can we load the value into a register ? }
-        if tstoreddef(vartype.def).is_intregable then
-           include(varoptions,vo_regable)
-         else
-           exclude(varoptions,vo_regable);
+        if not assigned(owner) or
+           (owner.symtabletype in [localsymtable,parasymtable,inlineparasymtable,inlinelocalsymtable]) then
+          begin
+            if tstoreddef(vartype.def).is_intregable then
+              include(varoptions,vo_regable)
+            else
+              exclude(varoptions,vo_regable);
 
-         if tstoreddef(vartype.def).is_fpuregable then
-           include(varoptions,vo_fpuregable)
-         else
-           exclude(varoptions,vo_fpuregable);
-         reg.enum:=R_NO;
+            if tstoreddef(vartype.def).is_fpuregable then
+              include(varoptions,vo_fpuregable)
+            else
+              exclude(varoptions,vo_fpuregable);
+            reg.enum:=R_NO;
+          end;
       end;
 
 
@@ -2597,7 +2609,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2003-05-30 13:35:10  jonas
+  Revision 1.106  2003-05-30 18:48:17  jonas
+    * fixed intregister bug
+    * fixed error in my previous commit: vo_(fpu)regable should only be set
+      for (inline)localsymtable and (inline)parasymtable entries
+
+  Revision 1.105  2003/05/30 13:35:10  jonas
     * the vartype field of tvarsym is now a property, because is_XXXregable
       must be updated when the vartype is changed
 
