@@ -253,3 +253,6 @@ bug0188.pp   can't print function result of procedural var that returns a
              function.
 bug0189.pp   cant compare adresses of function variables !!
 bug0190.pp   can't have typecast for var params ??
+bug0191.pp   missing vecn constant evaluation
+bug0192.pp   can't compare boolean result with true/false, because the
+             boolean result is already in the flags
