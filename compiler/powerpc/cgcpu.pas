@@ -451,7 +451,7 @@ const
 {$q-}
 {$define overflowon}
 {$endif}
-            a_op_const_reg_reg(list,op,size,aword(-a),src,dst);
+            a_op_const_reg_reg(list,OP_ADD,size,aword(-a),src,dst);
 {$ifdef overflowon}
 {$q+}
 {$undef overflowon}
@@ -482,11 +482,13 @@ const
               end
             else if (longint(a) >= 0) and
                (longint(a) <= high(word)) and
-               (op <> OP_ADD) and
                ((op <> OP_AND) or
                 not gotrlwi) then
               begin
-                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
+                if (op = OP_ADD) then
+                  list.concat(taicpu.op_reg_reg_const(oplo,dst,src,smallint(a)))
+                else
+                  list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
@@ -711,9 +713,8 @@ const
          { left                                                            }
          testbit := (32 - testbit) and 31;
          { extract bit }
-         if testbit <> 0 then
-           list.concat(taicpu.op_reg_reg_const_const_const(
-             A_RLWINM,reg,reg,testbit,31,31));
+         list.concat(taicpu.op_reg_reg_const_const_const(
+           A_RLWINM,reg,reg,testbit,31,31));
          { if we need the inverse, xor with 1 }
          if not bitvalue then
            list.concat(taicpu.op_reg_reg_const(A_XORI,reg,reg,1));
@@ -1445,7 +1446,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2002-08-05 08:58:53  jonas
+  Revision 1.35  2002-08-06 07:12:05  jonas
+    * fixed bug in g_flags2reg()
+    * and yet more constant operation fixes :)
+
+  Revision 1.34  2002/08/05 08:58:53  jonas
     * fixed compilation problems
 
   Revision 1.33  2002/08/04 12:57:55  jonas
