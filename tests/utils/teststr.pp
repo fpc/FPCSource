@@ -27,6 +27,8 @@ const
   successfully_compiled = 'Successfully compiled ';
   failed_to_run = 'Failed to run ';
   successfully_run = 'Successfully run ';
+  failed_to_execute_compiler = 'Failed to execute compiler ';
+  failed_to_execute_test = 'Failed to execute test ';
   skipping_graph_test = 'Skipping test because it uses graph ';
   skipping_interactive_test = 'Skipping test because it is interactive ';
   skipping_known_bug = 'Skipping test because it is a known bug ';
@@ -47,7 +49,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-10-13 14:19:02  peter
+  Revision 1.6  2004-04-29 21:41:44  peter
+    * test result of execution and report as failure with iostatus displayed
+
+  Revision 1.5  2003/10/13 14:19:02  peter
     * digest updated for max version limit
 
   Revision 1.4  2002/12/24 21:47:49  peter

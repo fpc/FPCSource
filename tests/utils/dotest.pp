@@ -374,6 +374,7 @@ function RunCompiler:boolean;
 var
   outname,
   args : string;
+  execres : boolean;
 begin
   RunCompiler:=false;
   OutName:=ForceExtension(PPFile,'log');
@@ -388,8 +389,22 @@ begin
   args:=args+' '+ppfile;
   Verbose(V_Debug,'Executing '+compilerbin+' '+args);
   { also get the output from as and ld that writes to stderr sometimes }
-  ExecuteRedir(CompilerBin,args,'',OutName,OutName);
+  execres:=ExecuteRedir(CompilerBin,args,'',OutName,OutName);
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
+
+  { Error during execution? }
+  if (not execres) and (ExecuteResult=0) then
+    begin
+      AddLog(FailLogFile,TestName);
+      AddLog(ResLogFile,failed_to_execute_compiler+PPFileInfo);
+      AddLog(LongLogFile,line_separation);
+      AddLog(LongLogFile,failed_to_execute_compiler+PPFileInfo);
+      CopyFile(OutName,LongLogFile,true);
+      { avoid to try again }
+      AddLog(ForceExtension(PPFile,'elg'),failed_to_execute_compiler+PPFileInfo);
+      Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
+      exit;
+    end;
 
   { Check for internal error }
   if ExitWithInternalError(OutName) then
@@ -476,8 +491,10 @@ function RunExecutable:boolean;
 var
   outname,
   TestExe : string;
+  execres  : boolean;
 begin
   RunExecutable:=false;
+  execres:=true;	
   TestExe:=ForceExtension(PPFile,ExeExt);
   OutName:=ForceExtension(PPFile,'elg');
   Verbose(V_Debug,'Executing '+TestExe);
@@ -497,11 +514,26 @@ begin
     begin
       { don't redirect interactive and graph programs .. }
       if Config.IsInteractive or Config.UsesGraph then
-        ExecuteRedir(TestExe,'','','','')
+        execres:=ExecuteRedir(TestExe,'','','','')
       else
-        ExecuteRedir(TestExe,'','',OutName,'');
+        execres:=ExecuteRedir(TestExe,'','',OutName,'');
     end;
   Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
+  
+  { Error during execution? }
+  if (not execres) and (ExecuteResult=0) then
+    begin
+      AddLog(FailLogFile,TestName);
+      AddLog(ResLogFile,failed_to_execute_test+PPFileInfo);
+      AddLog(LongLogFile,line_separation);
+      AddLog(LongLogFile,failed_to_execute_test+PPFileInfo);
+      CopyFile(OutName,LongLogFile,true);
+      { avoid to try again }
+      AddLog(ForceExtension(PPFile,'elg'),failed_to_execute_test+PPFileInfo);
+      Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
+      exit;
+    end;
+
   if ExecuteResult<>Config.ResultCode then
    begin
      if (ExecuteResult<>0) and
@@ -825,7 +857,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2004-04-01 12:51:32  olle
+  Revision 1.32  2004-04-29 21:41:44  peter
+    * test result of execution and report as failure with iostatus displayed
+
+  Revision 1.31  2004/04/01 12:51:32  olle
     + Several -Y<opt> is now allowed
 
   Revision 1.30  2004/03/21 19:15:18  florian
