@@ -83,9 +83,17 @@ interface
     { counts the labels }
     function case_count_labels(root : pcaserecord) : longint;
     { searches the highest label }
+{$ifdef int64funcresok}
+    function case_get_max(root : pcaserecord) : tconstexprint;
+{$else int64funcresok}
     function case_get_max(root : pcaserecord) : longint;
+{$endif int64funcresok}
     { searches the lowest label }
+{$ifdef int64funcresok}
+    function case_get_min(root : pcaserecord) : tconstexprint;
+{$else int64funcresok}
     function case_get_min(root : pcaserecord) : longint;
+{$endif int64funcresok}
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -337,7 +345,11 @@ implementation
       end;
 
 
+{$ifdef int64funcresok}
+    function case_get_max(root : pcaserecord) : tconstexprint;
+{$else int64funcresok}
     function case_get_max(root : pcaserecord) : longint;
+{$endif int64funcresok}
       var
          hp : pcaserecord;
       begin
@@ -348,7 +360,11 @@ implementation
       end;
 
 
+{$ifdef int64funcresok}
+    function case_get_min(root : pcaserecord) : tconstexprint;
+{$else int64funcresok}
     function case_get_min(root : pcaserecord) : longint;
+{$endif int64funcresok}
       var
          hp : pcaserecord;
       begin
@@ -516,7 +532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-11-29 00:30:34  florian
+  Revision 1.10  2000-12-18 17:44:26  jonas
+    * more int64 case fixes
+
+  Revision 1.9  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
