@@ -298,9 +298,18 @@ interface
               end;
             LOC_CREFERENCE,
             LOC_REFERENCE:
-              begin
-                 location.register:=cg.getfpuregister(exprasmlist,left.location.size);
-                 cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
+              begin                 
+                 if expectloc=LOC_MMREGISTER then
+                   begin
+                     location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+                     location.register:=cg.getmmregister(exprasmlist,left.location.size);
+                     cg.a_loadmm_loc_reg(exprasmlist,def_cgsize(resulttype.def),left.location,location.register,mms_movescalar)
+                   end
+                  else
+                    begin
+                      location.register:=cg.getfpuregister(exprasmlist,left.location.size);
+                      cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
+                    end;
                  location_freetemp(exprasmlist,left.location);
               end;
             LOC_MMREGISTER,
@@ -541,7 +550,10 @@ end.
 
 {
   $Log$
-  Revision 1.68  2004-12-11 15:25:40  jonas
+  Revision 1.69  2004-12-25 10:48:17  florian
+    * optimized float to float conversion
+
+  Revision 1.68  2004/12/11 15:25:40  jonas
     - removed superfluous location_force_reg() in second_nothing
 
   Revision 1.67  2004/12/10 23:38:54  jonas
