@@ -328,7 +328,7 @@ Begin
    oflags:=oflags or (O_CREAT or O_TRUNC)
   else
    if (flags and $100)=$100 then
-    oflags:=oflags or (O_APPEND or O_CREAT);
+    oflags:=oflags or (O_APPEND);
 { empty name is special }
   if p[0]=#0 then
    begin
@@ -593,7 +593,10 @@ end;
 
 {
    $Log$
-   Revision 1.14  2004-05-16 18:51:20  peter
+   Revision 1.15  2004-07-17 15:20:55  jonas
+     * don't use O_CREATE when opening a file for appending (fixes tw1744)
+
+   Revision 1.14  2004/05/16 18:51:20  peter
      * use thandle in do_*
 
    Revision 1.13  2004/04/22 21:10:56  peter
