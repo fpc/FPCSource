@@ -165,18 +165,7 @@ unit rgcpu;
     var subreg:Tsubregister;
 
     begin
-      case size of
-        OS_8,OS_S8:
-          subreg:=R_SUBL;
-        OS_16,OS_S16:
-          subreg:=R_SUBW;
-        OS_32,OS_S32:
-          subreg:=R_SUBD;
-        OS_64,OS_S64:
-          subreg:=R_SUBQ;
-        else
-          internalerror(200301102);
-      end;
+      subreg:=cgsize2subreg(size);
           
       if countunusedregsint=0 then
         internalerror(10);
@@ -522,7 +511,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-02-19 22:00:16  daniel
+  Revision 1.13  2003-03-07 21:57:53  daniel
+    * Improved getregisterint
+
+  Revision 1.12  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
