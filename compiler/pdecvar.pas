@@ -48,7 +48,7 @@ implementation
        fmodule,
        { pass 1 }
        node,pass_1,
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,nutils,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
        { codegen }
        ncgutil,
        { parser }
@@ -660,6 +660,7 @@ implementation
          { c var }
          newtype : ttypesym;
          is_dll,
+         hasdefaultvalue,
          is_gpc_name,is_cdecl,
          extern_var,export_var : boolean;
          old_current_object_option : tsymoptions;
@@ -748,6 +749,7 @@ implementation
                 (tt.def.needs_inittable and not is_class(tt.def)) then
                Message(parser_e_cant_use_inittable_here);
              ignore_equal:=false;
+             hasdefaultvalue:=false;
              symdone:=false;
              if is_gpc_name then
                begin
@@ -851,54 +853,56 @@ implementation
                 pt.free;
                 symdone:=true;
               end;
+
+             { Process procvar directives before = and ; }
+             if (tt.def.deftype=procvardef) and
+                (tt.def.typesym=nil) and
+                is_proc_directive(token,true) then
+               begin
+                  newtype:=ttypesym.create('unnamed',tt);
+                  parse_var_proc_directives(tsym(newtype));
+                  newtype.restype.def:=nil;
+                  tt.def.typesym:=nil;
+                  newtype.free;
+               end;
+
+             { try to parse the hint directives }
+             dummysymoptions:=[];
+             try_consume_hintdirective(dummysymoptions);
+
              { Records and objects can't have default values }
              if is_record or is_object then
                begin
-                 { try to parse the hint directives }
-                 dummysymoptions:=[];
-                 try_consume_hintdirective(dummysymoptions);
                  { for a record there doesn't need to be a ; before the END or ) }
                  if not(token in [_END,_RKLAMMER]) then
                    consume(_SEMICOLON);
                end
              else
                begin
-                 { Process procvar directives before = and ; }
-                 if (tt.def.deftype=procvardef) and
-                    (tt.def.typesym=nil) and
-                    is_proc_directive(token,true) then
-                   begin
-                      newtype:=ttypesym.create('unnamed',tt);
-                      parse_var_proc_directives(tsym(newtype));
-                      newtype.restype.def:=nil;
-                      tt.def.typesym:=nil;
-                      newtype.free;
-                   end;
-
-                 { try to parse the hint directives }
-                 dummysymoptions:=[];
-                 try_consume_hintdirective(dummysymoptions);
-
-                 { Handling of Delphi typed const = initialized vars ! }
-                 { When should this be rejected ?
-                   - in parasymtable
-                   - in record or object
-                   - ... (PM) }
+                 { Handling of Delphi typed const = initialized vars }
                  if (token=_EQUAL) and
                     not(m_tp7 in aktmodeswitches) and
-                    not(symtablestack.symtabletype in [parasymtable]) and
-                    not is_record and
-                    not is_object then
+                    (symtablestack.symtabletype<>parasymtable) then
                    begin
+                     if (tt.def.deftype=procvardef) and
+                        (tt.def.typesym=nil) then
+                       begin
+                         { Add calling convention for procvar }
+                         handle_calling_convention(tprocvardef(tt.def));
+                         calc_parast(tprocvardef(tt.def));
+                       end;
                      read_default_value(sc,tt,is_threadvar);
                      { for locals we've created typedconstsym with a different name }
                      if symtablestack.symtabletype<>localsymtable then
                        symdone:=true;
+                     hasdefaultvalue:=true;
                    end;
                  consume(_SEMICOLON);
                end;
-             { Add calling convention for procvars }
-             if (tt.def.deftype=procvardef) and
+
+             { Support calling convention for procvars after semicolon }
+             if not(hasdefaultvalue) and
+                (tt.def.deftype=procvardef) and
                 (tt.def.typesym=nil) then
                begin
                  { Parse procvar directives after ; }
@@ -913,18 +917,19 @@ implementation
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
                  calc_parast(tprocvardef(tt.def));
-                 { Handling of Delphi typed const = initialized vars ! }
+                 { Handling of Delphi typed const = initialized vars }
                  if (token=_EQUAL) and
+                    not(is_record or is_object) and
                     not(m_tp7 in aktmodeswitches) and
-                    not(symtablestack.symtabletype in [parasymtable]) and
-                    not is_record and
-                    not is_object then
+                    (symtablestack.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc,tt,is_threadvar);
                      consume(_SEMICOLON);
                      symdone:=true;
+                     hasdefaultvalue:=true;
                    end;
                end;
+
              { Check for variable directives }
              if not symdone and (token=_ID) then
               begin
@@ -1172,7 +1177,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2004-03-23 22:34:49  peter
+  Revision 1.73  2004-04-11 12:38:16  peter
+    * fix calling convention problem when parsing default value before
+      the semicolon
+
+  Revision 1.72  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed
