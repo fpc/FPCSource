@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for FPC morphos demos (part of FPC demo package)
+#
+
+[target]
+programs_morphos=ahitest asltest window getvolumes openlib process
+
+[default]
+fpcdir=../..
