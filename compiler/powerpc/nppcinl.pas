@@ -124,7 +124,8 @@ implementation
      procedure tppcinlinenode.second_abs_real;
        begin
          load_fpu_location;
-         exprasmlist.concat(taicpu.op_none(A_FABS));
+         exprasmlist.concat(taicpu.op_reg_reg(A_FABS,location.register,
+           left.location.register));
        end;
 
      procedure tppcinlinenode.second_sqr_real;
@@ -137,7 +138,7 @@ implementation
      procedure tppcinlinenode.second_sqrt_real;
        begin
          load_fpu_location;
-         exprasmlist.concat(taicpu.op_reg_reg(A_FMUL,location.register,
+         exprasmlist.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
            left.location.register));
        end;
 
@@ -146,7 +147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 17:15:00  jonas
+  Revision 1.2  2002-08-19 17:35:42  jonas
+    * fixes
+
+  Revision 1.1  2002/08/10 17:15:00  jonas
     + abs, sqr, sqrt implementations
 
 
