@@ -191,8 +191,8 @@
         else if expo=0 then
          power:=1
         else
-        { bas < 0 is not allowed }
-         if bas<0 then
+        { bas < 0 is not allowed when doing roots }
+         if (bas<0) and (frac(expo) <> 0) then
           handleerror(207)
          else
           power:=exp(ln(bas)*expo);
@@ -200,7 +200,10 @@
 
 {
   $Log$
-  Revision 1.16  2003-11-11 21:08:17  peter
+  Revision 1.17  2003-11-24 21:57:43  michael
+  + Patch from Johannes Berg for bug 2759
+
+  Revision 1.16  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.15  2003/09/08 18:21:37  peter
