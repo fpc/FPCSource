@@ -857,7 +857,7 @@ implementation
                         emitl(A_LABEL,hlabel);
                       end;
          else
-           internalerror(10060);
+           internalerror(10061);
          end;
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
@@ -882,7 +882,7 @@ implementation
                 hregister:=hp^.location.register;
               end;
           else
-            internalerror(10061);
+            internalerror(10062);
           end;
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
          hregister:=reg32toreg8(hregister);
@@ -897,6 +897,8 @@ implementation
                         p^.location.register:=reg16toreg32(hregister);
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
                       end;
+         else
+          internalerror(10064);
          end;
      end;
 
@@ -1062,7 +1064,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-06-12 10:43:12  michael
+  Revision 1.7  1998-06-12 13:10:34  peter
+    * small internalerror nr change
+
+  Revision 1.6  1998/06/12 10:43:12  michael
   Fixed ansistrings : is_ansistring not found
 
   Revision 1.5  1998/06/08 13:13:30  pierre
