@@ -32,15 +32,15 @@ _start:
         lis 4,__stklen@ha
         lwz 3,__stklen@l(4)
         stw 3,0(2)
-        li 3,1
-        stw 3,4(2)
         lwz 3,4(0)
         stw 3,56(2)
         lwz 3,100(2)
         mtlr 3
-        li 3,-684              /* AllocVec */
+        li 3,-858              /* AllocTaskPooled */
         blrl
-        /* FIXME: check for successful allocation! */
+
+        cmplwi cr0,3,0
+        beq cr0,_exit
 
         lis 4,stackArea@ha
         stw 3,stackArea@l(4)
@@ -67,21 +67,11 @@ _start:
         li 3,-804              /* NewPPCStackSwap */
         blrl
 
-        /* Freeing up stack area */
-        lis 4,stackArea@ha
-        lwz 3,stackArea@l(4)
-        stw 3,36(2)
-        lwz 3,4(0)
-        stw 3,56(2)
-        lwz 3,100(2)
-        mtlr 3
-        li 3,-690              /* FreeVec */
-        blrl
-
         /* Setting return value */
         lis 4,returnValue@ha
         lwz 3,returnValue@l(4)
 
+_exit:
         addi 1,1,16
         lwz  0,4(1)
         mtlr 0
@@ -196,7 +186,12 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.11  2004-06-06 22:02:22  karoly
+  Revision 1.12  2005-02-03 19:09:11  karoly
+    * reworked startup code:
+      - now uses AllocTaskPooled
+      - check for unsuccessful stack allocation
+
+  Revision 1.11  2004/06/06 22:02:22  karoly
     * hopefully fixed stack problems causing hits
 
   Revision 1.10  2004/06/06 12:51:06  karoly
