@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     File utility calls
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -87,7 +87,7 @@ Function FileTruncate (Handle,Size: Longint) : boolean;
 
 begin
   Result:=SetFilePointer(handle,Size,nil,FILE_BEGIN)<>-1;
-  If Result then 
+  If Result then
     Result:=SetEndOfFile(handle);
 end;
 
@@ -116,7 +116,7 @@ var
   FindData: TWin32FindData;
   LocalFileTime: TFileTime;
   Fn : String;
-  
+
 begin
   Handle := FindFirstFile(Pchar(FileName), @FindData);
   if Handle <> INVALID_HANDLE_VALUE then
@@ -139,7 +139,7 @@ begin
   P:=Pchar(Filename);
   Handle := FindFirstFile(Pchar(FileName), @FindData);
   Result:=Handle <> INVALID_HANDLE_VALUE;
-  If Result then 
+  If Result then
     Windows.FindClose(Handle);
 end;
 
@@ -214,7 +214,7 @@ end;
 Function FileSetDate (Handle,Age : Longint) : Longint;
 
 Var FT: TFileTime;
-  
+
 begin
   Result := 0;
   if DosToWinTime(Age,FT) and
@@ -273,11 +273,11 @@ begin
       begin
       Result:=Temp;
       Temp:='';
-      end;  
+      end;
     If result[length(result)]<>'\' then
       Result:=Result+'\';
     Result:=Result+name;
-    If not FileExists(Result) Then 
+    If not FileExists(Result) Then
      Result:='';
   until (length(temp)=0) or (length(result)<>0);
 end;
@@ -324,22 +324,22 @@ function GetLocaleStr(LID, LT: Longint; const Def: string): ShortString;
 var
   L: Integer;
   Buf: array[0..255] of Char;
-  
+
 begin
   L := GetLocaleInfo(LID, LT, Buf, SizeOf(Buf));
-  if L > 0 then 
-    SetString(Result, @Buf[0], L - 1) 
-  else 
+  if L > 0 then
+    SetString(Result, @Buf[0], L - 1)
+  else
     Result := Def;
 end;
-        
+
 function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
 
 var
   Buf: array[0..1] of Char;
 begin
   if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
-    Result := Buf[0] 
+    Result := Buf[0]
   else
     Result := Def;
 end;
@@ -352,17 +352,17 @@ Var
 Begin
   S:=GetLocaleStr(LID,TP,'0');
   Val(S,Result,C);
-  If C<>0 Then 
+  If C<>0 Then
     Result:=Def;
 End;
-                                        
+
 procedure GetFormatSettings;
 
 var
   HF  : Shortstring;
   LID : LCID;
   I,Day,DateOrder : longint;
-   
+
 begin
   LID := GetThreadLocale;
   { Date stuff }
@@ -370,14 +370,18 @@ begin
     begin
     ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
     LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+{$ifdef SYSUTILSDEBUG}
     Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]));
     Writeln ('Have : ',GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]));
+{$endif}
     end;
+{$ifdef SYSUTILSDEBUG}
   for I := 1 to 12 do
     begin
     Writeln ('Month short : ',ShortMonthNames[I]);
     Writeln ('Month long : ',LongMonthNames[I]);
     end;
+{$endif}
   for I := 1 to 7 do
     begin
     Day := (I + 5) mod 7;
@@ -405,7 +409,7 @@ begin
   TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
   TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
   if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
-    HF:='h' 
+    HF:='h'
   else
     HF:='hh';
   // No support for 12 hour stuff at the moment...
@@ -420,12 +424,12 @@ begin
   DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
   CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
 end;
-                                                                      
+
 Procedure InitInternational;
 
 {
- called by sysutils initialization routines to set up 
- internationalization support. 
+ called by sysutils initialization routines to set up
+ internationalization support.
 }
 
 begin
@@ -435,7 +439,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-03-03 15:22:40  michael
+  Revision 1.7  1999-03-16 21:01:00  peter
+    * removed initernalization debug writeln's
+
+  Revision 1.6  1999/03/03 15:22:40  michael
   Fixed internationalization support
 
   Revision 1.5  1999/02/28 13:18:11  michael
