@@ -925,6 +925,27 @@ parser_e_illegal_explicit_paraloc=03199_E_Unknown argument location
 % The location specified for an argument isn't recognized by the compiler
 parser_e_32bitint_or_pointer_variable_expected=03200_E_32 Bit Integer or Pointer Variable expected
 % The libbase for MorphOS/AmigaOS can be give only as \var{longint}, \var{dword} or \var{pointer}.
+parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between different procedures
+% It isn't allowed to use the \var{goto} statements referencing labels outside the
+% current procedure. The following example shows the problem:
+% \begin{verbatim}
+% ...
+%   procedure p1;
+%   label
+%     l1;
+%    
+%     procedure p2;
+%     begin
+%       goto l1; // This goto ISN'T allowed
+%     end;
+%
+%   begin
+%     p2
+%   l1:
+%   end;
+% ...
+%
+% \end{verbatim}
 % \end{description}
 #
 # Type Checking

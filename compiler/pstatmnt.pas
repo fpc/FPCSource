@@ -876,6 +876,9 @@ implementation
                        end
                      else
                        begin
+                         { goto is only allowed to labels within the current scope }
+                         if srsym.owner<>current_procinfo.procdef.localst then
+                           CGMessage(parser_e_goto_outside_proc);
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labsym:=tlabelsym(srsym);
                          { set flag that this label is used }
@@ -1102,7 +1105,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2004-03-04 17:22:10  peter
+  Revision 1.133  2004-05-23 11:39:38  peter
+    * give error when goto jumps to label outside current proc scope
+
+  Revision 1.132  2004/03/04 17:22:10  peter
     * better check for maybe_call_procvar
 
   Revision 1.131  2004/02/26 16:14:48  peter
