@@ -65,6 +65,7 @@ interface
 {$ifdef EXTDEBUG}
           procedure candidates_dump_info(lvl:longint;procs:pcandidate);
 {$endif EXTDEBUG}
+          function  gen_self_tree_methodpointer:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
           procedure bind_paraitem;
@@ -1598,6 +1599,21 @@ type
       end;
 
 
+    function tcallnode.gen_self_tree_methodpointer:tnode;
+      var
+        hsym : tvarsym;
+      begin
+        { find self field in methodpointer record }
+        hsym:=tvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
+        if not assigned(hsym) then
+          internalerror(200305251);
+        { Load tmehodpointer(right).self }
+        result:=csubscriptnode.create(
+                     hsym,
+                     ctypeconvnode.create_explicit(right.getcopy,methodpointertype));
+      end;
+
+
     function tcallnode.gen_self_tree:tnode;
       var
         selftree : tnode;
@@ -1789,11 +1805,10 @@ type
               else
                if vo_is_self in tvarsym(currpara.parasym).varoptions then
                  begin
-{$warning todo methodpointer}
-                   if (right=nil) then
-                     hiddentree:=gen_self_tree
+                   if assigned(right) then
+                     hiddentree:=gen_self_tree_methodpointer
                    else
-                     hiddentree:=cnothingnode.create;
+                     hiddentree:=gen_self_tree;
                  end
               else
                if vo_is_vmt in tvarsym(currpara.parasym).varoptions then
@@ -2720,7 +2735,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.160  2003-05-25 08:59:16  peter
+  Revision 1.161  2003-05-25 11:34:17  peter
+    * methodpointer self pushing fixed
+
+  Revision 1.160  2003/05/25 08:59:16  peter
     * inline fixes
 
   Revision 1.159  2003/05/24 17:16:37  jonas

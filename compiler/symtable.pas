@@ -99,6 +99,7 @@ interface
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insertvardata(sym : tsymentry);override;
+          procedure insertfield(sym:tvarsym);
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -1073,6 +1074,13 @@ implementation
         varalign:=used_align(varalign,aktalignment.recordalignmin,dataalignment);
         tvarsym(sym).address:=align(datasize,varalign);
         datasize:=tvarsym(sym).address+l;
+      end;
+
+
+    procedure tabstractrecordsymtable.insertfield(sym : tvarsym);
+      begin
+        insert(sym);
+        insertvardata(sym);
       end;
 
 
@@ -2421,7 +2429,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2003-05-23 14:27:35  peter
+  Revision 1.103  2003-05-25 11:34:17  peter
+    * methodpointer self pushing fixed
+
+  Revision 1.102  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

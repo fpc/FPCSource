@@ -810,28 +810,11 @@ implementation
               if (po_interrupt in procdefinition.procoptions) then
                 extra_interrupt_code;
 
-              if (po_methodpointer in procdefinition.procoptions) then
-                begin
-                   { push self }
-                   href:=right.location.reference;
-                   inc(href.offset,POINTER_SIZE);
-                   cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
-
-                   rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
-                   rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
-                   cg.a_call_ref(exprasmlist,right.location.reference);
-
-                   reference_release(exprasmlist,right.location.reference);
-                   tg.Ungetiftemp(exprasmlist,right.location.reference);
-                end
-              else
-                begin
-                   rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
-                   rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
-                   cg.a_call_loc(exprasmlist,right.location);
-                   location_release(exprasmlist,right.location);
-                   location_freetemp(exprasmlist,right.location);
-                end;
+              rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
+              rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
+              cg.a_call_loc(exprasmlist,right.location);
+              location_release(exprasmlist,right.location);
+              location_freetemp(exprasmlist,right.location);
            end;
 
          { Need to remove the parameters from the stack? }
@@ -1127,7 +1110,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-05-25 08:59:16  peter
+  Revision 1.74  2003-05-25 11:34:17  peter
+    * methodpointer self pushing fixed
+
+  Revision 1.73  2003/05/25 08:59:16  peter
     * inline fixes
 
   Revision 1.72  2003/05/24 13:36:54  jonas

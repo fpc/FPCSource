@@ -123,7 +123,7 @@ implementation
         { several defs to simulate more or less C++ objects for GDB }
         vmttype,
         vmtarraytype : ttype;
-        vmtsymtable  : tsymtable;
+        hrecst : trecordsymtable;
       begin
 {$ifdef cpufpemu}
         { Normal types }
@@ -195,20 +195,26 @@ implementation
         addtype('$s80real',s80floattype);
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
-        vmtsymtable:=trecordsymtable.create;
-        vmttype.setdef(trecorddef.create(vmtsymtable));
+        hrecst:=trecordsymtable.create;
+        vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        vmtsymtable.insert(tvarsym.create('$parent',vs_value,pvmttype));
-        vmtsymtable.insert(tvarsym.create('$length',vs_value,s32bittype));
-        vmtsymtable.insert(tvarsym.create('$mlength',vs_value,s32bittype));
+        hrecst.insertfield(tvarsym.create('$parent',vs_value,pvmttype));
+        hrecst.insertfield(tvarsym.create('$length',vs_value,s32bittype));
+        hrecst.insertfield(tvarsym.create('$mlength',vs_value,s32bittype));
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        vmtsymtable.insert(tvarsym.create('$__pfn',vs_value,vmtarraytype));
+        hrecst.insertfield(tvarsym.create('$__pfn',vs_value,vmtarraytype));
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
         tarraydef(vmtarraytype.def).setelementtype(pvmttype);
         addtype('$vtblarray',vmtarraytype);
+        { Add a type for methodpointers }
+        hrecst:=trecordsymtable.create;
+        hrecst.insertfield(tvarsym.create('$proc',vs_value,voidpointertype));
+        hrecst.insertfield(tvarsym.create('$self',vs_value,voidpointertype));
+        methodpointertype.setdef(trecorddef.create(hrecst));
+        addtype('$methodpointer',methodpointertype);
       { Add functions that require compiler magic }
         insertinternsyms(p);
       end;
@@ -246,6 +252,7 @@ implementation
         globaldef('file',cfiletype);
         globaldef('pvmt',pvmttype);
         globaldef('variant',cvarianttype);
+        globaldef('methodpointer',methodpointertype);
 {$ifdef i386}
         ordpointertype:=u32bittype;
         defaultordconsttype:=s32bittype;
@@ -487,7 +494,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2003-05-13 19:14:41  peter
+  Revision 1.51  2003-05-25 11:34:17  peter
+    * methodpointer self pushing fixed
+
+  Revision 1.50  2003/05/13 19:14:41  peter
     * failn removed
     * inherited result code check moven to pexpr
 

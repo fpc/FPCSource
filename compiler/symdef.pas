@@ -678,6 +678,7 @@ interface
                                     needed for readln() }
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
+       methodpointertype,         { typecasting of methodpointers to extract self }
        { we use only one variant def }
        cvarianttype,
        { unsigned ord type with the same size as a pointer }
@@ -5761,7 +5762,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.144  2003-05-15 18:58:53  peter
+  Revision 1.145  2003-05-25 11:34:17  peter
+    * methodpointer self pushing fixed
+
+  Revision 1.144  2003/05/15 18:58:53  peter
     * removed selfpointer_offset, vmtpointer_offset
     * tvarsym.adjusted_address
     * address in localsymtable is now in the real direction
