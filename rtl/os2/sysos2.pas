@@ -2,7 +2,7 @@
 
                      Free Pascal -- OS/2 runtime library
 
-                  Copyright (c) 1999-2000 by Florian Kl„mpfl
+                  Copyright (c) 1999-2000 by Florian Klaempfl
                    Copyright (c) 1999-2000 by Daniel Mantione
 
  Free Pascal is distributed under the GNU Public License v2. So is this unit.
@@ -111,12 +111,15 @@ implementation
 
 {$I SYSTEM.INC}
 
-procedure dosgetinfoblocks(var Atib:Pthreadinfoblock;
-                           var Apib:Pprocessinfoblock); cdecl;
-                           external 'DOSCALLS' index 312;
+procedure DosGetInfoBlocks (var Atib: PThreadInfoBlock;
+                            var Apib: PProcessInfoBlock); cdecl;
+                            external 'DOSCALLS' index 312;
+
+function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
+external 'DOSCALLS' index 382;
 
 {This is the correct way to call external assembler procedures.}
-procedure syscall;external name '___SYSCALL';
+procedure syscall; external name '___SYSCALL';
 
 {***************************************************************************
 
@@ -169,13 +172,11 @@ end;
 
 ****************************************************************************}
 
-procedure system_exit;
-begin
-    asm
-        movb $0x4c,%ah
-        movb exitcode,%al
-        call syscall
-    end;
+procedure system_exit; assembler;
+asm
+    movb $0x4c,%ah
+    movb exitcode,%al
+    call syscall
 end;
 
 
@@ -232,15 +233,11 @@ end;
 { this function allows to extend the heap by calling
 syscall $7f00 resizes the brk area}
 
-function sbrk(size:longint):longint;
-
-begin
-    asm
-        movl size,%edx
-        movw $0x7f00,%ax
-        call syscall
-        movl %eax,__RESULT
-    end;
+function sbrk(size:longint):longint; assembler;
+asm
+    movl size,%edx
+    movw $0x7f00,%ax
+    call syscall
 end;
 
 {$ASMMODE direct}
@@ -295,7 +292,7 @@ procedure do_erase(p:Pchar);
 begin
     allowslash(p);
     asm
-        movl 8(%ebp),%edx
+        movl P,%edx
         movb $0x41,%ah
         call syscall
         jnc .LERASE1
@@ -310,8 +307,8 @@ begin
     allowslash(p1);
     allowslash(p2);
     asm
-        movl 8(%ebp),%edx
-        movl 12(%ebp),%edi
+        movl P1, %edx
+        movl P2, %edi
         movb $0x56,%ah
         call syscall
         jnc .LRENAME1
@@ -320,88 +317,64 @@ begin
     end;
 end;
 
-function do_read(h,addr,len:longint):longint;
-
-begin
-    asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edx
-        movl 8(%ebp),%ebx
-        movb $0x3f,%ah
-        call syscall
-        jnc .LDOSREAD1
-        movw %ax,inoutres;
-        xorl %eax,%eax
-    .LDOSREAD1:
-        leave
-        ret $12
-    end;
+function do_read(h,addr,len:longint):longint; assembler;
+asm
+    movl len,%ecx
+    movl addr,%edx
+    movl h,%ebx
+    movb $0x3f,%ah
+    call syscall
+    jnc .LDOSREAD1
+    movw %ax,inoutres;
+    xorl %eax,%eax
+.LDOSREAD1:
 end;
 
-function do_write(h,addr,len:longint) : longint;
-
-begin
-    asm
-        movl 16(%ebp),%ecx
-        movl 12(%ebp),%edx
-        movl 8(%ebp),%ebx
-        movb $0x40,%ah
-        call syscall
-        jnc .LDOSWRITE1
-        movw %ax,inoutres;
-    .LDOSWRITE1:
-       movl %eax,-4(%ebp)
-    end;
+function do_write(h,addr,len:longint) : longint; assembler;
+asm
+    movl len,%ecx
+    movl addr,%edx
+    movl h,%ebx
+    movb $0x40,%ah
+    call syscall
+    jnc .LDOSWRITE1
+    movw %ax,inoutres;
+.LDOSWRITE1:
 end;
 
-function do_filepos(handle:longint):longint;
-
-begin
-    asm
-        movw $0x4201,%ax
-        movl 8(%ebp),%ebx
-        xorl %edx,%edx
-        call syscall
-        jnc .LDOSFILEPOS
-        movw %ax,inoutres;
-        xorl %eax,%eax
-    .LDOSFILEPOS:
-        leave
-        ret $4
-     end;
+function do_filepos(handle:longint): longint; assembler;
+asm
+    movw $0x4201,%ax
+    movl handle,%ebx
+    xorl %edx,%edx
+    call syscall
+    jnc .LDOSFILEPOS
+    movw %ax,inoutres;
+    xorl %eax,%eax
+.LDOSFILEPOS:
 end;
 
-procedure do_seek(handle,pos:longint);
-
-begin
-    asm
-        movw $0x4200,%ax
-        movl 8(%ebp),%ebx
-        movl 12(%ebp),%edx
-        call syscall
-        jnc .LDOSSEEK1
-        movw %ax,inoutres;
-    .LDOSSEEK1:
-        leave
-        ret $8
-    end;
+procedure do_seek(handle,pos:longint); assembler;
+asm
+    movw $0x4200,%ax
+    movl handle,%ebx
+    movl pos,%edx
+    call syscall
+    jnc .LDOSSEEK1
+    movw %ax,inoutres;
+.LDOSSEEK1:
 end;
 
-function do_seekend(handle:longint):longint;
-
-begin
-    asm
-        movw $0x4202,%ax
-        movl 8(%ebp),%ebx
-        xorl %edx,%edx
-        call syscall
-        jnc .Lset_at_end1
-        movw %ax,inoutres;
-        xorl %eax,%eax
-    .Lset_at_end1:
-        leave
-        ret $4
-    end;
+function do_seekend(handle:longint):longint; assembler;
+asm
+    movw $0x4202,%ax
+    movl handle,%ebx
+    xorl %edx,%edx
+    call syscall
+    jnc .Lset_at_end1
+    movw %ax,inoutres;
+    xorl %eax,%eax
+.Lset_at_end1:
 end;
 
 function do_filesize(handle:longint):longint;
@@ -414,10 +387,8 @@ begin
     do_seek(handle,aktfilepos);
 end;
 
-procedure do_truncate(handle,pos:longint);
-
-begin
-    asm
+procedure do_truncate(handle,pos:longint); assembler;
+asm
 (* DOS function 40h isn't safe for this according to EMX documentation
         movl $0x4200,%eax
         movl 8(%ebp),%ebx
@@ -431,25 +402,22 @@ begin
         movb $0x40,%ah
         call syscall
 *)
-        movl $0x7F25,%eax
-        movl Handle,%ebx
-        movl Pos,%edx
-        call syscall
-        inc %eax
-        movl %ecx, %eax
-        jnz .LTruncate1
+    movl $0x7F25,%eax
+    movl Handle,%ebx
+    movl Pos,%edx
+    call syscall
+    inc %eax
+    movl %ecx, %eax
+    jnz .LTruncate1
 (* File position is undefined after truncation, move to the end. *)
-        movl $0x4202,%eax
-        movl Handle,%ebx
-        movl $0,%edx
-        call syscall
-        jnc .LTruncate2
-        .LTruncate1:
-        movw %ax,inoutres;
-        .LTruncate2:
-        leave
-        ret $8
-    end;
+    movl $0x4202,%eax
+    movl Handle,%ebx
+    movl $0,%edx
+    call syscall
+    jnc .LTruncate2
+.LTruncate1:
+    movw %ax,inoutres;
+.LTruncate2:
 end;
 
 const
@@ -457,24 +425,41 @@ const
 
 function Increase_File_Handle_Count: boolean;
 var Err: word;
+    L1, L2: longint;
 begin
-    Inc (FileHandleCount, 10);
-    Err := 0;
-    asm
-        movl $0x6700, %eax
-        movl FileHandleCount, %ebx
-        call syscall
-        jnc .LIncFHandles
-        movw %ax, Err
-.LIncFHandles:
-    end;
-    if Err <> 0 then
+    if os_mode = osOS2 then
         begin
-            Increase_File_Handle_Count := false;
-            Dec (FileHandleCount, 10);
+            L1 := 10;
+            if DosSetRelMaxFH (L1, L2) <> 0 then
+                Increase_File_Handle_Count := false
+            else
+                if L2 > FileHandleCount then
+                    begin
+                        FileHandleCount := L2;
+                        Increase_File_Handle_Count := true;
+                    end
+                else
+                    Increase_File_Handle_Count := false;
         end
     else
-        Increase_File_Handle_Count := true;
+        begin
+            Inc (FileHandleCount, 10);
+            Err := 0;
+            asm
+                movl $0x6700, %eax
+                movl FileHandleCount, %ebx
+                call syscall
+                jnc .LIncFHandles
+                movw %ax, Err
+.LIncFHandles:
+            end;
+        if Err <> 0 then
+            begin
+                Increase_File_Handle_Count := false;
+                Dec (FileHandleCount, 10);
+            end
+        else
+            Increase_File_Handle_Count := true;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -560,8 +545,7 @@ begin
         movl f,%edx
         movw %ax,(%edx)
     end;
-    if (os_mode <> osOS2) and (InOutRes = 4) and Increase_File_Handle_Count
-                                                                           then
+    if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
         asm
             movl $0x7f2b, %eax
@@ -605,7 +589,7 @@ begin
             movw %ax,(%edx)
         end;
 *)
-      { for systems that have more then 20 by default ! }
+      { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
     if (flags and $100)<>0 then
@@ -681,7 +665,7 @@ begin
     allowslash(Pchar(@buffer));
     asm
         leal buffer,%edx
-        movb 8(%ebp),%ah
+        movb func,%ah
         call syscall
         jnc  .LDOS_DIRS1
         movw %ax,inoutres;
@@ -770,6 +754,14 @@ end;
 
 ****************************************************************************}
 
+function GetFileHandleCount: longint;
+var L1, L2: longint;
+begin
+    L1 := 0; (* Don't change the amount, just check. *)
+    if DosSetRelMaxFH (L1, L2) <> 0 then GetFileHandleCount := 50
+                                                 else GetFileHandleCount := L2;
+end;
+
 var pib:Pprocessinfoblock;
     tib:Pthreadinfoblock;
 
@@ -779,7 +771,7 @@ begin
         movl $0,os_mode
         movw $0x7f0a,%ax
         call syscall
-        testw$512,%bx         {Bit 9 is OS/2 flag.}
+        testw $512,%bx         {Bit 9 is OS/2 flag.}
         setnzb os_mode
         testw $4096,%bx
         jz .LnoRSX
@@ -814,7 +806,11 @@ begin
             movl %eax,first_meg
         end
     else
-        first_meg:=nil;
+        begin
+            first_meg := nil;
+    (* Initialize the amount of file handles *)
+            FileHandleCount := GetFileHandleCount;
+        end;
     {At 0.9.2, case for enumeration does not work.}
     case os_mode of
         osDOS:
@@ -850,7 +846,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2000-06-04 14:14:01  hajny
+  Revision 1.31  2000-06-05 18:53:30  hajny
+    * FileHandleCount handling for OS/2 added
+
+  Revision 1.30  2000/06/04 14:14:01  hajny
     * do_truncate corrected, do_open might work under W9x now
 
   Revision 1.29  2000/05/28 18:17:39  hajny
