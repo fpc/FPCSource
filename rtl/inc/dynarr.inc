@@ -349,9 +349,11 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
         highidx:=realpsrc^.high;
       end;
      { get number of elements and check for invalid values }
-     if (lowidx<0) or (highidx<0) then
+     if (lowidx<0) or (highidx<0) or (lowidx > realpsrc^.high) then
        HandleErrorFrame(201,get_frame);
      cnt:=highidx-lowidx+1;
+     if (cnt > realpsrc^.high - lowidx + 1) then
+       cnt := realpsrc^.high - lowidx + 1;
      { create new array }
      size:=elesize*cnt;
      getmem(realpdest,size+sizeof(tdynarray));
@@ -372,7 +374,12 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.37  2005-03-05 16:37:28  florian
+  Revision 1.38  2005-03-27 14:56:34  jonas
+    * fixed web bug 3805
+    * extra range check in fpc_dynarray_copy (also error if lowidx >
+      high(source))
+
+  Revision 1.37  2005/03/05 16:37:28  florian
     * fixed copy(dyn. array,...);
 
   Revision 1.36  2005/02/14 17:13:22  peter
