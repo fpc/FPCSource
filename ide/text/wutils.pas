@@ -40,6 +40,7 @@ type
     procedure   FreeItem(Item: Pointer); virtual;
     function    GetItem(var S: TStream): Pointer; virtual;
     procedure   PutItem(var S: TStream; Item: Pointer); virtual;
+    procedure   InsertStr(const S: string);
   end;
 
   PNulStream = ^TNulStream;
@@ -530,6 +531,11 @@ begin
     ALines^.ForEach(@AddIt);
 end;
 
+procedure TUnsortedStringCollection.InsertStr(const S: string);
+begin
+  Insert(NewStr(S));
+end;
+
 function TUnsortedStringCollection.At(Index: Integer): PString;
 begin
   At:=inherited At(Index);
@@ -733,16 +739,30 @@ var P: integer;
     Drive: string[20];
     IsComplete: boolean;
     S: string;
+    Ref: string;
+    Bookmark: string;
 begin
-  IsComplete:=false;
-  P:=Pos(':',URLRef);
-  if P=0 then Drive:='' else Drive:=UpcaseStr(copy(URLRef,1,P-1));
+  IsComplete:=false; Ref:=URLRef;
+  P:=Pos(':',Ref);
+  if P=0 then Drive:='' else Drive:=UpcaseStr(copy(Ref,1,P-1));
   if Drive<>'' then
   if (Drive='MAILTO') or (Drive='FTP') or (Drive='HTTP') or
      (Drive='GOPHER') or (Drive='FILE') then
     IsComplete:=true;
-  if IsComplete then S:=URLRef else
-    S:=CompletePath(Base,URLRef);
+  if IsComplete then S:=Ref else
+  begin
+    P:=Pos('#',Ref);
+    if P=0 then
+      Bookmark:=''
+    else
+      begin
+        Bookmark:=copy(Ref,P+1,length(Ref));
+        Ref:=copy(Ref,1,P-1);
+      end;
+    S:=CompletePath(Base,Ref);
+    if Bookmark<>'' then
+      S:=S+'#'+Bookmark;
+  end;
   CompleteURL:=S;
 end;
 
@@ -889,7 +909,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.21  2000-05-02 08:42:29  pierre
+  Revision 1.22  2000-05-29 11:09:14  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.21  2000/05/02 08:42:29  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.20  2000/04/25 08:42:36  pierre

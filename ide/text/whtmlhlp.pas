@@ -8,7 +8,7 @@ const
      ListIndent = 2;
      DefIndent  = 4;
 
-     MaxTopicLinks = 500; { maximum link on a single HTML page }
+     MaxTopicLinks = 5000; { maximum number of links on a single HTML page }
 
 type
     PTopicLinkCollection = ^TTopicLinkCollection;
@@ -239,20 +239,29 @@ begin
 end;
 
 procedure THTMLTopicRenderer.DocAnchor(Entered: boolean);
-var HRef: string;
+var HRef,Name: string;
 begin
   if Entered and InAnchor then DocAnchor(false);
   if Entered then
     begin
       if DocGetTagParam('HREF',HRef)=false then HRef:='';
-      if (HRef<>'') and (copy(HRef,1,1)<>'#') then
+      if DocGetTagParam('NAME',Name)=false then Name:='';
+      if Name<>'' then
         begin
-          InAnchor:=true;
-          AddChar(hscLink);
-          HRef:=CompleteURL(URL,HRef);
-          LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
-          Inc(LinkPtr);
-        end;
+          Topic^.NamedMarks^.InsertStr(Name);
+          AddChar(hscNamedMark);
+        end else
+      if (HRef<>'') then
+          begin
+            InAnchor:=true;
+            AddChar(hscLink);
+            if LinkPtr<MaxTopicLinks then
+            begin
+              HRef:=CompleteURL(URL,HRef);
+              LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
+              Inc(LinkPtr);
+            end;
+          end;
     end
   else
     begin
@@ -573,9 +582,10 @@ function TCustomHTMLHelpFile.ReadTopic(T: PTopic): boolean;
 var OK: boolean;
     HTMLFile: PMemoryTextFile;
     Name: string;
-    Link: string;
+    Link,Bookmark: string;
     P: sw_integer;
 begin
+  Bookmark:='';
   OK:=T<>nil;
   if OK then
     begin
@@ -583,7 +593,12 @@ begin
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
           Link:=FormatPath(Link);
-          P:=Pos('#',Link); if P>0 then Delete(Link,P,255);
+          P:=Pos('#',Link);
+          if P>0 then
+          begin
+            Bookmark:=copy(Link,P+1,length(Link));
+            Link:=copy(Link,1,P-1);
+          end;
 {          if CurFileName='' then Name:=Link else
           Name:=CompletePath(CurFileName,Link);}
           Name:=Link;
@@ -601,6 +616,10 @@ begin
       OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
       if OK then CurFileName:=Name;
       if HTMLFile<>nil then Dispose(HTMLFile, Done);
+      if BookMark='' then
+        T^.StartNamedMark:=0
+      else
+        T^.StartNamedMark:=T^.GetNamedMarkIndex(BookMark)+1;
     end;
   ReadTopic:=OK;
 end;

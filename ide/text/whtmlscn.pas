@@ -134,6 +134,7 @@ begin
 end;
 
 procedure TCustomHTMLLinkScanner.DocAnchor(Entered: boolean);
+var P: sw_integer;
 begin
   if Entered then
     begin
@@ -398,10 +399,14 @@ end;
 
 procedure THTMLFileLinkScanner.AddLink(const LinkText, LinkURL: string);
 var D: PHTMLLinkScanFile;
+    P: sw_integer;
+    DocURL: string;
 begin
-  D:=DocumentFiles^.SearchFile(LinkURL);
+  P:=Pos('#',LinkURL);
+  if P=0 then DocURL:=LinkURL else DocURL:=copy(LinkURL,1,P-1);
+  D:=DocumentFiles^.SearchFile(DocURL);
   if Assigned(D)=false then
-    ScheduleDoc(LinkURL);
+      ScheduleDoc(DocURL);
   inherited AddLink(LinkText,LinkURL);
 end;
 
@@ -444,7 +449,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2000-05-17 08:49:16  pierre
+  Revision 1.6  2000-05-29 11:09:14  pierre
+   + New bunch of Gabor's changes: see fixes.txt
+
+  Revision 1.5  2000/05/17 08:49:16  pierre
    readded
 
   Revision 1.1  2000/04/25 08:42:32  pierre
