@@ -46,7 +46,11 @@ DOCINSTALLDIR:=$(PREFIXINSTALLDIR)/doc/fpc-$(shell ppc386 -iV)
 endif
 
 ifndef FPDOC
+ifneq ($(wildcard ../utils/fpdoc/fpdoc),)
+FPDOC=../utils/fpdoc/fpdoc
+else
 FPDOC=fpdoc
+endif
 endif
 
 ifndef FPCSRCDIR
@@ -555,7 +559,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.24  2003-11-16 00:03:03  michael
+# Revision 1.25  2004-03-19 17:39:03  peter
+#   * use fpdoc from utils tree if found
+#
+# Revision 1.24  2003/11/16 00:03:03  michael
 # + Many changes for 2.0 beta
 #
 # Revision 1.23  2003/11/02 00:14:23  marco
