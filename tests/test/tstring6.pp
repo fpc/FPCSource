@@ -435,7 +435,11 @@ begin
   str(E,S);
   Writeln (S);
   Write ('str(Co,S)= ');
+{$ifdef cpui386}
   Co:=4.0;
+{$else cpui386}
+  Co := 4;
+{$endif cpui386}
   str(Co,S);
   Writeln (S);
   Write ('str(Si,S)= ');
