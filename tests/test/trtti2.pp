@@ -1,5 +1,3 @@
-{ %VERSION=1.1 }
-
 type
    pbyte = ^byte;
 
