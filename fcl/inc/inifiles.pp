@@ -448,7 +448,7 @@ end;
 
 procedure TIniFile.FillSectionList(AStrings: TStrings);
 var
-  i: integer;
+  i,j: integer;
   sLine, sIdent, sValue: string;
   oSection: TIniFileSection;
 
@@ -508,8 +508,17 @@ begin
           sValue := '';
         end else begin
           // regular key
-          sIdent := Trim(Copy(sLine, 1, Pos(Separator, sLine) - 1));
-          sValue := Trim(Copy(sLine, Pos(Separator, sLine) + 1, Length(sLine) - Length(sIdent) - 1));
+          j:=Pos(Separator, sLine);
+          if j=0 then
+           begin
+             sIdent:='';
+             sValue:=sLine
+           end
+          else
+           begin
+             sIdent:=Trim(Copy(sLine, 1,  j- 1));
+             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j - 1));
+           end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
       end;
@@ -591,7 +600,12 @@ begin
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do
         if not IsComment(Items[i].Ident) then
-          Strings.Add(Items[i].Ident + Separator + Items[i].Value);
+         begin
+           if Items[i].Ident<>'' then
+            Strings.Add(Items[i].Ident + Separator +Items[i].Value)
+           else
+            Strings.Add(Items[i].Value);
+         end;
   finally
     Strings.EndUpdate;
   end;
@@ -756,7 +770,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-05-10 16:43:43  michael
+  Revision 1.12  2000-05-11 14:50:01  peter
+    * fixed getting of value when there was no separator. But it still
+      doesn't work for fpcmake
+
+  Revision 1.11  2000/05/10 16:43:43  michael
   + New implementation by Erik WachtMeester
 
   Revision ?.?  2000/04/29 13:51:00  erik
