@@ -20,7 +20,7 @@
     function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       var
          shift,lzz,lzn : longint;
-	 saveebx,saveedi : longint;
+         saveebx,saveedi : longint;
       asm
             movl %ebx,saveebx
             movl %edi,saveedi
@@ -28,13 +28,18 @@
             { AMD Athlon Processor x86 Code Optimization manual }
             movl n+4,%ecx
             movl n,%ebx
-	    movl %ecx,%eax
-	    orl %ebx,%eax
-	    jnz .Lnodivzero
-	    pushl %ebp
-	    pushl $200
-	    call HandleErrorFrame
-	    jmp .Lexit
+            movl %ecx,%eax
+            orl %ebx,%eax
+            jnz .Lnodivzero
+{$ifdef REGCALL}
+            movl  %ebp,%edx
+            movl  $200,%eax
+{$else}
+            pushl %ebp
+            pushl $200
+{$endif}
+            call HandleErrorFrame
+            jmp .Lexit
 .Lnodivzero:
             movl z+4,%edx
             movl z,%eax
@@ -44,7 +49,7 @@
             jae .Lqworddivtwo_divs
             divl %ebx
             movl %ecx,%edx
-	    jmp .Lexit
+            jmp .Lexit
 
          .Lqworddivtwo_divs:
             movl %eax,%ecx
@@ -54,7 +59,7 @@
             xchgl %ecx,%eax
             divl %ebx
             movl %ecx,%edx
-	    jmp .Lexit
+            jmp .Lexit
 
          .Lqworddivbigdivisor:
             movl %ecx,%edi
@@ -92,7 +97,7 @@
     function fpc_mod_qword(n,z : qword) : qword;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       var
          shift,lzz,lzn : longint;
-	 saveebx,saveedi : longint;
+         saveebx,saveedi : longint;
       asm
             movl %ebx,saveebx
             movl %edi,saveedi
@@ -100,13 +105,13 @@
             { AMD Athlon Processor x86 Code Optimization manual }
             movl n+4,%ecx
             movl n,%ebx
-	    movl %ecx,%eax
-	    orl %ebx,%eax
-	    jnz .Lnodivzero
-	    pushl %ebp
-	    pushl $200
-	    call HandleErrorFrame
-	    jmp .Lexit
+            movl %ecx,%eax
+            orl %ebx,%eax
+            jnz .Lnodivzero
+            pushl %ebp
+            pushl $200
+            call HandleErrorFrame
+            jmp .Lexit
             movl z+4,%edx
             movl z,%eax
             testl %ecx,%ecx
@@ -116,7 +121,7 @@
             divl %ebx
             movl %edx,%eax
             movl %ecx,%edx
-	    jmp .Lexit
+            jmp .Lexit
 
          .Lqwordmodr_two_divs:
             movl %eax,%ecx
@@ -127,7 +132,7 @@
             divl %ebx
             movl %edx,%eax
             xorl %edx,%edx
-	    jmp .Lexit
+            jmp .Lexit
 
          .Lqwordmodr_big_divisior:
             movl %ecx,%edi
@@ -226,7 +231,10 @@
 
 {
   $Log$
-  Revision 1.1  2003-09-14 11:34:13  peter
+  Revision 1.2  2003-12-23 23:09:43  peter
+    * fix call to handleerror for regcall
+
+  Revision 1.1  2003/09/14 11:34:13  peter
     * moved int64 asm code to int64p.inc
     * save ebx,esi
 
