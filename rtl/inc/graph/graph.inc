@@ -1934,6 +1934,7 @@ const CrtAddress: word = 0;
          RestoreVideoState := RestoreStateVESA;
 {$ifdef logging}
          LogLn('Setting RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
          { now check all supported modes...}
          if SearchVESAModes(m320x200x32k) then
            begin
@@ -2625,7 +2626,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.16  1999-09-23 14:00:41  jonas
+Revision 1.17  1999-09-24 11:31:38  jonas
+  * fixed another typo :(
+
+Revision 1.16  1999/09/23 14:00:41  jonas
   * -dlogging no longer required to fuction correctly
   * some typo's fixed
 
