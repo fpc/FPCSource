@@ -22,7 +22,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function Do_SysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -37,14 +37,14 @@ begin{asm}
   li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
+function FpSysCall(sysnr,param1:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL1'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 begin{asm}
 {  mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   sc
   bnslr
   neg   r3, r3
@@ -54,14 +54,14 @@ begin{asm}
 end;
 
 
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL2'];
+function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL2'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 begin{asm}
 {  mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   sc
    bnslr
@@ -71,17 +71,17 @@ begin{asm}
    li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL3'];
+function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL3'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 begin{asm}
 {  mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -91,18 +91,18 @@ begin{asm}
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL4'];
+function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL4'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 begin{asm}
 {  mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
   mr  r6,r7
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -110,19 +110,19 @@ begin{asm}
    li    r3,-1}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
+function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
 begin{asm}
 {  mr  r0,r3
-  mr  r3,r4   
+  mr  r3,r4
   mr  r4,r5
   mr  r5,r6
   mr  r6,r7
   mr  r7,r8
-  sc 
+  sc
    bnslr
    neg   r3, r3
    lis   r4,Errno@ha
@@ -130,10 +130,32 @@ begin{asm}
    li    r3,-1}
 end;
 
+
+function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; {assembler;}[public,alias:'FPC_SYSCALL5'];
+{
+  This function puts the registers in place, does the call, and then
+  copies back the registers as they are after the SysCall.
+}
+begin{asm}
+{  mr  r0,r3
+  mr  r3,r4
+  mr  r4,r5
+  mr  r5,r6
+  mr  r6,r7
+  mr  r7,r8
+  sc
+   bnslr
+   neg   r3, r3
+   lis   r4,Errno@ha
+   stw   r3,Errno@l(r4)
+   li    r3,-1}
+end;
+
+
 // Old style syscall:
 // Better use ktrace/strace/gdb for debugging.
 
-Procedure Do_SysCall( callnr:longint;var regs : SysCallregs );{assembler;}
+Procedure FpSysCall( callnr:longint;var regs : SysCallregs );{assembler;}
 {
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
@@ -177,7 +199,7 @@ Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
   SysCall result in errno. Otherwise, it returns the SysCall return value
 }
 begin
-  do_SysCall(callnr,regs);
+  FpSysCall(callnr,regs);
   if regs.reg1<0 then
    begin
 {$IFDEF SYSCALL_DEBUG}
@@ -215,7 +237,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-01-05 21:32:35  mazen
+  Revision 1.4  2003-05-23 22:36:39  florian
+    * fixed compilation of sparc system unit
+
+  Revision 1.3  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.2  2002/12/24 21:30:20  mazen
@@ -233,4 +258,4 @@ end;
     * syscall moved into seperate include
 
 }
- 
+
