@@ -38,7 +38,10 @@ interface
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
        tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
        tcompare_paras_options = set of tcompare_paras_option;
-
+       
+       tcompare_defs_option = (cdo_explicit,cdo_check_operator,cdo_allow_variant);
+       tcompare_defs_options = set of tcompare_defs_option;
+        
        tconverttype = (
           tc_equal,
           tc_not_possible,
@@ -79,10 +82,9 @@ interface
 
     function compare_defs_ext(def_from,def_to : tdef;
                               fromtreetype : tnodetype;
-                              explicit : boolean;
-                              check_operator : boolean;
                               var doconv : tconverttype;
-                              var operatorpd : tprocdef):tequaltype;
+                              var operatorpd : tprocdef;
+                              cdoptions:tcompare_defs_options):tequaltype;
 
     { Returns if the type def_from can be converted to def_to or if both types are equal }
     function compare_defs(def_from,def_to:tdef;fromtreetype:tnodetype):tequaltype;
@@ -123,10 +125,9 @@ implementation
 
     function compare_defs_ext(def_from,def_to : tdef;
                               fromtreetype : tnodetype;
-                              explicit : boolean;
-                              check_operator : boolean;
                               var doconv : tconverttype;
-                              var operatorpd : tprocdef):tequaltype;
+                              var operatorpd : tprocdef;
+                              cdoptions:tcompare_defs_options):tequaltype;
 
       { Tbasetype:
            uvoid,
@@ -214,7 +215,7 @@ implementation
                       end
                      else
                       begin
-                        if explicit then
+                        if cdo_explicit in cdoptions then
                          doconv:=basedefconvertsexplicit[basedeftbl[torddef(def_from).typ],basedeftbl[torddef(def_to).typ]]
                         else
                          doconv:=basedefconvertsimplicit[basedeftbl[torddef(def_from).typ],basedeftbl[torddef(def_to).typ]];
@@ -232,7 +233,7 @@ implementation
                  enumdef :
                    begin
                      { needed for char(enum) }
-                     if explicit then
+                     if cdo_explicit in cdoptions then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -250,7 +251,7 @@ implementation
                  procvardef,
                  pointerdef :
                    begin
-                     if explicit then
+                     if cdo_explicit in cdoptions then
                       begin
                         eq:=te_convert_l1;
                         if (fromtreetype=niln) then
@@ -398,7 +399,7 @@ implementation
                        eq:=te_equal
                      else
                        begin
-                         if not(explicit) or
+                         if not(cdo_explicit in cdoptions) or
                             not(m_delphi in aktmodeswitches) then
                            begin
                              doconv:=tc_real_2_real;
@@ -418,7 +419,7 @@ implementation
                case def_from.deftype of
                  enumdef :
                    begin
-                     if explicit then
+                     if cdo_explicit in cdoptions then
                       begin
                         eq:=te_convert_l1;
                         doconv:=tc_int_2_int;
@@ -441,7 +442,7 @@ implementation
                    end;
                  orddef :
                    begin
-                     if explicit then
+                     if cdo_explicit in cdoptions then
                       begin
                         eq:=te_convert_l1;
                         doconv:=tc_int_2_int;
@@ -493,7 +494,7 @@ implementation
                                 begin
                                   subeq:=compare_defs_ext(tarraydef(def_from).elementtype.def,
                                                        tarraydef(def_to).elementtype.def,
-                                                       arrayconstructorn,false,true,hct,hpd);
+                                                       arrayconstructorn,hct,hpd,[cdo_check_operator]);
                                   if (subeq>=te_equal) then
                                     begin
                                       doconv:=tc_equal;
@@ -617,22 +618,25 @@ implementation
                 end;
              end;
            variantdef :
-             begin
-               case def_from.deftype of
-                 enumdef :
-                   begin
-                     doconv:=tc_enum_2_variant;
-                     eq:=te_convert_l1;
+             begin 
+               if (cdo_allow_variant in cdoptions) then
+                 begin
+                   case def_from.deftype of
+                     enumdef :
+                       begin
+                         doconv:=tc_enum_2_variant;
+                         eq:=te_convert_l1;
+                       end;
+                     arraydef :
+                       begin
+                          if is_dynamic_array(def_from) then
+                            begin
+                               doconv:=tc_dynarray_2_variant;
+                               eq:=te_convert_l1;
+                            end;
+                       end;
                    end;
-                 arraydef :
-                   begin
-                      if is_dynamic_array(def_from) then
-                        begin
-                           doconv:=tc_dynarray_2_variant;
-                           eq:=te_convert_l1;
-                        end;
-                   end;
-               end;
+                 end;  
              end;
 
            pointerdef :
@@ -649,7 +653,7 @@ implementation
                         eq:=te_convert_l1;
                       end
                      else
-                      if explicit then
+                      if cdo_explicit in cdoptions then
                        begin
                          { pchar(ansistring) }
                          if is_pchar(def_to) and
@@ -686,7 +690,7 @@ implementation
                             eq:=te_convert_l1;
                           end;
                       end;
-                     if (eq=te_incompatible) and explicit then
+                     if (eq=te_incompatible) and (cdo_explicit in cdoptions) then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -926,7 +930,7 @@ implementation
                    else
                     begin
                       doconv:=tc_equal;
-                      if explicit or
+                      if (cdo_explicit in cdoptions) or
                          tobjectdef(tclassrefdef(def_from).pointertype.def).is_related(
                            tobjectdef(tclassrefdef(def_to).pointertype.def)) then
                         eq:=te_convert_l1;
@@ -1014,9 +1018,19 @@ implementation
         { if we didn't find an appropriate type conversion yet
           then we search also the := operator }
         if (eq=te_incompatible) and
-           check_operator and
-           ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
-            (def_to.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef])) then
+           (
+            { Check for variants? } 
+            (
+             (cdo_allow_variant in cdoptions) and
+             ((def_from.deftype=variantdef) or (def_to.deftype=variantdef))
+            ) or
+            { Check for operators? } 
+            (
+             (cdo_check_operator in cdoptions) and
+             ((def_from.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
+              (def_to.deftype in [objectdef,recorddef,arraydef,stringdef,variantdef]))
+            )
+           ) then
           begin
             operatorpd:=search_assignment_operator(def_from,def_to);
             if assigned(operatorpd) then
@@ -1039,7 +1053,7 @@ implementation
       begin
         { Compare defs with nothingn and no explicit typecasts and
           searching for overloaded operators is not needed }
-        equal_defs:=(compare_defs_ext(def_from,def_to,nothingn,false,false,convtyp,pd)>=te_equal);
+        equal_defs:=(compare_defs_ext(def_from,def_to,nothingn,convtyp,pd,[])>=te_equal);
       end;
 
 
@@ -1048,7 +1062,7 @@ implementation
         doconv : tconverttype;
         pd : tprocdef;
       begin
-        compare_defs:=compare_defs_ext(def_from,def_to,fromtreetype,false,true,doconv,pd);
+        compare_defs:=compare_defs_ext(def_from,def_to,fromtreetype,doconv,pd,[cdo_check_operator,cdo_allow_variant]);
       end;
 
 
@@ -1166,7 +1180,7 @@ implementation
                        if (currpara1.paratyp<>currpara2.paratyp) then
                          exit;
                        eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
-                                            false,true,convtype,hpd);
+                                            convtype,hpd,[cdo_check_operator,cdo_allow_variant]);
                        if (eq>te_incompatible) and
                           (eq<te_equal) and
                           not(
@@ -1252,7 +1266,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-02-04 22:15:15  daniel
+  Revision 1.45  2004-02-13 15:42:21  peter
+    * compare_defs_ext has now a options argument
+    * fixes for variants
+
+  Revision 1.44  2004/02/04 22:15:15  daniel
     * Rtti generation moved to ncgutil
     * Assmtai usage of symsym removed
     * operator overloading cleanup up

@@ -1125,6 +1125,7 @@ implementation
         currprocdef,
         aprocdef : tprocdef;
         eq : tequaltype;
+        cdoptions : tcompare_defs_options;
       begin
         result:=nil;
         resulttype:=totype;
@@ -1140,8 +1141,10 @@ implementation
             exit;
           end;
 
-        eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,
-                             nf_explicit in flags,true,convtype,aprocdef);
+        cdoptions:=[cdo_check_operator,cdo_allow_variant];
+        if nf_explicit in flags then
+          include(cdoptions,cdo_explicit);
+        eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,convtype,aprocdef,cdoptions);
         case eq of
           te_exact,
           te_equal :
@@ -2407,7 +2410,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2004-02-05 01:24:08  florian
+  Revision 1.139  2004-02-13 15:42:21  peter
+    * compare_defs_ext has now a options argument
+    * fixes for variants
+
+  Revision 1.138  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.137  2004/02/04 22:15:15  daniel

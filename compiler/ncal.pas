@@ -1536,8 +1536,8 @@ type
               else
               { generic type comparision }
                begin
-                 eq:=compare_defs_ext(def_from,def_to,pt.left.nodetype,
-                                      false,true,convtype,pdoper);
+                 eq:=compare_defs_ext(def_from,def_to,pt.left.nodetype,convtype,pdoper,
+                                      [cdo_allow_variant,cdo_check_operator]);
 
                  { when the types are not equal we need to check
                    some special case for parameter passing }
@@ -2716,7 +2716,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.224  2004-02-12 15:54:03  peter
+  Revision 1.225  2004-02-13 15:42:21  peter
+    * compare_defs_ext has now a options argument
+    * fixes for variants
+
+  Revision 1.224  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.223  2004/02/05 01:24:08  florian

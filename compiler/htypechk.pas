@@ -264,7 +264,7 @@ implementation
         case treetyp of
           assignn :
             begin
-              eq:=compare_defs_ext(rd,dd,nothingn,true,false,conv,pd);
+              eq:=compare_defs_ext(rd,dd,nothingn,conv,pd,[cdo_explicit]);
               if eq<>te_incompatible then
                begin
                  isunaryoperatoroverloadable:=false;
@@ -938,7 +938,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2004-02-12 15:54:03  peter
+  Revision 1.79  2004-02-13 15:42:21  peter
+    * compare_defs_ext has now a options argument
+    * fixes for variants
+
+  Revision 1.78  2004/02/12 15:54:03  peter
     * make extcycle is working again
 
   Revision 1.77  2004/02/04 22:15:15  daniel

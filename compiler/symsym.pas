@@ -960,10 +960,12 @@ implementation
         besteq : tequaltype;
         hpd : tprocdef;
         currpara : tparaitem;
+        cdoptions : tcompare_defs_options;
       begin
         search_procdef_assignment_operator:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
+        cdoptions:=[];
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
@@ -975,8 +977,7 @@ implementation
                 currpara:=tparaitem(currpara.next);
                if assigned(currpara) then
                 begin
-                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,
-                                       nothingn,false,false,convtyp,hpd);
+                  eq:=compare_defs_ext(fromdef,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
                   if eq=te_exact then
                    begin
                      search_procdef_assignment_operator:=pd^.def;
@@ -1006,10 +1007,17 @@ implementation
         hpd : tprocdef;
         nextpara,
         currpara : tparaitem;
+        cdoptions : tcompare_defs_options;
       begin
         search_procdef_binary_operator:=nil;
         bestpd:=nil;
         bestlev:=0;
+        cdoptions:=[];  
+        { variants arguments must match exact, don't allow conversion to variants that
+          will then allow things like enum->string, because enum->variant is available
+          and select the operator variant->string }
+        if (def1.deftype=variantdef) or (def1.deftype=variantdef) then
+          cdoptions:=[cdo_allow_variant];
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
@@ -1020,8 +1028,7 @@ implementation
             if assigned(currpara) then
              begin
                { Compare def1 with the first para }
-               eq1:=compare_defs_ext(def1,currpara.paratype.def,
-                                    nothingn,false,false,convtyp,hpd);
+               eq1:=compare_defs_ext(def1,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
                if eq1<>te_incompatible then
                 begin
                   { Ignore vs_hidden parameters }
@@ -1039,8 +1046,7 @@ implementation
                      if not assigned(nextpara) then
                       begin
                         { Compare def2 with the last para }
-                        eq2:=compare_defs_ext(def2,currpara.paratype.def,
-                                             nothingn,false,false,convtyp,hpd);
+                        eq2:=compare_defs_ext(def2,currpara.paratype.def,nothingn,convtyp,hpd,cdoptions);
                         if (eq2<>te_incompatible)  then
                          begin
                            { check level }
@@ -2360,7 +2366,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.157  2004-02-11 19:59:06  peter
+  Revision 1.158  2004-02-13 15:42:21  peter
+    * compare_defs_ext has now a options argument
+    * fixes for variants
+
+  Revision 1.157  2004/02/11 19:59:06  peter
     * fix compilation without GDB
 
   Revision 1.156  2004/02/08 18:08:59  jonas
