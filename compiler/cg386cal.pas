@@ -294,10 +294,8 @@ implementation
 {        must_pop : boolean; }
          pop_size : longint;
          pop_allowed : boolean;
-{$ifdef OPTALIGN}
          pop_esp : boolean;
          push_size : longint;
-{$endif OPTALIGN}
 
 
       label
@@ -427,7 +425,6 @@ implementation
 {$endif GDB}
              end;
           end;
-{$ifdef OPTALIGN}
          if pop_allowed and (cs_align in aktglobalswitches) then
            begin
               pop_esp:=true;
@@ -449,7 +446,6 @@ implementation
            end
          else
            pop_esp:=false;
-{$endif OPTALIGN}
          if (p^.resulttype<>pdef(voiddef)) and
             ret_in_param(p^.resulttype) then
            begin
@@ -1112,10 +1108,8 @@ implementation
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
              end;
-{$ifdef OPTALIGN}
          if pop_esp then
            emit_reg(A_POP,S_L,R_ESP);
-{$endif OPTALIGN}
       dont_call:
          pushedparasize:=oldpushedparasize;
          unused:=unusedregisters;
@@ -1511,7 +1505,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-21 15:14:01  jonas
+  Revision 1.5  2000-07-27 13:03:35  jonas
+    * release alignopts
+
+  Revision 1.4  2000/07/21 15:14:01  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 

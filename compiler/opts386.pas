@@ -51,9 +51,7 @@ begin
                case opt[j] of
                  '-' : initglobalswitches:=initglobalswitches-[cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_littlesize,
                            cs_regalloc,cs_uncertainopts,cs_align];
-{$ifdef OPTALIGN}
                  'a' : initglobalswitches:=initglobalswitches+[cs_align];
-{$endif OPTALIGN}
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
                  'r' : initglobalswitches:=initglobalswitches+[cs_regalloc];
@@ -114,7 +112,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-07-27 13:03:36  jonas
+    * release alignopts
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }
