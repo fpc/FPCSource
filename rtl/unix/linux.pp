@@ -102,8 +102,8 @@ const
   F_GetLk  = 5;
   F_SetLk  = 6;
   F_SetLkW = 7;
-  F_GetOwn = 8;
-  F_SetOwn = 9;
+  F_SetOwn = 8;
+  F_GetOwn = 9;
 
 {********************
    IOCtl(TermIOS)
@@ -2895,7 +2895,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2001-02-11 18:55:07  peter
+  Revision 1.8  2001-03-27 11:46:38  michael
+  + Fixed F_[G,S]etOwn constants. By Alexander Sychev
+
+  Revision 1.7  2001/02/11 18:55:07  peter
     * readded removed readport* from implementation
 
   Revision 1.6  2000/12/28 20:42:12  peter
