@@ -55,10 +55,17 @@ procedure fpseterrno(err:longint);
 property errno : cint read fpgeterrno write fpseterrno;
 {$endif}
 
+{$ifdef FPC_USE_LIBC}
+function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
+{$else}
+function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
+{$endif}
+
 implementation
 
 {$i bunxmain.inc}	{ implementation}
 {$i bunxovl.inc}	{ redefs and overloads implementation}
+{$i settimeo.inc}
 
 {$ifdef ver1_0}
 // MvdV 1.0 is buggy in calling externals it seems. dunno what exactly
@@ -82,7 +89,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-11-19 13:15:14  marco
+  Revision 1.12  2004-12-02 18:24:35  marco
+   * fpsettimeofday.
+
+  Revision 1.11  2004/11/19 13:15:14  marco
    * external rework. Mostly done.
 
   Revision 1.10  2004/11/14 12:21:08  marco

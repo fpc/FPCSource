@@ -30,28 +30,31 @@ begin
 end;
 {$endif}
 
-function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
+function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 begin
-  settimeofday:=stime(@tp^.tv_sec);
+  fpsettimeofday:=stime(@tp^.tv_sec);
 end;
 
 {$else}
 
 {$ifdef FPC_USE_LIBC}
-function settimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
+//function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 {$else}
-function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
+function fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 begin
-  settimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tp),TSysParam(tzp));
+  fpsettimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tp),TSysParam(tzp));
 end;
 {$endif}
 {$endif}
 
 {
   $Log$
-  Revision 1.5  2004-10-31 18:49:02  marco
+  Revision 1.6  2004-12-02 18:24:35  marco
+   * fpsettimeofday.
+
+  Revision 1.5  2004/10/31 18:49:02  marco
    * cdecl for FPC_USE_LIBC
 
   Revision 1.4  2004/10/30 21:18:23  marco

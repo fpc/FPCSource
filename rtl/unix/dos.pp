@@ -248,7 +248,7 @@ var
 begin
   GetDate (Year, Month, Day,dow);
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
-  Settimeofday(@tv,nil);
+  fpSettimeofday(@tv,nil);
 end;
 
 procedure SetDate(Year,Month,Day:Word);
@@ -258,7 +258,7 @@ var
 begin
   GetTime ( Hour, Min, Sec, Sec100 );
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) ;
-  Settimeofday(@tv,nil);
+  fpSettimeofday(@tv,nil);
 end;
 
 Function SetDateTime(Year,Month,Day,hour,minute,second:Word) : Boolean;
@@ -266,7 +266,7 @@ var
   tv : timeval;
 begin
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
-  SetDatetime:=Settimeofday(@tv,nil)=0;
+  SetDatetime:=fpSettimeofday(@tv,nil)=0;
 end;
 
 Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
@@ -1045,7 +1045,10 @@ End.
 
 {
   $Log$
-  Revision 1.38  2004-10-31 17:11:52  marco
+  Revision 1.39  2004-12-02 18:24:35  marco
+   * fpsettimeofday.
+
+  Revision 1.38  2004/10/31 17:11:52  marco
    * FPC_USE_LIBC fixes
 
   Revision 1.37  2004/10/31 16:20:58  peter
