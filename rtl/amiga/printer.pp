@@ -22,19 +22,12 @@ var
 
 implementation
 
-var
-  old_exit : pointer;
-
-procedure printer_exit;
-begin
-  close(lst);
-  exitproc:=old_exit;
-end;
 
 
 begin
   assign(lst,'prt:');
   rewrite(lst);
-  old_exit:=exitproc;
-  exitproc:=@printer_exit;
 end.
+{
+ $Log :printer.pp,v $
+}
