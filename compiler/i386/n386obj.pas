@@ -74,7 +74,8 @@ virtual(2):      OK     OK    OK(3)  OK       OK          OK(4)
      set self parameter to interface value
 
 
-(4): Virtual use eax to reach the method address so the following code be generated:
+(4): Virtual use values pushed on stack to reach the method address
+     so the following code be generated:
      set self to correct value
      push %ebx ; allocate space for function address
      push %eax
@@ -124,7 +125,7 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   var
     href : treference;
   begin
-    if (procdef.extnumber=-1) then
+    if (procdef.extnumber=$ffff) then
       Internalerror(200006139);
     { call/jmp  vmtoffs(%eax) ; method offs }
     reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
@@ -135,7 +136,7 @@ procedure ti386classheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef
   var
     href : treference;
   begin
-    if (procdef.extnumber=-1) then
+    if (procdef.extnumber=$ffff) then
       Internalerror(200006139);
     { mov vmtoffs(%eax),%eax ; method offs }
     reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
@@ -178,39 +179,46 @@ begin
   if (procdef.proccalloption in clearstack_pocalls) then
     begin
       if po_virtualmethod in procdef.procoptions then
-        begin { case 2 }
+        begin
+          { case 2 }
           getselftoeax(0);
           loadvmttoeax;
           op_oneaxmethodaddr(A_CALL);
         end
-      else { case 1 }
-        cg.a_call_name(exprasmlist,procdef.mangledname);
+      else
+        begin
+          { case 1 }
+          cg.a_call_name(exprasmlist,procdef.mangledname);
+        end;
       { restore param1 value self to interface }
       adjustselfvalue(procdef,-ioffset);
     end
-  { case 3 }
-  else if (procdef.proccalloption=pocall_register) or
-          ([po_virtualmethod,po_saveregisters]*procdef.procoptions=[po_virtualmethod,po_saveregisters]) then
-    begin
-      emit_reg(A_PUSH,S_L,NR_EBX); { allocate space for address}
-      emit_reg(A_PUSH,S_L,NR_EAX);
-      getselftoeax(8);
-      loadvmttoeax;
-      loadmethodoffstoeax;
-      { mov %eax,4(%esp) }
-      reference_reset_base(href,NR_ESP,4);
-      emit_reg_ref(A_MOV,S_L,NR_EAX,href);
-      { pop  %eax }
-      emit_reg(A_POP,S_L,NR_EAX);
-      { ret  ; jump to the address }
-      emit_none(A_RET,S_L);
-    end
-  { case 4 }
   else if po_virtualmethod in procdef.procoptions then
     begin
-      getselftoeax(0);
-      loadvmttoeax;
-      op_oneaxmethodaddr(A_JMP);
+      if (procdef.proccalloption=pocall_register) or
+         (po_saveregisters in procdef.procoptions) then
+        begin
+          { case 4 }
+          emit_reg(A_PUSH,S_L,NR_EBX); { allocate space for address}
+          emit_reg(A_PUSH,S_L,NR_EAX);
+          getselftoeax(8);
+          loadvmttoeax;
+          loadmethodoffstoeax;
+          { mov %eax,4(%esp) }
+          reference_reset_base(href,NR_ESP,4);
+          emit_reg_ref(A_MOV,S_L,NR_EAX,href);
+          { pop  %eax }
+          emit_reg(A_POP,S_L,NR_EAX);
+          { ret  ; jump to the address }
+          emit_none(A_RET,S_L);
+        end
+      else
+        begin
+          { case 3 }
+          getselftoeax(0);
+          loadvmttoeax;
+          op_oneaxmethodaddr(A_JMP);
+        end;
     end
   { case 0 }
   else
@@ -227,7 +235,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2003-12-17 21:59:59  peter
+  Revision 1.29  2003-12-23 23:12:44  peter
+    * extnumber failure is $ffff instead of -1
+    * fix non-vmt call for register calling on i386
+
+  Revision 1.28  2003/12/17 21:59:59  peter
     * register call fix
 
   Revision 1.27  2003/10/10 17:48:14  peter

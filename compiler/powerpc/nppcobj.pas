@@ -101,7 +101,7 @@ procedure tppcclassheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef;
   var
     href : treference;
   begin
-    if (procdef.extnumber=-1) then
+    if (procdef.extnumber=$ffff) then
       Internalerror(200006139);
     { call/jmp  vmtoffs(%eax) ; method offs }
     reference_reset_base(href,NR_R0,procdef._class.vmtmethodoffset(procdef.extnumber));
@@ -159,6 +159,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-12-10 01:10:47  florian
+  Revision 1.2  2003-12-23 23:12:44  peter
+    * extnumber failure is $ffff instead of -1
+    * fix non-vmt call for register calling on i386
+
+  Revision 1.1  2003/12/10 01:10:47  florian
     + initial interface support added
 }
