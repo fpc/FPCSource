@@ -804,8 +804,8 @@ const go32v2stub : array[0..2047] of byte=(
         filename  : string[18];
         sec       : TSection;
         namestr   : string[8];
-        nameidx   : longint;
         value,
+        nameidx   : longint;
         sectionval,
         globalval : byte;
         secrec    : coffsectionrec;
@@ -1717,7 +1717,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.26  2003-04-22 14:33:38  peter
+  Revision 1.27  2003-04-23 11:37:15  peter
+    * fix range check error after previous commit
+
+  Revision 1.26  2003/04/22 14:33:38  peter
     * removed some notes/hints
 
   Revision 1.25  2002/12/07 14:08:11  carl
