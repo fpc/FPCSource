@@ -121,6 +121,8 @@ const
      hidOpenHelpFile      = 204;
      hidConditionalDefines= 205;
      hidCompilerArgs      = 206;
+     hidWatchDialog       = 207;
+     hidBreakpointDialog  = 208;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -444,7 +446,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.7  2002-09-02 10:18:09  pierre
+  Revision 1.8  2002-09-03 13:57:05  pierre
+   + hidWatchDialog and hidBreakpointDialog added
+
+  Revision 1.7  2002/09/02 10:18:09  pierre
    * fix problems with breakpoint lists
 
   Revision 1.6  2002/03/28 16:25:16  peter
