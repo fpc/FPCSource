@@ -681,7 +681,7 @@ unit pexpr;
           if (sym^.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0) then
             exit;
           p:=@procinfo;
-          while assigned(p) do
+          while system.assigned(p) do
             begin
                { is this an access to a function result ? }
                if assigned(p^.funcretsym) and
@@ -1856,7 +1856,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.51  1998-09-18 16:03:43  florian
+  Revision 1.52  1998-09-20 09:38:45  florian
+    * hasharray for defs fixed
+    * ansistring code generation corrected (init/final, assignement)
+
+  Revision 1.51  1998/09/18 16:03:43  florian
     * some changes to compile with Delphi
 
   Revision 1.50  1998/09/17 13:41:18  pierre
