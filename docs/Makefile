@@ -24,8 +24,12 @@
 # Which docs are made when 'html' is specified
 HTML = user units ref prog
 
-# Can be 'report','book' or 'html'
+# Can be 'report','book', 'html', 'hevea'
+ifdef USEHEVEA
+PREAMBLETYPE = hevea
+else
 PREAMBLETYPE = report
+endif
 
 # Where do you want the html files to be put ?
 ifndef PREFIXINSTALLDIR
@@ -57,6 +61,11 @@ ifndef LATEX2HTMLOPTS
 LATEX2HTMLOPTS = -no_reuse -up_url "../fpctoc.html"\
                  -up_title "Free Pascal manuals"\
                  -html_version 4.0 -split 3
+endif
+
+# Hevea conversion.
+ifndef HEVEA
+HEVEA = /usr/bin/hevea
 endif
 
 # Ascii mode ? (i.e. no pics)
@@ -115,7 +124,8 @@ GTKPDF=$(addsuffix .pdf,$(addprefix gtk, 1 2 3 4 5))
 
 # Check if ascii-mode requested
 ifeq ($(ASCIIMODE),YES)
-LATEX2HTMLOPTS:=$(LATEX2HTMLOPTS) -ascii_mode
+LATEX2HTMLOPTS+=-ascii_mode
+HEVEAOPTS+=-text
 endif
 
 
@@ -175,10 +185,13 @@ help:
 
 clean:
 	-rm -f preamble.inc date.inc
-	-rm -f *.htex
+	-rm -f *.htex *.hind *.haux *.htoc $(addsuffix .html,$(HTML))
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
 	-rm -f onechap.dvi onechap.pdf onechap.ps onechap.out onechap.log onechap.aux
+
+# Styles
+	-rm -f $(notdir $(wildcard styles/*))
 
 # Units
 	-$(MAKE) -C crtex clean
@@ -274,11 +287,16 @@ scripts.chk:
 	touch scripts.chk
 endif
 
+# Local copy of the required styles
+syntax.sty: styles/syntax.sty
+	cp $(wildcard styles/*) .
+
 ifndef inWinNT
-includes: date.inc preamble.inc scripts.chk
+includes: date.inc preamble.inc syntax.sty scripts.chk
 else
-includes: date.inc preamble.inc
+includes: date.inc preamble.inc syntax.sty
 endif
+
 
 #####################################################################
 # Tex from XML
@@ -330,6 +348,43 @@ all : dvi ps pdf txt html
 # Html creation
 #####################################################################
 
+.PHONY: htex user prog units onechap ref internal html hevea
+
+ifdef INSTALLDEBUG
+#
+# Installation debugging
+#
+$(HTML):
+	mkdir $@
+	cp $@.tex $@/index.html
+
+html: $(HTML)
+
+else
+
+ifdef USEHEVEA
+#
+# Hevea tex 2 html conversion
+#
+
+htmlincludes: includes
+
+%.html: %.tex fpc-hevea.tex
+	$(HEVEA) $(HEVEAOPTS) $<
+
+user: htmlincludes user.html
+units: htmlincludes units.html
+prog: htmlincludes prog.html
+onechap: htmlincludes onechap.html
+ref: htmlincludes ref.html
+
+html: htmlincludes $(addsuffix .html,$(HTML))
+
+else
+#
+# Latex2HTML
+#
+
 htex: htex.chk
 htex.chk: $(wildcard *.tex) includes
 	./tex2htex
@@ -337,15 +392,12 @@ htex.chk: $(wildcard *.tex) includes
 
 user: user.chk
 user.chk: htex.chk includes
-ifdef INSTALLDEBUG
-	mkdir user
-	cp user.tex user/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "User's guide for Free Pascal" user.htex
 	-sed -f foot.sed <user/footnode.html >user/footnote.html
 	-mv user/footnote.html user/footnode.html
+ifndef DEBUG
 	-rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	-rm -f user/images.* user/*.log user/WARNINGS
 endif
@@ -353,10 +405,6 @@ endif
 
 units: units.chk
 units.chk: unitex.chk htex.chk includes
-ifdef INSTALLDEBUG
-	mkdir units
-	cp units.tex units/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
 	-t "Unit reference for Free Pascal" units.htex
@@ -366,15 +414,10 @@ ifndef DEBUG
 	-rm -f units/labels.pl units/internals.pl units/.*.pag units/.*.dir
 	-rm -f units/images.* units/*.log units/WARNINGS
 endif
-endif
 	touch units.chk
 
 ref: ref.chk
 ref.chk: refex.chk htex.chk includes
-ifdef INSTALLDEBUG
-	mkdir ref
-	cp ref.tex ref/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" ref.htex
@@ -384,15 +427,10 @@ ifndef DEBUG
 	-rm -f ref/labels.pl ref/internals.pl ref/.*.pag ref/.*.dir
 	-rm -f ref/images.* ref/*.log ref/WARNINGS
 endif
-endif
 	touch ref.chk	
 
 prog: prog.chk
 prog.chk: progex.chk htex.chk includes
-ifdef INSTALLDEBUG
-	mkdir prog
-	cp prog.tex prog/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 2 -link 2\
 	-t "Free Pascal programmers guide" prog.htex
@@ -402,15 +440,10 @@ ifndef DEBUG
 	-rm -f prog/labels.pl prog/internals.pl prog/.*.pag prog/.*.dir
 	-rm -f prog/images.* prog/*.log prog/WARNINGS
 endif
-endif
 	touch prog.chk
 
 internal: internal.chk
 internal.chk: htex.chk
-ifdef INSTALLDEBUG
-	mkdir internal
-	cp internal.tex internal/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal Compiler Documentation" internal.htex
@@ -420,15 +453,10 @@ ifndef DEBUG
 	-rm -f internal/labels.pl internal/internals.pl internal/.*.pag internal/.*.dir
 	-rm -f internal/images.* internal/*.log internal/WARNINGS
 endif
-endif
 	touch internal.chk	
 
 onechap: onechap.chk
 onechap.chk: unitex.chk htex.chk includes
-ifdef INSTALLDEBUG
-	mkdir onechap
-	cp onechap.tex onechap/index.html
-else
 	cp -f preamble.html preamble.inc
 	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
 	-t "Free Pascal reference guide" onechap.htex
@@ -438,10 +466,16 @@ ifndef DEBUG
 	-rm -f onechap/labels.pl onechap/internals.pl onechap/.*.pag onechap/.*.dir
 	-rm -f onechap/images.* onechap/*.log onechap/WARNINGS
 endif
-endif
 	touch onechap.chk	
 
 html: $(HTML)
+
+endif  # USEHEVEA
+
+endif  # INSTALLDEBUG
+
+hevea:
+	$(MAKE) html USEHEVEA=1
 
 classes: classes/index.html
 
@@ -589,7 +623,12 @@ execute:
 
 #
 # $Log$
-# Revision 1.16  2003-02-24 23:37:52  michael
+# Revision 1.17  2003-03-16 15:22:18  peter
+#   * support for hevea
+#   * provided local copies or required styles since debian does not
+#     supply the listings.sty anymore
+#
+# Revision 1.16  2003/02/24 23:37:52  michael
 # + Preparations for version 1.0.8
 #
 # Revision 1.15  2002/11/10 12:22:10  carl

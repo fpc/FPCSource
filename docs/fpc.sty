@@ -149,6 +149,10 @@
 %
 \newcommand{\seem}[2]{\texttt{#1} (#2) }
 %
+% HTML references
+%
+\newcommand{\seeurl}[2]{\htmladdnormallink{#1}{#2}}
+%
 % for easy typesetting of variables.
 %
 \newcommand{\var}[1]{\texttt {#1}}
@@ -194,6 +198,7 @@
 \newcommand{\beos}{\textsc{BeOS}\xspace}
 \newcommand{\palmos}{\textsc{PalmOS}\xspace}
 \newcommand{\netbsd}{\textsc{NetBSD}\xspace}
+\newcommand{\openbsd}{\textsc{OpenBSD}\xspace}
 \newcommand{\win}{\textsc{Win32}\xspace}
 \newcommand{\freebsd}{\textsc{FreeBSD}\xspace}
 \newcommand{\tp}{Turbo Pascal\xspace}
@@ -234,18 +239,32 @@
 %
 % For examples
 %
-\latex{%
-  \newcommand{\FPCexample}[1]{%
+\newcommand{\FPCexample}[1]{%
     \par \file{\textbf{Listing:} \exampledir/#1.pp}%
     \lstinputlisting{\exampledir/#1.pp}%
-  }
-  \newcommand{\Cexample}[1]{%
+}
+\newcommand{\Cexample}[1]{%
     \par \file{\textbf{Listing:} \exampledir/#1.c}%
     \lstinputlisting[language=c]{\exampledir/#1.c}%
-  }
 }
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
+%
+% Picture including
+%
+\newcommand{\FPCpic}[3]{%
+  \begin{figure}[ht]%
+  \begin{center}
+  \caption{#1}%
+  \label{fig:#3}%
+  \ifpdf%
+    \epsfig{file=pics/#2/#3.png,width=\textwidth}%
+  \else%
+    \epsfig{file=pics/#2/#3.eps,width=\textwidth}%
+  \fi%
+  \end{center}
+  \end{figure}%
+}
 %
 % Categorical Function/procedure overviews
 %

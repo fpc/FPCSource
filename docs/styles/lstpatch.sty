@@ -1,0 +1,379 @@
+%%
+%% This is file `lstpatch.sty', generated manually :-)
+%%
+%% Please read the software license in listings.dtx or listings.dvi.
+%%
+%% (w)(c) 2000,2001 Carsten Heinz
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%% Permission is granted to change this file. You are not allowed to
+%% distribute any changed version of this file, neither under the same
+%% name nor under a different one.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to <cheinz@gmx.de>.
+%%
+%%
+%% This patch file does *not* include any experimental material I sent to
+%% various people. These people will have to copy and paste the definitions.
+%%
+%% This patch file will remove the following bugs from the listings package.
+%% Each item contains the bug finder with date of report and first bug fix
+%% version, a short description of the problem, and the reason for the bug
+%% in parenthesis.
+%%
+%%  1) Andreas Deininger, 2000/08/25, 0.21a
+%%
+%%     `breaklines,first>1' leads to ``undefined control sequence'' error
+%%     (\lst@breakshape undefined in this case)
+%%
+%%  2) Vespe Savikko, 2000/09/27, 0.21a (2000/11/02)
+%%
+%%     stringstyle used also on previous other characters
+%%     (missing \lst@PrintToken in \lst@BeginString)
+%%
+%%  3) Richard Hoefter, 2000/11/03, 0.21b (2000/11/04)
+%%
+%%     no keyword detection in case of language=HTML,language=Java
+%%     (missing deactivation of `keywordsinside' in hook `SetLanguage')
+%%
+%%  4) Vespe Savikko, 2000/11/06, 0.21c (2000/11/06)
+%%
+%%     bad output of doc-strings if HTML and Python are loaded
+%%     (missing group braces around mode argument in \lst@CommentB causes
+%%      a number `0' appearing in the output)
+%%
+%%  5) Christian Gudrian, 2000/11/13, 0.21d (2000/11/16)
+%%
+%%     \ref{lst:line} jumps to top of listing and not to the line
+%%     (\refstepcounter not used on \c@lstlabel)
+%%
+%%  6) Dr. Jobst Hoffmann, 2000/11/17, 0.21e (2000/11/20)
+%%
+%%     incompatibility with typehtml package
+%%     (bad lccode of /)
+%%
+%%  7) Kalle Tuulos, 2001/01/14, 0.21f (2001/01/17)
+%%
+%%     formfeed characters gobbles next output unit
+%%     (\lst@newlines contains \lst@EOLUpdate, which calls \lst@ResetToken)
+%%
+%%  8) Adam Prugel-Bennett, 2001/02/19, 0.21g
+%%
+%%     \abovecaptionskip undefined in slides.cls
+%%
+%%  9) Gabriel Tauro, 2001/04/18, 0.21g
+%%
+%%     unexpected `)' if the character appears before first printed line
+%%     (\lst@breakProcessOther is active)
+%%
+%% 10) Jens Schwarzer, 2001/05/29, 0.21g
+%%
+%%     wrong line numbering of lstlisting with first>1
+%%     (\lst@firstline not taken into accout in this case)
+%%
+%% 11) Jens Schwarzer, 2001/05/29, 0.21g (2001/06/21)
+%%
+%%     caption and title font are not equal
+%%     (\lst@maketitle not suitable for koma script)
+%%
+%% 12) Thorsten Vitt, 2001/06/25, 0.21h
+%%
+%%     fancyhdr + listings crossing pages ==> ~ in header, not space
+%%     (old problem with \output: explicitly redefine ~)
+%%
+%% 13) Martin Steffen, 2001/04/07, 0.21h
+%%
+%%     mathescape drops following space
+%%     (bad \lst@ifwhitespace)
+%%
+%% 14) Walter E. Brown, 2001/05/22, 0.21h (2001/06/27)
+%%
+%%     pdftex 3.14159-14f warning: destination with the same identifier
+%%     (bad default of \theHlstlabel)
+%%
+%% 15) Bradford Chamberlain, 2001/07/07, 0.21i
+%%
+%%     otherkeywords={@,@^} does not work
+%%     (argument treated as one long keyword)
+%%
+%% 16) GP Gores, 2001/07/11, 0.21i (2001/07/11)
+%%
+%%     a) inserts \par after each \lstinline
+%%     (\lst@Init has been modified, but I missed \lst@DeInit)
+%%
+%% 17) Carsten Heinz, 2001/07/16, 0.21j (2001/07/22)
+%%
+%%     16) makes first line of lstlisting textstyle
+%%     (bad modification of \lst@DeInit)
+%%
+%%
+%% Moreover the following functionality is added.
+%%
+%%  a) allow line breaks in \lstinline (experimental)
+%%
+%%  b) everydisplay=<token string>
+%%
+%%  c) nolol=<true|false> is mainly equivalent to the continue key, but
+%%     it will also drop lol-entries for lstlisting in the next version
+%%
+%%
+\ProvidesFile{lstpatch}[2001/07/22 v0.21j (Carsten Heinz)]
+\def\lst@topatch{0.21}
+\ifx\lst@version\lst@topatch\else
+    \typeout{^^J%
+    ***^^J%
+    *** Patch file `lstpatch.sty' for version \lst@topatch^^J%
+    *** is not suitable for `listings.sty' version \lst@version.^^J%
+    ***^^J
+    *** Patch file not loaded.^^J%
+    ***^^J}%
+    \let\lst@topatch\lst@version
+    \expandafter\endinput
+\fi
+%%
+%%  1) Just define \lst@breakshape.
+\gdef\lst@breakshape{%
+    \ifodd \c@page -\lst@innerspread \else -\lst@outerspread \fi
+    \linewidth}
+%%
+%%  2) Add \lst@PrintToken after \lst@TrackNewLines.
+\def\lstpatch@strings{%
+\gdef\lst@BeginString##1##2{%
+    \lst@TrackNewLines \lst@PrintToken
+    \lst@ifexstrings ##2\lst@PrintToken \fi
+    \lst@EnterMode{##1}%
+        {\lst@modetrue \let\lst@currstyle\lst@stringstyle}%
+    \lst@ifexstrings\else ##2\lst@PrintToken \fi
+    \lst@ifstringspaces
+        \lst@keepspacestrue
+        \let\lst@outputspace\lst@visiblespace
+    \fi}
+}
+%%
+%%  3) Insert deactivation.
+\def\lstpatch@html{%
+   \lst@AddToHook{SetLanguage}{\let\lst@DefInside\@empty}%
+}
+%%
+%%  4) Insert argument braces around ##5.
+\def\lstpatch@comments{%
+\gdef\lst@CommentB##1##2##3##4##5##6##7##8##9{%
+    \lst@CDef##1##2{##3}##4%
+        {##6}%
+        {\let\lst@bnext\lst@CArgEmpty
+         \lst@ifmode ##7\else
+             ##8%
+             \def\lst@bnext{\lst@BeginComment{##5}##9}%
+         \fi
+         \lst@bnext}%
+        \@empty}%
+}
+%%
+%%  5) Use `lstlabel' with \refstepcounter.
+\def\lstpatch@labels{%
+\lst@AddToHook{EveryPar}
+    {\global\advance\c@lstlabel\m@ne \refstepcounter{lstlabel}}%
+%%
+%% 14) Define appropriate \theHlstlabel.
+\AtBeginDocument{\def\theHlstlabel{\thelstlisting.\thelstlabel}}%
+}
+%%
+%%  6) Restore lccode.
+\lccode`\/=`\/
+%%
+%%  7) Don't add \lst@EOLUpdate to \lst@newlines. Since I don't know the
+%%     reason for adding it a long time ago :-(, it's probably better to
+%%     remove \lst@ResetToken (v0.22) from `InitVarsBOL' hook. Well, I'll
+%%     just wait for other bug reports ...
+\def\lst@ProcessFormFeed{%
+    \lst@PrintToken
+    \ifx\lst@newlines\@empty
+        \lst@EOLUpdate \lst@formfeed
+    \else
+%        \lst@lAddTo\lst@newlines{\lst@EOLUpdate \lst@formfeed}%
+        \lst@lAddTo\lst@newlines{\lst@formfeed}%
+    \fi
+    \lst@whitespacetrue}
+%%
+%%  8) Allocate \abovecaptionskip and \belowcaptionskip if necessary.
+%%     Additionally define \@makecaption (exact copy from report.cls).
+\@ifundefined{abovecaptionskip}
+{\newskip\abovecaptionskip
+ \newskip\belowcaptionskip
+ \long\def\@makecaption#1#2{%
+   \vskip\abovecaptionskip
+   \sbox\@tempboxa{#1: #2}%
+   \ifdim \wd\@tempboxa >\hsize
+     #1: #2\par
+   \else
+     \global \@minipagefalse
+     \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+   \fi
+   \vskip\belowcaptionskip}%
+}{}
+%%
+%%  9) Also deactivate \lst@breakProcessOther.
+\def\lst@BeginDropInput#1{%
+    \lst@EnterMode{#1}%
+    {\lst@modetrue
+     \let\lst@ProcessLetter\@gobble
+     \let\lst@ProcessDigit\@gobble
+     \let\lst@ProcessOther\@gobble
+     \let\lst@breakProcessOther\@gobble
+     \let\lst@ProcessSpace\@empty
+     \let\lst@ProcessTabulator\@empty
+     \let\lst@ProcessFormFeed\@empty}}
+%%
+%% 10) Replace \@tempcnta\@ne by \@tempcnta\lst@firstline.
+\def\lstpatch@labels{%
+\gdef\lst@SetFirstLabel{%
+    \ifx\lst@firstlabel\@undefined
+        \@tempcnta 0\csname lstno@\lst@intname\endcsname\relax
+        \ifnum\@tempcnta=\z@ \@tempcnta\lst@firstline
+                       \else \lst@continuetrue \fi
+        \advance\@tempcnta\lst@advancelabel
+        \edef\lst@firstlabel{\the\@tempcnta\relax}%
+    \fi}%
+}
+%%
+%% 11) Define \lst@maketitle in terms of \@makecaption. Note
+%%     thet this need not to work for all packages and classes.
+%%     The \let command here is especially for koma script.
+\def\lst@maketitle#1#2{%
+    {\let\captionformat\@empty
+     \@makecaption{}\lst@title}}
+%%
+%% 12) Redefine ~ in output routine.
+\lst@AddToHook{Init}
+    {\let\lsts@OldOutput\lst@OldOutput
+     \def\lst@OldOutput{\def~{\nobreakspace{}}%
+                        \lsts@OldOutput}%
+    }
+%%
+%% 13) Use \lst@whitespacefalse at end of escape.
+\def\lstpatch@escape{%
+    \lst@Key{escapeend}{}{\def\lst@escapeend{##1\lst@whitespacefalse}}%
+}
+%%
+%% 15) Make `other keywords' active iteratively.
+\def\lstpatch@keywords{%
+\gdef\lst@AddOtherKey##1,{%
+    \ifx\relax##1\@empty\else
+        \ifx\@empty##1\@empty\else
+            \lst@MakeActive{##1}%
+            \lst@lExtend\lst@otherkeywords{\expandafter,\lst@temp}%
+        \fi
+        \expandafter\lst@AddOtherKey
+    \fi}%
+\lst@Key{otherkeywords}{}%
+    {\let\lst@otherkeywords\@empty
+     \lst@AddOtherKey##1,\relax,}
+}
+%%
+%% a) Remove \hbox in front of \bgroup and ...
+\renewcommand\lstinline[1][]{%
+    \leavevmode\bgroup
+        \def\lst@boxpos{b}\let\lst@ifflexible\iftrue
+        \lsthk@PreSet\lstset{#1}%
+        \lsthk@TextStyle \lst@Init\relax
+        \everypar{}\let\lsthk@Endgroup\@empty
+        \let\lst@newlines\@empty \let\lst@breakcurrindent\z@
+        \lstinline@}
+%% 17) Add switch to distinguish text and display style listings.
+\lst@AddToHook{TextStyle}{\let\lst@iftextstyle\iftrue}
+\lst@AddToHook{DisplayStyle}{\let\lst@iftextstyle\iffalse}
+\let\lst@iftextstyle\iffalse
+% ... back to a):
+\def\lst@InputListing#1{%
+    \begingroup
+    \lsthk@PreSet \gdef\lst@intname{#1}%
+    \expandafter\lstset\expandafter{\lst@set}%
+    \lst@ifprint
+        \par % inserted to switch to vmode
+        \lst@Init\relax \let\lst@gobble\z@
+        \lst@SkipToFirst \input{#1}\lst@DeInit
+    \else
+        \begin{center}%
+        \footnotesize --- Listing of #1 has been skipped. ---
+        \end{center}%
+    \fi
+    \endgroup}
+\def\lst@Init#1{%
+    \begingroup
+    \ifx\lst@float\relax\else
+        \edef\@tempa{\noexpand\@float{lstlisting}[\lst@float]}%
+        \expandafter\@tempa
+    \fi
+    \ifhmode\ifinner \lst@boxtrue \fi\fi
+    \lst@ifbox
+        \lsthk@BoxUnsafe
+        \hbox to\z@\bgroup
+             $\if t\lst@boxpos \vtop
+        \else \if b\lst@boxpos \vbox
+        \else \vcenter \fi\fi
+        \bgroup
+    \else
+%% 17) Don't check for vertical mode, use \lst@iftextstyle.
+        \lst@iftextstyle\else
+\lst@EveryDisplay
+            \par\penalty-50\relax
+            \vspace\lst@aboveskip
+        \fi
+    \fi
+    \normalbaselines
+    \abovecaptionskip\lst@abovecaption\relax
+    \belowcaptionskip\lst@belowcaption\relax
+    \lst@MakeCaption t%
+    \lsthk@PreInit \lsthk@Init
+    \everypar{\lsthk@EveryLine\lsthk@EveryPar}%
+    \lsthk@InitVars
+    \lsthk@InitVarsBOL
+    \lst@Let{13}\lst@MProcessListing
+    \let\lst@Backslash#1%
+    \lst@EnterMode{\lst@Pmode}{\lst@SelectCharTable}}
+%%
+%% 16) Adjust \lst@DeInit accordingly.
+\def\lst@DeInit{%
+    \lst@PrintToken \lst@EOLUpdate
+    \lst@RemoveNewLine\@empty
+    \lst@RemoveNewLine{%
+        \lst@ifshowlines
+            \lst@TrackNewLines
+        \else
+            \setbox\@tempboxa\vbox{\lst@TrackNewLines}%
+        \fi}%
+%% 17) Don't check for vertical mode, use \lst@iftextstyle.
+    \lst@iftextstyle\else
+        \par\removelastskip
+    \fi
+    \everypar{}\lsthk@ExitVars \lsthk@DeInit
+    \lst@MakeCaption b%
+    \lst@ifbox
+        \egroup $\hss \egroup
+        \vrule\@width\lst@maxwidth\@height\z@\@depth\z@
+    \else
+%% check for vertical mode.
+        \ifvmode
+            \par\penalty-50\vspace\lst@belowskip
+        \fi
+    \fi
+    \ifx\lst@float\relax\else
+        \expandafter\end@float
+    \fi
+    \endgroup}
+%%
+%% b) Define key, the material is inserted above.
+\lst@Key{everydisplay}{}{\def\lst@EveryDisplay{#1}}
+%%
+%% c) New key sets value of continue key.
+\lst@Key{nolol}{false}[t]{\lstKV@SetIf{#1}\lst@ifnolol}
+\lst@AddToHook{PreInit}{\lst@ifcontinue\else \lst@SetIfContinue \fi}
+\def\lst@SetIfContinue{\let\lst@ifcontinue\lst@ifnolol}
+%%
+\endinput
+%%
+%% End of file `lstpatch.sty'.

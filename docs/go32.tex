@@ -1,4 +1,7 @@
 \chapter{The GO32 unit}
+\label{ch:go32unit}
+
+\FPCexampledir{go32ex}
 This chapter of the documentation describe the GO32 unit for the Free Pascal
 compiler under \dos. It was donated by Thomas Schatzl
 (tom\_at\_work@geocities.com), for which my thanks.
@@ -16,7 +19,7 @@ I hope the following explanations and introductions aren't too confusing at
 all. If you notice an error or bug send it to the FPC mailing list or
 directly to me.
 So let's get started and happy and error free coding I wish you....
-\hfill Thomas Schatzl, 25. August 1998
+Thomas Schatzl, 25. August 1998
 \section{Protected mode memory organization}
 \subsection{What is DPMI}
 The \dos Protected Mode Interface helps you with various aspects of protected
@@ -155,8 +158,7 @@ interrupt) command to the responsible controller; this is acomplished by
 sending the value 20h to port 20h (for the first controller) or A0h (for the
 second controller).
 The following example shows how to redirect the keyboard interrupt.
-\latex{\lstinputlisting{go32ex/keyclick.pp}}
-\html{\input{go32ex/keyclick.tex}}
+\FPCexample{keyclick}
 \subsection{Software interrupts}
 Ordinarily, a handler installed with
 \seefl{set\_pm\_interrupt}{setpminterrupt} only services software
@@ -193,10 +195,8 @@ See also:
 \seefl{global\_dos\_free}{globaldosfree},
 \seef{realintr}
 The following examples illustrate the use of software interrupts.
-\latex{\lstinputlisting{go32ex/softint.pp}}
-\html{\input{go32ex/softint.tex}}
-\latex{\lstinputlisting{go32ex/rmpmint.pp}}
-\html{\input{go32ex/rmpmint.tex}}
+\FPCexample{softint}
+\FPCexample{rmpmint}
 \subsection{Real mode callbacks}
 The callback mechanism can be thought of as the converse of calling a real
 mode procedure (i.e. interrupt), which allows your program to pass
@@ -387,8 +387,7 @@ function.
 \seefl{set\_segment\_base\_address}{setsegmentbaseaddress} 
 
 \end{functionl}
-\latex{\lstinputlisting{go32ex/seldes.pp}}
-\html{\input{go32ex/seldes.tex}}
+\FPCexample{seldes}
 \begin{functionl}{allocate\_memory\_block}{allocatememoryblock}
 \Declaration
 Function allocate\_memory\_block (size:Longint) : Longint;
@@ -525,8 +524,7 @@ Notes: No range check is performed.
 \seepl{seg\_fillchar}{segfillchar},
 \seepl{seg\_fillword}{segfillword} 
 \end{procedure}
-\latex{\lstinputlisting{go32ex/textmess.pp}}
-\html{\input{go32ex/textmess.tex}}
+\FPCexample{textmess}
 \begin{procedure}{dosmemfillword}
 \Declaration
 Procedure dosmemfillword (seg,ofs : Word; count : Longint; w : Word);
@@ -819,8 +817,7 @@ Check the \var{int31error} variable.
 \SeeAlso
 \seefl{get\_page\_size}{getpagesize} 
 \end{functionl}
-\latex{\lstinputlisting{go32ex/meminfo.pp}}
-\html{\input{go32ex/meminfo.tex}}
+\FPCexample{meminfo}
 \begin{functionl}{get\_next\_selector\_increment\_value}{getnextselectorincrementvalue}
 \Declaration
 Function get\_next\_selector\_increment\_value  : Word;
@@ -904,8 +901,7 @@ Check the \var{int31error} variable.
 \SeeAlso
 \seefl{free\_rm\_callback}{freermcallback} 
 \end{functionl}
-\latex{\lstinputlisting{go32ex/callback.pp}}
-\html{\input{go32ex/callback.tex}}
+\FPCexample{callback}
 \begin{functionl}{get\_rm\_interrupt}{getrminterrupt}
 \Declaration
 Function get\_rm\_interrupt (vector : byte; var intaddr :
@@ -943,8 +939,7 @@ None.
 \SeeAlso
  constants returned by \seefl{get\_run\_mode}{getrunmode}  
 \end{functionl}
-\latex{\lstinputlisting{go32ex/getrunmd.pp}}
-\html{\input{go32ex/getrunmd.tex}}
+\FPCexample{getrunmd}
 \begin{functionl}{get\_segment\_base\_address}{getsegmentbaseaddress}
 \Declaration
 Function get\_segment\_base\_address  
@@ -1036,8 +1031,7 @@ should only be freed by a \seefl{global\_dos\_free}{globaldosfree}  call.
 \SeeAlso
  \seefl{global\_dos\_free}{globaldosfree} 
 \end{functionl}
-\latex{\lstinputlisting{go32ex/buffer.pp}}
-\html{\input{go32ex/buffer.tex}}
+\FPCexample{buffer}
 \begin{functionl}{global\_dos\_free}{globaldosfree}
 \Declaration
 Function global\_dos\_free (selector :Word) : boolean;
@@ -1201,8 +1195,7 @@ Return values: None.
 \SeeAlso
 \seef{inportb}, \seep{outportl}, \seep{outportw} 
 \end{procedure}
-\latex{\lstinputlisting{go32ex/outport.pp}}
-\html{\input{go32ex/outport.tex}}
+\FPCexample{outport}
 \begin{procedure}{outportl}
 \Declaration
 Procedure outportl (port : Word; data : Longint);
@@ -1264,8 +1257,7 @@ executing an IRET.
 \SeeAlso
 
 \end{function}
-\latex{\lstinputlisting{go32ex/flags.pp}}
-\html{\input{go32ex/flags.tex}}
+\FPCexample{flags}
 \begin{procedurel}{seg\_fillchar}{segfillchar}
 \Declaration
 Procedure seg\_fillchar (seg : Word; ofs : Longint; count : Longint; c : char);
@@ -1294,8 +1286,7 @@ Notes: No range check is done in any way.
 \seepl{dosmemput}{dosmemput},
 \seepl{dosmemmove}{dosmemmove} 
 \end{procedurel}
-\latex{\lstinputlisting{go32ex/vgasel.pp}}
-\html{\input{go32ex/vgasel.tex}}
+\FPCexample{vgasel}
 \begin{procedurel}{seg\_fillword}{segfillword}
 \Declaration
 Procedure seg\_fillword (seg : Word; ofs : Longint; count : Longint; w :Word);
@@ -1432,8 +1423,7 @@ protected mode address.
 \seefl{set\_rm\_interrupt}{setrminterrupt},
 \seefl{get\_rm\_interrupt}{getrminterrupt} 
 \end{functionl}
-\latex{\lstinputlisting{go32ex/intpm.pp}}
-\html{\input{go32ex/intpm.tex}}
+\FPCexample{intpm}
 \begin{functionl}{set\_rm\_interrupt}{setrminterrupt}
 \Declaration
 Function set\_rm\_interrupt (vector : byte; const intaddr :

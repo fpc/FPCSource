@@ -19,6 +19,9 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The IPC unit.}
+\label{ch:ipcunit}
+
+\FPCexampledir{ipcex}
 This chapter describes the IPC unit for Free Pascal. It was written for
 \linux by Micha\"el Van Canneyt. It gives all the functionality of system V 
 Inter-Process Communication: shared memory, semaphores and messages.
@@ -410,8 +413,7 @@ On error, \var{False} is returned, and \var{IPCerror} is set accordingly.
 \seef{msgget}, \seef{msgsnd}, \seef{msgrcv}
 \end{function}
 
-\latex{\lstinputlisting{ipcex/msgtool.pp}}
-\html{\input{ipcex/msgtool.tex}}
+\FPCexample{msgtool}
 
 \begin{function}{semget}
 \Declaration
@@ -547,9 +549,7 @@ The function returns -1 on error, and \var{IPCerror} is set accordingly.
 \seef{semget}, \seef{semop}
 \end{function}
 
-\latex{\lstinputlisting{ipcex/semtool.pp}}
-\html{\input{ipcex/semtool.tex}}
-
+\FPCexample{semtool}
 
 \begin{function}{shmget}
 \Declaration
@@ -652,5 +652,4 @@ is set.
 \seef{shmget}, \seef{shmat}, \seef{shmdt}
 \end{function}
 
-\latex{\lstinputlisting{ipcex/shmtool.pp}}
-\html{\input{ipcex/shmtool.tex}}
+\FPCexample{shmtool}

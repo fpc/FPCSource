@@ -88,23 +88,10 @@ character instead of a \var{-} character. So \var{/S} is equivalent to \var{-S}.
 
 \subsection{The IDE screen}
 
-After start up, the screen of the IDE can look like 
-\begin{htmlonly}
-this:
-\fpcaddimg{../pics/idestart.png}
-\end{htmlonly}
-\begin{latexonly}
-\seefig{idestart}.
-\begin{figure}
-\caption{The IDE screen immediately after startup}
-\label{fig:idestart}
-\ifpdf
-\epsfig{file=pics/idestart.png,width=\textwidth}
-\else
-\epsfig{file=pics/idestart.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+After start up, the screen of the IDE can look like \seefig{idestart}.
+
+\FPCpic{The IDE screen immediately after startup}{}{idestart}
+
 At top of the screen the \emph{menu bar} is visible, at the bottom
 the \emph{status bar}. The empty space between them is called the
 \emph{desktop}.
@@ -227,22 +214,11 @@ work with it.
 %
 \subsection{Window basics}
 \label{se:windowbasics}
-\begin{htmlonly}
-A common IDE window is displayed  below:
-\fpcaddimg{../pics/idewin.png}
-\end{htmlonly}
-\begin{latexonly}
+
 A common IDE window is displayed in \seefig{idewin}.
-\begin{figure}
-\caption{A common IDE window}
-\label{fig:idewin}
-\ifpdf
-\epsfig{file=pics/idewin.png,width=\textwidth}
-\else
-\epsfig{file=pics/idewin.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{A common IDE window}{}{idewin}
+
 The window is surrounded by a so-called \emph{frame}, the white double
 line around the window. 
 
@@ -367,22 +343,9 @@ activated while a dialog is active. Also the menu is not accessible while in
 a dialog. This behaviour is called \emph{modal}. To activate another window, 
 the modal window or dialog must be closed first.
 
-\begin{htmlonly}
-A typical dialog window looks like:
-\fpcaddimg{../pics/idedlg.png}
-\end{htmlonly}
-\begin{latexonly}
 A typical dialog window is shown in \seefig{idedlg}.
-\begin{figure}
-\caption{A typical dialog window}
-\label{fig:idedlg}
-\ifpdf
-\epsfig{file=pics/idedlg.png,width=\textwidth}
-\else
-\epsfig{file=pics/idedlg.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{A typical dialog window}{}{idedlg}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The menu
@@ -861,25 +824,9 @@ It is possible to go directly to a specific source line. To do this, open
 the {\em goto line} dialog via the \menu{Search|Goto line} menu.
 
 In the dialog that appears, the line-number the IDE should jump to can be
-entered.
-\begin{htmlonly}
-The goto line dialog.
-\fpcaddimg{../pics/ide/gotoline.png}
-\end{htmlonly}
-\begin{latexonly}
-The goto line dialog is shown in \seefig{gotoline}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The goto line dialog.}\label{fig:gotoline}
-\ifpdf
-\epsfig{file=pics/ide/gotoline.png}
-\else
-\epsfig{file=pics/ide/gotoline.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+entered. The goto line dialog is shown in \seefig{gotoline}.
 
+\FPCpic{The goto line dialog.}{ide}{gotoline}
 
 %
 % Syntax highlighting and code completion
@@ -929,24 +876,10 @@ object methods as in e.g. \delphi.
 Code completion can be customized in the Code completion dialog, reachable 
 through the menu option \menu{Options|\-Preferences|\-Codecompletion}.
 The list of keywords that can be completed can be maintained here. 
-
-\begin{htmlonly}
-The code completion dialog.
-\fpcaddimg{../pics/ide/codecomp.png}
-\end{htmlonly}
-\begin{latexonly}
 The code completion dialog is shown in \seefig{codecomp}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The code completion dialog.}\label{fig:codecomp}
-\ifpdf
-\epsfig{file=pics/ide/codecomp.png}
-\else
-\epsfig{file=pics/ide/codecomp.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The code completion dialog.}{ide}{codecomp}
+
 The dialog shows the currently defined keywords that will be completed in
 alphabetical order.
 The following buttons are available:
@@ -987,25 +920,11 @@ on it, and the vertical bar is deleted. In the above example, the cursor would b
 positioned between the \var{if} and \var{then}, ready to type an expression.
 
 Code templates can be added and edited in the code templates dialog, reachable via
-the menu option \menu{Options|\-Preferences|\-Codetemplates}. 
-
-\begin{htmlonly}
-The code templates dialog.
-\fpcaddimg{../pics/ide/codetemp.png}
-\end{htmlonly}
-\begin{latexonly}
+the menu option \menu{Options|\-Preferences|\-Codetemplates}.
 The code templates dialog is shown in \seefig{codetemp}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The code templates dialog.}\label{fig:codetemp}
-\ifpdf
-\epsfig{file=pics/ide/codetemp.png}
-\else
-\epsfig{file=pics/ide/codetemp.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The code templates dialog.}{ide}{codetemp}
+
 The top listbox in the code templates dialog shows the names of all 
 known templates. The bottom half of the dialog shows the text associated
 with the currently highlighted code template.
@@ -1036,23 +955,10 @@ To search for text, one of the following can be done:
 \item Select \menu{Search|Find} in the menu.
 \item Press \key{Ctrl-Q F}.
 \end{enumerate}
-\begin{htmlonly}
-After that, the following dialog will pop up:
-\fpcaddimg{../pics/ide/search.png}
-In this dialog, the following options can be entered:
-\end{htmlonly}
-\begin{latexonly}
 After that, the dialog shown in \seefig{search} will pop up,
 and the following options can be entered
-\begin{figure}[ht]
-\caption{The search dialog.}\label{fig:search}
-\ifpdf
-\epsfig{file=pics/ide/search.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/search.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The search dialog.}{ide}{search}
 
 \begin{description}
 \item[Text to find] The text to be searched for. If a block was active when
@@ -1081,23 +987,9 @@ This can be done in a similar manner to searching for a text:
 \item Select \menu{Search|Replace} from the menu.
 \item Press \key{Ctrl-Q A}.
 \end{enumerate}
-A dialog, similar to the search dialog will pop up:
-\begin{htmlonly}
-A dialog, similar to the search dialog will pop up:
-\fpcaddimg{../pics/ide/replace.png}
-In this dialog, the following options can be entered:
-\end{htmlonly}
-\begin{latexonly}
 A dialog, similar to the search dialog will pop up, as shown in \seefig{replace}.
-\begin{figure}[ht]
-\caption{The replace dialog.}\label{fig:replace}
-\ifpdf
-\epsfig{file=pics/ide/replace.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/replace.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The replace dialog.}{ide}{replace}
 
 In this dialog, in addition to the things that can be filled in in the
 search dialog, the following things can be entered:
@@ -1146,21 +1038,10 @@ with the usual commands.
 
 The behaviour of the browser can be customized with the browser options
 dialog, using the \menu{Options|Browser} menu.
-\begin{htmlonly}
-The browser options dialog looks as follows:
-\fpcaddimg{../pics/ide/obrowser.png}
-\end{htmlonly}
-\begin{latexonly}
 The browser options dialog looks like \seefig{obrowser}.
-\begin{figure}[ht]
-\caption{The browser options dialog.}\label{fig:obrowser}
-\ifpdf
-\epsfig{file=pics/ide/obrowser.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/obrowser.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The browser options dialog.}{ide}{obrowser}
+
 The following options can be set in the browser options dialog:
 \begin{description}
 \item[Symbols] Here the types of symbols displayed in the browser can be
@@ -1205,21 +1086,9 @@ in one of several ways:
 \end{enumerate}
 If command-line parameters should be passed to the program, then these
 can be set through the \menu{Run|Parameters} menu. 
-\begin{htmlonly}
-The Parameters dialog.
-\fpcaddimg{../pics/ide/params.png}
-\end{htmlonly}
-\begin{latexonly}
 The program parameters dialog looks like \seefig{params}.
-\begin{figure}[ht]
-\caption{The program parameters dialog.}\label{fig:params}
-\ifpdf
-\epsfig{file=pics/ide/params.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/params.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The program parameters dialog.}{ide}{params}
 
 Once the program started, it will continue to run, until 
 \begin{enumerate}
@@ -1286,22 +1155,11 @@ To set a breakpoint on the current source line, use the
 \menu{Debug|Breakpoint} menu entry, or press \key{Ctrl-F8}.
 
 A list of current breakpoints can be obtained through the
-\menu{Debug|Breakpoint list} menu. 
-\begin{htmlonly}
-The breakpoint list window looks as follows:
-\fpcaddimg{../pics/ide/brklist.png}
-\end{htmlonly}
-\begin{latexonly}
-The breakpoint list window is shown in \seefig{brklist}
-\begin{figure}[ht]
-\caption{The breakpoint list window.}\label{fig:brklist}
-\ifpdf
-\epsfig{file=pics/ide/brklist.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/brklist.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+\menu{Debug|Breakpoint list} menu. The breakpoint list window
+is shown in \seefig{brklist}.
+
+\FPCpic{The breakpoint list window}{ide}{brklist}
+
 In the breakpoint list window, the following things can be done:
 \begin{description}
 \item[New] Shows the breakpoint property dialog where the properties
@@ -1311,22 +1169,10 @@ the highlighted breakpoint can be changed.
 \item[Delete] Deletes the highlighted breakpoint.
 \end{description}
 The dialog can be closed with the 'Close' button.
-
-\begin{htmlonly}
-The breakpoint properties dialog looks as follows:
-\fpcaddimg{../pics/ide/brkprop.png}
-\end{htmlonly}
-\begin{latexonly}
 The breakpoint properties dialog is shown in \seefig{brkprop}
-\begin{figure}[ht]
-\caption{The breakpoint properties dialog.}\label{fig:brkprop}
-\ifpdf
-\epsfig{file=pics/ide/brkprop.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/brkprop.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The breakpoint properties dialog}{ide}{brkprop}
+
 The following properties can be set:
 \begin{description}
 \item[type]
@@ -1377,23 +1223,10 @@ watches will be evaluated and their current values will be shown.
 Setting a new watch can be done with the \menu{Debug|Add watch} menu 
 command or by pressing \key{Ctrl-F7}. When this is done, the watch
 property dialog appears, and a new expression can be entered.
-\begin{htmlonly}
-The watch property dialog looks as follows:
-\fpcaddimg{../pics/ide/watch.png}
-\end{htmlonly}
-\begin{latexonly}
-The watch property dialog is shown in \seefig{watch}
-\begin{figure}[ht]
-\begin{center}
-\caption{The watch property dialog.}\label{fig:watch}
-\ifpdf
-\epsfig{file=pics/ide/watch.png}
-\else
-\epsfig{file=pics/ide/watch.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The watch property dialog is shown in \seefig{watch}.
+
+\FPCpic{The watch property dialog}{ide}{watch}
+
 In the dialog, the expression can be entered, any possible previous value
 and current value are shown.
 \begin{remark}
@@ -1402,23 +1235,9 @@ expressions in {\em uppercase} in \freebsd.
 \end{remark}
 A list of watches and their present value is available in the watches
 window, which can be opened with the \menu{Debug|Watches} menu.
-\begin{htmlonly}
-The watch list window looks as follows:
-\fpcaddimg{../pics/ide/watchlst.png}
-\end{htmlonly}
-\begin{latexonly}
-The watch list window is shown in \seefig{brklist}
-\begin{figure}[ht]
-\begin{center}
-\caption{The watch list window.}\label{fig:watchlst}
-\ifpdf
-\epsfig{file=pics/ide/watchlst.png}
-\else
-\epsfig{file=pics/ide/watchlst.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The watch list window is shown in \seefig{brklist}.
+
+\FPCpic{The watch list window.}{ide}{watchlst}
 
 Pressing \key{Enter} or the space bar will show the watch property dialog
 for the currently highlighted watch in the watches window.
@@ -1435,25 +1254,9 @@ procedures that are being called at this moment, in reverse order.
 The call stack window can be shown using the \menu{Debug|Call Stack}
 It will show the address or procedure name of all currently active 
 procedures with their filename and addresses. If parameters were passed
-they will be shown as well.
-\begin{htmlonly}
+they will be shown as well. The call stack is shown in \seefig{callstck}.
 
-The call stack window looks as follows:
-\fpcaddimg{../pics/ide/callstck.png}
-\end{htmlonly}
-\begin{latexonly}
-The call stack is shown in \seefig{callstack}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The call stack window.}\label{fig:callstack}
-\ifpdf
-\epsfig{file=pics/ide/callstck.png}
-\else
-\epsfig{file=pics/ide/callstck.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+\FPCpic{The call stack window.}{ide}{callstck}
 
 By pressing the space bar in the call stack window, the line corresponding
 to the call will be highlighted in the edit window.
@@ -1468,24 +1271,9 @@ The response of GDB will be shown in the window.
 Some more information on using GDB can be found in \sees{usinggdb}, but
 the final reference is of course the GDB manual itself
 \footnote{Available from the Free Software Foundation website.}.
-
-\begin{htmlonly}
-The GDB window looks as follows:
-\fpcaddimg{../pics/ide/gdbwin.png}
-\end{htmlonly}
-\begin{latexonly}
 The GDB window is shown in \seefig{gdbwin}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The GDB window.}\label{fig:gdbwin}
-\ifpdf
-\epsfig{file=pics/ide/gdbwin.png}
-\else
-\epsfig{file=pics/ide/gdbwin.eps},
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The GDB window}{ide}{gdbwin}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
@@ -1506,22 +1294,10 @@ will be displayed in the messages window. The messages window is
 displayed automatically, if an external tool was run. The
 messages window can be also displayed manually by the selecting the
 menu item \menu{Tools|Messages} or by pressing the key \key{F11}.
-
-\begin{htmlonly}
-The messages window looks as follows:
-\fpcaddimg{../pics/ide/messages.png}
-\end{htmlonly}
-\begin{latexonly}
 The messages window is shown in \seefig{messages}.
-\begin{figure}[ht]
-\caption{The messages window.}\label{fig:messages}
-\ifpdf
-\epsfig{file=pics/ide/messages.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/messages.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The messages window}{ide}{messages}
+
 If the output of the tool contains filenames and line numbers,
 the messages window can be used to navigate the source as in a browse
 window:
@@ -1589,23 +1365,9 @@ string.
 
 The ASCII table remains active till another window is explicitly activated,
 thus multiple characters can be inserted at once.
-\begin{htmlonly}
-The ASCII table looks as follows:
-\fpcaddimg{../pics/ide/ascii.png}
-\end{htmlonly}
-\begin{latexonly}
-The ASCII table is shown in \seefig{asciitable}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The ASCII table.}\label{fig:asciitable}
-\ifpdf
-\epsfig{file=pics/ide/ascii.png}
-\else
-\epsfig{file=pics/ide/ascii.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The ASCII table is shown in \seefig{ascii}.
+
+\FPCpic{The ASCII table}{ide}{ascii}
 
 %
 % The calculator
@@ -1617,25 +1379,11 @@ calculator, since it does not take care of operator precedence, and
 bracketing of operations is not (yet) supported.
 
 The result of the calculations can be pasted into the text using the
-\key{Ctrl-Enter} keystroke.
+\key{Ctrl-Enter} keystroke. The calculator dialog is shown in
+\seefig{calc}.
 
-\begin{htmlonly}
-The calculator dialog looks as follows:
-\fpcaddimg{../pics/ide/calc.png}
-\end{htmlonly}
-\begin{latexonly}
-The calculator dialog is shown in \seefig{calculator}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The calculator dialog.}\label{fig:calculator}
-\ifpdf
-\epsfig{file=pics/ide/calc.png}
-\else
-\epsfig{file=pics/ide/calc.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+\FPCpic{The calculator dialog}{ide}{calc}
+
 The calculator supports all basic mathematical operations such as
 addition, subtraction, division and multiplication. They are summarised in
 \seet{calculatorbasic}.
@@ -1685,24 +1433,10 @@ oriented. The output of such a program will be caught and displayed in the
 messages window.
 
 Adding a tool to the tools menu can be done using the \menu{Options|Tools} menu.
-This will display the tools dialog.
-\begin{htmlonly}
-The tools dialog looks as follows:
-\fpcaddimg{../pics/ide/otools.png}
-\end{htmlonly}
-\begin{latexonly}
-The tools dialog is shown in \seefig{otools}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The tools configuration dialog.}\label{fig:otools}
-\ifpdf
-\epsfig{file=pics/ide/otools.png}
-\else
-\epsfig{file=pics/ide/otools.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+This will display the tools dialog. The tools dialog is shown in \seefig{otools}.
+
+\FPCpic{The tools configuration dialog}{ide}{otools}
+
 In the tools dialog, the following actions are available:
 \begin{description}
 \item[New] Shows the tool properties dialog where the
@@ -2012,24 +1746,10 @@ In the directory dialog, the directories can be specified where the
 compiler should look for units, libraries, object files. It also says
 where the output files should be stored. Multiple directories (except 
 for the output directory) can be entered, separated by semicolons.
-
-\begin{htmlonly}
-The directories dialog looks as follows:
-\fpcaddimg{../pics/ide/odirs.png}
-\end{htmlonly}
-\begin{latexonly}
 The directories dialog is shown in \seefig{odirs}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The directories configuration dialog.}\label{fig:odirs}
-\ifpdf
-\epsfig{file=pics/ide/odirs.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/odirs.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The directories configuration dialog}{ide}{odirs}
+
 The following directories can be specified:
 \begin{description}
 \item[EXE \& PPU directories] Specifies where the compiled units and
@@ -2054,24 +1774,10 @@ operating system for which the sources will be compiled.
 Changing the target doesn't affect any compiler switches or 
 directories. It does affect some defines defined by the compiler.
 The settings here correspond to the option \seeo{T}
-on the command-line.
-\begin{htmlonly}
-The target dialog looks as follows:
-\fpcaddimg{../pics/ide/target.png}
-\end{htmlonly}
-\begin{latexonly}
-The compilation target dialog is shown in \seefig{target}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The compilation target dialog.}\label{fig:target}
-\ifpdf
-\epsfig{file=pics/ide/target.png}
-\else
-\epsfig{file=pics/ide/target.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+on the command-line. The compilation target dialog is shown in \seefig{target}.
+
+\FPCpic{The compilation target dialog}{ide}{target}
+
 The following targets can be set:
 \begin{description}
 \item[Dos (go32v1)] This switch will dissapear in time as this target is no
@@ -2111,25 +1817,11 @@ the command line) and the generated assembler (\var{-A} on the command line)
 
 Under the tab pages, the {\em Conditional defines} entry box is visible;
 here symbols to define can be entered. The symbols should be separated with
-semicolons.
+semicolons. The syntax tab of the compiler options dialog is shown in
+\seefig{ocompa}.
 
-\begin{htmlonly}
-The syntax tab of the compiler options  looks as follows:
-\fpcaddimg{../pics/ide/ocompa.png}
-\end{htmlonly}
-\begin{latexonly}
-The syntax tab of the compiler options dialog is shown in \seefig{ocompa}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The syntax options tab.}\label{fig:ocompa}
-\ifpdf
-\epsfig{file=pics/ide/ocompa.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/ocompa.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+\FPCpic{The syntax options tab}{ide}{ocompa}
+
 In this dialog, the following options can be set:
 \begin{description}
 \item[Delphi 2 extensions on]
@@ -2155,24 +1847,11 @@ methods (\seeo{St} on the command-line)
 \item[Allow MMX operations] Allow MMX operations.
 \end{description}
 
-\begin{htmlonly}
-The code generation tab of the compiler options  looks as follows:
-\fpcaddimg{../pics/ide/ocompb.png}
-\end{htmlonly}
-\begin{latexonly}
 The code generation tab of the compiler options dialog is shown in
 \seefig{ocompb}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The code generation options tab.}\label{fig:ocompb}
-\ifpdf
-\epsfig{file=pics/ide/ocompb.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/ocompb.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The code generation options tab}{ide}{ocompb}
+
 In this dialog, the following options can be set:
 \begin{description}
 \item[Run-time checks] Controls what run-time checking code is generated. If
@@ -2212,25 +1891,11 @@ option.
 \end{description}
 \end{description}
 More information on these switches can be found in \sees{codegen}.
-
-\begin{htmlonly}
-The verbose tab of the compiler options looks as follows:
-\fpcaddimg{../pics/ide/ocompc.png}
-\end{htmlonly}
-\begin{latexonly}
 The verbose tab of the compiler options dialog is shown in
 \seefig{ocompc}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The verbosity options tab.}\label{fig:ocompc}
-\ifpdf
-\epsfig{file=pics/ide/ocompc.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/ocompc.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The verbosity options tab}{ide}{ocompc}
+
 In this dialog, the following verbosity options (\seeo{v} on the
 command-line) can be set:
 \begin{description}
@@ -2250,25 +1915,11 @@ command-line.
 occurs, show all procedures. Corresponds to \var{-vb} on the
 command-line.
 \end{description}
-
-\begin{htmlonly}
-The browser tab of the compiler options looks as follows:
-\fpcaddimg{../pics/ide/ocompd.png}
-\end{htmlonly}
-\begin{latexonly}
 The browser tab of the compiler options dialog is shown in
 \seefig{ocompd}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The browser options tab.}\label{fig:ocompd}
-\ifpdf
-\epsfig{file=pics/ide/ocompd.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/ocompd.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The browser options tab}{ide}{ocompd}
+
 In this dialog, the browser options can be set:
 \begin{description}
 \item[No browser] (default) no browser information is generated by the
@@ -2283,25 +1934,11 @@ symbols, i.e. also for symbols that are defined in procedures or functions
 If no browser information is generated, the symbol browser of the IDE will
 not work.
 \end{remark}
-
-\begin{htmlonly}
-The assembler tab of the compiler options looks as follows:
-\fpcaddimg{../pics/ide/ocompe.png}
-\end{htmlonly}
-\begin{latexonly}
 The assembler tab of the compiler options dialog is shown in
 \seefig{ocompe}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The assembler options tab.}\label{fig:ocompe}
-\ifpdf
-\epsfig{file=pics/ide/ocompe.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/ocompe.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The assembler options tab}{ide}{ocompe}
+
 In this dialog, the assembler reader and writer options can be set:
 \begin{description}
 \item[Assembler reader] This allows to set the style of the assembler blocks
@@ -2358,24 +1995,10 @@ internal writer. (Win32)
 The linker options can be set in the menu \menu{Options|Linker}. It allows
 to determine how libraries and units are linked, and how the linker should
 be called. 
-\begin{htmlonly}
-The linker options dialog looks as follows:
-\fpcaddimg{../pics/ide/olinker.png}
-\end{htmlonly}
-\begin{latexonly}
-The linker options dialog is shown in
-\seefig{olinker}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The linker options dialog.}\label{fig:olinker}
-\ifpdf
-\epsfig{file=pics/ide/olinker.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/olinker.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The linker options dialog is shown in \seefig{olinker}.
+
+\FPCpic{The linker options dialog}{ide}{olinker}
+
 The following options can be set:
 \begin{description}
 \item[Call linker after] If this option is set then a script is written
@@ -2399,23 +2022,10 @@ linked in can be set:
 \subsection{Memory sizes}
 The memory sizes dialog (reachable via \menu{options|Memory sizes}) allows 
 to enter the memory sizes for the project.
-\begin{htmlonly}
-The memory sizes dialog looks as follows:
-\fpcaddimg{../pics/ide/omemsize.png}
-\end{htmlonly}
-\begin{latexonly}
 The memory sizes dialog is shown in \seefig{omemsize}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The memory sizes dialog.}\label{fig:omemsize}
-\ifpdf
-\epsfig{file=pics/ide/omemsize.png}
-\else
-\epsfig{file=pics/ide/omemsize.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The memory sizes dialog}{ide}{omemsize}
+
 The following sizes can be entered:
 \begin{description}
 \item[Stack size] Sets the size of the stack in bytes; 
@@ -2434,23 +2044,9 @@ allows.
 In the debug options dialog some options for inclusion of debug information
 in the binary can be set; it is also possible to add additional compiler
 options in this dialog.
-\begin{htmlonly}
-The debug options dialog looks as follows:
-\fpcaddimg{../pics/ide/odebug.png}
-\end{htmlonly}
-\begin{latexonly}
 The debug options dialog is shown in \seefig{odebug}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The debug options dialog.}\label{fig:odebug}
-\ifpdf
-\epsfig{file=pics/ide/odebug.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/odebug.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+\FPCpic{The debug options dialog}{ide}{odebug}
+
 The following options can be set:
 \begin{description}
 \item[Debugging information] tells the compiler which debug information
@@ -2507,24 +2103,9 @@ specifically set or unset options.
 When setting and saving compiler options, be sure to select the correct
 switch mode first; it makes little sense to set debug options while the
 release switch is active.
-
-\begin{htmlonly}
-The switches mode dialog looks as follows:
-\fpcaddimg{../pics/ide/oswitch.png}
-\end{htmlonly}
-\begin{latexonly}
 The switches mode dialog is shown in \seefig{oswitch}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The switches mode dialog.}\label{fig:oswitch}
-\ifpdf
-\epsfig{file=pics/ide/oswitch.png}
-\else
-\epsfig{file=pics/ide/oswitch.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The switches mode dialog}{ide}{oswitch}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Customize the IDE
@@ -2538,23 +2119,10 @@ sub-menu \var{Environment} in the \var{Options} menu.
 \subsection{Preferences}
 The {\em preferences dialog} is called by the menu item
 \menu{Options|Environment|Preferences}.
-\begin{htmlonly}
-The preferences dialog looks as follows:
-\fpcaddimg{../pics/ide/oeprefs.png}
-\end{htmlonly}
-\begin{latexonly}
-The preferences dialog is shown in \seefig{oprefs}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The preferences dialog.}\label{fig:oprefs}
-\ifpdf
-\epsfig{file=pics/ide/oeprefs.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/oeprefs.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The preferences dialog is shown in \seefig{oeprefs}.
+
+\FPCpic{The preferences dialog}{ide}{oeprefs}
+
 \begin{description}
 \item[Video modes]
 The drop down list at the top of the dialog allows to select a video mode.
@@ -2569,7 +2137,7 @@ the new video mode will not be applied.
 When using VESA modes, the display refresh rate may be very low. 
 On older graphics card (1998 and before), it is possible to use the
 {\em UniVBE} driver of {\em SciTech}\footnote{It can be downloaded from
-\href{http://www.informatik.fh-muenchen.de/~ifw98223/vbehz.htm}
+\seeurl{http://www.informatik.fh-muenchen.de/~ifw98223/vbehz.htm}
 {http://www.informatik.fh-muenchen.de/\~{}ifw98223/vbehz.htm}}
 % It is quite outdated 
 %(last update somewhere in 1998). 
@@ -2611,24 +2179,10 @@ The desktop preferences dialog allows to specify what elements of the
 desktop are saved across sessions, i.e. they are saved when the IDE is left,
 and they are again restored when the IDE is started the next time. 
 They are saved in a file \file{fp.dsk}.
+The desktop preferences dialog is shown in \seefig{oedesk}.
 
-\begin{htmlonly}
-The desktop preferences dialog looks as follows:
-\fpcaddimg{../pics/ide/oeprefs.png}
-\end{htmlonly}
-\begin{latexonly}
-The desktop preferences dialog is shown in \seefig{odesktop}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The desktop preferences dialog.}\label{fig:odesktop}
-\ifpdf
-\epsfig{file=pics/ide/oedesk.png}
-\else
-\epsfig{file=pics/ide/oedesk.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+\FPCpic{The desktop preferences dialog}{ide}{oedesk}
+
 The following elements can be saved and restored across IDE sessions:
 \begin{description}
 \item[History lists] Most entry boxes have a history list where previous
@@ -2661,24 +2215,10 @@ When checked, the defined code-templates are saved. On by default.
 %
 \subsection{The Editor}
 Several aspects of the editor window behaviour can be set in this dialog.
-
-\begin{htmlonly}
-The editor preferences dialog looks as follows:
-\fpcaddimg{../pics/ide/oeeditor.png}
-\end{htmlonly}
-\begin{latexonly}
 The editor preferences dialog is shown in \seefig{oeeditor}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The editor preferences dialog.}\label{fig:oeeditor}
-\ifpdf
-\epsfig{file=pics/ide/oeeditor.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/oeeditor.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+
+\FPCpic{The editor preferences dialog}{ide}{oeeditor}
+
 The following elements can be set in the editor preferences dialog:
 \begin{description}
 \item[Create backup files]
@@ -2755,23 +2295,10 @@ opened windows will have these options.
 The mouse options dialog is called by the menu item
 \menu{Options|Environment|Mouse}. It allows to adjust the behaviour of the
 mouse as well as the sensitivity of the mouse.
-\begin{htmlonly}
-The mouse options dialog looks as follows:
-\fpcaddimg{../pics/ide/oemouse.png}
-\end{htmlonly}
-\begin{latexonly}
-The mouse options dialog is shown in \seefig{omouse}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The mouse options dialog.}\label{fig:omouse}
-\ifpdf
-\epsfig{file=pics/ide/oemouse.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/oemouse.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The mouse options dialog is shown in \seefig{oemouse}.
+
+\FPCpic{The mouse options dialog}{ide}{oemouse}
+
 \begin{description}
 \item[Mouse double click]
 The slider can be used to adjust the double click speed. Fast means that the
@@ -2816,23 +2343,10 @@ button can be set.
 
 The syntax highlighting colors for the editor windows of the IDE can also 
 be set in this dialog.
-\begin{htmlonly}
-The colors dialog looks as follows:
-\fpcaddimg{../pics/ide/oecolors.png}
-\end{htmlonly}
-\begin{latexonly}
-The colors dialog is shown in \seefig{ocolors}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The colors dialog.}\label{fig:ocolors}
-\ifpdf
-\epsfig{file=pics/ide/oecolors.png,width=\textwidth}
-\else
-\epsfig{file=pics/ide/oecolors.eps,width=\textwidth}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The colors dialog is shown in \seefig{oecolors}.
+
+\FPCpic{The colors dialog}{ide}{oecolors}
+
 The following elements are visible in the color dialog:
 \begin{description}
 \item[Group]
@@ -2923,23 +2437,10 @@ in the IDE help files are made in this way.
 
 The menu item \menu{Help|Files} permits to add and delete help files to the
 list of files in the help table of contents.
-\begin{htmlonly}
-The Help files dialog looks as follows:
-\fpcaddimg{../pics/ide/helpfils.png}
-\end{htmlonly}
-\begin{latexonly}
-The help files dialog is displayed in \seefig{helpfiles}.
-\begin{figure}[ht]
-\begin{center}
-\caption{The help files dialog.}\label{fig:helpfiles}
-\ifpdf
-\epsfig{file=pics/ide/helpfils.png}
-\else
-\epsfig{file=pics/ide/helpfils.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+The help files dialog is displayed in \seefig{helpfils}.
+
+\FPCpic{The help files dialog}{ide}{helpfils}
+
 The dialogs lists the files that will be presented in the table of contents
 window of the help system. Each entry has a small descriptive title and a
 filename next to it. The following actions are available when adding help
@@ -3133,7 +2634,12 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.5  2002-05-20 12:03:19  michael
+%  Revision 1.6  2003-03-16 15:22:18  peter
+%    * support for hevea
+%    * provided local copies or required styles since debian does not
+%      supply the listings.sty anymore
+%
+%  Revision 1.5  2002/05/20 12:03:19  michael
 %  + Added -t option.
 %
 %  Revision 1.4  2001/11/05 19:08:47  michael

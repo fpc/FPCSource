@@ -1,0 +1,634 @@
+%%
+%% This is file `lstlang2.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% lstdrvrs.dtx  (with options: `lang2')
+%% 
+%% (w)(c) 1996/1997/1998/1999/2000 Carsten Heinz and/or any other author
+%% listed elsewhere in this file.
+%%
+%% This file is distributed under the terms of the LaTeX Project Public
+%% License from CTAN archives in directory  macros/latex/base/lppl.txt.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%% This file is completely free and comes without any warranty.
+%%
+%% Permission is granted to change this file. You are not allowed to
+%% distribute any changed version of this file, neither under the same
+%% name nor under a different one.
+%%
+%% Send comments and ideas on the package, error reports and additional
+%% programming languages to <cheinz@gmx.de>.
+%%
+%%
+%% Abap definition by Knut Lickert <knut.lickert@gmx.de>
+%%
+\lst@definelanguage[R/3 4.6C]{ABAP}[R/3 3.1]{ABAP}%
+  {morekeywords={method,ref,class,create,object},%
+   literate={->}{{$\to$}}1,%
+  }[keywords,comments,strings]
+\lst@definelanguage[R/3 3.1]{ABAP}[R/2 5.0]{ABAP}{}%
+\lst@definelanguage[R/2 5.0]{ABAP}%
+  {sensitive=f,%
+   morekeywords={*,add,after,alias,analyzer,and,append,area,assign,at,%
+        authority-check,before,binary,blank,break-point,calendar,call,%
+        case,change,changing,check,clear,cnt,co,collect,commit,common,%
+        component,compute,condense,cos,cp,cs,currency-conversion,%
+        cursor,data,database,dataset,decimals,define,delete,dequeue,%
+        describe,detail,dialog,directory,div,divide,do,documentation,%
+        during,dynpro,else,end-of-page,end-of-selection,endat,endcase,%
+        enddo,endfor,endform,endif,endloop,endmodule,endselect,%
+        endwhile,enqueue,exceptions,exit,exp,export,exporting,extract,%
+        field,field-groups,field-symbols,find,for,form,format,free,%
+        from,function,generating,get,giving,hide,id,if,import,%
+        importing,in,incl,include,initial,initialization,input,insert,%
+        interrupt,into,is,language,leave,like,line,lines,line-count,
+        line-selection,list-processing,load,local,log,logfile,loop,%
+        margin,mark,mask,memory,menue,message,mod,modify,module,move,%
+        move-text,multiply,na,new,new-line,new-page,no-gaps,np,ns,%
+        number,obligatory,occurs,of,on,or,others,output,parameter,%
+        parameters,parts,perform,pf-status,places,position,process,%
+        raise,raising,ranges,read,refresh,refresh-dynpro,reject,remote,%
+        replace,report,reserve,reset,restart,run,screen,scroll,search,%
+        segments,select,select-options,selection-screen,set,shift,sin,%
+        single,sqrt,start-of-selection,statement,structure,submit,%
+        subtract,summary,summing,suppress,system,table,tables,task,%
+        text,time,to,top-of-page,trace,transaction,transfer,%
+        transfer-dynpro,translate,type,unpack,update,user-command,%
+        using,value,when,where,while,window,with,workfile,write,},%
+  morecomment=[l]",%
+  morecomment=[f][0]*,%
+  }[keywords,comments,strings]
+\lst@definelanguage[R/2 4.3]{ABAP}[R/2 5.0]{ABAP}%
+  {deletekeywords={function,importing,exporting,changing,exceptions,%
+        raise,raising}%
+  }[keywords,comments,strings]
+%%
+%% Corba IDL definition (c) 1999 Jens T. Berger Thielemann
+%%                               <jensthi@ifi.uio.no>
+%%
+\lst@definelanguage[CORBA]{IDL}%
+  {morekeywords={any,attribute,boolean,case,char,const,context,default,%
+      double,enum,exception,fixed,float,in,inout,interface,long,module,%
+      native,Object,octet,oneway,out,raises,readonly,sequence,short,%
+      string,struct,switch,typedef,union,unsigned,void,wchar,wstring,%
+      FALSE,TRUE},%
+   sensitive,%
+   moredirectives={define,elif,else,endif,error,if,ifdef,ifndef,line,%
+      include,pragma,undef,warning},%
+   morecomment=[l]//,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[b]"%
+  }[keywords,comments,strings]%
+%%
+%% (Objective) Caml definition (c) 1999 Patrick Cousot
+%%                                      <Patrick.Cousot@wanadoo.fr>
+%%
+%% Objective CAML and Caml light are freely available, together with a
+%% reference manual, at URL ftp.inria.fr/lang/caml-light for the Unix,
+%% Windows and Macintosh OS operating systems.
+%%
+\lst@definelanguage[Objective]{Caml}[light]{Caml}
+  {deletekeywords={not,prefix,value,where},%
+   morekeywords={assert,asr,class,closed,constraint,external,false,%
+      functor,include,inherit,land,lazy,lor,lsl,lsr,lxor,method,mod,%
+      module,new,open,parser,private,sig,struct,true,val,virtual,when},%
+  }%
+\lst@definelanguage[light]{Caml}
+  {morekeywords={and,as,begin,do,done,downto,else,end,exception,for,%
+      fun,function,if,in,let,match,mutable,not,of,or,prefix,rec,then,%
+      to,try,type,value,where,while,with},%
+   sensitive,%
+   morecomment=[n]{(*}{*)},%
+   morestring=[b]",%
+   moredirectives={open,close,include}%
+  }[keywords,comments,strings,directives]%
+\lst@definelanguage[ibm]{Cobol}[1985]{Cobol}%
+  {morekeywords={ADDRESS,BEGINNING,COMP-3,COMP-4,COMPUTATIONAL,%
+      COMPUTATIONAL-3,COMPUTATIONAL-4,DISPLAY-1,EGCS,EJECT,ENDING,%
+      ENTRY,GOBACK,ID,MORE-LABELS,NULL,NULLS,PASSWORD,RECORDING,%
+      RETURN-CODE,SERVICE,SKIP1,SKIP2,SKIP3,SORT-CONTROL,SORT-RETURN,%
+      SUPPRESS,TITLE,WHEN-COMPILED},%
+  }%
+\lst@definelanguage[1985]{Cobol}[1974]{Cobol}%
+  {morekeywords={ALPHABET,ALPHABETIC-LOWER,ALPHABETIC-UPPER,%
+      ALPHANUMERIC,ALPHANUMERIC-EDITED,ANY,CLASS,COMMON,CONTENT,%
+      CONTINUE,DAY-OF-WEEK,END-ADD,END-CALL,END-COMPUTE,END-DELETE,%
+      END-DIVIDE,END-EVALUATE,END-IF,END-MULTIPLY,END-PERFORM,END-READ,%
+      END-RECEIVE,END-RETURN,END-REWRITE,END-SEARCH,END-START,%
+      END-STRING,END-SUBTRACT,END-UNSTRING,END-WRITE,EVALUATE,EXTERNAL,%
+      FALSE,GLOBAL,INITIALIZE,NUMERIC-EDITED,ORDER,OTHER,%
+      PACKED-DECIMAL,PADDING,PURGE,REFERENCE,RELOAD,REPLACE,STANDARD-1,%
+      STANDARD-2,TEST,THEN,TRUE},%
+  }%
+\lst@definelanguage[1974]{Cobol}%
+  {morekeywords={ACCEPT,ACCESS,ADD,ADVANCING,AFTER,ALL,ALPHABETIC,ALSO,%
+      ALTER,ALTERNATE,AND,ARE,AREA,AREAS,ASCENDING,ASSIGN,AT,AUTHOR,%
+      BEFORE,BINARY,BLANK,BLOCK,BOTTOM,BY,CALL,CANCEL,CD,CF,CH,%
+      CHARACTER,CHARACTERS,CLOCK-UNITS,CLOSE,COBOL,CODE,CODE-SET,%
+      COLLATING,COLUMN,COMMA,COMMUNICATION,COMP,COMPUTE,CONFIGURATION,%
+      CONTAINS,CONTROL,CONTROLS,CONVERTING,COPY,CORR,CORRESPONDING,%
+      COUNT,CURRENCY,DATA,DATE,DATE-COMPILED,DATE-WRITTEN,DAY,DE,%
+      DEBUG-CONTENTS,DEGUB-ITEM,DEBUG-LINE,DEBUG-NAME,DEBUG-SUB1,%
+      DEBUG-SUB2,DEBUG-SUB3,DEBUGGING,DECIMAL-POINT,DECLARATIVES,%
+      DELETE,DELIMITED,DELIMITER,DEPENDING,DESCENDING,DESTINATION,%
+      DETAIL,DISABLE,DISPLAY,DIVIDE,DIVISION,DOWN,DUPLICATES,DYNAMIC,%
+      EGI,ELSE,EMI,ENABLE,END,END-OF-PAGE,ENTER,ENVIRONMENT,EOP,EQUAL,%
+      ERROR,ESI,EVERY,EXCEPTION,EXIT,EXTEND,FD,FILE,FILE-CONTROL,%
+      FILLER,FINAL,FIRST,FOOTING,FOR,FROM,GENERATE,GIVING,GO,GREATER,%
+      GROUP,HEADING,HIGH-VALUE,HIGH-VALUES,I-O,I-O-CONTROL,%
+      IDENTIFICATION,IF,IN,INDEX,INDEXED,INDICATE,INITIAL,INITIATE,%
+      INPUT,INPUT-OUTPUT,INSPECT,INSTALLATION,INTO,INVALID,IS,JUST,%
+      JUSTIFIED,KEY,LABEL,LAST,LEADING,LEFT,LENGTH,LESS,LIMIT,LIMITS,%
+      LINAGE,LINAGE-COUNTER,LINE,LINE-COUNTER,LINES,LINKAGE,LOCK,%
+      LOW-VALUE,LOW-VALUES,MEMORY,MERGE,MESSAGE,MODE,MODULES,MOVE,%
+      MULTIPLE,MULTIPLY,NATIVE,NEGATIVE,NEXT,NO,NOT,NUMBER,NUMERIC,%
+      OBJECT-COMPUTER,OCCURS,OF,OFF,OMITTED,ON,OPEN,OPTIONAL,OR,%
+      ORGANIZATION,OUTPUT,OVERFLOW,PAGE,PAGE-COUNTER,PERFORM,PF,PH,PIC,%
+      PICTURE,PLUS,POINTER,POSITION,PRINTING,POSITIVE,PRINTING,%
+      PROCEDURE,PROCEDURES,PROCEED,PROGRAM,PROGRAM-ID,QUEUE,QUOTE,%
+      QUOTES,RANDOM,RD,READ,RECEIVE,RECORD,RECORDING,RECORDS,REDEFINES,%
+      REEL,REFERENCES,RELATIVE,RELEASE,REMAINDER,REMOVAL,RENAMES,%
+      REPLACING,REPORT,REPORTING,REPORTS,RERUN,RESERVE,RESET,RETURN,%
+      REVERSED,REWIND,REWRITE,RF,RH,RIGHT,ROUNDED,RUN,SAME,SD,SEARCH,%
+      SECTION,SECURITY,SEGMENT,SEGMENT-LIMIT,SELECT,SEND,SENTENCE,%
+      SEPARATE,SEQUENCE,SEQUENTIAL,SET,SIGN,SIZE,SORT,SORT-MERGE,%
+      SOURCE,SOURCE-COMPUTER,SPACE,SPACES,SPECIAL-NAMES,STANDARD,START,%
+      STATUS,STOP,STRING,SUB-QUEUE-1,SUB-QUEUE-2,SUB-QUEUE-3,SUBTRACT,%
+      SUM,SYMBOLIC,SYNC,SYNCHRONIZED,TABLE,TALLYING,TAPE,TERMINAL,%
+      TERMINATE,TEXT,THAN,THROUGH,THRU,TIME,TIMES,TO,TOP,TRAILING,TYPE,%
+      UNIT,UNSTRING,UNTIL,UP,UPON,USAGE,USE,USING,VALUE,VALUES,VARYING,%
+      WHEN,WITH,WORDS,WORKING-STORAGE,WRITE,ZERO,ZEROES,ZEROS},%
+   sensitive=f,% ???
+   morecomment=[f][6]*,%
+   morestring=[d]"% ??? doubled
+  }[keywords,comments,strings]%
+\lst@definelanguage{Delphi}%
+  {morekeywords={and,as,asm,array,begin,case,class,const,constructor,%
+      destructor,div,do,downto,else,end,except,exports,file,finally,%
+      for,function,goto,if,implementation,in,inherited,inline,%
+      initialization,interface,is,label,library,mod,nil,not,object,of,%
+      or,packed,procedure,program,property,raise,record,repeat,set,%
+      shl,shr,string,then,to,try,type,unit,until,uses,var,while,with,%
+      xor,%
+      absolute,abstract,assembler,at,cdecl,default,dynamic,export,%
+      external,far,forward,index,name,near,nodefault,on,override,%
+      private,protected,public,published,read,resident,storedDir,%
+      virtual,write},%
+   morendkeywords={Abs,AddExitProc,Addr,AllocMem,AnsiCompareStr,%
+      AnsiCompareText,AnsiLowerCase,AnsiUpperCase,Append,AppendStr,%
+      ArcTan,AssignCrt,Assigned,AssignFile,BlockRead,BlockWrite,Break,%
+      ChangeFileExt,ChDir,Chr,CloseFile,ClrEol,ClrScr,Concat,Continue,%
+      Copy,Cos,CSeg,CursorTo,Date,DateTimeToFileDate,DateTimeToStr,%
+      DateTimeToString,DateToStr,DayOfWeek,Dec,DecodeDate,DecodeTime,%
+      Delete,DeleteFile,DiskFree,DiskSize,Dispose,DisposeStr,%
+      DoneWinCrt,DSeg,EncodeDate,EncodeTime,Eof,Eoln,Erase,Exclude,%
+      Exit,Exp,ExpandFileName,ExtractFileExt,ExtractFileName,%
+      ExtractFilePath,FileAge,FileClose,FileDateToDateTime,FileExists,%
+      FileGetAttr,FileGetDate,FileOpen,FilePos,FileRead,FileSearch,%
+      FileSeek,FileSetAttr,FileSetDate,FileSize,FillChar,FindClose,%
+      FindFirst,FindNext,FloatToDecimal,FloatToStrF,FloatToStr,%
+      FloatToText,FloatToTextFmt,Flush,FmtLoadStr,FmtStr,Format,%
+      FormatBuf,FormatDateTime,FormatFloat,Frac,Free,FreeMem,GetDir,%
+      GetMem,GotoXY,Halt,Hi,High,Inc,Include,InitWinCrt,Insert,Int,%
+      IntToHex,IntToStr,IOResult,IsValidIdent,KeyPressed,Length,Ln,Lo,%
+      LoadStr,Low,LowerCase,MaxAvail,MemAvail,MkDir,Move,New,NewStr,%
+      Now,Odd,Ofs,Ord,ParamCount,ParamStr,Pi,Pos,Pred,Ptr,Random,%
+      Randomize,Read,ReadBuf,ReadKey,Readln,ReAllocMem,Rename,%
+      RenameFile,Reset,Rewrite,RmDir,Round,RunError,ScrollTo,Seek,%
+      SeekEof,SeekEoln,Seg,SetTextBuf,Sin,SizeOf,SPtr,Sqr,Sqrt,SSeg,%
+      Str,StrCat,StrComp,StrCopy,StrDispose,StrECopy,StrEnd,StrFmt,%
+      StrLCat,StrIComp,StrLComp,StrLCopy,StrLen,StrLFmt,StrLIComp,%
+      StrLower,StrMove,StrNew,StrPas,StrPCopy,StrPos,StrScan,StrRScan,%
+      StrToDate,StrToDateTime,StrToFloat,StrToInt,StrToIntDef,%
+      StrToTime,StrUpper,Succ,Swap,TextToFloat,Time,TimeToStr,%
+      TrackCursor,Trunc,Truncate,TypeOf,UpCase,UpperCase,Val,WhereX,%
+      WhereY,Write,WriteBuf,WriteChar,Writeln},%
+   sensitive=f,%
+   morecomment=[d]{(*}{*)}{\{}{\}},%
+   morestring=[d]'%
+  }[keywords,comments,strings]%
+\lst@definelanguage{Eiffel}%
+  {morekeywords={alias,all,and,as,BIT,BOOLEAN,CHARACTER,check,class,%
+      creation,Current,debug,deferred,do,DOUBLE,else,elseif,end,%
+      ensure,expanded,export,external,false,feature,from,frozen,if,%
+      implies,indexing,infix,inherit,inspect,INTEGER,invariant,is,%
+      like,local,loop,NONE,not,obsolete,old,once,or,POINTER,prefix,%
+      REAL,redefine,rename,require,rescue,Result,retry,select,%
+      separate,STRING,strip,then,true,undefine,unique,until,variant,%
+      when,xor},%
+   sensitive,%
+   morecomment=[l]--,%
+   morestring=[d]",%
+   stringtest=false%
+  }[keywords,comments,strings]%
+%%
+%% Euphoria definition (c) 1998 Detlef Reimers <dreimers@aol.com>
+%%
+\lst@definelanguage{Euphoria}%
+  {morekeywords={abort,and,and_bits,append,arctan,atom,by,call,%
+      call_proc,call_func,c_proc,c_func,clear_screen,close,%
+      command_line,compare,constant,cos,do,date,else,elsif,end,exit,%
+      find,floor,for,function,getc,getenv,get_key,gets,global,%
+      get_pixel,if,include,integer,length,log,match,machine_func,%
+      machine_proc,mem_copy,mem_set,not,not_bits,or,object,open,%
+      or_bits,procedure,puts,position,prepend,print,printf,power,peek,%
+      poke,pixel,poke4,peek4s,peek4u,return,rand,repeat,remainder,%
+      routine_id,sequence,sqrt,sin,system,sprintf,then,type,to,time,%
+      trace,tan,while,with,without,xor,xor_bits},%
+   sensitive,%
+   morecomment=[l]--,%
+   morestring=[d]',%
+   morestring=[d]"%
+  }[keywords,comments,strings]%
+%%
+%% Haskell98 as implemented in Hugs98. See http://www.haskell.org
+%% All keywords from Prelude and Standard Libraries
+%% (c) 1999 Peter Bartke <bartke@inf.fu-berlin.de>
+%%
+\lst@definelanguage{Haskell}%
+  {otherkeywords={=>},%
+   keywords={abstype,if,then,else,case,class,data,default,deriving,%
+      hiding,if,in,infix,infixl,infixr,import,instance,let,module,%
+      newtype,of,qualified,type,where,do,AbsoluteSeek,AppendMode,%
+      Array,BlockBuffering,Bool,BufferMode,Char,Complex,Double,Either,%
+      FilePath,Float,Int,Integer,IO,IOError,Ix,LineBuffering,Maybe,%
+      Ordering,NoBuffering,ReadMode,ReadWriteMode,ReadS,RelativeSeek,%
+      SeekFromEnd,SeekMode,ShowS,StdGen,String,Void,Bounded,Enum,Eq,%
+      Eval,ExitCode,exitFailure,exitSuccess,Floating,Fractional,%
+      Functor,Handle,HandlePosn,IOMode,Integral,List,Monad,MonadPlus,%
+      MonadZero,Num,Numeric,Ord,Random,RandomGen,Ratio,Rational,Read,%
+      Real,RealFloat,RealFrac,Show,System,Prelude,EQ,False,GT,Just,%
+      Left,LT,Nothing,Right,WriteMode,True,abs,accum,accumArray,%
+      accumulate,acos,acosh,all,and,any,ap,appendFile,applyM,%
+      approxRational,array,asTypeOf,asin,asinh,assocs,atan,atan2,atanh,%
+      bounds,bracket,bracket_,break,catch,catMaybes,ceiling,chr,cis,%
+      compare,concat,concatMap,conjugate,const,cos,cosh,curry,cycle,%
+      decodeFloat,delete,deleteBy,deleteFirstsBy,denominator,%
+      digitToInt,div,divMod,drop,dropWhile,either,elem,elems,elemIndex,%
+      elemIndices,encodeFloat,enumFrom,enumFromThen,enumFromThenTo,%
+      enumFromTo,error,even,exitFailure,exitWith,exp,exponent,fail,%
+      filter,filterM,find,findIndex,findIndices,flip,floatDigits,%
+      floatRadix,floatRange,floatToDigits,floor,foldl,foldM,foldl1,%
+      foldr,foldr1,fromDouble,fromEnum,fromInt,fromInteger,%
+      fromIntegral,fromJust,fromMaybe,fromRat,fromRational,%
+      fromRealFrac,fst,gcd,genericLength,genericTake,genericDrop,%
+      genericSplitAt,genericIndex,genericReplicate,getArgs,getChar,%
+      getContents,getEnv,getLine,getProgName,getStdGen,getStdRandom,%
+      group,groupBy,guard,hClose,hFileSize,hFlush,hGetBuffering,%
+      hGetChar,hGetContents,hGetLine,hGetPosn,hIsClosed,hIsEOF,hIsOpen,%
+      hIsReadable,hIsSeekable,hIsWritable,hLookAhead,hPutChar,hPutStr,%
+      hPutStrLn,hPrint,hReady,hSeek,hSetBuffering,hSetPosn,head,%
+      hugsIsEOF,hugsHIsEOF,hugsIsSearchErr,hugsIsNameErr,%
+      hugsIsWriteErr,id,ioError,imagPart,index,indices,init,inits,%
+      inRange,insert,insertBy,interact,intersect,intersectBy,%
+      intersperse,intToDigit,ioeGetErrorString,ioeGetFileName,%
+      ioeGetHandle,isAlreadyExistsError,isAlreadyInUseError,isAlpha,%
+      isAlphaNum,isAscii,isControl,isDenormalized,isDoesNotExistError,%
+      isDigit,isEOF,isEOFError,isFullError,isHexDigit,isIEEE,%
+      isIllegalOperation,isInfinite,isJust,isLower,isNaN,%
+      isNegativeZero,isNothing,isOctDigit,isPermissionError,isPrefixOf,%
+      isPrint,isSpace,isSuffixOf,isUpper,isUserError,iterate,ixmap,%
+      join,last,lcm,length,lex,lexDigits,lexLitChar,liftM,liftM2,%
+      liftM3,liftM4,liftM5,lines,listArray,listToMaybe,log,logBase,%
+      lookup,magnitude,makePolar,map,mapAccumL,mapAccumR,mapAndUnzipM,%
+      mapM,mapM_,mapMaybe,max,maxBound,maximum,maximumBy,maybe,%
+      maybeToList,min,minBound,minimum,minimumBy,mkPolar,mkStdGen,%
+      mplus,mod,msum,mzero,negate,next,newStdGen,not,notElem,nub,nubBy,%
+      null,numerator,odd,openFile,or,ord,otherwise,partition,phase,pi,%
+      polar,pred,print,product,properFraction,putChar,putStr,putStrLn,%
+      quot,quotRem,random,randomIO,randomR,randomRIO,randomRs,randoms,%
+      rangeSize,read,readDec,readFile,readFloat,readHex,readInt,readIO,%
+      readList,readLitChar,readLn,readParen,readOct,readSigned,reads,%
+      readsPrec,realPart,realToFrac,recip,rem,repeat,replicate,return,%
+      reverse,round,scaleFloat,scanl,scanl1,scanr,scanr1,seq,sequence,%
+      sequence_,setStdGen,show,showChar,showEFloat,showFFloat,%
+      showFloat,showGFloat,showInt,showList,showLitChar,showParen,%
+      showSigned,showString,shows,showsPrec,significand,signum,sin,%
+      sinh,snd,sort,sortBy,span,split,splitAt,sqrt,stderr,stdin,stdout,%
+      strict,subtract,succ,sum,system,tail,tails,take,takeWhile,tan,%
+      tanh,toEnum,toInt,toInteger,toLower,toRational,toUpper,transpose,%
+      truncate,try,uncurry,undefined,unfoldr,union,unionBy,unless,%
+      unlines,until,unwords,unzip,unzip3,unzip4,unzip5,unzip6,unzip7,%
+      userError,when,words,writeFile,zero,zip,zip3,zip4,zip5,zip6,zip7,%
+      zipWith,zipWithM,zipWithM_,zipWith3,zipWith4,zipWith5,zipWith6,%
+      zipWith7},%
+   sensitive,%
+   morecomment=[l]--,%
+   morecomment=[n]{\{-}{-\}},%
+   morestrings=[b]"%
+  }[keywords,comments,strings]%
+%%
+%% IDL definition (c) 1998 Juergen Heim <heim@astro.uni-tuebingen.de>
+%%
+\lst@definelanguage{IDL}%
+  {morekeywords={and,begin,case,common,do,else,end,endcase,endelse,%
+      endfor,endif,endrep,endwhile,eq,for,function,ge,goto,gt,if,le,lt,%
+      mod,ne,not,of,on_ioerror,or,pro,repeat,return,then,until,while,%
+      xor,on_error,openw,openr,openu,print,printf,printu,plot,read,%
+      readf,readu,writeu,stop},%
+   sensitive=f,%
+   morecomment=[l];,%
+   morestring=[d]'%
+  }[keywords,comments,strings]%
+\lst@definelanguage{Lisp}%
+  {morekeywords={abort,abs,acons,acos,acosh,adjoin,alphanumericp,alter,%
+      append,apply,apropos,aref,arrayp,ash,asin,asinh,assoc,atan,atanh,%
+      atom,bit,boole,boundp,break,butlast,byte,catenate,ceiling,cerror,%
+      char,character,characterp,choose,chunk,cis,close,clrhash,coerce,%
+      collect,commonp,compile,complement,complex,complexp,concatenate,%
+      conjugate,cons,consp,constantp,continue,cos,cosh,cotruncate,%
+      count,delete,denominator,describe,directory,disassemble,%
+      documentation,dpb,dribble,ed,eighth,elt,enclose,endp,eq,eql,%
+      equal,equalp,error,eval,evalhook,evenp,every,exp,expand,export,%
+      expt,fboundp,fceiling,fdefinition,ffloor,fifth,fill,find,first,%
+      float,floatp,floor,fmakunbound,format,fourth,fround,ftruncate,%
+      funcall,functionp,gatherer,gcd,generator,gensym,gentemp,get,getf,%
+      gethash,identity,imagpart,import,inspect,integerp,intern,%
+      intersection,tively,isqrt,keywordp,last,latch,lcm,ldb,ldiff,%
+      length,list,listen,listp,load,log,logand,logbitp,logcount,logeqv,%
+      logior,lognand,lognor,lognot,logtest,logxor,macroexpand,%
+      makunbound,map,mapc,mapcan,mapcar,mapcon,maphash,mapl,maplist,%
+      mask,max,member,merge,min,mingle,minusp,mismatch,mod,namestring,%
+      nbutlast,nconc,nintersection,ninth,not,notany,notevery,nreconc,%
+      nreverse,nsublis,nsubst,nth,nthcdr,null,numberp,numerator,nunion,%
+      oddp,open,packagep,pairlis,pathname,pathnamep,phase,plusp,%
+      position,positions,pprint,previous,princ,print,proclaim,provide,%
+      random,rassoc,rational,rationalize,rationalp,read,readtablep,%
+      realp,realpart,reduce,rem,remhash,remove,remprop,replace,require,%
+      rest,revappend,reverse,room,round,rplaca,rplacd,sbit,scan,schar,%
+      search,second,series,set,seventh,shadow,signal,signum,sin,sinh,%
+      sixth,sleep,some,sort,split,sqrt,streamp,string,stringp,sublis,%
+      subseq,subseries,subsetp,subst,substitute,subtypep,svref,sxhash,%
+      symbolp,tailp,tan,tanh,tenth,terpri,third,truename,truncate,%
+      typep,unexport,unintern,union,until,values,vector,vectorp,warn,%
+      write,zerop,and,assert,case,ccase,cond,ctypecase,decf,declaim,%
+      defclass,defconstant,defgeneric,defmacro,defmethod,defpackage,%
+      defparameter,defsetf,defstruct,deftype,defun,defvar,do,dolist,%
+      dotimes,ecase,encapsulated,etypecase,flet,formatter,gathering,%
+      incf,iterate,labels,let,locally,loop,macrolet,mapping,or,pop,%
+      producing,prog,psetf,psetq,push,pushnew,remf,return,rotatef,%
+      setf,shiftf,step,time,trace,typecase,unless,untrace,when},%
+   sensitive,% ???
+   alsodigit=-,%
+   morecomment=[l];,%
+   morecomment=[s]{\#|}{|\#},% 1997 Aslak Raanes
+   morestring=[b]"%
+  }[keywords,comments,strings]%
+%%
+%% Make definitions (c) 2000 Rolf Niepraschk <niepraschk@ptb.de>
+%%
+\lst@definelanguage[gnu]{make}%
+  {morekeywords={SHELL,MAKE,MAKEFLAGS,$@,$\%,$<,$?,$^,$+,$*,%
+      export,unexport,include,override,define,ifdef,ifneq,ifeq,else,%
+      endif,vpath,subst,patsubst,strip,findstring,filter,filter-out,%
+      sort,dir,notdir,suffix,basename,addsuffix,addprefix,join,word,%
+      words,firstword,wildcard,shell,origin,foreach,%
+      @D,@F,*D,*F,\%D,\%F,<D,<F,^D,^F,+D,+F,?D,?F,%
+      AR,AS,CC,CXX,CO,CPP,FC,GET,LEX,PC,YACC,YACCR,MAKEINFO,TEXI2DVI,%
+      WEAVE,CWEAVE,TANGLE,CTANGLE,RM,M2C,LINT,COMPILE,LINK,PREPROCESS,%
+      CHECKOUT,%
+      ARFLAGS,ASFLAGS,CFLAGS,CXXFLAGS,COFLAGS,CPPFLAGS,FFLAGS,GFLAGS,%
+      LDFLAGS,LOADLIBES,LFLAGS,PFLAGS,RFLAGS,YFLAGS,M2FLAGS,MODFLAGS,%
+      LINTFLAGS,MAKEINFO_FLAGS,TEXI2DVI_FLAGS,COFLAGS,GFLAGS,%
+      OUTPUT_OPTION,SCCS_OUTPUT_OPTION%
+      .PHONY,.SUFFIXES,.DEFAULT,.PRECIOUS,.INTERMEDIATE,.SECONDARY,%
+      .IGNORE,.SILENT,.EXPORT_ALL_VARIABLES,MAKEFILES,VPATH,MAKESHELL,%
+      MAKELEVEL,MAKECMDGOALS,SUFFIXES},%
+   sensitive=true,
+   morecomment=[l]\#,%
+   morestring="%
+  }[keywords,comments,strings,make]%
+\lst@definelanguage{make}
+  {morekeywords={SHELL,MAKE,MAKEFLAGS,$@,$\%,$<,$?,$^,$+,$*},%
+   sensitive=true,%
+   morecomment=[l]\#,%
+   morestring="%
+  }[keywords,comments,strings,make]%
+%%
+%% Mercury definition (c) 1997 Dominique de Waleffe <ddw@miscrit.be>
+%%
+\lst@definelanguage{Mercury}%
+  {otherkeywords={::,->,-->,--->,:-},%
+   morekeywords={pred,type,module,end_module,import_module,mode,%
+      pragma,func,lambda,det,semidet,erroneous,multi,true,fail,is,in,%
+      out,di,uo,ui,interface,implementation},%
+   sensitive=f,%
+   morecomment=[l]\%,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[bd]",%
+   morestring=[bd]'%
+  }[keywords,comments,strings]%
+%%
+%% Miranda definition (c) 1998 Peter Bartke <bartke@inf.fu-berlin.de>
+%%
+%% Miranda: pure lazy functional language with polymorphic type system,
+%%          garbage collection and functions as first class citizens
+%%
+\lst@definelanguage{Miranda}%
+  {morekeywords={abstype,div,if,mod,otherwise,readvals,show,type,where,%
+     with,bool,char,num,sys_message,False,True,Appendfile,Closefile,%
+     Exit,Stderr,Stdout,System,Tofile,\%include,\%export,\%free,%
+     \%insert,abs,and,arctan,cjustify,code,concat,const,converse,cos,%
+     decode,digit,drop,dropwhile,entier,error,exp,filemode,filter,%
+     foldl,foldl1,foldr,foldr1,force,fst,getenv,hd,hugenum,id,index,%
+     init,integer,iterate,last,lay,layn,letter,limit,lines,ljustify,%
+     log,log10,map,map2,max,max2,member,merge,min,min2,mkset,neg,%
+     numval,or,pi,postfix,product,read,rep,repeat,reverse,rjustify,%
+     scan,seq,showfloat,shownum,showscaled,sin,snd,sort,spaces,sqrt,%
+     subtract,sum,system,take,takewhile,tinynum,tl,transpose,undef,%
+     until,zip2,zip3,zip4,zip5,zip6,zip},%
+   sensitive,%
+   morecomment=[l]||,%
+   morestring=[b]"%
+  }[keywords,comments,strings]%
+%%
+%% ML definition (c) 1999 Torben Hoffmann <toho@it.dtu.dk>
+%%
+\lst@definelanguage{ML}%
+  {morekeywords={abstype,and,andalso,as,case,do,datatype,else,end,%
+       eqtype,exception,fn,fun,functor,handle,if,in,include,infix,%
+       infixr,let,local,nonfix,of,op,open,orelse,raise,rec,sharing,sig,%
+       signature,struct,structure,then,type,val,with,withtype,while},%
+   sensitive,%
+   morecomment=[n]{(*}{*)},%
+   morestring=[d]"%
+  }[keywords,comments,strings]%
+%%
+%% Prolog definition (c) 1997 Dominique de Waleffe <ddw@miscrit.be>
+%%
+\lst@definelanguage{Prolog}%
+  {morekeywords={op,mod,abort,ancestors,arg,ascii,ask,assert,asserta,%
+      assertz,atom,atomic,char,clause,close,concat,consult,ed,ef,em,%
+      eof,fail,file,findall,write,functor,getc,integer,is,length,%
+      listing,load,name,nl,nonvar,not,numbervars,op,or,pp,prin,print,%
+      private,prompt,putc,ratom,read,read_from_this_file,rename,repeat,%
+      retract,retractall,save,see,seeing,seen,sh,skip,statistics,%
+      subgoal_of,system,tab,tell,telling,time,told,trace,true,unload,%
+      untrace,var,write},%
+   sensitive=f,%
+   morecomment=[l]\%,%
+   morecomment=[s]{/*}{*/},%
+   morestring=[bd]",%
+   morestring=[bd]'%
+  }[keywords,comments,strings]%
+%%
+%% SHELXL definition (c) 1999 Aidan Philip Heerdegen
+%%                            <Aidan.Heerdegen@anu.edu.au>
+%%
+\lst@definelanguage{SHELXL}%
+  {morekeywords={TITL,CELL,ZERR,LATT,SYMM,SFAC,DISP,UNIT,LAUE,%
+      REM,MORE,TIME,END,HKLF,OMIT,SHEL,BASF,TWIN,EXTI,SWAT,%
+      MERG,SPEC,RESI,MOVE,ANIS,AFIX,HFIX,FRAG,FEND,EXYZ,EADP,%
+      EQIV,OMIT,CONN,PART,BIND,FREE,DFIX,BUMP,SAME,SADI,CHIV,%
+      FLAT,DELU,SIMU,DEFS,ISOR,SUMP,L.S.,CGLS,SLIM,BLOC,DAMP,%
+      WGHT,FVAR,BOND,CONF,MPLA,RTAB,LIST,ACTA,SIZE,TEMP,WPDB,%
+      FMAP,GRID,PLAN,MOLE},%
+   sensitive=false,%
+   alsoother=_,% Makes the syntax highlighting ignore the underscores
+   morecomment=[l]{! },%
+  }%
+%%
+%% Tcl/Tk definition (c) Gerd Neugebauer <gerd.neugebauer@gmx.de>
+%%
+\lst@definelanguage[tk]{tcl}[]{tcl}%
+  {morekeywords={activate,add,separator,radiobutton,checkbutton,%
+      command,cascade,all,bell,bind,bindtags,button,canvas,canvasx,%
+      canvasy,cascade,cget,checkbutton,config,configu,configur,%
+      configure,clipboard,create,arc,bitmap,image,line,oval,polygon,%
+      rectangle,text,textwindow,curselection,delete,destroy,end,entry,%
+      entrycget,event,focus,font,actual,families,measure,metrics,names,%
+      frame,get,grab,current,release,status,grid,columnconfigure,%
+      rowconfigure,image,image,create,bitmap,photo,delete,height,types,%
+      widt,names,index,insert,invoke,itemconfigure,label,listbox,lower,%
+      menu,menubutton,message,move,option,add,clear,get,readfile,pack,%
+      photo,place,radiobutton,raise,scale,scroll,scrollbar,search,see,%
+      selection,send,stdin,stdout,stderr,tag,bind,text,tk,tkerror,%
+      tkwait,window,variable,visibility,toplevel,unknown,update,winfo,%
+      class,exists,ismapped,parent,reqwidth,reqheight,rootx,rooty,%
+      width,height,wm,aspect,client,command,deiconify,focusmodel,frame,%
+      geometry,group,iconbitmap,iconify,iconmask,iconname,iconposition,%
+      iconwindow,maxsize,minsize,overrideredirect,positionfrom,%
+      protocol,sizefrom,state,title,transient,withdraw,xview,yview,%
+      yposition,%
+      -accelerator,-activebackground,-activeborderwidth,%
+      -activeforeground,-after,-anchor,-arrow,-arrowshape,-aspect,%
+      -async,-background,-before,-bg,-bigincrement,-bitmap,-bordermode,%
+      -borderwidth,-button,-capstyle,-channel,-class,-closeenough,%
+      -colormap,-column,-columnspan,-command,-confine,-container,%
+      -count,-cursor,-data,-default,-detail,-digits,-direction,%
+      -displayof,-disableforeground,-elementborderwidth,-expand,%
+      -exportselection,-extend,-family,-fg,-file,-fill,-focus,-font,%
+      -fontmap,-foreground,-format,-from,-gamma,-global,-height,%
+      -highlightbackground,-highlightcolor,-highlightthickness,-icon,%
+      -image,-in,-insertbackground,-insertborderwidth,-insertofftime,%
+      -insertontime,-imsertwidth,-ipadx,-ipady,-joinstyle,-jump,%
+      -justify,-keycode,-keysym,-label,-lastfor,-length,-maskdata,%
+      -maskfile,-menu,-message,-mode,-offvalue,-onvalue,-orient,%
+      -outlien,-outlinestipple,-overstrike,-override,-padx,-pady,%
+      -pageanchor,-pageheight,-pagewidth,-pagey,-pagey,-palette,%
+      -parent,-place,-postcommand,-relheight,-relief,-relwidth,-relx,%
+      -rely,-repeatdelay,-repeatinterval,-resolution,-root,-rootx,%
+      -rooty,-rotate,-row,-rowspan,-screen,-selectcolor,-selectimage,%
+      -sendevent,-serial,-setgrid,-showvalue,-shrink,-side,-size,%
+      -slant,-sliderlength,-sliderrelief,-smooth,-splinesteps,-state,%
+      -sticky,-stipple,-style,-subsample,-subwindow,-tags,-takefocus,%
+      -tearoff,-tearoffcommand,-text,-textvariable,-tickinterval,-time,%
+      -title,-to,-troughcolor,-type,-underline,-use,-value,-variable,%
+      -visual,-width,-wrap,-wraplength,-x,-xscrollcommand,-y,%
+      -bgstipple,-fgstipple,-lmargin1,-lmargin2,-rmargin,-spacing1,%
+      -spacing2,-spacing3,-tabs,-yscrollcommand,-zoom,%
+      activate,add,addtag,bbox,cget,clone,configure,coords,%
+      curselection,debug,delete,delta,deselect,dlineinfo,dtag,dump,%
+      entrycget,entryconfigure,find,flash,fraction,get,gettags,handle,%
+      icursor,identify,index,insert,invoke,itemcget,itemconfigure,mark,%
+      moveto,own,post,postcascade,postscript,put,redither,ranges,%
+      scale,select,show,tag,type,unpost,xscrollcommand,xview,%
+      yscrollcommand,yview,yposition}%
+  }%
+\lst@definelanguage[]{tcl}%
+  {alsoletter={.:,*=&-},%
+   morekeywords={after,append,array,names,exists,anymore,donesearch,%
+      get,nextelement,set,size,startsearch,auto_mkindex,binary,break,%
+      case,catch,cd,clock,close,concat,console,continue,default,else,%
+      elseif,eof,error,eval,exec,-keepnewline,exit,expr,fblocked,%
+      fconfigure,fcopy,file,atime,dirname,executable,exists,extension,%
+      isdirectory,isfile,join,lstat,mtime,owned,readable,readlink,%
+      rootname,size,stat,tail,type,writable,-permissions,-group,-owner,%
+      -archive,-hidden,-readonly,-system,-creator,-type,-force,%
+      fileevent,flush,for,foreach,format,gets,glob,global,history,if,%
+      incr,info,argsbody,cmdcount,commands,complete,default,exists,%
+      globals,level,library,locals,patchlevel,procs,script,tclversion,%
+      vars,interp,join,lappend,lindex,linsert,list,llength,lrange,%
+      lreplace,lsearch,-exact,-regexp,-glob,lsort,-ascii,-integer,%
+      -real,-dictionary,-increasing,-decreasing,-index,-command,load,%
+      namespace,open,package,forget,ifneeded,provide,require,unknown,%
+      vcompare,versions,vsatisfies,pid,proc,puts,-nonewline,pwd,read,%
+      regexp,-indices,regsub,-all,-nocaserename,return,scan,seek,set,%
+      socket,source,split,string,compare,first,index,last,length,match,%
+      range,tolower,toupper,trim,trimleft,trimright,subst,switch,tell,%
+      time,trace,variable,vdelete,vinfo,unknown,unset,uplevel,upvar,%
+      vwait,while,acos,asin,atan,atan2,ceil,cos,cosh,exp,floor,fmod,%
+      hypot,log,log10,pow,sin,sinh,sqrt,tan,tanh,abs,double,int,round%
+      },%
+   morestring=[d]",%
+   MoreSelectCharTable=%
+      \lst@CArgX\#\relax\lst@CommentB\lst@CLmode{}{}%
+          {\ifx\lst@lastother\lstum@backslash
+               \expandafter\@gobblethree
+           \fi}\lst@commentstyle
+  }[keywords,comments,strings]%
+%%
+%% VBScript definition (c) 2000 Sonja Weidmann <Sonja.Weidmann@sap.com>
+%%
+\lst@definelanguage{VBScript}%
+  {morekeywords={Call,Case,Const,Dim,Do,Each,Else,End,Erase,Error,Exit,%
+      Explicit,For,Function,If,Loop,Next,On,Option,Private,Public,%
+      Randomize,ReDim,Rem,Select,Set,Sub,Then,Wend,While,Abs,Array,Asc,%
+      Atn,CBool,CByte,CCur,CDate,CDbl,Chr,CInt,CLng,Cos,CreateObject,%
+      CSng,CStr,Date,DateAdd,DateDiff,DatePart,DateSerial,DateValue,%
+      Day,Exp,Filter,Fix,FormatCurrency,FormatDateTime,FormatNumber,%
+      FormatPercent,GetObject,Hex,Hour,InputBox,InStr,InStrRev,Int,%
+      IsArray,IsDate,IsEmpty,IsNull,IsNumeric,IsObject,Join,LBound,%
+      LCase,Left,Len,LoadPicture,Log,LTrim,Mid,Minute,Month,MonthName,%
+      MsgBox,Now,Oct,Replace,RGB,Right,Rnd,Round,RTrim,ScriptEngine,%
+      ScriptEngineBuildVersion,ScriptEngineMajorVersion,%
+      ScriptEngineMinorVersion,Second,Sgn,Sin,Space,Split,Sqr,StrComp,%
+      StrReverse,String,Tan,Time,TimeSerial,TimeValue,Trim,TypeName,%
+      UBound,UCase,VarType,Weekday,WeekdayName,Year, And,Eqv,Imp,Is,%
+      Mod,Not,Or,Xor,Add,BuildPath,Clear,Close,Copy,CopyFile,%
+      CopyFolder,CreateFolder,CreateTextFile,Delete,DeleteFile,%
+      DeleteFolder,Dictionary,Drive,DriveExists,Drives,Err,Exists,File,%
+      FileExists,FileSystemObject,Files,Folder,FolderExists,Folders,%
+      GetAbsolutePathName,GetBaseName,GetDrive,GetDriveName,%
+      GetExtensionName,GetFile,GetFileName,GetFolder,%
+      GetParentFolderName,GetSpecialFolder,GetTempName,Items,Keys,Move,%
+      MoveFile,MoveFolder,OpenAsTextStream,OpenTextFile,Raise,Read,%
+      ReadAll,ReadLine,Remove,RemoveAll,Skip,SkipLine,TextStream,Write,%
+      WriteBlankLines,WriteLine,Alias,Archive,CDROM,Compressed,%
+      Directory,Fixed,ForAppending,ForReading,ForWriting,Hidden,Normal,%
+      RAMDisk,ReadOnly,Remote,Removable,System,SystemFolder,%
+      TemporaryFolder,TristateFalse,TristateTrue,TristateUseDefault,%
+      Unknown,Volume,WindowsFolder,vbAbortRetryIgnore,%
+      vbApplicationModal,vbArray,vbBinaryCompare,vbBlack,vbBlue,%
+      vbBoolean,vbByte,vbCr,vbCrLf,vbCritical,vbCurrency,vbCyan,%
+      vbDataObject,vbDate,vbDecimal,vbDefaultButton1,vbDefaultButton2,%
+      vbDefaultButton3,vbDefaultButton4,vbDouble,vbEmpty,vbError,%
+      vbExclamation,vbFirstFourDays,vbFirstFullWeek,vbFirstJan1,%
+      vbFormFeed,vbFriday,vbGeneralDate,vbGreen,vbInformation,%
+      vbInteger,vbLf,vbLong,vbLongDate,vbLongTime,vbMagenta,vbMonday,%
+      vbNewLine,vbNull,vbNullChar,vbNullString,vbOKC,ancel,vbOKOnly,%
+      vbObject,vbObjectError,vbQuestion,vbRed,vbRetryCancel,vbSaturday,%
+      vbShortDate,vbShortTime,vbSingle,vbString,vbSunday,vbSystemModal,%
+      vbTab,vbTextCompare,vbThursday,vbTuesday,vbUseSystem,%
+      vbUseSystemDayOfWeek,vbVariant,vbVerticalTab,vbWednesday,vbWhite,%
+      vbYellow,vbYesNo,vbYesNoCancel},%
+   sensitive=f,%
+   morecomment=[l]',%
+   morestring=[d]"%
+  }[keywords,comments,strings]%
+\endinput
+%%
+%% End of file `lstlang2.sty'.

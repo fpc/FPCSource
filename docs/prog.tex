@@ -21,7 +21,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preamble.
 \input{preamble.inc}
-\latex{%
+\begin{latexonly}
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Programmers' Guide)
@@ -29,7 +29,8 @@
            /Keywords(Free Pascal)
            }
   \fi
-}
+\end{latexonly}
+
 %
 % Settings
 %
@@ -53,7 +54,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Introduction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{About this document}
+\section{About this document}
 This is the programmer's manual for \fpc.
 
 It describes some of the peculiarities of the \fpc compiler, and provides a
@@ -3495,24 +3496,9 @@ be available on all platforms (either emulated via software
 or directly via hardware).
 
 The memory format of the \var{single} format looks like
-\begin{htmlonly}
-this:
-\fpcaddimg{../pics/single.png}
-\end{htmlonly}
-\begin{latexonly}
-what is shown in \seefig{singleformat}.
-\begin{figure}
-\caption{The single format}
-\label{fig:singleformat}
-\begin{center}
-\ifpdf
-\epsfig{file=pics/single.png}
-\else
-\epsfig{file=pics/single.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+what is shown in \seefig{single}.
+
+\FPCpic{The single format}{}{single}
 
 
 \subsubsection{double}
@@ -3522,24 +3508,9 @@ and its memory structure is the same as the IEEE-754 double
 type.
 
 The memory format of the \var{double} format looks like
-\begin{htmlonly}
-this:
-\fpcaddimg{../pics/double.png}
-\end{htmlonly}
-\begin{latexonly}
-like what is shown in \seefig{doubleformat}.
-\begin{figure}
-\begin{center}
-\caption{The double format}
-\label{fig:doubleformat}
-\ifpdf
-\epsfig{file=pics/double.png}
-\else
-\epsfig{file=pics/double.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+like what is shown in \seefig{double}.
+
+\FPCpic{The double format}{}{double}
 
 
 On processors which do not support co-processor operations (and which have
@@ -3861,7 +3832,7 @@ by default, the fast alignment is used to align the data.
 \label{se:StructuredAlignment}
 
 By default all elements in a structure are aligned to a 2 byte boundary,
-unless the {\var{\$PACKRECORDS} directive or \var{packed} modifier is used
+unless the \var{\$PACKRECORDS} directive or \var{packed} modifier is used
 to align the data in another way. For example a \var{record} or \var{object}
 having a 1 byte element, will have its size rounded up to 2, so the size of
 the structure will actually be 2 bytes.
@@ -5027,7 +4998,7 @@ This can be compiled using the following command:
 \begin{verbatim}
 gcc -o ctest2 ctest2.c -ldl
 \end{verbatim}
-\lstset{language=delphi}
+
 The \var{-ldl} tells gcc that the program needs the \file{libdl.so} library
 to load dynamical libraries.
 
@@ -5263,24 +5234,9 @@ to date or not. Furthermore, it contains all public symbols defined
 for a module.
 
 The general format of the \var{ppu} file format is shown
-\begin{htmlonly}
-here:
-\fpcaddimg{../pics/ppu.png}
-\end{htmlonly}
-\begin{latexonly}
-in \seefig{ppuformat}.
-\begin{figure}
-\caption{The PPU file format}
-\label{fig:ppuformat}
-\begin{center}
-\ifpdf
-\epsfig{file=pics/ppu.png}
-\else
-\epsfig{file=pics/ppu.eps}
-\fi
-\end{center}
-\end{figure}
-\end{latexonly}
+in \seefig{ppu}.
+
+\FPCpic{The PPU file format}{}{ppu}
 
 To read or write the ppufile, the ppu unit \file{ppu.pas} can be used,
 which has an object called tppufile which holds all routines that deal

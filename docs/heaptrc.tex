@@ -19,6 +19,8 @@
 %   Boston, MA 02111-1307, USA. 
 %
 \chapter{The HEAPTRC unit.}
+\FPCexampledir{heapex}
+
 This chapter describes the HEAPTRC unit for \fpc. It was written by 
 Pierre Muller. It is system independent, and works on all supported systems.
 
@@ -53,8 +55,8 @@ If you use the \var{-gh} switch, the compiler will insert the unit by itself,
 so you don't have to include it in your uses clause.
 
 The following example shows how to use the heaptrc unit.
-\latex{\lstinputlisting{heapex/heapex.pp}}
-\html{\input{heapex/heapex.tex}}
+
+\FPCexample{heapex}
 
 This is the memory dump shown when running this program:
 \begin{verbatim}
@@ -186,8 +188,7 @@ output, and a \seep{DumpHeap} is executed.
 
 \end{procedure}
 
-\latex{\lstinputlisting{heapex/setinfo.pp}}
-\html{\input{heapex/setinfo.tex}}
+\FPCexample{setinfo}
 
 \begin{procedure}{SetHeapTraceOutput}
 \Declaration
@@ -206,7 +207,12 @@ trace.
 
 %
 % $Log$
-% Revision 1.1  2000-07-13 09:10:04  michael
+% Revision 1.2  2003-03-16 15:22:18  peter
+%   * support for hevea
+%   * provided local copies or required styles since debian does not
+%     supply the listings.sty anymore
+%
+% Revision 1.1  2000/07/13 09:10:04  michael
 % + Initial import
 %
 % Revision 1.6  2000/07/11 18:07:26  peter
@@ -226,5 +232,4 @@ trace.
 %
 % Revision 1.1  1998/12/14 23:17:02  michael
 % + INitial implementation
-%
 %

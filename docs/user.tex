@@ -21,14 +21,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preamble.
 \input{preamble.inc}
-\latex{%
+\begin{latexonly}
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
            /Subject(Free Pascal Users' guide)
            /Keywords(Free Pascal)
            }
-\fi}
+  \fi
+\end{latexonly}
+
 %
 % Settings
 %
@@ -115,7 +117,7 @@ If the documentation doesn't give an answer to your questions,
 you can obtain more information on the Internet, on the following addresses:
 \begin{itemize}
 \item
-\htmladdnormallink{http://www.freepascal.org/}
+\seeurl{http://www.freepascal.org/}
 {http://www.freepascal.org} is the main
 site. It contains also useful mail addresses and
 links to other places.
@@ -123,7 +125,7 @@ It also contains the instructions for inscribing to the
 \textit{mailing-list}.
 
 \item
-\htmladdnormallink{http://community.freepascal.org:10000/}
+\seeurl{http://community.freepascal.org:10000/}
 {http://community.freepascal.org:10000/} is a forum site where
 questions can be posted.
 \end{itemize}
@@ -131,7 +133,7 @@ Other than that, some mirrors exist.
 
 Finally, if you think something should be added to this manual
 (entirely possible), please do not hesitate and contact me at
-\htmladdnormallink{michael@freepascal.org}{mailto:michael@freepascal.org}.
+\seeurl{michael@freepascal.org}{mailto:michael@freepascal.org}.
 .
 
 Let's get on with something useful.
@@ -206,31 +208,10 @@ compiler distribution.  The distribution zip file contains an
 installation program \file{INSTALL.EXE}. You must run this program to install
 the compiler.
 
-\begin{htmlonly}
-The first screen of the installation program looks like this:
-\fpcaddimg{../pics/install1.png}
-And the second screen looks like
-\fpcaddimg{../pics/install2.png}
-\end{htmlonly}
-\begin{latexonly}
-The screen of the installation program looks like figure \ref{fig:install}.
-\begin{figure}
-\caption{The \dos install program screen.}
-\label{fig:install}
-\ifpdf
-\epsfig{file=pics/install1.png,width=\textwidth}
-\end{figure}
-\begin{figure}
-\caption{The \dos install program screen.}
-\label{fig:installb}
-\epsfig{file=pics/install2.png,width=\textwidth}
-%\epsfig{file=pics/install2s.png}
-\else
-\epsfig{file=pics/install1.eps,width=\textwidth}
-\epsfig{file=pics/install2.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
+The screen of the installation program looks like figure \ref{fig:install1}.
+
+\FPCpic{The \dos install program screen}{}{install1}
+\FPCpic{}{}{install2}
 
 The program allows you to select:
 \begin{itemize}
@@ -1946,9 +1927,9 @@ period                 &     . \\
 \end{FPCltable}
 
 The \textbf{Options} codewords define actions to be taken when the keyword before
-the equal sign is found, \seet{options}
+the equal sign is found, \seet{ptopoptions}
 
-\begin{FPCltable}{lll}{Possible options}{options}
+\begin{FPCltable}{lll}{Possible options}{ptopoptions}
 Option         &     does what \\ \hline
 crsupp         &     suppress CR before the keyword.\\
 crbefore       &     force CR before keyword\\

@@ -1,0 +1,180 @@
+%
+%   $Id$
+%
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1997, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA.
+
+\usepackage{makeidx}
+\usepackage{ifthen}
+
+%
+% Fake packages
+%
+\newcommand{\xspace}{ }
+\newenvironment{multicols}[1]{}{}
+
+\newcommand{\docdescription}[1]{\def\@FPCDescription{#1}}
+\gdef\@FPCDescription{}%
+\newcommand{\docversion}[1]{\def\@FPCVersion{#1}}
+\gdef\@FPCVersion{}%
+
+%
+% FPC environments
+%
+% Remarks
+\newenvironment{remark}{\par\textbf{Remark:} }{\par}
+% List
+\newenvironment{FPCList}{\begin{list}}{\end{list}}
+% For Tables.
+\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+% The same, but with label in third argument (tab:#3)
+\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+
+%
+% Refs
+%
+\newcommand{\seefig}[1]{Figure \ref{fig:#1}\xspace}
+\newcommand{\seefl}[2]{\ahref{fu:#2}{#1}}
+\newcommand{\seepl}[2]{\ahref{pro:#2}{#1}}
+\newcommand{\seetypel}[2]{\ahref{ty:#2}{#1}}
+\newcommand{\seeconstl}[2]{\ahref{co:#2}{#1}}
+\newcommand{\seevarl}[2]{\ahref{var:#2}{#1}}
+\newcommand{\seec}[1]{chapter \ref{ch:#1}\xspace}
+\newcommand{\sees}[1]{section \ref{se:#1}\xspace}
+\newcommand{\seeo}[1]{\var{-#1}, (see \ref{option:#1})\xspace}
+\newcommand{\seet}[1]{table (\ref{tab:#1})\xspace}
+
+%
+% Function/procedure environments
+%
+\newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{procedurel}[2]{\subsection{#1}\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{method}[2]{\subsection{#1}\index{#1}\label{#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{property}[2]{\subsection{#1}\index{#1}\label{#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
+\newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
+\newenvironment{typel}[2]{\subsection{#1}\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{type}[1]{\begin{typel}{#1}{#1}}{\end{typel}}
+\newenvironment{constantl}[2]{\subsection{#1}\index{#1}\label{co:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{constant}[1]{\begin{constantl}{#1}{#1}}{\end{constantl}}
+\newenvironment{variablel}[2]{\subsection{#1}\index{#1}\label{var:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{variable}[1]{\begin{variablel}{#1}{#1}}{\end{variablel}}
+\newenvironment{ver2}{\par\textbf{version 2.0 only:}}{\par}
+\newcommand{\Declaration}{\item[Declaration]\ttfamily}
+\newcommand{\Description}{\item[Description]\rmfamily}
+\newcommand{\Portability}{\item[Portability]\rmfamily}
+\newcommand{\Errors}{\item[Errors]\rmfamily}
+\newcommand{\Visibility}{\item[Visibility]\rmfamily}
+\newcommand{\Access}{\item[Access]\rmfamily}
+\newcommand{\Synopsis}{\item[Synopsis]\rmfamily}
+\newcommand{\Arguments}{\item[Arguments]\rmfamily}
+\newcommand{\SeeAlso}{\item[See also]\rmfamily}
+%
+% Ref without labels
+%
+\newcommand{\seef}[1]{\seefl{#1}{#1}}
+\newcommand{\seep}[1]{\seepl{#1}{#1}}
+\newcommand{\seetype}[1]{\seetypel{#1}{#1}}
+\newcommand{\seevar}[1]{\seevarl{#1}{#1}}
+\newcommand{\seeconst}[1]{\seeconstl{#1}{#1}}
+%
+% man page references don't need labels.
+%
+\newcommand{\seem}[2]{\texttt{#1} (#2) }
+%
+% HTML references
+%
+\newcommand{\seeurl}[2]{\ahref{#2}{#1}}
+%
+% for easy typesetting of variables.
+%
+\newcommand{\var}[1]{\texttt {#1}}
+\newcommand{\file}[1]{\textsf {#1}}
+\newcommand{\key}[1]{\textsc{#1}}
+\newcommand{\menu}[1]{\textbf{"#1"}}
+%
+% Useful references.
+%
+\newcommand{\progref}{\ahref{../prog/prog.html}{Programmers guide}\xspace}
+\newcommand{\refref}{\ahref{../ref/ref.html}{Reference guide}\xspace}
+\newcommand{\userref}{\ahref{../user/user.html}{Users guide}\xspace}
+\newcommand{\unitsref}{\ahref{../units/units.html}{Unit reference}\xspace}
+%
+% Commands to reference these things.
+%
+\newcommand{\olabel}[1]{\label{option:#1}}
+%
+% some OSes
+%
+\newcommand{\linux}{\textsc{linux}\xspace}
+\newcommand{\unix}{\textsc{unix}\xspace}
+\newcommand{\dos}  {\textsc{dos}\xspace}
+\newcommand{\msdos}{\textsc{ms-dos}\xspace}
+\newcommand{\ostwo}{\textsc{os/2}\xspace}
+\newcommand{\windows}{\textsc{Windows}\xspace}
+\newcommand{\windowsnt}{\textsc{Windows NT}\xspace}
+\newcommand{\fpc}{Free Pascal\xspace}
+\newcommand{\gnu}{\textsc{gnu}\xspace}
+\newcommand{\atari}{\textsc{Atari}\xspace}
+\newcommand{\amiga}{\textsc{Amiga}\xspace}
+\newcommand{\solaris}{\textsc{Solaris}\xspace}
+\newcommand{\qnx}{\textsc{QNX Realtime platform}\xspace}
+\newcommand{\beos}{\textsc{BeOS}\xspace}
+\newcommand{\palmos}{\textsc{PalmOS}\xspace}
+\newcommand{\netbsd}{\textsc{NetBSD}\xspace}
+\newcommand{\openbsd}{\textsc{OpenBSD}\xspace}
+\newcommand{\win}{\textsc{Win32}\xspace}
+\newcommand{\freebsd}{\textsc{FreeBSD}\xspace}
+\newcommand{\tp}{Turbo Pascal\xspace}
+\newcommand{\delphi}{Delphi}
+%
+% Some versions
+%
+\newcommand{\fpcversion}{1.0.8}
+%
+% For examples
+%
+\newcommand{\FPCexample}[1]{\begin{verbatim}\input{\exampledir/#1.pp}\end{verbatim}}
+\newcommand{\Cexample}[1]{\begin{verbatim}\input{\exampledir/#1.c}\end{verbatim}}
+\newcommand{\exampledir}{.}
+\newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
+%
+% Picture including
+%
+\newcommand{\FPCpic}[3]{%
+  \linebreak%
+  \begin{center}
+  \textbf{Figure \ref{fig:#3} #1}%
+  \linebreak%
+  \label{fig:#3}%
+  \imgsrc{../pics/#2/#3.png}%
+  \end{center}
+  \linebreak%
+}
+%
+% Categorical Function/procedure overviews
+%
+\newenvironment{funclist}{\begin{list}}{\end{list}}
+\newcommand{\funcrefl}[3]{\item[\ahref{#2}{fu:#2} #3]}
+\newcommand{\funcref}[2]{\item[\ahref{#1}{fu:#1} #2]}
+\newcommand{\procrefl}[3]{\item[\ahref{#2}{pro:#2} #3]}
+\newcommand{\procref}[2]{\item[\ahref{#1}{pro:#1} #2]}
+
+%
+% end of fpc-html.tex
+%
