@@ -367,7 +367,7 @@ function Compile(const cmd:string):longint;
 var
   starttime  : real;
 {$ifdef HASGETHEAPSTATUS}
-  hstatus : THeapStatus;
+  hstatus : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
 begin
   try
@@ -424,7 +424,7 @@ begin
   end;
 {$ifdef SHOWUSEDMEM}
   {$ifdef HASGETHEAPSTATUS}
-      GetHeapStatus(hstatus);
+      hstatus:=GetFPCHeapStatus;
       Writeln('Max Memory used/heapsize: ',DStr(hstatus.MaxHeapUsed shr 10),'/',DStr(hstatus.MaxHeapSize shr 10),' Kb');
   {$else HASGETHEAPSTATUS}
       Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
@@ -441,7 +441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.57  2005-02-15 19:15:45  peter
+  Revision 1.58  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.57  2005/02/15 19:15:45  peter
     * Handle Control-C exception more cleanly
 
   Revision 1.56  2005/02/14 17:13:06  peter

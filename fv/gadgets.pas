@@ -182,11 +182,11 @@ end;
 PROCEDURE THeapView.Update;
 {$ifdef HASGETHEAPSTATUS}
 var
-  status : THeapStatus;
+  status : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
 BEGIN
 {$ifdef HASGETHEAPSTATUS}
-   GetHeapStatus(status);
+   status:=GetFPCHeapStatus;
    If (OldMem <> status.CurrHeapUsed) Then Begin                 { Memory differs }
      OldMem := status.CurrHeapUsed;                              { Hold memory avail }
      DrawView;                                        { Now redraw }
@@ -316,7 +316,10 @@ END;
 END.
 {
  $Log$
- Revision 1.10  2005-02-14 17:13:18  peter
+ Revision 1.11  2005-02-28 15:38:38  marco
+  * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+ Revision 1.10  2005/02/14 17:13:18  peter
    * truncate log
 
 }

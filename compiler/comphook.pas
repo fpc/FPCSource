@@ -205,7 +205,7 @@ end;
 function def_status:boolean;
 {$ifdef HASGETHEAPSTATUS}
 var
-  hstatus : THeapStatus;
+  hstatus : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
 begin
   def_status:=false; { never stop }
@@ -218,7 +218,7 @@ begin
          if status.currentline>0 then
            Write(status.currentline,' ');
 {$ifdef HASGETHEAPSTATUS}
-         GetHeapStatus(hstatus);
+         hstatus:=GetFPCHeapStatus;
          WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
 {$else HASGETHEAPSTATUS}
          WriteLn(DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
@@ -398,7 +398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:06  peter
+  Revision 1.37  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.36  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.35  2005/01/24 18:12:17  olle

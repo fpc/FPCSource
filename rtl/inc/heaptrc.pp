@@ -854,14 +854,14 @@ var
   pp : pheap_mem_info;
   i : ptrint;
   ExpectedHeapFree : ptrint;
-  status : THeapStatus;
+  status : TFPCHeapStatus;
 begin
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
   Writeln(ptext^,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(ptext^,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
-  SysGetHeapStatus(status);
+  status:=SysFPCGetHeapStatus;
   Write(ptext^,'True heap size : ',status.CurrHeapSize);
   if EntryMemUsed > 0 then
     Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
@@ -938,9 +938,14 @@ end;
                             No specific tracing calls
 *****************************************************************************}
 
-procedure TraceGetHeapStatus(var status:THeapStatus);
+function TraceGetHeapStatus:THeapStatus;
 begin
-  SysGetHeapStatus(status);
+  TraceGetHeapStatus:=SysGetHeapStatus;
+end;
+
+function TraceGetFPCHeapStatus:TFPCHeapStatus;
+begin
+    TraceGetFPCHeapStatus:=SysFPCGetHeapStatus;
 end;
 
 
@@ -993,14 +998,15 @@ const
     ReAllocMem : @TraceReAllocMem;
     MemSize : @TraceMemSize;
     GetHeapStatus : @TraceGetHeapStatus;
+    GetFPCHeapStatus : @TraceGetFPCHeapStatus;
   );
 
 
 procedure TraceInit;
 var
-  initheapstatus : THeapStatus;
+  initheapstatus : TFPCHeapStatus;
 begin
-  SysGetHeapStatus(initheapstatus);
+  initheapstatus:=SysFPCGetHeapStatus;
   EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
@@ -1145,7 +1151,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2005-02-14 17:13:22  peter
+  Revision 1.40  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.39  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.38  2005/01/21 15:56:32  peter

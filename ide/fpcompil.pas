@@ -511,7 +511,7 @@ procedure TCompilerStatusDialog.Update;
 var
   StatusS,KeyS: string;
 {$ifdef HASGETHEAPSTATUS}
-  hstatus : THeapStatus;
+  hstatus : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
 const
   MaxFileNameSize = 46;
@@ -572,7 +572,7 @@ begin
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
 {$ifdef HASGETHEAPSTATUS}
-  GetHeapStatus(hstatus);
+  hstatus:=GetFPCHeapStatus;
   AddFormatParamInt(hstatus.CurrHeapUsed div 1024);
   AddFormatParamInt(hstatus.CurrHeapSize div 1024);
 {$else}
@@ -1277,7 +1277,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  2005-02-14 17:13:18  peter
+  Revision 1.37  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.36  2005/02/14 17:13:18  peter
     * truncate log
 
   Revision 1.35  2005/02/10 20:57:02  peter

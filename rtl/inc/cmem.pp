@@ -150,10 +150,19 @@ begin
   CMemSize:=pptrint(p-sizeof(ptrint))^;
 end;
 
-Procedure CGetHeapStatus(var status:THeapStatus);
+function CGetHeapStatus:THeapStatus;
+
+var res: THeapStatus;
 
 begin
-  fillchar(status,sizeof(status),0);
+  fillchar(res,sizeof(res),0);
+  CGetHeapStatus:=res;
+end;
+
+function CGetFPCHeapStatus:TFPCHeapStatus;
+
+begin
+  fillchar(CGetFPCHeapStatus,sizeof(CGetFPCHeapStatus),0);
 end;
 
 
@@ -168,6 +177,7 @@ Const
       ReallocMem : @CReAllocMem;
       MemSize : @CMemSize;
       GetHeapStatus : @CGetHeapStatus;
+      GetFPCHeapStatus: @CGetFPCHeapStatus;	
     );
 
 Var
@@ -183,7 +193,10 @@ end.
 
 {
  $Log$
- Revision 1.12  2005-02-14 17:13:22  peter
+ Revision 1.13  2005-02-28 15:38:38  marco
+  * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+ Revision 1.12  2005/02/14 17:13:22  peter
    * truncate log
 
 }

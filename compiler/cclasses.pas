@@ -371,11 +371,11 @@ implementation
     procedure tmemdebug.start;
 {$ifdef HASGETHEAPSTATUS}
       var
-        status : THeapStatus;
+        status : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
       begin
 {$ifdef HASGETHEAPSTATUS}
-        GetHeapStatus(status);
+        status:=GetFPCHeapStatus;
         startmem:=status.CurrHeapUsed;
 {$else HASGETHEAPSTATUS}
         startmem:=memavail;
@@ -386,13 +386,13 @@ implementation
     procedure tmemdebug.stop;
 {$ifdef HASGETHEAPSTATUS}
       var
-        status : THeapStatus;
+        status : TFPCHeapStatus;
 {$endif HASGETHEAPSTATUS}
       begin
 {$ifdef HASGETHEAPSTATUS}
         if startmem<>0 then
          begin
-           GetHeapStatus(status);
+           status:=GetFPCHeapStatus;
            inc(TotalMem,startmem-status.CurrHeapUsed);
            startmem:=0;
          end;
@@ -2367,7 +2367,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.41  2005-02-14 17:13:06  peter
+  Revision 1.42  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.41  2005/02/14 17:13:06  peter
     * truncate log
 
 }

@@ -16,30 +16,46 @@
 
 { Memorymanager }
 type
-  THeapStatus = record
+  TFPCHeapStatus = record
     MaxHeapSize,
     MaxHeapUsed,
     CurrHeapSize,
     CurrHeapUsed,
     CurrHeapFree  : ptrint;
   end;
+  THeapStatus = record
+    TotalAddrSpace: Cardinal;
+    TotalUncommitted: Cardinal;
+    TotalCommitted: Cardinal;
+    TotalAllocated: Cardinal;
+    TotalFree: Cardinal;
+    FreeSmall: Cardinal;
+    FreeBig: Cardinal;
+    Unused: Cardinal;
+    Overhead: Cardinal;
+    HeapErrorCode: Cardinal;
+  end;
+
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
-    NeedLock    : boolean;
-    Getmem      : Function(Size:ptrint):Pointer;
-    Freemem     : Function(p:pointer):ptrint;
-    FreememSize : Function(p:pointer;Size:ptrint):ptrint;
-    AllocMem    : Function(Size:ptrint):Pointer;
-    ReAllocMem  : Function(var p:pointer;Size:ptrint):Pointer;
-    MemSize     : function(p:pointer):ptrint;
-    GetHeapStatus : procedure(var status:THeapStatus);
+    NeedLock    	: boolean;
+    Getmem      	: Function(Size:ptrint):Pointer;
+    Freemem     	: Function(p:pointer):ptrint;
+    FreememSize 	: Function(p:pointer;Size:ptrint):ptrint;
+    AllocMem   	 	: Function(Size:ptrint):Pointer;
+    ReAllocMem  	: Function(var p:pointer;Size:ptrint):Pointer;
+    MemSize     	: function(p:pointer):ptrint;
+    GetHeapStatus 	: function :THeapStatus;
+    GetFPCHeapStatus    : function :TFPCHeapStatus;
   end;
+
   TMemoryMutexManager = record
     MutexInit : procedure;
     MutexDone : procedure;
     MutexLock : procedure;
     MutexUnlock : procedure;
   end;
+
 procedure GetMemoryManager(var MemMgr: TMemoryManager);
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
@@ -61,7 +77,8 @@ Function  SysMemSize(p:pointer):ptrint;
 Function  SysAllocMem(size:ptrint):Pointer;
 function  SysTryResizeMem(var p:pointer;size : ptrint):boolean;
 Function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;
-procedure SysGetHeapStatus(var status:THeapStatus);
+function  SysGetHeapStatus:THeapStatus;
+function  SysFPCGetHeapStatus:TFPCHeapStatus;
 
 { Tp7 functions }
 Procedure Getmem(Var p:pointer;Size:ptrint);
@@ -80,7 +97,8 @@ function Freememory(p:pointer):ptrint;
 function AllocMem(Size:ptrint):pointer;
 function ReAllocMem(var p:pointer;Size:ptrint):pointer;
 function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
-procedure GetHeapStatus(var status:THeapStatus);
+function GetHeapStatus:THeapStatus;
+function GetFPCHeapStatus:TFPCHeapStatus;
 
 {$ifndef ValueGetmem}
 { Needed to solve overloading problem with call from assembler (PFV) }
@@ -99,7 +117,10 @@ Function  Heapsize:ptrint;
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:22  peter
+  Revision 1.14  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.13  2005/02/14 17:13:22  peter
     * truncate log
 
 }

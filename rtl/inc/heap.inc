@@ -128,7 +128,7 @@ type
   pfreelists   = ^tfreelists;
 
 var
-  internal_status : THeapStatus;
+  internal_status : TFPCHeapStatus;
 
   freelists_fixed    : tfreelists;
   freelist_var       : pmemchunk_var;
@@ -259,22 +259,41 @@ begin
 end;
 
 
-procedure GetHeapStatus(var status:THeapStatus);
+function GetHeapStatus:THeapStatus;
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
-       MemoryManager.GetHeapStatus(status);
+       result:=MemoryManager.GetHeapStatus();
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MemoryManager.GetHeapStatus(status);
+     result:=MemoryManager.GetHeapStatus();
    end;
 end;
+
+
+function GetFPCHeapStatus:TFPCHeapStatus;
+begin
+  if IsMultiThread and MemoryManager.NeedLock then
+   begin
+     try
+       MemoryMutexManager.MutexLock;
+       result:=MemoryManager.GetFPCHeapStatus();
+     finally
+       MemoryMutexManager.MutexUnlock;
+     end;
+   end
+  else
+   begin
+     Result:=MemoryManager.GetFPCHeapStatus();
+   end;
+end;
+
 
 
 function MemSize(p:pointer):ptrint;
@@ -466,10 +485,26 @@ end;
                                GetHeapStatus
 *****************************************************************************}
 
-procedure SysGetHeapStatus(var status:THeapStatus);
+function SysFPCGetHeapStatus:TFPCHeapStatus;
 begin
   internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
-  status:=internal_status;
+  result:=internal_status;
+end;
+
+function SysGetHeapStatus :THeapStatus;
+
+begin
+  internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
+  result.TotalAllocated   :=internal_status.CurrHeapUsed;
+  result.TotalFree        :=internal_status.CurrHeapFree;
+  result.TotalAddrSpace   :=0;
+  result.TotalUncommitted :=0;
+  result.TotalCommitted   :=0;
+  result.FreeSmall 	  :=0;
+  result.FreeBig 	  :=0;
+  result.Unused 	  :=0;
+  result.Overhead 	  :=0;
+  result.HeapErrorCode    :=0;
 end;
 
 
@@ -1286,7 +1321,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  2005-02-14 17:13:22  peter
+  Revision 1.44  2005-02-28 15:38:38  marco
+   * getFPCheapstatus  (no, FPC HEAP, not FP CHEAP!)
+
+  Revision 1.43  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.42  2005/01/30 11:56:29  peter
