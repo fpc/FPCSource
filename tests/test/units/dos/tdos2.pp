@@ -41,6 +41,9 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 {$IFDEF MSDOS}
         {$DEFINE EXTATTR}
 {$ENDIF}
+{$IFDEF DPMI}
+        {$DEFINE EXTATTR}
+{$ENDIF}
 {$IFDEF GO32V1}
         {$DEFINE EXTATTR}
 {$ENDIF}
@@ -72,20 +75,22 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 {$IFDEF FREEBSD}
         {$DEFINE UNIX}
 {$ENDIF}
+{$IFDEF BEOS}
+        {$DEFINE UNIX}
 {$ENDIF}
-const
-{ what is the root path }
-{$IFDEF EXTATTR}
-  RootPath = 'C:\';
-{$ENDIF}
-{$IFDEF UNIX}
-  RootPath := '/';
 {$ENDIF}
 {**********************************************************************}
 
 
 
 CONST
+{ what is the root path }
+{$IFDEF EXTATTR}
+  RootPath = 'C:\';
+{$ENDIF}
+{$IFDEF UNIX}
+  RootPath = '/';
+{$ENDIF}
  Week:Array[0..6] of String =
  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
 
@@ -695,17 +700,18 @@ Begin
 
  s:='Looking for '+TestFName +' with Any Attribute...';
  FindFirst('*.DAT',AnyFile,Search);
- { At least testdos.dat should appear }
- if DosError <> 0 then
-   WriteLn(s+'FAILURE. ',TestFName,' should be found.')
- else
-   WriteLn(s+'Success.');
  if Search.Name <> TestFName then
   Begin
     repeat
       FindNext(Search);
     until (DosError <> 0) OR (Search.Name = TestFName);
   end;
+ if Search.Name <> TestFName then
+ { At least testdos.dat should appear }
+   WriteLn(s+'FAILURE. ',TestFName,' should be found.')
+ else
+   WriteLn(s+'Success.');
+
 {$IFDEF FPC}
  FindClose(Search);
 {$ENDIF}
@@ -851,10 +857,9 @@ Begin
 {$IFDEF FPC}
   FindClose(Search);
 {$ENDIF}
-
  { search for volume ID }
  s:='Searching using * wildcard in ROOT (normal files + volume ID)...';
- FindFirst(RootPath+'*',VolumeID,Search);
+ FindFirst(RootPath+'*',Directory+VolumeID,Search);
  Failure := TRUE;
  WriteLn(#9'Resources found (full path should not be displayed):');
  while DosError = 0 do
@@ -862,8 +867,10 @@ Begin
     If Search.Attr and VolumeID <> 0 then
     Begin
       Failure := FALSE;
+      WriteLn(#9'Volume ID: '+Search.Name);
+    End
+    else
       WriteLn(#9+Search.Name);
-    End;
     FindNext(Search);
  end;
  If Failure then
@@ -984,7 +991,10 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 
 {
   $Log$
-  Revision 1.3  2001-06-06 01:31:24  carl
+  Revision 1.4  2001-08-09 01:14:57  carl
+  * several updates and more error checking
+
+  Revision 1.3  2001/06/06 01:31:24  carl
   * fsplit with .. only works for go32v2 version and TP
 
   Revision 1.2  2001/05/20 18:30:46  hajny
