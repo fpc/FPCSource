@@ -4,8 +4,7 @@
 
 [targets]
 units=gdbint gdbcon
-programs=symify
-examples=testgdb
+examples=testgdb symify
 
 [defaults]
 defaultunits=1
