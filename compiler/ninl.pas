@@ -747,7 +747,9 @@ implementation
                     if do_read and
                       ((is_ordinal and
                         not(torddef(para.left.resulttype.def).typ in hasownreadfunc) and
-                        (para.left.resulttype.def.size<>sinttype.def.size)
+                        { Don't allow subranges to match }
+                        (para.left.resulttype.def<>sinttype.def) and
+                        (para.left.resulttype.def<>uinttype.def)
                        ) or
                        (is_real and
                         not equal_defs(para.left.resulttype.def,pbestrealtype^.def)
@@ -2441,7 +2443,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.143  2004-08-25 15:56:35  peter
+  Revision 1.144  2004-09-13 20:32:06  peter
+    * fix for read(subranges) with subrange typ already being sinttype
+
+  Revision 1.143  2004/08/25 15:56:35  peter
     * fix sqr() and abs() constant range check errors
 
   Revision 1.142  2004/08/08 16:00:56  florian
