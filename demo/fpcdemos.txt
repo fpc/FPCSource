@@ -9,7 +9,7 @@ This packages contains the following subdirs:
 - win32  demos those are win32 specific
 - linux  demos those are linux specific
 - os2    demos those are OS/2 specific
-- palmos demose those are palmos specific (dragonball)
+- palmos demos those are palmos specific (dragonball)
 
 To build the programs simply type 'make' in the base dir.
 
