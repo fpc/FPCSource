@@ -53,15 +53,12 @@ const
       t      : shorttimeformat
       tt     : longtimeformat
       am/pm  : use 12 hour clock and display am and pm accordingly
-		a/p    : use 12 hour clock and display a and p accordingly
+                a/p    : use 12 hour clock and display a and p accordingly
       /      : insert date seperator
       :      : insert time seperator
       "xx"   : literal text
       'xx'   : literal text
    }
-
-
-   Eoln = #10;
 
 type
    TSystemTime = record
@@ -106,7 +103,10 @@ Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 {
 
   $Log$
-  Revision 1.6  2000-02-09 16:59:32  peter
+  Revision 1.7  2000-04-24 11:09:05  peter
+    * removed eoln
+
+  Revision 1.6  2000/02/09 16:59:32  peter
     * truncated log
 
 }
