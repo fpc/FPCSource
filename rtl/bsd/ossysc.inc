@@ -142,6 +142,10 @@ begin
  Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
 end;
 
+{$ifdef VER1_0}
+ {$DEFINE FPC_LITTLE_ENDIAN}
+{$endif}
+
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
@@ -619,7 +623,10 @@ end;
 
 {
  $Log$
- Revision 1.18  2004-07-17 16:02:58  marco
+ Revision 1.19  2004-07-18 11:32:24  marco
+  * small 1.0.x fix to earlier patch
+
+ Revision 1.18  2004/07/17 16:02:58  marco
   * generalised the {$ifdef cpu_i386} ..powerpc stuff to FPC_BIG_ENDIAN and
  FPC_LITTLE_ENDIAN
 
