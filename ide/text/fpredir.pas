@@ -38,16 +38,18 @@ procedure RestoreErrorRedir;
 
 Implementation
 
+Uses
 {$ifdef FPC}
  {$ifdef go32v2}
-  {$define in_dos}
+ go32,
+ {$define in_dos}
  {$endif go32v2}
 {$else : not FPC}
  {$ifdef TP}
   {$define in_dos}
  {$endif TP}
 {$endif not FPC}
-Uses dos;
+  dos;
 
 Type
 
@@ -131,6 +133,7 @@ end;
 {............................................................................}
 
 function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+  var temp : byte;
   begin
     ChangeRedir:=False;
     If Redir = '' then Exit;
@@ -154,15 +157,19 @@ function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
     TempH:=dup(1);
     if dup2(1,FileRec(F).Handle)=FileRec(F).Handle then
 {$else UseDUP}
+    DosMemGet(prefseg,HandlesOffset+1,OldHandle,1);
+    DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
+    dosmemput(prefseg,HandlesOffset+1,temp,1);
+    { NO MEM use as %fs is distroyed somewhere !!
     OldHandle:=Mem[prefseg:HandlesOffset+1];
-    Mem[prefseg:HandlesOffset+1]:=Mem[prefseg:HandlesOffset+FileRec(F).handle];
+    Mem[prefseg:HandlesOffset+1]:=Mem[prefseg:HandlesOffset+FileRec(F).handle];}
 {$endif UseDUP}
       ChangeRedir:=True;
 {$endif}
   end;
 
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-
+  var temp : byte;
   begin
     ChangeErrorRedir:=False;
     If Redir = '' then Exit;
@@ -186,8 +193,11 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
     TempErrorH:=dup(2);
     if dup2(2,FileRec(F).Handle)=FileRec(F).Handle then
 {$else UseDUP}
-    OldErrorHandle:=Mem[prefseg:HandlesOffset+2];
-    Mem[prefseg:HandlesOffset+2]:=Mem[prefseg:HandlesOffset+FileRec(FE).handle];
+    DosMemGet(prefseg,HandlesOffset+2,OldErrorHandle,1);
+    DosMemGet(prefseg,HandlesOffset+FileRec(F).handle,temp,1);
+    dosmemput(prefseg,HandlesOffset+1,temp,1);
+    {OldErrorHandle:=Mem[prefseg:HandlesOffset+2];
+    Mem[prefseg:HandlesOffset+2]:=Mem[prefseg:HandlesOffset+FileRec(FE).handle];}
 {$endif UseDUP}
       ChangeErrorRedir:=True;
 {$endif}
@@ -235,7 +245,8 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifdef UseDUP}
     dup2(1,TempH);
 {$else UseDUP}
-    Mem[prefseg:HandlesOffset+1]:=OldHandle;
+    dosmemput(prefseg,HandlesOffset+1,OldHandle,1);
+    {Mem[prefseg:HandlesOffset+1]:=OldHandle;}
 {$endif UseDUP}
 {$endif}
     Close (F);
@@ -254,7 +265,8 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifdef UseDUP}
     dup2(1,TempErrorH);
 {$else UseDUP}
-    Mem[prefseg:HandlesOffset+2]:=OldErrorHandle;
+    dosmemput(prefseg,HandlesOffset+2,OldErrorHandle,1);
+    {Mem[prefseg:HandlesOffset+2]:=OldErrorHandle;}
 {$endif UseDUP}
 {$endif}
     Close (FE);
