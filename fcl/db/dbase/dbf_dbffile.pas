@@ -5,7 +5,7 @@ interface
 {$I Dbf_Common.inc}
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, Math,
 {$ifdef WIN32}
   Windows,
 {$else}
@@ -34,6 +34,7 @@ type
 
 //====================================================================
   TDbfIndexMissingEvent = procedure(var DeleteLink: Boolean) of object;
+  TUpdateNullField = (unClear, unSet);
 
 //====================================================================
   TDbfGlobals = class;
@@ -49,8 +50,6 @@ type
     FDbfVersion: TXBaseVersion;
     FPrevBuffer: PChar;
     FRecordBufferSize: Integer;
-    FLockFieldOffset: Integer;
-    FLockFieldLen: DWORD;
     FLockUserLen: DWORD;
     FFileCodePage: Cardinal;
     FUseCodePage: Cardinal;
@@ -58,22 +57,27 @@ type
     FCountUse: Integer;
     FCurIndex: Integer;
     FForceClose: Boolean;
-    FHasLockField: Boolean;
+    FLockField: TDbfFieldDef;
+    FNullField: TDbfFieldDef;
     FAutoIncPresent: Boolean;
     FCopyDateTimeAsString: Boolean;
     FDateTimeHandling: TDateTimeHandling;
     FOnLocaleError: TDbfLocaleErrorEvent;
     FOnIndexMissing: TDbfIndexMissingEvent;
 
-    procedure ConstructFieldDefs;
     function  HasBlob: Boolean;
     function  GetMemoExt: string;
-    procedure WriteLockInfo(Buffer: PChar);
 
     function GetLanguageId: Integer;
     function GetLanguageStr: string;
     function GetUseFloatFields: Boolean;
     procedure SetUseFloatFields(NewUse: Boolean);
+    
+  protected
+    procedure ConstructFieldDefs;
+    procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
+    procedure WriteLockInfo(Buffer: PChar);
+
   public
     constructor Create;
     destructor Destroy; override;
@@ -93,7 +97,7 @@ type
     procedure CloseIndex(AIndexName: string);
     procedure RepageIndex(AIndexFile: string);
     procedure CompactIndex(AIndexFile: string);
-    procedure Insert(Buffer: PChar);
+    function  Insert(Buffer: PChar): integer;
     procedure WriteHeader; override;
     procedure ApplyAutoIncToBuffer(DestBuf: PChar);     // dBase7 support. Writeback last next-autoinc value
     procedure FastPackTable;
@@ -123,7 +127,6 @@ type
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
     property PrevBuffer: PChar read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
-    property HasLockField: Boolean read FHasLockField;
     property CopyDateTimeAsString: Boolean read FCopyDateTimeAsString write FCopyDateTimeAsString;
     property UseFloatFields: Boolean read GetUseFloatFields write SetUseFloatFields;
     property DateTimeHandling: TDateTimeHandling read FDateTimeHandling write FDateTimeHandling;
@@ -463,9 +466,11 @@ begin
         FMemoFile.DbfVersion := FDbfVersion;
         FMemoFile.Open;
         // set header blob flag corresponding to field list
-        PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF or $80;
+        if FDbfVersion <> xFoxPro then
+          PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF or $80;
       end else
-        PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF and $7F;
+        if FDbfVersion <> xFoxPro then
+          PDbfHdr(Header).VerDBF := PDbfHdr(Header).VerDBF and $7F;
       // check if mdx flagged
       if (FDbfVersion <> xFoxPro) and (PDbfHdr(Header).MDXFlag <> 0) then
       begin
@@ -799,6 +804,8 @@ var
   dataPtr: PChar;
   lNativeFieldType: Char;
   lFieldName: string;
+  lCanHoldNull: boolean;
+  lCurrentNullPosition: integer;
 begin
   FFieldDefs.Clear;
   if DbfVersion >= xBaseVII then
@@ -812,12 +819,15 @@ begin
   HeaderSize := lHeaderSize;
   RecordSize := lFieldSize;
 
-  FHasLockField := false;
+  FLockField := nil;
+  FNullField := nil;
   FAutoIncPresent := false;
   lColumnCount := (PDbfHdr(Header).FullHdrSize - lHeaderSize) div lFieldSize;
   lFieldOffset := 1;
   lAutoInc := 0;
   I := 1;
+  lCurrentNullPosition := 0;
+  lCanHoldNull := false;
   try
     // there has to be minimum of one field
     repeat
@@ -839,6 +849,9 @@ begin
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
+        lCanHoldNull := (FDbfVersion = xFoxPro) and 
+          ((lFieldDescIII.FoxProFlags and $2) <> 0) and
+          (lFieldName <> '_NULLFLAGS');
       end;
 
       // apply field transformation tricks
@@ -849,7 +862,8 @@ begin
       end;
 
       // add field
-      with FFieldDefs.AddFieldDef do
+      TempFieldDef := FFieldDefs.AddFieldDef;
+      with TempFieldDef do
       begin
         FieldName := lFieldName;
         Offset := lFieldOffset;
@@ -857,27 +871,31 @@ begin
         Precision := lPrec;
         AutoInc := lAutoInc;
         NativeFieldType := lNativeFieldType;
-
-        // check valid field:
-        //  1) non-empty field name
-        //  2) known field type
-        //  {3) no changes have to be made to precision or size}
-        if (Length(lFieldName) = 0) or (FieldType = ftUnknown) then
-          raise EDbfError.Create(STRING_INVALID_DBF_FILE);
-
-        // determine if lock field present
-        IsLockField := lFieldName = '_DBASELOCK';
-        // if present, then store additional info
-        if IsLockField then
+        if lCanHoldNull then
         begin
-          FHasLockField := true;
-          FLockFieldOffset := lFieldOffset;
-          FLockFieldLen := lSize;
-          FLockUserLen := FLockFieldLen - 8;
-          if FLockUserLen > DbfGlobals.UserNameLen then
-            FLockUserLen := DbfGlobals.UserNameLen;
-        end;
+          NullPosition := lCurrentNullPosition;
+          inc(lCurrentNullPosition);
+        end else
+          NullPosition := -1;
       end;
+
+      // check valid field:
+      //  1) non-empty field name
+      //  2) known field type
+      //  {3) no changes have to be made to precision or size}
+      if (Length(lFieldName) = 0) or (TempFieldDef.FieldType = ftUnknown) then
+        raise EDbfError.Create(STRING_INVALID_DBF_FILE);
+
+      // determine if lock field present, if present, then store additional info
+      if lFieldName = '_DBASELOCK' then
+      begin
+        FLockField := TempFieldDef;
+        FLockUserLen := lSize - 8;
+        if FLockUserLen > DbfGlobals.UserNameLen then
+          FLockUserLen := DbfGlobals.UserNameLen;
+      end else
+      if UpperCase(lFieldName) = '_NULLFLAGS' then
+        FNullField := TempFieldDef;
 
       // goto next field
       Inc(lFieldOffset, lSize);
@@ -1047,6 +1065,13 @@ begin
   end;
 end;
 
+type
+  TRestructFieldInfo = record
+    SourceOffset: Integer;
+    DestOffset: Integer;
+    Size: Integer;
+  end;
+
 procedure TDbfFile.RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
 var
   DestDbfFile: TDbfFile;
@@ -1056,9 +1081,10 @@ var
   TempDstDef, TempSrcDef: TDbfFieldDef;
   OldIndexFiles, NewIndexFiles: TStrings;
   IndexName, NewBaseName, OldBaseName: string;
-  I, lRecNo, lFieldNo, lFieldSize, lBlobRecNo, lWRecNo: Integer;
+  I, lRecNo, lFieldNo, lFieldSize, lBlobRecNo, lWRecNo, srcOffset, dstOffset: Integer;
   pBuff, pDestBuff: PChar;
   pBlobRecNoBuff: array[1..11] of Char;
+  RestructFieldInfo: array of TRestructFieldInfo;
   BlobStream: TMemoryStream;
 begin
   // nothing to do?
@@ -1104,6 +1130,50 @@ begin
     DestDbfFile.FinishCreate(DestFieldDefs, FMemoFile.RecordSize)
   else
     DestDbfFile.FinishCreate(DestFieldDefs, 512);
+
+  // adjust size and offsets of fields
+  SetLength(RestructFieldInfo, DestFieldDefs.Count);
+  for lFieldNo := 0 to DestFieldDefs.Count - 1 do
+  begin
+    TempDstDef := DestFieldDefs.Items[lFieldNo];
+    if TempDstDef.CopyFrom >= 0 then
+    begin
+      TempSrcDef := FFieldDefs.Items[TempDstDef.CopyFrom];
+      if TempDstDef.NativeFieldType in ['F', 'N'] then
+      begin
+        // get minimum field length
+        lFieldSize := Min(TempSrcDef.Precision, TempDstDef.Precision) +
+          Min(TempSrcDef.Size - TempSrcDef.Precision, 
+            TempDstDef.Size - TempDstDef.Precision);
+        // if one has dec separator, but other not, we lose one digit
+        if (TempDstDef.Precision > 0) xor 
+          ((TempSrcDef.NativeFieldType in ['F', 'N']) and (TempSrcDef.Precision > 0)) then
+          Dec(lFieldSize);
+        // should not happen, but check nevertheless (maybe corrupt data)
+        if lFieldSize < 0 then
+          lFieldSize := 0;
+        srcOffset := TempSrcDef.Size - TempSrcDef.Precision - 
+          (TempDstDef.Size - TempDstDef.Precision);
+        if srcOffset < 0 then
+        begin
+          dstOffset := -srcOffset;
+          srcOffset := 0;
+        end else begin
+          dstOffset := 0;
+        end;
+      end else begin
+        lFieldSize := Min(TempSrcDef.Size, TempDstDef.Size);
+        srcOffset := 0;
+        dstOffset := 0;
+      end;
+      with RestructFieldInfo[lFieldNo] do
+      begin
+        Size := lFieldSize;
+        SourceOffset := TempSrcDef.Offset + srcOffset;
+        DestOffset := TempDstDef.Offset + dstOffset;
+      end;
+    end;
+  end;
 
   // add indexes
   TempIndexDef := TDbfIndexDef.Create(nil);
@@ -1182,15 +1252,9 @@ begin
               DestDbfFile.SetFieldData(lFieldNo, ftInteger, @lBlobRecNo, pDestBuff);
             end else if (DbfFieldDefs <> nil) and (TempDstDef.CopyFrom >= 0) then
             begin
-              // restructure and copy field, get src fielddef
-              // DbfFieldDefs <> nil -> DestFieldDefs = DbfFieldDefs
-              TempSrcDef := FFieldDefs.Items[TempDstDef.CopyFrom];
-              // get size
-              lFieldSize := TempSrcDef.Size;
-              if lFieldSize > TempDstDef.Size then
-                lFieldSize := TempDstDef.Size;
               // copy content of field
-              Move(pBuff[TempSrcDef.Offset], pDestBuff[TempDstDef.Offset], lFieldSize);
+              with RestructFieldInfo[lFieldNo] do
+                Move(pBuff[SourceOffset], pDestBuff[DestOffset], Size);
             end;
           end;
         end;
@@ -1367,181 +1431,210 @@ var
   end;
 
 begin
-  // test if non-nil source
-  // do not check Dst = nil, called with dst = nil to check empty field
-  if (Src <> nil) then
+  // test if non-nil source (record buffer)
+  if Src = nil then
   begin
-    FieldOffset := AFieldDef.Offset;
-    FieldSize := AFieldDef.Size;
-    Src := PChar(Src) + FieldOffset;
-    // field types that are binary and of which the fieldsize should not be truncated
-    case AFieldDef.NativeFieldType of
-      '+', 'I':
+    Result := false;
+    exit;
+  end;
+
+  // check Dst = nil, called with dst = nil to check empty field
+  if (FNullField <> nil) and (Dst = nil) and (AFieldDef.NullPosition >= 0) then
+  begin
+    // go to byte with null flag of this field
+    Src := PChar(Src) + FNullField.Offset + (AFieldDef.NullPosition shr 3);
+    Result := (PByte(Src)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
+    exit;
+  end;
+  
+  FieldOffset := AFieldDef.Offset;
+  FieldSize := AFieldDef.Size;
+  Src := PChar(Src) + FieldOffset;
+  // field types that are binary and of which the fieldsize should not be truncated
+  case AFieldDef.NativeFieldType of
+    '+', 'I':
+      begin
+        if FDbfVersion <> xFoxPro then
         begin
-          if FDbfVersion <> xFoxPro then
-          begin
-            Result := PDWord(Src)^ <> 0;
-            if Result and (Dst <> nil) then
-            begin
-              PInteger(Dst)^ := SwapInt(PInteger(Src)^);
-              if Result then
-                PInteger(Dst)^ := Integer(PDWord(Dst)^ - $80000000);
-            end;
-          end else begin
-            Result := true;
-            if Dst <> nil then
-              PInteger(Dst)^ := PInteger(Src)^;
-          end;
-        end;
-      'O':
-        begin
-{$ifdef SUPPORT_INT64}
-          Result := (PInt64(Src)^ <> 0);
+          Result := PDWord(Src)^ <> 0;
           if Result and (Dst <> nil) then
           begin
-            SwapInt64(Src, Dst);
-            if PInt64(Dst)^ > 0 then
-              PInt64(Dst)^ := not PInt64(Dst)^
-            else
-              PDouble(Dst)^ := PDouble(Dst)^ * -1;
+            PInteger(Dst)^ := SwapInt(PInteger(Src)^);
+            if Result then
+              PInteger(Dst)^ := Integer(PDWord(Dst)^ xor $80000000);
           end;
-{$endif}
-        end;
-      '@':
-        begin
-          Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
-          if Result and (Dst <> nil) then
-          begin
-            SwapInt64(Src, Dst);
-            if FDateTimeHandling = dtBDETimeStamp then
-              date := BDETimeStampToDateTime(PDouble(Dst)^)
-            else
-              date := PDateTime(Dst)^;
-            SaveDateToDst;
-          end;
-        end;
-      'T':
-        begin
-          // all binary zeroes -> empty datetime
-          Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
-          if Result and (Dst <> nil) then
-          begin
-            timeStamp.Date := PInteger(Src)^ - 1721425;
-            timeStamp.Time := PInteger(PChar(Src)+4)^;
-            date := TimeStampToDateTime(timeStamp);
-            SaveDateToDst;
-          end;
-        end;
-      'Y':
-        begin
-{$ifdef SUPPORT_INT64}
+        end else begin
           Result := true;
           if Dst <> nil then
-          begin
-            SwapInt64(Src, Dst);
-            case DataType of
-              ftCurrency:
-              begin
-                PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
-              end;
-              ftBCD:
-              begin
-                PCurrency(Dst)^ := PCurrency(Src)^;
-              end;
+            PInteger(Dst)^ := PInteger(Src)^;
+        end;
+      end;
+    'O':
+      begin
+{$ifdef SUPPORT_INT64}
+        Result := (PInt64(Src)^ <> 0);
+        if Result and (Dst <> nil) then
+        begin
+          SwapInt64(Src, Dst);
+          if PInt64(Dst)^ > 0 then
+            PInt64(Dst)^ := not PInt64(Dst)^
+          else
+            PDouble(Dst)^ := PDouble(Dst)^ * -1;
+        end;
+{$endif}
+      end;
+    '@':
+      begin
+        Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
+        if Result and (Dst <> nil) then
+        begin
+          SwapInt64(Src, Dst);
+          if FDateTimeHandling = dtBDETimeStamp then
+            date := BDETimeStampToDateTime(PDouble(Dst)^)
+          else
+            date := PDateTime(Dst)^;
+          SaveDateToDst;
+        end;
+      end;
+    'T':
+      begin
+        // all binary zeroes -> empty datetime
+        Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
+        if Result and (Dst <> nil) then
+        begin
+          timeStamp.Date := PInteger(Src)^ - 1721425;
+          timeStamp.Time := PInteger(PChar(Src)+4)^;
+          date := TimeStampToDateTime(timeStamp);
+          SaveDateToDst;
+        end;
+      end;
+    'Y':
+      begin
+{$ifdef SUPPORT_INT64}
+        Result := true;
+        if Dst <> nil then
+        begin
+          // TODO: data is little endian;
+          case DataType of
+            ftCurrency:
+            begin
+              PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
+            end;
+            ftBCD:
+            begin
+              PCurrency(Dst)^ := PCurrency(Src)^;
             end;
           end;
-{$endif}
         end;
-    else
-      //    SetString(s, PChar(Src) + FieldOffset, FieldSize );
-      //    s := {TrimStr(s)} TrimRight(s);
-      // truncate spaces at end by shortening fieldsize
-      while (FieldSize > 0) and ((PChar(Src) + FieldSize - 1)^ = ' ') do
+{$endif}
+      end;
+  else
+    //    SetString(s, PChar(Src) + FieldOffset, FieldSize );
+    //    s := {TrimStr(s)} TrimRight(s);
+    // truncate spaces at end by shortening fieldsize
+    while (FieldSize > 0) and ((PChar(Src) + FieldSize - 1)^ = ' ') do
+      dec(FieldSize);
+    // if not string field, truncate spaces at beginning too
+    if DataType <> ftString then
+      while (FieldSize > 0) and (PChar(Src)^ = ' ') do
+      begin
+        inc(PChar(Src));
         dec(FieldSize);
-      // if not string field, truncate spaces at beginning too
-      if DataType <> ftString then
-        while (FieldSize > 0) and (PChar(Src)^ = ' ') do
+      end;
+    // return if field is empty
+    Result := FieldSize > 0;
+    if Result and (Dst <> nil) then     // data not needed if Result= false or Dst=nil
+      case DataType of
+      ftBoolean:
         begin
-          inc(PChar(Src));
-          dec(FieldSize);
+          // in DBase- FileDescription lowercase t is allowed too
+          // with asking for Result= true s must be longer then 0
+          // else it happens an AV, maybe field is NULL
+          if (PChar(Src)^ = 'T') or (PChar(Src)^ = 't') then
+            PWord(Dst)^ := 1
+          else
+            PWord(Dst)^ := 0;
         end;
-      // return if field is empty
-      Result := FieldSize > 0;
-      if Result and (Dst <> nil) then     // data not needed if Result= false or Dst=nil
-        case DataType of
-        ftBoolean:
-          begin
-            // in DBase- FileDescription lowercase t is allowed too
-            // with asking for Result= true s must be longer then 0
-            // else it happens an AV, maybe field is NULL
-            if (PChar(Src)^ = 'T') or (PChar(Src)^ = 't') then
-              PWord(Dst)^ := 1
-            else
-              PWord(Dst)^ := 0;
-          end;
-        ftSmallInt:
-          PSmallInt(Dst)^ := GetIntFromStrLength(Src, FieldSize, 0);
+      ftSmallInt:
+        PSmallInt(Dst)^ := GetIntFromStrLength(Src, FieldSize, 0);
 {$ifdef SUPPORT_INT64}
-        ftLargeInt:
-          PLargeInt(Dst)^ := GetInt64FromStrLength(Src, FieldSize, 0);
+      ftLargeInt:
+        PLargeInt(Dst)^ := GetInt64FromStrLength(Src, FieldSize, 0);
 {$endif}
-        ftInteger:
-          PInteger(Dst)^ := GetIntFromStrLength(Src, FieldSize, 0);
-        ftFloat, ftCurrency:
-          PDouble(Dst)^ := DbfStrToFloat(Src, FieldSize);
-        ftDate, ftDateTime:
+      ftInteger:
+        PInteger(Dst)^ := GetIntFromStrLength(Src, FieldSize, 0);
+      ftFloat, ftCurrency:
+        PDouble(Dst)^ := DbfStrToFloat(Src, FieldSize);
+      ftDate, ftDateTime:
+        begin
+          // get year, month, day
+          ldy := GetIntFromStrLength(PChar(Src) + 0, 4, 1);
+          ldm := GetIntFromStrLength(PChar(Src) + 4, 2, 1);
+          ldd := GetIntFromStrLength(PChar(Src) + 6, 2, 1);
+          //if (ly<1900) or (ly>2100) then ly := 1900;
+          //Year from 0001 to 9999 is possible
+          //everyting else is an error, an empty string too
+          //Do DateCorrection with Delphis possibillities for one or two digits
+          if (ldy < 100) and (PChar(Src)[0] = #32) and (PChar(Src)[1] = #32) then
+            CorrectYear(ldy);
+          try
+            date := EncodeDate(ldy, ldm, ldd);
+          except
+            date := 0;
+          end;
+
+          // time stored too?
+          if (AFieldDef.FieldType = ftDateTime) and (DataType = ftDateTime) then
           begin
-            // get year, month, day
-            ldy := GetIntFromStrLength(PChar(Src) + 0, 4, 1);
-            ldm := GetIntFromStrLength(PChar(Src) + 4, 2, 1);
-            ldd := GetIntFromStrLength(PChar(Src) + 6, 2, 1);
-            //if (ly<1900) or (ly>2100) then ly := 1900;
-            //Year from 0001 to 9999 is possible
-            //everyting else is an error, an empty string too
-            //Do DateCorrection with Delphis possibillities for one or two digits
-            if (ldy < 100) and (PChar(Src)[0] = #32) and (PChar(Src)[1] = #32) then
-              CorrectYear(ldy);
+            // get hour, minute, second
+            lth := GetIntFromStrLength(PChar(Src) + 8,  2, 1);
+            ltm := GetIntFromStrLength(PChar(Src) + 10, 2, 1);
+            lts := GetIntFromStrLength(PChar(Src) + 12, 2, 1);
+            // encode
             try
-              date := EncodeDate(ldy, ldm, ldd);
+              date := date + EncodeTime(lth, ltm, lts, 0);
             except
               date := 0;
             end;
-
-            // time stored too?
-            if (AFieldDef.FieldType = ftDateTime) and (DataType = ftDateTime) then
-            begin
-              // get hour, minute, second
-              lth := GetIntFromStrLength(PChar(Src) + 8,  2, 1);
-              ltm := GetIntFromStrLength(PChar(Src) + 10, 2, 1);
-              lts := GetIntFromStrLength(PChar(Src) + 12, 2, 1);
-              // encode
-              try
-                date := date + EncodeTime(lth, ltm, lts, 0);
-              except
-                date := 0;
-              end;
-            end;
-
-            SaveDateToDst;
           end;
-        ftString:
-          StrLCopy(Dst, Src, FieldSize);
-      end else begin
-        case DataType of
-        ftString:
-          if Dst <> nil then
-            PChar(Dst)[0] := #0;
+
+          SaveDateToDst;
         end;
+      ftString:
+        StrLCopy(Dst, Src, FieldSize);
+    end else begin
+      case DataType of
+      ftString:
+        if Dst <> nil then
+          PChar(Dst)[0] := #0;
       end;
     end;
+  end;
+end;
+
+procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; 
+  Action: TUpdateNullField);
+var
+  NullDst: pbyte;
+  Mask: byte;
+begin
+  // this field has null setting capability
+  NullDst := PByte(PChar(Buffer) + FNullField.Offset + (AFieldDef.NullPosition shr 3));
+  Mask := 1 shl (AFieldDef.NullPosition and $7);
+  if Action = unSet then
+  begin
+    // clear the field, set null flag
+    NullDst^ := NullDst^ or Mask;
   end else begin
-    Result := false;
+    // set field data, clear null flag
+    NullDst^ := NullDst^ and not Mask;
   end;
 end;
 
 procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; Src, Dst: Pointer);
 const
   IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
+  SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unClear, unSet);
 var
   FieldSize,FieldPrec: Integer;
   TempFieldDef: TDbfFieldDef;
@@ -1576,9 +1669,15 @@ begin
   FieldSize := TempFieldDef.Size;
   FieldPrec := TempFieldDef.Precision;
 
-  Dst := PChar(Dst) + TempFieldDef.Offset;
   // if src = nil then write empty field
   // symmetry with above
+
+  // foxpro has special _nullfield for flagging fields as `null'
+  if (FNullField <> nil) and (TempFieldDef.NullPosition >= 0) then
+    UpdateNullField(Dst, TempFieldDef, SrcNilToUpdateNullField[Src = nil]);
+
+  // copy field data to record buffer
+  Dst := PChar(Dst) + TempFieldDef.Offset;
   case TempFieldDef.NativeFieldType of
     '+', 'I':
       begin
@@ -1587,7 +1686,7 @@ begin
           if Src = nil then
             IntValue := 0
           else
-            IntValue := Integer(PDWord(Src)^ + $80000000);
+            IntValue := Integer(PDWord(Src)^ xor $80000000);
           PInteger(Dst)^ := SwapInt(IntValue);
         end else begin
           if Src = nil then
@@ -1607,8 +1706,8 @@ begin
             PLargeInt(Dst)^ := not PLargeInt(Src)^
           else
             PDouble(Dst)^ := (PDouble(Src)^) * -1;
+          SwapInt64(Dst, Dst);
         end;
-        SwapInt64(Dst, Dst);
 {$endif}
       end;
     '@':
@@ -1652,7 +1751,7 @@ begin
               PCurrency(Dst)^ := PCurrency(Src)^;
           end;
         end;
-        SwapInt64(Dst, Dst);
+        // TODO: data is little endian
 {$endif}
       end;
   else
@@ -1718,18 +1817,28 @@ var
   TempFieldDef: TDbfFieldDef;
   I: Integer;
 begin
+  // clear buffer (assume all string, fix specific fields later)
   FillChar(DestBuf^, RecordSize,' ');
+  
+  // set nullflags field so that all fields are null
+  if FNullField <> nil then
+    FillChar(PChar(DestBuf+FNullField.Offset)^, FNullField.Size, $FF);
+    
+  // check binary and default fields
   for I := 0 to FFieldDefs.Count-1 do
   begin
     TempFieldDef := FFieldDefs.Items[I];
-    if TempFieldDef.NativeFieldType in ['I', 'O', '@', '+'] then
-    begin
-      // integer
+    // binary field?
+    if TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'Y'] then
       FillChar(PChar(DestBuf+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
-    end;
     // copy default value?
     if TempFieldDef.HasDefault then
+    begin
       Move(TempFieldDef.DefaultBuf[0], DestBuf[TempFieldDef.Offset], TempFieldDef.Size);
+      // clear the null flag, this field has a value
+      if FNullField <> nil then
+        UpdateNullField(DestBuf, TempFieldDef, unClear);
+    end;
   end;
 end;
 
@@ -2123,7 +2232,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.Insert(Buffer: PChar);
+function TDbfFile.Insert(Buffer: PChar): integer;
 var
   newRecord: Integer;
   lIndex: TIndexFile;
@@ -2163,6 +2272,7 @@ var
   I: Integer;
 begin
   // get new record index
+  Result := 0;
   newRecord := RecordCount+1;
   // lock record so we can write data
   while not LockPage(newRecord, false) do
@@ -2223,7 +2333,7 @@ begin
   end;
 
   // write locking info
-  if FHasLockField then
+  if FLockField <> nil then
     WriteLockInfo(Buffer);
   // write buffer to disk
   WriteRecord(newRecord, Buffer);
@@ -2244,7 +2354,8 @@ begin
     UnlockPage(0);
     // roll back indexes too
     RollbackIndexesAndRaise(FIndexFiles.Count-1, False);
-  end;
+  end else
+    Result := newRecord;
 end;
 
 procedure TDbfFile.WriteLockInfo(Buffer: PChar);
@@ -2253,22 +2364,24 @@ procedure TDbfFile.WriteLockInfo(Buffer: PChar);
 //
 var
   year, month, day, hour, minute, sec, msec: Word;
+  lockoffset: integer;
 begin
   // increase change count
-  Inc(PWord(Buffer+FLockFieldOffset)^);
+  lockoffset := FLockField.Offset;
+  Inc(PWord(Buffer+lockoffset)^);
   // set time
   DecodeDate(Now(), year, month, day);
   DecodeTime(Now(), hour, minute, sec, msec);
-  Buffer[FLockFieldOffset+2] := Char(hour);
-  Buffer[FLockFieldOffset+3] := Char(minute);
-  Buffer[FLockFieldOffset+4] := Char(sec);
+  Buffer[lockoffset+2] := Char(hour);
+  Buffer[lockoffset+3] := Char(minute);
+  Buffer[lockoffset+4] := Char(sec);
   // set date
-  Buffer[FLockFieldOffset+5] := Char(year - 1900);
-  Buffer[FLockFieldOffset+6] := Char(month);
-  Buffer[FLockFieldOffset+7] := Char(day);
+  Buffer[lockoffset+5] := Char(year - 1900);
+  Buffer[lockoffset+6] := Char(month);
+  Buffer[lockoffset+7] := Char(day);
   // set name
-  FillChar(Buffer[FLockFieldOffset+8], FLockFieldLen-8, ' ');
-  Move(DbfGlobals.UserName[1], Buffer[FLockFieldOffset+8], FLockUserLen);
+  FillChar(Buffer[lockoffset+8], FLockField.Size-8, ' ');
+  Move(DbfGlobals.UserName[1], Buffer[lockoffset+8], FLockUserLen);
 end;
 
 procedure TDbfFile.LockRecord(RecNo: Integer; Buffer: PChar);
@@ -2280,7 +2393,7 @@ begin
     // store previous data for updating indexes
     Move(Buffer^, FPrevBuffer^, RecordSize);
     // lock succeeded, update lock info, if field present
-    if FHasLockField then
+    if FLockField <> nil then
     begin
       // update buffer
       WriteLockInfo(Buffer);

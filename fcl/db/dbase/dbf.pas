@@ -63,8 +63,11 @@ type
   private
     FBlobField: TBlobField;
     FMode: TBlobStreamMode;
-    FDoWrite: Boolean;
+    FDirty: boolean;            { has possibly modified data, needs to be written }
     FMemoRecNo: Integer;
+        { -1 : invalid contents }
+        {  0 : clear, no contents }
+        { >0 : data from page x }
     FReadSize: Integer;
     FRefCount: Integer;
 
@@ -81,11 +84,11 @@ type
     procedure Cancel;
     procedure Commit;
 
+    property Dirty: boolean read FDirty;
     property Transliterate: Boolean read GetTransliterate;
     property MemoRecNo: Integer read FMemoRecNo write FMemoRecNo;
     property ReadSize: Integer read FReadSize write FReadSize;
     property Mode: TBlobStreamMode write SetMode;
-    property Modified: Boolean read FDoWrite;
     property BlobField: TBlobField read FBlobField;
   end;
 //====================================================================
@@ -241,6 +244,9 @@ type
     procedure InternalOpen; override; {virtual abstract}
     procedure InternalEdit; override; {virtual}
     procedure InternalCancel; override; {virtual}
+{$ifndef FPC}
+    procedure InternalInsert; override; {virtual}
+{$endif}
     procedure InternalPost; override; {virtual abstract}
     procedure InternalSetToRecord(Buffer: PChar); override; {virtual abstract}
     procedure InitFieldDefs; override;
@@ -487,18 +493,20 @@ begin
   FReadSize := 0;
   FMemoRecNo := 0;
   FRefCount := 1;
-  FDoWrite := false;
+  FDirty := false;
 end;
 
 destructor TDbfBlobStream.Destroy;
 begin
   // only continue destroy if all references released
-  Dec(FRefCount);
-  if FRefCount = 0 then
+  if FRefCount = 1 then
   begin
+    // this is the last reference
     inherited
   end else begin
-    if FMode = bmWrite then
+    // fire event when dirty, and the last "user" is freeing it's reference
+    // tdbf always has the last reference
+    if FDirty and (FRefCount = 2) then
     begin
       // a second referer to instance has changed the data, remember modified
 //      TDbf(FBlobField.DataSet).SetModified(true);
@@ -507,6 +515,7 @@ begin
         TDbf(FBlobField.DataSet).DataEvent(deFieldChange, Longint(FBlobField));
     end;
   end;
+  Dec(FRefCount);
 end;
 
 procedure TDbfBlobStream.FreeInstance;
@@ -519,20 +528,20 @@ end;
 procedure TDbfBlobStream.SetMode(NewMode: TBlobStreamMode);
 begin
   FMode := NewMode;
-  FDoWrite := FDoWrite or (NewMode = bmWrite);
+  FDirty := FDirty or (NewMode = bmWrite) or (NewMode = bmReadWrite);
 end;
 
 procedure TDbfBlobStream.Cancel;
 begin
-  FDoWrite := false;
-  FMemoRecNo := 0;
+  FDirty := false;
+  FMemoRecNo := -1;
 end;
 
 procedure TDbfBlobStream.Commit;
 var
   Dbf: TDbf;
 begin
-  if FDoWrite then
+  if FDirty then
   begin
     Size := Position; // Strange but it leave tailing trash bytes if I do not write that.
     Dbf := TDbf(FBlobField.DataSet);
@@ -540,7 +549,7 @@ begin
     Dbf.FDbfFile.MemoFile.WriteMemo(FMemoRecNo, FReadSize, Self);
     Dbf.FDbfFile.SetFieldData(FBlobField.FieldNo-1, ftInteger, @FMemoRecNo,
       @pDbfRecord(TDbf(FBlobField.DataSet).ActiveBuffer).DeletedFlag);
-    FDoWrite := false;
+    FDirty := false;
   end;
 end;
 
@@ -843,13 +852,16 @@ procedure TDbf.InternalAddRecord(Buffer: Pointer; Append: Boolean); {override vi
   // goal: add record with Edit...Set Fields...Post all in one step
 var
   pRecord: pDbfRecord;
+  newRecord: integer;
 begin
   // if InternalAddRecord is called, we know we are active
   pRecord := Buffer;
 
   // we can not insert records in DBF files, only append
   // ignore Append parameter
-  FDbfFile.Insert(@pRecord.DeletedFlag);
+  newRecord := FDbfFile.Insert(@pRecord.DeletedFlag);
+  if newRecord > 0 then
+    FCursor.PhysicalRecNo := newRecord;
 
   // set flag that TDataSet is about to post...so we can disable resync
   FPosting := true;
@@ -1278,10 +1290,19 @@ begin
   // succeeded!
 end;
 
+{$ifndef FPC}
+
+procedure TDbf.InternalInsert; {override virtual from TDataset}
+begin
+  CursorPosChanged;
+end;
+
+{$endif}
+
 procedure TDbf.InternalPost; {override virtual abstract from TDataset}
 var
   pRecord: pDbfRecord;
-  I: Integer;
+  I, newRecord: Integer;
 begin
   // if internalpost is called, we know we are active
   pRecord := pDbfRecord(ActiveBuffer);
@@ -1297,7 +1318,9 @@ begin
     FEditingRecNo := -1;
   end else begin
     // insert
-    FDbfFile.Insert(@pRecord.DeletedFlag);
+    newRecord := FDbfFile.Insert(@pRecord.DeletedFlag);
+    if newRecord > 0 then
+      FCursor.PhysicalRecNo := newRecord;
   end;
   // set flag that TDataSet is about to post...so we can disable resync
   FPosting := true;
@@ -1806,7 +1829,6 @@ begin
   if FBlobStreams[MemoFieldNo] = nil then
     FBlobStreams[MemoFieldNo] := TDbfBlobStream.Create(Field);
   lBlob := FBlobStreams[MemoFieldNo].AddReference;
-  lBlob.Mode := Mode;
   // update pageno of blob <-> location where to read/write in memofile
   if FDbfFile.GetFieldData(Field.FieldNo-1, ftInteger, GetCurrentBuffer, @MemoPageNo) then
   begin
@@ -1823,14 +1845,22 @@ begin
       lBlob.Size := 0;
       lBlob.ReadSize := 0;
     end;
-  end else begin
-    MemoPageNo := 0;
+    lBlob.MemoRecNo := MemoPageNo;
+  end else 
+  if not lBlob.Dirty or (Mode = bmWrite) then
+  begin
+    // reading and memo is empty and not written yet, or rewriting
     lBlob.Size := 0;
     lBlob.ReadSize := 0;
+    lBlob.MemoRecNo := 0;
   end;
-  lBlob.MemoRecNo := MemoPageNo;
+  { this is a hack, we actually need to know per user who's modifying, and who is not }
+  { Mode is more like: the mode of the last "creation" 
+  { if create/free is nested, then everything will be alright, i think ;-) }
+  lBlob.Mode := Mode;
+  { this is a hack: we actually need to know per user what it's position is }
+  lBlob.Position := 0;
   Result := lBlob;
-  Result.Position := 0;
 end;
 
 {$ifdef SUPPORT_NEW_TRANSLATE}
@@ -2107,7 +2137,11 @@ begin
 
   // only refresh if active
   if FCursor <> nil then
+  begin
+    UpdateCursorPos;
+    CursorPosChanged;
     Resync([]);
+  end;
 end;
 
 procedure TDbf.SetFilePath(const Value: string);

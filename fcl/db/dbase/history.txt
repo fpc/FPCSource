@@ -33,6 +33,24 @@ BUGS & WARNINGS
 
 
 ------------------------
+V6.4.1
+
+- fixed: restructure numeric fields correctly, try to preserve data
+- fixed: read and write foxpro currency fieldtype (thx karelrys)
+- fixed: when using TDbf.Insert to add a record, current record indicator does
+    not move to newly added record (rep by rpoverdijk)
+- fixed: req. of numeric field size >= 2, it can be 1 too! (rep by rpoverdijk)
+- fixed: forgot cursor position when disabling filter (rep by bobmitch/luchop)
+- fixed: initialize binary field types '0' (nullflags) and 'Y' (currency)
+    properly (thx to karelrys)
+- added: _nullflags field operation support (thx karelrys)
+- fixed: when editing a record, then moving to another record, memo is not
+    properly cleared if memo is null (rep by versus)
+- fixed: writing to a memo that also has a connected dbcontrol does not work;
+    quite some semantical changes, may have introduced new bugs (rep by mafro)
+
+
+------------------------
 V6.4.0
 
 - fixed: dBase III and IV do not have date+time fields

@@ -17,7 +17,7 @@ uses
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 40;
+  TDBF_MINOR_VERSION      = 41;
   TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
@@ -99,6 +99,7 @@ function GetFreeMemory: Integer;
 
 // OH 2000-11-15 dBase7 support. Swap Byte order for 4 and 8 Byte Integer
 function SwapInt(const Value: Cardinal): Cardinal;
+{ SwapInt64 NOTE: do not call with same value for Value and Result ! }
 procedure SwapInt64(Value, Result: Pointer); register;
 
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
@@ -409,19 +410,12 @@ end;
 
 procedure SwapInt64(Value {EAX}, Result {EDX}: Pointer); register;
 asm
-  XCHG EAX, ECX
-{ 
-        single byte, on Pentium+ is not to be data move, but just renaming
-        registers, so i expect even faster than MOV  :-) 
-}
-
-  MOV EAX, dword ptr [ECX]
-  BSWAP EAX
-  MOV dword ptr [EDX+4], EAX
-
-  MOV EAX, dword ptr [ECX+4]
-  BSWAP EAX
-  MOV dword ptr [EDX], EAX
+  MOV ECX, dword ptr [EAX] 
+  MOV EAX, dword ptr [EAX + 4] 
+  BSWAP ECX 
+  BSWAP EAX 
+  MOV dword ptr [EDX+4], ECX 
+  MOV dword ptr [EDX], EAX 
 end;
 
 {$else}

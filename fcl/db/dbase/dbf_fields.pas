@@ -33,6 +33,7 @@ type
     FAutoInc: Cardinal;
     FRequired: Boolean;
     FIsLockField: Boolean;
+    FNullPosition: integer;
 
     function  GetDbfVersion: TXBaseVersion;
     procedure SetNativeFieldType(lFieldType: TDbfFieldType);
@@ -73,6 +74,7 @@ type
     property FieldName: string     read FFieldName write FFieldName;
     property FieldType: TFieldType read FFieldType write SetFieldType;
     property NativeFieldType: TDbfFieldType read FNativeFieldType write SetNativeFieldType;
+    property NullPosition: integer read FNullPosition write FNullPosition;
     property Size: Integer         read FSize      write SetSize;
     property Precision: Integer    read FPrecision write SetPrecision;
     property Required: Boolean     read FRequired  write FRequired;
@@ -196,6 +198,7 @@ begin
   FHasDefault := false;
   FHasMin := false;
   FHasMax := false;
+  FNullPosition := -1;
 end;
 
 destructor TDbfFieldDef.Destroy; {override}
@@ -220,6 +223,7 @@ begin
     FRequired := DbfSource.Required;
     FCopyFrom := DbfSource.Index;
     FIsLockField := DbfSource.IsLockField;
+    FNullPosition := DbfSource.NullPosition;
     // copy default,min,max
     AllocBuffers;
     if DbfSource.DefaultBuf <> nil then
@@ -474,7 +478,7 @@ begin
     'N','F':
       begin
         // floating point
-        if FSize < 2   then FSize := 2;
+        if FSize < 1   then FSize := 1;
         if FSize >= 20 then FSize := 20;
         if FPrecision > FSize-2 then FPrecision := FSize-2;
         if FPrecision < 0       then FPrecision := 0;

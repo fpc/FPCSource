@@ -3324,6 +3324,10 @@ end;
 
 procedure TIndexFile.SetPhysicalRecNo(RecNo: Integer);
 begin
+  // check if already at specified recno
+  if FLeaf.PhysicalRecNo = RecNo then
+    exit;
+
   // check record actually exists
   if TDbfFile(FDbfFile).IsRecordPresent(RecNo) then
   begin
