@@ -24,6 +24,7 @@
 {$endif}
 program pppdump;
 uses
+  dos,
   ppu;
 
 const
@@ -231,6 +232,38 @@ begin
      val:=val shr 4;
    end;
 end;
+
+
+    Function L0(l:longint):string;
+    {
+      return the string of value l, if l<10 then insert a zero, so
+      the string is always at least 2 chars '01','02',etc
+    }
+      var
+        s : string;
+      begin
+        Str(l,s);
+        if l<10 then
+         s:='0'+s;
+        L0:=s;
+      end;
+
+
+   function  filetimestring( t : longint) : string;
+   {
+     convert dos datetime t to a string YY/MM/DD HH:MM:SS
+   }
+     var
+       DT : DateTime;
+     begin
+       if t=-1 then
+        begin
+          FileTimeString:='Not Found';
+          exit;
+        end;
+       unpacktime(t,DT);
+       filetimestring:=L0(dt.Year)+'/'+L0(dt.Month)+'/'+L0(dt.Day)+' '+L0(dt.Hour)+':'+L0(dt.min)+':'+L0(dt.sec);
+     end;
 
 
 {****************************************************************************
@@ -1472,7 +1505,7 @@ begin
              sourcenumber:=1;
              while not EndOfEntry do
               begin
-                Writeln('Source file ',sourcenumber,' : ',getstring);
+                Writeln('Source file ',sourcenumber,' : ',getstring,' ',filetimestring(getlongint));
                 inc(sourcenumber);
               end;
            end;
@@ -1865,7 +1898,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-10-06 12:25:53  florian
+  Revision 1.33  2002-10-20 14:49:31  peter
+    * store original source time in ppu so it can be compared instead of
+      comparing with the ppu time
+
+  Revision 1.32  2002/10/06 12:25:53  florian
     + dump of tdefoptions.df_unique
 
   Revision 1.31  2002/09/27 21:22:04  carl

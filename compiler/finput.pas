@@ -72,12 +72,15 @@ interface
          procedure setmacro(p:pchar;len:longint);
          procedure setline(line,linepos:longint);
          function  getlinestr(l:longint):string;
+         function  getfiletime:longint;
        protected
-         function fileopen(const filename: string): boolean; virtual;
-         function fileseek(pos: longint): boolean; virtual;
-         function fileread(var databuf; maxsize: longint): longint; virtual;
-         function fileeof: boolean; virtual;
-         function fileclose: boolean; virtual;
+         filetime  : longint;
+         function fileopen(const filename: string): boolean; virtual; abstract;
+         function fileseek(pos: longint): boolean; virtual; abstract;
+         function fileread(var databuf; maxsize: longint): longint; virtual; abstract;
+         function fileeof: boolean; virtual; abstract;
+         function fileclose: boolean; virtual; abstract;
+         procedure filegettime; virtual; abstract;
        end;
 
        tdosinputfile = class(tinputfile)
@@ -87,6 +90,7 @@ interface
          function fileread(var databuf; maxsize: longint): longint; override;
          function fileeof: boolean; override;
          function fileclose: boolean; override;
+         procedure filegettime; override;
        private
          f            : file;       { current file handle }
        end;
@@ -164,6 +168,7 @@ uses
         name:=stringdup(n+e);
         path:=stringdup(p);
         next:=nil;
+        filetime:=-1;
       { file info }
         is_macro:=false;
         endoffile:=false;
@@ -401,38 +406,11 @@ uses
       end;
 
 
-    function tinputfile.fileopen(const filename: string): boolean;
+    function tinputfile.getfiletime:longint;
       begin
-        abstract;
-        fileopen:=false;
-      end;
-
-
-    function tinputfile.fileseek(pos: longint): boolean;
-      begin
-        abstract;
-        fileseek:=false;
-      end;
-
-
-    function tinputfile.fileread(var databuf; maxsize: longint): longint;
-      begin
-        abstract;
-        fileread:=0;
-      end;
-
-
-    function tinputfile.fileeof: boolean;
-      begin
-        abstract;
-        fileeof:=false;
-      end;
-
-
-    function tinputfile.fileclose: boolean;
-      begin
-        abstract;
-        fileclose:=false;
+        if filetime=-1 then
+         filegettime;
+        getfiletime:=filetime;
       end;
 
 
@@ -485,6 +463,12 @@ uses
          system.close(f);
         {$I+}
         fileclose:=(ioresult=0);
+      end;
+
+
+    procedure tdosinputfile.filegettime;
+      begin
+        filetime:=getnamedfiletime(path^+name^);
       end;
 
 
@@ -702,7 +686,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.18  2002-08-11 13:24:11  peter
+  Revision 1.19  2002-10-20 14:49:31  peter
+    * store original source time in ppu so it can be compared instead of
+      comparing with the ppu time
+
+  Revision 1.18  2002/08/11 13:24:11  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which

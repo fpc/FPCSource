@@ -401,6 +401,7 @@ uses
             for i:=1 to j-1 do
               hp:=hp.ref_next;
             ppufile.putstring(hp.name^);
+            ppufile.putlongint(hp.getfiletime);
             dec(j);
          end;
         ppufile.writeentry(ibsourcefiles);
@@ -550,17 +551,17 @@ uses
         incfile_found,
         main_found,
         is_main       : boolean;
-        ppufiletime,
+        orgfiletime,
         source_time   : longint;
         hp            : tinputfile;
       begin
-        ppufiletime:=getnamedfiletime(ppufilename^);
         sources_avail:=true;
         is_main:=true;
         main_dir:='';
         while not ppufile.endofentry do
          begin
            hs:=ppufile.getstring;
+           orgfiletime:=ppufile.getlongint;
            temp_dir:='';
            if (flags and uf_in_library)<>0 then
             begin
@@ -618,9 +619,10 @@ uses
                  else
                   begin
                     temp:=' time '+filetimestring(source_time);
-                    if (source_time>ppufiletime) then
+                    if (orgfiletime<>-1) and
+                       (source_time<>orgfiletime) then
                      begin
-                       if {is_main or} ((flags and uf_release)=0) then
+                       if ((flags and uf_release)=0) then
                         begin
                           do_compile:=true;
                           recompile_reason:=rr_sourcenewer;
@@ -1317,7 +1319,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.24  2002-10-04 20:13:10  peter
+  Revision 1.25  2002-10-20 14:49:31  peter
+    * store original source time in ppu so it can be compared instead of
+      comparing with the ppu time
+
+  Revision 1.24  2002/10/04 20:13:10  peter
     * set in_second_load flag before resetting the module, this is
       required to skip some checkings
 
