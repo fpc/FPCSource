@@ -18,7 +18,7 @@ const
   SI_PAD_SIZE	= ((128/sizeof(longint)) - 3);
 
 type
-  tfpreg = record 
+  tfpreg = record
 	  significand: array[0..3] of word;
 	  exponent: word;
   end;
@@ -106,7 +106,7 @@ type
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  TSigAction = procedure(Sig: Longint; SigContext: PSigContextRec);cdecl;
+  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
 
   SigSet  = Longint;
   PSigSet = ^SigSet;
@@ -141,7 +141,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-03-31 13:24:28  jonas
+  Revision 1.2  2000-03-31 23:11:23  pierre
+   * TSigAction Context param is the full record not a pointer
+
+  Revision 1.1  2000/03/31 13:24:28  jonas
     * signal handling using sigaction when compiled with -dnewsignal
       (allows multiple signals to be received in one run)
 
