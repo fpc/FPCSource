@@ -708,7 +708,7 @@ Procedure GetIntVec (IntNo: byte; var Vector: pointer);
 \var{GetIntVec} returns the address of interrupt vector
 \var{IntNo}.
 \Portability
-Under non-\dos operating systems, this call does nothing.
+This call does nothing, it is present for compatibility only.
 \Errors
 None.
 \SeeAlso
@@ -818,7 +818,7 @@ Procedure Keep (ExitCode: word);
 (Terminate Stay Resident) programs which catch some interrupt.
 \var{ExitCode} is the same parameter as the \var{Halt} function takes.
 \Portability
-Under non-\dos operating systems, this call does nothing.
+This call does nothing, it is present for compatibility only.
 \Errors
 None.
 \SeeAlso
@@ -938,8 +938,10 @@ Procedure SetIntVec (IntNo: byte; Vector: pointer);
 \Description
 \var{SetIntVec} sets interrupt vector \var{IntNo} to \var{Vector}.
 \var{Vector} should point to an interrupt procedure.
+\Portability
+This call does nothing, it is present for compatibility only.
 \Errors
-Under non-\dos operating systems, this call does nothing.
+None.
 \SeeAlso
 \seep{GetIntVec}
 \end{procedure}
