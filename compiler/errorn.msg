@@ -1,3 +1,5 @@
+%%% Reordering of errorn.msg respective to errore.msg
+%%% Contains all comments from errorn.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -320,6 +322,9 @@ parser_e_overloaded_methodes_not_same_ret=E_Virtuele overladen methodes moeten d
 parser_e_no_such_assignment=E_Het is niet toegestaan de assignatie operator te overladen voor gelijke types
 % You can not overload assignment for types
 % that the compiler considers as equal.
+parser_e_overload_impossible=E_Onmogelijk overladen van operator
+% The combination of operator, arguments and return type are
+% incompatible.
 parser_u_parsing_interface=U_Parsen van de interface van unit $1
 % This tells you that the reading of the interface
 % of the current unit starts
@@ -472,6 +477,8 @@ cg_e_control_flow_outside_finally=E_Control flow statements niet toegestaan in e
 asmr_e_type_without_identifier=E_TYPE gebruikt zonder identifier
 % You can only use TYPE with an identifier. Other syntaxes aren't
 % supported
+asmr_e_need_dollar=E_Gebruik van $ is hier verplicht
+% You need to use $<id> here to get the address of the identifier.
 asmr_e_local_para_unreachable=E_$1 niet bereikbaar vanuit deze code
 % You can not read directly the value of local or para
 % of a higher level in assembler code (except for
@@ -481,7 +488,14 @@ asmr_e_local_label_not_allowed_as_ref=E_Lokale symbolen/labels niet toegestaan a
 asmr_w_possible_object_field_bug=W_Mogelijke fout in behandeling velden van object.
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
+asmr_e_expr_zero_divide=E_Deling door nul in assembler evaluator
+asmr_e_expr_illegal=E_Ongeldige uitdrukking
+asmr_w_fadd_to_faddp=W_FADD zonder operand vertaald naar FADDP
+asmr_w_enter_not_supported_by_linux=W_ENTER instructie wordt niet ondersteund door de Linux kernel
+% ENTER instruction can generate a stack page fault that is not
+% caught correctly by the i386 Linux page handler.
 asmr_e_unknown_opcode=E_Ongekende opcode $1
+asmr_e_invalid_register=E_Ongeldige register naam
 asmr_e_dollar_without_identifier=E_Dollar teken gebruikt zonder identifier
 asmr_w_32bit_const_for_address=W_32bit constante aangemaakt voor adres
 asmr_n_align_is_target_specific=N_.align is doel specifiek, gebruik .balign of .p2align
@@ -515,6 +529,16 @@ unit_f_unit_name_error=F_Unit $1 gezocht maar $2 gevonden
 % may lead to problems when unit name is longer than 8 letters.
 option_no_option_found=N_geen opties in configuratie bestand $1
 % The compiler didn't find any option in that config file.
+option_incompatible_asm=W_Geselecteerde assembler "$1" is niet verenigbaar met "$2"
+option_asm_forced=W_Gebruik van "$1" assembler opgelegd
+% The assembler output selected can not generate
+% object files with the correct format. Therefore, the
+% default assembler for this target is used instead.
+%\end{description}
+# EndOfTeX
+#
+# Logo (option -l)
+#
 scan_w_unsupported_app_type=W_Niet ondersteund programmatype: $1
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
@@ -1396,11 +1420,6 @@ asmr_e_invalid_operand_type=E_Ongeldig operandus type
 asmr_e_invalid_string_as_opcode_operand=E_Ongeldige tekenreeks als instructie operandus: $1
 asmr_w_CODE_and_DATA_not_supported=W_@CODE en @DATA worden niet ondersteund
 asmr_e_null_label_ref_not_allowed=E_Null label verwijzingen zijn niet toegelaten
-asmr_e_ev_zero_divide=F_Deling door nul in de assembler evaluator
-asmr_e_ev_stack_overflow=F_Assembler evaluator stapeloverloop
-asmr_e_ev_stack_underflow=F_Assembler evaluator stapelonderloop
-asmr_e_ev_invalid_number=F_Ongeldig numeriek formaat in assembler evaluator
-asmr_e_ev_invalid_op=F_Ongeldige operator in assembler evaluator
 asmr_e_escape_seq_ignored=E_Expliciete reeks genegeerd: $1
 asmr_e_invalid_symbol_ref=E_Ongeldige symboolverwijzing
 asmr_w_fwait_emu_prob=W_Fwait kan emulatieproblemen met emu387 veroorzaken
