@@ -1459,12 +1459,12 @@ unit cgx86;
                       list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
                     else
 {$endif cpu64bit}
-                      list.concat(Taicpu.op_none(A_MOVSL,S_NO));
+                      list.concat(Taicpu.op_none(A_MOVSD,S_NO));
                   end;
                 if len>=4 then
                   begin
                     dec(len,4);
-                    list.concat(Taicpu.op_none(A_MOVSL,S_NO));
+                    list.concat(Taicpu.op_none(A_MOVSD,S_NO));
                   end;
                 if len>=2 then
                   begin
@@ -1791,7 +1791,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.119  2004-03-11 19:35:05  peter
+  Revision 1.120  2004-04-09 14:36:05  peter
+    * A_MOVSL renamed to A_MOVSD
+
+  Revision 1.119  2004/03/11 19:35:05  peter
     * fixed concatcopy end bytes copy broken by 64bits patch
 
   Revision 1.118  2004/03/10 22:52:03  peter

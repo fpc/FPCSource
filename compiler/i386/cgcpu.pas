@@ -242,7 +242,7 @@ unit cgcpu;
         case opsize of
           S_B : list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
-          S_L : list.concat(Taicpu.Op_none(A_MOVSL,S_NO));
+          S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
         ungetregister(list,NR_EDI);
         ungetregister(list,NR_ECX);
@@ -389,7 +389,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-02-27 10:21:05  florian
+  Revision 1.48  2004-04-09 14:36:05  peter
+    * A_MOVSL renamed to A_MOVSD
+
+  Revision 1.47  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
