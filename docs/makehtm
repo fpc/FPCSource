@@ -1,8 +1,0 @@
-#!/bin/sh
-echo 'starting to convert. '
-for f in $*
-do
-  sed s/\\.html/\\.htm/g <$f >`dirname $f`/`basename $f .html`.htm
-  echo -n '.'
-done
-echo 'Done.'
