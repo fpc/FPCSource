@@ -1187,7 +1187,7 @@ if modulename^='NCGUTIL' then
                  is nothing to resolve }
                if interface_compiled then
                  begin
-                   Comment(V_Used,'Re-resolving unit');
+                   Message1(unit_u_reresolving_unit,modulename^);
                    aktglobalsymtable:=tstoredsymtable(globalsymtable);
                    tstoredsymtable(globalsymtable).deref;
                    tstoredsymtable(globalsymtable).derefimpl;
@@ -1199,7 +1199,7 @@ if modulename^='NCGUTIL' then
                     end;
                  end
                else
-                 Comment(V_Used,'Skipping re-resolving, still loading used units');
+                 Message1(unit_u_skipping_reresolving_unit,modulename^);
                do_load:=false;
              end;
          end;
@@ -1412,7 +1412,10 @@ if modulename^='NCGUTIL' then
 end.
 {
   $Log$
-  Revision 1.36  2003-06-07 20:26:32  peter
+  Revision 1.37  2003-06-08 11:40:14  peter
+    * moved message to msg file
+
+  Revision 1.36  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 
