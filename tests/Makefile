@@ -1077,7 +1077,9 @@ $(DIGEST) : units utils/digest.pp utils/teststr.pp
 	$(FPC) -n -Fuunits -FE. utils/digest.pp
 testcheck: units allpreps $(DOTEST)
 ifneq ($(FPC),ppc386$(EXEEXT))
+ifeq ($finstring -c$(FPC),$(DOTESTOPT),)
 override DOTESTOPT+=-c$(FPC)
+endif
 endif
 ifdef GRAPH
 override DOTESTOPT+=-g
@@ -1132,11 +1134,17 @@ endif
 distclean: clean
 	-rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
 	-rm -f teststr$(PPUEXT) teststr$(OEXT) digest$(EXEEXT) digest$(OEXT)
-.PHONY: all full rundigest dailytest
+.PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 rundigest : $(DIGEST)
 	-$(DIGEST)
 all : allexectests
 full : clean allexectests rundigest
+onlyknown :
+	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
+onlygraph :
+	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -g-"
+onlyinteractive :
+	$(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
 info :
 	@echo This Makefile allows to test the compiler
 	@echo
@@ -1145,7 +1153,9 @@ info :
 	@echo   full  - clean and run all tests
 	@echo   dailytest - run full and save results
 	@echo               in files having the date as extension
-	@echo
+	@echo   onlyknown - run only known bugs
+	@echo   onlygraph - run only graph tests
+	@echo   onlyinteractive - run only interactive tests
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 ifneq ($(wildcard log.$(DATESUFFIX)),)
 override DATESUFFIX=$(shell $(DATE) +%Y.%m.%d.%H.%M)

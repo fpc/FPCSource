@@ -66,7 +66,9 @@ testcheck: units allpreps $(DOTEST)
 #
 
 ifneq ($(FPC),ppc386$(EXEEXT))
+ifeq ($finstring -c$(FPC),$(DOTESTOPT),)
 override DOTESTOPT+=-c$(FPC)
+endif
 endif
 
 ifdef GRAPH
@@ -168,7 +170,7 @@ distclean: clean
 # Main rules
 #
 
-.PHONY: all full rundigest dailytest
+.PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 
 rundigest : $(DIGEST)
 	-$(DIGEST)
@@ -176,6 +178,15 @@ rundigest : $(DIGEST)
 all : allexectests
 
 full : clean allexectests rundigest
+
+onlyknown :
+	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
+
+onlygraph :
+	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -g-"
+
+onlyinteractive :
+	$(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
 
 info :
         @echo This Makefile allows to test the compiler
@@ -185,7 +196,10 @@ info :
         @echo   full  - clean and run all tests
 	@echo   dailytest - run full and save results
 	@echo               in files having the date as extension
-        @echo
+        @echo   onlyknown - run only known bugs
+        @echo   onlygraph - run only graph tests
+        @echo   onlyinteractive - run only interactive tests
+
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
