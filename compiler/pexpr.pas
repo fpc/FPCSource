@@ -1778,7 +1778,16 @@ unit pexpr;
 _KLAMMERAFFE : begin
                  consume(_KLAMMERAFFE);
                  got_addrn:=true;
-                 p1:=factor(true);
+                 { support both @<x> and @(<x>) }
+                 if token=_LKLAMMER then
+                  begin
+                    consume(_LKLAMMER);
+                    p1:=factor(true);
+                    consume(_RKLAMMER);
+                  end
+                 else
+
+                  p1:=factor(true);
                  got_addrn:=false;
                  p1:=gensinglenode(addrn,p1);
                end;
@@ -2080,7 +2089,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.137  1999-09-01 22:08:58  peter
+  Revision 1.138  1999-09-07 08:01:20  peter
+    * @(<x>) support
+
+  Revision 1.137  1999/09/01 22:08:58  peter
     * fixed crash with assigned()
 
   Revision 1.136  1999/08/15 22:47:45  peter
