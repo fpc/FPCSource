@@ -210,11 +210,14 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 {$endif HASWIDECHAR}
 
 {$ifdef HASVARIANT}
+procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
 function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
+procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 {$endif HASVARIANT}
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
@@ -363,7 +366,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.66  2005-03-05 16:37:28  florian
+  Revision 1.67  2005-03-28 13:38:05  florian
+    + a lot of vararray stuff
+
+  Revision 1.66  2005/03/05 16:37:28  florian
     * fixed copy(dyn. array,...);
 
   Revision 1.65  2005/02/14 17:13:22  peter

@@ -60,24 +60,43 @@ procedure variant_addref(var v : tvardata);[Public,Alias:'FPC_VARIANT_ADDREF'];
     if assigned(VarAddRefProc) then
       VarAddRefProc(v);
   end;
+  
+{ using pointers as argument here makes life for the compiler easier }  
+procedure fpc_variant_copy(d,s : pointer);compilerproc;
+  begin
+    if assigned(VarCopyProc) then
+      VarCopyProc(tvardata(d^),tvardata(s^));
+  end;
 
 
 Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; compilerproc;
-Begin
-  If (InOutRes<>0) then
-   exit;
-  case TextRec(f).mode of
-    { fmAppend gets changed to fmOutPut in do_open (JM) }
-    fmOutput:
-      if len=-1 then
-        variantmanager.write0variant(f,v)
-      else
-        variantmanager.writevariant(f,v,len);
-    fmInput:
-      InOutRes:=105
-    else InOutRes:=103;
+  begin
+    if (InOutRes<>0) then
+     exit;
+    case TextRec(f).mode of
+      { fmAppend gets changed to fmOutPut in do_open (JM) }
+      fmOutput:
+        if len=-1 then
+          variantmanager.write0variant(f,v)
+        else
+          variantmanager.writevariant(f,v,len);
+      fmInput:
+        InOutRes:=105
+      else InOutRes:=103;
+    end;
   end;
-End;
+
+
+procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+  begin
+    d:=variantmanager.vararrayget(s,len,indices);
+  end;
+  
+  
+procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+  begin
+    variantmanager.vararrayput(d,s,len,indices);
+  end;
 
 
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
@@ -594,7 +613,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.26  2005-03-25 19:02:59  florian
+  Revision 1.27  2005-03-28 13:38:05  florian
+    + a lot of vararray stuff
+
+  Revision 1.26  2005/03/25 19:02:59  florian
     + more vararray stuff
 
   Revision 1.25  2005/02/24 22:36:36  florian

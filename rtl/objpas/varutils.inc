@@ -278,16 +278,16 @@ begin
 end;
 
 type
-  TVariantArrayType = (vatNormal, varInterface, varWideString);
+  TVariantArrayType = (vatNormal, vatInterface, vatWideString);
 
 Function VariantArrayType(psa: PVarArray): TVariantArrayType;
 
 begin
   if ((psa^.Flags and ARR_DISPATCH) <> 0) or
      ((psa^.Flags and ARR_UNKNOWN) <> 0) then
-    Result:=varInterface
+    Result:=vatInterface
   else if (psa^.Flags AND ARR_OLESTR) <> 0 then
-    Result:=varWideString
+    Result:=vatWideString
   else
     Result:=vatNormal;
 end;
@@ -304,8 +304,8 @@ begin
       vatNormal     : FillChar(psa^.Data^,
                          SafeArrayElementTotal(psa)*psa^.ElementSize,
                          0);
-      varInterface  : NoInterfaces;
-      varWideString : NoWidestrings;
+      vatInterface  : NoInterfaces;
+      vatWideString : NoWidestrings;
     end;
     Result:=VAR_OK;
   except
@@ -325,8 +325,8 @@ begin
       vatNormal: Move(psa^.Data^,
                       psaOut^.Data^,
                       SafeArrayElementTotal(psa)*psa^.ElementSize);
-      varInterface : NoInterfaces; // Copy element per element...
-      varWideString: NoWideStrings; // here also...
+      vatInterface : NoInterfaces; // Copy element per element...
+      vatWideString: NoWideStrings; // here also...
     end;
     Result:=VAR_OK;
   except
@@ -651,6 +651,7 @@ begin
     end;
 end;
 
+
 Function SafeArrayGetElement(psa: PVarArray; Indices: PVarArrayCoorArray;
   Data: Pointer): HRESULT;stdcall;
 var
@@ -675,6 +676,7 @@ begin
   SetUnlockResult(psa,Result);
 end;
 
+
 Function SafeArrayPutElement(psa: PVarArray; Indices: PVarArrayCoorArray;
   const Data: Pointer): HRESULT;stdcall;
 var
@@ -685,8 +687,9 @@ begin
     exit;
   try
     case VariantArrayType(psa) of
-      vatNormal: Move(Data^,P^,psa^.ElementSize);
-      varInterface: NoInterfaces;
+      vatNormal: 
+        Move(Data^,P^,psa^.ElementSize);
+      varInterface: 
       varWideString: NoWideStrings;
     end;
   except
@@ -696,11 +699,13 @@ begin
   SetUnlockResult(psa,Result);
 end;
 
+
 Function SafeArrayPtrOfIndex(psa: PVarArray; Indices: PVarArrayCoorArray;
   var Address: Pointer): HRESULT;stdcall;
 begin
   Result:=CheckVarArrayAndCalculateAddress(psa,Indices,Address,False);
 end;
+
 
 Function SafeArrayGetElemSize(psa: PVarArray): LongWord;stdcall;
 begin
@@ -713,7 +718,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.21  2005-02-25 14:39:31  peter
+  Revision 1.22  2005-03-28 13:38:05  florian
+    + a lot of vararray stuff
+
+  Revision 1.21  2005/02/25 14:39:31  peter
     * 64bit fixes
 
   Revision 1.20  2005/02/24 22:36:36  florian

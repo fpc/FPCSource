@@ -90,6 +90,7 @@ resourcestring
   SVarArrayLocked        = 'Variant array locked';
   SVarBadType            = 'Invalid variant type';
   SVarInvalid            = 'Invalid argument';
+  SVarInvalid1           = 'Invalid argument: %s';
   SVarNotArray           = 'Variant doesn''t contain an array';
   SVarNotImplemented     = 'Operation not supported';
   SVarOutOfMemory        = 'Variant operation ran out memory';
@@ -222,7 +223,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2005-03-17 16:29:04  peter
+  Revision 1.17  2005-03-28 13:38:05  florian
+    + a lot of vararray stuff
+
+  Revision 1.16  2005/03/17 16:29:04  peter
     * fixed str() call
 
   Revision 1.15  2005/02/14 17:13:31  peter

@@ -174,9 +174,9 @@ type
         calldesc : pcalldesc;params : pointer);cdecl;
 
       vararrayredim : procedure(var a : variant;highbound : SizeInt);
-      vararrayget : function(var a : variant;indexcount : SizeInt;indices : SizeInt) : variant;cdecl;
+      vararrayget : function(const a : variant;indexcount : SizeInt;indices : PSizeInt) : variant;cdecl;
       vararrayput: procedure(var a : variant; const value : variant;
-        indexcount : SizeInt;indices : SizeInt);cdecl;
+        indexcount : SizeInt;indices : PSizeInt);cdecl;
       writevariant : function(var t : text;const v : variant;width : longint) : Pointer;
       write0Variant : function(var t : text;const v : Variant) : Pointer;
    end;
@@ -318,7 +318,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.20  2005-03-25 19:02:59  florian
+  Revision 1.21  2005-03-28 13:38:05  florian
+    + a lot of vararray stuff
+
+  Revision 1.20  2005/03/25 19:02:59  florian
     + more vararray stuff
 
   Revision 1.19  2005/03/25 18:03:50  florian
