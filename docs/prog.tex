@@ -3877,7 +3877,7 @@ should do thereafter (cf. \seet{Heaperrorresult}).
  Value returned & Memory manager action \\
  \hline
      0		& Generates a runtime error 203 \\
-     1		& \var{GetMem} and \var{New} returns \var{nil} \\
+     1		& \var{GetMem},\var{ReallocMem} and \var{New} returns \var{nil} \\
      2		& Try allocating the memory block once again \\
 \hline
 \end{FPCltable}
@@ -3908,7 +3908,7 @@ in \seet{growheapnil}.
     value		 & manager action \\
 \hline  
      FALSE	        & (The default) Runtime error 203 generated \\
-     TRUE 		& \var{GetMem} and \var{New} returns \var{nil} \\
+     TRUE 		& \var{GetMem}, \var{ReallocMem} and \var{New} returns \var{nil} \\
 \hline
 \end{FPCltable}
 
