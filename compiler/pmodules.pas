@@ -642,41 +642,45 @@ implementation
            end;
        end;
 
-       begin
-         if not (cs_debuginfo in aktmoduleswitches) then
-          exit;
-         { reset unit type info flag }
-         reset_unit_type_info;
-         { write used types from the used units }
-         write_used_unit_type_info(current_module);
-         { first write the types from this unit }
-         if assigned(current_module.globalsymtable) then
-           begin
-              { all types }
-              tglobalsymtable(current_module.globalsymtable).concattypestabto(debuglist);
-              { and all local symbols}
-              tglobalsymtable(current_module.globalsymtable).concatstabto(debuglist);
-           end;
-         if assigned(current_module.localsymtable) then
-           begin
-              { all types }
-              tstaticsymtable(current_module.localsymtable).concattypestabto(debuglist);
-              { and all local symbols}
-              tstaticsymtable(current_module.localsymtable).concatstabto(debuglist);
-           end;
-         if (cs_gdb_dbx in aktglobalswitches) then
-           begin
-             debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
-               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
-               tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
-             debugList.concat(Tai_stabs.Create(strpnew('"'+
-               tglobalsymtable(current_module.globalsymtable).name^+'",'+
-               tostr(N_EINCL)+',0,0,0')));
-             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
-             dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
-             do_count_dbx:=false;
-           end;
-       end;
+      var
+        vardebuglist : taasmoutput;
+      begin
+        if not (cs_debuginfo in aktmoduleswitches) then
+         exit;
+        { first write all global/local symbols to a temp list. This will flag
+          all required tdefs. Afterwards this list will be added }
+        vardebuglist:=taasmoutput.create;
+        if assigned(current_module.globalsymtable) then
+          tglobalsymtable(current_module.globalsymtable).concatstabto(vardebuglist);
+        if assigned(current_module.localsymtable) then
+          tstaticsymtable(current_module.localsymtable).concatstabto(vardebuglist);
+        { reset unit type info flag }
+        reset_unit_type_info;
+        { write used types from the used units }
+        write_used_unit_type_info(current_module);
+        { last write the types from this unit }
+        if assigned(current_module.globalsymtable) then
+          tglobalsymtable(current_module.globalsymtable).concattypestabto(debuglist);
+        if assigned(current_module.localsymtable) then
+          tstaticsymtable(current_module.localsymtable).concattypestabto(debuglist);
+        { now all defs have a type in the debuglist, we now can add the vardebuglist since
+          all references to defs can be solved }
+        debuglist.concatlist(vardebuglist);
+        vardebuglist.free;
+        { include files }
+        if (cs_gdb_dbx in aktglobalswitches) then
+          begin
+            debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
+              tglobalsymtable(current_module.globalsymtable).name^+' has index '+
+              tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
+            debugList.concat(Tai_stabs.Create(strpnew('"'+
+              tglobalsymtable(current_module.globalsymtable).name^+'",'+
+              tostr(N_EINCL)+',0,0,0')));
+            tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
+            dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
+            do_count_dbx:=false;
+          end;
+      end;
 {$EndIf GDB}
 
 
@@ -1454,7 +1458,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.148  2004-03-24 20:24:25  hajny
+  Revision 1.149  2004-05-02 17:26:19  peter
+    * fix stabs for globals
+
+  Revision 1.148  2004/03/24 20:24:25  hajny
     * OS/2 heap management modified to be able to grow heap as needed
 
   Revision 1.147  2004/03/18 11:43:57  olle

@@ -1785,18 +1785,6 @@ implementation
         if (cs_create_smart in aktmoduleswitches) then
           curconstSegment.concat(Tai_cut.Create);
         curconstSegment.concat(Tai_align.create(const_align(l)));
-{$ifdef GDB}
-        if cs_debuginfo in aktmoduleswitches then
-          begin
-            if not sym.isstabwritten then
-              begin
-                stabstr:=sym.stabstring;
-                if stabstr<>nil then
-                  curconstsegment.concat(Tai_stabs.create(stabstr));
-                sym.isstabwritten:=true;
-              end;
-          end;
-{$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
            (assigned(current_procinfo) and
@@ -1829,18 +1817,6 @@ implementation
         if (cs_create_smart in aktmoduleswitches) then
           bssSegment.concat(Tai_cut.Create);
         bssSegment.concat(Tai_align.create(varalign));
-{$ifdef GDB}
-        if cs_debuginfo in aktmoduleswitches then
-          begin
-            if not sym.isstabwritten then
-              begin
-                stabstr:=sym.stabstring;
-                if stabstr<>nil then
-                  bsssegment.concat(Tai_stabs.create(stabstr));
-                sym.isstabwritten:=true;
-              end;
-          end;
-{$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            (cs_create_smart in aktmoduleswitches) or
            DLLSource or
@@ -2146,7 +2122,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.197  2004-03-29 14:43:47  peter
+  Revision 1.198  2004-05-02 17:26:19  peter
+    * fix stabs for globals
+
+  Revision 1.197  2004/03/29 14:43:47  peter
     * cleaner temp get/unget for exceptions
 
   Revision 1.196  2004/03/03 22:02:52  peter
