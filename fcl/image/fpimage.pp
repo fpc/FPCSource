@@ -39,7 +39,7 @@ type
   TFPColorArray = array [0..0] of TFPColor;
 {$R-}
 {$else not CPU68K}
-  TFPColorArray = array [0..maxint] of TFPColor;
+  TFPColorArray = array [0..(maxint-1) div sizeof(TFPColor)] of TFPColor;
 {$endif CPU68K}
   PFPColorArray = ^TFPColorArray;
 
@@ -137,7 +137,7 @@ type
   TFPIntegerArray = array [0..0] of integer;
 {$R-}
 {$else not CPU68K}
-  TFPIntegerArray = array [0..maxint] of integer;
+  TFPIntegerArray = array [0..(maxint-1) div sizeof(integer)] of integer;
 {$endif CPU68K}
   PFPIntegerArray = ^TFPIntegerArray;
 
