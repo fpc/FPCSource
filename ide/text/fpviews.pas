@@ -2479,11 +2479,16 @@ end;
 function GetNextEditorBounds(var Bounds: TRect): boolean;
 var P: PView;
 begin
-  P:=Desktop^.First;
+  P:=Desktop^.Current;
   while P<>nil do
   begin
     if P^.HelpCtx=hcSourceWindow then Break;
     P:=P^.NextView;
+    if P=Desktop^.Current then
+      begin
+        P:=nil;
+        break;
+      end;
   end;
   if P=nil then Desktop^.GetExtent(Bounds) else
      begin
@@ -3074,7 +3079,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.55  2000-02-01 10:58:41  pierre
+  Revision 1.56  2000-02-02 22:51:49  pierre
+   * use desktop^.current for GetNextEditorBounds
+
+  Revision 1.55  2000/02/01 10:58:41  pierre
    * avoid Search sometimes disabled for Editor Windows
 
   Revision 1.54  2000/01/10 14:59:50  pierre
