@@ -85,7 +85,11 @@ exception_handler:
 	call	limitFix
    	.byte	0x2e				/* CS: */
 	movzbl	forced,%ebx
-	movl	%ebx,8(%esp)			/* replace EXCEPNO */
+        movl    %ebx,8(%esp)                    /* replace EXCEPNO */
+        cmpb    $0x75, %bl
+        jne     not_forced
+        movzwl    ___djgpp_fpu_state,%ebx
+        movl    %ebx,20(%esp)                   /* set ERRCODE to FPU state */
 not_forced:
 	movw	%cs:___djgpp_our_DS, %ds
 	movl	$0x10000, forced		/* its zero now, flag inuse */
@@ -292,9 +296,13 @@ exception_state:		.space	64
 	.global	___djgpp_ds_alias
 ___djgpp_ds_alias:		.word	0	/* used in dpmi/api/d0303.s (alloc rmcb) */
 
+        .global ___djgpp_fpu_state
+___djgpp_fpu_state:             .word   0
 	.balign 16,,7
 	.global	___djgpp_npx_hdlr
 ___djgpp_npx_hdlr:
+        fnstsw  ___djgpp_fpu_state
+        fnclex
 	pushl	%eax
 	xorl	%eax,%eax
 	outb	%al,$0x0f0

@@ -1367,13 +1367,15 @@ const
   FPU_Underflow = $10;
   FPU_StackUnderflow = $20;
   FPU_StackOverflow = $40;
+  FPU_ExceptionMask = $ff;
+  FPU_ControlWord : word = $1332;
 
 
 function HandleException(sig : longint) : longint;
 var
   truesig : longint;
   ErrorOfSig : longint;
-  FpuStatus : word;
+  FpuStatus,FPUControl : word;
   eip,ebp : longint;
 begin
   if assigned(djgpp_exception_state_ptr) then
@@ -1392,10 +1394,15 @@ begin
    16,SIGFPE,$75 : begin
          { This needs special handling }
          { to discriminate between 205,206 and 207 }
-         asm
-           fnstsw %ax
-           movw   %ax,fpustatus
-         end;
+
+         if truesig=$75 then
+           fpustatus:=djgpp_exception_state_ptr^.__sigmask and $ffff
+         else
+           asm
+             fnstsw %ax
+             fnclex
+             movw   %ax,fpustatus
+           end;
          if (FpuStatus and FPU_Invalid)<>0 then
            ErrorOfSig:=216
          else if (FpuStatus and FPU_Denormal)<>0 then
@@ -1408,6 +1415,12 @@ begin
            ErrorOfSig:=206
          else
            ErrorOfSig:=207;  {'Coprocessor Error'}
+         { if exceptions then Reset FPU and reload control word }
+         if (FPUStatus and FPU_ExceptionMask)<>0 then
+           asm
+             fninit
+             fldcw FPU_ControlWord
+           end;
         end;
    4 : ErrorOfSig:=215;    {'Overflow'}
    1,                      {'Debug'}
@@ -1453,7 +1466,14 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.15  2000-03-30 13:40:57  pierre
+  Revision 1.16  2000-03-31 23:19:12  pierre
+    * changed handling of interrupt 0x75 :
+      the status word is saved into ___djgpp_fpu_state
+      and inserted in __sigmaks field of djgpp exception record
+      BUT fnclex is called after to avoid a second interrupt
+      generation on fn??? calls
+
+  Revision 1.15  2000/03/30 13:40:57  pierre
    * fix FPU and multiple exception problems
 
   Revision 1.14  2000/03/13 19:45:21  pierre
