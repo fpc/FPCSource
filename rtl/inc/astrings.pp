@@ -13,7 +13,7 @@
 
  **********************************************************************}
 { ---------------------------------------------------------------------
-   This units implements AnsiStrings for FPC
+   This file implements AnsiStrings for FPC
   ---------------------------------------------------------------------}
 
 
@@ -34,64 +34,24 @@
   Meaning that they can't be disposed of.
   
 }
-{$ifdef astrings_unit} 
-{ Compile as a separate unit - development only}
-unit astrings;
 
-Interface 
+Type shortstring=string;
 
-Type AnsiString = Pointer;
-     ShortString = string;
-
-{$i textrec.inc}
-
-{ Internal functions, will not appear in systemh.inc }
-
-Function  NewAnsiString (Len : Longint) : AnsiString;
-Procedure DisposeAnsiString (Var S : AnsiString);
-Procedure Decr_Ansi_Ref (Var S : AnsiString);
-Procedure Incr_Ansi_Ref (Var S : AnsiString);
+Function  NewAnsiString (Len : Longint) : AnsiString; forward;
+Procedure DisposeAnsiString (Var S : AnsiString); forward;
+Procedure Decr_Ansi_Ref (Var S : AnsiString); forward;
+Procedure Incr_Ansi_Ref (Var S : AnsiString); forward;
 Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); 
-Procedure Ansi_String_Concat (Var S1 : AnsiString; Const S2 : AnsiString);
-Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Const S2 : ShortString);
-Procedure Ansi_To_ShortString (Var S1 : ShortString; Const S2 : AnsiString; maxlen : longint);
-Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString);
-Function  AnsiCompare (Const S1,S2 : AnsiString): Longint;
-Function  AnsiCompare (Const S1 : AnsiString; Const S2 : ShortString): Longint;
-Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar);
+Procedure Ansi_String_Concat (Var S1 : AnsiString; Const S2 : AnsiString); forward;
+Procedure Ansi_ShortString_Concat (Var S1: AnsiString; Const S2 : ShortString); forward;
+Procedure Ansi_To_ShortString (Var S1 : ShortString; Const S2 : AnsiString; maxlen : longint); forward;
+Procedure Short_To_AnsiString (Var S1 : AnsiString; Const S2 : ShortString); forward;
+Function  AnsiCompare (Const S1,S2 : AnsiString): Longint; forward;
+Function  AnsiCompare (Const S1 : AnsiString; Const S2 : ShortString): Longint; forward;
+Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar); forward;
 
 { Public functions, Will end up in systemh.inc }
 
-Procedure SetLength (Var S : AnsiString; l : Longint);
-Procedure UniqueAnsiString (Var S : AnsiString);
-Procedure Write_Text_AnsiString (Len : Longint; T : Textrec; Var S : AnsiString);
-Function  Length (Const S : AnsiString) : Longint;
-Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
-Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
-Procedure Delete (Var S : AnsiString; Index,Size: Longint);
-Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
-{Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);}
-Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer);
-Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer);
-Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
-Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
-Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
-{Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);}
-Procedure Str (Const E : Extended;Len,fr : longint; Var S : AnsiString);
-Procedure Str (Const C : Cardinal;len : Longint; Var S : AnsiString);
-Procedure Str (Const L : LongInt;len : longint; Var S : AnsiString);
-Procedure Str (Const W : Word;len : longint; Var S : AnsiString);
-Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString);
-Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString);
-Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString);
-
-Implementation
-
-{$endif}
 {$PACKRECORDS 1}
 Type TAnsiRec = Record
       Maxlen, len, ref :  Longint;
@@ -146,8 +106,20 @@ begin
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
      P:=P+FirstOff;               { Points to string now }
      end;
-  NewAnsiString:=P;
+//!!  NewAnsiString:=P;
 end;
+
+Procedure DisposeAnsiString (Var S : AnsiString);
+{
+  Deallocates a AnsiString From the heap.
+}
+begin
+  If Pointer(S)=Nil then exit;
+  Dec (Longint(S),FirstOff);
+//!!  FreeMem (S,PAnsiRec(Pointer(S))^.Maxlen+AnsiRecLen);
+//!!  Pointer(S):=Nil;
+end;
+
 
 Procedure Decr_Ansi_Ref (Var S : AnsiString);
 {
@@ -194,16 +166,6 @@ begin
 end;
 
 
-Procedure DisposeAnsiString (Var S : AnsiString);
-{
-  Deallocates a AnsiString From the heap.
-}
-begin
-  If Pointer(S)=Nil then exit;
-  Dec (Longint(S),FirstOff);
-  FreeMem (S,PAnsiRec(Pointer(S))^.Maxlen+AnsiRecLen);
-  Pointer(S):=Nil;
-end;
 
 Procedure AssignAnsiString (Var S1 : AnsiString; S2 : AnsiString); 
 {
@@ -221,7 +183,7 @@ begin
       Temp:=Pointer(NewAnsiString(PansiRec(Pointer(S2)-FirstOff)^.Len));
       Move (Pointer(S2)^,Temp^,PAnsiRec(Pointer(S2)-FirstOff)^.len+1);
       PAnsiRec(Temp-FirstOff)^.Len:=PAnsiRec(Pointer(S2)-FirstOff)^.len;
-      S2:=Temp;
+//!!      S2:=Temp;
       end
     else
       Inc(PAnsiRec(Pointer(S2)-FirstOff)^.ref)
@@ -229,7 +191,7 @@ begin
   { Decrease the reference count on the old S1 }
   Decr_Ansi_Ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
-  Pointer(S1):=Pointer(S2);
+//!!  Pointer(S1):=Pointer(S2);
 end;
 
 Procedure Ansi_String_Concat (Var S1 : AnsiString; Const S2 : AnsiString);
@@ -250,7 +212,7 @@ begin
     { Setlength takes case of uniqueness 
       and alllocated memory. We need to use length, 
       to take into account possibility of S1=Nil }
-    SetLength (S1,Size+Location); 
+//!!    SetLength (S1,Size+Location); 
     Move (Pointer(S2)^,Pointer(Pointer(S1)+location)^,Size+1);
     end;
 end;
@@ -707,13 +669,13 @@ begin
   Decr_ansi_ref (AnsiString(S4));
 end;
 
-{$ifdef astrings_unit}
-end.
-{$endif}
 
 {
   $Log$
-  Revision 1.2  1998-05-12 10:42:44  peter
+  Revision 1.3  1998-06-08 12:38:22  michael
+  Implemented rtti, inserted ansistrings again
+
+  Revision 1.2  1998/05/12 10:42:44  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

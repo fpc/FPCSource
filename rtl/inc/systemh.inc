@@ -186,9 +186,6 @@ Function  Sseg:Word;
 function strpas(p:pchar):string;
 function strlen(p:pchar):longint;
 
-{****************************************************************************
-                              String Handling
-****************************************************************************}
 
 Function  copy(const s:string;index:Integer;count:Integer):string;
 Procedure Delete(Var s:string;index:Integer;count:Integer);
@@ -236,6 +233,44 @@ Procedure Val(const s:string;Var d:comp);
 Procedure Val(const s:string;Var v:cardinal;Var code:Word);
 Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
 Procedure Val(const s:string;Var v:cardinal);
+
+{****************************************************************************
+                             AnsiString Handling
+****************************************************************************}
+
+{$ifdef UseAnsiStrings }
+
+Procedure SetLength (Var S : AnsiString; l : Longint); 
+Procedure UniqueAnsiString (Var S : AnsiString); 
+Function  Length (Const S : AnsiString) : Longint; 
+Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString; 
+Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint; 
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint); 
+Procedure Delete (Var S : AnsiString; Index,Size: Longint); 
+Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer); 
+{
+Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
+}
+Procedure Val (Const S : AnsiString; var E : Extended; Code : Integer); 
+Procedure Val (Const S : AnsiString; var C : Cardinal; Code : Integer); 
+Procedure Val (Const S : AnsiString; var L : Longint; Var Code : Integer); 
+Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer); 
+Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer); 
+Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer); 
+Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer); 
+{
+Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString); 
+Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
+Procedure Str (Const E : Extended;Len,fr : longint; Var S : AnsiString); 
+Procedure Str (Const C : Cardinal;len : Longint; Var S : AnsiString); 
+Procedure Str (Const L : LongInt;len : longint; Var S : AnsiString); 
+Procedure Str (Const W : Word;len : longint; Var S : AnsiString); 
+Procedure Str (Const I : Integer;len : Longint; Var S : AnsiString); 
+Procedure Str (Const B : Byte; Len : longint; Var S : AnsiString); 
+Procedure Str (Const SI : ShortInt; Len : longint; Var S : AnsiString); 
+}
+{$endif}
+
 
 {****************************************************************************
                           Untyped File Management
@@ -336,7 +371,10 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.10  1998-06-04 23:46:02  peter
+  Revision 1.11  1998-06-08 12:38:23  michael
+  Implemented rtti, inserted ansistrings again
+
+  Revision 1.10  1998/06/04 23:46:02  peter
     * comp,extended are only i386 added support_comp,support_extended
 
   Revision 1.9  1998/06/04 08:26:03  pierre

@@ -85,6 +85,47 @@ Function Length(s : string) : byte; [INTERNPROC: In_Length_string];
 Procedure Reset(var f : TypedFile);   [INTERNPROC: In_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 
+
+{****************************************************************************
+                                Set Handling
+****************************************************************************}
+
+{ Include set support which is processor specific}
+{$I set.inc}
+
+{****************************************************************************
+                  Subroutines for String handling
+****************************************************************************}
+
+{ Needs to be before RTTI handling }
+
+{$i sstrings.inc}
+
+{$ifdef UseAnsiStrings}
+
+{$i astrings.pp}
+
+{$else}
+
+{ Provide dummy procedures needed for rtti}
+Procedure decr_ansi_ref (P : pointer);
+  begin
+  end; 
+
+Procedure incr_ansi_ref (P : pointer);
+  begin
+  end; 
+
+{$endif}
+
+
+{****************************************************************************
+                         Run-Time Type Information (RTTI)
+****************************************************************************}
+
+
+{$i rtti.inc}
+
 {****************************************************************************
                                Math Routines
 ****************************************************************************}
@@ -217,13 +258,6 @@ End;
 {$I math.inc}
 
 {****************************************************************************
-                                Set Handling
-****************************************************************************}
-
-{ Include set support which is processor specific}
-{$I set.inc}
-
-{****************************************************************************
                              Memory Management
 ****************************************************************************}
 
@@ -252,12 +286,6 @@ Function SSeg : Word;
 Begin
   Sseg:=0;
 End;
-
-{****************************************************************************
-                Subroutines for short strings are in sstrings.inc
-****************************************************************************}
-
-{$i sstrings.inc}
 
 {*****************************************************************************
                              Miscellaneous
@@ -388,7 +416,10 @@ End;
 
 {
   $Log$
-  Revision 1.7  1998-06-04 23:46:01  peter
+  Revision 1.8  1998-06-08 12:38:24  michael
+  Implemented rtti, inserted ansistrings again
+
+  Revision 1.7  1998/06/04 23:46:01  peter
     * comp,extended are only i386 added support_comp,support_extended
 
   Revision 1.6  1998/05/20 11:23:09  cvs
