@@ -175,7 +175,7 @@ end;
 
 Function  FpOpendir (dirname : AnsiString): pDir;
 Begin
-  FpOpenDir:=FpOpenDir(dirname);
+  FpOpenDir:=FpOpenDir(pchar(dirname));
 End;
 
 Function  FpStat (path: String; var buf : stat): cInt;
@@ -310,7 +310,10 @@ end;
 
 {
  $Log$
- Revision 1.4  2003-09-16 16:13:56  marco
+ Revision 1.5  2003-10-12 14:37:10  marco
+  * small bug fixed in opendir that core dumped the IDE. Now the IDE SIGFPE's in FV.
+
+ Revision 1.4  2003/09/16 16:13:56  marco
   * fdset functions renamed to fp<posix name>
 
  Revision 1.3  2003/09/14 20:15:01  marco
