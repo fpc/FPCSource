@@ -839,8 +839,10 @@ implementation
 
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
       var
-        s,
+        s,hs,
         prefix : string;
+        oldlen,
+        newlen,
         i   : longint;
         crc : dword;
         hp  : tparavarsym;
@@ -857,6 +859,7 @@ implementation
              conflicts with 2 overloads having both a nested procedure
              with the same name, see tb0314 (PFV) }
            s:=tprocdef(st.defowner).procsym.name;
+           oldlen:=length(s);
            for i:=0 to tprocdef(st.defowner).paras.count-1 do
             begin
               hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
@@ -865,6 +868,25 @@ implementation
             end;
            if not is_void(tprocdef(st.defowner).rettype.def) then
              s:=s+'$$'+tprocdef(st.defowner).rettype.def.mangledparaname;
+           newlen:=length(s);
+           { Replace with CRC if the parameter line is very long }
+           if (newlen-oldlen>12) and
+              ((newlen>128) or (newlen-oldlen>64)) then
+             begin
+               crc:=$ffffffff;
+               for i:=0 to tprocdef(st.defowner).paras.count-1 do
+                 begin
+                   hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
+                   if not(vo_is_hidden_para in hp.varoptions) then
+                     begin
+                       hs:=hp.vartype.def.mangledparaname;
+                       crc:=UpdateCrc32(crc,hs[1],length(hs));
+                     end;
+                 end;
+               hs:=hp.vartype.def.mangledparaname;
+               crc:=UpdateCrc32(crc,hs[1],length(hs));
+               s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
+             end;
            if prefix<>'' then
              prefix:=s+'_'+prefix
            else
@@ -900,12 +922,6 @@ implementation
         if (target_info.system = system_powerpc_darwin) and
            (result[1] = 'L') then
           result := '_' + result;
-        if length(result)>200 then
-          begin
-            s:=copy(result,1,200);
-            crc:=UpdateCrc32(0,result[201],length(result)-200);
-            result:=s+'_$crc$_$'+hexstr(crc,8);
-          end;
       end;
 
 
@@ -4241,10 +4257,12 @@ implementation
 
     function tprocdef.mangledname : string;
       var
-        hp : TParavarsym;
-        s : string;
-        crc : dword;
-        i   : integer;
+        hp   : TParavarsym;
+        hs   : string;
+        crc  : dword;
+        newlen,
+        oldlen,
+        i    : integer;
       begin
         if assigned(_mangledname) then
          begin
@@ -4258,6 +4276,7 @@ implementation
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         mangledname:=make_mangledname('',procsym.owner,procsym.name);
+        oldlen:=length(mangledname);
         { add parameter types }
         for i:=0 to paras.count-1 do
          begin
@@ -4269,12 +4288,24 @@ implementation
           parameter separator }
         if not is_void(rettype.def) then
           mangledname:=mangledname+'$$'+rettype.def.mangledparaname;
-        { cut off too long strings using a crc }
-        if length(result)>200 then
+        newlen:=length(mangledname);
+        { Replace with CRC if the parameter line is very long }
+        if (newlen-oldlen>12) and
+           ((newlen>128) or (newlen-oldlen>64)) then
           begin
-            s:=copy(result,1,200);
-            crc:=UpdateCrc32(0,result[201],length(result)-200);
-            result:=s+'_$crc$_$'+hexstr(crc,8);
+            crc:=$ffffffff;
+            for i:=0 to paras.count-1 do
+              begin
+                hp:=tparavarsym(paras[i]);
+                if not(vo_is_hidden_para in hp.varoptions) then
+                  begin
+                    hs:=hp.vartype.def.mangledparaname;
+                    crc:=UpdateCrc32(crc,hs[1],length(hs));
+                  end;
+              end;
+            hs:=hp.vartype.def.mangledparaname;
+            crc:=UpdateCrc32(crc,hs[1],length(hs));
+            mangledname:=Copy(mangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
        {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(mangledname));
@@ -6124,7 +6155,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.283  2004-12-07 13:52:54  michael
+  Revision 1.284  2004-12-07 15:41:11  peter
+    * modified algorithm for shortening manglednames to fix compilation
+      of procedures with a lot of longtypenames that are equal, see
+      tw343
+
+  Revision 1.283  2004/12/07 13:52:54  michael
     * Convert array of widechar to pwidechar instead of pchar
 
   Revision 1.282  2004/12/05 12:28:11  peter
