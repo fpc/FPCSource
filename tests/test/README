@@ -58,6 +58,7 @@ Enumerations .......... tenum1.pp      tests assignments of subrange
                                        enumerations
 Codegenerration ....... tcg1.pp        i386 pushw
                         tcg2.pp        saveregisters
+                        tinivar.pp     initial values for local variables (1.1)
 Inline ................ tinline1.pp    tests recursive inlining, inlining
                                        a procedure multiple times and
                                        inlining procedures in other
