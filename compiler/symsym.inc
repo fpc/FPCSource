@@ -2141,6 +2141,8 @@
          inherited init(n);
          typ:=macrosym;
          defined:=true;
+         defined_at_startup:=false;
+         is_used:=false;
          buftext:=nil;
          buflen:=0;
       end;
@@ -2155,7 +2157,10 @@
 
 {
   $Log$
-  Revision 1.116  1999-08-24 22:38:55  michael
+  Revision 1.117  1999-08-31 15:42:24  pierre
+   + tmacrosym is_used and defined_at_startup boolean fields added
+
+  Revision 1.116  1999/08/24 22:38:55  michael
   * more resourcestring changes
 
   Revision 1.115  1999/08/23 11:45:42  michael
