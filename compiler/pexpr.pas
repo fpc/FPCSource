@@ -2320,8 +2320,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-01-14 23:48:09  peter
-    * fixed tw2273
+  Revision 1.100  2003-01-15 01:44:32  peter
+    * merged methodpointer fixes from 1.0.x
 
   Revision 1.98  2003/01/12 17:51:42  peter
     * tp procvar handling fix for tb0448

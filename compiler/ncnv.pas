@@ -1102,7 +1102,7 @@ implementation
                        { Now check if the procedure we are going to assign to
                          the procvar, is compatible with the procvar's type }
                        if proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
-                                                tprocvardef(resulttype.def))=te_incompatible then
+                                                tprocvardef(resulttype.def),true)=te_incompatible then
                          CGMessage2(type_e_incompatible_types,tprocsym(tloadnode(left).symtableentry).first_procdef.typename,resulttype.def.typename);
                        exit;
                      end;
@@ -1129,7 +1129,7 @@ implementation
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if proc_to_procvar_equal(tprocdef(left.resulttype.def),
-                                              tprocvardef(resulttype.def))=te_incompatible then
+                                              tprocvardef(resulttype.def),true)=te_incompatible then
                        CGMessage2(type_e_incompatible_types,tprocdef(left.resulttype.def).typename,resulttype.def.typename);
                      exit;
                    end;
@@ -2024,7 +2024,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.99  2003-01-09 21:43:39  peter
+  Revision 1.100  2003-01-15 01:44:32  peter
+    * merged methodpointer fixes from 1.0.x
+
+  Revision 1.99  2003/01/09 21:43:39  peter
     * constant string conversion fixed, it's now equal to both
       shortstring, ansistring and the typeconvnode will return
       te_equal but still return convtype to change the constnode

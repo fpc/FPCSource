@@ -107,7 +107,7 @@ interface
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;methoderr:boolean):tequaltype;
 
 
 implementation
@@ -765,7 +765,7 @@ implementation
                      { proc -> procvar }
                      if (m_tp_procvar in aktmodeswitches) then
                       begin
-                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to));
+                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),true);
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
@@ -776,7 +776,7 @@ implementation
                  procvardef :
                    begin
                      { procvar -> procvar }
-                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to));
+                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),true);
                    end;
                  pointerdef :
                    begin
@@ -1127,9 +1127,8 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;methoderr:boolean):tequaltype;
       var
-        ismethod : boolean;
         eq : tequaltype;
         po_comp : tprocoptions;
       begin
@@ -1137,19 +1136,11 @@ implementation
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
          { check for method pointer }
-         if def1.deftype=procvardef then
+         if (def1.is_methodpointer xor def2.is_methodpointer) or
+            (def1.is_addressonly xor def2.is_addressonly) then
           begin
-            ismethod:=(po_methodpointer in def1.procoptions);
-          end
-         else
-          begin
-            ismethod:=assigned(def1.owner) and
-                      (def1.owner.symtabletype=objectsymtable);
-          end;
-         if (ismethod and not (po_methodpointer in def2.procoptions)) or
-            (not(ismethod) and (po_methodpointer in def2.procoptions)) then
-          begin
-            Message(type_e_no_method_and_procedure_not_compatible);
+            if methoderr then
+              Message(type_e_no_method_and_procedure_not_compatible);
             exit;
           end;
          { check return value and options, methodpointer is already checked }
@@ -1188,7 +1179,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-01-09 21:43:39  peter
+  Revision 1.18  2003-01-15 01:44:32  peter
+    * merged methodpointer fixes from 1.0.x
+
+  Revision 1.17  2003/01/09 21:43:39  peter
     * constant string conversion fixed, it's now equal to both
       shortstring, ansistring and the typeconvnode will return
       te_equal but still return convtype to change the constnode

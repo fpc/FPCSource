@@ -431,7 +431,7 @@ type
               { in tp7 mode proc -> procvar is allowed }
               if (m_tp_procvar in aktmodeswitches) and
                  (p.left.nodetype=calln) and
-                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to))>=te_equal) then
+                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),true)>=te_equal) then
                eq:=te_equal;
             end;
         end;
@@ -2375,7 +2375,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2003-01-12 17:52:07  peter
+  Revision 1.126  2003-01-15 01:44:32  peter
+    * merged methodpointer fixes from 1.0.x
+
+  Revision 1.125  2003/01/12 17:52:07  peter
     * only check for auto inherited in objectsymtable
 
   Revision 1.124  2003/01/09 21:45:46  peter

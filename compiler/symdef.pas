@@ -437,6 +437,8 @@ interface
           function  para_size(alignsize:longint) : longint;
           function  typename_paras : string;
           procedure test_if_fpu_result;
+          function  is_methodpointer:boolean;virtual;
+          function  is_addressonly:boolean;virtual;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -449,8 +451,10 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  size : longint;override;
-          function gettypename:string;override;
-          function is_publishable : boolean;override;
+          function  gettypename:string;override;
+          function  is_publishable : boolean;override;
+          function  is_methodpointer:boolean;override;
+          function  is_addressonly:boolean;override;
           { debug }
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -534,8 +538,10 @@ interface
           }
           procedure insert_localst;
           function  fullprocname:string;
-          function fullprocnamewithret:string;
+          function  fullprocnamewithret:string;
           function  cplusplusmangledname : string;
+          function  is_methodpointer:boolean;override;
+          function  is_addressonly:boolean;override;
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -903,6 +909,7 @@ implementation
     function tstoreddef.getcopy : tstoreddef;
       begin
          Message(sym_e_cant_create_unique_type);
+         getcopy:=nil;
       end;
 
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
@@ -3313,6 +3320,18 @@ implementation
       end;
 
 
+    function tabstractprocdef.is_methodpointer:boolean;
+      begin
+        result:=false;
+      end;
+
+
+    function tabstractprocdef.is_addressonly:boolean;
+      begin
+        result:=true;
+      end;
+
+
 {$ifdef GDB}
     function tabstractprocdef.stabstring : pchar;
       begin
@@ -3591,6 +3610,19 @@ implementation
           not(is_void(rettype.def)) then
                s:=s+' : '+rettype.def.gettypename;
         fullprocnamewithret:=s;
+      end;
+
+
+    function tprocdef.is_methodpointer:boolean;
+      begin
+        result:=assigned(owner) and
+                (owner.symtabletype=objectsymtable);
+      end;
+
+
+    function tprocdef.is_addressonly:boolean;
+      begin
+        result:=true;
       end;
 
 
@@ -4020,6 +4052,19 @@ implementation
       end;
 
 
+    function tprocvardef.is_methodpointer:boolean;
+      begin
+        result:=(po_methodpointer in procoptions);
+      end;
+
+
+    function tprocvardef.is_addressonly:boolean;
+      begin
+        result:=not(po_methodpointer in procoptions) or
+                (po_addressonly in procoptions);
+      end;
+
+
 {$ifdef GDB}
     function tprocvardef.stabstring : pchar;
       var
@@ -4134,14 +4179,17 @@ implementation
       begin
          s:='<';
          if po_classmethod in procoptions then
-           s := s+'class method'
+           s := s+'class method type of'
          else
-           s := s+'procedure variable';
+           if po_addressonly in procoptions then
+             s := s+'address of'
+           else
+             s := s+'procedure variable type of';
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           s:=s+' type of function'+typename_paras+':'+rettype.def.gettypename
+           s:=s+' function'+typename_paras+':'+rettype.def.gettypename
          else
-           s:=s+' type of procedure'+typename_paras;
+           s:=s+' procedure'+typename_paras;
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
@@ -5599,7 +5647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2003-01-09 21:52:37  peter
+  Revision 1.125  2003-01-15 01:44:33  peter
+    * merged methodpointer fixes from 1.0.x
+
+  Revision 1.124  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

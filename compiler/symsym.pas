@@ -1062,7 +1062,7 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
          begin
-           eq:=proc_to_procvar_equal(pd^.def,d);
+           eq:=proc_to_procvar_equal(pd^.def,d,false);
            if eq>=te_equal then
             begin
               { multiple procvars with the same equal level }
@@ -2563,7 +2563,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-01-09 21:52:38  peter
+  Revision 1.93  2003-01-15 01:44:33  peter
+    * merged methodpointer fixes from 1.0.x
+
+  Revision 1.92  2003/01/09 21:52:38  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 
