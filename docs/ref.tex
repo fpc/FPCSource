@@ -4141,6 +4141,16 @@ and marks the file as closed.}
 \latex{\inputlisting{refex/ex5.pp}}
 \html{\input{refex/ex5.tex}}
 
+\function{Assigned}{(P : Pointer)}{Boolean}
+{ \var{Assigned} returns \var{True} if \var{P} is non-nil 
+and retuns \var{False} of \var{P} is nil. 
+
+The main use of Assigned it that Procedural variables and 
+class-type variables also can be passed to \var{Assigned}.
+}
+{None}{}
+
+
 \function{BinStr}{Value : longint; cnt : byte)}{String}
 {\var{BinStr} returns a string with the binary representation
 of \var{Value}. The string has at most \var{cnt} characters.
@@ -4498,8 +4508,8 @@ over its maximum value.}
 \latex{\inputlisting{refex/ex32.pp}}
 \html{\input{refex/ex32.tex}}
 
-\procedure{Insert}{(Var Source : String;var S : String;Index : integer)}
-{\var{Insert} inserts string \var{S} in string \var{Source}, at position
+\procedure{Insert}{(Const Source : String;var S : String;Index : integer)}
+{\var{Insert} inserts string \var{Source} in string \var{S}, at position
 \var{Index}, shifting all characters after \var{Index} to the right. The
 resulting string is truncated at 255 characters, if needed.}
 {None.}
