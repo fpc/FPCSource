@@ -289,7 +289,7 @@ var
           s : string;
           idx : longint;
         begin
-          s:=msg^.get(w);
+          s:=msg^.get(w,[]);
           idx:=pos('_',s);
           if idx>0 then
            Loadprefix:=Copy(s,idx+1,255)
@@ -579,35 +579,35 @@ var
     procedure Message(w:longint);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w));
+        Msg2Comment(msg^.Get(w,[]));
       end;
 
 
     procedure Message1(w:longint;const s1:string);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get1(w,s1));
+        Msg2Comment(msg^.Get(w,[s1]));
       end;
 
 
     procedure Message2(w:longint;const s1,s2:string);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get2(w,s1,s2));
+        Msg2Comment(msg^.Get(w,[s1,s2]));
       end;
 
 
     procedure Message3(w:longint;const s1,s2,s3:string);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get3(w,s1,s2,s3));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]));
       end;
 
 
     procedure Message4(w:longint;const s1,s2,s3,s4:string);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get4(w,s1,s2,s3,s4));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]));
       end;
 
 
@@ -618,7 +618,7 @@ var
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w));
+        Msg2Comment(msg^.Get(w,[]));
         aktfilepos:=oldpos;
       end;
 
@@ -630,7 +630,7 @@ var
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get1(w,s1));
+        Msg2Comment(msg^.Get(w,[s1]));
         aktfilepos:=oldpos;
       end;
 
@@ -642,7 +642,7 @@ var
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get2(w,s1,s2));
+        Msg2Comment(msg^.Get(w,[s1,s2]));
         aktfilepos:=oldpos;
       end;
 
@@ -654,7 +654,7 @@ var
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get3(w,s1,s2,s3));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]));
         aktfilepos:=oldpos;
       end;
 
@@ -666,7 +666,7 @@ var
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get4(w,s1,s2,s3,s4));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]));
         aktfilepos:=oldpos;
       end;
 
@@ -823,7 +823,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2004-02-15 12:17:59  peter
+  Revision 1.30  2004-02-20 19:49:21  daniel
+    * Message system uses open arrays internally
+    * Bugfix for string handling in array constructor node
+    * Micro code reductions in pdecl.pas
+
+  Revision 1.29  2004/02/15 12:17:59  peter
     * reset compiling_module, fixes crash in ide with second compile
 
   Revision 1.28  2003/10/08 19:17:43  peter

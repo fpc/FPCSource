@@ -53,11 +53,7 @@ type
     procedure ClearIdx;
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
-    function  Get(nr:longint):string;
-    function  Get4(nr:longint;const s1,s2,s3,s4:string):string;
-    function  Get3(nr:longint;const s1,s2,s3:string):string;
-    function  Get2(nr:longint;const s1,s2:string):string;
-    function  Get1(nr:longint;const s1:string):string;
+    function  Get(nr:longint;const args:array of string):string;
   end;
 
 { this will read a line until #10 or #0 and also increase p }
@@ -75,43 +71,33 @@ uses
 {$endif DELPHI}
 
 
-    function MsgReplace(const s,s1,s2,s3,s4:string):string;
-      var
-        last,
-        i  : longint;
-        hs : string;
-      begin
-        if s='' then
-         begin
-           MsgReplace:='';
-           exit;
-         end;
-        hs:='';
-        i:=0;
-        last:=0;
-        while (i<length(s)-1) do
-         begin
-           inc(i);
-           if (s[i]='$') and
-              (s[i+1] in ['1'..'4']) then
-            begin
-              hs:=hs+copy(s,last+1,i-last-1);
-              case s[i+1] of
-               '1' :
-                 hs:=hs+s1;
-               '2' :
-                 hs:=hs+s2;
-               '3' :
-                 hs:=hs+s3;
-               '4' :
-                 hs:=hs+s4;
-              end;
-              inc(i);
-              last:=i;
-            end;
-         end;
-        MsgReplace:=hs+copy(s,last+1,length(s)-last);;
-      end;
+function MsgReplace(const s:string;const args:array of string):string;
+var
+  last,
+  i  : longint;
+  hs : string;
+
+begin
+  if s='' then
+    begin
+      MsgReplace:='';
+      exit;
+    end;
+  hs:='';
+  i:=0;
+  last:=0;
+  while (i<length(s)-1) do
+    begin
+      inc(i);
+      if (s[i]='$') and (s[i+1] in ['1'..'9']) then
+        begin
+          hs:=hs+copy(s,last+1,i-last-1)+args[byte(s[i+1])-byte('1')];
+          inc(i);
+          last:=i;
+        end;
+    end;
+  MsgReplace:=hs+copy(s,last+1,length(s)-last);;
+end;
 
 
 
@@ -418,50 +404,26 @@ begin
 end;
 
 
-function TMessage.Get(nr:longint):string;
+function TMessage.Get(nr:longint;const args:array of string):string;
 var
-  s : string[16];
   hp : pchar;
 begin
   hp:=msgidx[nr div 1000]^[nr mod 1000];
   if hp=nil then
-   begin
-     Str(nr,s);
-     Get:='msg nr '+s;
-   end
+    Get:='msg nr '+tostr(nr)
   else
-   Get:=StrPas(hp);
+    Get:=MsgReplace(strpas(hp),args);
 end;
-
-
-function TMessage.Get4(nr:longint;const s1,s2,s3,s4:string):string;
-begin
-  Get4:=MsgReplace(Get(nr),s1,s2,s3,s4);
-end;
-
-
-function TMessage.Get3(nr:longint;const s1,s2,s3:string):string;
-begin
-  Get3:=MsgReplace(Get(nr),s1,s2,s3,'');
-end;
-
-
-function TMessage.Get2(nr:longint;const s1,s2:string):string;
-begin
-  Get2:=MsgReplace(Get(nr),s1,s2,'','');
-end;
-
-
-function TMessage.Get1(nr:longint;const s1:string):string;
-begin
-  Get1:=MsgReplace(Get(nr),s1,'','','');
-end;
-
 
 end.
 {
   $Log$
-  Revision 1.9  2004-01-28 15:36:46  florian
+  Revision 1.10  2004-02-20 19:49:21  daniel
+    * Message system uses open arrays internally
+    * Bugfix for string handling in array constructor node
+    * Micro code reductions in pdecl.pas
+
+  Revision 1.9  2004/01/28 15:36:46  florian
     * fixed another couple of arm bugs
 
   Revision 1.8  2003/05/10 23:57:23  florian

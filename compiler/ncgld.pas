@@ -868,7 +868,11 @@ implementation
                    LOC_CREFERENCE :
                      begin
                        location_release(exprasmlist,hp.left.location);
-                       cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
+                       if is_shortstring(hp.left.resulttype.def) then
+                         cg.g_copyshortstring(exprasmlist,hp.left.location.reference,href,
+                                              Tstringdef(hp.left.resulttype.def).len,freetemp,false)
+                       else
+                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
                      end;
                    else
                      begin
@@ -899,7 +903,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2004-02-08 17:45:53  jonas
+  Revision 1.109  2004-02-20 19:49:21  daniel
+    * Message system uses open arrays internally
+    * Bugfix for string handling in array constructor node
+    * Micro code reductions in pdecl.pas
+
+  Revision 1.108  2004/02/08 17:45:53  jonas
     * fixed regvars
 
   Revision 1.107  2004/02/05 01:24:08  florian

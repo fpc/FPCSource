@@ -428,13 +428,7 @@ implementation
            consume(_ID);
            consume(_EQUAL);
            { support 'ttype=type word' syntax }
-           if token=_TYPE then
-             begin
-                Consume(_TYPE);
-                unique:=true;
-             end
-           else
-             unique:=false;
+           unique:=try_to_consume(_TYPE);
            { is the type already defined? }
            searchsym(typename,sym,srsymtable);
            newtype:=nil;
@@ -551,28 +545,29 @@ implementation
                 it can contain a reference to that data (PFV)
                 This is not for forward classes }
               if (tt.def.deftype=objectdef) then
-               begin
-                 if not(oo_is_forward in tobjectdef(tt.def).objectoptions) then
-                   begin
-                     ch:=cclassheader.create(tobjectdef(tt.def));
-                     { generate and check virtual methods, must be done
-                       before RTTI is written }
-                     ch.genvmt;
-                     { Generate RTTI for class }
-                     generate_rtti(newtype);
-                     if is_interface(tobjectdef(tt.def)) then
-                       ch.writeinterfaceids;
-                     if (oo_has_vmt in tobjectdef(tt.def).objectoptions) then
-                       ch.writevmt;
-                     ch.free;
-                   end;
-               end
+                with Tobjectdef(tt.def) do
+                  begin
+                    if not(oo_is_forward in objectoptions) then
+                      begin
+                        ch:=cclassheader.create(tobjectdef(tt.def));
+                        { generate and check virtual methods, must be done
+                          before RTTI is written }
+                        ch.genvmt;
+                        { Generate RTTI for class }
+                        generate_rtti(newtype);
+                        if is_interface(tobjectdef(tt.def)) then
+                          ch.writeinterfaceids;
+                        if (oo_has_vmt in objectoptions) then
+                          ch.writevmt;
+                        ch.free;
+                      end;
+                   end
               else
-               begin
-                 { Always generate RTTI info for all types. This is to have typeinfo() return
-                   the same pointer }
-                 generate_rtti(newtype);
-               end;
+                begin
+                  { Always generate RTTI info for all types. This is to have typeinfo() return
+                    the same pointer }
+                  generate_rtti(newtype);
+                end;
 
               aktfilepos:=oldfilepos;
             end;
@@ -658,11 +653,12 @@ implementation
                              Message(cg_e_illegal_expression);
                         end;
                       stringconstn:
-                        begin
-                           getmem(sp,tstringconstnode(p).len+1);
-                           move(tstringconstnode(p).value_str^,sp^,tstringconstnode(p).len+1);
-                           symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,tstringconstnode(p).len));
-                        end;
+                        with Tstringconstnode(p) do
+                          begin
+                             getmem(sp,len+1);
+                             move(value_str^,sp^,len+1);
+                             symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,len));
+                          end;
                       else
                         Message(cg_e_illegal_expression);
                    end;
@@ -679,7 +675,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-02-17 19:37:16  daniel
+  Revision 1.82  2004-02-20 19:49:21  daniel
+    * Message system uses open arrays internally
+    * Bugfix for string handling in array constructor node
+    * Micro code reductions in pdecl.pas
+
+  Revision 1.81  2004/02/17 19:37:16  daniel
     * No longer treat threadvar is normakl var if threading off
 
   Revision 1.80  2004/02/17 17:38:11  daniel
