@@ -94,8 +94,9 @@ implementation
 
 {$ASMMODE ATT}
 
-    function strcopy(dest,source : pchar) : pchar; assembler;
+    function strcopy(dest,source : pchar) : pchar;
 
+      begin
          asm
             cld
             movl 12(%ebp),%edi
@@ -115,10 +116,14 @@ implementation
             rep
             movsb
             movl 8(%ebp),%eax
+            leave
+            ret $8
          end;
+      end;
 
-    function strecopy(dest,source : pchar) : pchar;assembler;
+    function strecopy(dest,source : pchar) : pchar;
 
+      begin
          asm
             cld
             movl 12(%ebp),%edi
@@ -140,10 +145,14 @@ implementation
             movl 8(%ebp),%eax
             decl %edi
             movl %edi,%eax
+            leave
+            ret $8
+         end ['EAX','ESI','EDI'];
       end;
 
-    function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
+    function strlcopy(dest,source : pchar;maxlen : longint) : pchar;
 
+      begin
          asm
             movl 8(%ebp),%edi
             movl 12(%ebp),%esi
@@ -159,13 +168,18 @@ implementation
             movl 8(%ebp),%eax
             leave
             ret $12
-         .LSTRLCOPY2:
+        .LSTRLCOPY2:
+
             xorb %al,%al        // If cutted
             stosb               // add a #0
             movl 8(%ebp),%eax
-          end;
+            leave
+            ret $12
+         end ['EAX','ECX','ESI','EDI'];
+      end;
 
-    function strlen(p : pchar) : longint;assembler;
+    function strlen(p : pchar) : longint;
+    begin
       asm
         cld
         movl    8(%ebp),%edi
@@ -175,10 +189,14 @@ implementation
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
+        leave
+        ret     $4
+      end ['EDI','ECX','EAX'];
     end;
 
-    function strend(p : pchar) : pchar;assembler;
+    function strend(p : pchar) : pchar;
 
+      begin
          asm
             cld
             movl 8(%ebp),%edi
@@ -188,11 +206,15 @@ implementation
             scasb
             movl %edi,%eax
             decl %eax
-         end;
+            leave
+            ret $4
+         end ['EDI','ECX','EAX'];
+      end;
 
-    function strpcopy(d : pchar;const s : string) : pchar; assembler;
+    function strpcopy(d : pchar;const s : string) : pchar;
 
-      asm
+      begin
+         asm
             pushl %esi          // Save ESI
             cld
             movl 8(%ebp),%edi   // load destination address
@@ -206,6 +228,9 @@ implementation
             stosb
             movl %ebx,%eax      // return value to EAX
             popl %esi
+            leave               // ... and ready
+            ret $8
+         end ['EDI','ESI','EBX','EAX','ECX'];
       end;
 
 {$ASMMODE DIRECT}
@@ -263,8 +288,9 @@ implementation
          strlcat:=strlcopy(destend,source,l);
       end;
 
-    function strcomp(str1,str2 : pchar) : longint; assembler;
+    function strcomp(str1,str2 : pchar) : longint;
 
+      begin
          asm
             // Find terminating zero
             movl 12(%ebp),%edi
@@ -281,10 +307,14 @@ implementation
             movb -1(%esi),%al
             movzbl -1(%edi),%ecx
             subl %ecx,%eax
-          end;
+            leave
+            ret $8
+         end ['EAX','ECX','ESI','EDI'];
+      end;
 
-    function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
+    function strlcomp(str1,str2 : pchar;l : longint) : longint;
 
+      begin
          asm
             // Find terminating zero
             movl 12(%ebp),%edi
@@ -297,7 +327,7 @@ implementation
             cmpl 16(%ebp),%ecx
             jl .LSTRLCOMP1
             movl 16(%ebp),%ecx
-         .LSTRLCOMP1:
+        .LSTRLCOMP1:
             movl 12(%ebp),%edi
             movl 8(%ebp),%esi
             repe
@@ -305,10 +335,14 @@ implementation
             movb -1(%esi),%al
             movzbl -1(%edi),%ecx
             subl %ecx,%eax
-         end;
+            leave
+            ret $12
+         end ['EAX','ECX','ESI','EDI'];
+      end;
 
-    function stricomp(str1,str2 : pchar) : longint;assembler;
+    function stricomp(str1,str2 : pchar) : longint;
 
+      begin
          asm
             // Find terminating zero
             movl 12(%ebp),%edi
@@ -341,10 +375,14 @@ implementation
             subl %ebx,%eax
             jz .LSTRICOMP2      // If still equal, compare again
        .LSTRICOMP3:
+            leave
+            ret $8
+         end ['EAX','ECX','ESI','EDI'];
       end;
 
-    function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
+    function strlicomp(str1,str2 : pchar;l : longint) : longint;
 
+      begin
          asm
             // Search terminating zero
             movl 12(%ebp),%edi
@@ -382,7 +420,10 @@ implementation
             jz .LSTRLICOMP2
 
        .LSTRLICOMP3:
-           end;
+            leave
+            ret $12
+         end ['EAX','ECX','ESI','EDI'];
+      end;
 
     function strmove(dest,source : pchar;l : longint) : pchar;
 
@@ -391,8 +432,9 @@ implementation
          strmove:=dest;
       end;
 
-    function strscan(p : pchar;c : char) : pchar; assembler;
+    function strscan(p : pchar;c : char) : pchar;
 
+      begin
          asm
             movl 8(%ebp),%edi
             movl $0xffffffff,%ecx
@@ -410,10 +452,14 @@ implementation
             movl %edi,%eax
             decl %eax
         .LSTRSCAN:
+            leave
+            ret $6
          end;
+      end;
 
-    function strrscan(p : pchar;c : char) : pchar;assembler;
+    function strrscan(p : pchar;c : char) : pchar;
 
+      begin
          asm
             movl 8(%ebp),%edi
             movl $0xffffffff,%ecx
@@ -435,10 +481,14 @@ implementation
             movl %edi,%eax
             incl %eax
         .LSTRRSCAN:
+            leave
+            ret $6
+         end;
       end;
 
-    function strupper(p : pchar) : pchar;assembler;
+    function strupper(p : pchar) : pchar;
 
+      begin
          asm
             movl 8(%ebp),%esi
             movl %esi,%edi
@@ -454,10 +504,14 @@ implementation
             orb %al,%al
             jnz .LSTRUPPER1
             movl 8(%ebp),%eax
+            leave
+            ret $4
          end;
+      end;
 
-    function strlower(p : pchar) : pchar; assembler;
+    function strlower(p : pchar) : pchar;
 
+      begin
          asm
             movl 8(%ebp),%esi
             movl %esi,%edi
@@ -473,7 +527,10 @@ implementation
             orb %al,%al
             jnz .LSTRLOWER1
             movl 8(%ebp),%eax
+            leave
+            ret $4
          end;
+      end;
 
     function strpos(str1,str2 : pchar) : pchar;
 
@@ -532,11 +589,8 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-08-03 11:46:07  florian
-    * stricomp and strlicomp were buggy (unworkable :(), should be fixed now
-
-  Revision 1.5  1998/07/29 23:46:37  michael
-  + changed wehere possible, procs to assembler procs
+  Revision 1.7  1998-08-05 08:59:53  michael
+  reverted to non-assmebler version, florians fix is applied.
 
   Revision 1.4  1998/05/31 14:15:52  peter
     * force to use ATT or direct parsing
