@@ -209,9 +209,7 @@ interface
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
 {$ifdef GDB}
-          classglobalnb,
-          classptrglobalnb : word;
-          writing_stabs : boolean;
+          writing_class_record_stab : boolean;
 {$endif GDB}
           objecttype : tobjectdeftype;
           isiidguidvalid: boolean;
@@ -243,8 +241,8 @@ interface
           function stabstring : pchar;virtual;
           procedure set_globalnb;virtual;
           function  classnumberstring : string;
-          function  classptrnumberstring : string;
           procedure concatstabto(asmlist : paasmoutput);virtual;
+          function  allstabstring : pchar;virtual;
 {$endif GDB}
           { init/final }
           function  needs_inittable : boolean;virtual;
@@ -1534,7 +1532,11 @@ implementation
       begin
         memsize := memsizeinc;
         getmem(st,memsize);
-        strpcopy(st,'e');
+        { we can specify the size with @s<size>; prefix PM }
+        if savesize <> target_os.size_of_longint then
+          strpcopy(st,'@s'+tostr(savesize)+';e')
+        else
+          strpcopy(st,'e');
         p := penumsym(firstenum);
         while assigned(p) do
           begin
@@ -2880,7 +2882,7 @@ implementation
 {$ifdef GDB}
     Const StabRecString : pchar = Nil;
           StabRecSize : longint = 0;
-          {RecOffset : Longint = 0;}
+          RecOffset : Longint = 0;
 
     procedure addname(p : pnamedindexobject);
     var
@@ -2922,30 +2924,30 @@ implementation
            end;
          strcat(StabRecstring,newrec);
          strdispose(newrec);
-         {This should be used for case !!
-         RecOffset := RecOffset + pvarsym(p)^.vartype.def^.size;}
+         {This should be used for case !!}
+         RecOffset := RecOffset + pvarsym(p)^.vartype.def^.size;
        end;
     end;
 
 
     function trecorddef.stabstring : pchar;
       Var oldrec : pchar;
-          oldsize : longint;
+          oldsize,oldrecoffset : longint;
       begin
         oldrec := stabrecstring;
         oldsize:=stabrecsize;
         GetMem(stabrecstring,memsizeinc);
         stabrecsize:=memsizeinc;
         strpcopy(stabRecString,'s'+tostr(size));
-        {RecOffset := 0;}
+        OldRecOffset:=RecOffset;
+        RecOffset := 0;
         symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
-        { FPC doesn't want to convert a char to a pchar}
-        { is this a bug ? }
         strpcopy(strend(StabRecString),';');
         stabstring := strnew(StabRecString);
         Freemem(stabrecstring,stabrecsize);
         stabrecstring := oldrec;
         stabrecsize:=oldsize;
+        RecOffset:=OldRecOffset;
       end;
 
 
@@ -4105,9 +4107,7 @@ Const local_symtable_index : longint = $8001;
           implementedinterfaces:=nil;
 
 {$ifdef GDB}
-        writing_stabs:=false;
-        classglobalnb:=0;
-        classptrglobalnb:=0;
+        writing_class_record_stab:=false;
 {$endif GDB}
      end;
 
@@ -4151,7 +4151,6 @@ Const local_symtable_index : longint = $8001;
          else
            implementedinterfaces:=nil;
 
-
          oldread_member:=read_member;
          read_member:=true;
          symtable:=new(pstoredsymtable,loadas(objectsymtable));
@@ -4172,9 +4171,7 @@ Const local_symtable_index : longint = $8001;
             (upper(objname^)='IUNKNOWN') then
            interface_iunknown:=@self;
 {$ifdef GDB}
-         writing_stabs:=false;
-         classglobalnb:=0;
-         classptrglobalnb:=0;
+         writing_class_record_stab:=false;
 {$endif GDB}
        end;
 
@@ -4562,13 +4559,11 @@ Const local_symtable_index : longint = $8001;
     function tobjectdef.stabstring : pchar;
       var anc : pobjectdef;
           oldrec : pchar;
-          storenb, oldrecsize : longint;
+          oldrecsize,oldrecoffset : longint;
           str_end : string;
       begin
-        if not (objecttype=odt_class) or writing_stabs then
+        if not (objecttype=odt_class) or writing_class_record_stab then
           begin
-            storenb:=globalnb;
-            globalnb:=classptrglobalnb;
             oldrec := stabrecstring;
             oldrecsize:=stabrecsize;
             stabrecsize:=memsizeinc;
@@ -4581,8 +4576,10 @@ Const local_symtable_index : longint = $8001;
                 strpcopy(strend(stabrecstring),'!1,020,'+childof^.classnumberstring+';');
               end;
             {virtual table to implement yet}
-            {RecOffset := 0;}
+            OldRecOffset:=RecOffset;
+            RecOffset := 0;
             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
+            RecOffset:=OldRecOffset;
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
                  begin
@@ -4605,7 +4602,6 @@ Const local_symtable_index : longint = $8001;
             freemem(stabrecstring,stabrecsize);
             stabrecstring := oldrec;
             stabrecsize:=oldrecsize;
-            globalnb:=storenb;
           end
         else
           begin
@@ -4615,50 +4611,61 @@ Const local_symtable_index : longint = $8001;
 
    procedure tobjectdef.set_globalnb;
      begin
-         classglobalnb:=PGlobalTypeCount^;
-         globalnb:=classglobalnb;
+         globalnb:=PglobalTypeCount^;
          inc(PglobalTypeCount^);
          { classes need two type numbers, the globalnb is set to the ptr }
          if objecttype=odt_class then
            begin
-             classptrglobalnb:=PGlobalTypeCount^;
-             globalnb:=classptrglobalnb;
+             globalnb:=PGlobalTypeCount^;
              inc(PglobalTypeCount^);
            end;
      end;
 
    function tobjectdef.classnumberstring : string;
-     var
-       onb : word;
      begin
-       if globalnb=0 then
-         numberstring;
+       { write stabs again if needed }
+       numberstring;
        if objecttype=odt_class then
          begin
-           onb:=globalnb;
-           globalnb:=classglobalnb;
+           dec(globalnb);
            classnumberstring:=numberstring;
-           globalnb:=onb;
+           inc(globalnb);
          end
        else
          classnumberstring:=numberstring;
      end;
 
-   function tobjectdef.classptrnumberstring : string;
-     var
-       onb : word;
-     begin
-       numberstring;
-       if objecttype=odt_class then
-         begin
-           onb:=globalnb;
-           globalnb:=classptrglobalnb;
-           classptrnumberstring:=numberstring;
-           globalnb:=onb;
-         end
-       else
-         classptrnumberstring:=numberstring;
-     end;
+
+    function tobjectdef.allstabstring : pchar;
+    var stabchar : string[2];
+        ss,st : pchar;
+        sname : string;
+        sym_line_no : longint;
+      begin
+      ss := stabstring;
+      getmem(st,strlen(ss)+512);
+      stabchar := 't';
+      if deftype in tagtypes then
+        stabchar := 'Tt';
+      if assigned(typesym) then
+        begin
+           sname := typesym^.name;
+           sym_line_no:=typesym^.fileinfo.line;
+        end
+      else
+        begin
+           sname := ' ';
+           sym_line_no:=0;
+        end;
+      if writing_class_record_stab then
+        strpcopy(st,'"'+sname+':'+stabchar+classnumberstring+'=')
+      else
+        strpcopy(st,'"'+sname+':'+stabchar+numberstring+'=');
+      strpcopy(strecopy(strend(st),ss),'",'+tostr(N_LSYM)+',0,'+tostr(sym_line_no)+',0');
+      allstabstring := strnew(st);
+      freemem(st,strlen(ss)+512);
+      strdispose(ss);
+      end;
 
     procedure tobjectdef.concatstabto(asmlist : paasmoutput);
       var st : pstring;
@@ -4675,24 +4682,22 @@ Const local_symtable_index : longint = $8001;
           if globalnb=0 then
             set_globalnb;
           { Write the record class itself }
-          writing_stabs:=true;
-          if assigned(typesym) then
-            begin
-              st:=ptypesym(typesym)^._name;
-              ptypesym(typesym)^._name:=stringdup(' ');
-            end;
-          globalnb:=classglobalnb;
+          writing_class_record_stab:=true;
           inherited concatstabto(asmlist);
-          if assigned(typesym) then
-            begin
-              stringdispose(ptypesym(typesym)^._name);
-              ptypesym(typesym)^._name:=st;
-            end;
-          globalnb:=classptrglobalnb;
-          writing_stabs:=false;
+          writing_class_record_stab:=false;
           { Write the invisible pointer class }
           is_def_stab_written:=not_written;
+          if assigned(typesym) then
+            begin
+              st:=typesym^._name;
+              typesym^._name:=stringdup(' ');
+            end;
           inherited concatstabto(asmlist);
+          if assigned(typesym) then
+            begin
+              stringdispose(typesym^._name);
+              typesym^._name:=st;
+            end;
         end;
       end;
 {$endif GDB}
@@ -5549,7 +5554,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.17  2000-12-07 17:19:43  jonas
+  Revision 1.18  2000-12-24 12:20:45  peter
+    * classes, enum stabs fixes merged from 1.0.x
+
+  Revision 1.17  2000/12/07 17:19:43  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
