@@ -1799,7 +1799,8 @@ END;
 PROCEDURE TCollection.FreeAll;
 VAR I: Sw_Integer;
 BEGIN
-   For I := 0 To Count-1 Do FreeItem(At(I));          { Release each item }
+   for I := Count-1 downto 0 do
+    FreeItem(At(I));
    Count := 0;                                        { Clear item count }
 END;
 
@@ -2757,7 +2758,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.29  1999-06-14 17:48:04  peter
+  Revision 1.30  1999-09-10 17:15:13  peter
+    * fixed freeall
+
+  Revision 1.29  1999/06/14 17:48:04  peter
     * merged
 
   Revision 1.28.2.1  1999/06/14 17:43:20  peter
