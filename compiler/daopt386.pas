@@ -80,7 +80,7 @@ Const
 {ait_* types which don't result in executable code or which don't influence
  the way the program runs/behaves}
 
-  SkipInstr = [ait_comment
+  SkipInstr = [ait_comment, ait_align, ait_symbol
 {$ifdef GDB}
   ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
@@ -644,9 +644,34 @@ Begin
     Else LabelDif := 0;
 End;
 
-Procedure BuildLabelTable(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint; Var LabelDif: Longint);
-{Builds a table with the locations of the labels in the paasmoutput}
-Var p: Pai;
+Function FindRegAlloc(Reg: TRegister; StartPai: Pai): Boolean;
+{Returns true if a ait_regalloc object for Reg is found in the block of Pai's
+ starting with StartPai and ending with the next "real" instruction}
+Var TmpResult: Boolean;
+Begin
+  TmpResult := False;
+  Repeat
+    While Assigned(StartPai) And
+          ((StartPai^.typ in (SkipInstr - [ait_RegAlloc])) Or
+           ((StartPai^.typ = ait_label) and
+            Not(Pai_Label(StartPai)^.l^.Is_Used))) Do
+      StartPai := Pai(StartPai^.Next);
+    If Assigned(StartPai) And
+       (StartPai^.typ = ait_RegAlloc) Then
+      Begin
+        TmpResult := (PaiRegAlloc(StartPai)^.Reg = Reg);
+        StartPai := Pai(StartPai^.Next);
+      End;
+  Until Not(Assigned(StartPai)) Or
+        Not(StartPai^.typ in SkipInstr) or TmpResult;
+  FindRegAlloc := TmpResult;
+End;
+
+Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
+            Var LabelDif: Longint);
+{Builds a table with the locations of the labels in the paasmoutput.
+ Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
+Var p, hp1, hp2: Pai;
 Begin
   If (LabelDif <> 0) Then
     Begin
@@ -660,10 +685,24 @@ Begin
             p := pai(AsmL^.first);
             While Assigned(p) Do
               Begin
-                If (Pai(p)^.typ = ait_label) And
+                If (p^.typ = ait_label) And
                    (Pai_Label(p)^.l^.is_used) Then
-                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
-                GetNextInstruction(p, p);
+                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p
+                Else
+                  If (p^.typ = ait_regdealloc) And
+                     Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(p^.Next))) And
+                     GetNextInstruction(p, hp1) And
+                     (RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Then
+                    Begin
+                      hp2 := Pai(p^.previous);
+                      AsmL^.Remove(p);
+                      InsertLLItem(AsmL, hp1, Pai(hp1^.Next), p);
+                      p := hp2;
+                    End;
+                P := Pai(p^.Next);
+                While Assigned(p) And
+                      (p^.typ in (SkipInstr - [ait_regdealloc])) Do
+                  P := Pai(P^.Next);
               End;
 {$IfDef TP}
           End
@@ -1445,7 +1484,7 @@ Procedure DFAPass1(AsmL: PAasmOutput);
 {gathers the RegAlloc data... still need to think about where to store it}
 Begin
   FindLoHiLabels(AsmL, LoLab, HiLab, LabDif);
-  BuildLabelTable(AsmL, LTable, LoLab, LabDif);
+  BuildLabelTableAndFixRegAlloc(AsmL, LTable, LoLab, LabDif);
 End;
 
 Function DoDFAPass2(
@@ -1934,7 +1973,10 @@ End.
 
 {
  $Log$
- Revision 1.16  1998-10-01 20:21:47  jonas
+ Revision 1.17  1998-10-02 17:30:20  jonas
+   * small patches to regdealloc data
+
+ Revision 1.16  1998/10/01 20:21:47  jonas
    * inter-register CSE, still requires some tweaks (peepholeoptpass2, better  RegAlloc)
 
  Revision 1.15  1998/09/20 18:00:20  florian
