@@ -10,7 +10,7 @@ begin
    // Linux version returns pchar.
    p:=linux.getenv(EnvVar);
    if P<>nil then
-     getenv:=ansistring(p)
+     getenv:=strpas(p)
    else
      getenv:='';
 end;
