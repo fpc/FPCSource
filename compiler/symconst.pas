@@ -205,7 +205,8 @@ type
     odt_object,
     odt_interfacecom,
     odt_interfacecorba,
-    odt_cppclass
+    odt_cppclass,
+    odt_dispinterface
   );
 
   { options for objects and classes }
@@ -338,7 +339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2002-11-29 22:31:20  carl
+  Revision 1.38  2002-12-05 14:44:38  florian
+    + oo_dispinterface added
+
+  Revision 1.37  2002/11/29 22:31:20  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives
