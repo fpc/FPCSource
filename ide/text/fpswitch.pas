@@ -120,7 +120,7 @@ var
     LibLinkerSwitches,
     DebugInfoSwitches,
     ProfileInfoSwitches,
-    MemorySizeSwitches,
+    {MemorySizeSwitches, doubled !! }
     SyntaxSwitches,
     VerboseSwitches,
     CodegenSwitches,
@@ -570,7 +570,7 @@ begin
      LibLinkerSwitches^.WriteItemsCfg;
      DebugInfoSwitches^.WriteItemsCfg;
      ProfileInfoSwitches^.WriteItemsCfg;
-     MemorySizeSwitches^.WriteItemsCfg;
+     {MemorySizeSwitches^.WriteItemsCfg;}
      WriteCustom;
      Writeln(CfgFile,'#ENDIF');
      Writeln(CfgFile,'');
@@ -616,7 +616,7 @@ begin
        'C' : begin
                res:=CodegenSwitches^.ReadItemsCfg(s);
                if not res then
-                 res:=MemorySizeSwitches^.ReadItemsCfg(s);
+                 res:=MemorySwitches^.ReadItemsCfg(s);
              end;
        'v' : res:=VerboseSwitches^.ReadItemsCfg(s);
        'O' : begin
@@ -790,12 +790,12 @@ begin
      AddSelectItem('~N~o profile information','-');
      AddSelectItem('Generate profile code for g~p~rof','g');
    end;
-  New(MemorySizeSwitches,Init('C'));
+  {New(MemorySizeSwitches,Init('C'));
   with MemorySizeSwitches^ do
    begin
      AddLongIntItem('~S~tack size','s');
      AddLongIntItem('Local ~h~eap size','h');
-   end;
+   end;}
   SwitchesPath:=LocateFile(SwitchesName);
   if SwitchesPath='' then
     SwitchesPath:=SwitchesName;
@@ -815,14 +815,23 @@ begin
   dispose(AsmReaderSwitches,Done);
   dispose(ConditionalSwitches,Done);
   dispose(MemorySwitches,Done);
+  {dispose(MemorySizeSwitches,Done);}
   dispose(DirectorySwitches,Done);
+  dispose(DebugInfoSwitches,Done);
+  dispose(LibLinkerSwitches,Done);
+  dispose(ProfileInfoSwitches,Done);
+
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.8  1999-02-08 17:38:52  pierre
+  Revision 1.9  1999-02-10 09:45:55  pierre
+    * MemorySizeSwitches Removed (was duplicate of MemorySwitches !)
+    * Added missing disposes at exit
+
+  Revision 1.8  1999/02/08 17:38:52  pierre
    + added CustomArg
 
   Revision 1.7  1999/02/06 00:07:48  florian
