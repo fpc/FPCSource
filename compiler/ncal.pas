@@ -1335,13 +1335,11 @@ implementation
               if not (block_type in [bt_const,bt_type]) then
                 procinfo^.flags:=procinfo^.flags or pi_do_call;
 {$ifndef newcg}
-              { calc the correture value for the register }
+              { calc the correct value for the register }
 {$ifdef i386}
               incrementregisterpushed($ff);
-{$endif}
-{$ifdef m68k}
-              for regi:=R_D0 to R_A6 do
-                inc(reg_pushes[regi],t_times*2);
+{$else}
+              incrementregisterpushed(ALL_REGISTERS);
 {$endif}
 {$endif newcg}
            end
@@ -1382,16 +1380,7 @@ implementation
                 end;
 
 {$ifndef newcg}
-{$ifdef i386}
-              incrementregisterpushed(tprocdef(procdefinition).usedregisters);
-{$endif}
-{$ifdef m68k}
-             for regi:=R_D0 to R_A6 do
-               begin
-                  if (tprocdef(procdefinition).usedregisters and ($800 shr word(regi)))<>0 then
-                    inc(reg_pushes[regi],t_times*2);
-               end;
-{$endif}
+             incrementregisterpushed(tprocdef(procdefinition).usedregisters);
 {$endif newcg}
            end;
 
@@ -1617,7 +1606,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-04-18 22:01:54  peter
+  Revision 1.31  2001-04-21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.30  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.29  2001/04/13 23:52:29  peter

@@ -791,15 +791,15 @@ implementation
 {$endif i386}
 {$ifdef m68k}
                   if pattern='D0' then
-                    usedinproc:=usedinproc or ($800 shr word(R_D0))
+                    usedinproc:=usedinproc +[R_D0]
                   else if pattern='D1' then
-                    usedinproc:=usedinproc or ($800 shr word(R_D1))
+                    usedinproc:=usedinproc + [R_D1]
                   else if pattern='D6' then
-                    usedinproc:=usedinproc or ($800 shr word(R_D6))
+                    usedinproc:=usedinproc + [R_D2]
                   else if pattern='A0' then
-                    usedinproc:=usedinproc or ($800 shr word(R_A0))
+                    usedinproc:=usedinproc + [R_A0]
                   else if pattern='A1' then
-                    usedinproc:=usedinproc or ($800 shr word(R_A1))
+                    usedinproc:=usedinproc + [R_A1]
 {$endif m68k}
                   else consume(_RECKKLAMMER);
                   consume(_CSTRING);
@@ -808,7 +808,11 @@ implementation
                 until false;
               consume(_RECKKLAMMER);
            end
+{$ifdef i386}
          else usedinproc:=$ff;
+{$else}
+         else usedinproc := ALL_REGISTERS;
+{$endif i386}
 {$endif newcg}
 
          { mark the start and the end of the assembler block
@@ -1174,10 +1178,9 @@ implementation
 {$ifndef newcg}
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
-{$endif}
-{$ifdef m68k}
-                   usedinproc:=usedinproc or ($800 shr word(R_D0))
-{$endif}
+{$else}
+                   usedinproc:=usedinproc + [accumulator];
+{$endif i386}
 {$endif newcg}
                 end
               {
@@ -1217,7 +1220,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-04-18 22:01:57  peter
+  Revision 1.28  2001-04-21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.27  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.26  2001/04/15 09:48:30  peter

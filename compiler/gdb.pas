@@ -97,6 +97,23 @@ Const
           -1,-1,-1,-1,-1,-1,-1,-1
         );
 {$endif i386}
+{$ifdef m68k}
+           { "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+             "a0", "a1", "a2", "a3", "a4", "a5", "fp", "sp",
+             "ps", "pc", "fp0", "fp1", "fp2", "fp3", "fp4" ,
+             "fp5", "fp6", "fp7", "fpcontrol", "fpstatus",
+             "fpiaddr","fpcode","fpflags"
+           }
+        { this is the register order for GDB }
+        GDB_m68kindex : array[tregister] of shortint =
+        (-1,                 { R_NO }
+          0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
+          8,9,10,11,12,13,14,15,  { R_A0..R_A7 }
+          -1,-1,-1,                { R_SPPUSH, R_SPPULL, R_CCR }
+          18,19,20,21,22,23,24,25, { R_FP0..R_FP7    }
+          -1,-1,-1,-1,-1,-1,-1,-1
+        );
+{$endif}
 
   implementation
 
@@ -249,7 +266,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-04-13 01:22:07  peter
+  Revision 1.7  2001-04-21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.6  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

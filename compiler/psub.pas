@@ -150,10 +150,10 @@ implementation
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
-                   usedinproc:=usedinproc or ($800 shr word(R_D0));
+                   usedinproc:=usedinproc + [accumulator];
 
                    if is_64bitint(procinfo^.returntype.def) then
-                     usedinproc:=usedinproc or ($800 shr byte(R_D1))
+                     usedinproc:=usedinproc  + [scratch_reg];
 {$endif}
 {$endif newcg}
                 end;
@@ -299,8 +299,12 @@ implementation
 {$ifdef newcg}
          tg.usedinproc:=[];
 {$else newcg}
-         { no registers are used }
-         usedinproc:=0;
+{$ifdef i386}
+        { no registers are used }
+        usedinproc:=0;
+{$else}
+        usedinproc := [];
+{$endif}
 {$endif newcg}
          { save entry info }
          entrypos:=aktfilepos;
@@ -365,7 +369,13 @@ implementation
 
                 { FPC_POPADDRSTACK destroys all registers (JM) }
                 if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
-                 usedinproc := $ff;
+                 begin
+{$ifdef i386}
+                   usedinproc := $ff;
+{$else}
+                   usedinproc := ALL_REGISTERS;
+{$endif}
+                 end;
 
                 { now generate exit code with the correct position and switches }
                 aktfilepos:=exitpos;
@@ -803,7 +813,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-04-18 22:01:57  peter
+  Revision 1.32  2001-04-21 12:03:12  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.31  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.30  2001/04/14 14:05:47  peter

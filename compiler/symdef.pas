@@ -517,7 +517,11 @@ interface
 {$ifdef newcg}
           usedregisters : tregisterset;
 {$else newcg}
+{$ifdef i386}
           usedregisters : longint;
+{$else}
+          usedregisters : tregisterset;
+{$endif}
 {$endif newcg}
           constructor create;
           constructor load;
@@ -3353,10 +3357,9 @@ implementation
 {$else newcg}
 {$ifdef i386}
          usedregisters:=$ff;
+{$else}
+         usedregisters:=ALL_REGISTERS;
 {$endif i386}
-{$ifdef m68k}
-         usedregisters:=$FFFF;
-{$endif}
 {$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
@@ -3379,9 +3382,8 @@ implementation
 {$else newcg}
 {$ifdef i386}
          usedregisters:=readbyte;
-{$endif i386}
-{$ifdef m68k}
-         usedregisters:=readword;
+{$else}
+         readnormalset(usedregisters);
 {$endif}
 {$endif newcg}
          _mangledname:=stringdup(readstring);
@@ -3460,10 +3462,9 @@ implementation
 {$else newcg}
 {$ifdef i386}
              usedregisters:=$ff;
+{$else}
+             usedregisters:=[firstreg..lastreg];
 {$endif i386}
-{$ifdef m68k}
-             usedregisters:=$ffff;
-{$endif}
 {$endif newcg}
            end;
 
@@ -3472,10 +3473,9 @@ implementation
 {$else newcg}
 {$ifdef i386}
          writebyte(usedregisters);
+{$else}
+         writenormalset(usedregisters);
 {$endif i386}
-{$ifdef m68k}
-         writeword(usedregisters);
-{$endif}
 {$endif newcg}
          current_ppu^.do_interface_crc:=oldintfcrc;
          writestring(mangledname);
@@ -5515,7 +5515,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.28  2001-04-18 22:01:58  peter
+  Revision 1.29  2001-04-21 12:03:12  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.28  2001/04/18 22:01:58  peter
     * registration of targets and assemblers
 
   Revision 1.27  2001/04/13 01:22:15  peter

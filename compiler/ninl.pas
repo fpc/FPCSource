@@ -1253,10 +1253,8 @@ implementation
                            begin
 {$ifdef i386}
                              incrementregisterpushed($ff);
-{$endif}
-{$ifdef m68k}
-                             for regi:=R_D0 to R_A6 do
-                               inc(reg_pushes[regi],t_times*2);
+{$else}
+                             incrementregisterpushed(ALL_REGISTERS);
 {$endif}
                              if (tcallparanode(hp).left.nodetype=typen) then
                                CGMessage(type_e_cant_read_write_type);
@@ -1721,7 +1719,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-04-13 22:22:30  peter
+  Revision 1.38  2001-04-21 12:03:11  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.37  2001/04/13 22:22:30  peter
     * call set_varstate for setlength
     * ptr returns pointerconstnode instead of ordconstnode
 

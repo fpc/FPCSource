@@ -222,10 +222,9 @@ implementation
                       { procedure uses this register }
 {$ifdef i386}
                       usedinproc:=usedinproc or ($80 shr byte(varregs[i]));
+{$else i386}
+                      usedinproc:=usedinproc + [varregs[i]];
 {$endif i386}
-{$ifdef m68k}
-                      usedinproc:=usedinproc or ($800 shr word(varregs[i]));
-{$endif m68k}
                     end
                   else
                     begin
@@ -519,7 +518,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2001-04-13 01:22:13  peter
+  Revision 1.17  2001-04-21 12:03:12  peter
+    * m68k updates merged from fixes branch
+
+  Revision 1.16  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
