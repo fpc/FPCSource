@@ -119,6 +119,7 @@ type
     FRequired : Boolean;
     FSize : Word;
     FName : String;
+    FDisplayName : String;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
   public
@@ -133,6 +134,7 @@ type
   Published
     property Attributes: TFieldAttributes read FAttributes write FAttributes default [];
     property Name: string read FName write FName; // Must move to TNamedItem
+    property DisplayName : string read FDisplayName write FDisplayName; // Must move to TNamedItem
     property DataType: TFieldType read FDataType write FDataType;
     property Precision: Longint read FPrecision write FPrecision;
     property Size: Word read FSize write FSize;
@@ -958,6 +960,7 @@ type
     procedure InitRecord(Buffer: PChar); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
+    procedure InternalInsert; virtual;
     procedure InternalRefresh; virtual;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
@@ -1374,6 +1377,7 @@ type
   TRecUpdateBuffer = record
     RecordNo           : integer;
     FieldsUpdateBuffer : TFieldsUpdateBuffer;
+    UpdateKind         : TUpdateKind;
   end;
 
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
@@ -1392,6 +1396,8 @@ type
     FOpen           : Boolean;
     FUpdateBuffer   : TRecordsUpdateBuffer;
     FEditBuf        : PRecUpdateBuffer;
+    FApplyingUpdates: boolean;
+    FBDeletedRecords: integer;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
@@ -1410,7 +1416,10 @@ type
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
     procedure InternalPost; override;
+    procedure InternalCancel; override;
     procedure InternalEdit; override;
+    procedure InternalInsert; override;
+    procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
     procedure InternalSetToRecord(Buffer: PChar); override;
@@ -1423,7 +1432,7 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;
-    function ApplyRecUpdate : boolean; virtual;
+    function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
@@ -1837,7 +1846,12 @@ end.
 
 {
   $Log$
-  Revision 1.35  2005-02-03 19:10:39  florian
+  Revision 1.36  2005-02-07 11:21:50  joost
+    - Added TDataset.InternalInsert
+    - Implemented TField.DisplayName
+    - added support for TBufDataset delete and insert
+
+  Revision 1.35  2005/02/03 19:10:39  florian
     + adapted for use fo tcollection.owner
 
   Revision 1.34  2005/01/12 10:28:44  michael
