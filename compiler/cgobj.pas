@@ -1140,7 +1140,9 @@ unit cgobj;
       var
         href : treference;
         decrfunc : string;
+        needrtti : boolean;
       begin
+         needrtti:=false;
          if is_interfacecom(t) then
           decrfunc:='FPC_INTF_DECR_REF'
          else if is_ansistring(t) then
@@ -1148,12 +1150,20 @@ unit cgobj;
          else if is_widestring(t) then
           decrfunc:='FPC_WIDESTR_DECR_REF'
          else if is_dynamic_array(t) then
-          decrfunc:='FPC_DYNARRAY_INCR_REF'
+          begin
+            decrfunc:='FPC_DYNARRAY_DECR_REF';
+            needrtti:=true;
+          end
          else
           decrfunc:='';
          { call the special decr function or the generic decref }
          if decrfunc<>'' then
           begin
+            if needrtti then
+             begin
+               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+               a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+             end;
             a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
             a_call_name(list,decrfunc);
           end
@@ -1585,7 +1595,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.57  2002-09-07 15:25:01  peter
+  Revision 1.58  2002-09-09 19:29:29  peter
+    * fixed dynarr_decr_ref call
+
+  Revision 1.57  2002/09/07 15:25:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.56  2002/09/01 21:04:47  florian
