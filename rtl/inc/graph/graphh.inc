@@ -505,8 +505,9 @@ TYPE
          procedure(ColorNum: smallint; var
             RedValue, GreenValue, BlueValue: smallint);
 
-       { allows to speed up the drawing of bitmap font }
-       DrawBitmapCharHorizProc = procedure(x,y : longint;charsize : word;const s : string);
+       OutTextXYProc = procedure(x,y : SmallInt;const TextString : string);
+
+       CircleProc = procedure(X, Y: smallint; Radius:Word);
 
 
 TYPE
@@ -553,8 +554,9 @@ TYPE
       PatternLine    : PatternLineProc;
       HLine          : HLineProc;
       VLine          : VLineProc;
+      Circle         : CircleProc;
       InitMode       : InitModeProc;
-      DrawBitmapCharHoriz : DrawBitmapCharHorizProc;
+      OutTextXY : OutTextXYProc;
       next: PModeInfo;
     end;
 
@@ -562,7 +564,6 @@ TYPE
 
 VAR
   DirectPutPixel : DefPixelProc;
-  DrawBitmapCharHoriz : DrawBitmapCharHorizProc;
   ClearViewPort  : ClrViewProc;
   PutPixel       : PutPixelProc;
   PutImage       : PutImageProc;
@@ -573,6 +574,7 @@ VAR
   SetActivePage  : SetActivePageProc;
   SetRGBPalette  : SetRGBPaletteProc;
   GetRGBPalette  : GetRGBPaletteProc;
+  OutTextXY      : OutTextXYProc;
 
   GraphFreeMemPtr: graphfreememprc;
   GraphGetMemPtr : graphgetmemprc;
@@ -583,6 +585,7 @@ VAR
   PatternLine    : PatternLineProc;
   HLine          : HLineProc;
   VLine          : VLineProc;
+  Circle         : CircleProc;
 
   SaveVideoState : SaveStateProc;
   RestoreVideoState: RestoreStateProc;
@@ -658,7 +661,6 @@ Function GetDriverName: string;
  procedure Arc(X,Y : smallint; StAngle,EndAngle,Radius: word);
  procedure PieSlice(X,Y,stangle,endAngle:smallint;Radius: Word);
  procedure FillEllipse(X, Y: smallint; XRadius, YRadius: Word);
- procedure Circle(X, Y: smallint; Radius:Word);
  procedure Sector(x, y: smallint; StAngle,EndAngle, XRadius, YRadius: Word);
  procedure Ellipse(X,Y : smallint; stAngle, EndAngle: word; XRadius,
    YRadius: word);
@@ -673,13 +675,15 @@ Function GetDriverName: string;
  procedure SetTextStyle(font,direction : word;charsize : word);
  procedure SetUserCharSize(Multx,Divx,Multy,Divy : word);
 
- procedure OutTextXY(x,y : smallint;const TextString : string);
  procedure OutText(const TextString : string);
 
 
 {
   $Log$
-  Revision 1.2  2000-03-24 18:16:33  florian
+  Revision 1.3  2000-04-02 12:13:36  florian
+    * some more procedures can be now hooked by the OS specific implementation
+
+  Revision 1.2  2000/03/24 18:16:33  florian
     * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
       win32
 

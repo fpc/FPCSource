@@ -1400,7 +1400,8 @@ end;
    end;
 
 
-  procedure DrawBitmapCharHorizDefault(x,y : longint;charsize : word;const s : string);forward;
+  procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
+  procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
 
   Procedure DefaultHooks;
   {********************************************************}
@@ -1435,7 +1436,8 @@ end;
     PatternLine := {$ifdef fpc}@{$endif}PatternLineDefault;
     HLine := {$ifdef fpc}@{$endif}HLineDefault;
     VLine := {$ifdef fpc}@{$endif}VLineDefault;
-    DrawBitmapCharHoriz := {$ifdef fpc}@{$endif}DrawBitmapCharHorizDefault;
+    OuttextXY := {$ifdef fpc}@{$endif}OuttextXYDefault;
+    Circle := {$ifdef fpc}@{$endif}CircleDefault;
   end;
 
   Procedure InitVars;
@@ -1526,7 +1528,7 @@ end;
 
 
 
- procedure Circle(X, Y: smallint; Radius:Word);
+ procedure CircleDefault(X, Y: smallint; Radius:Word);
   {********************************************************}
   { Draws a circle centered at X,Y with the given Radius.  }
   {********************************************************}
@@ -2317,7 +2319,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.30  2000-03-24 18:16:32  florian
+  Revision 1.31  2000-04-02 12:13:36  florian
+    * some more procedures can be now hooked by the OS specific implementation
+
+  Revision 1.30  2000/03/24 18:16:32  florian
     * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
       win32
 

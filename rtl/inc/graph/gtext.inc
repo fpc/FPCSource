@@ -352,61 +352,7 @@
             end;
       end;
 
-    procedure DrawBitmapCharHorizDefault(x,y : longint;charsize : word;const s : string);
-
-      var
-         cnt1,cnt2,cnt3,cnt4,j,k,i,xpos,c : longint;
-         fontbitmap    : TBitmapChar;
-
-      begin
-         c:=length(s);
-         for i:=0 to c-1 do
-           begin
-              xpos:=x+(i*8)*Charsize;
-              { we copy the character bitmap before accessing it }
-              { this improves speed on non optimizing compilers  }
-              { since it is one less address calculation.        }
-              Fontbitmap:=TBitmapChar(DefaultFontData[s[i+1]]);
-              { no scaling }
-              if CharSize = 1 then
-               Begin
-                 for j:=0 to 7 do
-                    for k:=0 to 7 do
-                      if Fontbitmap[j,k]<>0 then
-                        PutPixel(xpos+k,j+y,CurrentColor);
-               end
-              else
-               { perform scaling of bitmap font }
-               Begin
-                 j:=0;
-                 cnt3:=0;
-
-                 while j <= 7 do
-                 begin
-                   { X-axis scaling }
-                   for cnt4 := 0 to charsize-1 do
-                    begin
-                      k:=0;
-                      cnt2 := 0;
-                      while k <= 7  do
-                         begin
-                           for cnt1 := 0 to charsize-1 do
-                             begin
-                                If FontBitmap[j,k] <> 0 then
-                                    PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
-                             end;
-                             Inc(k);
-                             Inc(cnt2,charsize);
-                         end;
-                    end;
-                   Inc(j);
-                   Inc(cnt3,charsize);
-                 end;
-               end;
-           end;
-      end;
-
-    procedure OutTextXY(x,y : smallint;const TextString : string);
+    procedure OutTextXYDefault(x,y : smallint;const TextString : string);
 
       type
        Tpoint = record
@@ -424,6 +370,8 @@
          oldvalues     : linesettingstype;
          fontbitmap    : TBitmapChar;
          chr           : char;
+         curx2i,cury2i,
+         xpos2i,ypos2i : longint;
 
       begin
          { save current write mode }
@@ -437,17 +385,58 @@
          if Currenttextinfo.font=DefaultFont then
          begin
            c:=length(textstring);
-           { We must a length strength which is ZERO based }
-           { if c is a byte and length is zero, this is    }
-           { dangerous, fixed                              }
-           Dec(c);
            if CurrentTextInfo.direction=HorizDir then
            { Horizontal direction }
-              DrawBitmapCharHoriz(x,y,charsize,TextString)
+             begin
+                for i:=0 to c-1 do
+                  begin
+                     xpos:=x+(i*8)*Charsize;
+                     { we copy the character bitmap before accessing it }
+                     { this improves speed on non optimizing compilers  }
+                     { since it is one less address calculation.        }
+                     Fontbitmap:=TBitmapChar(DefaultFontData[TextString[i+1]]);
+                     { no scaling }
+                     if CharSize = 1 then
+                      Begin
+                        for j:=0 to 7 do
+                           for k:=0 to 7 do
+                             if Fontbitmap[j,k]<>0 then
+                               PutPixel(xpos+k,j+y,CurrentColor);
+                      end
+                     else
+                      { perform scaling of bitmap font }
+                      Begin
+                        j:=0;
+                        cnt3:=0;
+
+                        while j <= 7 do
+                        begin
+                          { X-axis scaling }
+                          for cnt4 := 0 to charsize-1 do
+                           begin
+                             k:=0;
+                             cnt2 := 0;
+                             while k <= 7  do
+                                begin
+                                  for cnt1 := 0 to charsize-1 do
+                                    begin
+                                       If FontBitmap[j,k] <> 0 then
+                                           PutPixel(xpos+cnt1+cnt2,y+cnt3+cnt4,CurrentColor);
+                                    end;
+                                    Inc(k);
+                                    Inc(cnt2,charsize);
+                                end;
+                           end;
+                          Inc(j);
+                          Inc(cnt3,charsize);
+                        end;
+                      end;
+                  end;
+             end
            else
            { Vertical direction }
             begin
-              for i:=0 to c do
+              for i:=0 to c-1 do
               begin
 
                 chr := TextString[i+1];
@@ -534,7 +523,38 @@
                                      CurY2 := YPos2;
                                    end;
                            _DRAW: Begin
-                                    Line(trunc(CurX2),trunc(CurY2),trunc(xpos2),trunc(ypos2));
+                                    curx2i:=trunc(CurX2);
+                                    cury2i:=trunc(CurY2);
+                                    xpos2i:=trunc(xpos2);
+                                    ypos2i:=trunc(ypos2);
+                                    { this optimization doesn't matter that much
+                                    if (curx2i=xpos2i) then
+                                      begin
+                                         if (cury2i=ypos2i) then
+                                           putpixel(curx2i,cury2i,currentcolor)
+                                         else if (cury2i+1=ypos2i) or
+                                           (cury2i=ypos2i+1) then
+                                            begin
+                                               putpixel(curx2i,cury2i,currentcolor);
+                                               putpixel(curx2i,ypos2i,currentcolor);
+                                            end
+                                          else
+                                            Line(curx2i,cury2i,xpos2i,ypos2i);
+                                      end
+                                    else if (cury2i=ypos2i) then
+                                      begin
+                                         if (curx2i+1=xpos2i) or
+                                           (curx2i=xpos2i+1) then
+                                            begin
+                                               putpixel(curx2i,cury2i,currentcolor);
+                                               putpixel(xpos2i,cury2i,currentcolor);
+                                            end
+                                          else
+                                            Line(curx2i,cury2i,xpos2i,ypos2i);
+                                      end
+                                    else
+                                    }
+                                    Line(curx2i,cury2i,xpos2i,ypos2i);
                                     CurX2:=xpos2;
                                     CurY2:=ypos2;
                                   end;
@@ -735,7 +755,10 @@
 
 {
 $Log$
-Revision 1.16  2000-03-24 18:16:33  florian
+Revision 1.17  2000-04-02 12:13:36  florian
+  * some more procedures can be now hooked by the OS specific implementation
+
+Revision 1.16  2000/03/24 18:16:33  florian
   * introduce a DrawBitmapCharHoriz procedure variable to accelerate output on
     win32
 
