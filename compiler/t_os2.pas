@@ -361,7 +361,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld -o $EXE @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP$PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+     ExeCmd[2]:='emxbind -b $STRIP $PM -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
    end;
 end;
 
@@ -485,7 +485,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-11-16 23:39:04  peter
+  Revision 1.5  1999-11-29 20:15:29  hajny
+    * missing space in EMXBIND params
+
+  Revision 1.4  1999/11/16 23:39:04  peter
     * use outputexedir for link.res location
 
   Revision 1.3  1999/11/12 11:03:50  peter
