@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002 by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -40,15 +40,22 @@
     Added two printf, one with pchar and one with string.
     They use array of const so this unit compiles with
     mode objfpc.
-
     05 Nov 2002.
+
+    Added the define use_amiga_smartlink
+    13 Jan 2003.
 
     nils.sjoholm@mailbox.swipnet.se
 }
 
+{$mode objfpc}
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
+
 unit amigalib;
 
-{$mode objfpc}
 
 INTERFACE
 
@@ -423,7 +430,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-11-18 20:50:18  nils
+  Revision 1.4  2003-01-13 18:14:56  nils
+  * added the define use_amiga_smartlink
+
+  Revision 1.3  2002/11/18 20:50:18  nils
     * update check internal log
 
 }

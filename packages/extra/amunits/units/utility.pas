@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998-2002by Nils Sjoholm
+    Copyright (c) 1998-2003 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -21,8 +21,17 @@
     For use with fpc 1.0.7. Thay are in systemvartags.
     11 Nov 2002.
 
+    
+    Added the define use_amiga_smartlink.
+    13 Jan 2003.
+
     nils.sjoholm@mailbox.swipnet.se
 }
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
 
 unit utility;
 
@@ -915,7 +924,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-11-20 22:09:14  nils
+  Revision 1.4  2003-01-13 18:14:57  nils
+  * added the define use_amiga_smartlink
+
+  Revision 1.3  2002/11/20 22:09:14  nils
 
     * added pUtilityBase
 

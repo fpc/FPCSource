@@ -19,11 +19,17 @@
 	
 	Made this unit to help porting from HS Pascal
 	to fpc. Feel free to add more stuff.
-	
 	09 Nov 2002.
 	
-	nil.sjoholm@mailbox.swipnet.se Nils Sjoholm
+	Added the define use_amiga_smartlink.
+        13 Jan 2003.
+	nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
 
 unit hisoft;
 
@@ -109,7 +115,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-22 21:34:59  nils
+  Revision 1.2  2003-01-13 18:14:56  nils
+  * added the define use_amiga_smartlink
+
+  Revision 1.1  2002/11/22 21:34:59  nils
 
     * initial release
 
