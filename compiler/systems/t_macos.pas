@@ -201,7 +201,7 @@ begin
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 *)
 
-{ Call linker }
+{ Prepare linking }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
@@ -210,18 +210,20 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
-  with AsmRes do
-    begin
-      WriteResponseFile(false);
-      success:= true;
+	WriteResponseFile(false);
 
-      if cs_link_on_target in aktglobalswitches then
-        success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
-                     ScriptFixFileName(outputexedir+Info.ResName),true,false);
+	success:= true;
+	if cs_link_on_target in aktglobalswitches then
+		success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
+								 ScriptFixFileName(outputexedir+Info.ResName),true,false);
 
-      if success then
-        success:=DoExec('Execute',CmdStr,true,false);
-    end;
+{ Call linker }
+	if success then
+		success:=DoExec('Execute',CmdStr,true,false);
+
+{ Remove ReponseFile }
+  if (success) and not(cs_link_extern in aktglobalswitches) then
+    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -245,7 +247,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-12-28 22:00:15  olle
+  Revision 1.18  2005-01-09 16:35:41  olle
+    + linker response file is now removed after linking
+
+  Revision 1.17  2004/12/28 22:00:15  olle
     + suppression of link varning of 'qd'
 
   Revision 1.16  2004/12/22 16:32:46  peter
