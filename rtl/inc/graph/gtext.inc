@@ -412,14 +412,14 @@
                    j:=0;
                    cnt3:=0;
 
-                   while j < 7 do
+                   while j <= 7 do
                    begin
                      { X-axis scaling }
                      for cnt4 := 0 to charsize-1 do
                       begin
                         k:=0;
                         cnt2 := 0;
-                        while k < 7  do
+                        while k <= 7  do
                            begin
                              for cnt1 := 0 to charsize-1 do
                                begin
@@ -460,14 +460,14 @@
                    j:=0;
                    cnt3:=0;
 
-                   while j < 7 do
+                   while j<=7 do
                    begin
                      { X-axis scaling }
                      for cnt4 := 0 to charsize-1 do
                       begin
                         k:=0;
                         cnt2 := 0;
-                        while k < 7  do
+                        while k<=7  do
                            begin
                              for cnt1 := 0 to charsize-1 do
                                begin
@@ -731,7 +731,11 @@
 
 {
 $Log$
-Revision 1.7  1999-09-28 15:07:47  jonas
+Revision 1.8  1999-11-11 22:29:21  florian
+  * the writing of the default font was wrong when doing scaling:
+    the last colunm/row wasn't drawn
+
+Revision 1.7  1999/09/28 15:07:47  jonas
   * fix for disposing font data because it can contain #0 chars
 
 Revision 1.6  1999/09/28 13:56:29  jonas
