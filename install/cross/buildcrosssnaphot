@@ -1,14 +1,32 @@
 #!/bin/sh
 
-CROSSTOOLSROOT=~/cross
-FPCCVS=~/cvs/devel/fpc
-DESTDIR=~/fpcsnap
-LOGDIR=~/logs
-MYINTEL=i686
-EXTRAOPT=-gl
-TARGETS_OS="freebsd linux netbsd openbsd solaris win32 darwin"
-TARGETS_CPU="i386 powerpc sparc"
+# the root of all, but using it is optional.
+CROSSTOOLSROOT=~/building
 
+CROSSTOOLSROOT=${CROSSTOOLSROOT%/}/
+
+# Some paths.
+
+# place where the 1.1.x CVS checkout is
+FPCCVS=${CROSSTOOLSROOT}cvs/devel/fpc
+
+# place where the script should store the cross-snapshot
+DESTDIR=${CROSSTOOLSROOT}/destination
+
+# place where cross archives (.a files) are stored
+BASELIBDIR=${CROSSTOOLSROOT}crosslibs
+
+# Place where logs are generated.
+LOGDIR=${CROSSTOOLSROOT}logs
+
+# Type of my mainprocessor.
+MYINTEL=i686
+
+EXTRAOPT=-gl
+
+# OSes and CPUs
+TARGETS_OS="linux freebsd linux  win32 go32v2 netbsd openbsd solaris darwin"
+TARGETS_CPU="i386 powerpc sparc"
 
 ###########################################################################
 # don't edit below
@@ -26,10 +44,10 @@ echo HOST platform is ${MYHOSTARCH}-${MYHOSTOS}
 # force slash
 #
 
-CROSSTOOLSROOT=${CROSSTOOLSROOT%/}/
 FPCCVS=${FPCCVS%/}/
 DESTDIR=${DESTDIR%/}/
 LOGDIR=${LOGDIR%/}/
+BASELIBDIR=${BASELIBDIR%/}/
 
 #
 # BSD? -> ${MAKE}
@@ -81,6 +99,10 @@ if [ "${OS}" = "win32" ]; then
 MOS=cygwin
 fi
 
+if [ "${OS}" = "go32v2" ]; then
+MOS=msdosdjgpp
+fi
+
 dothisbuild=1
 if [ "${CPU}" = "${MYHOSTARCH}" ]; then
 if [ "${OS}" = "${MYHOSTOS}" ]; then
@@ -91,21 +113,22 @@ fi
 if [ $dothisbuild -eq 1 ]; then
 echo Building ${CPU}-${OS}
 if [  -f ${CROSSTOOLSROOT}bin/${MCPU}-${MOS}-as ]; then
-${MAKE} clean all CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${FPCCVS}log-${CPU}-${OS} 2>&1
+${MAKE} clean all LIBDIR=${BASELIBDIR}/${MCPU}-${MOS} CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT="-Xd -Xt ${EXTRAOPT}" > ${LOGDIR}snapbuild-${CPU}-${OS} 2>&1
 else
 echo can''t find binutils-${MCPU}-${OS} for FPC-${CPU}-${OS}
 fi
-
 if [ ! $? = 0 ]; then
-echo ${CPU}-${OS} FAILES!
+echo ${CPU}-${OS} FAILES
 FAILURES="${FAILURES} ${CPU}-${OS}"
 else
-mkdir -p ${DESTDIR}${CPU}-${OS}
-${MAKE} install INSTALL_PREFIX=${DESTDIR}${CPU}-${OS} CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT=${EXTRAOPT} > ${LOGDIR}log-${CPU}-${OS} 2>&1
+mkdir -p ${DESTDIR}
+${MAKE} install INSTALL_PREFIX=${DESTDIR} LIBDIR=${BASELIBDIR}/${MCPU}-${MOS}  CROSSBINDIR=${CROSSTOOLSROOT}bin OS_TARGET=${OS} CPU_TARGET=${CPU} BINUTILSPREFIX=${MCPU}-${MOS}- OPT="-Xd -Xt ${EXTRAOPT}" > ${LOGDIR}snapinstalllog-${CPU}-${OS} 2>&1
 fi
 fi
 done;
 done;
 
+if [ -n ${FAILURES} ]; then
 echo platforms failed: ${FAILURES}
+fi
 
