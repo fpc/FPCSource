@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e
+
+if [ $# -ne 1 ]; then
+  echo "Usage: makesource <release>"
+  exit 1
+fi
+
+if [ -z $CVSROOT ]; then
+  echo "CVSROOT not set"
+  exit 1
+fi
+
+CVSTAGVER=`echo $1 | tr '.' '_'`
+CVSTAG="RELEASE_$CVSTAGVER"
+
+PACKNAME=fpc-$1.source
+OUTPUTDIR=..
+
+rm -rf buildsrc
+
+mkdir buildsrc
+cd buildsrc
+cvs -z3 export -r $CVSTAG fpc
+
+rm -f $OUTPUTDIR/$PACKNAME.tar.gz $OUTPUTDIR/$PACKNAME.zip
+zip -D9r $OUTPUTDIR/$PACKNAME.zip fpc/
+tar cfv - fpc/ | gzip > $OUTPUTDIR/$PACKNAME.tar.gz
+rm -rf buildsrc
