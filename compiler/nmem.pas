@@ -693,6 +693,11 @@ implementation
          if codegenerror then
            exit;
 
+         if (nf_callunique in flags) and
+            (is_ansistring(left.resulttype.def) or
+             is_widestring(left.resulttype.def)) then
+           include(current_procinfo.flags,pi_do_call);
+
          { the register calculation is easy if a const index is used }
          if right.nodetype=ordconstn then
            begin
@@ -897,7 +902,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-05-24 17:15:24  jonas
+  Revision 1.56  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.55  2003/05/24 17:15:24  jonas
     * added missing firstpass for withrefnode
 
   Revision 1.54  2003/05/11 14:45:12  peter

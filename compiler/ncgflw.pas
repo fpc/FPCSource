@@ -816,15 +816,15 @@ implementation
                       secondpass(frametree);
                       if codegenerror then
                        exit;
-                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(2));
+                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(exprasmlist,3));
                     end
                   else
-                    cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
+                    cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(exprasmlist,3));
                   { push address }
                   secondpass(right);
                   if codegenerror then
                    exit;
-                  cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(1));
+                  cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                 end
               else
                 begin
@@ -835,16 +835,19 @@ implementation
                    { push current frame }
                    r.enum:=R_INTREGISTER;
                    r.number:=NR_FRAME_POINTER_REG;
-                   cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
+                   cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,3));
                    { push current address }
-                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
+                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,2));
                 end;
               { push object }
               secondpass(left);
               if codegenerror then
                 exit;
-              cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
+              cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
+              paramanager.freeintparaloc(exprasmlist,3);
+              paramanager.freeintparaloc(exprasmlist,2);
+              paramanager.freeintparaloc(exprasmlist,1);
            end
          else
            begin
@@ -893,8 +896,9 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
          r.enum:=R_INTREGISTER;
          r.number:=NR_FUNCTION_RESULT_REG;
-         cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
+         cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+         paramanager.freeintparaloc(exprasmlist,1);
       end;
 
 
@@ -998,8 +1002,9 @@ implementation
               { FPC_CATCHES must be called with
                 'default handler' flag (=-1)
               }
-              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(1));
+              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
+              paramanager.freeintparaloc(exprasmlist,1);
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1021,8 +1026,9 @@ implementation
 
               r.enum:=R_INTREGISTER;
               r.number:=NR_FUNCTION_RESULT_REG;
-              cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
+              cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+              paramanager.freeintparaloc(exprasmlist,1);
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1142,8 +1148,9 @@ implementation
 
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymboldata(excepttype.vmt_mangledname),0);
-         cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
+         cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(exprasmlist,1));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
+         paramanager.freeintparaloc(exprasmlist,1);
 
          { is it this catch? No. go to next onlabel }
          r.enum:=R_INTREGISTER;
@@ -1187,8 +1194,9 @@ implementation
          try_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
 
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-         cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
+         cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(exprasmlist,1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+         paramanager.freeintparaloc(exprasmlist,1);
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1419,7 +1427,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-06-03 21:11:09  peter
+  Revision 1.69  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.68  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

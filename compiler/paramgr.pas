@@ -30,6 +30,7 @@ unit paramgr;
 
     uses
        cpubase,
+       aasmtai,
        globtype,
        symconst,symtype,symdef;
 
@@ -61,9 +62,23 @@ unit paramgr;
             internal routines directly, where all parameters must
             be 4-byte values.
 
+            In case the location is a register, this register is allocated.
+            Call freeintparaloc() after the call to free the locations again.
+            Default implementation: don't do anything at all (in case you don't
+            use register parameter passing)
+
+            @param(list Current assembler list)
             @param(nr Parameter number of routine, starting from 1)
           }
-          function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
+          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;virtual;abstract;
+
+          {# frees a parameter location allocated with getintparaloc
+
+            @param(list Current assembler list)
+            @param(nr Parameter numver of routine, starting from 1)
+          }
+          procedure freeintparaloc(list: taasmoutput; nr : longint); virtual;
+
           {# This is used to populate the location information on all parameters
              for the routine. This is used for normal call resolution.
           }
@@ -96,6 +111,8 @@ unit paramgr;
           }
           function getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation; virtual;
        end;
+
+
 
     procedure setparalocs(p : tprocdef);
     function getfuncretusedregisters(def : tdef;calloption:tproccalloption): tregisterset;
@@ -228,6 +245,11 @@ unit paramgr;
                   end;
             end;
         end;
+      end;
+
+
+    procedure tparamanager.freeintparaloc(list: taasmoutput; nr : longint);
+      begin
       end;
 
 
@@ -399,7 +421,14 @@ end.
 
 {
    $Log$
-   Revision 1.40  2003-05-31 15:05:28  peter
+   Revision 1.41  2003-06-07 18:57:04  jonas
+     + added freeintparaloc
+     * ppc get/freeintparaloc now check whether the parameter regs are
+       properly allocated/deallocated (and get an extra list para)
+     * ppc a_call_* now internalerrors if pi_do_call is not yet set
+     * fixed lot of missing pi_do_call's
+
+   Revision 1.40  2003/05/31 15:05:28  peter
      * FUNCTION_RESULT64_LOW/HIGH_REG added for int64 results
 
    Revision 1.39  2003/05/30 23:57:08  peter

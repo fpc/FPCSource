@@ -184,10 +184,15 @@ implementation
                   while assigned(hp) do
                     begin
                       if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
-                            LOC_MMREGISTER,LOC_CREGISTER,LOC_CFPUREGISTER,
-                            LOC_CMMREGISTER]) and
+                            LOC_CREGISTER,LOC_CFPUREGISTER]) and
                          (TCGSize2Size[hp.paraloc.size] <= sizeof(aword)) then
-                        tvarsym(hp.parasym).reg := hp.paraloc.register
+                        begin
+                          tvarsym(hp.parasym).reg := hp.paraloc.register;
+                          if (hp.paraloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                            rg.makeregvarint(hp.paraloc.register.number shr 8)
+                          else
+                            rg.makeregvarother(hp.paraloc.register);
+                        end
                       else
                         begin
                           searchregvars(hp.parasym,@parasym);
@@ -611,7 +616,14 @@ end.
 
 {
   $Log$
-  Revision 1.55  2003-06-03 21:11:09  peter
+  Revision 1.56  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.55  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

@@ -915,6 +915,21 @@ implementation
       end;
 
 
+    procedure check_init_paras(p:tnamedindexitem;arg:pointer);
+      var
+        vs : tvarsym;
+        pd : tprocdef;
+      begin
+        if tsym(p).typ<>varsym then
+         exit;
+        with tvarsym(p) do
+          if (not is_class(vartype.def) and
+             vartype.def.needs_inittable and
+             (varspez in [vs_value,vs_out])) then
+            include(current_procinfo.flags,pi_do_call);
+      end;
+
+
     procedure read_proc;
       {
         Parses the procedure directives, then parses the procedure body, then
@@ -1051,6 +1066,11 @@ implementation
 
              { Insert local copies for value para }
              pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}insert_local_value_para,nil);
+
+             { check if there are para's which require initing -> set }
+             { pi_do_call (if not yet set)                            }
+             if not(pi_do_call in current_procinfo.flags) then
+               pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_init_paras,nil);
 
              { Update parameter information }
              current_procinfo.allocate_implicit_parameter;
@@ -1233,7 +1253,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.122  2003-06-03 13:01:59  daniel
+  Revision 1.123  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.122  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.121  2003/05/31 20:23:39  jonas

@@ -29,13 +29,15 @@ unit cpupara;
 
     uses
        globtype,
+       aasmtai,
        cpubase,
        symconst,symbase,symtype,symdef,paramgr;
 
     type
        tppcparamanager = class(tparamanager)
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          function getintparaloc(nr : longint) : tparalocation;override;
+          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
+          procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
@@ -45,9 +47,10 @@ unit cpupara;
     uses
        verbose,systems,
        cpuinfo,cginfo,cgbase,
+       rgobj,
        defutil;
 
-    function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
+    function tppcparamanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
 
       begin
          fillchar(result,sizeof(tparalocation),0);
@@ -58,6 +61,7 @@ unit cpupara;
               result.loc:=LOC_REGISTER;
               result.register.enum:=R_INTREGISTER;
               result.register.number:=NR_R2+nr*(NR_R1-NR_R0);
+              rg.getexplicitregisterint(list,result.register.number);
            end
          else
            begin
@@ -67,6 +71,23 @@ unit cpupara;
               result.reference.offset:=(nr-8)*4;
            end;
          result.size := OS_INT;
+      end;
+
+
+    procedure tppcparamanager.freeintparaloc(list: taasmoutput; nr : longint);
+
+      var
+        r: tregister;
+
+      begin
+         if nr<1 then
+           internalerror(2003060401)
+         else if nr<=8 then
+           begin
+             r.enum := R_INTREGISTER;
+             r.number := NR_R2+nr*(NR_R1-NR_R0);
+             rg.ungetregisterint(list,r);
+           end;
       end;
 
     function getparaloc(p : tdef) : tcgloc;
@@ -337,7 +358,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-05-30 23:45:49  marco
+  Revision 1.35  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.34  2003/05/30 23:45:49  marco
    * register skipping (aligning) for int64 parameters, sys V abi only.
 
   Revision 1.33  2003/05/30 22:54:19  marco

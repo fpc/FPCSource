@@ -379,12 +379,12 @@ implementation
         if current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
             reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
+            cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
           end
         { one nesting level }
         else if (current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
           begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(1));
+            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(exprasmlist,1));
           end
         { very complex nesting level ... }
         else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
@@ -399,7 +399,7 @@ implementation
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                 dec(i);
               end;
-            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(1));
+            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,paramanager.getintparaloc(exprasmlist,1));
             rg.ungetaddressregister(exprasmlist,hregister);
           end;
       end;
@@ -949,8 +949,9 @@ implementation
          if iolabel<>nil then
            begin
               reference_reset_symbol(href,iolabel,0);
-              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
+              paramanager.freeintparaloc(exprasmlist,1);
            end;
 
          { restore registers }
@@ -1294,8 +1295,9 @@ implementation
          if iolabel<>nil then
            begin
               reference_reset_symbol(href,iolabel,0);
-              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(1));
+              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
+              paramanager.freeintparaloc(exprasmlist,1);
            end;
 
          { restore registers }
@@ -1380,7 +1382,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-06-04 06:43:36  jonas
+  Revision 1.86  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.85  2003/06/04 06:43:36  jonas
     * fixed double secondpassing of procvar loads
 
   Revision 1.84  2003/06/03 21:11:09  peter

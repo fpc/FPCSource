@@ -150,7 +150,7 @@ implementation
                        rg.saveusedintregisters(exprasmlist,pushed,[RS_FUNCTION_RESULT_REG]-[hregister.number shr 8]);
                     {$endif}
                        reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(symtableentry).mangledname),0);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(exprasmlist,1));
                     {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,hregister);
                        r:=rg.getexplicitregisterint(exprasmlist,NR_EAX);
@@ -158,6 +158,7 @@ implementation
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
+                       paramanager.freeintparaloc(exprasmlist,1);
                     {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,r);
                        hregister:=rg.getregisterint(exprasmlist,OS_ADDR);
@@ -934,7 +935,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2003-06-03 21:11:09  peter
+  Revision 1.67  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.66  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

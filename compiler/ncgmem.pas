@@ -258,8 +258,9 @@ implementation
             not(cs_compilesystem in aktmoduleswitches) and
             (not tpointerdef(left.resulttype.def).is_far) then
           begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+            paramanager.freeintparaloc(exprasmlist,1);
           end;
       end;
 
@@ -305,8 +306,9 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+                paramanager.freeintparaloc(exprasmlist,1);
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -318,8 +320,9 @@ implementation
                 (cs_checkpointer in aktglobalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+                paramanager.freeintparaloc(exprasmlist,1);
               end;
 
            end
@@ -512,8 +515,8 @@ implementation
             {$ifndef newra}
                rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
             {$endif}
-               cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(2));
-               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
+               cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
+               cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
             {$ifdef newra}
                hreg.enum:=R_INTREGISTER;
                for i:=first_supreg to last_supreg do
@@ -526,6 +529,8 @@ implementation
                rg.saveintregvars(exprasmlist,all_intregisters);
             {$endif}
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
+               paramanager.freeintparaloc(exprasmlist,2);
+               paramanager.freeintparaloc(exprasmlist,1);
             {$ifdef newra}
                for i:=first_supreg to last_supreg do
                  if i<>RS_FRAME_POINTER_REG then
@@ -578,7 +583,7 @@ implementation
                 {$ifndef newra}
                    rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                 {$endif}
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(1));
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(exprasmlist,1));
                 {$ifdef newra}
                    hreg.enum:=R_INTREGISTER;
                    for i:=first_supreg to last_supreg do
@@ -591,6 +596,7 @@ implementation
                    rg.saveintregvars(exprasmlist,all_intregisters);
                 {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
+                   paramanager.freeintparaloc(exprasmlist,1);
                 {$ifdef newra}
                    for i:=first_supreg to last_supreg do
                      if i<>RS_FRAME_POINTER_REG then
@@ -625,7 +631,7 @@ implementation
                 {$ifndef newra}
                    rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                 {$endif}
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 {$ifdef newra}
                    hreg.enum:=R_INTREGISTER;
                    for i:=first_supreg to last_supreg do
@@ -638,6 +644,7 @@ implementation
                    rg.saveintregvars(exprasmlist,all_intregisters);
                 {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                   paramanager.freeintparaloc(exprasmlist,1);
                 {$ifdef newra}
                    for i:=first_supreg to last_supreg do
                      if i<>RS_FRAME_POINTER_REG then
@@ -723,10 +730,10 @@ implementation
                             {$ifndef newra}
                               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                             {$endif}
-                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(2));
+                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
                             {$ifdef newra}
                               hreg.enum:=R_INTREGISTER;
                               for i:=first_supreg to last_supreg do
@@ -739,6 +746,8 @@ implementation
                               rg.saveintregvars(exprasmlist,all_intregisters);
                             {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              paramanager.freeintparaloc(exprasmlist,2);
+                              paramanager.freeintparaloc(exprasmlist,1);
                             {$ifdef newra}
                               for i:=first_supreg to last_supreg do
                                if i<>RS_FRAME_POINTER_REG then
@@ -878,10 +887,10 @@ implementation
                             {$ifndef newra}
                               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                             {$endif}
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(2));
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(exprasmlist,1));
                             {$ifdef newra}
                               hreg.enum:=R_INTREGISTER;
                               for i:=first_supreg to last_supreg do
@@ -894,6 +903,8 @@ implementation
                               rg.saveintregvars(exprasmlist,all_intregisters);
                             {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              paramanager.freeintparaloc(exprasmlist,2);
+                              paramanager.freeintparaloc(exprasmlist,1);
                             {$ifdef newra}
                               for i:=first_supreg to last_supreg do
                                if i<>RS_FRAME_POINTER_REG then
@@ -937,7 +948,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-06-03 21:11:09  peter
+  Revision 1.60  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.59  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

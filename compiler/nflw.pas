@@ -1187,6 +1187,7 @@ implementation
     function traisenode.pass_1 : tnode;
       begin
          result:=nil;
+         include(current_procinfo.flags,pi_do_call);
          expectloc:=LOC_VOID;
          if assigned(left) then
            begin
@@ -1426,7 +1427,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-05-26 21:17:17  peter
+  Revision 1.76  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.75  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

@@ -608,16 +608,22 @@ implementation
                   cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
-                  cg.a_param_reg(exprasmlist,OS_8,pleftreg,paramanager.getintparaloc(2));
-                  cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-                  cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
-                  { result of value is always one full register }
-                  r.enum:=R_INTREGISTER;
-                  r.number:=NR_FUNCTION_RESULT_REG;
-                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
+                  cg.a_param_reg(exprasmlist,OS_8,pleftreg,paramanager.getintparaloc(exprasmlist,2));
                   { release the allocated register  }
                   if not (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     rg.ungetregisterint(exprasmlist,pleftreg);
+                  cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(exprasmlist,1));
+                  cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
+                  paramanager.freeintparaloc(exprasmlist,2);
+                  paramanager.freeintparaloc(exprasmlist,1);
+                  { result of value is always one full register }
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_FUNCTION_RESULT_REG;
+{$ifdef newra}
+                  rg.getexplicitregisterint(exprasmlist,NR_FUNCTION_RESULT_REG);
+                  rg.ungetregisterint(exprasmlist,r);
+{$endif newra}
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                   location_release(exprasmlist,right.location);
                 end;
              end;
@@ -1116,7 +1122,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-06-03 21:11:09  peter
+  Revision 1.41  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.40  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

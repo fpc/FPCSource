@@ -192,22 +192,26 @@ implementation
        { erroraddr }
        r.enum:=R_INTREGISTER;
        r.number:=NR_FRAME_POINTER_REG;
-       cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(4));
+       cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(exprasmlist,4));
        { lineno }
-       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(3));
+       cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(exprasmlist,3));
        { filename string }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
        firstpass(tnode(hp2));
        secondpass(tnode(hp2));
        if codegenerror then
           exit;
-       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paramanager.getintparaloc(2));
+       cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paramanager.getintparaloc(exprasmlist,2));
        hp2.free;
        { push msg }
        secondpass(tcallparanode(tcallparanode(left).right).left);
-       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paramanager.getintparaloc(1));
+       cg.a_paramaddr_ref(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference,paramanager.getintparaloc(exprasmlist,1));
        { call }
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
+       paramanager.freeintparaloc(exprasmlist,4);
+       paramanager.freeintparaloc(exprasmlist,3);
+       paramanager.freeintparaloc(exprasmlist,2);
+       paramanager.freeintparaloc(exprasmlist,1);
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -682,7 +686,14 @@ end.
 
 {
   $Log$
-  Revision 1.35  2003-06-03 21:11:09  peter
+  Revision 1.36  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.35  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

@@ -29,6 +29,7 @@ unit cpupara;
   interface
 
     uses
+       aasmtai,
        cpubase,
        globtype,
        cginfo,
@@ -43,7 +44,7 @@ unit cpupara;
        ti386paramanager = class(tparamanager)
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          function getintparaloc(nr : longint) : tparalocation;override;
+          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           function getparaloc(p : tdef) : tcgloc;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getselflocation(p : tabstractprocdef) : tparalocation;override;
@@ -110,7 +111,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.getintparaloc(nr : longint) : tparalocation;
+    function ti386paramanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
       begin
          getintparaloc.loc:=LOC_REFERENCE;
          getintparaloc.reference.index.enum:=R_EBP;
@@ -168,7 +169,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-06-06 14:41:22  peter
+  Revision 1.18  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.17  2003/06/06 14:41:22  peter
     * needs cpuinfo
 
   Revision 1.16  2003/06/06 07:36:06  michael

@@ -77,7 +77,7 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);override;
+        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);override;
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
@@ -252,7 +252,8 @@ const
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          if target_info.system=system_powerpc_macos then
            list.concat(taicpu.op_none(A_NOP));
-         include(current_procinfo.flags,pi_do_call);
+         if not(pi_do_call in current_procinfo.flags) then
+           internalerror(2003060703);
       end;
 
     { calling a procedure by address }
@@ -283,7 +284,8 @@ const
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
         //  list.concat(taicpu.op_none(A_NOP));
-        include(current_procinfo.flags,pi_do_call);
+        if not(pi_do_call in current_procinfo.flags) then
+          internalerror(2003060704);
         //list.concat(tai_comment.create(strpnew('***** a_call_reg')));
       end;
 
@@ -315,7 +317,8 @@ const
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
         //  list.concat(taicpu.op_none(A_NOP));
-        include(current_procinfo.flags,pi_do_call);
+        if not(pi_do_call in current_procinfo.flags) then
+          internalerror(2003060705);
         //list.concat(tai_comment.create(strpnew('***** a_call_ref')));
       end;
 
@@ -2037,7 +2040,7 @@ const
          tg.ungetiftemp(list,source);
       end;
 
-    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);
+    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);
       var
         lenref : treference;
         power,len  : longint;
@@ -2563,7 +2566,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-06-04 11:58:58  jonas
+  Revision 1.105  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.104  2003/06/04 11:58:58  jonas
     * calculate localsize also in g_return_from_proc since it's now called
       before g_stackframe_entry (still have to fix macos)
     * compilation fixes (cycle doesn't work yet though)

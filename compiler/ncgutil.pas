@@ -264,16 +264,20 @@ implementation
     var r:Tregister;
 
      begin
-       cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(3));
-       cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(2));
+       cg.a_paramaddr_ref(list,envbuf,paramanager.getintparaloc(list,3));
+       cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(list,2));
        { push type of exceptionframe }
-       cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(1));
+       cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(list,1));
        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+       paramanager.freeintparaloc(list,3);
+       paramanager.freeintparaloc(list,2);
+       paramanager.freeintparaloc(list,1);
 
        r.enum:=R_INTREGISTER;
        r.number:=NR_FUNCTION_RESULT_REG;
-       cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
+       cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(list,1));
        cg.a_call_name(list,'FPC_SETJMP');
+       paramanager.freeintparaloc(list,1);
 
        cg.g_exception_reason_save(list, href);
        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,r,exceptlabel);
@@ -1202,21 +1206,24 @@ implementation
              tt_freeansistring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
+                 paramanager.freeintparaloc(list,1);
                end;
              tt_widestring,
              tt_freewidestring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
+                 paramanager.freeintparaloc(list,1);
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
+                 paramanager.freeintparaloc(list,1);
                end;
            end;
            hp:=hp^.next;
@@ -1499,10 +1506,12 @@ implementation
                  (cs_profile in aktmoduleswitches) then
                begin
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('etext'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
-                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+                 cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
                  cg.a_call_name(list,'_monstartup');
+                 paramanager.freeintparaloc(list,2);
+                 paramanager.freeintparaloc(list,1);
                end;
 
               { initialize units }
@@ -1954,7 +1963,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2003-06-06 14:43:02  peter
+  Revision 1.123  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.122  2003/06/06 14:43:02  peter
     * g_copyopenarrayvalue gets length reference
     * don't copy open arrays for cdecl
 

@@ -146,8 +146,9 @@ implementation
          objectlibrary.getlabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
-         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(1));
+         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(exprasmlist,1));
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
+         paramanager.freeintparaloc(exprasmlist,1);
          cg.a_label(exprasmlist, continuelabel);
          if signed then 
             exprasmlist.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
@@ -188,8 +189,9 @@ implementation
          objectlibrary.getlabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
-         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(1));
+         cg.a_param_const(exprasmlist, OS_S32,200,paramanager.getintparaloc(exprasmlist,1));
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
+         paramanager.freeintparaloc(exprasmlist,1);
          cg.a_label(exprasmlist, continuelabel);
 
          tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
@@ -242,7 +244,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-02-19 22:00:16  daniel
+  Revision 1.7  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.6  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

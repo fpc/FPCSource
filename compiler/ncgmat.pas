@@ -334,7 +334,7 @@ implementation
                   }
                   objectlibrary.getlabel(hl);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_NE,0,hdenom,hl);
-                  cg.a_param_const(exprasmlist,OS_S32,200,paramanager.getintparaloc(1));
+                  cg.a_param_const(exprasmlist,OS_S32,200,paramanager.getintparaloc(exprasmlist,1));
                   cg.a_call_name(exprasmlist,'FPC_HANDLERROR');
                   cg.a_label(exprasmlist,hl);
                   if nodetype = modn then
@@ -514,7 +514,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-06-03 21:11:09  peter
+  Revision 1.14  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.13  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus

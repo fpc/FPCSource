@@ -492,6 +492,7 @@ implementation
 
                 if ([vo_is_thread_var,vo_is_dll_var]*tvarsym(symtableentry).varoptions)<>[] then
                   registers32:=1;
+                { call to get address of threadvar }
                 if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
                 if nf_write in flags then
@@ -811,6 +812,11 @@ implementation
 
          firstpass(left);
          firstpass(right);
+         { assignment to refcounted variable -> inc/decref }
+         if (not is_class(left.resulttype.def) and
+            left.resulttype.def.needs_inittable) then
+           include(current_procinfo.flags,pi_do_call);
+
          if codegenerror then
            exit;
 
@@ -1247,7 +1253,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2003-06-07 14:39:18  jonas
+  Revision 1.98  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.97  2003/06/07 14:39:18  jonas
     * set pi_do_call for accesses to threadvars
 
   Revision 1.96  2003/05/26 19:38:28  peter

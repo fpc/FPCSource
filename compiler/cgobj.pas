@@ -1309,15 +1309,18 @@ unit cgobj;
 {$ifdef FPC}
         {$warning FIX ME!}
 {$endif}
-        a_paramaddr_ref(list,dest,paramanager.getintparaloc(3));
+        a_paramaddr_ref(list,dest,paramanager.getintparaloc(list,3));
         if loadref then
-          a_param_ref(list,OS_ADDR,source,paramanager.getintparaloc(2))
+          a_param_ref(list,OS_ADDR,source,paramanager.getintparaloc(list,2))
         else
-          a_paramaddr_ref(list,source,paramanager.getintparaloc(2));
+          a_paramaddr_ref(list,source,paramanager.getintparaloc(list,2));
         if delsource then
          reference_release(list,source);
-        a_param_const(list,OS_INT,len,paramanager.getintparaloc(1));
+        a_param_const(list,OS_INT,len,paramanager.getintparaloc(list,1));
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
+        paramanager.freeintparaloc(list,3);
+        paramanager.freeintparaloc(list,2);
+        paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1342,19 +1345,21 @@ unit cgobj;
          if incrfunc<>'' then
           begin
             { these functions get the pointer by value }
-            a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1));
+            a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1));
             a_call_name(list,incrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+            a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             a_call_name(list,'FPC_ADDREF');
+            paramanager.freeintparaloc(list,2);
          end;
+        paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1384,24 +1389,28 @@ unit cgobj;
             if needrtti then
              begin
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-               a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+               a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
              end;
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             a_call_name(list,decrfunc);
+            if needrtti then
+              paramanager.freeintparaloc(list,2);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+            a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
             if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
             else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+              a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
             a_call_name(list,'FPC_DECREF');
+            paramanager.freeintparaloc(list,2);
          end;
+        paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1416,12 +1425,14 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+              a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
               else
-                a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+                a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
               a_call_name(list,'FPC_INITIALIZE');
+              paramanager.freeintparaloc(list,1);
+              paramanager.freeintparaloc(list,2);
            end;
       end;
 
@@ -1437,12 +1448,14 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
+              a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
+                a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(list,1))
               else
-                a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+                a_paramaddr_ref(list,ref,paramanager.getintparaloc(list,1));
               a_call_name(list,'FPC_FINALIZE');
+              paramanager.freeintparaloc(list,1);
+              paramanager.freeintparaloc(list,2);
            end;
       end;
 
@@ -1568,8 +1581,9 @@ unit cgobj;
     procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
 
       begin
-         a_param_const(list,OS_32,stackframesize,paramanager.getintparaloc(1));
+         a_param_const(list,OS_32,stackframesize,paramanager.getintparaloc(list,1));
          a_call_name(list,'FPC_STACKCHECK');
+         paramanager.freeintparaloc(list,1);
       end;
 
 
@@ -1602,8 +1616,9 @@ unit cgobj;
          begin
            objectlibrary.getlabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
-           a_param_const(list,OS_INT,210,paramanager.getintparaloc(1));
+           a_param_const(list,OS_INT,210,paramanager.getintparaloc(list,1));
            a_call_name(list,'FPC_HANDLEERROR');
+           paramanager.freeintparaloc(list,1);
            a_label(list,oklabel);
          end;
       end;
@@ -1616,15 +1631,18 @@ unit cgobj;
         if (cs_check_object in aktlocalswitches) then
          begin
            reference_reset_symbol(hrefvmt,objectlibrary.newasmsymboldata(objdef.vmt_mangledname),0);
-           a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(2));
-           a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(1));
+           a_paramaddr_ref(list,hrefvmt,paramanager.getintparaloc(list,2));
+           a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
            a_call_name(list,'FPC_CHECK_OBJECT_EXT');
+           paramanager.freeintparaloc(list,2);
+           paramanager.freeintparaloc(list,1);
          end
         else
          if (cs_check_range in aktlocalswitches) then
           begin
-            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(1));
+            a_param_reg(list,OS_ADDR,reg,paramanager.getintparaloc(list,1));
             a_call_name(list,'FPC_CHECK_OBJECT');
+            paramanager.freeintparaloc(list,1);
           end;
       end;
 
@@ -1700,7 +1718,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.108  2003-06-06 14:43:02  peter
+  Revision 1.109  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.108  2003/06/06 14:43:02  peter
     * g_copyopenarrayvalue gets length reference
     * don't copy open arrays for cdecl
 

@@ -43,22 +43,29 @@ unit rgcpu;
          procedure saveusedotherregisters(list:Taasmoutput;
                                            var saved:Tpushedsavedother;
                                            const s:Tregisterset);override;
+         procedure cleartempgen; override;
+        private
+         usedpararegs: Tsupregset;
        end;
 
   implementation
 
     uses
-      cgobj;
+      cgobj, verbose;
 
     function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
     var r:Tregister;
 
       begin
-        if reg = NR_R0 then
+        if ((reg shr 8) in [RS_R0,RS_R2..RS_R12]) and
+           not((reg shr 8) in is_reg_var_int) then
           begin
+            if (reg shr 8) in usedpararegs then
+              internalerror(2003060701);
+            include(usedpararegs,reg shr 8);
             r.enum:=R_INTREGISTER;
-            r.number:=NR_R0;
+            r.number:=reg;
             cg.a_reg_alloc(list,r);
             result := r;
           end
@@ -69,8 +76,14 @@ unit rgcpu;
     procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
 
       begin
-        if reg.enum = R_0 then
-          cg.a_reg_dealloc(list,reg)
+        if ((reg.number shr 8) in [RS_R0,RS_R2..RS_R12]) and
+            not((reg.number shr 8) in is_reg_var_int) then
+          begin
+            if not((reg.number shr 8) in usedpararegs) then
+              internalerror(2003060702);
+            exclude(usedpararegs,reg.number shr 8);
+            cg.a_reg_dealloc(list,reg);
+          end
         else
           inherited ungetregisterint(list,reg);
       end;
@@ -97,13 +110,28 @@ unit rgcpu;
         filldword(saved,sizeof(saved) div 4,reg_not_saved);
       end;
 
+
+    procedure trgcpu.cleartempgen;
+
+      begin
+        inherited cleartempgen;
+        usedpararegs := [];
+      end;
+
 initialization
   rg := trgcpu.create(32);  {PPC has 32 registers.}
 end.
 
 {
   $Log$
-  Revision 1.7  2003-05-24 13:38:04  jonas
+  Revision 1.8  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.7  2003/05/24 13:38:04  jonas
     * don't save callee-save registers in the caller as well (the ppc code
       that we generate is slow enough as it is without resorting to doing
       double work :)

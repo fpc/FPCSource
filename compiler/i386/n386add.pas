@@ -373,10 +373,10 @@ interface
                      {$endif newra}
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
+                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(exprasmlist,2));
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
+                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(exprasmlist,1));
                       {$ifdef newra}
                         r.enum:=R_INTREGISTER;
                         for i:=first_supreg to last_supreg do
@@ -389,6 +389,8 @@ interface
                         rg.saveintregvars(exprasmlist,regstopush);
                       {$endif}
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
+                       paramanager.freeintparaloc(exprasmlist,2);
+                       paramanager.freeintparaloc(exprasmlist,1);
                       {$ifdef newra}
                         for i:=first_supreg to last_supreg do
                           if i<>RS_FRAME_POINTER_REG then
@@ -1642,7 +1644,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-06-03 13:01:59  daniel
+  Revision 1.71  2003-06-07 18:57:04  jonas
+    + added freeintparaloc
+    * ppc get/freeintparaloc now check whether the parameter regs are
+      properly allocated/deallocated (and get an extra list para)
+    * ppc a_call_* now internalerrors if pi_do_call is not yet set
+    * fixed lot of missing pi_do_call's
+
+  Revision 1.70  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.69  2003/05/30 23:49:18  jonas
