@@ -923,7 +923,11 @@ unit pstatmnt;
                       Message(parser_w_use_extended_syntax_for_objects);
                     if (ppointerdef(p^.resulttype)^.definition^.deftype=orddef) and
                        (porddef(ppointerdef(p^.resulttype)^.definition)^.typ=uvoid) then
-                      Message(parser_e_no_new_dispose_on_void_pointers);
+                      if (m_tp in aktmodeswitches) or
+                         (m_delphi in aktmodeswitches) then
+                       Message(parser_w_no_new_dispose_on_void_pointers)
+                      else
+                       Message(parser_e_no_new_dispose_on_void_pointers);
 
                      case ht of
                         _NEW : new_dispose_statement:=gensinglenode(simplenewn,p);
@@ -1267,7 +1271,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.78  1999-04-15 12:58:14  pierre
+  Revision 1.79  1999-04-16 12:14:49  pierre
+   * void pointer accepted with warning in tp and delphi mode
+
+  Revision 1.78  1999/04/15 12:58:14  pierre
    * fix for bug0234
 
   Revision 1.77  1999/04/15 09:01:33  peter
