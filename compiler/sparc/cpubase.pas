@@ -224,7 +224,11 @@ type
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
-      tparalocation = packed record
+      tparalocation =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
          Size : TCGSize;
          { The location type where the parameter is passed, usually
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
@@ -567,7 +571,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2004-07-26 04:00:35  mazen
+  Revision 1.69  2004-08-14 14:50:42  florian
+    * fixed several sparc alignment issues
+    + Jonas' inline node patch; non functional yet
+
+  Revision 1.68  2004/07/26 04:00:35  mazen
   * fix compile problem
 
   Revision 1.67  2004/06/20 08:55:32  florian

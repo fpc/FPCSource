@@ -155,11 +155,14 @@ implementation
                  tvarsym(p).vartype.def.needs_inittable then
                 include(current_procinfo.flags,pi_needs_implicit_finally);
             end;
+{
+          must be done at the end of the program, not at the end of the procedure
           typedconstsym :
             begin
               if ttypedconstsym(p).typedconsttype.def.needs_inittable then
                 include(current_procinfo.flags,pi_needs_implicit_finally);
             end;
+}
         end;
       end;
 
@@ -969,23 +972,15 @@ implementation
       begin
         result := false;
         if not assigned(procdef.inlininginfo^.code) or
-           (po_assembler in procdef.procoptions) or
-            { no locals }
-            (tprocdef(procdef).localst.symsearch.count <> 0) or
-            { procedure, not function }
-            (not is_void(procdef.rettype.def)) then
+           (po_assembler in procdef.procoptions) then
           exit;
         paraitem:=tparaitem(procdef.para.first);
 
-        { all call by reference parameters, or parameters which don't }
-        { get a new value? }
-        { also note: in theory, if there are only value parameters and none of those  }
-        {   are changed, we could also inline the paras. However, the compiler does   }
-        {   not distinguish between "used but not changed" and "used and changed"     }
-        {   (both are represented by vs_used), so that this not yet possible to do    }
         while assigned(paraitem) do
           begin
-            { we can't handle formaldefs, valuepara's which get a new value and special arrays }
+            { we can't handle formaldefs and special arrays (the latter may need a    }
+            { re-basing of the index, i.e. if you pass an array[1..10] as open array, }
+            { you have to add 1 to all index operations if you directly inline it     }
             if ((paraitem.paratyp in [vs_out,vs_var]) and
                 (paraitem.paratype.def.deftype=formaldef)) or
                is_special_array(paraitem.paratype.def)  then
@@ -1428,7 +1423,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.202  2004-07-16 21:11:31  jonas
+  Revision 1.203  2004-08-14 14:50:42  florian
+    * fixed several sparc alignment issues
+    + Jonas' inline node patch; non functional yet
+
+  Revision 1.202  2004/07/16 21:11:31  jonas
     - disable node-based inlining of routines with special array parameters
       for now (de indexes of open arrays have to be changed, because on the
       caller-side these routines are not necessarily 0-based)

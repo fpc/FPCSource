@@ -50,6 +50,10 @@ interface
 
        tcallnode = class(tbinarynode)
        private
+{$ifndef VER1_0}
+          { info for inlining }
+          inlinelocals: array of tnode;
+{$endif VER1_0}
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
           function  gen_self_tree_methodpointer:tnode;
@@ -66,6 +70,9 @@ interface
 
           procedure createinlineparas(var createstatement, deletestatement: tstatementnode);
           function replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
+{$ifndef VER1_0}
+          procedure createlocaltemps(p:TNamedIndexItem;arg:pointer);
+{$endif VER1_0}
        protected
           pushedparasize : longint;
        public
@@ -1847,8 +1854,10 @@ type
     function tcallnode.replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
       var
         paras: tcallparanode;
+        temp: tnode;
       begin
         result := fen_false;
+        n.fileinfo := pfileposinfo(arg)^;
         if (n.nodetype = loadn) then
           begin
             paras := tcallparanode(left);
@@ -1861,9 +1870,86 @@ type
                 n := paras.left.getcopy;
                 resulttypepass(n);
                 result := fen_true;
+              end
+{$ifndef VER1_0}
+            else
+              begin
+                { local? }
+                if (tloadnode(n).symtableentry.typ <> varsym) or
+                   (tloadnode(n).symtableentry.owner <> tprocdef(procdefinition).localst) then
+                  exit;
+                if (tloadnode(n).symtableentry.indexnr > high(inlinelocals)) or
+                   not assigned(inlinelocals[tloadnode(n).symtableentry.indexnr]) then
+                  internalerror(20040720);
+                temp := inlinelocals[tloadnode(n).symtableentry.indexnr].getcopy;
+                n.free;
+                n := temp;
+                resulttypepass(n);
+                result := fen_true;
               end;
+{$endif ndef VER1_0}
           end;
       end;
+
+
+{$ifndef VER1_0}
+      type
+        ptempnodes = ^ttempnodes;
+        ttempnodes = record
+          createstatement, deletestatement: tstatementnode;
+        end;
+
+    procedure tcallnode.createlocaltemps(p:TNamedIndexItem;arg:pointer);
+      var
+        tempinfo: ptempnodes absolute ptempnodes(arg);
+        tempnode: ttempcreatenode;
+      begin
+        if (tsymentry(p).typ <> varsym) then
+          exit;
+        if (p.indexnr > high(inlinelocals)) then
+          setlength(inlinelocals,p.indexnr+10);
+{$ifndef VER1_0}
+        if (vo_is_funcret in tvarsym(p).varoptions) and
+           assigned(funcretnode) then
+          begin
+            if node_complexity(funcretnode) > 1 then
+              begin
+                { can this happen? }
+                { we may have to replace the funcretnode with the address of funcretnode }
+                { loaded in a temp in this case, because the expression may e.g. contain }
+                { a global variable that gets changed inside the function                }
+                internalerror(2004072101);
+              end;
+            inlinelocals[tvarsym(p).indexnr] := funcretnode.getcopy
+          end
+        else
+{$endif ndef VER1_0}
+          begin
+            if (cs_regvars in aktglobalswitches) and
+               (([vo_regable{$ifndef x86},vo_fpuregable{$endif}] * tvarsym(p).varoptions) <> []) and
+               (not tvarsym(p).vartype.def.needs_inittable) then
+              tempnode := ctempcreatenode.create_reg(tvarsym(p).vartype,tvarsym(p).vartype.def.size,tt_persistent)
+            else
+              tempnode := ctempcreatenode.create(tvarsym(p).vartype,tvarsym(p).vartype.def.size,tt_persistent);
+            addstatement(tempinfo^.createstatement,tempnode);
+            if assigned(tvarsym(p).defaultconstsym) then
+              begin
+                { warning: duplicate from psub.pas:initializevars() -> must refactor }
+                addstatement(tempinfo^.createstatement,cassignmentnode.create(
+                                  ctemprefnode.create(tempnode),
+                                  cloadnode.create(tvarsym(p).defaultconstsym,tvarsym(p).defaultconstsym.owner)));
+              end;
+            if (vo_is_funcret in tvarsym(p).varoptions) then
+              begin
+                funcretnode := ctemprefnode.create(tempnode);
+                addstatement(tempinfo^.deletestatement,ctempdeletenode.create_normal_temp(tempnode));
+              end
+            else
+              addstatement(tempinfo^.deletestatement,ctempdeletenode.create(tempnode));
+            inlinelocals[p.indexnr] := ctemprefnode.create(tempnode);
+          end;
+      end;
+{$endif ndef VER1_0}
 
 
     procedure tcallnode.createinlineparas(var createstatement, deletestatement: tstatementnode);
@@ -1871,46 +1957,84 @@ type
         para: tcallparanode;
         tempnode: ttempcreatenode;
         hp: tnode;
+{$ifndef VER1_0}
+        tempnodes: ttempnodes;
+{$endif ndef VER1_0}
       begin
         { parameters }
         para := tcallparanode(left);
         while assigned(para) do
           begin
-            { create temps for value parameters, and also for const parameters }
-            { which are passed by value instead of by reference                }
-            if (para.paraitem.paratyp = vs_value) or
-               ((para.paraitem.paratyp = vs_const) and
-                not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption)) then
+            if (para.paraitem.parasym.typ = varsym) and
+               { para.left will already be the same as funcretnode in the following case, so don't change }
+               (not(vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) or
+                (not assigned(funcretnode))) then
               begin
-                if (cs_regvars in aktglobalswitches) and
-                   (([vo_regable,vo_fpuregable] * tvarsym(para.paraitem.parasym).varoptions) <> []) and
-                   (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
-                  tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
-                else
-                  tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
-                addstatement(createstatement,tempnode);
-                addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                  para.left));
-                para.left := ctemprefnode.create(tempnode);
-                addstatement(deletestatement,ctempdeletenode.create(tempnode));
-              end
-            else if node_complexity(para.left) > 1 then
-              begin
-                if (cs_regvars in aktglobalswitches) and
-                   not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable then
-                  tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
-                else
-                  tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
-                addstatement(createstatement,tempnode);
-                addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                  caddrnode.create(para.left)));
-                hp := cderefnode.create(ctemprefnode.create(tempnode));
-                inserttypeconv_explicit(hp,para.left.resulttype);
-                para.left := hp;
-                addstatement(deletestatement,ctempdeletenode.create(tempnode));
+                { create temps for value parameters, function result and also for    }
+                { const parameters which are passed by value instead of by reference }
+                if (vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) or
+                   (para.paraitem.paratyp = vs_value) or
+                   ((para.paraitem.paratyp = vs_const) and
+                    (not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption) or
+                    { the problem is that we can't take the address of a function result :( }
+                     (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
+                  begin
+                    if (cs_regvars in aktglobalswitches) and
+                       (([vo_regable,vo_fpuregable] * tvarsym(para.paraitem.parasym).varoptions) <> []) and
+                       (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
+                      tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
+                    else
+                      tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent);
+                    addstatement(createstatement,tempnode);
+                    { assign the value of the parameter to the temp, except in case of the function result }
+                    { (in that case, para.left is a block containing the creation of a new temp, while we  }
+                    {  only need a temprefnode, so delete the old stuff)                                   }
+                    if not(vo_is_funcret in tvarsym(para.paraitem.parasym).varoptions) then
+                      begin
+                        addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                          para.left));
+                        para.left := ctemprefnode.create(tempnode);
+                        addstatement(deletestatement,ctempdeletenode.create(tempnode));
+                      end
+                    else
+                      begin
+                        if not(assigned(funcretnode)) then
+                          funcretnode := ctemprefnode.create(tempnode);
+                        para.left.free;
+                        para.left := ctemprefnode.create(tempnode);
+                        addstatement(deletestatement,ctempdeletenode.create_normal_temp(tempnode));
+                      end
+                  end
+                else if node_complexity(para.left) > 1 then
+                  begin
+                    if (cs_regvars in aktglobalswitches) and
+                       not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable then
+                      tempnode := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent)
+                    else
+                      tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+                    addstatement(createstatement,tempnode);
+                    addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                      caddrnode.create(para.left)));
+                    hp := cderefnode.create(ctemprefnode.create(tempnode));
+                    inserttypeconv_explicit(hp,para.left.resulttype);
+                    para.left := hp;
+                    addstatement(deletestatement,ctempdeletenode.create(tempnode));
+                  end;
+                para := tcallparanode(para.right);
               end;
-            para := tcallparanode(para.right);
           end;
+{$ifndef VER1_0}
+        { local variables }
+        if not assigned(tprocdef(procdefinition).localst) or
+           (tprocdef(procdefinition).localst.symindex.count = 0) then
+          exit;
+        tempnodes.createstatement := createstatement;
+        tempnodes.deletestatement := deletestatement;
+        setlength(inlinelocals,tprocdef(procdefinition).localst.symindex.count);
+        tprocdef(procdefinition).localst.foreach({$ifdef FPCPROCVAR}@{$endif}createlocaltemps,@tempnodes);
+        createstatement := tempnodes.createstatement;
+        deletestatement := tempnodes.deletestatement;
+{$endif ndef VER1_0}
       end;
 
 
@@ -1918,11 +2042,12 @@ type
       var
         createstatement,deletestatement: tstatementnode;
         createblock,deleteblock: tblocknode;
+        i: longint;
       label
         errorexit;
       begin
          result:=nil;
-
+{!!!!!!!!
          if (procdefinition.proccalloption=pocall_inline) and
             { can we inline this procedure at the node level? }
             (tprocdef(procdefinition).inlininginfo^.inlinenode) then
@@ -1948,9 +2073,18 @@ type
                   { replace complex parameters with temps }
                   createinlineparas(createstatement,deletestatement);
                   { replace the parameter loads with the parameter values }
-                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,pointer(funcretnode));
+                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,@fileinfo);
+                  { free the temps for the locals }
+                  for i := 0 to high(inlinelocals) do
+                    if assigned(inlinelocals[i]) then
+                      inlinelocals[i].free;
+                  setlength(inlinelocals,0);
                   addstatement(createstatement,result);
                   addstatement(createstatement,deleteblock);
+                  { set function result location if necessary }
+                  if assigned(funcretnode) and
+                     (cnf_return_value_used in callnodeflags) then
+                    addstatement(createstatement,funcretnode.getcopy);
                   result := createblock;
                   { consider it must not be inlined if called
                     again inside the args or itself }
@@ -1960,7 +2094,7 @@ type
                   exit;
                 end;
            end;
-
+}
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
            begin
@@ -2258,7 +2392,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.243  2004-07-16 19:45:15  jonas
+  Revision 1.244  2004-08-14 14:50:42  florian
+    * fixed several sparc alignment issues
+    + Jonas' inline node patch; non functional yet
+
+  Revision 1.243  2004/07/16 19:45:15  jonas
     + temps can now also hold fpu values in registers (take care with use,
       bacause of the x86 fpu stack)
     * fpu parameters to node-inlined procedures can now also be put in

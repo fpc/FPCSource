@@ -182,9 +182,9 @@ interface
       { please keep the size of this record <=12 bytes and keep it properly aligned }
       toper = record
         ot : longint;
-{$ifdef cpuarm}
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
         dummy1,dummy2,dummy3 : byte;
-{$endif cpuarm}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         case typ : toptype of
           top_none   : ();
           top_reg    : (reg:tregister);
@@ -2217,7 +2217,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2004-06-20 08:55:28  florian
+  Revision 1.87  2004-08-14 14:50:42  florian
+    * fixed several sparc alignment issues
+    + Jonas' inline node patch; non functional yet
+
+  Revision 1.86  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.85  2004/06/16 20:07:06  florian
