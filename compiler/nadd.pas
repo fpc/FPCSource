@@ -883,7 +883,14 @@ implementation
               be the same as the left setdef }
             if (rd.deftype=setdef) and
                (tsetdef(ld).settype<>tsetdef(rd).settype) then
-              inserttypeconv(right,left.resulttype);
+             begin
+               { when right is a normset we need to typecast both
+                 to normsets }
+               if (tsetdef(rd).settype=normset) then
+                inserttypeconv(left,right.resulttype)
+               else
+                inserttypeconv(right,left.resulttype);
+             end;
           end
 
          { compare pchar to char arrays by addresses like BP/Delphi }
@@ -1837,7 +1844,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2002-11-15 01:58:50  peter
+  Revision 1.70  2002-11-16 14:20:22  peter
+    * fix tbs0417
+
+  Revision 1.69  2002/11/15 01:58:50  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
