@@ -1,3 +1,19 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,98 by Florian Klaempfl
+    member of the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+{ This is the install program for the DOS version of Free Pascal }
+
 {$A+,B-,D+,E+,F-,G-,I-,L+,N-,O-,P-,Q+,R+,S+,T-,V-,X+,Y+}
 {$M 16384,0,16384}
 program install;
@@ -8,6 +24,16 @@ program install;
   var
      binpath,startpath : string;
      successfull : boolean;
+
+  const
+     version = '0';
+     release = '99'
+     patchlevel = '6';
+
+     filenr = version+release+patchlevel;
+
+     doc_version = '101';
+
 
   procedure uppervar(var s : string);
 
@@ -249,16 +275,16 @@ program install;
               if file_exists('DOCS.ZIP',startpath) then
                 inc(mask_components,32);
 
-              if file_exists('DOC100PS.ZIP',startpath) then
+              if file_exists('DOC+doc_version+PS.ZIP',startpath) then
                 inc(mask_components,64);
 
-              if file_exists('RL09900S.ZIP',startpath) then
+              if file_exists('RL'+filenr+'S.ZIP',startpath) then
                 inc(mask_components,128);
 
-              if file_exists('PP09900S.ZIP',startpath) then
+              if file_exists('PP'+filenr+'S.ZIP',startpath) then
                 inc(mask_components,256);
 
-              if file_exists('DOC100S.ZIP',startpath) then
+              if file_exists('DOC+doc_version+S.ZIP',startpath) then
                 inc(mask_components,512);
 
               while true do
@@ -349,16 +375,16 @@ program install;
                            do_install('DOCS');
 
                         if (installdata.components and 64)<>0 then
-                           do_install('DOCS101PS');
+                           do_install('DOC+doc_version+PS');
 
                         if (installdata.components and 128)<>0 then
-                           do_install('RL09905S');
+                           do_install('RL'+filenr+'S');
 
                         if (installdata.components and 256)<>0 then
-                           do_install('PP09905S');
+                           do_install('PP'+filenr+'S');
 
                         if (installdata.components and 512)<>0 then
-                           do_install('DOC101S');
+                           do_install('DOC+doc_version+S');
 
                         assign(t,'BIN\PPC386.CFG');
                         rewrite(t);
@@ -453,3 +479,9 @@ begin
         writeln('To compile files enter PPC386 [file]');
      end;
 end.
+{
+  $Log$
+  Revision 1.2  1998-04-07 22:47:57  florian
+    + version/release/patch numbers as string added
+
+}
