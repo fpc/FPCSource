@@ -15,6 +15,10 @@
 #
 # Linux ELF startup code for Free Pascal
 #
+# The code in this file is the default startup code, it is used unless
+# libc is linked in, profiling is enabled or you are compiling a shared
+# library.
+#
 #
 # Stack layout at program start:
 # 
@@ -41,7 +45,7 @@ _start:
         /* First locate the start of the environment variables */
         popl    %ecx                    /* Get argc in ecx */
         movl    %esp,%ebx               /* Esp now points to the arguments */
-	leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+8 */
+	leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
         andl    $0xfffffff8,%esp        /* Align stack */
 
 	leal    operatingsystem_parameters,%edi
@@ -89,7 +93,10 @@ operatingsystem_parameters:
 	.set operatingsystem_parameter_argv,operatingsystem_parameters+8
 #
 # $Log$
-# Revision 1.4  2004-07-03 21:50:31  daniel
+# Revision 1.5  2004-07-03 23:04:34  daniel
+#   * Updated comments
+#
+# Revision 1.4  2004/07/03 21:50:31  daniel
 #   * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
 #     longer necessary
 #
