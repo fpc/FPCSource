@@ -5,7 +5,7 @@
 [target]
 dirs=paszlib regexpr
 dirs_linux=inet gdbint libasync \
-           mysql ibase postgres oracle odbc
+           mysql ibase postgres oracle odbc netdb
 dirs_win32=inet gdbint \
            mysql ibase odbc
 dirs_go32v2=gdbint
