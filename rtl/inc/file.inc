@@ -187,7 +187,7 @@ var
   Result : Longint;
 Begin
   BlockWrite(f,Buf,Count,Result);
-  If (Result<Count) and (Count>0) Then
+  If (InOutRes=0) and (Result<Count) and (Count>0) Then
    InOutRes:=101;
 End;
 
@@ -259,7 +259,7 @@ var
   Result : Longint;
 Begin
   BlockRead(f,Buf,Count,Result);
-  If (Result<Count) and (Count>0) Then
+  If (InOutRes=0) and (Result<Count) and (Count>0) Then
    InOutRes:=100;
 End;
 
@@ -412,7 +412,10 @@ End;
 
 {
   $Log$
-  Revision 1.6  2002-12-07 14:36:14  carl
+  Revision 1.7  2003-11-29 14:07:52  peter
+    * do not overwrite Inoutres in blockwrite with 101
+
+  Revision 1.6  2002/12/07 14:36:14  carl
     - avoid warnings (add typecast)
 
   Revision 1.5  2002/09/07 15:07:45  peter
