@@ -49,18 +49,66 @@ TGlob = record
 \end{verbatim}
 The following types are used in the signal-processing procedures.
 \begin{verbatim}
-{$Packrecords 1}
+tfpreg = record
+  significand: array[0..3] of word;
+  exponent: word;
+end;
+
+pfpstate = ^tfpstate;
+tfpstate = record
+  cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+  st: array[0..7] of tfpreg;                            
+  status: cardinal;
+end;
+
+PSigContextRec = ^SigContextRec;
+SigContextRec = record
+  gs, __gsh: word;
+  fs, __fsh: word;
+  es, __esh: word;
+  ds, __dsh: word;
+  edi: cardinal;   
+  esi: cardinal;   
+  ebp: cardinal;   
+  esp: cardinal;   
+  ebx: cardinal;   
+  edx: cardinal;   
+  ecx: cardinal;   
+  eax: cardinal;   
+  trapno: cardinal;
+  err: cardinal;   
+  eip: cardinal;   
+  cs, __csh: word; 
+  eflags: cardinal;
+  esp_at_signal: cardinal;
+  ss, __ssh: word;
+  fpstate: pfpstate;
+  oldmask: cardinal;
+  cr2: cardinal;
+  end;
+\end{verbatim}
+The above records contain information about the processor state and process
+state at the moment a signal is sent to your program.
+
+The records below are used in catching signals.
+\begin{verbatim}
+TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
 SignalHandler   = Procedure ( Sig : Integer);cdecl;
+
 PSignalHandler  = SignalHandler;
 SignalRestorer  = Procedure;cdecl;
 PSignalrestorer = SignalRestorer;
-SigActionRec = Record
-  Sa_Handler  : Signalhandler;
-  Sa_Mask     : Longint;
-  Sa_flags    : Integer;
-  Sa_Restorer : SignalRestorer;
+SigActionRec = packed record
+  Handler  : record
+    case byte of   
+      0: (Sh: SignalHandler);
+      1: (Sa: TSigAction);   
+    end;
+  Sa_Mask     : SigSet;
+  Sa_Flags    : Longint;
+  Sa_restorer : SignalRestorer; { Obsolete - Don't use }
 end;
-PSigActionRec = ^SigActionRec;
+  PSigActionRec = ^SigActionRec;
 \end{verbatim}
 Stat is used to store information about a file. It is defined in the
 syscalls unit.
@@ -516,7 +564,6 @@ errors:
 \item[sys\_enfile] The system file table is full.
 \end{description}
 Other errors include the ones by the fork and exec programs
-
 \SeeAlso
 \seef{AssignPipe}, \seep{POpen},\seem{pipe}{2}
 \end{function}
@@ -664,6 +711,55 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 \end{function}
 
 \FPCexample{ex23}
+
+\begin{function}{Clone}
+\Declaration
+TCloneFunc=function(args:pointer):longint;cdecl;
+Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
+\Description
+Clone creates a child process which is a copy of the parent process, just
+like \seef{Fork} does. In difference with \var{Fork}, however, the child
+process shares some parts of it's execution context with its parent, so it
+is suitable for the implementation of threads: many instances of a program
+that share the same memory.
+
+When the child process is created, it starts executing the function
+\var{Func}, and passes it \var{Args}. The return value of \var{Func} is 
+either the explicit return value of the function, or the exit code of
+the child process.
+
+The \var{sp} pointer points to the memory reserved as stack space for the
+child process. This address should be the top of the memory block to be used
+as stack.
+
+The \var{Flags} determine the behaviour of the \var{Clone} call. The low
+byte of the Flags contains the number of the signal that will be  sent to 
+the parent when  the child dies. 
+This may be bitwise OR'ed with the following constants:
+\begin{description}
+\item[CLONE\_VM] Parent and child share the same memory space, including
+memory (un)mapped with subsequent \var{mmap} calls.
+\item[CLONE\_FS] Parent and child have the same view of the filesystem;
+the \var{chroot}, \var{chdir} and \var{umask} calls affect both processes.
+\item[CLONE\_FILES] the file descriptor table of parent and child is shared. 
+\item[CLONE\_SIGHAND] the parent and child share the same table of signal
+handlers. The signal masks are different, though.
+\item[CLONE\_PID] PArent and child have the same process ID.
+\end{description}
+
+Clone returns the process ID in the parent process, and -1 if an error
+occurred.
+\Errors
+On error, -1 is returned to the parent, and no child is created.
+\begin{description}
+\item [sys\_eagain] Too many processes are running.
+\item [sys\_enomem] Not enough memory to create child process.
+\end{description}
+\SeeAlso
+\seef{Fork}, \seem{clone}{2}
+\end{function}
+
+\FPCexample{ex14}
 
 \begin{function}{CloseDir}
 \Declaration
@@ -1396,12 +1492,54 @@ On error, -1 is returned to the parent, and no child is created.
 \begin{description}
 \item [sys\_eagain] Not enough memory to create child process.
 \end{description}
-
 \SeeAlso
-\seep{Execve}, \seem{fork}{2}
+\seep{Execve}, \seef{Clone}, \seem{fork}{2}
 \end{function}
 
-\FPCexample{ex14}
+\begin{function}{FRename}
+\Declaration
+Function  FReName (OldName,NewName : Pchar) : Boolean;
+Function  FReName (OldName,NewName : String) : Boolean;
+\Description
+\var{FRename} renames the file \var{OldName} to \var{NewName}. \var{NewName}
+can be in a different directory than \var{OldName}, but it cannot be on
+another partition (device). Any existing file on the new location will be replaced.
+
+If the operation fails, then the \var{OldName} file will be preserved. 
+
+The function returns \var{True} on succes, \var{False} on failure.
+\Errors
+On error, errors are reported in \var{LinuxError}. Possible errors include:
+\begin{description}
+\item[sys\_eisdir] \var{NewName} exists and is a directory, but \var{OldName}
+is not a directory.
+\item[sys\_exdev] \var{NewName} and \var{OldName} are on different devices.
+\item[sys\_enotempty or sys\_eexist] \var{NewName} is an existing, non-empty
+directory. 
+\item[sys\_ebusy] \var{OldName} or \var{NewName} is a directory and is in
+use by another process.
+\item[sys\_einval] \var{NewName} is part of \var{OldName}.
+\item[sys\_emlink] \var{OldPath} or \var{NewPath} already have tha maximum
+amount of links pointing to them.
+\item[sys\_enotdir] part of \var{OldName} or \var{NewName} is not
+directory.
+\item[sys\_efault] For the \var{pchar} case: One of the pointers points to
+an invalid address.
+\item[sys\_eaccess] access is denied when attempting to move the file.
+\item[sys\_enametoolong] Either \var{OldName} or \var{NewName} is too long.
+\item[sys\_enoent] a directory component in \var{OldName} or \var{NewName}
+didn't exist.
+\item[sys\_enomem] not enough kernel memory.
+\item[sys\_erofs] \var{NewName} or \var{OldName} is on a read-only file
+system.
+\item[sys\_eloop] too many symbolic links were encountered trying to expand
+\var{OldName} or \var{NewName}
+\item[sys\_enospc] the filesystem has no room for the new directory entry.
+\end{description}
+\SeeAlso
+\seef{UnLink}
+\end{function}
+
 
 \begin{procedure}{GetDate}
 \Declaration
@@ -1557,7 +1695,7 @@ procedure GetLocalTimezone(timer:longint);
 initializes the \var{TZSeconds} variable, which is used to correct the epoch time
 to local time. 
 
-You should never call this function directly. It is called by the
+There should never be any need to call this function directly. It is called by the
 initialization routines of the Linux unit.
 \SeeAlso
 \seef{GetTimezoneFile}, \seep{ReadTimezoneFile}
@@ -2055,6 +2193,20 @@ Function MkFifo (PathName: String; Mode : Longint) : Boolean;
 \seep{POpen}, \seef{MkFifo}, \seem{mkfifo}{4}
 \end{function}
 
+\begin{function}{MMap}
+\Declaration
+Function MMap(const m:tmmapargs):longint;
+\Description
+\var{MMap} maps or unmaps files or devices into memory. The different fields
+of the argument \var{m} determine what and how the \var{mmap} maps this:
+\begin{description}
+\item[address] Address where to mmap the device. This address is a hint
+\item[size]
+\item[prot]
+\item[flags]
+\item[fd]
+\item[offset]
+\end{description}
 \begin{procedure}{Nice}
 \Declaration
 Procedure Nice ( N : Integer);
@@ -2167,6 +2319,40 @@ Errors are returned in LinuxError.
 \end{function}
 
 For an example, see \seef{OpenDir}.
+
+\begin{function}{ReadLink}
+\Declaration
+Function  ReadLink(name,linkname:pchar;maxlen:longint):longint;
+Function  ReadLink(name:pathstr):pathstr;
+\Description
+\var{ReadLink} returns the file the symbolic link \var{name} is pointing 
+to. The first form of this function accepts a buffer \var{linkname} of
+length \var{maxlen} where the filename will be stored. It returns the
+actual number of characters stored in the buffer.
+
+The second form of the function returns simply the name of the file.
+\Errors
+On error, the first form of the function returns -1; the second one returns
+an empty string. \var{LinuxError} is set to report errors:
+\begin{description}
+\item[SYS\_ENOTDIR] A part of the path in \var{Name} is not a directory.
+\item[SYS\_EINVAL] maxlen is not positive, or the  file is not a symbolic link.
+\item[SYS\_ENAMETOOLONG] A pathname, or a component of a pathname,  was  too
+long.
+\item[SYS\_ENOENT] the link \var{name} does not exist.
+\item[SYS\_EACCES] No permission to search a directory in the path
+\item[SYS\_ELOOP]  Too many symbolic links were encountered in  trans­
+             lating the pathname.
+\item[SYS\_EIO] An  I/O  error occurred while reading from the file
+              system.
+\item[SYS\_EFAULT] The buffer is not part of the the process's memory space.
+\item[SYS\_ENOMEM] Not enough kernel memory was available.
+\end{description}
+\SeeAlso
+\seef{SymLink}
+\end{function}
+
+\FPCexample{ex62}
 
 \begin{procedure}{ReadTimezoneFile}
 \Declaration
@@ -2402,6 +2588,19 @@ the range of the process.
 \seem{Sigprocmask}{2} 
 \end{procedure}
 
+\begin{procedure}{SigRaise}
+\Declaration
+Procedure SigRaise(Sig:integer);
+\Description
+\var{SigRaise} sends a \var{Sig} signal to the current process.
+\Errors
+None.
+\SeeAlso
+\seef{Kill}, \seef{GetPid}
+\end{procedure}
+
+\FPCexample{ex65}
+
 \begin{procedure}{SigSuspend}
 \Declaration
 Procedure SigSuspend (Mask : SigSet);
@@ -2469,12 +2668,36 @@ symbolic link, i.e. a symbolic link, whose expansion points to itself.
 \item[sys\_enospc] The device containing \var{NewPath} has no room for anothe
 entry.
 \end{description}
-
 \SeeAlso
-\seef{Link}, \seef{UnLink}, \seem{Symlink}{2} 
+\seef{Link}, \seef{UnLink}, \seef{ReadLink}, \seem{Symlink}{2} 
 \end{function}
 
 \FPCexample{ex22}
+
+\begin{function}{SysInfo}
+\Declaration
+Function  SysInfo(var Info:TSysinfo):Boolean;
+\Description
+\var{SysInfo} returns system information in \var{Info}. Returned information
+in \var{Info} includes:
+\begin{description}
+\item[uptime] Number of seconds since boot.
+\item[loads]  1, 5 and 15 minute load averages.
+\item[totalram] total amount of main memory.
+\item[freeram] amount of free memory.
+\item[sharedram] amount of shared memory
+\item[bufferram] amount of memory used by buffers.
+\item[totalswap] total amount of swapspace.
+\item[freeswap] amount of free swapspace.
+\item[procs] number of current processes.
+\end{description}
+\Errors
+None.
+\SeeAlso
+\seep{Uname}
+\end{function}
+
+\FPCexample{ex64}
 
 \begin{function}{TCDrain}
 \Declaration
