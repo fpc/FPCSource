@@ -32,6 +32,9 @@ Type
 {$ifdef netware}
     FindData : TNetwareFindData;
 {$endif}
+{$ifdef netwlibc}
+    FindData : TNetwareLibcFindData;
+{$endif}
   end;
 
 Const
@@ -89,7 +92,10 @@ Function GetFileHandle(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.5  2004-05-01 11:56:25  marco
+  Revision 1.6  2004-09-05 00:02:40  armin
+  * added target netwlibc
+
+  Revision 1.5  2004/05/01 11:56:25  marco
    * fileno -> getfilehandle
 
   Revision 1.4  2004/05/01 11:04:34  marco
