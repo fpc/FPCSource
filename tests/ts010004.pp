@@ -18,5 +18,6 @@ type
    end;
 
 begin
+   c:=tclass1.create;
    c.i:=12;
 end.

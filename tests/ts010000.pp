@@ -29,6 +29,7 @@ var
    i : longint;
 
 begin
+   object1:=tobject1.create;
    i:=object1.l;
    i:=object1.l2;
    object1.l:=123;
