@@ -51,6 +51,7 @@
 % Settings
 %
 \pagestyle{fancy}
+\fancyhead[LO,RE]{}
 \makeindex
 %
 % Start of document.
@@ -1336,6 +1337,39 @@ Syntax:
 The \var{\#SECTION} directive acts as a \var{\#IFDEF} directive, only
 it doesn't require an \var{\#ENDIF} directive. the special name \var{COMMON}
 always exists, i.e. lines following \var{\#SECTION COMMON} are always read.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Variable subsitution in paths
+\section{Variable substitution in paths}
+To avoid having to edit your configuration files too often,
+the compiler allows you to specify the following variables in
+the paths that you feed to the compiler:
+\begin{description}
+\item[FPCVER] is replaced by the compiler's full version string.
+\item[FPCDATE] is replaced by the compiler's date.
+\item[FPCTARGET] is replaced by the compiler's target CPU
+(deprecated).
+\item[FPCCPU] is also replaced by the compiler's target CPU.
+\item[TARGET] is replaced by the compiler's target OS.(deprecated)
+\item[FPCOS] is replaced by the compiler's target OS.
+\end{description}
+To have these variables subsituted, just insert them with a \var{\$}
+prepended, as follows:
+\begin{verbatim}
+-Fu/usr/lib/fpc/$FPCVER/rtl/$FPCOS
+\end{verbatim}
+This is equivalent to
+\begin{verbatim}
+-Fu/usr/lib/fpc/0.99.12a/rtl/linux
+\end{verbatim}
+If the compiler version is \var{0.99.12a} and the target os is \var{linux}.
+
+These replacemens are valid on the command-line and also in the
+configuration file. 
+
+On the linux command-line, you must be careful to escape the \var{\$} since
+otherwise the shell will expand the variable for you, which may have 
+undesired effects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Porting.
