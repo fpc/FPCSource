@@ -2609,6 +2609,21 @@ procedure TWatch.Get_new_value;
       strdispose(last_value);
     last_value:=current_value;
     s:=GetStr(expr);
+    { Fix 2d array indexing, change [x,x] to [x][x] }
+    i:=pos('[',s);
+    if i>0 then
+      begin
+        while i<length(s) do
+          begin
+            if s[i]=',' then
+              begin
+                s[i]:='[';
+                insert(']',s,i);
+                inc(i);
+              end;
+            inc(i);
+          end;
+      end;
     found:=GetValue(s);
     Debugger^.got_error:=false;
     loop_higher:=not found;
@@ -3643,7 +3658,10 @@ end.
 
 {
   $Log$
-  Revision 1.56  2004-11-21 20:53:26  peter
+  Revision 1.57  2004-12-06 20:39:25  peter
+  change a[1,2] to a[1][2]
+
+  Revision 1.56  2004/11/21 20:53:26  peter
     * fixed breakpoint dialog
 
   Revision 1.55  2004/11/11 15:20:52  florian
