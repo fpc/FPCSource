@@ -832,8 +832,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
- GetProcessID := 1;
-{$WARNING Implementation of GetProcessID missing!}
+ GetProcessID:=SizeUInt(FindTask(NIL)); 
 end;
 
 
@@ -869,7 +868,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-12-07 10:07:50  karoly
+  Revision 1.27  2004-12-14 21:01:16  karoly
+    * GetProcessID implemented
+
+  Revision 1.26  2004/12/07 10:07:50  karoly
     * removed debug code accidentally left in
 
   Revision 1.25  2004/12/07 09:55:46  karoly
