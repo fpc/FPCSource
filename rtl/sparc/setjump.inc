@@ -23,9 +23,9 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;[Public,alias:'FPC_LO
          // Store our arguments in global registers so we can still
          // use them while unwinding frames and their register windows.
 
-         ld [%o0+4], %g3         // Cache target FP in register %g3.
-         mov %o0, %g1            // s in %g1
-         orcc %o1, %g0, %g2      // value in %g2
+         ld [%i0+4], %g3         // Cache target FP in register %g3.
+         mov %i0, %g1            // s in %g1
+         orcc %i1, %g0, %g2      // value in %g2
          be,a .L0                // Branch if zero; else skip delay slot.
          mov 1, %g2              // Delay slot only hit if zero: VAL = 1.
 .L0:
@@ -60,8 +60,8 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;[Public,alias:'FPC_LO
          ld      [%g1+8], %o7    // Set return PC.
          ld      [%g1], %fp      // Set saved SP on restore below.
          sub     %fp, 64, %sp    // Allocate a register frame.
-         st      %g3, [%fp+$48]  // Set saved FP on restore below.
-         retl
+         st      %g3, [%fp+48]  // Set saved FP on restore below.
+         ret
          restore %g2, 0, %o0     // Restore values from above register frame.
 
 .Lfound:
@@ -81,15 +81,18 @@ function setjmp(var S:jmp_buf):longint;assembler;[Public,alias:'FPC_SETJMP'];
     //  a tail-call for simplicity; it always returns zero.
     ta      3
 
-    st      %o7, [%o0+8]
-    st      %sp, [%o0]
-    st      %fp, [%o0+4]
-    mov     %g0, %o0
+    st      %i7, [%i0+8]
+    st      %sp, [%i0]
+    st      %fp, [%i0+4]
+    mov     %g0, %i0
   end;
 
 {
   $Log$
-  Revision 1.5  2004-05-18 19:36:37  florian
+  Revision 1.6  2004-05-25 21:38:11  peter
+    * fixed input registers
+
+  Revision 1.5  2004/05/18 19:36:37  florian
     * started to fix set/longjmp on sparc
 
   Revision 1.4  2003/01/05 21:32:35  mazen
