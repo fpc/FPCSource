@@ -1236,6 +1236,7 @@ var OL: PCollection;
 begin
   OL:=List;
   OldR:=Range;
+  Range:=0;
   New(List, Init(1,1));
 
   inherited Store(S);
@@ -2292,7 +2293,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  1999-09-09 16:31:45  pierre
+  Revision 1.30  1999-09-09 16:36:30  pierre
+   * Breakpoint storage problem corrected
+
+  Revision 1.29  1999/09/09 16:31:45  pierre
    * some breakpoint related fixes and Help contexts
 
   Revision 1.28  1999/09/09 14:20:05  pierre
