@@ -87,7 +87,7 @@ something dodgy about the implementation:
 
 - The absence of kernel READDIR support has been fixed with a "hack", which
     means that searchpath (-Fx) and FindFirst/FindNext are more or less
-    working.     This "hacked" readdir implementation is now 1/2 year
+    working.     This "hacked" readdir implementation is now 1 1/2 year
     bugfree now (and no anomolies detected), and works on the other two BSDs
     too. Be careful with usage on "special" filesystems and files though. 
     (devfs, tmpfs hardlinks)
@@ -220,7 +220,10 @@ for i in *.s; do
 
 {
 $Log$
-Revision 1.4  2002-09-07 16:01:17  peter
+Revision 1.5  2003-11-18 21:47:19  marco
+ * minor updates
+
+Revision 1.4  2002/09/07 16:01:17  peter
   * old logs removed and tabs fixed
 
 Revision 1.3  2002/08/08 20:39:26  marco
