@@ -32,6 +32,7 @@ interface
     type
        tppccallnode = class(tcgcallnode)
          procedure extra_call_code;override;
+         procedure do_syscall;override;
        end;
 
 
@@ -52,7 +53,7 @@ implementation
       cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,
+      ncgutil,cgutils,cgobj,tgobj,regvars,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
 
 
@@ -66,14 +67,64 @@ implementation
               exprasmlist.concat(taicpu.op_const_const_const(A_CRXOR,6,6,6));
           end;
       end;
+        
+    procedure tppccallnode.do_syscall;
+      var 
+        tmpref: treference;
+      begin
+        case target_info.system of
+          system_powerpc_morphos:
+            begin
+              cg.a_reg_alloc(exprasmlist,NR_STACK_POINTER_REG);
+              cg.a_reg_alloc(exprasmlist,NR_R0);
+              cg.a_reg_alloc(exprasmlist,NR_R3);
 
+              { save link register }
+              exprasmlist.concat(taicpu.op_reg(A_MFLR,NR_R0));
+              reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_LR_SYSV);
+              exprasmlist.concat(taicpu.op_reg_ref(A_STW,NR_R0,tmpref));
+              
+              { adjust stack ptr }
+              reference_reset_base(tmpref,NR_STACK_POINTER_REG,-8); { ??? }
+              exprasmlist.concat(taicpu.op_reg_ref(A_STWU,NR_STACK_POINTER_REG,tmpref));
+                            
+              { store call offset into R3 }
+              exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,tprocdef(procdefinition).extnumber));
+              
+              { prepare LR, and call function }
+              reference_reset(tmpref);
+              tmpref.base := NR_R2;
+              tmpref.offset := 100; { EmulDirectCallOS offset }
+              exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
+              exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
+              exprasmlist.concat(taicpu.op_none(A_BLRL));
+              
+              { adjust back stack ptr }
+              exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R1,NR_R1,8)); { ??? }
+              
+              { restore link register }
+              reference_reset_base(tmpref,NR_STACK_POINTER_REG,LA_LR_SYSV);
+              exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
+              exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
+              
+              cg.a_reg_dealloc(exprasmlist,NR_STACK_POINTER_REG);
+              cg.a_reg_dealloc(exprasmlist,NR_R0);
+              cg.a_reg_dealloc(exprasmlist,NR_R3);
+            end;
+          else
+            internalerror(2004042901);
+        end;      
+      end;
 
 begin
    ccallnode:=tppccallnode;
 end.
 {
   $Log$
-  Revision 1.23  2003-12-28 22:09:12  florian
+  Revision 1.24  2004-04-29 14:01:23  karoly
+    + first implementation of PowerPC/MorphOS do_syscall
+
+  Revision 1.23  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.22  2003/10/01 20:34:49  peter
@@ -163,4 +214,3 @@ end.
   Revision 1.1  2002/08/13 21:40:59  florian
     * more fixes for ppc calling conventions
 }
-
