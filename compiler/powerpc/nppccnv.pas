@@ -243,7 +243,8 @@ implementation
          cg.free_scratch_reg(exprasmlist,tempreg);
          if signed then
            exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
-             leftreg,smallint($8000)));
+             { xoris expects a unsigned 16 bit int (FK) }
+             leftreg,$8000));
          inc(ref.offset,4);
          cg.a_load_reg_ref(exprasmlist,OS_32,valuereg,ref);
          dec(ref.offset,4);
@@ -421,7 +422,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2002-08-14 19:30:42  carl
+  Revision 1.23  2002-08-18 10:34:30  florian
+    * more ppc assembling fixes
+
+  Revision 1.22  2002/08/14 19:30:42  carl
     + added fixing because first_in_to_real is now completely generic
 
   Revision 1.21  2002/08/11 06:14:41  florian

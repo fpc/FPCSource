@@ -126,7 +126,7 @@ unit agppcgas;
         'xer','lr','ctr','fpscr'
       );
 
-     symaddr2str: array[trefsymaddr] of string[2] = ('','ha','l');
+     symaddr2str: array[trefsymaddr] of string[2] = ('','@ha','@l');
 
     function getreferencestring(var ref : treference) : string;
     var
@@ -161,7 +161,12 @@ unit agppcgas;
            if (index=R_NO) and (base<>R_NO) then
              begin
                 if offset=0 then
-                  s:=s+'0';
+                  begin
+                     if assigned(symbol) then
+                       s:=s+'+0'
+                     else
+                       s:=s+'0';
+                  end;
                 s:=s+'('+reg2str[base]+')'
              end
            else if (index<>R_NO) and (base<>R_NO) and (offset=0) then
@@ -346,7 +351,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-08-17 18:23:53  florian
+  Revision 1.12  2002-08-18 10:34:30  florian
+    * more ppc assembling fixes
+
+  Revision 1.11  2002/08/17 18:23:53  florian
     * some assembler writer bugs fixed
 
   Revision 1.10  2002/08/12 15:08:44  carl
