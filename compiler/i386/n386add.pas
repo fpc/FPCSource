@@ -27,15 +27,18 @@ unit n386add;
 interface
 
     uses
-       nadd,cpubase;
+       node,nadd,cpubase;
 
     type
        ti386addnode = class(taddnode)
           procedure pass_2;override;
           function getresflags(unsigned : boolean) : tresflags;
           procedure SetResultLocation(cmpop,unsigned : boolean);
-          procedure addstring;
-          procedure addset;
+         protected
+          function first_addstring : tnode; override;
+         private
+          procedure second_addstring;
+          procedure second_addset;
        end;
 
   implementation
@@ -46,7 +49,7 @@ interface
       symconst,symdef,aasm,types,
       cgbase,temp_gen,pass_2,
       cpuasm,
-      node,ncon,nset,
+      ncon,nset,
       cga,n386util,tgcpu;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
@@ -124,15 +127,33 @@ interface
                                 Addstring
 *****************************************************************************}
 
-    procedure ti386addnode.addstring;
+    { note: if you implemented an fpc_shortstr_concat similar to the    }
+    { one in i386.inc, you have to override first_addstring like in     }
+    { ti386addnode.first_string and implement the shortstring concat    }
+    { manually! The generic routine is different from the i386 one (JM) }
+    function ti386addnode.first_addstring : tnode;
+      begin
+        { special cases for shortstrings, handled in pass_2 (JM) }
+        { can't handle fpc_shortstr_compare with compilerproc either because it }
+        { returns its results in the flags instead of in eax                    }
+        if ((nodetype = addn) and
+           is_shortstring(resulttype.def)) or
+           ((nodetype in [ltn,lten,gtn,gten,equaln,unequaln]) and
+            not(((left.nodetype=stringconstn) and (str_length(left)=0)) or
+                ((right.nodetype=stringconstn) and (str_length(right)=0))) and
+            is_shortstring(left.resulttype.def)) then
+          begin
+            result := nil;
+            exit;
+          end;
+        { otherwise, use the generic code }
+        result := inherited first_addstring;
+      end;
+
+
+    procedure ti386addnode.second_addstring;
 
       var
-{$ifdef newoptimizations2}
-        l: tasmlabel;
-        hreg: tregister;
-        href2: preference;
-        oldregisterdef: boolean;
-{$endif newoptimizations2}
         pushedregs : tpushed;
         href       : treference;
         pushed,
@@ -143,138 +164,6 @@ interface
         if nf_swaped in flags then
           swapleftright;
         case tstringdef(left.resulttype.def).string_typ of
-           st_widestring,
-           st_ansistring:
-             begin
-                case nodetype of
-                   addn:
-                     begin
-                        cmpop:=false;
-                        secondpass(left);
-                        { to avoid problem with maybe_push and restore }
-                        set_location(location,left.location);
-                        pushed:=maybe_push(right.registers32,self,false);
-                        secondpass(right);
-                        if pushed then
-                          begin
-                             restore(self,false);
-                             set_location(left.location,location);
-                          end;
-                        { get the temp location, must be done before regs are
-                          released/pushed because after the release the regs are
-                          still used for the push (PFV) }
-                        clear_location(location);
-                        location.loc:=LOC_MEM;
-                        if (tstringdef(left.resulttype.def).string_typ=st_widestring) then
-                         begin
-                           gettempwidestringreference(location.reference);
-                           decrstringref(cwidestringtype.def,location.reference);
-                         end
-                        else
-                         begin
-                           gettempansistringreference(location.reference);
-                           decrstringref(cansistringtype.def,location.reference);
-                         end;
-                        { release used registers }
-                        del_location(right.location);
-                        del_location(left.location);
-                        { push the still used registers }
-                        pushusedregisters(pushedregs,$ff);
-                        { push data }
-                        emitpushreferenceaddr(location.reference);
-                        emit_push_loc(right.location);
-                        emit_push_loc(left.location);
-                        saveregvars($ff);
-                        if tstringdef(left.resulttype.def).string_typ=st_widestring then
-                          emitcall('FPC_WIDESTR_CONCAT')
-                        else
-                          emitcall('FPC_ANSISTR_CONCAT');
-                        popusedregisters(pushedregs);
-                        maybe_loadself;
-                     end;
-                   ltn,lten,gtn,gten,
-                   equaln,unequaln:
-                     begin
-                        cmpop:=true;
-                        if (nodetype in [equaln,unequaln]) and
-                           (left.nodetype=stringconstn) and
-                           (tstringconstnode(left).len=0) then
-                          begin
-                             secondpass(right);
-                             { release used registers }
-                             del_location(right.location);
-                             del_location(left.location);
-                             case right.location.loc of
-                               LOC_REFERENCE,LOC_MEM:
-                                 emit_const_ref(A_CMP,S_L,0,newreference(right.location.reference));
-                               LOC_REGISTER,LOC_CREGISTER:
-                                 emit_const_reg(A_CMP,S_L,0,right.location.register);
-                             end;
-                          end
-                        else if (nodetype in [equaln,unequaln]) and
-                          (right.nodetype=stringconstn) and
-                          (tstringconstnode(right).len=0) then
-                          begin
-                             secondpass(left);
-                             { release used registers }
-                             del_location(right.location);
-                             del_location(left.location);
-                             case right.location.loc of
-                               LOC_REFERENCE,LOC_MEM:
-                                 emit_const_ref(A_CMP,S_L,0,newreference(left.location.reference));
-                               LOC_REGISTER,LOC_CREGISTER:
-                                 emit_const_reg(A_CMP,S_L,0,left.location.register);
-                             end;
-                          end
-                        else
-                          begin
-                             secondpass(left);
-                             pushed:=maybe_push(right.registers32,left,false);
-                             secondpass(right);
-                             if pushed then
-                               restore(left,false);
-                             { release used registers }
-                             del_location(right.location);
-                             del_location(left.location);
-                             { push the still used registers }
-                             pushusedregisters(pushedregs,$ff);
-                             { push data }
-                             case right.location.loc of
-                               LOC_REFERENCE,LOC_MEM:
-                                 emit_push_mem(right.location.reference);
-                               LOC_REGISTER,LOC_CREGISTER:
-                                 emit_reg(A_PUSH,S_L,right.location.register);
-                             end;
-                             case left.location.loc of
-                               LOC_REFERENCE,LOC_MEM:
-                                 emit_push_mem(left.location.reference);
-                               LOC_REGISTER,LOC_CREGISTER:
-                                 emit_reg(A_PUSH,S_L,left.location.register);
-                             end;
-                             saveregvars($ff);
-                             if tstringdef(left.resulttype.def).string_typ=st_widestring then
-                               emitcall('FPC_WIDESTR_COMPARE')
-                             else
-                               emitcall('FPC_ANSISTR_COMPARE');
-                             emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
-                             popusedregisters(pushedregs);
-                             maybe_loadself;
-                          end;
-                     end;
-                end;
-               if tstringdef(left.resulttype.def).string_typ=st_widestring then
-                 begin
-                    ungetiftempwidestr(left.location.reference);
-                    ungetiftempwidestr(right.location.reference);
-                 end
-               else
-                 begin
-                    ungetiftempansi(left.location.reference);
-                    ungetiftempansi(right.location.reference);
-                 end;
-               { the result of wide/ansicompare is signed :/ }
-               SetResultLocation(cmpop,false);
-             end;
            st_shortstring:
              begin
                 case nodetype of
@@ -309,186 +198,66 @@ interface
                              left.location.loc:=LOC_MEM;
                              left.location.reference:=href;
 
-{$ifdef newoptimizations2}
-                             { length of temp string = 255 (JM) }
-                             { *** redefining a type is not allowed!! (thanks, Pierre) }
-                             { also problem with constant string!                      }
-                             tstringdef(left.resulttype.def).len := 255;
-
-{$endif newoptimizations2}
                           end;
 
                         secondpass(right);
 
-{$ifdef newoptimizations2}
-                        { special case for string := string + char (JM) }
-                        { needs string length stuff from above!         }
-                        hreg := R_NO;
-                        if is_shortstring(left.resulttype.def) and
-                           is_char(right.resulttype.def) then
-                          begin
-                            getlabel(l);
-                            getexplicitregister32(R_EDI);
-                            { load the current string length }
-                            emit_ref_reg(A_MOVZX,S_BL,
-                              newreference(left.location.reference),R_EDI);
-                            { is it already maximal? }
-                            emit_const_reg(A_CMP,S_L,
-                              tstringdef(left.resulttype.def).len,R_EDI);
-                            emitjmp(C_E,l);
-                            { no, so add the new character }
-                            { is it a constant char? }
-                            if (right.nodetype <> ordconstn) then
-                              { no, make sure it is in a register }
-                              if right.location.loc in [LOC_REFERENCE,LOC_MEM] then
-                                begin
-                                  { free the registers of right }
-                                  del_reference(right.location.reference);
-                                  { get register for the char }
-                                  hreg := reg32toreg8(getregister32);
-                                  emit_ref_reg(A_MOV,S_B,
-                                    newreference(right.location.reference),
-                                    hreg);
-                                 { I don't think a temp char exists, but it won't hurt (JM) }
-                                 ungetiftemp(right.location.reference);
-                                end
-                              else hreg := right.location.register;
-                            href2 := newreference(left.location.reference);
-                            { we need a new reference to store the character }
-                            { at the end of the string. Check if the base or }
-                            { index register is still free                   }
-                            if (left.location.reference.base <> R_NO) and
-                               (left.location.reference.index <> R_NO) then
-                              begin
-                                { they're not free, so add the base reg to }
-                                { the string length (since the index can   }
-                                { have a scalefactor) and use EDI as base  }
-                                emit_reg_reg(A_ADD,S_L,
-                                  left.location.reference.base,R_EDI);
-                                href2^.base := R_EDI;
-                              end
-                            else
-                              { at least one is still free, so put EDI there }
-                              if href2^.base = R_NO then
-                                href2^.base := R_EDI
-                              else
-                                begin
-                                  href2^.index := R_EDI;
-                                  href2^.scalefactor := 1;
-                                end;
-                            { we need to be one position after the last char }
-                            inc(href2^.offset);
-                            { increase the string length }
-                            emit_ref(A_INC,S_B,newreference(left.location.reference));
-                            { and store the character at the end of the string }
-                            if (right.nodetype <> ordconstn) then
-                              begin
-                                { no new_reference(href2) because it's only }
-                                { used once (JM)                            }
-                                emit_reg_ref(A_MOV,S_B,hreg,href2);
-                                ungetregister(hreg);
-                              end
-                            else
-                              emit_const_ref(A_MOV,S_B,right.value,href2);
-                            emitlab(l);
-                            ungetregister32(R_EDI);
-                          end
-                        else
-                          begin
-{$endif  newoptimizations2}
                         { on the right we do not need the register anymore too }
                         { Instead of releasing them already, simply do not }
                         { push them (so the release is in the right place, }
                         { because emitpushreferenceaddr doesn't need extra }
                         { registers) (JM)                                  }
-                            regstopush := $ff;
-                            remove_non_regvars_from_loc(right.location,
-                              regstopush);
-                            pushusedregisters(pushedregs,regstopush);
-                           { push the maximum possible length of the result }
-{$ifdef newoptimizations2}
-                           { string (could be < 255 chars now) (JM)         }
-                            emit_const(A_PUSH,S_L,
-                              tstringdef(left.resulttype.def).len);
-{$endif newoptimizations2}
-                            emitpushreferenceaddr(left.location.reference);
-                           { the optimizer can more easily put the          }
-                           { deallocations in the right place if it happens }
-                           { too early than when it happens too late (if    }
-                           { the pushref needs a "lea (..),edi; push edi")  }
-                            del_reference(right.location.reference);
-                            emitpushreferenceaddr(right.location.reference);
-                            saveregvars(regstopush);
-{$ifdef newoptimizations2}
-                            emitcall('FPC_SHORTSTR_CONCAT_LEN');
-{$else newoptimizations2}
-                            emitcall('FPC_SHORTSTR_CONCAT');
-{$endif newoptimizations2}
-                            ungetiftemp(right.location.reference);
-                            maybe_loadself;
-                            popusedregisters(pushedregs);
-{$ifdef newoptimizations2}
-                        end;
-{$endif newoptimizations2}
+                        regstopush := $ff;
+                        remove_non_regvars_from_loc(right.location,
+                          regstopush);
+                        pushusedregisters(pushedregs,regstopush);
+                       { push the maximum possible length of the result }
+                        emitpushreferenceaddr(left.location.reference);
+                       { the optimizer can more easily put the          }
+                       { deallocations in the right place if it happens }
+                       { too early than when it happens too late (if    }
+                       { the pushref needs a "lea (..),edi; push edi")  }
+                        del_reference(right.location.reference);
+                        emitpushreferenceaddr(right.location.reference);
+                        saveregvars(regstopush);
+                        emitcall('FPC_SHORTSTR_CONCAT');
+                        ungetiftemp(right.location.reference);
+                        maybe_loadself;
+                        popusedregisters(pushedregs);
                         set_location(location,left.location);
                      end;
-                   ltn,lten,gtn,gten,
-                   equaln,unequaln :
+                   ltn,lten,gtn,gten,equaln,unequaln :
                      begin
-                        cmpop:=true;
-                        { generate better code for s='' and s<>'' }
-                        if (nodetype in [equaln,unequaln]) and
-                           (((left.nodetype=stringconstn) and (str_length(left)=0)) or
-                            ((right.nodetype=stringconstn) and (str_length(right)=0))) then
-                          begin
-                             secondpass(left);
-                             { are too few registers free? }
-                             pushed:=maybe_push(right.registers32,left,false);
-                             secondpass(right);
-                             if pushed then
-                               restore(left,false);
-                             { only one node can be stringconstn }
-                             { else pass 1 would have evaluted   }
-                             { this node                         }
-                             if left.nodetype=stringconstn then
-                               emit_const_ref(
-                                 A_CMP,S_B,0,newreference(right.location.reference))
-                             else
-                               emit_const_ref(
-                                 A_CMP,S_B,0,newreference(left.location.reference));
-                             del_reference(right.location.reference);
-                             del_reference(left.location.reference);
-                          end
-                        else
-                          begin
-                             pushusedregisters(pushedregs,$ff);
-                             secondpass(left);
-                             emitpushreferenceaddr(left.location.reference);
-                             del_reference(left.location.reference);
-                             secondpass(right);
-                             emitpushreferenceaddr(right.location.reference);
-                             del_reference(right.location.reference);
-                             saveregvars($ff);
-                             emitcall('FPC_SHORTSTR_COMPARE');
-                             maybe_loadself;
-                             popusedregisters(pushedregs);
-                          end;
-                        ungetiftemp(left.location.reference);
-                        ungetiftemp(right.location.reference);
+                       cmpop := true;
+                       pushusedregisters(pushedregs,$ff);
+                       secondpass(left);
+                       emitpushreferenceaddr(left.location.reference);
+                       del_reference(left.location.reference);
+                       secondpass(right);
+                       emitpushreferenceaddr(right.location.reference);
+                       del_reference(right.location.reference);
+                       saveregvars($ff);
+                       emitcall('FPC_SHORTSTR_COMPARE');
+                       maybe_loadself;
+                       popusedregisters(pushedregs);
+                       ungetiftemp(left.location.reference);
+                       ungetiftemp(right.location.reference);
                      end;
-                   else CGMessage(type_e_mismatch);
                 end;
-               SetResultLocation(cmpop,true);
+                SetResultLocation(cmpop,true);
              end;
-          end;
-      end;
+           else
+             { rest should be handled in first pass (JM) }
+             internalerror(200108303);
+       end;
+     end;
 
 
 {*****************************************************************************
                                 Addset
 *****************************************************************************}
 
-    procedure ti386addnode.addset;
+    procedure ti386addnode.second_addset;
       var
         createset,
         cmpop,
@@ -784,14 +553,14 @@ interface
         own procedures }
          case left.resulttype.def.deftype of
          stringdef : begin
-                       addstring;
+                       second_addstring;
                        exit;
                      end;
             setdef : begin
                      { normalsets are handled separate }
                        if not(tsetdef(left.resulttype.def).settype=smallset) then
                         begin
-                          addset;
+                          second_addset;
                           exit;
                         end;
                      end;
@@ -2313,7 +2082,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-08-29 17:50:45  jonas
+  Revision 1.20  2001-08-30 15:43:14  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.19  2001/08/29 17:50:45  jonas
     * removed unused var
 
   Revision 1.18  2001/08/29 12:03:23  jonas

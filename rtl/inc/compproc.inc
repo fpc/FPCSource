@@ -29,7 +29,7 @@ type
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
-procedure fpc_shortstr_concat(const s1,s2:shortstring); compilerproc;
+function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
 function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerproc;
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 
@@ -56,7 +56,7 @@ Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValRe
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Incr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
-Procedure fpc_AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
+function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
@@ -66,7 +66,7 @@ Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; compilerproc;
 function fpc_ansistr_to_chararray(arraysize: longint; const src: ansistring): fpc_big_chararray; compilerproc;
-Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
+Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): Longint; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(len,index : longint); compilerproc;
 Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : Longint); compilerproc;
@@ -82,12 +82,12 @@ Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerp
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
 Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
-Procedure fpc_WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer); compilerproc;
+Function fpc_WideStr_Concat (const S1,S2 : WideString) : WideString; compilerproc;
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
 function fpc_widestr_to_chararray(arraysize: longint; const src: WideString): fpc_big_chararray; compilerproc;
-Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint; compilerproc;
+Function fpc_WideStr_Compare(const S1,S2 : WideString): Longint; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint); compilerproc;
@@ -237,14 +237,23 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.6  2001-08-29 19:49:04  jonas
+  Revision 1.7  2001-08-30 15:43:15  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.6  2001/08/29 19:49:04  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 
   Revision 1.5  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.4  2001/08/23 14:28:36  jonas

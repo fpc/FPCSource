@@ -537,20 +537,24 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
-procedure fpc_shortstr_concat(const s1,s2:shortstring);[public,alias:'FPC_SHORTSTR_CONCAT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{ note: this routine is *DIFFERENT* from the routine in i386.inc and as such you }
+{ cannot use it with the i386 compiler, unless you remove the                    }
+{ ti386addnode.first_string method (JM)                                          }
+function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT'];
 var
   s1l, s2l : byte;
-type
-  pstring = ^string;
 begin
+{ these are shortstrings, they can't be nil! (JM)
   if (s1=nil) or (s2=nil) then
     exit;
-  s1l:=length(pstring(s1)^);
-  s2l:=length(pstring(s2)^);
+}
+  s1l:=length(s1);
+  s2l:=length(s2);
   if s1l+s2l>255 then
-    s1l:=255-s2l;
-  move(pstring(s1)^[1],pstring(s2)^[s2l+1],s1l);
-  pstring(s2)^[0]:=chr(s1l+s2l);
+    s2l:=255-s1l;
+  fpc_shortstr_concat := s1;
+  move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
+  fpc_shortstr_concat[0]:=chr(s1l+s2l);
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
@@ -561,18 +565,16 @@ function fpc_shortstr_compare(const rightstr,leftstr:shortstring) : longint;[pub
 var
    s1,s2,max,i : byte;
    d : longint;
-type
-  pstring = ^string;
 begin
-  s1:=length(pstring(rightstr)^);
-  s2:=length(pstring(leftstr)^);
+  s1:=length(rightstr);
+  s2:=length(leftstr);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(pstring(leftstr)^[i])-byte(pstring(rightstr)^[i]);
+     d:=byte(leftstr[i])-byte(rightstr[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -889,14 +891,23 @@ end;
 
 {
   $Log$
-  Revision 1.19  2001-08-29 19:49:04  jonas
+  Revision 1.20  2001-08-30 15:43:15  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.19  2001/08/29 19:49:04  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 
   Revision 1.18  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.17  2001/08/01 15:00:10  jonas

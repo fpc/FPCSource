@@ -323,7 +323,13 @@ Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC
 {$endif hascompilerproc}
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
-Procedure fpc_WideStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC_WIDESTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
+var
+  S3: WideString absolute result;
+{$else hascompilerproc}
+Procedure fpc_WideStr_Concat (S1,S2 : WideString;var S3 : WideString);[Public, alias: 'FPC_WIDESTR_CONCAT'];
+{$endif hascompilerproc}
 {
   Concatenates 2 WideStrings : S1+S2.
   Result Goes to S3;
@@ -332,20 +338,19 @@ Var
   Size,Location : Longint;
 begin
 { only assign if s1 or s2 is empty }
-  if (S1=Nil) then
-    fpc_WideStr_Assign(S3,S2)
+  if (S1='') then
+    S3 := S2
   else
-    if (S2=Nil) then
-      fpc_WideStr_Assign(S3,S1)
+    if (S2='') then
+      S3 := S1
   else
     begin
        { create new result }
-       fpc_WideStr_Decr_Ref(S3);
-       Size:=PWideRec(S2-WideFirstOff)^.Len;
-       Location:=Length(WideString(S1));
-       SetLength (WideString(S3),Size+Location);
-       Move (S1^,S3^,Location*sizeof(WideChar));
-       Move (S2^,(S3+location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
+       Size:=Length(S2);
+       Location:=Length(S1);
+       SetLength (S3,Size+Location);
+       Move (S1[1],S3[1],Location*sizeof(WideChar));
+       Move (S2[1],S3[location+1],(Size+1)*sizeof(WideChar));
     end;
 end;
 
@@ -446,7 +451,7 @@ begin
 end;
 {$endif hascompilerproc}
 
-Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideStr_Compare(const S1,S2 : WideString): Longint;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares 2 WideStrings;
   The result is
@@ -457,18 +462,18 @@ Function fpc_WideStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_WIDE
 Var
   MaxI,Temp : Longint;
 begin
-  if S1=S2 then
+  if pointer(S1)=pointer(S2) then
    begin
      fpc_WideStr_Compare:=0;
      exit;
    end;
-  Maxi:=Length(WideString(S1));
-  temp:=Length(WideString(S2));
+  Maxi:=Length(S1);
+  temp:=Length(S2);
   If MaxI>Temp then
    MaxI:=Temp;
-  Temp:=CompareWord(S1^,S2^,MaxI);
+  Temp:=CompareWord(S1[1],S2[1],MaxI);
   if temp=0 then
-   temp:=Length(WideString(S1))-Length(WideString(S2));
+   temp:=Length(S1)-Length(S2);
   fpc_WideStr_Compare:=Temp;
 end;
 
@@ -840,14 +845,23 @@ end;
 
 {
   $Log$
-  Revision 1.14  2001-08-29 19:49:04  jonas
+  Revision 1.15  2001-08-30 15:43:15  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.14  2001/08/29 19:49:04  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 
   Revision 1.13  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.12  2001/08/13 12:40:16  jonas

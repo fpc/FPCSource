@@ -741,10 +741,6 @@ begin
   end ['ESI','EDI','EAX','ECX'];
 end;
 
-{$ifdef had_openstrings}
-{$p+}
-{$endif had_openstrings}
-
 procedure fpc_shortstr_copy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 begin
   asm
@@ -784,8 +780,22 @@ begin
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
-procedure fpc_shortstr_concat(const s1,s2:shortstring);
-  [public,alias:'FPC_SHORTSTR_CONCAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+
+{$ifdef hascompilerproc}
+{ define a dummy fpc_shortstr_concat for i386. Only the next one }
+{ is really used by the compiler, but the compilerproc forward   }
+{ definition must still be fulfilled (JM)                        }
+function fpc_shortstr_concat(const s1,s2: shortstring): shortstring; compilerproc;
+begin
+  { avoid warning }
+  fpc_shortstr_concat := '';
+  runerror(216);
+end;
+{$endif hascompilerproc}
+
+
+procedure fpc_shortstr_concat_intern(const s1, s2:shortstring);
+  [public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
   asm
         movl    s2,%edi
@@ -1144,14 +1154,23 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.16  2001-08-29 19:49:04  jonas
+  Revision 1.17  2001-08-30 15:43:14  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.16  2001/08/29 19:49:04  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 
   Revision 1.15  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.14  2001/08/01 15:00:09  jonas

@@ -168,7 +168,13 @@ end;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
 {$endif hascompilerproc}
 
-Procedure fpc_AnsiStr_Concat (S1,S2 : Pointer;var S3 : Pointer);[Public, alias: 'FPC_ANSISTR_CONCAT'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+{$ifdef hascompilerproc}
+function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
+var
+  S3: ansistring absolute result;
+{$else hascompilerproc}
+Procedure fpc_AnsiStr_Concat (const S1,S2 : ansistring;var S3 : ansistring);[Public, alias: 'FPC_ANSISTR_CONCAT'];
+{$endif hascompilerproc}
 {
   Concatenates 2 AnsiStrings : S1+S2.
   Result Goes to S3;
@@ -177,20 +183,18 @@ Var
   Size,Location : Longint;
 begin
 { only assign if s1 or s2 is empty }
-  if (S1=Nil) then
-    fpc_AnsiStr_Assign(S3,S2)
+  if (S1='') then
+    s3 := s2
   else
-    if (S2=Nil) then
-      fpc_AnsiStr_Assign(S3,S1)
+    if (S2='') then
+      s3 := s1
   else
     begin
-       { create new result }
-       fpc_AnsiStr_Decr_Ref(S3);
-       Size:=PAnsiRec(S2-FirstOff)^.Len;
-       Location:=Length(AnsiString(S1));
-       SetLength (AnsiString(S3),Size+Location);
-       Move (S1^,S3^,Location);
-       Move (S2^,(S3+location)^,Size+1);
+       Size:=length(S2);
+       Location:=Length(S1);
+       SetLength (S3,Size+Location);
+       Move (S1[1],S3[1],Location);
+       Move (S2[1],S3[location+1],Size+1);
     end;
 end;
 
@@ -366,7 +370,7 @@ end;
 {$endif hascompilerproc}
 
 
-Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): Longint;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares 2 AnsiStrings;
   The result is
@@ -377,18 +381,18 @@ Function fpc_AnsiStr_Compare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSI
 Var
   MaxI,Temp : Longint;
 begin
-  if S1=S2 then
+  if pointer(S1)=pointer(S2) then
    begin
      fpc_AnsiStr_Compare:=0;
      exit;
    end;
-  Maxi:=Length(AnsiString(S1));
-  temp:=Length(AnsiString(S2));
+  Maxi:=Length(S1);
+  temp:=Length(S2);
   If MaxI>Temp then
    MaxI:=Temp;
-  Temp:=CompareByte(S1^,S2^,MaxI);
+  Temp:=CompareByte(S1[1],S2[1],MaxI);
   if temp=0 then
-   temp:=Length(AnsiString(S1))-Length(AnsiString(S2));
+   temp:=Length(S1)-Length(S2);
   fpc_AnsiStr_Compare:=Temp;
 end;
 
@@ -794,14 +798,23 @@ end;
 
 {
   $Log$
-  Revision 1.20  2001-08-29 19:49:04  jonas
+  Revision 1.21  2001-08-30 15:43:15  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.20  2001/08/29 19:49:04  jonas
     * some fixes in compilerprocs for chararray to string conversions
     * conversion from string to chararray is now also done via compilerprocs
 
   Revision 1.19  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
-      compilerproc implementations (using {$ifdef hascompilerproc} is not
+      compilerproc implementations (using (ifdef hascompilerproc) is not
       necessary in the compiler)
 
   Revision 1.18  2001/08/13 12:40:16  jonas

@@ -34,6 +34,10 @@ interface
           constructor create(tt : tnodetype;l,r : tnode);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+         protected
+          { override the following if you want to implement }
+          { parts explicitely in the code generator (JM)    }
+          function first_addstring: tnode; virtual;
        end;
 
     var
@@ -52,7 +56,7 @@ implementation
       cpuinfo,
       cgbase,
       htypechk,pass_1,
-      nmat,ncnv,nld,ncon,nset,nopt,
+      nmat,ncnv,nld,ncon,nset,nopt,ncal,ninl,
       cpubase;
 
 
@@ -789,6 +793,7 @@ implementation
                  if not(is_shortstring(rd) or is_char(rd)) then
                    inserttypeconv(right,cshortstringtype);
               end;
+              
           end
 
          { pointer comparision and subtraction }
@@ -1019,6 +1024,80 @@ implementation
       end;
 
 
+    function taddnode.first_addstring: tnode;
+      var
+        p: tnode;
+      begin
+        { when we get here, we are sure that both the left and the right }
+        { node are both strings of the same stringtype (JM)              }
+        case nodetype of
+          addn:
+            begin
+              { note: if you implemented an fpc_shortstr_concat similar to the    }
+              { one in i386.inc, you have to override first_addstring like in     }
+              { ti386addnode.first_string and implement the shortstring concat    }
+              { manually! The generic routine is different from the i386 one (JM) }
+
+              { create the call to the concat routine both strings as arguments }
+              result := ccallnode.createintern('fpc_'+
+                lower(tstringdef(resulttype.def).stringtypname)+'_concat',
+                ccallparanode.create(right,ccallparanode.create(left,nil)));
+              { we reused the arguments }
+              left := nil;
+              right := nil;
+              firstpass(result);
+            end;
+          ltn,lten,gtn,gten,equaln,unequaln :
+            begin
+              { generate better code for s='' and s<>'' }
+              if (nodetype in [equaln,unequaln]) and
+                 (((left.nodetype=stringconstn) and (str_length(left)=0)) or
+                  ((right.nodetype=stringconstn) and (str_length(right)=0))) then
+                begin
+                  { switch so that the constant is always on the right }
+                  if left.nodetype = stringconstn then
+                    begin
+                      p := left;
+                      left := right;
+                      right := p;
+                    end;
+                  if is_shortstring(left.resulttype.def) then
+                    { compare the length with 0 }
+                    result := caddnode.create(nodetype,
+                      cinlinenode.create(in_length_x,false,left),
+                      cordconstnode.create(0,s32bittype))
+                  else
+                    begin
+                      { compare the pointer with nil (for ansistrings etc), }
+                      { faster than getting the length (JM)                 }
+                      result:= caddnode.create(nodetype,
+                        ctypeconvnode.create(left,voidpointertype),
+                        cpointerconstnode.create(0,voidpointertype));
+                      taddnode(result).left.toggleflag(nf_explizit);
+                    end;
+                  { left is reused }
+                  left := nil;
+                  { right isn't }
+                  right.free;
+                  right := nil;
+                  firstpass(result);
+                  exit;
+                end;
+              { no string constant -> call compare routine }
+              result := ccallnode.createintern('fpc_'+
+                lower(tstringdef(left.resulttype.def).stringtypname)+'_compare',
+                ccallparanode.create(right,ccallparanode.create(left,nil)));
+              { and compare its result with 0 according to the original operator }
+              result := caddnode.create(nodetype,result,
+                cordconstnode.create(0,s32bittype));
+              left := nil;
+              right := nil;
+              firstpass(result);
+            end;
+        end;
+      end;
+
+
     function taddnode.pass_1 : tnode;
       var
          hp      : tnode;
@@ -1173,15 +1252,10 @@ implementation
                        pass_1 := hp;
                        exit;
                      end;
-                   { this is only for add, the comparisaion is handled later }
-                   location.loc:=LOC_MEM;
                 end;
-              { here we call STRCONCAT or STRCMP or STRCOPY }
-              procinfo^.flags:=procinfo^.flags or pi_do_call;
-              if location.loc=LOC_MEM then
-                calcregisters(self,0,0,0)
-              else
-                calcregisters(self,1,0,0);
+             { otherwise, let addstring convert everything }
+              result := first_addstring;
+              exit;
            end
 
          { is one a real float ? }
@@ -1283,7 +1357,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2001-08-26 13:36:38  florian
+  Revision 1.34  2001-08-30 15:43:14  jonas
+    * converted adding/comparing of strings to compileproc. Note that due
+      to the way the shortstring helpers for i386 are written, they are
+      still handled by the old code (reason: fpc_shortstr_compare returns
+      results in the flags instead of in eax and fpc_shortstr_concat
+      has wierd parameter conventions). The compilerproc stuff should work
+      fine with the generic implementations though.
+    * removed some nested comments warnings
+
+  Revision 1.33  2001/08/26 13:36:38  florian
     * some cg reorganisation
     * some PPC updates
 
