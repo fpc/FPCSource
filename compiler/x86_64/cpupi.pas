@@ -26,24 +26,39 @@ unit cpupi;
 
 {$i fpcdefs.inc}
 
-  interface
+interface
 
     uses
        psub,procinfo;
 
     type
        tx86_64procinfo = class(tcgprocinfo)
+         function calc_stackframe_size:longint;override;
        end;
 
 
-  implementation
+implementation
+
+    uses
+      cutils,
+      tgobj;
+
+
+    function tx86_64procinfo.calc_stackframe_size:longint;
+      begin
+        { RSP should be aligned on 16 bytes }
+        result:=Align(tg.direction*tg.lasttemp,16);
+      end;
 
 begin
    cprocinfo:=tx86_64procinfo;
 end.
 {
   $Log$
-  Revision 1.2  2003-12-24 00:33:10  florian
+  Revision 1.3  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.2  2003/12/24 00:33:10  florian
     * x86-64 compilation fixed
 
   Revision 1.1  2003/01/05 13:36:54  florian

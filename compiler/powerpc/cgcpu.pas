@@ -97,7 +97,7 @@ unit cgcpu;
         procedure g_save_standard_registers(list:Taasmoutput);override;
         procedure g_restore_standard_registers(list:Taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -809,7 +809,7 @@ const
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
+     procedure tcgppc.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
        begin
          {$warning FIX ME}
        end;
@@ -2292,7 +2292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.157  2004-02-03 19:49:24  jonas
+  Revision 1.158  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.157  2004/02/03 19:49:24  jonas
     - removed mov "reg, reg" optimizations, as they are removed by the
       register allocator and may be necessary to indicate a register may not
       be reused before some point

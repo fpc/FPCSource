@@ -56,7 +56,7 @@ interface
     procedure gen_stackalloc_code(list:Taasmoutput);
     procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
     procedure gen_save_used_regs(list:TAAsmoutput);
-    procedure gen_restore_used_regs(list:TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tparalocation);
     procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
     procedure gen_finalize_code(list:TAAsmoutput;inlined:boolean);
     procedure gen_entry_code(list:TAAsmoutput);
@@ -1164,14 +1164,8 @@ implementation
             while assigned(hp) do
               begin
                 case tvarsym(hp.parasym).localloc.loc of
-                  LOC_REGISTER :
-                    begin
-                      gotregvarparas := true;
-                      { cg.a_load_param_reg will first allocate and then deallocate paraloc }
-                      { register (if the parameter resides in a register) and then allocate }
-                      { the regvar (which is currently not allocated)                       }
-                      cg.a_loadany_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.register,nil);
-                    end;
+                  LOC_REGISTER,
+                  LOC_MMREGISTER,
                   LOC_FPUREGISTER:
                     begin
                       gotregvarparas := true;
@@ -1642,7 +1636,7 @@ implementation
       end;
 
 
-    procedure gen_restore_used_regs(list:TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+    procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tparalocation);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1651,7 +1645,7 @@ implementation
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_restore_all_registers(list,usesacc,usesacchi)
+          cg.g_restore_all_registers(list,funcretparaloc)
         else
           if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
             cg.g_restore_standard_registers(list);
@@ -2117,7 +2111,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.187  2004-02-03 22:32:54  peter
+  Revision 1.188  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.187  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

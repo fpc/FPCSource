@@ -163,6 +163,9 @@ interface
     {# Returns true, if def is a double type }
     function is_double(def : tdef) : boolean;
 
+    {# Returns true, if def is an extended type }
+    function is_extended(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
@@ -231,6 +234,13 @@ implementation
       begin
         result:=(def.deftype=floatdef) and
           (tfloatdef(def).typ=s64real);
+      end;
+
+
+    function is_extended(def : tdef) : boolean;
+      begin
+        result:=(def.deftype=floatdef) and
+          (tfloatdef(def).typ=s80real);
       end;
 
 
@@ -845,7 +855,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-02-03 22:32:53  peter
+  Revision 1.10  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.9  2004/02/03 22:32:53  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

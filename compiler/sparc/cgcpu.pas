@@ -79,7 +79,7 @@ interface
         procedure g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);override;
         procedure g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);override;
         procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
-        procedure g_restore_all_registers(list:TAasmOutput;accused,acchiused:boolean);override;
+        procedure g_restore_all_registers(list:TAasmOutput;const funcretparaloc:tparalocation);override;
         procedure g_restore_frame_pointer(list:TAasmOutput);override;
         procedure g_restore_standard_registers(list:taasmoutput);override;
         procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
@@ -813,7 +813,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;accused,acchiused:boolean);
+    procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;const funcretparaloc:tparalocation);
       begin
         { The sparc port uses the sparc standard calling convetions so this function has no used }
       end;
@@ -1107,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2004-01-12 22:11:38  peter
+  Revision 1.78  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.77  2004/01/12 22:11:38  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

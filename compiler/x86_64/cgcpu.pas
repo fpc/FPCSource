@@ -38,6 +38,8 @@ unit cgcpu;
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
         class function reg_cgsize(const reg: tregister): tcgsize; override;
+        procedure g_save_all_registers(list : taasmoutput);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
       end;
 
@@ -86,6 +88,18 @@ unit cgcpu;
         else
             internalerror(200303181);
         end;
+      end;
+
+
+    procedure tcgx86_64.g_save_all_registers(list : taasmoutput);
+      begin
+        {$warning todo tcgx86_64.g_save_all_registers}
+      end;
+
+
+    procedure tcgx86_64.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+      begin
+        {$warning todo tcgx86_64.g_restore_all_registers}
       end;
 
 
@@ -220,7 +234,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-01-14 23:39:05  florian
+  Revision 1.10  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.9  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

@@ -440,7 +440,7 @@ unit cgobj;
           }
           procedure g_restore_standard_registers(list:Taasmoutput);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
-          procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);virtual;abstract;
+          procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);virtual;abstract;
        end;
 
     {# @abstract(Abstract code generator for 64 Bit operations)
@@ -854,19 +854,17 @@ implementation
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
+{$ifndef cpu64bit}
               if (locpara.size in [OS_S64,OS_64]) then
                 begin
-{$ifdef cpu64bit}
-                  ungetregister(list,locpara.register64);
-{$else cpu64bit}
                   getexplicitregister(list,locpara.registerlow);
                   getexplicitregister(list,locpara.registerhigh);
                   ungetregister(list,locpara.registerlow);
                   ungetregister(list,locpara.registerhigh);
-{$endif cpu64bit}
                   cg64.a_load64_reg_ref(list,locpara.register64,ref)
                 end
               else
+{$endif cpu64bit}
                 begin
                   getexplicitregister(list,locpara.register);
                   ungetregister(list,locpara.register);
@@ -2140,7 +2138,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.154  2004-02-03 22:32:53  peter
+  Revision 1.155  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.154  2004/02/03 22:32:53  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

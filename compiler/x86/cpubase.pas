@@ -256,6 +256,9 @@ uses
       tparalocation = record
          size : TCGSize;
          loc  : TCGLoc;
+         { Location type of registerhigh, for x86_64 this can
+           be different from loc when pushing structures of 16 bytes }
+         lochigh : TCGLoc;
          alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
@@ -265,9 +268,10 @@ uses
                 1 : (register,registerhigh : tregister);
                 { overlay a registerlow }
                 2 : (registerlow : tregister);
+{$ifndef cpu64bit}
                 { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
+                3 : (register64 : tregister64);
+{$endif cpu64bit}
               );
             { it's only for better handling }
             LOC_MMXREGISTER,LOC_CMMXREGISTER : (
@@ -535,7 +539,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2004-01-30 13:42:03  florian
+  Revision 1.39  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.38  2004/01/30 13:42:03  florian
     * fixed more alignment issues
 
   Revision 1.37  2004/01/15 14:01:32  florian

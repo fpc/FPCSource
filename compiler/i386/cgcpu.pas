@@ -42,6 +42,8 @@ unit cgcpu;
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
         class function reg_cgsize(const reg: tregister): tcgsize; override;
+        procedure g_save_all_registers(list : taasmoutput);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -57,7 +59,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defutil,paramgr,
+       symdef,symsym,defutil,paramgr,procinfo,
        rgcpu,rgx86,tgobj;
 
 
@@ -110,6 +112,41 @@ unit cgcpu;
       begin
         result := opsize_2_cgsize[reg2opsize(reg)];
       end;}
+
+    procedure tcg386.g_save_all_registers(list : taasmoutput);
+      begin
+        list.concat(Taicpu.Op_none(A_PUSHA,S_L));
+        tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_regs_ref);
+        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_STACK_POINTER_REG,current_procinfo.save_regs_ref);
+      end;
+
+
+    procedure tcg386.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
+      var
+        href : treference;
+      begin
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_regs_ref,NR_STACK_POINTER_REG);
+        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
+        if funcretparaloc.loc=LOC_REGISTER then
+          begin
+            if funcretparaloc.size in [OS_64,OS_S64] then
+              begin
+                reference_reset_base(href,NR_STACK_POINTER_REG,20);
+                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN64_HIGH_REG,href);
+                reference_reset_base(href,NR_STACK_POINTER_REG,28);
+                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN64_LOW_REG,href);
+              end
+            else
+              begin
+                reference_reset_base(href,NR_STACK_POINTER_REG,28);
+                a_load_reg_ref(list,OS_32,OS_32,NR_FUNCTION_RETURN_REG,href);
+              end;
+          end;
+        list.concat(Taicpu.Op_none(A_POPA,S_L));
+        { We add a NOP because of the 386DX CPU bugs with POPAD }
+        list.concat(taicpu.op_none(A_NOP,S_L));
+      end;
+
 
 
 { ************* 64bit operations ************ }
@@ -246,7 +283,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-01-14 23:39:05  florian
+  Revision 1.45  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.44  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 

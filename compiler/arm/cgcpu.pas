@@ -92,7 +92,7 @@ unit cgcpu;
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
+        procedure g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure fixref(list : taasmoutput;var ref : treference);
@@ -1138,7 +1138,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
+    procedure tcgarm.g_restore_all_registers(list : taasmoutput;const funcretparaloc:tparalocation);
       begin
         { we support only ARM standard calling conventions so this procedure has no use on the ARM }
       end;
@@ -1273,7 +1273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-01-29 17:09:32  florian
+  Revision 1.44  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.43  2004/01/29 17:09:32  florian
     * handling of floating point references fixed
 
   Revision 1.42  2004/01/28 15:36:47  florian

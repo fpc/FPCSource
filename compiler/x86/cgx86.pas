@@ -127,8 +127,6 @@ unit cgx86;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
         procedure g_save_standard_registers(list:Taasmoutput);override;
         procedure g_restore_standard_registers(list:Taasmoutput);override;
-        procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);override;
 
@@ -1829,36 +1827,6 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.g_save_all_registers(list : taasmoutput);
-      begin
-        list.concat(Taicpu.Op_none(A_PUSHA,S_L));
-        tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_regs_ref);
-        a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_ESP,current_procinfo.save_regs_ref);
-      end;
-
-
-    procedure tcgx86.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
-      var
-        href : treference;
-      begin
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,current_procinfo.save_regs_ref,NR_ESP);
-        tg.UnGetTemp(list,current_procinfo.save_regs_ref);
-        if acchiused then
-         begin
-           reference_reset_base(href,NR_ESP,20);
-           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,NR_EDX,href));
-         end;
-        if accused then
-         begin
-           reference_reset_base(href,NR_ESP,28);
-           list.concat(Taicpu.Op_reg_ref(A_MOV,S_L,NR_EAX,href));
-         end;
-        list.concat(Taicpu.Op_none(A_POPA,S_L));
-        { We add a NOP because of the 386DX CPU bugs with POPAD }
-        list.concat(taicpu.op_none(A_NOP,S_L));
-      end;
-
-
     { produces if necessary overflowcode }
     procedure tcgx86.g_overflowcheck(list: taasmoutput; const l:tlocation;def:tdef);
       var
@@ -1889,7 +1857,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.105  2004-02-04 19:22:27  peter
+  Revision 1.106  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.105  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.104  2004/02/03 19:46:48  jonas

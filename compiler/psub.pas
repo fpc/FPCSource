@@ -761,7 +761,7 @@ implementation
             gen_save_used_regs(templist);
             aktproccode.insertlistafter(headertai,templist);
             aktfilepos:=exitpos;
-            gen_restore_used_regs(aktproccode,usesacc,usesacchi,usesfpu);
+            gen_restore_used_regs(aktproccode,procdef.funcret_paraloc[calleeside]);
             { Add stack allocation code after header }
             aktfilepos:=entrypos;
             gen_stackalloc_code(templist);
@@ -1342,7 +1342,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2004-02-03 22:32:54  peter
+  Revision 1.184  2004-02-04 22:01:13  peter
+    * first try to get cpupara working for x86_64
+
+  Revision 1.183  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
