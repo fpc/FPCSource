@@ -1092,6 +1092,7 @@ allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
 	$(FPC) -FE. -Fuunits test/cg/ptest.pp
 	$(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
+	$(COPY) test/units/system/test*.txt .
 	$(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
 .PHONY: alltbs alltbf allwebtbs allwebtbf alltest alltests
 alltbs : testcheck $(patsubst %.pp,%.log,$(wildcard tbs/t*.pp))
@@ -1123,6 +1124,7 @@ endif
 	-rm -f *.tmp core
 	-rm -f $(LOG) $(LONGLOG) $(FAILLIST)
 	-rm -f ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
+	-rm -f test*.txt
 	$(MAKE) -C units clean
 distclean: clean
 	-rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
