@@ -841,12 +841,12 @@ begin
               else if CheckArg(vtInt64,true) then
                 Str(Args[DoArg].VInt64^,toadd);
               Width:=Abs(width);
-              While Length(ToAdd)<Prec do
-                begin
-                Index:=Prec-Length(ToAdd);
-                If Index>64 then Index:=64;
-                ToAdd:=Copy(Zero,1,Index)+ToAdd;
-                end;
+              Index:=Prec-Length(ToAdd);
+              If ToAdd[1]<>'-' then
+                ToAdd:=StringOfChar('0',Index)+ToAdd
+              else
+                // + 1 to accomodate for - sign in length !!
+                Insert(StringOfChar('0',Index+1),toadd,2);  
               end;
         'E' : begin
               CheckArg(vtExtended,true);
@@ -1219,7 +1219,10 @@ const
 
 {
   $Log$
-  Revision 1.1.2.2  2000-09-30 15:07:41  michael
+  Revision 1.1.2.3  2000-12-06 22:51:58  michael
+  + Fixed formatting of 0-expanded negative integer
+
+  Revision 1.1.2.2  2000/09/30 15:07:41  michael
   + Fixed format to handle int64 in case of "d"
 
   Revision 1.1.2.1  2000/08/09 19:31:03  peter
