@@ -89,6 +89,9 @@ interface
 
 
     type
+{$ifdef ver1_0}
+       PtrInt = DWord;
+{$endif ver1_0}
        TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
                         exOverflow, exUnderflow, exPrecision);
        TFPUExceptionMask = set of TFPUException;
@@ -1804,7 +1807,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2004-01-28 22:16:31  peter
+  Revision 1.124  2004-02-08 16:38:51  florian
+    + PtrInt declared if VER1_0
+
+  Revision 1.123  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.122  2004/01/28 21:05:56  florian
