@@ -248,7 +248,7 @@ libsclean : clean
 # for system dll 's
 # gdi32.exp will contain all exported functions names of gdi32.dll
 
-WINDOWS_DIR:=c:/windows
+WINDOWS_DIR:=c\:/windows
 
 %.exp : $(WINDOWS_DIR)/system/%.dll
 	pedump $< > $*.tmp
@@ -375,7 +375,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 14:15:55  peter
+# Revision 1.2  1998-09-11 15:09:48  michael
+# fixed colon problem
+#
+# Revision 1.1  1998/09/10 14:15:55  peter
 #   - renamed makefile to Makefile
 #
 # Revision 1.13  1998/09/07 18:31:54  peter
