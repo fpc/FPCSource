@@ -966,12 +966,57 @@ const
       if (instruc in [A_MOVZX,A_MOVSX]) then
        Message(assem_f_internal_error_in_handleextend)
       else
-      if (instruc = A_MOVSB) or (instruc = A_MOVSBL)
-      or (instruc = A_MOVSBW) or (instruc = A_MOVSWL) then
-        instruc := A_MOVSX
+      if (instruc = A_MOVSB) or (instruc = A_MOVSBL) then
+        Begin
+           instruc := A_MOVSX;
+           { Indirect memory reference with register        }
+           { no size determined, therefore we determine it  }
+           { with the suffix.                               }
+           if instr.operands[1].size = S_NO then
+              instr.operands[1].size := S_B;
+        end
       else
-      if (instruc = A_MOVZB) or (instruc = A_MOVZWL)  then
-        instruc := A_MOVZX;
+      if (instruc = A_MOVSBW) then
+        Begin
+           instruc := A_MOVSX;
+           { Indirect memory reference with register        }
+           { no size determined, therefore we determine it  }
+           { with the suffix.                               }
+           if instr.operands[1].size = S_NO then
+              instr.operands[1].size := S_B;
+        end
+      else
+      if (instruc = A_MOVSWL) then
+        Begin
+           instruc := A_MOVSX;
+           { Indirect memory reference with register        }
+           { no size determined, therefore we determine it  }
+           { with the suffix.                               }
+           if instr.operands[1].size = S_NO then
+              instr.operands[1].size := S_W;
+        end
+      else
+      if (instruc = A_MOVZB) then
+        Begin
+          instruc := A_MOVZX;
+           { Indirect memory reference with register        }
+           { no size determined, therefore we determine it  }
+           { with the suffix.                               }
+           if instr.operands[1].size = S_NO then
+              instr.operands[1].size := S_B;
+        end
+      else
+      if (instruc = A_MOVZWL) then
+        Begin
+          instruc := A_MOVZX;
+           { Indirect memory reference with register        }
+           { no size determined, therefore we determine it  }
+           { with the suffix.                               }
+           if instr.operands[1].size = S_NO then
+              instr.operands[1].size := S_W;
+        end;
+
+
 
      With instr do
          Begin
@@ -3692,7 +3737,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-09-02 01:24:09  carl
+  Revision 1.11  1998-09-02 15:16:44  carl
+    * indirect register refs with movsx/movzx fixed
+
+  Revision 1.10  1998/09/02 01:24:09  carl
     * bugfix of PUSH opcode with constants
 
   Revision 1.9  1998/08/21 08:45:49  pierre
