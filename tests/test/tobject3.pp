@@ -1,4 +1,4 @@
-{%RESULT=220 }
+{%RESULT=219 }
 { %OPT= -CR }
 program test_object;
 
