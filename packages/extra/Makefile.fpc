@@ -19,8 +19,7 @@ dirs_openbsd=unzip  \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp cmem bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
-dirs_win32=unzip  opengl gtk \
-           zlib mmsystem tcl cdrom fpgtk
+dirs_win32=unzip opengl gtk zlib mmsystem tcl cdrom fpgtk winver
 dirs_os2=os2units \
          rexx \
          unzip \
