@@ -175,6 +175,16 @@ type
     { Transaction must be assigned to some database session, for which purpose
       you must use this property}
     property Database : TIBDatabase read FDatabase write FDatabase;
+
+    { These four properties will be used in next StartTransaction calls }
+    property AccessMode: TAccessMode
+      read FAccessMode write FAccessMode default amReadWrite;
+    property IsolationLevel: TIsolationLevel
+      read FIsolationLevel write FIsolationLevel default ilReadCommitted;
+    property LockResolution: TLockResolution
+      read FLockResolution write FLockResolution default lrWait;
+    property TableReservation: TTableReservation
+      read FTableReservation write FTableReservation default trNone;
   end;
 
 { TIBQuery }
@@ -195,7 +205,7 @@ type
     FTransaction         : TIBTransaction;
     FDatabase            : TIBDatabase;
     FStatus              : array [0..19] of ISC_STATUS;
-    FFieldFlag           : array [0..1023] of shortint;
+    FFieldFlag           : array [0..1023] of IBase60.Short;
     FBufferSize          : integer;
     FSQLDA               : PXSQLDA;
     FSQLDAAllocated      : integer;
@@ -578,6 +588,18 @@ end;
 
 { TIBQuery }
 
+type
+  { For now, we could simply say here that TFieldDataPrefix = boolean.
+    But making TFieldDataPrefix as record will be allow to very easy add
+    similar things like "IsNull" in the future.
+    Any information that has constant length, and should be
+    specified separately for every field of every row can be added as
+    another TFieldDataPrefix field. }
+  TFieldDataPrefix = record
+    IsNull: boolean;
+  end;
+  PFieldDataPrefix = ^TFieldDataPrefix;
+
 procedure TIBQuery.SetTransaction(Value : TIBTransaction);
 begin
   CheckInactive;
@@ -748,6 +770,12 @@ begin
   begin
     with FSQLDA^.SQLVar[x] do
     begin
+      PFieldDataPrefix(Buffer)^.IsNull :=
+        { If 1st bit of SQLType is not set then field *cannot* be null,
+          and we shouldn't check SQLInd }
+        ((SQLType and 1) <> 0) and (SQLInd^ = -1);
+      Inc(Buffer, SizeOf(TFieldDataPrefix));
+
       if ((SQLType and not 1) = SQL_VARYING) then
       begin
         Move(SQLData^, VarcharLen, 2);
@@ -785,11 +813,12 @@ var
   x : integer;
 begin
   FRecordSize := 0;
-  FBufferSize := 0;
   {$R-}
   for x := 0 to FSQLDA^.SQLD - 1 do
     Inc(FRecordSize, FSQLDA^.SQLVar[x].SQLLen);
   {$R+}
+  Inc(FRecordSize, SizeOf(TFieldDataPrefix) * FSQLDA^.SQLD);
+
   FBufferSize := FRecordSize + SizeOf(TIBBookmark);
 end;
 
@@ -963,29 +992,33 @@ begin
     {$R-}
     if (Field.FieldName = FSQLDA^.SQLVar[x].SQLName) then
     begin
-      case Field.DataType of
-        ftInteger :
-          begin
-            b := 0;
-            Move(b, Buffer^, 4);
-            Move(CurrBuff^, Buffer^, Field.Size);
-          end;
-        ftDate, ftTime, ftDateTime:
-          GetDateTime(CurrBuff, Buffer, FSQLDA^.SQLVar[x].SQLType);
-        ftString  :
-          begin
-            Move(CurrBuff^, Buffer^, Field.Size);
-            PChar(Buffer + Field.Size)^ := #0;
-          end;
-        ftFloat   :
-          GetFloat(CurrBuff, Buffer, Field);
-      end;
+      Result := not PFieldDataPrefix(CurrBuff)^.IsNull;
 
-      Result := True;
+      if Result and (Buffer <> nil) then
+      begin
+        Inc(CurrBuff, SizeOf(TFieldDataPrefix));
+        case Field.DataType of
+          ftInteger :
+            begin
+              b := 0;
+              Move(b, Buffer^, 4);
+              Move(CurrBuff^, Buffer^, Field.Size);
+            end;
+          ftDate, ftTime, ftDateTime:
+            GetDateTime(CurrBuff, Buffer, FSQLDA^.SQLVar[x].SQLType);
+          ftString  :
+            begin
+              Move(CurrBuff^, Buffer^, Field.Size);
+              PChar(Buffer + Field.Size)^ := #0;
+            end;
+          ftFloat   :
+            GetFloat(CurrBuff, Buffer, Field);
+        end;
+      end;
 
       Break;
     end
-    else Inc(CurrBuff, FSQLDA^.SQLVar[x].SQLLen);
+    else Inc(CurrBuff, FSQLDA^.SQLVar[x].SQLLen + SizeOf(TFieldDataPrefix));
     {$R+}
   end;
 end;
@@ -1214,7 +1247,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2005-02-14 17:13:12  peter
+  Revision 1.16  2005-03-17 09:02:17  michael
+  + Patch from Michalis Kamburelis to fix TField.IsNull
+
+  Revision 1.15  2005/02/14 17:13:12  peter
     * truncate log
 
 }
