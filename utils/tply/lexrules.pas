@@ -206,7 +206,10 @@ function act_char : Char;
     else
       begin
         while pop_macro do ;
-        act_char := buf[bufptr];
+        if (bufptr>0) then
+          act_char := buf[bufptr]
+        else  
+          act_char:=#0;
       end
   end(*act_char*);
 
