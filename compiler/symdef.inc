@@ -619,10 +619,10 @@
 
     procedure tenumdef.calcsavesize;
       begin
-        if (aktpackenum=4) or (max>65535) then
+        if (aktpackenum=4) or (min<0) or (max>65535) then
          savesize:=4
         else
-         if (aktpackenum=2) or (max>255) then
+         if (aktpackenum=2) or (min<0) or (max>255) then
           savesize:=2
         else
          savesize:=1;
@@ -2771,7 +2771,13 @@
 
 {
   $Log$
-  Revision 1.32  1998-09-03 16:03:20  florian
+  Revision 1.33  1998-09-03 17:08:49  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.32  1998/09/03 16:03:20  florian
     + rtti generation
     * init table generation changed
 
@@ -2890,4 +2896,3 @@
     * symtable adapted for $ifndef OLDPPU
 
 }
-

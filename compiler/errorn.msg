@@ -354,6 +354,7 @@ assem_e_invalid_reference_syntax=E_Invalid Reference syntax
 assem_e_invalid_string_as_opcode_operand=E_Invalid string as opcode operand: $1
 assem_w_CODE_and_DATA_not_supported=W_@CODE and @DATA not supported
 assem_e_null_label_ref_not_allowed=E_Null label references are not allowed
+assem_w_calling_overloaded=W_Calling of an overloaded function in direct assembler
 assem_e_cannot_use_SELF_outside_a_method=E_Cannot use SELF outside a method
 assem_e_syn_start_with_bracket=E_Asm syntax error - Should start with bracket
 assem_e_syn_register=E_Asm syntax error - register: $1

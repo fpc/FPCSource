@@ -141,6 +141,8 @@ implementation
               if assigned(p^.right) then
                 begin
                    getlabel(hl);
+                   { do go back to if line !! }
+                   aktfilepos:=exprasmlist^.getlasttaifilepos^;
                    emitl(A_JMP,hl);
                 end;
               emitl(A_LABEL,falselabel);
@@ -738,7 +740,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.13  1998-09-01 12:47:58  peter
+  Revision 1.14  1998-09-03 17:08:39  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.13  1998/09/01 12:47:58  peter
     * use pdef^.size instead of orddef^.typ
 
   Revision 1.12  1998/08/28 10:56:58  peter
@@ -747,7 +755,13 @@ end.
   Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.13  1998-09-01 12:47:58  peter
+    * $log$ to Revision 1.14  1998-09-03 17:08:39  pierre
+    * $log$ to   * better lines for stabs
+    * $log$ to     (no scroll back to if before else part
+    * $log$ to     no return to case line at jump outside case)
+    * $log$ to   + source lines also if not in order
+    * $log$ to
+    * $log$ to Revision 1.13  1998/09/01 12:47:58  peter
     * $log$ to   * use pdef^.size instead of orddef^.typ
     * $log$ to
     * $log$ to Revision 1.12  1998/08/28 10:56:58  peter

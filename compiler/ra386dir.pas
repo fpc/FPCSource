@@ -32,7 +32,7 @@ unit Ra386dir;
   implementation
 
      uses
-        files,i386,hcodegen,globals,scanner,aasm,
+        comphook,files,i386,hcodegen,globals,scanner,aasm,
         cobjects,symtable,types,verbose,asmutils;
 
     function assemble : ptree;
@@ -100,9 +100,16 @@ unit Ra386dir;
                               begin
                                 getsym(upper(hs),false);
                                 if srsym<>nil then
-                                  Message(assem_w_using_defined_as_local);
-                              end;
-                            if upper(hs)='FWAIT' then
+                                  if (srsym^.typ = labelsym) then
+                                    Begin
+                                       hs:=lab2str(plabelsym(srsym)^.number);
+                                       {label is set !! }
+                                       plabelsym(srsym)^.number^.is_set:=true;
+                                    end
+                                  else
+                                    Message(assem_w_using_defined_as_local);
+                              end
+                            else if upper(hs)='FWAIT' then
                              FwaitWarning
                             else
                             { access to local variables }
@@ -125,7 +132,11 @@ unit Ra386dir;
                                         sym:=nil;
                                       if assigned(sym) then
                                         begin
-                                           if sym^.typ=varsym then
+                                           if (sym^.typ = labelsym) then
+                                             Begin
+                                                hs:=lab2str(plabelsym(sym)^.number);
+                                             end
+                                           else if sym^.typ=varsym then
                                              begin
                                              {variables set are after a comma }
                                              {like in movl %eax,I }
@@ -138,7 +149,8 @@ unit Ra386dir;
                                              end
                                            else
                                            { call to local function }
-                                           if (sym^.typ=procsym) and (pos('CALL',upper(s))>0) then
+                                           if (sym^.typ=procsym) and ((pos('CALL',upper(s))>0) or
+                                              (pos('LEA',upper(s))>0)) then
                                              begin
                                                 hs:=pprocsym(sym)^.definition^.mangledname;
                                              end;
@@ -164,26 +176,35 @@ unit Ra386dir;
                                       { I added that but it creates a problem in line.ppi
                                       because there is a local label wbuffer and
                                       a static variable WBUFFER ...
-                                      what would you decide, florian ?
+                                      what would you decide, florian ?}
                                       else
 
                                         begin
+{$ifdef TESTGLOBALVAR}
                                            getsym(upper(hs),false);
                                            sym:=srsym;
-                                           if assigned(sym) and (sym^.typ = varsym)
-                                              or (sym^.typ = typedconstsym) then
-                                             hs:=sym^.mangledname;
-                                           if (sym^.typ=procsym) and (pos('CALL',upper(s))>0) then
+                                           if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,globalsymtable,staticsymtable]) then
                                              begin
-                                                if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+                                                if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
                                                   begin
-                                                     exterror:=strpnew(' calling an overloaded procedure in asm');
-                                                     warning(user_defined);
+                                                     Do_comment(V_Warning,hs+' translated to '+sym^.mangledname);
+                                                     hs:=sym^.mangledname;
                                                   end;
-                                                hs:=pprocsym(sym)^.definition^.mangledname;
-                                             end;
-                                        end   }
-                                           else if upper(hs)='__SELF' then
+                                                { procs can be called or the address can be loaded }
+                                                if (sym^.typ=procsym) and ((pos('CALL',upper(s))>0) or
+                                                   (pos('LEA',upper(s))>0)) then
+                                                  begin
+                                                     if assigned(pprocsym(sym)^.definition^.nextoverloaded) then
+                                                       begin
+                                                          Do_comment(V_Warning,hs+' is associated to an overloaded function');
+                                                       end;
+                                                     Do_comment(V_Warning,hs+' translated to '+sym^.mangledname);
+                                                     hs:=sym^.mangledname;
+                                                  end;
+                                             end
+                                           else
+{$endif TESTGLOBALVAR}
+                                           if upper(hs)='__SELF' then
                                              begin
                                                 if assigned(procinfo._class) then
                                                   hs:=tostr(procinfo.ESI_offset)+'('+att_reg2str[procinfo.framepointer]+')'
@@ -211,7 +232,7 @@ unit Ra386dir;
                                                   Message(assem_e_cannot_use___OLDEBP_outside_nested_procedure);
                                                 end;
                                            end;
-                                       { end;}
+                                        end;
                                    end;
                               end;
                             s:=s+hs;
@@ -240,7 +261,13 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.5  1998-08-21 08:45:51  pierre
+  Revision 1.6  1998-09-03 17:08:47  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.5  1998/08/21 08:45:51  pierre
     * better line info for asm statements
 
   Revision 1.4  1998/07/14 14:46:59  peter

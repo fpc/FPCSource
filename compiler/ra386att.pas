@@ -3730,14 +3730,20 @@ var
 
 Begin
  line:=''; { Initialization of line variable.
-             No 255 char coonst string in version 0.9.1 MVC}
+             No 255 char const string in version 0.9.1 MVC}
  old_exit := exitproc;
  exitproc := @ra386att_exit;
 end.
 
 {
   $Log$
-  Revision 1.11  1998-09-02 15:16:44  carl
+  Revision 1.12  1998-09-03 17:08:46  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.11  1998/09/02 15:16:44  carl
     * indirect register refs with movsx/movzx fixed
 
   Revision 1.10  1998/09/02 01:24:09  carl

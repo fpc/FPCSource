@@ -759,6 +759,8 @@ implementation
            begin
               cleartempgen;
               secondpass(hp^.right);
+              { don't come back to case line }
+              aktfilepos:=exprasmlist^.getlasttaifilepos^;
               emitl(A_JMP,endlabel);
               hp:=hp^.left;
            end;
@@ -776,7 +778,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-08-28 10:54:19  peter
+  Revision 1.10  1998-09-03 17:08:40  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.9  1998/08/28 10:54:19  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.8  1998/08/25 11:51:46  peter

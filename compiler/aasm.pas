@@ -63,11 +63,9 @@ unit aasm;
           { the following is only used by the win32 version of the compiler }
           { and only the GNU AS Win32 is able to write it                   }
           ait_const_rva,
-{$ifdef GDB}
           ait_stabn,
           ait_stabs,
           ait_stab_function_name,
-{$endif GDB}
           ait_cut, { used to split into tiny assembler files }
 {$ifdef REGALLOC}
           ait_regalloc,
@@ -265,7 +263,9 @@ type
 
 
        paasmoutput = ^taasmoutput;
-       taasmoutput = tlinkedlist;
+       taasmoutput = object(tlinkedlist)
+                   function getlasttaifilepos : pfileposinfo;
+                   end;
 
     var
     { temporary lists }
@@ -832,11 +832,24 @@ uses
       end;
 
 
+    function taasmoutput.getlasttaifilepos : pfileposinfo;
+      begin
+         if assigned(last) then
+           getlasttaifilepos:=@pai(last)^.fileinfo
+         else
+           getlasttaifilepos:=nil;
+      end;
 
 end.
 {
   $Log$
-  Revision 1.15  1998-08-11 15:31:36  peter
+  Revision 1.16  1998-09-03 17:08:37  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.15  1998/08/11 15:31:36  peter
     * write extended to ppu file
     * new version 0.99.7
 

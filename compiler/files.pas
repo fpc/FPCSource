@@ -416,6 +416,10 @@ unit files;
         if l<maxlinebuf then
          begin
            fpos:=linebuf^[l];
+           { fpos is set negativ if the line was already written }
+           { but we still know the correct value                 }
+           if fpos<0 then
+             fpos:=-fpos+1;
            if closed then
             open;
          { in current buf ? }
@@ -860,7 +864,13 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.42  1998-09-03 11:24:00  peter
+  Revision 1.43  1998-09-03 17:08:45  pierre
+    * better lines for stabs
+      (no scroll back to if before else part
+      no return to case line at jump outside case)
+    + source lines also if not in order
+
+  Revision 1.42  1998/09/03 11:24:00  peter
     * moved more inputfile things from tscannerfile to tinputfile
     * changed ifdef Sourceline to cs_asm_source
 
