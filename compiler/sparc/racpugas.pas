@@ -60,7 +60,7 @@ Interface
       procinfo,
       itcpugas,
       rabase,rautils,
-      cgbase,cgobj
+      cgbase,cgobj,cgutils
       ;
 
     procedure tSparcReader.ReadSym(oper : tSparcoperand);
@@ -105,9 +105,9 @@ Interface
             if actasmtoken=AS_ID then
               begin
                 if upper(actasmpattern)='LO' then
-                  oper.opr.ref.symaddr:=refs_lo
+                  oper.opr.ref.refaddr:=addr_lo
                 else if upper(actasmpattern)='HI' then
-                  oper.opr.ref.symaddr:=refs_hi
+                  oper.opr.ref.refaddr:=addr_hi
                 else
                   Message(asmr_e_invalid_reference_syntax);
                 Consume(AS_ID);
@@ -310,9 +310,9 @@ Interface
                 memory location) }
               oper.InitRef;
               if actasmtoken=AS_LO then
-                oper.opr.ref.symaddr:=refs_lo
+                oper.opr.ref.refaddr:=addr_lo
               else
-                oper.opr.ref.symaddr:=refs_hi;
+                oper.opr.ref.refaddr:=addr_hi;
               Consume(actasmtoken);
               Consume(AS_LPAREN);
               BuildConstSymbolExpression(false, true,false,l,tempstr);
@@ -577,7 +577,7 @@ Interface
               symofs:=instr.Operands[1].opr.ref.offset;
               if (instr.Operands[1].opr.ref.base<>NR_NO) or
                 (instr.Operands[1].opr.ref.index<>NR_NO) or
-                (instr.Operands[1].opr.ref.symaddr<>refs_full) then
+                (instr.Operands[1].opr.ref.refaddr<>addr_full) then
                 Message(asmr_e_syn_operand);
               instr.Operands[1].opr:=newopr;
             end;
@@ -626,7 +626,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-12 22:11:39  peter
+  Revision 1.7  2004-02-27 13:27:28  mazen
+  * symaddr ==> refaddr to follow the rest of compiler changes
+
+  Revision 1.6  2004/01/12 22:11:39  peter
     * use localalign info for alignment for locals and temps
     * sparc fpu flags branching added
     * moved powerpc copy_valye_openarray to generic

@@ -108,7 +108,7 @@ implementation
   uses
     globtype,globals,verbose,systems,cutils,
     symdef,symsym,defutil,paramgr,
-    tgobj,cpupi;
+    tgobj,cpupi,cgutils;
 
 
 {****************************************************************************
@@ -149,11 +149,11 @@ implementation
             reference_reset(tmpref);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
-            tmpref.symaddr:=refs_hi;
+            tmpref.refaddr:=addr_hi;
             list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,tmpreg));
             { Load the low part is left }
 {$warning TODO Maybe not needed to load symbol}
-            tmpref.symaddr:=refs_lo;
+            tmpref.refaddr:=addr_lo;
             list.concat(taicpu.op_reg_ref_reg(A_OR,tmpreg,tmpref,tmpreg));
             { The offset and symbol are loaded, reset in reference }
             ref.offset:=0;
@@ -542,10 +542,10 @@ implementation
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.offset := ref.offset;
-            tmpref.symaddr := refs_hi;
+            tmpref.refaddr := addr_hi;
             list.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
             { Only the low part is left }
-            tmpref.symaddr:=refs_lo;
+            tmpref.refaddr:=addr_lo;
             list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
             if ref.base<>NR_NO then
               begin
@@ -1107,7 +1107,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2004-02-04 22:01:13  peter
+  Revision 1.79  2004-02-27 13:28:28  mazen
+  * symaddr ==> refaddr to follow the rest of compiler changes
+
+  Revision 1.78  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.77  2004/01/12 22:11:38  peter
