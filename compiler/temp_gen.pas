@@ -351,14 +351,14 @@ unit temp_gen;
                      tl^.is_freeansistring:=true;
                      ungetiftempansi:=true;
                      exit;
-                  end
 {$ifdef EXTDEBUG}
+                  end
                 else
                   begin
                    Comment(V_Debug,'temp ansi managment problem : ungetiftempansi()'+
                      ' at pos '+tostr(ref.offset)+ ' already free !');
-                  end;
 {$endif}
+                  end;
               tl:=tl^.next;
            end;
       end;
@@ -631,7 +631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-04-09 08:39:20  peter
+  Revision 1.14  1999-04-09 09:55:20  peter
+    * typo fixed
+
+  Revision 1.13  1999/04/09 08:39:20  peter
     * fixed reuse position
 
   Revision 1.12  1999/04/08 23:52:59  pierre
