@@ -226,7 +226,8 @@ Begin
   Blockread(input_f,strngs[4],strsz-4);
 
   plongint(strsz)[0] := 0;  // {?}
-  For i:=0 To fh.f_nsyms-1 Do
+  I := 0;
+  while I < fh.f_nsyms do
     Begin
       If (sym[i].e.e.e_zeroes<>0) Then
         Begin
@@ -261,7 +262,8 @@ Begin
                bss_start := sym[i].e_value;
                Fillchar(data[bss_start], sc.s_size - bss_start,#0);
              End;
-      Inc(i,sym[i].e_numaux);
+      Inc (I, Succ (sym[i].e_numaux));  (* Original C for loop iteration   *)
+                                        (* plus increment for found value. *)
     End;
 
   If (dh.symbol_offset = -1) Then
@@ -310,7 +312,10 @@ Begin
 End.
 {
  $Log$
- Revision 1.6  2002-09-07 15:40:31  peter
+ Revision 1.7  2004-09-15 08:35:39  michael
+ + Fix for wrong for loop variable from Tomas Hajny
+
+ Revision 1.6  2002/09/07 15:40:31  peter
    * old logs removed and tabs fixed
 
  Revision 1.5  2002/07/14 13:39:45  carl
