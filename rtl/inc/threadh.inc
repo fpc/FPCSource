@@ -20,6 +20,7 @@ const
 
 
 type
+  PEventState = pointer;
   TThreadFunc = function(parameter : pointer) : longint;
 
   // Function prototypes for TThreadManager Record.
@@ -37,6 +38,9 @@ type
   TRelocateThreadVarHandler = Function(offset : dword) : pointer;
   TAllocateThreadVarsHandler = Procedure;
   TReleaseThreadVarsHandler = Procedure;
+  TBasicEventHandler	    = procedure(state:peventstate);
+  TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
+  TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
 
   // TThreadManager interface.
   TThreadManager = Record
@@ -60,6 +64,11 @@ type
     RelocateThreadVar      : TRelocateThreadVarHandler;
     AllocateThreadVars     : TAllocateThreadVarsHandler;
     ReleaseThreadVars      : TReleaseThreadVarsHandler;
+    BasicEventCreate	   : TBasicEventCreateHandler;
+    BasicEventDestroy	   : TBasicEventHandler; 
+    BasicEventResetEvent   : TBasicEventHandler; 
+    BasicEventSetEvent     : TBasicEventHandler; 
+    BasiceventWaitFOr	   : TBasicEventWaitForHandler;
   end;
 
 {*****************************************************************************
@@ -128,7 +137,10 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {
   $Log$
-  Revision 1.16  2004-02-22 23:22:49  florian
+  Revision 1.17  2004-05-23 15:30:29  marco
+   * first try basicevent
+
+  Revision 1.16  2004/02/22 23:22:49  florian
     * fixed BeginThread on unix
 
   Revision 1.15  2004/02/22 16:48:39  florian
