@@ -47,9 +47,6 @@ interface
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
          procedure second_nothing;override;
-{$ifdef TESTOBJEXT2}
-         procedure checkobject;virtual;
-{$endif TESTOBJEXT2}
          procedure pass_2;override;
        end;
 
@@ -514,7 +511,10 @@ end.
 
 {
   $Log$
-  Revision 1.50  2003-11-04 22:30:15  florian
+  Revision 1.51  2003-12-22 23:08:59  peter
+    * removed unused checkobject method
+
+  Revision 1.50  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 

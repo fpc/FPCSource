@@ -52,9 +52,6 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override;  }
          { procedure second_char_to_char;override; }
-{$ifdef TESTOBJEXT2}
-          procedure checkobject;override;
-{$endif TESTOBJEXT2}
        end;
 
 
@@ -154,48 +151,15 @@ implementation
          location.register:=NR_ST;
       end;
 
-
-{$ifdef TESTOBJEXT2}
-    procedure ti386typeconvnode.checkobject;
-      var
-         r : preference;
-         nillabel : plabel;
-       begin
-         new(r);
-         reset_reference(r^);
-         if p^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-          r^.base:=p^.location.register
-         else
-           begin
-              cg.getexplicitregister(exprasmlist,R_EDI);
-              emit_mov_loc_reg(p^.location,R_EDI);
-              r^.base:=R_EDI;
-           end;
-         { NIL must be accepted !! }
-         emit_reg_reg(A_OR,S_L,r^.base,r^.base);
-         rg.ungetregisterint(exprasmlist,R_EDI);
-         objectlibrary.getlabel(nillabel);
-         cg.a_jmp_flags(exprasmlist,F_E,nillabel);
-         { this is one point where we need vmt_offset (PM) }
-         r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
-         rg.getexplicitregisterint(exprasmlist,R_EDI);
-         emit_ref_reg(A_MOV,S_L,r,R_EDI);
-         emit_sym(A_PUSH,S_L,
-           objectlibrary.newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
-         emit_reg(A_PUSH,S_L,R_EDI);
-         rg.ungetregister32(exprasmlist,R_EDI);
-         emitcall('FPC_CHECK_OBJECT_EXT');
-         emitlab(nillabel);
-       end;
-{$endif TESTOBJEXT2}
-
-
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.70  2003-12-08 15:35:00  peter
+  Revision 1.71  2003-12-22 23:08:59  peter
+    * removed unused checkobject method
+
+  Revision 1.70  2003/12/08 15:35:00  peter
     * fix loading of word/byte to real
 
   Revision 1.69  2003/12/03 23:13:20  peter
