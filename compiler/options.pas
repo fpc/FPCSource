@@ -1737,6 +1737,7 @@ begin
   def_system_macro('FPC_LINEEND_IN_TEXTREC');
   def_system_macro('FPC_ALIGNSRTTI');
   def_system_macro('FPC_HASNOFARPOINTER');
+  def_system_macro('FPC_HASUSERDATA32');
 {$ifdef i386}
   def_system_macro('HASINTF');
   def_system_macro('HASVARIANT');
@@ -2100,7 +2101,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.167  2005-02-19 18:32:16  florian
+  Revision 1.168  2005-02-26 15:43:09  florian
+    * userdata in file/textrecs now 32 bytes
+
+  Revision 1.167  2005/02/19 18:32:16  florian
     * defaultreplacement expansion for -XP and -Xr
 
   Revision 1.166  2005/02/19 18:10:57  florian

@@ -2320,18 +2320,18 @@ implementation
 {$ifdef cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=612;
+            savesize:=628;
           ft_typed,
           ft_untyped :
-            savesize:=352;
+            savesize:=368;
         end;
 {$else cpu64bit}
         case filetyp of
           ft_text :
-            savesize:=576;
+            savesize:=592;
           ft_typed,
           ft_untyped :
-            savesize:=316;
+            savesize:=332;
         end;
 {$endif cpu64bit}
       end;
@@ -6394,7 +6394,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.297  2005-02-14 17:13:07  peter
+  Revision 1.298  2005-02-26 15:43:09  florian
+    * userdata in file/textrecs now 32 bytes
+
+  Revision 1.297  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.296  2005/02/13 18:55:19  florian

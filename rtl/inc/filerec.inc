@@ -29,13 +29,20 @@ type
     Mode      : longint;
     RecSize   : SizeInt;
     _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
+{$ifndef FPC_HASUSERDATA32}    
     UserData  : array[1..16] of byte;
+{$else FPC_HASUSERDATA32}    
+    UserData  : array[1..32] of byte;
+{$endif FPC_HASUSERDATA32}
     name      : array[0..filerecnamelength] of char;
   End;
 
 {
   $Log$
-  Revision 1.7  2005-02-14 17:13:22  peter
+  Revision 1.8  2005-02-26 15:42:45  florian
+    * userdata in file/textrecs now 32 bytes
+
+  Revision 1.7  2005/02/14 17:13:22  peter
     * truncate log
 
 }
