@@ -219,7 +219,7 @@ end;
 function paramstr(l : longint) : string;
 
 begin
-  if (l>=0) and (l+1<=argc) then
+  if (l>=0) and (l<argc) then
     paramstr:=strpas(argv[l])
   else
     paramstr:='';
@@ -1009,7 +1009,10 @@ end.
 
 {
   $Log$
-  Revision 1.42  1999-07-07 09:43:16  michael
+  Revision 1.43  1999-07-07 10:04:43  michael
+  + Small edit in paramstr
+
+  Revision 1.42  1999/07/07 09:43:16  michael
   Better construction of commandline argv
 
   Revision 1.41  1999/07/05 20:04:30  peter
