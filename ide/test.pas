@@ -91,6 +91,9 @@ var Hello : word;
     Obj1: TObj;
     Obj2: TObj2;
     CharArray : Array[1..2000] of char;
+    ExtendedArray : Array[1..2000] of extended;
+    ExtendedPackedArray : packed Array[1..2000] of extended;
+    SingleArrayArray : Array[1..10,1..10] of single;
 
 constructor TObj.Init;
 begin
@@ -153,7 +156,7 @@ begin
   Func1:=X;
 end;
 
-var i : longint;
+var i,j : longint;
     Length : longint;
 
 BEGIN
@@ -168,6 +171,15 @@ BEGIN
 @L13:
   end;
 {$endif}
+  for i:=low(ExtendedArray) to high(ExtendedArray) do
+    ExtendedArray[i]:=i;
+  for i:=low(ExtendedPackedArray) to high(ExtendedPackedArray) do
+    ExtendedPackedArray[i]:=i;
+
+  for i:=1 to 10 do
+    for j:=1 to 10 do
+      SingleArrayArray[i,j]:=i*j;
+
   ClassVar1:=TClass2.create;
   Obj1.Init;
   pointer2:=@Obj1;
