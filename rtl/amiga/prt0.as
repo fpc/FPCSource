@@ -18,7 +18,17 @@ start:
     movel	a0,__ARGS
     beq    .Ldont_nullit
 
+
+| Remove $0a character from end of string
+    movew  d0,d1
+    subqw  #1,d1
+    cmpb   #0x0a,a0@(0,d1:w)
+    bne    .Lcontt
+| Decrement count by one to remove the $0a character
+    movew  d1,d0
+ .Lcontt:
 	 moveb  #0,a0@(0,d0:w)	   | null terminate it
+    movew  d0,__ARGC
  .Ldont_nullit:
 
     jsr PASCALMAIN
