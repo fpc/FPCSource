@@ -73,9 +73,9 @@ const
 
 var
 { Mem[] support }
-  mem  : array[0..$7ffffffe] of byte absolute $0:$0;
-  memw : array[0..$7ffffffe div sizeof(word)] of word absolute $0:$0;
-  meml : array[0..$7ffffffe div sizeof(longint)] of longint absolute $0:$0;
+  mem  : array[0..$7fffffff-1] of byte absolute $0:$0;
+  memw : array[0..($7fffffff div sizeof(word))-1] of word absolute $0:$0;
+  meml : array[0..($7fffffff div sizeof(longint))-1] of longint absolute $0:$0;
 { C-compatible arguments and environment }
   argc  : longint;
   argv  : ppchar;
@@ -1602,7 +1602,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.41  2004-11-02 07:43:50  peter
+  Revision 1.42  2004-11-02 13:35:35  peter
+    * second try for data too large
+
+  Revision 1.41  2004/11/02 07:43:50  peter
     * fix mem[] arrays
 
   Revision 1.40  2004/10/27 18:52:05  hajny
