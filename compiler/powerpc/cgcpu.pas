@@ -998,7 +998,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procdef.procoptions) then
-          for regcounter2:=RS_R14 to RS_R31 do
+          for regcounter2:=firstsaveintreg to lastsaveintreg do
             begin
               if regcounter2 in rg.usedintbyproc then
                 begin
@@ -1181,7 +1181,7 @@ const
 
         usesgpr:=false;
         if not (po_assembler in current_procdef.procoptions) then
-          for regcounter2:=RS_R14 to RS_R30 do
+          for regcounter2:=firstsaveintreg to lastsaveintreg do
             begin
               if regcounter2 in rg.usedintbyproc then
                 begin
@@ -1281,7 +1281,7 @@ const
 
       usesgpr:=false;
       if not (po_assembler in current_procdef.procoptions) then
-        for regcounter2:=RS_R13 to RS_R31 do
+        for regcounter2:=firstsaveintreg to lastsaveintreg do
           begin
             if regcounter2 in rg.usedintbyproc then
               begin
@@ -2392,7 +2392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-05-15 19:39:09  florian
+  Revision 1.92  2003-05-15 21:37:00  florian
+    * sysv entry code saves r13 now as well
+
+  Revision 1.91  2003/05/15 19:39:09  florian
     * fixed ppc compiler which was broken by Peter's changes
 
   Revision 1.90  2003/05/12 18:43:50  jonas
