@@ -40,13 +40,6 @@ program install;
  {$ENDIF}
 {$ENDIF}
 
-{$IFDEF OS2}
- {$UNDEF FV}
- {$IFDEF VIRTUALPASCAL}
-  {$DEFINE DLL}
- {$ENDIF}
-{$ENDIF}
-
 {$IFDEF DPMI}
  {$UNDEF DOSSTUB}
 {$ENDIF}
@@ -691,7 +684,7 @@ program install;
     const
        languages = 8;
        width = 40;
-       height = languages+5;
+       height = languages+6;
        x1 = (79-width) div 2;
        y1 = (23-height) div 2;
        x2 = x1+width;
@@ -708,7 +701,7 @@ program install;
        GetExtent(R);
        R.Grow(-2,-1);
        line:=r.a.y+1;
-       r.assign((width div 2)-15,line,(width div 2)+15,line+7);
+       r.assign((width div 2)-15,line,(width div 2)+15,line+languages);
        New(rb, Init(r,
           NewSItem(dialog_language_english,
           NewSItem(dialog_language_dutch,
@@ -720,7 +713,7 @@ program install;
           NewSItem(dialog_language_russian_win,
           nil))))))))));
        insert(rb);
-       inc(line,7);
+       inc(line,languages);
        inc(line,1);
        r.assign((width div 2)-5,line,(width div 2)+5,line+2);
        new(okbut,init(r,str_ok,cmok,bfdefault));
@@ -1490,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-09-24 10:52:36  peter
+  Revision 1.9  2000-10-08 18:43:17  hajny
+    * the language dialog repaired
+
+  Revision 1.8  2000/09/24 10:52:36  peter
     * smaller window
 
   Revision 1.7  2000/09/22 23:13:37  pierre
