@@ -782,12 +782,6 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
-       { Pointer to a procdef with no parameters and no return value.
-         This is used for procedures which are generated automatically
-         by the compiler.
-       }
-       voidprocdef : tprocdef;
-
     const
 {$ifdef i386}
        pbestrealtype : ^ttype = @s80floattype;
@@ -6156,7 +6150,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.238  2004-05-23 15:23:30  peter
+  Revision 1.239  2004-05-23 20:57:10  peter
+    * removed unused voidprocdef
+
+  Revision 1.238  2004/05/23 15:23:30  peter
     * fixed qword(longint) that removed sign from the number
     * removed code in the compiler that relied on wrong qword(longint)
       code generation
