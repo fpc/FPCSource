@@ -544,51 +544,9 @@ begin
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-type tthreadmethod = procedure of object;
+type 
+	tthreadmethod = procedure of object;
 
-
-
-var
-  { event that happens when gui thread is done executing the method}
-  ExecuteEvent: PRtlEvent;
-  { guard for synchronization variables }
-  SynchronizeCritSect: TRtlCriticalSection;
-  { method to execute }
-  SynchronizeMethod: TThreadMethod;
-  { caught exception in gui thread, to be raised in calling thread }
-  SynchronizeException: Exception;
-
-procedure CheckSynchronize;
-  { assumes being called from GUI thread }
-begin
-  if SynchronizeMethod = nil then
-    exit;
-  try
-    SynchronizeMethod;
-  except
-    SynchronizeException := Exception(AcquireExceptionObject);
-  end;
-  RtlEventSetEvent(ExecuteEvent);
-end;
-
-procedure intRTLEventsync(thrdmethd: tmethod;synchronizemethodproc:TProcedure);
-
-var LocalSyncException : Exception;
-
-begin
-  EnterCriticalSection(SynchronizeCritSect);
-  SynchronizeMethod := tthreadmethod(thrdmethd);
-  SynchronizeException := nil;
-  RtlEventStartWait(ExecuteEvent);
-  SynchronizeMethodProc;
-  // wait infinitely
-  RtlEventWaitFor(ExecuteEvent);
-  SynchronizeMethod := nil;
-  LocalSyncException  := SynchronizeException;
-  LeaveCriticalSection(SynchronizeCritSect);
-  if LocalSyncException <> nil then
-    raise LocalSyncException;
-end;
 
 Function CInitThreads : Boolean;
 
@@ -681,7 +639,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2005-02-14 17:13:31  peter
+  Revision 1.22  2005-02-25 21:52:07  florian
+    * "transfer to linux"-commit
+
+  Revision 1.21  2005/02/14 17:13:31  peter
     * truncate log
 
   Revision 1.20  2005/02/06 11:20:52  peter

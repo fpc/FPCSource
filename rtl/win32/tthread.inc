@@ -18,14 +18,6 @@ var
   ThreadCount: Integer;
   { event that happens when gui thread is done executing the method
 }
-  ExecuteEvent: PRtlEvent;
-  { guard for synchronization variables }
-  SynchronizeCritSect: TRtlCriticalSection;
-  { method to execute }
-  SynchronizeMethod: TThreadMethod;
-  { caught exception in gui thread, to be raised in calling thread }
-  SynchronizeException: Exception;
-
 
 function ThreadWndProc(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): Longint; stdcall;
 
@@ -221,7 +213,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  2005-02-25 21:41:09  florian
+  Revision 1.8  2005-02-25 21:52:07  florian
+    * "transfer to linux"-commit
+
+  Revision 1.7  2005/02/25 21:41:09  florian
     * generic tthread.synchronize
     * delphi compatible wakemainthread
 
