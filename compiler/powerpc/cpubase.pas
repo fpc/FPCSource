@@ -218,7 +218,7 @@ uses
       NR_R27 = $1C00; NR_R28 = $1D00; NR_R29 = $1E00;
       NR_R30 = $1F00; NR_R31 = $2000;
 
-      NR_RTOC = NR_R3;
+      NR_RTOC = NR_R2;
 
     {Super registers:}
       RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
@@ -876,7 +876,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-03-11 21:46:24  jonas
+  Revision 1.46  2003-03-19 14:26:26  jonas
+    * fixed R_TOC bugs introduced by new register allocator conversion
+
+  Revision 1.45  2003/03/11 21:46:24  jonas
     * lots of new regallocator fixes, both in generic and ppc-specific code
       (ppc compiler still can't compile the linux system unit though)
 

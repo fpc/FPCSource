@@ -2043,7 +2043,7 @@ const
                         tmpref.offset := ref.offset;
                         tmpref.symaddr := refs_full;
                         tmpref.base.enum:= R_INTREGISTER;
-                        tmpref.base.number:= NR_R0;
+                        tmpref.base.number:= NR_RTOC;
                         list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
 
                         reference_reset(tmpref);
@@ -2199,7 +2199,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2003-03-13 22:57:45  olle
+  Revision 1.75  2003-03-19 14:26:26  jonas
+    * fixed R_TOC bugs introduced by new register allocator conversion
+
+  Revision 1.74  2003/03/13 22:57:45  olle
     * change in a_loadaddr_ref_reg
 
   Revision 1.73  2003/03/12 22:43:38  jonas
