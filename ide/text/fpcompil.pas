@@ -121,10 +121,11 @@ var
   y : longint;
   Text,Attr : String;
   DisplayCompilerWindow : boolean;
+  cc: integer;
 
     procedure SearchBackTrace;
       var AText,ModuleName,st : String;
-          p2,row : longint;
+          row : longint;
       begin
         if pos('  0x',Text)=1 then
           begin
@@ -144,7 +145,7 @@ var
               begin
                 Text:=Copy(Text,Pos('line ',Text)+5,255);
                 st:=Copy(Text,1,Pos(' ',Text)-1);
-                Val(st,row);
+                Val(st,row,cc);
               end
             else
               row:=0;
@@ -165,9 +166,9 @@ var
           begin
             ModuleName:=Copy(Text,1,p2-1);
             st:=Copy(Text,p2+1,255);
-            Val(Copy(st,1,pos(',',st)-1),row);
+            Val(Copy(st,1,pos(',',st)-1),row,cc);
             st:=Copy(st,Pos(',',st)+1,255);
-            Val(Copy(st,1,pos(')',st)-1),col);
+            Val(Copy(st,1,pos(')',st)-1),col,cc);
             CompilerMessageWindow^.AddMessage(_type,Copy(Text,pos(':',Text)+1,255)
               ,ModuleName,row,col);
             If EnableDisplay then
@@ -604,7 +605,7 @@ begin
         FileName:=PrimaryFileMain
       else
         begin
-          if P^.Editor^.Modified and (not P^.Editor^.Save) then
+          if P^.Editor^.GetModified and (not P^.Editor^.Save) then
             FileName:='*' { file not saved }
           else
             FileName:=P^.Editor^.FileName;
@@ -865,7 +866,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2000-03-08 16:48:07  pierre
+  Revision 1.53  2000-03-21 23:33:18  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.52  2000/03/08 16:48:07  pierre
    + Read BackTrace from UseScreen
 
   Revision 1.51  2000/03/07 21:54:26  pierre

@@ -23,7 +23,7 @@ uses
 {$ifdef EDITORS}
   Editors,
 {$else}
-  WEditor,
+  WEditor,WCEdit,
 {$endif}
   WViews,FPViews;
 
@@ -413,7 +413,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.27  2000-02-07 11:58:01  pierre
+  Revision 1.28  2000-03-21 23:31:14  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.27  2000/02/07 11:58:01  pierre
    Gabor's code inserted
 
   Revision 1.26  2000/01/08 18:26:20  florian

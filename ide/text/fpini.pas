@@ -28,7 +28,7 @@ implementation
 
 uses
   Dos,Objects,Drivers,App,
-  WINI,{$ifndef EDITORS}WEditor{$else}Editors{$endif},
+  WINI,{$ifndef EDITORS}WEditor,WCEdit{$else}Editors{$endif},
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,FPViews,
   FPIntf,FPTools,FPSwitch;
 
@@ -237,12 +237,10 @@ function ReadINIFile: boolean;
 var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
-    X,Y : sw_integer;
     BreakPointCount,WatchesCount:longint;
     OK: boolean;
     ts : TSwitchMode;
     W: word;
-    R : TRect;
 begin
   OK:=ExistsFile(IniFileName);
   if OK then
@@ -390,13 +388,11 @@ end;
 function WriteINIFile: boolean;
 var INIFile: PINIFile;
     S: string;
-    R : TRect;
     S1,S2,S3: string;
     W: word;
     BreakPointCount,WatchesCount:longint;
     I(*,OpenFileCount*): integer;
     OK: boolean;
-    PW,PPW : PSourceWindow;
 
 procedure ConcatName(P: PString); {$ifndef FPC}far;{$endif}
 begin
@@ -526,7 +522,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2000-03-13 20:38:02  pierre
+  Revision 1.28  2000-03-21 23:30:22  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.27  2000/03/13 20:38:02  pierre
     IniPath removed and IniFileName moved to fpvars unit
 
   Revision 1.26  2000/02/04 00:08:35  pierre

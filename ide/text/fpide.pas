@@ -20,7 +20,7 @@ interface
 
 uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,
-  {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
+  {$ifdef EDITORS}Editors,{$else}WEditor,WCEdit,{$endif}
   Comphook,Browcol,
   FPViews,FPSymbol,fpstring;
 
@@ -44,7 +44,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
-      procedure   DosShell; virtual;
+      procedure   DosShell; {virtual;}
       destructor  Done; virtual;
       procedure   ShowUserScreen;
       procedure   ShowIDEScreen;
@@ -927,7 +927,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.55  2000-03-13 20:41:35  pierre
+  Revision 1.56  2000-03-21 23:30:49  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.55  2000/03/13 20:41:35  pierre
     + option -S to disable the mouse
     * adapted to changes in fpusrscr for DOS
 

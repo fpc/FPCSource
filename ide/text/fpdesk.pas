@@ -18,7 +18,7 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0006; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0007; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
 
@@ -52,6 +52,17 @@ uses Dos,
 {$endif ndef NODEBUG}
      FPConst,FPVars,FPUtils,FPViews,FPCompile,FPTools,FPHelp,
      FPCodCmp,FPCodTmp;
+
+type
+     PWindowInfo = ^TWindowInfo;
+     TWindowInfo = packed record
+       HelpCtx   : word;
+       Bounds    : TRect;
+       Visible   : boolean;
+       ExtraDataSize : word;
+       TitleLen  : word;
+       Title     : packed record end;
+     end;
 
 procedure InitDesktopFile;
 begin
@@ -247,10 +258,60 @@ end;
 
 function ReadOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
-    TempDesk: PFPDesktop;
     OK: boolean;
     R : TRect;
     W: word;
+    WI: TWindowInfo;
+    Title: string;
+    XDataOfs: word;
+    XData: array[0..1024] of byte;
+procedure GetData(var B; Size: word);
+begin
+  Move(XData[XDataOfs],B,Size);
+  Inc(XDataOfs,Size);
+end;
+procedure ProcessWindowInfo;
+var W: PWindow;
+    SW: PSourceWindow absolute W;
+    St: string;
+    TP,TP2: TPoint;
+    R: TRect;
+begin
+  XDataOfs:=0;
+  W:=SearchWindow(Title);
+  case WI.HelpCtx of
+    hcSourceWindow :
+      begin
+        GetData(St[0],1);
+        GetData(St[1],ord(St[0]));
+        W:=ITryToOpenFile(@WI.Bounds,St,0,0,false,false,true);
+        if Assigned(W)=false then
+          ErrorBox('Can''t open '+St,nil)
+        else
+        begin
+          GetData(TP,sizeof(TP)); GetData(TP2,sizeof(TP2));
+          SW^.Editor^.SetSelection(TP,TP2);
+          GetData(TP,sizeof(TP)); SW^.Editor^.SetCurPtr(TP.X,TP.Y);
+          GetData(TP,sizeof(TP)); SW^.Editor^.ScrollTo(TP.X,TP.Y);
+        end;
+      end;
+  end;
+  if W=nil then Exit;
+  W^.GetBounds(R);
+  if (R.A.X<>WI.Bounds.A.X) or (R.A.Y<>WI.Bounds.A.Y) then
+    R.Move(WI.Bounds.A.X-R.A.X,WI.Bounds.A.Y-R.A.Y);
+  if (W^.Flags and wfGrow)<>0 then
+    begin
+      R.B.X:=R.A.X+(WI.Bounds.B.X-WI.Bounds.A.X);
+      R.B.Y:=R.A.Y+(WI.Bounds.B.Y-WI.Bounds.A.Y);
+    end;
+  W^.Locate(R);
+  if W^.GetState(sfVisible)<>WI.Visible then
+    if WI.Visible then
+      W^.Show
+    else
+      W^.Hide;
+end;
 begin
   PushStatus('Reading desktop contents...');
   New(S, Init(32*1024,4096));
@@ -265,7 +326,19 @@ begin
   end;
   if OK then
     begin
-      TempDesk:=PFPDesktop(S^.Get);
+      XDataOfs:=0;
+      repeat
+        S^.Read(WI,sizeof(WI));
+        if S^.Status=stOK then
+        begin
+          Title[0]:=chr(WI.TitleLen);
+          S^.Read(Title[1],WI.TitleLen);
+          if WI.ExtraDataSize>0 then
+          S^.Read(XData,WI.ExtraDataSize);
+          ProcessWindowInfo;
+        end;
+      until S^.Status<>stOK;
+(*      TempDesk:=PFPDesktop(S^.Get);
       OK:=Assigned(TempDesk);
       if OK then
         begin
@@ -293,7 +366,7 @@ begin
           Application^.Insert(Desktop);
           Desktop^.ReDraw;
           Message(Application,evBroadcast,cmUpdate,nil);
-        end;
+        end;*)
       if OK=false then
         ErrorBox('Error loading desktop',nil);
     end;
@@ -304,8 +377,63 @@ end;
 
 function WriteOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
-    W: word;
+procedure CollectInfo(P: PView); {$ifndef FPC}far;{$endif}
+var W: PWindow;
+    SW: PSourceWindow absolute W;
+    WI: TWindowInfo;
+    Title: string;
+    XDataOfs: word;
+    XData: array[0..1024] of byte;
+    St: string;
+    TP: TPoint;
+procedure AddData(const B; Size: word);
+begin
+  Move(B,XData[XDataOfs],Size);
+  Inc(XDataOfs,Size);
+end;
+begin
+  XDataOfs:=0;
+  W:=nil;
+  if (P^.HelpCtx=hcSourceWindow) or
+     (P^.HelpCtx=hcHelpWindow) or
+     (P^.HelpCtx=hcClipboardWindow) or
+     (P^.HelpCtx=hcCalcWindow) or
+     (P^.HelpCtx=hcInfoWindow) or
+     (P^.HelpCtx=hcBrowserWindow) or
+     (P^.HelpCtx=hcMessagesWindow) or
+     (P^.HelpCtx=hcGDBWindow) or
+     (P^.HelpCtx=hcBreakpointListWindow) or
+     (P^.HelpCtx=hcASCIITableWindow)
+   then
+     W:=PWindow(P);
+  if W=nil then Exit;
+  FillChar(WI,sizeof(WI),0);
+  Title:=W^.GetTitle(255);
+  WI.HelpCtx:=W^.HelpCtx;
+  W^.GetBounds(WI.Bounds);
+  WI.Visible:=W^.GetState(sfVisible);
+
+  case WI.HelpCtx of
+    hcSourceWindow :
+      begin
+        St:=SW^.Editor^.FileName; AddData(St,length(St)+1);
+        TP:=SW^.Editor^.SelStart; AddData(TP,sizeof(TP));
+        TP:=SW^.Editor^.SelEnd; AddData(TP,sizeof(TP));
+        TP:=SW^.Editor^.CurPos; AddData(TP,sizeof(TP));
+        TP:=SW^.Editor^.Delta; AddData(TP,sizeof(TP));
+      end;
+  end;
+
+  WI.TitleLen:=length(Title);
+  WI.ExtraDataSize:=XDataOfs;
+  S^.Write(WI,sizeof(WI));
+  S^.Write(Title[1],WI.TitleLen);
+  if WI.ExtraDataSize>0 then
+    S^.Write(XData,WI.ExtraDataSize);
+end;
+var W: word;
     OK: boolean;
+    PV: PView;
 begin
   PushStatus('Storing desktop contents...');
 
@@ -315,7 +443,7 @@ begin
   begin
     W:=DesktopVersion;
     S^.Write(W,SizeOf(W));
-    S^.Put(Desktop);
+{    S^.Put(Desktop);
     with Desktop^ do
     begin
       PutSubViewPtr(S^,CompilerMessageWindow);
@@ -329,6 +457,12 @@ begin
       PutSubViewPtr(S^,UserScreenWindow);
       PutSubViewPtr(S^,ASCIIChart);
       PutSubViewPtr(S^,MessagesWindow);
+    end;}
+    PV:=Desktop^.Last;
+    while PV<>nil do
+    begin
+      CollectInfo(PV);
+      PV:=PV^.PrevView;
     end;
     OK:=(S^.Status=stOK);
     if OK then
@@ -360,7 +494,6 @@ end;
 function ReadCodeComplete(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
-    R: PResource;
 begin
   PushStatus('Reading CodeComplete wordlist...');
   New(S, Init(1024,1024));
@@ -398,7 +531,6 @@ end;
 function ReadCodeTemplates(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
-    R: PResource;
 begin
   PushStatus('Reading CodeTemplates...');
   New(S, Init(1024,4096));
@@ -573,9 +705,9 @@ begin
 
   if Assigned(Clipboard) then
     if (DesktopFileFlags and dfClipboardContent)<>0 then
-      Clipboard^.Flags:=Clipboard^.Flags or efStoreContent
+      Clipboard^.SetFlags(Clipboard^.GetFlags or efStoreContent)
     else
-      Clipboard^.Flags:=Clipboard^.Flags and not efStoreContent;
+      Clipboard^.SetFlags(Clipboard^.GetFlags and not efStoreContent);
   OK:=false;
 
   if Assigned(F) then
@@ -647,7 +779,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2000-03-20 19:19:46  pierre
+  Revision 1.25  2000-03-21 23:32:05  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.24  2000/03/20 19:19:46  pierre
    * LFN support in streams
 
   Revision 1.23  2000/03/13 20:36:52  pierre

@@ -793,7 +793,7 @@ begin
     end
   else
     begin
-      TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags;
+      TabSize:=Editor^.GetTabSize; EFlags:=Editor^.GetFlags;
       Title:='Editor Options';
     end;
 
@@ -892,7 +892,7 @@ begin
        end
     else
        begin
-         Editor^.TabSize:=TabSize;
+         Editor^.SetTabSize(TabSize);
          Editor^.SetFlags(EFlags);
        end;
     ExtIL^.GetData(HighlightExts);
@@ -1212,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2000-03-13 20:34:07  pierre
+  Revision 1.31  2000-03-21 23:28:13  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.30  2000/03/13 20:34:07  pierre
    * IniPath removed
 
   Revision 1.29  2000/03/07 22:52:50  pierre

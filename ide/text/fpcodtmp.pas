@@ -252,8 +252,6 @@ end;
 
 constructor TCodeTemplateDialog.Init(const ATitle: string; ATemplate: PCodeTemplate);
 var R,R2,R3: TRect;
-    Items: PSItem;
-    I,KeyCount: sw_integer;
 begin
   R.Assign(0,0,52,15);
   inherited Init(R,ATitle);
@@ -264,7 +262,7 @@ begin
   New(ShortCutIL, Init(R, 128)); Insert(ShortcutIL);
   R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, '~S~hortcut', ShortcutIL)));
   R.Move(0,3); R.B.Y:=R.A.Y+8;
-  New(CodeMemo, Init(R, nil,nil,nil,4096)); Insert(CodeMemo);
+  New(CodeMemo, Init(R, nil,nil,nil)); Insert(CodeMemo);
   R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1; Insert(New(PLabel, Init(R2, '~T~emplate content', CodeMemo)));
 
   InsertButtons(@Self);
@@ -276,7 +274,6 @@ function TCodeTemplateDialog.Execute: Word;
 var R: word;
     S: string;
     L: PUnsortedStringCollection;
-    W: word;
 begin
   New(L, Init(10,10));
   S:=Template^.GetShortCut;
@@ -314,10 +311,10 @@ begin
   GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y,12);
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
-  New(TemplateViewer, Init(R,nil,SB,nil,4096));
+  New(TemplateViewer, Init(R,nil,SB,nil));
   with TemplateViewer^ do
   begin
-    IsReadOnly:=true;
+    ReadOnly:=true;
     AlwaysShowScrollBars:=true;
   end;
   Insert(TemplateViewer);
@@ -392,8 +389,6 @@ var R: word;
     C: PCodeTemplateCollection;
     L: PUnsortedStringCollection;
     I: integer;
-    S1,S2,S3: string;
-    W: word;
 begin
   New(C, Init(10,20));
   if Assigned(CodeTemplates) then
@@ -423,8 +418,6 @@ var P,P2: PCodeTemplate;
     IC: boolean;
     S: string;
     L: PUnsortedStringCollection;
-    I: sw_integer;
-    W: word;
     Cmd: word;
     CanExit: boolean;
 begin

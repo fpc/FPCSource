@@ -679,7 +679,7 @@ procedure TDebugController.ResetDebuggerRows;
   begin
     if assigned(P) and
        (TypeOf(P^)=TypeOf(TSourceWindow)) then
-       PSourceWindow(P)^.Editor^.SetDebuggerRow(-1);
+       PSourceWindow(P)^.Editor^.SetLineFlagExclusive(lfDebuggerRow,-1);
   end;
 
 begin
@@ -759,7 +759,7 @@ begin
         begin
           W^.Editor^.SetCurPtr(0,Line);
           W^.Editor^.TrackCursor(CenterDebuggerRow);
-          W^.Editor^.SetDebuggerRow(Line);
+          W^.Editor^.SetLineFlagExclusive(lfDebuggerRow,Line);
           UpdateDebugViews;
 
           {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -778,7 +778,7 @@ begin
         W:=TryToOpenFile(nil,fn,0,Line,false);
       if assigned(W) then
         begin
-          W^.Editor^.SetDebuggerRow(Line);
+          W^.Editor^.SetLineFlagExclusive(lfDebuggerRow,Line);
           W^.Editor^.TrackCursor(CenterDebuggerRow);
           UpdateDebugViews;
           {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -809,7 +809,7 @@ begin
            begin
              { should now be open }
               W:=TryToOpenFile(nil,fn,0,Line,true);
-              W^.Editor^.SetDebuggerRow(Line);
+              W^.Editor^.SetLineFlagExclusive(lfDebuggerRow,Line);
               W^.Editor^.TrackCursor(CenterDebuggerRow);
               UpdateDebugViews;
               {if Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive) then
@@ -1126,7 +1126,7 @@ begin
             b:=true
           else
             b:=false;
-          W^.Editor^.SetLineBreakState(Line,b);
+          W^.Editor^.SetLineFlagState(Line,lfBreakpoint,b);
         end;
     end;
 end;
@@ -1186,7 +1186,7 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
   begin
     If assigned(P^.FileName) and
       (GDBFileName(FExpand(P^.FileName^))=GDBFileName(FExpand(W^.Editor^.FileName))) then
-      W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
+      W^.Editor^.SetLineFlagState(P^.Line,lfBreakpoint,P^.state=bs_enabled);
   end;
 
 begin
@@ -1203,7 +1203,7 @@ procedure TBreakpointCollection.ShowAllBreakpoints;
       begin
         W:=SearchOnDesktop(P^.FileName^,false);
         if assigned(W) then
-          W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
+          W^.Editor^.SetLineFlagState(P^.Line,lfBreakpoint,P^.state=bs_enabled);
       end;
   end;
 
@@ -1467,7 +1467,7 @@ begin
     begin
       W^.Select;
       W^.Editor^.TrackCursor(true);
-      W^.Editor^.SetHighlightRow(P^.Breakpoint^.Line);
+      W^.Editor^.SetLineFlagExclusive(lfHighlightRow,P^.Breakpoint^.Line);
     end;
   if Assigned(Owner) then
     Owner^.Select;
@@ -1940,8 +1940,6 @@ procedure TWatch.rename(s : string);
 procedure TWatch.Get_new_value;
   var p, q : pchar;
       i, j, curframe, startframe : longint;
-      error : integer;
-      c : char;
       s,s2 : string;
       loop_higher, found, last_removed : boolean;
 
@@ -2732,10 +2730,12 @@ end;
     var
        p,po : pchar;
        p1 : pchar;
+    {$ifndef NODEBUG}
        reg,value : string;
        buffer : array[0..255] of char;
        v : dword;
        code : word;
+    {$endif}
 
     begin
        GetFPURegs:=false;
@@ -3001,7 +3001,7 @@ end;
               W:=SearchOnDesktop(GetPChar(file_name),false);
               { First reset all Debugger rows }
               If assigned(W) then
-                W^.Editor^.SetDebuggerRow(-1);
+                W^.Editor^.SetLineFlagExclusive(lfDebuggerRow,-1);
             end;
         end;
       { Now set all Debugger rows }
@@ -3013,7 +3013,7 @@ end;
               If assigned(W) then
                 begin
                   If W^.Editor^.DebuggerRow=-1 then
-                    W^.Editor^.SetDebuggerRow(line_number-1);
+                    W^.Editor^.SetLineFlagExclusive(lfDebuggerRow,line_number-1);
                 end;
             end;
         end;
@@ -3331,7 +3331,10 @@ end.
 
 {
   $Log$
-  Revision 1.57  2000-03-14 14:22:30  pierre
+  Revision 1.58  2000-03-21 23:32:38  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.57  2000/03/14 14:22:30  pierre
    + generate cmDebuggerStopped broadcast
 
   Revision 1.56  2000/03/08 16:57:01  pierre

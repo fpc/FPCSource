@@ -1,4 +1,3 @@
-
 {
     $Id$
     This file is part of the Free Pascal Integrated Development Environment
@@ -31,13 +30,13 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
-{$ifdef debug}
+{$ifdef exedebug}
   lineinfo,
-{$endif debug}
+{$endif exedebug}
   Dos,Objects,
   BrowCol,
   Drivers,Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
-  {$ifdef EDITORS}Editors{$else}WEditor{$endif},
+  {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
   ASCIITab,Calc,
   WUtils,WViews,
   FPIDE,FPCalc,FPCompile,
@@ -131,7 +130,8 @@ begin
 {$ifdef EDITORS}
   RegisterEditors;
 {$else}
-  RegisterCodeEditors;
+  RegisterWEditor;
+  RegisterWCEdit;
 {$endif}
   RegisterFPCalc;
   RegisterFPCompile;
@@ -236,7 +236,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.41  2000-03-13 20:41:34  pierre
+  Revision 1.42  2000-03-21 23:34:10  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.41  2000/03/13 20:41:34  pierre
     + option -S to disable the mouse
     * adapted to changes in fpusrscr for DOS
 

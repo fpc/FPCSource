@@ -64,7 +64,7 @@ type
     CD : PCalcDisplay;
     constructor Init;
     procedure   HandleEvent(var Event: TEvent); virtual;
-    procedure   Show; virtual;
+    procedure   Show; {virtual;}
     procedure   Close; virtual;
     constructor Load(var S: TStream);
     procedure   Store(var S: TStream);
@@ -463,7 +463,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-09-13 16:24:42  peter
+  Revision 1.8  2000-03-21 23:34:10  pierre
+   adapted to wcedit addition by Gabor
+
+  Revision 1.7  1999/09/13 16:24:42  peter
     + clock
     * backspace unident like tp7
 
