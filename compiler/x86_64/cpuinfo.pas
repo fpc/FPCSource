@@ -22,7 +22,7 @@
 }
 Unit cpuinfo;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 Interface
 
@@ -56,7 +56,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:34  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
 }

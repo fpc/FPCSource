@@ -23,7 +23,7 @@
 { This unit includes the x86-64 dependent target units. }
 unit cputarg;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 interface
 
@@ -51,7 +51,7 @@ implementation
              Assemblers
 **************************************}
 
-    {$ifndef NOAG386ATT}
+    {$ifndef NOAGX86_64ATT}
       ,agx64att
     {$endif}
 
@@ -62,7 +62,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:34  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
   Revision 1.2  2001/06/03 15:12:47  peter

@@ -57,7 +57,7 @@ uses
 
 type
   topsize = (S_NO,
-    S_B,S_W,S_L,S_BW,S_BL,S_WL,
+    S_B,S_W,S_L,S_BW,S_BL,S_WL,S_BQ,S_WQ,S_LQ,
     S_IS,S_IL,S_IQ,
     S_FS,S_FL,S_FX,S_D,S_Q,S_FV,
     S_NEAR,S_FAR,S_SHORT
@@ -395,12 +395,12 @@ const
       { the size of a vector register for a processor     }
       OS_VECTOR = OS_M64;
 
-  cpuflags = [];
+      cpuflags = [];
 
-  { sizes }
-  pointersize   = 8;
-  extended_size = 10;
-  sizepostfix_pointer = S_L;
+      { sizes }
+      pointersize   = 8;
+      extended_size = 10;
+      sizepostfix_pointer = S_L;
 
 
 {*****************************************************************************
@@ -409,18 +409,18 @@ const
 
        { location of function results }
 
-       stack_pointer_reg = R_ESP;
-       frame_pointer_reg = R_EBP;
-       self_pointer_reg  = R_ESI;
-       accumulator   = R_EAX;
-       accumulatorhigh = R_EDX;
+       stack_pointer_reg = R_RSP;
+       frame_pointer_reg = R_RBP;
+       self_pointer_reg  = R_RSI;
+       accumulator   = R_RAX;
+       accumulatorhigh = R_RDX;
        { the register where the vmt offset is passed to the destructor }
        { helper routine                                                }
-       vmt_offset_reg = R_EDI;
+       vmt_offset_reg = R_RDI;
 
        resultreg = R_RAX;
        resultreg64 = R_RAX;
-       fpuresultreg = R_ST;
+       fpu_result_reg = R_ST;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -491,7 +491,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:33  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
 }

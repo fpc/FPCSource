@@ -66,7 +66,7 @@ interface
        );
 
      att_opsize2str : array[topsize] of string[2] = ('',
-       'b','w','l','bw','bl','wl',
+       'b','w','l','bw','bl','wl','bq','wq','lq',
        's','l','q',
        's','l','t','d','q','v',
        '','',''
@@ -282,7 +282,9 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
-    + initial release of x86-64 target code
+  Revision 1.2  2002-07-25 22:55:33  florian
+    * several fixes, small test units can be compiled
 
+  Revision 1.1  2002/07/24 22:38:15  florian
+    + initial release of x86-64 target code
 }

@@ -25,15 +25,15 @@
 }
 unit cpunode;
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
   interface
 
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon
-       // n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
+       ncgbas,ncgflw,ncgcnv,ncgmem,ncgcon,ncgld
+       // n386add,n386cal,n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { this not really a node }
        // n386obj
@@ -42,7 +42,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:34  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
 }

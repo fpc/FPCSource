@@ -84,51 +84,93 @@ unit rgcpu;
 {************************************************************************}
 {                         routine helpers                                }
 {************************************************************************}
-{
+
   const
+    reg2reg64 : array[tregister] of tregister = (R_NO,
+      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
+      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,R_RIP,
+      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
+      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
+      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
+      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
+      R_RAX,R_RCX,R_RDX,R_RBX,R_RSP,R_RBP,R_RSI,R_RDI,
+      R_R8,R_R9,R_R10,R_R11,R_R12,R_R13,R_R14,R_R15,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
+    );
+
     reg2reg32 : array[tregister] of tregister = (R_NO,
       R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,R_NO,
       R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-      R_EAX,R_ECX,R_EDX,R_EBX,R_NO,R_NO,R_NO,R_NO,
+      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
+      R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+      R_R8D,R_R9D,R_R10D,R_R11D,R_R12D,R_R13D,R_R14D,R_R15D,
+      R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
     );
+
     reg2reg16 : array[tregister] of tregister = (R_NO,
       R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,R_NO,
       R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-      R_AX,R_CX,R_DX,R_BX,R_NO,R_NO,R_NO,R_NO,
+      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
+      R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+      R_R8W,R_R9W,R_R10W,R_R11W,R_R12W,R_R13W,R_R14W,R_R15W,
+      R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
     );
+
     reg2reg8 : array[tregister] of tregister = (R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
-      R_AL,R_CL,R_DL,R_BL,R_NO,R_NO,R_NO,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
+      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,R_NO,
+      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
+      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
+      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
+      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
+      R_AL,R_CL,R_DL,R_BL,R_SPL,R_BPL,R_SIL,R_DIL,
+      R_R8B,R_R9B,R_R10B,R_R11B,R_R12B,R_R13B,R_R14B,R_R15B,
+      R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
+      R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,
       R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO,R_NO
     );
-}
+
     { convert a register to a specfied register size }
     function changeregsize(r:tregister;size:topsize):tregister;
       var
         reg : tregister;
       begin
-        {
         case size of
           S_B :
             reg:=reg2reg8[r];
@@ -136,10 +178,11 @@ unit rgcpu;
             reg:=reg2reg16[r];
           S_L :
             reg:=reg2reg32[r];
+          S_Q :
+            reg:=reg2reg64[r];
           else
-          }
             internalerror(200204101);
-        // end;
+        end;
         if reg=R_NO then
          internalerror(200204102);
         changeregsize:=reg;
@@ -432,7 +475,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:34  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
   Revision 1.8  2002/07/01 18:46:34  peter

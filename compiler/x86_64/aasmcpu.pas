@@ -265,19 +265,19 @@ implementation
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
@@ -1799,7 +1799,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2002-07-25 22:55:33  florian
+    * several fixes, small test units can be compiled
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
   Revision 1.1  2002/07/01 18:46:29  peter
