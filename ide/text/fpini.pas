@@ -378,6 +378,8 @@ end;
 begin
   New(INIFile, Init(INIPath));
   { Files }
+  { avoid keeping old files } 
+  INIFile^.DeleteSection(secFiles);
   INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
   for I:=1 to High(RecentFiles) do
     begin
@@ -488,7 +490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-04-07 21:55:48  peter
+  Revision 1.20  1999-06-28 12:36:51  pierre
+   * avoid keeping old open file names
+
+  Revision 1.19  1999/04/07 21:55:48  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
