@@ -1,3 +1,19 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999 by Michael Van Canneyt, member of the 
+    Free Pascal development team
+
+    Tests the TDDGDataset component.
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 program testds;
 
 uses db,ddg_ds,sysutils;
@@ -158,3 +174,9 @@ begin
     Free;
     end;    
 end.
+{
+  $Log$
+  Revision 1.2  1999-10-24 17:07:54  michael
+  + Added copyright header
+
+}

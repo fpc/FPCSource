@@ -1,3 +1,20 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999 by Michael Van Canneyt, member of the
+    Free Pascal development team
+
+    Constants used for displaying messages in DB unit
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 Const
   SUnknownFieldType = 'Unknown field type : %s';
   SUnknownField = 'No field named "%s" was found in dataset "%s"';
@@ -23,3 +40,10 @@ Const
   SNotConnected = 'Operation cannot be performed on an disconnected database';
   SConnected = 'Operation cannot be performed on an connected database';
   SNoSuchRecord = 'Could not find the requested record.';  
+
+{
+  $Log$
+  Revision 1.2  1999-10-24 17:07:54  michael
+  + Added copyright header
+
+}  
