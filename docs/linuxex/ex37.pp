@@ -16,6 +16,7 @@ begin
   writeln (f,'echo this is the child speaking.... ');
   writeln (f,'echo got arguments \*"$*"\*');
   writeln (f,'cat');
+  writeln (f,'exit 2');
   writeln (f);
   close (f);
   chmod ('test21a',octal (755));
@@ -24,7 +25,8 @@ begin
      writeln ('error from POpen : Linuxerror : ', Linuxerror);
   for i:=1 to 10 do 
     writeln (f,'This is written to the pipe, and should appear on stdout.');
-  closep (f);
+  Flush(f);
+  Writeln ('The script exited with status : ',PClose (f));
   writeln;
   writeln ('Press <return> to remove shell script.');
   readln;
