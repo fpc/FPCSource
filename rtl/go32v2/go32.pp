@@ -15,9 +15,6 @@
 
 unit go32;
 
-{$ifdef SUPPORT_PORTS}
-{$Mode ObjFpc}
-{$endif SUPPORT_PORTS}
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 
 interface
@@ -175,33 +172,6 @@ interface
     procedure dpmi_dosmemfillword(seg,ofs : word;count : longint;w : word);
 
 
-{$ifdef SUPPORT_PORTS}
-type
-   tport = class
-      procedure writeport(p : word;data : byte);
-      function  readport(p : word) : byte;
-      property pp[w : word] : byte read readport write writeport;default;
-   end;
-
-   tportw = class
-      procedure writeport(p : word;data : word);
-      function  readport(p : word) : word;
-      property pp[w : word] : word read readport write writeport;default;
-   end;
-
-   tportl = class
-      procedure writeport(p : word;data : longint);
-      function  readport(p : word) : longint;
-      property pp[w : word] : longint read readport write writeport;default;
-   end;
-var
-{ we don't need to initialize port, because neither member
-  variables nor virtual methods are accessed }
-   port,
-   portb : tport;
-   portw : tportw;
-   portl : tportl;
-{$endif SUPPORT_PORTS}
 
     const
        { this procedures are assigned to the procedure which are needed }
@@ -509,54 +479,6 @@ var
       end;
 
 
-{$ifdef SUPPORT_PORTS}
-{ to give easy port access like tp with port[] }
-
-procedure tport.writeport(p : word;data : byte);assembler;
-asm
-        movw    p,%dx
-        movb    data,%al
-        outb    %al,%dx
-end ['EAX','EDX'];
-
-
-function tport.readport(p : word) : byte;assembler;
-asm
-        movw    p,%dx
-        inb     %dx,%al
-end ['EAX','EDX'];
-
-
-procedure tportw.writeport(p : word;data : word);assembler;
-asm
-        movw    p,%dx
-        movw    data,%ax
-        outw    %ax,%dx
-end ['EAX','EDX'];
-
-
-function tportw.readport(p : word) : word;assembler;
-asm
-        movw    p,%dx
-        inw     %dx,%ax
-end ['EAX','EDX'];
-
-
-procedure tportl.writeport(p : word;data : longint);assembler;
-asm
-        movw    p,%dx
-        movl    data,%eax
-        outl    %eax,%dx
-end ['EAX','EDX'];
-
-
-function tportl.readport(p : word) : longint;assembler;
-asm
-        movw    p,%dx
-        inl     %dx,%eax
-end ['EAX','EDX'];
-
-{$endif SUPPORT_PORTS}
 
     function get_cs : word;assembler;
       asm
@@ -1175,7 +1097,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-06-06 17:20:21  jonas
+  Revision 1.5  2002-09-07 12:31:16  carl
+    - removed support_ports option (cleanup)
+
+  Revision 1.4  2001/06/06 17:20:21  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)
