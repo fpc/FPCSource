@@ -114,8 +114,8 @@ Function W_STOPCODE (Signal: Integer): Integer;
 {$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
 Function  fsync (fd : cint) : cint;
 Function  Flock   (fd,mode : cint)   : cint ;
-//Function  StatFS  (Path:Pathstr;Var Info:tstatfs):cint; -> to ovlh.inc
 Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
+Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; 
 {$endif}
 
 Function  Flock   (var T : text;mode : cint) : cint;
@@ -190,7 +190,6 @@ procedure SigRaise (sig:integer);
 {$else}
 {$i unxsysch.inc} //  calls used in system and not reexported from baseunix
 {$endif}
-
 
 {******************************************************************************
                             Implementation
@@ -1408,7 +1407,10 @@ End.
 
 {
   $Log$
-  Revision 1.54  2003-12-30 15:43:20  marco
+  Revision 1.55  2003-12-31 20:24:25  marco
+   * export statfs(pchar)
+
+  Revision 1.54  2003/12/30 15:43:20  marco
    * linux now compiles with FPC_USE_LIBC
 
   Revision 1.53  2003/12/30 12:24:01  marco
