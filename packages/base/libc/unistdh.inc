@@ -39,9 +39,11 @@ function euidaccess(__name:Pchar; __type:longint):longint;cdecl;external clib na
 function lseek(__fd:longint; __offset:__off_t; __whence:longint):__off_t;cdecl;external clib name 'lseek';
 function lseek64(__fd:longint; __offset:__off64_t; __whence:longint):__off64_t;cdecl;external clib name 'lseek64';
 
+{ // Removed, conflicts with system routines
 function close(__fd:longint):longint;cdecl;external clib name 'close';
 function read(__fd:longint; __buf:pointer; __nbytes:size_t):ssize_t;cdecl;external clib name 'read';
 function write(__fd:longint; __buf:pointer; __n:size_t):ssize_t;cdecl;external clib name 'write';
+}
 
 function pread(__fd:longint; __buf:pointer; __nbytes:size_t; __offset:__off_t):ssize_t;cdecl;external clib name 'pread';
 function pwrite(__fd:longint; __buf:pointer; __n:size_t; __offset:__off_t):ssize_t;cdecl;external clib name 'pwrite';
@@ -56,7 +58,7 @@ Type
 function pipe(var __pipedes: TPipes):longint;cdecl;external clib name 'pipe';
 function pipe(__pipedes: Plongint):longint;cdecl;external clib name 'pipe';
 function alarm(__seconds:dword):dword;cdecl;external clib name 'alarm';
-function sleep(__seconds:dword):dword;cdecl;external clib name 'sleep';
+function __sleep(__seconds:dword):dword;cdecl;external clib name 'sleep';
 
 function ualarm(__value:__useconds_t; __interval:__useconds_t):__useconds_t;cdecl;external clib name 'ualarm';
 function usleep(__useconds:__useconds_t):longint;cdecl;external clib name 'usleep';
@@ -67,7 +69,7 @@ function chown(__file:Pchar; __owner:__uid_t; __group:__gid_t):longint;cdecl;ext
 function fchown(__fd:longint; __owner:__uid_t; __group:__gid_t):longint;cdecl;external clib name 'fchown';
 function lchown(__file:Pchar; __owner:__uid_t; __group:__gid_t):longint;cdecl;external clib name 'lchown';
 
-function chdir(__path:Pchar):longint;cdecl;external clib name 'chdir';
+function __chdir(__path:Pchar):longint;cdecl;external clib name 'chdir';
 function fchdir(__fd:longint):longint;cdecl;external clib name 'fchdir';
 
 function getcwd(__buf:Pchar; __size:size_t):Pchar;cdecl;external clib name 'getcwd';
@@ -137,7 +139,7 @@ function link(__from:Pchar; __to:Pchar):longint;cdecl;external clib name 'link';
 function symlink(__from:Pchar; __to:Pchar):longint;cdecl;external clib name 'symlink';
 function readlink(__path:Pchar; __buf:Pchar; __len:size_t):longint;cdecl;external clib name 'readlink';
 function unlink(__name:Pchar):longint;cdecl;external clib name 'unlink';
-function rmdir(__path:Pchar):longint;cdecl;external clib name 'rmdir';
+function __rmdir(__path:Pchar):longint;cdecl;external clib name 'rmdir';
 function tcgetpgrp(__fd:longint):__pid_t;cdecl;external clib name 'tcgetpgrp';
 function tcsetpgrp(__fd:longint; __pgrp_id:__pid_t):longint;cdecl;external clib name 'tcsetpgrp';
 function getlogin:Pchar;cdecl;external clib name 'getlogin';
@@ -162,7 +164,7 @@ function fsync(__fd:longint):longint;cdecl;external clib name 'fsync';
 function gethostid:longint;cdecl;external clib name 'gethostid';
 procedure sync;cdecl;external clib name 'sync';
 function getpagesize : longint;cdecl; external clib name 'getpagesize';
-function truncate(__file:Pchar; __length:__off_t):longint;cdecl;external clib name 'truncate';
+function __truncate(__file:Pchar; __length:__off_t):longint;cdecl;external clib name 'truncate';
 function truncate64(__file:Pchar; __length:__off64_t):longint;cdecl;external clib name 'truncate64';
 function ftruncate(__fd:longint; __length:__off_t):longint;cdecl;external clib name 'ftruncate';
 function ftruncate64(__fd:longint; __length:__off64_t):longint;cdecl;external clib name 'ftruncate64';

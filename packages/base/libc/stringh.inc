@@ -10,7 +10,7 @@ function rawmemchr(__s:pointer; __c:longint):pointer;cdecl;external clib name 'r
 function memrchr(__s:pointer; __c:longint; __n:size_t):pointer;cdecl;external clib name 'memrchr';
 function strcpy(__dest:Pchar; __src:Pchar):Pchar;cdecl;external clib name 'strcpy';
 function strncpy(__dest:Pchar; __src:Pchar; __n:size_t):Pchar;cdecl;external clib name 'strncpy';
-function strcat(__dest:Pchar; __src:Pchar):Pchar;cdecl;external clib name 'strcat';
+function __strcat(__dest:Pchar; __src:Pchar):Pchar;cdecl;external clib name 'strcat';
 function strncat(__dest:Pchar; __src:Pchar; __n:size_t):Pchar;cdecl;external clib name 'strncat';
 function strcmp(__s1:Pchar; __s2:Pchar):longint;cdecl;external clib name 'strcmp';
 function strncmp(__s1:Pchar; __s2:Pchar; __n:size_t):longint;cdecl;external clib name 'strncmp';

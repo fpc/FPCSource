@@ -62,7 +62,7 @@ function fchmod(__fd:longint; __mode:__mode_t):longint;cdecl;external clib name 
 function umask(__mask:__mode_t):__mode_t;cdecl;external clib name 'umask';
 function getumask:__mode_t;cdecl;external clib name 'getumask';
 
-function mkdir(__path:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'mkdir';
+function __mkdir(__path:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'mkdir';
 function mknod(__path:Pchar; __mode:__mode_t; __dev:__dev_t):longint;cdecl;external clib name 'mknod';
 function mkfifo(__path:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'mkfifo';
 

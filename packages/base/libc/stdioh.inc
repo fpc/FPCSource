@@ -20,7 +20,7 @@ const
    P_tmpdir = '/tmp';
 
 function remove(__filename:Pchar):longint;cdecl;external clib name 'remove';
-function rename(__old:Pchar; __new:Pchar):longint;cdecl;external clib name 'rename';
+function __rename(__old:Pchar; __new:Pchar):longint;cdecl;external clib name 'rename';
 
 function tmpfile:PFILE;cdecl;external clib name 'tmpfile';
 function tmpfile64:PFILE;cdecl;external clib name 'tmpfile64';
