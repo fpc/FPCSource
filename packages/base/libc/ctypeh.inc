@@ -10,6 +10,7 @@ function ispunct(_para1:longint):longint;cdecl;external clib name 'ispunct';
 function isspace(_para1:longint):longint;cdecl;external clib name 'isspace';
 function isupper(_para1:longint):longint;cdecl;external clib name 'isupper';
 function isxdigit(_para1:longint):longint;cdecl;external clib name 'isxdigit';
+function isblank(_para1: longint):longint; cdecl;external clib name 'isblank';
 function tolower(__c:longint):longint;cdecl;external clib name 'tolower';
 function toupper(__c:longint):longint;cdecl;external clib name 'toupper';
 function isascii(__c:longint):longint;cdecl;external clib name 'isascii';
