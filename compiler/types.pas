@@ -111,6 +111,9 @@ interface
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
 
+    { true if p is a voidpointer def }
+    function is_voidpointer(p : pdef) : boolean;
+
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
 
@@ -502,6 +505,14 @@ implementation
       begin
         is_pchar:=(p^.deftype=pointerdef) and
                   is_equal(Ppointerdef(p)^.pointertype.def,cchardef);
+      end;
+
+
+    { true if p is a voidpointer def }
+    function is_voidpointer(p : pdef) : boolean;
+      begin
+        is_voidpointer:=(p^.deftype=pointerdef) and
+                        is_equal(Ppointerdef(p)^.pointertype.def,voiddef);
       end;
 
 
@@ -1000,7 +1011,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2000-01-07 01:14:49  peter
+  Revision 1.96  2000-02-01 09:44:03  peter
+    * is_voidpointer
+
+  Revision 1.95  2000/01/07 01:14:49  peter
     * updated copyright to 2000
 
   Revision 1.94  2000/01/04 16:35:58  jonas
