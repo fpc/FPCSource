@@ -74,6 +74,75 @@ unit pmodules;
          end;
       end;
 
+    procedure insertsegment;
+      begin
+      {Insert Ident of the compiler}
+        if not smartlink then
+         begin
+           datasegment^.insert(new(pai_align,init(4)));
+           datasegment^.insert(new(pai_string,init('FPC '+version_string+' - '+target_info.short_name)));
+         end;
+
+        bsssegment^.insert(new(pai_section,init(sec_bss)));
+        codesegment^.insert(new(pai_section,init(sec_code)));
+        datasegment^.insert(new(pai_section,init(sec_data)));
+      end;
+
+    procedure insertheap;
+      begin
+         if smartlink then
+           begin
+             bsssegment^.concat(new(pai_cut,init));
+             datasegment^.concat(new(pai_cut,init));
+           end;
+
+
+
+        { On the Macintosh Classic M68k Architecture
+          The Heap variable is simply a POINTER to the
+          real HEAP. The HEAP must be set up by the RTL
+          and must store the pointer in this value.
+          On OS/2 the heap is also intialized by the RTL. We do
+          not output a pointer }
+         case target_info.target of
+          target_OS2 : ;
+       target_Mac68K : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
+         else
+           bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
+         end;
+         datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
+         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
+      end;
+
+
+    procedure inserttargetspecific;
+      var
+        i : longint;
+      begin
+
+        case target_info.target of
+       target_GO32V2 : begin
+                       { stacksize can be specified }
+                         datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+                         datasegment^.concat(new(pai_const,init_32bit(stacksize)));
+                       end;
+        target_WIN32 : begin
+                       { generate the last entry for the imports directory }
+                         if not(assigned(importssection)) then
+                           importssection:=new(paasmoutput,init);
+                       { $3 ensure that it is the last entry, all other entries }
+                       { are written to $2                                      }
+                         importssection^.concat(new(pai_section,init_idata(3)));
+                         for i:=1 to 5 do
+                           importssection^.concat(new(pai_const,init_32bit(0)));
+                       end;
+        end;
+
+      end;
+
+
+
+
     { all intern procedures for system unit }
 
     procedure insertinternsyms(p : psymtable);
@@ -697,9 +766,6 @@ unit pmodules;
          dispose(aktprocsym^.definition^.localst,done);
          aktprocsym^.definition^.localst:=p;
 
-         names.init;
-         names.insert(current_module^.unitname^+'_init');
-         names.insert('INIT$$'+current_module^.unitname^);
 
          { testing !!!!!!!!! }
          { we set the interface part as a unitsymtable  }
@@ -743,13 +809,16 @@ unit pmodules;
          {Reset the codegenerator.}
          codegen_newprocedure;
 
+         names.init;
+         names.insert(current_module^.unitname^+'_init');
+         names.insert('INIT$$'+current_module^.unitname^);
          compile_proc_body(names,true,false);
+         names.done;
 
          codegen_doneprocedure;
 
          consume(POINT);
 
-         names.done;
 
          { size of the static data }
          datasize:=symtablestack^.datasize;
@@ -789,12 +858,20 @@ unit pmodules;
               pu:=pused_unit(pu^.next);
            end;
          inc(datasize,symtablestack^.datasize);
+
+
+
+      { finish asmlist by adding segment starts }
+
+
+         insertsegment;
       end;
+
+
 
     procedure proc_program(islibrary : boolean);
 
       var
-         i : longint;
          st : psymtable;
          programname : stringid;
          names:Tstringcontainer;
@@ -873,8 +950,6 @@ unit pmodules;
          { the elements of enumeration types are inserted       }
          constsymtable:=st;
 
-         codegen_newprocedure;
-
          { set some informations about the main program }
          procinfo.retdef:=voiddef;
          procinfo._class:=nil;
@@ -890,82 +965,57 @@ unit pmodules;
          procprefix:='';
          in_except_block:=false;
 
+         codegen_newprocedure;
+
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
          names.init;
          names.insert('program_init');
          names.insert('PASCALMAIN');
-         case target_info.target of
-          target_GO32V1,
-          target_GO32V2,
-             target_OS2,
-           target_WIN32 : names.insert('_main');
-           target_LINUX : names.insert('main');
-         end;
+         names.insert(target_os.cprefix+'main');
          compile_proc_body(names,true,false);
          names.done;
 
          codegen_doneprocedure;
+
+         consume(POINT);
+
+
 
          if smartlink then
           current_module^.linkstaticlibs.insert(current_module^.arfilename^)
          else
           current_module^.linkofiles.insert(current_module^.objfilename^);
 
-         if smartlink then
-           begin
-             bsssegment^.concat(new(pai_cut,init));
-             datasegment^.concat(new(pai_cut,init));
-           end;
-        { On the Macintosh Classic M68k Architecture   }
-        { The Heap variable is simply a POINTER to the }
-        { real HEAP. The HEAP must be set up by the RTL }
-        { and must store the pointer in this value.    }
-        {On OS/2 the heap is also intialized by the RTL. We do
-         not  output a pointer.}
-         if target_info.target<>target_OS2 then
-            if (target_info.target = target_MAC68k) then
-                bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)))
-            else
-                bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
-         if target_info.target=target_GO32V2 then
-           begin
-              { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,init_global('__stklen')));
-              datasegment^.concat(new(pai_const,init_32bit(stacksize)));
-           end;
-         if (target_info.target=target_WIN32) then
-           begin
-              { generate the last entry for the imports directory }
-              if not(assigned(importssection)) then
-                importssection:=new(paasmoutput,init);
-              { $3 ensure that it is the last entry, all other entries }
-              { are written to $2                                      }
-              importssection^.concat(new(pai_section,init('.idata$3')));
-              for i:=1 to 5 do
-                importssection^.concat(new(pai_const,init_32bit(0)));
-           end;
+         insertheap;
+         inserttargetspecific;
 
-         {I prefer starting with a heapsize of 256K in OS/2. The heap can
-          grow later until the size specified on the command line. Allocating
-          four megs at once can hurt performance when more programs are in
-          memory.}
-         datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
-         if target_info.target=target_OS2 then
-          heapsize:=256*1024;
-         datasegment^.concat(new(pai_const,init_32bit(heapsize)));
+
+
          datasize:=symtablestack^.datasize;
-
-         consume(POINT);
-
          symtablestack^.check_forwards;
          symtablestack^.allsymbolsused;
+
+
+
+      { finish asmlist by adding segment starts }
+
+
+         insertsegment;
+
+
+
       end;
 
 end.
 {
   $Log$
-  Revision 1.10  1998-05-04 17:54:28  peter
+  Revision 1.11  1998-05-06 18:36:53  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
+
+  Revision 1.10  1998/05/04 17:54:28  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

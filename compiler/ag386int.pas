@@ -234,9 +234,20 @@ unit ag386int;
                                TI386INTASMLIST
  ****************************************************************************}
 
+    var
+      LastSec : tsection;
+
+
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,'',#9'DW'#9,#9'DB'#9);
+
+      ait_section2nasmstr : array[tsection] of string[6]=
+       ('','.text','.data','.bss','.idata');
+
+      ait_section2masmstr : array[tsection] of string[6]=
+       ('','CODE','DATA','BSS','');
+
 
     Function PadTabs(p:pchar;addch:char):string;
     var
@@ -274,6 +285,8 @@ unit ag386int;
       found,
       quoted   : boolean;
     begin
+      if not assigned(p) then
+       exit;
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
@@ -283,6 +296,21 @@ unit ag386int;
                        AsmWritePChar(pai_asm_comment(hp)^.str);
                        AsmLn;
                      End;
+       ait_section : begin
+                       if current_module^.output_format in [of_nasm,of_obj] then
+                         AsmWriteLn('SECTION '+ait_section2nasmstr[pai_section(hp)^.sec])
+                       else
+
+
+                         begin
+                           if LastSec<>sec_none then
+                             AsmWriteLn('_'+ait_section2masmstr[LastSec]+#9#9'ENDS');
+                           AsmWriteLn('_'+ait_section2masmstr[pai_section(hp)^.sec]+'DATA'#9#9+
+                             'SEGMENT'#9'PARA PUBLIC USE32 '''+ait_section2masmstr[pai_section(hp)^.sec]+'''');
+                         end;
+
+                       LastSec:=pai_section(hp)^.sec;
+                     end;
          ait_align : begin
                      { align not supported at all with nasm v095  }
                      { align with specific value not supported by }
@@ -578,76 +606,35 @@ ait_stab_function_name : ;
       if assigned(current_module^.mainsource) then
        comment(v_info,'Start writing intel-styled assembler output for '+current_module^.mainsource^);
 {$endif}
+      LastSec:=sec_none;
       if current_module^.output_format in [of_nasm,of_obj] then
-       begin
-         WriteTree(externals);
-         { INTEL ASM doesn't support stabs
-         WriteTree(debuglist);}
-
-         AsmWriteLn('BITS 32');
-         AsmWriteLn('SECTION .text');
-         {
-         AsmWriteLn(#9#9'ASSUME'#9'CS:_TEXT,ES:DGROUP,DS:DGROUP,SS:DGROUP');
-         }
-         WriteTree(codesegment);
-
-         AsmLn;
-         AsmWriteLn('SECTION .data');
-{$ifdef EXTDEBUG}
-         if not comp_unit then
-{$endif EXTDEBUG}
-           begin
-              DataSegment^.insert(new(pai_align,init(4)));
-              DataSegment^.insert(new(pai_string,init('target: '+target_info.short_name)));
-              DataSegment^.insert(new(pai_string,init('compiled by FPC '+version_string)));
-           end;
-         WriteTree(datasegment);
-         WriteTree(consts);
-         WriteTree(rttilist);
-
-         AsmLn;
-         AsmWriteLn('SECTION .bss');
-         WriteTree(bsssegment);
-       end
+       AsmWriteLn('BITS 32')
       else
        begin
          AsmWriteLn(#9'.386p');
          AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
-
-         WriteTree(externals);
-         { INTEL ASM doesn't support stabs
-         WriteTree(debuglist);}
-
          AsmWriteLn('DGROUP'#9#9'GROUP'#9'_BSS,_DATA');
-         AsmWriteLn('_TEXT'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''CODE''');
          AsmWriteLn(#9#9'ASSUME'#9'CS:_TEXT,ES:DGROUP,DS:DGROUP,SS:DGROUP');
-         AsmLn;
-         WriteTree(codesegment);
-         AsmWriteLn('_TEXT'#9#9'ENDS');
+       end;
 
-         AsmLn;
-         AsmWriteLn('_DATA'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''DATA''');
-{$ifdef EXTDEBUG}
-         if not comp_unit then
-{$endif EXTDEBUG}
-           begin
-              DataSegment^.insert(new(pai_align,init(4)));
-              DataSegment^.insert(new(pai_string,init('target: '+target_info.short_name)));
-              DataSegment^.insert(new(pai_string,init('compiled by FPC '+version_string)));
-           end;
-         WriteTree(datasegment);
-         WriteTree(consts);
-         WriteTree(rttilist);
-         AsmWriteLn('_DATA'#9#9'ENDS');
 
-         AsmLn;
-         AsmWriteLn('_BSS'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''BSS''');
-         WriteTree(bsssegment);
-         AsmWriteLn('_BSS'#9#9'ENDS');
 
-         AsmLn;
-         AsmWriteLn(#9#9'END');
-      end;
+      WriteTree(externals);
+    { INTEL ASM doesn't support stabs
+      WriteTree(debuglist);}
+
+      WriteTree(codesegment);
+      WriteTree(datasegment);
+      WriteTree(consts);
+      WriteTree(rttilist);
+      WriteTree(bsssegment);
+
+      if not (current_module^.output_format in [of_nasm,of_obj]) then
+       AsmWriteLn(#9#9'END');
+
+
+      AsmLn;
+
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
        comment(v_info,'Done writing intel-styled assembler output for '+current_module^.mainsource^);
@@ -657,7 +644,12 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-06 08:38:32  pierre
+  Revision 1.8  1998-05-06 18:36:53  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
+
+  Revision 1.7  1998/05/06 08:38:32  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass

@@ -95,7 +95,7 @@ unit win_targ;
               getlabel(l2);
               getlabel(l3);
               { create import directory entry }
-              importssection^.concat(new(pai_section,init('.idata$2')));
+              importssection^.concat(new(pai_section,init_idata(2)));
               { pointer to procedure names }
               importssection^.concat(new(pai_const,init_rva(strpnew(lab2str
                 (l2)))));
@@ -114,7 +114,7 @@ unit win_targ;
               { this would give too much idata* entries  }
 
               { first write the name references }
-              importssection^.concat(new(pai_section,init('.idata$4')));
+              importssection^.concat(new(pai_section,init_idata(4)));
               importssection^.concat(new(pai_label,init(l2)));
               hp2:=pimported_procedure(hp1^.imported_procedures^.first);
               while assigned(hp2) do
@@ -128,7 +128,7 @@ unit win_targ;
               importssection^.concat(new(pai_const,init_32bit(0)));
 
               { then the addresses and create also the indirect jump }
-              importssection^.concat(new(pai_section,init('.idata$5')));
+              importssection^.concat(new(pai_section,init_idata(5)));
               importssection^.concat(new(pai_label,init(l3)));
               hp2:=pimported_procedure(hp1^.imported_procedures^.first);
               while assigned(hp2) do
@@ -153,7 +153,7 @@ unit win_targ;
               importssection^.concat(new(pai_const,init_32bit(0)));
 
               { finally the import information }
-              importssection^.concat(new(pai_section,init('.idata$6')));
+              importssection^.concat(new(pai_section,init_idata(6)));
               hp2:=pimported_procedure(hp1^.imported_procedures^.first);
               while assigned(hp2) do
                 begin
@@ -164,7 +164,7 @@ unit win_targ;
                    hp2:=pimported_procedure(hp2^.next);
                 end;
               { create import dll name }
-              importssection^.concat(new(pai_section,init('.idata$7')));
+              importssection^.concat(new(pai_section,init_idata(7)));
               importssection^.concat(new(pai_label,init(l1)));
               importssection^.concat(new(pai_string,init(hp1^.dllname^+#0)));
 
@@ -175,32 +175,9 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-05-06 18:36:55  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
 
-  Revision 1.9  1998/03/10 13:23:00  florian
-    * small win32 problems fixed
-
-  Revision 1.8  1998/03/10 01:17:31  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.7  1998/03/04 10:35:34  florian
-    * writing of externals fixed
-
-  Revision 1.6  1998/03/02 13:38:52  peter
-    + importlib object
-    * doesn't crash on a systemunit anymore
-    * updated makefile and depend
-
-  Revision 1.4  1998/02/28 14:43:50  florian
-    * final implemenation of win32 imports
-    * extended tai_align to allow 8 and 16 byte aligns
-
-  Revision 1.3  1998/02/28 09:30:59  florian
-    + writing of win32 import section added
-
-  Revision 1.2  1998/02/28 00:20:35  florian
-    * more changes to get import libs for Win32 working
 }

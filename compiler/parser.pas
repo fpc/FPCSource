@@ -402,14 +402,16 @@ unit parser;
 
              GenerateAsm(filename);
 
-           { add the files for the linker from current_module}
-             addlinkerfiles(current_module);
-
              if smartlink then
               begin
                 Linker.SetLibName(FileName);
                 Linker.MakeStaticLibrary(SmartLinkPath(FileName));
               end;
+
+           { add the files for the linker from current_module, this must be
+             after the makestaticlibrary, because it will add the library
+             name (PFV) }
+             addlinkerfiles(current_module);
 
              { Check linking  => we are at first level in compile }
              if (compile_level=1) then
@@ -534,7 +536,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.13  1998-05-06 08:38:42  pierre
+  Revision 1.14  1998-05-06 18:36:53  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
+
+  Revision 1.13  1998/05/06 08:38:42  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass

@@ -103,6 +103,11 @@ unit cobjects;
           { removes p from the list (p isn't disposed) }
           { it's not tested if p is in the list !      }
           procedure remove(p : plinkedlist_item);
+
+
+
+          { is the linkedlist empty ? }
+          function  empty:boolean;
        end;
 
        { String Queue}
@@ -130,8 +135,11 @@ unit cobjects;
           constructor init;
           destructor done;
 
+
+
           { true is the container empty }
           function empty:boolean;
+
 
 
           { inserts a string }
@@ -731,6 +739,13 @@ end;
          p^.first:=nil;
       end;
 
+    function tlinkedlist.empty:boolean;
+      begin
+        empty:=(first=nil);
+      end;
+
+
+
 {****************************************************************************
                                TBUFFEREDFILE
  ****************************************************************************}
@@ -1063,7 +1078,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-06 08:38:37  pierre
+  Revision 1.7  1998-05-06 18:36:53  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
+
+  Revision 1.6  1998/05/06 08:38:37  pierre
     * better position info with UseTokenInfo
       UseTokenInfo greatly simplified
     + added check for changed tree after first time firstpass
@@ -1094,95 +1114,4 @@ end.
 
   Revision 1.2  1998/04/07 11:09:04  peter
     + filemode is set correct in tbufferedfile.reset
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.15  1998/03/10 16:27:38  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.14  1998/03/10 01:17:18  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.13  1998/03/04 17:33:42  michael
-  + Changed ifdef FPK to ifdef FPC
-
-  Revision 1.12  1998/03/02 01:48:31  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.11  1998/02/28 00:20:22  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.10  1998/02/24 14:20:50  peter
-    + tstringcontainer.empty
-    * ld -T option restored for linux
-    * libraries are placed before the objectfiles in a .PPU file
-    * removed 'uses link' from files.pas
-
-  Revision 1.9  1998/02/18 13:48:17  michael
-  + Implemented an OS independent AsmRes object.
-
-  Revision 1.8  1998/02/17 21:20:45  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.7  1998/02/13 10:34:55  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.6  1998/02/12 11:50:01  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.5  1998/02/06 23:08:32  florian
-    + endian to targetinfo and sourceinfo added
-    + endian independed writing of ppu file (reading missed), a PPU file
-      is written with the target endian
-
-  Revision 1.4  1998/01/13 17:11:34  michael
-  * Changed getftime method to work faster under linux.
-
-  Revision 1.3  1997/12/05 13:45:34  daniel
-  - Removed overlay init. This is done by PPOVIN.PAS.
-
-  Revision 1.2  1997/11/28 18:14:28  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:55  michael
-  FPC Compiler CVS start
-
- Pre-CVS log:
-
- History:
-      30th september 1996:
-         + english comments (FK)
-         + _2pchar renamed to pstring2pchar (FK)
-         + _2pstring renamed to pchar2pstring (FK)
-      15th october 1996:
-         + tstringcontainer is compilable (FK)
-         + full compilable (FK)
-       4th january 1996:
-         + tstring_item added (FK)
-      19th november 1997:
-         + call of overlay init (FK)
 }

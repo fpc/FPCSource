@@ -53,9 +53,9 @@ unit aasm;
           ait_comp,
           ait_external,
           ait_align,
+          ait_section,
           { the following is only used by the win32 version of the compiler }
           { and only the GNU AS Win32 is able to write it                   }
-          ait_section,
           ait_const_rva,
 {$ifdef GDB}
           ait_stabn,
@@ -156,8 +156,9 @@ unit aasm;
           destructor done; virtual;
        end;
 
-
        { alignment for operator }
+
+
        pai_align = ^tai_align;
        tai_align = object(tai)
           aligntype: byte;   { 1 = no align, 2 = word align, 4 = dword align }
@@ -167,11 +168,17 @@ unit aasm;
           destructor done;virtual;
        end;
 
-       pai_section = ^tai_section;
+       { Insert a section/segment directive }
 
+       tsection=(sec_none,sec_code,sec_data,sec_bss,sec_idata);
+
+
+       pai_section = ^tai_section;
        tai_section = object(tai)
-          name : pstring;
-          constructor init(const s : string);
+          sec      : tsection;
+          idataidx : longint;
+          constructor init(s : tsection);
+          constructor init_idata(i:longint);
           destructor done;virtual;
        end;
 
@@ -300,18 +307,27 @@ type
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.init(const s : string);
+    constructor tai_section.init(s : tsection);
 
       begin
          inherited init;
          typ:=ait_section;
-         name:=stringdup(s);
+         sec:=s;
+         idataidx:=0;
+      end;
+
+    constructor tai_section.init_idata(i:longint);
+
+      begin
+         inherited init;
+         typ:=ait_section;
+         sec:=sec_idata;
+         idataidx:=i;
       end;
 
     destructor tai_section.done;
 
       begin
-         stringdispose(name);
          inherited done;
       end;
 
@@ -721,7 +737,12 @@ type
 end.
 {
   $Log$
-  Revision 1.5  1998-05-01 07:43:52  florian
+  Revision 1.6  1998-05-06 18:36:53  peter
+    * tai_section extended with code,data,bss sections and enumerated type
+    * ident 'compiled by FPC' moved to pmodules
+    * small fix for smartlink
+
+  Revision 1.5  1998/05/01 07:43:52  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 
@@ -741,91 +762,5 @@ end.
 
   Revision 1.2  1998/04/09 15:46:37  florian
     + register allocation tracing stuff added
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.18  1998/03/10 16:27:36  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.17  1998/03/10 01:17:13  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.16  1998/03/02 01:47:56  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.15  1998/02/28 14:43:46  florian
-    * final implemenation of win32 imports
-    * extended tai_align to allow 8 and 16 byte aligns
-
-  Revision 1.14  1998/02/28 00:20:20  florian
-    * more changes to get import libs for Win32 working
-
-  Revision 1.13  1998/02/27 22:27:50  florian
-    + win_targ unit
-    + support of sections
-    + new asmlists: sections, exports and resource
-
-  Revision 1.12  1998/02/24 00:19:08  peter
-    * makefile works again (btw. linux does like any char after a \ )
-    * removed circular unit with assemble and files
-    * fixed a sigsegv in pexpr
-    * pmodule init unit/program is the almost the same, merged them
-
-  Revision 1.11  1998/02/13 10:34:29  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.10  1998/02/06 23:08:31  florian
-    + endian to targetinfo and sourceinfo added
-    + endian independed writing of ppu file (reading missed), a PPU file
-      is written with the target endian
-
-  Revision 1.9  1998/01/11 04:14:30  carl
-  + correct floating point support for m68k
-
-  Revision 1.6  1997/12/09 13:18:34  carl
-  + added pai_align abstract object (required for m68k)
-  + renamed ait_real_s80bit --> ait_real_extended
-
-  Revision 1.5  1997/12/01 18:14:32  pierre
-      * fixes a bug in nasm output due to my previous changes
-
-  Revision 1.3  1997/11/28 18:14:17  pierre
-   working version with several bug fixes
-
-  Revision 1.2  1997/11/28 14:26:18  florian
-  Fixed some bugs
-
-  Revision 1.1.1.1  1997/11/27 08:32:50  michael
-  FPC Compiler CVS start
-
-  Pre-CVS log:
-
-  FK     Florian Klaempfl
-  PM     Pierre Muller
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  History:
-      30th september 1996:
-         + unit started
-      13th november 1997:
-         + added pai_single and pai_extended (PM)
-      14th november 1997:
-         + added bestreal type and pai_bestreal
-           to store all real consts with best precision (PM)
-           has a drawback for GDB that does not know extended !! (PM)
 
 }
