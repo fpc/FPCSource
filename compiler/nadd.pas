@@ -947,54 +947,14 @@ implementation
           end
 
          { compare pchar to char arrays by addresses like BP/Delphi }
-         else if (is_pchar(ld) and is_chararray(rd)) or
-                 (is_pchar(rd) and is_chararray(ld)) then
+         else if ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
+                 ((is_pchar(rd) or (rt=niln)) and is_chararray(ld)) then
            begin
              if is_chararray(rd) then
-              inserttypeconv(right,left.resulttype)
+              inserttypeconv(right,charpointertype)
              else
-              inserttypeconv(left,right.resulttype);
+              inserttypeconv(left,charpointertype);
            end
-
-         { is one of the operands a string?,
-           chararrays are also handled as strings (after conversion), also take
-           care of chararray+chararray and chararray+char }
-         else if (rd.deftype=stringdef) or (ld.deftype=stringdef) or
-                 ((is_chararray(rd) or is_char(rd)) and
-                  (is_chararray(ld) or is_char(ld))) then
-          begin
-            if is_widestring(rd) or is_widestring(ld) then
-              begin
-                 if not(is_widestring(rd)) then
-                   inserttypeconv(right,cwidestringtype);
-                 if not(is_widestring(ld)) then
-                   inserttypeconv(left,cwidestringtype);
-              end
-            else if is_ansistring(rd) or is_ansistring(ld) then
-              begin
-                 if not(is_ansistring(rd)) then
-                   inserttypeconv(right,cansistringtype);
-                 if not(is_ansistring(ld)) then
-                   inserttypeconv(left,cansistringtype);
-              end
-            else if is_longstring(rd) or is_longstring(ld) then
-              begin
-                 if not(is_longstring(rd)) then
-                   inserttypeconv(right,clongstringtype);
-                 if not(is_longstring(ld)) then
-                   inserttypeconv(left,clongstringtype);
-                 location.loc:=LOC_CREFERENCE;
-              end
-            else
-              begin
-                 if not(is_shortstring(ld)) then
-                   inserttypeconv(left,cshortstringtype);
-                 { don't convert char, that can be handled by the optimized node }
-                 if not(is_shortstring(rd) or is_char(rd)) then
-                   inserttypeconv(right,cshortstringtype);
-              end;
-
-          end
 
          { pointer comparision and subtraction }
          else if (rd.deftype=pointerdef) and (ld.deftype=pointerdef) then
@@ -1058,6 +1018,48 @@ implementation
                else
                  CGMessage(type_e_mismatch);
             end;
+          end
+
+         { is one of the operands a string?,
+           chararrays are also handled as strings (after conversion), also take
+           care of chararray+chararray and chararray+char.
+           Note: Must be done after pointerdef+pointerdef has been checked, else
+           pchar is converted to string }
+         else if (rd.deftype=stringdef) or (ld.deftype=stringdef) or
+                 ((is_pchar(rd) or is_chararray(rd) or is_char(rd)) and
+                  (is_pchar(ld) or is_chararray(ld) or is_char(ld))) then
+          begin
+            if is_widestring(rd) or is_widestring(ld) then
+              begin
+                 if not(is_widestring(rd)) then
+                   inserttypeconv(right,cwidestringtype);
+                 if not(is_widestring(ld)) then
+                   inserttypeconv(left,cwidestringtype);
+              end
+            else if is_ansistring(rd) or is_ansistring(ld) then
+              begin
+                 if not(is_ansistring(rd)) then
+                   inserttypeconv(right,cansistringtype);
+                 if not(is_ansistring(ld)) then
+                   inserttypeconv(left,cansistringtype);
+              end
+            else if is_longstring(rd) or is_longstring(ld) then
+              begin
+                 if not(is_longstring(rd)) then
+                   inserttypeconv(right,clongstringtype);
+                 if not(is_longstring(ld)) then
+                   inserttypeconv(left,clongstringtype);
+                 location.loc:=LOC_CREFERENCE;
+              end
+            else
+              begin
+                 if not(is_shortstring(ld)) then
+                   inserttypeconv(left,cshortstringtype);
+                 { don't convert char, that can be handled by the optimized node }
+                 if not(is_shortstring(rd) or is_char(rd)) then
+                   inserttypeconv(right,cshortstringtype);
+              end;
+
           end
 
          { class or interface equation }
@@ -1929,7 +1931,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2002-12-11 22:41:03  peter
+  Revision 1.79  2003-01-02 22:19:54  peter
+    * support pchar-char operations converting to string first
+    * support chararray-nil
+
+  Revision 1.78  2002/12/11 22:41:03  peter
     * stop processing assignment node when the binaryoverload generates
       a codegenerror
 
