@@ -140,42 +140,6 @@ TYPE
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
-{                           FILE HANDLE SIZE                                }
-{---------------------------------------------------------------------------}
-TYPE
-{$IFDEF OS_DOS}                                       { DOS DEFINITION }
-   THandle = Integer;                                 { Handles are 16 bits }
-{$ENDIF}
-{$IFDEF OS_ATARI}                                     { ATARI DEFINITION }
-   THandle = Integer;                                 { Handles are 16 bits }
-{$ENDIF}
-{$IFDEF OS_UNIX}                                     { LINUX DEFINITIONS }
- { values are words, though the OS calls return 32-bit values }
- { to check (CEC)                                             }
-  THandle = LongInt;                                  { Simulated 32 bits }
-{$ENDIF}
-{$IFDEF OS_AMIGA}                                     { AMIGA DEFINITIONS }
-  THandle = LongInt;                                  { Handles are 32 bits }
-{$ENDIF}
-{$IFDEF OS_WINDOWS}                                   { WIN/NT DEFINITIONS }
-  THandle = Windows.THandle;                          { Can be either }
-{$ENDIF}
-{$IFDEF OS_OS2}                                       { OS2 DEFINITIONS }
-  THandle = sw_Integer;                               { Can be either }
-{$ENDIF}
-{$IFDEF OS_MAC}                                       { MACINTOSH DEFINITIONS }
-  THandle = LongInt;                                  { Handles are 32 bits }
-{$ENDIF}
-
-{---------------------------------------------------------------------------}
-{                      POINTERS TO STANDARD DATA TYPES                      }
-{---------------------------------------------------------------------------}
-TYPE
-   PByte = ^Byte;                                     { Pointer to byte }
-   PWord = ^Word;                                     { Pointer to word }
-   PLongint = ^Longint;                               { Pointer to longint }
-
-{---------------------------------------------------------------------------}
 {                               GENERAL ARRAYS                              }
 {---------------------------------------------------------------------------}
 TYPE
@@ -408,7 +372,10 @@ END;
 END.
 {
  $Log$
- Revision 1.6  2004-11-02 23:53:19  peter
+ Revision 1.7  2004-11-05 12:48:18  peter
+ removed types already in system unit
+
+ Revision 1.6  2004/11/02 23:53:19  peter
    * fixed crashes with ide and 1.9.x
 
  Revision 1.5  2003/06/05 14:45:06  peter
