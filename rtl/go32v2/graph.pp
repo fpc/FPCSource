@@ -27,6 +27,12 @@ unit GRAPH;
 {$define Test_Linear}
 {$endif DEBUG}
 
+{ Output to AT&T for as }
+{$OUTPUT_FORMAT AS}
+
+{ Use the direct assembler parser }
+{$ASMMODE DIRECT}
+
 { Don't use smartlinking, because of the direct assembler that is used }
 {$SMARTLINK OFF}
 
@@ -1010,7 +1016,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-02-01 13:19:01  pierre
+  Revision 1.3  1999-03-02 13:56:34  peter
+    * use ATT assembler in profile
+    * use AS output in graph
+
+  Revision 1.2  1999/02/01 13:19:01  pierre
    * getgraphmode returns -1 if not in graphic mode
 
   Revision 1.1  1998/12/21 13:07:03  peter

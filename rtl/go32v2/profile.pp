@@ -61,28 +61,22 @@ procedure mcount;
 
 implementation
 
+{$asmmode ATT}
+
 uses
   go32,dpmiexcp;
 
 type
   plongint = ^longint;
-var
-  starttext, endtext : longint;
 const
   cache : pMTABE = nil;
 
-(*
-{$ASMMODE DIRECT}
-procedure sbrk_getmem(var p : pointer;size : longint);assembler;
-asm
-        movl    size,%eax
-        pushl   %eax
-        call    ___sbrk
-        addl    $4,%esp
-        movl    %eax,p
-end;
+var
+  djgpp_timer_hdlr : pointer;external name '___djgpp_timer_hdlr';
+  djgpp_old_timer : tseginfo;external name '___djgpp_old_timer';
+  endtext : longint;external name '_etext';
+  starttext : longint;external name 'start';
 
-this nice piece of code make serious problems !!! PM *)
 
 procedure sbrk_getmem(var p : pointer;size : longint);
 
@@ -90,7 +84,6 @@ procedure sbrk_getmem(var p : pointer;size : longint);
      system.getmem(p,size);
   end;
 
-{$ASMMODE ATT}
 
 { problem how to avoid mcount calling itself !! }
 procedure mcount;  [public, alias : 'MCOUNT'];
@@ -223,14 +216,13 @@ begin
 end;
 
 
-{$ASMMODE DIRECT}
+var
+  ___djgpp_timer_countdown:longint;external name '___djgpp_timer_countdown';
+
 function timer(x : longint) : longint;
 begin
    if reload>0 then
-     asm
-       movl _RELOAD,%eax
-       movl %eax,___djgpp_timer_countdown
-     end;
+    ___djgpp_timer_countdown:=RELOAD;
    timer:=mcount_tick(x);
    { _raise(SIGPROF); }
 end;
@@ -287,31 +279,12 @@ procedure mcount_init;
   this is called to initialize profiling before the program starts
 }
 
-  function djgpp_timer_hdlr : pointer;
-    begin
-       asm
-          movl $___djgpp_timer_hdlr,%eax
-          movl %eax,__RESULT
-       end;
-    end;
-
   procedure set_old_timer_handler;
     begin
-       asm
-          movl $_OLD_TIMER,%eax
-          movl $___djgpp_old_timer,%ebx
-          movl (%eax),%ecx
-          movl %ecx,(%ebx)
-          movw 4(%eax),%ax
-          movw %ax,4(%ebx)
-       end;
+      djgpp_old_timer:=Old_Timer;
     end;
 
 begin
-  asm
-        movl    $_etext,_ENDTEXT
-        movl    $start,_STARTTEXT
-  end;
   h.low := starttext;
   h.high := endtext;
   histlen := ((h.high-h.low) div 16) * 2; { must be even }
@@ -341,13 +314,9 @@ begin
 {$endif DEBUG}
   set_pm_interrupt($8,new_timer);
   reload:=1;
-  asm
-        movl    _RELOAD,%eax
-        movl    %eax,___djgpp_timer_countdown
-  end;
+  ___djgpp_timer_countdown:=RELOAD;
   mcount_skip := 0;
 end;
-{$ASMMODE ATT}
 
 
 begin
@@ -355,7 +324,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:03  peter
+  Revision 1.2  1999-03-02 13:56:35  peter
+    * use ATT assembler in profile
+    * use AS output in graph
+
+  Revision 1.1  1998/12/21 13:07:03  peter
     * use -FE
 
   Revision 1.4  1998/11/18 09:22:10  pierre
