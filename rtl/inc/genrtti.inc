@@ -17,7 +17,7 @@
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_INITIALIZE}
-Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];
+Procedure Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -59,7 +59,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_FINALIZE}
-Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];
+Procedure Finalize (Data,TypeInfo: Pointer);saveregisters;[Public,Alias : 'FPC_FINALIZE'];
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -101,7 +101,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_ADDREF}
-Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];
+Procedure Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_ADDREF'];
 
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
@@ -143,7 +143,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DECREF}
-Procedure DecRef (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];
+Procedure DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_DECREF'];
 { this definition is sometimes (depending on switches)
   already defined or not so define it locally to avoid problems PM }
 Type
@@ -195,7 +195,10 @@ procedure FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,A
 
 {
  $Log$
- Revision 1.2  2001-04-23 18:25:44  peter
+ Revision 1.3  2001-05-28 20:43:17  peter
+   * more saveregisters added (merged)
+
+ Revision 1.2  2001/04/23 18:25:44  peter
    * m68k updates
 
 }

@@ -328,6 +328,8 @@ end;
 { Generic code does not set the register used for self !
   So this needs to be done by the compiler after calling
   FPC_HELP_CONSTRUCTOR : generic allways means aa little less efficient (PM) }
+{ I don't think we really need to save any registers here      }
+{ since this is called at the start of the constructor (CEC)   }
 procedure int_help_constructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal); [public,alias:'FPC_HELP_CONSTRUCTOR'];
    type
      ppointer = ^pointer;
@@ -349,7 +351,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
-procedure int_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);[public,alias:'FPC_HELP_DESTRUCTOR'];
+procedure int_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;[public,alias:'FPC_HELP_DESTRUCTOR'];
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -377,7 +379,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 {$error No pascal version of Int_new_class}
-(* procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
+(* procedure int_new_class;assembler;saveregisters;[public,alias:'FPC_NEW_CLASS'];
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -411,7 +413,7 @@ end; *)
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
 
 {$error No pascal version of Int_dispose_class}
-(* procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
+(* procedure int_dispose_class;assembler;saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
         { to be sure in the future, we save also edit }
         pushl   %edi
@@ -442,7 +444,7 @@ end; *)
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
-procedure int_check_object(vmt : pointer);[public,alias:'FPC_CHECK_OBJECT'];
+procedure int_check_object(vmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT'];
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -464,7 +466,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
-procedure int_check_object_ext(vmt, expvmt : pointer);[public,alias:'FPC_CHECK_OBJECT_EXT'];
+procedure int_check_object_ext(vmt, expvmt : pointer);saveregisters;[public,alias:'FPC_CHECK_OBJECT_EXT'];
    type
      pvmt = ^tvmt;
      tvmt = packed record
@@ -826,7 +828,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2001-05-18 22:59:59  peter
+  Revision 1.13  2001-05-28 20:43:17  peter
+    * more saveregisters added (merged)
+
+  Revision 1.12  2001/05/18 22:59:59  peter
     * merged fixes branch fixes
 
   Revision 1.11  2001/05/16 17:44:25  jonas
