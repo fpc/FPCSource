@@ -2305,6 +2305,10 @@ const
 
        var
          tmpreg: tregister;
+{$ifdef newra}
+         orgindex: tregister;
+         freeindex: boolean;
+{$endif newra}
        begin
          result := false;
          if (ref.base.number = NR_NO) then
@@ -2321,7 +2325,18 @@ const
 {$ifndef newra}
                  tmpreg := cg.get_scratch_reg_int(list,OS_INT);
 {$else newra}
-                 tmpreg := rg.getregisterint(list,OS_INT);
+                 { references are often freed before they are used. Since we allocate  }
+                 { a register here, we must first reallocate the index register, since }
+                 { otherwise it may be overwritten (and it's still used afterwards)    }
+                 freeindex := false;
+                 if ((ref.index.number shr 8) >= first_supreg) and
+                    ((ref.index.number shr 8) in rg.unusedregsint) then
+                   begin
+                     rg.getexplicitregisterint(list,ref.index.number);
+                     orgindex := ref.index;
+                     freeindex := true;
+                   end;
+                 tmpreg := rg.getregisterint(list,OS_ADDR);
 {$endif newra}
                  if not assigned(ref.symbol) and
                     (cardinal(ref.offset-low(smallint)) <=
@@ -2338,6 +2353,12 @@ const
                      ref.index.number := NR_NO;
                    end;
                  ref.base := tmpreg;
+{$ifdef newra}
+                 if freeindex then
+                   begin
+                     rg.ungetregisterint(list,orgindex);
+                   end;
+{$endif newra}
                end
            end
          else
@@ -2702,7 +2723,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2003-07-20 16:15:58  jonas
+  Revision 1.115  2003-07-20 20:39:20  jonas
+    * fixed newra bug due to the fact that we sometimes need a temp reg
+      when loading/storing to memory (base+index+offset is not possible)
+      and because a reference is often freed before it is last used, this
+      temp register was soemtimes the same as one of the reference regs
+
+  Revision 1.114  2003/07/20 16:15:58  jonas
     * fixed bug in g_concatcopy with -dnewra
 
   Revision 1.113  2003/07/06 20:25:03  jonas
