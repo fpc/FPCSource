@@ -101,7 +101,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-10-16 19:04:27  michael
+  Revision 1.1  2002-10-31 13:46:11  carl
+    * threadvar.inc -> threadvr.inc
+
+  Revision 1.2  2002/10/16 19:04:27  michael
   + More system-independent thread routines
 
   Revision 1.1  2002/10/14 19:39:17  peter

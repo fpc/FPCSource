@@ -60,7 +60,7 @@ implementation
 
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
-      PTHREAD_SCOPE_PROCESS	   = 0;
+      PTHREAD_SCOPE_PROCESS    = 0;
 
  TYPE
     pthread_t       = pointer;
@@ -76,12 +76,12 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     pthread_mutex_attr_t  = pointer;
     ppthread_mutex_attr_t = ^pthread_mutex_t;
 
-function  pthread_getspecific	     (t : pthread_key_t):pointer; cdecl; external;
-function  pthread_setspecific	     (t : pthread_key_t;p:pointer):cint; cdecl; external;
-function  pthread_key_create 	     (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external;
+function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external;
+function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external;
+function  pthread_key_create       (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external;
 function  pthread_attr_init           (p : ppthread_key_t):cint; cdecl; external;
 function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external;
-function  pthread_attr_setscope	     (p : ppthread_attr_t;i:cint):cint;cdecl;external;
+function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;
@@ -207,7 +207,7 @@ CONST
       end;
 
 { Include OS independent Threadvar initialization }
-{$i threadvar.inc}
+{$i threadvr.inc}
 
 
 {$endif HASTHREADVAR}
@@ -382,7 +382,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-10-26 18:27:52  marco
+  Revision 1.5  2002-10-31 13:45:21  carl
+    * threadvar.inc -> threadvr.inc
+
+  Revision 1.4  2002/10/26 18:27:52  marco
    * First series POSIX calls commits. Including getcwd.
 
   Revision 1.3  2002/10/18 18:05:06  marco

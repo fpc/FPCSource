@@ -118,7 +118,7 @@ function GlobalFree(hMem : Pointer):Pointer; external 'kernel32' name 'GlobalFre
       end;
 
 { Include OS independent Threadvar initialization }
-{$i threadvar.inc}
+{$i threadvr.inc}
 
 {$endif HASTHREADVAR}
 
@@ -275,7 +275,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-10-16 06:27:30  michael
+  Revision 1.2  2002-10-31 13:45:44  carl
+    * threadvar.inc -> threadvr.inc
+
+  Revision 1.1  2002/10/16 06:27:30  michael
   + Renamed thread unit to systhrds
 
   Revision 1.1  2002/10/14 19:39:18  peter
