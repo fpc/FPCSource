@@ -762,6 +762,7 @@ implementation
     var
       hp : tnode;
       aprocdef : pprocdef;
+      enable_range_check: boolean;
      begin
        pass_1:=nil;
        aprocdef:=nil;
@@ -1070,12 +1071,21 @@ implementation
 
 
         { ordinal contants can be directly converted }
-        { but not int64/qword                        }
-        if (left.nodetype=ordconstn) and is_ordinal(resulttype) and
-          not(is_64bitint(resulttype)) then
+        if (left.nodetype=ordconstn) and is_ordinal(resulttype)  then
           begin
              { range checking is done in genordinalconstnode (PFV) }
+             { disable for explicit type casts (JM) }
+             if (nf_explizit in flags) and
+                (cs_check_range in aktlocalswitches) then
+               begin
+                 exclude(aktlocalswitches,cs_check_range);
+                 enable_range_check := true;
+               end
+             else
+               enable_range_check := false;
              hp:=genordinalconstnode(tordconstnode(left).value,resulttype);
+             if enable_range_check then
+               include(aktlocalswitches,cs_check_range);
              firstpass(hp);
              pass_1:=hp;
              exit;
@@ -1176,7 +1186,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-11-12 23:24:11  florian
+  Revision 1.12  2000-11-20 16:06:04  jonas
+    + allow evaluation of 64bit constant expressions at compile time
+    * disable range checking for explicit typecasts of constant expressions
+
+  Revision 1.11  2000/11/12 23:24:11  florian
     * interfaces are basically running
 
   Revision 1.10  2000/11/04 14:25:20  florian
