@@ -275,7 +275,6 @@ type
     property Database    : TIBDatabase read FDatabase write SetDatabase;
     { This property holds SQL command, which you want to execute }
     property SQL         : TStrings read FSQL write FSQL;
-    Property Database;
   end;
 
 { TIBStoredProc - not implemented - yet :-/}
