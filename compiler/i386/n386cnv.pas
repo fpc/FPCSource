@@ -396,6 +396,7 @@ implementation
                   new(hr);
                   reset_reference(hr^);
                   hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
+                  location.register:=getregister32;
                   emit_ref_reg(A_LEA,S_L,hr,location.register);
                 end
                else
@@ -1424,7 +1425,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-07-30 20:59:29  peter
+  Revision 1.19  2001-08-01 21:44:59  peter
+    * fixed empty pwidechar register allocation
+
+  Revision 1.18  2001/07/30 20:59:29  peter
     * m68k updates from v10 merged
 
   Revision 1.17  2001/07/16 13:19:08  jonas
