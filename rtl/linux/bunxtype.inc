@@ -33,7 +33,7 @@ CONST
    FD_MAXFDSET	   = 1024;
    wordsinsigset   = 4;		// words in sigset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
-   ln2bitmask	   = 2 shl ln2bitsinword - 1;
+   ln2bitmask	   = 1 shl ln2bitsinword - 1;
 
 TYPE
    Blksize_t  = cuint;
@@ -265,7 +265,10 @@ const
 
 {
   $Log$
-  Revision 1.4  2003-11-19 10:56:15  marco
+  Revision 1.5  2003-12-02 00:04:34  sg
+  * Fixed ln2bitmask
+
+  Revision 1.4  2003/11/19 10:56:15  marco
    * some constants moved from System
 
   Revision 1.3  2003/09/14 20:15:01  marco
