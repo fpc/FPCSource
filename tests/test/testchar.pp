@@ -1,3 +1,4 @@
+{$P+}
 
 type
    CharA4 = array [1..4] of char;
@@ -24,6 +25,7 @@ var
   st5_1, st5_2 : string5;
   st6_1, st6_2 : string6;
   st8_1, st8_2 : string8;
+  pc : pchar;
 
 const
   has_errors : boolean = false;
@@ -33,6 +35,40 @@ const
       Writeln('Error: ',st);
       has_errors:=true;
     end;
+
+  procedure testvalueconv(st : string4);
+  begin
+    Writeln('st=',st);
+    Writeln('Length(st)=',Length(st));
+    If Length(st)>4 then
+      Error('string length too big in calling value arg');
+  end;
+
+  procedure testconstconv(const st : string4);
+  begin
+    Writeln('st=',st);
+    Writeln('Length(st)=',Length(st));
+    If Length(st)>4 then
+      Error('string length too big in calling const arg');
+  end;
+
+  procedure testvarconv(var st : string4);
+  begin
+    Writeln('st=',st);
+    Writeln('Length(st)=',Length(st));
+    If Length(st)>4 then
+      Error('string length too big in calling var arg');
+  end;
+
+{$P-}
+  procedure testvarconv2(var st : string4);
+  begin
+    Writeln('st=',st);
+    Writeln('Length(st)=',Length(st));
+    If Length(st)>4 then
+      Error('string length too big in calling var arg without openstring');
+  end;
+
 begin
   { compare array of char to constant strings }
   Writeln('Testing if "',car4_1,'" is equal to "',cst4_1,'"');
@@ -59,6 +95,21 @@ begin
     error('Comparison of array of char and string don''t work');
   if string4(car6_2)<>'efgh' then
     error('typcasting to shorter strings leads to problems');
+  ar4_2:='Test';
+  ar4_1:=cst6_2;
+  if ar4_2<>'Test' then
+    error('overwriting beyond char array size');
+  ar6_1:='Test'#0'T';
+  st6_1:=ar6_1;
+  if (st6_1<>ar6_1) or (st6_1='Test') then
+    error('problems with #0');
+  ar6_1:='AB';
+  if ar6_1='AB'#0't'#0'T' then
+    Error('assigning strings to array of char does not zero end of array if string is shorter');
+  if ar6_1='AB'#0#0#0#0 then
+    writeln('assigning shorter strings to array of char does zero  fo tserarray')
+  else
+    error('assigning "AB" to ar6_1 gives '+ar6_1);
 {$endif}
   cst8_1:=car4_1;
 { if it is allowed then it must also work correctly !! }
@@ -69,6 +120,27 @@ begin
   st4_1:=car6_1;
   if (st4_2<>'Test') or (st4_1<>'EFGH') then
     error('problems when copying long char array to shorter string');
+  testvalueconv('AB');
+  testvalueconv('ABCDEFG');
+  testvalueconv(car4_1);
+  testvalueconv(car6_1);
+  getmem(pc,256);
+  pc:='Long Test';
+  testvalueconv(pc);
+  testconstconv('AB');
+  testconstconv('ABCDEFG');
+  testconstconv(st4_1);
+  testconstconv(cst6_2);
+  testconstconv(pc);
+  testvarconv(st4_2);
+  testvarconv(cst4_1);
+  testvarconv(st6_1);
+  testvarconv(cst8_1);
+  { testvarconv(pc); this one fails at compilation }
+  testvarconv2(st4_2);
+  testvarconv2(cst4_1);
+  testvarconv2(st6_1);
+  testvarconv2(cst8_1);
   if has_errors then
     begin
       Writeln('There are still problems with arrays of char');
