@@ -396,19 +396,21 @@
     { rtti generation }
     procedure tdef.generate_rtti;
       begin
-         has_rtti:=true;
-         getdatalabel(rtti_label);
-         write_child_rtti_data;
-         rttilist^.concat(new(pai_symbol,init(rtti_label,0)));
-         write_rtti_data;
-         rttilist^.concat(new(pai_symbol_end,init(rtti_label)));
+         if not has_rtti then
+          begin
+            has_rtti:=true;
+            getdatalabel(rtti_label);
+            write_child_rtti_data;
+            rttilist^.concat(new(pai_symbol,init(rtti_label,0)));
+            write_rtti_data;
+            rttilist^.concat(new(pai_symbol_end,init(rtti_label)));
+          end;
       end;
 
 
     function tdef.get_rtti_label : string;
       begin
-         if not(has_rtti) then
-           generate_rtti;
+         generate_rtti;
          get_rtti_label:=rtti_label^.name;
       end;
 
@@ -3718,13 +3720,16 @@ Const local_symtable_index : longint = $8001;
 
     procedure tobjectdef.generate_rtti;
       begin
-         has_rtti:=true;
-         getdatalabel(rtti_label);
-         write_child_rtti_data;
-         rttilist^.concat(new(pai_symbol,initname_global(rtti_name,0)));
-         rttilist^.concat(new(pai_label,init(rtti_label)));
-         write_rtti_data;
-         rttilist^.concat(new(pai_symbol_end,initname(rtti_name)));
+         if not has_rtti then
+          begin
+            has_rtti:=true;
+            getdatalabel(rtti_label);
+            write_child_rtti_data;
+            rttilist^.concat(new(pai_symbol,initname_global(rtti_name,0)));
+            rttilist^.concat(new(pai_label,init(rtti_label)));
+            write_rtti_data;
+            rttilist^.concat(new(pai_symbol_end,initname(rtti_name)));
+          end;
       end;
 
 
@@ -3806,10 +3811,10 @@ Const local_symtable_index : longint = $8001;
     function  tobjectdef.get_rtti_label : string;
 
       begin
-         if not(has_rtti) then
-           generate_rtti;
+         generate_rtti;
          get_rtti_label:=rtti_name;
       end;
+
 
 {****************************************************************************
                                 TFORWARDDEF
@@ -3863,7 +3868,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.190  2000-01-28 23:17:53  florian
+  Revision 1.191  2000-01-30 23:29:06  peter
+    * fixed dup rtti writing for classes
+
+  Revision 1.190  2000/01/28 23:17:53  florian
     * virtual XXXX; support for objects, only if -dWITHDMT is defined
 
   Revision 1.189  2000/01/26 12:02:29  peter
