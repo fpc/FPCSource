@@ -149,6 +149,7 @@ implementation
          orgname : stringid;
          tt  : ttype;
          sym : tsym;
+         dummysymoptions : tsymoptions;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          skipequal : boolean;
@@ -166,9 +167,14 @@ implementation
                 begin
                    consume(_EQUAL);
                    sym:=readconstant(orgname,filepos);
+                   { Support hint directives }
+                   dummysymoptions:=[];
+                   try_consume_hintdirective(dummysymoptions);
                    if assigned(sym) then
-                    symtablestack.insert(sym);
-                   try_consume_hintdirective(sym.symoptions);
+                     begin
+                       sym.symoptions:=sym.symoptions+dummysymoptions;
+                       symtablestack.insert(sym);
+                     end;
                    consume(_SEMICOLON);
                 end;
 
@@ -595,9 +601,11 @@ implementation
       var
          orgname : stringid;
          p : tnode;
+         dummysymoptions : tsymoptions;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          sp : pchar;
+         sym : tsym;
       begin
          consume(_RESOURCESTRING);
          if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
@@ -615,6 +623,7 @@ implementation
                    p:=comp_expr(true);
                    storetokenpos:=akttokenpos;
                    akttokenpos:=filepos;
+                   sym:=nil;
                    case p.nodetype of
                       ordconstn:
                         begin
@@ -623,7 +632,7 @@ implementation
                                 getmem(sp,2);
                                 sp[0]:=chr(tordconstnode(p).value);
                                 sp[1]:=#0;
-                                symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,1));
+                                sym:=tconstsym.create_string(orgname,constresourcestring,sp,1);
                              end
                            else
                              Message(parser_e_illegal_expression);
@@ -633,12 +642,20 @@ implementation
                           begin
                              getmem(sp,len+1);
                              move(value_str^,sp^,len+1);
-                             symtablestack.insert(tconstsym.create_string(orgname,constresourcestring,sp,len));
+                             sym:=tconstsym.create_string(orgname,constresourcestring,sp,len);
                           end;
                       else
                         Message(parser_e_illegal_expression);
                    end;
                    akttokenpos:=storetokenpos;
+                   { Support hint directives }
+                   dummysymoptions:=[];
+                   try_consume_hintdirective(dummysymoptions);
+                   if assigned(sym) then
+                     begin
+                       sym.symoptions:=sym.symoptions+dummysymoptions;
+                       symtablestack.insert(sym);
+                     end;
                    consume(_SEMICOLON);
                    p.free;
                 end;
@@ -651,7 +668,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2004-11-16 20:32:40  peter
+  Revision 1.93  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.92  2004/11/16 20:32:40  peter
   * fixes for win32 mangledname
 
   Revision 1.91  2004/11/15 23:35:31  peter

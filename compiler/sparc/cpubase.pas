@@ -320,11 +320,6 @@ uses
       }
       std_param_align = 4;  { for 32-bit version only }
 
-     { size of the buffer used for setjump/longjmp
-       the size of this buffer is deduced from the
-       jmp_buf structure in setjumph.inc file }
-     JMP_BUF_SIZE = 12+16;
-
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -454,7 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2004-10-31 21:45:04  peter
+  Revision 1.76  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.75  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -167,16 +167,13 @@
       }
       std_param_align = 4;
 
-      { size of the buffer used for setjump/longjmp
-        the size of this buffer is deduced from the
-        jmp_buf structure in setjumph.inc file
-      }
-      jmp_buf_size = 24;
-
 
 {
   $Log$
-  Revision 1.16  2004-12-12 10:50:34  florian
+  Revision 1.17  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.16  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 

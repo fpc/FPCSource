@@ -55,12 +55,6 @@ Const
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'arm';
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-   { for linux: }
-   jmp_buf_size = 220; { according to sizeof(jmp_buf) on my Zaurus (FK) }
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
@@ -97,7 +91,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.10  2004-07-04 15:22:34  florian
+  Revision 1.11  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.10  2004/07/04 15:22:34  florian
     * fixed float spilling to use sfm/lfm instead of stf/ldf
 
   Revision 1.9  2004/06/20 08:55:31  florian

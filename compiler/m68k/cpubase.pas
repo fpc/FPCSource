@@ -311,11 +311,6 @@ unit cpubase;
       }
       std_param_align = 4;  { for 32-bit version only }
 
-      { size of the buffer used for setjump/longjmp
-      the size of this buffer is deduced from the
-      jmp_buf structure in setjumph.inc file
-      }
-      jmp_buf_size = 28;
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -467,7 +462,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2005-01-08 04:10:36  karoly
+  Revision 1.35  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.34  2005/01/08 04:10:36  karoly
     * made m68k to compile again
 
   Revision 1.33  2004/11/09 22:32:59  peter

@@ -56,12 +56,6 @@ Const
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'x86_64';
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-   jmp_buf_size = 64;
-
 
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
@@ -91,7 +85,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:32  florian
+  Revision 1.15  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.14  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.13  2004/06/16 20:07:11  florian

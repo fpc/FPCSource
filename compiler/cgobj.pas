@@ -1527,9 +1527,6 @@ implementation
             a_call_name(list,'FPC_DECREF');
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          end;
-        { Temp locations need always to be reset to 0 }
-        if tg.istemp(ref) then
-          a_load_const_ref(list,OS_ADDR,0,ref);
         cgpara2.done;
         cgpara1.done;
       end;
@@ -2048,7 +2045,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.188  2005-01-18 22:19:20  peter
+  Revision 1.189  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.188  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
 

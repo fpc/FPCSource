@@ -315,9 +315,16 @@ implementation
 *****************************************************************************}
 
     procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
+      var
+        sym : ttypesym;
       begin
+        if jmp_buf_size=-1 then
+          begin
+            searchsystype('JMP_BUF',sym);
+            jmp_buf_size:=sym.restype.def.size;
+          end;
         tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
-        tg.GetTemp(list,JMP_BUF_SIZE,tt_persistent,t.jmpbuf);
+        tg.GetTemp(list,jmp_buf_size,tt_persistent,t.jmpbuf);
         tg.GetTemp(list,sizeof(aint),tt_persistent,t.reasonbuf);
       end;
 
@@ -2357,7 +2364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.255  2005-01-19 20:04:46  florian
+  Revision 1.256  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.255  2005/01/19 20:04:46  florian
     * init./final code isn't created for pure assembler procedures anymore
 
   Revision 1.254  2005/01/18 22:19:20  peter

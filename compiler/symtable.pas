@@ -667,7 +667,7 @@ implementation
            if assigned(current_module) and
               (symtabletype=globalsymtable) then
              begin
-               if tglobalsymtable(self).moduleid>current_module.unitmapsize then
+               if tglobalsymtable(self).moduleid>=current_module.unitmapsize then
                  internalerror(200501152);
                inc(current_module.unitmap[tglobalsymtable(self).moduleid].refs);
              end;
@@ -2463,7 +2463,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2005-01-19 22:19:41  peter
+  Revision 1.170  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.169  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 

@@ -356,12 +356,6 @@ uses
       }
       std_param_align = 4;  { for 32-bit version only }
 
-      { size of the buffer used for setjump/longjmp
-        the size of this buffer is deduced from the
-        jmp_buf structure in setjumph.inc file
-      }
-      { for linux: }
-      jmp_buf_size = 232;
 
 {*****************************************************************************
                             CPU Dependent Constants
@@ -550,7 +544,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2005-01-10 21:48:45  jonas
+  Revision 1.95  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.94  2005/01/10 21:48:45  jonas
     - removed deprecated constants
 
   Revision 1.93  2004/12/28 02:25:43  olle

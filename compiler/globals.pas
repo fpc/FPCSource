@@ -236,7 +236,8 @@ interface
 
      { Memory sizes }
        heapsize,
-       stacksize    : longint;
+       stacksize,
+       jmp_buf_size : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }
@@ -2170,6 +2171,8 @@ end;
       { memory sizes, will be overriden by parameter or default for target
         in options or init_parser }
         stacksize:=0;
+        { not initialized yet }
+        jmp_buf_size:=-1;
 
         apptype:=app_cui;
      end;
@@ -2177,7 +2180,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.160  2005-01-09 20:24:43  olle
+  Revision 1.161  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.160  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
 

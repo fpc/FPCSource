@@ -51,19 +51,16 @@ Const
    mmreg_size = 8;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'vis';
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-{$warning setjmp buf_size unknown!}
-   jmp_buf_size = 0;
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.3  2004-06-20 08:55:32  florian
+  Revision 1.4  2005-01-20 16:38:45  peter
+    * load jmp_buf_size from system unit
+
+  Revision 1.3  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.2  2004/06/16 20:07:11  florian

@@ -63,11 +63,6 @@ Const
 
    { target cpu string (used by compiler options) }
    target_cpu_string = 'alpha';
-   { size of the buffer used for setjump/longjmp
-     the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file
-   }
-   jmp_buf_size = 24;
 
 Implementation
 
