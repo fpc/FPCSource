@@ -485,7 +485,7 @@ implementation
               Add(varname+':=$(strip $(wildcard $(addsuffix /'+altexename+'$(SRCEXEEXT),$(SEARCHPATH))))');
             end;
            Add('ifeq ($('+varname+'),)');
-           Add(varname+'= __missing_command__'); {This is to be shure make stops,
+           Add(varname+'= __missing_command_'+varname); {This is to be shure make stops,
               if the command is not found. Otherwise if the command was set to the
               empty string, options to the command would be interpreted as command,
               and because options is preceeded by a "-", make will ignore the error
@@ -975,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2004-10-30 12:36:48  peter
+  Revision 1.35  2004-11-01 17:17:33  olle
+    * __missing_command will now have the name of the missing command appended.
+
+  Revision 1.34  2004/10/30 12:36:48  peter
     * units are now created in separate directory units/cpu-os/
     * distclean uses cleanall rule and removes units dir
     * cross compile support fixed, it is now possible to cycle a ppcsparc
