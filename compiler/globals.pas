@@ -454,9 +454,12 @@ implementation
        DecodeDate(DT,year,month,day);
 {$ELSE USE_SYSUTILS}
        unpacktime(t,DT);
-       Year := DT.Year;
-       Month := DT.Month;
-       Hour := DT.Hour;
+       year := DT.year;
+       month := DT.month;
+       day := DT.day;
+       hour := DT.hour;
+       min := DT.min;
+       sec := DT.sec;
 {$ENDIF USE_SYSUTILS}
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
@@ -2131,7 +2134,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2004-10-16 13:03:13  olle
+  Revision 1.147  2004-10-16 22:46:14  olle
+   * Fixed printing of filedates
+
+  Revision 1.146  2004/10/16 13:03:13  olle
     + added more support for macos
 
   Revision 1.145  2004/10/15 09:14:16  mazen
