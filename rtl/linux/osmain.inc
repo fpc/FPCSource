@@ -29,29 +29,6 @@ const
 
 
 {*****************************************************************************
-                         Stack check code
-*****************************************************************************}
-
-{
-{$IFOPT S+}
-{$DEFINE STACKCHECK}
-{$ENDIF}
-{$S-}
-procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
-var
- c: cardinal;
-begin
- c := cardinal(Sptr) - cardinal(stack_size) - STACK_MARGIN;
- if (c <= cardinal(StackBottom)) then
-     HandleError(202);
-end;
-{$IFDEF STACKCHECK}
-{$S+}
-{$ENDIF}
-{$UNDEF STACKCHECK}
-}
-
-{*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
 
@@ -146,7 +123,7 @@ Function PosixToRunError  (PosixErrno : longint) : longint;
 
 begin
   if PosixErrNo=0 then { Else it will go through all the cases }
-   exit;
+   exit(0);
   case PosixErrNo of
    ESysENFILE,
    ESysEMFILE : Inoutres:=4;
@@ -449,7 +426,7 @@ var
 begin
 {$ifdef usegetcwd}
  Fpgetcwd(@tmp[1],255);
- dir:=tmp;		
+ dir:=tmp;
 {$else}
   dir:='';
   thedir:='';
@@ -654,7 +631,11 @@ End.
 *)
 {
  $Log$
- Revision 1.1  2002-12-18 16:43:26  marco
+ Revision 1.2  2002-12-18 20:43:27  peter
+   * removed stackcheck, the generic stackcheck is used
+   * fixed return value for error conversion when no error was passed
+
+ Revision 1.1  2002/12/18 16:43:26  marco
   * new unix rtl, linux part.....
 
  Revision 1.7  2002/11/14 12:18:03  marco
