@@ -106,7 +106,7 @@ implementation
                    begin
                       p^.resulttype:=cansistringdef;
                       { we use ansistrings so no fast exit here }
-		      if assigned(procinfo) then
+                      if assigned(procinfo) then
                         procinfo^.no_fast_exit:=true;
                       p^.location.loc:=LOC_MEM;
                    end
@@ -180,7 +180,7 @@ implementation
                    if (m_tp_procvar in aktmodeswitches) and
                       not(assigned(p^.left)) and
                      (pprocsym(p^.symtableentry)^.owner^.symtabletype=objectsymtable) then
-                      p^.left:=genselfnode(procinfo^._class);
+                      p^.left:=genselfnode(pobjectdef(p^.symtableentry^.owner^.defowner));
                    { method pointer ? }
                    if assigned(p^.left) then
                      begin
@@ -498,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2000-05-15 19:29:50  peter
+  Revision 1.67  2000-07-06 19:06:30  peter
+    * fixed crash with objects unit and -Sd mode
+
+  Revision 1.66  2000/05/15 19:29:50  peter
     * fixed crash with resourcestring in const
 
   Revision 1.65  2000/05/14 18:48:24  florian
