@@ -806,14 +806,14 @@ Begin
    begin
      FileFunc(f.InOutFunc)(f);
      If f.BufPos>=f.BufEnd Then
-      c:=#26;
-   end
-  else
-   begin
-     c:=f.Bufptr^[f.BufPos];
-     Inc(f.BufPos);
+      begin
+        c:=#26;
+        exit;
+      end;
    end;
-End;
+  c:=f.Bufptr^[f.BufPos];
+  inc(f.BufPos);
+end;
 
 
 Procedure Read_PChar(var f : TextRec;var s : PChar);[Public,Alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'READ_TEXT_PCHAR_AS_POINTER'];
@@ -1212,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  1998-11-27 14:50:58  peter
+  Revision 1.36  1998-12-11 18:07:39  peter
+    * fixed read(char) with empty buffer
+
+  Revision 1.35  1998/11/27 14:50:58  peter
     + open strings, $P switch support
 
   Revision 1.34  1998/11/16 12:21:48  peter
