@@ -2236,6 +2236,7 @@ P*1T<x>_Target operating system:
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tmorphos_MorphOS
 **1*_
 **1?_shows this help
 **1h_shows this help without waiting
