@@ -1315,7 +1315,6 @@ implementation
       begin
         { Override this function to prevent loading the reference twice }
         tmpref:=ref;
-        tcgsparc(cg).make_simple_ref(list,tmpref);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
         inc(tmpref.offset,4);
         cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
@@ -1328,7 +1327,6 @@ implementation
       begin
         { Override this function to prevent loading the reference twice }
         tmpref:=ref;
-        tcgsparc(cg).make_simple_ref(list,tmpref);
         cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
         inc(tmpref.offset,4);
         cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reglo);
@@ -1458,7 +1456,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2005-01-24 22:08:32  peter
+  Revision 1.104  2005-01-25 20:58:30  florian
+    * fixed load64 which shouldn't do a make_simple_ref
+
+  Revision 1.103  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 
