@@ -94,8 +94,18 @@ implementation
          if codegenerror then
            exit;
 
-         p^.left:=gentypeconvnode(p^.left,psetdef(p^.right^.resulttype)^.setof);
+         { empty set then return false }
+         if not assigned(psetdef(p^.right^.resulttype)^.setof) then
+          begin
+            t:=genordinalconstnode(0,booldef);
+            disposetree(p);
+            firstpass(t);
+            p:=t;
+            exit;
+          end;
 
+         { type conversion/check }
+         p^.left:=gentypeconvnode(p^.left,psetdef(p^.right^.resulttype)^.setof);
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -234,7 +244,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-12-11 00:03:58  peter
+  Revision 1.5  1998-12-18 17:15:40  peter
+    * added 'in []' support
+
+  Revision 1.4  1998/12/11 00:03:58  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.3  1998/11/13 10:17:06  peter
