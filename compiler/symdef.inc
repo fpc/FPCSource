@@ -2683,6 +2683,21 @@ Const local_symtable_index : longint = $8001;
       begin
          inherited write;
          current_ppu^.do_interface_crc:=false;
+   { set all registers to used for simplified compilation PM }
+         if simplify_ppu then
+           begin
+{$ifdef newcg}
+             usedregisters:=[firstreg..lastreg];
+{$else newcg}
+{$ifdef i386}
+             usedregisters:=$ff;
+{$endif i386}
+{$ifdef m68k}
+             usedregisters:=$ffff;
+{$endif}
+{$endif newcg}
+           end;
+     
 {$ifdef newcg}
          writenormalset(usedregisters);
 {$else newcg}
@@ -2693,8 +2708,8 @@ Const local_symtable_index : longint = $8001;
          writeword(usedregisters);
 {$endif}
 {$endif newcg}
-         writestring(mangledname);
          current_ppu^.do_interface_crc:=true;
+         writestring(mangledname);
          writelong(extnumber);
          if (proctypeoption<>potype_operator) then
            writedefref(nextoverloaded)
@@ -3722,7 +3737,12 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.158  1999-08-27 10:24:34  michael
+  Revision 1.159  1999-08-27 10:52:19  pierre
+    + simplify_ppu code added :
+      sets all registers used at PPU writing
+    * tprocdef mangledname writing is CRC relevant
+
+  Revision 1.158  1999/08/27 10:24:34  michael
   + Inittables should not contain fields which are classes
 
   Revision 1.157  1999/08/26 21:13:58  peter
