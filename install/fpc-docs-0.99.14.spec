@@ -1,23 +1,25 @@
 Name: fpc-docs
-Version: 0.99.12b
+Version: 0.99.14
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-docs-0.99.12b-src.tar.gz
+Source: fpc-docs-0.99.14-src.tar.gz
 Summary: Free Pascal Compiler Documentation
-Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
-URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
+Packager: Peter Vreman (peter@freepascal.org)
+URL: http://www.freepascal.org/
+
+%define fpcversion 0.99.14
+%define fpcdir /usr/lib/fpc/%{fpcversion}
+%define docdir /usr/doc/fpc-%{fpcversion}
 
 %description	
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
 Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
 Some extensions are added to the language, like function overloading. Shared
 libraries can be linked and created. Basic Delphi support is already
-implemented (classes,exceptions,ansistrings). This package contains
-the documentation in HTML format
-
-%define docdir /usr/doc/fpc-0.99.12
+implemented (classes,exceptions,ansistrings).
+This package contains the documentation in PDF format
 
 %prep
 %setup -c
@@ -26,7 +28,7 @@ the documentation in HTML format
 	make -C docs pdf
 
 %install
-	make -C docs pdfinstall
+	make -C docs pdfinstall DOCINSTALLDIR=%{docdir}
 
 %clean
 	make -C docs clean
