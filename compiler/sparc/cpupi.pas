@@ -33,7 +33,7 @@ unit cpupi;
        cgbase,cpuinfo;
 
     type
-       Tppcprocinfo = class(tprocinfo)
+       TSparcprocinfo = class(tprocinfo)
           { overall size of allocated stack space, currently this is used for the PowerPC only }
           localsize : aword;
 
@@ -53,7 +53,7 @@ unit cpupi;
        aasmtai,
        tgobj;
 
-    constructor Tppcprocinfo.create;
+    constructor TSparcprocinfo.create;
 
       begin
          inherited create;
@@ -61,13 +61,13 @@ unit cpupi;
          localsize:=0;
       end;
 
-    procedure Tppcprocinfo.after_header;
+    procedure TSparcprocinfo.after_header;
       begin
          { this value is necessary for nested procedures }
          procdef.localst.address_fixup:=align(procdef.parast.datasize,16);
       end;
 
-    procedure Tppcprocinfo.after_pass1;
+    procedure TSparcprocinfo.after_pass1;
       begin
          procdef.parast.address_fixup:=align(maxpushedparasize,16);
          if cs_asm_source in aktglobalswitches then
@@ -85,11 +85,14 @@ unit cpupi;
       end;
 
 begin
-   cprocinfo:=Tppcprocinfo;
+   cprocinfo:=TSparcprocinfo;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-23 10:08:28  mazen
+  Revision 1.2  2002-08-29 11:02:36  mazen
+  added support for SPARC processors
+
+  Revision 1.1  2002/08/23 10:08:28  mazen
   *** empty log message ***
 
   Revision 1.2  2002/08/18 20:06:30  peter
