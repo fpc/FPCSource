@@ -271,6 +271,7 @@ unit parser;
             main_module:=current_module;
           end;
 
+         current_module^.in_compile:=true;
        { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
@@ -443,9 +444,18 @@ unit parser;
 
 {$ifdef BrowserCol}
               { Write Browser Collections }
-              CreateBrowserCol;
+              if (cs_browser in aktmoduleswitches) then
+                CreateBrowserCol;
 {$endif}
               end;
+
+         if current_module^.in_second_compile then
+           begin
+             current_module^.in_second_compile:=false;
+             current_module^.in_compile:=true;
+           end
+         else
+           current_module^.in_compile:=false;
 
           (* Obsolete code aktprocsym
              is disposed by the localsymtable disposal (PM)
@@ -471,7 +481,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.82  1999-08-26 20:24:41  michael
+  Revision 1.83  1999-08-31 15:51:11  pierre
+   * in_second_compile cleaned up, in_compile and in_second_load added
+
+  Revision 1.82  1999/08/26 20:24:41  michael
   + Hopefuly last fixes for resourcestrings
 
   Revision 1.81  1999/08/04 13:02:48  jonas
@@ -828,5 +841,4 @@ end.
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 }
-
 

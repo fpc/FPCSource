@@ -455,13 +455,17 @@ unit pmodules;
                end
              else
               begin
-                if current_module^.in_second_compile then
-                  Message1(parser_d_compiling_second_time,current_module^.modulename^);
+                if current_module^.in_compile then
+                  begin
+                    current_module^.in_second_compile:=true;
+                    Message1(parser_d_compiling_second_time,current_module^.modulename^);
+                  end;
                 current_scanner^.tempcloseinputfile;
                 name:=current_module^.mainsource^;
                 if assigned(scanner) then
                   scanner^.invalid:=true;
                 compile(name,compile_system);
+                current_module^.in_second_compile:=false;
                 if (not current_scanner^.invalid) then
                   current_scanner^.tempopeninputfile;
               end;
@@ -545,7 +549,7 @@ unit pmodules;
                hp^.search_unit(s,false);
                { try to load the unit a second time first }
                current_module:=hp;
-               current_module^.in_second_compile:=true;
+               current_module^.in_second_load:=true;
                Message1(unit_u_second_load_unit,current_module^.modulename^);
                second_time:=true;
              end
@@ -1452,7 +1456,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.150  1999-08-30 16:21:40  pierre
+  Revision 1.151  1999-08-31 15:51:10  pierre
+   * in_second_compile cleaned up, in_compile and in_second_load added
+
+  Revision 1.150  1999/08/30 16:21:40  pierre
    * tempclosing of ppufiles under dos was wrong
 
   Revision 1.149  1999/08/28 15:34:19  florian

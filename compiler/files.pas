@@ -168,7 +168,9 @@ unit files;
           do_compile,               { need to compile the sources }
           sources_avail,            { if all sources are reachable }
           is_unit,
+          in_compile,               { is it being compiled ?? }
           in_second_compile,        { is this unit being compiled for the 2nd time? }
+          in_second_load,           { is this unit PPU loaded a 2nd time? }
           in_implementation,        { processing the implementation part? }
           in_global     : boolean;  { allow global settings }
           recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
@@ -1199,6 +1201,8 @@ end;
         sources_avail:=true;
         compiled:=false;
         recompile_reason:=rr_unknown;
+        in_second_load:=false;
+        in_compile:=false;
         in_second_compile:=false;
         in_implementation:=false;
         in_global:=true;
@@ -1326,7 +1330,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.101  1999-08-27 10:43:20  pierre
+  Revision 1.102  1999-08-31 15:51:10  pierre
+   * in_second_compile cleaned up, in_compile and in_second_load added
+
+  Revision 1.101  1999/08/27 10:43:20  pierre
    + interface CRC check with ifdef Test_double_checksum added
 
   Revision 1.100  1999/08/24 13:14:01  peter
