@@ -365,6 +365,22 @@ procedure testnotqword;
        do_error(1702);
   end;
 
+procedure testnegqword;
+
+  var
+     q0,q1,q2,q3,q4 : qword;
+
+  begin
+     assignqword($1,$0,q1);
+     assignqword($0,1234,q2);
+     if -q1<>(0-q1) then
+       do_error(2700);
+     if -q2<>(0-q2) then
+       do_error(2701);
+     if -(q1+q2)<>(0-(q1+q2)) then
+       do_error(2702);
+  end;
+
 procedure testmulqword;
 
   var
@@ -1059,6 +1075,11 @@ begin
    writeln('Testing QWord logical not operator');
    testnotqword;
    writeln('Testing QWord logical not operator was successful');
+   writeln;
+
+   writeln('Testing QWord logical - operator');
+   testnegqword;
+   writeln('Testing QWord logical - operator was successful');
    writeln;
 
    writeln('Testing QWord logical shift operators (shr,shr)');
