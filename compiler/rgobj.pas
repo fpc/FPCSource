@@ -1525,42 +1525,44 @@ unit rgobj;
               ait_regalloc:
                 with Tai_regalloc(p) do
                   begin
-                    { Only alloc/dealloc is needed for the optimizer, remove
-                      other regalloc }
-                    if not(ratype in [ra_alloc,ra_dealloc]) then
+                    if (getregtype(reg)=regtype) then
                       begin
-                        q:=Tai(next);
-                        list.remove(p);
-                        p.free;
-                        p:=q;
-                        continue;
-                      end
-                    else
-                      begin
-                        if (getregtype(reg)=regtype) then
-                          setsupreg(reg,reginfo[getsupreg(reg)].colour);
-                        {
-                          Remove sequences of release and
-                          allocation of the same register like. Other combinations
-                          of release/allocate need to stay in the list.
-
-                             # Register X released
-                             # Register X allocated
-                        }
-                        if assigned(previous) and
-                           (ratype=ra_alloc) and
-                           (Tai(previous).typ=ait_regalloc) and
-                           (Tai_regalloc(previous).reg=reg) and
-                           (Tai_regalloc(previous).ratype=ra_dealloc) then
+                        { Only alloc/dealloc is needed for the optimizer, remove
+                          other regalloc }
+                        if not(ratype in [ra_alloc,ra_dealloc]) then
                           begin
                             q:=Tai(next);
-                            hp:=tai(previous);
-                            list.remove(hp);
-                            hp.free;
                             list.remove(p);
                             p.free;
                             p:=q;
                             continue;
+                          end
+                        else
+                          begin
+                            setsupreg(reg,reginfo[getsupreg(reg)].colour);
+                            {
+                              Remove sequences of release and
+                              allocation of the same register like. Other combinations
+                              of release/allocate need to stay in the list.
+
+                                 # Register X released
+                                 # Register X allocated
+                            }
+                            if assigned(previous) and
+                               (ratype=ra_alloc) and
+                               (Tai(previous).typ=ait_regalloc) and
+                               (Tai_regalloc(previous).reg=reg) and
+                               (Tai_regalloc(previous).ratype=ra_dealloc) then
+                              begin
+                                q:=Tai(next);
+                                hp:=tai(previous);
+                                list.remove(hp);
+                                hp.free;
+                                list.remove(p);
+                                p.free;
+                                p:=q;
+                                continue;
+                              end;
                           end;
                       end;
                   end;
@@ -1992,7 +1994,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.143  2004-10-15 09:14:17  mazen
+  Revision 1.144  2004-10-24 17:04:01  peter
+    * during translation only process regalloc for the current regtype
+
+  Revision 1.143  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
