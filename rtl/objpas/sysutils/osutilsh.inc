@@ -16,13 +16,14 @@
 { OS handling utilities }
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
-{$ifdef HAS_EXEC_ANSI}	// define is temporarily.
-function Exec (Const Path: AnsiString; Const ComLine: AnsiString):integer;  
-{$endif}
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
 {
   $Log$
-  Revision 1.2  2004-01-03 08:55:58  marco
+  Revision 1.3  2004-01-05 22:37:24  florian
+    * changed sysutils.exec to ExecuteProcess
+
+  Revision 1.2  2004/01/03 08:55:58  marco
    * Exec(ansistring) function
 
   Revision 1.1  2003/10/06 21:01:06  peter

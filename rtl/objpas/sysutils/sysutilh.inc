@@ -140,7 +140,7 @@ type
    EAbort           = Class(Exception);
    EAbstractError   = Class(Exception);
    EAssertionFailed = Class(Exception);
-   
+
    EPropReadOnly = class(Exception);
    EPropWriteOnly = class(Exception);
 
@@ -150,6 +150,11 @@ type
 
    EPackageError = class(Exception);
 
+   EOSError = class(Exception)
+   public
+     ErrorCode: DWORD;
+   end;
+   
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
 
@@ -167,7 +172,7 @@ type
 
 type
   TTerminateProc = function: Boolean;
-  
+
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
 
@@ -226,7 +231,10 @@ Type
 
 {
   $Log$
-  Revision 1.5  2003-11-26 22:17:42  michael
+  Revision 1.6  2004-01-05 22:37:24  florian
+    * changed sysutils.exec to ExecuteProcess
+
+  Revision 1.5  2003/11/26 22:17:42  michael
   + Merged fixbranch fixes, missing in main branch
 
   Revision 1.4  2003/11/26 20:12:08  michael

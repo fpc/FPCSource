@@ -113,7 +113,7 @@ program fpc;
      ppcbin:='ppcppc';
      processorname:='powerpc';
 {$endif powerpc}
-     versionstr:='';			  { Default is just the name }  
+     versionstr:='';			  { Default is just the name }
      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
@@ -134,51 +134,51 @@ program fpc;
                        writeln(ppcbin);
                        halt(0);
                      end
-                     { -PP is a special code that will show the                 
-                       processor and exit immediatly. It's                      
-                       main usage is for Makefile }                             
-                     else if processorstr='P' then                              
-                      begin                                                     
-                        { report the processor }                                
-                        writeln(processorname);                                 
-                        halt(0);                                                
-                      end                                                       
-                     else if processorstr='i386' then                           
-                       ppcbin:='ppc386'                                         
-                     else if processorstr='m68k' then                           
-                       ppcbin:='ppc68k'                                         
-                     else if processorstr='alpha' then                          
-                       ppcbin:='ppcapx'                                         
-                     else if processorstr='powerpc' then                        
-                       ppcbin:='ppcppc'                                         
-                     else error('Illegal processor type "'+processorstr+'"');   
-                     end                                                        
-                   else                                                          
-                    ppccommandline:=ppccommandline+s+' ';                         
-            end;                                                            
+                     { -PP is a special code that will show the
+                       processor and exit immediatly. It's
+                       main usage is for Makefile }
+                     else if processorstr='P' then
+                      begin
+                        { report the processor }
+                        writeln(processorname);
+                        halt(0);
+                      end
+                     else if processorstr='i386' then
+                       ppcbin:='ppc386'
+                     else if processorstr='m68k' then
+                       ppcbin:='ppc68k'
+                     else if processorstr='alpha' then
+                       ppcbin:='ppcapx'
+                     else if processorstr='powerpc' then
+                       ppcbin:='ppcppc'
+                     else error('Illegal processor type "'+processorstr+'"');
+                     end
+                   else
+                    ppccommandline:=ppccommandline+s+' ';
+            end;
        end;
 
      if versionstr<>'' then
-       ppcbin:=ppcbin+'-'+versionstr;   
+       ppcbin:=ppcbin+'-'+versionstr;
      { find the full path to the specified exe }
      findexe(ppcbin);
 
      { call ppcXXX }
-     swapvectors;
-     {$ifdef unix}
-     errorvalue:=SysUtils.exec(ppcbin,ppccommandline);
-     {$else}
-     Dos.exec(ppcbin,ppccommandline);
-     errorvalue:=doserror;
-     {$endif}
-     swapvectors;
+     try
+       errorvalue:=ExecuteProcess(ppcbin,ppccommandline);
+     except
+       error(ppcbin+' can''t be executed');
+     end;
      if errorvalue<>0 then
        error(ppcbin+' can''t be executed');
      halt(dosexitcode);
   end.
 {
   $Log$
-  Revision 1.10  2004-01-03 09:20:45  marco
+  Revision 1.11  2004-01-05 22:41:20  florian
+    * changed sysutils.exec to ExecuteProcess
+
+  Revision 1.10  2004/01/03 09:20:45  marco
    * errorhandling fixed
 
   Revision 1.9  2004/01/03 09:12:23  marco

@@ -21,7 +21,7 @@ interface
 { force ansistrings }
 {$H+}
 
-{$DEFINE HAS_EXEC_ANSI} 
+{$DEFINE HAS_EXEC_ANSI}
 
 uses
   Unix,errors,sysconst;
@@ -478,36 +478,43 @@ begin
   Result:=StrPas(BaseUnix.FPGetenv(PChar(EnvVar)));
 end;
 
-function Exec (Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   pid    : longint;
   err    : longint;
-  // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7
+  e : EOSError;
+  
 Begin
-  pid:=fpFork; 
+  pid:=fpFork;
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-     if ComLine='' then  
-      Execl(Path)
+     if ComLine='' then
+       Execl(Path)
      else
-      Execl(Path+' '+ComLine);
-   {If the execve fails, we return an exitvalue of 127, to let it be known}
+       Execl(Path+' '+ComLine);
+     { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
     begin
-      result:=8;
-      exit
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,-1]);
+      e.ErrorCode:=-1;
+      raise e;
     end;
-{We're in the parent, let's wait.}
+    
+  { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
   if (result>=0) and (result<>127) then
-   result:=0
+    result:=0
   else
-   result:=8; // perhaps one time give an better error
+    begin
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,result]);
+      e.ErrorCode:=result;
+      raise e;
+    end;
 End;
 
 
@@ -524,7 +531,10 @@ end.
 {
 
   $Log$
-  Revision 1.27  2004-01-03 09:09:11  marco
+  Revision 1.28  2004-01-05 22:37:15  florian
+    * changed sysutils.exec to ExecuteProcess
+
+  Revision 1.27  2004/01/03 09:09:11  marco
    * Unix exec(ansistring)
 
   Revision 1.26  2003/11/26 20:35:14  michael
