@@ -13,6 +13,9 @@
 
  **********************************************************************}
 
+{-----------------------------------------------------------------------}
+{                          Internal routines                            }
+{-----------------------------------------------------------------------}
 
  procedure addmode(mode: TModeInfo);
   {********************************************************}
@@ -102,5 +105,184 @@
           dispose(tmp);
         end;
     end;
+
+{-----------------------------------------------------------------------}
+{                          External routines                            }
+{-----------------------------------------------------------------------}
+
+   function GetModeName(ModeNumber: integer): string;
+  {********************************************************}
+  { Function GetModeName()                                 }
+  {--------------------------------------------------------}
+  { Checks  the known video list, and returns ModeName     }
+  { string. On error returns an empty string.              }
+  {********************************************************}
+    var
+     mode: PModeInfo;
+    begin
+      mode:=nil;
+      GetModeName:='';
+      { only search in the current driver modes ... }
+      mode:=SearchMode(IntCurrentDriver,ModeNumber);
+      if assigned(mode) then
+          GetModeName:=Mode^.ModeName
+      else
+         _GraphResult := grInvalidMode;
+    end;
+
+   function GetGraphMode: Integer;
+     begin
+      GetGraphMode := IntCurrentMode;
+     end;
+
+   function GetMaxMode: word;
+   { I know , i know, this routine is very slow, and it would }
+   { be much easier to sort the linked list of possible modes }
+   { instead of doing this, but I'm lazy!! And anyways, the   }
+   { speed of the routine here is not that important....      }
+    var
+     i: word;
+     mode: PModeInfo;
+    begin
+      mode:=nil;
+      i:=0;
+      repeat
+        inc(i);
+        { mode 0 always exists... }
+        { start search at 1..     }
+        mode:=SearchMode(IntCurrentDriver,i);
+      until not assigned(mode);
+      GetMaxMode:=i;
+    end;
+
+
+    procedure GetModeRange(GraphDriver: Integer; var LoMode,
+      HiMode: Integer);
+      var
+       i : integer;
+       mode : PModeInfo;
+     begin
+       LoMode:=-1;
+       HiMode:=-1;
+       mode := nil;
+       { First search if the graphics driver is supported ..  }
+       { since mode zero is always supported.. if that driver }
+       { is supported it should return something...           }
+       mode := SearchMode(GraphDriver, 0);
+       { driver not supported...}
+       if not assigned(mode) then exit;
+       { now it exists... find highest available mode... }
+       LoMode := 0;
+       mode:=nil;
+       i:=-1;
+       repeat
+         inc(i);
+         { start search at 0..     }
+         mode:=SearchMode(GraphDriver,i);
+       until not assigned(mode);
+       HiMode := i-1;
+     end;
+
+
+  procedure SetGraphMode(mode: Integer);
+    var
+     modeinfo: PModeInfo;
+    begin
+      { check if the mode exists... }
+      modeinfo := searchmode(IntcurrentDriver,mode);
+      if not assigned(modeinfo) then
+        begin
+          _GraphResult := grInvalidMode;
+          exit;
+       end;
+    { reset all hooks...}
+    DefaultHooks;
+    { arccall not reset - tested against VGA BGI driver }
+    { Setup all hooks if none, keep old defaults...}
+
+      { required hooks - returns error if no hooks to these }
+      { routines.                                           }
+      if assigned(modeinfo^.DirectPutPixel) then
+         DirectPutPixel := modeinfo^.DirectPutPixel
+      else
+        begin
+         _Graphresult := grInvalidMode;
+         exit;
+       end;
+
+      if assigned(modeinfo^.PutPixel) then
+         PutPixel := modeinfo^.PutPixel
+      else
+        begin
+         _Graphresult := grInvalidMode;
+         exit;
+       end;
+
+      if assigned(modeinfo^.GetPixel) then
+         GetPixel := modeinfo^.GetPixel
+      else
+        begin
+         _Graphresult := grInvalidMode;
+         exit;
+       end;
+
+      { optional hooks. }
+      if assigned(modeinfo^.ClearViewPort) then
+         ClearViewPort := modeinfo^.ClearViewPort;
+      if assigned(modeinfo^.PutImage) then
+         PutImage := modeinfo^.PutImage;
+      if assigned(modeinfo^.GetImage) then
+         GetImage := modeinfo^.GetImage;
+      if assigned(modeinfo^.ImageSize) then
+         ImageSize := modeinfo^.ImageSize;
+      if assigned(modeinfo^.GetScanLine) then
+         GetScanLine := modeinfo^.GetScanLine;
+      if assigned(modeinfo^.Line) then
+         Line := modeinfo^.Line;
+      if assigned(modeinfo^.InternalEllipse) then
+         InternalEllipse := modeinfo^.InternalEllipse;
+      if assigned(modeinfo^.PatternLine) then
+         PatternLine := modeinfo^.PatternLine;
+      if assigned(modeinfo^.HLine) then
+         Hline := modeinfo^.Hline;
+      if assigned(modeinfo^.Vline) then
+         VLine := modeinfo^.VLine;
+      IntCurrentMode := modeinfo^.ModeNumber;
+      IntCurrentDriver := modeinfo^.DriverNumber;
+      XAspect := modeinfo^.XAspect;
+      YAspect := modeinfo^.YAspect;
+      MaxX := modeinfo^.MaxX;
+      MaxY := modeinfo^.MaxY;
+      MaxColor := modeinfo^.MaxColor;
+      { now actually initialize the video mode...}
+      { check first if the routine exists        }
+      if not assigned(modeinfo^.InitMode) then
+        begin
+          _GraphResult := grInvalidMode;
+          exit;
+        end;
+      modeinfo^.InitMode;
+      { It is very important that this call be made }
+      { AFTER the other variables have been setup.  }
+      { Since it calls some routines which rely on  }
+      { those variables.                            }
+      GraphDefaults;
+      SetViewPort(0,0,MaxX,MaxY,TRUE);
+    end;
+
+    procedure RestoreCrtMode;
+  {********************************************************}
+  { Procedure RestoreCRTMode()                             }
+  {--------------------------------------------------------}
+  { Returns to the video mode which was set before the     }
+  { InitGraph. Hardware state is set to the old values.    }
+  {--------------------------------------------------------}
+  { NOTE: -                                                }
+  {       -                                                }
+  {********************************************************}
+     begin
+       RestoreVideoState;
+     end;
+
 
 
