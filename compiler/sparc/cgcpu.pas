@@ -255,17 +255,22 @@ procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
   end;
 {********************** load instructions ********************}
 procedure TCgSparc.a_load_const_reg(list:TAasmOutput;size:TCGSize;a:aword;reg:TRegister);
-
-var r:Tregister;
-
-  BEGIN
+  var
+    r:Tregister;
+  begin
     r.enum:=R_G0;
-    WITH List DO
-      IF a<>0
-      THEN{R_G0 is usually set to zero, so we use it}
-        Concat(taicpu.op_reg_const_reg(A_OR,r,a,reg))
-      ELSE{The is no A_MOV in sparc, that's why we use A_OR with help of R_G0}
-        Concat(taicpu.op_reg_reg_reg(A_OR,r,r,reg));
+    with List do
+      if a=0
+      then{R_G0 is usually set to zero, so we use it}
+        Concat(taicpu.op_reg_reg_reg(A_OR,r,r,reg))
+      else{There is no A_MOV in sparc, that's why we use A_OR with help of R_G0}
+        begin
+          Concat(taicpu.op_reg_const_reg(A_OR,r,a and $00001FFF,reg));
+          a:=a and $FFFFE000;
+          if a<>0
+          then
+            Concat(taicpu.op_const_reg(A_SETHI,a,reg));
+        end;
   END;
 procedure TCgSparc.a_load_const_ref(list:TAasmOutput;size:tcgsize;a:aword;CONST ref:TReference);
 
@@ -1444,7 +1449,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.45  2003-04-29 11:58:21  mazen
+  Revision 1.46  2003-05-06 15:02:40  mazen
+  * fixed a bug in a_load_const_reg related to max 13bit value limit
+    for immediat value ==> use of A_SETHI for greater values
+
+  Revision 1.45  2003/04/29 11:58:21  mazen
   * fixed bug of output generated assembler for a_cmp_const_ref_label
 
   Revision 1.44  2003/04/28 09:44:42  mazen
