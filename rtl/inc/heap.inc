@@ -548,8 +548,12 @@ begin
      inc(size,sizeof(heap_mem_info));
    end;
 {$endif CHECKHEAP}
-  if size=0 then
+{ Something to allocate ? }
+  if size<=0 then
    begin
+     { give an error for < 0 }
+     if size<0 then
+      HandleError(204);
      p:=heapend;
 {$ifdef CHECKHEAP}
      goto check_new;
@@ -712,8 +716,10 @@ var
 label
   freemem_exit;
 begin
-  if size=0 then
+  if size<=0 then
    begin
+     if size<0 then
+      HandleError(204);
      p:=nil;
      exit;
    end;
@@ -1080,7 +1086,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-10-01 14:55:17  peter
+  Revision 1.3  1998-10-22 23:50:45  peter
+    + check for < 0 which otherwise segfaulted
+
+  Revision 1.2  1998/10/01 14:55:17  peter
     + memorymanager like delphi
 
   Revision 1.1  1998/09/14 10:48:17  peter
