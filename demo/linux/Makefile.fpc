@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for FPC linux demos (part of FPC demo package)
+#
+
+[target]
+programs_linux=daemon
+
+[default]
+fpcdir=../..

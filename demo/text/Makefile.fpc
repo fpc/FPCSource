@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for FPC text demos (part of FPC demo package)
+#
+
+[target]
+programs=eratos qsort hello blackbox magic lines
+
+[default]
+fpcdir=../..
