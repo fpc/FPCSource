@@ -75,9 +75,7 @@ Begin
   if b then
    begin
      OldIO:=Tio;
-     Tio.c_iflag:=Tio.c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
-                                INLCR or IGNCR or ICRNL or IXON));
-     Tio.c_lflag:=Tio.c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
+     CFMakeRaw(Tio);
    end
   else
     Tio := OldIO;
@@ -1532,7 +1530,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2004-07-09 19:03:35  peter
+  Revision 1.20  2004-12-28 12:46:11  florian
+    * uses now CFMakeRaw
+
+  Revision 1.19  2004/07/09 19:03:35  peter
     * isatty return cint again
 
   Revision 1.17  2003/11/19 17:11:40  marco
