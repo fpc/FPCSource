@@ -47,6 +47,7 @@ const
  ofRead        = $0000;     {Open for reading}
  ofWrite       = $0001;     {Open for writing}
  ofReadWrite   = $0002;     {Open for reading/writing}
+ doDenyRW      = $0010;     {DenyAll (no sharing)}
  faCreateNew   = $00010000; {Create if file does not exist}
  faOpenReplace = $00040000; {Truncate if file exists}
  faCreate      = $00050000; {Create if file does not exist, truncate otherwise}
@@ -93,7 +94,7 @@ begin
 {$ENDIF}
     asm
         mov eax, 7F2Bh
-        mov ecx, ofReadWrite or faCreate
+        mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
 {$IFOPT H+}
         mov edx, FileName
 {$ELSE}
@@ -637,30 +638,29 @@ end;
 {$asmmode intel}
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
-(* Expects the default record alignment (DWord)!!! *)
+(* Expects the default record alignment (word)!!! *)
     mov ah, 2Ah
     call syscall
     mov edi, SystemTime
-    xor eax, eax
     mov ax, cx
-    stosd
+    stosw
     xor eax, eax
-    mov al, dh
-    stosd
     mov al, dl
+    shl eax, 16
+    mov al, dh
     stosd
     push edi
     mov ah, 2Ch
     call syscall
     pop edi
     xor eax, eax
+    mov al, cl
+    shl eax, 16
     mov al, ch
     stosd
-    mov al, cl
-    stosd
-    mov al, dh
-    stosd
     mov al, dl
+    shl eax, 16
+    mov al, dh
     stosd
 end;
 {$asmmode default}
@@ -757,7 +757,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.6  2000-10-15 20:44:18  hajny
+  Revision 1.7  2001-01-13 11:10:59  hajny
+    * FileCreate and GetLocalTime fixed
+
+  Revision 1.6  2000/10/15 20:44:18  hajny
     * FindClose correction
 
   Revision 1.5  2000/09/29 21:49:41  jonas
