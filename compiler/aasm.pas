@@ -79,7 +79,7 @@ unit aasm;
 
   { asm symbol functions }
     type
-       TAsmsymtype=(AS_NONE,AS_LOCAL,AS_GLOBAL,AS_EXTERNAL);
+       TAsmsymtype=(AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
 
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamed_object)
@@ -89,6 +89,8 @@ unit aasm;
          size    : longint;
          typ     : TAsmsymtype;
          constructor init(const s:string);
+         procedure reset;
+         procedure setaddress(sec:tsection;offset,len:longint);
        end;
 
        pasmsymbollist = ^tasmsymbollist;
@@ -153,6 +155,7 @@ unit aasm;
        pai_label = ^tai_label;
        tai_label = object(tai)
           l : plabel;
+          sym : pasmsymbol; { filled in pass1 of ag386bin }
           constructor init(_l : plabel);
           destructor done; virtual;
           procedure setaddress(offset:longint);
@@ -218,7 +221,6 @@ unit aasm;
        pai_const_symbol = ^tai_const_symbol;
        tai_const_symbol = object(tai)
           sym    : pasmsymbol;
-          address,
           offset : longint;
           constructor init(const name:string);
           constructor init_offset(const name:string;ofs:longint);
@@ -602,6 +604,7 @@ uses
         inherited init;
         typ:=ait_label;
         l:=_l;
+        sym:=nil;
         l^.is_set:=true;
       end;
 
@@ -803,13 +806,24 @@ uses
     constructor tasmsymbol.init(const s:string);
       begin;
         inherited init(s);
-        idx:=0;
+        reset;
+      end;
+
+    procedure tasmsymbol.reset;
+      begin
         section:=sec_none;
         address:=0;
         size:=0;
-        typ:=AS_NONE;
+        idx:=-1;
+        typ:=AS_EXTERNAL;
       end;
 
+    procedure tasmsymbol.setaddress(sec:tsection;offset,len:longint);
+      begin
+        section:=sec;
+        address:=offset;
+        size:=len;
+      end;
 
     { generates an help record for constants }
     function newasmsymbol(const s : string) : pasmsymbol;
@@ -867,11 +881,7 @@ uses
 
     procedure ResetAsmSym(p:Pnamed_object);{$ifndef FPC}far;{$endif}
       begin
-        pasmsymbol(p)^.idx:=0;
-        pasmsymbol(p)^.section:=sec_none;
-        pasmsymbol(p)^.address:=0;
-        pasmsymbol(p)^.size:=0;
-        pasmsymbol(p)^.typ:=AS_NONE;
+        pasmsymbol(p)^.reset;
       end;
 
 
@@ -1002,7 +1012,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.35  1999-03-05 13:09:48  peter
+  Revision 1.36  1999-03-08 14:51:04  peter
+    + smartlinking for ag386bin
+
+  Revision 1.35  1999/03/05 13:09:48  peter
     * first things for tai_cut support for ag386bin
 
   Revision 1.34  1999/03/03 11:59:27  pierre
