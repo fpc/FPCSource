@@ -703,7 +703,9 @@ implementation
          if not assigned(srsym) or
             (srsym.typ <> procsym) then
            begin
-             writeln('unknown compilerproc ',name);
+{$ifdef EXTDEBUG}
+             Comment(V_Error,'unknown compilerproc '+name);
+{$endif EXTDEBUG}
              internalerror(200107271);
            end;
          self.create(params,tprocsym(srsym),symowner,nil);
@@ -2630,7 +2632,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2002-10-05 12:43:25  carl
+  Revision 1.104  2002-10-05 15:15:45  peter
+    * Write unknwon compiler proc using Comment and only in Extdebug
+
+  Revision 1.103  2002/10/05 12:43:25  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
