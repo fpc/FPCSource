@@ -156,7 +156,8 @@ type
       procedure   WriteErrorText(Buf : pchar);
       function    GetPalette: PPalette;virtual;
       constructor Load(var S: TStream);
-      procedure   Store(var S: TStream);                                                                                                                                                                                                                       
+      procedure   Store(var S: TStream);
+
 
 
 
@@ -1588,6 +1589,8 @@ end;
 constructor TMessageListBox.Load(var S: TStream);
 begin
   inherited Load(S);
+  New(ModuleNames, Init(50,100));
+  NoSelection:=true;
 end;
 
 procedure TMessageListBox.Store(var S: TStream);
@@ -2360,7 +2363,7 @@ var D : DirStr;
       DS : DirStr;
       NS : NameStr;
       ES : ExtStr;
-      Found : boolean; 
+      Found : boolean;
       SName : string;
   begin
     for I:=1 to 100 do
@@ -2739,14 +2742,17 @@ begin
   RegisterType(RMessageListBox);
   RegisterType(RFPDesktop);
   RegisterType(RGDBSourceEditor);
-  RegisterType(RGDBWindow);                                                                                                                                                                                                                                 
+  RegisterType(RGDBWindow);
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.39  1999-09-03 12:54:07  pierre
+  Revision 1.40  1999-09-09 16:30:37  pierre
+   * ModuleNames was not created in TMessageListBox.Load
+
+  Revision 1.39  1999/09/03 12:54:07  pierre
     * adapted to modified tokens unit
     * TryToOpen works better
 
