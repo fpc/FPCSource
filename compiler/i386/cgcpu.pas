@@ -211,19 +211,20 @@ unit cgcpu;
         { return from proc }
         if (po_interrupt in current_procinfo.procdef.procoptions) then
           begin
-            if assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location) and
-               (current_procinfo.procdef.funcret_paraloc[calleeside].location^.loc=LOC_REGISTER) then
+            if (current_procinfo.procdef.funcret_paraloc[calleeside].loc<>LOC_VOID) and
+               (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
-            if assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location) and
-               assigned(current_procinfo.procdef.funcret_paraloc[calleeside].location^.next) and
-               (current_procinfo.procdef.funcret_paraloc[calleeside].location^.next^.loc=LOC_REGISTER) then
+
+            if (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_REGISTER) and
+               (current_procinfo.procdef.funcret_paraloc[calleeside].size in [OS_64,OS_S64]) then
               list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
+
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ESI));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDI));
             { .... also the segment registers }
@@ -519,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-10-31 21:45:03  peter
+  Revision 1.61  2004-11-21 17:17:04  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.60  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -79,7 +79,13 @@ unit cgutils;
             LOC_REGISTER,
             LOC_CREGISTER : (
               case longint of
-                1 : (register : tregister);
+                1 : (register : tregister;
+{$ifdef m68k}
+                     { some m68k OSes require that the result is returned in d0 and a0
+                       the second location must be stored here }
+                     registeralias : tregister;
+{$endif m68k}
+                    );
 {$ifndef cpu64bit}
                 { overlay a 64 Bit register type }
                 2 : (register64 : tregister64);
@@ -183,7 +189,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-11-09 22:32:59  peter
+  Revision 1.5  2004-11-21 17:17:03  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.4  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

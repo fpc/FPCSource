@@ -495,7 +495,6 @@ implementation
         tempnode  : tnode;
         resultparaloc : pcgparalocation;
       begin
-        resultparaloc:=procdefinition.funcret_paraloc[callerside].location;
         cgsize:=procdefinition.funcret_paraloc[callerside].size;
 
         { structured results are easy to handle....
@@ -511,18 +510,18 @@ implementation
           { ansi/widestrings must be registered, so we can dispose them }
           if resulttype.def.needs_inittable then
             begin
-              if resultparaloc^.loc<>LOC_REGISTER then
+              if procdefinition.funcret_paraloc[callerside].loc<>LOC_REGISTER then
                 internalerror(200409261);
 
               { the FUNCTION_RESULT_REG is already allocated }
-              if getsupreg(resultparaloc^.register)<first_int_imreg then
-                cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
+              if getsupreg(procdefinition.funcret_paraloc[callerside].register)<first_int_imreg then
+                cg.ungetcpuregister(exprasmlist,procdefinition.funcret_paraloc[callerside].register);
               if not assigned(funcretnode) then
                 begin
                   { reg_ref could generate two instrcutions and allocate a register so we've to
                     save the result first before releasing it }
                   hregister:=cg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultparaloc^.register,hregister);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,procdefinition.funcret_paraloc[callerside].register,hregister);
 
                   location_reset(location,LOC_REFERENCE,OS_ADDR);
                   location.reference:=refcountedtemp;
@@ -531,7 +530,7 @@ implementation
               else
                 begin
                   hregister := cg.getaddressregister(exprasmlist);
-                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultparaloc^.register,hregister);
+                  cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,procdefinition.funcret_paraloc[callerside].register,hregister);
                   { in case of a regular funcretnode with ret_in_param, the }
                   { original funcretnode isn't touched -> make sure it's    }
                   { the same here (not sure if it's necessary)              }
@@ -549,12 +548,12 @@ implementation
             { we have only to handle the result if it is used }
             if (cnf_return_value_used in callnodeflags) then
               begin
-                location.loc:=resultparaloc^.loc;
-                case resultparaloc^.loc of
+                location.loc:=procdefinition.funcret_paraloc[callerside].loc;
+                case procdefinition.funcret_paraloc[callerside].loc of
                    LOC_FPUREGISTER:
                      begin
                        location_reset(location,LOC_FPUREGISTER,cgsize);
-                       location.register:=resultparaloc^.register;
+                       location.register:=procdefinition.funcret_paraloc[callerside].register;
 {$ifdef x86}
                        tcgx86(cg).inc_fpu_stack;
 {$else x86}
@@ -574,7 +573,7 @@ implementation
 {$ifndef cpu64bit}
                           if cgsize in [OS_64,OS_S64] then
                            begin
-                             procdefinition.funcret_paraloc[callerside].get_location(retloc);
+                             retloc:=procdefinition.funcret_paraloc[callerside];
                              if retloc.loc<>LOC_REGISTER then
                                internalerror(200409141);
                              { the function result registers are already allocated }
@@ -594,10 +593,10 @@ implementation
                                getregister was done for the full register
                                def_cgsize(resulttype.def) is used here because
                                it could be a constructor call }
-                             if getsupreg(resultparaloc^.register)<first_int_imreg then
-                               cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
+                             if getsupreg(procdefinition.funcret_paraloc[callerside].register)<first_int_imreg then
+                               cg.ungetcpuregister(exprasmlist,procdefinition.funcret_paraloc[callerside].register);
                              location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
-                             cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),resultparaloc^.register,location.register);
+                             cg.a_load_reg_reg(exprasmlist,cgsize,def_cgsize(resulttype.def),procdefinition.funcret_paraloc[callerside].register,location.register);
                            end;
                         end
                        else
@@ -610,10 +609,10 @@ implementation
                    LOC_MMREGISTER:
                      begin
                        location_reset(location,LOC_MMREGISTER,cgsize);
-                       if getsupreg(resultparaloc^.register)<first_mm_imreg then
-                         cg.ungetcpuregister(exprasmlist,resultparaloc^.register);
+                       if getsupreg(procdefinition.funcret_paraloc[callerside].register)<first_mm_imreg then
+                         cg.ungetcpuregister(exprasmlist,procdefinition.funcret_paraloc[callerside].register);
                        location.register:=cg.getmmregister(exprasmlist,cgsize);
-                       cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultparaloc^.register,location.register,mms_movescalar);
+                       cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,procdefinition.funcret_paraloc[callerside].register,location.register,mms_movescalar);
                      end;
 
                    else
@@ -624,11 +623,11 @@ implementation
               begin
 {$ifdef x86}
                 { release FPU stack }
-                if resultparaloc^.loc=LOC_FPUREGISTER then
+                if procdefinition.funcret_paraloc[callerside].loc=LOC_FPUREGISTER then
                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
 {$endif x86}
                 if cgsize<>OS_NO then
-                  paramanager.freeparaloc(exprasmlist,procdefinition.funcret_paraloc[callerside]);
+                  location_free(exprasmlist,procdefinition.funcret_paraloc[callerside]);
                 location_reset(location,LOC_VOID,OS_NO);
               end;
            end;
@@ -802,7 +801,6 @@ implementation
          pvreg,
          vmtreg : tregister;
          oldaktcallnode : tcallnode;
-         funcretloc : pcgparalocation;
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then
@@ -823,21 +821,21 @@ implementation
         { Include Function result registers }
         if (not is_void(resulttype.def)) then
           begin
-            funcretloc:=procdefinition.funcret_paraloc[callerside].location;
-            while assigned(funcretloc) do
-              begin
-                case funcretloc^.loc of
-                  LOC_REGISTER,
-                  LOC_CREGISTER:
-                    include(regs_to_save_int,getsupreg(funcretloc^.register));
-                  LOC_FPUREGISTER,
-                  LOC_CFPUREGISTER:
-                    include(regs_to_save_fpu,getsupreg(funcretloc^.register));
-                  LOC_MMREGISTER,
-                  LOC_CMMREGISTER:
-                    include(regs_to_save_mm,getsupreg(funcretloc^.register));
-                end;
-                funcretloc:=funcretloc^.next;
+            case procdefinition.funcret_paraloc[callerside].loc of
+              LOC_REGISTER,
+              LOC_CREGISTER:
+                include(regs_to_save_int,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER:
+                include(regs_to_save_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER:
+                include(regs_to_save_mm,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+              LOC_REFERENCE,
+              LOC_VOID:
+                ;
+              else
+                internalerror(2004110213);
               end;
           end;
 
@@ -986,21 +984,21 @@ implementation
            function result }
          if (not is_void(resulttype.def)) then
            begin
-            funcretloc:=procdefinition.funcret_paraloc[callerside].location;
-            while assigned(funcretloc) do
-              begin
-                case funcretloc^.loc of
-                  LOC_REGISTER,
-                  LOC_CREGISTER:
-                    exclude(regs_to_save_int,getsupreg(funcretloc^.register));
-                  LOC_FPUREGISTER,
-                  LOC_CFPUREGISTER:
-                    exclude(regs_to_save_fpu,getsupreg(funcretloc^.register));
-                  LOC_MMREGISTER,
-                  LOC_CMMREGISTER:
-                    exclude(regs_to_save_mm,getsupreg(funcretloc^.register));
-                end;
-                funcretloc:=funcretloc^.next;
+             case procdefinition.funcret_paraloc[callerside].loc of
+               LOC_REGISTER,
+               LOC_CREGISTER:
+                 exclude(regs_to_save_int,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+               LOC_FPUREGISTER,
+               LOC_CFPUREGISTER:
+                 exclude(regs_to_save_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+               LOC_MMREGISTER,
+               LOC_CMMREGISTER:
+                 exclude(regs_to_save_mm,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+               LOC_REFERENCE,
+               LOC_VOID:
+                 ;
+               else
+                 internalerror(2004110214);
               end;
            end;
          if cg.uses_registers(R_MMREGISTER) then
@@ -1250,7 +1248,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.185  2004-11-15 23:35:31  peter
+  Revision 1.186  2004-11-21 17:17:03  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.185  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

@@ -149,7 +149,6 @@ implementation
       end;
 
 
-
 {*****************************************************************************
                                     TTGOBJ
 *****************************************************************************}
@@ -623,7 +622,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-10-31 21:45:03  peter
+  Revision 1.50  2004-11-21 17:17:04  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.49  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

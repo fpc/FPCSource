@@ -788,7 +788,7 @@ implementation
             gen_save_used_regs(templist);
             aktproccode.insertlistafter(headertai,templist);
             aktfilepos:=exitpos;
-            gen_restore_used_regs(aktproccode,procdef.funcret_paraloc[calleeside]);
+            gen_restore_used_regs(aktproccode);
             { Add stack checking code }
             if (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
@@ -1438,7 +1438,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.218  2004-11-19 08:17:02  michael
+  Revision 1.219  2004-11-21 17:17:03  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.218  2004/11/19 08:17:02  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.217  2004/11/17 22:21:35  peter

@@ -61,7 +61,7 @@ interface
     procedure gen_proc_exit_code(list:Taasmoutput);
     procedure gen_stack_check_code(list:Taasmoutput);
     procedure gen_save_used_regs(list:TAAsmoutput);
-    procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tcgpara);
+    procedure gen_restore_used_regs(list:TAAsmoutput);
     procedure gen_initialize_code(list:TAAsmoutput);
     procedure gen_finalize_code(list:TAAsmoutput);
     procedure gen_entry_code(list:TAAsmoutput);
@@ -112,6 +112,7 @@ interface
     procedure generate_rtti(p:Ttypesym);
     procedure generate_inittable(p:tsym);
 
+    procedure location_free(list: taasmoutput; const location : TLocation);
 
 implementation
 
@@ -133,6 +134,47 @@ implementation
 {*****************************************************************************
                                   Misc Helpers
 *****************************************************************************}
+
+    procedure location_free(list: taasmoutput; const location : TLocation);
+{$ifdef cputargethasfixedstack}
+      var
+        href : treference;
+{$endif cputargethasfixedstack}
+      begin
+        case location.loc of
+          LOC_VOID:
+            ;
+          LOC_REGISTER,
+          LOC_CREGISTER:
+            begin
+              if getsupreg(location.register)<first_int_imreg then
+                cg.ungetcpuregister(list,location.register);
+            end;
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER:
+            begin
+              if getsupreg(location.register)<first_fpu_imreg then
+                cg.ungetcpuregister(list,location.register);
+            end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
+            begin
+              if getsupreg(location.register)<first_mm_imreg then
+                cg.ungetcpuregister(list,location.register);
+            end;
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+{$ifdef cputargethasfixedstack}
+              location_freetemp(list,location);
+{$endif cputargethasfixedstack}
+            end;
+          else
+            internalerror(2004110211);
+        end;
+      end;
+
+
 
    { DO NOT RELY on the fact that the tnode is not yet swaped
      because of inlining code PM }
@@ -1017,10 +1059,10 @@ implementation
         resloc,
         restmploc : tlocation;
         hreg   : tregister;
-        funcretloc : pcgparalocation;
+        funcretloc : tlocation;
       begin
         { Is the loading needed? }
-        if is_void(current_procinfo.procdef.rettype.def) or
+        if (current_procinfo.procdef.funcret_paraloc[calleeside].loc=LOC_VOID) or
            (
             (po_assembler in current_procinfo.procdef.procoptions) and
             (not(assigned(current_procinfo.procdef.funcretsym)) or
@@ -1028,9 +1070,7 @@ implementation
            ) then
            exit;
 
-        funcretloc:=current_procinfo.procdef.funcret_paraloc[calleeside].location;
-        if not assigned(funcretloc) then
-          internalerror(200408202);
+        funcretloc:=current_procinfo.procdef.funcret_paraloc[calleeside];
 
         { constructors return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
@@ -1076,13 +1116,13 @@ implementation
             { Here, we return the function result. In most architectures, the value is
               passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
               function returns in a register and the caller receives it in an other one }
-            case funcretloc^.loc of
+            case funcretloc.loc of
               LOC_REGISTER:
                 begin
 {$ifndef cpu64bit}
                   if current_procinfo.procdef.funcret_paraloc[calleeside].size in [OS_64,OS_S64] then
                     begin
-                      current_procinfo.procdef.funcret_paraloc[calleeside].get_location(resloc);
+                      resloc:=current_procinfo.procdef.funcret_paraloc[calleeside];
                       if resloc.loc<>LOC_REGISTER then
                         internalerror(200409141);
                       { Load low and high register separate to generate better register
@@ -1131,34 +1171,39 @@ implementation
                   else
 {$endif cpu64bit}
                     begin
-                      hreg:=cg.makeregsize(list,funcretloc^.register,restmploc.size);
-                      if getsupreg(funcretloc^.register)<first_int_imreg then
+                      hreg:=cg.makeregsize(list,funcretloc.register,funcretloc.size);
+                      if getsupreg(funcretloc.register)<first_int_imreg then
                         begin
-                          cg.getcpuregister(list,funcretloc^.register);
+                          cg.getcpuregister(list,funcretloc.register);
                           cg.ungetcpuregister(list,hreg);
                           { for the optimizer }
-                          cg.a_reg_alloc(list,funcretloc^.register);
+                          cg.a_reg_alloc(list,funcretloc.register);
                         end;
+                      { it could be that a structure is passed in memory but the function is expected to
+                        return a pointer to this memory }
+                      if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+                        cg.a_load_loc_reg(list,OS_ADDR,restmploc,hreg)
+                      else
                       cg.a_load_loc_reg(list,restmploc.size,restmploc,hreg);
                     end;
                 end;
               LOC_FPUREGISTER:
                 begin
-                  if getsupreg(funcretloc^.register)<first_fpu_imreg then
+                  if getsupreg(funcretloc.register)<first_fpu_imreg then
                     begin
-                      cg.getcpuregister(list,funcretloc^.register);
-                      cg.ungetcpuregister(list,funcretloc^.register);
+                      cg.getcpuregister(list,funcretloc.register);
+                      cg.ungetcpuregister(list,funcretloc.register);
                     end;
-                  cg.a_loadfpu_loc_reg(list,restmploc,funcretloc^.register);
+                  cg.a_loadfpu_loc_reg(list,restmploc,funcretloc.register);
                 end;
               LOC_MMREGISTER:
                 begin
-                  if getsupreg(funcretloc^.register)<first_mm_imreg then
+                  if getsupreg(funcretloc.register)<first_mm_imreg then
                     begin
-                      cg.getcpuregister(list,funcretloc^.register);
-                      cg.ungetcpuregister(list,funcretloc^.register);
+                      cg.getcpuregister(list,funcretloc.register);
+                      cg.ungetcpuregister(list,funcretloc.register);
                     end;
-                  cg.a_loadmm_loc_reg(list,restmploc.size,restmploc,funcretloc^.register,mms_movescalar);
+                  cg.a_loadmm_loc_reg(list,restmploc.size,restmploc,funcretloc.register,mms_movescalar);
                 end;
               LOC_INVALID,
               LOC_REFERENCE:
@@ -1194,6 +1239,7 @@ implementation
             end;
          end;
 
+
        procedure unget_para(const paraloc:TCGParaLocation);
          begin
             case paraloc.loc of
@@ -1214,6 +1260,7 @@ implementation
                 end;
             end;
          end;
+
 
        procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference);
          var
@@ -1238,6 +1285,7 @@ implementation
                 internalerror(2002081302);
             end;
          end;
+
 
        procedure gen_load_reg(const paraloc:TCGParaLocation;reg:tregister);
          var
@@ -1721,7 +1769,7 @@ implementation
         cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
-        paramanager.freeparaloc(list,current_procinfo.procdef.funcret_paraloc[calleeside]);
+        location_free(list,current_procinfo.procdef.funcret_paraloc[calleeside]);
 
         { end of frame marker for call frame info }
         dwarfcfi.end_frame(list);
@@ -1756,7 +1804,7 @@ implementation
       end;
 
 
-    procedure gen_restore_used_regs(list:TAAsmoutput;const funcretparaloc:tcgpara);
+    procedure gen_restore_used_regs(list:TAAsmoutput);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -2075,8 +2123,7 @@ implementation
 
     procedure gen_alloc_inline_funcret(list:TAAsmoutput;pd:tprocdef);
       var
-        calleeparaloc,
-        callerparaloc : pcgparalocation;
+        callerparaloc : tlocation;
       begin
         if not assigned(pd.funcretsym) or
            (po_assembler in pd.procoptions) then
@@ -2087,50 +2134,52 @@ implementation
             localloc.loc:=LOC_REFERENCE;
             localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
             tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
-            calleeparaloc:=pd.funcret_paraloc[calleeside].location;
-            callerparaloc:=pd.funcret_paraloc[callerside].location;
-            while assigned(calleeparaloc) do
+            callerparaloc:=pd.funcret_paraloc[callerside];
+            case pd.funcret_paraloc[calleeside].loc of
+              LOC_FPUREGISTER:
+                begin
+                  pd.funcret_paraloc[calleeside].register:=cg.getfpuregister(list,pd.funcret_paraloc[calleeside].size);
+                  pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                end;
+              LOC_REGISTER:
+                begin
+{$ifndef cpu64bit}
+                  if callerparaloc.size in [OS_64,OS_S64] then
+                    begin
+                    end
+                  else
+{$endif cpu64bit}
+                    begin
+                      pd.funcret_paraloc[calleeside].register:=cg.getintregister(list,pd.funcret_paraloc[calleeside].size);
+                      pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                    end;
+                end;
+              LOC_MMREGISTER:
+                begin
+                  pd.funcret_paraloc[calleeside].register:=cg.getmmregister(list,pd.funcret_paraloc[calleeside].size);
+                  pd.funcret_paraloc[callerside].register:=pd.funcret_paraloc[calleeside].register;
+                end;
+              LOC_REFERENCE:
+                begin
+                  pd.funcret_paraloc[calleeside].reference.offset := localloc.reference.offset;
+                  pd.funcret_paraloc[calleeside].reference.index := localloc.reference.base;
+                  pd.funcret_paraloc[callerside].reference.offset := localloc.reference.offset;
+                  pd.funcret_paraloc[callerside].reference.index := localloc.reference.base;
+                end;
+              LOC_VOID:
+                ;
+              else
+                internalerror(200411191);
+            end;
+            if cs_asm_source in aktglobalswitches then
               begin
-                if not assigned(callerparaloc) then
-                  internalerror(200408281);
-                if calleeparaloc^.loc<>callerparaloc^.loc then
-                   internalerror(200408282);
-                 case calleeparaloc^.loc of
-                   LOC_FPUREGISTER:
-                     begin
-                       calleeparaloc^.register:=cg.getfpuregister(list,calleeparaloc^.size);
-                       callerparaloc^.register:=calleeparaloc^.register;
-                     end;
-                   LOC_REGISTER:
-                     begin
-                       calleeparaloc^.register:=cg.getintregister(list,calleeparaloc^.size);
-                       callerparaloc^.register:=calleeparaloc^.register;
-                     end;
-                   LOC_MMREGISTER:
-                     begin
-                       calleeparaloc^.register:=cg.getmmregister(list,calleeparaloc^.size);
-                       callerparaloc^.register:=calleeparaloc^.register;
-                     end;
-                   LOC_REFERENCE:
-                     begin
-                       calleeparaloc^.reference.offset := localloc.reference.offset;
-                       calleeparaloc^.reference.index := localloc.reference.base;
-                       callerparaloc^.reference.offset := localloc.reference.offset;
-                       callerparaloc^.reference.index := localloc.reference.base;
-                     end;
-                 end;
-                 calleeparaloc:=calleeparaloc^.next;
-                 callerparaloc:=callerparaloc^.next;
-               end;
-             if cs_asm_source in aktglobalswitches then
-               begin
-                 case localloc.loc of
-                   LOC_REFERENCE :
-                     list.concat(Tai_comment.Create(strpnew('Funcret '+realname+' allocated at '+
-                         std_regname(localloc.reference.base)+tostr_with_plus(localloc.reference.offset))));
-                 end;
-               end;
-           end;
+                case localloc.loc of
+                  LOC_REFERENCE :
+                    list.concat(Tai_comment.Create(strpnew('Funcret '+realname+' allocated at '+
+                        std_regname(localloc.reference.base)+tostr_with_plus(localloc.reference.offset))));
+                end;
+              end;
+          end;
       end;
 
 
@@ -2210,7 +2259,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.242  2004-11-19 08:17:01  michael
+  Revision 1.243  2004-11-21 17:17:03  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.242  2004/11/19 08:17:01  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.241  2004/11/15 23:35:31  peter

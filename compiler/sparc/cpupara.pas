@@ -53,7 +53,8 @@ implementation
 
     uses
       cutils,verbose,systems,
-      defutil,cgobj;
+      defutil,
+      cgutils,cgobj;
 
     type
       tparasupregs = array[0..5] of tsuperregister;
@@ -142,7 +143,6 @@ implementation
 
     procedure tsparcparamanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
-        paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
         { Constructors return self instead of a boolean }
@@ -150,21 +150,24 @@ implementation
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.rettype.def);
-        p.funcret_paraloc[side].reset;
-        p.funcret_paraloc[side].Alignment:=std_param_align;
+
+        location_reset(p.funcret_paraloc[side],LOC_INVALID,OS_NO);
         p.funcret_paraloc[side].size:=retcgsize;
         { void has no location }
         if is_void(p.rettype.def) then
-          exit;
-        paraloc:=p.funcret_paraloc[side].add_location;
+          begin
+            p.funcret_paraloc[side].loc:=LOC_VOID;
+            exit;
+          end;
+
         { Return in FPU register? }
         if p.rettype.def.deftype=floatdef then
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
-            paraloc^.register:=NR_FPU_RESULT_REG;
+            p.funcret_paraloc[side].register:=NR_FPU_RESULT_REG;
             if retcgsize=OS_F64 then
-              setsubreg(paraloc^.register,R_SUBFD);
-            paraloc^.size:=retcgsize;
+              setsubreg(p.funcret_paraloc[side].register,R_SUBFD);
+            p.funcret_paraloc[side].size:=retcgsize;
           end
         else
          { Return in register? }
@@ -174,36 +177,31 @@ implementation
             if retcgsize in [OS_64,OS_S64] then
              begin
                { high }
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.size:=OS_32;
                if (side=callerside)  or (p.proccalloption=pocall_inline)then
-                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
+                 p.funcret_paraloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 p.funcret_paraloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
                { low }
-               paraloc:=p.funcret_paraloc[side].add_location;
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.size:=OS_32;
                if (side=callerside) or (p.proccalloption=pocall_inline) then
-                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
+                 p.funcret_paraloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+                 p.funcret_paraloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
              end
             else
 {$endif cpu64bit}
              begin
-               paraloc^.loc:=LOC_REGISTER;
-               paraloc^.size:=retcgsize;
+               p.funcret_paraloc[side].loc:=LOC_REGISTER;
+               p.funcret_paraloc[side].size:=retcgsize;
                if (side=callerside)  or (p.proccalloption=pocall_inline)then
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                 p.funcret_paraloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
                else
-                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                 p.funcret_paraloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
              end;
           end
         else
           begin
-            paraloc^.loc:=LOC_REFERENCE;
-            paraloc^.size:=retcgsize;
+            p.funcret_paraloc[side].loc:=LOC_REFERENCE;
+            p.funcret_paraloc[side].size:=retcgsize;
           end;
       end;
 
@@ -318,7 +316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-11-15 23:35:31  peter
+  Revision 1.48  2004-11-21 17:17:04  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.47  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

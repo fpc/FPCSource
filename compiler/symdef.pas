@@ -39,7 +39,8 @@ interface
        { aasm }
        aasmbase,aasmtai,
        cpubase,cpuinfo,
-       cgbase,parabase
+       cgbase,cgutils,
+       parabase
        ;
 
 
@@ -442,7 +443,7 @@ interface
 {$ifdef i386}
           fpu_used        : byte;    { how many stack fpu must be empty }
 {$endif i386}
-          funcret_paraloc : array[tcallercallee] of TCGPara;
+          funcret_paraloc : array[tcallercallee] of TLocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -3269,8 +3270,9 @@ implementation
          savesize:=sizeof(aint);
          requiredargarea:=0;
          has_paraloc_info:=false;
-         funcret_paraloc[callerside].init;
-         funcret_paraloc[calleeside].init;
+
+         location_reset(funcret_paraloc[callerside],LOC_INVALID,OS_NO);
+         location_reset(funcret_paraloc[calleeside],LOC_INVALID,OS_NO);
       end;
 
 
@@ -3296,8 +3298,6 @@ implementation
             memprocparast.stop;
 {$endif MEMDEBUG}
           end;
-         funcret_paraloc[callerside].done;
-         funcret_paraloc[calleeside].done;
          inherited destroy;
       end;
 
@@ -3422,15 +3422,14 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getsmallset(procoptions);
 
-         funcret_paraloc[callerside].init;
-         funcret_paraloc[calleeside].init;
+         location_reset(funcret_paraloc[callerside],LOC_INVALID,OS_NO);
+         location_reset(funcret_paraloc[calleeside],LOC_INVALID,OS_NO);
          if po_explicitparaloc in procoptions then
            begin
              b:=ppufile.getbyte;
-             if b<>sizeof(funcret_paraloc[callerside].location^) then
+             if b<>sizeof(funcret_paraloc[callerside]) then
                internalerror(200411154);
-             ppufile.getdata(funcret_paraloc[callerside].add_location^,sizeof(funcret_paraloc[callerside].location^));
-             funcret_paraloc[callerside].size:=funcret_paraloc[callerside].location^.size;
+             ppufile.getdata(funcret_paraloc[callerside],sizeof(funcret_paraloc[callerside]));
            end;
 
          savesize:=sizeof(aint);
@@ -3463,13 +3462,9 @@ implementation
 
          if (po_explicitparaloc in procoptions) then
            begin
-{$warning TODO Hack to make a valid funcret_paraloc for procedures}
              { Make a 'valid' funcret_paraloc for procedures }
-             if is_void(rettype.def) and not assigned(funcret_paraloc[callerside].location) then
-               funcret_paraloc[callerside].add_location;
-             funcret_paraloc[callerside].check_simple_location;
-             ppufile.putbyte(sizeof(funcret_paraloc[callerside].location^));
-             ppufile.putdata(funcret_paraloc[callerside].location^,sizeof(funcret_paraloc[callerside].location^));
+             ppufile.putbyte(sizeof(funcret_paraloc[callerside]));
+             ppufile.putdata(funcret_paraloc[callerside],sizeof(funcret_paraloc[callerside]));
            end;
       end;
 
@@ -6134,7 +6129,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.275  2004-11-21 16:33:19  peter
+  Revision 1.276  2004-11-21 17:17:04  florian
+    * changed funcret location back to tlocation
+
+  Revision 1.275  2004/11/21 16:33:19  peter
     * fixed message methods
     * fixed typo with win32 dll import from implementation
     * released external check

@@ -331,6 +331,8 @@ implementation
         while assigned(paraloc) do
           begin
             case paraloc^.loc of
+              LOC_VOID:
+                ;
               LOC_REGISTER,
               LOC_CREGISTER:
                 begin
@@ -360,6 +362,8 @@ implementation
                   tg.ungettemp(list,href);
 {$endif cputargethasfixedstack}
                 end;
+              else
+                internalerror(2004110212);
             end;
             paraloc:=paraloc^.next;
           end;
@@ -447,7 +451,10 @@ end.
 
 {
    $Log$
-   Revision 1.81  2004-11-15 23:35:31  peter
+   Revision 1.82  2004-11-21 17:17:03  florian
+     * changed funcret location back to tlocation
+
+   Revision 1.81  2004/11/15 23:35:31  peter
      * tparaitem removed, use tparavarsym instead
      * parameter order is now calculated from paranr value in tparavarsym
 
