@@ -8,9 +8,9 @@ programs=stringl dparser fstream mstream list threads testrtf \
          b64test b64test2 b64enc b64dec restest testz testz2 \
          istream doecho testol testcont txmlreg testreg tstelcmd
 programs_win32=showver testproc testhres testnres testsres testrhre \
-               testrnre testrsre
+               testrnre testrsre testur
 programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
-               testhres testnres testsres testrhre testrnre testrsre
+               testhres testnres testsres testrhre testrnre testrsre testur
 rst=restest
 
 [require]
