@@ -550,6 +550,7 @@ unit pmodules;
     procedure loadunits;
       var
          s : stringid;
+         pu,
          hp : pused_unit;
          hp2 : pmodule;
          hp3 : psymtable;
@@ -563,8 +564,16 @@ unit pmodules;
          repeat
            s:=pattern;
            consume(ID);
+         { check if the unit is already used }
+           pu:=pused_unit(current_module^.used_units.first);
+           while assigned(pu) do
+            begin
+              if (pu^.name^=s) then
+               break;
+              pu:=pused_unit(pu^.next);
+            end;
          { avoid uses of itself }
-           if s<>current_module^.modulename^ then
+           if not assigned(pu) and (s<>current_module^.modulename^) then
             begin
             { load the unit }
               hp2:=loadunit(s,false);
@@ -1247,7 +1256,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.101  1999-02-25 21:02:43  peter
+  Revision 1.102  1999-03-16 21:07:25  peter
+    * check for dup uses
+
+  Revision 1.101  1999/02/25 21:02:43  peter
     * ag386bin updates
     + coff writer
 
