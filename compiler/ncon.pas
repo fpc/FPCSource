@@ -223,7 +223,7 @@ implementation
 
     function is_constnode(p : tnode) : boolean;
       begin
-        is_constnode:=(p.nodetype in [ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
+        is_constnode:=(p.nodetype in [niln,ordconstn,realconstn,stringconstn,setconstn,guidconstn]);
       end;
 
 
@@ -908,7 +908,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2003-10-01 20:34:48  peter
+  Revision 1.53  2003-10-02 21:18:44  peter
+    * niln is also a constnode
+
+  Revision 1.52  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
