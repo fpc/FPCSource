@@ -1616,7 +1616,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
-            stacksize    : 32*1024*1024;
+            stacksize    : 262144;
             DllScanSupported:true;
             use_bound_instruction : false;
             use_function_relative_addresses : true
@@ -1634,7 +1634,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2002-04-20 21:43:18  carl
+  Revision 1.30  2002-04-21 15:43:58  carl
+  * change stack size to 256K
+
+  Revision 1.29  2002/04/20 21:43:18  carl
   * fix stack size for some targets
   + add offset to parameters from frame pointer info.
   - remove some unused stuff
