@@ -7,6 +7,9 @@
 (*      and variables.                                               *)
 (*********************************************************************)
 
+const
+  failed: boolean = false;
+
 type
        myenum = (dA,dB,dC,dd,dedf,dg,dh,di,dj,dk,dl,dm,dn);
        tasmop = (A_ABCD,
@@ -75,11 +78,17 @@ Begin
  oplist:=[];
  op:=A_JSR;
  if A_JSR in oplist then
-  WriteLn('A_JSR in [] FAILED.')
+  begin
+    WriteLn('A_JSR in [] FAILED.');
+    failed := true
+  end
  else
   Writeln('A_JSR in [] PASSED.');
  if op in oplist then
-  WriteLn('op(A_JSR) in [] FAILED.')
+  begin
+    WriteLn('op(A_JSR) in [] FAILED.');
+    failed := true
+  end
  else
   Writeln('op (A_JSR) in [] PASSED.');
  op:=A_MOVE;
@@ -87,11 +96,17 @@ Begin
  if A_MOVE in oplist then
   WriteLn('A_MOVE in ([]+[A_MOVE]) PASSED.')
  else
-  Writeln('A_MOVE in ([]+[A_MOVE]) FAILED.');
+  begin
+    Writeln('A_MOVE in ([]+[A_MOVE]) FAILED.');
+    failed := true;
+  end;
  if op in oplist then
   WriteLn('op(A_MOVE) in ([]+[A_MOVE]) PASSED.')
  else
-  Writeln('op(A_MOVE) in ([]+[A_MOVE]) FAILED.');
+  begin
+    Writeln('op(A_MOVE) in ([]+[A_MOVE]) FAILED.');
+    failed := true;
+  end;
   op:=A_MOVE;
   oplist:=[];
   oplist:=[A_SUB]+[op];
@@ -99,11 +114,17 @@ Begin
  if A_MOVE in oplist then
   WriteLn('A_MOVE in ([A_SUB]+[op(A_MOVE)]) PASSED.')
  else
-  Writeln('A_MOVE in ([A_SUB]+[op(A_MOVE)]) FAILED.');
+  begin
+    Writeln('A_MOVE in ([A_SUB]+[op(A_MOVE)]) FAILED.');
+    failed := true
+  end;
  if op2 in oplist then
   WriteLn('op2(A_MOVE) in ([A_SUB]+[op(A_MOVE)]) PASSED.')
  else
-  Writeln('op2(A_MOVE) in ([A_SUB]+[op(A_MOVE)]) FAILED.');
+  begin
+    Writeln('op2(A_MOVE) in ([A_SUB]+[op(A_MOVE)]) FAILED.');
+    failed := true
+  end;
 end;
 
 Procedure SetSetByte;
@@ -123,6 +144,7 @@ Begin
  else
  Begin
   WriteLn(' FAILED.');
+  failed := true
  end;
  Write('TESTING INCLUDE:');
  op:=A_RTE;
@@ -134,6 +156,7 @@ Begin
  else
  Begin
   WriteLn(' FAILED.');
+  failed := true;
  end;
 end;
 
@@ -154,11 +177,20 @@ Begin
    if A_JSR in oplist then
     WriteLn('TESTING SET_ADD_SETS: PASSED.')
    else
-    WriteLn('TESTING SET_ADD_SETS: FAILED.')
+    begin
+      WriteLn('TESTING SET_ADD_SETS: FAILED.');
+      failed := true
+    end
   else
-    WriteLn('TESTING SET_ADD_SETS: FAILED.')
+    begin
+      WriteLn('TESTING SET_ADD_SETS: FAILED.');
+      failed := true
+    end
  else
-    WriteLn('TESTING SET_ADD_SETS: FAILED.')
+  begin
+    WriteLn('TESTING SET_ADD_SETS: FAILED.');
+    failed := true
+  end;
 end;
 
 Procedure SetSubsets;
@@ -173,13 +205,19 @@ Begin
  op2list:=[A_MOVE]+[A_JSR];
  oplist:=op2list-oplist;
  if (A_MOVE in oplist) or (A_LABEL in oplist) or (A_JSR in oplist) then
-  WriteLn('TESTING SET_SUB_SETS: FAILED.')
+   begin
+    WriteLn('TESTING SET_SUB_SETS: FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING SET_SUB_SETS: PASSED.');
  oplist := [A_MOVE,A_RTE];
  exclude(oplist,A_MOVE);
  if (A_MOVE in oplist) then
-  WriteLn('TESTING EXCLUDE: FAILED.')
+  begin
+    WriteLn('TESTING EXCLUDE: FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING EXCLUDE: PASSED.')
 end;
@@ -197,10 +235,16 @@ Begin
  if oplist=op2list then
   WriteLn('TESTING SET_COMP_SETS(1): PASSED.')
  else
-  WriteLn('TESTING SET_COMP_SETS(1): FAILED.');
+  begin
+    WriteLn('TESTING SET_COMP_SETS(1): FAILED.');
+    failed := true
+  end;
  oplist:=[A_MOVE];
  if oplist=op2list then
-  WriteLn('TESTING SET_COMP_SETS(2): FAILED.')
+  begin
+    WriteLn('TESTING SET_COMP_SETS(2): FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING SET_COMP_SETS(2): PASSED.');
 end;
@@ -217,13 +261,19 @@ Begin
  op2list:=[A_MOVE];
  oplist:=oplist*op2list;
  if A_JSR in oplist then
-  WriteLn('TESTING SET_MUL_SETS(1): FAILED.')
+  begin
+    WriteLn('TESTING SET_MUL_SETS(1): FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING SET_MUL_SETS(1): PASSED.');
  if A_MOVE in oplist  then
   WriteLn('TESTING SET_MUL_SETS(2): PASSED.')
  else
-  WriteLn('TESTING SET_MUL_SETS(2): FAILED.')
+  begin
+    WriteLn('TESTING SET_MUL_SETS(2): FAILED.');
+    failed := true
+  end;
 end;
 
 {------------------------------ TESTS FOR SMALL VALUES ---------------------}
@@ -237,11 +287,19 @@ Begin
  oplist:=[];
  op:=Dn;
  if op in oplist then
-  WriteLn(' FAILED.');
+  begin
+    WriteLn(' FAILED.');
+    failed := true
+  end;
  op:=dm;
  oplist:=oplist+[Dm];
  if op in oplist then
-  WriteLn(' PASSED.');
+  WriteLn(' PASSED.')
+ else
+   begin
+    WriteLn(' FAILED.');
+    failed := true
+  end;
 end;
 
 Procedure SmallSetByte;
@@ -261,6 +319,7 @@ Begin
  else
  Begin
   WriteLn(' FAILED.');
+  failed := true;
  end;
 end;
 
@@ -281,11 +340,20 @@ Begin
    if DB in oplist then
     WriteLn('TESTING SET_ADD_SETS: PASSED.')
    else
-    WriteLn('TESTING ADD_SETS: FAILED.')
+    begin
+      WriteLn('TESTING ADD_SETS: FAILED.');
+      failed := true
+    end
   else
-    WriteLn('TESTING ADD_SETS: FAILED.')
+   begin
+     WriteLn('TESTING ADD_SETS: FAILED.');
+     failed := true
+   end
  else
-    WriteLn('TESTING ADD_SETS: FAILED.')
+  begin
+    WriteLn('TESTING ADD_SETS: FAILED.');
+    failed := true
+  end;
 end;
 
 Procedure SmallSubsets;
@@ -300,7 +368,10 @@ Begin
  op2list:=[DA]+[DC];
  oplist:=op2list-oplist;
  if (DA in oplist) or (DB in oplist) or (DC in oplist) then
-  WriteLn('TESTING SUB_SETS: FAILED.')
+  begin
+    WriteLn('TESTING SUB_SETS: FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING SUB_SETS: PASSED.')
 end;
@@ -318,10 +389,16 @@ Begin
  if oplist=op2list then
   WriteLn('TESTING COMP_SETS(1): PASSED.')
  else
-  WriteLn('TESTING COMP_SETS(1): FAILED.');
+  begin
+    WriteLn('TESTING COMP_SETS(1): FAILED.');
+    failed := true
+  end;
  oplist:=[DA];
  if oplist=op2list then
-  WriteLn('TESTING COMP_SETS(2): FAILED.')
+  begin
+    WriteLn('TESTING COMP_SETS(2): FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING COMP_SETS(2): PASSED.');
 end;
@@ -338,13 +415,19 @@ Begin
  op2list:=[DA];
  oplist:=oplist*op2list;
  if DC in oplist then
-  WriteLn('TESTING MUL_SETS(1): FAILED.')
+  begin
+    WriteLn('TESTING MUL_SETS(1): FAILED.');
+    failed := true
+  end
  else
   WriteLn('TESTING MUL_SETS(1): PASSED.');
  if DA in oplist  then
   WriteLn('TESTING MUL_SETS(2): PASSED.')
  else
-  WriteLn('TESTING MUL_SETS(2): FAILED.')
+  begin
+    WriteLn('TESTING MUL_SETS(2): FAILED.');
+    failed := true
+  end;
 end;
 
 const
@@ -368,11 +451,19 @@ Begin
  oplist := [A_LABEL];
  { secondin test         }
  if A_LABEL in oplist then
-  WriteLn('TESTING SIMPLE SECOND_IN: PASSED.');
+  WriteLn('TESTING SIMPLE SECOND_IN: PASSED.')
+ else
+   begin
+    failed := true
+  end;
+
  { }
  oplist:=[];
  if A_LABEL in oplist then
-  WriteLn('SECOND IN FAILED.');
+   begin
+    WriteLn('SECOND IN FAILED.');
+    failed := true
+  end;
  SecondinSets;
  SetSetByte;
  SetAddSets;
@@ -388,5 +479,12 @@ Begin
  l:=word(A_CPRESTORE);
  if l = word(A_CPRESTORE) then
   Begin
-  end;
+  end
+  else failed := true;
+
+  if failed then
+    begin
+      WriteLn('One or more test failed');
+      Halt(1);
+    end;
 end.
