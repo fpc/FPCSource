@@ -75,17 +75,20 @@ ifneq ($(TESTCOMSPECRES),)
 NOCOMSPEC=1
 endif
 
+# 
+# Digest program
+#
 ifeq ($(USESQL),YES)
 DIGEST=./dbdigest$(EXEEXT)
-DBDIGEST=utils/dbtests.pp
-DIGESTSRC=utils/dbdigest.pp
 else
 DIGEST=./digest$(EXEEXT)
-DBDIGEST=
-DIGESTSRC=utils/digest.pp
 endif
-$(DIGEST) : units utils/digest.pp utils/teststr.pp utils/testu.pp $(DBDIGEST)
-        $(FPC) -n -Fuunits -FE. $(DIGESTSRC)
+
+./digest$(EXEEXT) : units utils/digest.pp utils/teststr.pp utils/testu.pp
+        $(FPC) -n -Fuunits -FE. utils/digest.pp
+
+./dbdigest$(EXEEXT) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
+        $(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
 
 testcheck: units allpreps $(DOTEST)
 
