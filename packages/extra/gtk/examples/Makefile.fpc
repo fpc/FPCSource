@@ -4,7 +4,7 @@
 
 [target]
 dirs=tutorial
-programs=entry notebook scribble clist ttt_test pixmap list progressbar filesel\
+programs=entry notebook scribble clist ttt_test pixmap list progressbar filesel \
          statusbar toolbar rulers spinbutton
 
 [require]
