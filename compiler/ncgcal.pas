@@ -748,8 +748,6 @@ implementation
 {$endif PASS2INLINE}
                              begin
 {$ifdef cputargethasfixedstack}
-                               if (assigned(tmpparaloc^.next)) then
-                                 internalerror(20050111);
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
                                { copy parameters in case they were moved to a temp. location because we've a fixed stack }
                                case tmpparaloc^.loc of
@@ -1262,7 +1260,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.194  2005-01-10 21:50:05  jonas
+  Revision 1.195  2005-01-12 10:02:22  florian
+    * removed ie20050111
+
+  Revision 1.194  2005/01/10 21:50:05  jonas
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter
