@@ -38,6 +38,9 @@ interface
        ;
 
 
+  { Read String Handling functions declaration }
+  {$i sysstrh.inc}
+
 type
    { some helpful data types }
 
@@ -59,22 +62,28 @@ type
      Code, Data: Pointer;
    end;
 
-
    { exceptions }
-   exception = class(TObject)
+   Exception = class(TObject)
     private
       fmessage : string;
       fhelpcontext : longint;
     public
-      constructor create(const msg : string);
-      constructor createfmt(const msg : string; const args : array of const);
-      constructor createres(ident : longint);
+      constructor Create(const msg : string);
+      constructor CreateFmt(const msg : string; const args : array of const);
+      constructor CreateRes(ResString: PString);
+      constructor CreateResFmt(ResString: PString; const Args: array of const);
+      constructor CreateHelp(const Msg: string; AHelpContext: Integer);
+      constructor CreateFmtHelp(const Msg: string; const Args: array of const;
+        AHelpContext: Integer);
+      constructor CreateResHelp(ResString: PString; AHelpContext: Integer);
+      constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
+        AHelpContext: Integer);
       { !!!! }
       property helpcontext : longint read fhelpcontext write fhelpcontext;
       property message : string read fmessage write fmessage;
    end;
 
-   exceptclass = class of exception;
+   ExceptClass = class of Exception;
 
    { integer math exceptions }
    EInterror    = Class(Exception);
@@ -131,9 +140,6 @@ Var
   { Read date & Time function declarations }
   {$i datih.inc}
 
-  { Read String Handling functions declaration }
-  {$i sysstrh.inc}
-
   { Read pchar handling functions declration }
   {$i syspchh.inc}
 
@@ -179,7 +185,7 @@ Var
   {$i syspch.inc}
 
 
-    constructor exception.create(const msg : string);
+    constructor Exception.Create(const msg : string);
 
       begin
          inherited create;
@@ -187,7 +193,7 @@ Var
       end;
 
 
-    constructor exception.createfmt(const msg : string; const args : array of const);
+    constructor Exception.CreateFmt(const msg : string; const args : array of const);
 
       begin
          inherited create;
@@ -195,12 +201,59 @@ Var
       end;
 
 
-    constructor exception.createres(ident : longint);
+    constructor Exception.CreateRes(ResString: PString);
 
       begin
          inherited create;
-         {!!!!!}
+	 fmessage:=ResString^;
       end;
+
+
+    constructor Exception.CreateResFmt(ResString: PString; const Args: array of const); overload;
+
+      begin
+	 inherited create;
+	 fmessage:=Format(ResString^,args);
+      end;
+
+
+    constructor Exception.CreateHelp(const Msg: string; AHelpContext: Integer);
+
+      begin
+	 inherited create;
+	 fmessage:=Msg;
+	 fhelpcontext:=AHelpContext;
+      end;
+
+
+    constructor Exception.CreateFmtHelp(const Msg: string; const Args: array of const;
+      AHelpContext: Integer);
+
+    begin
+       inherited create;
+       fmessage:=Format(Msg,args);
+       fhelpcontext:=AHelpContext;
+    end;
+
+
+    constructor Exception.CreateResHelp(ResString: PString; AHelpContext: Integer); overload;
+
+    begin
+       inherited create;
+       fmessage:=ResString^;
+       fhelpcontext:=AHelpContext;
+    end;
+
+
+    constructor Exception.CreateResFmtHelp(ResString: PString; const Args: array of const;
+      AHelpContext: Integer); overload;
+
+    begin
+       inherited create;
+       fmessage:=Format(ResString^,args);
+       fhelpcontext:=AHelpContext;
+    end;
+
 
 
 {$ifopt S+}
@@ -402,7 +455,12 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-07-27 16:20:52  sg
+  * Applied patch by Markus Kaemmerer with minor modifications: More methods
+    of the Exception class are now implemented (in a manner so that they can
+    be used as in Delphi, although the declarations are somewhat different)
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:51  michael
