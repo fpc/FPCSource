@@ -230,6 +230,9 @@ In case of error (if a object with the same \var{ObjType}) is already
 registered), run-time error 212 occurs.
 \end{procedure}
 
+\latex{\inputlisting{objectex/myobject.pp}}
+\html{\input{objectex/myobject.tex}}
+
 \begin{function}{LongMul}
 \Declaration
 Function LongMul (X, Y: Integer): LongInt;
@@ -464,11 +467,16 @@ Destructor TObject.Done;Virtual;
 \Description
 \var{Done}, the destructor of \var{TObject} does nothing. It is mainly
 intended to be used in the \seep{TObject.Free} method.
+
+The destructore Done does not free the memory occupied by the object.
 \Errors
 None.
 \SeeAlso
 \seepl{Free}{TObject.Free}, \seepl{Init}{TObject.Init}
 \end{procedure}
+
+\latex{\inputlisting{objectex/ex8.pp}}
+\html{\input{objectex/ex8.tex}}
 
 \section{TStream}
 \label{se:TStream}
@@ -526,6 +534,9 @@ On error, \var{TStream.Status} is set, and NIL is returned.
 \seepl{Put}{TStream.Put}
 \end{function}
 
+\latex{\inputlisting{objectex/ex9.pp}}
+\html{\input{objectex/ex9.tex}}
+
 \begin{function}{TStream.StrRead}
 \Declaration
 Function TStream.StrRead: PChar;
@@ -539,6 +550,10 @@ On error, \var{Nil} is returned.
 \seepl{StrWrite}{TStream.StrWrite}, \seefl{ReadStr}{TStream.ReadStr}
 \end{function}
 
+\latex{\inputlisting{objectex/ex10.pp}}
+\html{\input{objectex/ex10.tex}}
+
+
 \begin{function}{TStream.GetPos}
 \Declaration 
 TSTream.GetPos : Longint; Virtual;
@@ -551,6 +566,10 @@ position in the stream. Otherwise it returns \var{-1}
 \seepl{Seek}{TStream.Seek}, \seefl{GetSize}{TStream.GetSize}
 \end{function}
 
+\latex{\inputlisting{objectex/ex11.pp}}
+\html{\input{objectex/ex11.tex}}
+
+
 \begin{function}{TStream.GetSize}
 \Declaration
 Function TStream.GetSize: Longint; Virtual;
@@ -562,6 +581,10 @@ the size of the stream, otherwise it returns \var{-1}.
 \SeeAlso
 \seepl{Seek}{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
 \end{function}
+
+\latex{\inputlisting{objectex/ex12.pp}}
+\html{\input{objectex/ex12.tex}}
+
 
 \begin{function}{TStream.ReadStr}
 \Declaration
@@ -576,6 +599,9 @@ On error (e.g. not enough memory), \var{Nil} is returned.
 \seefl{StrRead}{TStream.StrRead}
 \end{function}
 
+\latex{\inputlisting{objectex/ex13.pp}}
+\html{\input{objectex/ex13.tex}}
+
 \begin{procedure}{TStream.Open}
 \Declaration
 Procedure TStream.Open (OpenMode: Word); Virtual;
@@ -589,6 +615,8 @@ None.
 \seepl{Close}{TStream.Close}, \seepl{Reset}{TStream.Reset}
 \end{procedure}
 
+For an example, see \seep{TDosStream.Open}.
+
 \begin{procedure}{TStream.Close}
 \Declaration
 Procedure TStream.Close; Virtual;
@@ -601,6 +629,8 @@ None.
 \SeeAlso
 \seepl{Open}{TStream.Open}, \seepl{Reset}{TStream.Reset}
 \end{procedure}
+
+for an example, see \seep{TDosStream.Open}.
 
 \begin{procedure}{TStream.Reset}
 \Declaration
@@ -626,6 +656,8 @@ None.
 \seepl{Truncate}{TStream.Truncate}
 \end{procedure}
 
+for an example, see \seep{TBufStream.Flush}.
+
 \begin{procedure}{TStream.Truncate}
 \Declaration
 Procedure TStream.Truncate; Virtual;
@@ -638,6 +670,8 @@ None.
 \SeeAlso
 \seepl{Seek}{TStream.Seek}
 \end{procedure}
+
+For an example, see \seep{TDosStream.Truncate}.
 
 \begin{procedure}{TStream.Put}
 \Declaration
@@ -655,6 +689,8 @@ the status of the stream will be set to \var{stPutError}.
 \seefl{Get}{TStream.Get}
 \end{procedure}
 
+For an example, see \seef{TStream.Get};
+
 \begin{procedure}{TStream.StrWrite}
 \Declaration
 Procedure TStream.StrWrite (P: PChar);
@@ -668,6 +704,8 @@ None.
 \seefl{ReadStr}{TStream.ReadStr}
 \end{procedure}
 
+For an example, see \seef{TStream.StrRead}.
+
 \begin{procedure}{TStream.WriteStr}
 \Declaration
 Procedure TStream.WriteStr (P: PString);
@@ -679,6 +717,8 @@ None.
 \seepl{StrWrite}{TStream.StrWrite}, \seefl{StrRead}{TStream.StrRead},
 \seefl{ReadStr}{TStream.ReadStr}
 \end{procedure}
+
+For an example, see \seef{TStream.ReadStr}.
 
 \begin{procedure}{TStream.Seek}
 \Declaration      
@@ -693,6 +733,9 @@ If \var{Pos} is larger than the stream size, \var{Status} is set to
 \SeeAlso
 \seefl{GetPos}{TStream.GetPos}, \seefl{GetSize}{TStream.GetSize}
 \end{procedure}
+
+
+For an example, see \seep{TDosStream.Seek}.
 
 \begin{procedure}{TStream.Error}
 \Declaration
@@ -727,6 +770,9 @@ No checking is done to see if \var{Buf} is large enough to contain
 \seefl{StrRead}{TStream.StrRead}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex18.pp}}
+\html{\input{objectex/ex18.tex}}
+
 \begin{procedure}{TStream.Write}
 \Declaration
 Procedure TStream.Write (Var Buf; Count: Sw\_Word); Virtual;
@@ -743,6 +789,8 @@ No checking is done to see if \var{Buf} actually contains \var{Count} bytes.
 \seepl{StrWrite}{TStream.StrWrite}
 \end{procedure}
 
+For an example, see \seep{TStream.Read}.
+
 \begin{procedure}{TStream.CopyFrom}
 \Declaration
 Procedure TStream.CopyFrom (Var S: TStream; Count: Longint);
@@ -757,10 +805,13 @@ None.
 \seepl{Read}{TStream.Read}, \seepl{Write}{TStream.Write}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex19.pp}}
+\html{\input{objectex/ex19.tex}}
+
 \section{TDosStream}
 \label{se:TDosStream}
 
-\var{TDosStream} is a steam that stores it's contents in a file.
+\var{TDosStream} is a stream that stores it's contents in a file.
 it overrides a couple of methods of \var{TSteam} for this.
 
 In addition to the fields inherited from \var{TStream} (see \sees{TStream}),
@@ -811,6 +862,8 @@ is set to the \dos error code.
 \seepl{Done}{TDosStream.Done}
 \end{procedure}
 
+For an example, see \seep{TDosStream.Truncate}.
+
 \begin{procedure}{TDosStream.Done}
 \Declaration
 Destructor TDosStream.Done; Virtual;
@@ -823,6 +876,8 @@ None.
 \seepl{Init}{TDosStream.Init},
 \seepl{Close}{TDosStream.Close}
 \end{procedure}
+
+for an example, see e.g. \seep{TDosStream.Truncate}.
 
 \begin{procedure}{TDosStream.Close}
 \Declaration
@@ -838,6 +893,8 @@ None.
 \seepl{Done}{TDosStream.Done}
 \end{procedure}
 
+For an example, see \seep{TDosStream.Open}.
+
 \begin{procedure}{TDosStream.Truncate}
 \Declaration
 Procedure TDosStream.Truncate; Virtual;
@@ -850,6 +907,9 @@ If an error occurs, the stream's status is set to \var{stError} and
 \SeeAlso
 \seep{TStream.Truncate}, \seefl{GetSize}{TStream.GetSize}
 \end{procedure}
+
+\latex{\inputlisting{objectex/ex16.pp}}
+\html{\input{objectex/ex16.tex}}
 
 \begin{procedure}{TDosStream.Seek}
 \Declaration
@@ -865,6 +925,9 @@ and the OS error code is stored in \var{ErrorInfo}.
 \seep{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex17.pp}}
+\html{\input{objectex/ex17.tex}}
+
 \begin{procedure}{TDosStream.Open}
 \Declaration
 Procedure TDosStream.Open (OpenMode: Word); Virtual;
@@ -878,6 +941,9 @@ to \var{stOpenError}, and the OS error code is stored in \var{ErrorInfo}
 \SeeAlso
 \seep{TStream.Open}, \seepl{Close}{TDosStream.Close}
 \end{procedure}
+
+\latex{\inputlisting{objectex/ex14.pp}}
+\html{\input{objectex/ex14.tex}}
 
 \begin{procedure}{TDosStream.Read}
 \Declaration
@@ -894,6 +960,8 @@ made to read beyond the end of the stream.
 \seep{TStream.Read}, \seepl{Write}{TDosStream.Write}
 \end{procedure}
 
+For an example, see \seep{TStream.Read}.
+
 \begin{procedure}{TDosStream.Write}
 \Declaration
 Procedure TDosStream.Write (Var Buf; Count: Sw\_Word); Virtual;
@@ -906,8 +974,9 @@ In case of an error, \var{Status} is set to \var{StWriteError}, and
 \var{ErrorInfo} gets the OS specific error.
 \SeeAlso
 \seep{TStream.Write}, \seepl{Read}{TDosStream.Read}
-
 \end{procedure}
+
+For an example, see \seep{TStream.Read}.
 
 \section{TBufStream}
 \label{se:TBufStream}
@@ -970,6 +1039,8 @@ is set to the \dos error code.
 \seep{TDosStream.Init}, \seepl{Done}{TBufStream.Done}
 \end{procedure}
 
+For an example see \seep{TBufStream.Flush}.
+
 \begin{procedure}{TBufStream.Done}
 \Declaration
 Destructor TBufStream.Done; Virtual;
@@ -982,6 +1053,8 @@ None.
 \seep{TDosStream.Done}, \seepl{Init}{TBufStream.Init},
 \seepl{Close}{TBufStream.Close}
 \end{procedure}
+
+For an example see \seep{TBufStream.Flush}.
 
 \begin{procedure}{TBufStream.Close}
 \Declaration
@@ -996,6 +1069,8 @@ None.
 \seep{TStream.Close}, \seepl{Init}{TBufStream.Init},
 \seepl{Done}{TBufStream.Done}
 \end{procedure}
+
+For an example see \seep{TBufStream.Flush}.
 
 \begin{procedure}{TBufStream.Flush}
 \Declaration
@@ -1013,6 +1088,9 @@ see \seepl{Write}{TBufStream.Write} for more info on the errors.
 \seepl{Done}{TBufStream.Done}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex15.pp}}
+\html{\input{objectex/ex15.tex}}
+
 \begin{procedure}{TBufStream.Truncate}
 \Declaration
 Procedure TBufStream.Truncate; Virtual;
@@ -1028,6 +1106,8 @@ Errors can be those of \seepl{Flush}{TBufStream.Flush} or
 \seefl{GetSize}{TStream.GetSize}
 \end{procedure}
 
+For an example, see \seep{TDosStream.Truncate}.
+
 \begin{procedure}{TBufStream.Seek}
 \Declaration
 Procedure TBufStream.Seek (Pos: LongInt); Virtual;
@@ -1042,6 +1122,8 @@ and the OS error code is stored in \var{ErrorInfo}.
 \seep{TStream.Seek}, \seefl{GetPos}{TStream.GetPos}
 \end{procedure}
 
+For an example, see \seep{TStream.Seek};
+
 \begin{procedure}{TBufStream.Open}
 \Declaration
 Procedure TBufStream.Open (OpenMode: Word); Virtual;
@@ -1055,6 +1137,8 @@ to \var{stOpenError}, and the OS error code is stored in \var{ErrorInfo}
 \SeeAlso
 \seep{TStream.Open}, \seepl{Close}{TBufStream.Close}
 \end{procedure}
+
+For an example, see \seep{TDosStream.Open}.
 
 \begin{procedure}{TBufStream.Read}
 \Declaration
@@ -1077,6 +1161,8 @@ made to read beyond the end of the stream.
 \seep{TStream.Read}, \seepl{Write}{TBufStream.Write}
 \end{procedure}
 
+For an example, see \seep{TStream.Read}.
+
 \begin{procedure}{TBufStream.Write}
 \Declaration
 Procedure TBufStream.Write (Var Buf; Count: Sw\_Word); Virtual;
@@ -1093,8 +1179,9 @@ In case of an error, \var{Status} is set to \var{StWriteError}, and
 \var{ErrorInfo} gets the OS specific error.
 \SeeAlso
 \seep{TStream.Write}, \seepl{Read}{TBufStream.Read}
-
 \end{procedure}
+
+For an example, see \seep{TStream.Read}.
 
 \section{TMemoryStream}
 \label{se:TMemoryStream}
@@ -1137,6 +1224,8 @@ the stream's status is set to \var{stInitError}.
 \seepl{Done}{TMemoryStream.Done}
 \end{procedure}
 
+For an example, see e.g \seep{TStream.CopyFrom}.
+
 \begin{procedure}{TMemoryStream.Done}
 \Declaration
 Destructor TMemoryStream.Done; Virtual;
@@ -1148,6 +1237,8 @@ None.
 \SeeAlso
 \seepl{Init}{TMemoryStream.Init}
 \end{procedure}
+
+For an example, see e.g \seep{TStream.CopyFrom}.
 
 \begin{procedure}{TMemoryStream.Truncate}
 \Declaration
@@ -1164,6 +1255,9 @@ to \var{stError}
 \seep{TStream.Truncate}
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex20.pp}}
+\html{\input{objectex/ex20.tex}}
+
 \begin{procedure}{TMemoryStream.Read}
 \Declaration
 Procedure Read (Var Buf; Count: Sw\_Word); Virtual;
@@ -1176,6 +1270,8 @@ status is set to \var{stReadError}.
 \SeeAlso
 \var{TStream.Read}, \seepl{Write}{TMemoryStream.Write}
 \end{procedure}
+
+For an example, see \seep{TStream.Read}.
 
 \begin{procedure}{TMemoryStream.Write}
 \Declaration
@@ -1194,6 +1290,8 @@ If the stream cannot allocate more memory, then the status is set to
 \SeeAlso
 \seep{TStream.Write}, \seepl{Read}{TMemoryStream.Read}
 \end{procedure}
+
+For an example, see \seep{TStream.Read}.
 
 \section{TCollection}
 \label{se:TCollection}
@@ -1245,6 +1343,7 @@ TYPE
    PCollection = ^TCollection;
 \end{verbatim}
 
+
 \begin{procedure}{TCollection.Init}
 \Declaration
 Constructor TCollection.Init (ALimit, ADelta: Sw\_Integer);
@@ -1258,6 +1357,8 @@ None.
 \SeeAlso
 \seepl{Load}{TCollection.Load}, \seepl{Done}{TCollection.Done}
 \end{procedure}
+
+For an example, see \seep{TCollection.ForEach}.
 
 \begin{procedure}{TCollection.Load}
 \Declaration
@@ -1275,6 +1376,8 @@ Errors returned can be those of \seefl{GetItem}{TCollection.GetItem}.
 \seepl{Done}{TCollection.Done}.
 \end{procedure}
 
+\latex{\inputlisting{objectex/ex22.pp}}
+\html{\input{objectex/ex22.tex}}
 
 \begin{procedure}{TCollection.Done}
 \Declaration
@@ -1290,6 +1393,7 @@ None.
 \seepl{Init}{TCollection.Init}, \seepl{FreeAll}{TCollection.FreeAll}
 \end{procedure}
 
+For an example, see \seep{TCollection.ForEach}.
 
 \begin{function}{TCollection.At}
 \Declaration
@@ -1316,19 +1420,21 @@ If \var{Item} isn't present in the collection, -1 is returned.
 \SeeAlso
 \end{function}
 
+\latex{\inputlisting{objectex/ex24.pp}}
+\html{\input{objectex/ex24.pp}}
 
 \begin{function}{TCollection.GetItem}
 \Declaration
 Function TCollection.GetItem (Var S: TStream): Pointer; Virtual;
 \Description
 \var{GetItem} reads a single item off the stream \var{S}, and
-returns a pointer to this item.
+returns a pointer to this item. This method is used internally by the Load
+method, and should not be used directly.
 \Errors
 Possible errors are the ones from \seef{TStream.Get}.
 \SeeAlso
 \seef{TStream.Get}, seepl{Store}{TCollection.Store}
 \end{function}
-
 
 \begin{function}{TCollection.LastThat}
 \Declaration
@@ -1343,6 +1449,8 @@ None.
 \seefl{FirstThat}{TCollection.FirstThat}
 \end{function}
 
+\latex{\inputlisting{objectex/ex25.pp}}
+\html{\input{objectex/ex25.tex}}
 
 \begin{function}{TCollection.FirstThat}
 \Declaration
@@ -1357,6 +1465,8 @@ None.
 \seefl{LastThat}{TCollection.LastThat}
 \end{function}
 
+\latex{\inputlisting{objectex/ex26.pp}}
+\html{\input{objectex/ex26.tex}}
 
 \begin{procedure}{TCollection.Pack}
 \Declaration
