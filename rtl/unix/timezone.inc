@@ -252,10 +252,10 @@ begin
     GetTimezoneFile:=s;
     end
   // Try SuSE
-  else if fpstat(TimeZoneFile,info)>=0 then
+  else if fpstat(TimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
     GetTimeZoneFile:=TimeZoneFile
   // Try RedHat
-  else If fpstat(AltTimeZoneFile,Info)>=0 then
+  else If fpstat(AltTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
       GetTimeZoneFile:=AltTimeZoneFile;
 end;
 
@@ -286,7 +286,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-09-14 20:15:01  marco
+  Revision 1.5  2003-09-16 16:06:02  peter
+    * add typecasts for oldlinuxstat
+
+  Revision 1.4  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.3  2002/09/07 16:01:28  peter

@@ -313,7 +313,7 @@ Function Fstat(Fd:Longint;var Info:stat):Boolean;
   Get all information on a file descriptor, and return it in info.
 }
 begin
-  FStat:=fpfstat(fd,info)=0;
+  FStat:=fpfstat(fd,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})=0;
   LinuxError:=fpgetErrno;
 end;
 
@@ -636,7 +636,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-09-15 21:07:41  marco
+  Revision 1.3  2003-09-16 16:06:02  peter
+    * add typecasts for oldlinuxstat
+
+  Revision 1.2  2003/09/15 21:07:41  marco
    * second round of linux fixes. oldlinux now works
 
   Revision 1.1  2003/09/15 20:30:49  marco

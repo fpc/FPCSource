@@ -5,10 +5,10 @@
    BSD parts (c) 2000 by Marco van de Voort
    members of the Free Pascal development team.
 
-   The old 1.0.x linux unit fixed to work under 1.1.x. 
+   The old 1.0.x linux unit fixed to work under 1.1.x.
    At the moment the errorhandling can be different.
    Probably it won't be supported for anything else then FreeBSD
-   and Linux/i386. 
+   and Linux/i386.
 
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
@@ -44,12 +44,13 @@ Uses BaseUnix,Unix;
 {$I signal.inc}
 
 {$ifdef linux}
-{$IFNDEF VER1_0}		// ugly voodoo. Sacrifice a chicken and hope
-				// that it works.
+{$IFNDEF VER1_0}                // ugly voodoo. Sacrifice a chicken and hope
+                                // that it works.
 Type stat=baseunix.tstat;
 {$ELSE}
 type
 {$I stat.inc}
+{$define oldlinuxstat}
 {$ENDIF}
 {$ELSE}
 Type stat=baseunix.tstat;
@@ -1081,7 +1082,7 @@ end;
 Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
 
 begin
- Sys_stat:=fpstat(filename,buffer); 
+ Sys_stat:=fpstat(filename,{$ifdef oldlinuxstat}baseunix.stat(buffer){$else}buffer{$endif});
  linuxerror:=fpgeterrno;
 end;
 
@@ -1509,7 +1510,7 @@ begin
      fpseterrno(ESysEBadf);
      exit;
    end;
- {$ifndef bsd}                         
+ {$ifndef bsd}
   {$ifndef Solaris}
   p^.dd_nextoff:=Sys_lseek(p^.dd_fd,off,seek_set);
   {$endif}
@@ -3130,7 +3131,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2003-09-16 15:40:31  marco
+  Revision 1.6  2003-09-16 16:06:02  peter
+    * add typecasts for oldlinuxstat
+
+  Revision 1.5  2003/09/16 15:40:31  marco
    * voodoo is now linux only
 
   Revision 1.4  2003/09/16 15:39:31  marco
