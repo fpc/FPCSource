@@ -737,6 +737,7 @@ Begin
 {Create Info}   
   f.SearchSpec := Path;
   f.SearchAttr := Attr;
+  f.SearchPos:=0;
   f.NamePos := Length(f.SearchSpec);
   while (f.NamePos>0) and (f.SearchSpec[f.NamePos]<>'/') do
    dec(f.NamePos);
@@ -1039,8 +1040,11 @@ End.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-05-04 17:40:43  peter
+    * findfirst did some strange init with searchpos
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.11  1998/03/10 14:46:09  michael
   + better checking in weekday function
