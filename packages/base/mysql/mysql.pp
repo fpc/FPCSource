@@ -27,6 +27,7 @@ Const mysqllib = 'mysqlclient';
 {$ifndef win32}
 {$linklib c}
 {$linklib m}
+{$linklib mysqlclient}
 {$endif}
 
 { All is 4-byte aligned on my machine. }
@@ -378,7 +379,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-03-29 18:16:02  florian
+  Revision 1.6  2004-08-05 10:36:26  olle
+    + added, on unixes, $linklib mysqlclient
+
+  Revision 1.5  2004/03/29 18:16:02  florian
     + darwin support
 
   Revision 1.4  2002/09/10 19:44:28  michael

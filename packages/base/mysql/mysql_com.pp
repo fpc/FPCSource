@@ -20,6 +20,7 @@ Const mysqllib = 'mysqlclient';
 {$ifndef win32}
 {$linklib c}
 {$linklib m}
+{$linklib mysqlclient}
 {$endif}
 {$r+,i+,o+}
 
@@ -289,7 +290,10 @@ function  get_tty_password(opt_message:  pchar) : pchar;stdcall;external;
 
 end.
   $Log$
-  Revision 1.4  2004-07-01 20:04:17  jonas
+  Revision 1.5  2004-08-05 10:36:25  olle
+    + added, on unixes, $linklib mysqlclient
+
+  Revision 1.4  2004/07/01 20:04:17  jonas
     * fixed st_mem_root record (only changed for 3.23, may still be wrong for
       3.21)
 
