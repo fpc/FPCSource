@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 unit cg68kflw;
 interface
 
@@ -770,7 +773,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.15  2000-02-09 13:22:49  peter
+  Revision 1.16  2000-03-01 00:04:31  pierre
+   Use $GOTO ON
+
+  Revision 1.15  2000/02/09 13:22:49  peter
     * log truncated
 
   Revision 1.14  2000/01/07 01:14:22  peter
@@ -798,4 +804,3 @@ end.
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
 }
-

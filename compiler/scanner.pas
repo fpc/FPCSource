@@ -24,6 +24,9 @@
   {$F+,N+,E+,R-}
 {$endif}
 unit scanner;
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 
   interface
 
@@ -1785,7 +1788,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.106  2000-02-28 17:23:57  daniel
+  Revision 1.107  2000-02-29 23:59:47  pierre
+   Use $GOTO ON
+
+  Revision 1.106  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

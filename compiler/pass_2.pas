@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 {$ifdef TP}
   {$E+,F+,N+}
 {$endif}
@@ -832,7 +835,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2000-02-20 20:49:45  florian
+  Revision 1.59  2000-03-01 00:01:14  pierre
+   Use $GOTO ON
+
+  Revision 1.58  2000/02/20 20:49:45  florian
     * newcg is compiling
     * fixed the dup id problem reported by Paul Y.
 

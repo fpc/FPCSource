@@ -20,6 +20,9 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
 unit cg68kcal;
 interface
 
@@ -1067,7 +1070,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2000-02-09 13:22:48  peter
+  Revision 1.25  2000-03-01 00:04:31  pierre
+   Use $GOTO ON
+
+  Revision 1.24  2000/02/09 13:22:48  peter
     * log truncated
 
   Revision 1.23  2000/01/07 01:14:21  peter
@@ -1094,4 +1100,3 @@ end.
    * typo correction
 
 }
-

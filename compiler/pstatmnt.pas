@@ -20,6 +20,10 @@
 
  ****************************************************************************
 }
+{$ifdef FPC}
+  {$goto on}
+{$endif FPC}
+
 unit pstatmnt;
 
   interface
@@ -1345,7 +1349,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.122  2000-02-09 13:22:59  peter
+  Revision 1.123  2000-02-29 23:59:47  pierre
+   Use $GOTO ON
+
+  Revision 1.122  2000/02/09 13:22:59  peter
     * log truncated
 
   Revision 1.121  2000/01/23 16:33:49  peter
@@ -1421,4 +1428,3 @@ end.
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
 }
-
