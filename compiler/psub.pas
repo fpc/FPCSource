@@ -678,9 +678,8 @@ implementation
 
             { Allocate space in temp/registers for parast and localst }
             aktfilepos:=entrypos;
-            gen_alloc_parast(aktproccode,tparasymtable(procdef.parast));
-            if procdef.localst.symtabletype=localsymtable then
-              gen_alloc_localst(aktproccode,tlocalsymtable(procdef.localst));
+            gen_alloc_symtable(aktproccode,tparasymtable(procdef.parast));
+            gen_alloc_symtable(aktproccode,tlocalsymtable(procdef.localst));
 
             { Store temp offset for information about 'real' temps }
             tempstart:=tg.lasttemp;
@@ -774,9 +773,8 @@ implementation
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
             aktfilepos:=exitpos;
-            if procdef.localst.symtabletype=localsymtable then
-              gen_free_localst(aktproccode,tlocalsymtable(procdef.localst));
-            gen_free_parast(aktproccode,tparasymtable(procdef.parast));
+            gen_free_symtable(aktproccode,tlocalsymtable(procdef.localst));
+            gen_free_symtable(aktproccode,tparasymtable(procdef.parast));
 
             { The procedure body is finished, we can now
               allocate the registers }
@@ -1393,7 +1391,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.207  2004-09-26 17:45:30  peter
+  Revision 1.208  2004-10-10 20:22:53  peter
+    * symtable allocation rewritten
+    * loading of parameters to local temps/regs cleanup
+    * regvar support for parameters
+    * regvar support for staticsymtable (main body)
+
+  Revision 1.207  2004/09/26 17:45:30  peter
     * simple regvar support, not yet finished
 
   Revision 1.206  2004/09/21 17:25:12  peter

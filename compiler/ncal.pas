@@ -549,18 +549,24 @@ type
                        valid_for_var(left);
                    end;
 
-                 if paraitem.paratyp in [vs_var,vs_const] then
-                   begin
-                      { Causes problems with const ansistrings if also }
-                      { done for vs_const (JM)                         }
-                      if paraitem.paratyp = vs_var then
-                        set_unique(left);
-                      make_not_regable(left);
-                   end;
+                 if paraitem.paratyp = vs_var then
+                   set_unique(left);
 
-                 { ansistrings out paramaters doesn't need to be  }
-                 { unique, they are finalized                     }
-                 if paraitem.paratyp=vs_out then
+                 { When the address needs to be pushed then the register is
+                   not regable. Exception is when the location is also a var
+                   parameter and we can pass the address transparently }
+                 if (
+                     not(
+                         paraitem.is_hidden and
+                         (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                        ) and
+                     paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                         aktcallnode.procdefinition.proccalloption) and
+                     not(
+                         (left.nodetype=loadn) and
+                         (tloadnode(left).is_addr_param_load)
+                        )
+                    ) then
                    make_not_regable(left);
 
                  if do_count then
@@ -2386,7 +2392,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.249  2004-10-08 17:09:43  peter
+  Revision 1.250  2004-10-10 20:22:53  peter
+    * symtable allocation rewritten
+    * loading of parameters to local temps/regs cleanup
+    * regvar support for parameters
+    * regvar support for staticsymtable (main body)
+
+  Revision 1.249  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.248  2004/09/21 17:25:12  peter

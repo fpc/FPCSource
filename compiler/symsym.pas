@@ -1627,7 +1627,11 @@ implementation
         _vartype := newtype;
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable]) then
+           (owner.symtabletype in [localsymtable,parasymtable]) or
+           (
+            (owner.symtabletype=staticsymtable) and
+            not(cs_create_pic in aktmoduleswitches)
+           ) then
           begin
             if tstoreddef(vartype.def).is_intregable then
               varregable:=vr_intreg
@@ -2218,7 +2222,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.181  2004-10-10 09:31:28  peter
+  Revision 1.182  2004-10-10 20:22:53  peter
+    * symtable allocation rewritten
+    * loading of parameters to local temps/regs cleanup
+    * regvar support for parameters
+    * regvar support for staticsymtable (main body)
+
+  Revision 1.181  2004/10/10 09:31:28  peter
   regvar ppu writing doesn't affect any crc
 
   Revision 1.180  2004/10/08 17:09:43  peter

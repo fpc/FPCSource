@@ -47,6 +47,7 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
+          function  is_addr_param_load:boolean;
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
           function  det_resulttype:tnode;override;
@@ -224,6 +225,16 @@ implementation
          n.symtableentry:=symtableentry;
          n.procdef:=procdef;
          result:=n;
+      end;
+
+
+    function tloadnode.is_addr_param_load:boolean;
+      begin
+        result:=(symtable.symtabletype=parasymtable) and
+                (symtableentry.typ=varsym) and
+                not(vo_has_local_copy in tvarsym(symtableentry).varoptions) and
+                not(nf_load_self_pointer in flags) and
+                paramanager.push_addr_param(tvarsym(symtableentry).varspez,tvarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption);
       end;
 
 
@@ -1145,7 +1156,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2004-10-08 17:09:43  peter
+  Revision 1.132  2004-10-10 20:22:53  peter
+    * symtable allocation rewritten
+    * loading of parameters to local temps/regs cleanup
+    * regvar support for parameters
+    * regvar support for staticsymtable (main body)
+
+  Revision 1.131  2004/10/08 17:09:43  peter
     * tvarsym.varregable added, split vo_regable from varoptions
 
   Revision 1.130  2004/10/06 19:26:50  jonas

@@ -189,11 +189,6 @@ unit cgobj;
               second the destination
           }
 
-          { Copy a parameter to a (temporary) reference }
-          procedure a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);virtual;
-          { Copy a parameter to a register }
-          procedure a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);virtual;
-
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
 
@@ -835,116 +830,6 @@ implementation
            internalerror(2003010901);
          reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
          g_concatcopy(list,r,ref,size,false);
-      end;
-
-
-    procedure tcg.a_loadany_param_ref(list : taasmoutput;const paraloc : TCGPara;const ref:treference;shuffle : pmmshuffle);
-
-       procedure gen_load(paraloc:TCGParaLocation;const ref:treference);
-         var
-           href : treference;
-         begin
-            case paraloc.loc of
-              LOC_CREGISTER,
-              LOC_REGISTER:
-                begin
-                  if getsupreg(paraloc.register)<first_int_imreg then
-                    begin
-                      getcpuregister(list,paraloc.register);
-                      ungetcpuregister(list,paraloc.register);
-                    end;
-                  a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
-                end;
-              LOC_MMREGISTER,
-              LOC_CMMREGISTER:
-                begin
-                  if getsupreg(paraloc.register)<first_mm_imreg then
-                    begin
-                      getcpuregister(list,paraloc.register);
-                      ungetcpuregister(list,paraloc.register);
-                    end;
-                  a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,shuffle);
-                end;
-              LOC_FPUREGISTER,
-              LOC_CFPUREGISTER:
-                begin
-                  if getsupreg(paraloc.register)<first_fpu_imreg then
-                    begin
-                      getcpuregister(list,paraloc.register);
-                      ungetcpuregister(list,paraloc.register);
-                    end;
-                  a_loadfpu_reg_ref(list,paraloc.size,paraloc.register,ref);
-                end;
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
-                  { use concatcopy, because it can also be a float which fails when
-                    load_ref_ref is used }
-                  g_concatcopy(list,href,ref,tcgsize2size[paraloc.size],false);
-                end;
-              else
-                internalerror(2002081302);
-            end;
-        end;
-
-      var
-        href : treference;
-      begin
-        href:=ref;
-        gen_load(paraloc.location^,href);
-        if assigned(paraloc.location^.next) then
-          begin
-            inc(href.offset,TCGSize2Size[paraloc.location^.size]);
-            gen_load(paraloc.location^.next^,href);
-          end;
-      end;
-
-
-    procedure tcg.a_loadany_param_reg(list : taasmoutput;const paraloc : TCGPara;const reg:tregister;shuffle : pmmshuffle);
-      var
-        href : treference;
-      begin
-        paraloc.check_simple_location;
-        case paraloc.location^.loc of
-          LOC_CREGISTER,
-          LOC_REGISTER:
-            begin
-              if getsupreg(paraloc.location^.register)<first_int_imreg then
-                begin
-                  getcpuregister(list,paraloc.location^.register);
-                  ungetcpuregister(list,paraloc.location^.register);
-                end;
-              a_load_reg_reg(list,paraloc.location^.size,paraloc.location^.size,paraloc.location^.register,reg)
-            end;
-          LOC_CFPUREGISTER,
-          LOC_FPUREGISTER:
-            begin
-              if getsupreg(paraloc.location^.register)<first_fpu_imreg then
-                begin
-                  getcpuregister(list,paraloc.location^.register);
-                  ungetcpuregister(list,paraloc.location^.register);
-                end;
-              a_loadfpu_reg_reg(list,paraloc.location^.size,paraloc.location^.register,reg);
-            end;
-          LOC_MMREGISTER,
-          LOC_CMMREGISTER:
-            begin
-              if getsupreg(paraloc.location^.register)<first_mm_imreg then
-                begin
-                  getcpuregister(list,paraloc.location^.register);
-                  ungetcpuregister(list,paraloc.location^.register);
-                end;
-              a_loadmm_reg_reg(list,paraloc.location^.size,paraloc.location^.size,paraloc.location^.register,reg,shuffle);
-            end;
-          LOC_REFERENCE,
-          LOC_CREFERENCE:
-            begin
-              reference_reset_base(href,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-              a_load_ref_reg(list,paraloc.location^.size,paraloc.location^.size,href,reg);
-            end;
-          else
-            internalerror(2003053010);
-        end
       end;
 
 
@@ -2226,7 +2111,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.174  2004-10-05 20:41:01  peter
+  Revision 1.175  2004-10-10 20:22:53  peter
+    * symtable allocation rewritten
+    * loading of parameters to local temps/regs cleanup
+    * regvar support for parameters
+    * regvar support for staticsymtable (main body)
+
+  Revision 1.174  2004/10/05 20:41:01  peter
     * more spilling rewrites
 
   Revision 1.173  2004/09/29 18:55:40  florian

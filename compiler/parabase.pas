@@ -57,6 +57,7 @@ unit parabase;
           destructor  done;
           procedure   reset;
           procedure   check_simple_location;
+          function    is_simple_reference:boolean;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
        end;
@@ -145,6 +146,20 @@ implementation
       end;
 
 
+    function tcgpara.is_simple_reference:boolean;
+      begin
+        if not assigned(location) then
+          internalerror(200410102);
+{$ifdef powerpc}
+        { Powerpc always needs a copy in a local temp }
+        result:=false;
+{$else}
+        result:=not assigned(location^.next) and
+                (location^.loc=LOC_REFERENCE);
+{$endif}
+      end;
+
+
     procedure tcgpara.get_location(var newloc:tlocation);
       begin
         if not assigned(location) then
@@ -192,7 +207,13 @@ end.
 
 {
    $Log$
-   Revision 1.2  2004-09-21 17:25:12  peter
+   Revision 1.3  2004-10-10 20:22:53  peter
+     * symtable allocation rewritten
+     * loading of parameters to local temps/regs cleanup
+     * regvar support for parameters
+     * regvar support for staticsymtable (main body)
+
+   Revision 1.2  2004/09/21 17:25:12  peter
      * paraloc branch merged
 
    Revision 1.1.2.2  2004/09/14 19:09:37  jonas
