@@ -23,6 +23,10 @@
 }
 unit files;
 
+{$ifdef TP}
+{$V+}
+{$endif}
+
   interface
 
     uses
@@ -204,7 +208,9 @@ unit files;
 
     constructor tinputfile.init(const fn:string);
       var
-        p,n,e : string;
+        p:sirstr;
+        n:namestr;
+        e:extstr;
       begin
         FSplit(fn,p,n,e);
         name:=stringdup(n+e);
@@ -891,7 +897,14 @@ unit files;
   {$ifdef go32v2}
          asmprefix:=stringdup(FixFileName('as'));
   {$else}
+    {$ifdef OS2}
+         {Allthough OS/2 supports long filenames I play it safe and
+          use 8.3 filenames, because this allows the compiler to run
+          on a FAT partition. (DM)}
+         asmprefix:=stringdup(FixFileName('as'));
+    {$else}
          asmprefix:=stringdup(FixFileName(n));
+    {$endif}
   {$endif}
 {$endif tp}
          path:=nil;
@@ -1008,7 +1021,13 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.60  1998-10-14 10:45:07  pierre
+  Revision 1.61  1998-10-14 10:57:25  daniel
+  * Dirstr, namestr, extstr.
+  * $V+ to prevent Peter from forgetting this.
+  * OS/2 compiler uses 8.3 filenames to support running the compiler on an old
+    DOS FAT partition.
+
+  Revision 1.60  1998/10/14 10:45:07  pierre
     * ppu problems for m68k fixed (at least in cross compiling)
     * one last memory leak for sysamiga fixed
     * the amiga RTL compiles now completely !!
