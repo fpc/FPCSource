@@ -40,7 +40,11 @@ var
 begin
   OldInOutRes := InOutRes;
   InOutRes := 0;
+{$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+  GetDir (0, Dir);
+{$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
   GetDir (VolumeName, Dir);
+{$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
   InOutRes := OldInOutRes;
 end;
 {$ENDIF FPC_FEXPAND_VOLUMES}
@@ -51,9 +55,8 @@ function FExpand (const Path: PathStr): PathStr;
 (* LFNSupport boolean constant, variable or function must be declared for all
    the platforms, at least locally in the Dos unit implementation part.
    In addition, FPC_FEXPAND_UNC, FPC_FEXPAND_DRIVES, FPC_FEXPAND_GETENV_PCHAR,
-   FPC_FEXPAND_TILDE and FPC_FEXPAND_VOLUMES conditionals might be defined to
-   specify FExpand behaviour. Only forward slashes are supported if UNIX
-   conditional is defined, both forward and backslashes otherwise.
+   FPC_FEXPAND_TILDE, FPC_FEXPAND_VOLUMES and FPC_FEXPAND_NO_DEFAULT_PATHS
+   conditionals might be defined to specify FExpand behaviour.
 *)
 
 {$IFDEF FPC_FEXPAND_DRIVES}
@@ -68,7 +71,7 @@ var
     RootNotNeeded: boolean;
 {$ELSE FPC_FEXPAND_UNC}
 const
- RootNotNeeded = false;
+    RootNotNeeded = false;
 {$ENDIF FPC_FEXPAND_UNC}
 
 var S, Pa, Dirs: PathStr;
@@ -78,27 +81,35 @@ begin
 {$IFDEF FPC_FEXPAND_UNC}
     RootNotNeeded := false;
 {$ENDIF FPC_FEXPAND_UNC}
-{$IFDEF FPC_FEXPAND_DRIVES}
-    PathStart := 3;
-{$ENDIF FPC_FEXPAND_DRIVES}
     if FileNameCaseSensitive then
         Pa := Path
     else
         Pa := UpCase (Path);
-{$IFNDEF UNIX}
+    if DirectorySeparator = '\' then
     {Allow slash as backslash}
-    for I := 1 to Length (Pa) do
-        if Pa [I] = '/' then
-            Pa [I] := DirectorySeparator;
-{$ELSE}
+        begin
+            for I := 1 to Length (Pa) do
+                if Pa [I] = '/' then
+                    Pa [I] := DirectorySeparator
+        end
+    else
     {Allow backslash as slash}
-    for I := 1 to Length (Pa) do
-        if Pa [I] = '\' then
-            Pa [I] := DirectorySeparator;
-{$ENDIF UNIX}
-{$IFDEF FPC_FEXPAND_VOLUMES}
+        begin
+            for I := 1 to Length (Pa) do
+                if Pa [I] = '\' then
+                    Pa [I] := DirectorySeparator;
+        end;
+{$IFDEF FPC_FEXPAND_DRIVES}
+ {$IFDEF FPC_FEXPAND_VOLUMES}
+  {$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+    PathStart := Pos (DriveSeparator, Pa);
+  {$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
     PathStart := Succ (Pos (DriveSeparator, Pa));
-{$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
+ {$ELSE FPC_FEXPAND_VOLUMES}
+    PathStart := 3;
+ {$ENDIF FPC_FEXPAND_VOLUMES}
+{$ENDIF FPC_FEXPAND_DRIVES}
 {$IFDEF FPC_FEXPAND_TILDE}
     {Replace ~/ with $HOME/}
     if (Length (Pa) >= 1) and (Pa [1] = '~') and
@@ -127,24 +138,25 @@ begin
 {$ENDIF FPC_FEXPAND_VOLUMES}
         begin
 {$IFDEF FPC_FEXPAND_DRIVES}
- {$IFDEF FPC_FEXPAND_VOLUMES}
+ {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+  {$IFDEF FPC_FEXPAND_VOLUMES}
             GetDirIO (Copy (Pa, 1, PathStart - 2), S);
- {$ELSE FPC_FEXPAND_VOLUMES}
+  {$ELSE FPC_FEXPAND_VOLUMES}
             { Always uppercase driveletter }
             if (Pa [1] in ['a'..'z']) then
                 Pa [1] := Chr (Ord (Pa [1]) and not ($20));
             GetDirIO (Ord (Pa [1]) - Ord ('A') + 1, S);
- {$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_VOLUMES}
             if Length (Pa) = Pred (PathStart) then
                 Pa := S
             else
                 if Pa [PathStart] <> DirectorySeparator then
- {$IFDEF FPC_FEXPAND_VOLUMES}
+  {$IFDEF FPC_FEXPAND_VOLUMES}
                     if Copy (Pa, 1, PathStart - 2) = Copy (S, 1, PathStart - 2)
                                                                            then
- {$ELSE FPC_FEXPAND_VOLUMES}
+  {$ELSE FPC_FEXPAND_VOLUMES}
                     if Pa [1] = S [1] then
- {$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_VOLUMES}
                         begin
                             { remove ending slash if it already exists }
                             if S [Length (S)] = DirectorySeparator then
@@ -153,14 +165,15 @@ begin
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
                         end
                     else
- {$IFDEF FPC_FEXPAND_VOLUMES}
+  {$IFDEF FPC_FEXPAND_VOLUMES}
                         Pa := Copy (Pa, 1, PathStart - 2) + DriveSeparator
                            + DirectorySeparator +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
- {$ELSE FPC_FEXPAND_VOLUMES}
+  {$ELSE FPC_FEXPAND_VOLUMES}
                         Pa := Pa [1] + DriveSeparator + DirectorySeparator +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
- {$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_VOLUMES}
+ {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
         end
     else
 {$ELSE FPC_FEXPAND_DRIVES}
@@ -173,9 +186,12 @@ begin
         begin
             GetDirIO (0, S);
 {$IFDEF FPC_FEXPAND_DRIVES}
+ {$IFDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
+                PathStart := Pos (DriveSeparator, S);
+ {$ELSE FPC_FEXPAND_NO_DEFAULT_PATHS}
             if (Length (Pa) > 0) and (Pa [1] = DirectorySeparator) then
                 begin
- {$IFDEF FPC_FEXPAND_UNC}
+  {$IFDEF FPC_FEXPAND_UNC}
                     {Do not touch network drive names}
                     if (Length (Pa) > 1) and (Pa [2] = DirectorySeparator)
                                                             and LFNSupport then
@@ -204,18 +220,19 @@ begin
                                     end;
                         end
                     else
- {$ENDIF FPC_FEXPAND_UNC}
- {$IFDEF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_UNC}
+  {$IFDEF FPC_FEXPAND_VOLUMES}
                         begin
                             I := Pos (DriveSeparator, S);
                             Pa := Copy (S, 1, Pred (I)) + DriveSeparator + Pa;
                             PathStart := Succ (I);
                         end;
- {$ELSE FPC_FEXPAND_VOLUMES}
+  {$ELSE FPC_FEXPAND_VOLUMES}
                         Pa := S [1] + DriveSeparator + Pa;
- {$ENDIF FPC_FEXPAND_VOLUMES}
+  {$ENDIF FPC_FEXPAND_VOLUMES}
                 end
             else
+ {$ENDIF FPC_FEXPAND_NO_DEFAULT_PATHS}
 {$ENDIF FPC_FEXPAND_DRIVES}
                 (* We already have a slash if root is the curent directory. *)
                 if Length (S) = PathStart then
@@ -253,7 +270,7 @@ begin
     if (I <> 0) and (I = Length (Dirs) - 2) then
         begin
             J := Pred (I);
-            while (J >= 0) and (Dirs [J] <> DirectorySeparator) do
+            while (J > 0) and (Dirs [J] <> DirectorySeparator) do
                 Dec (J);
             if (J = 0) then
                 Dirs := ''
@@ -306,7 +323,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-11-24 15:49:22  hajny
+  Revision 1.13  2002-11-25 21:03:57  hajny
+    * Amiga fixes (among others)
+
+  Revision 1.12  2002/11/24 15:49:22  hajny
     * make use of constants available in the system unit
 
   Revision 1.11  2002/09/07 15:07:45  peter
