@@ -746,10 +746,15 @@ end;
 
     procedure tbufferedfile.reset;
 
+      var
+         ofm : byte;
       begin
+         ofm:=filemode;
          iomode:=1;
          getmem(buf,bufsize);
+         filemode:=0;
          system.reset(f,1);
+         filemode:=ofm;
       end;
 
     procedure tbufferedfile.rewrite;
@@ -992,8 +997,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-04-07 11:09:04  peter
+    + filemode is set correct in tbufferedfile.reset
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.15  1998/03/10 16:27:38  pierre
     * better line info in stabs debug
