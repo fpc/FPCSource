@@ -88,11 +88,11 @@ const
         fabs    f1,f1
         // load 2^32 in f2
         {$ifndef macos}
-        lis    r3,factor@ha
-        lfd    f2,factor@l(r3)
+        lis    r4,factor@ha
+        lfd    f2,factor@l(r4)
         {$else}
-        lwz    r3,factor[TC](r2)
-        lfd    f2,0(r3)
+        lwz    r4,factor[TC](r2)
+        lfd    f2,0(r4)
         {$endif}
         // check if value is < 0
         // f3 := d / 2^32;
@@ -102,18 +102,18 @@ const
         // store
         stfd     f4,temp
         // and load into r4
-        lwz      r4,4+temp
+        lwz      r3,4+temp
         // convert back to float
         lis      r0,0x4330
         stw      r0,temp
-        xoris    r0,r4,0x8000
+        xoris    r0,r3,0x8000
         stw      r0,4+temp
         {$ifndef macos}
-        lis    r3,longint_to_real_helper@ha
-        lfd    f0,longint_to_real_helper@l(r3)
+        lis    r4,longint_to_real_helper@ha
+        lfd    f0,longint_to_real_helper@l(r4)
         {$else}
-        lwz    r3,longint_to_real_helper[TC](r2)
-        lfd    f0,0(r3)
+        lwz    r4,longint_to_real_helper[TC](r2)
+        lfd    f0,0(r4)
         {$endif}
         lfd    f3,temp
         fsub   f3,f3,f0
@@ -126,11 +126,11 @@ const
 
         // load 2^31 in f2
         {$ifndef macos}
-        lis    r3,factor2@ha
-        lfd    f2,factor2@l(r3)
+        lis    r4,factor2@ha
+        lfd    f2,factor2@l(r4)
         {$else}
-        lwz    r3,factor2[TC](r2)
-        lfd    f2,0(r3)
+        lwz    r4,factor2[TC](r2)
+        lfd    f2,0(r4)
         {$endif}
 
         // subtract 2^31
@@ -143,15 +143,15 @@ const
         // next part same as conversion to signed integer word
         fctiwz f4,f4
         stfd   f4,temp
-        lwz    r3,4+temp
+        lwz    r4,4+temp
         // add 2^31 if value was >=2^31
         blt    cr1, LTruncNoAdd
-        xoris  r3,r3,0x8000
+        xoris  r4,r4,0x8000
 LTruncNoAdd:
         // negate value if it was negative to start with
         beq    cr0,LTruncPositive
-        subfic r3,r3,0
-        subfze r4,r4
+        subfic r4,r4,0
+        subfze r3,r3
 LTruncPositive: 
       end ['R3','R4','F1','F2','F3','F4'];
 
@@ -178,17 +178,17 @@ LTruncPositive:
         // store d in temp
         stfd    f1, temp
         // extract sign bit (record in cr0)
-        lwz     r3,temp
-        rlwinm. r3,r3,1,31,31
+        lwz     r4,temp
+        rlwinm. r4,r4,1,31,31
         // make d positive
         fabs    f1,f1
         // load 2^32 in f2
         {$ifndef macos}
-        lis    r3,factor@ha
-        lfd    f2,factor@l(r3)
+        lis    r4,factor@ha
+        lfd    f2,factor@l(r4)
         {$else}
-        lwz    r3,factor[TC](r2)
-        lfd    f2,0(r3)
+        lwz    r4,factor[TC](r2)
+        lfd    f2,0(r4)
         {$endif}
         // check if value is < 0
         // f3 := d / 2^32;
@@ -198,18 +198,18 @@ LTruncPositive:
         // store
         stfd     f4,temp
         // and load into r4
-        lwz      r4,4+temp
+        lwz      r3,4+temp
         // convert back to float
         lis      r0,0x4330
         stw      r0,temp
-        xoris    r0,r4,0x8000
+        xoris    r0,r3,0x8000
         stw      r0,4+temp
         {$ifndef macos}
-        lis    r3,longint_to_real_helper@ha
-        lfd    f0,longint_to_real_helper@l(r3)
+        lis    r4,longint_to_real_helper@ha
+        lfd    f0,longint_to_real_helper@l(r4)
         {$else}
         lwz    r3,longint_to_real_helper[TC](r2)
-        lfd    f0,0(r3)
+        lfd    f0,0(r4)
         {$endif}
         lfd    f3,temp
         fsub   f3,f3,f0
@@ -222,11 +222,11 @@ LTruncPositive:
 
         // load 2^31 in f2
         {$ifndef macos}
-        lis    r3,factor2@ha
-        lfd    f2,factor2@l(r3)
+        lis    r4,factor2@ha
+        lfd    f2,factor2@l(r4)
         {$else}
-        lwz    r3,factor2[TC](r2)
-        lfd    f2,0(r3)
+        lwz    r4,factor2[TC](r2)
+        lfd    f2,0(r4)
         {$endif}
 
         // subtract 2^31
@@ -239,15 +239,15 @@ LTruncPositive:
         // next part same as conversion to signed integer word
         fctiw  f4,f4
         stfd   f4,temp
-        lwz    r3,4+temp
+        lwz    r4,4+temp
         // add 2^31 if value was >=2^31
         blt    cr1, LRoundNoAdd
-        xoris  r3,r3,0x8000
+        xoris  r4,r4,0x8000
 LRoundNoAdd:
         // negate value if it was negative to start with
         beq    cr0,LRoundPositive
-        subfic r3,r3,0
-        subfze r4,r4
+        subfic r4,r4,0
+        subfze r3,r3
 LRoundPositive: 
       end ['R3','R4','F1','F2','F3','F4'];
 
@@ -424,7 +424,10 @@ end ['R0','R3','R4','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.24  2003-05-30 23:56:41  florian
+  Revision 1.25  2003-05-31 20:22:06  jonas
+    * fixed 64 bit results of trunc and round
+
+  Revision 1.24  2003/05/30 23:56:41  florian
     * fixed parameter passing for int64
 
   Revision 1.23  2003/05/24 13:39:32  jonas
