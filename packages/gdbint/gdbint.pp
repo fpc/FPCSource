@@ -395,6 +395,10 @@ var
   procedure reload_fs;
 {$endif go32v2}
 
+{$ifdef GDB_V501}
+function inferior_pid : longint;
+{$endif}
+
 implementation
 
 uses
@@ -1383,6 +1387,12 @@ begin
    end;
 end;
 
+{$ifdef GDB_V501}
+function inferior_pid : longint;
+begin
+  inferior_pid:=inferior_ptid{.pid};
+end;
+{$endif}
 
 procedure proc_remove_foreign(pid:longint);cdecl;public;
 begin
@@ -2468,7 +2478,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-09-11 10:22:36  pierre
+  Revision 1.9  2001-09-19 15:25:56  pierre
+   + define inferior_pid as a function for 5.01
+
+  Revision 1.8  2001/09/11 10:22:36  pierre
    + NetBSD support
 
   Revision 1.7  2001/07/31 15:42:11  pierre
