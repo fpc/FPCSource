@@ -29,14 +29,15 @@ interface
     uses
        node;
 
+    {$i innr.inc}
+
     type
-       type
-          tinlinenode = class(tunarynode)
-             inlinenumber : byte;
-             constructor create(number : byte;is_const:boolean;l : tnode);virtual;
-             function getcopy : tnode;override;
-             function pass_1 : tnode;override;
-          end;
+       tinlinenode = class(tunarynode)
+          inlinenumber : byte;
+          constructor create(number : byte;is_const:boolean;l : tnode);virtual;
+          function getcopy : tnode;override;
+          function pass_1 : tnode;override;
+       end;
 
     var
        cinlinenode : class of tinlinenode;
@@ -50,7 +51,8 @@ implementation
       globtype,
       symconst,symtable,aasm,types,
       htypechk,pass_1,
-      ncal,cpubase
+      ncal,ncon,ncnv,nadd,
+      cpubase
 {$ifdef newcg}
       ,cgbase
       ,tgobj
@@ -67,7 +69,7 @@ implementation
 
      begin
         geninlinenode:=cinlinenode.create(number,is_const,l);
-     end:
+     end;
 
 {*****************************************************************************
                            TINLINENODE
@@ -78,7 +80,7 @@ implementation
       begin
          inherited create(inlinen,l);
          if is_const then
-           include(flags,nf_is_const);
+           include(flags,nf_inlineconst);
          inlinenumber:=number;
       end;
 
@@ -95,7 +97,7 @@ implementation
 {$ifdef fpc}
 {$maxfpuregisters 0}
 {$endif fpc}
-    function tinlinenode.pass_1 : tnode;override;
+    function tinlinenode.pass_1 : tnode;
       var
          vl,vl2  : longint;
          vr      : bestreal;
@@ -124,8 +126,7 @@ implementation
                     v:=porddef(adef)^.high;
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
-                  disposetree(p);
-                  p:=hp;
+                  pass_1:=hp;
                end;
              enumdef:
                begin
@@ -134,8 +135,7 @@ implementation
                     while enum^.nextenum<>nil do
                       enum:=enum^.nextenum;
                   hp:=genenumnode(enum);
-                  disposetree(p);
-                  p:=hp;
+                  pass_1:=hp;
                end;
            else
              internalerror(87);
@@ -145,11 +145,11 @@ implementation
       function getconstrealvalue : bestreal;
 
         begin
-           case left.treetype of
+           case left.nodetype of
               ordconstn:
-                getconstrealvalue:=left.value;
+                getconstrealvalue:=tordconstnode(left).value;
               realconstn:
-                getconstrealvalue:=left.value_real;
+                getconstrealvalue:=trealconstnode(left).value_real;
               else
                 internalerror(309992);
            end;
@@ -162,9 +162,7 @@ implementation
 
         begin
            hp:=genrealconstnode(r,bestrealdef^);
-           disposetree(p);
-           p:=hp;
-           firstpass(p);
+           firstpass(hp);
         end;
 
       procedure handleextendedfunction;
@@ -173,7 +171,7 @@ implementation
            location.loc:=LOC_FPU;
            resulttype:=s80floatdef;
            { redo firstpass for varstate status PM }
-           set_varstate(left,true);
+           left.set_varstate(true);
            if (left.resulttype^.deftype<>floatdef) or
              (pfloatdef(left.resulttype)^.typ<>s80real) then
              begin
@@ -191,11 +189,11 @@ implementation
          { if we handle writeln; left contains no valid address }
          if assigned(left) then
            begin
-              if left.treetype=callparan then
+              if left.nodetype=callparan then
                 firstcallparan(left,nil,false)
               else
                 firstpass(left);
-              left_right_max(p);
+              left_right_max;
               set_location(location,left.location);
            end;
          inc(parsing_para_level);
@@ -220,19 +218,19 @@ implementation
                vl2:=0; { second parameter Ex: ptr(vl,vl2) }
                vr:=0;
                isreal:=false;
-               case left.treetype of
+               case left.nodetype of
                  realconstn :
                    begin
                      isreal:=true;
-                     vr:=left.value_real;
+                     vr:=trealconstnode(left).value_real;
                    end;
                  ordconstn :
-                   vl:=left.value;
+                   vl:=tordconstnode(left).value;
                  callparan :
                    begin
                      { both exists, else it was not generated }
-                     vl:=left.left.value;
-                     vl2:=left.right.left.value;
+                     vl:=tordconstnode(tcallparanode(left).left).value;
+                     vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
                    end;
                  else
                    CGMessage(cg_e_illegal_expression);
@@ -431,47 +429,45 @@ implementation
                     CGMessage(type_e_mismatch)
                   else
                     begin
-                      if left.treetype=ordconstn then
+                      if left.nodetype=ordconstn then
                        begin
                          case inlinenumber of
-                          in_lo_word : hp:=genordinalconstnode(left.value and $ff,left.resulttype);
-                          in_hi_word : hp:=genordinalconstnode(left.value shr 8,left.resulttype);
-                          in_lo_long : hp:=genordinalconstnode(left.value and $ffff,left.resulttype);
-                          in_hi_long : hp:=genordinalconstnode(left.value shr 16,left.resulttype);
-                          in_lo_qword : hp:=genordinalconstnode(left.value and $ffffffff,left.resulttype);
-                          in_hi_qword : hp:=genordinalconstnode(left.value shr 32,left.resulttype);
+                          in_lo_word : hp:=genordinalconstnode(tordconstnode(left).value and $ff,left.resulttype);
+                          in_hi_word : hp:=genordinalconstnode(tordconstnode(left).value shr 8,left.resulttype);
+                          in_lo_long : hp:=genordinalconstnode(tordconstnode(left).value and $ffff,left.resulttype);
+                          in_hi_long : hp:=genordinalconstnode(tordconstnode(left).value shr 16,left.resulttype);
+                          in_lo_qword : hp:=genordinalconstnode(tordconstnode(left).value and $ffffffff,left.resulttype);
+                          in_hi_qword : hp:=genordinalconstnode(tordconstnode(left).value shr 32,left.resulttype);
                          end;
-                         disposetree(p);
                          firstpass(hp);
-                         p:=hp;
+                         pass_1:=hp;
                        end;
                     end;
                end;
 
              in_sizeof_x:
                begin
-                 set_varstate(left,false);
+                 left.set_varstate(false);
                  if push_high_param(left.resulttype) then
                   begin
-                    getsymonlyin(left.symtable,'high'+pvarsym(left.symtableentry)^.name);
-                    hp:=gennode(addn,genloadnode(pvarsym(srsym),left.symtable),
+                    getsymonlyin(tloadnode(left).symtable,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
+                    hp:=caddnode.create(addn,genloadnode(pvarsym(srsym),tloadnode(left).symtable),
                                      genordinalconstnode(1,s32bitdef));
                     if (left.resulttype^.deftype=arraydef) and
                        (parraydef(left.resulttype)^.elesize<>1) then
                       hp:=gennode(muln,hp,genordinalconstnode(parraydef(left.resulttype)^.elesize,s32bitdef));
-                    disposetree(p);
-                    p:=hp;
-                    firstpass(p);
+                    firstpass(hp);
                   end;
-                 if registers32<1 then
-                    registers32:=1;
-                 resulttype:=s32bitdef;
-                 location.loc:=LOC_REGISTER;
+                 if hp.registers32<1 then
+                    hp.registers32:=1;
+                 hp.resulttype:=s32bitdef;
+                 hp.location.loc:=LOC_REGISTER;
+                 pass_1:=hp;
                end;
 
              in_typeof_x:
                begin
-                  set_varstate(left,false);
+                  left.set_varstate(false);
                   if registers32<1 then
                     registers32:=1;
                   location.loc:=LOC_REGISTER;
@@ -480,13 +476,12 @@ implementation
 
              in_ord_x:
                begin
-                  set_varstate(left,true);
-                  if (left.treetype=ordconstn) then
+                  left.set_varstate(true);
+                  if (left.nodetype=ordconstn) then
                     begin
-                       hp:=genordinalconstnode(left.value,s32bitdef);
-                       disposetree(p);
-                       p:=hp;
-                       firstpass(p);
+                       hp:=genordinalconstnode(tordconstnode(left).value,s32bitdef);
+                       firstpass(hp);
+                       pass_1:=hp;
                     end
                   else
                     begin
@@ -567,7 +562,7 @@ implementation
                   else
                     resulttype:=u8bitdef;
                   { we don't need string conversations here }
-                  if (left.treetype=typeconvn) and
+                  if (left.nodetype=typeconvn) and
                      (left.left.resulttype^.deftype=stringdef) then
                     begin
                        hp:=left.left;
@@ -581,7 +576,7 @@ implementation
                     CGMessage(type_e_mismatch);
 
                   { evaluates length of constant strings direct }
-                  if (left.treetype=stringconstn) then
+                  if (left.nodetype=stringconstn) then
                     begin
                        hp:=genordinalconstnode(left.length,s32bitdef);
                        disposetree(p);
@@ -639,7 +634,7 @@ implementation
                          (penumdef(resulttype)^.has_jumps) then
                         CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible)
                       else
-                        if left.treetype=ordconstn then
+                        if left.nodetype=ordconstn then
                          begin
                            if inlinenumber=in_succ_x then
                              hp:=genordinalconstnode(left.value+1,left.resulttype)
@@ -741,7 +736,7 @@ implementation
                               hpp:=left;
                               while (hpp<>hp) do
                                begin
-                                 if (hpp.left.treetype=typen) then
+                                 if (hpp.left.nodetype=typen) then
                                    CGMessage(type_e_cant_read_write_type);
                                  if not is_equal(hpp.resulttype,pfiledef(hp.resulttype)^.typedfiletype.def) then
                                    CGMessage(type_e_mismatch);
@@ -764,7 +759,7 @@ implementation
                             while assigned(hp) do
                               begin
                                 incrementregisterpushed($ff);
-                                if (hp.left.treetype=typen) then
+                                if (hp.left.nodetype=typen) then
                                   CGMessage(type_e_cant_read_write_type);
                                 if assigned(hp.left.resulttype) then
                                   begin
@@ -1153,7 +1148,7 @@ implementation
                begin
                   set_varstate(left,false);
                   { this fixes tests\webtbs\tbug879.pp (FK)
-                  if left.treetype in [typen,loadn,subscriptn] then
+                  if left.nodetype in [typen,loadn,subscriptn] then
                     begin
                   }
                        case left.resulttype^.deftype of
@@ -1238,7 +1233,7 @@ implementation
 
              in_cos_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     setconstrealvalue(cos(getconstrealvalue))
                   else
                     handleextendedfunction;
@@ -1246,7 +1241,7 @@ implementation
 
              in_sin_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     setconstrealvalue(sin(getconstrealvalue))
                   else
                     handleextendedfunction;
@@ -1254,7 +1249,7 @@ implementation
 
              in_arctan_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     setconstrealvalue(arctan(getconstrealvalue))
                   else
                     handleextendedfunction;
@@ -1271,7 +1266,7 @@ implementation
 
              in_abs_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     setconstrealvalue(abs(getconstrealvalue))
                   else
                     handleextendedfunction;
@@ -1279,7 +1274,7 @@ implementation
 
              in_sqr_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     setconstrealvalue(sqr(getconstrealvalue))
                   else
                     handleextendedfunction;
@@ -1287,7 +1282,7 @@ implementation
 
              in_sqrt_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     begin
                        vr:=getconstrealvalue;
                        if vr<0.0 then
@@ -1304,7 +1299,7 @@ implementation
 
              in_ln_extended:
                begin
-                  if left.treetype in [ordconstn,realconstn] then
+                  if left.nodetype in [ordconstn,realconstn] then
                     begin
                        vr:=getconstrealvalue;
                        if vr<=0.0 then
@@ -1377,7 +1372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-09-26 14:59:34  florian
+  Revision 1.2  2000-09-27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.1  2000/09/26 14:59:34  florian
     * more conversion work done
 
 }

@@ -22,7 +22,7 @@
 }
 unit nmat;
 
-{$i defines}
+{$i defines.inc}
 
 interface
 
@@ -67,14 +67,15 @@ interface
       hcodegen,
 {$endif newcg}
       { for isbinaryoverloaded function }
-      nadd;
+      nadd,
+      ncon,ncnv,ncal;
 
 {****************************************************************************
                               TMODDIVNODE
  ****************************************************************************}
     function tmoddivnode.pass_1 : tnode;
       var
-         t : tnode
+         t : tnode;
          rv,lv : tconstexprint;
          rd,ld : pdef;
 
@@ -91,8 +92,8 @@ interface
            exit;
 
          { check for division by zero }
-         rv:=right.value;
-         lv:=left.value;
+         rv:=tordconstnode(right).value;
+         lv:=tordconstnode(left).value;
          if is_constintnode(right) and (rv=0) then
           begin
             Message(parser_e_division_by_zero);
@@ -102,7 +103,7 @@ interface
 
          if is_constintnode(left) and is_constintnode(right) then
            begin
-              case treetype of
+              case nodetype of
                 modn:
                   t:=genintconstnode(lv mod rv);
                 divn:
@@ -129,7 +130,7 @@ interface
                         right:=gentypeconvnode(right,cs64bitdef);
                         firstpass(right);
                      end;
-                   calcregisters(p,2,0,0);
+                   calcregisters(self,2,0,0);
                 end
               else if (porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit) then
                 begin
@@ -143,7 +144,7 @@ interface
                         right:=gentypeconvnode(right,cu64bitdef);
                         firstpass(right);
                      end;
-                   calcregisters(p,2,0,0);
+                   calcregisters(self,2,0,0);
                 end;
               resulttype:=left.resulttype;
            end
@@ -192,7 +193,7 @@ interface
               if codegenerror then
                 exit;
 
-              left_right_max(p);
+              left_right_max;
               if left.registers32<=right.registers32 then
                 inc(registers32);
            end;
@@ -212,22 +213,22 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
            exit;
 
-         if isbinaryoverloaded(p) then
+         if isbinaryoverloaded(self) then
            exit;
 
          if is_constintnode(left) and is_constintnode(right) then
            begin
-              case treetype of
+              case nodetype of
                  shrn:
-                   t:=genintconstnode(left.value shr right.value);
+                   t:=genintconstnode(tordconstnode(left).value shr tordconstnode(right).value);
                  shln:
-                   t:=genintconstnode(left.value shl right.value);
+                   t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
               end;
               firstpass(t);
               pass_1:=t;
@@ -253,9 +254,9 @@ interface
          if codegenerror then
            exit;
 
-         if (right.treetype<>ordconstn) then
+         if (right.nodetype<>ordconstn) then
           inc(regs);
-         calcregisters(p,regs,0,0);
+         calcregisters(self,regs,0,0);
 
          location.loc:=LOC_REGISTER;
       end;
@@ -277,7 +278,7 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -288,7 +289,7 @@ interface
            exit;
          if is_constintnode(left) then
            begin
-              t:=genintconstnode(-left.value);
+              t:=genintconstnode(-tordconstnode(left).value);
               firstpass(t);
               pass_1:=t;
               exit;
@@ -300,7 +301,7 @@ interface
 {$endif i386}
              then
            begin
-              t:=genrealconstnode(-left.value_real,bestrealdef^);
+              t:=genrealconstnode(-trealconstnode(left).value_real,bestrealdef^);
               firstpass(t);
               pass_1:=t;
               exit;
@@ -378,7 +379,7 @@ interface
                       (pparaitem(minusdef^.para^.first)^.next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_minus],nil);
-                        t.left:=gencallparanode(left,nil);
+                        tcallnode(t).left:=gencallparanode(left,nil);
                         left:=nil;
                         firstpass(t);
                         pass_1:=t;
@@ -408,18 +409,18 @@ interface
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          if codegenerror then
            exit;
 
-         if (left.treetype=ordconstn) then
+         if (left.nodetype=ordconstn) then
            begin
               if is_boolean(left.resulttype) then
                 { here we do a boolena(byte(..)) type cast because }
                 { boolean(<int64>) is buggy in 1.00                }
-                t:=genordinalconstnode(byte(not(boolean(byte(left.value)))),left.resulttype)
+                t:=genordinalconstnode(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
               else
-                t:=genordinalconstnode(not(left.value),left.resulttype);
+                t:=genordinalconstnode(not(tordconstnode(left).value),left.resulttype);
               firstpass(t);
               pass_1:=t;
               exit;
@@ -496,7 +497,7 @@ interface
                       (pparaitem(notdef^.para^.first)^.next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_op_not],nil);
-                        t.left:=gencallparanode(left,nil);
+                        tcallnode(t).left:=gencallparanode(left,nil);
                         left:=nil;
                         firstpass(t);
                         pass_1:=t;
@@ -519,7 +520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:19  peter
+  Revision 1.5  2000-09-27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.4  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.3  2000/09/22 22:48:54  florian

@@ -48,7 +48,7 @@ implementation
 
     uses
       globtype,systems,tokens,
-      cobjects,verbose,globals,
+      cobjects,cutils,verbose,globals,
       symconst,symtable,aasm,types,
       cpuinfo,
 {$ifdef newcg}
@@ -58,8 +58,92 @@ implementation
 {$endif newcg}
       htypechk,pass_1,
       cpubase,ncnv,ncal,nld,
-      ncon
+      ncon,nmat
       ;
+
+    function isbinaryoverloaded(var p : ptree) : boolean;
+
+     var
+         rd,ld   : pdef;
+         t : tnode;
+         optoken : ttoken;
+
+      begin
+        isbinaryoverloaded:=false;
+        { overloaded operator ? }
+        { load easier access variables }
+        rd:=p.right.resulttype;
+        ld:=p.left.resulttype;
+        if isbinaryoperatoroverloadable(ld,rd,voiddef,p.nodetype) then
+          begin
+             isbinaryoverloaded:=true;
+             {!!!!!!!!! handle paras }
+             case p.nodetype of
+                { the nil as symtable signs firstcalln that this is
+                  an overloaded operator }
+                addn:
+                  optoken:=_PLUS;
+                subn:
+                  optoken:=_MINUS;
+                muln:
+                  optoken:=_STAR;
+                starstarn:
+                  optoken:=_STARSTAR;
+                slashn:
+                  optoken:=_SLASH;
+                ltn:
+                  optoken:=tokens._lt;
+                gtn:
+                  optoken:=tokens._gt;
+                lten:
+                  optoken:=_lte;
+                gten:
+                  optoken:=_gte;
+                equaln,unequaln :
+                  optoken:=_EQUAL;
+                symdifn :
+                  optoken:=_SYMDIF;
+                modn :
+                  optoken:=_OP_MOD;
+                orn :
+                  optoken:=_OP_OR;
+                xorn :
+                  optoken:=_OP_XOR;
+                andn :
+                  optoken:=_OP_AND;
+                divn :
+                  optoken:=_OP_DIV;
+                shln :
+                  optoken:=_OP_SHL;
+                shrn :
+                  optoken:=_OP_SHR;
+                else
+                  exit;
+             end;
+             t:=gencallnode(overloaded_operators[optoken],nil);
+             { we have to convert p.left and p.right into
+              callparanodes }
+             if tcallnode(t).symtableprocentry=nil then
+               begin
+                  CGMessage(parser_e_operator_not_overloaded);
+                  putnode(t);
+               end
+             else
+               begin
+                  inc(t.symtableprocentry^.refs);
+                  t.left:=gencallparanode(p.left,nil);
+                  t.left:=gencallparanode(p.right,t.left);
+                  if p.nodetype=unequaln then
+                   t:=cnotnode.create(t);
+                  p.left:=nil;
+                  p.right:=nil;
+                  p.free;
+                  firstpass(t);
+                  putnode(p);
+                  p:=t;
+               end;
+          end;
+      end;
 
 {*****************************************************************************
                                 TADDNODE
@@ -136,7 +220,7 @@ implementation
          ld:=left.resulttype;
          convdone:=false;
 
-         if isbinaryoverloaded(hp) then
+         if isbinaryoverloaded() then
            begin
               pass_1:=hp;
               exit;
@@ -269,8 +353,8 @@ implementation
          else
            if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
            begin
-              s1:=getpcharcopy(left);
-              l1:=left.length;
+              s1:=tstringconstnode(left).getpcharcopy;
+              l1:=tstringconstnode(left).len;
               s2:=strpnew(char(byte(tordconstnode(right).value)));
               l2:=1;
               concatstrings:=true;
@@ -280,16 +364,16 @@ implementation
            begin
               s1:=strpnew(char(byte(tordconstnode(left).value)));
               l1:=1;
-              s2:=getpcharcopy(right);
-              l2:=right.length;
+              s2:=tstringconstnode(right).getpcharcopy;
+              l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
-              s1:=getpcharcopy(left);
-              l1:=tstringconstnode(left).length;
+              s1:=tstringconstnode(left).getpcharcopy;
+              l1:=tstringconstnode(left).len;
               s2:=getpcharcopy(right);
-              l2:=tstringconstnode(right).length;
+              l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end;
 
@@ -327,41 +411,42 @@ implementation
                 if (cs_full_boolean_eval in aktlocalswitches) or
                    (nodetype in [xorn,ltn,lten,gtn,gten]) then
                   begin
-                     make_bool_equal_size(p);
+                     make_bool_equal_size;
                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
-                       calcregisters(p,2,0,0)
+                       calcregisters(self,2,0,0)
                      else
-                       calcregisters(p,1,0,0);
+                       calcregisters(self,1,0,0);
                   end
                 else
                   case nodetype of
                     andn,
                     orn:
                       begin
-                        make_bool_equal_size(p);
-                        calcregisters(p,0,0,0);
+                        make_bool_equal_size;
+                        calcregisters(self,0,0,0);
                         location.loc:=LOC_JUMP;
                       end;
                     unequaln,
                     equaln:
                       begin
-                        make_bool_equal_size(p);
+                        make_bool_equal_size;
                         { Remove any compares with constants }
                         if (left.nodetype=ordconstn) then
                          begin
                            hp:=right;
-                           b:=(left.value<>0);
+                           b:=(tordconstnode(left).value<>0);
                            ot:=nodetype;
-                           disposetree(left);
-                           putnode(p);
-                           p:=hp;
+                           left.free;
+                           left:=nil;
+                           right:=nil;
                            if (not(b) and (ot=equaln)) or
                               (b and (ot=unequaln)) then
                             begin
-                              p:=gensinglenode(notn,hp);
+                              hp:=cnotnode.create(hp);
                               firstpass(hp);
                             end;
+                           pass_1:=hp;
                            exit;
                          end;
                         if (right.nodetype=ordconstn) then
@@ -1230,7 +1315,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-09-27 18:14:31  florian
+  Revision 1.8  2000-09-27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.7  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.6  2000/09/24 15:06:19  peter

@@ -108,11 +108,23 @@ interface
 
     function gensetconstnode(s : pconstset;settype : psetdef) : tsetconstnode;
 
+    { some helper routines }
+
+    function get_ordinal_value(p : tnode) : longint;
+    function is_constnode(p : tnode) : boolean;
+    function is_constintnode(p : tnode) : boolean;
+    function is_constcharnode(p : tnode) : boolean;
+    function is_constrealnode(p : tnode) : boolean;
+    function is_constboolnode(p : tnode) : boolean;
+    function is_constresourcestringnode(p : tnode) : boolean;
+    function str_length(p : tnode) : longint;
+    function is_emptyset(p : tnode):boolean;
+
 implementation
 
     uses
       cobjects,verbose,globals,systems,
-      types,hcodegen,pass_1,cpubase;
+      types,hcodegen,pass_1,cpubase,nld;
 
     function genordinalconstnode(v : tconstexprint;def : pdef) : tordconstnode;
       begin
@@ -167,6 +179,78 @@ implementation
       begin
          genpcharconstnode:=cstringconstnode.createpchar(s,length);
       end;
+
+    function get_ordinal_value(p : tnode) : longint;
+      begin
+         if p.nodetype=ordconstn then
+           get_ordinal_value:=tordconstnode(p).value
+         else
+           begin
+             Message(type_e_ordinal_expr_expected);
+             get_ordinal_value:=0;
+           end;
+      end;
+
+
+    function is_constnode(p : tnode) : boolean;
+      begin
+        is_constnode:=(p.nodetype in [ordconstn,realconstn,stringconstn,fixconstn,setconstn]);
+      end;
+
+
+    function is_constintnode(p : tnode) : boolean;
+      begin
+         is_constintnode:=(p.nodetype=ordconstn) and is_integer(p.resulttype);
+      end;
+
+
+    function is_constcharnode(p : tnode) : boolean;
+
+      begin
+         is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype);
+      end;
+
+    function is_constrealnode(p : tnode) : boolean;
+
+      begin
+         is_constrealnode:=(p.nodetype=realconstn);
+      end;
+
+    function is_constboolnode(p : tnode) : boolean;
+
+      begin
+         is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resulttype);
+      end;
+
+
+    function is_constresourcestringnode(p : tnode) : boolean;
+      begin
+        is_constresourcestringnode:=(p.nodetype=loadn) and
+          (tloadnode(p).symtableentry^.typ=constsym) and
+          (pconstsym(tloadnode(p).symtableentry)^.consttyp=constresourcestring);
+      end;
+
+
+    function str_length(p : tnode) : longint;
+
+      begin
+         str_length:=tstrconstnode(p).length;
+      end;
+
+    function is_emptyset(p : tnode):boolean;
+
+      var
+        i : longint;
+      begin
+        i:=0;
+        if p.nodetype=setconstn then
+         begin
+           while (i<32) and (tsetconstnode(p).value_set^[i]=0) do
+            inc(i);
+         end;
+        is_emptyset:=(i=32);
+      end;
+
 
 {*****************************************************************************
                              TREALCONSTNODE
@@ -477,7 +561,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-27 18:14:31  florian
+  Revision 1.6  2000-09-27 20:25:44  florian
+    * more stuff fixed
+
+  Revision 1.5  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.4  2000/09/26 14:59:34  florian
