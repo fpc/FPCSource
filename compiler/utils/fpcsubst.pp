@@ -126,8 +126,8 @@ end;
 Procedure ProcessCommandline;
 
 Var
-  I,P,l : Integer;
-  T,S : String;
+  I : Integer;
+  S : String;
 
   Function GetOptArg : String;
 
