@@ -265,20 +265,29 @@ procedure sincos(theta : float;var sinus,cosinus : float);
   {$endif}
   end;
 
-function arccos(x : float) : float;
+{ Sign, ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
 
-{ There is some discussion as to what the correct formula is
-  for arccos and arcsin is, but I take the one from my book...}
-
-  begin
-     ArcCos:=ArcTan2(Sqrt(1-x*x),x);
-  end;
+function sign(x : float) : float;
+begin
+  if      x > 0 then sign :=  1.0
+  else if x < 0 then sign := -1.0
+  else               sign :=  0.0;
+end;
 
 function arcsin(x : float) : float;
+begin
+  if abs(x) > 1 then InvalidArgument
+  else if abs(x) < 0.5 then
+    arcsin := arctan(x/sqrt(1-sqr(x)))
+  else
+    arcsin := sign(x) * (pi*0.5 - arctan(sqrt(1 / sqr(x) - 1)));
+end;
 
-  begin
-     ArcSin:=ArcTan2(x,Sqrt(1-x*x))
-  end;
+function Arccos(x : Float) : Float;
+begin
+  arccos := pi*0.5 - arcsin(x);
+end;
+
 
 function arctan2( x,y : float) : float;
 
@@ -666,7 +675,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.15  2000-02-09 16:59:32  peter
+    Revision 1.16  2000-04-20 08:14:27  jonas
+      * better arcsin/arccos from Arjan van Dijk
+
+    Revision 1.15  2000/02/09 16:59:32  peter
       * truncated log
 
     Revision 1.14  2000/01/11 21:07:33  marco
