@@ -1,3 +1,5 @@
+{ %OPT=-Sg}
+
 label 1;
 begin
  goto 1;
