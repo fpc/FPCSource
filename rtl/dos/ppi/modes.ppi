@@ -16,7 +16,7 @@ const
 {$ifndef TEST_24BPP}
    VESANumber=13;
 {$else TEST_24BPP}
-   VESANumber=16;
+   VESANumber=17;
 {$endif TEST_24BPP}
       VESAModes : Array[0..VESANumber-1] of word=
       ( $100    {   640x400x256 }
@@ -72,7 +72,10 @@ const
 
 {
   $Log$
-  Revision 1.2  1998-11-18 09:31:38  pierre
+  Revision 1.3  1998-11-18 09:34:36  pierre
+   * wrong VesaNumber with 24 bit modes
+
+  Revision 1.2  1998/11/18 09:31:38  pierre
     * changed color scheme
       all colors are in RGB format if more than 256 colors
     + added 24 and 32 bits per pixel mode
