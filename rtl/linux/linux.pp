@@ -624,6 +624,7 @@ function  TTYname(var F:Text):string;
 ***************************}
 
 Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
+{$IFDEF I386}
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
 Procedure WritePort (Port : Longint; Value : Longint);
@@ -636,7 +637,7 @@ Procedure ReadPort (Port : Longint; Var Value : Longint);
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
-
+{$ENDIF}
 
 {**************************
     Utility functions
@@ -3322,7 +3323,7 @@ begin
 end;
 
 
-
+{$IFDEF I386}
 Procedure WritePort (Port : Longint; Value : Byte);
 {
   Writes 'Value' to port 'Port'
@@ -3510,6 +3511,7 @@ begin
 	insb
   end ['ECX','ESI','EDX'];
 end;
+{$ENDIF}
 
 
 
@@ -3519,7 +3521,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  1998-08-12 11:10:25  michael
+  Revision 1.14  1998-08-14 12:01:04  carl
+    * ifdef i386 for ports access
+
+  Revision 1.13  1998/08/12 11:10:25  michael
   Added settimeofday function
 
   Revision 1.12  1998/07/28 09:27:06  michael
