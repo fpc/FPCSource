@@ -988,6 +988,7 @@ implementation
          { create temp procinfo that will be used for the inlinecode tree }
          current_procinfo:=cprocinfo.create(nil);
          current_procinfo.procdef:=tprocdef(procdefinition);
+         current_procinfo.flags:=oldprocinfo.flags;
 
          { when the oldprocinfo is also being inlined reuse the
            inlining_procinfo }
@@ -1130,7 +1131,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.146  2003-12-15 21:25:48  peter
+  Revision 1.147  2003-12-21 19:42:42  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.146  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -3605,9 +3605,7 @@ implementation
          interfacedef:=false;
          hasforward:=false;
          _class := nil;
-         { only for non inlined procedures loaded from a unit
-           we don't need this info
-         }
+
          new(inlininginfo);
          fillchar(inlininginfo^,sizeof(tinlininginfo),0);
          overloadnumber:=0;
@@ -3638,7 +3636,11 @@ implementation
          ppufile.getsmallset(symoptions);
          { inline stuff }
          if proccalloption=pocall_inline then
-           ppufile.getderef(funcretsymderef)
+           begin
+             ppufile.getderef(funcretsymderef);
+             new(inlininginfo);
+             ppufile.getsmallset(inlininginfo^.flags);
+           end
          else
            funcretsym:=nil;
 
@@ -3659,11 +3661,7 @@ implementation
 
          { inline stuff }
          if proccalloption=pocall_inline then
-           begin
-             new(inlininginfo);
-             inlininginfo^.code:=ppuloadnodetree(ppufile);
-             ppufile.getsmallset(inlininginfo^.flags);
-           end
+           inlininginfo^.code:=ppuloadnodetree(ppufile)
          else
            inlininginfo := nil;
 
@@ -3766,7 +3764,11 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          if proccalloption=pocall_inline then
-           ppufile.putderef(funcretsymderef);
+           begin
+             ppufile.putderef(funcretsymderef);
+             ppufile.putsmallset(inlininginfo^.flags);
+           end;
+
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
@@ -3792,10 +3794,7 @@ implementation
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
          if proccalloption=pocall_inline then
-           begin
-             ppuwritenodetree(ppufile,inlininginfo^.code);
-             ppufile.putsmallset(inlininginfo^.flags);
-           end;
+           ppuwritenodetree(ppufile,inlininginfo^.code);
 
          ppufile.do_crc:=oldintfcrc;
 
@@ -6139,7 +6138,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.193  2003-12-16 21:29:24  florian
+  Revision 1.194  2003-12-21 19:42:43  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.193  2003/12/16 21:29:24  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.192  2003/12/12 12:09:40  marco

@@ -987,7 +987,6 @@ implementation
                printnode_procdef(procdef);
            end;
 
-         new(procdef.inlininginfo);
          { store a copy of the original tree for inline, for
            normal procedures only store a reference to the
            current tree }
@@ -1336,7 +1335,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2003-12-19 22:08:44  daniel
+  Revision 1.181  2003-12-21 19:42:43  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.180  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.179  2003/12/16 22:36:19  florian

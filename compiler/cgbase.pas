@@ -289,6 +289,9 @@ interface
     { returns true, if shuffle describes a real shuffle operation and not only a move }
     function realshuffle(shuffle : pmmshuffle) : boolean;
 
+    { returns true, if the shuffle describes only a move of the scalar at index 0 }
+    function shufflescalar(shuffle : pmmshuffle) : boolean;
+
     { removes shuffling from shuffle, this means that the destenation index of each shuffle is copied to
       the source }
     procedure removeshuffles(var shuffle : tmmshuffle);
@@ -559,6 +562,12 @@ implementation
       end;
 
 
+    function shufflescalar(shuffle : pmmshuffle) : boolean;
+      begin
+        result:=shuffle^.len=0;
+      end;
+
+
     procedure removeshuffles(var shuffle : tmmshuffle);
       var
         i : longint;
@@ -578,7 +587,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.80  2003-12-19 22:08:44  daniel
+  Revision 1.81  2003-12-21 19:42:42  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.80  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.79  2003/12/15 21:25:48  peter

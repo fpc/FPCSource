@@ -93,6 +93,8 @@ unit cgx86;
         procedure a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
+        procedure a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
+        procedure a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle);override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -133,6 +135,8 @@ unit cgx86;
       protected
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
+
+        procedure opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
       private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
@@ -708,9 +712,49 @@ unit cgx86;
        end;
 
 
+    function get_scalar_mm_op(fromsize,tosize : tcgsize) : tasmop;
+      begin
+        case fromsize of
+          OS_F32:
+            case tosize of
+              OS_F64:
+                result:=A_CVTSS2SD;
+              OS_F32:
+                result:=A_MOVSS;
+              else
+                internalerror(200312205);
+            end;
+          OS_F64:
+            case tosize of
+              OS_F64:
+                result:=A_MOVSD;
+              OS_F32:
+                result:=A_CVTSD2SS;
+              else
+                internalerror(200312204);
+            end;
+          else
+            internalerror(200312203);
+        end;
+      end;
+
+
     procedure tcgx86.a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle);
        begin
-         list.concat(taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2));
+         if shuffle=nil then
+           begin
+             if fromsize=tosize then
+               list.concat(taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2))
+             else
+               internalerror(200312202);
+           end
+         else
+           begin
+             if shufflescalar(shuffle) then
+               list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2))
+             else
+               internalerror(200312201);
+           end;
        end;
 
 
@@ -724,6 +768,105 @@ unit cgx86;
        begin
          list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,ref));
        end;
+
+
+    procedure tcgx86.a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+      var
+        l : tlocation;
+      begin
+        l.loc:=LOC_REFERENCE;
+        l.reference:=ref;
+        l.size:=size;
+        opmm_loc_reg(list,op,size,l,reg,shuffle);
+      end;
+
+
+    procedure tcgx86.a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle);
+     var
+       l : tlocation;
+     begin
+       l.loc:=LOC_REGISTER;
+       l.register:=src;
+       l.size:=size;
+       opmm_loc_reg(list,op,size,l,dst,shuffle);
+     end;
+
+
+    procedure tcgx86.opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
+      const
+        opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
+          ( { scalar }
+            ( { OS_F32 }
+              A_NOP,A_ADDSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+            ),
+          { Intel did again a "nice" job: they added packed double operations (*PD) to SSE2 but
+            no scalar ones (*SD)
+          }
+          {$ifdef x86_64}
+            ( { OS_F64 }
+              A_NOP,A_ADDSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+            )
+          {$else x86_64}
+            ( { OS_F64 }
+              A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+            )
+          {$endif x86_64}
+          ),
+          ( { vectorized/packed }
+            ( { OS_F32 }
+              A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+            ),
+            ( { OS_F64 }
+              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+            )
+          )
+        );
+
+      var
+        resultreg : tregister;
+        asmop : tasmop;
+      begin
+        { this is an internally used procedure so the parameters have
+          some constrains
+        }
+        if loc.size<>size then
+          internalerror(200312213);
+        resultreg:=dst;
+        { deshuffle }
+        //!!!
+        if (shuffle<>nil) and not(shufflescalar(shuffle)) then
+          begin
+          end
+        else if (shuffle=nil) then
+          asmop:=opmm2asmop[1,size,op]
+        else if shufflescalar(shuffle) then
+          begin
+            asmop:=opmm2asmop[0,size,op];
+            { no scalar operation available? }
+            if asmop=A_NOP then
+              begin
+                { do vectorized and shuffle finally }
+                //!!!
+              end;
+          end
+        else
+          internalerror(200312211);
+        if asmop=A_NOP then
+          internalerror(200312215);
+        case loc.loc of
+          LOC_CREFERENCE,LOC_REFERENCE:
+            list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));
+          else
+            internalerror(200312214);
+        end;
+        { shuffle }
+        if resultreg<>dst then
+          begin
+            internalerror(200312212);
+          end;
+      end;
 
 
     procedure tcgx86.a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; reg: TRegister);
@@ -1173,7 +1316,7 @@ unit cgx86;
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
         cm:=copy_mmx;
-      if (cs_littlesize in aktglobalswitches) and 
+      if (cs_littlesize in aktglobalswitches) and
          (len>helpsize) and
          not((len<=16) and (cm=copy_mmx)) then
         cm:=copy_string;
@@ -1758,7 +1901,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.92  2003-12-19 22:08:44  daniel
+  Revision 1.93  2003-12-21 19:42:43  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.92  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.91  2003/12/15 21:25:49  peter

@@ -231,6 +231,9 @@ unit cgobj;
           procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
           procedure a_parammm_ref(list: taasmoutput; size: tcgsize; ref: treference;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
           procedure a_parammm_loc(list: taasmoutput; loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
+          procedure a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -1395,6 +1398,16 @@ implementation
       end;
 
 
+    procedure tcg.a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+      begin
+      end;
+
+
+    procedure tcg.a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+      begin
+      end;
+
+
     class function tcg.reg_cgsize(const reg: tregister) : tcgsize;
       begin
         reg_cgsize := OS_INT;
@@ -1973,7 +1986,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.140  2003-12-15 21:39:39  florian
+  Revision 1.141  2003-12-21 19:42:42  florian
+    * fixed ppc inlining stuff
+    * fixed wrong unit writing
+    + added some sse stuff
+
+  Revision 1.140  2003/12/15 21:39:39  florian
     * improved register allocation of generic a_param_const and a_param_ref
 
   Revision 1.139  2003/12/15 21:25:48  peter
