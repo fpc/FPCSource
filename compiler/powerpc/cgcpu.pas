@@ -1701,7 +1701,7 @@ const
            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
          else if (ref2.base <> NR_NO) and
                  (r <> ref2.base) then
-           list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base))
+           a_load_reg_reg(list,OS_ADDR,OS_ADDR,r,ref2.base)
          else
            list.concat(taicpu.op_reg_const(A_LI,r,0));
          if freereg then
@@ -2292,7 +2292,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.158  2004-02-04 22:01:13  peter
+  Revision 1.159  2004-02-07 15:01:05  jonas
+    * changed an explicit mr to a_load_reg_reg so it's registered with the
+      register allocator as move
+
+  Revision 1.158  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.157  2004/02/03 19:49:24  jonas
