@@ -310,6 +310,7 @@
        TokenStatistics);
 
      _TOKEN_INFORMATION_CLASS = TOKEN_INFORMATION_CLASS;
+     TTokenInformationClass   = TOKEN_INFORMATION_CLASS;
 
      TOKEN_TYPE = (TokenPrimary := 1,TokenImpersonation
        );
@@ -937,7 +938,10 @@ type
 
 {
   $Log$
-  Revision 1.19  2003-10-06 23:52:53  florian
+  Revision 1.20  2003-12-05 11:53:12  marco
+   * ttokeninformationclass alias for delphi compat
+
+  Revision 1.19  2003/10/06 23:52:53  florian
     * some data types cleaned up
 
   Revision 1.18  2003/08/20 23:12:32  marco
