@@ -588,7 +588,9 @@ implementation
              in_length_string:
                begin
                   set_varstate(left,true);
-                  if is_ansistring(left.resulttype) then
+                  if is_ansistring(left.resulttype) or
+                    is_widestring(left.resulttype) or
+                    is_dynamic_array(left.resulttype) then
                     resulttype:=s32bitdef
                   else
                     resulttype:=u8bitdef;
@@ -1537,7 +1539,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-03-12 12:47:46  michael
+  Revision 1.31  2001-03-23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.30  2001/03/12 12:47:46  michael
   + Patches from peter
 
   Revision 1.29  2001/03/03 12:38:08  jonas

@@ -674,7 +674,8 @@ implementation
            delphi/tp7 it's only allowed for pchars }
          if (left.resulttype^.deftype=pointerdef) and
             ((m_fpc in aktmodeswitches) or
-             is_pchar(left.resulttype)) then
+             is_pchar(left.resulttype) or
+             is_pwidechar(left.resulttype)) then
           begin
             { convert pointer to array }
             harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
@@ -694,9 +695,7 @@ implementation
              begin
                 { indexed access to strings }
                 case pstringdef(left.resulttype)^.string_typ of
-                   {
-                   st_widestring : resulttype:=cwchardef;
-                   }
+                   st_widestring : resulttype:=cwidechardef;
                    st_ansistring : resulttype:=cchardef;
                    st_longstring : resulttype:=cchardef;
                    st_shortstring : resulttype:=cchardef;
@@ -902,7 +901,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-12-31 11:14:11  jonas
+  Revision 1.15  2001-03-23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.14  2000/12/31 11:14:11  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

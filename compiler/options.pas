@@ -1274,6 +1274,7 @@ begin
   def_symbol('HASWIDECHAR');
   def_symbol('HASOUT');
   def_symbol('HASINTF');
+  def_symbol('HASVARIANT');
   def_symbol('INTERNSETLENGTH');
   def_symbol('INT64FUNCRESOK');
   def_symbol('PACKENUMFIXED');
@@ -1554,7 +1555,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2001-03-13 20:59:56  peter
+  Revision 1.37  2001-03-23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.36  2001/03/13 20:59:56  peter
     * message loading fixes from Sergey (merged)
 
   Revision 1.35  2001/03/10 13:19:10  peter

@@ -98,6 +98,9 @@ interface
     { true if p is a char array def }
     function is_chararray(p : pdef) : boolean;
 
+    { true if p is a wide char array def }
+    function is_widechararray(p : pdef) : boolean;
+
 {*****************************************************************************
                           String helper functions
  *****************************************************************************}
@@ -119,6 +122,9 @@ interface
 
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
+
+    { true if p is a pwidechar def }
+    function is_pwidechar(p : pdef) : boolean;
 
     { true if p is a voidpointer def }
     function is_voidpointer(p : pdef) : boolean;
@@ -669,6 +675,14 @@ implementation
                       not(is_special_array(p));
       end;
 
+    { true if p is a widechar array def }
+    function is_widechararray(p : pdef) : boolean;
+      begin
+        is_widechararray:=(p^.deftype=arraydef) and
+                      is_equal(parraydef(p)^.elementtype.def,cwidechardef) and
+                      not(is_special_array(p));
+      end;
+
 
     { true if p is a pchar def }
     function is_pchar(p : pdef) : boolean;
@@ -677,6 +691,15 @@ implementation
                   (is_equal(ppointerdef(p)^.pointertype.def,cchardef) or
                    (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
                     is_chararray(ppointerdef(p)^.pointertype.def)));
+      end;
+
+    { true if p is a pchar def }
+    function is_pwidechar(p : pdef) : boolean;
+      begin
+        is_pwidechar:=(p^.deftype=pointerdef) and
+                  (is_equal(ppointerdef(p)^.pointertype.def,cwidechardef) or
+                   (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
+                    is_widechararray(ppointerdef(p)^.pointertype.def)));
       end;
 
 
@@ -1743,7 +1766,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-03-03 12:38:33  jonas
+  Revision 1.36  2001-03-23 00:16:07  florian
+    + some stuff to compile FreeCLX added
+
+  Revision 1.35  2001/03/03 12:38:33  jonas
     + support for arraydefs in is_signed (for their rangetype, used in rangechecks)
 
   Revision 1.34  2001/02/26 19:44:55  peter
