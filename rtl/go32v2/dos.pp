@@ -221,7 +221,6 @@ begin
    dosregs.dl:=day;
    dosregs.ah:=$2b;
    msdos(dosregs);
-   DosError:=0;
 end;
 
 
@@ -233,7 +232,6 @@ begin
   minute:=dosregs.cl;
   second:=dosregs.dh;
   sec100:=dosregs.dl;
-  DosError:=0;
 end;
 
 
@@ -245,7 +243,6 @@ begin
   dosregs.dl:=sec100;
   dosregs.ah:=$2d;
   msdos(dosregs);
-  DosError:=0;
 end;
 
 
@@ -1143,7 +1140,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.4  2000-07-22 12:24:55  jonas
+  Revision 1.5  2000-07-30 17:09:55  peter
+    * merged fixes
+
+  Revision 1.4  2000/07/22 12:24:55  jonas
     * merged dossearchrec2searchrec() fix from fixes branch
 
   Revision 1.3  2000/07/14 10:33:09  michael
@@ -1151,5 +1151,4 @@ end.
 
   Revision 1.2  2000/07/13 11:33:39  michael
   + removed logs
-
 }
