@@ -435,17 +435,17 @@ type
 const
   configuration_table : array[0..10-1] of config = (
 {      good lazy nice chain }
-{0} (good_length:0;  max_lazy:0;   nice_length:0;   max_chain:0;    func:deflate_stored),  { store only }
-{1} (good_length:4;  max_lazy:4;   nice_length:8;   max_chain:4;    func:deflate_fast), { maximum speed, no lazy matches }
-{2} (good_length:4;  max_lazy:5;   nice_length:16;  max_chain:8;    func:deflate_fast),
-{3} (good_length:4;  max_lazy:6;   nice_length:32;  max_chain:32;   func:deflate_fast),
+{0} (good_length:0;  max_lazy:0;   nice_length:0;   max_chain:0;    func:@deflate_stored),  { store only }
+{1} (good_length:4;  max_lazy:4;   nice_length:8;   max_chain:4;    func:@deflate_fast), { maximum speed, no lazy matches }
+{2} (good_length:4;  max_lazy:5;   nice_length:16;  max_chain:8;    func:@deflate_fast),
+{3} (good_length:4;  max_lazy:6;   nice_length:32;  max_chain:32;   func:@deflate_fast),
 
-{4} (good_length:4;  max_lazy:4;   nice_length:16;  max_chain:16;   func:deflate_slow),  { lazy matches }
-{5} (good_length:8;  max_lazy:16;  nice_length:32;  max_chain:32;   func:deflate_slow),
-{6} (good_length:8;  max_lazy:16;  nice_length:128; max_chain:128;  func:deflate_slow),
-{7} (good_length:8;  max_lazy:32;  nice_length:128; max_chain:256;  func:deflate_slow),
-{8} (good_length:32; max_lazy:128; nice_length:258; max_chain:1024; func:deflate_slow),
-{9} (good_length:32; max_lazy:258; nice_length:258; max_chain:4096; func:deflate_slow)); { maximum compression }
+{4} (good_length:4;  max_lazy:4;   nice_length:16;  max_chain:16;   func:@deflate_slow),  { lazy matches }
+{5} (good_length:8;  max_lazy:16;  nice_length:32;  max_chain:32;   func:@deflate_slow),
+{6} (good_length:8;  max_lazy:16;  nice_length:128; max_chain:128;  func:@deflate_slow),
+{7} (good_length:8;  max_lazy:32;  nice_length:128; max_chain:256;  func:@deflate_slow),
+{8} (good_length:32; max_lazy:128; nice_length:258; max_chain:1024; func:@deflate_slow),
+{9} (good_length:32; max_lazy:258; nice_length:258; max_chain:4096; func:@deflate_slow)); { maximum compression }
 
 { Note: the deflate() code requires max_lazy >= MIN_MATCH and max_chain >= 4
   For deflate_fast() (levels <= 3) good is ignored and lazy has a different

@@ -63,9 +63,9 @@ type
 
 const
   WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
-    (WriteElement, WriteAttribute, WriteText, WriteCDATA, WriteEntityRef,
-     WriteEntity, WritePI, WriteComment, WriteDocument, WriteDocumentType,
-     WriteDocumentFragment, WriteNotation);
+    (@WriteElement, @WriteAttribute, @WriteText, @WriteCDATA, @WriteEntityRef,
+     @WriteEntity, @WritePI, @WriteComment, @WriteDocument, @WriteDocumentType,
+     @WriteDocumentFragment, @WriteNotation);
 
 procedure WriteNode(node: TDOMNode);
 begin
@@ -375,7 +375,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-10-15 15:31:26  sg
+  Revision 1.3  2001-06-07 14:38:44  jonas
+    * fixed wrong procvar syntax (patches from Peter)
+
+  Revision 1.2  2000/10/15 15:31:26  sg
   * Improved whitespace handling (entity references as first child of an
     element is now handled as indicator to stop the insertion of automatic
     linefeeds. Until now this was only the case with text nodes.)

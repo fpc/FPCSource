@@ -62,9 +62,9 @@ type
 
 const
   WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
-    (WriteElement, WriteAttribute, WriteText, WriteCDATA, WriteEntityRef,
-     WriteEntity, WritePI, WriteComment, WriteDocument, WriteDocumentType,
-     WriteDocumentFragment, WriteNotation);
+    (@WriteElement, @WriteAttribute, @WriteText, @WriteCDATA, @WriteEntityRef,
+     @WriteEntity, @WritePI, @WriteComment, @WriteDocument, @WriteDocumentType,
+     @WriteDocumentFragment, @WriteNotation);
 
 procedure WriteNode(node: TDOMNode);
 begin
@@ -412,7 +412,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-10-03 20:16:31  sg
+  Revision 1.6  2001-06-07 14:38:44  jonas
+    * fixed wrong procvar syntax (patches from Peter)
+
+  Revision 1.5  2000/10/03 20:16:31  sg
   * Now writes Processing Instructions and a stylesheet link, if set
 
   Revision 1.4  2000/07/29 14:52:25  sg
