@@ -81,6 +81,7 @@ type
     function StartdbTransaction(trans : TSQLHandle) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
+    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
   public
     destructor Destroy; override;
     property Handle: Pointer read GetHandle;
@@ -136,19 +137,29 @@ type
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
+    FIndexDefs           : TIndexDefs;
+    FReadOnly            : boolean;
+    FUpdateMode          : TUpdateMode;
+    FusePrimaryKeyAsKey  : Boolean;
 
     procedure FreeStatement;
     procedure PrepareStatement;
     procedure FreeFldBuffers;
     procedure InitUpdates(SQL : string);
+    function GetIndexDefs : TIndexDefs;
+    procedure SetIndexDefs(AValue : TIndexDefs);
+    procedure SetReadOnly(AValue : Boolean);
+    procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
+    procedure SetUpdateMode(AValue : TUpdateMode);
 
     procedure Execute;
 
   protected
-    // abstract & virual methods of TBufDataset
+    // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; override;
-    // abstract & virual methods of TDataset
+    // abstract & virtual methods of TDataset
+    procedure UpdateIndexDefs; override;
     procedure SetDatabase(Value : TDatabase); override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
@@ -195,7 +206,11 @@ type
     property Database;
 
     property Transaction;
+    property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStrings read FSQL write FSQL;
+    property IndexDefs : TIndexDefs read GetIndexDefs;
+    property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
+    property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
   end;
 
 implementation
@@ -224,11 +239,15 @@ begin
       DatabaseError(SErrAssTransaction);
 end;
 
+procedure TSQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+
+begin
+// Empty abstract
+end;
+
 procedure TSQLConnection.DoInternalConnect;
 begin
-// Where is this for?!?!
-//  if Connected then
-//    Close;
+// Empty abstract
 end;
 
 procedure TSQLConnection.DoInternalDisconnect;
@@ -245,7 +264,9 @@ function TSQLConnection.GetAsSQLText(Field : TField) : string;
 begin
   if not assigned(field) then Result := 'Null'
   else case field.DataType of
-    ftString : Result := '''' + field.asstring + ''''
+    ftString   : Result := '''' + field.asstring + '''';
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Field.AsDateTime) + ''''
   else
     Result := field.asstring;
   end; {case}
@@ -366,11 +387,11 @@ var
 
 begin
   db := (Database as tsqlconnection);
-  if Db = nil then
+  if not assigned(Db) then
     DatabaseError(SErrDatabasenAssigned);
   if not Db.Connected then
     db.Open;
-  if Transaction = nil then
+  if not assigned(Transaction) then
     DatabaseError(SErrTransactionnSet);
 
   sqltr := (transaction as tsqltransaction);
@@ -389,8 +410,7 @@ begin
     exit;
     end;
   FCursor.StatementType := GetSQLStatementType(buf);
-  if FCursor.StatementType = stSelect then
-    InitUpdates(Buf);
+  if (FCursor.StatementType = stSelect) and not ReadOnly then InitUpdates(Buf);
   Db.PrepareStatement(Fcursor,sqltr,buf);
 end;
 
@@ -552,10 +572,13 @@ begin
     end;
 
   FUpdateable := True;
-
 end;
 
 procedure TSQLQuery.InternalOpen;
+
+var tel : integer;
+    f   : TField;
+s : string;
 begin
   try
     PrepareStatement;
@@ -564,7 +587,24 @@ begin
       Execute;
       InternalInitFieldDefs;
       if DefaultFields then
+        begin
         CreateFields;
+
+        if FUpdateable and FusePrimaryKeyAsKey then
+          begin
+          UpdateIndexDefs;
+          for tel := 0 to indexdefs.count-1 do {with indexdefs[tel] do}
+            begin
+            if ixPrimary in indexdefs[tel].options then
+              begin
+              // Todo: If there is more then one field in the key, that must be parsed
+              s := indexdefs[tel].fields;
+              F := fieldbyname(s);
+              F.ProviderFlags := F.ProviderFlags + [pfInKey];
+              end;
+            end;
+          end;
+        end;
       end
     else
       DatabaseError(SErrNoSelectStatement,Self);
@@ -591,6 +631,13 @@ constructor TSQLQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FSQL := TStringList.Create;
+  FIndexDefs := TIndexDefs.Create(Self);
+  FReadOnly := false;
+// Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
+// (variants) set it to upWhereKeyOnly
+  FUpdateMode := upWhereKeyOnly;
+  
+  FUsePrimaryKeyAsKey := True;
 end;
 
 destructor TSQLQuery.Destroy;
@@ -650,6 +697,35 @@ begin
       Exit(t);
 end;
 
+procedure TSQLQuery.SetReadOnly(AValue : Boolean);
+
+begin
+  if not Active then FReadOnly := AValue
+  else
+    begin
+    // Just temporary, this should be possible in the future
+    DatabaseError(SActiveDataset);
+    end;
+end;
+
+procedure TSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
+
+begin
+  if not Active then FusePrimaryKeyAsKey := AValue
+  else
+    begin
+    // Just temporary, this should be possible in the future
+    DatabaseError(SActiveDataset);
+    end;
+end;
+
+Procedure TSQLQuery.UpdateIndexDefs;
+
+begin
+  if assigned(DataBase) then
+    (DataBase as TSQLConnection).UpdateIndexDefs(FIndexDefs,FTableName);
+end;
+
 function TSQLQuery.ApplyRecUpdate : boolean;
 
 var r,x,f     : integer;
@@ -664,16 +740,28 @@ var r,x,f     : integer;
 begin
   Result := False;
   sql_tables := FTableName;
-  s := fields[0].oldvalue;
-  sql_where := '('+fields[0].displayName+'='+s+')';
   sql_set := '';
+  sql_where := '';
   for x := 0 to Fields.Count -1 do
-    if ord(ActiveBuffer[(Fields[x].Fieldno-1) div 8]) and (1 shl ((Fields[x].Fieldno-1) mod 8)) > 0 then // check for null
-      sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
-    else
-      sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+    begin
+    if (pfInKey in Fields[x].ProviderFlags) or
+       ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
+       ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
+      begin
+      // This should be converted to something like GetAsSQLText, but better wait until variants (oldvalue) are working for strings
+      s := fields[x].oldvalue; // This directly int the line below raises a variant-error
+      sql_where := sql_where + '(' + fields[x].DisplayName + '=' + s + ') and ';
+      end;
+      
+    if (pfInUpdate in Fields[x].ProviderFlags) then
+      if ord(ActiveBuffer[(Fields[x].Fieldno-1) div 8]) and (1 shl ((Fields[x].Fieldno-1) mod 8)) > 0 then // check for null
+        sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
+      else
+        sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+    end;
 
   setlength(sql_set,length(sql_set)-1);
+  setlength(sql_where,length(sql_where)-5);
 
   with tsqlquery.Create(nil) do
     begin
@@ -693,16 +781,45 @@ Function TSQLQuery.GetCanModify: Boolean;
 
 begin
   if FCursor.StatementType = stSelect then
-    Result:= Active and  FUpdateable
+    Result:= Active and  FUpdateable and (not FReadOnly)
   else
     Result := False;
+end;
+
+function TSQLQuery.GetIndexDefs : TIndexDefs;
+
+begin
+  Result := FIndexDefs;
+end;
+
+procedure TSQLQuery.SetIndexDefs(AValue : TIndexDefs);
+
+begin
+  FIndexDefs := AValue;
+end;
+
+procedure TSQLQuery.SetUpdateMode(AValue : TUpdateMode);
+
+begin
+  FUpdateMode := AValue;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.10  2004-12-29 14:31:27  michael
+  Revision 1.11  2005-01-12 10:30:33  michael
+   * Patch from Joost Van der Sluis:
+     - implemented TSQLQuery.UpdateIndexDefs
+     - implemented TSQLQuery.ReadOnly
+     - implemented TSQLQuery.IndexDefs
+     - implemented TSQLQuery.UpdateMode
+     - implemented TSQLQuery.UsePrimaryKeyAsKey (Set pfInKey in the
+       providerflags
+       of fields that are in the primary index of the underlying table)
+     - Added support for updates on date-fields
+
+  Revision 1.10  2004/12/29 14:31:27  michael
     + Patch from Joost van der Sluis:
     - implemented support for modifying queries, with a simple parser
     - implemented ApplyRecUpdate
