@@ -1368,31 +1368,23 @@ end;
   var Name: string;
   begin
     Name:='';
-{    if assigned(sym.definition) then
-     if assigned(sym.definition.sym) then
-       Name:=sym.definition.sym^.name;}
     if Name='' then
     case sym.consttyp of
       constord :
-        Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.valueord)+')';
+        Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.value.valueord)+')';
       constresourcestring,
       conststring :
-{        Name:=''''+GetStr(PString(sym.value))+'''';}
-        Name:=''''+StrPas(pchar(sym.valueptr))+'''';
+        Name:=''''+StrPas(pchar(sym.value.valueptr))+'''';
       constreal:
-        Name:=FloatToStr(PBestReal(sym.valueptr)^);
+        Name:=FloatToStr(PBestReal(sym.value.valueptr)^);
       constbool:
-{        if boolean(sym.value)=true then
-          Name:='TRUE'
-        else
-          Name:='FALSE';}
-        Name:='Longbool('+IntToStr(sym.valueord)+')';
+        Name:='Longbool('+IntToStr(sym.value.valueord)+')';
       constint:
-        Name:=IntToStr(sym.valueord);
+        Name:=IntToStr(sym.value.valueord);
       constchar:
-        Name:=''''+chr(sym.valueord)+'''';
+        Name:=''''+chr(sym.value.valueord)+'''';
       constset:
-{        Name:=SetToStr(pnormalset(sym.valueptr)) };
+{        Name:=SetToStr(pnormalset(sym.value.valueptr)) };
       constnil: ;
     end;
     GetConstValueName:=Name;
@@ -2126,7 +2118,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-11-20 22:48:42  pierre
+  Revision 1.30  2002-11-24 18:17:29  carl
+    * fix compilation problems after my changes to tcontsym
+
+  Revision 1.29  2002/11/20 22:48:42  pierre
    * fix compilation failure for IDE
 
   Revision 1.28  2002/09/07 14:13:40  peter
