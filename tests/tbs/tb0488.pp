@@ -31,9 +31,11 @@ uses SysUtils,erroru;
 
 procedure Check(a,b:ansistring);
 begin
-  writeln(a);
   if a<>b then
-    error;
+    begin
+      writeln(a,' should be equal to ',b);
+      error;
+    end;
 end;
 
 begin
