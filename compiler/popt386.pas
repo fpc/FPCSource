@@ -786,25 +786,53 @@ Begin
                                   TmpBool1 := RefsEqual(TReference(Pai386(hp1)^.op2^), TReference(Pai386(p)^.op1^))
                                 Else
                                   TmpBool1 := Pai386(hp1)^.op2 = Pai386(p)^.op1;
-                              If TmpBool1
-                                Then
+                              If TmpBool1 Then
                             {mov reg1, mem1     or     mov mem1, reg1
                              mov mem2, reg1            mov reg2, mem1}
-                                  Begin
-                                    If (Pai386(hp1)^.op1t = top_ref)
-                                      Then
-                                        TmpBool1 := RefsEqual(TReference(Pai386(hp1)^.op1^),
-                                                              TReference(Pai386(p)^.op2^))
-                                      Else TmpBool1 := (Pai386(hp1)^.op1 = Pai386(p)^.op2);
-                                   If TmpBool1 Then
+                                Begin
+                                  If (Pai386(hp1)^.op1t = top_ref) Then
+                                    TmpBool1 := RefsEqual(TReference(Pai386(hp1)^.op1^),
+                                                          TReference(Pai386(p)^.op2^))
+                                  Else TmpBool1 := (Pai386(hp1)^.op1 = Pai386(p)^.op2);
+                                  If TmpBool1 Then
                         { Removes the second statement from
                             mov reg1, mem1
                             mov mem1, reg1 }
-                                      Begin
-                                        AsmL^.remove(hp1);
-                                        Dispose(hp1,done);
-                                      End;
-                                  End
+                                    Begin
+                                      AsmL^.remove(hp1);
+                                      Dispose(hp1,done);
+                                    End
+                                  Else
+                                    Begin
+                                      TmpUsedRegs := UsedRegs;
+                                      UpdateUsedRegs(TmpUsedRegs, Pai(hp1^.next));
+                                      If (Pai386(p)^.op1t = top_reg) And
+                                        { mov reg1, mem1
+                                          mov mem2, reg1 }
+                                         GetNextInstruction(hp1, hp2) And
+                                         (hp2^.typ = ait_instruction) And
+                                         (Pai386(hp2)^._operator = A_CMP) And
+                                         (Pai386(hp2)^.Op1t = TOp_Ref) And
+                                         (Pai386(hp2)^.Op2t = TOp_Reg) And
+                                         RefsEqual(TReference(Pai386(hp2)^.Op1^),
+                                                   TReference(Pai386(p)^.Op2^)) And
+                                         (Pai386(hp2)^.Op2 = Pai386(p)^.Op1) And
+                                         Not(RegUsedAfterInstruction(TRegister(Pai386(p)^.Op1),
+                                                hp2, TmpUsedRegs)) Then
+                           { change                   to
+                              mov reg1, mem1           mov reg1, mem1
+                              mov mem2, reg1           cmp reg1, mem2
+                              cmp mem1, reg1                          }
+                                        Begin
+                                          AsmL^.Remove(hp2);
+                                          Dispose(hp2, Done);
+                                          Pai386(hp1)^._operator := A_CMP;
+                                          Pai386(hp1)^.Opxt := top_reg + top_ref shl 4;
+                                          Pai386(hp1)^.Op2 := Pai386(hp1)^.Op1;
+                                          Pai386(hp1)^.Op1 := Pai386(p)^.Op1
+                                        End;
+                                    End;
+                                End
                                 Else
                                   Begin
                                     If GetNextInstruction(hp1, hp2) And
@@ -1591,7 +1619,13 @@ End.
 
 {
  $Log$
- Revision 1.35  1999-01-04 12:58:55  jonas
+ Revision 1.36  1999-01-04 22:04:15  jonas
+   + mov reg, mem1    to    mov reg, mem1
+      mov mem2, reg           cmp reg, mem2
+      cmp mem1, reg
+     # reg released
+
+ Revision 1.35  1999/01/04 12:58:55  jonas
    * no fistp/fild optimization for S_IQ (fistq doesn't exist)
 
  Revision 1.34  1998/12/29 18:48:17  jonas
