@@ -1,7 +1,7 @@
-unit xresource;
+unit xresource; {$DEFINE MACRO}
 interface
 uses
-  x,xlib;
+  x,xlib {$IFDEF MACROS}, strings{$ENDIF};
 
 {$ifndef os2}
   {$LinkLib c}
@@ -47,7 +47,7 @@ function XrmPermStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;
 function XrmQuarkToString(para1:TXrmQuark):TXrmString;cdecl;external libX11;
 function XrmUniqueQuark:TXrmQuark;cdecl;external libX11;
 {$ifdef MACROS}
-function XrmStringsEqual(a1,a2 : longint) : longint;
+function XrmStringsEqual(a1,a2 : pchar) : boolean;
 {$endif MACROS}
 
 type
@@ -67,11 +67,11 @@ type
    PXrmNameList = ^TXrmNameList;
    TXrmNameList = TXrmQuarkList;
 {$ifdef MACROS}
-function XrmNameToString(name : longint) : longint;
+function XrmNameToString(name : longint) : TXrmString;
 
-function XrmStringToName(_string : longint) : longint;
+function XrmStringToName(_string : Pchar) : longint;
 
-function XrmStringToNameList(str,name : longint) : longint;
+procedure XrmStringToNameList(str:Pchar; name : PXrmQuark);
 {$endif MACROS}
 
 type
@@ -82,20 +82,20 @@ type
    PXrmClassList = ^TXrmClassList;
    TXrmClassList = TXrmQuarkList;
 {$ifdef MACROS}
-function XrmClassToString(c_class : longint) : longint;
+function XrmClassToString(c_class : longint) : TXrmString;
 
-function XrmStringToClass(c_class : longint) : longint;
+function XrmStringToClass(c_class : Pchar) : longint;
 
-function XrmStringToClassList(str,c_class : longint) : longint;
+procedure XrmStringToClassList(str:Pchar; c_class : PXrmQuark);
 {$endif MACROS}
 type
 
    PXrmRepresentation = ^TXrmRepresentation;
    TXrmRepresentation = TXrmQuark;
 {$ifdef MACROS}
-function XrmStringToRepresentation(_string : longint) : longint;
+function XrmStringToRepresentation(_string : Pchar) : longint;
 
-function XrmRepresentationToString(_type : longint) : longint;
+function XrmRepresentationToString(_type : longint) : TXrmString;
 {$endif MACROS}
 
 type
@@ -181,47 +181,47 @@ function NULLSTRING : TXrmString;
   end;
 
 {$ifdef MACROS}
-function XrmStringsEqual(a1,a2 : longint) : longint;
+function XrmStringsEqual(a1,a2 : pchar) : boolean;
 begin
-   XrmStringsEqual:=(strcmp(a1,a2)) = 0;
+   XrmStringsEqual:=(strcomp(a1,a2)) = 0;
 end;
 
-function XrmNameToString(name : longint) : longint;
+function XrmNameToString(name : longint) : TXrmString;
 begin
    XrmNameToString:=XrmQuarkToString(name);
 end;
 
-function XrmStringToName(string : longint) : longint;
+function XrmStringToName(_string : Pchar) : longint;
 begin
    XrmStringToName:=XrmStringToQuark(_string);
 end;
 
-function XrmStringToNameList(str,name : longint) : longint;
+procedure XrmStringToNameList(str:Pchar; name : PXrmQuark);
 begin
-   XrmStringToNameList:=XrmStringToQuarkList(str,name);
+   XrmStringToQuarkList(str,name);
 end;
 
-function XrmClassToString(c_class : longint) : longint;
+function XrmClassToString(c_class : longint) : TXrmString;
 begin
    XrmClassToString:=XrmQuarkToString(c_class);
 end;
 
-function XrmStringToClass(c_class : longint) : longint;
+function XrmStringToClass(c_class : Pchar) : longint;
 begin
    XrmStringToClass:=XrmStringToQuark(c_class);
 end;
 
-function XrmStringToClassList(str,c_class : longint) : longint;
+procedure XrmStringToClassList(str:Pchar; c_class : PXrmQuark);
 begin
-   XrmStringToClassList:=XrmStringToQuarkList(str,c_class);
+   XrmStringToQuarkList(str,c_class);
 end;
 
-function XrmStringToRepresentation(_string : longint) : longint;
+function XrmStringToRepresentation(_string : Pchar) : longint;
 begin
    XrmStringToRepresentation:=XrmStringToQuark(_string);
 end;
 
-function XrmRepresentationToString(_type : longint) : longint;
+function XrmRepresentationToString(_type : longint) : TXrmString;
 begin
    XrmRepresentationToString:=XrmQuarkToString(_type);
 end;
